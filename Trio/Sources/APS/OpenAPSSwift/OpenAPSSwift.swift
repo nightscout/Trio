@@ -41,6 +41,64 @@ struct OpenAPSSwift {
         }
     }
 
+    static func determineBasal(
+        glucose: JSON,
+        currentTemp _: JSON,
+        iob: JSON,
+        profile: JSON,
+        autosens: JSON,
+        meal: JSON,
+        microBolusAllowed: Bool,
+        reservoir _: JSON,
+        pumpHistory: JSON,
+        preferences: JSON,
+        basalProfile: JSON,
+        trioCustomOrefVariables _: JSON,
+        clock: Date
+    ) -> (OrefFunctionResult, DetermineBasalInputs?) {
+        var determineBasalInputs: DetermineBasalInputs?
+
+        do {
+            // FIXME: figure out the types for the commented out vars
+            let glucose = try JSONBridge.glucose(from: glucose)
+            // currentTemp: JSON,
+            let iob = try JSONBridge.iobResult(from: iob)
+            let profile = try JSONBridge.profile(from: profile)
+            let autosens = try JSONBridge.autosens(from: autosens)
+            let meal = try JSONBridge.computedCarbs(from: meal)
+            let microBolusAllowed = microBolusAllowed
+            // reservoir: JSON
+            let pumpHistory = try JSONBridge.pumpHistory(from: pumpHistory)
+            let preferences = try JSONBridge.preferences(from: preferences)
+            let basalProfile = try JSONBridge.basalProfile(from: basalProfile)
+            // trioCustomOrefVariables: JSON
+
+            determineBasalInputs = DetermineBasalInputs(
+                glucose: glucose,
+                iob: iob,
+                profile: profile,
+                autosens: autosens,
+                meal: meal,
+                microBolusAllowed: microBolusAllowed,
+                pumpHistory: pumpHistory,
+                preferences: preferences,
+                basalProfile: basalProfile,
+                clock: clock
+            )
+
+            /*
+             let result = DeterminationGenerator.generate(profile: profile, currentTemp: <#T##TempBasal#>, iobData: iob, mealData: meal, autosensData: autosens, reservoirData: <#T##Reservoir#>, glucoseStatus: <#T##GlucoseStatus?#>, currentTime: clock)
+              */
+
+            // FIXME: fill in with result once we have it
+            // return (.success(JSONBridge.to(result)), determineBasalInputs)
+            return (.success(RawJSON.null), determineBasalInputs)
+
+        } catch {
+            return (.failure(error), determineBasalInputs)
+        }
+    }
+
     static func meal(
         pumphistory: JSON,
         profile: JSON,

@@ -81,6 +81,23 @@ struct MealInputs: Codable {
     let glucose: [BloodGlucose]
 }
 
+struct DetermineBasalInputs: Codable {
+    // FIXME: Fill in the rest of these properties
+    let glucose: [BloodGlucose]
+    // currentTemp
+    let iob: [IobResult]
+    let profile: Profile
+    let autosens: Autosens?
+    let meal: ComputedCarbs?
+    let microBolusAllowed: Bool
+    // reservoir: JSON
+    let pumpHistory: [PumpHistoryEvent]
+    let preferences: Preferences
+    let basalProfile: [BasalProfileEntry]
+    // trioCustomOrefVariables: JSON
+    let clock: Date
+}
+
 /// Represents a complete comparison between JS and Swift implementations
 struct AlgorithmComparison: Codable {
     let id: UUID
@@ -107,6 +124,7 @@ struct AlgorithmComparison: Codable {
     // Inputs for mismatches
     let iobInput: IobInputs?
     let mealInput: MealInputs?
+    let determineBasalInput: DetermineBasalInputs?
 
     init(
         function: OrefFunction,
@@ -119,6 +137,7 @@ struct AlgorithmComparison: Codable {
         comparisonError: AlgorithmException? = nil,
         iobInputs: IobInputs? = nil,
         mealInputs: MealInputs? = nil,
+        determineBasalInputs: DetermineBasalInputs? = nil,
         id: UUID = UUID(),
         createdAt: Date = Date()
     ) {
@@ -134,8 +153,9 @@ struct AlgorithmComparison: Codable {
         self.comparisonError = comparisonError
         iobInput = iobInputs
         mealInput = mealInputs
+        determineBasalInput = determineBasalInputs
         timezone = TimeZone.current.identifier
-        version = "3"
+        version = "4"
 
         #if targetEnvironment(simulator)
             isSimulator = true

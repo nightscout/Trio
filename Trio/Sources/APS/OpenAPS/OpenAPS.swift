@@ -371,7 +371,8 @@ final class OpenAPS {
             pumpHistory: pumpHistoryJSON,
             preferences: preferences,
             basalProfile: basalProfile,
-            trioCustomOrefVariables: trioCustomOrefVariables
+            trioCustomOrefVariables: trioCustomOrefVariables,
+            useSwiftOref: useSwiftOref
         )
 
         debug(.openAPS, "\(simulation ? "[SIMULATION]" : "") OREF DETERMINATION: \(orefDetermination)")
@@ -777,40 +778,116 @@ final class OpenAPS {
         pumpHistory: JSON,
         preferences: JSON,
         basalProfile: JSON,
-        trioCustomOrefVariables: JSON
+        trioCustomOrefVariables: JSON,
+        useSwiftOref: Bool
     ) async throws -> RawJSON {
-        try await withCheckedThrowingContinuation { continuation in
-            jsWorker.inCommonContext { worker in
-                worker.evaluateBatch(scripts: [
-                    Script(name: Prepare.log),
-                    Script(name: Prepare.determineBasal),
-                    Script(name: Bundle.basalSetTemp),
-                    Script(name: Bundle.getLastGlucose),
-                    Script(name: Bundle.determineBasal)
-                ])
+        let clock = Date()
+        let startJavascriptAt = Date()
+        let jsResult = await determineBasalJavascript(
+            glucose: glucose,
+            currentTemp: currentTemp,
+            iob: iob,
+            profile: profile,
+            autosens: autosens,
+            meal: meal,
+            microBolusAllowed: microBolusAllowed,
+            reservoir: reservoir,
+            pumpHistory: pumpHistory,
+            preferences: preferences,
+            basalProfile: basalProfile,
+            trioCustomOrefVariables: trioCustomOrefVariables,
+            clock: clock
+        )
+        let javascriptDuration = Date().timeIntervalSince(startJavascriptAt)
 
-                if let middleware = self.middlewareScript(name: OpenAPS.Middleware.determineBasal) {
-                    worker.evaluate(script: middleware)
+        // Important: we want to make sure that this flag ensures that none
+        // of the native code runs
+        guard useSwiftOref else {
+            return try jsResult.returnOrThrow()
+        }
+
+        let startSwiftAt = Date()
+        let (swiftResult, determineBasalInputs) = OpenAPSSwift.determineBasal(
+            glucose: glucose,
+            currentTemp: currentTemp,
+            iob: iob,
+            profile: profile,
+            autosens: autosens,
+            meal: meal,
+            microBolusAllowed: microBolusAllowed,
+            reservoir: reservoir,
+            pumpHistory: pumpHistory,
+            preferences: preferences,
+            basalProfile: basalProfile,
+            trioCustomOrefVariables: trioCustomOrefVariables,
+            clock: clock
+        )
+        let swiftDuration = Date().timeIntervalSince(startSwiftAt)
+
+        JSONCompare.logDifferences(
+            function: .determineBasal,
+            swift: swiftResult,
+            swiftDuration: swiftDuration,
+            javascript: jsResult,
+            javascriptDuration: javascriptDuration,
+            determineBasalInputs: determineBasalInputs
+        )
+
+        return try jsResult.returnOrThrow()
+    }
+
+    private func determineBasalJavascript(
+        glucose: JSON,
+        currentTemp: JSON,
+        iob: JSON,
+        profile: JSON,
+        autosens: JSON,
+        meal: JSON,
+        microBolusAllowed: Bool,
+        reservoir: JSON,
+        pumpHistory: JSON,
+        preferences: JSON,
+        basalProfile: JSON,
+        trioCustomOrefVariables: JSON,
+        clock: Date
+    ) async -> OrefFunctionResult {
+        do {
+            let result = try await withCheckedThrowingContinuation { continuation in
+                jsWorker.inCommonContext { worker in
+                    worker.evaluateBatch(scripts: [
+                        Script(name: Prepare.log),
+                        Script(name: Prepare.determineBasal),
+                        Script(name: Bundle.basalSetTemp),
+                        Script(name: Bundle.getLastGlucose),
+                        Script(name: Bundle.determineBasal)
+                    ])
+
+                    if let middleware = self.middlewareScript(name: OpenAPS.Middleware.determineBasal) {
+                        worker.evaluate(script: middleware)
+                    }
+
+                    let result = worker.call(function: Function.generate, with: [
+                        iob,
+                        currentTemp,
+                        glucose,
+                        profile,
+                        autosens,
+                        meal,
+                        microBolusAllowed,
+                        reservoir,
+                        clock,
+                        pumpHistory,
+                        preferences,
+                        basalProfile,
+                        trioCustomOrefVariables
+                    ])
+
+                    continuation.resume(returning: result)
                 }
-
-                let result = worker.call(function: Function.generate, with: [
-                    iob,
-                    currentTemp,
-                    glucose,
-                    profile,
-                    autosens,
-                    meal,
-                    microBolusAllowed,
-                    reservoir,
-                    Date(),
-                    pumpHistory,
-                    preferences,
-                    basalProfile,
-                    trioCustomOrefVariables
-                ])
-
-                continuation.resume(returning: result)
             }
+            return .success(result)
+        } catch {
+            return .failure(error)
         }
     }
 

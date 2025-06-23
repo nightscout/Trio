@@ -90,7 +90,8 @@ import Testing
             javascript: iobResultJavascript,
             javascriptDuration: 0.1,
             iobInputs: nil,
-            mealInputs: nil
+            mealInputs: nil,
+            determineBasalInputs: nil
         )
 
         if comparison.resultType == .valueDifference {
@@ -127,7 +128,8 @@ import Testing
             javascript: iobResultJavascript,
             javascriptDuration: 0.1,
             iobInputs: nil,
-            mealInputs: nil
+            mealInputs: nil,
+            determineBasalInputs: nil
         )
 
         if comparison.resultType != .valueDifference {

@@ -52,6 +52,10 @@ enum JSONBridge {
         try JSONBridge.from(string: from.rawJSON)
     }
 
+    static func iobResult(from: JSON) throws -> [IobResult] {
+        try JSONBridge.from(string: from.rawJSON)
+    }
+
     static func pumpHistory(from: JSON) throws -> [PumpHistoryEvent] {
         do {
             return try JSONBridge.from(string: from.rawJSON)
@@ -72,6 +76,10 @@ enum JSONBridge {
     }
 
     static func profile(from: JSON) throws -> Profile {
+        try JSONBridge.from(string: from.rawJSON)
+    }
+
+    static func computedCarbs(from: JSON) throws -> ComputedCarbs? {
         try JSONBridge.from(string: from.rawJSON)
     }
 
