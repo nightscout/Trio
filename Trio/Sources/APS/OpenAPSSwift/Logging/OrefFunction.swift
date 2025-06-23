@@ -23,6 +23,7 @@ enum OrefFunction: String, Codable {
 
     case makeProfile
     case iob
+    case meal
 
     // since we're removing some keys from our Profile that exist in Javascript
     // we need to let the difference function know which keys to ignore when
@@ -34,6 +35,10 @@ enum OrefFunction: String, Codable {
         case .iob:
             // we're only checking the first result for now
             return Set(stride(from: 1, to: 48, by: 1).map { String("[\($0)]") })
+        case .meal:
+            // These aren't used by downstream calculations, so we
+            // can ignore them in our comparison
+            return Set(["maxDeviation", "minDeviation", "allDeviations", "bwCarbs", "bwFound", "journalCarbs", "nsCarbs"])
         }
     }
 
@@ -57,6 +62,15 @@ enum OrefFunction: String, Codable {
                 // https://github.com/nightscout/Trio-dev/issues/453
                 "duration": 120
             ]
+        case .meal:
+            return [
+                "carbs": 0.1,
+                "mealCOB": 10,
+                "currentDeviation": 1,
+                "slopeFromMaxDeviation": 0.25,
+                "slopeFromMinDeviation": 0.25,
+                "lastCarbTime": 1
+            ]
         }
     }
 
@@ -66,6 +80,8 @@ enum OrefFunction: String, Codable {
             return .dictionary
         case .iob:
             return .array
+        case .meal:
+            return .dictionary
         }
     }
 }

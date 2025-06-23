@@ -100,7 +100,7 @@ import Testing
         #expect(result != nil)
         #expect(result!.mealCOB.isWithin(12 * 0.25, of: 12) == true, "mealCOB: \(result!.mealCOB.description)")
         #expect(
-            result!.currentDeviation.isWithin(3 * 0.25, of: 0) == true,
+            result!.currentDeviation.isWithin(3 * 0.25, of: 3),
             "currentDeviation: \(result!.currentDeviation.description)"
         )
     }

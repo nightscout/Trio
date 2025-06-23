@@ -15,6 +15,7 @@ struct ComputedCarbs: Codable {
 struct IOBInput {
     let profile: Profile
     let history: [PumpHistoryEvent]
+    let clock: Date
 }
 
 struct COBInputs {
@@ -78,7 +79,7 @@ enum MealTotal {
         let mealCarbTime: TimeInterval = time.timeIntervalSince1970
         var lastCarbTime: TimeInterval = 0
 
-        let iobInputs = IOBInput(profile: profile, history: pumpHistory)
+        let iobInputs = IOBInput(profile: profile, history: pumpHistory, clock: time)
         var cobInputs = COBInputs(
             glucoseData: glucose,
             iobInputs: iobInputs,
@@ -110,6 +111,7 @@ enum MealTotal {
                     lastCarbTime = max(lastCarbTime, treatmentTime)
 
                     let myCarbsAbsorbed = try MealCob.detectCarbAbsorption(
+                        clock: cobInputs.iobInputs.clock,
                         glucose: cobInputs.glucoseData,
                         pumpHistory: cobInputs.iobInputs.history,
                         basalProfile: cobInputs.basalProfile,
@@ -143,6 +145,7 @@ enum MealTotal {
         /// omiting maxCOB check here, the setting is not Optional in Swift and must be part of profile
 
         let finalCobResult = try MealCob.detectCarbAbsorption(
+            clock: cobInputs.iobInputs.clock,
             glucose: cobInputs.glucoseData,
             pumpHistory: cobInputs.iobInputs.history,
             basalProfile: cobInputs.basalProfile,
@@ -165,7 +168,7 @@ enum MealTotal {
             slopeFromMaxDeviation: finalCobResult.slopeFromMaxDeviation.rounded(scale: 3),
             slopeFromMinDeviation: finalCobResult.slopeFromMinDeviation.rounded(scale: 3),
             allDeviations: finalCobResult.allDeviations,
-            lastCarbTime: lastCarbTime
+            lastCarbTime: (lastCarbTime * 1000).rounded()
         )
     }
 }

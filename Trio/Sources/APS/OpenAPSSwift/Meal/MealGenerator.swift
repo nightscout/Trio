@@ -1,6 +1,6 @@
 import Foundation
 
-enum MealGeneratorError {
+enum MealGenerator {
     static func generate(
         pumpHistory: [PumpHistoryEvent],
         profile: Profile,
@@ -10,8 +10,6 @@ enum MealGeneratorError {
         glucoseHistory: [BloodGlucose]
     ) throws -> ComputedCarbs? {
         let treatments: [MealInput] = MealHistory.findMealInputs(pumpHistory: pumpHistory, carbHistory: carbHistory)
-
-        // TODO: do we need to handle the clock timezone handling? We'll parse in a proper Swift Date anyhow
 
         return try MealTotal.recentCarbs(
             treatments: treatments,

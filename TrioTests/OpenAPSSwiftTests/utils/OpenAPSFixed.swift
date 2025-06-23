@@ -39,6 +39,40 @@ final class OpenAPSFixed {
         return result
     }
 
+    func mealJavascript(
+        pumphistory: JSON,
+        profile: JSON,
+        basalProfile: JSON,
+        clock: JSON,
+        carbs: JSON,
+        glucose: JSON
+    ) async -> OrefFunctionResult {
+        let testBundle = Bundle(for: OpenAPSFixed.self)
+        do {
+            let result = try await withCheckedThrowingContinuation { continuation in
+                jsWorker.inCommonContext { worker in
+                    worker.evaluateBatch(scripts: [
+                        Script(name: "prepare/log.js"),
+                        Script.fromTestingBundle(name: "meal.js", bundle: testBundle),
+                        Script(name: "prepare/meal.js")
+                    ])
+                    let result = worker.call(function: "generate", with: [
+                        pumphistory,
+                        profile,
+                        clock,
+                        glucose,
+                        basalProfile,
+                        carbs
+                    ])
+                    continuation.resume(returning: result)
+                }
+            }
+            return .success(result)
+        } catch {
+            return .failure(error)
+        }
+    }
+
     func iobJavascript(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) async -> OrefFunctionResult {
         do {
             let testBundle = Bundle(for: OpenAPSFixed.self)
