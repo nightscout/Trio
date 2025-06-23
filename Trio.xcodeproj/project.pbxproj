@@ -2836,12 +2836,12 @@
 		3B5CD2A42D4AEA5D00CE213C /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				3B4550522D862BF200551B0D /* PumpHistoryEvent+Duplicates.swift */,
-				3B5F45B52D6A239000F70982 /* DoubleApproximateMatching.swift */,
 				3B5CD2A32D4AEA5D00CE213C /* Date+MinutesFromMidnight.swift */,
 				3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */,
+				3B5F45B52D6A239000F70982 /* DoubleApproximateMatching.swift */,
 				3BCE75B22D4B38A0009E9453 /* InsulinSensitivities+Convert.swift */,
 				3B1C5C312D68E233004E9273 /* PumpHistory+copy.swift */,
+				3B4550522D862BF200551B0D /* PumpHistoryEvent+Duplicates.swift */,
 				3B1C5C322D68E233004E9273 /* TimeExtensions.swift */,
 			);
 			path = Extensions;
