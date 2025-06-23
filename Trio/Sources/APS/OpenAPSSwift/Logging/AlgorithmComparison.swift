@@ -71,6 +71,16 @@ struct IobInputs: Codable {
     let autosens: Autosens?
 }
 
+/// For tracking inputs to `meal` when there is a mismatch
+struct MealInputs: Codable {
+    let pumpHistory: [PumpHistoryEvent]
+    let profile: Profile
+    let basalProfile: [BasalProfileEntry]
+    let clock: Date
+    let carbs: [CarbsEntry]
+    let glucose: [BloodGlucose]
+}
+
 /// Represents a complete comparison between JS and Swift implementations
 struct AlgorithmComparison: Codable {
     let id: UUID
@@ -96,6 +106,7 @@ struct AlgorithmComparison: Codable {
 
     // Inputs for mismatches
     let iobInput: IobInputs?
+    let mealInput: MealInputs?
 
     init(
         function: OrefFunction,
@@ -107,6 +118,7 @@ struct AlgorithmComparison: Codable {
         swiftException: AlgorithmException? = nil,
         comparisonError: AlgorithmException? = nil,
         iobInputs: IobInputs? = nil,
+        mealInputs: MealInputs? = nil,
         id: UUID = UUID(),
         createdAt: Date = Date()
     ) {
@@ -121,8 +133,9 @@ struct AlgorithmComparison: Codable {
         self.swiftException = swiftException
         self.comparisonError = comparisonError
         iobInput = iobInputs
+        mealInput = mealInputs
         timezone = TimeZone.current.identifier
-        version = "2"
+        version = "3"
 
         #if targetEnvironment(simulator)
             isSimulator = true

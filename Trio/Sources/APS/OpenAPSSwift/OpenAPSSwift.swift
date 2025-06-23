@@ -41,6 +41,48 @@ struct OpenAPSSwift {
         }
     }
 
+    static func meal(
+        pumphistory: JSON,
+        profile: JSON,
+        basalProfile: JSON,
+        clock: JSON,
+        carbs: JSON,
+        glucose: JSON
+    ) -> (OrefFunctionResult, MealInputs?) {
+        var mealInputs: MealInputs?
+
+        do {
+            let pumpHistory = try JSONBridge.pumpHistory(from: pumphistory)
+            let profile = try JSONBridge.profile(from: profile)
+            let basalProfile = try JSONBridge.basalProfile(from: basalProfile)
+            let clock = try JSONBridge.clock(from: clock)
+            let carbs = try JSONBridge.carbs(from: carbs)
+            let glucose = try JSONBridge.glucose(from: glucose)
+
+            mealInputs = MealInputs(
+                pumpHistory: pumpHistory,
+                profile: profile,
+                basalProfile: basalProfile,
+                clock: clock,
+                carbs: carbs,
+                glucose: glucose
+            )
+
+            let mealResult = try MealGenerator.generate(
+                pumpHistory: pumpHistory,
+                profile: profile,
+                basalProfile: basalProfile,
+                clock: clock,
+                carbHistory: carbs,
+                glucoseHistory: glucose
+            )
+
+            return try (.success(JSONBridge.to(mealResult)), mealInputs)
+        } catch {
+            return (.failure(error), mealInputs)
+        }
+    }
+
     static func iob(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) -> (OrefFunctionResult, IobInputs?) {
         var iobInputs: IobInputs?
 

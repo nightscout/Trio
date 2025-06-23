@@ -30,6 +30,7 @@ struct MealCob {
     ///
     /// This is the main COB detection algorithm entry point
     static func detectCarbAbsorption(
+        clock: Date,
         glucose: [BloodGlucose],
         pumpHistory: [PumpHistoryEvent],
         basalProfile: [BasalProfileEntry],
@@ -40,7 +41,7 @@ struct MealCob {
         let treatments = try IobHistory.calcTempTreatments(
             history: pumpHistory.map { $0.computedEvent() },
             profile: profile,
-            clock: mealDate,
+            clock: clock,
             autosens: nil,
             zeroTempDuration: nil
         )
@@ -179,7 +180,7 @@ struct MealCob {
             let iob = try IobCalculation.iobTotal(treatments: treatments, profile: simulationProfile, time: glucoseTime)
 
             // Copying Javascript rounding
-            // JS oref calls this "big" = "blood glucose impact"
+            // JS oref calls this "bgi" = "blood glucose impact"
             let glucoseImpact: Decimal = (-iob.activity * sensitivity * 5 * 100 + 0.5)
                 .rounded(scale: 0, roundingMode: .down) / 100
             let deviation = delta - glucoseImpact
@@ -192,8 +193,9 @@ struct MealCob {
                 }
             } else if let carbImpactDate = carbImpactDate, carbImpactDate > glucoseTime {
                 let avgDeviation = ((avgDelta - glucoseImpact) * 1000).rounded() / 1000
+                // we remove the * 1000 because we're already using seconds, not ms
                 let deviationSlope = (avgDeviation - currentDeviation) / Decimal(glucoseTime.timeIntervalSince(carbImpactDate)) *
-                    1000 * 60 * 5
+                    60 * 5
 
                 if avgDeviation > maxDeviation {
                     slopeFromMaxDeviation = min(0, deviationSlope)
@@ -214,8 +216,8 @@ struct MealCob {
                 }
 
                 // Figure out how many carbs that represents
-                let ci = max(deviation, currentDeviation / 2, profile.min5mCarbImpact)
-                let absorbed = ci * carbRatio / sensitivity
+                let carbImpact = max(deviation, currentDeviation / 2, profile.min5mCarbImpact)
+                let absorbed = carbImpact * carbRatio / sensitivity
                 carbsAbsorbed += absorbed
             }
         }

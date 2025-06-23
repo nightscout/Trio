@@ -95,7 +95,8 @@ import Testing
             swiftDuration: 0.1,
             javascript: profileJs,
             javascriptDuration: 0.1,
-            iobInputs: nil
+            iobInputs: nil,
+            mealInputs: nil
         )
 
         #expect(comparison.resultType == .matching)
@@ -125,7 +126,8 @@ import Testing
             swiftDuration: 0.1,
             javascript: .success(matchingJSON),
             javascriptDuration: 0.2,
-            iobInputs: nil
+            iobInputs: nil,
+            mealInputs: nil
         )
 
         #expect(comparison.resultType == .matching)
@@ -144,7 +146,8 @@ import Testing
             swiftDuration: 0.1,
             javascript: .success(matchingJSON),
             javascriptDuration: 0.2,
-            iobInputs: nil
+            iobInputs: nil,
+            mealInputs: nil
         )
 
         #expect(comparison.resultType == .valueDifference)
@@ -165,7 +168,8 @@ import Testing
             swiftDuration: 0.1,
             javascript: .failure(error),
             javascriptDuration: 0.2,
-            iobInputs: nil
+            iobInputs: nil,
+            mealInputs: nil
         )
 
         #expect(comparison.resultType == .matchingExceptions)
@@ -183,7 +187,8 @@ import Testing
             swiftDuration: 0.1,
             javascript: .success(matchingJSON),
             javascriptDuration: 0.2,
-            iobInputs: nil
+            iobInputs: nil,
+            mealInputs: nil
         )
 
         #expect(comparison.resultType == .swiftOnlyException)
@@ -203,7 +208,8 @@ import Testing
             swiftDuration: 0.1,
             javascript: .failure(error),
             javascriptDuration: 0.2,
-            iobInputs: nil
+            iobInputs: nil,
+            mealInputs: nil
         )
 
         #expect(comparison.resultType == .jsOnlyException)
@@ -222,7 +228,8 @@ import Testing
             swiftDuration: 0.1,
             javascript: .success(matchingJSON),
             javascriptDuration: 0.2,
-            iobInputs: nil
+            iobInputs: nil,
+            mealInputs: nil
         )
 
         #expect(comparison.resultType == .comparisonError)
