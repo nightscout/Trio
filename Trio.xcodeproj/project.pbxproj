@@ -633,7 +633,7 @@
 		DD30B9C72E06257900DA677C /* DetermineBasalGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9C62E06257300DA677C /* DetermineBasalGenerator.swift */; };
 		DD30B9CA2E062A3400DA677C /* ForecastGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9C92E062A3300DA677C /* ForecastGenerator.swift */; };
 		DD30B9CC2E062A7000DA677C /* ForecastResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9CB2E062A7000DA677C /* ForecastResult.swift */; };
-		DD30B9CE2E062AA300DA677C /* SingleForecasting.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9CD2E062AA300DA677C /* SingleForecasting.swift */; };
+		DD30B9CE2E062AA300DA677C /* ForecastGenerator+Forecasts.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9CD2E062AA300DA677C /* ForecastGenerator+Forecasts.swift */; };
 		DD30B9FE2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9FD2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift */; };
 		DD30BA002E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */; };
 		DD30BA022E074F0F00DA677C /* GlucoseStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA012E074F0F00DA677C /* GlucoseStatus.swift */; };
@@ -1549,7 +1549,7 @@
 		DD30B9C62E06257300DA677C /* DetermineBasalGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalGenerator.swift; sourceTree = "<group>"; };
 		DD30B9C92E062A3300DA677C /* ForecastGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastGenerator.swift; sourceTree = "<group>"; };
 		DD30B9CB2E062A7000DA677C /* ForecastResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastResult.swift; sourceTree = "<group>"; };
-		DD30B9CD2E062AA300DA677C /* SingleForecasting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleForecasting.swift; sourceTree = "<group>"; };
+		DD30B9CD2E062AA300DA677C /* ForecastGenerator+Forecasts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ForecastGenerator+Forecasts.swift"; sourceTree = "<group>"; };
 		DD30B9FD2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalSMBEnablementTests.swift; sourceTree = "<group>"; };
 		DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalDeltaCalculationTests.swift; sourceTree = "<group>"; };
 		DD30BA012E074F0F00DA677C /* GlucoseStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseStatus.swift; sourceTree = "<group>"; };
@@ -3718,7 +3718,7 @@
 			isa = PBXGroup;
 			children = (
 				DD30BA192E08AB9F00DA677C /* CarbImpactParams.swift */,
-				DD30B9CD2E062AA300DA677C /* SingleForecasting.swift */,
+				DD30B9CD2E062AA300DA677C /* ForecastGenerator+Forecasts.swift */,
 				DD30B9C92E062A3300DA677C /* ForecastGenerator.swift */,
 			);
 			path = Forecasts;
@@ -4799,7 +4799,7 @@
 				DD4FFF332D458EE600B6CFF9 /* GarminWatchState.swift in Sources */,
 				DD6B7CB22C7B6F0800B75029 /* Rounding.swift in Sources */,
 				38DAB28A260D349500F74C1A /* FetchGlucoseManager.swift in Sources */,
-				DD30B9CE2E062AA300DA677C /* SingleForecasting.swift in Sources */,
+				DD30B9CE2E062AA300DA677C /* ForecastGenerator+Forecasts.swift in Sources */,
 				BDB8998A2C565D0C006F3298 /* CarbsGlucose+helper.swift in Sources */,
 				BD7DB88E2D2C4A17003D3155 /* BolusCalculationManager.swift in Sources */,
 				38F37828261260DC009DB701 /* Color+Extensions.swift in Sources */,

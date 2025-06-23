@@ -17,7 +17,7 @@ struct CarbImpactParams {
         currentTime: Date
     ) -> CarbImpactParams {
         let carbSensivityFactor = adjustedSensitivity / (profile.carbRatio ?? profile.carbRatioFor(time: currentTime))
-        
+
         // Initial carb impact in mg/dL per 5m
         let initialCarbImpact = carbImpact * carbSensivityFactor
         let maxCarbAbsorptionRate: Decimal = 30 // g/h

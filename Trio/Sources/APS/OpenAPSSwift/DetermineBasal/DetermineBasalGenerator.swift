@@ -110,6 +110,12 @@ enum DeterminationGenerator {
         )
 
         let glucoseImpactSeries = buildGlucoseImpactSeries(iobDataSeries: iobData, sensitivity: sensitivity)
+        let glucoseImpactSeriesWithZeroTemp = buildGlucoseImpactSeries(
+            iobDataSeries: iobData,
+            sensitivity: sensitivity,
+            withZeroTemp: true
+        )
+
         let currentGlucoseImpact = glucoseImpactSeries[0]
 
         let minDelta = min(glucoseStatus.delta, glucoseStatus.shortAvgDelta)
@@ -145,10 +151,10 @@ enum DeterminationGenerator {
             throw DeterminationError.eventualGlucoseCalculationError(sensitivity: sensitivity, deviation: deviation)
         }
 
-        let forecastGenerator = ForecastGenerator()
-        let forecastResult = forecastGenerator.generate(
+        let forecastResult = ForecastGenerator.generate(
             glucose: currentGlucose,
             glucoseImpactSeries: glucoseImpactSeries,
+            glucoseImpactSeriesWithZeroTemp: glucoseImpactSeriesWithZeroTemp,
             iobData: iobData,
             mealData: mealData,
             profile: profile,
@@ -181,7 +187,12 @@ enum DeterminationGenerator {
             duration: nil,
             iob: iobData.first?.iob,
             cob: mealData.mealCOB,
-            predictions: Predictions(iob: forecastResult.iob.map { Int($0) }, zt: forecastResult.zt.map { Int($0) }, cob: forecastResult.cob.map { Int($0) }, uam: forecastResult.uam.map { Int($0) } ),
+            predictions: Predictions(
+                iob: forecastResult.iob.map { Int($0) },
+                zt: forecastResult.zt.map { Int($0) },
+                cob: forecastResult.cob.map { Int($0) },
+                uam: forecastResult.uam.map { Int($0) }
+            ),
             deliverAt: currentTime,
             carbsReq: nil,
             temp: nil,

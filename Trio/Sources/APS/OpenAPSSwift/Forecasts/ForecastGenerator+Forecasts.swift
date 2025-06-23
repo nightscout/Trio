@@ -1,42 +1,12 @@
 import Foundation
 
-/// Common interface for a single forecast pipeline
-protocol SingleForecasting {
-    /// - Parameters:
-    ///   - startingGlucose: the current glucose
-    ///   - glucoseImpactSeries:  the series of BGI (insulin effect) ticks
-    ///   - mealData:   absorption & COB info
-    ///   - profile:    user profile (for carbRatio, DIA, etc)
-    ///   - carbImpact:         current carb impact (mg/dL per 5m)
-    ///   - deviation:  current deviation (mg/dL per 5m)
-    /// - Returns: a capped/clamped array of future BGs, one per 5-minute interval
-    func forecast(
-        startingGlucose: Decimal,
-        glucoseImpactSeries: [Decimal],
-        mealData: ComputedCarbs,
-        profile: Profile,
-        carbImpact: Decimal,
-        deviation: Decimal,
-        adjustedSensitivity: Decimal,
-        sensitivityRatio: Decimal,
-        currentTime: Date
-    ) -> [Decimal]
-}
-
-/// Forecast sub-generator for insulin-only effect (IOB)
-struct IOBForecastGenerator: SingleForecasting {
+public extension ForecastGenerator {
     // TODO: Dynamic ISF not yet supported
 
-    public func forecast(
+    static func forecastIOB(
         startingGlucose: Decimal,
         glucoseImpactSeries: [Decimal],
-        mealData _: ComputedCarbs,
-        profile _: Profile,
-        carbImpact _: Decimal,
         deviation: Decimal,
-        adjustedSensitivity _: Decimal,
-        sensitivityRatio _: Decimal,
-        currentTime _: Date
     ) -> [Decimal] {
         var result = [startingGlucose]
         for (count, glucoseImpact) in glucoseImpactSeries.enumerated() {
@@ -46,13 +16,8 @@ struct IOBForecastGenerator: SingleForecasting {
         }
         return ForecastGenerator.trimFlatTails(result, lookback: 90 / 5)
     }
-}
 
-/// Forecast sub-generator for carb-only effect (COB + UAM piece)
-struct COBForecastGenerator: SingleForecasting {
-    // TODO: Dynamic ISF not yet supported
-
-    public func forecast(
+    static func forecastCOB(
         startingGlucose: Decimal,
         glucoseImpactSeries: [Decimal],
         mealData: ComputedCarbs,
@@ -104,7 +69,9 @@ struct COBForecastGenerator: SingleForecasting {
                     triangle = carbImpactParams.remainingCarbImpactPeak * Decimal(seriesCount) / Decimal(halfTriangle)
                 } else {
                     // Ramp down
-                    triangle = carbImpactParams.remainingCarbImpactPeak * Decimal(carbImpactParams.triangleIntervals - seriesCount) / Decimal(halfTriangle)
+                    triangle = carbImpactParams
+                        .remainingCarbImpactPeak * Decimal(carbImpactParams.triangleIntervals - seriesCount) /
+                        Decimal(halfTriangle)
                 }
             } else {
                 triangle = 0
@@ -121,76 +88,59 @@ struct COBForecastGenerator: SingleForecasting {
 
         return ForecastGenerator.trimFlatTails(result, lookback: 12)
     }
-}
 
-/// Forecast sub-generator for “unannounced meal” impact (UAM)
-struct UAMForecastGenerator: SingleForecasting {
-    // TODO: Dynamic ISF not yet supported
-
-    public func forecast(
+    static func forecastUAM(
         startingGlucose: Decimal,
         glucoseImpactSeries: [Decimal],
         mealData: ComputedCarbs,
-        profile _: Profile,
         carbImpact: Decimal,
-        deviation: Decimal,
-        adjustedSensitivity _: Decimal,
-        sensitivityRatio _: Decimal,
-        currentTime _: Date
+        deviation: Decimal
     ) -> [Decimal] {
         var result = [startingGlucose]
 
         let slopeFromDeviations = mealData.slopeFromMinDeviation
         let ticksInThreeHours: Decimal = 36 // 3 * 60 / 5
-        
+
         let unannouncedCarbImpact = carbImpact
-        
-        for glucoseImpact in 1..<glucoseImpactSeries.count {
+
+        for glucoseImpact in 1 ..< glucoseImpactSeries.count {
             let insulinEffect = glucoseImpactSeries[glucoseImpact]
             let forecastedDeviaton = min(0, deviation)
-            
+
             // In JS: predUCIslope = max(0, uci + (tick * slopeFromDeviations))
-            let forecastedUnannouncedCarbImpactSlope = max(0, unannouncedCarbImpact + Decimal(glucoseImpact) * slopeFromDeviations)
-            
+            let forecastedUnannouncedCarbImpactSlope = max(
+                0,
+                unannouncedCarbImpact + Decimal(glucoseImpact) * slopeFromDeviations
+            )
+
             // In JS: predUCImax = max(0, uci * (1 - tick / ticksInThreeHours))
-            let maxForecastedUnannouncedCarbImpact = max(0, unannouncedCarbImpact * (1 - Decimal(glucoseImpact) / ticksInThreeHours))
-            let forecastedUnannouncedCarbImpact = min(forecastedUnannouncedCarbImpactSlope, maxForecastedUnannouncedCarbImpact)
+            let maxForecastedUnannouncedCarbImpact = max(
+                0,
+                unannouncedCarbImpact * (1 - Decimal(glucoseImpact) / ticksInThreeHours)
+            )
+            let forecastedUnannouncedCarbImpact = min(
+                forecastedUnannouncedCarbImpactSlope,
+                maxForecastedUnannouncedCarbImpact
+            )
 
             let next = result.last! + insulinEffect + forecastedDeviaton + forecastedUnannouncedCarbImpact
-            
+
             result.append(next.clamp(lowerBound: 39, upperBound: 401))
         }
 
         return ForecastGenerator.trimFlatTails(result, lookback: 12)
     }
-}
 
-/// Forecast sub-generator for “zero-temp” baseline (ZT)
-struct ZTForecastGenerator: SingleForecasting {
-    // TODO: Dynamic ISF not yet supported
-
-    public func forecast(
+    static func forecastZT(
         startingGlucose: Decimal,
-        glucoseImpactSeries: [Decimal],
-        mealData: ComputedCarbs,
-        profile: Profile,
-        carbImpact: Decimal,
-        deviation: Decimal,
-        adjustedSensitivity: Decimal,
-        sensitivityRatio: Decimal,
-        currentTime: Date
+        glucoseImpactSeriesWithZeroTemp: [Decimal],
+        deviation: Decimal
     ) -> [Decimal] {
         // essentially insulin effect only, but with zero-temp ISF if needed
-        IOBForecastGenerator().forecast(
+        Self.forecastIOB(
             startingGlucose: startingGlucose,
-            glucoseImpactSeries: glucoseImpactSeries.map { /* TODO: use iobWithZeroTemp.activity */ $0 },
-            mealData: mealData,
-            profile: profile,
-            carbImpact: carbImpact,
-            deviation: deviation,
-            adjustedSensitivity: adjustedSensitivity,
-            sensitivityRatio: sensitivityRatio,
-            currentTime: currentTime
+            glucoseImpactSeries: glucoseImpactSeriesWithZeroTemp,
+            deviation: deviation
         )
     }
 }

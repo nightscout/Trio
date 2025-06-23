@@ -16,17 +16,16 @@ extension DeterminationGenerator {
     }
 
     static func determineDosing(
-        profile: Profile,
-        currentTemp: TempBasal,
-        iobData: IobResult,
-        mealData: ComputedCarbs,
-        autosensData: Autosens,
-        forecastResult: ForecastResult,
-        glucoseStatus: GlucoseStatus,
-        enableSMB: Bool,
-        currentTime: Date
+        profile _: Profile,
+        currentTemp _: TempBasal,
+        iobData _: IobResult,
+        mealData _: ComputedCarbs,
+        autosensData _: Autosens,
+        forecastResult _: ForecastResult,
+        glucoseStatus _: GlucoseStatus,
+        enableSMB _: Bool,
+        currentTime _: Date
     ) -> DosingMetrics? {
-        return nil
+        nil
     }
-
 }

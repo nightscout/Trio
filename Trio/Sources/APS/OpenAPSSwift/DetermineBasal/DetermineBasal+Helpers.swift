@@ -127,7 +127,7 @@ extension DeterminationGenerator {
         // no enable condition met → disable SMB
         return false
     }
-    
+
     static func calculateSensitivityRatio(
         profile: Profile,
         autosens: Autosens?,
@@ -238,12 +238,20 @@ extension DeterminationGenerator {
         return (AdjustedGlucoseTargets(minGlucose: minGlucose, maxGlucose: maxGlucose, targetGlucose: targetGlucose), threshold)
     }
 
-    static func buildGlucoseImpactSeries(iobDataSeries: [IobResult], sensitivity: Decimal) -> [Decimal] {
-        iobDataSeries.map { iob in
-            // FIXME: this is assuming 5min steps...
-            // Activity is U/hr
-            // oref0 uses: -activity * ISF * 5
-            -iob.activity * sensitivity * 5
+    static func buildGlucoseImpactSeries(
+        iobDataSeries: [IobResult],
+        sensitivity: Decimal,
+        withZeroTemp: Bool = false
+    ) -> [Decimal] {
+        // FIXME: this is assuming 5min steps...
+        // Activity is U/hr
+        if withZeroTemp {
+            return iobDataSeries.map { iobWithZeroTemp in
+                -iobWithZeroTemp.activity * sensitivity * 5 }
+        } else {
+            return iobDataSeries.map { iob in
+                -iob.activity * sensitivity * 5
+            }
         }
     }
 }

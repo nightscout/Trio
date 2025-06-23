@@ -1,27 +1,11 @@
 import Foundation
 
 /// The top-level orchestrator
-struct ForecastGenerator {
-    let iob: SingleForecasting
-    let cob: SingleForecasting
-    let uam: SingleForecasting
-    let zt: SingleForecasting
-
-    init(
-        iob: SingleForecasting = IOBForecastGenerator(),
-        cob: SingleForecasting = COBForecastGenerator(),
-        uam: SingleForecasting = UAMForecastGenerator(),
-        zt: SingleForecasting = ZTForecastGenerator()
-    ) {
-        self.iob = iob
-        self.cob = cob
-        self.uam = uam
-        self.zt = zt
-    }
-
-    public func generate(
+enum ForecastGenerator {
+    public static func generate(
         glucose: Decimal,
         glucoseImpactSeries: [Decimal],
+        glucoseImpactSeriesWithZeroTemp: [Decimal],
         iobData _: [IobResult],
         mealData: ComputedCarbs,
         profile: Profile,
@@ -38,7 +22,13 @@ struct ForecastGenerator {
         let deviation = mealData.currentDeviation
 
         // JS oref initializes all xxxPredBGs array with current glucose, we do the same, then generate
-        let iobForecast = [glucose] + iob.forecast(
+        let iobForecast = [glucose] + forecastIOB(
+            startingGlucose: glucose,
+            glucoseImpactSeries: glucoseImpactSeries,
+            deviation: deviation,
+        )
+
+        let cobForecast = [glucose] + forecastCOB(
             startingGlucose: glucose,
             glucoseImpactSeries: glucoseImpactSeries,
             mealData: mealData,
@@ -50,40 +40,18 @@ struct ForecastGenerator {
             currentTime: currentTime
         )
 
-        let cobForecast = [glucose] + cob.forecast(
+        let uamForecast = [glucose] + forecastUAM(
             startingGlucose: glucose,
             glucoseImpactSeries: glucoseImpactSeries,
             mealData: mealData,
-            profile: profile,
             carbImpact: carbImpact,
-            deviation: deviation,
-            adjustedSensitivity: adjustedSensitivity,
-            sensitivityRatio: sensitivityRatio,
-            currentTime: currentTime
+            deviation: deviation
         )
 
-        let uamForecast = [glucose] + uam.forecast(
+        let ztForecast = [glucose] + forecastZT(
             startingGlucose: glucose,
-            glucoseImpactSeries: glucoseImpactSeries,
-            mealData: mealData,
-            profile: profile,
-            carbImpact: carbImpact,
-            deviation: deviation,
-            adjustedSensitivity: adjustedSensitivity,
-            sensitivityRatio: sensitivityRatio,
-            currentTime: currentTime
-        )
-
-        let ztForecast = [glucose] + zt.forecast(
-            startingGlucose: glucose,
-            glucoseImpactSeries: glucoseImpactSeries,
-            mealData: mealData,
-            profile: profile,
-            carbImpact: carbImpact,
-            deviation: deviation,
-            adjustedSensitivity: adjustedSensitivity,
-            sensitivityRatio: sensitivityRatio,
-            currentTime: currentTime
+            glucoseImpactSeriesWithZeroTemp: glucoseImpactSeriesWithZeroTemp,
+            deviation: deviation
         )
 
         let computedForecastSelection = Self.computeForecastSelection(
@@ -102,7 +70,7 @@ struct ForecastGenerator {
             sensitivityRatio: sensitivityRatio,
             currentTime: currentTime
         )
-        
+
         let carbImpactDuration = carbImpact > 0 ? min(
             carbImpactParams.remainingCarbAbsorptionTime * 60 / 5 / 2,
             max(0, mealData.mealCOB * carbImpactParams.carbSensivityFactor / carbImpact)
