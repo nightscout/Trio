@@ -160,53 +160,52 @@ enum DeterminationGenerator {
             currentTime: currentTime
         )
 
+        // used for pre dosing decision sanity later on
         let expectedDelta = calculateExpectedDelta(
             targetGlucose: profile.targetBg ?? 100,
             eventualGlucose: eventualGlucose,
             glucoseImpact: currentGlucoseImpact
         )
 
-        // TODO: STOPPING at LINE 734
-        // L734ff handles forecasting, already handled (I hope)
-        // continue at ~785
+        // TODO: STOPPING at LINE 1152
 
-        return nil
-        // FIXME: implement... (return type will not be Optional; just to shut up the compiler)
-
-        /// We also need a call to glucose-get-last here (JS passes object `glucoseStatus`) → could be a simple function in GlucoseStorage
-        /// We also need the tempBasal helpers (JS passes object `tempBasalFunctions` with functions)
-        /// `tempBasalFunctions.getMaxSafeBasal` should be a helper function in or extension of`TrioSettings.swift`
-        /// `tempBasalFunctions.setTempBasal` is a helper function utilizing pass by value of `rT` ("requested Temp") and adjusting `rT.duration` and `rT.rate`… can be an extension / helper fn of `DeterminationGenerator` itself
-        /// TLDR; we could omit the 2 parameters `glucoseStatus` and `tempBasalFunctions`
-
-        /// OTHER PARAMS:
-        ///
-        /// JS oref has `reservoir_data`; we have that on file via `loadFileFromStorageAsync(name: Monitor.reservoir)`
-        /// NOT NEEDED: `pumphistory` → we no longer calculate TDD in determine
-        /// NOT NEEDED: `preferences`, only used for dynamic ISF → pull this out
-        /// NOT NEEDED: `basalprofile`, was used for TDD calc as well → remove
-        /// NOT NEEDED: `trio_custom_variables` was used for (1) override handling, (2) SMB enabling → we should handle (1) in service of its own, and (2) already outlined via SMBProvider
-        /// `microBolusAllowed` is currently HARD-CODED (!) to `true`… we always allow microbolusing and only handle this via the various SMB settings → remove ?
-
-        /// All input params can EITHER be passed directly, OR…
-        /// we handle it via an encapsulated struct (I chose DeterminationInputs
-        // TODO: Do we want store algorithm input *and* output?
-
-        /// Current determine basal (if we ignore forecasting logic; already modularized) does:
-        /// 1. Validate CGM → cancel if needed ✅
-        /// 2. Override basal → log ✅
-        /// 3. Load targets → error if missing ✅
-        /// 4. Adjust sensitivity → maybe adjust basal/target ✅
-        /// 5. Check IOB consistency → cancel if needed ✅
-        /// 6. Compute deviation/eventualBG → log ✅
-        /// 7. Ignore Forecast & but guard-BG  🛠️
-        /// 8. Compute carbsReq → we could move this to MEAL
-        /// 9. Decide temp basal → we could do a tempBasalGenerator ?
+        // FIXME: properly populate all fields!
+        let temporaryResult = Determination(
+            id: UUID(),
+            reason: "FOR TESTING: output after forecasting",
+            units: nil,
+            insulinReq: nil,
+            eventualBG: Int(forecastResult.eventualGlucose),
+            sensitivityRatio: sensitivityRatio, // this would only the AS-adjusted one for now
+            rate: nil,
+            duration: nil,
+            iob: iobData.first?.iob,
+            cob: mealData.mealCOB,
+            predictions: Predictions(iob: forecastResult.iob.map { Int($0) }, zt: forecastResult.zt.map { Int($0) }, cob: forecastResult.cob.map { Int($0) }, uam: forecastResult.uam.map { Int($0) } ),
+            deliverAt: currentTime,
+            carbsReq: nil,
+            temp: nil,
+            bg: currentGlucose,
+            reservoir: nil,
+            isf: nil,
+            timestamp: currentTime,
+            tdd: nil,
+            current_target: nil,
+            insulinForManualBolus: nil,
+            manualBolusErrorString: nil,
+            minDelta: nil,
+            expectedDelta: expectedDelta,
+            minGuardBG: forecastResult.minGuardGlucose,
+            minPredBG: forecastResult.minForecastedGlucose,
+            threshold: threshold,
+            carbRatio: nil,
+            received: false,
+        )
 
         // TODO: how to handle output?
         // TODO: how to handle logging?
 
-        return nil
+        return temporaryResult
     }
 
     static func checkDeterminationInputs(
@@ -228,9 +227,6 @@ enum DeterminationGenerator {
         }
         if glucoseStatus.glucose < 39 || glucoseStatus.glucose > 600 {
             throw DeterminationError.glucoseOutOfRange(glucose: glucoseStatus.glucose)
-        }
-        if glucoseStatus.noise > 1 {
-            throw DeterminationError.cgmNoiseTooHigh(noise: glucoseStatus.noise)
         }
         if glucoseStatus.delta == 0 {
             throw DeterminationError.noDelta
@@ -399,128 +395,6 @@ enum DeterminationGenerator {
                 carbRatio: profile.carbRatio,
                 received: false
             )
-        }
-    }
-
-    static func calculateSensitivityRatio(
-        profile: Profile,
-        autosens: Autosens?,
-        targetGlucose: Decimal,
-        temptargetSet: Bool
-    ) -> Decimal {
-        let normalTarget: Decimal = 100
-        let halfBasalTarget = profile.halfBasalExerciseTarget
-        let highTemptargetRaisesSensitivity = profile.highTemptargetRaisesSensitivity
-        let lowTemptargetLowersSensitivity = profile.lowTemptargetLowersSensitivity
-
-        var ratio: Decimal = 1
-
-        // High temp target raises sensitivity or low temp lowers it
-        if (profile.highTemptargetRaisesSensitivity && temptargetSet && targetGlucose > normalTarget) ||
-            (profile.lowTemptargetLowersSensitivity && temptargetSet && targetGlucose < normalTarget)
-        {
-            let c = halfBasalTarget - normalTarget
-            if c * (c + targetGlucose - normalTarget) <= 0 {
-                ratio = profile.autosensMax
-            } else {
-                ratio = c / (c + targetGlucose - normalTarget)
-            }
-            ratio = min(ratio, profile.autosensMax)
-            // You can round here if needed: ratio = ratio.rounded(2)
-            return ratio
-        }
-        // Use autosens if present
-        if let autosens = autosens {
-            return autosens.ratio
-        }
-        // Otherwise default to 1.0 (no adjustment)
-        return 1.0
-    }
-
-    static func computeAdjustedBasal(currentBasalRate: Decimal, sensitivityRatio: Decimal) -> Decimal {
-        // FIXME: Ideally, we round this here to allowed pump basal increments
-        currentBasalRate * sensitivityRatio
-    }
-
-    static func computeAdjustedSensitivity(sensitivity: Decimal, sensitivityRatio: Decimal) -> Decimal {
-        guard sensitivityRatio != 1.0 else { return sensitivity }
-        return (sensitivity / sensitivityRatio).rounded(toPlaces: 1)
-    }
-
-    static func checkCurrentTempBasalRateSafety(
-        currentTemp: TempBasal,
-        lastTempTarget: IobResult.LastTemp?,
-        currentTime: Date
-    ) -> Bool {
-        guard let lastTemp = lastTempTarget, let lastTempDate = lastTemp.timestamp,
-              let lastTempDuration = lastTemp.duration else { return true }
-        // TODO: throw error for malformed IobResult? Can this be malformed?
-
-        let lastTempAge = Int(currentTime.timeIntervalSince(lastTempDate) / 60) // in minutes
-        let tempModulus = Int(lastTempAge + currentTemp.duration) % 30
-
-        if currentTemp.rate != lastTemp.rate, lastTempAge > 10, currentTemp.duration > 0 {
-            // Rates don’t match and temp is old: cancel temp
-            return false
-        }
-        let lastTempEnded = lastTempAge - Int(lastTempDuration) // TODO: check if this comes in minutes
-
-        if lastTempEnded > 5, lastTempAge > 10 {
-            // Last temp ended long ago but temp is running: cancel temp
-            return false
-        }
-
-        return true
-    }
-
-    /// Adjust glucose targets (min, max, target) based on autosens and/or noise.
-    /// - Returns: adjusted targets and new threshold
-    static func adjustGlucoseTargets(
-        profile: Profile,
-        autosens: Autosens?,
-        temptargetSet: Bool,
-        targetGlucose: Decimal,
-        minGlucose: Decimal,
-        maxGlucose: Decimal,
-        noise: Int
-    ) -> (targets: AdjustedGlucoseTargets, threshold: Decimal) {
-        var minGlucose = minGlucose
-        var maxGlucose = maxGlucose
-        var targetGlucose = targetGlucose
-
-        // Only adjust glucose targets for autosens if no temp target set
-        if !temptargetSet, let autosens = autosens {
-            if (profile.sensitivityRaisesTarget && autosens.ratio < 1) ||
-                (profile.resistanceLowersTarget && autosens.ratio > 1)
-            {
-                minGlucose = ((minGlucose - 60) / autosens.ratio + 60).rounded(toPlaces: 0)
-                maxGlucose = ((maxGlucose - 60) / autosens.ratio + 60).rounded(toPlaces: 0)
-                targetGlucose = max(80, ((targetGlucose - 60) / autosens.ratio + 60).rounded(toPlaces: 0))
-            }
-        }
-
-        // Raise target for noisy/CGM data
-        if noise >= 2 {
-            let noisyCGMTargetMultiplier = max(1.1, profile.noisyCGMTargetMultiplier)
-            minGlucose = min(200, minGlucose * noisyCGMTargetMultiplier).rounded(toPlaces: 0)
-            targetGlucose = min(200, targetGlucose * noisyCGMTargetMultiplier).rounded(toPlaces: 0)
-            maxGlucose = min(200, maxGlucose * noisyCGMTargetMultiplier).rounded(toPlaces: 0)
-        }
-
-        // Calculate threshold: minGlucose thresholds: 80->60, 90->65, etc.
-        var threshold = minGlucose - 0.5 * (minGlucose - 40)
-        threshold = min(max(profile.thresholdSetting, threshold, 60), 120)
-        threshold = threshold.rounded(toPlaces: 0)
-
-        return (AdjustedGlucoseTargets(minGlucose: minGlucose, maxGlucose: maxGlucose, targetGlucose: targetGlucose), threshold)
-    }
-
-    static func buildGlucoseImpactSeries(iobDataSeries: [IobResult], sensitivity: Decimal) -> [Decimal] {
-        iobDataSeries.map { iob in
-            // FIXME: this is assuming 5min steps...
-            // Activity is U/hr
-            // oref0 uses: -activity * ISF * 5
-            -iob.activity * sensitivity * 5
         }
     }
 }
