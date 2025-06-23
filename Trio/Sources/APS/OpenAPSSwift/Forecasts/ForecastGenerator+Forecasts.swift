@@ -1,6 +1,6 @@
 import Foundation
 
-public extension ForecastGenerator {
+extension ForecastGenerator {
     // TODO: Dynamic ISF not yet supported
 
     static func forecastIOB(
