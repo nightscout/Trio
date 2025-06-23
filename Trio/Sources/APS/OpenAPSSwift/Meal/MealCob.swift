@@ -180,7 +180,7 @@ struct MealCob {
             let iob = try IobCalculation.iobTotal(treatments: treatments, profile: simulationProfile, time: glucoseTime)
 
             // Copying Javascript rounding
-            // JS oref calls this "big" = "blood glucose impact"
+            // JS oref calls this "bgi" = "blood glucose impact"
             let glucoseImpact: Decimal = (-iob.activity * sensitivity * 5 * 100 + 0.5)
                 .rounded(scale: 0, roundingMode: .down) / 100
             let deviation = delta - glucoseImpact
@@ -216,8 +216,8 @@ struct MealCob {
                 }
 
                 // Figure out how many carbs that represents
-                let ci = max(deviation, currentDeviation / 2, profile.min5mCarbImpact)
-                let absorbed = ci * carbRatio / sensitivity
+                let carbImpact = max(deviation, currentDeviation / 2, profile.min5mCarbImpact)
+                let absorbed = carbImpact * carbRatio / sensitivity
                 carbsAbsorbed += absorbed
             }
         }

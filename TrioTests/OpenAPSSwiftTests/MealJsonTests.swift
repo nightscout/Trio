@@ -7,7 +7,7 @@ import Testing
 
     @Test(
         "Meal should produce same results for fixed JS",
-        .enabled(if: true)
+        .enabled(if: false)
     ) func replayErrorInputs() async throws {
         // Note: This test case can only test one timezone per invocation
         // so you need to manually change this to try out errors from
@@ -92,7 +92,7 @@ import Testing
         #expect(comparison.resultType == .matching)
     }
 
-    @Test("Format inputs for running in JS", .enabled(if: true)) func formatInputs() async throws {
+    @Test("Format inputs for running in JS", .enabled(if: false)) func formatInputs() async throws {
         let openAps = OpenAPSFixed()
 
         // this test is meant for one-off analysis so it's ok to hard code
