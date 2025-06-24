@@ -303,6 +303,12 @@ enum JSONCompare {
             return true
         case let (.string(s1), .string(s2)):
             return s1 == s2
+        case let (.string(s1), .number(n2)):
+            guard let n1 = Double(s1) else { return false }
+            return n1.isApproximatelyEqual(to: n2, epsilon: approximately)
+        case let (.number(n1), .string(s2)):
+            guard let n2 = Double(s2) else { return false }
+            return n1.isApproximatelyEqual(to: n2, epsilon: approximately)
         case let (.number(n1), .number(n2)):
             let match = n1.isApproximatelyEqual(to: n2, epsilon: approximately)
             return match

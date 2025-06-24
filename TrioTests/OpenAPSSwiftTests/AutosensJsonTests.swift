@@ -92,9 +92,6 @@ import Testing
 
         if comparison.resultType != .matching {
             print("REPLAY ERROR: Fixed JS didn't match")
-            if case let .success(swiftJson) = autosensResultSwift, case let .success(jsJson) = autosensResultJavascript {
-                try compareDeviations(swiftJson: swiftJson, jsJson: jsJson)
-            }
         }
 
         #expect(comparison.resultType == .matching)
@@ -162,10 +159,16 @@ import Testing
         "should produce same results for autosens for fixed JS",
         .enabled(if: false)
     ) func replayErrorInputs() async throws {
+        let timezone = "America/Los_Angeles"
+        var skippedTimezones = Set<String>()
         let files = try await HttpFiles.listFiles()
         for filePath in files {
             let algorithmComparison = try await HttpFiles.downloadFile(at: filePath)
             print("Checking \(filePath) @ \(algorithmComparison.createdAt)")
+            guard timezone == algorithmComparison.timezone else {
+                skippedTimezones.insert(algorithmComparison.timezone)
+                continue
+            }
             guard let autosensInputs = algorithmComparison.autosensInput else {
                 print("Skipping, no autosensInputs found")
                 if let str = algorithmComparison.comparisonError {
@@ -177,19 +180,65 @@ import Testing
                 continue
             }
 
-            // remove this
-            let encoder = JSONCoding.encoder
-            var output = try encoder.encode(autosensInputs)
-            var sharedDir = FileManager.default.temporaryDirectory
-            var outputURL = sharedDir.appendingPathComponent("autosens_inputs.json")
-            print("Writing to: \(outputURL.path)")
-            try output.write(to: outputURL)
-
             timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
 
             try await checkFixedJsAgainstSwift(autosensInputs: autosensInputs)
+            print("Checked \(filePath) @ \(algorithmComparison.createdAt)")
 
             timeZoneForTests.resetTimezone()
         }
+
+        print("Skipped timezones:")
+        for skippedTimezone in skippedTimezones {
+            print("  - \(skippedTimezone)")
+        }
+    }
+
+    @Test("Format autosens inputs for running in JS", .enabled(if: false)) func formatInputs() async throws {
+        // this test is meant for one-off analysis so it's ok to hard code
+        // a file, just make sure to _not_ check in updates to this to
+        // avoid polluting our change logs
+        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/4f38ce73-1526-4bcd-80d5-1dee5b002519.0.json")
+        let autosensInputs = algorithmComparison.autosensInput!
+
+        let encoder = JSONCoding.encoder
+        let output = try encoder.encode(autosensInputs)
+
+        let sharedDir = FileManager.default.temporaryDirectory
+        let outputURL = sharedDir.appendingPathComponent("autosens_error_inputs.json")
+        try output.write(to: outputURL)
+
+        timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
+
+        let openAps = OpenAPSFixed()
+        let (autosensResultSwift, _) = OpenAPSSwift.autosense(
+            glucose: autosensInputs.glucose,
+            pumpHistory: autosensInputs.history,
+            basalProfile: autosensInputs.basalProfile,
+            profile: try JSONBridge.to(autosensInputs.profile),
+            carbs: autosensInputs.carbs,
+            tempTargets: autosensInputs.tempTargets,
+            clock: autosensInputs.clock,
+            includeDeviationsForTesting: true
+        )
+
+        let autosensResultJavascript = await openAps.autosenseJavascript(
+            glucose: autosensInputs.glucose,
+            pumpHistory: autosensInputs.history,
+            basalprofile: autosensInputs.basalProfile,
+            profile: try JSONBridge.to(autosensInputs.profile),
+            carbs: autosensInputs.carbs,
+            temptargets: autosensInputs.tempTargets,
+            clock: autosensInputs.clock
+        )
+
+        if case let .success(swiftJson) = autosensResultSwift, case let .success(jsJson) = autosensResultJavascript {
+            try compareDeviations(swiftJson: swiftJson, jsJson: jsJson)
+        }
+
+        // Print the path so you can find it
+        print("Writing to: \(outputURL.path)")
+
+        timeZoneForTests.resetTimezone()
     }
 }

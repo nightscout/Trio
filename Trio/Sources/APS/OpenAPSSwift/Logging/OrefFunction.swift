@@ -77,7 +77,8 @@ enum OrefFunction: String, Codable {
         case .autosens:
             return [
                 "ratio": 0.01,
-                "newisf": 1
+                "newisf": 1,
+                "deviationsUnsorted": 0.02
             ]
         }
     }
