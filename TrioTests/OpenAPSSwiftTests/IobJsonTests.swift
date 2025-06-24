@@ -91,7 +91,8 @@ import Testing
             javascriptDuration: 0.1,
             iobInputs: nil,
             mealInputs: nil,
-            autosensInputs: nil
+            autosensInputs: nil,
+            determineBasalInputs: nil
         )
 
         if comparison.resultType == .valueDifference {
@@ -129,7 +130,8 @@ import Testing
             javascriptDuration: 0.1,
             iobInputs: nil,
             mealInputs: nil,
-            autosensInputs: nil
+            autosensInputs: nil,
+            determineBasalInputs: nil
         )
 
         if comparison.resultType != .valueDifference {

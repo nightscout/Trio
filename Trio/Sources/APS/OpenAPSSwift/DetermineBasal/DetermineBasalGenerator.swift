@@ -17,10 +17,12 @@ enum DeterminationGenerator {
         iobData: [IobResult],
         mealData: ComputedCarbs,
         autosensData: Autosens,
-        reservoirData _: Reservoir,
-        glucoseStatus: GlucoseStatus?,
+        reservoirData _: Decimal,
+        glucose: [BloodGlucose],
         currentTime: Date
     ) throws -> Determination? {
+        let glucoseStatus = try Self.getGlucoseStatus(glucoseReadings: glucose)
+
         try checkDeterminationInputs(
             glucoseStatus: glucoseStatus,
             currentTemp: currentTemp,

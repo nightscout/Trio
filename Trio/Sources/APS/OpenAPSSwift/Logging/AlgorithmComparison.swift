@@ -92,6 +92,23 @@ struct AutosensInputs: Codable {
     let clock: Date
 }
 
+/// For tracking inputs to `determineBasal` when there is a mismatch
+struct DetermineBasalInputs: Codable {
+    let glucose: [BloodGlucose]
+    let currentTemp: TempBasal
+    let iob: [IobResult]
+    let profile: Profile
+    let autosens: Autosens?
+    let meal: ComputedCarbs?
+    let microBolusAllowed: Bool
+    let reservoir: Decimal?
+    let pumpHistory: [PumpHistoryEvent]
+    let preferences: Preferences
+    let basalProfile: [BasalProfileEntry]
+    let trioCustomOrefVariables: TrioCustomOrefVariables
+    let clock: Date
+}
+
 /// Represents a complete comparison between JS and Swift implementations
 struct AlgorithmComparison: Codable {
     let id: UUID
@@ -119,6 +136,7 @@ struct AlgorithmComparison: Codable {
     let iobInput: IobInputs?
     let mealInput: MealInputs?
     let autosensInput: AutosensInputs?
+    let determineBasalInput: DetermineBasalInputs?
 
     init(
         function: OrefFunction,
@@ -132,6 +150,7 @@ struct AlgorithmComparison: Codable {
         iobInputs: IobInputs? = nil,
         mealInputs: MealInputs? = nil,
         autosensInputs: AutosensInputs? = nil,
+        determineBasalInputs: DetermineBasalInputs? = nil,
         id: UUID = UUID(),
         createdAt: Date = Date()
     ) {
@@ -148,9 +167,9 @@ struct AlgorithmComparison: Codable {
         iobInput = iobInputs
         mealInput = mealInputs
         autosensInput = autosensInputs
+        determineBasalInput = determineBasalInputs
         timezone = TimeZone.current.identifier
-        version = "3"
-
+        version = "4"
         #if targetEnvironment(simulator)
             isSimulator = true
         #else

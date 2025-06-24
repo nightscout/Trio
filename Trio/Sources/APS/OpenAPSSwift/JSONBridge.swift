@@ -24,6 +24,10 @@ enum JSONBridge {
         try JSONBridge.from(string: from.rawJSON)
     }
 
+    static func trioCustomOrefVariables(from: JSON) throws -> TrioCustomOrefVariables {
+        try JSONBridge.from(string: from.rawJSON)
+    }
+
     static func insulinSensitivities(from: JSON) throws -> InsulinSensitivities {
         try JSONBridge.from(string: from.rawJSON)
     }
@@ -48,7 +52,15 @@ enum JSONBridge {
         try JSONBridge.from(string: from.rawJSON)
     }
 
+    static func currentTemp(from: JSON) throws -> TempBasal {
+        try JSONBridge.from(string: from.rawJSON)
+    }
+
     static func carbs(from: JSON) throws -> [CarbsEntry] {
+        try JSONBridge.from(string: from.rawJSON)
+    }
+
+    static func iobResult(from: JSON) throws -> [IobResult] {
         try JSONBridge.from(string: from.rawJSON)
     }
 
@@ -72,6 +84,10 @@ enum JSONBridge {
     }
 
     static func profile(from: JSON) throws -> Profile {
+        try JSONBridge.from(string: from.rawJSON)
+    }
+
+    static func computedCarbs(from: JSON) throws -> ComputedCarbs? {
         try JSONBridge.from(string: from.rawJSON)
     }
 

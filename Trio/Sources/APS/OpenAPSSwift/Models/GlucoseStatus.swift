@@ -3,7 +3,7 @@ import Foundation
 /// Represents the computed status of the most recent CGM reading,
 /// including delta‐rates over various time windows for our
 /// swift-based Oref`DeterminationGenerator`.
-public struct GlucoseStatus {
+public struct GlucoseStatus: Codable {
     /// Immediate delta (mg/dL per 5 m) over the last ~5 m
     public let delta: Decimal
     /// The (“smoothed”) current glucose value (mg/dL)

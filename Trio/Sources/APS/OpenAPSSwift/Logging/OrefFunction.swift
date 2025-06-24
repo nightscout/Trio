@@ -25,6 +25,7 @@ enum OrefFunction: String, Codable {
     case iob
     case meal
     case makeProfile
+    case determineBasal
 
     // since we're removing some keys from our Profile that exist in Javascript
     // we need to let the difference function know which keys to ignore when
@@ -42,6 +43,28 @@ enum OrefFunction: String, Codable {
             return Set(["maxDeviation", "minDeviation", "allDeviations", "bwCarbs", "bwFound", "journalCarbs", "nsCarbs"])
         case .autosens:
             return Set()
+        case .determineBasal:
+            // FIXME: Fill in the properties we don't check here
+            return Set([
+                "id",
+                "reason",
+                "units",
+                "insulinReq",
+                "rate",
+                "duration",
+                "deliverAt",
+                "carbsReq",
+                "temp",
+                "reservoir",
+                "ISF",
+                "current_target",
+                "TDD",
+                "insulinForManualBolus",
+                "manualBolusErrorString",
+                "minDelta",
+                "CR",
+                "received"
+            ])
         }
     }
 
@@ -80,6 +103,8 @@ enum OrefFunction: String, Codable {
                 "newisf": 1,
                 "deviationsUnsorted": 0.02
             ]
+        case .determineBasal:
+            return [:]
         }
     }
 
@@ -92,6 +117,8 @@ enum OrefFunction: String, Codable {
         case .meal:
             return .dictionary
         case .autosens:
+            return .dictionary
+        case .determineBasal:
             return .dictionary
         }
     }
