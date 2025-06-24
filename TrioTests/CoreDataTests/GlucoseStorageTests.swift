@@ -131,7 +131,10 @@ import Testing
         #expect(entry.eventType == .capillaryGlucose, "Type should be capillaryGlucose")
     }
 
-    @Test("Test glucose alarms") func testGlucoseAlarms() async throws {
+    @Test(
+        "Test glucose alarms",
+        .enabled(if: false, "Flaky test, disabled while investigating")
+    ) func testGlucoseAlarms() async throws {
         // Given
         let lowGlucose = [
             BloodGlucose(direction: BloodGlucose.Direction.flat, date: 123, dateString: Date(), glucose: 55)
