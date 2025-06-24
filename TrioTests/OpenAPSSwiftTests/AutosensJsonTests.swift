@@ -51,4 +51,194 @@ import Testing
 
         timeZoneForTests.resetTimezone()
     }
+
+    func checkFixedJsAgainstSwift(autosensInputs: AutosensInputs) async throws {
+        let openAps = OpenAPSFixed()
+        let (autosensResultSwift, _) = OpenAPSSwift.autosense(
+            glucose: autosensInputs.glucose,
+            pumpHistory: autosensInputs.history,
+            basalProfile: autosensInputs.basalProfile,
+            profile: try JSONBridge.to(autosensInputs.profile),
+            carbs: autosensInputs.carbs,
+            tempTargets: autosensInputs.tempTargets,
+            clock: autosensInputs.clock,
+            includeDeviationsForTesting: true
+        )
+
+        let autosensResultJavascript = await openAps.autosenseJavascript(
+            glucose: autosensInputs.glucose,
+            pumpHistory: autosensInputs.history,
+            basalprofile: autosensInputs.basalProfile,
+            profile: try JSONBridge.to(autosensInputs.profile),
+            carbs: autosensInputs.carbs,
+            temptargets: autosensInputs.tempTargets,
+            clock: autosensInputs.clock
+        )
+
+        let comparison = JSONCompare.createComparison(
+            function: .autosens,
+            swift: autosensResultSwift,
+            swiftDuration: 0.1,
+            javascript: autosensResultJavascript,
+            javascriptDuration: 0.1,
+            iobInputs: nil,
+            mealInputs: nil,
+            autosensInputs: nil
+        )
+
+        if comparison.resultType == .valueDifference {
+            print(comparison.differences!.prettyPrintedJSON!)
+        }
+
+        if comparison.resultType != .matching {
+            print("REPLAY ERROR: Fixed JS didn't match")
+        }
+
+        #expect(comparison.resultType == .matching)
+    }
+
+    func compareDeviations(swiftJson: String, jsJson: String) throws {
+        // Parse both JSON strings
+        let swiftData = swiftJson.data(using: .utf8)!
+        let jsData = jsJson.data(using: .utf8)!
+
+        let swiftDict = try JSONSerialization.jsonObject(with: swiftData) as! [String: Any]
+        let jsDict = try JSONSerialization.jsonObject(with: jsData) as! [String: Any]
+
+        // Extract deviationsUnsorted arrays
+        let swiftDeviations = swiftDict["deviationsUnsorted"] as! [Any]
+        let jsDeviations = jsDict["deviationsUnsorted"] as! [Any]
+
+        // Convert both to Double arrays
+        let swiftDoubles = swiftDeviations.compactMap { value -> Double? in
+            if let number = value as? NSNumber {
+                return number.doubleValue
+            }
+            return nil
+        }
+
+        let jsDoubles = jsDeviations.compactMap { value -> Double? in
+            if let number = value as? NSNumber {
+                return number.doubleValue
+            } else if let string = value as? String {
+                return Double(string)
+            }
+            return nil
+        }
+
+        // Compare the arrays
+        print("Swift array count: \(swiftDoubles.count)")
+        print("JS array count: \(jsDoubles.count)")
+
+        guard swiftDoubles.count == jsDoubles.count else {
+            print("Arrays have different lengths!")
+            print("Swift: \(swiftDoubles)")
+            print("JS: \(jsDoubles)")
+            return
+        }
+
+        var differences: [(index: Int, swift: Double, js: Double)] = []
+
+        for (index, (swiftVal, jsVal)) in zip(swiftDoubles, jsDoubles).enumerated() {
+            if abs(swiftVal - jsVal) > 0.001 { // Small tolerance for floating point comparison
+                differences.append((index: index, swift: swiftVal, js: jsVal))
+            }
+        }
+
+        if differences.isEmpty {
+            print("✅ Arrays are identical (within tolerance)")
+        } else {
+            print("❌ Found \(differences.count) differences:")
+            for diff in differences {
+                print("  Index \(diff.index): Swift=\(diff.swift), JS=\(diff.js)")
+            }
+        }
+    }
+
+    @Test(
+        "should produce same results for autosens for fixed JS",
+        .enabled(if: false)
+    ) func replayErrorInputs() async throws {
+        let timezone = "America/Los_Angeles"
+        var skippedTimezones = Set<String>()
+        let files = try await HttpFiles.listFiles()
+        for filePath in files {
+            let algorithmComparison = try await HttpFiles.downloadFile(at: filePath)
+            print("Checking \(filePath) @ \(algorithmComparison.createdAt)")
+            guard timezone == algorithmComparison.timezone else {
+                skippedTimezones.insert(algorithmComparison.timezone)
+                continue
+            }
+            guard let autosensInputs = algorithmComparison.autosensInput else {
+                print("Skipping, no autosensInputs found")
+                if let str = algorithmComparison.comparisonError {
+                    print(str)
+                }
+                if let str = algorithmComparison.swiftException {
+                    print(str)
+                }
+                continue
+            }
+
+            timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
+
+            try await checkFixedJsAgainstSwift(autosensInputs: autosensInputs)
+            print("Checked \(filePath) @ \(algorithmComparison.createdAt)")
+
+            timeZoneForTests.resetTimezone()
+        }
+
+        print("Skipped timezones:")
+        for skippedTimezone in skippedTimezones {
+            print("  - \(skippedTimezone)")
+        }
+    }
+
+    @Test("Format autosens inputs for running in JS", .enabled(if: false)) func formatInputs() async throws {
+        // this test is meant for one-off analysis so it's ok to hard code
+        // a file, just make sure to _not_ check in updates to this to
+        // avoid polluting our change logs
+        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/4f38ce73-1526-4bcd-80d5-1dee5b002519.0.json")
+        let autosensInputs = algorithmComparison.autosensInput!
+
+        let encoder = JSONCoding.encoder
+        let output = try encoder.encode(autosensInputs)
+
+        let sharedDir = FileManager.default.temporaryDirectory
+        let outputURL = sharedDir.appendingPathComponent("autosens_error_inputs.json")
+        try output.write(to: outputURL)
+
+        timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
+
+        let openAps = OpenAPSFixed()
+        let (autosensResultSwift, _) = OpenAPSSwift.autosense(
+            glucose: autosensInputs.glucose,
+            pumpHistory: autosensInputs.history,
+            basalProfile: autosensInputs.basalProfile,
+            profile: try JSONBridge.to(autosensInputs.profile),
+            carbs: autosensInputs.carbs,
+            tempTargets: autosensInputs.tempTargets,
+            clock: autosensInputs.clock,
+            includeDeviationsForTesting: true
+        )
+
+        let autosensResultJavascript = await openAps.autosenseJavascript(
+            glucose: autosensInputs.glucose,
+            pumpHistory: autosensInputs.history,
+            basalprofile: autosensInputs.basalProfile,
+            profile: try JSONBridge.to(autosensInputs.profile),
+            carbs: autosensInputs.carbs,
+            temptargets: autosensInputs.tempTargets,
+            clock: autosensInputs.clock
+        )
+
+        if case let .success(swiftJson) = autosensResultSwift, case let .success(jsJson) = autosensResultJavascript {
+            try compareDeviations(swiftJson: swiftJson, jsJson: jsJson)
+        }
+
+        // Print the path so you can find it
+        print("Writing to: \(outputURL.path)")
+
+        timeZoneForTests.resetTimezone()
+    }
 }

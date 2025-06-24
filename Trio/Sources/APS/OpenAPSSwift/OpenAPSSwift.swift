@@ -108,13 +108,66 @@ struct OpenAPSSwift {
     }
 
     static func autosense(
-        glucose _: JSON,
-        pumpHistory _: JSON,
-        basalprofile _: JSON,
-        profile _: JSON,
-        carbs _: JSON,
-        temptargets _: JSON
-    ) -> OrefFunctionResult {
-        .failure(NSError(domain: "Some error", code: 1, userInfo: nil))
+        glucose: JSON,
+        pumpHistory: JSON,
+        basalProfile: JSON,
+        profile: JSON,
+        carbs: JSON,
+        tempTargets: JSON,
+        clock: JSON,
+        includeDeviationsForTesting: Bool = false
+    ) -> (OrefFunctionResult, AutosensInputs?) {
+        var autosensInputs: AutosensInputs?
+
+        do {
+            let glucose = try JSONBridge.glucose(from: glucose)
+            let pumpHistory = try JSONBridge.pumpHistory(from: pumpHistory)
+            let basalProfile = try JSONBridge.basalProfile(from: basalProfile)
+            let profile = try JSONBridge.profile(from: profile)
+            let carbs = try JSONBridge.carbs(from: carbs)
+            let tempTargets = try JSONBridge.tempTargets(from: tempTargets)
+            let clock = try JSONBridge.clock(from: clock)
+
+            autosensInputs = AutosensInputs(
+                glucose: glucose,
+                history: pumpHistory,
+                basalProfile: basalProfile,
+                profile: profile,
+                carbs: carbs,
+                tempTargets: tempTargets,
+                clock: clock
+            )
+
+            // this logic is from prepare/autosens.js
+            let ratio8h = try AutosensGenerator.generate(
+                glucose: glucose,
+                pumpHistory: pumpHistory,
+                basalProfile: basalProfile,
+                profile: profile,
+                carbs: carbs,
+                tempTargets: tempTargets,
+                maxDeviations: 96,
+                clock: clock,
+                includeDeviationsForTesting: includeDeviationsForTesting
+            )
+
+            let ratio24h = try AutosensGenerator.generate(
+                glucose: glucose,
+                pumpHistory: pumpHistory,
+                basalProfile: basalProfile,
+                profile: profile,
+                carbs: carbs,
+                tempTargets: tempTargets,
+                maxDeviations: 288,
+                clock: clock,
+                includeDeviationsForTesting: includeDeviationsForTesting
+            )
+
+            let lowestRatio = ratio8h.ratio < ratio24h.ratio ? ratio8h : ratio24h
+
+            return try (.success(JSONBridge.to(lowestRatio)), autosensInputs)
+        } catch {
+            return (.failure(error), autosensInputs)
+        }
     }
 }

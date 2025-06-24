@@ -465,7 +465,7 @@ final class OpenAPS {
         }
     }
 
-    func autosense() async throws -> Autosens? {
+    func autosense(useSwiftOref: Bool) async throws -> Autosens? {
         debug(.openAPS, "Start autosens")
 
         // Perform asynchronous calls in parallel
@@ -493,7 +493,8 @@ final class OpenAPS {
             basalprofile: basalProfile,
             profile: profile,
             carbs: carbsAsJSON,
-            temptargets: tempTargets
+            temptargets: tempTargets,
+            useSwiftOref: useSwiftOref
         )
 
         debug(.openAPS, "AUTOSENS: \(autosenseResult)")
@@ -743,25 +744,81 @@ final class OpenAPS {
         basalprofile: JSON,
         profile: JSON,
         carbs: JSON,
-        temptargets: JSON
+        temptargets: JSON,
+        useSwiftOref: Bool
     ) async throws -> RawJSON {
-        try await withCheckedThrowingContinuation { continuation in
-            jsWorker.inCommonContext { worker in
-                worker.evaluateBatch(scripts: [
-                    Script(name: Prepare.log),
-                    Script(name: Bundle.autosens),
-                    Script(name: Prepare.autosens)
-                ])
-                let result = worker.call(function: Function.generate, with: [
-                    glucose,
-                    pumpHistory,
-                    basalprofile,
-                    profile,
-                    carbs,
-                    temptargets
-                ])
-                continuation.resume(returning: result)
+        let startJavascriptAt = Date()
+        let jsResult = await autosenseJavascript(
+            glucose: glucose,
+            pumpHistory: pumpHistory,
+            basalprofile: basalprofile,
+            profile: profile,
+            carbs: carbs,
+            temptargets: temptargets
+        )
+        let javascriptDuration = Date().timeIntervalSince(startJavascriptAt)
+
+        // Important: we want to make sure that this flag ensures that none
+        // of the native code runs
+        guard useSwiftOref else {
+            return try jsResult.returnOrThrow()
+        }
+
+        let startSwiftAt = Date()
+        let (swiftResult, autosensInputs) = OpenAPSSwift
+            .autosense(
+                glucose: glucose,
+                pumpHistory: pumpHistory,
+                basalProfile: basalprofile,
+                profile: profile,
+                carbs: carbs,
+                tempTargets: temptargets,
+                clock: Date()
+            )
+        let swiftDuration = Date().timeIntervalSince(startSwiftAt)
+
+        JSONCompare.logDifferences(
+            function: .autosens,
+            swift: swiftResult,
+            swiftDuration: swiftDuration,
+            javascript: jsResult,
+            javascriptDuration: javascriptDuration,
+            autosensInputs: autosensInputs
+        )
+
+        return try jsResult.returnOrThrow()
+    }
+
+    private func autosenseJavascript(
+        glucose: JSON,
+        pumpHistory: JSON,
+        basalprofile: JSON,
+        profile: JSON,
+        carbs: JSON,
+        temptargets: JSON
+    ) async -> OrefFunctionResult {
+        do {
+            let result = try await withCheckedThrowingContinuation { continuation in
+                jsWorker.inCommonContext { worker in
+                    worker.evaluateBatch(scripts: [
+                        Script(name: Prepare.log),
+                        Script(name: Bundle.autosens),
+                        Script(name: Prepare.autosens)
+                    ])
+                    let result = worker.call(function: Function.generate, with: [
+                        glucose,
+                        pumpHistory,
+                        basalprofile,
+                        profile,
+                        carbs,
+                        temptargets
+                    ])
+                    continuation.resume(returning: result)
+                }
             }
+            return .success(result)
+        } catch {
+            return .failure(error)
         }
     }
 

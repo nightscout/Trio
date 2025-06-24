@@ -73,6 +73,42 @@ final class OpenAPSFixed {
         }
     }
 
+    func autosenseJavascript(
+        glucose: JSON,
+        pumpHistory: JSON,
+        basalprofile: JSON,
+        profile: JSON,
+        carbs: JSON,
+        temptargets: JSON,
+        clock: JSON
+    ) async -> OrefFunctionResult {
+        do {
+            let result = try await withCheckedThrowingContinuation { continuation in
+                let testBundle = Bundle(for: OpenAPSFixed.self)
+                jsWorker.inCommonContext { worker in
+                    worker.evaluateBatch(scripts: [
+                        Script(name: "prepare/log.js"),
+                        Script.fromTestingBundle(name: "autosens.js", bundle: testBundle),
+                        Script.fromTestingBundle(name: "autosens-prepare.js", bundle: testBundle)
+                    ])
+                    let result = worker.call(function: "generate", with: [
+                        glucose,
+                        pumpHistory,
+                        basalprofile,
+                        profile,
+                        carbs,
+                        temptargets,
+                        clock
+                    ])
+                    continuation.resume(returning: result)
+                }
+            }
+            return .success(result)
+        } catch {
+            return .failure(error)
+        }
+    }
+
     func iobJavascript(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) async -> OrefFunctionResult {
         do {
             let testBundle = Bundle(for: OpenAPSFixed.self)
@@ -112,8 +148,23 @@ extension Script {
             }
         } else {
             print("Resource not found: javascript/\(name)")
+            testPrintAllJSFiles(testBundle: bundle)
             body = "Resource not found"
         }
         return Script(name: name, body: body)
+    }
+
+    static func testPrintAllJSFiles(testBundle: Bundle) {
+        // Get all .js files in the bundle
+        if let jsURLs = testBundle.urls(forResourcesWithExtension: "js", subdirectory: nil) {
+            print("JavaScript files in test bundle:")
+            for jsURL in jsURLs {
+                print("- \(jsURL.lastPathComponent)")
+                print("  Full path: \(jsURL.path)")
+            }
+            print("Total JS files found: \(jsURLs.count)")
+        } else {
+            print("No JavaScript files found in test bundle")
+        }
     }
 }

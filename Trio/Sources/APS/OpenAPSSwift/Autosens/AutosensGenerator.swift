@@ -16,7 +16,7 @@ struct AutosensGenerator {
             case nonMeal
         }
 
-        var meals: [CarbsEntry]
+        var meals: [MealInput]
         var absorbing = false
         var uam = false
         var mealCOB: Decimal = 0
@@ -76,7 +76,9 @@ struct AutosensGenerator {
             simulationProfile.currentBasal = try Basal.basalLookup(basalProfile, now: currGlucose.date)
             simulationProfile.temptargetSet = false
             let iob = try IobCalculation.iobTotal(treatments: treatments, profile: simulationProfile, time: currGlucose.date)
-            let bgi = (-iob.activity * sensitivity * 5).rounded(scale: 2)
+
+            // copying Javascript rounding
+            let bgi = (-iob.activity * sensitivity * 5 * 100 + 0.5).rounded(scale: 0, roundingMode: .down) / 100
 
             // BUG: the time span for deltaGlucose might be different
             // then the time span for bgi if there was a missing CGM
@@ -250,10 +252,10 @@ struct AutosensGenerator {
 
         // BUG: This should be in a loop to handle more than one
         // carb entry (i.e., if entered close together in time)
-        if let meal = state.meals.last, meal.date < glucose.date {
-            if meal.carbs >= 1 {
-                state.mealCOB += meal.carbs
-                state.mealCarbs += meal.carbs
+        if let meal = state.meals.last, meal.timestamp < glucose.date {
+            if let carbs = meal.carbs, carbs >= 1 {
+                state.mealCOB += carbs
+                state.mealCarbs += carbs
             }
             state.meals = state.meals.dropLast()
         }
@@ -306,14 +308,14 @@ struct AutosensGenerator {
 
     /// Finds carbs and returns them in descending order, oldest records first
     private static func findMeals(
-        history _: [PumpHistoryEvent],
+        history: [PumpHistoryEvent],
         carbs: [CarbsEntry],
         profile _: Profile,
-        bucketedGlucose: [BucketedGlucose]
-    ) -> [CarbsEntry] {
-        let firstGlucoseDate = bucketedGlucose.first?.date ?? .distantPast
-        // TODO: Hook up to meal functions when they're ready
-        return carbs.sorted(by: { $0.date > $1.date }).filter({ $0.date >= firstGlucoseDate })
+        bucketedGlucose _: [BucketedGlucose]
+    ) -> [MealInput] {
+        let meals = MealHistory.findMealInputs(pumpHistory: history, carbHistory: carbs)
+
+        return meals.sorted(by: { $0.timestamp > $1.timestamp })
     }
 
     /// Find the last site change, falling back to 24 hours ago if not found
