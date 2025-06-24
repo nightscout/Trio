@@ -43,46 +43,50 @@ struct OpenAPSSwift {
 
     static func determineBasal(
         glucose: JSON,
-        currentTemp _: JSON,
+        currentTemp: JSON,
         iob: JSON,
         profile: JSON,
         autosens: JSON,
         meal: JSON,
         microBolusAllowed: Bool,
-        reservoir _: JSON,
+        reservoir: JSON,
         pumpHistory: JSON,
         preferences: JSON,
         basalProfile: JSON,
-        trioCustomOrefVariables _: JSON,
+        trioCustomOrefVariables: JSON,
         clock: Date
     ) -> (OrefFunctionResult, DetermineBasalInputs?) {
         var determineBasalInputs: DetermineBasalInputs?
 
+        print(reservoir)
+
         do {
-            // FIXME: figure out the types for the commented out vars
             let glucose = try JSONBridge.glucose(from: glucose)
-            // currentTemp: JSON,
+            let currentTemp = try JSONBridge.currentTemp(from: currentTemp)
             let iob = try JSONBridge.iobResult(from: iob)
             let profile = try JSONBridge.profile(from: profile)
             let autosens = try JSONBridge.autosens(from: autosens)
             let meal = try JSONBridge.computedCarbs(from: meal)
             let microBolusAllowed = microBolusAllowed
-            // reservoir: JSON
+            let reservoir = Decimal(string: reservoir.rawJSON)
             let pumpHistory = try JSONBridge.pumpHistory(from: pumpHistory)
             let preferences = try JSONBridge.preferences(from: preferences)
             let basalProfile = try JSONBridge.basalProfile(from: basalProfile)
-            // trioCustomOrefVariables: JSON
+            let trioCustomOrefVariables = try JSONBridge.trioCustomOrefVariables(from: trioCustomOrefVariables)
 
             determineBasalInputs = DetermineBasalInputs(
                 glucose: glucose,
+                currentTemp: currentTemp,
                 iob: iob,
                 profile: profile,
                 autosens: autosens,
                 meal: meal,
                 microBolusAllowed: microBolusAllowed,
+                reservoir: reservoir,
                 pumpHistory: pumpHistory,
                 preferences: preferences,
                 basalProfile: basalProfile,
+                trioCustomOrefVariables: trioCustomOrefVariables,
                 clock: clock
             )
 

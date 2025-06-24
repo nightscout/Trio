@@ -82,19 +82,18 @@ struct MealInputs: Codable {
 }
 
 struct DetermineBasalInputs: Codable {
-    // FIXME: Fill in the rest of these properties
     let glucose: [BloodGlucose]
-    // currentTemp
+    let currentTemp: TempBasal
     let iob: [IobResult]
     let profile: Profile
     let autosens: Autosens?
     let meal: ComputedCarbs?
     let microBolusAllowed: Bool
-    // reservoir: JSON
+    let reservoir: Decimal?
     let pumpHistory: [PumpHistoryEvent]
     let preferences: Preferences
     let basalProfile: [BasalProfileEntry]
-    // trioCustomOrefVariables: JSON
+    let trioCustomOrefVariables: TrioCustomOrefVariables
     let clock: Date
 }
 
