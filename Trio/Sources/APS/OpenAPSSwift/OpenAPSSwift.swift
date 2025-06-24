@@ -105,9 +105,7 @@ struct OpenAPSSwift {
                 currentTime: clock
             )
 
-            // FIXME: fill in with result once we have it
             return (try .success(JSONBridge.to(rawDetermination)), determineBasalInputs)
-//            return (.success(RawJSON.null), determineBasalInputs)
 
         } catch {
             return (.failure(error), determineBasalInputs)

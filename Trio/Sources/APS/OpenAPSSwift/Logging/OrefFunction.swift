@@ -44,7 +44,7 @@ enum OrefFunction: String, Codable {
         case .autosens:
             return Set()
         case .determineBasal:
-            // FIXME: Fill in the properties we don't check here
+            // FIXME: Adjust as we go
             return Set([
                 "id",
                 "reason",
