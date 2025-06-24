@@ -78,7 +78,8 @@ import Testing
             javascript: mealResultJavascript,
             javascriptDuration: 0.1,
             iobInputs: nil,
-            mealInputs: nil
+            mealInputs: nil,
+            autosensInputs: nil
         )
 
         if comparison.resultType == .valueDifference {
@@ -92,7 +93,7 @@ import Testing
         #expect(comparison.resultType == .matching)
     }
 
-    @Test("Format inputs for running in JS", .enabled(if: false)) func formatInputs() async throws {
+    @Test("Format meal inputs for running in JS", .enabled(if: false)) func formatInputs() async throws {
         let openAps = OpenAPSFixed()
 
         // this test is meant for one-off analysis so it's ok to hard code

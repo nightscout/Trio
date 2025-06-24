@@ -96,7 +96,8 @@ import Testing
             javascript: profileJs,
             javascriptDuration: 0.1,
             iobInputs: nil,
-            mealInputs: nil
+            mealInputs: nil,
+            autosensInputs: nil
         )
 
         #expect(comparison.resultType == .matching)
@@ -127,7 +128,8 @@ import Testing
             javascript: .success(matchingJSON),
             javascriptDuration: 0.2,
             iobInputs: nil,
-            mealInputs: nil
+            mealInputs: nil,
+            autosensInputs: nil
         )
 
         #expect(comparison.resultType == .matching)
@@ -147,7 +149,8 @@ import Testing
             javascript: .success(matchingJSON),
             javascriptDuration: 0.2,
             iobInputs: nil,
-            mealInputs: nil
+            mealInputs: nil,
+            autosensInputs: nil
         )
 
         #expect(comparison.resultType == .valueDifference)
@@ -169,7 +172,8 @@ import Testing
             javascript: .failure(error),
             javascriptDuration: 0.2,
             iobInputs: nil,
-            mealInputs: nil
+            mealInputs: nil,
+            autosensInputs: nil
         )
 
         #expect(comparison.resultType == .matchingExceptions)
@@ -188,7 +192,8 @@ import Testing
             javascript: .success(matchingJSON),
             javascriptDuration: 0.2,
             iobInputs: nil,
-            mealInputs: nil
+            mealInputs: nil,
+            autosensInputs: nil
         )
 
         #expect(comparison.resultType == .swiftOnlyException)
@@ -209,7 +214,8 @@ import Testing
             javascript: .failure(error),
             javascriptDuration: 0.2,
             iobInputs: nil,
-            mealInputs: nil
+            mealInputs: nil,
+            autosensInputs: nil
         )
 
         #expect(comparison.resultType == .jsOnlyException)
@@ -229,7 +235,8 @@ import Testing
             javascript: .success(matchingJSON),
             javascriptDuration: 0.2,
             iobInputs: nil,
-            mealInputs: nil
+            mealInputs: nil,
+            autosensInputs: nil
         )
 
         #expect(comparison.resultType == .comparisonError)

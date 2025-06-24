@@ -387,7 +387,7 @@ final class BaseAPSManager: APSManager, Injectable {
         guard let autosense = await storage.retrieveAsync(OpenAPS.Settings.autosense, as: Autosens.self),
               (autosense.timestamp ?? .distantPast).addingTimeInterval(30.minutes.timeInterval) > Date()
         else {
-            let result = try await openAPS.autosense()
+            let result = try await openAPS.autosense(useSwiftOref: settings.useSwiftOref)
             return result != nil
         }
 
