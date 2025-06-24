@@ -12,7 +12,8 @@ function detectCarbAbsorption(inputs) {
     });
     var iob_inputs = inputs.iob_inputs;
     var basalprofile = inputs.basalprofile;
-    /* TODO why does declaring profile break tests-command-behavior.tests.sh? */ profile = inputs.iob_inputs.profile;
+    /* TODO why does declaring profile break tests-command-behavior.tests.sh? */
+    profile = inputs.iob_inputs.profile;
     var mealTime = new Date(inputs.mealTime);
     var ciTime = new Date(inputs.ciTime);
 
@@ -50,7 +51,7 @@ function detectCarbAbsorption(inputs) {
         }
         // only consider BGs for 6h after a meal for calculating COB
         var hoursAfterMeal = (bgTime-mealTime)/(60*60*1000);
-        if (hoursAfterMeal > 6 || foundPreMealBG) {
+        if (hoursAfterMeal > profile.maxMealAbsorptionTime || foundPreMealBG) {
             continue;
         } else if (hoursAfterMeal < 0) {
 //console.error("Found pre-meal BG:",glucose_data[i].glucose, bgTime, Math.round(hoursAfterMeal*100)/100);
