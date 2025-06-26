@@ -239,7 +239,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
         }
 
         if let currentActivity {
-            if currentActivity.needsRecreation(), UIApplication.shared.applicationState == .active {
+            if currentActivity.needsRecreation() && UIApplication.shared.applicationState == .active {
                 debug(.default, "[LiveActivityManager] Ending current activity for recreation: \(currentActivity.activity.id)")
                 await endActivity()
                 // After endActivity(), currentActivity is guaranteed to be nil
@@ -294,7 +294,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
                     staleDate: Date.now.addingTimeInterval(5 * 60)
                 )
                 await activity.update(updateContent)
-                debug(.default, "[LiveActivityManager] Updated new activity with actual data")
+                debug(.default, "[LiveActivityManager] Set initial content for new activity: \(activity.id)")
             } catch {
                 debug(
                     .default,
