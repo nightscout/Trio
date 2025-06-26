@@ -89,6 +89,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
         registerHandler()
         monitorForLiveActivityAuthorizationChanges()
         setupGlucoseArray()
+        setupDetermination()
         broadcaster.register(SettingsObserver.self, observer: self)
     }
 
@@ -260,6 +261,12 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
         }
     }
 
+    private func setupDetermination() {
+        Task { @MainActor in
+            self.determination = try await fetchAndMapDetermination()
+        }
+    }
+
     /// Monitors live activity authorization changes and updates the `systemEnabled` flag.
     private func monitorForLiveActivityAuthorizationChanges() {
         Task {
@@ -279,9 +286,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
     /// Otherwise, it ends the current live activity.
     @MainActor private func forceActivityUpdate() {
         if settings.useLiveActivity {
-            if currentActivity?.needsRecreation() ?? true {
-                glucoseDidUpdate(glucoseFromPersistence ?? [])
-            }
+            glucoseDidUpdate(glucoseFromPersistence ?? [])
         } else {
             Task {
                 await self.endActivity()
@@ -312,13 +317,8 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
                 await endActivity()
                 // After endActivity(), currentActivity is guaranteed to be nil
                 // No recursive task, but explicitly restart
-                if self.currentActivity == nil {
-                    debug(.default, "[LiveActivityManager] Re-pushing update after recreation.")
-                    await pushUpdate(state)
-                } else {
-                    debug(.default, "[LiveActivityManager] Warning: currentActivity was not nil after endActivity!")
-                }
-                return
+                debug(.default, "[LiveActivityManager] Re-pushing update after recreation.")
+                await pushUpdate(state)
             } else {
                 let content = ActivityContent(
                     state: state,
@@ -389,11 +389,6 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
             self.currentActivity = nil
         }
 
-        for activity in Activity<LiveActivityAttributes>.activities {
-            debug(.default, "Ending lingering activity: \(activity.id)")
-            await activity.end(nil, dismissalPolicy: .immediate)
-        }
-
         for unknownActivity in Activity<LiveActivityAttributes>.activities {
             debug(.default, "Ending unknown activity: \(unknownActivity.id)")
             await unknownActivity.end(nil, dismissalPolicy: .immediate)
@@ -407,27 +402,6 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
     /// This method mimics xdrip's `restartActivityFromLiveActivityIntent()` behavior by verifying that a valid content state exists,
     /// ending the current live activity, and starting a new one using the current state.
     @MainActor func restartActivityFromLiveActivityIntent() async {
-        guard let latestGlucose = latestGlucose,
-              let determination = determination
-        else {
-            debug(.default, "Cannot restart live activity because required persistent state is not available. Fetching data...")
-            return
-        }
-
-        guard let contentState = LiveActivityAttributes.ContentState(
-            new: latestGlucose,
-            prev: latestGlucose,
-            units: settings.units,
-            chart: glucoseFromPersistence ?? [],
-            settings: settings,
-            determination: determination,
-            override: override,
-            widgetItems: widgetItems
-        ) else {
-            debug(.default, "Cannot restart live activity because content state cannot be created")
-            return
-        }
-
         await endActivity()
 
         while (currentActivity != nil && currentActivity!.activity.activityState != .ended) || Activity<LiveActivityAttributes>
@@ -441,9 +415,8 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
         debug(.default, "Waiting additional time for iOS to clean up...")
         try? await Task.sleep(nanoseconds: 1_000_000_000) // 1s additional delay
 
-        Task { @MainActor in
-            await self.pushUpdate(contentState)
-        }
+        forceActivityUpdate()
+
         debug(.default, "Restarted Live Activity from LiveActivityIntent (via iOS Shortcut)")
     }
 }
