@@ -97,7 +97,8 @@ import Testing
             javascriptDuration: 0.1,
             iobInputs: nil,
             mealInputs: nil,
-            autosensInputs: nil
+            autosensInputs: nil,
+            determineBasalInputs: nil
         )
 
         #expect(comparison.resultType == .matching)
@@ -129,7 +130,8 @@ import Testing
             javascriptDuration: 0.2,
             iobInputs: nil,
             mealInputs: nil,
-            autosensInputs: nil
+            autosensInputs: nil,
+            determineBasalInputs: nil
         )
 
         #expect(comparison.resultType == .matching)
@@ -150,7 +152,8 @@ import Testing
             javascriptDuration: 0.2,
             iobInputs: nil,
             mealInputs: nil,
-            autosensInputs: nil
+            autosensInputs: nil,
+            determineBasalInputs: nil
         )
 
         #expect(comparison.resultType == .valueDifference)
@@ -173,7 +176,8 @@ import Testing
             javascriptDuration: 0.2,
             iobInputs: nil,
             mealInputs: nil,
-            autosensInputs: nil
+            autosensInputs: nil,
+            determineBasalInputs: nil
         )
 
         #expect(comparison.resultType == .matchingExceptions)
@@ -193,7 +197,8 @@ import Testing
             javascriptDuration: 0.2,
             iobInputs: nil,
             mealInputs: nil,
-            autosensInputs: nil
+            autosensInputs: nil,
+            determineBasalInputs: nil
         )
 
         #expect(comparison.resultType == .swiftOnlyException)
@@ -215,7 +220,8 @@ import Testing
             javascriptDuration: 0.2,
             iobInputs: nil,
             mealInputs: nil,
-            autosensInputs: nil
+            autosensInputs: nil,
+            determineBasalInputs: nil
         )
 
         #expect(comparison.resultType == .jsOnlyException)
@@ -236,7 +242,8 @@ import Testing
             javascriptDuration: 0.2,
             iobInputs: nil,
             mealInputs: nil,
-            autosensInputs: nil
+            autosensInputs: nil,
+            determineBasalInputs: nil
         )
 
         #expect(comparison.resultType == .comparisonError)

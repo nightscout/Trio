@@ -41,6 +41,77 @@ struct OpenAPSSwift {
         }
     }
 
+    static func determineBasal(
+        glucose: JSON,
+        currentTemp: JSON,
+        iob: JSON,
+        profile: JSON,
+        autosens: JSON,
+        meal: JSON,
+        microBolusAllowed: Bool,
+        reservoir: JSON,
+        pumpHistory: JSON,
+        preferences: JSON,
+        basalProfile: JSON,
+        trioCustomOrefVariables: JSON,
+        clock: Date
+    ) -> (OrefFunctionResult, DetermineBasalInputs?) {
+        var determineBasalInputs: DetermineBasalInputs?
+
+        print(reservoir)
+
+        do {
+            let glucose = try JSONBridge.glucose(from: glucose)
+            let currentTemp = try JSONBridge.currentTemp(from: currentTemp)
+            let iob = try JSONBridge.iobResult(from: iob)
+            let profile = try JSONBridge.profile(from: profile)
+            let autosens = try JSONBridge.autosens(from: autosens)
+            let meal = try JSONBridge.computedCarbs(from: meal)
+            let microBolusAllowed = microBolusAllowed
+            let reservoir = Decimal(string: reservoir.rawJSON)
+            let pumpHistory = try JSONBridge.pumpHistory(from: pumpHistory)
+            let preferences = try JSONBridge.preferences(from: preferences)
+            let basalProfile = try JSONBridge.basalProfile(from: basalProfile)
+            let trioCustomOrefVariables = try JSONBridge.trioCustomOrefVariables(from: trioCustomOrefVariables)
+
+            determineBasalInputs = DetermineBasalInputs(
+                glucose: glucose,
+                currentTemp: currentTemp,
+                iob: iob,
+                profile: profile,
+                autosens: autosens,
+                meal: meal,
+                microBolusAllowed: microBolusAllowed,
+                reservoir: reservoir,
+                pumpHistory: pumpHistory,
+                preferences: preferences,
+                basalProfile: basalProfile,
+                trioCustomOrefVariables: trioCustomOrefVariables,
+                clock: clock
+            )
+
+            guard let mealData = meal, let autosensData = autosens else {
+                return (.failure(DeterminationError.missingInputs), determineBasalInputs)
+            }
+
+            let rawDetermination = try DeterminationGenerator.generate(
+                profile: profile,
+                currentTemp: currentTemp,
+                iobData: iob,
+                mealData: mealData,
+                autosensData: autosensData,
+                reservoirData: reservoir ?? 100,
+                glucose: glucose,
+                currentTime: clock
+            )
+
+            return (try .success(JSONBridge.to(rawDetermination)), determineBasalInputs)
+
+        } catch {
+            return (.failure(error), determineBasalInputs)
+        }
+    }
+
     static func meal(
         pumphistory: JSON,
         profile: JSON,
