@@ -42,12 +42,11 @@ enum OrefFunction: String, Codable {
             // can ignore them in our comparison
             return Set(["maxDeviation", "minDeviation", "allDeviations", "bwCarbs", "bwFound", "journalCarbs", "nsCarbs"])
         case .autosens:
-            return Set()
+            return Set(["deviationsUnsorted"])
         case .determineBasal:
             // FIXME: Adjust as we go
             return Set([
                 "id",
-                "reason",
                 "units",
                 "insulinReq",
                 "rate",
@@ -99,9 +98,8 @@ enum OrefFunction: String, Codable {
             ]
         case .autosens:
             return [
-                "ratio": 0.01,
-                "newisf": 1,
-                "deviationsUnsorted": 0.02
+                "ratio": 0.011,
+                "newisf": 1.5
             ]
         case .determineBasal:
             return [:]
