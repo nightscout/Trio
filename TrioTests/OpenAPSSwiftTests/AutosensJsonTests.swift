@@ -83,7 +83,8 @@ import Testing
             javascriptDuration: 0.1,
             iobInputs: nil,
             mealInputs: nil,
-            autosensInputs: nil
+            autosensInputs: nil,
+            determineBasalInputs: nil
         )
 
         if comparison.resultType == .valueDifference {
@@ -157,9 +158,9 @@ import Testing
 
     @Test(
         "should produce same results for autosens for fixed JS",
-        .enabled(if: false)
+        .enabled(if: ReplayTests.enabled)
     ) func replayErrorInputs() async throws {
-        let timezone = "America/Los_Angeles"
+        let timezone = "Europe/Berlin"
         var skippedTimezones = Set<String>()
         let files = try await HttpFiles.listFiles()
         for filePath in files {
@@ -194,7 +195,7 @@ import Testing
         }
     }
 
-    @Test("Format autosens inputs for running in JS", .enabled(if: false)) func formatInputs() async throws {
+    @Test("Format autosens inputs for running in JS", .enabled(if: ReplayTests.enabled)) func formatInputs() async throws {
         // this test is meant for one-off analysis so it's ok to hard code
         // a file, just make sure to _not_ check in updates to this to
         // avoid polluting our change logs
