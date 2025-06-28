@@ -41,7 +41,7 @@ import Testing
     // to about 250 files at a time
     @Test(
         "IoB should produce same results for fixed JS and different for bundle JS",
-        .enabled(if: false)
+        .enabled(if: ReplayTests.enabled)
     ) func replayErrorInputs() async throws {
         let files = try await HttpFiles.listFiles()
         for filePath in files {
@@ -178,7 +178,7 @@ import Testing
         }
     }
 
-    @Test("Debug utility for checking iob-history", .enabled(if: false)) func debugIobHistory() async throws {
+    @Test("Debug utility for checking iob-history", .enabled(if: ReplayTests.enabled)) func debugIobHistory() async throws {
         let testBundle = Bundle(for: BundleReference.self)
         let path = testBundle.path(forResource: "iob-error-log", ofType: "json")!
         let data = try Data(contentsOf: URL(fileURLWithPath: path))
@@ -227,7 +227,7 @@ import Testing
     }
 
     /// simple utility for creating inputs for Javascript for use in testing
-    @Test("format inputs for Javascript", .enabled(if: false)) func generateJavascriptInputs() throws {
+    @Test("format inputs for Javascript", .enabled(if: ReplayTests.enabled)) func generateJavascriptInputs() throws {
         let testBundle = Bundle(for: BundleReference.self)
         let path = testBundle.path(forResource: "iob-error-log", ofType: "json")!
         let data = try Data(contentsOf: URL(fileURLWithPath: path))
