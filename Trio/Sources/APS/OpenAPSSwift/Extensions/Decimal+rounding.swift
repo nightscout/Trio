@@ -25,6 +25,10 @@ extension Decimal {
         return (self * multiplier + 0.5).rounded(scale: 0, roundingMode: .down) / multiplier
     }
 
+    func jsRounded() -> Decimal {
+        jsRounded(scale: 0)
+    }
+
     func clamp(lowerBound: Decimal, upperBound: Decimal) -> Decimal {
         if self < lowerBound {
             return lowerBound
