@@ -39,16 +39,23 @@ import Swinject
     ) var confirmBeforeApplying: Bool
 
     static var parameterSummary: some ParameterSummary {
-        When(\.$confirmBeforeApplying, .equalTo, true, {
-            Summary("Applying \(\.$bolusQuantity) U") {
+        When(\.$externalInsulin, .equalTo, true, {
+            Summary("Log external insulin bolus \(\.$bolusQuantity) U") {
                 \.$externalInsulin
                 \.$confirmBeforeApplying
             }
         }, otherwise: {
-            Summary("Immediately applying \(\.$bolusQuantity) U") {
-                \.$externalInsulin
-                \.$confirmBeforeApplying
-            }
+            When(\.$confirmBeforeApplying, .equalTo, true, {
+                Summary("Applying \(\.$bolusQuantity) U") {
+                    \.$externalInsulin
+                    \.$confirmBeforeApplying
+                }
+            }, otherwise: {
+                Summary("Immediately applying \(\.$bolusQuantity) U") {
+                    \.$externalInsulin
+                    \.$confirmBeforeApplying
+                }
+            })
         })
     }
 
