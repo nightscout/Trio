@@ -75,11 +75,6 @@ import Testing
                 timestamp: mealTime,
                 carbs: 30,
                 bolus: nil
-            ),
-            MealInput(
-                timestamp: mealTime,
-                carbs: nil,
-                bolus: 3
             )
         ]
 
@@ -98,9 +93,10 @@ import Testing
 
         // After 1 hour, we should see partial carb absorption
         #expect(result != nil)
-        #expect(result!.mealCOB.isWithin(12 * 0.25, of: 12) == true, "mealCOB: \(result!.mealCOB.description)")
+        // at this level JS is rounding, thus the 0.5
+        #expect(result!.mealCOB.isWithin(0.5, of: 10) == true, "mealCOB: \(result!.mealCOB.description)")
         #expect(
-            result!.currentDeviation.isWithin(3 * 0.25, of: 3),
+            result!.currentDeviation == 3.6,
             "currentDeviation: \(result!.currentDeviation.description)"
         )
     }
@@ -176,10 +172,10 @@ import Testing
         #expect(result != nil)
         #expect(result!.carbs == 20)
         #expect(
-            result!.currentDeviation.isWithin(0.67 * 0.25, of: 0.67) == true,
+            result!.currentDeviation.isWithin(0.02, of: 0.67) == true,
             "currentDeviation: \(result!.currentDeviation.description)"
         )
-        #expect(result!.mealCOB.isWithin(14 * 0.25, of: 14) == true, "mealCOB: \(result!.mealCOB.description)")
+        #expect(result!.mealCOB.isWithin(0.25, of: 14) == true, "mealCOB: \(result!.mealCOB.description)")
     }
 
     @Test("should ignore treatments outside the meal window") func ignoreTreatmentsOutsideMealWindow() async throws {
@@ -230,7 +226,7 @@ import Testing
         #expect(result?.carbs == 0)
         #expect(result?.mealCOB == 0)
         #expect(
-            result?.currentDeviation.isWithin(0.67 * 0.25, of: 0.67) == true,
+            result?.currentDeviation.isWithin(0.02, of: 0.67) == true,
             "currentDeviation: \(result!.currentDeviation.description)"
         )
     }

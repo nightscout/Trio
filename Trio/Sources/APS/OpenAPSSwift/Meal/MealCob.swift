@@ -5,13 +5,11 @@ struct MealCob {
     struct BucketedGlucose: Codable {
         let glucose: Decimal
         let date: Date
-        let samplesInBucket: Int
 
         func average(adding glucose: BucketedGlucose) -> BucketedGlucose {
-            let total = Decimal(samplesInBucket) * self.glucose + glucose.glucose
-            let numSamples = samplesInBucket + 1
-            let newGlucoseAverage = total / Decimal(numSamples)
-            return BucketedGlucose(glucose: newGlucoseAverage, date: date, samplesInBucket: numSamples)
+            // BUG: simple average of two values
+            let newGlucose = (self.glucose + glucose.glucose) / 2
+            return BucketedGlucose(glucose: newGlucose, date: date)
         }
     }
 
@@ -29,12 +27,17 @@ struct MealCob {
     /// Detects carb absorption by analyzing glucose deviations from expected insulin activity
     ///
     /// This is the main COB detection algorithm entry point
+    ///
+    /// IMPORTANT: This implementation faithfully reproduces JavaScript bugs where:
+    /// - clock gets mutated to the last bgTime processed
+    /// - profile.currentBasal gets mutated to the basal rate at that time
+    /// These mutations persist between calls, affecting subsequent COB calculations
     static func detectCarbAbsorption(
-        clock: Date,
+        clock: inout Date, // Made inout to match JS mutation bug
         glucose: [BloodGlucose],
         pumpHistory: [PumpHistoryEvent],
         basalProfile: [BasalProfileEntry],
-        profile: Profile,
+        profile: inout Profile, // Made inout to match JS mutation bug
         mealDate: Date,
         carbImpactDate: Date?
     ) throws -> CobResult {
@@ -57,92 +60,133 @@ struct MealCob {
             bucketedData: bucketedData,
             treatments: treatments,
             basalProfile: basalProfile,
-            profile: profile,
+            profile: &profile,
             mealDate: mealDate,
-            carbImpactDate: carbImpactDate
+            carbImpactDate: carbImpactDate,
+            clock: &clock
         )
     }
 
-    private static func interpolateGlucose(lastBucket: BucketedGlucose, glucose: BucketedGlucose) -> [BucketedGlucose] {
-        let deltaGlucose = glucose.glucose - lastBucket.glucose
-        let timeBetweenSamples = Decimal(lastBucket.date.timeIntervalSince(glucose.date))
-        let slope = deltaGlucose / timeBetweenSamples
-        let stepSize = Decimal(5.minutesToSeconds)
-
-        // I'm skipping the 4 hour limit from JS
-        // Note: in the JS implementation it does not add the `glucose`
-        // value to the bucket, so we will retain this behavior here
-        // to ensure mostly consistent timing between samples. In other
-        // words, JS only adds interpolated values, not the actual reading
-        let interpolatedValues = stride(from: stepSize, to: timeBetweenSamples, by: stepSize).map { time in
-            let newGlucose = lastBucket.glucose + slope * time
-            let newDate = lastBucket.date - TimeInterval(time)
-            return BucketedGlucose(glucose: newGlucose, date: newDate, samplesInBucket: 1)
-        }
-
-        return interpolatedValues
-    }
-
     /// Groups glucose readings into time buckets with interpolation for missing data points
-    /// Make this non-private to expose for test cases
+    /// Faithful port of JS bucketing logic including all quirks
     static func bucketGlucoseForCob(
         glucose: [BloodGlucose],
         profile: Profile,
         mealDate: Date,
         carbImpactDate: Date?
     ) throws -> [BucketedGlucose] {
-        var glucoseData = glucose.compactMap({ (bg: BloodGlucose) -> BucketedGlucose? in
+        // Map glucose data like JS does
+        let glucoseData = glucose.compactMap({ (bg: BloodGlucose) -> BucketedGlucose? in
             guard let glucose = bg.glucose ?? bg.sgv else { return nil }
-            return BucketedGlucose(glucose: Decimal(glucose), date: bg.dateString, samplesInBucket: 1)
+            return BucketedGlucose(glucose: Decimal(glucose), date: bg.dateString)
         })
 
         var bucketedData: [BucketedGlucose] = []
+        var foundPreMealBG = false
+        var lastbgi = 0
 
-        // make sure that all of our samples are later than the meal and
-        // before the maxMealAbsorptionTime expires. We also added a
-        // >= 39 glucose check from Javascript
-        let mealDoneDate = mealDate + profile.maxMealAbsorptionTime.hoursToSeconds
-        glucoseData = glucoseData.filter { $0.date >= mealDate && $0.date <= mealDoneDate && $0.glucose >= 39 }
+        // Initialize first bucket if we have data
+        guard !glucoseData.isEmpty else { return [] }
 
-        // Only consider last ~45m of data in CI mode
-        // this allows us to calculate deviations for the last ~30m
-        if let carbImpactDate = carbImpactDate {
-            glucoseData = glucoseData
-                .filter { carbImpactDate >= $0.date && carbImpactDate.timeIntervalSince($0.date) <= 45.minutesToSeconds }
+        // JS behavior: check if first glucose is valid
+        if glucoseData[0].glucose < 39 {
+            lastbgi = -1
         }
 
-        for glucose in glucoseData {
-            guard let lastBucket = bucketedData.last else {
-                bucketedData.append(glucose)
+        bucketedData.append(glucoseData[0])
+        var j = 0
+
+        for i in 1 ..< glucoseData.count {
+            let bgTime = glucoseData[i].date
+            var lastbgTime: Date
+
+            // Skip invalid glucose
+            if glucoseData[i].glucose < 39 {
                 continue
             }
-            let timeBetweenSamples = lastBucket.date.timeIntervalSince(glucose.date)
-            let elapsedTime = timeBetweenSamples > 4.hoursToSeconds ? 4.hoursToSeconds : timeBetweenSamples
-            if elapsedTime > 8.minutesToSeconds {
-                // interpolate
-                let interpolatedGlucose = interpolateGlucose(lastBucket: lastBucket, glucose: glucose)
-                bucketedData.append(contentsOf: interpolatedGlucose)
-            } else if elapsedTime > 2.minutesToSeconds {
-                // add the new sample
-                bucketedData.append(BucketedGlucose(glucose: glucose.glucose, date: glucose.date, samplesInBucket: 1))
-            } else {
-                // average
-                bucketedData = Array(bucketedData.dropLast())
-                bucketedData.append(lastBucket.average(adding: glucose))
+
+            // JS: only consider BGs for maxMealAbsorptionTime after a meal
+            let hoursAfterMeal = bgTime.timeIntervalSince(mealDate) / (60 * 60)
+            if hoursAfterMeal > Double(profile.maxMealAbsorptionTime) || foundPreMealBG {
+                continue
+            } else if hoursAfterMeal < 0 {
+                foundPreMealBG = true
             }
+
+            // Only consider last ~45m of data in CI mode
+            if let carbImpactDate = carbImpactDate {
+                let hoursAgo = carbImpactDate.timeIntervalSince(bgTime) / (45 * 60)
+                if hoursAgo > 1 || hoursAgo < 0 {
+                    continue
+                }
+            }
+
+            // Get last bg time - JS logic
+            // Note display_time isn't set in Trio so this is the
+            // only logic that will trigger
+            if lastbgi >= 0, lastbgi < glucoseData.count {
+                lastbgTime = glucoseData[lastbgi].date
+            } else {
+                continue
+            }
+
+            var elapsedMinutes = bgTime.timeIntervalSince(lastbgTime) / 60
+
+            if abs(elapsedMinutes) > 8 {
+                // Interpolate missing data points - JS logic with all its quirks
+                var lastbg = lastbgi >= 0 && lastbgi < glucoseData.count ? glucoseData[lastbgi].glucose : bucketedData[j].glucose
+                // Cap at 4 hours like JS AND modify the variable
+                elapsedMinutes = min(240, abs(elapsedMinutes))
+
+                while elapsedMinutes > 5 {
+                    // JS creates previousbgTime by subtracting from lastbgTime
+                    let previousbgTime = lastbgTime.addingTimeInterval(-5 * 60)
+                    j += 1
+
+                    let gapDelta = glucoseData[i].glucose - lastbg
+                    // JS uses the capped elapsed_minutes value
+                    let previousbg = lastbg + (5 / Decimal(elapsedMinutes)) * gapDelta
+
+                    let interpolatedBucket = BucketedGlucose(
+                        glucose: previousbg.rounded(scale: 0),
+                        date: previousbgTime
+                    )
+                    bucketedData.append(interpolatedBucket)
+
+                    elapsedMinutes -= 5
+                    lastbg = previousbg
+                    lastbgTime = previousbgTime
+                }
+                // JS behavior: Do NOT add the actual glucose reading after interpolation
+
+            } else if abs(elapsedMinutes) > 2 {
+                // Add new sample
+                j += 1
+                bucketedData.append(BucketedGlucose(
+                    glucose: glucoseData[i].glucose,
+                    date: bgTime
+                ))
+            } else {
+                // Average with previous
+                bucketedData[j] = bucketedData[j].average(adding: glucoseData[i])
+            }
+
+            lastbgi = i
         }
 
         return bucketedData
     }
 
     /// Calculates carb absorption and related metrics from bucketed glucose data
+    /// Faithful port including JS bugs where clock and profile are mutated
     private static func calculateCarbAbsorption(
         bucketedData: [BucketedGlucose],
         treatments: [ComputedPumpHistoryEvent],
         basalProfile: [BasalProfileEntry],
-        profile: Profile,
+        profile: inout Profile, // Mutated to match JS bug
         mealDate: Date,
-        carbImpactDate: Date?
+        carbImpactDate: Date?,
+        clock: inout Date // Mutated to match JS bug
     ) throws -> CobResult {
         var carbsAbsorbed: Decimal = 0
         var currentDeviation: Decimal = 0
@@ -152,50 +196,54 @@ struct MealCob {
         var minDeviation: Decimal = 999
         var allDeviations: [Decimal] = []
 
-        // Process bucketed data (excluding last 3 entries to avoid incomplete deltas)
-        // If bucketed data < 4, skips loop and just returns default values, matching JS behavior
-        for bucketCount in 0 ..< max(0, bucketedData.count - 3) {
-            let glucoseTime = bucketedData[bucketCount].date
-            let glucose = bucketedData[bucketCount].glucose
+        // Process bucketed data (excluding last 3 entries)
+        for i in 0 ..< max(0, bucketedData.count - 3) {
+            let bgTime = bucketedData[i].date
+            let bg = bucketedData[i].glucose
 
-            // Skip invalid glucose readings
-            guard glucose >= 39, bucketedData[bucketCount + 3].glucose >= 39 else {
+            // Skip if glucose values are invalid
+            guard bg >= 39, bucketedData[i + 3].glucose >= 39 else {
                 continue
             }
 
+            let avgDelta = (bg - bucketedData[i + 3].glucose) / 3
+            let delta = bg - bucketedData[i + 1].glucose
+
+            // Get ISF
             guard let isfProfile = profile.isfProfile?.toInsulinSensitivities() else {
                 throw CobError.missingIsfProfile
             }
-            let (sensitivity, _) = try Isf.isfLookup(isfDataInput: isfProfile, timestamp: glucoseTime)
-            guard sensitivity > 0 else {
-                throw CobError.isfLookupError
-            }
+            let (sens, _) = try Isf.isfLookup(isfDataInput: isfProfile, timestamp: bgTime)
 
-            let avgDelta = (glucose - bucketedData[bucketCount + 3].glucose) / 3
-            let delta = glucose - bucketedData[bucketCount + 1].glucose
+            // JS BUGS: These mutations persist!
+            clock = bgTime // Mutates the clock
+            profile.currentBasal = try Basal.basalLookup(basalProfile, now: bgTime) // Mutates the profile
 
-            var simulationProfile = profile
-            simulationProfile.currentBasal = try Basal.basalLookup(basalProfile, now: glucoseTime)
+            // Calculate IOB with mutated values
+            let iob = try IobCalculation.iobTotal(
+                treatments: treatments,
+                profile: profile,
+                time: clock // Uses the mutated clock
+            )
 
-            let iob = try IobCalculation.iobTotal(treatments: treatments, profile: simulationProfile, time: glucoseTime)
+            // JS: bgi = Math.round(( -iob.activity * sens * 5 )*100)/100
+            let bgi: Decimal = (-iob.activity * sens * 5).jsRounded(scale: 2)
+            let deviation = delta - bgi
 
-            // Copying Javascript rounding
-            // JS oref calls this "bgi" = "blood glucose impact"
-            let glucoseImpact: Decimal = (-iob.activity * sensitivity * 5 * 100 + 0.5)
-                .rounded(scale: 0, roundingMode: .down) / 100
-            let deviation = delta - glucoseImpact
-
-            // Calculate the deviation right now, for use in min_5m
-            if bucketCount == 0 {
-                currentDeviation = ((avgDelta - glucoseImpact) * 1000).rounded() / 1000
-                if let carbImpactDate = carbImpactDate, carbImpactDate > glucoseTime {
+            // Calculate current deviation
+            if i == 0 {
+                // JS: currentDeviation = Math.round((avgDelta-bgi)*1000)/1000
+                currentDeviation = (avgDelta - bgi).jsRounded(scale: 3)
+                if let carbImpactDate = carbImpactDate, carbImpactDate > bgTime {
                     allDeviations.append(currentDeviation.rounded())
                 }
-            } else if let carbImpactDate = carbImpactDate, carbImpactDate > glucoseTime {
-                let avgDeviation = ((avgDelta - glucoseImpact) * 1000).rounded() / 1000
-                // we remove the * 1000 because we're already using seconds, not ms
-                let deviationSlope = (avgDeviation - currentDeviation) / Decimal(glucoseTime.timeIntervalSince(carbImpactDate)) *
-                    60 * 5
+            } else if let carbImpactDate = carbImpactDate, carbImpactDate > bgTime {
+                // JS: avgDeviation = Math.round((avgDelta-bgi)*1000)/1000
+                let avgDeviation = (avgDelta - bgi).jsRounded(scale: 3)
+                // JS: deviationSlope = (avgDeviation-currentDeviation)/(bgTime-ciTime)*1000*60*5
+                // we can drop the *1000 since we're already in seconds
+                let deviationSlope = (avgDeviation - currentDeviation) /
+                    Decimal(bgTime.timeIntervalSince(carbImpactDate)) * 60 * 5
 
                 if avgDeviation > maxDeviation {
                     slopeFromMaxDeviation = min(0, deviationSlope)
@@ -209,18 +257,20 @@ struct MealCob {
                 allDeviations.append(avgDeviation.rounded())
             }
 
-            // If glucoseTime is more recent than mealTime
-            if glucoseTime > mealDate {
+            // Calculate carbs absorbed
+            if bgTime > mealDate {
                 guard let carbRatio = profile.carbRatio else {
                     throw CobError.missingCarbRatioInProfile
                 }
 
-                // Figure out how many carbs that represents
-                let carbImpact = max(deviation, currentDeviation / 2, profile.min5mCarbImpact)
-                let absorbed = carbImpact * carbRatio / sensitivity
+                // JS: ci = Math.max(deviation, currentDeviation/2, profile.min_5m_carbimpact)
+                let ci = max(deviation, currentDeviation / 2, profile.min5mCarbImpact)
+                let absorbed = ci * carbRatio / sens
                 carbsAbsorbed += absorbed
             }
         }
+
+        // IMPORTANT: clock and profile.currentBasal remain mutated after this function returns!
 
         return CobResult(
             carbsAbsorbed: carbsAbsorbed,

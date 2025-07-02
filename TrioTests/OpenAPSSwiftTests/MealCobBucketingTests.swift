@@ -82,10 +82,10 @@ import Testing
 
         // Check interpolated values (in reverse chronological order)
         #expect(result[0].glucose == 120) // original (newest)
-        #expect(result[1].glucose.isWithin(0.1, of: 115)) // interpolated
-        #expect(result[2].glucose.isWithin(0.1, of: 110)) // interpolated
-        #expect(result[3].glucose.isWithin(0.1, of: 105)) // interpolated
-        #expect(result[4].glucose.isWithin(0.1, of: 100)) // interpolated
+        #expect(result[1].glucose == 115) // interpolated
+        #expect(result[2].glucose == 110) // interpolated
+        #expect(result[3].glucose == 105) // interpolated
+        #expect(result[4].glucose == 100) // interpolated
 
         // Check that dates are properly set
         #expect(result[1].date == mealTime.addingTimeInterval(16 * 60))
@@ -119,14 +119,15 @@ import Testing
             carbImpactDate: nil
         )
 
-        // Should only process up to 2 hours of data (24 entries + 1 initial = 25)
-        // but it keeps the original time as the first entry of the
-        // bucket and interpolates, which is broken.
-        #expect(result.count == 25)
+        // JS test expects 72 entries (not 25 as in original Swift test)
+        print(result)
+        #expect(result.count == 72)
 
-        #expect(result[0].glucose == 124)
-        #expect(result[12].glucose == 112)
-        #expect(result[24].glucose == 100)
+        // Check specific values to match JS test
+        #expect(result[0].glucose == 196)
+        #expect(result[1].glucose == 195)
+        #expect(result[12].glucose == 178)
+        #expect(result[24].glucose == 160)
     }
 
     @Test("should only process data within 45 minutes in CI mode") func shouldOnlyProcessDataWithin45MinutesInCIMode() async throws {
@@ -151,14 +152,14 @@ import Testing
             carbImpactDate: ciTime
         )
 
-        // Should only include data within 45 minutes of ciTime
-        // but it keeps the first bucket value and interpolates
+        // JS test shows this captures more than 45 minutes due to the bucketing logic
         for entry in result {
             let minutesFromCI = abs(ciTime.timeIntervalSince(entry.date)) / 60
-            #expect(minutesFromCI <= 45)
+            #expect(minutesFromCI <= 120) // JS test uses 120, not 45
         }
 
-        #expect(result.count == 10)
+        // JS test expects 21 entries
+        #expect(result.count == 21)
     }
 
     @Test("should stop processing when pre-meal BG is found") func shouldStopProcessingWhenPreMealBGIsFound() async throws {
@@ -167,8 +168,8 @@ import Testing
 
         // Create data that includes pre-meal values (chronological order)
         var glucose_data = [
-            createGlucoseEntry(glucose: 90, timeMs: mealTimeMs - 10 * 60 * 1000), // 30 min before meal
-            createGlucoseEntry(glucose: 95, timeMs: mealTimeMs - 5 * 60 * 1000), // 15 min before meal
+            createGlucoseEntry(glucose: 90, timeMs: mealTimeMs - 10 * 60 * 1000), // 10 min before meal
+            createGlucoseEntry(glucose: 95, timeMs: mealTimeMs - 5 * 60 * 1000), // 5 min before meal
             createGlucoseEntry(glucose: 100, timeMs: mealTimeMs),
             createGlucoseEntry(glucose: 105, timeMs: mealTimeMs + 5 * 60 * 1000),
             createGlucoseEntry(glucose: 110, timeMs: mealTimeMs + 10 * 60 * 1000),
@@ -183,15 +184,14 @@ import Testing
             carbImpactDate: nil
         )
 
-        // Should only process from meal time forward (in reverse chronological order)
-        // The logic will capture one entry pre meal before
-        // it starts filtering (probably a bug)
-        #expect(result.count == 4)
+        // JS test expects 5 entries (includes one pre-meal entry due to bug)
+        #expect(result.count == 5)
         // Values should be unchanged (in reverse chronological order)
         #expect(result[0].glucose == 115)
         #expect(result[1].glucose == 110)
         #expect(result[2].glucose == 105)
         #expect(result[3].glucose == 100)
+        #expect(result[4].glucose == 95) // This pre-meal entry is included due to JS bug
     }
 
     @Test(
@@ -219,6 +219,34 @@ import Testing
         // Close readings should be averaged (in reverse chronological order)
         #expect(result.count == 2)
         #expect(result[0].glucose == 110)
-        #expect(result[1].glucose == 102)
+        // JS test shows averaging bug results in 101.5, not 102
+        #expect(result[1].glucose == 101.5)
+    }
+
+    @Test("should cap interpolation at 240 minutes for very large gaps") func shouldCapInterpolationAt240MinutesForVeryLargeGaps(
+    ) async throws {
+        let mealTime = Date.from(isoString: "2024-01-01T12:00:00-05:00")
+        let mealTimeMs = mealTime.timeIntervalSince1970 * 1000
+
+        // Create data with a 6-hour (360 minute) gap (chronological order)
+        var glucose_data = [
+            createGlucoseEntry(glucose: 100, timeMs: mealTimeMs),
+            createGlucoseEntry(glucose: 200, timeMs: mealTimeMs + 360 * 60 * 1000) // 6 hour gap
+        ]
+        glucose_data.reverse() // Convert to reverse chronological order
+
+        let result = try MealCob.bucketGlucoseForCob(
+            glucose: glucose_data,
+            profile: createDefaultProfile(),
+            mealDate: mealTime,
+            carbImpactDate: nil
+        )
+
+        // JS test expects 48 entries due to capping at 240 minutes
+        #expect(result.count == 48)
+
+        // Check that interpolation stopped at 240 minutes
+        let gapMinutes = result[0].date.timeIntervalSince(result[result.count - 1].date) / 60
+        #expect(gapMinutes == 235)
     }
 }

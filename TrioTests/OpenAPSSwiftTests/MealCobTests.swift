@@ -38,23 +38,23 @@ import Testing
 
     @Test("should detect carb absorption with rising glucose") func detectCarbAbsorptionWithRisingGlucose() async throws {
         let mealTime = Date.from(isoString: "2016-06-19T12:00:00-04:00")
-        let carbImpactTime = Date.from(isoString: "2016-06-19T13:00:00-04:00")
+        var carbImpactTime = Date.from(isoString: "2016-06-19T13:00:00-04:00")
 
         // Create glucose data showing significant rise after meal
         let glucoseValues = [100, 105, 110, 115, 120, 130, 140, 150, 155, 160, 160, 160, 160]
         let glucoseData = createGlucoseData(startTime: mealTime, values: glucoseValues)
 
-        let profile = createBasicProfile()
+        var profile = createBasicProfile()
         let basalProfile = createBasalProfile()
         let pumpHistory: [PumpHistoryEvent] = []
 
         // Test with carbImpactTime
         var result = try MealCob.detectCarbAbsorption(
-            clock: carbImpactTime, // no pump events, set to whatever
+            clock: &carbImpactTime, // no pump events, set to whatever
             glucose: glucoseData,
             pumpHistory: pumpHistory,
             basalProfile: basalProfile,
-            profile: profile,
+            profile: &profile,
             mealDate: mealTime,
             carbImpactDate: carbImpactTime
         )
@@ -63,11 +63,11 @@ import Testing
 
         // Test without carbImpactTime
         result = try MealCob.detectCarbAbsorption(
-            clock: carbImpactTime, // no pump events, set to whatever
+            clock: &carbImpactTime, // no pump events, set to whatever
             glucose: glucoseData,
             pumpHistory: pumpHistory,
             basalProfile: basalProfile,
-            profile: profile,
+            profile: &profile,
             mealDate: mealTime,
             carbImpactDate: nil
         )
@@ -77,22 +77,22 @@ import Testing
 
     @Test("should handle stable glucose (no carb absorption)") func handleStableGlucose() async throws {
         let mealTime = Date.from(isoString: "2016-06-19T12:00:00-04:00")
-        let carbImpactTime = Date.from(isoString: "2016-06-19T13:00:00-04:00")
+        var carbImpactTime = Date.from(isoString: "2016-06-19T13:00:00-04:00")
 
         // Create stable glucose data
         let glucoseValues = [100, 100, 100, 100, 100, 100]
         let glucoseData = createGlucoseData(startTime: mealTime, values: glucoseValues)
 
-        let profile = createBasicProfile()
+        var profile = createBasicProfile()
         let basalProfile = createBasalProfile()
         let pumpHistory: [PumpHistoryEvent] = []
 
         let result = try MealCob.detectCarbAbsorption(
-            clock: carbImpactTime, // no pump events, set to whatever
+            clock: &carbImpactTime, // no pump events, set to whatever
             glucose: glucoseData,
             pumpHistory: pumpHistory,
             basalProfile: basalProfile,
-            profile: profile,
+            profile: &profile,
             mealDate: mealTime,
             carbImpactDate: carbImpactTime
         )
@@ -102,22 +102,22 @@ import Testing
 
     @Test("should handle falling glucose (negative deviation)") func handleFallingGlucose() async throws {
         let mealTime = Date.from(isoString: "2016-06-19T12:00:00-04:00")
-        let carbImpactTime = Date.from(isoString: "2016-06-19T13:00:00-04:00")
+        var carbImpactTime = Date.from(isoString: "2016-06-19T13:00:00-04:00")
 
         // Create falling glucose data: 150 -> 125
         let glucoseValues = [150, 145, 140, 135, 130, 125]
         let glucoseData = createGlucoseData(startTime: mealTime, values: glucoseValues)
 
-        let profile = createBasicProfile()
+        var profile = createBasicProfile()
         let basalProfile = createBasalProfile()
         let pumpHistory: [PumpHistoryEvent] = []
 
         let result = try MealCob.detectCarbAbsorption(
-            clock: carbImpactTime, // no pump events, set to whatever
+            clock: &carbImpactTime, // no pump events, set to whatever
             glucose: glucoseData,
             pumpHistory: pumpHistory,
             basalProfile: basalProfile,
-            profile: profile,
+            profile: &profile,
             mealDate: mealTime,
             carbImpactDate: carbImpactTime
         )
@@ -127,7 +127,7 @@ import Testing
 
     @Test("should stop processing when pre-meal BG is found") func stopProcessingWhenPreMealBGFound() async throws {
         let mealTime = Date.from(isoString: "2016-06-19T12:00:00-04:00")
-        let carbImpactTime = Date.from(isoString: "2016-06-19T13:00:00-04:00")
+        var carbImpactTime = Date.from(isoString: "2016-06-19T13:00:00-04:00")
 
         // Include glucose data from before meal time
         let glucoseData = [
@@ -149,16 +149,16 @@ import Testing
             )
         ]
 
-        let profile = createBasicProfile()
+        var profile = createBasicProfile()
         let basalProfile = createBasalProfile()
         let pumpHistory: [PumpHistoryEvent] = []
 
         let result = try MealCob.detectCarbAbsorption(
-            clock: carbImpactTime, // no pump events, set to whatever
+            clock: &carbImpactTime, // no pump events, set to whatever
             glucose: glucoseData,
             pumpHistory: pumpHistory,
             basalProfile: basalProfile,
-            profile: profile,
+            profile: &profile,
             mealDate: mealTime,
             carbImpactDate: carbImpactTime
         )
@@ -168,7 +168,7 @@ import Testing
 
     @Test("should respect maxMealAbsorptionTime") func respectMaxMealAbsorptionTime() async throws {
         let mealTime = Date.from(isoString: "2016-06-19T12:00:00-04:00")
-        let carbImpactTime = Date.from(isoString: "2016-06-19T13:00:00-04:00")
+        var carbImpactTime = Date.from(isoString: "2016-06-19T13:00:00-04:00")
 
         // Create glucose data spanning longer than maxMealAbsorptionTime
         var glucoseValues: [Int] = []
@@ -188,26 +188,20 @@ import Testing
         let pumpHistory: [PumpHistoryEvent] = []
 
         let result = try MealCob.detectCarbAbsorption(
-            clock: carbImpactTime, // no pump events, set to whatever
+            clock: &carbImpactTime, // no pump events, set to whatever
             glucose: glucoseData,
             pumpHistory: pumpHistory,
             basalProfile: basalProfile,
-            profile: profile,
+            profile: &profile,
             mealDate: mealTime,
             carbImpactDate: carbImpactTime
         )
 
-        // For this check, the Swift implementation is very
-        // different from Javascript. I believe that the difference
-        // lies in the incorrect handling of maxMealAbsorption
-        // https://github.com/nightscout/Trio/issues/672
-        // #expect(result.carbsAbsorbed.isWithin(0.01, of: 40.5))
-        #expect(result.carbsAbsorbed.isWithin(0.01, of: 5.25))
+        #expect(result.carbsAbsorbed.isWithin(0.01, of: 40.5))
     }
 
     @Test("should handle minimum carb impact from profile") func handleMinimumCarbImpactFromProfile() async throws {
-        let mealTime = Date.from(isoString: "2016-06-19T12:00:00-04:00")
-        let carbImpactTime: Date? = nil
+        var mealTime = Date.from(isoString: "2016-06-19T12:00:00-04:00")
 
         // Create glucose data with slight rise to trigger carb absorption
         let glucoseValues = [100, 101, 102, 103, 104, 105]
@@ -219,13 +213,13 @@ import Testing
         let pumpHistory: [PumpHistoryEvent] = []
 
         let result = try MealCob.detectCarbAbsorption(
-            clock: mealTime, // no pump events, set to whatever
+            clock: &mealTime, // no pump events, set to whatever
             glucose: glucoseData,
             pumpHistory: pumpHistory,
             basalProfile: basalProfile,
-            profile: profile,
+            profile: &profile,
             mealDate: mealTime,
-            carbImpactDate: carbImpactTime
+            carbImpactDate: nil
         )
 
         #expect(result.carbsAbsorbed.isWithin(0.01, of: 3.75))

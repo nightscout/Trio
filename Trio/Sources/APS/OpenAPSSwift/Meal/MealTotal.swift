@@ -13,14 +13,16 @@ struct ComputedCarbs: Codable {
 }
 
 struct IOBInput {
-    let profile: Profile
+    var profile: Profile
     let history: [PumpHistoryEvent]
-    let clock: Date
+    // var to enable input mutation
+    var clock: Date
 }
 
 struct COBInputs {
     let glucoseData: [BloodGlucose]
-    let iobInputs: IOBInput
+    // var to enable input mutations
+    var iobInputs: IOBInput
     let basalProfile: [BasalProfileEntry]
     var mealDate: Date
     var carbImpactDate: Date?
@@ -73,6 +75,7 @@ enum MealTotal {
 
         // Re-assign to a var, so it can be sorted
         var _treatments = treatments
+        var profile = profile
 
         // Define defaults
         var carbs = Decimal(0)
@@ -111,11 +114,11 @@ enum MealTotal {
                     lastCarbTime = max(lastCarbTime, treatmentTime)
 
                     let myCarbsAbsorbed = try MealCob.detectCarbAbsorption(
-                        clock: cobInputs.iobInputs.clock,
+                        clock: &cobInputs.iobInputs.clock,
                         glucose: cobInputs.glucoseData,
                         pumpHistory: cobInputs.iobInputs.history,
                         basalProfile: cobInputs.basalProfile,
-                        profile: cobInputs.iobInputs.profile,
+                        profile: &cobInputs.iobInputs.profile,
                         mealDate: cobInputs.mealDate,
                         carbImpactDate: cobInputs.carbImpactDate
                     ).carbsAbsorbed
@@ -145,11 +148,11 @@ enum MealTotal {
         /// omiting maxCOB check here, the setting is not Optional in Swift and must be part of profile
 
         let finalCobResult = try MealCob.detectCarbAbsorption(
-            clock: cobInputs.iobInputs.clock,
+            clock: &cobInputs.iobInputs.clock,
             glucose: cobInputs.glucoseData,
             pumpHistory: cobInputs.iobInputs.history,
             basalProfile: cobInputs.basalProfile,
-            profile: cobInputs.iobInputs.profile,
+            profile: &cobInputs.iobInputs.profile,
             mealDate: cobInputs.mealDate,
             carbImpactDate: cobInputs.carbImpactDate
         )
