@@ -239,7 +239,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
         }
 
         if let currentActivity {
-            if currentActivity.needsRecreation() && UIApplication.shared.applicationState == .active {
+            if currentActivity.needsRecreation(), UIApplication.shared.applicationState == .active {
                 debug(.default, "[LiveActivityManager] Ending current activity for recreation: \(currentActivity.activity.id)")
                 await endActivity()
                 // After endActivity(), currentActivity is guaranteed to be nil

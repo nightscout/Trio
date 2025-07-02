@@ -179,7 +179,11 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
         newOverride.smbIsOff = override.smbIsOff
         newOverride.name = override.name
         newOverride.isPreset = false // no Preset
-        newOverride.date = Date()
+        newOverride.date = override.date?
+            .addingTimeInterval(
+                1.seconds
+                    .timeInterval
+            ) // hacky solution to show the copied override as the latest override and at the same time not modify an already running preset duration
         newOverride.enabled = override.enabled
         newOverride.target = override.target
         newOverride.advancedSettings = override.advancedSettings
