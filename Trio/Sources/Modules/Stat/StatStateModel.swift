@@ -37,6 +37,13 @@ extension Stat {
         var bolusAveragesCache: [Date: (manual: Double, smb: Double, external: Double)] = [:]
         var bolusTotalsCache: [(Date, total: Double)] = []
 
+        // Cache for Glucose Daily Stats
+        var dailyGlucosePercentileStats: [GlucoseDailyPercentileStats] = []
+        var glucosePercentileCache: [Date: GlucoseDailyPercentileStats] = [:]
+        var dailyGlucoseDistributionStats: [GlucoseDailyDistributionStats] = []
+        var glucoseDistributionCache: [Date: GlucoseDailyDistributionStats] = [:]
+        var glucoseReadings: [GlucoseStored] = []
+
         // Selected Duration for Glucose Stats
         var selectedIntervalForGlucoseStats: StatsTimeIntervalWithToday = .today {
             didSet {
@@ -58,7 +65,7 @@ extension Stat {
         }
 
         // Selected Glucose Chart Type
-        var selectedGlucoseChartType: GlucoseChartType = .percentile
+        var selectedGlucoseChartType: GlucoseChartType = .percentileByTime
 
         // Selected Insulin Chart Type
         var selectedInsulinChartType: InsulinChartType = .totalDailyDose
@@ -83,6 +90,7 @@ extension Stat {
             setupBolusStats()
             setupLoopStatRecords()
             setupMealStats()
+            setupGlucoseDailyStats()
             units = settingsManager.settings.units
             eA1cDisplayUnit = settingsManager.settings.eA1cDisplayUnit
             useFPUconversion = settingsManager.settings.useFPUconversion
@@ -91,13 +99,30 @@ extension Stat {
 
         func setupGlucoseArray(for interval: StatsTimeIntervalWithToday) {
             Task {
+                // Load data for current interval (existing code)
                 let ids = await fetchGlucose(for: interval)
                 await updateGlucoseArray(with: ids)
+
+                // Also ensure we have the full dataset loaded
+                if glucoseReadings.isEmpty {
+                    let allIds = await fetchGlucose(for: .total)
+                    await updateAllGlucoseArray(with: allIds)
+                }
 
                 // Calculate hourly stats and glucose range stats asynchronously with fetched glucose IDs
                 async let hourlyStats: () = calculateHourlyStatsForGlucoseAreaChart(from: ids)
                 async let glucoseRangeStats: () = calculateGlucoseRangeStatsForStackedChart(from: ids)
                 _ = await (hourlyStats, glucoseRangeStats)
+            }
+        }
+
+        func setupGlucoseDailyStats() {
+            Task {
+                // Get glucose IDs once (using the private fetchGlucose method)
+                let allIds = await fetchGlucose(for: .total)
+
+                // Pass the IDs to the implementation in GlucoseStatsSetup.swift
+                await setupGlucoseStats(with: allIds)
             }
         }
 
@@ -152,6 +177,19 @@ extension Stat {
                 )
             }
         }
+
+        @MainActor private func updateAllGlucoseArray(with IDs: [NSManagedObjectID]) {
+            do {
+                let glucoseObjects = try IDs.compactMap { id in
+                    try viewContext.existingObject(with: id) as? GlucoseStored
+                }
+                glucoseReadings = glucoseObjects
+            } catch {
+                debugPrint(
+                    "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the all glucose array: \(error.localizedDescription)"
+                )
+            }
+        }
     }
 
     @Observable final class UpdateTimer {
@@ -179,16 +217,24 @@ extension Stat.StateModel {
     /// Defines the available types of glucose charts
     enum GlucoseChartType: String, CaseIterable {
         /// Ambulatory Glucose Profile showing percentile ranges
-        case percentile = "Percentile"
+        case percentileByTime = "Percentile"
         /// Time-based distribution of glucose ranges
-        case distribution = "Distribution"
+        case distributionByTime = "Distribution"
+        /// Day-based box plot of glucose percentile ranges
+        case percentileByDay = "Percentile (by day)"
+        /// Day-based distribution of glucose ranges
+        case distributionByDay = "Distribution (by day)"
 
         var displayName: String {
             switch self {
-            case .percentile:
+            case .percentileByTime:
                 return String(localized: "Percentile")
-            case .distribution:
+            case .distributionByTime:
                 return String(localized: "Distribution")
+            case .percentileByDay:
+                return String(localized: "Percentile (by day)")
+            case .distributionByDay:
+                return String(localized: "Distribution (by day)")
             }
         }
     }

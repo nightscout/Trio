@@ -12,7 +12,8 @@ struct ApplyOverridePresetIntent: AppIntent {
     /// The override preset to be applied.
     @Parameter(
         title: LocalizedStringResource("Override"),
-        description: LocalizedStringResource("Override choice")
+        description: LocalizedStringResource("Override choice"),
+        requestValueDialog: IntentDialog(stringLiteral: String(localized: "Which override do you want to apply?"))
     ) var preset: OverridePreset?
 
     /// A boolean parameter that determines whether confirmation is required before applying the override.
@@ -49,7 +50,7 @@ struct ApplyOverridePresetIntent: AppIntent {
                 // Request user selection if no preset is provided
                 presetToApply = try await $preset.requestDisambiguation(
                     among: await OverridePresetsIntentRequest().fetchAndProcessOverrides(),
-                    dialog: IntentDialog(LocalizedStringResource("Select override"))
+                    dialog: IntentDialog(stringLiteral: String(localized: "Select override"))
                 )
             }
 
@@ -60,7 +61,8 @@ struct ApplyOverridePresetIntent: AppIntent {
                 try await requestConfirmation(
                     result: .result(
                         dialog: IntentDialog(
-                            LocalizedStringResource(
+                            stringLiteral: String(
+                                localized:
                                 "Confirm to apply override '\(displayName)'"
                             )
                         )
@@ -72,7 +74,8 @@ struct ApplyOverridePresetIntent: AppIntent {
             if await OverridePresetsIntentRequest().enactOverride(presetToApply) {
                 return .result(
                     dialog: IntentDialog(
-                        LocalizedStringResource(
+                        stringLiteral: String(
+                            localized:
                             "Override '\(presetToApply.name)' applied"
                         )
                     )
@@ -80,7 +83,8 @@ struct ApplyOverridePresetIntent: AppIntent {
             } else {
                 return .result(
                     dialog: IntentDialog(
-                        LocalizedStringResource(
+                        stringLiteral: String(
+                            localized:
                             "Override '\(presetToApply.name)' failed"
                         )
                     )
