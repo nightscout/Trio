@@ -71,7 +71,8 @@ import Swinject
                         dialog: IntentDialog(
                             stringLiteral: String(
                                 localized:
-                                "Are you sure to bolus \(bolusFormatted) U of insulin?"
+                                externalInsulin ? "Are you sure to log \(bolusFormatted) U of external insulin?" :
+                                    "Are you sure to bolus \(bolusFormatted) U of insulin?"
                             )
                         )
                     )
