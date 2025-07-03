@@ -133,6 +133,8 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             .receive(on: DispatchQueue.global(qos: .background))
             .sink { [weak self] _ in
                 guard let self = self else { return }
+                // Skip if no Garmin devices are connected
+                guard !self.devices.isEmpty else { return }
                 Task {
                     do {
                         let watchState = try await self.setupGarminWatchState()
@@ -160,6 +162,8 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             .filteredByEntityName("OrefDetermination")
             .sink { [weak self] _ in
                 guard let self = self else { return }
+                // Skip if no Garmin devices are connected
+                guard !self.devices.isEmpty else { return }
                 Task {
                     do {
                         let watchState = try await self.setupGarminWatchState()
@@ -180,6 +184,8 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             .filteredByEntityName("GlucoseStored")
             .sink { [weak self] _ in
                 guard let self = self else { return }
+                // Skip if no Garmin devices are connected
+                guard !self.devices.isEmpty else { return }
                 Task {
                     do {
                         let watchState = try await self.setupGarminWatchState()
@@ -219,6 +225,11 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Builds a `GarminWatchState` reflecting the latest glucose, trend, delta, eventual BG, ISF, IOB, and COB.
     /// - Returns: A `GarminWatchState` containing the most recent device- and therapy-related info.
     func setupGarminWatchState() async throws -> GarminWatchState {
+        // Skip expensive calculations if no Garmin devices are connected
+        guard !devices.isEmpty else {
+            debug(.watchManager, "⌚️❌ Skipping setupGarminWatchState - No Garmin devices connected")
+            return GarminWatchState()
+        }
         do {
             // Get Glucose IDs
             let glucoseIds = try await fetchGlucose()
