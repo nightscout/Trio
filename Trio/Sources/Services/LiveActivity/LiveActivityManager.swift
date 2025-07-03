@@ -219,6 +219,11 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
     ///
     /// - Parameter state: The new content state to push to the live activity.
     @MainActor private func pushUpdate(_ state: LiveActivityAttributes.ContentState) async {
+        if !settings.useLiveActivity || !systemEnabled {
+            await endActivity()
+            return
+        }
+
         if currentActivity == nil {
             // try to restore an existing activity
             currentActivity = Activity<LiveActivityAttributes>.activities
@@ -239,7 +244,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
         }
 
         if let currentActivity {
-            if currentActivity.needsRecreation() && UIApplication.shared.applicationState == .active {
+            if currentActivity.needsRecreation(), UIApplication.shared.applicationState == .active {
                 debug(.default, "[LiveActivityManager] Ending current activity for recreation: \(currentActivity.activity.id)")
                 await endActivity()
                 // After endActivity(), currentActivity is guaranteed to be nil
