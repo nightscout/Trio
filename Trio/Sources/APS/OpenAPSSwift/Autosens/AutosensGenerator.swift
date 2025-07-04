@@ -311,9 +311,10 @@ struct AutosensGenerator {
         history: [PumpHistoryEvent],
         carbs: [CarbsEntry],
         profile _: Profile,
-        bucketedGlucose _: [BucketedGlucose]
+        bucketedGlucose: [BucketedGlucose]
     ) -> [MealInput] {
-        let meals = MealHistory.findMealInputs(pumpHistory: history, carbHistory: carbs)
+        let oldestGlucose = bucketedGlucose.first?.date ?? .distantPast
+        let meals = MealHistory.findMealInputs(pumpHistory: history, carbHistory: carbs).filter { $0.timestamp >= oldestGlucose }
 
         return meals.sorted(by: { $0.timestamp > $1.timestamp })
     }
