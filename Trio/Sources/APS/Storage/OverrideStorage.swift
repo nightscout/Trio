@@ -172,13 +172,18 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
     /// otherwise we would edit the Preset
     @MainActor func copyRunningOverride(_ override: OverrideStored) async -> NSManagedObjectID {
         let newOverride = OverrideStored(context: viewContext)
+        newOverride.id = override.id
         newOverride.duration = override.duration
         newOverride.indefinite = override.indefinite
         newOverride.percentage = override.percentage
         newOverride.smbIsOff = override.smbIsOff
         newOverride.name = override.name
         newOverride.isPreset = false // no Preset
-        newOverride.date = override.date
+        newOverride.date = override.date?
+            .addingTimeInterval(
+                1.seconds
+                    .timeInterval
+            ) // hacky solution to show the copied override as the latest override and at the same time not modify an already running preset duration
         newOverride.enabled = override.enabled
         newOverride.target = override.target
         newOverride.advancedSettings = override.advancedSettings
