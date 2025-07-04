@@ -23,7 +23,7 @@ extension NightscoutConfig {
         @Published var isValidURL: Bool = false
         @Published var connecting = false
         @Published var backfilling = false
-        @Published var isUploadEnabled = false // Allow uploads
+        @Published var isUploadEnabled = true // Allow uploads
         @Published var isDownloadEnabled = false // Allow downloads
         @Published var uploadGlucose = true // Upload Glucose
         @Published var useLocalSource = false

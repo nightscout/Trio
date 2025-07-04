@@ -18,7 +18,7 @@ enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
 struct TrioSettings: JSON, Equatable {
     var units: GlucoseUnits = .mgdL
     var closedLoop: Bool = false
-    var isUploadEnabled: Bool = false
+    var isUploadEnabled: Bool = true
     var isDownloadEnabled: Bool = false
     var useLocalGlucoseSource: Bool = false
     var localGlucosePort: Int = 8080
