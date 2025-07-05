@@ -1,6 +1,6 @@
 import Charts
 import Foundation
-import SwiftUICore
+import SwiftUI
 
 struct SelectionPopoverView: ChartContent {
     let selectedGlucose: GlucoseStored
