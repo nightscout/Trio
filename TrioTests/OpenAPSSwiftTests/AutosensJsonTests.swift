@@ -160,7 +160,7 @@ import Testing
         "should produce same results for autosens for fixed JS",
         .enabled(if: ReplayTests.enabled)
     ) func replayErrorInputs() async throws {
-        let timezone = "Europe/Berlin"
+        let timezone = "America/Los_Angeles"
         var skippedTimezones = Set<String>()
         let files = try await HttpFiles.listFiles()
         for filePath in files {
@@ -199,7 +199,7 @@ import Testing
         // this test is meant for one-off analysis so it's ok to hard code
         // a file, just make sure to _not_ check in updates to this to
         // avoid polluting our change logs
-        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/4f38ce73-1526-4bcd-80d5-1dee5b002519.0.json")
+        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/432be489-adfd-4799-b469-8d3794d5188e.0.json")
         let autosensInputs = algorithmComparison.autosensInput!
 
         let encoder = JSONCoding.encoder
@@ -241,5 +241,36 @@ import Testing
         print("Writing to: \(outputURL.path)")
 
         timeZoneForTests.resetTimezone()
+    }
+
+    @Test(
+        "Testing IoB difference with Autosens",
+        .enabled(if: ReplayTests.enabled)
+    ) func testAutosensErrorWithIoB() async throws {
+        let currentBasalRate = Decimal(0.55)
+        let currentGlucoseDate = Date("2025-06-27T13:56:54.596Z")!
+        let iobInputs: IobInputs = try loadJson("as_error_iob_inputs")
+
+        let treatments = try IobHistory.calcTempTreatments(
+            history: iobInputs.history.map({ $0.computedEvent() }),
+            profile: iobInputs.profile,
+            clock: iobInputs.clock,
+            autosens: nil,
+            zeroTempDuration: nil
+        )
+
+        let encoder = JSONCoding.encoder
+        let output = try encoder.encode(treatments)
+
+        let sharedDir = FileManager.default.temporaryDirectory
+        let outputURL = sharedDir.appendingPathComponent("treatments-swift.json")
+        try output.write(to: outputURL)
+        print("WROTE FILE TO: \(outputURL.path)")
+
+        var simulatedProfile = iobInputs.profile
+        simulatedProfile.currentBasal = currentBasalRate
+        simulatedProfile.temptargetSet = false
+        let iob = try IobCalculation.iobTotal(treatments: treatments, profile: simulatedProfile, time: currentGlucoseDate)
+        print(iob)
     }
 }

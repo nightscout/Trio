@@ -107,12 +107,12 @@ enum IobCalculation {
         }
 
         return IobTotal(
-            iob: iob.rounded(scale: 3),
-            activity: activity.rounded(scale: 4),
-            basaliob: basaliob.rounded(scale: 3),
-            bolusiob: bolusiob.rounded(scale: 3),
-            netbasalinsulin: netbasalinsulin.rounded(scale: 3),
-            bolusinsulin: bolusinsulin.rounded(scale: 3),
+            iob: iob.jsRounded(scale: 3),
+            activity: activity.jsRounded(scale: 4),
+            basaliob: basaliob.jsRounded(scale: 3),
+            bolusiob: bolusiob.jsRounded(scale: 3),
+            netbasalinsulin: netbasalinsulin.jsRounded(scale: 3),
+            bolusinsulin: bolusinsulin.jsRounded(scale: 3),
             time: now
         )
     }
