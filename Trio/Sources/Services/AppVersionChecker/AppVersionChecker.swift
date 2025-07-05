@@ -160,7 +160,7 @@ final class AppVersionChecker {
         return (currentVersion, latestVersion, isNewer, isBlacklisted)
     }
 
-    // Checks for the latest dev version with caching and comparison.
+    // Checks for the latest dev version with caching and comparison (completion handler version).
     //
     // This method attempts to use cached dev version data if it is less than 24 hours old and
     // corresponds to the current app version. If the cache is invalid or outdated,
@@ -170,6 +170,22 @@ final class AppVersionChecker {
     // - latestDevVersion: The latest dev version string (if available).
     // - isNewer: `true` if the fetched dev version is newer than the current version.
     func checkForNewDevVersion(completion: @escaping (String?, Bool) -> Void) {
+        Task {
+            let result = await checkForNewDevVersion()
+            completion(result.0, result.1)
+        }
+    }
+    
+    // Checks for the latest dev version with caching and comparison (async version).
+    //
+    // This method attempts to use cached dev version data if it is less than 24 hours old and
+    // corresponds to the current app version. If the cache is invalid or outdated,
+    // it fetches fresh data from GitHub.
+    //
+    // - Returns: A tuple containing:
+    // - latestDevVersion: The latest dev version string (if available).
+    // - isNewer: `true` if the fetched dev version is newer than the current version.
+    func checkForNewDevVersion() async -> (String?, Bool) {
         // For dev version, we need to compare against the current dev version, not the main version
         let currentDevVersion = Bundle.main.object(forInfoDictionaryKey: "AppDevVersion") as? String ?? version()
         let now = Date()
@@ -186,52 +202,49 @@ final class AppVersionChecker {
            let persistedLatestDev = persistedLatestDev
         {
             let isNewer = isVersion(persistedLatestDev, newerThan: currentDevVersion)
-            completion(persistedLatestDev, isNewer)
-            return
+            return (persistedLatestDev, isNewer)
         }
 
         // Otherwise, fetch fresh data from GitHub and update the cache
-        fetchDevVersionAndUpdateCache(currentVersion: currentDevVersion, completion: completion)
+        return await fetchDevVersionAndUpdateCache(currentVersion: currentDevVersion)
     }
 
-    // Fetches dev version data from GitHub, updates persisted values, and invokes the completion handler.
+    // Fetches dev version data from GitHub, updates persisted values, and returns the result.
     //
     // - Parameters:
     // - currentVersion: The current app version.
-    // - completion: A closure that receives:
+    // - Returns: A tuple containing:
     // - latestDevVersion: The latest dev version string from GitHub (if available).
     // - isNewer: `true` if the fetched dev version is newer than the current version.
-    private func fetchDevVersionAndUpdateCache(currentVersion: String, completion: @escaping (String?, Bool) -> Void) {
-        fetchData(for: .devVersionConfig) { versionData in
-            DispatchQueue.main.async {
-                // Parse the dev version from the fetched configuration data
-                let configContents = versionData.flatMap { String(data: $0, encoding: .utf8) }
-                let fetchedDevVersion = configContents.flatMap { self.parseDevVersionFromConfig(contents: $0) }
+    private func fetchDevVersionAndUpdateCache(currentVersion: String) async -> (String?, Bool) {
+        let versionData = await fetchData(for: .devVersionConfig)
+        
+        // Parse the dev version from the fetched configuration data
+        let configContents = versionData.flatMap { String(data: $0, encoding: .utf8) }
+        let fetchedDevVersion = configContents.flatMap { self.parseDevVersionFromConfig(contents: $0) }
 
-                #if DEBUG
-                    print("AppVersionChecker.fetchDevVersion: Current dev version: \(currentVersion)")
-                    print("AppVersionChecker.fetchDevVersion: Fetched dev version: \(fetchedDevVersion ?? "nil")")
-                    if let contents = configContents {
-                        let lines = contents.split(separator: "\n")
-                        for line in lines where line.contains("VERSION") {
-                            print("AppVersionChecker.fetchDevVersion: Config line: \(line)")
-                        }
-                    }
-                #endif
-
-                // Determine if the fetched dev version is newer than the current version
-                let isNewer = fetchedDevVersion.map {
-                    self.isVersion($0, newerThan: currentVersion)
-                } ?? false
-
-                // Update persisted cache
-                self.persistedLatestDevVersion = fetchedDevVersion
-                self.latestDevVersionChecked = Date()
-                self.cachedForDevVersion = currentVersion
-
-                completion(fetchedDevVersion, isNewer)
+        #if DEBUG
+            print("AppVersionChecker.fetchDevVersion: Current dev version: \(currentVersion)")
+            print("AppVersionChecker.fetchDevVersion: Fetched dev version: \(fetchedDevVersion ?? "nil")")
+            if let contents = configContents {
+                let lines = contents.split(separator: "\n")
+                for line in lines where line.contains("VERSION") {
+                    print("AppVersionChecker.fetchDevVersion: Config line: \(line)")
+                }
             }
-        }
+        #endif
+
+        // Determine if the fetched dev version is newer than the current version
+        let isNewer = fetchedDevVersion.map {
+            self.isVersion($0, newerThan: currentVersion)
+        } ?? false
+
+        // Update persisted cache
+        self.persistedLatestDevVersion = fetchedDevVersion
+        self.latestDevVersionChecked = Date()
+        self.cachedForDevVersion = currentVersion
+
+        return (fetchedDevVersion, isNewer)
     }
 
     // MARK: - Core Version Checking Logic
@@ -343,11 +356,30 @@ final class AppVersionChecker {
     // Fetches data from GitHub for a specified data type.
     //
     // This helper method builds a URL from the provided GitHubDataType and executes a network request.
-    // If the request is successful and returns valid data (HTTP status 200), the data is passed to the completion handler.
+    // If the request is successful and returns valid data (HTTP status 200), the data is returned.
     //
     // - Parameters:
     // - dataType: The type of GitHub data to fetch (version configuration or blacklisted versions).
-    // - completion: A closure that receives the fetched data as an optional `Data` object.
+    // - Returns: The fetched data as an optional `Data` object.
+    private func fetchData(for dataType: GitHubDataType) async -> Data? {
+        guard let url = URL(string: dataType.url) else {
+            return nil
+        }
+
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200
+            else {
+                return nil
+            }
+            return data
+        } catch {
+            return nil
+        }
+    }
+    
+    // Legacy completion handler version for existing code
     private func fetchData(for dataType: GitHubDataType, completion: @escaping (Data?) -> Void) {
         guard let url = URL(string: dataType.url) else {
             completion(nil)
