@@ -31,21 +31,19 @@ struct StatChartUtils {
             let end = scrollPosition.addingTimeInterval(visibleDomainLength(for: selectedInterval) - 1)
             return (scrollPosition, end)
         } else {
-            // For week and longer intervals, we need smart alignment
-            // Find the nearest day boundary
+            // For week and longer intervals, align to day boundaries consistently with meal data grouping
+            // Use the same logic as meal data grouping: calendar.startOfDay()
             let startOfDay = calendar.startOfDay(for: scrollPosition)
-            let components = calendar.dateComponents([.hour, .minute, .second], from: scrollPosition)
-            let totalSeconds = Double(components.hour ?? 0) * 3600 + Double(components.minute ?? 0) * 60 +
-                Double(components.second ?? 0)
-
-            // Align start end to midnight
-            let alignedStart = totalSeconds > 12 * 3600 ?
-                calendar.date(byAdding: .day, value: 1, to: startOfDay)! : startOfDay
             let intervalLength = visibleDomainLength(for: selectedInterval)
-            let end = alignedStart.addingTimeInterval(intervalLength + (2 * 3600))
-            let alignedEnd = calendar.startOfDay(for: end).addingTimeInterval(-1)
+            
+            // Calculate end date by adding the interval length and aligning to day boundary
+            let endDate = startOfDay.addingTimeInterval(intervalLength)
+            let endOfDay = calendar.startOfDay(for: endDate)
+            
+            // Ensure we include the full end day by going to the end of that day
+            let alignedEnd = calendar.date(byAdding: .day, value: 1, to: endOfDay)!.addingTimeInterval(-1)
 
-            return (alignedStart, alignedEnd)
+            return (startOfDay, alignedEnd)
         }
     }
 
