@@ -121,7 +121,10 @@ struct BolusStatsView: View {
         }
         .onAppear {
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-            updateCalculatedValues()
+            // Delay the initial update to ensure scroll position has been processed
+            DispatchQueue.main.async {
+                updateCalculatedValues()
+            }
         }
         .onChange(of: scrollPosition) {
             updateTimer.scheduleUpdate {
@@ -131,7 +134,10 @@ struct BolusStatsView: View {
         .onChange(of: selectedInterval) {
             Task {
                 scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-                updateCalculatedValues()
+                // Use async dispatch to ensure scroll position is updated before calculating values
+                await MainActor.run {
+                    updateCalculatedValues()
+                }
             }
         }
     }
