@@ -55,7 +55,7 @@ extension LiveActivityAttributes.ContentState {
         return formatter.string(from: deltaAsDecimal as NSNumber) ?? "--"
     }
 
-    init?(
+    init(
         new bg: GlucoseData,
         prev _: GlucoseData?,
         units: GlucoseUnits,

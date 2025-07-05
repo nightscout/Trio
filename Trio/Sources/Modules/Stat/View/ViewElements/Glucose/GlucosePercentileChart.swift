@@ -11,8 +11,8 @@ struct GlucosePercentileChart: View {
     let glucose: [GlucoseStored]
     /// The upper glucose limit for the chart.
     let highLimit: Decimal
-    /// The lower glucose limit for the chart.
-    let lowLimit: Decimal
+    /// TITR or TING
+    let timeInRangeType: TimeInRangeType
     /// The units used for glucose measurement (mg/dL or mmol/L).
     let units: GlucoseUnits
     /// The hourly glucose statistics.
@@ -47,28 +47,28 @@ struct GlucosePercentileChart: View {
                     // 10-90 percentile area
                     AreaMark(
                         x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
-                        yStart: .value("10th Percentile", stats.percentile10),
-                        yEnd: .value("90th Percentile", stats.percentile90),
+                        yStart: .value("10th Percentile", stats.percentile10.asUnit(units)),
+                        yEnd: .value("90th Percentile", stats.percentile90.asUnit(units)),
                         series: .value("10-90", "10-90")
                     )
-                    .foregroundStyle(by: .value("Series", "10-90"))
+                    .foregroundStyle(by: .value("Series", "10-90%"))
                     .opacity(stats.median > 0 ? 0.3 : 0)
 
                     // 25-75 percentile area
                     AreaMark(
                         x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
-                        yStart: .value("25th Percentile", stats.percentile25),
-                        yEnd: .value("75th Percentile", stats.percentile75),
+                        yStart: .value("25th Percentile", stats.percentile25.asUnit(units)),
+                        yEnd: .value("75th Percentile", stats.percentile75.asUnit(units)),
                         series: .value("25-75", "25-75")
                     )
-                    .foregroundStyle(by: .value("Series", "25-75"))
+                    .foregroundStyle(by: .value("Series", "25-75%"))
                     .opacity(stats.median > 0 ? 0.5 : 0)
 
                     // Median line
                     if stats.median > 0 {
                         LineMark(
                             x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
-                            y: .value("Median", stats.median),
+                            y: .value("Median", stats.median.asUnit(units)),
                             series: .value("Median", "Median")
                         )
                         .lineStyle(StrokeStyle(lineWidth: 2))
@@ -77,13 +77,17 @@ struct GlucosePercentileChart: View {
                 }
 
                 // High/Low limit lines
-                RuleMark(y: .value("High Limit", Double(highLimit)))
+                RuleMark(y: .value("Low Limit", Double(timeInRangeType.bottomThreshold).asUnit(units)))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                    .foregroundStyle(by: .value("Series", "High"))
+                    .foregroundStyle(by: .value("Series", "\(timeInRangeType.bottomThreshold.formatted(withUnits: units))"))
 
-                RuleMark(y: .value("Low Limit", Double(lowLimit)))
+                RuleMark(y: .value("Mid Limit", Double(timeInRangeType.topThreshold).asUnit(units)))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                    .foregroundStyle(by: .value("Series", "Low"))
+                    .foregroundStyle(by: .value("Series", "\(timeInRangeType.topThreshold.formatted(withUnits: units))"))
+
+                RuleMark(y: .value("High Limit", Double(highLimit.asUnit(units))))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                    .foregroundStyle(by: .value("Series", "\(highLimit.formatted(withUnits: units))"))
 
                 if let selectedStats, let selection {
                     RuleMark(x: .value("Selection", selection))
@@ -102,19 +106,21 @@ struct GlucosePercentileChart: View {
                 }
             }
             .chartForegroundStyleScale([
-                "10-90": Color.blue.opacity(0.3),
-                "25-75": Color.blue.opacity(0.5),
+                "10-90%": Color.blue.opacity(0.3),
+                "25-75%": Color.blue.opacity(0.5),
                 "Median": Color.blue,
-                "High": Color.orange,
-                "Low": Color.red
+                "\(timeInRangeType.bottomThreshold.formatted(withUnits: units))": Color.red,
+                "\(timeInRangeType.topThreshold.formatted(withUnits: units))": Color.mint,
+                "\(highLimit.formatted(withUnits: units))": Color.orange
             ])
             .chartLegend(position: .bottom, alignment: .leading, spacing: 12) {
                 let legendItems: [(String, Color)] = [
                     ("10-90%", Color.blue.opacity(0.3)),
-                    ("20-75%", Color.blue.opacity(0.5)),
+                    ("25-75%", Color.blue.opacity(0.5)),
                     (String(localized: "Median"), Color.blue),
-                    (String(localized: "High Threshold"), Color.orange),
-                    (String(localized: "Low Threshold"), Color.red)
+                    (String(localized: "\(timeInRangeType.bottomThreshold.formatted(withUnits: units))"), Color.red),
+                    (String(localized: "\(timeInRangeType.topThreshold.formatted(withUnits: units))"), Color.mint),
+                    (String(localized: "\(highLimit.formatted(withUnits: units))"), Color.orange)
                 ]
 
                 let columns = [GridItem(.adaptive(minimum: 100), spacing: 4)]
@@ -130,7 +136,7 @@ struct GlucosePercentileChart: View {
                     if let glucose = value.as(Double.self) {
                         AxisValueLabel {
                             Text(
-                                units == .mmolL ? glucose.asMmolL.formatted(.number.precision(.fractionLength(0))) : glucose
+                                units == .mmolL ? glucose.formatted(.number.precision(.fractionLength(1))) : glucose
                                     .formatted(.number.precision(.fractionLength(0)))
                             )
                             .font(.footnote)
@@ -183,12 +189,6 @@ struct AGPSelectionPopover: View {
         }
     }
 
-    /// A helper function to format glucose values based on the selected unit.
-    private func formattedGlucoseValue(_ value: Double) -> String {
-        units == .mmolL ? value.formattedAsMmolL :
-            value.formatted()
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(timeText).bold().font(.subheadline)
@@ -196,27 +196,27 @@ struct AGPSelectionPopover: View {
             Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 4) {
                 GridRow {
                     Text("Median:").bold()
-                    Text(formattedGlucoseValue(stats.median))
+                    Text(stats.median.formatted(for: units))
                     Text(units.rawValue).foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("90%:").bold()
-                    Text(formattedGlucoseValue(stats.percentile90))
+                    Text(stats.percentile90.formatted(for: units))
                     Text(units.rawValue).foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("75%:").bold()
-                    Text(formattedGlucoseValue(stats.percentile75))
+                    Text(stats.percentile75.formatted(for: units))
                     Text(units.rawValue).foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("25%:").bold()
-                    Text(formattedGlucoseValue(stats.percentile25))
+                    Text(stats.percentile25.formatted(for: units))
                     Text(units.rawValue).foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("10%:").bold()
-                    Text(formattedGlucoseValue(stats.percentile10))
+                    Text(stats.percentile10.formatted(for: units))
                     Text(units.rawValue).foregroundStyle(.secondary)
                 }
             }.font(.headline)

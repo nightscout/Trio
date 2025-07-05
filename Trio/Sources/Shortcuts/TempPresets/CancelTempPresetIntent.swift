@@ -16,7 +16,7 @@ struct CancelTempPresetIntent: AppIntent {
     @MainActor func perform() async throws -> some ProvidesDialog {
         await TempPresetsIntentRequest().cancelTempTarget()
         return .result(
-            dialog: IntentDialog(stringLiteral: "Temporary Target canceled")
+            dialog: IntentDialog(stringLiteral: String(localized: "Temporary Target canceled"))
         )
     }
 }

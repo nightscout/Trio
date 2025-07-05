@@ -161,7 +161,6 @@ enum SettingItems {
                 "Insulin Peak Time",
                 "Skip Neutral Temps",
                 "Unsuspend If No Temp",
-                "Suspend Zeros IOB",
                 "SMB Delivery Ratio",
                 "SMB Interval",
                 "Min 5m Carbimpact",
@@ -180,8 +179,8 @@ enum SettingItems {
             searchContents: [
                 "Display Meal Presets",
                 "Recommended Bolus Percentage",
-                "Enable Fatty Meal Factor",
-                "Fatty Meal Factor",
+                "Enable Reduced Bolus Factor",
+                "Reduced Bolus Factor",
                 "Enable Super Bolus",
                 "Super Bolus Factor",
                 "Very Low Glucose Warning"

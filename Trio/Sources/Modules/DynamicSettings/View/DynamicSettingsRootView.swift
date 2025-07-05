@@ -62,7 +62,7 @@ extension DynamicSettings {
                                         localized: "Dynamically adjust insulin sensitivity using Dynamic Ratio rather than Autosens Ratio."
                                     ) :
                                     String(
-                                        localized: "Trio has only been actively used and looping for less than seven days. Cannot enable dynamic ISF."
+                                        localized: "Trio does not have enough closed-loop data to enable Dynamic ISF. This data collection can take up to 7 days."
                                     )
                                 let miniHintTextColorForDisabled: Color = colorScheme == .dark ? .orange :
                                     .accentColor
