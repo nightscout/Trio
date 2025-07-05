@@ -195,13 +195,38 @@ extension Settings {
                             .frame(maxWidth: .infinity, alignment: .leading)
 
                             Button {
-                                switch state.exportSettings() {
-                                case let .success(fileURL):
-                                    exportedFileURL = fileURL
-                                    showSettingsExport = true
-                                case let .failure(error):
-                                    exportErrorMessage = error.localizedDescription
-                                    showExportError = true
+                                Task {
+                                    switch await state.exportSettings() {
+                                    case let .success(fileURL):
+                                        // Verify the file actually exists before showing share sheet
+                                        if FileManager.default.fileExists(atPath: fileURL.path) {
+                                            // Check file size to ensure it's not empty
+                                            do {
+                                                let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+                                                let fileSize = attributes[.size] as? Int ?? 0
+                                                print("Export file size: \(fileSize) bytes at \(fileURL.path)")
+
+                                                if fileSize > 0 {
+                                                    exportedFileURL = fileURL
+                                                    showSettingsExport = true
+                                                } else {
+                                                    exportErrorMessage = "Export file is empty (0 bytes)"
+                                                    showExportError = true
+                                                }
+                                            } catch {
+                                                exportErrorMessage =
+                                                    "Could not verify file attributes: \(error.localizedDescription)"
+                                                showExportError = true
+                                            }
+                                        } else {
+                                            exportErrorMessage =
+                                                "Export file was created but could not be found at: \(fileURL.path)"
+                                            showExportError = true
+                                        }
+                                    case let .failure(error):
+                                        exportErrorMessage = error.localizedDescription
+                                        showExportError = true
+                                    }
                                 }
                             } label: {
                                 HStack {

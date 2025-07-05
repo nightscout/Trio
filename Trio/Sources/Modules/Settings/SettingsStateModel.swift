@@ -1,3 +1,5 @@
+import CoreData
+import Foundation
 import LoopKit
 import LoopKitUI
 import SwiftUI
@@ -11,6 +13,7 @@ extension Settings {
         @Injected() var pluginManager: PluginManager!
         @Injected() var fetchCgmManager: FetchGlucoseManager!
         @Injected() private var storage: FileStorage!
+        @Injected() var overrideStorage: OverrideStorage!
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var closedLoop = false
@@ -111,17 +114,18 @@ extension Settings {
         /// - Service configurations
         ///
         /// - Returns: A Result containing either the file URL on success or an ExportError on failure
-        func exportSettings() -> Result<URL, ExportError> {
+        func exportSettings() async -> Result<URL, ExportError> {
+            debug(.default, "Starting settings export...")
+
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyyMMdd_HHmmss"
             let timestamp = formatter.string(from: Date())
             let fileName = "TrioSettings_\(timestamp).csv"
 
-            guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-                return .failure(.documentsDirectoryNotFound)
-            }
-
-            let fileURL = documentsPath.appendingPathComponent(fileName)
+            // Use the temporary directory for better sharing compatibility
+            let tempDirectory = FileManager.default.temporaryDirectory
+            let fileURL = tempDirectory.appendingPathComponent(fileName)
+            debug(.default, "Export file path: \(fileURL.path)")
 
             var csvContent = "Setting Category,Subcategory,Setting Name,Value,Unit\n"
 
@@ -151,6 +155,16 @@ extension Settings {
             func addSetting(category: String, subcategory: String = "", name: String, value: String, unit: String = "") {
                 csvContent +=
                     "\(csvEscape(category)),\(csvEscape(subcategory)),\(csvEscape(name)),\(csvEscape(value)),\(csvEscape(unit))\n"
+            }
+
+            // Helper function to add a separator row
+            func addSeparator(title: String = "") {
+                csvContent += "\n=== \(title.isEmpty ? "SECTION SEPARATOR" : title.uppercased()) ===,,,,\n\n"
+            }
+
+            // Helper function to add a subseparator for individual items
+            func addSubSeparator(title: String) {
+                csvContent += "\n--- \(title) ---,,,,\n"
             }
 
             // Devices
@@ -697,9 +711,388 @@ extension Settings {
                 value: trioSettings.useAppleHealth ? String(localized: "Enabled") : String(localized: "Disabled")
             )
 
+            // Presets
+            let presetsCategory = String(localized: "Presets")
+
+            // Temp Target Presets
+            let tempTargetPresets = storage.retrieve(OpenAPS.Trio.tempTargetsPresets, as: [TempTarget].self) ?? []
+            if !tempTargetPresets.isEmpty {
+                let tempTargetSubcategory = String(localized: "Temp Target Presets")
+                for preset in tempTargetPresets {
+                    // Add separator for each temp target preset
+                    addSubSeparator(title: "Temp Target: \(preset.displayName)")
+
+                    let targetTopValue = trioSettings.units == .mgdL ? (preset.targetTop ?? 0) : (preset.targetTop ?? 0).asMmolL
+                    addSetting(
+                        category: presetsCategory,
+                        subcategory: tempTargetSubcategory,
+                        name: preset.displayName,
+                        value: String(describing: targetTopValue),
+                        unit: trioSettings.units.rawValue
+                    )
+                    addSetting(
+                        category: presetsCategory,
+                        subcategory: tempTargetSubcategory,
+                        name: "\(preset.displayName) Duration",
+                        value: String(describing: preset.duration),
+                        unit: String(localized: "minutes")
+                    )
+
+                    // Add targetBottom if different from targetTop
+                    if let targetBottom = preset.targetBottom, targetBottom != preset.targetTop {
+                        let targetBottomValue = trioSettings.units == .mgdL ? targetBottom : targetBottom.asMmolL
+                        addSetting(
+                            category: presetsCategory,
+                            subcategory: tempTargetSubcategory,
+                            name: "\(preset.displayName) Target Bottom",
+                            value: String(describing: targetBottomValue),
+                            unit: trioSettings.units.rawValue
+                        )
+                    }
+
+                    // Add halfBasalTarget if set
+                    if let halfBasalTarget = preset.halfBasalTarget {
+                        let halfBasalValue = trioSettings.units == .mgdL ? halfBasalTarget : halfBasalTarget.asMmolL
+                        addSetting(
+                            category: presetsCategory,
+                            subcategory: tempTargetSubcategory,
+                            name: "\(preset.displayName) Half Basal Target",
+                            value: String(describing: halfBasalValue),
+                            unit: trioSettings.units.rawValue
+                        )
+                    }
+
+                    // Add reason if different from name
+                    if let reason = preset.reason, reason != preset.name {
+                        addSetting(
+                            category: presetsCategory,
+                            subcategory: tempTargetSubcategory,
+                            name: "\(preset.displayName) Reason",
+                            value: reason
+                        )
+                    }
+
+                    // Add enteredBy
+                    if let enteredBy = preset.enteredBy {
+                        addSetting(
+                            category: presetsCategory,
+                            subcategory: tempTargetSubcategory,
+                            name: "\(preset.displayName) Entered By",
+                            value: enteredBy
+                        )
+                    }
+                }
+            }
+
+            // Add separator between temp targets and override presets
+            addSeparator(title: "Override Presets")
+
+            // Override Presets (from Core Data)
+            do {
+                debug(.default, "Fetching override presets...")
+
+                // Ensure Core Data is fully initialized - wait longer on first run
+                var retryCount = 0
+                var overridePresetIDs: [NSManagedObjectID] = []
+
+                while retryCount < 3 {
+                    do {
+                        overridePresetIDs = try await overrideStorage.fetchForOverridePresets()
+                        break // Success, exit retry loop
+                    } catch {
+                        debug(.default, "Attempt \(retryCount + 1) failed: \(error)")
+                        retryCount += 1
+                        if retryCount < 3 {
+                            // Wait progressively longer between retries
+                            try await Task.sleep(nanoseconds: UInt64(retryCount * 200_000_000)) // 0.2s, 0.4s
+                        }
+                    }
+                }
+
+                debug(.default, "Found \(overridePresetIDs.count) override preset IDs")
+                if !overridePresetIDs.isEmpty {
+                    let overrideSubcategory = String(localized: "Override Presets")
+
+                    // Convert NSManagedObjectIDs to actual OverrideStored objects and extract their data within the Core Data context
+                    // Add a small delay to ensure Core Data is ready, especially on first app launch
+                    try await Task.sleep(nanoseconds: 100_000_000) // 0.1 second
+
+                    let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+                    let presetData = try await viewContext.perform {
+                        try overridePresetIDs
+                            .compactMap { id -> (
+                                name: String,
+                                percentage: Double,
+                                indefinite: Bool,
+                                duration: Decimal?,
+                                target: Decimal?,
+                                advancedSettings: Bool,
+                                cr: Bool,
+                                isf: Bool,
+                                isfAndCr: Bool,
+                                smbIsOff: Bool,
+                                smbIsScheduledOff: Bool,
+                                start: Decimal?,
+                                end: Decimal?,
+                                smbMinutes: Decimal?,
+                                uamMinutes: Decimal?
+                            )? in
+                            do {
+                                guard let preset = try viewContext.existingObject(with: id) as? OverrideStored else {
+                                    debug(.default, "Could not retrieve override with ID: \(id)")
+                                    return nil
+                                }
+                                return (
+                                    name: preset.name ?? "Unknown Override",
+                                    percentage: preset.percentage,
+                                    indefinite: preset.indefinite,
+                                    duration: preset.duration?.decimalValue,
+                                    target: preset.target?.decimalValue,
+                                    advancedSettings: preset.advancedSettings,
+                                    cr: preset.cr,
+                                    isf: preset.isf,
+                                    isfAndCr: preset.isfAndCr,
+                                    smbIsOff: preset.smbIsOff,
+                                    smbIsScheduledOff: preset.smbIsScheduledOff,
+                                    start: preset.start?.decimalValue,
+                                    end: preset.end?.decimalValue,
+                                    smbMinutes: preset.smbMinutes?.decimalValue,
+                                    uamMinutes: preset.uamMinutes?.decimalValue
+                                )
+                            } catch {
+                                debug(.default, "Error accessing override preset: \(error)")
+                                return nil
+                            }
+                            }
+                    }
+
+                    debug(.default, "Successfully extracted \(presetData.count) override presets")
+
+                    for preset in presetData {
+                        // Add separator for each override preset
+                        addSubSeparator(title: "Override: \(preset.name)")
+
+                        addSetting(
+                            category: presetsCategory,
+                            subcategory: overrideSubcategory,
+                            name: preset.name,
+                            value: String(format: "%.0f%%", preset.percentage)
+                        )
+                        addSetting(
+                            category: presetsCategory,
+                            subcategory: overrideSubcategory,
+                            name: "\(preset.name) Duration",
+                            value: preset.indefinite ? String(localized: "Indefinite") : String(describing: preset.duration ?? 0),
+                            unit: preset.indefinite ? "" : String(localized: "minutes")
+                        )
+                        if let target = preset.target, target != 0 {
+                            let targetValue = trioSettings.units == .mgdL ? target : target.asMmolL
+                            addSetting(
+                                category: presetsCategory,
+                                subcategory: overrideSubcategory,
+                                name: "\(preset.name) Target",
+                                value: String(describing: targetValue),
+                                unit: trioSettings.units.rawValue
+                            )
+                        }
+
+                        // Advanced settings
+                        if preset.advancedSettings {
+                            addSetting(
+                                category: presetsCategory,
+                                subcategory: overrideSubcategory,
+                                name: "\(preset.name) Advanced Settings",
+                                value: String(localized: "Enabled")
+                            )
+                            if let smbMinutes = preset.smbMinutes {
+                                addSetting(
+                                    category: presetsCategory,
+                                    subcategory: overrideSubcategory,
+                                    name: "\(preset.name) SMB Minutes",
+                                    value: String(describing: smbMinutes),
+                                    unit: String(localized: "minutes")
+                                )
+                            }
+                            if let uamMinutes = preset.uamMinutes {
+                                addSetting(
+                                    category: presetsCategory,
+                                    subcategory: overrideSubcategory,
+                                    name: "\(preset.name) UAM Minutes",
+                                    value: String(describing: uamMinutes),
+                                    unit: String(localized: "minutes")
+                                )
+                            }
+                        }
+
+                        // SMB settings
+                        if preset.smbIsOff {
+                            addSetting(
+                                category: presetsCategory,
+                                subcategory: overrideSubcategory,
+                                name: "\(preset.name) SMB",
+                                value: String(localized: "Disabled")
+                            )
+                        }
+
+                        if preset.smbIsScheduledOff {
+                            addSetting(
+                                category: presetsCategory,
+                                subcategory: overrideSubcategory,
+                                name: "\(preset.name) SMB Scheduled",
+                                value: String(localized: "Disabled")
+                            )
+                            if let start = preset.start {
+                                addSetting(
+                                    category: presetsCategory,
+                                    subcategory: overrideSubcategory,
+                                    name: "\(preset.name) SMB Schedule Start",
+                                    value: String(describing: start),
+                                    unit: String(localized: "hours")
+                                )
+                            }
+                            if let end = preset.end {
+                                addSetting(
+                                    category: presetsCategory,
+                                    subcategory: overrideSubcategory,
+                                    name: "\(preset.name) SMB Schedule End",
+                                    value: String(describing: end),
+                                    unit: String(localized: "hours")
+                                )
+                            }
+                        }
+
+                        // Sensitivity settings
+                        if preset.isfAndCr {
+                            addSetting(
+                                category: presetsCategory,
+                                subcategory: overrideSubcategory,
+                                name: "\(preset.name) Affects",
+                                value: String(localized: "ISF and CR")
+                            )
+                        } else if preset.isf, preset.cr {
+                            addSetting(
+                                category: presetsCategory,
+                                subcategory: overrideSubcategory,
+                                name: "\(preset.name) Affects",
+                                value: String(localized: "ISF and CR")
+                            )
+                        } else if preset.isf {
+                            addSetting(
+                                category: presetsCategory,
+                                subcategory: overrideSubcategory,
+                                name: "\(preset.name) Affects",
+                                value: String(localized: "ISF")
+                            )
+                        } else if preset.cr {
+                            addSetting(
+                                category: presetsCategory,
+                                subcategory: overrideSubcategory,
+                                name: "\(preset.name) Affects",
+                                value: String(localized: "CR")
+                            )
+                        }
+                    }
+                }
+            } catch {
+                debug(.default, "Failed to fetch override presets: \(error)")
+            }
+            
+            // Add separator for meal presets
+            addSeparator(title: "Meal Presets")
+            
+            // Meal Presets (from Core Data)
+            do {
+                debug(.default, "Fetching meal presets...")
+                let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+                
+                let mealPresetData = try await viewContext.perform {
+                    let request: NSFetchRequest<MealPresetStored> = MealPresetStored.fetchRequest()
+                    let mealPresets = try viewContext.fetch(request)
+                    
+                    return mealPresets.map { preset -> (dish: String, carbs: Decimal?, fat: Decimal?, protein: Decimal?) in
+                        (
+                            dish: preset.dish ?? "Unknown Meal",
+                            carbs: preset.carbs?.decimalValue,
+                            fat: preset.fat?.decimalValue,
+                            protein: preset.protein?.decimalValue
+                        )
+                    }
+                }
+                
+                debug(.default, "Found \(mealPresetData.count) meal presets")
+                
+                if !mealPresetData.isEmpty {
+                    let mealPresetSubcategory = String(localized: "Meal Presets")
+                    
+                    for mealPreset in mealPresetData {
+                        // Add separator for each meal preset
+                        addSubSeparator(title: "Meal: \(mealPreset.dish)")
+                        
+                        addSetting(
+                            category: presetsCategory,
+                            subcategory: mealPresetSubcategory,
+                            name: mealPreset.dish,
+                            value: String(localized: "Meal Preset")
+                        )
+                        
+                        if let carbs = mealPreset.carbs, carbs > 0 {
+                            addSetting(
+                                category: presetsCategory,
+                                subcategory: mealPresetSubcategory,
+                                name: "\(mealPreset.dish) Carbs",
+                                value: String(describing: carbs),
+                                unit: "g"
+                            )
+                        }
+                        
+                        if let fat = mealPreset.fat, fat > 0 {
+                            addSetting(
+                                category: presetsCategory,
+                                subcategory: mealPresetSubcategory,
+                                name: "\(mealPreset.dish) Fat",
+                                value: String(describing: fat),
+                                unit: "g"
+                            )
+                        }
+                        
+                        if let protein = mealPreset.protein, protein > 0 {
+                            addSetting(
+                                category: presetsCategory,
+                                subcategory: mealPresetSubcategory,
+                                name: "\(mealPreset.dish) Protein",
+                                value: String(describing: protein),
+                                unit: "g"
+                            )
+                        }
+                    }
+                }
+            } catch {
+                debug(.default, "Failed to fetch meal presets: \(error)")
+            }
+
+            // Add final separator after presets section
+            addSeparator(title: "End of Export")
+
             // Write to file
             do {
+                debug(.default, "Writing CSV content (\(csvContent.count) characters) to file...")
                 try csvContent.write(to: fileURL, atomically: true, encoding: .utf8)
+
+                // Set file attributes for better sharing compatibility
+                try fileManager.setAttributes([
+                    .posixPermissions: 0o644,
+                    .extensionHidden: false
+                ], ofItemAtPath: fileURL.path)
+
+                // Verify file was written successfully
+                let fileExists = fileManager.fileExists(atPath: fileURL.path)
+                debug(.default, "File written successfully. Exists: \(fileExists)")
+
+                if !fileExists {
+                    debug(.default, "File was not created at expected location: \(fileURL.path)")
+                    return .failure(.unknown("File was not created successfully"))
+                }
+
                 return .success(fileURL)
             } catch {
                 debug(.default, "Failed to write settings export file: \(error)")
