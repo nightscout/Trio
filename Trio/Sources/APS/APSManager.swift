@@ -440,19 +440,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 return false
             }
 
-            guard !GlucoseStored.glucoseIsFlat(glucose) else {
-                debug(.apsManager, "Glucose data is too flat")
-                self.processError(APSError.glucoseError(message: String(localized: "Glucose data is too flat")))
-                return false
-            }
-
             return true
-        }
-
-        guard isValidGlucoseData else {
-            debug(.apsManager, "Glucose validation failed")
-            processError(APSError.glucoseError(message: "Glucose validation failed"))
-            return
         }
 
         do {
@@ -465,6 +453,10 @@ final class BaseAPSManager: APSManager, Injectable {
             _ = try await autosenseResult
             try await openAPS.createProfiles()
             let determination = try await openAPS.determineBasal(currentTemp: await currentTemp, clock: now)
+
+            guard isValidGlucoseData else {
+                throw APSError.glucoseError(message: "Glucose validation failed")
+            }
 
             if let determination = determination {
                 // Capture weak self in closure
@@ -668,6 +660,12 @@ final class BaseAPSManager: APSManager, Injectable {
 
         guard let pump = pumpManager else {
             throw APSError.apsError(message: "Pump not set")
+        }
+
+        // Check if pump is suspended and abort if it is
+        if pump.status.pumpStatus.suspended {
+            info(.apsManager, "Skipping enactDetermination because pump is suspended")
+            return // return without throwing an error
         }
 
         // Unable to do temp basal during manual temp basal 😁

@@ -216,22 +216,20 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
             relationshipKeyPathsForPrefetching: ["forecastValues"]
         )
 
-        var result: [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] = []
+        // Process results entirely within a single context.perform block to avoid data races
+        return await context.perform {
+            guard let forecasts = results as? [Forecast] else { return [] }
 
-        await context.perform {
-            if let forecasts = results as? [Forecast] {
-                for forecast in forecasts {
-                    // Use the helper property that already sorts by index
-                    let sortedValues = forecast.forecastValuesArray
-                    result.append((
-                        id: UUID(),
-                        forecastID: forecast.objectID,
-                        forecastValueIDs: sortedValues.map(\.objectID)
-                    ))
-                }
+            // Create and return the result array entirely within this block
+            return forecasts.map { forecast in
+                // Use the helper property that already sorts by index
+                let sortedValues = forecast.forecastValuesArray
+                return (
+                    id: UUID(),
+                    forecastID: forecast.objectID,
+                    forecastValueIDs: sortedValues.map(\.objectID)
+                )
             }
         }
-
-        return result
     }
 }

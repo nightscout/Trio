@@ -391,8 +391,8 @@ extension Treatments {
                 simulatedCOB = min(maxCobInt16, cobInt16)
             }
 
-            // Check if this is a backdated entry by comparing with the default date
-            let isBackdated = date != defaultDate
+            // Check if this is a backdated entry by comparing with the default date using a tolerance
+            let isBackdated = abs(date.timeIntervalSince(defaultDate)) > 1.0
 
             let result = await bolusCalculationManager.handleBolusCalculation(
                 carbs: carbs,
