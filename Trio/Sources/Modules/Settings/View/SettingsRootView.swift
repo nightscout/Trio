@@ -17,6 +17,9 @@ extension Settings {
 
         @State private var showShareSheet = false
         @State private var showSettingsExport = false
+        @State private var showExportError = false
+        @State private var exportErrorMessage = ""
+        @State private var exportedFileURL: URL?
         @State private var searchText: String = ""
 
         @State private var shouldDisplayHint: Bool = false
@@ -192,7 +195,14 @@ extension Settings {
                             .frame(maxWidth: .infinity, alignment: .leading)
 
                             Button {
-                                showSettingsExport.toggle()
+                                switch state.exportSettings() {
+                                case let .success(fileURL):
+                                    exportedFileURL = fileURL
+                                    showSettingsExport = true
+                                case let .failure(error):
+                                    exportErrorMessage = error.localizedDescription
+                                    showExportError = true
+                                }
                             } label: {
                                 HStack {
                                     Text("Export Settings")
@@ -282,7 +292,6 @@ extension Settings {
                     ).listRowBackground(Color.chart)
                 }
 
-                // TODO: remove this more or less entirely; add build-time flag to enable Middleware; add settings export feature
 //                Section {
 //                    Toggle("Developer Options", isOn: $state.debugOptions)
 //                    if state.debugOptions {
@@ -359,9 +368,14 @@ extension Settings {
                 ShareSheet(activityItems: state.logItems())
             }
             .sheet(isPresented: $showSettingsExport) {
-                if let settingsURL = state.exportSettings() {
-                    ShareSheet(activityItems: [settingsURL])
+                if let fileURL = exportedFileURL {
+                    ShareSheet(activityItems: [fileURL])
                 }
+            }
+            .alert("Export Error", isPresented: $showExportError) {
+                Button("OK") {}
+            } message: {
+                Text(exportErrorMessage)
             }
             .onAppear(perform: configureView)
             .navigationTitle("Settings")

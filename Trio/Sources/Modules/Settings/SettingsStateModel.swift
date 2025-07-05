@@ -10,6 +10,7 @@ extension Settings {
         @Injected() private var nightscoutManager: NightscoutManager!
         @Injected() var pluginManager: PluginManager!
         @Injected() var fetchCgmManager: FetchGlucoseManager!
+        @Injected() private var storage: FileStorage!
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var closedLoop = false
@@ -81,14 +82,43 @@ extension Settings {
             return hasCgm && hasPump
         }
 
-        func exportSettings() -> URL? {
+        enum ExportError: LocalizedError {
+            case documentsDirectoryNotFound
+            case fileWriteError(Error)
+            case unknown(String)
+
+            var errorDescription: String? {
+                switch self {
+                case .documentsDirectoryNotFound:
+                    return String(localized: "Could not access documents directory")
+                case let .fileWriteError(error):
+                    return String(localized: "Failed to write export file: \(error.localizedDescription)")
+                case let .unknown(message):
+                    return String(localized: "Export failed: \(message)")
+                }
+            }
+        }
+
+        /// Exports all Trio settings to a CSV file
+        ///
+        /// This function creates a comprehensive export of the user's Trio configuration including:
+        /// - Export metadata (date, app version, build)
+        /// - Device settings (CGM, pump information)
+        /// - Therapy profiles (basal rates, ISF, carb ratios, targets)
+        /// - Algorithm settings (SMB, autosens, dynamic settings, etc.)
+        /// - Features and UI preferences
+        /// - Notification settings
+        /// - Service configurations
+        ///
+        /// - Returns: A Result containing either the file URL on success or an ExportError on failure
+        func exportSettings() -> Result<URL, ExportError> {
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyyMMdd_HHmmss"
             let timestamp = formatter.string(from: Date())
             let fileName = "TrioSettings_\(timestamp).csv"
 
             guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-                return nil
+                return .failure(.documentsDirectoryNotFound)
             }
 
             let fileURL = documentsPath.appendingPathComponent(fileName)
@@ -97,6 +127,17 @@ extension Settings {
 
             let trioSettings = settingsManager.settings
             let preferences = settingsManager.preferences
+
+            // Export metadata
+            let exportCategory = String(localized: "Export Info")
+            addSetting(
+                category: exportCategory,
+                name: String(localized: "Export Date"),
+                value: DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .medium)
+            )
+            addSetting(category: exportCategory, name: String(localized: "App Version"), value: versionNumber)
+            addSetting(category: exportCategory, name: String(localized: "Build Number"), value: buildNumber)
+            addSetting(category: exportCategory, name: String(localized: "Branch"), value: branch)
 
             // Helper function to escape CSV values
             func csvEscape(_ value: String) -> String {
@@ -108,7 +149,8 @@ extension Settings {
 
             // Helper function to add a setting row
             func addSetting(category: String, subcategory: String = "", name: String, value: String, unit: String = "") {
-                csvContent += "\(csvEscape(category)),\(csvEscape(subcategory)),\(csvEscape(name)),\(csvEscape(value)),\(csvEscape(unit))\n"
+                csvContent +=
+                    "\(csvEscape(category)),\(csvEscape(subcategory)),\(csvEscape(name)),\(csvEscape(value)),\(csvEscape(unit))\n"
             }
 
             // Devices
@@ -119,7 +161,12 @@ extension Settings {
                 name: String(localized: "Smooth Glucose Value"),
                 value: trioSettings.smoothGlucose ? String(localized: "Enabled") : String(localized: "Disabled")
             )
-            // Check for pump info
+            // Pump Information
+            if let pumpManager = provider.deviceManager.pumpManager {
+                addSetting(category: devicesCategory, name: String(localized: "Pump Type"), value: pumpManager.localizedTitle)
+            } else {
+                addSetting(category: devicesCategory, name: String(localized: "Pump Type"), value: "Not Connected")
+            }
 
             // Therapy Settings
             let therapyCategory = String(localized: "Therapy", comment: "Therapy menu item in the Settings main view.")
@@ -137,15 +184,78 @@ extension Settings {
                 unit: "g"
             )
 
-            // Get therapy profiles from settingsManager
-            let basalProfile = trioSettings.basalProfile
-            let isfProfile = trioSettings.isfProfile
-            let crProfile = trioSettings.carbRatio
-            let targetProfile = trioSettings.targetProfile
+            // Get therapy profiles from storage
+            let basalProfile = storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) ?? []
+            let isfProfileContainer = storage.retrieve(OpenAPS.Settings.insulinSensitivities, as: InsulinSensitivities.self)
+            let crProfileContainer = storage.retrieve(OpenAPS.Settings.carbRatios, as: CarbRatios.self)
+            let targetProfileContainer = storage.retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self)
+
+            // Export therapy profiles
+            let therapyProfilesSubcategory = String(localized: "Therapy Profiles")
+
+            // Basal Profile
+            for entry in basalProfile {
+                addSetting(
+                    category: therapyCategory,
+                    subcategory: therapyProfilesSubcategory,
+                    name: "Basal Rate (\(entry.start))",
+                    value: String(describing: entry.rate),
+                    unit: "U/hr"
+                )
+            }
+
+            // ISF Profile
+            if let isfContainer = isfProfileContainer {
+                for entry in isfContainer.sensitivities {
+                    let isfValue = trioSettings.units == .mgdL ? entry.sensitivity : entry.sensitivity.asMmolL
+                    addSetting(
+                        category: therapyCategory,
+                        subcategory: therapyProfilesSubcategory,
+                        name: "ISF (\(entry.start))",
+                        value: String(describing: isfValue),
+                        unit: trioSettings.units == .mgdL ? "mg/dL/U" : "mmol/L/U"
+                    )
+                }
+            }
+
+            // Carb Ratio Profile
+            if let crContainer = crProfileContainer {
+                for entry in crContainer.schedule {
+                    addSetting(
+                        category: therapyCategory,
+                        subcategory: therapyProfilesSubcategory,
+                        name: "Carb Ratio (\(entry.start))",
+                        value: String(describing: entry.ratio),
+                        unit: "g/U"
+                    )
+                }
+            }
+
+            // Target Profile
+            if let targetContainer = targetProfileContainer {
+                for entry in targetContainer.targets {
+                    let lowValue = trioSettings.units == .mgdL ? entry.low : entry.low.asMmolL
+                    let highValue = trioSettings.units == .mgdL ? entry.high : entry.high.asMmolL
+                    addSetting(
+                        category: therapyCategory,
+                        subcategory: therapyProfilesSubcategory,
+                        name: "Target Low (\(entry.start))",
+                        value: String(describing: lowValue),
+                        unit: trioSettings.units.rawValue
+                    )
+                    addSetting(
+                        category: therapyCategory,
+                        subcategory: therapyProfilesSubcategory,
+                        name: "Target High (\(entry.start))",
+                        value: String(describing: highValue),
+                        unit: trioSettings.units.rawValue
+                    )
+                }
+            }
 
             // Algorithm Settings
             let algorithmCategory = String(localized: "Algorithm", comment: "Algorithm menu item in the Settings main view.")
-            
+
             // Autosens Settings
             let autosensSubcategory = String(localized: "Autosens")
             addSetting(
@@ -296,7 +406,9 @@ extension Settings {
                 category: algorithmCategory,
                 subcategory: targetBehaviorSubcategory,
                 name: String(localized: "Half Basal Exercise Target"),
-                value: trioSettings.units == .mgdL ? String(describing: preferences.halfBasalExerciseTarget) : String(describing: preferences.halfBasalExerciseTarget.asMmolL),
+                value: trioSettings
+                    .units == .mgdL ? String(describing: preferences.halfBasalExerciseTarget) :
+                    String(describing: preferences.halfBasalExerciseTarget.asMmolL),
                 unit: trioSettings.units.rawValue
             )
 
@@ -349,7 +461,9 @@ extension Settings {
                 category: algorithmCategory,
                 subcategory: additionalsSubcategory,
                 name: String(localized: "Min 5m Carb Impact"),
-                value: trioSettings.units == .mgdL ? String(describing: preferences.min5mCarbimpact) : String(describing: preferences.min5mCarbimpact.asMmolL),
+                value: trioSettings
+                    .units == .mgdL ? String(describing: preferences.min5mCarbimpact) :
+                    String(describing: preferences.min5mCarbimpact.asMmolL),
                 unit: trioSettings.units == .mgdL ? "mg/dL" : "mmol/L"
             )
             addSetting(
@@ -449,13 +563,15 @@ extension Settings {
             addSetting(
                 category: featuresCategory,
                 name: String(localized: "Low Threshold"),
-                value: trioSettings.units == .mgdL ? String(describing: trioSettings.low) : String(describing: trioSettings.low.asMmolL),
+                value: trioSettings
+                    .units == .mgdL ? String(describing: trioSettings.low) : String(describing: trioSettings.low.asMmolL),
                 unit: trioSettings.units.rawValue
             )
             addSetting(
                 category: featuresCategory,
                 name: String(localized: "High Threshold"),
-                value: trioSettings.units == .mgdL ? String(describing: trioSettings.high) : String(describing: trioSettings.high.asMmolL),
+                value: trioSettings
+                    .units == .mgdL ? String(describing: trioSettings.high) : String(describing: trioSettings.high.asMmolL),
                 unit: trioSettings.units.rawValue
             )
             addSetting(
@@ -534,13 +650,17 @@ extension Settings {
             addSetting(
                 category: notificationsCategory,
                 name: String(localized: "Low Glucose Alarm Limit"),
-                value: trioSettings.units == .mgdL ? String(describing: trioSettings.lowGlucose) : String(describing: trioSettings.lowGlucose.asMmolL),
+                value: trioSettings
+                    .units == .mgdL ? String(describing: trioSettings.lowGlucose) :
+                    String(describing: trioSettings.lowGlucose.asMmolL),
                 unit: trioSettings.units.rawValue
             )
             addSetting(
                 category: notificationsCategory,
                 name: String(localized: "High Glucose Alarm Limit"),
-                value: trioSettings.units == .mgdL ? String(describing: trioSettings.highGlucose) : String(describing: trioSettings.highGlucose.asMmolL),
+                value: trioSettings
+                    .units == .mgdL ? String(describing: trioSettings.highGlucose) :
+                    String(describing: trioSettings.highGlucose.asMmolL),
                 unit: trioSettings.units.rawValue
             )
             addSetting(
@@ -580,10 +700,10 @@ extension Settings {
             // Write to file
             do {
                 try csvContent.write(to: fileURL, atomically: true, encoding: .utf8)
-                return fileURL
+                return .success(fileURL)
             } catch {
                 debug(.default, "Failed to write settings export file: \(error)")
-                return nil
+                return .failure(.fileWriteError(error))
             }
         }
     }
