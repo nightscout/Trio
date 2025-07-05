@@ -81,8 +81,8 @@ final class AppVersionChecker {
     //
     // - Parameter viewController: The UIViewController on which to present any alerts.
     func checkAndNotifyVersionStatus(in viewController: UIViewController) {
-        checkForNewVersion { [weak viewController] latestVersion, isNewer, isBlacklisted in
-            guard let vc = viewController else { return }
+        Task { @MainActor in
+            let (latestVersion, isNewer, isBlacklisted) = await checkForNewVersion()
             let now = Date()
 
             // If the current version is blacklisted, show a critical update alert if not shown in the last 24 hours.
@@ -90,7 +90,7 @@ final class AppVersionChecker {
                 let lastShown = self.lastBlacklistNotificationShown ?? .distantPast
                 if now.timeIntervalSince(lastShown) > 86400 { // 24 hours
                     self.showAlert(
-                        on: vc,
+                        on: viewController,
                         title: String(localized: "Update Required", comment: "Title for critical update alert"),
                         message: String(
                             localized: "The current version has a critical issue and should be updated as soon as possible.",
@@ -107,7 +107,7 @@ final class AppVersionChecker {
                 if now.timeIntervalSince(lastShown) > 1_209_600 { // 2 weeks
                     let versionText = latestVersion ?? String(localized: "Unknown", comment: "Fallback text for unknown version")
                     self.showAlert(
-                        on: vc,
+                        on: viewController,
                         title: String(localized: "Update Available", comment: "Title for update available alert"),
                         message: String(
                             localized: "A new version (\(versionText)) is available. It is recommended to update.",
@@ -120,7 +120,7 @@ final class AppVersionChecker {
         }
     }
 
-    // Refreshes the version information and returns the current state.
+    // Refreshes the version information and returns the current state (completion handler version).
     //
     // This method triggers a version check (using cached values if valid or fetching fresh data)
     // and then returns the current app version along with the latest version info, a flag indicating
@@ -137,10 +137,27 @@ final class AppVersionChecker {
         Bool,
         Bool
     ) -> Void) {
-        let currentVersion = version()
-        checkForNewVersion { latestVersion, isNewer, isBlacklisted in
-            completion(currentVersion, latestVersion, isNewer, isBlacklisted)
+        Task {
+            let result = await refreshVersionInfo()
+            completion(result.currentVersion, result.latestVersion, result.isNewer, result.isBlacklisted)
         }
+    }
+    
+    // Refreshes the version information and returns the current state (async version).
+    //
+    // This method triggers a version check (using cached values if valid or fetching fresh data)
+    // and then returns the current app version along with the latest version info, a flag indicating
+    // whether the latest version is newer, and a flag indicating if the current version is blacklisted.
+    //
+    // - Returns: A tuple containing:
+    // - currentVersion: The current app version.
+    // - latestVersion: The latest version fetched from GitHub (if available).
+    // - isNewer: `true` if the fetched version is newer than the current version.
+    // - isBlacklisted: `true` if the current version is blacklisted.
+    func refreshVersionInfo() async -> (currentVersion: String, latestVersion: String?, isNewer: Bool, isBlacklisted: Bool) {
+        let currentVersion = version()
+        let (latestVersion, isNewer, isBlacklisted) = await checkForNewVersion()
+        return (currentVersion, latestVersion, isNewer, isBlacklisted)
     }
 
     // Checks for the latest dev version with caching and comparison.
@@ -219,7 +236,7 @@ final class AppVersionChecker {
 
     // MARK: - Core Version Checking Logic
 
-    // Checks whether there is a new or blacklisted version.
+    // Checks whether there is a new or blacklisted version (completion handler version).
     //
     // This method attempts to use cached version data if it is less than 24 hours old and
     // corresponds to the current app version. If the cache is invalid or outdated,
@@ -230,6 +247,23 @@ final class AppVersionChecker {
     // - isNewer: `true` if the fetched version is newer than the current version.
     // - isBlacklisted: `true` if the current version is blacklisted.
     private func checkForNewVersion(completion: @escaping (String?, Bool, Bool) -> Void) {
+        Task {
+            let result = await checkForNewVersion()
+            completion(result.0, result.1, result.2)
+        }
+    }
+    
+    // Checks whether there is a new or blacklisted version (async version).
+    //
+    // This method attempts to use cached version data if it is less than 24 hours old and
+    // corresponds to the current app version. If the cache is invalid or outdated,
+    // it fetches fresh data from GitHub.
+    //
+    // - Returns: A tuple containing:
+    // - latestVersion: The latest version string (if available).
+    // - isNewer: `true` if the fetched version is newer than the current version.
+    // - isBlacklisted: `true` if the current version is blacklisted.
+    private func checkForNewVersion() async -> (String?, Bool, Bool) {
         let currentVersion = version()
         let now = Date()
 
@@ -252,57 +286,56 @@ final class AppVersionChecker {
            let persistedLatest = persistedLatest
         {
             let isNewer = isVersion(persistedLatest, newerThan: currentVersion)
-            completion(persistedLatest, isNewer, isBlacklistedCached)
-            return
+            return (persistedLatest, isNewer, isBlacklistedCached)
         }
 
         // Otherwise, fetch fresh data from GitHub and update the cache.
-        fetchDataAndUpdateCache(currentVersion: currentVersion, completion: completion)
+        return await fetchDataAndUpdateCache(currentVersion: currentVersion)
     }
 
-    // Fetches version and blacklist data from GitHub, updates persisted values, and invokes the completion handler.
+    // Fetches version and blacklist data from GitHub, updates persisted values, and returns the result.
     //
-    // This method performs two sequential network requests: first for the version configuration and then for the
-    // blacklisted versions. After parsing the fetched data and comparing version values, it updates the cache and calls
-    // the completion handler with the results.
+    // This method performs two parallel network requests: one for the version configuration and one for the
+    // blacklisted versions. After parsing the fetched data and comparing version values, it updates the cache and
+    // returns the results.
     //
     // - Parameters:
     // - currentVersion: The current app version.
-    // - completion: A closure that receives:
+    // - Returns: A tuple containing:
     // - latestVersion: The latest version string from GitHub (if available).
     // - isNewer: `true` if the fetched version is newer than the current version.
     // - isBlacklisted: `true` if the current version is blacklisted.
-    private func fetchDataAndUpdateCache(currentVersion: String, completion: @escaping (String?, Bool, Bool) -> Void) {
-        fetchData(for: .versionConfig) { versionData in
-            self.fetchData(for: .blacklistedVersions) { blacklistData in
-                DispatchQueue.main.async {
-                    // Parse the version from the fetched configuration data.
-                    let fetchedVersion = versionData
-                        .flatMap { String(data: $0, encoding: .utf8) }
-                        .flatMap { self.parseVersionFromConfig(contents: $0) }
+    private func fetchDataAndUpdateCache(currentVersion: String) async -> (String?, Bool, Bool) {
+        // Fetch both data types in parallel
+        async let versionData = fetchData(for: .versionConfig)
+        async let blacklistData = fetchData(for: .blacklistedVersions)
+        
+        let (versionDataResult, blacklistDataResult) = await (versionData, blacklistData)
+        
+        // Parse the version from the fetched configuration data.
+        let fetchedVersion = versionDataResult
+            .flatMap { String(data: $0, encoding: .utf8) }
+            .flatMap { self.parseVersionFromConfig(contents: $0) }
 
-                    // Determine if the fetched version is newer than the current version.
-                    let isNewer = fetchedVersion.map {
-                        self.isVersion($0, newerThan: currentVersion)
-                    } ?? false
+        // Determine if the fetched version is newer than the current version.
+        let isNewer = fetchedVersion.map {
+            self.isVersion($0, newerThan: currentVersion)
+        } ?? false
 
-                    // Determine if the current version is blacklisted.
-                    let isBlacklisted = (try? blacklistData.flatMap {
-                        try JSONDecoder().decode(Blacklist.self, from: $0)
-                    })?.blacklistedVersions
-                        .map(\.version)
-                        .contains(currentVersion) ?? false
+        // Determine if the current version is blacklisted.
+        let isBlacklisted = (try? blacklistDataResult.flatMap {
+            try JSONDecoder().decode(Blacklist.self, from: $0)
+        })?.blacklistedVersions
+            .map(\.version)
+            .contains(currentVersion) ?? false
 
-                    // Update persisted cache.
-                    self.persistedLatestVersion = fetchedVersion
-                    self.latestVersionChecked = Date()
-                    self.currentVersionBlackListed = isBlacklisted
-                    self.cachedForVersion = currentVersion
+        // Update persisted cache.
+        self.persistedLatestVersion = fetchedVersion
+        self.latestVersionChecked = Date()
+        self.currentVersionBlackListed = isBlacklisted
+        self.cachedForVersion = currentVersion
 
-                    completion(fetchedVersion, isNewer, isBlacklisted)
-                }
-            }
-        }
+        return (fetchedVersion, isNewer, isBlacklisted)
     }
 
     // MARK: - Data Fetching Helper
@@ -345,7 +378,7 @@ final class AppVersionChecker {
     private func parseVersionFromConfig(contents: String) -> String? {
         let lines = contents.split(separator: "\n")
         for line in lines {
-            if line.contains("APP_VERSION"), !line.contains("APP_DEV_VERSION") {
+            if line.contains("APP_VERSION") && !line.contains("DEV") {
                 let components = line.split(separator: "=").map {
                     $0.trimmingCharacters(in: .whitespacesAndNewlines)
                 }

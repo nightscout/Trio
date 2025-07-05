@@ -393,22 +393,18 @@ extension Settings {
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
             .screenNavigation(self)
             .onAppear {
-                AppVersionChecker.shared.refreshVersionInfo { _, latestVersion, isNewer, isBlacklisted in
-                    DispatchQueue.main.async {
-                        versionInfo.latestVersion = latestVersion
-                        versionInfo.isUpdateAvailable = isNewer
-                        versionInfo.isBlacklisted = isBlacklisted
-                    }
-                }
-
-                // Fetch dev version if not on main branch
-                let buildDetails = BuildDetails.shared
-                if buildDetails.trioBranch != "main" {
-                    AppVersionChecker.shared.checkForNewDevVersion { devVersion, isDevNewer in
-                        DispatchQueue.main.async {
-                            versionInfo.latestDevVersion = devVersion
-                            versionInfo.isDevUpdateAvailable = isDevNewer
-                        }
+                Task { @MainActor in
+                    let (_, latestVersion, isNewer, isBlacklisted) = await AppVersionChecker.shared.refreshVersionInfo()
+                    versionInfo.latestVersion = latestVersion
+                    versionInfo.isUpdateAvailable = isNewer
+                    versionInfo.isBlacklisted = isBlacklisted
+                    
+                    // Fetch dev version if not on main branch
+                    let buildDetails = BuildDetails.shared
+                    if buildDetails.trioBranch != "main" {
+                        let (devVersion, isDevNewer) = await AppVersionChecker.shared.checkForNewDevVersion()
+                        versionInfo.latestDevVersion = devVersion
+                        versionInfo.isDevUpdateAvailable = isDevNewer
                     }
                 }
             }
