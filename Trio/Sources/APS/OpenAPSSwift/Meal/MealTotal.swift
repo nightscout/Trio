@@ -157,8 +157,11 @@ enum MealTotal {
             carbImpactDate: cobInputs.carbImpactDate
         )
 
-        // if currentDeviation is null or maxDeviation is 0, set mealCOB to 0 for zombie-carb safety
-        if finalCobResult.maxDeviation == 0 || finalCobResult.allDeviations.isEmpty {
+        // the comment in JS says this:
+        //    if currentDeviation is null or maxDeviation is 0, set mealCOB to 0
+        //    for zombie-carb safety
+        // But the code only checks if it's defined, not the value
+        if finalCobResult.allDeviations.isEmpty {
             mealCOB = 0
         }
 
