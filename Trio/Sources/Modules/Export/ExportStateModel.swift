@@ -138,8 +138,11 @@ extension Export {
                 .default,
                 "🔄 EXPORT: Exporting categories: \(categoriesToExport.map(\.rawValue).joined(separator: ", ")) in \(exportFormat.rawValue) format"
             )
-            
-            debug(.default, "🔄 EXPORT: CoreData stack status - persistentContainer: \(CoreDataStack.shared.persistentContainer.description)")
+
+            debug(
+                .default,
+                "🔄 EXPORT: CoreData stack status - persistentContainer: \(CoreDataStack.shared.persistentContainer.description)"
+            )
             debug(.default, "🔄 EXPORT: ViewContext status: \(CoreDataStack.shared.persistentContainer.viewContext.description)")
 
             let formatter = DateFormatter()
@@ -147,9 +150,11 @@ extension Export {
             let timestamp = formatter.string(from: Date())
             let fileName = "TrioSettings_\(timestamp).\(exportFormat.fileExtension)"
 
-            // Use the temporary directory for better sharing compatibility
-            let tempDirectory = FileManager.default.temporaryDirectory
-            let fileURL = tempDirectory.appendingPathComponent(fileName)
+            // Use the Documents directory for better sharing compatibility
+            guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+                return .failure(.documentsDirectoryNotFound)
+            }
+            let fileURL = documentsDirectory.appendingPathComponent(fileName)
             debug(.default, "Export file path: \(fileURL.path)")
 
             // Data structure to hold export data
@@ -219,22 +224,69 @@ extension Export {
             // Therapy Settings
             if categoriesToExport.contains(.therapy) {
                 let therapyCategory = String(localized: "Therapy", comment: "Therapy menu item in the Settings main view.")
+
+                // Units and Limits subcategory
+                let unitsLimitsSubcategory = String(localized: "Units and Limits")
                 addSetting(
                     category: therapyCategory,
+                    subcategory: unitsLimitsSubcategory,
                     name: String(localized: "Glucose Units"),
                     value: trioSettings.units.rawValue
                 )
                 addSetting(
                     category: therapyCategory,
-                    name: String(localized: "Max IOB"),
+                    subcategory: unitsLimitsSubcategory,
+                    name: String(localized: "Maximum Insulin on Board (IOB)"),
                     value: String(describing: preferences.maxIOB),
+                    unit: "U"
+                )
+
+                // Add missing pump settings from PumpSettings
+                let pumpSettings = settingsManager.pumpSettings
+                addSetting(
+                    category: therapyCategory,
+                    subcategory: unitsLimitsSubcategory,
+                    name: String(localized: "Maximum Bolus"),
+                    value: String(describing: pumpSettings.maxBolus),
                     unit: "U"
                 )
                 addSetting(
                     category: therapyCategory,
-                    name: String(localized: "Max COB"),
+                    subcategory: unitsLimitsSubcategory,
+                    name: String(localized: "Maximum Basal Rate"),
+                    value: String(describing: pumpSettings.maxBasal),
+                    unit: "U/hr"
+                )
+                // Get insulin type from pump manager if available, otherwise from preferences
+                let insulinTypeValue: String
+                if let pumpManager = provider.deviceManager.pumpManager,
+                   let insulinType = pumpManager.status.insulinType
+                {
+                    insulinTypeValue = insulinType.title
+                } else {
+                    insulinTypeValue = preferences.curve.rawValue
+                }
+                addSetting(
+                    category: therapyCategory,
+                    subcategory: unitsLimitsSubcategory,
+                    name: String(localized: "Insulin Type"),
+                    value: insulinTypeValue
+                )
+                addSetting(
+                    category: therapyCategory,
+                    subcategory: unitsLimitsSubcategory,
+                    name: String(localized: "Maximum Carbs on Board (COB)"),
                     value: String(describing: preferences.maxCOB),
                     unit: "g"
+                )
+                addSetting(
+                    category: therapyCategory,
+                    subcategory: unitsLimitsSubcategory,
+                    name: String(localized: "Minimum Safety Threshold"),
+                    value: trioSettings
+                        .units == .mgdL ? String(describing: preferences.threshold_setting) :
+                        String(describing: preferences.threshold_setting.asMmolL),
+                    unit: trioSettings.units.rawValue
                 )
 
                 // Get therapy profiles from storage
@@ -243,40 +295,41 @@ extension Export {
                 let crProfileContainer = storage.retrieve(OpenAPS.Settings.carbRatios, as: CarbRatios.self)
                 let targetProfileContainer = storage.retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self)
 
-                // Export therapy profiles
-                let therapyProfilesSubcategory = String(localized: "Therapy Profiles")
+                // Glucose Targets subcategory
+                let glucoseTargetsSubcategory = String(localized: "Glucose Targets")
+                if let targetContainer = targetProfileContainer {
+                    for entry in targetContainer.targets {
+                        // Export single target value since high==low in Trio
+                        let targetValue = trioSettings.units == .mgdL ? entry.low : entry.low.asMmolL
+                        addSetting(
+                            category: therapyCategory,
+                            subcategory: glucoseTargetsSubcategory,
+                            name: "Target (\(entry.start))",
+                            value: String(describing: targetValue),
+                            unit: trioSettings.units.rawValue
+                        )
+                    }
+                }
 
-                // Basal Profile
+                // Basal Rates subcategory
+                let basalRatesSubcategory = String(localized: "Basal Rates")
                 for entry in basalProfile {
                     addSetting(
                         category: therapyCategory,
-                        subcategory: therapyProfilesSubcategory,
+                        subcategory: basalRatesSubcategory,
                         name: "Basal Rate (\(entry.start))",
                         value: String(describing: entry.rate),
                         unit: "U/hr"
                     )
                 }
 
-                // ISF Profile
-                if let isfContainer = isfProfileContainer {
-                    for entry in isfContainer.sensitivities {
-                        let isfValue = trioSettings.units == .mgdL ? entry.sensitivity : entry.sensitivity.asMmolL
-                        addSetting(
-                            category: therapyCategory,
-                            subcategory: therapyProfilesSubcategory,
-                            name: "ISF (\(entry.start))",
-                            value: String(describing: isfValue),
-                            unit: trioSettings.units == .mgdL ? "mg/dL/U" : "mmol/L/U"
-                        )
-                    }
-                }
-
-                // Carb Ratio Profile
+                // Carb Ratios subcategory
+                let carbRatiosSubcategory = String(localized: "Carb Ratios")
                 if let crContainer = crProfileContainer {
                     for entry in crContainer.schedule {
                         addSetting(
                             category: therapyCategory,
-                            subcategory: therapyProfilesSubcategory,
+                            subcategory: carbRatiosSubcategory,
                             name: "Carb Ratio (\(entry.start))",
                             value: String(describing: entry.ratio),
                             unit: "g/U"
@@ -284,24 +337,17 @@ extension Export {
                     }
                 }
 
-                // Target Profile
-                if let targetContainer = targetProfileContainer {
-                    for entry in targetContainer.targets {
-                        let lowValue = trioSettings.units == .mgdL ? entry.low : entry.low.asMmolL
-                        let highValue = trioSettings.units == .mgdL ? entry.high : entry.high.asMmolL
+                // Insulin Sensitivities subcategory
+                let insulinSensitivitiesSubcategory = String(localized: "Insulin Sensitivities")
+                if let isfContainer = isfProfileContainer {
+                    for entry in isfContainer.sensitivities {
+                        let isfValue = trioSettings.units == .mgdL ? entry.sensitivity : entry.sensitivity.asMmolL
                         addSetting(
                             category: therapyCategory,
-                            subcategory: therapyProfilesSubcategory,
-                            name: "Target Low (\(entry.start))",
-                            value: String(describing: lowValue),
-                            unit: trioSettings.units.rawValue
-                        )
-                        addSetting(
-                            category: therapyCategory,
-                            subcategory: therapyProfilesSubcategory,
-                            name: "Target High (\(entry.start))",
-                            value: String(describing: highValue),
-                            unit: trioSettings.units.rawValue
+                            subcategory: insulinSensitivitiesSubcategory,
+                            name: "ISF (\(entry.start))",
+                            value: String(describing: isfValue),
+                            unit: trioSettings.units == .mgdL ? "mg/dL/U" : "mmol/L/U"
                         )
                     }
                 }
@@ -317,13 +363,15 @@ extension Export {
                     category: algorithmCategory,
                     subcategory: autosensSubcategory,
                     name: String(localized: "Autosens Max"),
-                    value: String(describing: preferences.autosensMax)
+                    value: String(format: "%.0f", (preferences.autosensMax as NSDecimalNumber).doubleValue * 100),
+                    unit: "%"
                 )
                 addSetting(
                     category: algorithmCategory,
                     subcategory: autosensSubcategory,
                     name: String(localized: "Autosens Min"),
-                    value: String(describing: preferences.autosensMin)
+                    value: String(format: "%.0f", (preferences.autosensMin as NSDecimalNumber).doubleValue * 100),
+                    unit: "%"
                 )
                 addSetting(
                     category: algorithmCategory,
@@ -349,7 +397,7 @@ extension Export {
                 addSetting(
                     category: algorithmCategory,
                     subcategory: smbSubcategory,
-                    name: String(localized: "Enable SMB With Temporary Target"),
+                    name: String(localized: "Enable SMB With Temptarget"),
                     value: preferences.enableSMBWithTemptarget ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
@@ -357,6 +405,29 @@ extension Export {
                     subcategory: smbSubcategory,
                     name: String(localized: "Enable SMB After Carbs"),
                     value: preferences.enableSMBAfterCarbs ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+                addSetting(
+                    category: algorithmCategory,
+                    subcategory: smbSubcategory,
+                    name: String(localized: "Enable SMB With High Glucose"),
+                    value: preferences.enableSMB_high_bg ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+                if preferences.enableSMB_high_bg {
+                    addSetting(
+                        category: algorithmCategory,
+                        subcategory: smbSubcategory,
+                        name: String(localized: "High Glucose Target"),
+                        value: trioSettings
+                            .units == .mgdL ? String(describing: preferences.enableSMB_high_bg_target) :
+                            String(describing: preferences.enableSMB_high_bg_target.asMmolL),
+                        unit: trioSettings.units.rawValue
+                    )
+                }
+                addSetting(
+                    category: algorithmCategory,
+                    subcategory: smbSubcategory,
+                    name: String(localized: "Allow SMB With High Temptarget"),
+                    value: preferences.allowSMBWithHighTemptarget ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: algorithmCategory,
@@ -374,55 +445,68 @@ extension Export {
                 addSetting(
                     category: algorithmCategory,
                     subcategory: smbSubcategory,
-                    name: String(localized: "Max UAM SMB Basal Minutes"),
+                    name: String(localized: "Max UAM Basal Minutes"),
                     value: String(describing: preferences.maxUAMSMBBasalMinutes),
                     unit: String(localized: "minutes")
                 )
                 addSetting(
                     category: algorithmCategory,
                     subcategory: smbSubcategory,
-                    name: String(localized: "SMB Delivery Ratio"),
-                    value: String(describing: preferences.smbDeliveryRatio)
-                )
-                addSetting(
-                    category: algorithmCategory,
-                    subcategory: smbSubcategory,
-                    name: String(localized: "SMB Interval"),
-                    value: String(describing: preferences.smbInterval),
-                    unit: String(localized: "minutes")
+                    name: String(localized: "Max. Allowed Glucose Rise for SMB"),
+                    value: String(format: "%.0f", (preferences.maxDeltaBGthreshold as NSDecimalNumber).doubleValue * 100),
+                    unit: "%"
                 )
 
                 // Dynamic Settings
                 let dynamicSubcategory = String(localized: "Dynamic Settings")
+
+                // Proper Dynamic ISF handling using the current enum logic
+                let dynamicISFValue: String
+                if !preferences.useNewFormula {
+                    dynamicISFValue = String(localized: "Disabled")
+                } else if preferences.sigmoid {
+                    dynamicISFValue = String(localized: "Sigmoid")
+                } else {
+                    dynamicISFValue = String(localized: "Logarithmic")
+                }
                 addSetting(
                     category: algorithmCategory,
                     subcategory: dynamicSubcategory,
                     name: String(localized: "Dynamic ISF"),
-                    value: preferences.useNewFormula ? String(localized: "Enabled") : String(localized: "Disabled")
+                    value: dynamicISFValue
                 )
-                addSetting(
-                    category: algorithmCategory,
-                    subcategory: dynamicSubcategory,
-                    name: String(localized: "Sigmoid"),
-                    value: preferences.sigmoid ? String(localized: "Enabled") : String(localized: "Disabled")
-                )
-                addSetting(
-                    category: algorithmCategory,
-                    subcategory: dynamicSubcategory,
-                    name: String(localized: "Adjustment Factor (AF)"),
-                    value: String(describing: preferences.adjustmentFactor)
-                )
-                addSetting(
-                    category: algorithmCategory,
-                    subcategory: dynamicSubcategory,
-                    name: String(localized: "Sigmoid Adjustment Factor"),
-                    value: String(describing: preferences.adjustmentFactorSigmoid)
-                )
+
+                // Show adjustment factors as percentages with proper labels
+                if preferences.useNewFormula {
+                    if !preferences.sigmoid {
+                        addSetting(
+                            category: algorithmCategory,
+                            subcategory: dynamicSubcategory,
+                            name: String(localized: "Adjustment Factor (AF)"),
+                            value: String(format: "%.0f", (preferences.adjustmentFactor as NSDecimalNumber).doubleValue * 100),
+                            unit: "%"
+                        )
+                    } else {
+                        addSetting(
+                            category: algorithmCategory,
+                            subcategory: dynamicSubcategory,
+                            name: String(localized: "Sigmoid Adjustment Factor"),
+                            value: String(
+                                format: "%.0f",
+                                (preferences.adjustmentFactorSigmoid as NSDecimalNumber).doubleValue * 100
+                            ),
+                            unit: "%"
+                        )
+                    }
+                }
+
+                // Weighted Average of TDD is shown for both logarithmic and sigmoid when Dynamic ISF is enabled
                 addSetting(
                     category: algorithmCategory,
                     subcategory: dynamicSubcategory,
                     name: String(localized: "Weighted Average of TDD"),
-                    value: preferences.useWeightedAverage ? String(localized: "Enabled") : String(localized: "Disabled")
+                    value: String(format: "%.0f", (preferences.weightPercentage as NSDecimalNumber).doubleValue * 100),
+                    unit: "%"
                 )
                 addSetting(
                     category: algorithmCategory,
@@ -471,23 +555,36 @@ extension Export {
 
                 // Additional Algorithm Settings
                 let additionalsSubcategory = String(localized: "Additionals")
+
                 addSetting(
                     category: algorithmCategory,
                     subcategory: additionalsSubcategory,
                     name: String(localized: "Max Daily Safety Multiplier"),
-                    value: String(describing: preferences.maxDailySafetyMultiplier)
+                    value: String(format: "%.0f", (preferences.maxDailySafetyMultiplier as NSDecimalNumber).doubleValue * 100),
+                    unit: "%"
                 )
                 addSetting(
                     category: algorithmCategory,
                     subcategory: additionalsSubcategory,
                     name: String(localized: "Current Basal Safety Multiplier"),
-                    value: String(describing: preferences.currentBasalSafetyMultiplier)
+                    value: String(
+                        format: "%.0f",
+                        (preferences.currentBasalSafetyMultiplier as NSDecimalNumber).doubleValue * 100
+                    ),
+                    unit: "%"
                 )
                 addSetting(
                     category: algorithmCategory,
                     subcategory: additionalsSubcategory,
                     name: String(localized: "Use Custom Peak Time"),
                     value: preferences.useCustomPeakTime ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+                addSetting(
+                    category: algorithmCategory,
+                    subcategory: additionalsSubcategory,
+                    name: String(localized: "Duration of Insulin Action"),
+                    value: String(describing: pumpSettings.insulinActionCurve),
+                    unit: String(localized: "hours")
                 )
                 addSetting(
                     category: algorithmCategory,
@@ -514,6 +611,21 @@ extension Export {
                     name: String(localized: "Suspend Zeros IOB"),
                     value: preferences.suspendZerosIOB ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
+                // SMB settings that belong in Additionals (correct order based on UI)
+                addSetting(
+                    category: algorithmCategory,
+                    subcategory: additionalsSubcategory,
+                    name: String(localized: "SMB Delivery Ratio"),
+                    value: String(format: "%.0f", (preferences.smbDeliveryRatio as NSDecimalNumber).doubleValue * 100),
+                    unit: "%"
+                )
+                addSetting(
+                    category: algorithmCategory,
+                    subcategory: additionalsSubcategory,
+                    name: String(localized: "SMB Interval"),
+                    value: String(describing: preferences.smbInterval),
+                    unit: String(localized: "minutes")
+                )
                 addSetting(
                     category: algorithmCategory,
                     subcategory: additionalsSubcategory,
@@ -526,8 +638,9 @@ extension Export {
                 addSetting(
                     category: algorithmCategory,
                     subcategory: additionalsSubcategory,
-                    name: String(localized: "Remaining Carbs Fraction"),
-                    value: String(describing: preferences.remainingCarbsFraction)
+                    name: String(localized: "Remaining Carbs Percentage"),
+                    value: String(format: "%.0f", (preferences.remainingCarbsFraction as NSDecimalNumber).doubleValue * 100),
+                    unit: "%"
                 )
                 addSetting(
                     category: algorithmCategory,
@@ -539,15 +652,9 @@ extension Export {
                 addSetting(
                     category: algorithmCategory,
                     subcategory: additionalsSubcategory,
-                    name: String(localized: "Noisy CGM Target Multiplier"),
-                    value: String(describing: preferences.noisyCGMTargetMultiplier)
-                )
-                addSetting(
-                    category: algorithmCategory,
-                    subcategory: additionalsSubcategory,
-                    name: String(localized: "Duration of Insulin Action (DIA)"),
-                    value: String(describing: preferences.insulinActionCurve),
-                    unit: String(localized: "hours")
+                    name: String(localized: "Noisy CGM Target Increase"),
+                    value: String(format: "%.0f", (preferences.noisyCGMTargetMultiplier as NSDecimalNumber).doubleValue * 100),
+                    unit: "%"
                 )
             }
 
@@ -555,72 +662,168 @@ extension Export {
             if categoriesToExport.contains(.features) {
                 let featuresCategory = String(localized: "Features", comment: "Features menu item in the Settings main view.")
 
-                // Meal Settings
+                // Trio Features subcategory - Bolus Calculator
+                let trioFeaturesSubcategory = String(localized: "Trio Features")
+                let bolusCalculatorSubcategory = String(localized: "Bolus Calculator")
                 addSetting(
                     category: featuresCategory,
+                    subcategory: bolusCalculatorSubcategory,
+                    name: String(localized: "Display Meal Presets"),
+                    value: trioSettings.displayPresets ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: bolusCalculatorSubcategory,
+                    name: String(localized: "Recommended Bolus Percentage"),
+                    value: String(format: "%.0f", (trioSettings.overrideFactor as NSDecimalNumber).doubleValue * 100),
+                    unit: "%"
+                )
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: bolusCalculatorSubcategory,
+                    name: String(localized: "Enable Reduced Bolus Option"),
+                    value: trioSettings.fattyMeals ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+                if trioSettings.fattyMeals {
+                    addSetting(
+                        category: featuresCategory,
+                        subcategory: bolusCalculatorSubcategory,
+                        name: String(localized: "Reduced Bolus Percentage"),
+                        value: String(format: "%.0f", (trioSettings.fattyMealFactor as NSDecimalNumber).doubleValue * 100),
+                        unit: "%"
+                    )
+                }
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: bolusCalculatorSubcategory,
+                    name: String(localized: "Enable Super Bolus Option"),
+                    value: trioSettings.sweetMeals ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+                if trioSettings.sweetMeals {
+                    addSetting(
+                        category: featuresCategory,
+                        subcategory: bolusCalculatorSubcategory,
+                        name: String(localized: "Super Bolus Percentage"),
+                        value: String(format: "%.0f", (trioSettings.sweetMealFactor as NSDecimalNumber).doubleValue * 100),
+                        unit: "%"
+                    )
+                }
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: bolusCalculatorSubcategory,
+                    name: String(localized: "Very Low Glucose Warning"),
+                    value: trioSettings.confirmBolus ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+
+                // Trio Features subcategory - Meal Settings
+                let mealSettingsSubcategory = String(localized: "Meal Settings")
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: mealSettingsSubcategory,
                     name: String(localized: "Max Carbs"),
                     value: String(describing: trioSettings.maxCarbs),
                     unit: "g"
                 )
                 addSetting(
                     category: featuresCategory,
+                    subcategory: mealSettingsSubcategory,
                     name: String(localized: "Max Fat"),
                     value: String(describing: trioSettings.maxFat),
                     unit: "g"
                 )
                 addSetting(
                     category: featuresCategory,
+                    subcategory: mealSettingsSubcategory,
                     name: String(localized: "Max Protein"),
                     value: String(describing: trioSettings.maxProtein),
                     unit: "g"
                 )
                 addSetting(
                     category: featuresCategory,
-                    name: String(localized: "Display and Allow Fat and Protein Entries"),
+                    subcategory: mealSettingsSubcategory,
+                    name: String(localized: "Max Meal Absorption Time"),
+                    value: String(describing: preferences.maxMealAbsorptionTime),
+                    unit: String(localized: "hours")
+                )
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: mealSettingsSubcategory,
+                    name: String(localized: "Enable Fat and Protein Entries"),
                     value: trioSettings.useFPUconversion ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: featuresCategory,
-                    name: String(localized: "Fat and Protein Factor"),
-                    value: String(describing: trioSettings.individualAdjustmentFactor)
+                    subcategory: mealSettingsSubcategory,
+                    name: String(localized: "Fat and Protein Delay"),
+                    value: String(describing: trioSettings.delay),
+                    unit: String(localized: "minutes")
                 )
                 addSetting(
                     category: featuresCategory,
-                    name: String(localized: "Maximum Duration (hours)"),
+                    subcategory: mealSettingsSubcategory,
+                    name: String(localized: "Maximum Duration"),
                     value: String(describing: trioSettings.timeCap),
                     unit: String(localized: "hours")
                 )
                 addSetting(
                     category: featuresCategory,
-                    name: String(localized: "Spread Interval (minutes)"),
+                    subcategory: mealSettingsSubcategory,
+                    name: String(localized: "Spread Interval"),
                     value: String(describing: trioSettings.minuteInterval),
                     unit: String(localized: "minutes")
                 )
                 addSetting(
                     category: featuresCategory,
-                    name: String(localized: "Fat and Protein Delay"),
-                    value: String(describing: trioSettings.delay),
-                    unit: String(localized: "minutes")
+                    subcategory: mealSettingsSubcategory,
+                    name: String(localized: "Fat and Protein Percentage"),
+                    value: String(format: "%.0f", (trioSettings.individualAdjustmentFactor as NSDecimalNumber).doubleValue * 100),
+                    unit: "%"
                 )
 
-                // User Interface
+                // Trio Features subcategory - Shortcuts
+                let shortcutsSubcategory = String(localized: "Shortcuts")
                 addSetting(
                     category: featuresCategory,
+                    subcategory: shortcutsSubcategory,
+                    name: String(localized: "Allow Bolusing with Shortcuts"),
+                    value: trioSettings
+                        .bolusShortcut != .notAllowed ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+
+                // Trio Features subcategory - Remote Control
+                let remoteControlSubcategory = String(localized: "Remote Control")
+                let isRemoteControlEnabled = UserDefaults.standard.bool(forKey: "isTrioRemoteControlEnabled")
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: remoteControlSubcategory,
+                    name: String(localized: "Enable Remote Control"),
+                    value: isRemoteControlEnabled ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+
+                // Trio Personalization subcategory - User Interface
+                let trioPersonalizationSubcategory = String(localized: "Trio Personalization")
+                let userInterfaceSubcategory = String(localized: "User Interface")
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
                     name: String(localized: "Show X-Axis Grid Lines"),
                     value: trioSettings.xGridLines ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
                     name: String(localized: "Show Y-Axis Grid Lines"),
                     value: trioSettings.yGridLines ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
                     name: String(localized: "Show Low and High Thresholds"),
                     value: trioSettings.rulerMarks ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
                     name: String(localized: "Low Threshold"),
                     value: trioSettings
                         .units == .mgdL ? String(describing: trioSettings.low) : String(describing: trioSettings.low.asMmolL),
@@ -628,6 +831,7 @@ extension Export {
                 )
                 addSetting(
                     category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
                     name: String(localized: "High Threshold"),
                     value: trioSettings
                         .units == .mgdL ? String(describing: trioSettings.high) : String(describing: trioSettings.high.asMmolL),
@@ -635,34 +839,60 @@ extension Export {
                 )
                 addSetting(
                     category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
                     name: String(localized: "eA1c/GMI Display Unit"),
                     value: trioSettings.eA1cDisplayUnit.rawValue
                 )
                 addSetting(
                     category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
                     name: String(localized: "Show Carbs Required Badge"),
                     value: trioSettings.showCarbsRequiredBadge ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
                     name: String(localized: "Carbs Required Threshold"),
                     value: String(describing: trioSettings.carbsRequiredThreshold),
                     unit: "g"
                 )
                 addSetting(
                     category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
                     name: String(localized: "Forecast Display Type"),
                     value: trioSettings.forecastDisplayType.rawValue
                 )
                 addSetting(
                     category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
                     name: String(localized: "Glucose Color Scheme"),
                     value: trioSettings.glucoseColorScheme.rawValue
                 )
                 addSetting(
                     category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
                     name: String(localized: "Time in Range Type"),
                     value: trioSettings.timeInRangeType.rawValue
+                )
+
+                // Appearance setting from UserDefaults
+                let colorSchemePreference = UserDefaults.standard.string(forKey: "colorSchemePreference") ?? "systemDefault"
+                let appearanceValue: String
+                switch colorSchemePreference {
+                case "systemDefault":
+                    appearanceValue = String(localized: "System Default")
+                case "light":
+                    appearanceValue = String(localized: "Light")
+                case "dark":
+                    appearanceValue = String(localized: "Dark")
+                default:
+                    appearanceValue = String(localized: "System Default")
+                }
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
+                    name: String(localized: "Appearance"),
+                    value: appearanceValue
                 )
             }
 
@@ -672,44 +902,55 @@ extension Export {
                     localized: "Notifications",
                     comment: "Notifications menu item in the Settings main view."
                 )
+
+                // Trio Notifications subcategory
+                let trioNotificationsSubcategory = String(localized: "Trio Notifications")
                 addSetting(
                     category: notificationsCategory,
+                    subcategory: trioNotificationsSubcategory,
                     name: String(localized: "Always Notify Pump"),
                     value: trioSettings.notificationsPump ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: notificationsCategory,
+                    subcategory: trioNotificationsSubcategory,
                     name: String(localized: "Always Notify CGM"),
                     value: trioSettings.notificationsCgm ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: notificationsCategory,
+                    subcategory: trioNotificationsSubcategory,
                     name: String(localized: "Always Notify Carb"),
                     value: trioSettings.notificationsCarb ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: notificationsCategory,
+                    subcategory: trioNotificationsSubcategory,
                     name: String(localized: "Always Notify Algorithm"),
                     value: trioSettings.notificationsAlgorithm ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: notificationsCategory,
+                    subcategory: trioNotificationsSubcategory,
                     name: String(localized: "Show Glucose App Badge"),
                     value: trioSettings.glucoseBadge ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: notificationsCategory,
+                    subcategory: trioNotificationsSubcategory,
                     name: String(localized: "Glucose Notifications"),
                     value: trioSettings.glucoseNotificationsOption.rawValue
                 )
                 addSetting(
                     category: notificationsCategory,
+                    subcategory: trioNotificationsSubcategory,
                     name: String(localized: "Add Glucose Source to Alarm"),
                     value: trioSettings
                         .addSourceInfoToGlucoseNotifications ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: notificationsCategory,
+                    subcategory: trioNotificationsSubcategory,
                     name: String(localized: "Low Glucose Alarm Limit"),
                     value: trioSettings
                         .units == .mgdL ? String(describing: trioSettings.lowGlucose) :
@@ -718,19 +959,25 @@ extension Export {
                 )
                 addSetting(
                     category: notificationsCategory,
+                    subcategory: trioNotificationsSubcategory,
                     name: String(localized: "High Glucose Alarm Limit"),
                     value: trioSettings
                         .units == .mgdL ? String(describing: trioSettings.highGlucose) :
                         String(describing: trioSettings.highGlucose.asMmolL),
                     unit: trioSettings.units.rawValue
                 )
+
+                // Live Activity subcategory
+                let liveActivitySubcategory = String(localized: "Live Activity")
                 addSetting(
                     category: notificationsCategory,
+                    subcategory: liveActivitySubcategory,
                     name: String(localized: "Enable Live Activity"),
                     value: trioSettings.useLiveActivity ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: notificationsCategory,
+                    subcategory: liveActivitySubcategory,
                     name: String(localized: "Lock Screen Widget Style"),
                     value: trioSettings.lockScreenView.rawValue
                 )
@@ -739,23 +986,33 @@ extension Export {
             // Services
             if categoriesToExport.contains(.services) {
                 let servicesCategory = String(localized: "Services", comment: "Services menu item in the Settings main view.")
+
+                // Nightscout subcategory
+                let nightscoutSubcategory = String(localized: "Nightscout")
                 addSetting(
                     category: servicesCategory,
+                    subcategory: nightscoutSubcategory,
                     name: String(localized: "Allow Uploading to Nightscout"),
                     value: trioSettings.isUploadEnabled ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: servicesCategory,
+                    subcategory: nightscoutSubcategory,
                     name: String(localized: "Upload Glucose"),
                     value: trioSettings.uploadGlucose ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: servicesCategory,
+                    subcategory: nightscoutSubcategory,
                     name: String(localized: "Allow Fetching From Nightscout"),
                     value: trioSettings.isDownloadEnabled ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
+
+                // Apple Health subcategory
+                let appleHealthSubcategory = String(localized: "Apple Health")
                 addSetting(
                     category: servicesCategory,
+                    subcategory: appleHealthSubcategory,
                     name: String(localized: "Apple Health"),
                     value: trioSettings.useAppleHealth ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
@@ -1235,10 +1492,13 @@ extension Export {
                     content = String(data: jsonDataEncoded, encoding: .utf8) ?? "{}"
                 }
 
-                debug(.default, "📝 EXPORT: Writing \(exportFormat.rawValue) content (\(content.count) characters) to file: \(fileURL.path)")
+                debug(
+                    .default,
+                    "📝 EXPORT: Writing \(exportFormat.rawValue) content (\(content.count) characters) to file: \(fileURL.path)"
+                )
                 debug(.default, "📝 EXPORT: Temporary directory: \(FileManager.default.temporaryDirectory.path)")
                 debug(.default, "📝 EXPORT: File URL: \(fileURL)")
-                
+
                 try content.write(to: fileURL, atomically: true, encoding: .utf8)
                 debug(.default, "✅ EXPORT: Content written to file successfully")
 
@@ -1253,12 +1513,12 @@ extension Export {
                 let fileExists = fileManager.fileExists(atPath: fileURL.path)
                 let fileSize = try? fileManager.attributesOfItem(atPath: fileURL.path)[.size] as? Int ?? 0
                 debug(.default, "📊 EXPORT: File verification - Exists: \(fileExists), Size: \(fileSize ?? 0) bytes")
-                
+
                 if !fileExists {
                     debug(.default, "❌ EXPORT: CRITICAL - File does not exist after writing!")
                     return .failure(.unknown("File was not created successfully"))
                 }
-                
+
                 if (fileSize ?? 0) == 0 {
                     debug(.default, "❌ EXPORT: CRITICAL - File exists but has 0 bytes!")
                     return .failure(.unknown("File was created but is empty"))
