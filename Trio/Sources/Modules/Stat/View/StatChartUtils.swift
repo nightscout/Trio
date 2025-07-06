@@ -35,13 +35,13 @@ struct StatChartUtils {
             // Use the same logic as meal data grouping: calendar.startOfDay()
             let startOfDay = calendar.startOfDay(for: scrollPosition)
             let intervalLength = visibleDomainLength(for: selectedInterval)
-            
+
             // Calculate end date by adding the interval length and aligning to day boundary
             let endDate = startOfDay.addingTimeInterval(intervalLength)
             let endOfDay = calendar.startOfDay(for: endDate)
-            
+
             // Ensure we include the full end day by going to the end of that day
-            let alignedEnd = calendar.date(byAdding: .day, value: 1, to: endOfDay)!.addingTimeInterval(-1)
+            let alignedEnd = (calendar.date(byAdding: .day, value: 1, to: endOfDay) ?? endOfDay).addingTimeInterval(-1)
 
             return (startOfDay, alignedEnd)
         }
