@@ -57,8 +57,35 @@ extension Export {
             }
         }
 
+        // Export formats for different file types
+        enum ExportFormat: String, CaseIterable, Identifiable {
+            case csv = "CSV"
+            case json = "JSON"
+
+            var id: String { rawValue }
+
+            var description: String {
+                switch self {
+                case .csv:
+                    return "Comma-separated values format, compatible with spreadsheets"
+                case .json:
+                    return "JavaScript Object Notation format, structured data"
+                }
+            }
+
+            var fileExtension: String {
+                switch self {
+                case .csv:
+                    return "csv"
+                case .json:
+                    return "json"
+                }
+            }
+        }
+
         // Published state for UI binding
         @Published var selectedCategories: Set<ExportCategory> = Set(ExportCategory.allCases)
+        @Published var selectedFormat: ExportFormat = .csv
 
         enum ExportError: LocalizedError {
             case documentsDirectoryNotFound
@@ -90,27 +117,63 @@ extension Export {
         /// - Preset data [optional]
         ///
         /// - Parameter categories: Set of categories to include in export. If nil, exports all categories.
+        /// - Parameter format: Export format to use. If nil, uses currently selected format.
         /// - Returns: A Result containing either the file URL on success or an ExportError on failure
-        func exportSettings(categories: Set<ExportCategory>? = nil) async -> Result<URL, ExportError> {
+        func exportSettings(
+            categories: Set<ExportCategory>? = nil,
+            format: ExportFormat? = nil
+        ) async -> Result<URL, ExportError> {
             debug(.default, "Starting settings export...")
 
             let categoriesToExport = categories ?? selectedCategories
-            debug(.default, "Exporting categories: \(categoriesToExport.map(\.rawValue).joined(separator: ", "))")
+            let exportFormat = format ?? selectedFormat
+            debug(
+                .default,
+                "Exporting categories: \(categoriesToExport.map(\.rawValue).joined(separator: ", ")) in \(exportFormat.rawValue) format"
+            )
 
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyyMMdd_HHmmss"
             let timestamp = formatter.string(from: Date())
-            let fileName = "TrioSettings_\(timestamp).csv"
+            let fileName = "TrioSettings_\(timestamp).\(exportFormat.fileExtension)"
 
             // Use the temporary directory for better sharing compatibility
             let tempDirectory = FileManager.default.temporaryDirectory
             let fileURL = tempDirectory.appendingPathComponent(fileName)
             debug(.default, "Export file path: \(fileURL.path)")
 
-            var csvContent = "Setting Category,Subcategory,Setting Name,Value,Unit\n"
+            // Data structure to hold export data
+            struct ExportSetting {
+                let category: String
+                let subcategory: String
+                let name: String
+                let value: String
+                let unit: String
+
+                init(category: String, subcategory: String = "", name: String, value: String, unit: String = "") {
+                    self.category = category
+                    self.subcategory = subcategory
+                    self.name = name
+                    self.value = value
+                    self.unit = unit
+                }
+            }
+
+            var exportSettings: [ExportSetting] = []
 
             let trioSettings = settingsManager.settings
             let preferences = settingsManager.preferences
+
+            // Helper function to add a setting
+            func addSetting(category: String, subcategory: String = "", name: String, value: String, unit: String = "") {
+                exportSettings.append(ExportSetting(
+                    category: category,
+                    subcategory: subcategory,
+                    name: name,
+                    value: value,
+                    unit: unit
+                ))
+            }
 
             // Export metadata - always include basic export info
             if categoriesToExport.contains(.exportInfo) {
@@ -123,30 +186,6 @@ extension Export {
                 addSetting(category: exportCategory, name: String(localized: "App Version"), value: versionNumber)
                 addSetting(category: exportCategory, name: String(localized: "Build Number"), value: buildNumber)
                 addSetting(category: exportCategory, name: String(localized: "Branch"), value: branch)
-            }
-
-            // Helper function to escape CSV values
-            func csvEscape(_ value: String) -> String {
-                if value.contains(",") || value.contains("\"") || value.contains("\n") {
-                    return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
-                }
-                return value
-            }
-
-            // Helper function to add a setting row
-            func addSetting(category: String, subcategory: String = "", name: String, value: String, unit: String = "") {
-                csvContent +=
-                    "\(csvEscape(category)),\(csvEscape(subcategory)),\(csvEscape(name)),\(csvEscape(value)),\(csvEscape(unit))\n"
-            }
-
-            // Helper function to add a separator row
-            func addSeparator(title: String = "") {
-                csvContent += "\n=== \(title.isEmpty ? "SECTION SEPARATOR" : title.uppercased()) ===,,,,\n\n"
-            }
-
-            // Helper function to add a subseparator for individual items
-            func addSubSeparator(title: String) {
-                csvContent += "\n--- \(title) ---,,,,\n"
             }
 
             // Devices
@@ -720,8 +759,7 @@ extension Export {
                 if !tempTargetPresets.isEmpty {
                     let tempTargetSubcategory = String(localized: "Temp Target Presets")
                     for preset in tempTargetPresets {
-                        // Add separator for each temp target preset
-                        addSubSeparator(title: "Temp Target: \(preset.displayName)")
+                        // Temp Target: \(preset.displayName)
 
                         let targetTopValue = trioSettings.units == .mgdL ? (preset.targetTop ?? 0) : (preset.targetTop ?? 0)
                             .asMmolL
@@ -787,7 +825,6 @@ extension Export {
                 }
 
                 // Add separator between temp targets and override presets
-                addSeparator(title: "Override Presets")
 
                 // Override Presets (from Core Data)
                 do {
@@ -824,7 +861,7 @@ extension Export {
                         try await Task.sleep(nanoseconds: 100_000_000) // 0.1 second
 
                         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-                        let presetData = try await viewContext.perform {
+                        let presetData = await viewContext.perform {
                             overridePresetIDs
                                 .compactMap { id -> (
                                     name: String,
@@ -875,8 +912,7 @@ extension Export {
                         debug(.default, "Successfully extracted \(presetData.count) override presets")
 
                         for preset in presetData {
-                            // Add separator for each override preset
-                            addSubSeparator(title: "Override: \(preset.name)")
+                            // Override: \(preset.name)
 
                             addSetting(
                                 category: presetsCategory,
@@ -1005,7 +1041,6 @@ extension Export {
                 }
 
                 // Add separator for meal presets
-                addSeparator(title: "Meal Presets")
 
                 // Meal Presets (from Core Data)
                 do {
@@ -1032,8 +1067,7 @@ extension Export {
                         let mealPresetSubcategory = String(localized: "Meal Presets")
 
                         for mealPreset in mealPresetData {
-                            // Add separator for each meal preset
-                            addSubSeparator(title: "Meal: \(mealPreset.dish)")
+                            // Meal: \(mealPreset.dish)
 
                             addSetting(
                                 category: presetsCategory,
@@ -1078,13 +1112,65 @@ extension Export {
                 }
             }
 
-            // Add final separator after presets section
-            addSeparator(title: "End of Export")
-
-            // Write to file
+            // Convert data to the selected format and write to file
             do {
-                debug(.default, "Writing CSV content (\(csvContent.count) characters) to file...")
-                try csvContent.write(to: fileURL, atomically: true, encoding: .utf8)
+                let content: String
+
+                switch exportFormat {
+                case .csv:
+                    // Helper function to escape CSV values
+                    func csvEscape(_ value: String) -> String {
+                        if value.contains(",") || value.contains("\"") || value.contains("\n") {
+                            return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
+                        }
+                        return value
+                    }
+
+                    var csvContent = "Setting Category,Subcategory,Setting Name,Value,Unit\n"
+                    for setting in exportSettings {
+                        csvContent +=
+                            "\(csvEscape(setting.category)),\(csvEscape(setting.subcategory)),\(csvEscape(setting.name)),\(csvEscape(setting.value)),\(csvEscape(setting.unit))\n"
+                    }
+                    content = csvContent
+
+                case .json:
+                    // Convert to JSON structure
+                    var jsonData: [String: Any] = [:]
+                    var categorizedData: [String: Any] = [:]
+
+                    for setting in exportSettings {
+                        if categorizedData[setting.category] == nil {
+                            categorizedData[setting.category] = [String: Any]()
+                        }
+
+                        var categoryData = categorizedData[setting.category] as! [String: Any]
+
+                        if !setting.subcategory.isEmpty {
+                            if categoryData[setting.subcategory] == nil {
+                                categoryData[setting.subcategory] = [String: Any]()
+                            }
+                            var subcategoryData = categoryData[setting.subcategory] as! [String: Any]
+                            subcategoryData[setting.name] = setting.unit.isEmpty ? setting
+                                .value : ["value": setting.value, "unit": setting.unit]
+                            categoryData[setting.subcategory] = subcategoryData
+                        } else {
+                            categoryData[setting.name] = setting.unit.isEmpty ? setting
+                                .value : ["value": setting.value, "unit": setting.unit]
+                        }
+
+                        categorizedData[setting.category] = categoryData
+                    }
+
+                    jsonData["exportFormat"] = exportFormat.rawValue
+                    jsonData["exportDate"] = ISO8601DateFormatter().string(from: Date())
+                    jsonData["settings"] = categorizedData
+
+                    let jsonDataEncoded = try JSONSerialization.data(withJSONObject: jsonData, options: .prettyPrinted)
+                    content = String(data: jsonDataEncoded, encoding: .utf8) ?? "{}"
+                }
+
+                debug(.default, "Writing \(exportFormat.rawValue) content (\(content.count) characters) to file...")
+                try content.write(to: fileURL, atomically: true, encoding: .utf8)
 
                 // Set file attributes for better sharing compatibility
                 try fileManager.setAttributes([
@@ -1108,9 +1194,9 @@ extension Export {
             }
         }
 
-        /// Exports settings using the currently selected categories
+        /// Exports settings using the currently selected categories and format
         func exportSelectedSettings() async -> Result<URL, ExportError> {
-            await exportSettings(categories: selectedCategories)
+            await exportSettings(categories: selectedCategories, format: selectedFormat)
         }
 
         /// Toggle all categories on or off

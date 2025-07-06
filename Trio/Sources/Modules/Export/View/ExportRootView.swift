@@ -11,14 +11,13 @@ extension Export {
         @State private var exportErrorMessage = ""
         @State private var exportedFileURL: URL?
 
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+
         var body: some View {
-            Form {
+            List {
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Export Settings")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-
                         Text(
                             "Choose which categories to export to a CSV file for backup or sharing with your healthcare provider."
                         )
@@ -26,7 +25,7 @@ extension Export {
                         .foregroundColor(.secondary)
                     }
                     .padding(.vertical, 8)
-                }
+                }.listRowBackground(Color.clear)
 
                 Section(
                     header: Text("Export Categories"),
@@ -81,67 +80,42 @@ extension Export {
                         .padding(.vertical, 2)
                     }
                 }
+                .listRowBackground(Color.chart)
 
                 Section(
-                    header: Text("Export Options"),
+                    header: Text("Export Format"),
                     footer: Text(
-                        "Export your selected categories to a CSV file for backup or sharing with your healthcare provider."
+                        "Choose the file format for your export. Different formats work better with different applications."
                     )
                 ) {
-                    Button {
-                        Task {
-                            switch await state.exportSelectedSettings() {
-                            case let .success(fileURL):
-                                // Verify the file actually exists before showing share sheet
-                                if FileManager.default.fileExists(atPath: fileURL.path) {
-                                    // Check file size to ensure it's not empty
-                                    do {
-                                        let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
-                                        let fileSize = attributes[.size] as? Int ?? 0
-                                        print("Export file size: \(fileSize) bytes at \(fileURL.path)")
-
-                                        if fileSize > 0 {
-                                            exportedFileURL = fileURL
-                                            showSettingsExport = true
-                                        } else {
-                                            exportErrorMessage = "Export file is empty (0 bytes)"
-                                            showExportError = true
-                                        }
-                                    } catch {
-                                        exportErrorMessage =
-                                            "Could not verify file attributes: \(error.localizedDescription)"
-                                        showExportError = true
-                                    }
-                                } else {
-                                    exportErrorMessage =
-                                        "Export file was created but could not be found at: \(fileURL.path)"
-                                    showExportError = true
-                                }
-                            case let .failure(error):
-                                exportErrorMessage = error.localizedDescription
-                                showExportError = true
-                            }
-                        }
-                    } label: {
+                    ForEach(Export.StateModel.ExportFormat.allCases) { format in
                         HStack {
-                            Image(systemName: "square.and.arrow.up")
-                                .foregroundColor(.blue)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Export Selected Categories")
-                                    .foregroundColor(.primary)
-                                if state.selectedCategories.count < Export.StateModel.ExportCategory.allCases.count {
-                                    Text(
-                                        "\(state.selectedCategories.count) of \(Export.StateModel.ExportCategory.allCases.count) categories selected"
-                                    )
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                            Button(action: {
+                                state.selectedFormat = format
+                            }) {
+                                HStack {
+                                    Image(systemName: state.selectedFormat == format ? "largecircle.fill.circle" : "circle")
+                                        .foregroundColor(state.selectedFormat == format ? .accentColor : .secondary)
+                                        .imageScale(.large)
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(format.rawValue)
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.primary)
+                                        Text(format.description)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
                                 }
                             }
-                            Spacer()
+                            .buttonStyle(PlainButtonStyle())
                         }
+                        .padding(.vertical, 2)
                     }
-                    .disabled(state.selectedCategories.isEmpty)
                 }
+                .listRowBackground(Color.chart)
 
                 Section(
                     header: Text("Export Information"),
@@ -152,7 +126,7 @@ extension Export {
                     HStack {
                         Text("Format")
                         Spacer()
-                        Text("CSV")
+                        Text(state.selectedFormat.rawValue)
                             .foregroundColor(.secondary)
                     }
 
@@ -166,15 +140,54 @@ extension Export {
                     HStack {
                         Text("File Name")
                         Spacer()
-                        Text("TrioSettings_[timestamp].csv")
+                        Text("TrioSettings_[timestamp].\(state.selectedFormat.fileExtension)")
                             .foregroundColor(.secondary)
                             .font(.caption)
                     }
                 }
+                .listRowBackground(Color.chart)
             }
+            .listSectionSpacing(sectionSpacing)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
-            .navigationTitle("Export")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationTitle("Export Settings")
+            .navigationBarTitleDisplayMode(.automatic)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Export") {
+                        Task {
+                            switch await state.exportSelectedSettings() {
+                            case let .success(fileURL):
+                                if FileManager.default.fileExists(atPath: fileURL.path) {
+                                    do {
+                                        let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+                                        let fileSize = attributes[.size] as? Int ?? 0
+                                        print("Export file size: \(fileSize) bytes at \(fileURL.path)")
+
+                                        if fileSize > 0 {
+                                            exportedFileURL = fileURL
+                                            showSettingsExport = true
+                                        } else {
+                                            exportErrorMessage = "Export file is empty (0 bytes)"
+                                            showExportError = true
+                                        }
+                                    } catch {
+                                        exportErrorMessage = "Could not verify file attributes: \(error.localizedDescription)"
+                                        showExportError = true
+                                    }
+                                } else {
+                                    exportErrorMessage = "Export file was created but could not be found at: \(fileURL.path)"
+                                    showExportError = true
+                                }
+                            case let .failure(error):
+                                exportErrorMessage = error.localizedDescription
+                                showExportError = true
+                            }
+                        }
+                    }
+                    .disabled(state.selectedCategories.isEmpty)
+                }
+            }
             .sheet(isPresented: $showSettingsExport) {
                 if let fileURL = exportedFileURL {
                     ExportShareSheet(activityItems: [fileURL])

@@ -84,7 +84,6 @@ extension Settings {
             let hasPump = provider.deviceManager.pumpManager != nil
             return hasCgm && hasPump
         }
-
     }
 }
 

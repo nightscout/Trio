@@ -190,18 +190,6 @@ extension Settings {
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
 
-                            NavigationLink(destination: Export.RootView(resolver: resolver)) {
-                                HStack {
-                                    Text("Export Settings")
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(.secondary)
-                                        .font(.footnote)
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
                             Button {
                                 if let url = URL(string: "https://github.com/nightscout/Trio/issues/new/choose") {
                                     UIApplication.shared.open(url)
