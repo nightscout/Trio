@@ -130,14 +130,17 @@ extension Export {
             categories: Set<ExportCategory>? = nil,
             format: ExportFormat? = nil
         ) async -> Result<URL, ExportError> {
-            debug(.default, "Starting settings export...")
+            debug(.default, "🔄 EXPORT: Starting settings export...")
 
             let categoriesToExport = categories ?? selectedCategories
             let exportFormat = format ?? selectedFormat
             debug(
                 .default,
-                "Exporting categories: \(categoriesToExport.map(\.rawValue).joined(separator: ", ")) in \(exportFormat.rawValue) format"
+                "🔄 EXPORT: Exporting categories: \(categoriesToExport.map(\.rawValue).joined(separator: ", ")) in \(exportFormat.rawValue) format"
             )
+            
+            debug(.default, "🔄 EXPORT: CoreData stack status - persistentContainer: \(CoreDataStack.shared.persistentContainer.description)")
+            debug(.default, "🔄 EXPORT: ViewContext status: \(CoreDataStack.shared.persistentContainer.viewContext.description)")
 
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyyMMdd_HHmmss"
@@ -170,6 +173,7 @@ extension Export {
 
             let trioSettings = settingsManager.settings
             let preferences = settingsManager.preferences
+            debug(.default, "🔄 EXPORT: Settings managers initialized")
 
             // Helper function to add a setting
             func addSetting(category: String, subcategory: String = "", name: String, value: String, unit: String = "") {
@@ -838,7 +842,8 @@ extension Export {
 
                 // Override Presets (from Core Data)
                 do {
-                    debug(.default, "Fetching override presets...")
+                    debug(.default, "🔄 EXPORT: Fetching override presets...")
+                    debug(.default, "🔄 EXPORT: OverrideStorage instance: \(overrideStorage)")
 
                     // Ensure Core Data is fully initialized - wait longer on first run
                     var retryCount = 0
@@ -846,23 +851,28 @@ extension Export {
 
                     while retryCount < 3 {
                         do {
+                            debug(.default, "🔄 EXPORT: Attempt \(retryCount + 1) to fetch override presets...")
                             overridePresetIDs = try await overrideStorage.fetchForOverridePresets()
+                            debug(.default, "✅ EXPORT: Successfully fetched override presets on attempt \(retryCount + 1)")
                             break // Success, exit retry loop
                         } catch {
-                            debug(.default, "Attempt \(retryCount + 1) failed: \(error)")
+                            debug(.default, "❌ EXPORT: Attempt \(retryCount + 1) failed: \(error.localizedDescription)")
+                            debug(.default, "❌ EXPORT: Full error: \(error)")
                             retryCount += 1
                             if retryCount < 3 {
                                 // Wait progressively longer between retries
+                                debug(.default, "🔄 EXPORT: Waiting \(retryCount * 200)ms before retry...")
                                 do {
                                     try await Task.sleep(nanoseconds: UInt64(retryCount * 200_000_000)) // 0.2s, 0.4s
                                 } catch {
+                                    debug(.default, "⚠️ EXPORT: Sleep interrupted: \(error)")
                                     // Sleep interrupted, continue
                                 }
                             }
                         }
                     }
 
-                    debug(.default, "Found \(overridePresetIDs.count) override preset IDs")
+                    debug(.default, "🔄 EXPORT: Found \(overridePresetIDs.count) override preset IDs")
                     if !overridePresetIDs.isEmpty {
                         let overrideSubcategory = String(localized: "Override Presets")
                         // Convert NSManagedObjectIDs to actual OverrideStored objects and extract their data within the Core Data context
@@ -1225,18 +1235,34 @@ extension Export {
                     content = String(data: jsonDataEncoded, encoding: .utf8) ?? "{}"
                 }
 
-                debug(.default, "Writing \(exportFormat.rawValue) content (\(content.count) characters) to file...")
+                debug(.default, "📝 EXPORT: Writing \(exportFormat.rawValue) content (\(content.count) characters) to file: \(fileURL.path)")
+                debug(.default, "📝 EXPORT: Temporary directory: \(FileManager.default.temporaryDirectory.path)")
+                debug(.default, "📝 EXPORT: File URL: \(fileURL)")
+                
                 try content.write(to: fileURL, atomically: true, encoding: .utf8)
+                debug(.default, "✅ EXPORT: Content written to file successfully")
 
                 // Set file attributes for better sharing compatibility
                 try fileManager.setAttributes([
                     .posixPermissions: 0o644,
                     .extensionHidden: false
                 ], ofItemAtPath: fileURL.path)
+                debug(.default, "✅ EXPORT: File attributes set successfully")
 
                 // Verify file was written successfully
                 let fileExists = fileManager.fileExists(atPath: fileURL.path)
-                debug(.default, "File written successfully. Exists: \(fileExists)")
+                let fileSize = try? fileManager.attributesOfItem(atPath: fileURL.path)[.size] as? Int ?? 0
+                debug(.default, "📊 EXPORT: File verification - Exists: \(fileExists), Size: \(fileSize ?? 0) bytes")
+                
+                if !fileExists {
+                    debug(.default, "❌ EXPORT: CRITICAL - File does not exist after writing!")
+                    return .failure(.unknown("File was not created successfully"))
+                }
+                
+                if (fileSize ?? 0) == 0 {
+                    debug(.default, "❌ EXPORT: CRITICAL - File exists but has 0 bytes!")
+                    return .failure(.unknown("File was created but is empty"))
+                }
 
                 if !fileExists {
                     debug(.default, "File was not created at expected location: \(fileURL.path)")
