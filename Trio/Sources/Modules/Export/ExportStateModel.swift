@@ -31,7 +31,9 @@ extension Export {
             case features = "Features"
             case notifications = "Notifications"
             case services = "Services"
-            case presets = "Presets"
+            case tempTargetPresets = "Temp Target Presets"
+            case overridePresets = "Override Presets"
+            case mealPresets = "Meal Presets"
 
             var id: String { rawValue }
 
@@ -51,8 +53,12 @@ extension Export {
                     return "Alert and notification settings"
                 case .services:
                     return "Nightscout, Apple Health integration"
-                case .presets:
-                    return "Temp targets, overrides, meal presets"
+                case .tempTargetPresets:
+                    return "Exercise, eating soon, and custom temp targets"
+                case .overridePresets:
+                    return "Sensitivity adjustments and insulin factor overrides"
+                case .mealPresets:
+                    return "Saved meal configurations with carbs, fat, and protein"
                 }
             }
         }
@@ -86,6 +92,7 @@ extension Export {
         // Published state for UI binding
         @Published var selectedCategories: Set<ExportCategory> = Set(ExportCategory.allCases)
         @Published var selectedFormat: ExportFormat = .csv
+        @Published var isExporting: Bool = false
 
         enum ExportError: LocalizedError {
             case documentsDirectoryNotFound
@@ -750,9 +757,9 @@ extension Export {
                 )
             }
 
-            // Presets
-            if categoriesToExport.contains(.presets) {
-                let presetsCategory = String(localized: "Presets")
+            // Temp Target Presets
+            if categoriesToExport.contains(.tempTargetPresets) {
+                let presetsCategory = String(localized: "Temp Target Presets")
 
                 // Temp Target Presets
                 let tempTargetPresets = storage.retrieve(OpenAPS.Trio.tempTargetsPresets, as: [TempTarget].self) ?? []
@@ -823,8 +830,11 @@ extension Export {
                         }
                     }
                 }
+            }
 
-                // Add separator between temp targets and override presets
+            // Override Presets
+            if categoriesToExport.contains(.overridePresets) {
+                let presetsCategory = String(localized: "Override Presets")
 
                 // Override Presets (from Core Data)
                 do {
@@ -855,7 +865,6 @@ extension Export {
                     debug(.default, "Found \(overridePresetIDs.count) override preset IDs")
                     if !overridePresetIDs.isEmpty {
                         let overrideSubcategory = String(localized: "Override Presets")
-
                         // Convert NSManagedObjectIDs to actual OverrideStored objects and extract their data within the Core Data context
                         // Add a small delay to ensure Core Data is ready, especially on first app launch
                         try await Task.sleep(nanoseconds: 100_000_000) // 0.1 second
@@ -1039,8 +1048,11 @@ extension Export {
                 } catch {
                     debug(.default, "Failed to fetch override presets: \(error)")
                 }
+            }
 
-                // Add separator for meal presets
+            // Meal Presets
+            if categoriesToExport.contains(.mealPresets) {
+                let presetsCategory = String(localized: "Meal Presets")
 
                 // Meal Presets (from Core Data)
                 do {
@@ -1064,14 +1076,13 @@ extension Export {
                     debug(.default, "Found \(mealPresetData.count) meal presets")
 
                     if !mealPresetData.isEmpty {
-                        let mealPresetSubcategory = String(localized: "Meal Presets")
-
+                        let mealSubcategory = String(localized: "Meal Presets")
                         for mealPreset in mealPresetData {
                             // Meal: \(mealPreset.dish)
 
                             addSetting(
                                 category: presetsCategory,
-                                subcategory: mealPresetSubcategory,
+                                subcategory: mealSubcategory,
                                 name: mealPreset.dish,
                                 value: String(localized: "Meal Preset")
                             )
@@ -1079,7 +1090,7 @@ extension Export {
                             if let carbs = mealPreset.carbs, carbs > 0 {
                                 addSetting(
                                     category: presetsCategory,
-                                    subcategory: mealPresetSubcategory,
+                                    subcategory: mealSubcategory,
                                     name: "\(mealPreset.dish) Carbs",
                                     value: String(describing: carbs),
                                     unit: "g"
@@ -1089,7 +1100,7 @@ extension Export {
                             if let fat = mealPreset.fat, fat > 0 {
                                 addSetting(
                                     category: presetsCategory,
-                                    subcategory: mealPresetSubcategory,
+                                    subcategory: mealSubcategory,
                                     name: "\(mealPreset.dish) Fat",
                                     value: String(describing: fat),
                                     unit: "g"
@@ -1099,7 +1110,7 @@ extension Export {
                             if let protein = mealPreset.protein, protein > 0 {
                                 addSetting(
                                     category: presetsCategory,
-                                    subcategory: mealPresetSubcategory,
+                                    subcategory: mealSubcategory,
                                     name: "\(mealPreset.dish) Protein",
                                     value: String(describing: protein),
                                     unit: "g"
@@ -1127,7 +1138,52 @@ extension Export {
                     }
 
                     var csvContent = "Setting Category,Subcategory,Setting Name,Value,Unit\n"
+                    var lastPresetName: String?
+
                     for setting in exportSettings {
+                        // Check if this is a preset category and if we're starting a new preset
+                        if setting.category.contains("Presets") {
+                            // Extract the base preset name (without suffixes like " Duration", " Target", etc.)
+                            let settingName = setting.name
+                            let basePresetName: String
+
+                            if settingName.contains(" Duration") {
+                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
+                            } else if settingName.contains(" Target") {
+                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
+                            } else if settingName.contains(" Reason") {
+                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
+                            } else if settingName.contains(" Entered By") {
+                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
+                            } else if settingName.contains(" Carbs") {
+                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
+                            } else if settingName.contains(" Fat") {
+                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
+                            } else if settingName.contains(" Protein") {
+                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
+                            } else if settingName.contains(" Advanced Settings") {
+                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
+                            } else if settingName.contains(" SMB") {
+                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
+                            } else if settingName.contains(" UAM") {
+                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
+                            } else if settingName.contains(" Affects") {
+                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
+                            } else if settingName.contains(" Target Bottom") {
+                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
+                            } else if settingName.contains(" Half Basal Target") {
+                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
+                            } else {
+                                basePresetName = settingName
+                            }
+
+                            // Add blank line if we're starting a new preset
+                            if let lastPreset = lastPresetName, lastPreset != basePresetName {
+                                csvContent += "\n"
+                            }
+                            lastPresetName = basePresetName
+                        }
+
                         csvContent +=
                             "\(csvEscape(setting.category)),\(csvEscape(setting.subcategory)),\(csvEscape(setting.name)),\(csvEscape(setting.value)),\(csvEscape(setting.unit))\n"
                     }

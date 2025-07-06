@@ -154,38 +154,61 @@ extension Export {
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Export") {
-                        Task {
-                            switch await state.exportSelectedSettings() {
-                            case let .success(fileURL):
-                                if FileManager.default.fileExists(atPath: fileURL.path) {
-                                    do {
-                                        let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
-                                        let fileSize = attributes[.size] as? Int ?? 0
-                                        print("Export file size: \(fileSize) bytes at \(fileURL.path)")
+                    if state.isExporting {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                            Text("Exporting...")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    } else {
+                        Button("Export") {
+                            Task {
+                                // Start loading spinner
+                                state.isExporting = true
 
-                                        if fileSize > 0 {
-                                            exportedFileURL = fileURL
-                                            showSettingsExport = true
-                                        } else {
-                                            exportErrorMessage = "Export file is empty (0 bytes)"
+                                switch await state.exportSelectedSettings() {
+                                case let .success(fileURL):
+                                    if FileManager.default.fileExists(atPath: fileURL.path) {
+                                        do {
+                                            let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+                                            let fileSize = attributes[.size] as? Int ?? 0
+                                            print("Export file size: \(fileSize) bytes at \(fileURL.path)")
+
+                                            if fileSize > 0 {
+                                                exportedFileURL = fileURL
+                                                // Stop spinner on successful export
+                                                state.isExporting = false
+                                                showSettingsExport = true
+                                            } else {
+                                                exportErrorMessage = "Export file is empty (0 bytes)"
+                                                showExportError = true
+                                                // Stop spinner on error
+                                                state.isExporting = false
+                                            }
+                                        } catch {
+                                            exportErrorMessage = "Could not verify file attributes: \(error.localizedDescription)"
                                             showExportError = true
+                                            // Stop spinner on error
+                                            state.isExporting = false
                                         }
-                                    } catch {
-                                        exportErrorMessage = "Could not verify file attributes: \(error.localizedDescription)"
+                                    } else {
+                                        exportErrorMessage = "Export file was created but could not be found at: \(fileURL.path)"
                                         showExportError = true
+                                        // Stop spinner on error
+                                        state.isExporting = false
                                     }
-                                } else {
-                                    exportErrorMessage = "Export file was created but could not be found at: \(fileURL.path)"
+                                case let .failure(error):
+                                    exportErrorMessage = error.localizedDescription
                                     showExportError = true
+                                    // Stop spinner on error
+                                    state.isExporting = false
                                 }
-                            case let .failure(error):
-                                exportErrorMessage = error.localizedDescription
-                                showExportError = true
                             }
                         }
+                        .disabled(state.selectedCategories.isEmpty)
                     }
-                    .disabled(state.selectedCategories.isEmpty)
                 }
             }
             .sheet(isPresented: $showSettingsExport) {
