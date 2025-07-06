@@ -361,11 +361,14 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         gaps.reserveCapacity(sortedEvents.count + 1)
 
         // Use first event's date for calendar operations
-        let startOfDay = Calendar.current.startOfDay(for: sortedEvents.first!.timestamp)
-        let endOfDay = startOfDay.addingTimeInterval(24 * 60 * 60 - 1)
+        guard let firstEvent = sortedEvents.first else {
+            return []
+        }
+        let startOfDay = Calendar.current.startOfDay(for: firstEvent.timestamp)
+        let endOfDay = startOfDay.addingTimeInterval(TimeInterval.hours(24)) - 1
 
         // Process events in a single pass
-        var lastEndTime = sortedEvents.first!.timestamp
+        var lastEndTime = firstEvent.timestamp
 
         for i in 0 ..< sortedEvents.count {
             let event = sortedEvents[i]
