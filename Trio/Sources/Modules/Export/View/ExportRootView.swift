@@ -1,6 +1,3 @@
-// ABOUTME: Export module root view for settings export functionality
-// ABOUTME: Provides dedicated UI for comprehensive settings export
-
 import SwiftUI
 import Swinject
 
@@ -8,12 +5,12 @@ extension Export {
     struct RootView: BaseView {
         let resolver: Resolver
         @StateObject var state = StateModel()
-        
+
         @State private var showSettingsExport = false
         @State private var showExportError = false
         @State private var exportErrorMessage = ""
         @State private var exportedFileURL: URL?
-        
+
         var body: some View {
             Form {
                 Section {
@@ -21,21 +18,79 @@ extension Export {
                         Text("Export Settings")
                             .font(.title2)
                             .fontWeight(.semibold)
-                        
-                        Text("Export all your Trio settings to a CSV file for backup or sharing with your healthcare provider.")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+
+                        Text(
+                            "Choose which categories to export to a CSV file for backup or sharing with your healthcare provider."
+                        )
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                     }
                     .padding(.vertical, 8)
                 }
-                
+
+                Section(
+                    header: Text("Export Categories"),
+                    footer: Text("Select which categories to include in your export. All categories are enabled by default.")
+                ) {
+                    // Select All toggle
+                    HStack {
+                        Button(action: {
+                            state.toggleAllCategories(!state.allCategoriesSelected)
+                        }) {
+                            HStack {
+                                Image(systemName: state.allCategoriesSelected ? "checkmark.square.fill" : "square")
+                                    .foregroundColor(state.allCategoriesSelected ? .blue : .secondary)
+                                Text("Select All")
+                                    .foregroundColor(.primary)
+                                Spacer()
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+
+                    // Individual category toggles
+                    ForEach(Export.StateModel.ExportCategory.allCases) { category in
+                        HStack {
+                            Button(action: {
+                                if state.selectedCategories.contains(category) {
+                                    state.selectedCategories.remove(category)
+                                } else {
+                                    state.selectedCategories.insert(category)
+                                }
+                            }) {
+                                HStack {
+                                    Image(
+                                        systemName: state.selectedCategories
+                                            .contains(category) ? "checkmark.square.fill" : "square"
+                                    )
+                                    .foregroundColor(state.selectedCategories.contains(category) ? .blue : .secondary)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(category.rawValue)
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.primary)
+                                        Text(category.description)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                        .padding(.vertical, 2)
+                    }
+                }
+
                 Section(
                     header: Text("Export Options"),
-                    footer: Text("The export includes app settings, therapy profiles, algorithm configuration, device settings, and preset data.")
+                    footer: Text(
+                        "Export your selected categories to a CSV file for backup or sharing with your healthcare provider."
+                    )
                 ) {
                     Button {
                         Task {
-                            switch await state.exportSettings() {
+                            switch await state.exportSelectedSettings() {
                             case let .success(fileURL):
                                 // Verify the file actually exists before showing share sheet
                                 if FileManager.default.fileExists(atPath: fileURL.path) {
@@ -71,16 +126,28 @@ extension Export {
                         HStack {
                             Image(systemName: "square.and.arrow.up")
                                 .foregroundColor(.blue)
-                            Text("Export All Settings")
-                                .foregroundColor(.primary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Export Selected Categories")
+                                    .foregroundColor(.primary)
+                                if state.selectedCategories.count < Export.StateModel.ExportCategory.allCases.count {
+                                    Text(
+                                        "\(state.selectedCategories.count) of \(Export.StateModel.ExportCategory.allCases.count) categories selected"
+                                    )
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                }
+                            }
                             Spacer()
                         }
                     }
+                    .disabled(state.selectedCategories.isEmpty)
                 }
-                
+
                 Section(
                     header: Text("Export Information"),
-                    footer: Text("Exported files contain comprehensive configuration data including therapy profiles, algorithm settings, device configurations, and preset data.")
+                    footer: Text(
+                        "Exported files contain data from your selected categories. Choose specific categories above to customize what gets exported."
+                    )
                 ) {
                     HStack {
                         Text("Format")
@@ -88,14 +155,14 @@ extension Export {
                         Text("CSV")
                             .foregroundColor(.secondary)
                     }
-                    
+
                     HStack {
                         Text("Includes")
                         Spacer()
-                        Text("All Settings")
+                        Text("\(state.selectedCategories.count) Selected Categories")
                             .foregroundColor(.secondary)
                     }
-                    
+
                     HStack {
                         Text("File Name")
                         Spacer()
@@ -104,51 +171,13 @@ extension Export {
                             .font(.caption)
                     }
                 }
-                
-                Section(
-                    header: Text("Export Categories"),
-                    footer: Text("Each export includes data from all of these categories to provide a complete backup of your Trio configuration.")
-                ) {
-                    ExportCategoryRow(
-                        title: "Export Info",
-                        description: "Date, app version, build information"
-                    )
-                    ExportCategoryRow(
-                        title: "Devices",
-                        description: "CGM and pump configuration"
-                    )
-                    ExportCategoryRow(
-                        title: "Therapy",
-                        description: "Basal profiles, ISF, carb ratios, targets"
-                    )
-                    ExportCategoryRow(
-                        title: "Algorithm",
-                        description: "SMB, autosens, dynamic settings"
-                    )
-                    ExportCategoryRow(
-                        title: "Features",
-                        description: "UI preferences, meal settings"
-                    )
-                    ExportCategoryRow(
-                        title: "Notifications",
-                        description: "Alert and notification settings"
-                    )
-                    ExportCategoryRow(
-                        title: "Services",
-                        description: "Nightscout, Apple Health integration"
-                    )
-                    ExportCategoryRow(
-                        title: "Presets",
-                        description: "Temp targets, overrides, meal presets"
-                    )
-                }
             }
             .onAppear(perform: configureView)
             .navigationTitle("Export")
             .navigationBarTitleDisplayMode(.large)
             .sheet(isPresented: $showSettingsExport) {
                 if let fileURL = exportedFileURL {
-                    ShareSheet(activityItems: [fileURL])
+                    ExportShareSheet(activityItems: [fileURL])
                 }
             }
             .alert("Export Error", isPresented: $showExportError) {
@@ -163,7 +192,7 @@ extension Export {
 private struct ExportCategoryRow: View {
     let title: String
     let description: String
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
@@ -177,12 +206,12 @@ private struct ExportCategoryRow: View {
     }
 }
 
-private struct ShareSheet: UIViewControllerRepresentable {
+private struct ExportShareSheet: UIViewControllerRepresentable {
     let activityItems: [Any]
-    
-    func makeUIViewController(context: Context) -> UIActivityViewController {
+
+    func makeUIViewController(context _: Context) -> UIActivityViewController {
         UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
     }
-    
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+
+    func updateUIViewController(_: UIActivityViewController, context _: Context) {}
 }
