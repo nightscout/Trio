@@ -61,9 +61,12 @@ enum DeterminationGenerator {
         )
 
         // Safety check: current temp vs. last temp in iob
+        guard let lastTempTarget = iobData.first?.lastTemp else {
+            throw DeterminationError.missingIob
+        }
         if !checkCurrentTempBasalRateSafety(
             currentTemp: currentTemp,
-            lastTempTarget: iobData[0].lastTemp,
+            lastTempTarget: lastTempTarget,
             currentTime: currentTime
         ) {
             let reason =
@@ -77,7 +80,7 @@ enum DeterminationGenerator {
                 sensitivityRatio: nil,
                 rate: 0,
                 duration: 0,
-                iob: iobData[0].iob,
+                iob: iobData.first?.iob,
                 cob: nil,
                 predictions: nil,
                 deliverAt: currentTime,
@@ -118,7 +121,9 @@ enum DeterminationGenerator {
             withZeroTemp: true
         )
 
-        let currentGlucoseImpact = glucoseImpactSeries[0]
+        guard let currentGlucoseImpact = glucoseImpactSeries.first else {
+            throw DeterminationError.determinationError
+        }
 
         let minDelta = min(glucoseStatus.delta, glucoseStatus.shortAvgDelta)
         let minAvgDelta = min(glucoseStatus.shortAvgDelta, glucoseStatus.longAvgDelta)
@@ -135,7 +140,9 @@ enum DeterminationGenerator {
         }
 
         // Calculate what oref calls "naive eventual glucose"
-        let currentIob = iobData[0].iob
+        guard let currentIob = iobData.first?.iob else {
+            throw DeterminationError.missingIob
+        }
 
         let naiveEventualGlucose: Decimal
         if currentIob > 0 {
