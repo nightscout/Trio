@@ -1346,14 +1346,6 @@ extension Export {
                     if !mealPresetData.isEmpty {
                         let mealSubcategory = String(localized: "Meal Presets")
                         for mealPreset in mealPresetData {
-                            // Meal: \(mealPreset.dish)
-
-                            addSetting(
-                                category: presetsCategory,
-                                subcategory: mealSubcategory,
-                                name: mealPreset.dish,
-                                value: String(localized: "Meal Preset")
-                            )
 
                             if let carbs = mealPreset.carbs, carbs > 0 {
                                 addSetting(
@@ -1445,10 +1437,6 @@ extension Export {
                                 basePresetName = settingName
                             }
 
-                            // Add blank line if we're starting a new preset
-                            if let lastPreset = lastPresetName, lastPreset != basePresetName {
-                                csvContent += "\n"
-                            }
                             lastPresetName = basePresetName
                         }
 
