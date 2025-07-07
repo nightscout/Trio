@@ -34,6 +34,14 @@ struct ForecastChart: View {
         return formatter
     }
 
+    private var amountFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.locale = .current
+        formatter.maximumFractionDigits = 2
+        return formatter
+    }
+
     private var selectedGlucose: GlucoseStored? {
         guard let selection = selection else { return nil }
         let range = selection.addingTimeInterval(-150) ... selection.addingTimeInterval(150)
@@ -73,8 +81,9 @@ struct ForecastChart: View {
 
             HStack {
                 Image(systemName: "syringe.fill")
-                Text("\(state.amount.description) U")
+                Text("\(amountFormatter.string(from: state.amount as NSNumber) ?? state.amount.description) U")
             }
+
             .font(.footnote)
             .foregroundStyle(.blue)
             .padding(8)
