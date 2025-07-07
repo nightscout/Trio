@@ -211,7 +211,8 @@ struct TotalDailyDoseChart: View {
                             AxisGridLine()
                         }
                     case .month:
-                        if day % 3 == 0 { // Only show every 3rd day
+                        let weekday = calendar.component(.weekday, from: date)
+                        if weekday == calendar.firstWeekday { // Only show the first day of the week
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
                                 .font(.footnote)
                             AxisGridLine()

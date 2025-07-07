@@ -19,11 +19,19 @@ import Swinject
         /// A preferred approach would be to just block negatives and not specify an upperBound here, since it is implemented elsewhere
         inclusiveRange: (lowerBound: 0, upperBound: 200),
         requestValueDialog: IntentDialog(
-            LocalizedStringResource(
+            stringLiteral: String(
+                localized:
                 "Bolus amount (units of insulin)?"
             )
         )
     ) var bolusQuantity: Double
+
+    @Parameter(
+        title: LocalizedStringResource("External Insulin"),
+        description: LocalizedStringResource("If toggled, Insulin will be added to IOB but it will not be delivered"),
+        default: false,
+        requestValueDialog: IntentDialog(stringLiteral: String(localized: "External Insulin?"))
+    ) var externalInsulin: Bool
 
     @Parameter(
         title: LocalizedStringResource("Confirm Before applying"),
@@ -32,14 +40,23 @@ import Swinject
     ) var confirmBeforeApplying: Bool
 
     static var parameterSummary: some ParameterSummary {
-        When(\.$confirmBeforeApplying, .equalTo, true, {
-            Summary("Applying \(\.$bolusQuantity) U") {
+        When(\.$externalInsulin, .equalTo, true, {
+            Summary("Log external insulin bolus \(\.$bolusQuantity) U") {
+                \.$externalInsulin
                 \.$confirmBeforeApplying
             }
         }, otherwise: {
-            Summary("Immediately applying \(\.$bolusQuantity) U") {
-                \.$confirmBeforeApplying
-            }
+            When(\.$confirmBeforeApplying, .equalTo, true, {
+                Summary("Applying \(\.$bolusQuantity) U") {
+                    \.$externalInsulin
+                    \.$confirmBeforeApplying
+                }
+            }, otherwise: {
+                Summary("Immediately applying \(\.$bolusQuantity) U") {
+                    \.$externalInsulin
+                    \.$confirmBeforeApplying
+                }
+            })
         })
     }
 
@@ -52,19 +69,26 @@ import Swinject
                 try await requestConfirmation(
                     result: .result(
                         dialog: IntentDialog(
-                            LocalizedStringResource(
-                                "Are you sure you want to bolus \(bolusFormatted) U of insulin?"
+                            stringLiteral: String(
+                                localized:
+                                externalInsulin ? "Are you sure to log \(bolusFormatted) U of external insulin?" :
+                                    "Are you sure to bolus \(bolusFormatted) U of insulin?"
                             )
                         )
                     )
                 )
             }
-
-            let finalBolusDisplay = try await BolusIntentRequest().bolus(amount)
-            return .result(
-                dialog: IntentDialog(finalBolusDisplay)
-            )
-
+            if externalInsulin {
+                let finalExternalBolusDisplay = try await BolusIntentRequest().bolusExternal(amount)
+                return .result(
+                    dialog: IntentDialog(stringLiteral: finalExternalBolusDisplay)
+                )
+            } else {
+                let finalBolusDisplay = try await BolusIntentRequest().bolus(amount)
+                return .result(
+                    dialog: IntentDialog(stringLiteral: finalBolusDisplay)
+                )
+            }
         } catch {
             throw error
         }
