@@ -280,10 +280,21 @@ enum ForecastGenerator {
 
     /// Trims trailing flat-line points beyond a “lookback” count
     public static func trimFlatTails(_ series: [Decimal], lookback: Int) -> [Decimal] {
-        var s = series
-        while s.count > lookback, s.suffix(2)[0] == s.suffix(2)[1] {
-            s.removeLast()
+        guard series.count > lookback, lookback >= 0 else {
+            return series
         }
-        return s
+        let maxToRemove = series.count - lookback
+        let reversedSeries = series.reversed()
+        var removeCount = 0
+        for (curr, next) in zip(reversedSeries, reversedSeries.dropFirst()) {
+            guard curr == next else {
+                break
+            }
+            removeCount += 1
+        }
+
+        removeCount = min(maxToRemove, removeCount)
+
+        return Array(series.dropLast(removeCount))
     }
 }
