@@ -19,7 +19,7 @@ extension Export {
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
                         Text(
-                            "Choose which categories to export to a CSV file for backup or sharing with your healthcare provider."
+                            "Choose which categories to export for backup or sharing with your healthcare provider."
                         )
                         .font(.subheadline)
                         .foregroundColor(.secondary)

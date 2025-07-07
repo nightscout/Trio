@@ -356,6 +356,7 @@ extension Export {
             // Algorithm Settings
             if categoriesToExport.contains(.algorithm) {
                 let algorithmCategory = String(localized: "Algorithm", comment: "Algorithm menu item in the Settings main view.")
+                let pumpSettings = settingsManager.pumpSettings
 
                 // Autosens Settings
                 let autosensSubcategory = String(localized: "Autosens")
