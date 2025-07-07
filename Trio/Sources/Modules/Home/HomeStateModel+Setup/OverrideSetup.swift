@@ -39,13 +39,6 @@ extension Home.StateModel {
         overrides = objects
     }
 
-    @MainActor func calculateDuration(override: OverrideStored) -> TimeInterval {
-        guard let overrideDuration = override.duration as? Double, overrideDuration != 0 else {
-            return TimeInterval(60 * 60 * 24) // one day
-        }
-        return TimeInterval(overrideDuration * 60) // return seconds
-    }
-
     // Setup expired Overrides
     func setupOverrideRunStored() {
         Task {
