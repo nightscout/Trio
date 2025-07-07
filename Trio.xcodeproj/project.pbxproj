@@ -449,6 +449,7 @@
 		C29E268A2DADFD2A00F87E75 /* GlucoseDailyPercentileChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = C29E26892DADFD2A00F87E75 /* GlucoseDailyPercentileChart.swift */; };
 		C2A0A42F2CE03131003B98E8 /* ConstantValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A0A42E2CE0312C003B98E8 /* ConstantValues.swift */; };
 		C2A6D1E42DB1581D0036DB66 /* GlucoseStatsSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A6D1E32DB1581D0036DB66 /* GlucoseStatsSetup.swift */; };
+		C2AA6D9C2E1AAC6300BF6C16 /* TDDStorageTimezoneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2AA6D9B2E1AAC6300BF6C16 /* TDDStorageTimezoneTests.swift */; };
 		C967DACD3B1E638F8B43BE06 /* ManualTempBasalStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFCFE0781F9074C2917890E8 /* ManualTempBasalStateModel.swift */; };
 		CA370FC152BC98B3D1832968 /* BasalProfileEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8BCB0C37DEB5EC377B9612 /* BasalProfileEditorRootView.swift */; };
 		CC6C406E2ACDD69E009B8058 /* RawFetchedProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */; };
@@ -1269,6 +1270,7 @@
 		C29E26892DADFD2A00F87E75 /* GlucoseDailyPercentileChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseDailyPercentileChart.swift; sourceTree = "<group>"; };
 		C2A0A42E2CE0312C003B98E8 /* ConstantValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstantValues.swift; sourceTree = "<group>"; };
 		C2A6D1E32DB1581D0036DB66 /* GlucoseStatsSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseStatsSetup.swift; sourceTree = "<group>"; };
+		C2AA6D9B2E1AAC6300BF6C16 /* TDDStorageTimezoneTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDDStorageTimezoneTests.swift; sourceTree = "<group>"; };
 		C377490C77661D75E8C50649 /* ManualTempBasalRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualTempBasalRootView.swift; sourceTree = "<group>"; };
 		C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TreatmentsDataFlow.swift; sourceTree = "<group>"; };
 		CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawFetchedProfile.swift; sourceTree = "<group>"; };
@@ -2578,6 +2580,7 @@
 		38FCF3EE25E9028E0078B0D1 /* TrioTests */ = {
 			isa = PBXGroup;
 			children = (
+				C2AA6D9B2E1AAC6300BF6C16 /* TDDStorageTimezoneTests.swift */,
 				DDC6CA6C2DD90A2A0060EE25 /* LocalizationTests.swift */,
 				3B997DD22DC02AEF006B6BB2 /* JSONImporterData */,
 				BD8FC05C2D6618BE00B95AED /* BolusCalculatorTests */,
@@ -4667,6 +4670,7 @@
 				BD8FC0622D6619E600B95AED /* OverrideStorageTests.swift in Sources */,
 				BD8FC0592D66189700B95AED /* TestAssembly.swift in Sources */,
 				DDC6CA6D2DD90A2A0060EE25 /* LocalizationTests.swift in Sources */,
+				C2AA6D9C2E1AAC6300BF6C16 /* TDDStorageTimezoneTests.swift in Sources */,
 				3B997DCF2DC00A3A006B6BB2 /* JSONImporterTests.swift in Sources */,
 				BD8FC0662D661A0000B95AED /* GlucoseStorageTests.swift in Sources */,
 				BD8FC05B2D6618AF00B95AED /* DeterminationStorageTests.swift in Sources */,
