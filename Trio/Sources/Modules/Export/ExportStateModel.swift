@@ -10,6 +10,7 @@ extension Export {
         @Injected() private var fileManager: FileManager!
         @Injected() private var storage: FileStorage!
         @Injected() var overrideStorage: OverrideStorage!
+        @Injected() var tempTargetsStorage: TempTargetsStorage!
 
         // Version information
         private var versionNumber: String = ""
@@ -1023,71 +1024,67 @@ extension Export {
             if categoriesToExport.contains(.tempTargetPresets) {
                 let presetsCategory = String(localized: "Temp Target Presets")
 
-                // Temp Target Presets
-                let tempTargetPresets = storage.retrieve(OpenAPS.Trio.tempTargetsPresets, as: [TempTarget].self) ?? []
-                if !tempTargetPresets.isEmpty {
+                // Temp Target Presets (from Core Data)
+                debug(.default, "🔄 EXPORT: Fetching temp target presets...")
+                let tempTargetPresetIDs = (try? await tempTargetsStorage.fetchForTempTargetPresets()) ?? []
+                debug(.default, "🔄 EXPORT: Found \(tempTargetPresetIDs.count) temp target preset IDs")
+
+                if !tempTargetPresetIDs.isEmpty {
                     let tempTargetSubcategory = String(localized: "Temp Target Presets")
-                    for preset in tempTargetPresets {
-                        // Temp Target: \(preset.displayName)
+                    let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
-                        let targetTopValue = trioSettings.units == .mgdL ? (preset.targetTop ?? 0) : (preset.targetTop ?? 0)
-                            .asMmolL
-                        addSetting(
-                            category: presetsCategory,
-                            subcategory: tempTargetSubcategory,
-                            name: preset.displayName,
-                            value: String(describing: targetTopValue),
-                            unit: trioSettings.units.rawValue
+                    let presetData = await viewContext.perform {
+                        tempTargetPresetIDs.compactMap { id -> (
+                            name: String,
+                            target: Decimal?,
+                            duration: Decimal?,
+                            halfBasalTarget: Decimal?
+                        )? in
+                        guard let preset = try? viewContext.existingObject(with: id) as? TempTargetStored else {
+                            debug(.default, "Could not retrieve temp target with ID: \(id)")
+                            return nil
+                        }
+                        return (
+                            name: preset.name ?? "Unknown Temp Target",
+                            target: preset.target?.decimalValue,
+                            duration: preset.duration?.decimalValue,
+                            halfBasalTarget: preset.halfBasalTarget?.decimalValue
                         )
-                        addSetting(
-                            category: presetsCategory,
-                            subcategory: tempTargetSubcategory,
-                            name: "\(preset.displayName) Duration",
-                            value: String(describing: preset.duration),
-                            unit: String(localized: "minutes")
-                        )
+                        }
+                    }
 
-                        // Add targetBottom if different from targetTop
-                        if let targetBottom = preset.targetBottom, targetBottom != preset.targetTop {
-                            let targetBottomValue = trioSettings.units == .mgdL ? targetBottom : targetBottom.asMmolL
+                    debug(.default, "Successfully extracted \(presetData.count) temp target presets")
+
+                    for preset in presetData {
+                        if let target = preset.target {
+                            let targetValue = trioSettings.units == .mgdL ? target : target.asMmolL
                             addSetting(
                                 category: presetsCategory,
                                 subcategory: tempTargetSubcategory,
-                                name: "\(preset.displayName) Target Bottom",
-                                value: String(describing: targetBottomValue),
+                                name: preset.name,
+                                value: String(describing: targetValue),
                                 unit: trioSettings.units.rawValue
                             )
                         }
 
-                        // Add halfBasalTarget if set
+                        if let duration = preset.duration {
+                            addSetting(
+                                category: presetsCategory,
+                                subcategory: tempTargetSubcategory,
+                                name: "\(preset.name) Duration",
+                                value: String(describing: duration),
+                                unit: String(localized: "minutes")
+                            )
+                        }
+
                         if let halfBasalTarget = preset.halfBasalTarget {
                             let halfBasalValue = trioSettings.units == .mgdL ? halfBasalTarget : halfBasalTarget.asMmolL
                             addSetting(
                                 category: presetsCategory,
                                 subcategory: tempTargetSubcategory,
-                                name: "\(preset.displayName) Half Basal Target",
+                                name: "\(preset.name) Half Basal Target",
                                 value: String(describing: halfBasalValue),
                                 unit: trioSettings.units.rawValue
-                            )
-                        }
-
-                        // Add reason if different from name
-                        if let reason = preset.reason, reason != preset.name {
-                            addSetting(
-                                category: presetsCategory,
-                                subcategory: tempTargetSubcategory,
-                                name: "\(preset.displayName) Reason",
-                                value: reason
-                            )
-                        }
-
-                        // Add enteredBy
-                        if let enteredBy = preset.enteredBy {
-                            addSetting(
-                                category: presetsCategory,
-                                subcategory: tempTargetSubcategory,
-                                name: "\(preset.displayName) Entered By",
-                                value: enteredBy
                             )
                         }
                     }
@@ -1346,7 +1343,6 @@ extension Export {
                     if !mealPresetData.isEmpty {
                         let mealSubcategory = String(localized: "Meal Presets")
                         for mealPreset in mealPresetData {
-
                             if let carbs = mealPreset.carbs, carbs > 0 {
                                 addSetting(
                                     category: presetsCategory,
