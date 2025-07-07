@@ -19,6 +19,7 @@ extension DataTable {
         @State private var showManualGlucose: Bool = false
         @State private var isAmountUnconfirmed: Bool = true
         @State private var selectedTreatmentTypes: Set<String> = []
+        @State private var allTreatmentTypes: [String] = []
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.managedObjectContext) var context
@@ -62,23 +63,27 @@ extension DataTable {
         private func resolvedType(for event: PumpEventStored) -> String {
             if let bolus = event.bolus {
                 if bolus.isSMB {
-                    return "SMB"
+                    return String(localized: "SMB")
                 } else if bolus.isExternal {
-                    return "External Bolus"
+                    return String(localized: "External Bolus")
                 } else {
-                    return "Bolus"
+                    return String(localized: "Bolus")
                 }
             } else if event.tempBasal != nil {
-                return "Temp Basal"
+                return String(localized: "Temp Basal")
             }
-            return event.type ?? "Unknown"
+            return event.type ?? String(localized: "Unknown")
         }
 
-        private var allTreatmentTypes: [String] {
+        private func updateTreatmentTypes() {
             let filtered = pumpEventStored
                 .filter { !showFutureEntries ? $0.timestamp ?? Date() <= Date() : true }
             let types = filtered.map { resolvedType(for: $0) }
-            return Array(Set(types)).sorted()
+            let newTreatmentTypes = Array(Set(types)).sorted()
+            allTreatmentTypes = newTreatmentTypes
+
+            // Prune selected types that no longer exist
+            selectedTreatmentTypes = selectedTreatmentTypes.filter { newTreatmentTypes.contains($0) }
         }
 
         private var manualGlucoseFormatter: NumberFormatter {
@@ -126,7 +131,16 @@ extension DataTable {
                 }
             })
                 .background(appState.trioBackgroundColor(for: colorScheme))
-                .onAppear(perform: configureView)
+                .onAppear {
+                    configureView()
+                    updateTreatmentTypes()
+                }
+                .onChange(of: pumpEventStored.map(\.objectID)) {
+                    updateTreatmentTypes()
+                }
+                .onChange(of: showFutureEntries) {
+                    updateTreatmentTypes()
+                }
                 .onDisappear {
                     state.carbEntryDeleted = false
                     state.insulinEntryDeleted = false
@@ -168,7 +182,7 @@ extension DataTable {
             switch (state.carbEntryDeleted, state.insulinEntryDeleted) {
             case (true, false):
                 return .updatingCOB
-            case(false, true):
+            case (false, true):
                 return .updatingIOB
             default:
                 return .updatingHistory
@@ -233,8 +247,14 @@ extension DataTable {
                         }
                     }
                 } label: {
-                    Label("Filters", systemImage: "line.3.horizontal.decrease.circle")
+                    Label(
+                        selectedTreatmentTypes.isEmpty ? "Filters" : "Filters (\(selectedTreatmentTypes.count))",
+                        systemImage: selectedTreatmentTypes
+                            .isEmpty ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill"
+                    )
+                    .foregroundColor(selectedTreatmentTypes.isEmpty ? .primary : .blue)
                 }
+                .menuActionDismissBehavior(.disabled) // Requires Swift 17.xx
                 if !selectedTreatmentTypes.isEmpty {
                     Button {
                         selectedTreatmentTypes.removeAll()
@@ -331,7 +351,8 @@ extension DataTable {
                     return $0.endDate > $1.endDate
                 }
                 return $0.startDate > $1.startDate
-            } }
+            }
+        }
 
         private struct AdjustmentItem: Identifiable {
             let id: NSManagedObjectID
