@@ -13,4 +13,16 @@ enum ReplayTests {
         let bundle = Bundle(for: BundleReference.self)
         return bundle.object(forInfoDictionaryKey: "EnableReplayTests") as? String == "YES"
     }
+
+    /// Timezone to use for replay tests.
+    ///
+    /// This is used to filter replay test files by timezone. If not set, it defaults to "America/Los_Angeles".
+    /// To set it, add this line to your ConfigOverride.xcconfig file:
+    /// ```
+    /// REPLAY_TEST_TIMEZONE = Europe/Berlin
+    /// ```
+    static var timezone: String {
+        let bundle = Bundle(for: BundleReference.self)
+        return bundle.object(forInfoDictionaryKey: "ReplayTestTimezone") as? String ?? "America/Los_Angeles"
+    }
 }

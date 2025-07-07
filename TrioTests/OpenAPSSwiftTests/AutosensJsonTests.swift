@@ -160,14 +160,12 @@ import Testing
         "should produce same results for autosens for fixed JS",
         .enabled(if: ReplayTests.enabled)
     ) func replayErrorInputs() async throws {
-        let timezone = "America/Los_Angeles"
-        var skippedTimezones = Set<String>()
+        let timezone = ReplayTests.timezone
         let files = try await HttpFiles.listFiles()
         for filePath in files {
             let algorithmComparison = try await HttpFiles.downloadFile(at: filePath)
             print("Checking \(filePath) @ \(algorithmComparison.createdAt)")
             guard timezone == algorithmComparison.timezone else {
-                skippedTimezones.insert(algorithmComparison.timezone)
                 continue
             }
             guard let autosensInputs = algorithmComparison.autosensInput else {
@@ -187,11 +185,6 @@ import Testing
             print("Checked \(filePath) @ \(algorithmComparison.createdAt)")
 
             timeZoneForTests.resetTimezone()
-        }
-
-        print("Skipped timezones:")
-        for skippedTimezone in skippedTimezones {
-            print("  - \(skippedTimezone)")
         }
     }
 
