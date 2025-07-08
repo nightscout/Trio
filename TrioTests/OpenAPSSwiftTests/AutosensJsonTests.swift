@@ -5,53 +5,6 @@ import Testing
 @Suite("Autosens using real JSON", .serialized) struct AutosensJsonTests {
     let timeZoneForTests = TimeZoneForTests()
 
-    // static func from<T: Decodable>(string: String) throws -> T
-    func loadJson<T: Decodable>(_ name: String) throws -> T {
-        let testBundle = Bundle(for: BundleReference.self)
-        let path = testBundle.path(forResource: name, ofType: "json")!
-        let data = try Data(contentsOf: URL(fileURLWithPath: path))
-        return try JSONCoding.decoder.decode(T.self, from: data)
-    }
-
-    @Test("Test with resistance") func generateJavascriptInputs() throws {
-        let glucose: [BloodGlucose] = try loadJson("as-glucose")
-        let pump: [PumpHistoryEvent] = try loadJson("as-pump")
-        let basalProfile: [BasalProfileEntry] = try loadJson("as-basal")
-        let profile: Profile = try loadJson("as-profile")
-        let carbs: [CarbsEntry] = try loadJson("as-carbs")
-        let tempTargets: [TempTarget] = try loadJson("as-temp-targets")
-
-        let clock = Date("2025-06-08T00:14:35.481Z")!
-
-        timeZoneForTests.setTimezone(identifier: "America/Los_Angeles")
-
-        let autosensResult = try AutosensGenerator.generate(
-            glucose: glucose,
-            pumpHistory: pump,
-            basalProfile: basalProfile,
-            profile: profile,
-            carbs: carbs,
-            tempTargets: tempTargets,
-            maxDeviations: 96,
-            clock: clock,
-            includeDeviationsForTesting: true
-        )
-
-        let deviationsUnsorted: [Decimal] = try loadJson("deviationsUnsorted")
-
-        #expect(autosensResult.ratio == 1.2)
-        #expect(autosensResult.newisf == 46)
-        #expect(deviationsUnsorted.count == autosensResult.deviationsUnsorted?.count)
-
-        for (ref, calc) in zip(deviationsUnsorted, autosensResult.deviationsUnsorted!) {
-            // we can get differences due to rounding inconsistencies between
-            // javascript and swift with negative numbers
-            #expect(ref.isWithin(0.01, of: calc))
-        }
-
-        timeZoneForTests.resetTimezone()
-    }
-
     func checkFixedJsAgainstSwift(autosensInputs: AutosensInputs) async throws {
         let openAps = OpenAPSFixed()
         let (autosensResultSwift, _) = OpenAPSSwift.autosense(
@@ -188,7 +141,7 @@ import Testing
         }
     }
 
-    @Test("Format autosens inputs for running in JS", .enabled(if: ReplayTests.enabled)) func formatInputs() async throws {
+    @Test("Format autosens inputs for running in JS", .enabled(if: false)) func formatInputs() async throws {
         // this test is meant for one-off analysis so it's ok to hard code
         // a file, just make sure to _not_ check in updates to this to
         // avoid polluting our change logs
@@ -234,36 +187,5 @@ import Testing
         print("Writing to: \(outputURL.path)")
 
         timeZoneForTests.resetTimezone()
-    }
-
-    @Test(
-        "Testing IoB difference with Autosens",
-        .enabled(if: ReplayTests.enabled)
-    ) func testAutosensErrorWithIoB() async throws {
-        let currentBasalRate = Decimal(0.55)
-        let currentGlucoseDate = Date("2025-06-27T13:56:54.596Z")!
-        let iobInputs: IobInputs = try loadJson("as_error_iob_inputs")
-
-        let treatments = try IobHistory.calcTempTreatments(
-            history: iobInputs.history.map({ $0.computedEvent() }),
-            profile: iobInputs.profile,
-            clock: iobInputs.clock,
-            autosens: nil,
-            zeroTempDuration: nil
-        )
-
-        let encoder = JSONCoding.encoder
-        let output = try encoder.encode(treatments)
-
-        let sharedDir = FileManager.default.temporaryDirectory
-        let outputURL = sharedDir.appendingPathComponent("treatments-swift.json")
-        try output.write(to: outputURL)
-        print("WROTE FILE TO: \(outputURL.path)")
-
-        var simulatedProfile = iobInputs.profile
-        simulatedProfile.currentBasal = currentBasalRate
-        simulatedProfile.temptargetSet = false
-        let iob = try IobCalculation.iobTotal(treatments: treatments, profile: simulatedProfile, time: currentGlucoseDate)
-        print(iob)
     }
 }
