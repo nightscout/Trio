@@ -1,6 +1,13 @@
 import Foundation
 
 extension DeterminationGenerator {
+    /// helper struct for managing glucose
+    private struct GlucoseReading {
+        let glucose: Int
+        let date: Date
+        let noise: Int?
+    }
+
     /// Smooths given CGM readings, and computes rolling delta statistics
     /// (i.e., last, short-term, and long-term).
     ///
@@ -20,6 +27,12 @@ extension DeterminationGenerator {
     /// - Returns: `nil` if no valid glucose readings are found in the past day.
     static func getGlucoseStatus(glucoseReadings: [BloodGlucose]) throws -> GlucoseStatus? {
         // FIXME: put this here for now; use implementation in GlucoseStorage later (already implemented and commented out for now)
+
+        let glucoseReadings = glucoseReadings.compactMap { reading -> GlucoseReading? in
+            guard let glucose = reading.glucose ?? reading.sgv else { return nil }
+            return GlucoseReading(glucose: glucose, date: reading.dateString, noise: reading.noise)
+        }
+
         guard glucoseReadings.isNotEmpty else {
             return nil
         }
@@ -27,9 +40,9 @@ extension DeterminationGenerator {
         // Sort descending (newest first)
         let sorted = glucoseReadings.sorted { $0.date > $1.date }
 
-        let mostRecentGlucose = sorted[0]
-        var mostRecentGlucoseReading: Int = mostRecentGlucose.glucose!
-        var mostRecentGlucoseDate: Date = mostRecentGlucose.dateString
+        guard let mostRecentGlucose = sorted.first else { return nil }
+        var mostRecentGlucoseReading: Int = mostRecentGlucose.glucose
+        var mostRecentGlucoseDate: Date = mostRecentGlucose.date
 
         var lastDeltas: [Decimal] = []
         var shortDeltas: [Decimal] = []
@@ -42,20 +55,20 @@ extension DeterminationGenerator {
             // so we omit this check
 
             // only use readings >38 mg/dL (to skip code values, <39)
-            guard let glucose = entry.glucose, glucose > 38 else { continue }
+            guard entry.glucose > 38 else { continue }
 
-            let minutesAgo = mostRecentGlucoseDate.timeIntervalSince(entry.dateString) / 60
+            let minutesAgo = mostRecentGlucoseDate.timeIntervalSince(entry.date) / 60
             guard minutesAgo != 0 else { continue }
             // compute mg/dL per 5 m as a Decimal:
-            let change = Decimal(mostRecentGlucoseReading - glucose)
+            let change = Decimal(mostRecentGlucoseReading - entry.glucose)
             let avgDelta = (change / Decimal(minutesAgo)) * Decimal(5)
 
             // very-recent (<2.5 m) smooths "now"
             if minutesAgo > -2, minutesAgo <= 2.5 {
-                mostRecentGlucoseReading = (mostRecentGlucoseReading + glucose) / 2
+                mostRecentGlucoseReading = (mostRecentGlucoseReading + entry.glucose) / 2
                 mostRecentGlucoseDate = Date(
                     timeIntervalSince1970: (
-                        mostRecentGlucoseDate.timeIntervalSince1970 + entry.dateString
+                        mostRecentGlucoseDate.timeIntervalSince1970 + entry.date
                             .timeIntervalSince1970
                     ) / 2
                 )

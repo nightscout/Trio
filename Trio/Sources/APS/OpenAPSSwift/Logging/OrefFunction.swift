@@ -46,6 +46,7 @@ enum OrefFunction: String, Codable {
         case .determineBasal:
             // FIXME: Adjust as we go
             return Set([
+                // Not calculating yet
                 "id",
                 "units",
                 "insulinReq",
@@ -62,7 +63,17 @@ enum OrefFunction: String, Codable {
                 "manualBolusErrorString",
                 "minDelta",
                 "CR",
-                "received"
+                "received",
+                "reason",
+                // in JS but not in Swift
+                "tick",
+                "BGI",
+                "target_bg",
+                "deviation",
+                // in Swift but not in JS
+                "timestamp",
+                "minGuardBG",
+                "minPredBG"
             ])
         }
     }
