@@ -215,9 +215,6 @@ public struct TextFieldWithToolBar: View {
                     .onTapGesture {
                         isFocused = true
                     }
-                    .onLongPressGesture {
-                        isFocused = true
-                    }
             }
         }
     }
