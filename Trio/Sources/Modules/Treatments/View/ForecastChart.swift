@@ -20,27 +20,34 @@ struct ForecastChart: View {
             )) // min is 1.5h -> (1.5*1h = 1.5*(5*12*60))
     }
 
-    private var glucoseFormatter: NumberFormatter {
+    // Cached formatters
+    private static let glucoseFormatterMgDL: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-
-        if state.units == .mmolL {
-            formatter.maximumFractionDigits = 1
-            formatter.minimumFractionDigits = 1
-            formatter.roundingMode = .halfUp
-        } else {
-            formatter.maximumFractionDigits = 0
-        }
+        formatter.maximumFractionDigits = 0
         return formatter
+    }()
+
+    private static let glucoseFormatterMmolL: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 1
+        formatter.minimumFractionDigits = 1
+        formatter.roundingMode = .halfUp
+        return formatter
+    }()
+
+    private var glucoseFormatter: NumberFormatter {
+        state.units == .mmolL ? Self.glucoseFormatterMmolL : Self.glucoseFormatterMgDL
     }
 
-    private var amountFormatter: NumberFormatter {
+    private static let amountFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.locale = .current
         formatter.maximumFractionDigits = 2
         return formatter
-    }
+    }()
 
     private var selectedGlucose: GlucoseStored? {
         guard let selection = selection else { return nil }
@@ -81,7 +88,7 @@ struct ForecastChart: View {
 
             HStack {
                 Image(systemName: "syringe.fill")
-                Text("\(amountFormatter.string(from: state.amount as NSNumber) ?? state.amount.description) U")
+                Text("\(Self.amountFormatter.string(from: state.amount as NSNumber) ?? state.amount.description) U")
             }
 
             .font(.footnote)
