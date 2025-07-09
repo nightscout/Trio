@@ -2910,8 +2910,6 @@
 		3B5CD2C72D4AECD500CE213C /* OpenAPSSwiftTests */ = {
 			isa = PBXGroup;
 			children = (
-				DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */,
-				DD30B9FD2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift */,
 				3BF92F2C2D86DEE9006B545A /* javascript */,
 				3B1C5C3C2D68E269004E9273 /* json */,
 				3BFA5BF72D989F380072B082 /* mocks */,
@@ -2919,6 +2917,8 @@
 				3B4D17122E1D89FE007FB180 /* AutosensJsonExtraTests.swift */,
 				3B8B5D3B2DF523B800365ED3 /* AutosensJsonTests.swift */,
 				3BBC22622DF5B93900169236 /* AutosensTests.swift */,
+				DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */,
+				DD30B9FD2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift */,
 				3B1C5C352D68E269004E9273 /* IobCalculateTests.swift */,
 				3B1C5C362D68E269004E9273 /* IobHistoryTests.swift */,
 				3BC4053A2D931620006A03E9 /* IobJsonTests.swift */,
