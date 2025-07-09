@@ -12,15 +12,12 @@ import Testing
         // Note: This test case can only test one timezone per invocation
         // so you need to manually change this to try out errors from
         // different timezones
-        let testingTimezone = "Europe/Berlin"
+        let testingTimezone = ReplayTests.timezone
         let files = try await HttpFiles.listFiles()
-        var skippedTimezones = Set<String>()
         for filePath in files {
             let algorithmComparison = try await HttpFiles.downloadFile(at: filePath)
             print("Checking \(filePath) @ \(algorithmComparison.createdAt)")
             guard algorithmComparison.timezone == testingTimezone else {
-                print("Skipping timezone \(algorithmComparison.timezone)")
-                skippedTimezones.insert(algorithmComparison.timezone)
                 continue
             }
             guard let mealInputs = algorithmComparison.mealInput else {
@@ -39,15 +36,6 @@ import Testing
             try await checkFixedJsAgainstSwift(mealInputs: mealInputs)
             print("Checked \(filePath) \(algorithmComparison.timezone)")
             timeZoneForTests.resetTimezone()
-        }
-
-        if skippedTimezones.isEmpty {
-            print("Didn't skip any timezones")
-        } else {
-            print("Skipped timezones:")
-            for timezone in skippedTimezones {
-                print("  - \(timezone)")
-            }
         }
     }
 
@@ -94,7 +82,7 @@ import Testing
         #expect(comparison.resultType == .matching)
     }
 
-    @Test("Format meal inputs for running in JS", .enabled(if: ReplayTests.enabled)) func formatInputs() async throws {
+    @Test("Format meal inputs for running in JS", .enabled(if: false)) func formatInputs() async throws {
         let openAps = OpenAPSFixed()
 
         // this test is meant for one-off analysis so it's ok to hard code
