@@ -33,7 +33,7 @@ struct NightscoutUploadView: View {
                 miniHint: String(localized: "Enable uploading of selected data sets to Nightscout."),
                 verboseHint:
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Default: OFF").bold()
+                    Text("Default: ON").bold()
                     Text(
                         "The Upload Treatments toggle enables uploading of the following data sets to your connected Nightscout URL:"
                     )
@@ -64,7 +64,7 @@ struct NightscoutUploadView: View {
                 label: String(localized: "Upload Glucose"),
                 miniHint: String(localized: "Enable uploading of CGM readings to Nightscout."),
                 verboseHint: VStack(alignment: .leading, spacing: 10) {
-                    Text("Default: OFF").bold()
+                    Text("Default: ON").bold()
                     Text("Enabling this setting allows CGM readings from Trio to be used in Nightscout.")
                 }
             )
