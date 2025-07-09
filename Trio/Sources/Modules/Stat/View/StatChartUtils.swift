@@ -24,8 +24,29 @@ struct StatChartUtils {
         from scrollPosition: Date,
         for selectedInterval: Stat.StateModel.StatsTimeInterval
     ) -> (start: Date, end: Date) {
-        let end = scrollPosition.addingTimeInterval(visibleDomainLength(for: selectedInterval))
-        return (scrollPosition, end)
+        let calendar = Calendar.current
+
+        if selectedInterval == .day {
+            // For day view, don't modify the scroll position
+            let end = scrollPosition.addingTimeInterval(visibleDomainLength(for: selectedInterval) - 1)
+            return (scrollPosition, end)
+        } else {
+            // For week and longer intervals, we need smart alignment
+            // Find the nearest day boundary
+            let startOfDay = calendar.startOfDay(for: scrollPosition)
+            let components = calendar.dateComponents([.hour, .minute, .second], from: scrollPosition)
+            let totalSeconds = Double(components.hour ?? 0) * 3600 + Double(components.minute ?? 0) * 60 +
+                Double(components.second ?? 0)
+
+            // Align start end to midnight
+            let alignedStart = totalSeconds > 12 * 3600 ?
+                calendar.date(byAdding: .day, value: 1, to: startOfDay)! : startOfDay
+            let intervalLength = visibleDomainLength(for: selectedInterval)
+            let end = alignedStart.addingTimeInterval(intervalLength + (2 * 3600))
+            let alignedEnd = calendar.startOfDay(for: end).addingTimeInterval(-1)
+
+            return (alignedStart, alignedEnd)
+        }
     }
 
     /// Returns the appropriate date format style based on the selected time interval.
@@ -46,7 +67,9 @@ struct StatChartUtils {
     static func alignmentComponents(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> DateComponents {
         switch selectedInterval {
         case .day: return DateComponents(hour: 0)
-        case .week: return DateComponents(weekday: 2)
+        case .week:
+            let calendar = Calendar.current
+            return DateComponents(weekday: calendar.firstWeekday)
         case .month,
              .total: return DateComponents(day: 1)
         }
@@ -58,14 +81,21 @@ struct StatChartUtils {
     static func getInitialScrollPosition(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> Date {
         let calendar = Calendar.current
         let now = Date()
+        let today = calendar.startOfDay(for: now)
 
+        let baseDate: Date
         switch selectedInterval {
-//        case .day: return calendar.date(byAdding: .day, value: -1, to: now)!
-        case .day: return calendar.startOfDay(for: now)
-        case .week: return calendar.date(byAdding: .day, value: -7, to: now)!
-        case .month: return calendar.date(byAdding: .month, value: -1, to: now)!
-        case .total: return calendar.date(byAdding: .month, value: -3, to: now)!
+        case .day:
+            baseDate = today
+        case .week:
+            baseDate = calendar.date(byAdding: .day, value: -6, to: today)!
+        case .month:
+            baseDate = calendar.date(byAdding: .day, value: -29, to: today)!
+        case .total:
+            baseDate = calendar.date(byAdding: .day, value: -89, to: today)!
         }
+
+        return calendar.date(byAdding: .second, value: 1, to: baseDate)!
     }
 
     /// Checks if two dates belong to the same time unit based on the selected duration.
@@ -74,7 +104,11 @@ struct StatChartUtils {
     ///   - date2: The second date.
     ///   - selectedInterval: The selected time interval for statistics.
     /// - Returns: A Boolean indicating whether the two dates are in the same time unit.
-    static func isSameTimeUnit(_ date1: Date, _ date2: Date, for selectedInterval: Stat.StateModel.StatsTimeInterval) -> Bool {
+    static func isSameTimeUnit(
+        _ date1: Date,
+        _ date2: Date,
+        for selectedInterval: Stat.StateModel.StatsTimeInterval
+    ) -> Bool {
         let calendar = Calendar.current
         switch selectedInterval {
         case .day:

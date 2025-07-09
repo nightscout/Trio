@@ -60,8 +60,14 @@ final class PluginSource: GlucoseSource {
             guard let self = self else { return }
             self.processQueue.async {
                 guard let cgmManager = self.cgmManager else { return }
-                cgmManager.fetchNewDataIfNeeded { result in
-                    promise(self.readCGMResult(readingResult: result))
+                cgmManager.fetchNewDataIfNeeded { _ in
+                    // Ignore values returned from fetchNewDataIfNeeded since
+                    // these come from share client and cause a race condition
+                    // that causes the promise to complete before a CGM value
+                    // has a chance to return. From looking at the code this should
+                    // only impact G6 since that is the only CGM manager that will
+                    // return data and only if share credentials are set
+                    promise(.success([]))
                 }
             }
         }

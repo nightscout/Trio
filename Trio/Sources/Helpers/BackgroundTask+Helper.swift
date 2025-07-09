@@ -17,13 +17,20 @@ func endBackgroundTaskSafely(_ taskID: inout UIBackgroundTaskIdentifier, taskNam
 ///
 /// - Parameter name: The background task name.
 func startBackgroundTask(withName name: String) -> UIBackgroundTaskIdentifier {
-    var taskID = UIBackgroundTaskIdentifier.invalid
-
-    taskID = UIApplication.shared.beginBackgroundTask(withName: name) {
+    // Use a local copy of the taskID for the expiration handler
+    let taskID = UIApplication.shared.beginBackgroundTask(withName: name) { [taskID = UIBackgroundTaskIdentifier.invalid] in
+        // Create a new Task that takes the value of the taskID as a parameter
+        // and does not use the captured variable
         Task { @MainActor in
-            endBackgroundTaskSafely(&taskID, taskName: name)
+            // Since we can no longer change the original taskID,
+            // we simply end the Task with the given ID
+            if taskID != .invalid {
+                UIApplication.shared.endBackgroundTask(taskID)
+                debug(.default, "Background task '\(name)' ended in expiration handler.")
+            }
         }
     }
 
+    debug(.default, "Background task '\(name)' started with ID: \(taskID)")
     return taskID
 }

@@ -231,7 +231,6 @@ struct MealStatsView: View {
         .chartXAxis {
             AxisMarks(preset: .aligned, values: .stride(by: selectedInterval == .day ? .hour : .day)) { value in
                 if let date = value.as(Date.self) {
-                    let day = Calendar.current.component(.day, from: date)
                     let hour = Calendar.current.component(.hour, from: date)
 
                     switch selectedInterval {
@@ -242,13 +241,15 @@ struct MealStatsView: View {
                             AxisGridLine()
                         }
                     case .month:
-                        if day % 3 == 0 { // Only show every 3rd day
+                        let weekday = calendar.component(.weekday, from: date)
+                        if weekday == calendar.firstWeekday { // Only show the first day of the week
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     case .total:
                         // Only show every other month
+                        let day = Calendar.current.component(.day, from: date)
                         if day == 1 && Calendar.current.component(.month, from: date) % 2 == 1 {
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
                                 .font(.footnote)

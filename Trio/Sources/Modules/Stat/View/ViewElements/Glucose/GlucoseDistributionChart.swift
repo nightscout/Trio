@@ -25,38 +25,38 @@ struct GlucoseDistributionChart: View {
                 }
             }
             .chartForegroundStyleScale([
-                "<54": .purple.opacity(0.7),
-                "54-\(timeInRangeType.bottomThreshold)": .red.opacity(0.7),
-                "\(timeInRangeType.bottomThreshold)-\(timeInRangeType.topThreshold)": .green,
-                "\(timeInRangeType.topThreshold)-180": .green.opacity(0.7),
-                "180-200": .yellow.opacity(0.7),
-                "200-220": .orange.opacity(0.7),
-                ">220": .orange.opacity(0.8)
+                "<54": .purple.opacity(0.8),
+                "54-\(timeInRangeType.bottomThreshold)": .red.opacity(0.8),
+                "\(timeInRangeType.bottomThreshold)-\(timeInRangeType.topThreshold)": .green.opacity(0.8),
+                "\(timeInRangeType.topThreshold)-180": .darkGreen.opacity(0.8),
+                "180-200": .yellow.opacity(0.8),
+                "200-220": .orange.opacity(0.8),
+                ">220": .darkOrange.opacity(0.8)
             ])
             .chartLegend(position: .bottom, alignment: .leading, spacing: 12) {
                 let legendItems: [(String, Color)] = [
-                    ("<\(units == .mgdL ? Decimal(54) : 54.asMmolL)", .purple.opacity(0.7)),
+                    ("<\(units == .mgdL ? Decimal(54) : 54.asMmolL)", .purple.opacity(0.8)),
                     (
                         "\(units == .mgdL ? Decimal(54) : 54.asMmolL)-\(units == .mgdL ? Decimal(timeInRangeType.bottomThreshold) : timeInRangeType.bottomThreshold.asMmolL)",
-                        .red.opacity(0.7)
+                        .red.opacity(0.8)
                     ),
                     (
                         "\(units == .mgdL ? Decimal(timeInRangeType.bottomThreshold) : timeInRangeType.bottomThreshold.asMmolL)-\(units == .mgdL ? Decimal(timeInRangeType.topThreshold) : timeInRangeType.topThreshold.asMmolL)",
-                        .green
+                        .green.opacity(0.8)
                     ),
                     (
                         "\(units == .mgdL ? Decimal(timeInRangeType.topThreshold) : timeInRangeType.topThreshold.asMmolL)-\(units == .mgdL ? Decimal(180) : 180.asMmolL)",
-                        .green.opacity(0.7)
+                        .darkGreen.opacity(0.8)
                     ),
                     (
                         "\(units == .mgdL ? Decimal(180) : 180.asMmolL)-\(units == .mgdL ? Decimal(200) : 200.asMmolL)",
-                        .yellow.opacity(0.7)
+                        .yellow.opacity(0.8)
                     ),
                     (
                         "\(units == .mgdL ? Decimal(200) : 200.asMmolL)-\(units == .mgdL ? Decimal(220) : 220.asMmolL)",
-                        .orange.opacity(0.7)
+                        .orange.opacity(0.8)
                     ),
-                    (">\(units == .mgdL ? Decimal(220) : 220.asMmolL)", .orange.opacity(0.8))
+                    (">\(units == .mgdL ? Decimal(220) : 220.asMmolL)", .darkOrange.opacity(0.8))
                 ]
 
                 let columns = [GridItem(.adaptive(minimum: 65), spacing: 4)]

@@ -39,7 +39,7 @@ enum LoopStatsDataType: String {
 
     var displayName: String {
         switch self {
-        case .successfulLoop: return String(localized: "Successful Loop")
+        case .successfulLoop: return String(localized: "Successful Loops")
         case .glucoseCount: return String(localized: "Glucose Count")
         }
     }
