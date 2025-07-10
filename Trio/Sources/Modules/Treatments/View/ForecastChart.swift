@@ -59,8 +59,9 @@ struct ForecastChart: View {
 
             HStack {
                 Image(systemName: "syringe.fill")
-                Text("\(Formatter.decimalFormatterWithTwoFractionDigits.string(from: state.amount as NSNumber) ?? state.amount.description) U")
-
+                Text(
+                    "\(Formatter.bolusFormatter.string(from: state.amount as NSNumber) ?? state.amount.description) U"
+                )
             }
 
             .font(.footnote)

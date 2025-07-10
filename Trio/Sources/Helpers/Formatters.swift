@@ -84,9 +84,10 @@ extension Formatter {
     static let bolusFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
+        formatter.locale = .current
         formatter.minimumIntegerDigits = 0
         formatter.maximumFractionDigits = 2
-        formatter.decimalSeparator = "."
+        // formatter.decimalSeparator = "."
         return formatter
     }()
 
