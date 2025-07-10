@@ -441,7 +441,7 @@ extension DataTable {
                                     keyboardType: state.units == .mgdL ? .numberPad : .decimalPad,
                                     numberFormatter: manualGlucoseFormatter,
                                     initialFocus: true,
-                                    suffixText: state.units.rawValue
+                                    unitsText: state.units.rawValue
                                 )
                             }
                         }.listRowBackground(Color.chart)

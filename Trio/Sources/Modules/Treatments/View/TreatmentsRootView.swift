@@ -94,7 +94,7 @@ extension Treatments {
                         showArrows: true,
                         previousTextField: { focusedField = previousField(from: .protein) },
                         nextTextField: { focusedField = nextField(from: .protein) },
-                        suffixText: "g"
+                        unitsText: "g"
                     )
                     .focused($focusedField, equals: .protein)
                 }
@@ -111,7 +111,7 @@ extension Treatments {
                         showArrows: true,
                         previousTextField: { focusedField = previousField(from: .fat) },
                         nextTextField: { focusedField = nextField(from: .fat) },
-                        suffixText: "g"
+                        unitsText: "g"
                     )
                     .focused($focusedField, equals: .fat)
                 }
@@ -130,7 +130,7 @@ extension Treatments {
                     showArrows: true,
                     previousTextField: { focusedField = previousField(from: .carbs) },
                     nextTextField: { focusedField = nextField(from: .carbs) },
-                    suffixText: "g"
+                    unitsText: "g"
                 )
                 .focused($focusedField, equals: .carbs)
                 .onChange(of: state.carbs) {
@@ -332,7 +332,7 @@ extension Treatments {
                                     showArrows: true,
                                     previousTextField: { focusedField = previousField(from: .bolus) },
                                     nextTextField: { focusedField = nextField(from: .bolus) },
-                                    suffixText: "U"
+                                    unitsText: "U"
                                 ).focused($focusedField, equals: .bolus)
                                     .onChange(of: state.amount) {
                                         Task {

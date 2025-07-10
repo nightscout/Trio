@@ -49,7 +49,7 @@ extension Calibrations {
                                 text: $state.newCalibration,
                                 placeholder: "0",
                                 numberFormatter: manualGlucoseFormatter,
-                                suffixText: state.units.rawValue
+                                unitsText: state.units.rawValue
                             )
                         }
                         Button {

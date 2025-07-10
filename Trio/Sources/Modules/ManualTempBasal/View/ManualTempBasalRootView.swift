@@ -28,7 +28,7 @@ extension ManualTempBasal {
                             placeholder: "0",
                             numberFormatter: formatter,
                             initialFocus: true,
-                            suffixText: "U/hr"
+                            unitsText: "U/hr"
                         )
                     }
                     Picker(selection: $state.durationIndex, label: Text("Duration")) {

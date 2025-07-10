@@ -18,8 +18,8 @@ public struct TextFieldWithToolBar: View {
     var previousTextField: (() -> Void)?
     var nextTextField: (() -> Void)?
     var initialFocus: Bool
-    var suffixText: String?
-    var suffixForegroundColor: Color?
+    var unitsText: String?
+    var unitsTextColor: Color
 
     @FocusState private var isFocused: Bool
     @State private var localText: String = ""
@@ -43,8 +43,8 @@ public struct TextFieldWithToolBar: View {
         previousTextField: (() -> Void)? = nil,
         nextTextField: (() -> Void)? = nil,
         initialFocus: Bool = false,
-        suffixText: String? = nil,
-        suffixForegroundColor: Color = .secondary
+        unitsText: String? = nil,
+        unitsTextColor: Color = .secondary
     ) {
         _text = text
         self.placeholder = placeholder
@@ -63,8 +63,8 @@ public struct TextFieldWithToolBar: View {
         self.previousTextField = previousTextField
         self.nextTextField = nextTextField
         self.initialFocus = initialFocus
-        self.suffixText = suffixText
-        self.suffixForegroundColor = suffixForegroundColor
+        self.unitsText = unitsText
+        self.unitsTextColor = unitsTextColor
     }
 
     public var body: some View {
@@ -210,8 +210,8 @@ public struct TextFieldWithToolBar: View {
                     // Set initial focus if requested
                     isFocused = initialFocus
                 }
-            if suffixText != nil {
-                Text(suffixText ?? "").foregroundColor(suffixForegroundColor ?? .secondary)
+            if unitsText != nil {
+                Text(unitsText ?? "").foregroundColor(unitsTextColor)
                     .onTapGesture {
                         isFocused = true
                     }
