@@ -87,7 +87,6 @@ extension Formatter {
         formatter.locale = .current
         formatter.minimumIntegerDigits = 0
         formatter.maximumFractionDigits = 2
-        // formatter.decimalSeparator = "."
         return formatter
     }()
 
