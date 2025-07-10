@@ -1,0 +1,123 @@
+name: Test-build pull request
+run-name: PR ${{ vars.PR_NUMBER }}
+on:
+  workflow_dispatch:
+
+jobs:
+  # Builds Trio
+  build:
+    name: Build
+    runs-on: macos-15
+    permissions:
+      contents: write
+
+    steps:
+      - name: Select Xcode version
+        run: "sudo xcode-select --switch /Applications/Xcode_16.3.app/Contents/Developer"
+            
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          repository: nightscout/Trio
+          ref: dev
+          token: ${{ secrets.GH_PAT }}
+          submodules: recursive
+          fetch-depth: 0
+          
+      - name: Checkout pull request for building
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          gh pr checkout ${{ vars.PR_NUMBER }} --repo nightscout/Trio --recurse-submodules
+          git submodule
+
+      - name: Revert commits if REVERT_COMMITS is set
+        if: ${{ vars.REVERT_COMMITS != '' }}
+        run: |
+          echo "Reverting commits from REVERT_COMMITS variable..."
+          echo "${{ vars.REVERT_COMMITS }}" | while IFS= read -r line; do
+            # Skip empty lines and lines starting with #
+            [[ -z "$line" || "$line" =~ ^# ]] && continue
+
+            # Extract the first word as commit hash (ignore inline comments)
+            commit_hash=$(echo "$line" | awk '{print $1}')
+
+            if [[ -n "$commit_hash" ]]; then
+              echo "Reverting commit: $commit_hash"
+              if ! git revert "$commit_hash" --no-edit; then
+                echo "❌ Failed to revert $commit_hash. Exiting."
+                exit 1
+              fi
+              echo "✅ Successfully reverted $commit_hash"
+            fi
+          done
+          echo "Final commit log after reverts:"
+          git log -n 5 --oneline
+
+      - name: Add PR number to APP_DISPLAY_NAME and optionally add BUNDLE_ID_SUFFIX to BUNDLE_IDENTIFIER in Config.xcconfig
+        run: |
+          CONFIG_FILE="Config.xcconfig"
+          # 1) Update APP_DISPLAY_NAME to include PR number
+          PR_NO="${{ vars.PR_NUMBER }}"
+          DISPLAY_NAME="Trio_PR${PR_NO}"
+          if grep -q "^APP_DISPLAY_NAME *=.*" "$CONFIG_FILE"; then
+            sed -i '' "s|^APP_DISPLAY_NAME *=.*|APP_DISPLAY_NAME = ${DISPLAY_NAME}|" "$CONFIG_FILE"
+          else
+            echo "APP_DISPLAY_NAME = ${DISPLAY_NAME}" >> "$CONFIG_FILE"
+          fi
+          echo "APP_DISPLAY_NAME: $(grep '^APP_DISPLAY_NAME' $CONFIG_FILE)"
+          # 2) If suffix provided, patch BUNDLE_IDENTIFIER
+          SUFFIX="${{ vars.BUNDLE_ID_SUFFIX }}"
+          if [[ -n "$SUFFIX" ]]; then
+            BASE="trio${SUFFIX}"
+            BUNDLE_ID="org.nightscout.\$(DEVELOPMENT_TEAM).${BASE}"
+            if grep -q "^BUNDLE_IDENTIFIER *=.*" "$CONFIG_FILE"; then
+              sed -i '' "s|^BUNDLE_IDENTIFIER *=.*|BUNDLE_IDENTIFIER = ${BUNDLE_ID}|" "$CONFIG_FILE"
+            else
+              echo "BUNDLE_IDENTIFIER = ${BUNDLE_ID}" >> "$CONFIG_FILE"
+            fi
+            echo "BUNDLE_IDENTIFIER: $(grep '^BUNDLE_IDENTIFIER' $CONFIG_FILE)"
+          else
+            echo "No BUNDLE_ID_SUFFIX set, leaving bundle ID as-is:"
+            grep '^BUNDLE_IDENTIFIER' "$CONFIG_FILE" || echo "(not defined)"
+          fi
+          
+      # Patch Fastlane Match to not print tables
+      - name: Patch Match Tables
+        run: find /usr/local/lib/ruby/gems -name table_printer.rb | xargs sed -i "" "/puts(Terminal::Table.new(params))/d"
+      
+      # Install project dependencies
+      - name: Install project dependencies
+        run: bundle install
+      
+      # Build signed Trio IPA file
+      - name: Fastlane Build & Archive
+        run: bundle exec fastlane build_trio
+        env:
+          TEAMID: ${{ secrets.TEAMID }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
+          FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
+          FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      
+      # Upload to TestFlight
+      - name: Fastlane upload to TestFlight
+        run: bundle exec fastlane release
+        env:
+          TEAMID: ${{ secrets.TEAMID }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
+          FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
+          FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
+      # Upload Build artifacts
+      - name: Upload build log, IPA and Symbol artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            artifacts
+            buildlog
