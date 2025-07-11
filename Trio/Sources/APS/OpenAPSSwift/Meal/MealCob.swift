@@ -206,7 +206,7 @@ struct MealCob {
                 continue
             }
 
-            let avgDelta = (bg - bucketedData[i + 3].glucose) / 3
+            let avgDelta = ((bg - bucketedData[i + 3].glucose) / 3).jsRounded(scale: 2)
             let delta = bg - bucketedData[i + 1].glucose
 
             // Get ISF
