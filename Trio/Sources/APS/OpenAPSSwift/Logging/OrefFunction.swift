@@ -35,8 +35,7 @@ enum OrefFunction: String, Codable {
         case .makeProfile:
             return Set(["calc_glucose_noise", "enableEnliteBgproxy", "exercise_mode", "offline_hotspot"])
         case .iob:
-            // we're only checking the first result for now
-            return Set(stride(from: 1, to: 48, by: 1).map { String("[\($0)]") })
+            return Set()
         case .meal:
             // These aren't used by downstream calculations, so we
             // can ignore them in our comparison
