@@ -276,6 +276,41 @@ final class OpenAPS {
         return .bolus(bolusDTO)
     }
 
+    /// Calculate IoB
+    ///
+    /// This function will run through the IoB calculation to get the IoB at the given time. We expect
+    /// it to be used for display purposes outside of the tradiation determination code path
+    /// Parameters:
+    /// - clock: the time to use for the IoB calculation (usually Date())
+    func iobForDisplay(clock: Date) async throws -> Decimal? {
+        // Perform asynchronous calls in parallel
+        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
+        async let profileAsync = loadFileFromStorageAsync(name: Settings.profile)
+        async let autosenseAsync = loadFileFromStorageAsync(name: Settings.autosense)
+
+        // Await the results of asynchronous tasks
+        let (
+            pumpHistoryJSON,
+            profile,
+            autosens
+        ) = await (
+            try parsePumpHistory(await pumpHistoryObjectIDs),
+            profileAsync,
+            autosenseAsync
+        )
+
+        // IOB calculation
+        let iob = try await self.iob(
+            pumphistory: pumpHistoryJSON,
+            profile: profile,
+            clock: clock,
+            autosens: autosens.isEmpty ? .null : autosens
+        )
+        guard let data = iob.data(using: .utf8) else { return nil }
+        let iobResult = try JSONCoding.decoder.decode([IobResult].self, from: data)
+        return iobResult.first?.iob
+    }
+
     func determineBasal(
         currentTemp: TempBasal,
         clock: Date = Date(),

@@ -30,6 +30,7 @@ protocol APSManager {
     func roundBolus(amount: Decimal) -> Decimal
     var lastError: CurrentValueSubject<Error?, Never> { get }
     func cancelBolus(_ callback: ((Bool, String) -> Void)?) async
+    func iobForDisplay(at: Date) async throws -> Decimal?
 }
 
 enum APSError: LocalizedError {
@@ -413,6 +414,11 @@ final class BaseAPSManager: APSManager, Injectable {
 
         // Store TDD in Core Data
         await tddStorage.storeTDD(tddResult)
+    }
+
+    /// Calculate the iob at a given time using oref
+    func iobForDisplay(at: Date) async throws -> Decimal? {
+        try await openAPS.iobForDisplay(clock: at)
     }
 
     func determineBasal() async throws {

@@ -252,6 +252,8 @@
 		3BAAE60C2DE7766C0049589B /* DynamicISFEnableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */; };
 		3BAD36B22D7CDC1A00CC298D /* MainLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */; };
 		3BAD36CC2D7D420E00CC298D /* CoreDataInitializationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */; };
+		3BC4927F2E258B510051EE87 /* IobResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC4927D2E258B510051EE87 /* IobResult.swift */; };
+		3BC492812E258B860051EE87 /* IobSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC492802E258B860051EE87 /* IobSetup.swift */; };
 		3BCA5F7C2DC7B16400A7EAC7 /* pumphistory-with-external.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */; };
 		3BD6CE262DC24CFD00FA0472 /* pumphistory-24h-zoned.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BD6CE252DC24CFD00FA0472 /* pumphistory-24h-zoned.json */; };
 		3BD9687C2D8DDD4600899469 /* SlideButton in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687B2D8DDD4600899469 /* SlideButton */; };
@@ -1070,6 +1072,8 @@
 		3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFEnableTests.swift; sourceTree = "<group>"; };
 		3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainLoadingView.swift; sourceTree = "<group>"; };
 		3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataInitializationCoordinator.swift; sourceTree = "<group>"; };
+		3BC4927D2E258B510051EE87 /* IobResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobResult.swift; sourceTree = "<group>"; };
+		3BC492802E258B860051EE87 /* IobSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobSetup.swift; sourceTree = "<group>"; };
 		3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "pumphistory-with-external.json"; sourceTree = "<group>"; };
 		3BD6CE252DC24CFD00FA0472 /* pumphistory-24h-zoned.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "pumphistory-24h-zoned.json"; sourceTree = "<group>"; };
 		3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorProvider.swift; sourceTree = "<group>"; };
@@ -2144,6 +2148,7 @@
 				38192E06261BA9960094D973 /* FetchTreatmentsManager.swift */,
 				3856933F270B57A00002C50D /* CGM */,
 				38A504F625DDA0E200C5B9E8 /* Extensions */,
+				3BC4927E2E258B510051EE87 /* Models */,
 				388E5A5825B6F0070019842D /* OpenAPS */,
 				38A0362725ECF05300FCBB52 /* Storage */,
 			);
@@ -2607,6 +2612,14 @@
 			path = JSONImporterData;
 			sourceTree = "<group>";
 		};
+		3BC4927E2E258B510051EE87 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				3BC4927D2E258B510051EE87 /* IobResult.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		4E8C7B59F8065047ECE20965 /* View */ = {
 			isa = PBXGroup;
 			children = (
@@ -2682,18 +2695,19 @@
 		58645B972CA2D16A008AFCE7 /* HomeStateModel+Setup */ = {
 			isa = PBXGroup;
 			children = (
-				3B2F77872D7E5387005ED9FA /* CurrentTDDSetup.swift */,
-				BD4E1A7B2D3686D400D21626 /* StartEndMarkerSetup.swift */,
-				BD4E1A792D3681AD00D21626 /* GlucoseTargetSetup.swift */,
-				BDA6CC872CAF219800F942F9 /* TempTargetSetup.swift */,
-				58645B982CA2D1A4008AFCE7 /* GlucoseSetup.swift */,
-				58645B9A2CA2D24F008AFCE7 /* CarbSetup.swift */,
-				58645B9C2CA2D275008AFCE7 /* DeterminationSetup.swift */,
-				58645B9E2CA2D2BE008AFCE7 /* PumpHistorySetup.swift */,
-				58645BA02CA2D2F8008AFCE7 /* OverrideSetup.swift */,
 				58645BA22CA2D325008AFCE7 /* BatterySetup.swift */,
-				58645BA42CA2D347008AFCE7 /* ForecastSetup.swift */,
+				58645B9A2CA2D24F008AFCE7 /* CarbSetup.swift */,
 				58645BA62CA2D390008AFCE7 /* ChartAxisSetup.swift */,
+				3B2F77872D7E5387005ED9FA /* CurrentTDDSetup.swift */,
+				58645B9C2CA2D275008AFCE7 /* DeterminationSetup.swift */,
+				58645BA42CA2D347008AFCE7 /* ForecastSetup.swift */,
+				58645B982CA2D1A4008AFCE7 /* GlucoseSetup.swift */,
+				BD4E1A792D3681AD00D21626 /* GlucoseTargetSetup.swift */,
+				3BC492802E258B860051EE87 /* IobSetup.swift */,
+				58645BA02CA2D2F8008AFCE7 /* OverrideSetup.swift */,
+				58645B9E2CA2D2BE008AFCE7 /* PumpHistorySetup.swift */,
+				BD4E1A7B2D3686D400D21626 /* StartEndMarkerSetup.swift */,
+				BDA6CC872CAF219800F942F9 /* TempTargetSetup.swift */,
 			);
 			path = "HomeStateModel+Setup";
 			sourceTree = "<group>";
@@ -4105,6 +4119,7 @@
 				BD47FDD92D8B657D0043966B /* InsulinSensitivityStepView.swift in Sources */,
 				3862CC2E2743F9F700BF832C /* CalendarManager.swift in Sources */,
 				CEA4F62329BE10F70011ADF7 /* SavitzkyGolayFilter.swift in Sources */,
+				3BC492812E258B860051EE87 /* IobSetup.swift in Sources */,
 				38B4F3C325E2A20B00E76A18 /* PumpSetupView.swift in Sources */,
 				38E4453C274E411700EC9A94 /* Disk+Codable.swift in Sources */,
 				58D08B322C8DF88900AA37D3 /* DummyCharts.swift in Sources */,
@@ -4554,6 +4569,7 @@
 				BF1667ADE69E4B5B111CECAE /* ManualTempBasalProvider.swift in Sources */,
 				583684062BD178DB00070A60 /* GlucoseStored+helper.swift in Sources */,
 				49B9B57F2D5768D2009C6B59 /* AdjustmentStored+Helper.swift in Sources */,
+				3BC4927F2E258B510051EE87 /* IobResult.swift in Sources */,
 				F90692D6274B9A450037068D /* HealthKitStateModel.swift in Sources */,
 				BD1661312B82ADAB00256551 /* CustomProgressView.swift in Sources */,
 				C967DACD3B1E638F8B43BE06 /* ManualTempBasalStateModel.swift in Sources */,
