@@ -9,5 +9,5 @@ function generate(pumphistory_data, profile_data, clock_data, autosens_data, zer
         inputs.autosens = autosens_data;
     }
     
-    return freeaps_iobHistory.calcTempTreatments(inputs, zeroTempDuration);
+    return trio_iobHistory.calcTempTreatments(inputs, zeroTempDuration);
 }
