@@ -182,13 +182,19 @@ import Testing
         }
     }
 
+    @Test("Debug utility for checking one IOB error", .enabled(if: false)) func debugSignleIobError() async throws {
+        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/dd31e618-5023-40ca-ab7e-0fdd2475fbd9.2.json")
+        let iobInputs = algorithmComparison.iobInput!
+
+        timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
+
+        try await checkFixedJsAgainstSwift(iobInputs: iobInputs)
+
+        timeZoneForTests.resetTimezone()
+    }
+
     @Test("Debug utility for checking iob-history", .enabled(if: false)) func debugIobHistory() async throws {
-        let testBundle = Bundle(for: BundleReference.self)
-        let path = testBundle.path(forResource: "iob-error-log", ofType: "json")!
-        let data = try Data(contentsOf: URL(fileURLWithPath: path))
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .secondsSince1970
-        let algorithmComparison = try decoder.decode(AlgorithmComparison.self, from: data)
+        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/dd31e618-5023-40ca-ab7e-0fdd2475fbd9.2.json")
         let iobInputs = algorithmComparison.iobInput!
 
         timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
@@ -224,54 +230,15 @@ import Testing
         print("Writing to: \(outputURL.path)")
         try output.write(to: outputURL)
 
+        output = try encoder.encode(iobInputs)
+        sharedDir = FileManager.default.temporaryDirectory
+        outputURL = sharedDir.appendingPathComponent("js_iob_input_error.json")
+        print("Writing to: \(outputURL.path)")
+        try output.write(to: outputURL)
+
         checkHistoryConsistency(swiftTreatments: swiftIobHistory, jsTreatments: jsIobHistory)
         checkRunningBasal(swiftTreatments: swiftIobHistory, jsTreatments: jsIobHistory)
 
         timeZoneForTests.resetTimezone()
-    }
-
-    /// simple utility for creating inputs for Javascript for use in testing
-    @Test("format inputs for Javascript", .enabled(if: false)) func generateJavascriptInputs() throws {
-        let testBundle = Bundle(for: BundleReference.self)
-        let path = testBundle.path(forResource: "iob-error-log", ofType: "json")!
-        let data = try Data(contentsOf: URL(fileURLWithPath: path))
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .secondsSince1970
-        let algorithmComparison = try decoder.decode(AlgorithmComparison.self, from: data)
-        let iobInputs = algorithmComparison.iobInput!
-
-        let encoder = JSONCoding.encoder
-        let output = try encoder.encode(iobInputs)
-
-        let sharedDir = FileManager.default.temporaryDirectory
-        let outputURL = sharedDir.appendingPathComponent("js_iob_input_error.json")
-
-        // Print the path so you can find it
-        print("Writing to: \(outputURL.path)")
-
-        try output.write(to: outputURL)
-
-        timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
-
-        let treatments = try IobHistory.calcTempTreatments(
-            history: iobInputs.history.map { $0.computedEvent() },
-            profile: iobInputs.profile,
-            clock: iobInputs.clock,
-            autosens: iobInputs.autosens,
-            zeroTempDuration: nil
-        )
-
-        let iobSomething = try IobCalculation.iobTotal(treatments: treatments, profile: iobInputs.profile, time: iobInputs.clock)
-
-        timeZoneForTests.resetTimezone()
-
-        print(iobSomething.prettyPrintedJSON!)
-
-        let treatmentsOut = try encoder.encode(treatments)
-        let treatmentsUrl = sharedDir.appendingPathComponent("treatments.json")
-
-        print("Writing to: \(treatmentsUrl.path)")
-
-        try treatmentsOut.write(to: treatmentsUrl)
     }
 }

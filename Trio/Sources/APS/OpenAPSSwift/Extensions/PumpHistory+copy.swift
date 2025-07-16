@@ -1,6 +1,11 @@
 import Foundation
 
 extension PumpHistoryEvent {
+    /// Helper function that we use when filtering pump history events
+    func isSuspendOrResume() -> Bool {
+        type == .pumpSuspend || type == .pumpResume
+    }
+
     func computedEvent() -> ComputedPumpHistoryEvent {
         ComputedPumpHistoryEvent(
             id: id,

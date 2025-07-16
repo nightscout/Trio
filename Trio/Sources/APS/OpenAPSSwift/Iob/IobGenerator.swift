@@ -12,7 +12,10 @@ struct IobGenerator {
         let diaAgo = Double(profile.dia ?? 10) * 60 * 60
         // add an extra two hours to the DIA to ensure we get all temp basals
         let lastDia = clock - diaAgo - 2.hoursToSeconds
-        let pumpHistory = history.filter({ $0.timestamp >= lastDia }).map({ $0.computedEvent() })
+
+        // we have to keep all of our suspend/resume events due to a hardcoded
+        // DIA value in dealing with suspended pumps in JS
+        let pumpHistory = history.filter({ $0.timestamp >= lastDia || $0.isSuspendOrResume() }).map({ $0.computedEvent() })
 
         let treatments = try IobHistory.calcTempTreatments(
             history: pumpHistory,
