@@ -15,9 +15,11 @@ extension DataTable {
         @State private var alertCarbEntryToDelete: CarbEntryStored?
         @State private var alertGlucoseToDelete: GlucoseStored?
         @State private var showAlert = false
-        @State private var showFutureEntries: Bool = false // default to hide future entries
+        @State private var showFutureEntries: Bool = false
         @State private var showManualGlucose: Bool = false
         @State private var isAmountUnconfirmed: Bool = true
+        @State private var selectedTreatmentTypes: Set<String> = []
+        @State private var allTreatmentTypes: [String] = []
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.managedObjectContext) var context
@@ -25,38 +27,64 @@ extension DataTable {
 
         @FetchRequest(
             entity: GlucoseStored.entity(),
-            sortDescriptors: [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: false)],
+            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)],
             predicate: NSPredicate.predicateForOneDayAgo,
             animation: .bouncy
         ) var glucoseStored: FetchedResults<GlucoseStored>
 
         @FetchRequest(
             entity: PumpEventStored.entity(),
-            sortDescriptors: [NSSortDescriptor(keyPath: \PumpEventStored.timestamp, ascending: false)],
+            sortDescriptors: [NSSortDescriptor(key: "timestamp", ascending: false)],
             predicate: NSPredicate.pumpHistoryLast24h,
             animation: .bouncy
         ) var pumpEventStored: FetchedResults<PumpEventStored>
 
         @FetchRequest(
             entity: CarbEntryStored.entity(),
-            sortDescriptors: [NSSortDescriptor(keyPath: \CarbEntryStored.date, ascending: false)],
+            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)],
             predicate: NSPredicate.carbsHistory,
             animation: .bouncy
         ) var carbEntryStored: FetchedResults<CarbEntryStored>
 
         @FetchRequest(
             entity: OverrideRunStored.entity(),
-            sortDescriptors: [NSSortDescriptor(keyPath: \OverrideRunStored.startDate, ascending: false)],
+            sortDescriptors: [NSSortDescriptor(key: "startDate", ascending: false)],
             predicate: NSPredicate.overridesRunStoredFromOneDayAgo,
             animation: .bouncy
         ) var overrideRunStored: FetchedResults<OverrideRunStored>
 
         @FetchRequest(
             entity: TempTargetRunStored.entity(),
-            sortDescriptors: [NSSortDescriptor(keyPath: \TempTargetRunStored.startDate, ascending: false)],
+            sortDescriptors: [NSSortDescriptor(key: "startDate", ascending: false)],
             predicate: NSPredicate.tempTargetRunStoredFromOneDayAgo,
             animation: .bouncy
         ) var tempTargetRunStored: FetchedResults<TempTargetRunStored>
+
+        private func resolvedType(for event: PumpEventStored) -> String {
+            if let bolus = event.bolus {
+                if bolus.isSMB {
+                    return String(localized: "SMB")
+                } else if bolus.isExternal {
+                    return String(localized: "External Bolus")
+                } else {
+                    return String(localized: "Bolus")
+                }
+            } else if event.tempBasal != nil {
+                return String(localized: "Temp Basal")
+            }
+            return event.type ?? String(localized: "Unknown")
+        }
+
+        private func updateTreatmentTypes() {
+            let filtered = pumpEventStored
+                .filter { !showFutureEntries ? $0.timestamp ?? Date() <= Date() : true }
+            let types = filtered.map { resolvedType(for: $0) }
+            let newTreatmentTypes = Array(Set(types)).sorted()
+            allTreatmentTypes = newTreatmentTypes
+
+            // Prune selected types that no longer exist
+            selectedTreatmentTypes = selectedTreatmentTypes.filter { newTreatmentTypes.contains($0) }
+        }
 
         private var manualGlucoseFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -98,14 +126,21 @@ extension DataTable {
                         .background(appState.trioBackgroundColor(for: colorScheme))
                 }.blur(radius: state.waitForSuggestion ? 8 : 0)
 
-                // Show custom progress view
-                /// don't show it if glucose is stale as it will block the UI
                 if state.waitForSuggestion && state.isGlucoseDataFresh(glucoseStored.first?.date) {
                     CustomProgressView(text: progressText.displayName)
                 }
             })
                 .background(appState.trioBackgroundColor(for: colorScheme))
-                .onAppear(perform: configureView)
+                .onAppear {
+                    configureView()
+                    updateTreatmentTypes()
+                }
+                .onChange(of: pumpEventStored.map(\.objectID)) {
+                    updateTreatmentTypes()
+                }
+                .onChange(of: showFutureEntries) {
+                    updateTreatmentTypes()
+                }
                 .onDisappear {
                     state.carbEntryDeleted = false
                     state.insulinEntryDeleted = false
@@ -147,7 +182,7 @@ extension DataTable {
             switch (state.carbEntryDeleted, state.insulinEntryDeleted) {
             case (true, false):
                 return .updatingCOB
-            case(false, true):
+            case (false, true):
                 return .updatingIOB
             default:
                 return .updatingHistory
@@ -171,13 +206,9 @@ extension DataTable {
 
         private var treatmentsList: some View {
             List {
-                HStack {
-                    Text("Insulin").foregroundStyle(.secondary)
-                    Spacer()
-                    Text("Time").foregroundStyle(.secondary)
-                }
+                treatmentsHeader
                 if !pumpEventStored.isEmpty {
-                    ForEach(pumpEventStored.filter({ !showFutureEntries ? $0.timestamp ?? Date() <= Date() : true })) { item in
+                    ForEach(filteredPumpEvents) { item in
                         treatmentView(item)
                     }
                 } else {
@@ -186,7 +217,69 @@ extension DataTable {
                         systemImage: "syringe"
                     )
                 }
-            }.listRowBackground(Color.chart)
+            }
+            .listRowBackground(Color.chart)
+        }
+
+        private var treatmentsHeader: some View {
+            HStack {
+                Menu {
+                    ForEach(allTreatmentTypes, id: \.self) { type in
+                        Button {
+                            if selectedTreatmentTypes.contains(type) {
+                                selectedTreatmentTypes.remove(type)
+                            } else {
+                                selectedTreatmentTypes.insert(type)
+                            }
+                        } label: {
+                            Label(
+                                type,
+                                systemImage: selectedTreatmentTypes.contains(type) ? "checkmark" : ""
+                            )
+                        }
+                    }
+                    if !selectedTreatmentTypes.isEmpty {
+                        Divider()
+                        Button(role: .destructive) {
+                            selectedTreatmentTypes.removeAll()
+                        } label: {
+                            Label("Clear Filters", systemImage: "xmark.circle")
+                        }
+                    }
+                } label: {
+                    Label(
+                        selectedTreatmentTypes.isEmpty ? "Filters" : "Filters (\(selectedTreatmentTypes.count))",
+                        systemImage: selectedTreatmentTypes
+                            .isEmpty ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill"
+                    )
+                    .foregroundColor(selectedTreatmentTypes.isEmpty ? .primary : .blue)
+                }
+                .menuActionDismissBehavior(.disabled) // Requires Swift 17.xx
+                if !selectedTreatmentTypes.isEmpty {
+                    Button {
+                        selectedTreatmentTypes.removeAll()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.red)
+                            .accessibilityLabel("Clear Filters")
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.leading, 4)
+                }
+                Spacer()
+                Text("Time").foregroundStyle(.secondary)
+            }
+        }
+
+        private var filteredPumpEvents: [PumpEventStored] {
+            pumpEventStored
+                .filter { shouldIncludeEvent($0) }
+                .filter { !showFutureEntries ? $0.timestamp ?? Date() <= Date() : true }
+        }
+
+        private func shouldIncludeEvent(_ event: PumpEventStored) -> Bool {
+            let type = resolvedType(for: event)
+            return selectedTreatmentTypes.isEmpty || selectedTreatmentTypes.contains(type)
         }
 
         private var mealsList: some View {
@@ -258,7 +351,8 @@ extension DataTable {
                     return $0.endDate > $1.endDate
                 }
                 return $0.startDate > $1.startDate
-            } }
+            }
+        }
 
         private struct AdjustmentItem: Identifiable {
             let id: NSManagedObjectID
@@ -348,16 +442,12 @@ extension DataTable {
                     ForEach(glucoseStored) { glucose in
                         HStack {
                             Text(formatGlucose(Decimal(glucose.glucose), isManual: glucose.isManual))
-
-                            /// check for manual glucose
                             if glucose.isManual {
                                 Image(systemName: "drop.fill").symbolRenderingMode(.monochrome).foregroundStyle(.red)
                             } else {
                                 Text("\(glucose.directionEnum?.symbol ?? "--")")
                             }
-
                             Spacer()
-
                             Text(Formatter.dateFormatter.string(from: glucose.date ?? Date()))
                         }.swipeActions {
                             Button(
@@ -366,14 +456,12 @@ extension DataTable {
                                 role: .none,
                                 action: {
                                     alertGlucoseToDelete = glucose
-
                                     let glucoseToDisplay = state.units == .mgdL ? glucose.glucose
                                         .description : Int(glucose.glucose).formattedAsMmolL
                                     alertTitle = String(localized: "Delete Glucose?", comment: "Alert title for deleting glucose")
                                     alertMessage = Formatter.dateFormatter
                                         .string(from: glucose.date ?? Date()) + ", " + glucoseToDisplay + " " + state.units
                                         .rawValue
-
                                     isRemoveHistoryItemAlertPresented = true
                                 }
                             ).tint(.red)
@@ -533,16 +621,13 @@ extension DataTable {
                                 .string(from: item.timestamp ?? Date()) + ", " +
                                 (Formatter.decimalFormatterWithTwoFractionDigits.string(from: item.bolus?.amount ?? 0) ?? "0") +
                                 String(localized: " U", comment: "Insulin unit")
-
                             if let bolus = item.bolus {
-                                // Add text snippet, so that alert message is more descriptive for SMBs
                                 alertMessage += bolus.isSMB ? String(
                                     localized: " SMB",
                                     comment: "Super Micro Bolus indicator in delete alert"
                                 )
                                     : ""
                             }
-
                             isRemoveHistoryItemAlertPresented = true
                         }
                     ).tint(.red)
@@ -559,7 +644,6 @@ extension DataTable {
                         return
                     }
                     let treatmentObjectID = treatmentToDelete.objectID
-
                     state.invokeInsulinDeletionTask(treatmentObjectID)
                 }
             } message: {
@@ -585,9 +669,7 @@ extension DataTable {
                                 String(localized: " g", comment: "gram of carb equilvalents")
                         )
                     }
-
                     Spacer()
-
                     Text(Formatter.dateFormatter.string(from: meal.date ?? Date()))
                         .moveDisabled(true)
                 }
@@ -606,17 +688,13 @@ extension DataTable {
                     role: .none,
                     action: {
                         alertCarbEntryToDelete = meal
-
-                        // meal is carb-only
                         if meal.fpuID == nil {
                             alertTitle = String(localized: "Delete Carbs?", comment: "Alert title for deleting carbs")
                             alertMessage = Formatter.dateFormatter
                                 .string(from: meal.date ?? Date()) + ", " +
                                 (Formatter.decimalFormatterWithTwoFractionDigits.string(for: meal.carbs) ?? "0") +
                                 String(localized: " g", comment: "gram of carbs")
-                        }
-                        // meal is complex-meal or fpu-only
-                        else {
+                        } else {
                             alertTitle = meal.isFPU ? String(
                                 localized: "Delete Carbs Equivalents?",
                                 comment: "Alert title for deleting carb equivalents"
@@ -627,7 +705,6 @@ extension DataTable {
                                 comment: "Alert message for meal deletion"
                             )
                         }
-
                         isRemoveHistoryItemAlertPresented = true
                     }
                 ).tint(.red)
@@ -655,7 +732,6 @@ extension DataTable {
                         return
                     }
                     let treatmentObjectID = carbEntryToDelete.objectID
-
                     state.invokeCarbDeletionTask(
                         treatmentObjectID,
                         isFpuOrComplexMeal: carbEntryToDelete.isFPU || carbEntryToDelete.fat > 0 || carbEntryToDelete.protein > 0
@@ -666,13 +742,10 @@ extension DataTable {
             }
         }
 
-        // MARK: - Format glucose
-
         private func formatGlucose(_ value: Decimal, isManual: Bool) -> String {
             let formatter = isManual ? manualGlucoseFormatter : Formatter.glucoseFormatter(for: state.units)
             let glucoseValue = state.units == .mmolL ? value.asMmolL : value
             let formattedValue = formatter.string(from: glucoseValue as NSNumber) ?? "--"
-
             return formattedValue
         }
     }
