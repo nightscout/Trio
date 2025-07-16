@@ -27,8 +27,8 @@ struct LiveActivityView: View {
 
         return Color.getDynamicGlucoseColor(
             glucoseValue: Decimal(string: state.bg) ?? 100,
-            highGlucoseColorValue: !hasStaticColorScheme ? hardCodedHigh : state.highGlucose,
-            lowGlucoseColorValue: !hasStaticColorScheme ? hardCodedLow : state.lowGlucose,
+            highGlucoseColorValue: !hasStaticColorScheme ? hardCodedHigh : (isMgdL ? state.highGlucose : state.highGlucose.asMmolL),
+            lowGlucoseColorValue: !hasStaticColorScheme ? hardCodedLow : (isMgdL ? state.lowGlucose : state.lowGlucose.asMmolL),
             targetGlucose: isMgdL ? state.target : state.target.asMmolL,
             glucoseColorScheme: state.glucoseColorScheme
         )
