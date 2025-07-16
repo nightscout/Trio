@@ -43,8 +43,13 @@ final class SimpleLogReporter: IssueReporter {
         }
 
         let logEntry = "\(dateFormatter.string(from: now)) [\(category)] \(file.file) - \(function) - \(line) - \(message)\n"
-        let data = logEntry.data(using: .utf8)!
-        try? data.append(fileURL: URL(fileURLWithPath: SimpleLogReporter.logFile))
+
+        do {
+            let data = logEntry.data(using: .utf8)!
+            try data.append(fileURL: URL(fileURLWithPath: SimpleLogReporter.logFile))
+        } catch {
+            // Silently ignore logging errors to prevent crashes during pump operations
+        }
     }
 
     private func createFile(at date: Date) {
@@ -112,13 +117,15 @@ extension SimpleLogReporter {
 
 private extension Data {
     func append(fileURL: URL) throws {
-        if let fileHandle = FileHandle(forWritingAtPath: fileURL.path) {
-            defer {
-                fileHandle.closeFile()
-            }
-            fileHandle.seekToEndOfFile()
-            fileHandle.write(self)
+        // Use Swift's safer file API instead of FileHandle to avoid NSFileHandleOperationException
+        // FileHandle.write() throws NSException which cannot be caught by Swift's do-catch
+        if FileManager.default.fileExists(atPath: fileURL.path) {
+            // For existing files, read current content and append new data
+            let existingData = try Data(contentsOf: fileURL)
+            let combinedData = existingData + self
+            try combinedData.write(to: fileURL, options: .atomic)
         } else {
+            // For new files, write directly
             try write(to: fileURL, options: .atomic)
         }
     }
