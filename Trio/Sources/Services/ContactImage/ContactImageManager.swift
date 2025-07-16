@@ -98,13 +98,12 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             fetchLimit: 1
         )
 
-        return try await backgroundContext.perform {
-            guard let fetchedResults = results as? [OrefDetermination] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            return fetchedResults.map(\.objectID)
+        // The results are already processed on the background context, no need for another perform block
+        guard let fetchedResults = results as? [OrefDetermination] else {
+            throw CoreDataError.fetchError(function: #function, file: #file)
         }
+
+        return fetchedResults.map(\.objectID)
     }
 
     private func fetchGlucose() async throws -> [NSManagedObjectID] {
@@ -117,13 +116,12 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             fetchLimit: 3 /// We only need 1-3 values, depending on whether the user wants to show delta or not
         )
 
-        return try await backgroundContext.perform {
-            guard let glucoseResults = results as? [GlucoseStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            return glucoseResults.map(\.objectID)
+        // The results are already processed on the background context, no need for another perform block
+        guard let glucoseResults = results as? [GlucoseStored] else {
+            throw CoreDataError.fetchError(function: #function, file: #file)
         }
+
+        return glucoseResults.map(\.objectID)
     }
 
     private func getCurrentGlucoseTarget() async -> Decimal? {
