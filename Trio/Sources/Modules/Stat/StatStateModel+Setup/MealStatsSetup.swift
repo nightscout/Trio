@@ -147,7 +147,8 @@ extension Stat.StateModel {
     /// - Parameter range: A tuple containing the start and end dates to get averages for
     /// - Returns: A tuple containing the average carbs, fat and protein values for the date range
     func getCachedMealAverages(for range: (start: Date, end: Date)) -> (carbs: Double, fat: Double, protein: Double) {
-        return calculateAveragesForDateRange(from: range.start, to: range.end)
+        let result = calculateAveragesForDateRange(from: range.start, to: range.end)
+        return result
     }
 
     /// Calculates the average macronutrient values for a given date range
@@ -157,12 +158,19 @@ extension Stat.StateModel {
     /// - Returns: A tuple containing the average carbs, fat and protein values for the date range
     func calculateAveragesForDateRange(from startDate: Date, to endDate: Date) -> (carbs: Double, fat: Double, protein: Double) {
         // Filter cached values to only include those within the date range
+        // Use the same day boundary logic as the chart
+        let calendar = Calendar.current
+        let alignedStartDate = calendar.startOfDay(for: startDate)
+        let alignedEndDate = calendar.startOfDay(for: endDate)
+        
         let relevantStats = dailyAveragesCache.filter { date, _ in
-            date >= startDate && date <= endDate
+            date >= alignedStartDate && date <= alignedEndDate
         }
 
         // Return zeros if no data exists for the range
-        guard !relevantStats.isEmpty else { return (0, 0, 0) }
+        guard !relevantStats.isEmpty else { 
+            return (0, 0, 0) 
+        }
 
         // Calculate total macronutrients across all days
         let total = relevantStats.values.reduce((0.0, 0.0, 0.0)) { acc, avg in
