@@ -27,6 +27,7 @@ import Testing
                 }
                 if let str = algorithmComparison.swiftException {
                     print(str)
+                    #expect(Bool(false), "Swift exception on meal")
                 }
                 continue
             }
