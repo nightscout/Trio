@@ -177,7 +177,7 @@ enum DeterminationGenerator {
 
         // used for pre dosing decision sanity later on
         let expectedDelta = calculateExpectedDelta(
-            targetGlucose: profile.targetBg ?? 100,
+            targetGlucose: profile.minBg ?? 100,
             eventualGlucose: eventualGlucose,
             glucoseImpact: currentGlucoseImpact
         )

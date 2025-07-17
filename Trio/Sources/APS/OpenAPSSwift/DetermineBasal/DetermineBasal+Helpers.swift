@@ -113,9 +113,9 @@ extension DeterminationGenerator {
         // to move eventual glucose to target over a 2 hr window
         // TODO: expects that glucose can only be available in 5min chunks. do we need to change this handling?
 
-        let fiveMinuteBlocks = (2 * 60) / 5
+        let fiveMinuteBlocks = Decimal((2 * 60) / 5)
         let delta = targetGlucose - eventualGlucose
-        return (glucoseImpact + Decimal(Int(delta) / fiveMinuteBlocks)).rounded(toPlaces: 1)
+        return (glucoseImpact + (delta / fiveMinuteBlocks)).rounded(toPlaces: 1)
     }
 
     /// Determines whether SMBs are enabled based on profile settings,

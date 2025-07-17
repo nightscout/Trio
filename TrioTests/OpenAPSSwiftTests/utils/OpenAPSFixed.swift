@@ -13,6 +13,74 @@ final class OpenAPSFixed {
         return try JSONBridge.to(pumpHistorySwift.sorted(by: { $0.timestamp > $1.timestamp }))
     }
 
+    private func middlewareScript(name: String) -> Script? {
+        if let url = Foundation.Bundle.main.url(forResource: "javascript/\(name)", withExtension: "") {
+            do {
+                let body = try String(contentsOf: url)
+                return Script(name: name, body: body)
+            } catch {
+                debug(.openAPS, "Failed to load script \(name): \(error)")
+            }
+        }
+
+        return nil
+    }
+
+    func determineBasalJavascript(
+        glucose: JSON,
+        currentTemp: JSON,
+        iob: JSON,
+        profile: JSON,
+        autosens: JSON,
+        meal: JSON,
+        microBolusAllowed: Bool,
+        reservoir: JSON,
+        pumpHistory: JSON,
+        preferences: JSON,
+        basalProfile: JSON,
+        trioCustomOrefVariables: JSON,
+        clock: Date
+    ) async throws -> OrefFunctionResult {
+        do {
+            let worker = JavaScriptWorker(poolSize: 1)
+            let testBundle = Bundle(for: OpenAPSFixed.self)
+            let result = try await withCheckedThrowingContinuation { continuation in
+                worker.evaluateBatch(scripts: [
+                    Script(name: "prepare/log.js"),
+                    Script.fromTestingBundle(name: "determine-basal-prepare.js", bundle: testBundle),
+                    Script.fromTestingBundle(name: "basal-set-temp.js", bundle: testBundle),
+                    Script.fromTestingBundle(name: "glucose-get-last.js", bundle: testBundle),
+                    Script.fromTestingBundle(name: "determine-basal.js", bundle: testBundle)
+                ])
+
+                if let middleware = self.middlewareScript(name: OpenAPS.Middleware.determineBasal) {
+                    worker.evaluate(script: middleware)
+                }
+
+                let result = worker.call(function: "generate", with: [
+                    iob,
+                    currentTemp,
+                    glucose,
+                    profile,
+                    autosens,
+                    meal,
+                    microBolusAllowed,
+                    reservoir,
+                    clock,
+                    pumpHistory,
+                    preferences,
+                    basalProfile,
+                    trioCustomOrefVariables
+                ])
+
+                continuation.resume(returning: result)
+            }
+            return .success(result)
+        } catch {
+            return .failure(error)
+        }
+    }
+
     func iobHistory(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON, zeroTempDuration: JSON) async throws -> JSON {
         let jsWorker = JavaScriptWorker(poolSize: 1)
         let testBundle = Bundle(for: OpenAPSFixed.self)
