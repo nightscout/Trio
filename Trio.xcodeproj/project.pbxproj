@@ -449,6 +449,10 @@
 		C29E268A2DADFD2A00F87E75 /* GlucoseDailyPercentileChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = C29E26892DADFD2A00F87E75 /* GlucoseDailyPercentileChart.swift */; };
 		C2A0A42F2CE03131003B98E8 /* ConstantValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A0A42E2CE0312C003B98E8 /* ConstantValues.swift */; };
 		C2A6D1E42DB1581D0036DB66 /* GlucoseStatsSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A6D1E32DB1581D0036DB66 /* GlucoseStatsSetup.swift */; };
+		C2AA6CF62E1A734A00BF6C16 /* ExportRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2AA6CF02E1A734A00BF6C16 /* ExportRootView.swift */; };
+		C2AA6CF72E1A734A00BF6C16 /* ExportProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2AA6CF32E1A734A00BF6C16 /* ExportProvider.swift */; };
+		C2AA6CF82E1A734A00BF6C16 /* ExportDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2AA6CF22E1A734A00BF6C16 /* ExportDataFlow.swift */; };
+		C2AA6CF92E1A734A00BF6C16 /* ExportStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2AA6CF42E1A734A00BF6C16 /* ExportStateModel.swift */; };
 		C967DACD3B1E638F8B43BE06 /* ManualTempBasalStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFCFE0781F9074C2917890E8 /* ManualTempBasalStateModel.swift */; };
 		CA370FC152BC98B3D1832968 /* BasalProfileEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8BCB0C37DEB5EC377B9612 /* BasalProfileEditorRootView.swift */; };
 		CC6C406E2ACDD69E009B8058 /* RawFetchedProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */; };
@@ -1269,6 +1273,10 @@
 		C29E26892DADFD2A00F87E75 /* GlucoseDailyPercentileChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseDailyPercentileChart.swift; sourceTree = "<group>"; };
 		C2A0A42E2CE0312C003B98E8 /* ConstantValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstantValues.swift; sourceTree = "<group>"; };
 		C2A6D1E32DB1581D0036DB66 /* GlucoseStatsSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseStatsSetup.swift; sourceTree = "<group>"; };
+		C2AA6CF02E1A734A00BF6C16 /* ExportRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportRootView.swift; sourceTree = "<group>"; };
+		C2AA6CF22E1A734A00BF6C16 /* ExportDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDataFlow.swift; sourceTree = "<group>"; };
+		C2AA6CF32E1A734A00BF6C16 /* ExportProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportProvider.swift; sourceTree = "<group>"; };
+		C2AA6CF42E1A734A00BF6C16 /* ExportStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportStateModel.swift; sourceTree = "<group>"; };
 		C377490C77661D75E8C50649 /* ManualTempBasalRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualTempBasalRootView.swift; sourceTree = "<group>"; };
 		C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TreatmentsDataFlow.swift; sourceTree = "<group>"; };
 		CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawFetchedProfile.swift; sourceTree = "<group>"; };
@@ -1880,6 +1888,7 @@
 				E592A3762CEEC038009A472C /* ContactImage */,
 				9E56E3626FAD933385101B76 /* DataTable */,
 				195D80B22AF696EE00D25097 /* DynamicSettings */,
+				C2AA6CF52E1A734A00BF6C16 /* Export */,
 				DD17454C2C55CA0200211FAC /* GeneralSettings */,
 				F66B236E00924A05D6A9F9DF /* GlucoseNotificationSettings */,
 				F90692CD274B99850037068D /* HealthKit */,
@@ -3028,6 +3037,25 @@
 				BDFF7A922D25F97D0016C40C /* TrioWatchAppExtension.swift */,
 			);
 			path = "Trio Watch App";
+			sourceTree = "<group>";
+		};
+		C2AA6CF12E1A734A00BF6C16 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				C2AA6CF02E1A734A00BF6C16 /* ExportRootView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		C2AA6CF52E1A734A00BF6C16 /* Export */ = {
+			isa = PBXGroup;
+			children = (
+				C2AA6CF12E1A734A00BF6C16 /* View */,
+				C2AA6CF22E1A734A00BF6C16 /* ExportDataFlow.swift */,
+				C2AA6CF32E1A734A00BF6C16 /* ExportProvider.swift */,
+				C2AA6CF42E1A734A00BF6C16 /* ExportStateModel.swift */,
+			);
+			path = Export;
 			sourceTree = "<group>";
 		};
 		C2C98283C436DB934D7E7994 /* Treatments */ = {
@@ -4359,6 +4387,10 @@
 				DD6A4E842DBEDD39008C4B26 /* AlgorithmSettingsImportantNotesStepView.swift in Sources */,
 				3811DEB025C9D88300A708ED /* BaseKeychain.swift in Sources */,
 				110AEDE42C5193D200615CC9 /* BolusIntentRequest.swift in Sources */,
+				C2AA6CF62E1A734A00BF6C16 /* ExportRootView.swift in Sources */,
+				C2AA6CF72E1A734A00BF6C16 /* ExportProvider.swift in Sources */,
+				C2AA6CF82E1A734A00BF6C16 /* ExportDataFlow.swift in Sources */,
+				C2AA6CF92E1A734A00BF6C16 /* ExportStateModel.swift in Sources */,
 				3811DE4325C9D4A100A708ED /* SettingsProvider.swift in Sources */,
 				45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */,
 				CE7CA34E2A064973004BE681 /* AppShortcuts.swift in Sources */,
