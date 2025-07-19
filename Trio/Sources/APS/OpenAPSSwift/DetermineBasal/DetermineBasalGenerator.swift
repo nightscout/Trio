@@ -13,14 +13,17 @@ enum DeterminationGenerator {
 
     static func generate(
         profile: Profile,
+        preferences: Preferences,
         currentTemp: TempBasal,
         iobData: [IobResult],
         mealData: ComputedCarbs,
         autosensData: Autosens,
         reservoirData _: Decimal,
         glucose: [BloodGlucose],
+        trioCustomOrefVariables: TrioCustomOrefVariables,
         currentTime: Date
     ) throws -> Determination? {
+        var autosensData = autosensData
         let glucoseStatus = try Self.getGlucoseStatus(glucoseReadings: glucose)
 
         try checkDeterminationInputs(
@@ -44,17 +47,44 @@ enum DeterminationGenerator {
             return errorDetermination
         }
 
-        let sensitivityRatio = calculateSensitivityRatio(
+        let sensitivityRatio: Decimal
+        let dynamicIsfResult = DynamicISF.calculate(
             profile: profile,
-            autosens: autosensData,
-            targetGlucose: profile.targetBg ?? 120,
-            temptargetSet: profile.temptargetSet ?? false
+            preferences: preferences,
+            currentGlucose: currentGlucose,
+            trioCustomOrefVariables: trioCustomOrefVariables
         )
 
-        let basal = computeAdjustedBasal(
-            currentBasalRate: profile.currentBasal ?? profile.basalFor(time: currentTime),
-            sensitivityRatio: sensitivityRatio
-        )
+        // TODO: We need to add the dynamicIsfResult to our forcasting functions
+        if let dynamicIsfResult = dynamicIsfResult {
+            sensitivityRatio = dynamicIsfResult.ratio
+            autosensData = Autosens(
+                ratio: dynamicIsfResult.ratio,
+                newisf: autosensData.newisf,
+                deviationsUnsorted: autosensData.deviationsUnsorted,
+                timestamp: autosensData.timestamp
+            )
+        } else {
+            sensitivityRatio = calculateSensitivityRatio(
+                profile: profile,
+                autosens: autosensData,
+                targetGlucose: profile.targetBg ?? 120,
+                temptargetSet: profile.temptargetSet ?? false
+            )
+        }
+
+        let basal: Decimal
+        if let dynamicIsfResult = dynamicIsfResult, profile.tddAdjBasal {
+            basal = computeAdjustedBasal(
+                currentBasalRate: profile.currentBasal ?? profile.basalFor(time: currentTime),
+                sensitivityRatio: dynamicIsfResult.tddRatio
+            )
+        } else {
+            basal = computeAdjustedBasal(
+                currentBasalRate: profile.currentBasal ?? profile.basalFor(time: currentTime),
+                sensitivityRatio: sensitivityRatio
+            )
+        }
         let sensitivity = computeAdjustedSensitivity(
             sensitivity: profile.sens ?? profile.sensitivityFor(time: currentTime),
             sensitivityRatio: sensitivityRatio

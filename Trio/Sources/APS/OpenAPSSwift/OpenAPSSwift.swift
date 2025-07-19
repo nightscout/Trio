@@ -96,12 +96,14 @@ struct OpenAPSSwift {
 
             let rawDetermination = try DeterminationGenerator.generate(
                 profile: profile,
+                preferences: preferences,
                 currentTemp: currentTemp,
                 iobData: iob,
                 mealData: mealData,
                 autosensData: autosensData,
                 reservoirData: reservoir ?? 100,
                 glucose: glucose,
+                trioCustomOrefVariables: trioCustomOrefVariables,
                 currentTime: clock
             )
 
