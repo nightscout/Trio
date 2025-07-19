@@ -112,7 +112,9 @@ enum OrefFunction: String, Codable {
                 "newisf": 1.5
             ]
         case .determineBasal:
-            return [:]
+            return [
+                "sensitivityRatio": 0.011 // consistent with Autosens
+            ]
         }
     }
 
