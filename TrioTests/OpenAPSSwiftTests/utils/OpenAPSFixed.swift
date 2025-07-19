@@ -8,14 +8,13 @@ import JavaScriptCore
 /// We can use this during testing to confirm that for an input that generated an error that a corrected
 /// Javascript implementation would have produced the same results
 final class OpenAPSFixed {
-    private let jsWorker = JavaScriptWorker()
-
     func sortPumpHistory(pumpHistory: JSON) throws -> JSON {
         let pumpHistorySwift = try JSONBridge.pumpHistory(from: pumpHistory)
         return try JSONBridge.to(pumpHistorySwift.sorted(by: { $0.timestamp > $1.timestamp }))
     }
 
     func iobHistory(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON, zeroTempDuration: JSON) async throws -> JSON {
+        let jsWorker = JavaScriptWorker(poolSize: 1)
         let testBundle = Bundle(for: OpenAPSFixed.self)
         let pumphistory: JSON = try! sortPumpHistory(pumpHistory: pumphistory)
         let result = try await withCheckedThrowingContinuation { continuation in
@@ -47,6 +46,7 @@ final class OpenAPSFixed {
         carbs: JSON,
         glucose: JSON
     ) async -> OrefFunctionResult {
+        let jsWorker = JavaScriptWorker(poolSize: 1)
         let testBundle = Bundle(for: OpenAPSFixed.self)
         do {
             let result = try await withCheckedThrowingContinuation { continuation in
@@ -84,6 +84,7 @@ final class OpenAPSFixed {
     ) async -> OrefFunctionResult {
         do {
             let result = try await withCheckedThrowingContinuation { continuation in
+                let jsWorker = JavaScriptWorker(poolSize: 1)
                 let testBundle = Bundle(for: OpenAPSFixed.self)
                 jsWorker.inCommonContext { worker in
                     worker.evaluateBatch(scripts: [
@@ -114,6 +115,7 @@ final class OpenAPSFixed {
             let testBundle = Bundle(for: OpenAPSFixed.self)
             let pumphistory: JSON = try! sortPumpHistory(pumpHistory: pumphistory)
             let result = try await withCheckedThrowingContinuation { continuation in
+                let jsWorker = JavaScriptWorker(poolSize: 1)
                 jsWorker.inCommonContext { worker in
                     worker.evaluateBatch(scripts: [
                         Script(name: "prepare/log.js"),
