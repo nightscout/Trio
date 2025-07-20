@@ -36,7 +36,9 @@ enum DynamicISF {
             tdd = trioCustomOrefVariables.currentTDD
         }
 
-        guard preferences.useNewFormula, tdd > 0, var sensitivity = profile.sens, var profileTarget = profile.minBg else {
+        guard preferences.useNewFormula, tdd > 0, var sensitivity = profile.sens,
+              let profileTarget = profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables)
+        else {
             return nil
         }
 
@@ -45,13 +47,6 @@ enum DynamicISF {
             if trioCustomOrefVariables.isfAndCr || trioCustomOrefVariables.isf {
                 sensitivity = sensitivity / overrideFactor
             }
-        }
-
-        let overrideTarget = trioCustomOrefVariables.overrideTarget
-        if overrideTarget != 0, overrideTarget != 6, trioCustomOrefVariables
-            .useOverride, !(profile.temptargetSet ?? false)
-        {
-            profileTarget = overrideTarget
         }
 
         let minLimit = min(profile.autosensMin, profile.autosensMax)

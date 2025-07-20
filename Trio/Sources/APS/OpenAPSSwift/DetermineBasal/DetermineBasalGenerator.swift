@@ -68,7 +68,7 @@ enum DeterminationGenerator {
             sensitivityRatio = calculateSensitivityRatio(
                 profile: profile,
                 autosens: autosensData,
-                targetGlucose: profile.targetBg ?? 120,
+                targetGlucose: profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables) ?? 120,
                 temptargetSet: profile.temptargetSet ?? false
             )
         }
