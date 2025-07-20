@@ -57,7 +57,7 @@ extension DeterminationGenerator {
             // only use readings >38 mg/dL (to skip code values, <39)
             guard entry.glucose > 38 else { continue }
 
-            let minutesAgo = mostRecentGlucoseDate.timeIntervalSince(entry.date) / 60
+            let minutesAgo = (mostRecentGlucoseDate.timeIntervalSince(entry.date) / 60).rounded()
             guard minutesAgo != 0 else { continue }
             // compute mg/dL per 5 m as a Decimal:
             let change = Decimal(mostRecentGlucoseReading - entry.glucose)

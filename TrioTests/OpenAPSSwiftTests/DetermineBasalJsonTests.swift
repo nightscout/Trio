@@ -97,13 +97,13 @@ import Testing
         #expect(comparison.resultType == .matching)
     }
 
-    @Test("Format determineBasal inputs for running in JS", .enabled(if: false)) func formatInputs() async throws {
+    @Test("Format determineBasal inputs for running in JS", .enabled(if: true)) func formatInputs() async throws {
         let openAps = OpenAPSFixed()
 
         // this test is meant for one-off analysis so it's ok to hard code
         // a file, just make sure to _not_ check in updates to this to
         // avoid polluting our change logs
-        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/f1d04efa-c39b-4f0a-9955-65ab663ff9fb.0.json")
+        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/0341b91d-c75b-462b-b5a1-5aee9e973bc8.1.json")
         let determineBasalInput = algorithmComparison.determineBasalInput!
 
         let encoder = JSONCoding.encoder

@@ -72,7 +72,10 @@ enum OrefFunction: String, Codable {
                 // in Swift but not in JS
                 "timestamp",
                 "minGuardBG",
-                "minPredBG"
+                "minPredBG",
+                // We haven't implemented DynamicISF support for forecasting yet
+                "predBGs",
+                "eventualBG"
             ])
         }
     }
