@@ -116,7 +116,8 @@ enum OrefFunction: String, Codable {
             ]
         case .determineBasal:
             return [
-                "sensitivityRatio": 0.011 // consistent with Autosens
+                "sensitivityRatio": 0.011,
+                "expectedDelta": 0.11
             ]
         }
     }

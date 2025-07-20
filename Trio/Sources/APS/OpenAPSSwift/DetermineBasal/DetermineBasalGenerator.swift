@@ -151,7 +151,7 @@ enum DeterminationGenerator {
             withZeroTemp: true
         )
 
-        guard let currentGlucoseImpact = glucoseImpactSeries.first?.rounded(scale: 2) else {
+        guard let currentGlucoseImpact = glucoseImpactSeries.first?.jsRounded(scale: 2) else {
             throw DeterminationError.determinationError
         }
 
