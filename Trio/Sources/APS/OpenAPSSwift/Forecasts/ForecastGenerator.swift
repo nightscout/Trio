@@ -16,10 +16,10 @@ enum ForecastGenerator {
         threshold: Decimal,
         currentTime: Date
     ) -> ForecastResult {
-        let carbImpact = mealData
-            .currentDeviation * (profile.carbRatio ?? profile.carbRatioFor(time: currentTime)) /
+        let currentDeviation = mealData.currentDeviation ?? 0
+        let carbImpact = currentDeviation * (profile.carbRatio ?? profile.carbRatioFor(time: currentTime)) /
             (profile.sens ?? profile.sensitivityFor(time: currentTime))
-        let deviation = mealData.currentDeviation
+        let deviation = currentDeviation
 
         // JS oref initializes all xxxPredBGs array with current glucose, we do the same, then generate
         let iobForecast = [glucose] + forecastIOB(
