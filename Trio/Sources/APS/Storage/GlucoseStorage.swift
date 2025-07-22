@@ -82,25 +82,46 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         }
     }
 
+    /// filter out duplicate CGM readings
+    ///
+    /// This function will look through existing stored CGM values and filter out any new CGM values that
+    /// already exist. It does matching using dates and adds a small amount of time buffer for matching (1 second)
+    /// to account for precision loss that can happen with backfill CGM readings.
     private func filterNewGlucoseValues(_ glucose: [BloodGlucose]) -> [BloodGlucose] {
-        let datesToCheck: Set<Date?> = Set(glucose.compactMap { $0.dateString as Date? })
+        let datesToCheck = glucose.map(\.dateString).sorted()
+        guard let firstDate = datesToCheck.first.map({ $0.addingTimeInterval(-1) }),
+              let lastDate = datesToCheck.last.map({ $0.addingTimeInterval(1) })
+        else {
+            return glucose
+        }
         let fetchRequest: NSFetchRequest<NSFetchRequestResult> = GlucoseStored.fetchRequest()
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-            NSPredicate(format: "date IN %@", datesToCheck),
-            NSPredicate.predicateForOneDayAgo
+            NSPredicate(format: "date >= %@", firstDate as NSDate),
+            NSPredicate(format: "date <= %@", lastDate as NSDate)
         ])
         fetchRequest.propertiesToFetch = ["date"]
         fetchRequest.resultType = .dictionaryResultType
 
-        var existingDates = Set<Date>()
+        var existingDates = [Date]()
         do {
             let results = try context.fetch(fetchRequest) as? [NSDictionary]
-            existingDates = Set(results?.compactMap({ $0["date"] as? Date }) ?? [])
+            existingDates = results?.compactMap({ $0["date"] as? Date }) ?? []
         } catch {
             debugPrint("Failed to fetch existing glucose dates: \(error)")
         }
 
-        return glucose.filter { !existingDates.contains($0.dateString) }
+        // This is an inefficient filtering algorithm, but I'm assuming that the
+        // time spans are short and that duplicates are rare, so in the common
+        // case there won't be any existing dates.
+        return glucose.filter { glucose in
+            for existingDate in existingDates {
+                let difference = abs(existingDate.timeIntervalSince(glucose.dateString))
+                if difference <= 1 {
+                    return false
+                }
+            }
+            return true
+        }
     }
 
     private func storeGlucoseInCoreData(_ glucose: [BloodGlucose]) throws {
