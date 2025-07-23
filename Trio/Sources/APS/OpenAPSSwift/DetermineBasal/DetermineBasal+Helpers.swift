@@ -357,3 +357,18 @@ extension DeterminationGenerator {
         }
     }
 }
+
+extension Profile {
+    /// This function calculates the `profileTarget` variable from Javascript's determineBasal function
+    /// including the adjustments for overrides
+    func profileTarget(trioCustomOrefVariables: TrioCustomOrefVariables) -> Decimal? {
+        let overrideTarget = trioCustomOrefVariables.overrideTarget
+        if overrideTarget != 0, overrideTarget != 6, trioCustomOrefVariables
+            .useOverride, !(temptargetSet ?? false)
+        {
+            return overrideTarget
+        }
+
+        return minBg
+    }
+}
