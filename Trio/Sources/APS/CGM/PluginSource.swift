@@ -15,8 +15,6 @@ final class PluginSource: GlucoseSource {
 
     var cgmHasValidSensorSession: Bool = false
 
-    private var promise: Future<[BloodGlucose], Error>.Promise?
-
     init(glucoseStorage: GlucoseStorage, glucoseManager: FetchGlucoseManager) {
         self.glucoseStorage = glucoseStorage
         self.glucoseManager = glucoseManager
@@ -34,25 +32,12 @@ final class PluginSource: GlucoseSource {
     /// - Parameter timer: An optional `DispatchTimer` (not used in the function but can be used to trigger fetch logic).
     /// - Returns: An `AnyPublisher` that emits an array of `BloodGlucose` values or an empty array if an error occurs or the timeout is reached.
     func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
-        Publishers.Merge(
-            callBLEFetch(),
-            fetchIfNeeded()
-        )
-        .filter { !$0.isEmpty }
-        .first()
-        .timeout(60 * 5, scheduler: processQueue, options: nil, customError: nil)
-        .replaceError(with: [])
-        .eraseToAnyPublisher()
-    }
-
-    func callBLEFetch() -> AnyPublisher<[BloodGlucose], Never> {
-        Future<[BloodGlucose], Error> { [weak self] promise in
-            self?.promise = promise
-        }
-        .timeout(60 * 5, scheduler: processQueue, options: nil, customError: nil)
-        .replaceError(with: [])
-        .replaceEmpty(with: [])
-        .eraseToAnyPublisher()
+        fetchIfNeeded()
+            .filter { !$0.isEmpty }
+            .first()
+            .timeout(60 * 5, scheduler: processQueue, options: nil, customError: nil)
+            .replaceError(with: [])
+            .eraseToAnyPublisher()
     }
 
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
@@ -129,7 +114,13 @@ extension PluginSource: CGMManagerDelegate {
 
             dispatchPrecondition(condition: .onQueue(self.processQueue))
 
-            self.promise?(self.readCGMResult(readingResult: readingResult))
+            switch self.readCGMResult(readingResult: readingResult) {
+            case let .success(glucose):
+                self.glucoseManager?.newGlucoseFromCgmManager(newGlucose: glucose)
+            case .failure:
+                debug(.deviceManager, "CGM PLUGIN - unable to read CGM result")
+            }
+
             debug(.deviceManager, "CGM PLUGIN - Direct return done")
         }
     }
