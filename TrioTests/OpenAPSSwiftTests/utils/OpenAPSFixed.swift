@@ -42,38 +42,40 @@ final class OpenAPSFixed {
         clock: Date
     ) async throws -> OrefFunctionResult {
         do {
-            let worker = JavaScriptWorker(poolSize: 1)
+            let jsWorker = JavaScriptWorker(poolSize: 1)
             let testBundle = Bundle(for: OpenAPSFixed.self)
             let result = try await withCheckedThrowingContinuation { continuation in
-                worker.evaluateBatch(scripts: [
-                    Script(name: "prepare/log.js"),
-                    Script.fromTestingBundle(name: "determine-basal-prepare.js", bundle: testBundle),
-                    Script.fromTestingBundle(name: "basal-set-temp.js", bundle: testBundle),
-                    Script.fromTestingBundle(name: "glucose-get-last.js", bundle: testBundle),
-                    Script.fromTestingBundle(name: "determine-basal.js", bundle: testBundle)
-                ])
-
-                if let middleware = self.middlewareScript(name: OpenAPS.Middleware.determineBasal) {
-                    worker.evaluate(script: middleware)
+                jsWorker.inCommonContext { worker in
+                    worker.evaluateBatch(scripts: [
+                        Script(name: "prepare/log.js"),
+                        Script.fromTestingBundle(name: "determine-basal-prepare.js", bundle: testBundle),
+                        Script.fromTestingBundle(name: "basal-set-temp.js", bundle: testBundle),
+                        Script.fromTestingBundle(name: "glucose-get-last.js", bundle: testBundle),
+                        Script.fromTestingBundle(name: "determine-basal.js", bundle: testBundle)
+                    ])
+                    
+                    if let middleware = self.middlewareScript(name: OpenAPS.Middleware.determineBasal) {
+                        worker.evaluate(script: middleware)
+                    }
+                    
+                    let result = worker.call(function: "generate", with: [
+                        iob,
+                        currentTemp,
+                        glucose,
+                        profile,
+                        autosens,
+                        meal,
+                        microBolusAllowed,
+                        reservoir,
+                        clock,
+                        pumpHistory,
+                        preferences,
+                        basalProfile,
+                        trioCustomOrefVariables
+                    ])
+                    
+                    continuation.resume(returning: result)
                 }
-
-                let result = worker.call(function: "generate", with: [
-                    iob,
-                    currentTemp,
-                    glucose,
-                    profile,
-                    autosens,
-                    meal,
-                    microBolusAllowed,
-                    reservoir,
-                    clock,
-                    pumpHistory,
-                    preferences,
-                    basalProfile,
-                    trioCustomOrefVariables
-                ])
-
-                continuation.resume(returning: result)
             }
             return .success(result)
         } catch {
