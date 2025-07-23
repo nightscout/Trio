@@ -57,7 +57,7 @@ extension DeterminationGenerator {
             // only use readings >38 mg/dL (to skip code values, <39)
             guard entry.glucose > 38 else { continue }
 
-            let minutesAgo = mostRecentGlucoseDate.timeIntervalSince(entry.date) / 60
+            let minutesAgo = (mostRecentGlucoseDate.timeIntervalSince(entry.date) / 60).rounded()
             guard minutesAgo != 0 else { continue }
             // compute mg/dL per 5 m as a Decimal:
             let change = Decimal(mostRecentGlucoseReading - entry.glucose)
@@ -115,7 +115,7 @@ extension DeterminationGenerator {
 
         let fiveMinuteBlocks = Decimal((2 * 60) / 5)
         let delta = targetGlucose - eventualGlucose
-        return (glucoseImpact + (delta / fiveMinuteBlocks)).rounded(toPlaces: 1)
+        return (glucoseImpact + (delta / fiveMinuteBlocks)).jsRounded(scale: 1)
     }
 
     /// Determines whether SMBs are enabled based on profile settings,

@@ -151,7 +151,7 @@ enum DeterminationGenerator {
             withZeroTemp: true
         )
 
-        guard let currentGlucoseImpact = glucoseImpactSeries.first else {
+        guard let currentGlucoseImpact = glucoseImpactSeries.first?.jsRounded(scale: 2) else {
             throw DeterminationError.determinationError
         }
 
@@ -277,9 +277,6 @@ enum DeterminationGenerator {
         }
         if glucoseStatus.glucose < 39 || glucoseStatus.glucose > 600 {
             throw DeterminationError.glucoseOutOfRange(glucose: glucoseStatus.glucose)
-        }
-        if glucoseStatus.delta == 0 {
-            throw DeterminationError.noDelta
         }
         guard let _ = iobData else {
             throw DeterminationError.missingIob

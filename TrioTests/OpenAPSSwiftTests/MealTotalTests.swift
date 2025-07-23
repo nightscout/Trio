@@ -97,7 +97,7 @@ import Testing
         #expect(result!.mealCOB.isWithin(0.5, of: 10) == true, "mealCOB: \(result!.mealCOB.description)")
         #expect(
             result!.currentDeviation == 3.6,
-            "currentDeviation: \(result!.currentDeviation.description)"
+            "currentDeviation: \(result!.currentDeviation!.description)"
         )
     }
 
@@ -172,8 +172,8 @@ import Testing
         #expect(result != nil)
         #expect(result!.carbs == 20)
         #expect(
-            result!.currentDeviation.isWithin(0.02, of: 0.67) == true,
-            "currentDeviation: \(result!.currentDeviation.description)"
+            result!.currentDeviation!.isWithin(0.02, of: 0.67) == true,
+            "currentDeviation: \(result!.currentDeviation!.description)"
         )
         #expect(result!.mealCOB.isWithin(0.25, of: 14) == true, "mealCOB: \(result!.mealCOB.description)")
     }
@@ -226,8 +226,8 @@ import Testing
         #expect(result?.carbs == 0)
         #expect(result?.mealCOB == 0)
         #expect(
-            result?.currentDeviation.isWithin(0.02, of: 0.67) == true,
-            "currentDeviation: \(result!.currentDeviation.description)"
+            result?.currentDeviation!.isWithin(0.02, of: 0.67) == true,
+            "currentDeviation: \(result!.currentDeviation!.description)"
         )
     }
 

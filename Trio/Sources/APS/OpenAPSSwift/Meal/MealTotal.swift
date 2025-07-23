@@ -3,13 +3,43 @@ import Foundation
 struct ComputedCarbs: Codable {
     var carbs: Decimal
     var mealCOB: Decimal
-    var currentDeviation: Decimal
+    var currentDeviation: Decimal?
     var maxDeviation: Decimal
     var minDeviation: Decimal
     var slopeFromMaxDeviation: Decimal
     var slopeFromMinDeviation: Decimal
     var allDeviations: [Decimal]
     var lastCarbTime: TimeInterval
+
+    enum CodingKeys: String, CodingKey {
+        case carbs
+        case mealCOB
+        case currentDeviation
+        case maxDeviation
+        case minDeviation
+        case slopeFromMaxDeviation
+        case slopeFromMinDeviation
+        case allDeviations
+        case lastCarbTime
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(carbs, forKey: .carbs)
+        try container.encode(mealCOB, forKey: .mealCOB)
+        try container.encode(maxDeviation, forKey: .maxDeviation)
+        try container.encode(minDeviation, forKey: .minDeviation)
+        try container.encode(slopeFromMaxDeviation, forKey: .slopeFromMaxDeviation)
+        try container.encode(slopeFromMinDeviation, forKey: .slopeFromMinDeviation)
+        try container.encode(allDeviations, forKey: .allDeviations)
+        try container.encode(lastCarbTime, forKey: .lastCarbTime)
+
+        if let currentDeviation = currentDeviation {
+            try container.encode(currentDeviation, forKey: .currentDeviation)
+        } else {
+            try container.encodeNil(forKey: .currentDeviation)
+        }
+    }
 }
 
 struct IOBInput {
@@ -165,10 +195,12 @@ enum MealTotal {
             mealCOB = 0
         }
 
+        let currentDeviation = finalCobResult.allDeviations.isEmpty ? nil : finalCobResult.currentDeviation.rounded(scale: 2)
+
         return ComputedCarbs(
             carbs: carbs,
             mealCOB: mealCOB,
-            currentDeviation: finalCobResult.currentDeviation.rounded(scale: 2),
+            currentDeviation: currentDeviation,
             maxDeviation: finalCobResult.maxDeviation.rounded(scale: 2),
             minDeviation: finalCobResult.minDeviation.rounded(scale: 2),
             slopeFromMaxDeviation: finalCobResult.slopeFromMaxDeviation.rounded(scale: 3),
