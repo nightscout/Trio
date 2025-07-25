@@ -267,7 +267,12 @@ extension DeterminationGenerator {
         currentBasalRate * sensitivityRatio
     }
 
-    static func computeAdjustedSensitivity(sensitivity: Decimal, sensitivityRatio: Decimal) -> Decimal {
+    static func computeAdjustedSensitivity(
+        sensitivity: Decimal,
+        sensitivityRatio: Decimal,
+        trioCustomOrefVariables: TrioCustomOrefVariables
+    ) -> Decimal {
+        let sensitivity = trioCustomOrefVariables.override(sensitivity: sensitivity)
         guard sensitivityRatio != 1.0 else { return sensitivity }
         return (sensitivity / sensitivityRatio).rounded(toPlaces: 1)
     }
@@ -303,6 +308,7 @@ extension DeterminationGenerator {
     static func adjustGlucoseTargets(
         profile: Profile,
         autosens: Autosens?,
+        trioCustomOrefVariables: TrioCustomOrefVariables,
         temptargetSet: Bool,
         targetGlucose: Decimal,
         minGlucose: Decimal,
@@ -312,6 +318,13 @@ extension DeterminationGenerator {
         var minGlucose = minGlucose
         var maxGlucose = maxGlucose
         var targetGlucose = targetGlucose
+
+        // Apply profile override first
+        if let overrideTarget = profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables) {
+            targetGlucose = overrideTarget
+            minGlucose = overrideTarget
+            maxGlucose = overrideTarget
+        }
 
         // Only adjust glucose targets for autosens if no temp target set
         if !temptargetSet, let autosens = autosens {
@@ -370,5 +383,20 @@ extension Profile {
         }
 
         return minBg
+    }
+}
+
+extension TrioCustomOrefVariables {
+    func override(sensitivity: Decimal) -> Decimal {
+        if useOverride {
+            let overrideFactor = overridePercentage / 100
+            if isfAndCr || isf {
+                return sensitivity / overrideFactor
+            } else {
+                return sensitivity
+            }
+        } else {
+            return sensitivity
+        }
     }
 }

@@ -47,7 +47,6 @@ enum DeterminationGenerator {
             return errorDetermination
         }
 
-        let sensitivityRatio: Decimal
         let dynamicIsfResult = DynamicISF.calculate(
             profile: profile,
             preferences: preferences,
@@ -57,21 +56,19 @@ enum DeterminationGenerator {
 
         // TODO: We need to add the dynamicIsfResult to our forcasting functions
         if let dynamicIsfResult = dynamicIsfResult {
-            sensitivityRatio = dynamicIsfResult.ratio
             autosensData = Autosens(
                 ratio: dynamicIsfResult.ratio,
                 newisf: autosensData.newisf,
                 deviationsUnsorted: autosensData.deviationsUnsorted,
                 timestamp: autosensData.timestamp
             )
-        } else {
-            sensitivityRatio = calculateSensitivityRatio(
-                profile: profile,
-                autosens: autosensData,
-                targetGlucose: profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables) ?? 120,
-                temptargetSet: profile.temptargetSet ?? false
-            )
         }
+        let sensitivityRatio = calculateSensitivityRatio(
+            profile: profile,
+            autosens: autosensData,
+            targetGlucose: profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables) ?? 120,
+            temptargetSet: profile.temptargetSet ?? false
+        )
 
         let basal: Decimal
         if let dynamicIsfResult = dynamicIsfResult, profile.tddAdjBasal {
@@ -85,9 +82,11 @@ enum DeterminationGenerator {
                 sensitivityRatio: sensitivityRatio
             )
         }
+
         let sensitivity = computeAdjustedSensitivity(
             sensitivity: profile.sens ?? profile.sensitivityFor(time: currentTime),
-            sensitivityRatio: sensitivityRatio
+            sensitivityRatio: sensitivityRatio,
+            trioCustomOrefVariables: trioCustomOrefVariables
         )
 
         // Safety check: current temp vs. last temp in iob
@@ -137,8 +136,9 @@ enum DeterminationGenerator {
         let (adjustedGlucoseTargets, threshold) = adjustGlucoseTargets(
             profile: profile,
             autosens: autosensData,
+            trioCustomOrefVariables: trioCustomOrefVariables,
             temptargetSet: profile.temptargetSet ?? false,
-            targetGlucose: profile.targetBg ?? 100, // TODO: grab from therapy settings
+            targetGlucose: profile.minBg ?? 100,
             minGlucose: profile.minBg ?? 70, // TODO: can we force unwrap?
             maxGlucose: profile.maxBg ?? 180,
             noise: 1
@@ -207,7 +207,7 @@ enum DeterminationGenerator {
 
         // used for pre dosing decision sanity later on
         let expectedDelta = calculateExpectedDelta(
-            targetGlucose: profile.minBg ?? 100,
+            targetGlucose: adjustedGlucoseTargets.targetGlucose,
             eventualGlucose: eventualGlucose,
             glucoseImpact: currentGlucoseImpact
         )
