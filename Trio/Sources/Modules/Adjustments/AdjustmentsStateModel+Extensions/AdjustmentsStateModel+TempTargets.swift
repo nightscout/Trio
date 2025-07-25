@@ -411,9 +411,17 @@ extension Adjustments.StateModel {
     /// Computes the low value for the slider based on the target.
     func computeSliderLow(usingTarget initialTarget: Decimal? = nil) -> Double {
         let calcTarget = initialTarget ?? tempTargetTarget
-        guard calcTarget != 0 else { return 15 } // oref defined maximum sensitivity
-        let minSens = calcTarget < normalTarget ? 105 : 15
-        return Double(max(0, minSens))
+        guard calcTarget != 0 else { return minimalInsulinPercentage }
+
+        if calcTarget < normalTarget {
+            return 105 // For low temp targets
+        } else {
+            // For high temp targets, calculate the minimum achievable percentage
+            let minPercentage = calculateMinimumAchievablePercentage(for: calcTarget)
+
+            // Round up to nearest multiple of 5 to align with stepper increments
+            return ceil(minPercentage / 5) * 5
+        }
     }
 
     /// Computes the high value for the slider based on the target.
@@ -432,13 +440,46 @@ extension Adjustments.StateModel {
     ) -> Double {
         let halfBasalTargetValue = initialHalfBasalTarget ?? halfBasalTarget
         let calcTarget = initialTarget ?? tempTargetTarget
-        let deviationFromNormal = halfBasalTargetValue - normalTarget
 
-        let adjustmentFactor = deviationFromNormal + (calcTarget - normalTarget)
+        let calculatedPercentage = calculatePercentageFromHBT(
+            halfBasalTarget: halfBasalTargetValue,
+            target: calcTarget
+        ).rounded()
+
+        let finalPercentage: Double
+
+        // Guard against going below the actual minimum for high temp targets only
+        if calcTarget > normalTarget {
+            let actualMinimum = calculateMinimumAchievablePercentage(for: calcTarget)
+            finalPercentage = max(actualMinimum, calculatedPercentage)
+        } else {
+            // For low temp targets and normal target, return calculated percentage as-is
+            finalPercentage = calculatedPercentage
+        }
+
+        // Round up to nearest multiple of 5
+        return ceil(finalPercentage / 5) * 5
+    }
+
+    /// Helper function to calculate percentage from HBT without dependencies
+    private func calculatePercentageFromHBT(halfBasalTarget: Decimal, target: Decimal) -> Double {
+        let deviationFromNormal = halfBasalTarget - normalTarget
+        let adjustmentFactor = deviationFromNormal + (target - normalTarget)
         let adjustmentRatio: Decimal = (deviationFromNormal * adjustmentFactor <= 0) ? autosensMax : deviationFromNormal /
             adjustmentFactor
 
-        return Double(min(adjustmentRatio, autosensMax) * 100).rounded()
+        return Double(min(adjustmentRatio, autosensMax) * 100)
+    }
+
+    /// Helper function to calculate the minimum achievable percentage for a target
+    private func calculateMinimumAchievablePercentage(for target: Decimal, minimalInsulinPercentage: Double? = nil) -> Double {
+        // The minimum practical half-basal target is 101
+        let minHalfBasalTarget = Decimal(101.0)
+        let calculatedMinimum = calculatePercentageFromHBT(halfBasalTarget: minHalfBasalTarget, target: target)
+        let minimumPercentage = minimalInsulinPercentage ?? self.minimalInsulinPercentage
+
+        // Use the higher of the minimal insulin percentage or the calculated minimum
+        return max(minimumPercentage, calculatedMinimum)
     }
 }
 
