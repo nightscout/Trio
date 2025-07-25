@@ -53,11 +53,11 @@ final class OpenAPSFixed {
                         Script.fromTestingBundle(name: "glucose-get-last.js", bundle: testBundle),
                         Script.fromTestingBundle(name: "determine-basal.js", bundle: testBundle)
                     ])
-                    
+
                     if let middleware = self.middlewareScript(name: OpenAPS.Middleware.determineBasal) {
                         worker.evaluate(script: middleware)
                     }
-                    
+
                     let result = worker.call(function: "generate", with: [
                         iob,
                         currentTemp,
@@ -73,7 +73,7 @@ final class OpenAPSFixed {
                         basalProfile,
                         trioCustomOrefVariables
                     ])
-                    
+
                     continuation.resume(returning: result)
                 }
             }
