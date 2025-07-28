@@ -42,12 +42,7 @@ enum DynamicISF {
             return nil
         }
 
-        if trioCustomOrefVariables.useOverride {
-            let overrideFactor = trioCustomOrefVariables.overridePercentage / 100
-            if trioCustomOrefVariables.isfAndCr || trioCustomOrefVariables.isf {
-                sensitivity = sensitivity / overrideFactor
-            }
-        }
+        sensitivity = trioCustomOrefVariables.override(sensitivity: sensitivity)
 
         let minLimit = min(profile.autosensMin, profile.autosensMax)
         let maxLimit = max(profile.autosensMin, profile.autosensMax)
