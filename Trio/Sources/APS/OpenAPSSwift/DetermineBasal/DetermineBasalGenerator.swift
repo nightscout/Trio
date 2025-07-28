@@ -179,8 +179,17 @@ enum DeterminationGenerator {
             naiveEventualGlucose = (currentGlucose - (currentIob * sensitivity)).rounded(toPlaces: 0)
         } else {
             naiveEventualGlucose =
-                (currentGlucose - (currentIob * min(profile.sens ?? profile.sensitivityFor(time: currentTime), sensitivity)))
-                    .rounded(toPlaces: 0)
+                (
+                    currentGlucose -
+                        (
+                            currentIob *
+                                min(
+                                    profile.profileSensitivity(at: currentTime, trioCustomOrefVaribales: trioCustomOrefVariables),
+                                    sensitivity
+                                )
+                        )
+                )
+                .rounded(toPlaces: 0)
         }
 
         let eventualGlucose = naiveEventualGlucose + deviation

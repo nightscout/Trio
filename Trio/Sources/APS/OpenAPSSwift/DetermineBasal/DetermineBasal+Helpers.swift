@@ -384,6 +384,12 @@ extension Profile {
 
         return minBg
     }
+
+    /// Calculates the profile ISF at this point in time and applies any overrides to it
+    func profileSensitivity(at: Date, trioCustomOrefVaribales: TrioCustomOrefVariables) -> Decimal {
+        let sensitivity = sensitivityFor(time: at)
+        return trioCustomOrefVaribales.override(sensitivity: sensitivity)
+    }
 }
 
 extension TrioCustomOrefVariables {
