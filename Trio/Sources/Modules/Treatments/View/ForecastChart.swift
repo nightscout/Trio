@@ -61,7 +61,7 @@ struct ForecastChart: View {
                 Image(systemName: "syringe.fill")
                 Text(
                     "\(Formatter.bolusFormatter.string(from: state.amount as NSNumber) ?? state.amount.description) "
-                ) + Text(String(localized: "U"))
+                ) + Text(String(localized: "U", comment: "Insulin unit"))
             }
 
             .font(.footnote)
