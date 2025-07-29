@@ -60,8 +60,8 @@ struct ForecastChart: View {
             HStack {
                 Image(systemName: "syringe.fill")
                 Text(
-                    "\(Formatter.bolusFormatter.string(from: state.amount as NSNumber) ?? state.amount.description) U"
-                )
+                    "\(Formatter.bolusFormatter.string(from: state.amount as NSNumber) ?? state.amount.description) "
+                ) + Text(String(localized: "U"))
             }
 
             .font(.footnote)
@@ -174,19 +174,19 @@ struct ForecastChart: View {
                 HStack(spacing: 10) {
                     HStack(spacing: 4) {
                         Image(systemName: "circle.fill").foregroundStyle(Color.insulin)
-                        Text("IOB").foregroundStyle(Color.secondary)
+                        Text(String(localized: "IOB")).foregroundStyle(Color.secondary)
                     }
                     HStack(spacing: 4) {
                         Image(systemName: "circle.fill").foregroundStyle(Color.uam)
-                        Text("UAM").foregroundStyle(Color.secondary)
+                        Text(String(localized: "UAM")).foregroundStyle(Color.secondary)
                     }
                     HStack(spacing: 4) {
                         Image(systemName: "circle.fill").foregroundStyle(Color.zt)
-                        Text("ZT").foregroundStyle(Color.secondary)
+                        Text(String(localized: "ZT")).foregroundStyle(Color.secondary)
                     }
                     HStack(spacing: 4) {
                         Image(systemName: "circle.fill").foregroundStyle(Color.orange)
-                        Text("COB").foregroundStyle(Color.secondary)
+                        Text(String(localized: "COB")).foregroundStyle(Color.secondary)
                     }
                 }.font(.caption2)
             }
