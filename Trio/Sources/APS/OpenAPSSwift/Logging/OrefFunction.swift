@@ -72,10 +72,7 @@ enum OrefFunction: String, Codable {
                 // in Swift but not in JS
                 "timestamp",
                 "minGuardBG",
-                "minPredBG",
-                // We haven't implemented DynamicISF support for forecasting yet
-                "predBGs",
-                "eventualBG"
+                "minPredBG"
             ])
         }
     }
@@ -117,7 +114,11 @@ enum OrefFunction: String, Codable {
         case .determineBasal:
             return [
                 "sensitivityRatio": 0.011,
-                "expectedDelta": 0.11
+                "expectedDelta": 0.11,
+                "IOB": 1.1,
+                "ZT": 1.1,
+                "UAM": 1.1,
+                "COB": 1.1
             ]
         }
     }

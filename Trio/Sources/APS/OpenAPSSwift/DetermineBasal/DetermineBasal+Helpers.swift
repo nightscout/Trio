@@ -363,12 +363,9 @@ extension DeterminationGenerator {
         // FIXME: this is assuming 5min steps...
         // Activity is U/hr
         if withZeroTemp {
-            return iobDataSeries.map { iobWithZeroTemp in
-                -iobWithZeroTemp.activity * sensitivity * 5 }
+            return iobDataSeries.map { -$0.iobWithZeroTemp.activity * sensitivity * 5 }
         } else {
-            return iobDataSeries.map { iob in
-                -iob.activity * sensitivity * 5
-            }
+            return iobDataSeries.map { -$0.activity * sensitivity * 5 }
         }
     }
 }

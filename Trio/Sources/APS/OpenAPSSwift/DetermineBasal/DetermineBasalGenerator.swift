@@ -201,11 +201,15 @@ enum DeterminationGenerator {
 
         let forecastResult = ForecastGenerator.generate(
             glucose: currentGlucose,
+            glucoseStatus: glucoseStatus,
+            currentGlucoseImpact: currentGlucoseImpact,
             glucoseImpactSeries: glucoseImpactSeries,
             glucoseImpactSeriesWithZeroTemp: glucoseImpactSeriesWithZeroTemp,
             iobData: iobData,
             mealData: mealData,
             profile: profile,
+            trioCustomOrefVariables: trioCustomOrefVariables,
+            targetGlucose: adjustedGlucoseTargets.targetGlucose,
             adjustedSensitivity: sensitivity,
             sensitivityRatio: sensitivityRatio,
             naiveEventualGlucose: naiveEventualGlucose,
@@ -236,8 +240,8 @@ enum DeterminationGenerator {
             iob: iobData.first?.iob,
             cob: mealData.mealCOB,
             predictions: Predictions(
-                iob: forecastResult.iob.map { Int($0) },
-                zt: forecastResult.zt.map { Int($0) },
+                iob: forecastResult.iob.map { Int($0.jsRounded()) },
+                zt: forecastResult.zt.map { Int($0.jsRounded()) },
                 cob: forecastResult.cob.map { Int($0) },
                 uam: forecastResult.uam.map { Int($0) }
             ),
