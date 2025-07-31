@@ -19,7 +19,7 @@ import Swinject
     ) var carbQuantity: Double?
 
     @Parameter(
-        title: "Quantity fat",
+        title: "Quantity Fat",
         description: "Quantity of fat in g",
         default: 0.0,
         inclusiveRange: (0, 200),
@@ -46,21 +46,21 @@ import Swinject
     ) var note: String?
 
     @Parameter(
-        title: "Confirm Before applying",
-        description: "If toggled, you will need to confirm before applying",
+        title: "Confirm Before logging",
+        description: "If toggled, you will need to confirm before logging",
         default: true
     ) var confirmBeforeApplying: Bool
 
     static var parameterSummary: some ParameterSummary {
         When(\.$confirmBeforeApplying, .equalTo, true, {
-            Summary("Applying \(\.$carbQuantity) at \(\.$dateAdded)") {
+            Summary("Log \(\.$carbQuantity) at \(\.$dateAdded)") {
                 \.$fatQuantity
                 \.$proteinQuantity
                 \.$note
                 \.$confirmBeforeApplying
             }
         }, otherwise: {
-            Summary("Immediately applying \(\.$carbQuantity) at \(\.$dateAdded)") {
+            Summary("Immediately Log \(\.$carbQuantity) at \(\.$dateAdded)") {
                 \.$fatQuantity
                 \.$proteinQuantity
                 \.$note
