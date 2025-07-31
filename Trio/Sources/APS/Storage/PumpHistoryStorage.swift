@@ -205,6 +205,21 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     newPumpEvent.isUploadedToTidepool = false
                     newPumpEvent.note = event.title
 
+                case .replaceComponent(componentType: .infusionSet),
+                     .replaceComponent(componentType: .pump):
+                    guard existingEvents.isEmpty else {
+                        // Duplicate found, do not store the event
+                        debug(.coreData, "Duplicate event found with timestamp: \(event.date)")
+                        continue
+                    }
+                    let newPumpEvent = PumpEventStored(context: self.context)
+                    newPumpEvent.id = UUID().uuidString
+                    newPumpEvent.timestamp = event.date
+                    newPumpEvent.type = PumpEvent.siteChange.rawValue
+                    newPumpEvent.isUploadedToNS = false
+                    newPumpEvent.isUploadedToHealth = false
+                    newPumpEvent.isUploadedToTidepool = false
+
                 default:
                     continue
                 }
@@ -415,7 +430,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         targetTop: nil,
                         targetBottom: nil
                     )
-                case PumpEvent.prime.rawValue:
+                case PumpEvent.siteChange.rawValue:
                     return NightscoutTreatment(
                         duration: nil,
                         rawDuration: nil,
