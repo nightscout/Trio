@@ -224,8 +224,13 @@ extension Stat.StateModel {
         to endDate: Date
     ) -> (manual: Double, smb: Double, external: Double) {
         // Filter cached values to only include those within the date range
+        // Use the same day boundary logic as the chart
+        let calendar = Calendar.current
+        let alignedStartDate = calendar.startOfDay(for: startDate)
+        let alignedEndDate = calendar.startOfDay(for: endDate)
+        
         let relevantStats = bolusAveragesCache.filter { date, _ in
-            date >= startDate && date <= endDate
+            date >= alignedStartDate && date <= alignedEndDate
         }
 
         // Return zeros if no data exists for the range
@@ -252,8 +257,13 @@ extension Stat.StateModel {
         to endDate: Date
     ) -> Double {
         // Filter cached values to only include those within the date range
+        // Use the same day boundary logic as the chart
+        let calendar = Calendar.current
+        let alignedStartDate = calendar.startOfDay(for: startDate)
+        let alignedEndDate = calendar.startOfDay(for: endDate)
+        
         let relevantStats = bolusAveragesCache.filter { date, _ in
-            date >= startDate && date <= endDate
+            date >= alignedStartDate && date <= alignedEndDate
         }
 
         // Return zeros if no data exists for the range

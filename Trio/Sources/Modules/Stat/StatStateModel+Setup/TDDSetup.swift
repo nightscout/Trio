@@ -541,8 +541,13 @@ extension Stat.StateModel {
     /// - Returns: The average TDD in units for the specified date range. Returns 0.0 if no data exists.
     private func calculateTDDAveragesForDateRange(from startDate: Date, to endDate: Date) -> Double {
         // Filter cached TDD values to only include those within the date range
+        // Use the same day boundary logic as the chart
+        let calendar = Calendar.current
+        let alignedStartDate = calendar.startOfDay(for: startDate)
+        let alignedEndDate = calendar.startOfDay(for: endDate)
+        
         let relevantStats = tddAveragesCache.filter { date, _ in
-            date >= startDate && date <= endDate
+            date >= alignedStartDate && date <= alignedEndDate
         }
 
         // Return 0 if no data exists for the specified range
