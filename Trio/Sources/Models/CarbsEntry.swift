@@ -42,13 +42,22 @@ extension CarbsEntry {
 
 extension CarbsEntry {
     func convertSyncCarb(operation: LoopKit.Operation = .create) -> SyncCarbObject {
+        // Generate a new UUID if id is nil to prevent crash
+        let safeUUID: UUID
+        if let id = id, let uuid = UUID(uuidString: id) {
+            safeUUID = uuid
+        } else {
+            safeUUID = UUID()
+            debug(.service, "Warning: CarbsEntry has nil or invalid ID, generating new UUID for Tidepool sync")
+        }
+
         SyncCarbObject(
             absorptionTime: nil,
             createdByCurrentApp: true,
             foodType: nil,
             grams: Double(carbs),
             startDate: createdAt,
-            uuid: UUID(uuidString: id!),
+            uuid: safeUUID,
             provenanceIdentifier: enteredBy ?? "Trio",
             syncIdentifier: id,
             syncVersion: nil,
