@@ -29,12 +29,7 @@ enum DynamicISF {
         currentGlucose: Decimal,
         trioCustomOrefVariables: TrioCustomOrefVariables
     ) -> DynamicISFResult? {
-        let tdd: Decimal
-        if profile.weightPercentage < 1, trioCustomOrefVariables.weightedAverage > 1 {
-            tdd = trioCustomOrefVariables.weightedAverage
-        } else {
-            tdd = trioCustomOrefVariables.currentTDD
-        }
+        let tdd = trioCustomOrefVariables.tdd(profile: profile)
 
         guard preferences.useNewFormula, tdd > 0, var sensitivity = profile.sens,
               let profileTarget = profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables)
@@ -109,5 +104,28 @@ extension Decimal {
 
     static func log(_ x: Decimal) -> Decimal {
         Decimal(Foundation.log(Double(x)))
+    }
+}
+
+extension TrioCustomOrefVariables {
+    func tdd(profile: Profile) -> Decimal {
+        if profile.weightPercentage < 1, weightedAverage > 1 {
+            return weightedAverage
+        } else {
+            return currentTDD
+        }
+    }
+}
+
+enum DynamicIsfState {
+    case off
+    case sigmoid
+    case logrithmic
+}
+
+extension Preferences {
+    func dynamicIsfState() -> DynamicIsfState {
+        guard useNewFormula else { return .off }
+        return sigmoid ? .sigmoid : .logrithmic
     }
 }

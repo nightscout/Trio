@@ -6,12 +6,33 @@ extension ForecastGenerator {
     static func forecastIOB(
         startingGlucose: Decimal,
         glucoseImpactSeries: [Decimal],
+        iobData: [IobResult],
         carbImpact: Decimal,
+        dynamicIsfState: DynamicIsfState,
+        insulinFactor: Decimal?,
+        tdd: Decimal,
+        adjustmentFactorLogrithmic: Decimal
     ) -> [Decimal] {
         var result = [startingGlucose]
-        for glucoseImpact in glucoseImpactSeries {
+        for (glucoseImpact, iob) in zip(glucoseImpactSeries, iobData) {
             let forecastedDeviation = carbImpact * (1 - min(1, Decimal(result.count) / (60 / 5)))
-            let next = result.last! + glucoseImpact.jsRounded(scale: 2) + forecastedDeviation
+            let lastForecast = result.last!
+            let next: Decimal
+            if let insulinFactor = insulinFactor, dynamicIsfState == .logrithmic {
+                // The JS code is extremely difficult to understand, so I tried
+                // to break down the components with the JS snippet listed above
+
+                // (Math.max( IOBpredBGs[IOBpredBGs.length-1],39) / insulinFactor )
+                let adjustedLastForecast = max(lastForecast, 39) / insulinFactor
+                // ( tdd * adjustmentFactor * (Math.log(adjustedLastForecast + 1 ) ) )
+                let adjustedTdd = tdd * adjustmentFactorLogrithmic * Decimal.log(adjustedLastForecast + 1)
+                // round(( -iobTick.activity * (1800 / adjustedTdd) * 5 ),2)
+                let adjustedGlucoseImpact = (-iob.activity * (1800 / adjustedTdd) * 5).jsRounded(scale: 2)
+
+                next = lastForecast + adjustedGlucoseImpact + forecastedDeviation
+            } else {
+                next = lastForecast + glucoseImpact.jsRounded(scale: 2) + forecastedDeviation
+            }
             if result.count < 48 { result.append(next) }
         }
         let clampedResult = result.map { $0.clamp(lowerBound: 39, upperBound: 401) }

@@ -8,10 +8,12 @@ enum ForecastGenerator {
         currentGlucoseImpact: Decimal,
         glucoseImpactSeries: [Decimal],
         glucoseImpactSeriesWithZeroTemp: [Decimal],
-        iobData _: [IobResult],
+        iobData: [IobResult],
         mealData: ComputedCarbs,
         profile: Profile,
+        preferences: Preferences,
         trioCustomOrefVariables: TrioCustomOrefVariables,
+        dynamicIsfResult: DynamicISFResult?,
         targetGlucose: Decimal,
         adjustedSensitivity: Decimal,
         sensitivityRatio: Decimal,
@@ -55,7 +57,12 @@ enum ForecastGenerator {
         let iobForecast = forecastIOB(
             startingGlucose: glucose,
             glucoseImpactSeries: glucoseImpactSeries,
+            iobData: iobData,
             carbImpact: carbImpact,
+            dynamicIsfState: preferences.dynamicIsfState(),
+            insulinFactor: dynamicIsfResult?.insulinFactor,
+            tdd: trioCustomOrefVariables.tdd(profile: profile),
+            adjustmentFactorLogrithmic: profile.adjustmentFactor
         )
 
         let cobForecast = forecastCOB(
