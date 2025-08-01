@@ -440,9 +440,9 @@ extension DataTable {
                                     placeholder: " ... ",
                                     keyboardType: state.units == .mgdL ? .numberPad : .decimalPad,
                                     numberFormatter: manualGlucoseFormatter,
-                                    initialFocus: true
+                                    initialFocus: true,
+                                    unitsText: state.units.rawValue
                                 )
-                                Text(state.units.rawValue).foregroundStyle(.secondary)
                             }
                         }.listRowBackground(Color.chart)
 

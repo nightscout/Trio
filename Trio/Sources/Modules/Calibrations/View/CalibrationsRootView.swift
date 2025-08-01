@@ -48,9 +48,9 @@ extension Calibrations {
                             TextFieldWithToolBar(
                                 text: $state.newCalibration,
                                 placeholder: "0",
-                                numberFormatter: manualGlucoseFormatter
+                                numberFormatter: manualGlucoseFormatter,
+                                unitsText: state.units.rawValue
                             )
-                            Text(state.units.rawValue).foregroundColor(.secondary)
                         }
                         Button {
                             Task {

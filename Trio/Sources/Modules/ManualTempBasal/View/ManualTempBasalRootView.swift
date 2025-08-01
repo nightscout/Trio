@@ -27,9 +27,9 @@ extension ManualTempBasal {
                             text: $state.rate,
                             placeholder: "0",
                             numberFormatter: formatter,
-                            initialFocus: true
+                            initialFocus: true,
+                            unitsText: "U/hr"
                         )
-                        Text("U/hr").foregroundColor(.secondary)
                     }
                     Picker(selection: $state.durationIndex, label: Text("Duration")) {
                         ForEach(0 ..< state.durationValues.count) { index in
