@@ -88,16 +88,24 @@ extension ForecastGenerator {
         glucoseImpactSeries: [Decimal],
         mealData: ComputedCarbs,
         uamCarbImpact: Decimal,
-        carbImpact: Decimal
+        carbImpact: Decimal,
+        iobData: [IobResult],
+        dynamicIsfState: DynamicIsfState,
+        insulinFactor: Decimal?,
+        tdd: Decimal,
+        adjustmentFactorLogrithmic: Decimal
     ) -> [Decimal] {
         var result = [startingGlucose]
 
-        let slopeFromDeviations = min(mealData.slopeFromMaxDeviation, -mealData.slopeFromMinDeviation / 3)
+        let slopeFromDeviations = min(
+            mealData.slopeFromMaxDeviation.jsRounded(scale: 2),
+            -mealData.slopeFromMinDeviation.jsRounded(scale: 2) / 3
+        )
         let ticksInThreeHours: Decimal = 36 // 3 * 60 / 5
 
         let unannouncedCarbImpact = uamCarbImpact
 
-        for glucoseImpact in glucoseImpactSeries {
+        for (glucoseImpact, iob) in zip(glucoseImpactSeries, iobData) {
             let forecastedDeviation = carbImpact * (1 - min(1, Decimal(result.count) / (60 / 5)))
 
             // In JS: predUCIslope = max(0, uci + (tick * slopeFromDeviations))
@@ -116,8 +124,24 @@ extension ForecastGenerator {
                 maxForecastedUnannouncedCarbImpact
             )
 
-            let next = result.last! + glucoseImpact
-                .jsRounded(scale: 2) + min(0, forecastedDeviation) + forecastedUnannouncedCarbImpact
+            let lastForecast = result.last!
+            let next: Decimal
+            if let insulinFactor = insulinFactor, dynamicIsfState == .logrithmic {
+                // The JS code is extremely difficult to understand, so I tried
+                // to break down the components with the JS snippet listed above
+
+                // (Math.max( UAMpredBGs[UAMpredBGs.length-1],39) / insulinFactor )
+                let adjustedLastForecast = max(lastForecast, 39) / insulinFactor
+                // ( tdd * adjustmentFactor * (Math.log(adjustedLastForecast + 1 ) ) )
+                let adjustedTdd = tdd * adjustmentFactorLogrithmic * Decimal.log(adjustedLastForecast + 1)
+                // round(( -iobTick.activity * (1800 / adjustedTdd) * 5 ),2)
+                let adjustedGlucoseImpact = (-iob.activity * (1800 / adjustedTdd) * 5).jsRounded(scale: 2)
+
+                next = lastForecast + adjustedGlucoseImpact + min(0, forecastedDeviation) + forecastedUnannouncedCarbImpact
+            } else {
+                next = lastForecast + glucoseImpact
+                    .jsRounded(scale: 2) + min(0, forecastedDeviation) + forecastedUnannouncedCarbImpact
+            }
 
             if result.count < 48 { result.append(next) }
         }

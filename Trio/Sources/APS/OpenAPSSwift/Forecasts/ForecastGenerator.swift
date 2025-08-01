@@ -77,7 +77,12 @@ enum ForecastGenerator {
             glucoseImpactSeries: glucoseImpactSeries,
             mealData: mealData,
             uamCarbImpact: uamCarbImpact,
-            carbImpact: carbImpact
+            carbImpact: carbImpact,
+            iobData: iobData,
+            dynamicIsfState: preferences.dynamicIsfState(),
+            insulinFactor: dynamicIsfResult?.insulinFactor,
+            tdd: trioCustomOrefVariables.tdd(profile: profile),
+            adjustmentFactorLogrithmic: profile.adjustmentFactor
         )
 
         let ztForecast = forecastZT(
