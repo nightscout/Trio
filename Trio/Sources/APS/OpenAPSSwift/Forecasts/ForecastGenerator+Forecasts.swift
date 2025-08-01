@@ -80,7 +80,7 @@ extension ForecastGenerator {
         }
 
         let clampedResult = result.map { $0.clamp(lowerBound: 39, upperBound: 1500) }
-        return ForecastGenerator.trimFlatTails(clampedResult, lookback: 12)
+        return ForecastGenerator.trimFlatTails(clampedResult, lookback: 13)
     }
 
     static func forecastUAM(
@@ -123,18 +123,40 @@ extension ForecastGenerator {
         }
 
         let clampedResult = result.map { $0.clamp(lowerBound: 39, upperBound: 401) }
-        return ForecastGenerator.trimFlatTails(clampedResult, lookback: 12)
+        return ForecastGenerator.trimFlatTails(clampedResult, lookback: 13)
     }
 
     static func forecastZT(
         startingGlucose: Decimal,
         glucoseImpactSeriesWithZeroTemp: [Decimal],
-        targetBG: Decimal
+        targetBG: Decimal,
+        iobData: [IobResult],
+        dynamicIsfState: DynamicIsfState,
+        insulinFactor: Decimal?,
+        tdd: Decimal,
+        adjustmentFactorLogrithmic: Decimal
     ) -> [Decimal] {
         var result = [startingGlucose]
-        for glucoseImpact in glucoseImpactSeriesWithZeroTemp {
-            // Potential bug: ZT doesn't use forecastedDeviation like IoB does
-            let next = result.last! + glucoseImpact.jsRounded(scale: 2)
+        // Potential bug: ZT doesn't use forecastedDeviation like IoB does
+        for (glucoseImpact, iob) in zip(glucoseImpactSeriesWithZeroTemp, iobData) {
+            let lastForecast = result.last!
+            let next: Decimal
+            if let insulinFactor = insulinFactor, dynamicIsfState == .logrithmic {
+                // The JS code is extremely difficult to understand, so I tried
+                // to break down the components with the JS snippet listed above
+
+                // (Math.max( ZTpredBGs[ZTpredBGs.length-1],39) / insulinFactor )
+                let adjustedLastForecast = max(lastForecast, 39) / insulinFactor
+                // ( tdd * adjustmentFactor * (Math.log(adjustedLastForecast + 1 ) ) )
+                let adjustedTdd = tdd * adjustmentFactorLogrithmic * Decimal.log(adjustedLastForecast + 1)
+                // round(( -iobTick.iobWithZeroTemp.activity * (1800 / adjustedTdd) * 5 ),2)
+                let adjustedGlucoseImpact = (-iob.iobWithZeroTemp.activity * (1800 / adjustedTdd) * 5).jsRounded(scale: 2)
+
+                next = lastForecast + adjustedGlucoseImpact
+            } else {
+                next = lastForecast + glucoseImpact.jsRounded(scale: 2)
+            }
+
             if result.count < 48 { result.append(next) }
         }
         let clampedResult = result.map { $0.clamp(lowerBound: 39, upperBound: 401) }
