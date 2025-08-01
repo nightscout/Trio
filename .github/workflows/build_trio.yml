@@ -7,13 +7,11 @@ on:
   #push:
 
   schedule:
-<<<<<<< HEAD
-    - cron: '0 0 1 2,4,6,8,10,12 *'
-=======
-    # avoid starting an action at xx:00 when GitHub resources are more likely to be impacted
+      # avoid starting an action at xx:00 when GitHub resources are more likely to be impacted
     - cron: "43 8 * * 3" # Checks for updates at 08:43 UTC every Wednesday
     - cron: "43 6 1 * *" # Builds the app on the 1st of every month at 06:43 UTC
->>>>>>> upstream/dev
+
+
 
 env:
   UPSTREAM_REPO: nightscout/Trio
