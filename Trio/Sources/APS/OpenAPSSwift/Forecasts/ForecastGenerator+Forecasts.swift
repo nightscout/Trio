@@ -40,23 +40,14 @@ extension ForecastGenerator {
             // – ramp up linearly to peak over the first half of the window,
             // – ramp down linearly over the second half,
             // – zero afterwards.
-            let triangle: Decimal
-            if carbImpactParams.triangleIntervals > 0, result.count <= carbImpactParams.triangleIntervals {
-                // FIXME: integer division here might be slightly off for odd number intervals.
-                // FIXME: For perfect symmetry we could use let halfTriangle = (triangleIntervals + 1) / 2 — Change this?!
-                let halfTriangle = carbImpactParams.triangleIntervals / 2
-                if result.count <= halfTriangle {
-                    // Ramp up
-                    triangle = carbImpactParams.remainingCarbImpactPeak * Decimal(result.count) / Decimal(halfTriangle)
-                } else {
-                    // Ramp down
-                    triangle = carbImpactParams
-                        .remainingCarbImpactPeak * Decimal(carbImpactParams.triangleIntervals - result.count) /
-                        Decimal(halfTriangle)
-                }
-            } else {
-                triangle = 0
-            }
+
+            // var intervals = Math.min( COBpredBGs.length, (remainingCATime*12)-COBpredBGs.length );
+            // var remainingCI = Math.max(0, intervals / (remainingCATime/2*12) * remainingCIpeak );
+            let intervals = min(Decimal(result.count), carbImpactParams.remainingCarbAbsorptionTime * 12 - Decimal(result.count))
+            let triangle = max(
+                0,
+                intervals / (carbImpactParams.remainingCarbAbsorptionTime / 2 * 12) * carbImpactParams.remainingCarbImpactPeak
+            )
 
             let next = result.last!
                 + glucoseImpact.jsRounded(scale: 2)

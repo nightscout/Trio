@@ -6,6 +6,7 @@ struct CarbImpactParams {
     let maxAbsorptionIntervals: Int
     let triangleIntervals: Int
     let remainingCarbImpactPeak: Decimal
+    let remainingCarbAbsorptionTime: Decimal
 
     static func calculate(
         carbSensitivityFactor: Decimal,
@@ -19,15 +20,13 @@ struct CarbImpactParams {
         let maxCarbImpact = (maxCarbAbsorptionRate * carbSensitivityFactor * 5 / 60).rounded(toPlaces: 1)
         let cappedCarbImpact = min(carbImpact, maxCarbImpact)
 
-        let computedRemainingCarbAbsorptionTime = ForecastGenerator.calculateRemainingCarbAbsorptionTime(
+        let remainingCarbAbsorptionTime = ForecastGenerator.calculateRemainingCarbAbsorptionTime(
             sensitivityRatio: sensitivityRatio,
             maxMealAbsorptionTime: profile.maxMealAbsorptionTime,
             mealCOB: mealData.mealCOB,
             lastCarbTime: Date(timeIntervalSince1970: mealData.lastCarbTime / 1000),
             currentTime: currentTime
         )
-        // Clamp remainingTime for more robustness
-        let remainingCarbAbsorptionTime = min(computedRemainingCarbAbsorptionTime, profile.maxMealAbsorptionTime)
 
         let carbImpactDuration: Decimal
         if carbImpact == 0 {
@@ -74,7 +73,8 @@ struct CarbImpactParams {
             carbImpactDuration: carbImpactDuration,
             maxAbsorptionIntervals: maxAbsorptionIntervals,
             triangleIntervals: triangleIntervals,
-            remainingCarbImpactPeak: remainingCarbImpactPeak
+            remainingCarbImpactPeak: remainingCarbImpactPeak,
+            remainingCarbAbsorptionTime: remainingCarbAbsorptionTime
         )
     }
 }

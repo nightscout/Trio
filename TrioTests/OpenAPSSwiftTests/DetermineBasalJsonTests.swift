@@ -97,13 +97,13 @@ import Testing
         #expect(comparison.resultType == .matching)
     }
 
-    @Test("Format determineBasal inputs for running in JS", .enabled(if: false)) func formatInputs() async throws {
+    @Test("Format determineBasal inputs for running in JS", .enabled(if: true)) func formatInputs() async throws {
         let openAps = OpenAPSFixed()
 
         // this test is meant for one-off analysis so it's ok to hard code
         // a file, just make sure to _not_ check in updates to this to
         // avoid polluting our change logs
-        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/f1d04efa-c39b-4f0a-9955-65ab663ff9fb.0.json")
+        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/0de8fde2-06ba-46e5-b810-990f77fbcfc4.2.json")
         let determineBasalInput = algorithmComparison.determineBasalInput!
 
         let encoder = JSONCoding.encoder
@@ -179,10 +179,69 @@ import Testing
 
         if comparison.resultType == .valueDifference {
             print(comparison.differences!.prettyPrintedJSON!)
+            printForecasts(comparison.differences)
         }
 
         #expect(comparison.resultType == .matching)
 
         timeZoneForTests.resetTimezone()
+    }
+
+    func printForecasts(_ values: [String: Any]?) {
+        guard let values = values else { return }
+        guard let forecasts = values["predBGs"] as? Trio.ValueDifference else { return }
+        let js = forecasts.js.toDictionary()
+        let swift = forecasts.swift.toDictionary()
+
+        for forecastType in ["IOB", "ZT", "UAM", "COB"] {
+            let swiftForecast = swift[forecastType]!.toIntArray()
+            let jsForecast = js[forecastType]!.toIntArray()
+            print("")
+            if swiftForecast.count == jsForecast.count {
+                print(forecastType)
+            } else {
+                print("\(forecastType) has length mismatch ❌")
+            }
+            print("Row\tSft\tJS\tMatch")
+            print("--------------")
+            for (row, values) in zip(swiftForecast, jsForecast).enumerated() {
+                let pass: String
+                if abs(values.0 - values.1) <= 1 {
+                    pass = "✅"
+                } else {
+                    pass = "❌"
+                }
+                print("\(row)\t\(values.0)\t\(values.1)\t\(pass)")
+            }
+        }
+    }
+}
+
+extension JSONValue {
+    func toDictionary() -> [String: Trio.JSONValue] {
+        switch self {
+        case let .object(dict):
+            return dict
+        default:
+            fatalError()
+        }
+    }
+
+    func toIntArray() -> [Int] {
+        switch self {
+        case let .array(array):
+            return array.map { $0.toInt() }
+        default:
+            fatalError()
+        }
+    }
+
+    func toInt() -> Int {
+        switch self {
+        case let .number(number):
+            return Int(number)
+        default:
+            fatalError()
+        }
     }
 }
