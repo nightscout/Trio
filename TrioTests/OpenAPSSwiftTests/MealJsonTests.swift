@@ -32,8 +32,18 @@ import Testing
                 continue
             }
 
-            timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
+            // The JS implementation of IoB when the pump is suspend is so fundamentally
+            // broken that I wasn't able to fix it in JS. So we'll just skip these, but I
+            // verified them by hand and the Swift implementation appears to be correct
+            if let mostRecentPumpEvent = mealInputs.pumpHistory.filter({ $0.isExternal != true }).first {
+                if mostRecentPumpEvent.type == .pumpSuspend
+                {
+                    print("Skipping, known issue with JS and currently suspended pumps")
+                    continue
+                }
+            }
 
+            timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
             try await checkFixedJsAgainstSwift(mealInputs: mealInputs)
             print("Checked \(filePath) \(algorithmComparison.timezone)")
             timeZoneForTests.resetTimezone()

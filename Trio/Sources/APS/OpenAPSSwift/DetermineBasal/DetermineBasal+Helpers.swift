@@ -286,18 +286,20 @@ extension DeterminationGenerator {
               let lastTempDuration = lastTemp.duration else { return true }
         // TODO: throw error for malformed IobResult? Can this be malformed?
 
-        let lastTempAge = Int(currentTime.timeIntervalSince(lastTempDate) / 60) // in minutes
+        let lastTempAge = Int((currentTime.timeIntervalSince(lastTempDate) / 60).rounded()) // in minutes
 //        let tempModulus = Int(lastTempAge + currentTemp.duration) % 30 // only used in JS as output; will leave it here for now
 
         if currentTemp.rate != lastTemp.rate, lastTempAge > 10, currentTemp.duration > 0 {
             // Rates don’t match and temp is old: cancel temp
             return false
         }
-        let lastTempEnded = lastTempAge - Int(lastTempDuration) // TODO: check if this comes in minutes
+        if currentTemp.duration > 0 {
+            let lastTempEnded = lastTempAge - Int(lastTempDuration) // TODO: check if this comes in minutes
 
-        if lastTempEnded > 5, lastTempAge > 10 {
-            // Last temp ended long ago but temp is running: cancel temp
-            return false
+            if lastTempEnded > 5, lastTempAge > 10 {
+                // Last temp ended long ago but temp is running: cancel temp
+                return false
+            }
         }
 
         return true
