@@ -254,8 +254,8 @@ enum DeterminationGenerator {
             predictions: Predictions(
                 iob: forecastResult.iob.map { Int($0.jsRounded()) },
                 zt: forecastResult.zt.map { Int($0.jsRounded()) },
-                cob: forecastResult.cob.map { Int($0) },
-                uam: forecastResult.uam.map { Int($0) }
+                cob: forecastResult.cob.map { Int($0.jsRounded()) },
+                uam: forecastResult.uam.map { Int($0.jsRounded()) }
             ),
             deliverAt: currentTime,
             carbsReq: nil,
