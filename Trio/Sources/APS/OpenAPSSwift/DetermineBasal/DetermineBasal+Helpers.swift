@@ -231,14 +231,17 @@ extension DeterminationGenerator {
     }
 
     static func calculateSensitivityRatio(
+        currentGlucose: Decimal,
         profile: Profile,
         autosens: Autosens?,
         targetGlucose: Decimal,
-        temptargetSet: Bool
-    ) -> Decimal {
+        temptargetSet: Bool,
+        dynamicIsfResult: DynamicISFResult?
+    ) -> (Decimal, Bool) {
         let normalTarget: Decimal = 100
         let halfBasalTarget = profile.halfBasalExerciseTarget
         var ratio: Decimal = 1
+        var updateAutosensRatio = false
 
         // High temp target raises sensitivity or low temp lowers it
         if (profile.highTemptargetRaisesSensitivity && temptargetSet && targetGlucose > normalTarget) ||
@@ -250,16 +253,27 @@ extension DeterminationGenerator {
             } else {
                 ratio = c / (c + targetGlucose - normalTarget)
             }
-            ratio = min(ratio, profile.autosensMax)
-            // You can round here if needed: ratio = ratio.rounded(2)
-            return ratio
+            ratio = min(ratio, profile.autosensMax).jsRounded(scale: 2)
+        } else if let autosens = autosens {
+            // Use autosens if present
+            ratio = autosens.ratio
         }
-        // Use autosens if present
+
         if let autosens = autosens {
-            return autosens.ratio
+            // Increase the dynamic ratio when using a low temp target
+            if profile.temptargetSet == true, targetGlucose < normalTarget, let dynamicIsfResult = dynamicIsfResult,
+               currentGlucose >= targetGlucose
+            {
+                if ratio < dynamicIsfResult.ratio {
+                    ratio = dynamicIsfResult.ratio * (normalTarget / targetGlucose)
+                    // Use autosesns.max limit
+                    ratio = min(ratio, profile.autosensMax).jsRounded(scale: 2)
+                    updateAutosensRatio = true
+                }
+            }
         }
-        // Otherwise default to 1.0 (no adjustment)
-        return 1.0
+
+        return (ratio, updateAutosensRatio)
     }
 
     static func computeAdjustedBasal(currentBasalRate: Decimal, sensitivityRatio: Decimal) -> Decimal {

@@ -63,12 +63,22 @@ enum DeterminationGenerator {
                 timestamp: autosensData.timestamp
             )
         }
-        let sensitivityRatio = calculateSensitivityRatio(
+        let (sensitivityRatio, updateAutosensRatio) = calculateSensitivityRatio(
+            currentGlucose: currentGlucose,
             profile: profile,
             autosens: autosensData,
             targetGlucose: profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables) ?? 120,
-            temptargetSet: profile.temptargetSet ?? false
+            temptargetSet: profile.temptargetSet ?? false,
+            dynamicIsfResult: dynamicIsfResult
         )
+        if updateAutosensRatio {
+            autosensData = Autosens(
+                ratio: sensitivityRatio,
+                newisf: autosensData.newisf,
+                deviationsUnsorted: autosensData.deviationsUnsorted,
+                timestamp: autosensData.timestamp
+            )
+        }
 
         let basal: Decimal
         if let dynamicIsfResult = dynamicIsfResult, profile.tddAdjBasal {
