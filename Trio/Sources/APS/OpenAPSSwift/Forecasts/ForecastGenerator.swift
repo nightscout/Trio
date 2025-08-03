@@ -128,10 +128,20 @@ enum ForecastGenerator {
          }
           */
 
+        var finalCobForecast: [Decimal]?
+        if mealData.mealCOB > 0, carbImpact > 0 || carbImpactParams.remainingCarbImpactPeak > 0 {
+            finalCobForecast = cobForecast
+        }
+
+        var finalUamForecast: [Decimal]?
+        if profile.enableUAM, carbImpact > 0 || carbImpactParams.remainingCarbImpactPeak > 0 {
+            finalUamForecast = uamForecast
+        }
+
         return ForecastResult(
             iob: iobForecast,
-            cob: cobForecast,
-            uam: uamForecast,
+            cob: finalCobForecast,
+            uam: finalUamForecast,
             zt: ztForecast,
             eventualGlucose: eventualGlucose,
             minForecastedGlucose: blendedForecasts.minForecastedGlucose,

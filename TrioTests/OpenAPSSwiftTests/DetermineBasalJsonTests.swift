@@ -103,7 +103,7 @@ import Testing
         // this test is meant for one-off analysis so it's ok to hard code
         // a file, just make sure to _not_ check in updates to this to
         // avoid polluting our change logs
-        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/93450f65-2c8e-4c39-94b3-bf73309a7402.2.json")
+        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/e914bd84-3cf5-4f89-bb6c-996f41cd505e.2.json")
         let determineBasalInput = algorithmComparison.determineBasalInput!
 
         let encoder = JSONCoding.encoder
@@ -194,9 +194,13 @@ import Testing
         let swift = forecasts.swift.toDictionary()
 
         for forecastType in ["IOB", "ZT", "UAM", "COB"] {
-            let swiftForecast = swift[forecastType]!.toIntArray()
-            let jsForecast = js[forecastType]!.toIntArray()
             print("")
+            guard let swiftForecast = swift[forecastType]?.toIntArray(),
+                  let jsForecast = js[forecastType]?.toIntArray()
+            else {
+                print("missing \(forecastType) forecast, skipping")
+                continue
+            }
             if swiftForecast.count == jsForecast.count {
                 print(forecastType)
             } else {
