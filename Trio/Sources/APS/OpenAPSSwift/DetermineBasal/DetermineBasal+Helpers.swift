@@ -58,10 +58,8 @@ extension DeterminationGenerator {
             guard entry.glucose > 38 else { continue }
 
             let minutesAgo = (mostRecentGlucoseDate.timeIntervalSince(entry.date) / 60).rounded()
-            guard minutesAgo != 0 else { continue }
             // compute mg/dL per 5 m as a Decimal:
             let change = Decimal(mostRecentGlucoseReading - entry.glucose)
-            let avgDelta = (change / Decimal(minutesAgo)) * Decimal(5)
 
             // very-recent (<2.5 m) smooths "now"
             if minutesAgo > -2, minutesAgo <= 2.5 {
@@ -75,6 +73,7 @@ extension DeterminationGenerator {
             }
             // short window (~5–15 m)
             else if minutesAgo > 2.5, minutesAgo <= 17.5 {
+                let avgDelta = (change / Decimal(minutesAgo)) * Decimal(5)
                 shortDeltas.append(avgDelta)
                 if minutesAgo < 7.5 {
                     lastDeltas.append(avgDelta)
@@ -82,6 +81,7 @@ extension DeterminationGenerator {
             }
             // long window (~20–40 m)
             else if minutesAgo > 17.5, minutesAgo < 42.5 {
+                let avgDelta = (change / Decimal(minutesAgo)) * Decimal(5)
                 longDeltas.append(avgDelta)
             }
         }
@@ -231,14 +231,17 @@ extension DeterminationGenerator {
     }
 
     static func calculateSensitivityRatio(
+        currentGlucose: Decimal,
         profile: Profile,
         autosens: Autosens?,
         targetGlucose: Decimal,
-        temptargetSet: Bool
-    ) -> Decimal {
+        temptargetSet: Bool,
+        dynamicIsfResult: DynamicISFResult?
+    ) -> (Decimal, Bool) {
         let normalTarget: Decimal = 100
         let halfBasalTarget = profile.halfBasalExerciseTarget
         var ratio: Decimal = 1
+        var updateAutosensRatio = false
 
         // High temp target raises sensitivity or low temp lowers it
         if (profile.highTemptargetRaisesSensitivity && temptargetSet && targetGlucose > normalTarget) ||
@@ -250,16 +253,27 @@ extension DeterminationGenerator {
             } else {
                 ratio = c / (c + targetGlucose - normalTarget)
             }
-            ratio = min(ratio, profile.autosensMax)
-            // You can round here if needed: ratio = ratio.rounded(2)
-            return ratio
+            ratio = min(ratio, profile.autosensMax).jsRounded(scale: 2)
+        } else if let autosens = autosens {
+            // Use autosens if present
+            ratio = autosens.ratio
         }
-        // Use autosens if present
+
         if let autosens = autosens {
-            return autosens.ratio
+            // Increase the dynamic ratio when using a low temp target
+            if profile.temptargetSet == true, targetGlucose < normalTarget, let dynamicIsfResult = dynamicIsfResult,
+               currentGlucose >= targetGlucose
+            {
+                if ratio < dynamicIsfResult.ratio {
+                    ratio = dynamicIsfResult.ratio * (normalTarget / targetGlucose)
+                    // Use autosesns.max limit
+                    ratio = min(ratio, profile.autosensMax).jsRounded(scale: 2)
+                    updateAutosensRatio = true
+                }
+            }
         }
-        // Otherwise default to 1.0 (no adjustment)
-        return 1.0
+
+        return (ratio, updateAutosensRatio)
     }
 
     static func computeAdjustedBasal(currentBasalRate: Decimal, sensitivityRatio: Decimal) -> Decimal {
@@ -363,12 +377,9 @@ extension DeterminationGenerator {
         // FIXME: this is assuming 5min steps...
         // Activity is U/hr
         if withZeroTemp {
-            return iobDataSeries.map { iobWithZeroTemp in
-                -iobWithZeroTemp.activity * sensitivity * 5 }
+            return iobDataSeries.map { -$0.iobWithZeroTemp.activity * sensitivity * 5 }
         } else {
-            return iobDataSeries.map { iob in
-                -iob.activity * sensitivity * 5
-            }
+            return iobDataSeries.map { -$0.activity * sensitivity * 5 }
         }
     }
 }

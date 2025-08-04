@@ -4,11 +4,17 @@ import Foundation
 enum ForecastGenerator {
     public static func generate(
         glucose: Decimal,
+        glucoseStatus: GlucoseStatus,
+        currentGlucoseImpact: Decimal,
         glucoseImpactSeries: [Decimal],
         glucoseImpactSeriesWithZeroTemp: [Decimal],
-        iobData _: [IobResult],
+        iobData: [IobResult],
         mealData: ComputedCarbs,
         profile: Profile,
+        preferences: Preferences,
+        trioCustomOrefVariables: TrioCustomOrefVariables,
+        dynamicIsfResult: DynamicISFResult?,
+        targetGlucose: Decimal,
         adjustedSensitivity: Decimal,
         sensitivityRatio: Decimal,
         naiveEventualGlucose _: Decimal,
@@ -16,42 +22,78 @@ enum ForecastGenerator {
         threshold: Decimal,
         currentTime: Date
     ) -> ForecastResult {
-        let currentDeviation = mealData.currentDeviation ?? 0
-        let carbImpact = currentDeviation * (profile.carbRatio ?? profile.carbRatioFor(time: currentTime)) /
-            (profile.sens ?? profile.sensitivityFor(time: currentTime))
-        let deviation = currentDeviation
+        let profileCarbRatio = profile.carbRatio ?? profile.carbRatioFor(time: currentTime)
+        let adjustedCarbRatio: Decimal
+        if trioCustomOrefVariables.useOverride, trioCustomOrefVariables.cr || trioCustomOrefVariables.isfAndCr {
+            let overrideFactor = trioCustomOrefVariables.overridePercentage / 100
+            adjustedCarbRatio = profileCarbRatio / overrideFactor
+        } else {
+            adjustedCarbRatio = profileCarbRatio
+        }
 
-        // JS oref initializes all xxxPredBGs array with current glucose, we do the same, then generate
-        let iobForecast = [glucose] + forecastIOB(
-            startingGlucose: glucose,
-            glucoseImpactSeries: glucoseImpactSeries,
-            deviation: deviation,
-        )
+        let carbSensitivityFactor = adjustedSensitivity / adjustedCarbRatio
+        let minDelta = min(glucoseStatus.delta, glucoseStatus.shortAvgDelta)
+        // this carbImpact is `ci` in JS
+        var carbImpact = (minDelta - currentGlucoseImpact).jsRounded(scale: 1)
+        let maxCarbAbsorptionRate = Decimal(30)
+        let maxCI = (maxCarbAbsorptionRate * carbSensitivityFactor * Decimal(5) / Decimal(60)).jsRounded(scale: 1)
+        if carbImpact > maxCI {
+            carbImpact = maxCI
+        }
 
-        let cobForecast = [glucose] + forecastCOB(
-            startingGlucose: glucose,
-            glucoseImpactSeries: glucoseImpactSeries,
-            mealData: mealData,
+        let carbImpactParams = CarbImpactParams.calculate(
+            carbSensitivityFactor: carbSensitivityFactor,
             profile: profile,
+            mealData: mealData,
             carbImpact: carbImpact,
-            deviation: deviation,
-            adjustedSensitivity: adjustedSensitivity,
             sensitivityRatio: sensitivityRatio,
             currentTime: currentTime
         )
 
-        let uamForecast = [glucose] + forecastUAM(
+        // this is `uci` in JS, it isn't limited by maxCI
+        let uamCarbImpact = (minDelta - currentGlucoseImpact).jsRounded(scale: 1)
+
+        // JS oref initializes all xxxPredBGs array with current glucose, we do the same, then generate
+        let iobForecast = forecastIOB(
+            startingGlucose: glucose,
+            glucoseImpactSeries: glucoseImpactSeries,
+            iobData: iobData,
+            carbImpact: carbImpact,
+            dynamicIsfState: preferences.dynamicIsfState(),
+            insulinFactor: dynamicIsfResult?.insulinFactor,
+            tdd: trioCustomOrefVariables.tdd(profile: profile),
+            adjustmentFactorLogrithmic: profile.adjustmentFactor
+        )
+
+        let cobForecast = forecastCOB(
+            startingGlucose: glucose,
+            glucoseImpactSeries: glucoseImpactSeries,
+            carbImpact: carbImpact,
+            carbImpactParams: carbImpactParams
+        )
+
+        let uamForecast = forecastUAM(
             startingGlucose: glucose,
             glucoseImpactSeries: glucoseImpactSeries,
             mealData: mealData,
+            uamCarbImpact: uamCarbImpact,
             carbImpact: carbImpact,
-            deviation: deviation
+            iobData: iobData,
+            dynamicIsfState: preferences.dynamicIsfState(),
+            insulinFactor: dynamicIsfResult?.insulinFactor,
+            tdd: trioCustomOrefVariables.tdd(profile: profile),
+            adjustmentFactorLogrithmic: profile.adjustmentFactor
         )
 
-        let ztForecast = [glucose] + forecastZT(
+        let ztForecast = forecastZT(
             startingGlucose: glucose,
             glucoseImpactSeriesWithZeroTemp: glucoseImpactSeriesWithZeroTemp,
-            deviation: deviation
+            targetBG: targetGlucose,
+            iobData: iobData,
+            dynamicIsfState: preferences.dynamicIsfState(),
+            insulinFactor: dynamicIsfResult?.insulinFactor,
+            tdd: trioCustomOrefVariables.tdd(profile: profile),
+            adjustmentFactorLogrithmic: profile.adjustmentFactor
         )
 
         let computedForecastSelection = Self.computeForecastSelection(
@@ -62,26 +104,12 @@ enum ForecastGenerator {
             currentGlucose: glucose
         )
 
-        let carbImpactParams = CarbImpactParams.calculate(
-            adjustedSensitivity: adjustedSensitivity,
-            profile: profile,
-            mealData: mealData,
-            carbImpact: carbImpact,
-            sensitivityRatio: sensitivityRatio,
-            currentTime: currentTime
-        )
-
-        let carbImpactDuration = carbImpact > 0 ? min(
-            carbImpactParams.remainingCarbAbsorptionTime * 60 / 5 / 2,
-            max(0, mealData.mealCOB * carbImpactParams.carbSensivityFactor / carbImpact)
-        ) : 0
-
         let blendedForecasts = Self.blendForecasts(
             selectionResult: computedForecastSelection,
             carbs: mealData.carbs,
             mealCOB: mealData.mealCOB,
             enableUAM: profile.enableUAM,
-            carbImpactDuration: carbImpactDuration,
+            carbImpactDuration: carbImpactParams.carbImpactDuration,
             remainingCarbImpactPeak: carbImpactParams.remainingCarbImpactPeak,
             fractionCarbsLeft: mealData.carbs > 0 ? mealData.mealCOB / mealData.carbs : 0,
             threshold: threshold,
@@ -89,10 +117,31 @@ enum ForecastGenerator {
             currentGlucose: glucose
         )
 
+        // FIXME: Revisit this after I get predBG working
+        /*
+         var eventualGlucose = eventualGlucose
+         if let finalCOBGlucose = cobForecast.last {
+             eventualGlucose = max(eventualGlucose, finalCOBGlucose)
+         }
+         if let finalUAMGlucose = uamForecast.last {
+             eventualGlucose = max(eventualGlucose, finalUAMGlucose)
+         }
+          */
+
+        var finalCobForecast: [Decimal]?
+        if mealData.mealCOB > 0, carbImpact > 0 || carbImpactParams.remainingCarbImpactPeak > 0 {
+            finalCobForecast = cobForecast
+        }
+
+        var finalUamForecast: [Decimal]?
+        if profile.enableUAM, carbImpact > 0 || carbImpactParams.remainingCarbImpactPeak > 0 {
+            finalUamForecast = uamForecast
+        }
+
         return ForecastResult(
             iob: iobForecast,
-            cob: cobForecast,
-            uam: uamForecast,
+            cob: finalCobForecast,
+            uam: finalUamForecast,
             zt: ztForecast,
             eventualGlucose: eventualGlucose,
             minForecastedGlucose: blendedForecasts.minForecastedGlucose,
@@ -109,25 +158,28 @@ enum ForecastGenerator {
     /// - Returns: Remaining CA time in hours (Decimal)
     static func calculateRemainingCarbAbsorptionTime(
         sensitivityRatio: Decimal,
-        maxMealAbsorptionTime: Decimal,
+        maxMealAbsorptionTime _: Decimal,
         mealCOB: Decimal,
         lastCarbTime: Date?,
         currentTime: Date
     ) -> Decimal {
-        var minRemainingCarbAbsorptionTime: Decimal = min(3, maxMealAbsorptionTime) // hours
+        var minRemainingCarbAbsorptionTime: Decimal = 3 // hours
         if sensitivityRatio > 0 {
             minRemainingCarbAbsorptionTime = minRemainingCarbAbsorptionTime / sensitivityRatio
         }
+
+        var remainingCarbAbsorptionTime = minRemainingCarbAbsorptionTime
         if mealCOB > 0 {
             let assumedCarbAbsorptionRate: Decimal = 20 // g/h
             minRemainingCarbAbsorptionTime = max(minRemainingCarbAbsorptionTime, mealCOB / assumedCarbAbsorptionRate)
+            if let lastCarbTime = lastCarbTime {
+                let lastCarbAgeMin = Decimal(currentTime.timeIntervalSince(lastCarbTime) / 60).jsRounded()
+                remainingCarbAbsorptionTime = minRemainingCarbAbsorptionTime + (1.5 * lastCarbAgeMin) / 60
+                remainingCarbAbsorptionTime = remainingCarbAbsorptionTime.jsRounded(scale: 1)
+            }
         }
-        var remainingCarbAbsorptionTime = minRemainingCarbAbsorptionTime
-        if let lastCarbTime = lastCarbTime {
-            let lastCarbAgeMin = Decimal(currentTime.timeIntervalSince(lastCarbTime) / 60)
-            remainingCarbAbsorptionTime += 1.5 * (lastCarbAgeMin / 60)
-        }
-        return remainingCarbAbsorptionTime.rounded(toPlaces: 1)
+
+        return remainingCarbAbsorptionTime
     }
 
     static func computeForecastSelection(
@@ -284,10 +336,32 @@ enum ForecastGenerator {
             return series
         }
         let maxToRemove = series.count - lookback
-        let reversedSeries = series.reversed()
+        let reversedSeries = series.map({ $0.jsRounded() }).reversed()
         var removeCount = 0
         for (curr, next) in zip(reversedSeries, reversedSeries.dropFirst()) {
             guard curr == next else {
+                break
+            }
+            removeCount += 1
+        }
+
+        removeCount = min(maxToRemove, removeCount)
+
+        return Array(series.dropLast(removeCount))
+    }
+
+    /// Trims trailing ZT points once they are rising and above target
+    public static func trimZTTails(series: [Decimal], targetBG: Decimal) -> [Decimal] {
+        let lookback = 7 // i > 6 in JS
+
+        guard series.count > lookback else {
+            return series
+        }
+        let maxToRemove = series.count - lookback
+        let reversedSeries = series.map({ $0.jsRounded() }).reversed()
+        var removeCount = 0
+        for (curr, next) in zip(reversedSeries, reversedSeries.dropFirst()) {
+            if next >= curr || curr <= targetBG {
                 break
             }
             removeCount += 1

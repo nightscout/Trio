@@ -179,10 +179,73 @@ import Testing
 
         if comparison.resultType == .valueDifference {
             print(comparison.differences!.prettyPrintedJSON!)
+            printForecasts(comparison.differences)
         }
 
         #expect(comparison.resultType == .matching)
 
         timeZoneForTests.resetTimezone()
+    }
+
+    func printForecasts(_ values: [String: Any]?) {
+        guard let values = values else { return }
+        guard let forecasts = values["predBGs"] as? Trio.ValueDifference else { return }
+        let js = forecasts.js.toDictionary()
+        let swift = forecasts.swift.toDictionary()
+
+        for forecastType in ["IOB", "ZT", "UAM", "COB"] {
+            print("")
+            guard let swiftForecast = swift[forecastType]?.toIntArray(),
+                  let jsForecast = js[forecastType]?.toIntArray()
+            else {
+                print("missing \(forecastType) forecast, skipping")
+                continue
+            }
+            if swiftForecast.count == jsForecast.count {
+                print(forecastType)
+            } else {
+                print("\(forecastType) has length mismatch ❌")
+            }
+            print("Row\tSft\tJS\tMatch")
+            print("--------------")
+            for (row, values) in zip(swiftForecast, jsForecast).enumerated() {
+                let pass: String
+                if abs(values.0 - values.1) <= 1 {
+                    pass = "✅"
+                } else {
+                    pass = "❌"
+                }
+                print("\(row)\t\(values.0)\t\(values.1)\t\(pass)")
+            }
+        }
+    }
+}
+
+extension JSONValue {
+    func toDictionary() -> [String: Trio.JSONValue] {
+        switch self {
+        case let .object(dict):
+            return dict
+        default:
+            fatalError()
+        }
+    }
+
+    func toIntArray() -> [Int] {
+        switch self {
+        case let .array(array):
+            return array.map { $0.toInt() }
+        default:
+            fatalError()
+        }
+    }
+
+    func toInt() -> Int {
+        switch self {
+        case let .number(number):
+            return Int(number)
+        default:
+            fatalError()
+        }
     }
 }

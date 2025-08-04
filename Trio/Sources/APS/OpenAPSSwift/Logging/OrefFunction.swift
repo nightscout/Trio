@@ -73,8 +73,7 @@ enum OrefFunction: String, Codable {
                 "timestamp",
                 "minGuardBG",
                 "minPredBG",
-                // We haven't implemented DynamicISF support for forecasting yet
-                "predBGs",
+                // In both but not ready to test yet
                 "eventualBG"
             ])
         }
@@ -117,7 +116,11 @@ enum OrefFunction: String, Codable {
         case .determineBasal:
             return [
                 "sensitivityRatio": 0.011,
-                "expectedDelta": 0.11
+                "expectedDelta": 0.11,
+                "IOB": 1.1,
+                "ZT": 1.1,
+                "UAM": 1.1,
+                "COB": 1.1
             ]
         }
     }
@@ -134,6 +137,15 @@ enum OrefFunction: String, Codable {
             return .dictionary
         case .determineBasal:
             return .dictionary
+        }
+    }
+
+    func flexibleArrayKeys() -> [String] {
+        switch self {
+        case .determineBasal:
+            return ["predBGs.UAM", "predBGs.COB", "predBGs.ZT", "predBGs.IOB"]
+        default:
+            return []
         }
     }
 }

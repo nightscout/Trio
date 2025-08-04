@@ -63,12 +63,22 @@ enum DeterminationGenerator {
                 timestamp: autosensData.timestamp
             )
         }
-        let sensitivityRatio = calculateSensitivityRatio(
+        let (sensitivityRatio, updateAutosensRatio) = calculateSensitivityRatio(
+            currentGlucose: currentGlucose,
             profile: profile,
             autosens: autosensData,
             targetGlucose: profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables) ?? 120,
-            temptargetSet: profile.temptargetSet ?? false
+            temptargetSet: profile.temptargetSet ?? false,
+            dynamicIsfResult: dynamicIsfResult
         )
+        if updateAutosensRatio {
+            autosensData = Autosens(
+                ratio: sensitivityRatio,
+                newisf: autosensData.newisf,
+                deviationsUnsorted: autosensData.deviationsUnsorted,
+                timestamp: autosensData.timestamp
+            )
+        }
 
         let basal: Decimal
         if let dynamicIsfResult = dynamicIsfResult, profile.tddAdjBasal {
@@ -201,11 +211,17 @@ enum DeterminationGenerator {
 
         let forecastResult = ForecastGenerator.generate(
             glucose: currentGlucose,
+            glucoseStatus: glucoseStatus,
+            currentGlucoseImpact: currentGlucoseImpact,
             glucoseImpactSeries: glucoseImpactSeries,
             glucoseImpactSeriesWithZeroTemp: glucoseImpactSeriesWithZeroTemp,
             iobData: iobData,
             mealData: mealData,
             profile: profile,
+            preferences: preferences,
+            trioCustomOrefVariables: trioCustomOrefVariables,
+            dynamicIsfResult: dynamicIsfResult,
+            targetGlucose: adjustedGlucoseTargets.targetGlucose,
             adjustedSensitivity: sensitivity,
             sensitivityRatio: sensitivityRatio,
             naiveEventualGlucose: naiveEventualGlucose,
@@ -236,10 +252,10 @@ enum DeterminationGenerator {
             iob: iobData.first?.iob,
             cob: mealData.mealCOB,
             predictions: Predictions(
-                iob: forecastResult.iob.map { Int($0) },
-                zt: forecastResult.zt.map { Int($0) },
-                cob: forecastResult.cob.map { Int($0) },
-                uam: forecastResult.uam.map { Int($0) }
+                iob: forecastResult.iob.map { Int($0.jsRounded()) },
+                zt: forecastResult.zt.map { Int($0.jsRounded()) },
+                cob: forecastResult.cob?.map { Int($0.jsRounded()) },
+                uam: forecastResult.uam?.map { Int($0.jsRounded()) }
             ),
             deliverAt: currentTime,
             carbsReq: nil,

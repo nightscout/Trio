@@ -249,18 +249,27 @@ enum JSONCompare {
     private static func compareDict(
         function: OrefFunction,
         swiftDict: [String: Any],
-        jsDict: [String: Any]
+        jsDict: [String: Any],
+        path: String = ""
     ) -> [String: ValueDifference] {
         var differences: [String: ValueDifference] = [:]
         let approximateKeys = function.approximateMatchingNumbers()
+        let flexibleArrayKeys = function.flexibleArrayKeys()
 
         // Check all keys present in either dictionary
         Set(jsDict.keys).union(swiftDict.keys).forEach { key in
+            let currentPath = path.isEmpty ? key : "\(path).\(key)"
             let jsValue = jsDict[key].map(convertToJSONValue) ?? .null
             let swiftValue = swiftDict[key].map(convertToJSONValue) ?? .null
 
-            if !valuesAreEqual(jsValue, swiftValue, approximately: approximateKeys[key], approximateKeys: approximateKeys) {
-                differences[key] = ValueDifference(
+            if !valuesAreEqual(
+                jsValue, swiftValue,
+                approximately: approximateKeys[key],
+                approximateKeys: approximateKeys,
+                flexibleArrayKeys: flexibleArrayKeys,
+                currentPath: currentPath
+            ) {
+                differences[currentPath] = ValueDifference(
                     js: jsValue,
                     swift: swiftValue,
                     jsKeyMissing: !jsDict.keys.contains(key),
@@ -302,7 +311,9 @@ enum JSONCompare {
         _ value1: JSONValue,
         _ value2: JSONValue,
         approximately: Double?,
-        approximateKeys: [String: Double]
+        approximateKeys: [String: Double],
+        flexibleArrayKeys: [String],
+        currentPath: String
     ) -> Bool {
         switch (value1, value2) {
         case (.null, .null):
@@ -321,13 +332,28 @@ enum JSONCompare {
         case let (.boolean(b1), .boolean(b2)):
             return b1 == b2
         case let (.array(a1), .array(a2)):
+            if flexibleArrayKeys.contains(currentPath), !a1.isEmpty, !a2.isEmpty {
+                let shortestCount = min(a1.count, a2.count)
+                return zip(a1.prefix(shortestCount), a2.prefix(shortestCount)).allSatisfy { v1, v2 in
+                    valuesAreEqual(
+                        v1, v2, approximately: approximately, approximateKeys: approximateKeys,
+                        flexibleArrayKeys: flexibleArrayKeys, currentPath: currentPath
+                    )
+                }
+            }
             return a1.count == a2.count && zip(a1, a2).allSatisfy { v1, v2 in
-                valuesAreEqual(v1, v2, approximately: approximately, approximateKeys: approximateKeys)
+                valuesAreEqual(
+                    v1, v2, approximately: approximately, approximateKeys: approximateKeys,
+                    flexibleArrayKeys: flexibleArrayKeys, currentPath: currentPath
+                )
             }
         case let (.object(o1), .object(o2)):
             return o1.keys == o2.keys && o1.keys.allSatisfy { key in
                 guard let v1 = o1[key], let v2 = o2[key] else { return false }
-                return valuesAreEqual(v1, v2, approximately: approximateKeys[key], approximateKeys: approximateKeys)
+                return valuesAreEqual(
+                    v1, v2, approximately: approximateKeys[key], approximateKeys: approximateKeys,
+                    flexibleArrayKeys: flexibleArrayKeys, currentPath: "\(currentPath).\(key)"
+                )
             }
         default:
             return false
