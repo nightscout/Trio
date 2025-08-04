@@ -24,7 +24,7 @@ enum ForecastGenerator {
     ) -> ForecastResult {
         let profileCarbRatio = profile.carbRatio ?? profile.carbRatioFor(time: currentTime)
         let adjustedCarbRatio: Decimal
-        if trioCustomOrefVariables.useOverride, trioCustomOrefVariables.cr {
+        if trioCustomOrefVariables.useOverride, trioCustomOrefVariables.cr || trioCustomOrefVariables.isfAndCr {
             let overrideFactor = trioCustomOrefVariables.overridePercentage / 100
             adjustedCarbRatio = profileCarbRatio / overrideFactor
         } else {

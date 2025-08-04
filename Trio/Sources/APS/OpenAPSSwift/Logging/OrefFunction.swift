@@ -72,7 +72,9 @@ enum OrefFunction: String, Codable {
                 // in Swift but not in JS
                 "timestamp",
                 "minGuardBG",
-                "minPredBG"
+                "minPredBG",
+                // In both but not ready to test yet
+                "eventualBG"
             ])
         }
     }
