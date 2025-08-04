@@ -174,7 +174,7 @@ enum ForecastGenerator {
             minRemainingCarbAbsorptionTime = max(minRemainingCarbAbsorptionTime, mealCOB / assumedCarbAbsorptionRate)
             if let lastCarbTime = lastCarbTime {
                 let lastCarbAgeMin = Decimal(currentTime.timeIntervalSince(lastCarbTime) / 60).jsRounded()
-                remainingCarbAbsorptionTime = minRemainingCarbAbsorptionTime + 1.5 * (lastCarbAgeMin / 60)
+                remainingCarbAbsorptionTime = minRemainingCarbAbsorptionTime + (1.5 * lastCarbAgeMin) / 60
                 remainingCarbAbsorptionTime = remainingCarbAbsorptionTime.jsRounded(scale: 1)
             }
         }
