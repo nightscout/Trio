@@ -163,7 +163,7 @@ enum ForecastGenerator {
     /// - Returns: Remaining CA time in hours (Decimal)
     static func calculateRemainingCarbAbsorptionTime(
         sensitivityRatio: Decimal,
-        maxMealAbsorptionTime _: Decimal,
+        maxMealAbsorptionTime: Decimal,
         mealCOB: Decimal,
         lastCarbTime: Date?,
         currentTime: Date
@@ -184,7 +184,7 @@ enum ForecastGenerator {
             }
         }
 
-        return remainingCarbAbsorptionTime
+        return min(remainingCarbAbsorptionTime, maxMealAbsorptionTime)
     }
 
     static func computeForecastSelection(
