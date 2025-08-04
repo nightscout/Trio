@@ -35,18 +35,10 @@ enum ForecastGenerator {
         let minDelta = min(glucoseStatus.delta, glucoseStatus.shortAvgDelta)
         // this carbImpact is `ci` in JS
         var carbImpact = (minDelta - currentGlucoseImpact).jsRounded(scale: 1)
-        // this is `uci` in JS, it isn't limited by maxCI
-        var uamCarbImpact = (minDelta - currentGlucoseImpact).jsRounded(scale: 1)
         let maxCarbAbsorptionRate = Decimal(30)
         let maxCI = (maxCarbAbsorptionRate * carbSensitivityFactor * Decimal(5) / Decimal(60)).jsRounded(scale: 1)
         if carbImpact > maxCI {
             carbImpact = maxCI
-        }
-        // BUG: JS was missing this check, so we added it to our testing JS
-        // carbImpact and uamCarbImpact are the same now, but we'll leave them
-        // as two separate variables to make it easier to debug
-        if uamCarbImpact > maxCI {
-            uamCarbImpact = maxCI
         }
 
         let carbImpactParams = CarbImpactParams.calculate(
@@ -57,6 +49,9 @@ enum ForecastGenerator {
             sensitivityRatio: sensitivityRatio,
             currentTime: currentTime
         )
+
+        // this is `uci` in JS, it isn't limited by maxCI
+        let uamCarbImpact = (minDelta - currentGlucoseImpact).jsRounded(scale: 1)
 
         // JS oref initializes all xxxPredBGs array with current glucose, we do the same, then generate
         let iobForecast = forecastIOB(
@@ -163,7 +158,7 @@ enum ForecastGenerator {
     /// - Returns: Remaining CA time in hours (Decimal)
     static func calculateRemainingCarbAbsorptionTime(
         sensitivityRatio: Decimal,
-        maxMealAbsorptionTime: Decimal,
+        maxMealAbsorptionTime _: Decimal,
         mealCOB: Decimal,
         lastCarbTime: Date?,
         currentTime: Date
@@ -184,7 +179,7 @@ enum ForecastGenerator {
             }
         }
 
-        return min(remainingCarbAbsorptionTime, maxMealAbsorptionTime)
+        return remainingCarbAbsorptionTime
     }
 
     static func computeForecastSelection(
