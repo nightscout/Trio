@@ -137,4 +137,13 @@ enum OrefFunction: String, Codable {
             return .dictionary
         }
     }
+
+    func flexibleArrayKeys() -> [String] {
+        switch self {
+        case .determineBasal:
+            return ["predBGs.UAM", "predBGs.COB", "predBGs.ZT", "predBGs.IOB"]
+        default:
+            return []
+        }
+    }
 }
