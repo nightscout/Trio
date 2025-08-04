@@ -19,16 +19,13 @@ extension ForecastGenerator {
             let lastForecast = result.last!
             let next: Decimal
             if let insulinFactor = insulinFactor, dynamicIsfState == .logrithmic {
-                // The JS code is extremely difficult to understand, so I tried
-                // to break down the components with the JS snippet listed above
-
-                // (Math.max( IOBpredBGs[IOBpredBGs.length-1],39) / insulinFactor )
-                let adjustedLastForecast = max(lastForecast, 39) / insulinFactor
-                // ( tdd * adjustmentFactor * (Math.log(adjustedLastForecast + 1 ) ) )
-                let adjustedTdd = tdd * adjustmentFactorLogrithmic * Decimal.log(adjustedLastForecast + 1)
-                // round(( -iobTick.activity * (1800 / adjustedTdd) * 5 ),2)
-                let adjustedGlucoseImpact = (-iob.activity * (1800 / adjustedTdd) * 5).jsRounded(scale: 2)
-
+                let adjustedGlucoseImpact = adjustedGlucoseImpactForLogrithmicDynamicIsf(
+                    lastForecast: lastForecast,
+                    insulinFactor: insulinFactor,
+                    tdd: tdd,
+                    adjustmentFactorLogrithmic: adjustmentFactorLogrithmic,
+                    iobActivity: iob.activity
+                )
                 next = lastForecast + adjustedGlucoseImpact + forecastedDeviation
             } else {
                 next = lastForecast + glucoseImpact.jsRounded(scale: 2) + forecastedDeviation
@@ -127,16 +124,13 @@ extension ForecastGenerator {
             let lastForecast = result.last!
             let next: Decimal
             if let insulinFactor = insulinFactor, dynamicIsfState == .logrithmic {
-                // The JS code is extremely difficult to understand, so I tried
-                // to break down the components with the JS snippet listed above
-
-                // (Math.max( UAMpredBGs[UAMpredBGs.length-1],39) / insulinFactor )
-                let adjustedLastForecast = max(lastForecast, 39) / insulinFactor
-                // ( tdd * adjustmentFactor * (Math.log(adjustedLastForecast + 1 ) ) )
-                let adjustedTdd = tdd * adjustmentFactorLogrithmic * Decimal.log(adjustedLastForecast + 1)
-                // round(( -iobTick.activity * (1800 / adjustedTdd) * 5 ),2)
-                let adjustedGlucoseImpact = (-iob.activity * (1800 / adjustedTdd) * 5).jsRounded(scale: 2)
-
+                let adjustedGlucoseImpact = adjustedGlucoseImpactForLogrithmicDynamicIsf(
+                    lastForecast: lastForecast,
+                    insulinFactor: insulinFactor,
+                    tdd: tdd,
+                    adjustmentFactorLogrithmic: adjustmentFactorLogrithmic,
+                    iobActivity: iob.activity
+                )
                 next = lastForecast + adjustedGlucoseImpact + min(0, forecastedDeviation) + forecastedUnannouncedCarbImpact
             } else {
                 next = lastForecast + glucoseImpact
@@ -166,16 +160,13 @@ extension ForecastGenerator {
             let lastForecast = result.last!
             let next: Decimal
             if let insulinFactor = insulinFactor, dynamicIsfState == .logrithmic {
-                // The JS code is extremely difficult to understand, so I tried
-                // to break down the components with the JS snippet listed above
-
-                // (Math.max( ZTpredBGs[ZTpredBGs.length-1],39) / insulinFactor )
-                let adjustedLastForecast = max(lastForecast, 39) / insulinFactor
-                // ( tdd * adjustmentFactor * (Math.log(adjustedLastForecast + 1 ) ) )
-                let adjustedTdd = tdd * adjustmentFactorLogrithmic * Decimal.log(adjustedLastForecast + 1)
-                // round(( -iobTick.iobWithZeroTemp.activity * (1800 / adjustedTdd) * 5 ),2)
-                let adjustedGlucoseImpact = (-iob.iobWithZeroTemp.activity * (1800 / adjustedTdd) * 5).jsRounded(scale: 2)
-
+                let adjustedGlucoseImpact = adjustedGlucoseImpactForLogrithmicDynamicIsf(
+                    lastForecast: lastForecast,
+                    insulinFactor: insulinFactor,
+                    tdd: tdd,
+                    adjustmentFactorLogrithmic: adjustmentFactorLogrithmic,
+                    iobActivity: iob.iobWithZeroTemp.activity
+                )
                 next = lastForecast + adjustedGlucoseImpact
             } else {
                 next = lastForecast + glucoseImpact.jsRounded(scale: 2)
@@ -185,5 +176,26 @@ extension ForecastGenerator {
         }
         let clampedResult = result.map { $0.clamp(lowerBound: 39, upperBound: 401) }
         return ForecastGenerator.trimZTTails(series: clampedResult, targetBG: targetBG)
+    }
+
+    static func adjustedGlucoseImpactForLogrithmicDynamicIsf(
+        lastForecast: Decimal,
+        insulinFactor: Decimal,
+        tdd: Decimal,
+        adjustmentFactorLogrithmic: Decimal,
+        iobActivity: Decimal
+    ) -> Decimal {
+        // The JS code is extremely difficult to understand, so I tried
+        // to break down the components with the JS snippet listed above
+
+        // (Math.max( ZTpredBGs[ZTpredBGs.length-1],39) / insulinFactor )
+        let adjustedLastForecast = max(lastForecast, 39) / insulinFactor
+        // ( tdd * adjustmentFactor * (Math.log(adjustedLastForecast + 1 ) ) )
+        let adjustedTdd = tdd * adjustmentFactorLogrithmic * Decimal.log(adjustedLastForecast + 1)
+        // For ZT:
+        // round(( -iobTick.iobWithZeroTemp.activity * (1800 / adjustedTdd) * 5 ),2)
+        // For UAM and IOB:
+        // round(( -iobTick.activity * (1800 / adjustedTdd) * 5 ),2)
+        return (-iobActivity * (1800 / adjustedTdd) * 5).jsRounded(scale: 2)
     }
 }
