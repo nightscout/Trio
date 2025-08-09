@@ -117,25 +117,21 @@ enum ForecastGenerator {
             currentGlucose: glucose
         )
 
-        // FIXME: Revisit this after I get predBG working
-        /*
-         var eventualGlucose = eventualGlucose
-         if let finalCOBGlucose = cobForecast.last {
-             eventualGlucose = max(eventualGlucose, finalCOBGlucose)
-         }
-         if let finalUAMGlucose = uamForecast.last {
-             eventualGlucose = max(eventualGlucose, finalUAMGlucose)
-         }
-          */
-
+        var eventualGlucose = eventualGlucose
         var finalCobForecast: [Decimal]?
         if mealData.mealCOB > 0, carbImpact > 0 || carbImpactParams.remainingCarbImpactPeak > 0 {
             finalCobForecast = cobForecast
+            if let lastCobGlucose = cobForecast.last {
+                eventualGlucose = max(eventualGlucose, lastCobGlucose)
+            }
         }
 
         var finalUamForecast: [Decimal]?
         if profile.enableUAM, carbImpact > 0 || carbImpactParams.remainingCarbImpactPeak > 0 {
             finalUamForecast = uamForecast
+            if let lastUamGlucose = uamForecast.last {
+                eventualGlucose = max(eventualGlucose, lastUamGlucose)
+            }
         }
 
         return ForecastResult(

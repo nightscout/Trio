@@ -72,9 +72,7 @@ enum OrefFunction: String, Codable {
                 // in Swift but not in JS
                 "timestamp",
                 "minGuardBG",
-                "minPredBG",
-                // In both but not ready to test yet
-                "eventualBG"
+                "minPredBG"
             ])
         }
     }
@@ -117,6 +115,7 @@ enum OrefFunction: String, Codable {
             return [
                 "sensitivityRatio": 0.011,
                 "expectedDelta": 0.11,
+                "eventualBG": 1.1,
                 "IOB": 1.1,
                 "ZT": 1.1,
                 "UAM": 1.1,

@@ -143,7 +143,11 @@ enum JSONCompare {
                     resultType: .comparisonError,
                     jsDuration: javascriptDuration,
                     swiftDuration: swiftDuration,
-                    comparisonError: AlgorithmException(error: error)
+                    comparisonError: AlgorithmException(error: error),
+                    iobInputs: iobInputs,
+                    mealInputs: mealInputs,
+                    autosensInputs: autosensInputs,
+                    determineBasalInputs: determineBasalInputs
                 )
             }
 
