@@ -43,8 +43,8 @@ enum DosingEngine {
             naiveEventualGlucose: naiveEventualGlucose,
             minGuardGlucose: forecast.minGuardGlucose,
             threshold: threshold,
-            iobPrediction: forecast.iob,
-            cobPrediction: forecast.internalCob,
+            iobForecast: forecast.iob,
+            cobForecast: forecast.internalCob,
             ci: forecast.carbImpact,
             remainingCIpeak: forecast.remainingCarbImpactPeak,
             currentBasal: currentBasal,
@@ -69,8 +69,8 @@ enum DosingEngine {
         naiveEventualGlucose: Decimal,
         minGuardGlucose: Decimal,
         threshold: Decimal,
-        iobPrediction: [Decimal],
-        cobPrediction: [Decimal],
+        iobForecast: [Decimal],
+        cobForecast: [Decimal],
         ci: Decimal,
         remainingCIpeak: Decimal,
         currentBasal: Decimal,
@@ -87,11 +87,11 @@ enum DosingEngine {
 
         var minutesAboveThreshold = Decimal(240)
 
-        let useCOBprediction = mealData.mealCOB > 0 && (ci > 0 || remainingCIpeak > 0)
-        let prediction = useCOBprediction ? cobPrediction : iobPrediction
+        let useCOBForecast = mealData.mealCOB > 0 && (ci > 0 || remainingCIpeak > 0)
+        let forecast = useCOBForecast ? cobForecast : iobForecast
 
         // At this point in the JS the forecasts have already been rounded
-        for (index, glucose) in prediction.map({ $0.jsRounded() }).enumerated() {
+        for (index, glucose) in forecast.map({ $0.jsRounded() }).enumerated() {
             if glucose < threshold {
                 minutesAboveThreshold = Decimal(5) * Decimal(index)
                 break
