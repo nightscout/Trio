@@ -41,7 +41,7 @@ extension DeterminationGenerator {
         let sorted = glucoseReadings.sorted { $0.date > $1.date }
 
         guard let mostRecentGlucose = sorted.first else { return nil }
-        var mostRecentGlucoseReading: Int = mostRecentGlucose.glucose
+        var mostRecentGlucoseReading = Decimal(mostRecentGlucose.glucose)
         var mostRecentGlucoseDate: Date = mostRecentGlucose.date
 
         var lastDeltas: [Decimal] = []
@@ -59,11 +59,11 @@ extension DeterminationGenerator {
 
             let minutesAgo = (mostRecentGlucoseDate.timeIntervalSince(entry.date) / 60).rounded()
             // compute mg/dL per 5 m as a Decimal:
-            let change = Decimal(mostRecentGlucoseReading - entry.glucose)
+            let change = mostRecentGlucoseReading - Decimal(entry.glucose)
 
             // very-recent (<2.5 m) smooths "now"
             if minutesAgo > -2, minutesAgo <= 2.5 {
-                mostRecentGlucoseReading = (mostRecentGlucoseReading + entry.glucose) / 2
+                mostRecentGlucoseReading = (mostRecentGlucoseReading + Decimal(entry.glucose)) / 2
                 mostRecentGlucoseDate = Date(
                     timeIntervalSince1970: (
                         mostRecentGlucoseDate.timeIntervalSince1970 + entry.date
@@ -93,9 +93,9 @@ extension DeterminationGenerator {
 
         return GlucoseStatus(
             delta: lastDelta.rounded(toPlaces: 2),
-            glucose: Decimal(mostRecentGlucoseReading),
+            glucose: mostRecentGlucoseReading,
             noise: Int(sorted[0].noise ?? 0),
-            shortAvgDelta: shortAvg.rounded(toPlaces: 2),
+            shortAvgDelta: shortAvg.jsRounded(scale: 2),
             longAvgDelta: longAvg.rounded(toPlaces: 2),
             date: mostRecentGlucoseDate,
             lastCalIndex: nil,
@@ -364,7 +364,6 @@ extension DeterminationGenerator {
         // Calculate threshold: minGlucose thresholds: 80->60, 90->65, etc.
         var threshold = minGlucose - 0.5 * (minGlucose - 40)
         threshold = min(max(profile.thresholdSetting, threshold, 60), 120)
-        threshold = threshold.rounded(toPlaces: 0)
 
         return (AdjustedGlucoseTargets(minGlucose: minGlucose, maxGlucose: maxGlucose, targetGlucose: targetGlucose), threshold)
     }
@@ -399,6 +398,7 @@ extension Profile {
     }
 
     /// Calculates the profile ISF at this point in time and applies any overrides to it
+    /// This is `sensitivity` in JS
     func profileSensitivity(at: Date, trioCustomOrefVaribales: TrioCustomOrefVariables) -> Decimal {
         let sensitivity = sensitivityFor(time: at)
         return trioCustomOrefVaribales.override(sensitivity: sensitivity)
@@ -406,6 +406,11 @@ extension Profile {
 }
 
 extension TrioCustomOrefVariables {
+    func overrideFactor() -> Decimal {
+        guard useOverride else { return 1 }
+        return overridePercentage / 100
+    }
+
     func override(sensitivity: Decimal) -> Decimal {
         if useOverride {
             let overrideFactor = overridePercentage / 100

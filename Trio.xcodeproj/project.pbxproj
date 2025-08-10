@@ -303,6 +303,8 @@
 		3BAAE60C2DE7766C0049589B /* DynamicISFEnableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */; };
 		3BAD36B22D7CDC1A00CC298D /* MainLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */; };
 		3BAD36CC2D7D420E00CC298D /* CoreDataInitializationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */; };
+		3BAE876E2E47F12900FCA8D2 /* DosingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAE876D2E47F12900FCA8D2 /* DosingEngine.swift */; };
+		3BAE87702E480BE100FCA8D2 /* ForecastResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAE876F2E480BE100FCA8D2 /* ForecastResults.swift */; };
 		3BBB76AA2E01C70B0040977D /* MealCob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BBB76A92E01C7070040977D /* MealCob.swift */; };
 		3BBC22632DF5B94100169236 /* AutosensTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BBC22622DF5B93900169236 /* AutosensTests.swift */; };
 		3BC0AA3B2DA74C87000DF7B7 /* iob-total.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BC0AA3A2DA74C87000DF7B7 /* iob-total.js */; };
@@ -1225,6 +1227,8 @@
 		3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFEnableTests.swift; sourceTree = "<group>"; };
 		3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainLoadingView.swift; sourceTree = "<group>"; };
 		3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataInitializationCoordinator.swift; sourceTree = "<group>"; };
+		3BAE876D2E47F12900FCA8D2 /* DosingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DosingEngine.swift; sourceTree = "<group>"; };
+		3BAE876F2E480BE100FCA8D2 /* ForecastResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastResults.swift; sourceTree = "<group>"; };
 		3BBB76A92E01C7070040977D /* MealCob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCob.swift; sourceTree = "<group>"; };
 		3BBC22622DF5B93900169236 /* AutosensTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutosensTests.swift; sourceTree = "<group>"; };
 		3BC0AA3A2DA74C87000DF7B7 /* iob-total.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "iob-total.js"; sourceTree = "<group>"; };
@@ -3739,10 +3743,11 @@
 		DD30B9C52E0624C600DA677C /* DetermineBasal */ = {
 			isa = PBXGroup;
 			children = (
-				DD30BA1B2E08BA8100DA677C /* DetermineBasal+Dosing.swift */,
 				DD30BA072E076CAA00DA677C /* DeterminationError.swift */,
+				DD30BA1B2E08BA8100DA677C /* DetermineBasal+Dosing.swift */,
 				DD30BA052E07667000DA677C /* DetermineBasal+Helpers.swift */,
 				DD30B9C62E06257300DA677C /* DetermineBasalGenerator.swift */,
+				3BAE876D2E47F12900FCA8D2 /* DosingEngine.swift */,
 			);
 			path = DetermineBasal;
 			sourceTree = "<group>";
@@ -3750,6 +3755,7 @@
 		DD30B9C82E06295700DA677C /* Forecasts */ = {
 			isa = PBXGroup;
 			children = (
+				3BAE876F2E480BE100FCA8D2 /* ForecastResults.swift */,
 				DD30BA192E08AB9F00DA677C /* CarbImpactParams.swift */,
 				DD30B9CD2E062AA300DA677C /* ForecastGenerator+Forecasts.swift */,
 				DD30B9C92E062A3300DA677C /* ForecastGenerator.swift */,
@@ -4677,6 +4683,7 @@
 				3811DE3125C9D49500A708ED /* HomeProvider.swift in Sources */,
 				FE41E4D629463EE20047FD55 /* NightscoutPreferences.swift in Sources */,
 				E013D872273AC6FE0014109C /* GlucoseSimulatorSource.swift in Sources */,
+				3BAE87702E480BE100FCA8D2 /* ForecastResults.swift in Sources */,
 				BD249D862D42FBEC00412DEB /* GlucoseMetricsView.swift in Sources */,
 				58645BA32CA2D325008AFCE7 /* BatterySetup.swift in Sources */,
 				DD82D4B82DCAB2BA00BAFC77 /* PropertyPersistentFlags.swift in Sources */,
@@ -5025,6 +5032,7 @@
 				110AEDEC2C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift in Sources */,
 				CE7CA3562A064973004BE681 /* StateIntentRequest.swift in Sources */,
 				3BF424C72DF4805A0017CFD9 /* AutosensError.swift in Sources */,
+				3BAE876E2E47F12900FCA8D2 /* DosingEngine.swift in Sources */,
 				DD4C57A82D73ADEA001BFF2C /* RestartLiveActivityIntent.swift in Sources */,
 				19E1F7EA29D082ED005C8D20 /* IconConfigProvider.swift in Sources */,
 				DD09D4822C5986F6003FEA5D /* CalendarEventSettingsRootView.swift in Sources */,

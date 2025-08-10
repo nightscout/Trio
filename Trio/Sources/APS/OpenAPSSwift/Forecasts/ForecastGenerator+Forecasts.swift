@@ -1,8 +1,6 @@
 import Foundation
 
 extension ForecastGenerator {
-    // TODO: Dynamic ISF not yet supported
-
     static func forecastIOB(
         startingGlucose: Decimal,
         glucoseImpactSeries: [Decimal],
@@ -12,8 +10,10 @@ extension ForecastGenerator {
         insulinFactor: Decimal?,
         tdd: Decimal,
         adjustmentFactorLogrithmic: Decimal
-    ) -> [Decimal] {
+    ) -> IndividualForecast {
         var result = [startingGlucose]
+        var rawResult = [startingGlucose]
+        var minGuardGlucose = Decimal(999)
         for (glucoseImpact, iob) in zip(glucoseImpactSeries, iobData) {
             let forecastedDeviation = carbImpact * (1 - min(1, Decimal(result.count) / (60 / 5)))
             let lastForecast = result.last!
@@ -31,9 +31,17 @@ extension ForecastGenerator {
                 next = lastForecast + glucoseImpact.jsRounded(scale: 2) + forecastedDeviation
             }
             if result.count < 48 { result.append(next) }
+            if next < minGuardGlucose { minGuardGlucose = next.jsRounded() }
+            rawResult.append(next)
         }
         let clampedResult = result.map { $0.clamp(lowerBound: 39, upperBound: 401) }
-        return ForecastGenerator.trimFlatTails(clampedResult, lookback: 13)
+
+        return IndividualForecast(
+            predictions: ForecastGenerator.trimFlatTails(clampedResult, lookback: 13),
+            minGuardGlucose: minGuardGlucose,
+            rawPredictions: rawResult,
+            duration: nil
+        )
     }
 
     static func forecastCOB(
@@ -41,10 +49,12 @@ extension ForecastGenerator {
         glucoseImpactSeries: [Decimal],
         carbImpact: Decimal,
         carbImpactParams: CarbImpactParams
-    ) -> [Decimal] {
+    ) -> IndividualForecast {
         // Start with the current BG
         var result = [startingGlucose]
+        var rawResult = [startingGlucose]
 
+        var minGuardGlucose = Decimal(999)
         // Build forecast out to glucoseImpactSeries.count (usually 48)
         for glucoseImpact in glucoseImpactSeries {
             let forecastedDeviation = carbImpact * (1 - min(1, Decimal(result.count) / (60 / 5)))
@@ -74,10 +84,18 @@ extension ForecastGenerator {
                 + triangle
 
             if result.count < 48 { result.append(next) }
+            if next < minGuardGlucose { minGuardGlucose = next.jsRounded() }
+            rawResult.append(next)
         }
 
         let clampedResult = result.map { $0.clamp(lowerBound: 39, upperBound: 1500) }
-        return ForecastGenerator.trimFlatTails(clampedResult, lookback: 13)
+
+        return IndividualForecast(
+            predictions: ForecastGenerator.trimFlatTails(clampedResult, lookback: 13),
+            minGuardGlucose: minGuardGlucose,
+            rawPredictions: rawResult,
+            duration: nil
+        )
     }
 
     static func forecastUAM(
@@ -91,8 +109,10 @@ extension ForecastGenerator {
         insulinFactor: Decimal?,
         tdd: Decimal,
         adjustmentFactorLogrithmic: Decimal
-    ) -> [Decimal] {
+    ) -> IndividualForecast {
         var result = [startingGlucose]
+        var rawResult = [startingGlucose]
+        var uamDuration: Decimal = 0
 
         let slopeFromDeviations = min(
             mealData.slopeFromMaxDeviation.jsRounded(scale: 2),
@@ -101,6 +121,7 @@ extension ForecastGenerator {
         let ticksInThreeHours: Decimal = 36 // 3 * 60 / 5
 
         let unannouncedCarbImpact = uamCarbImpact
+        var minGuardGlucose = Decimal(999)
 
         for (glucoseImpact, iob) in zip(glucoseImpactSeries, iobData) {
             let forecastedDeviation = carbImpact * (1 - min(1, Decimal(result.count) / (60 / 5)))
@@ -121,6 +142,10 @@ extension ForecastGenerator {
                 maxForecastedUnannouncedCarbImpact
             )
 
+            if forecastedUnannouncedCarbImpact > 0 {
+                uamDuration = (Decimal(result.count) + 1) * 5 / 60
+            }
+
             let lastForecast = result.last!
             let next: Decimal
             if let insulinFactor = insulinFactor, dynamicIsfState == .logrithmic {
@@ -138,10 +163,18 @@ extension ForecastGenerator {
             }
 
             if result.count < 48 { result.append(next) }
+            if next < minGuardGlucose { minGuardGlucose = next.jsRounded() }
+            rawResult.append(next)
         }
 
         let clampedResult = result.map { $0.clamp(lowerBound: 39, upperBound: 401) }
-        return ForecastGenerator.trimFlatTails(clampedResult, lookback: 13)
+
+        return IndividualForecast(
+            predictions: ForecastGenerator.trimFlatTails(clampedResult, lookback: 13),
+            minGuardGlucose: minGuardGlucose,
+            rawPredictions: rawResult,
+            duration: uamDuration.jsRounded(scale: 1)
+        )
     }
 
     static func forecastZT(
@@ -153,8 +186,11 @@ extension ForecastGenerator {
         insulinFactor: Decimal?,
         tdd: Decimal,
         adjustmentFactorLogrithmic: Decimal
-    ) -> [Decimal] {
+    ) -> IndividualForecast {
         var result = [startingGlucose]
+        var rawResult = [startingGlucose]
+
+        var minGuardGlucose = Decimal(999)
         // Potential bug: ZT doesn't use forecastedDeviation like IoB does
         for (glucoseImpact, iob) in zip(glucoseImpactSeriesWithZeroTemp, iobData) {
             let lastForecast = result.last!
@@ -173,9 +209,16 @@ extension ForecastGenerator {
             }
 
             if result.count < 48 { result.append(next) }
+            if next < minGuardGlucose { minGuardGlucose = next.jsRounded() }
+            rawResult.append(next)
         }
         let clampedResult = result.map { $0.clamp(lowerBound: 39, upperBound: 401) }
-        return ForecastGenerator.trimZTTails(series: clampedResult, targetBG: targetBG)
+        return IndividualForecast(
+            predictions: ForecastGenerator.trimZTTails(series: clampedResult, targetBG: targetBG),
+            minGuardGlucose: minGuardGlucose,
+            rawPredictions: rawResult,
+            duration: nil
+        )
     }
 
     static func adjustedGlucoseImpactForLogrithmicDynamicIsf(
