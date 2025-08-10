@@ -126,27 +126,27 @@ enum ForecastGenerator {
         var eventualGlucose = eventualGlucose
         var finalCobForecast: [Decimal]?
         if mealData.mealCOB > 0, carbImpact > 0 || carbImpactParams.remainingCarbImpactPeak > 0 {
-            finalCobForecast = cobResult.predictions
-            if let lastCobGlucose = cobResult.predictions.last {
+            finalCobForecast = cobResult.forecasts
+            if let lastCobGlucose = cobResult.forecasts.last {
                 eventualGlucose = max(eventualGlucose, lastCobGlucose)
             }
         }
 
         var finalUamForecast: [Decimal]?
         if profile.enableUAM, carbImpact > 0 || carbImpactParams.remainingCarbImpactPeak > 0 {
-            finalUamForecast = uamResult.predictions
-            if let lastUamGlucose = uamResult.predictions.last {
+            finalUamForecast = uamResult.forecasts
+            if let lastUamGlucose = uamResult.forecasts.last {
                 eventualGlucose = max(eventualGlucose, lastUamGlucose)
             }
         }
 
         return ForecastResult(
-            iob: iobResult.predictions,
+            iob: iobResult.forecasts,
             cob: finalCobForecast,
             uam: finalUamForecast,
-            zt: ztResult.predictions,
-            internalCob: cobResult.predictions,
-            internalUam: uamResult.predictions,
+            zt: ztResult.forecasts,
+            internalCob: cobResult.forecasts,
+            internalUam: uamResult.forecasts,
             eventualGlucose: eventualGlucose,
             minForecastedGlucose: blendedForecasts.minForecastedGlucose,
             minGuardGlucose: blendedForecasts.minGuardGlucose,
@@ -156,8 +156,8 @@ enum ForecastGenerator {
         )
     }
 
-    /// This function does the min/max glucose predictions at the end of the main forecast loop
-    /// in JS. It operates on raw predictions and there is a cross dependency between IOB
+    /// This function does the min/max glucose forecasts at the end of the main forecast loop
+    /// in JS. It operates on raw forecasts and there is a cross dependency between IOB
     /// predictions and the UAM predictions, so we need to pull out this logic here
     static func calculateMinMaxPredictedGlucose(
         currentGlucose: Decimal,
@@ -172,9 +172,9 @@ enum ForecastGenerator {
         // FIXME: we need to make sure that these will all be the same length
         // but since they're running their loops on the same data they should be
         let minCount = min(
-            iobForecast.rawPredictions.count,
-            cobForecast.rawPredictions.count,
-            uamForecast.rawPredictions.count
+            iobForecast.rawForecasts.count,
+            cobForecast.rawForecasts.count,
+            uamForecast.rawForecasts.count
         )
 
         var maxIobForecastGlucose = currentGlucose
@@ -189,9 +189,9 @@ enum ForecastGenerator {
         // start at 1 because the first entry is currentGlucose
         for index in 1 ..< minCount {
             let length = index + 1
-            let iob = iobForecast.rawPredictions[index]
-            let cob = cobForecast.rawPredictions[index]
-            let uam = uamForecast.rawPredictions[index]
+            let iob = iobForecast.rawForecasts[index]
+            let cob = cobForecast.rawForecasts[index]
+            let uam = uamForecast.rawForecasts[index]
 
             // the max calculations don't get rounded in JS
             if length > insulinPeak5m, iob < minIobForecastGlucose {
@@ -217,23 +217,23 @@ enum ForecastGenerator {
         }
         return AllForecasts(
             iob: IOBForecast(
-                predictions: iobForecast.predictions,
+                forecasts: iobForecast.forecasts,
                 minGuardGlucose: iobForecast.minGuardGlucose,
                 minForecastGlucose: minIobForecastGlucose,
                 maxForecastGlucose: maxIobForecastGlucose
             ),
             zt: ZTForecast(
-                predictions: ztForecast.predictions,
+                forecasts: ztForecast.forecasts,
                 minGuardGlucose: ztForecast.minGuardGlucose
             ),
             cob: COBForecast(
-                predictions: cobForecast.predictions,
+                forecasts: cobForecast.forecasts,
                 minGuardGlucose: cobForecast.minGuardGlucose,
                 minForecastGlucose: minCobForecastGlucose,
                 maxForecastGlucose: maxCobForecastGlucose
             ),
             uam: UAMForecast(
-                predictions: uamForecast.predictions,
+                forecasts: uamForecast.forecasts,
                 minGuardGlucose: uamForecast.minGuardGlucose,
                 minForecastGlucose: minUamForecastGlucose,
                 maxForecastGlucose: maxUamForecastGlucose,
@@ -306,24 +306,24 @@ enum ForecastGenerator {
         }
 
         // 2. avgForecastGlucose blending (like avgPredBG)
-        let avgForecastGlucose: Decimal
+        let avgerageForecastGlucose: Decimal
         if uamResult.minForecastGlucose < 999, cobResult.minForecastGlucose < 999 {
-            avgForecastGlucose = (
-                (1 - fractionCarbsLeft) * (uamResult.predictions.last ?? currentGlucose) + fractionCarbsLeft *
-                    (cobResult.predictions.last ?? currentGlucose)
+            avgerageForecastGlucose = (
+                (1 - fractionCarbsLeft) * (uamResult.forecasts.last ?? currentGlucose) + fractionCarbsLeft *
+                    (cobResult.forecasts.last ?? currentGlucose)
             ).rounded()
         } else if cobResult.minForecastGlucose < 999 {
-            avgForecastGlucose =
-                (((iobResult.predictions.last ?? currentGlucose) + (cobResult.predictions.last ?? currentGlucose)) / 2)
+            avgerageForecastGlucose =
+                (((iobResult.forecasts.last ?? currentGlucose) + (cobResult.forecasts.last ?? currentGlucose)) / 2)
                     .rounded()
         } else if uamResult.minForecastGlucose < 999 {
-            avgForecastGlucose =
-                (((iobResult.predictions.last ?? currentGlucose) + (uamResult.predictions.last ?? currentGlucose)) / 2)
+            avgerageForecastGlucose =
+                (((iobResult.forecasts.last ?? currentGlucose) + (uamResult.forecasts.last ?? currentGlucose)) / 2)
                     .rounded()
         } else {
-            avgForecastGlucose = (iobResult.predictions.last ?? currentGlucose).rounded()
+            avgerageForecastGlucose = (iobResult.forecasts.last ?? currentGlucose).rounded()
         }
-        let adjustedAvgForecastGlucose = max(avgForecastGlucose, ztResult.minGuardGlucose)
+        let adjustedAverageForecastGlucose = max(avgerageForecastGlucose, ztResult.minGuardGlucose)
 
         // 3. minGuardGlucose
         let minGuardGlucose: Decimal
@@ -364,7 +364,7 @@ enum ForecastGenerator {
         }
 
         // Clamp minForecastedGlucose to not exceed adjustedAvgForecastGlucose
-        minForecastedGlucose = min(minForecastedGlucose, adjustedAvgForecastGlucose)
+        minForecastedGlucose = min(minForecastedGlucose, adjustedAverageForecastGlucose)
 
         // JS: If maxCOBPredBG > bg, don't trust UAM too much
         if cobResult.maxForecastGlucose > currentGlucose {
@@ -373,7 +373,7 @@ enum ForecastGenerator {
 
         return ForecastBlendingResult(
             minForecastedGlucose: minForecastedGlucose,
-            avgForecastedGlucose: adjustedAvgForecastGlucose,
+            avgForecastedGlucose: adjustedAverageForecastGlucose,
             minGuardGlucose: minGuardGlucose
         )
     }

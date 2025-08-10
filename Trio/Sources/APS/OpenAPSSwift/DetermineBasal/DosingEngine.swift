@@ -17,7 +17,7 @@ enum DosingEngine {
         currentBasal: Decimal,
         overrideFactor: Decimal,
         adjustedSensitivity: Decimal,
-        isfreason: String,
+        isfReason: String,
         tddReason: String,
         targetLog: String // This is a pre-formatted string from the JS
     ) -> DosingInputs {
@@ -26,7 +26,7 @@ enum DosingEngine {
         let lastUAMpredBG = forecast.uam?.last
 
         var reason =
-            "\(isfreason), COB: \(mealData.mealCOB), Dev: \(deviation), BGI: \(bgi), CR: \(forecast.adjustedCarbRatio), Target: \(targetLog), minPredBG \(forecast.minForecastedGlucose), minGuardBG \(forecast.minGuardGlucose), IOBpredBG \(lastIOBpredBG)"
+            "\(isfReason), COB: \(mealData.mealCOB), Dev: \(deviation), BGI: \(bgi), CR: \(forecast.adjustedCarbRatio), Target: \(targetLog), minPredBG \(forecast.minForecastedGlucose), minGuardBG \(forecast.minGuardGlucose), IOBpredBG \(lastIOBpredBG)"
 
         if let lastCOB = lastCOBpredBG {
             reason += ", COBpredBG \(lastCOB)"
@@ -90,10 +90,10 @@ enum DosingEngine {
         let useCOBprediction = mealData.mealCOB > 0 && (ci > 0 || remainingCIpeak > 0)
         let prediction = useCOBprediction ? cobPrediction : iobPrediction
 
-        // At this point in the JS the predictions have already been rounded
-        for (i, bg) in prediction.map({ $0.jsRounded() }).enumerated() {
-            if bg < threshold {
-                minutesAboveThreshold = Decimal(5) * Decimal(i)
+        // At this point in the JS the forecasts have already been rounded
+        for (index, glucose) in prediction.map({ $0.jsRounded() }).enumerated() {
+            if glucose < threshold {
+                minutesAboveThreshold = Decimal(5) * Decimal(index)
                 break
             }
         }

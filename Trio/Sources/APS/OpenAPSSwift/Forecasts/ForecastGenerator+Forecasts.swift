@@ -37,9 +37,9 @@ extension ForecastGenerator {
         let clampedResult = result.map { $0.clamp(lowerBound: 39, upperBound: 401) }
 
         return IndividualForecast(
-            predictions: ForecastGenerator.trimFlatTails(clampedResult, lookback: 13),
+            forecasts: ForecastGenerator.trimFlatTails(clampedResult, lookback: 13),
             minGuardGlucose: minGuardGlucose,
-            rawPredictions: rawResult,
+            rawForecasts: rawResult,
             duration: nil
         )
     }
@@ -91,9 +91,9 @@ extension ForecastGenerator {
         let clampedResult = result.map { $0.clamp(lowerBound: 39, upperBound: 1500) }
 
         return IndividualForecast(
-            predictions: ForecastGenerator.trimFlatTails(clampedResult, lookback: 13),
+            forecasts: ForecastGenerator.trimFlatTails(clampedResult, lookback: 13),
             minGuardGlucose: minGuardGlucose,
-            rawPredictions: rawResult,
+            rawForecasts: rawResult,
             duration: nil
         )
     }
@@ -170,9 +170,9 @@ extension ForecastGenerator {
         let clampedResult = result.map { $0.clamp(lowerBound: 39, upperBound: 401) }
 
         return IndividualForecast(
-            predictions: ForecastGenerator.trimFlatTails(clampedResult, lookback: 13),
+            forecasts: ForecastGenerator.trimFlatTails(clampedResult, lookback: 13),
             minGuardGlucose: minGuardGlucose,
-            rawPredictions: rawResult,
+            rawForecasts: rawResult,
             duration: uamDuration.jsRounded(scale: 1)
         )
     }
@@ -214,9 +214,9 @@ extension ForecastGenerator {
         }
         let clampedResult = result.map { $0.clamp(lowerBound: 39, upperBound: 401) }
         return IndividualForecast(
-            predictions: ForecastGenerator.trimZTTails(series: clampedResult, targetBG: targetBG),
+            forecasts: ForecastGenerator.trimZTTails(series: clampedResult, targetBG: targetBG),
             minGuardGlucose: minGuardGlucose,
-            rawPredictions: rawResult,
+            rawForecasts: rawResult,
             duration: nil
         )
     }

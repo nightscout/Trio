@@ -94,7 +94,7 @@ enum DeterminationGenerator {
         }
 
         // this is the `sens` variable in JS, it's the adjusted sensitivity
-        let sens = computeAdjustedSensitivity(
+        let adjustedSensitivity = computeAdjustedSensitivity(
             sensitivity: profile.sens ?? profile.sensitivityFor(time: currentTime),
             sensitivityRatio: sensitivityRatio,
             trioCustomOrefVariables: trioCustomOrefVariables
@@ -155,10 +155,10 @@ enum DeterminationGenerator {
             noise: 1
         )
 
-        let glucoseImpactSeries = buildGlucoseImpactSeries(iobDataSeries: iobData, sensitivity: sens)
+        let glucoseImpactSeries = buildGlucoseImpactSeries(iobDataSeries: iobData, sensitivity: adjustedSensitivity)
         let glucoseImpactSeriesWithZeroTemp = buildGlucoseImpactSeries(
             iobDataSeries: iobData,
-            sensitivity: sens,
+            sensitivity: adjustedSensitivity,
             withZeroTemp: true
         )
 
@@ -187,7 +187,7 @@ enum DeterminationGenerator {
 
         let naiveEventualGlucose: Decimal
         if currentIob > 0 {
-            naiveEventualGlucose = (currentGlucose - (currentIob * sens)).rounded(toPlaces: 0)
+            naiveEventualGlucose = (currentGlucose - (currentIob * adjustedSensitivity)).rounded(toPlaces: 0)
         } else {
             naiveEventualGlucose =
                 (
@@ -196,7 +196,7 @@ enum DeterminationGenerator {
                             currentIob *
                                 min(
                                     profile.profileSensitivity(at: currentTime, trioCustomOrefVaribales: trioCustomOrefVariables),
-                                    sens
+                                    adjustedSensitivity
                                 )
                         )
                 )
@@ -207,7 +207,7 @@ enum DeterminationGenerator {
 
         // Safety: if we ever get an invalid Decimal (very rare with Decimal), handle
         guard eventualGlucose.isFinite else {
-            throw DeterminationError.eventualGlucoseCalculationError(sensitivity: sens, deviation: deviation)
+            throw DeterminationError.eventualGlucoseCalculationError(sensitivity: adjustedSensitivity, deviation: deviation)
         }
 
         let forecastResult = ForecastGenerator.generate(
@@ -223,7 +223,7 @@ enum DeterminationGenerator {
             trioCustomOrefVariables: trioCustomOrefVariables,
             dynamicIsfResult: dynamicIsfResult,
             targetGlucose: adjustedGlucoseTargets.targetGlucose,
-            adjustedSensitivity: sens,
+            adjustedSensitivity: adjustedSensitivity,
             sensitivityRatio: sensitivityRatio,
             naiveEventualGlucose: naiveEventualGlucose,
             eventualGlucose: eventualGlucose,
@@ -248,8 +248,8 @@ enum DeterminationGenerator {
             deviation: deviation,
             currentBasal: profile.currentBasal ?? profile.basalFor(time: currentTime),
             overrideFactor: trioCustomOrefVariables.overrideFactor(),
-            adjustedSensitivity: sens,
-            isfreason: "", // Placeholder
+            adjustedSensitivity: adjustedSensitivity,
+            isfReason: "", // Placeholder
             tddReason: "", // Placeholder
             targetLog: "" // Placeholder
         )
