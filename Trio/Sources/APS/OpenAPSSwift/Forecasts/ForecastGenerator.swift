@@ -96,7 +96,7 @@ enum ForecastGenerator {
             adjustmentFactorLogrithmic: profile.adjustmentFactor
         )
 
-        let initialForecasts = calculateMinMaxPredictedGlucose(
+        let initialForecasts = calculateMinMaxForecastedGlucose(
             currentGlucose: glucose,
             iobForecast: iobResult,
             cobForecast: cobResult,
@@ -159,7 +159,7 @@ enum ForecastGenerator {
     /// This function does the min/max glucose forecasts at the end of the main forecast loop
     /// in JS. It operates on raw forecasts and there is a cross dependency between IOB
     /// predictions and the UAM predictions, so we need to pull out this logic here
-    static func calculateMinMaxPredictedGlucose(
+    static func calculateMinMaxForecastedGlucose(
         currentGlucose: Decimal,
         iobForecast: IndividualForecast,
         cobForecast: IndividualForecast,
