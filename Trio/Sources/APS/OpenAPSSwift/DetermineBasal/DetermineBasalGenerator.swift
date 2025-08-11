@@ -244,7 +244,7 @@ enum DeterminationGenerator {
             forecast: forecastResult,
             naiveEventualGlucose: naiveEventualGlucose,
             threshold: threshold,
-            bgi: currentGlucoseImpact,
+            glucoseImpact: currentGlucoseImpact,
             deviation: deviation,
             currentBasal: profile.currentBasal ?? profile.basalFor(time: currentTime),
             overrideFactor: trioCustomOrefVariables.overrideFactor(),

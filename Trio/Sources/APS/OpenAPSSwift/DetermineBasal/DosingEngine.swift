@@ -12,7 +12,7 @@ enum DosingEngine {
         forecast: ForecastResult,
         naiveEventualGlucose: Decimal,
         threshold: Decimal,
-        bgi: Decimal,
+        glucoseImpact: Decimal,
         deviation: Decimal,
         currentBasal: Decimal,
         overrideFactor: Decimal,
@@ -26,7 +26,7 @@ enum DosingEngine {
         let lastUAMpredBG = forecast.uam?.last
 
         var reason =
-            "\(isfReason), COB: \(mealData.mealCOB), Dev: \(deviation), BGI: \(bgi), CR: \(forecast.adjustedCarbRatio), Target: \(targetLog), minPredBG \(forecast.minForecastedGlucose), minGuardBG \(forecast.minGuardGlucose), IOBpredBG \(lastIOBpredBG)"
+            "\(isfReason), COB: \(mealData.mealCOB), Dev: \(deviation), BGI: \(glucoseImpact), CR: \(forecast.adjustedCarbRatio), Target: \(targetLog), minPredBG \(forecast.minForecastedGlucose), minGuardBG \(forecast.minGuardGlucose), IOBpredBG \(lastIOBpredBG)"
 
         if let lastCOB = lastCOBpredBG {
             reason += ", COBpredBG \(lastCOB)"
@@ -45,8 +45,8 @@ enum DosingEngine {
             threshold: threshold,
             iobForecast: forecast.iob,
             cobForecast: forecast.internalCob,
-            ci: forecast.carbImpact,
-            remainingCIpeak: forecast.remainingCarbImpactPeak,
+            carbImpact: forecast.carbImpact,
+            remainingCarbImpactPeak: forecast.remainingCarbImpactPeak,
             currentBasal: currentBasal,
             overrideFactor: overrideFactor,
             adjustedSensitivity: adjustedSensitivity,
@@ -71,23 +71,23 @@ enum DosingEngine {
         threshold: Decimal,
         iobForecast: [Decimal],
         cobForecast: [Decimal],
-        ci: Decimal,
-        remainingCIpeak: Decimal,
+        carbImpact: Decimal,
+        remainingCarbImpactPeak: Decimal,
         currentBasal: Decimal,
         overrideFactor: Decimal,
         adjustedSensitivity: Decimal,
         adjustedCarbRatio: Decimal
     ) -> (carbs: Decimal, minutes: Decimal)? {
-        var carbsReqBG = naiveEventualGlucose
+        var carbsRequiredGlucose = naiveEventualGlucose
         if naiveEventualGlucose < 40 {
-            carbsReqBG = min(minGuardGlucose, naiveEventualGlucose)
+            carbsRequiredGlucose = min(minGuardGlucose, naiveEventualGlucose)
         }
 
-        let bgUndershoot = threshold - carbsReqBG
+        let glucoseUndershoot = threshold - carbsRequiredGlucose
 
         var minutesAboveThreshold = Decimal(240)
 
-        let useCOBForecast = mealData.mealCOB > 0 && (ci > 0 || remainingCIpeak > 0)
+        let useCOBForecast = mealData.mealCOB > 0 && (carbImpact > 0 || remainingCarbImpactPeak > 0)
         let forecast = useCOBForecast ? cobForecast : iobForecast
 
         // At this point in the JS the forecasts have already been rounded
@@ -102,18 +102,18 @@ enum DosingEngine {
         let zeroTempEffect = currentBasal * adjustedSensitivity * overrideFactor * zeroTempDuration / 60
 
         let mealCarbs = mealData.carbs
-        let cobForCarbsReq = max(0, mealData.mealCOB - (Decimal(0.25) * mealCarbs))
+        let cobForCarbsRequired = max(0, mealData.mealCOB - (Decimal(0.25) * mealCarbs))
 
         guard adjustedCarbRatio > 0 else { return nil }
-        let csf = adjustedSensitivity / adjustedCarbRatio
-        guard csf > 0 else { return nil }
+        let carbSensitivityFactor = adjustedSensitivity / adjustedCarbRatio
+        guard carbSensitivityFactor > 0 else { return nil }
 
-        var carbsReq = (bgUndershoot - zeroTempEffect) / csf - cobForCarbsReq
-        carbsReq = carbsReq.rounded(toPlaces: 0)
+        var carbsRequired = (glucoseUndershoot - zeroTempEffect) / carbSensitivityFactor - cobForCarbsRequired
+        carbsRequired = carbsRequired.rounded(toPlaces: 0)
 
-        let carbsReqThreshold = profile.carbsReqThreshold
-        if carbsReq >= carbsReqThreshold, minutesAboveThreshold <= 45 {
-            return (carbs: carbsReq, minutes: minutesAboveThreshold)
+        let carbsRequiredThreshold = profile.carbsReqThreshold
+        if carbsRequired >= carbsRequiredThreshold, minutesAboveThreshold <= 45 {
+            return (carbs: carbsRequired, minutes: minutesAboveThreshold)
         }
 
         return nil
