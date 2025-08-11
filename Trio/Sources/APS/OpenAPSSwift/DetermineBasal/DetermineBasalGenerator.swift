@@ -93,7 +93,8 @@ enum DeterminationGenerator {
             )
         }
 
-        let sensitivity = computeAdjustedSensitivity(
+        // this is the `sens` variable in JS, it's the adjusted sensitivity
+        let adjustedSensitivity = computeAdjustedSensitivity(
             sensitivity: profile.sens ?? profile.sensitivityFor(time: currentTime),
             sensitivityRatio: sensitivityRatio,
             trioCustomOrefVariables: trioCustomOrefVariables
@@ -154,10 +155,10 @@ enum DeterminationGenerator {
             noise: 1
         )
 
-        let glucoseImpactSeries = buildGlucoseImpactSeries(iobDataSeries: iobData, sensitivity: sensitivity)
+        let glucoseImpactSeries = buildGlucoseImpactSeries(iobDataSeries: iobData, sensitivity: adjustedSensitivity)
         let glucoseImpactSeriesWithZeroTemp = buildGlucoseImpactSeries(
             iobDataSeries: iobData,
-            sensitivity: sensitivity,
+            sensitivity: adjustedSensitivity,
             withZeroTemp: true
         )
 
@@ -186,7 +187,7 @@ enum DeterminationGenerator {
 
         let naiveEventualGlucose: Decimal
         if currentIob > 0 {
-            naiveEventualGlucose = (currentGlucose - (currentIob * sensitivity)).rounded(toPlaces: 0)
+            naiveEventualGlucose = (currentGlucose - (currentIob * adjustedSensitivity)).rounded(toPlaces: 0)
         } else {
             naiveEventualGlucose =
                 (
@@ -195,7 +196,7 @@ enum DeterminationGenerator {
                             currentIob *
                                 min(
                                     profile.profileSensitivity(at: currentTime, trioCustomOrefVaribales: trioCustomOrefVariables),
-                                    sensitivity
+                                    adjustedSensitivity
                                 )
                         )
                 )
@@ -206,7 +207,7 @@ enum DeterminationGenerator {
 
         // Safety: if we ever get an invalid Decimal (very rare with Decimal), handle
         guard eventualGlucose.isFinite else {
-            throw DeterminationError.eventualGlucoseCalculationError(sensitivity: sensitivity, deviation: deviation)
+            throw DeterminationError.eventualGlucoseCalculationError(sensitivity: adjustedSensitivity, deviation: deviation)
         }
 
         let forecastResult = ForecastGenerator.generate(
@@ -222,7 +223,7 @@ enum DeterminationGenerator {
             trioCustomOrefVariables: trioCustomOrefVariables,
             dynamicIsfResult: dynamicIsfResult,
             targetGlucose: adjustedGlucoseTargets.targetGlucose,
-            adjustedSensitivity: sensitivity,
+            adjustedSensitivity: adjustedSensitivity,
             sensitivityRatio: sensitivityRatio,
             naiveEventualGlucose: naiveEventualGlucose,
             eventualGlucose: eventualGlucose,
@@ -237,12 +238,28 @@ enum DeterminationGenerator {
             glucoseImpact: currentGlucoseImpact
         )
 
-        // TODO: STOPPING at LINE 1152
+        let dosingInputs = DosingEngine.prepareDosingInputs(
+            profile: profile,
+            mealData: mealData,
+            forecast: forecastResult,
+            naiveEventualGlucose: naiveEventualGlucose,
+            threshold: threshold,
+            glucoseImpact: currentGlucoseImpact,
+            deviation: deviation,
+            currentBasal: profile.currentBasal ?? profile.basalFor(time: currentTime),
+            overrideFactor: trioCustomOrefVariables.overrideFactor(),
+            adjustedSensitivity: adjustedSensitivity,
+            isfReason: "", // Placeholder
+            tddReason: "", // Placeholder
+            targetLog: "" // Placeholder
+        )
+
+        // TODO: STOPPING at LINE 1264
 
         // FIXME: properly populate all fields!
         let temporaryResult = Determination(
             id: UUID(),
-            reason: "FOR TESTING: output after forecasting",
+            reason: dosingInputs.reason,
             units: nil,
             insulinReq: nil,
             eventualBG: Int(forecastResult.eventualGlucose),
@@ -258,7 +275,7 @@ enum DeterminationGenerator {
                 uam: forecastResult.uam?.map { Int($0.jsRounded()) }
             ),
             deliverAt: currentTime,
-            carbsReq: nil,
+            carbsReq: dosingInputs.carbsRequired?.carbs,
             temp: nil,
             bg: currentGlucose,
             reservoir: nil,
@@ -272,8 +289,8 @@ enum DeterminationGenerator {
             expectedDelta: expectedDelta,
             minGuardBG: forecastResult.minGuardGlucose,
             minPredBG: forecastResult.minForecastedGlucose,
-            threshold: threshold,
-            carbRatio: nil,
+            threshold: threshold.jsRounded(),
+            carbRatio: forecastResult.adjustedCarbRatio.jsRounded(scale: 1),
             received: false,
         )
 

@@ -52,7 +52,6 @@ enum OrefFunction: String, Codable {
                 "rate",
                 "duration",
                 "deliverAt",
-                "carbsReq",
                 "temp",
                 "reservoir",
                 "ISF",
@@ -61,7 +60,6 @@ enum OrefFunction: String, Codable {
                 "insulinForManualBolus",
                 "manualBolusErrorString",
                 "minDelta",
-                "CR",
                 "received",
                 "reason",
                 // in JS but not in Swift
