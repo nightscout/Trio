@@ -1,0 +1,428 @@
+/* Description for an inactive alert modifier */
+" (inactive)" = " (неактивний)";
+
+/* Format string for low battery alert body for RileyLink. (1: device name) */
+"\"%1$@\" has a low battery" = "\"%1$@\" має низький заряд акумулятора";
+
+/* Unit format string for an RSSI value in decibles */
+"%@ dB" = "%@ dB";
+
+/* Format string for alert content body for lowReservoir pod alert. (1: reminder value) */
+"%1$@ insulin or less remaining in Pod. Change Pod soon." = "%1$@ або менше інсуліна в Podʼі. Замініть Pod найближчим часом.";
+
+/* Format string for activation time exceeded
+   Pod state when activation not completed in the time allowed */
+"Activation time exceeded" = "Час активації перевищений";
+
+/* Description for auto-off */
+"Auto-off" = "Авто вимкнення";
+
+/* Description for auto-off alarm */
+"Auto-off alarm" = "Авто-відключення сигналу";
+
+/* Pod state when basal initialized */
+"Basal initialized" = "Базал ініціалізовано";
+
+/* Pod state when running below fifty units */
+"Below 50 units" = "Менше 50 одиниць";
+
+/* Pump Event title for UnfinalizedDose with doseType of .bolus */
+"Bolus" = "Болюс";
+
+/* Error message shown when operation could not be completed due to existing bolus in progress */
+"Bolus in progress" = "Подання болюса";
+
+/* The format string describing a bolus. (1: The amount delivered)(2: Start time of the dose)(3: duration)(4: scheduled certainty) */
+"Bolus: %1$@U %2$@ %3$@ %4$@" = "Болюс: %1$@U %2$@ %3$@ %4$@";
+
+/* Delivery status when bolusing */
+"Bolusing" = "Подача болюса";
+
+/* Delivery status when bolusing and temp basal is running */
+"Bolusing with temp basal" = "Подача болюса при подачі ТБШ";
+
+/* Pod state when inserting cannula */
+"Cannula inserting" = "Встановлення канюлі";
+
+/* String describing a dose that was certainly scheduled */
+"Certain" = "Безперечно";
+
+/* Alert content body for podExpireImminent pod alert */
+"Change Pod now. Insulin delivery will stop in 1 hour." = "Замінити Pod зараз. Подачу інсуліну буде зупинено через 1 годину.";
+
+/* Alert content body for podExpiring pod alert */
+"Change Pod now. Pod has been active for 72 hours." = "Замініть під зараз. Pod активний вже протягом 72 годин.";
+
+/* Format string for invalid message error code (1: error code number) */
+"Command error %1$u" = "Помилка команди %1$u";
+
+/* Status highlight that delivery is uncertain. */
+"Comms Issue" = "Помилка звʼязку";
+
+/* Error message when command is rejected because an unacknowledged command is pending. */
+"Communication issue: Unacknowledged command pending." = "Проблема комунікації: не визнана команда в очікуванні.";
+
+/* Description for BeepPreference.manualCommands */
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Нагадування про достовірність лунатимуть для команд, які ви ініціюєте, як-от болюс, скасування болюсу, призупинення, відновлення, збереження сповіщень тощо. Коли Loop автоматично регулює доставку, нагадування про довіру не використовуються.";
+
+/* Description for BeepPreference.extended */
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Нагадування про довіру лунатимуть, коли Loop автоматично регулює доставку, а також для команд, які ви ініціюєте.";
+
+/* The title for AlarmCode.other notification */
+"Critical Pod Error" = "Критична Помилка";
+
+/* Recovery suggestion when unexpected address received */
+"Crosstalk possible. Please move to a new location" = "Можливі перехресні перешкоди. Будь ласка, перейдіть на нове місце";
+
+/* Pod state when pod has been deactivated */
+"Deactivated" = "Деактивовано";
+
+/* Title string for BeepPreference.silent */
+"Disabled" = "Вимкнено";
+
+/* Description for Empty reservoir pod fault */
+"Empty reservoir" = "Порожній резервуар";
+
+/* Error message shown when empty response from pod was received */
+"Empty response from pod" = "Немає відповіді від Pod";
+
+/* Pod state error event logged shutting down */
+"Error event logged, shutting down" = "Помилка записана в лог, відключення";
+
+/* Description for expiration alert */
+"Expiration alert" = "Сповіщення про закінчення терміну дії";
+
+/* Title string for BeepPreference.extended */
+"Extended" = "Подовжено";
+
+/* Delivery status when extended bolus is running */
+"Extended bolus running" = "Вводиться розтягнутий болюс";
+
+/* Delivery status when extended bolus and temp basal is running */
+"Extended bolus running with temp basal" = "Подовжений болюс із Тимчасовою Базальною Швидкістю";
+
+/* Pod state when fault event has occurred */
+"Fault event occurred" = "Виникла помилка";
+
+/* Status highlight that when pod is deactivating. */
+"Finish Deactivation" = "Завершити деактивацію";
+
+/* Status highlight that when pod is activating. */
+"Finish Pairing" = "Завершити створення пари";
+
+/* Description for finish setup */
+"Finish setup " = "Завершити налаштування ";
+
+/* Description for finish setup reminder */
+"Finish setup reminder" = "Нагадування про завершення налаштування";
+
+/* Pod inititialized */
+"Initialized" = "Активований";
+
+/* Pod state when inserting cannula */
+"Inserting cannula" = "Введення канюлі";
+
+/* The default notification body for AlarmCodes */
+"Insulin delivery stopped. Change Pod now." = "Подачу інсуліну припинено. Замініть Pod зараз.";
+
+/* Status highlight that insulin delivery was suspended. */
+"Insulin Suspended" = "Подання інсуліну призупинено";
+
+/* Error description for OmniBLEPumpManagerError.insulinTypeNotConfigured */
+"Insulin type not configured" = "Тип інсуліну не налаштований";
+
+/* The format string for Internal pod fault (1: The fault code value) */
+"Internal pod fault %1$03d" = "Внутрішня помилка Pod %1$03d";
+
+/* The format string describing a bolus that was interrupted. (1: The amount delivered)(2: The amount scheduled)(3: Start time of the dose)(4: duration)(5: scheduled certainty) */
+"InterruptedBolus: %1$@ U (%2$@ U scheduled) %3$@ %4$@ %5$@" = "Перерваний Болюс: %1$@ U (%2$@ U заплановано) %3$@ %4$@ %5$@";
+
+/* Error message for when unexpected address is received (1: received address) (2: expected address) */
+"Invalid address 0x%x. Expected 0x%x" = "Некоректна адреса 0x%x. Очікувалось 0x%x";
+
+/* Description for MessageError invalidAddress */
+"Invalid address: (%1$@)" = "Недійсна адреса: (%1$@)";
+
+/* Description for MessageError invalidCrc */
+"Invalid CRC" = "Некоректний CRC";
+
+/* Error description for OmniBLEPumpManagerError.invalidSetting */
+"Invalid Setting" = "Непридатні параметри";
+
+/* Alert content title for lowReservoir pod alert */
+"Low Reservoir" = "Мало інсуліну в резервуарі";
+
+/* Format string for description for low reservoir advisory (1: reminder units) */
+"Low reservoir advisory (%1$gU)" = "Попередження про низький рівень резервуара (%1$gU)";
+
+/* Description for low reservoir alarm */
+"Low reservoir advisory alarm" = "Оповіщення про малий запас інсуліну у резервуарі";
+
+/* Title for RileyLink low battery alert */
+"Low RileyLink Battery" = "Низький заряд RileyLink";
+
+/* Recovery suggestion when no RileyLink is available */
+"Make sure your RileyLink is nearby and powered on" = "Впевніться, що RileyLink увімкнений та знаходиться поруч";
+
+/* Status highlight when manual temp basal is running. */
+"Manual Basal" = "Ручна Тимчасова Базальна Швидкість (ТБШ)";
+
+/* Pod memory initialized */
+"Memory initialized" = "Пам'ять ініціалізовано";
+
+/* Recovery suggestion for PodCommsError.tooManyPodsFound */
+"Move to a new area away from any other pods and try again." = "Перейдіть у інше місце подалі від будь-яких інших Pods і спробуйте ще раз.";
+
+/* Alert content body for multiCommand pod alert
+   Alert content title for multiCommand pod alert */
+"Multiple Command Alert" = "Попередження про кілька команд";
+
+/* Pod alert state when no alerts are active */
+"No alerts" = "Немає сповіщень";
+
+/* Description for BeepPreference.silent */
+"No confidence reminders are used." = "Нагадування про довіру не використовуються.";
+
+/* Description for Fault Event Code .noFaults */
+"No faults" = "Нема помилок";
+
+/* Status highlight message for emptyReservoir alarm.
+   Status highlight that a pump is out of insulin. */
+"No Insulin" = "Без інсуліну";
+
+/* Status highlight that when no pod is paired. */
+"No Pod" = "Немає Pod";
+
+/* Error message shown when no pod is paired */
+"No pod paired" = "Немає підключеного Pod";
+
+/* Error message for PodCommsError.noPodsFound */
+"No pods found" = "Pod не знайдено";
+
+/* Error message shown when no response from pod was received */
+"No response from pod" = "Немає відповіді від Pod";
+
+/* Error message shown when no response from pod was received */
+"No RileyLink available" = "RileyLink недоступний";
+
+/* Delivery status when basal is running
+   Pod state when running above fifty units */
+"Normal" = "Нормальний";
+
+/* Description for MessageError notEnoughData */
+"Not enough data" = "Недостатньо даних";
+
+/* Description for Occlusion detected pod fault */
+"Occlusion detected" = "Виявлено закупорку";
+
+/* Generic title of the omnipod pump manager */
+"Omnipod" = "Omnipod";
+
+/* Pod status after pairing */
+"Paired" = "Пов'язані";
+
+/* Pod status when pairing completed */
+"Pairing completed" = "Спаровування завершено";
+
+/* Description for MessageError parsingError. (1: decription of error), (2: hexadecimal data starting at offset) */
+"Parsing Error: %1$@ in (%2$@)" = "Помилка обробки: %1$@ в (%2$@)";
+
+/* Recovery suggestion on unexpected pod change */
+"Please bring only original pod in range or deactivate original pod" = "Будь ласка, приносите в зону дії лише оригінальний Pod або деактивуйте оригінальний Pod";
+
+/* Recovery suggestion when no response is received from pod */
+"Please bring your pod closer to the RileyLink and try again" = "Будь ласка, піднесіть свій Pod до RileyLink і повторіть спробу";
+
+/* Alert content body for finishSetupReminder pod alert */
+"Please finish pairing your pod." = "Будь Ласка, завершіть підключення Pod.";
+
+/* Recover suggestion shown when no pod is paired */
+"Please pair a new pod" = "Будь ласка, підключіть новий Pod";
+
+/* Recovery suggestion when pairing signal strength is too high */
+"Please reposition the RileyLink further from the pod" = "Перемістіть RileyLink далі від Pod";
+
+/* Recovery suggestion when pairing signal strength is too low */
+"Please reposition the RileyLink relative to the pod" = "Змініть розташування RileyLink відносно Pod";
+
+/* Error message shown when user cannot pair because pod is already paired */
+"Pod already paired" = "Pod вже з'єднано";
+
+/* Error message shown when prime is attempted, but pod is already primed */
+"Pod already primed" = "Pod вже з'єднано";
+
+/* Status highlight message for other alarm. */
+"Pod Error" = "Помилка Pod";
+
+/* Description for expiration advisory alarm */
+"Pod expiration advisory alarm" = "Попереджувальний сигнал про закінчення строку придатності";
+
+/* The title for pod expiration notification */
+"Pod Expiration Notice" = "Повідомлення про закінчення строку придатності";
+
+/* Description for Pod expired pod fault */
+"Pod expired" = "Термін дії Pod минув";
+
+/* Format string for alert content body for userPodExpiration pod alert. (1: time until expiration) */
+"Pod expires in %1$@." = "Pod закінчується через %1$@.";
+
+/* Format string for pod fault code */
+"Pod Fault: %1$@" = "Помилка Pod: %1$@";
+
+/* Error message when cannula insertion fails because the pod is in an unexpected state */
+"Pod is not in a state ready for cannula insertion." = "Pod не готовий для введення канюли.";
+
+/* Error message when prime fails because the pod is in an unexpected state */
+"Pod is not in a state ready for priming." = "Omnipod не готовий до прокачування інсуліну";
+
+/* Error message action could not be performed because pod is suspended */
+"Pod is suspended" = "Pod призупинено";
+
+/* Status highlight message for occlusion alarm. */
+"Pod Occlusion" = "Закупорка Pod";
+
+/* Alert content title for finishSetupReminder pod alert */
+"Pod Pairing Incomplete" = "Створення пари не завершено";
+
+/* Error message shown when pod sends ack instead of response */
+"Pod sent ack instead of response" = "Pod надіслав \"ack\" замість відповіді";
+
+/* Pod state when prime or cannula insertion has not completed in the time allotted */
+"Pod setup window expired" = "Час для введення налаштувань Omnipod закінчився";
+
+/* Description for pod suspended reminder */
+"Pod suspended reminder" = "Нагадування про призупинення Pod";
+
+/* Format string for poor pod signal strength */
+"Poor signal strength" = "Низький рівень сигналу";
+
+/* Delivery status when pod is priming
+   Pod status when priming */
+"Priming" = "Прокачування інсуліну";
+
+/* Pod state when priming completed */
+"Priming completed" = "Прокачування інсуліну завершено";
+
+/* Pod state when ready for basal programming */
+"Ready for basal programming" = "Готовий до програмування Базалу";
+
+/* Pod state when ready for cannula insertion */
+"Ready to insert cannula" = "Готовий до введення канюлі";
+
+/* Pod pairing reminder initialized */
+"Reminder initialized" = "Нагадування ініціалізовано";
+
+/* Pump Event title for UnfinalizedDose with doseType of .resume */
+"Resume" = "Відновити";
+
+/* Recovery suggestion when pod is suspended */
+"Resume delivery" = "Відновити доставку";
+
+/* Alert content title for suspendEnded pod alert */
+"Resume Insulin" = "Відновити подачу";
+
+/* The format string describing a resume. (1: Time)(2: Scheduled certainty */
+"Resume: %1$@ %2$@" = "Поновлено: %1$@ %2$@";
+
+/* Delivery status when basal is running */
+"Scheduled Basal" = "Запланована База";
+
+/* Description for shutdown imminent */
+"Shutdown imminent" = "Завершення роботи неминучі";
+
+/* Description for shutdown imminent alarm */
+"Shutdown imminent alarm" = "Завершення роботи неминучі";
+
+/* Status highlight when communications with the pod haven't happened recently. */
+"Signal Loss" = "Втрата сигналу";
+
+/* Format string for pod signal strength too high */
+"Signal strength too high" = "Зависока потужність сигналу";
+
+/* Pump Event title for UnfinalizedDose with doseType of .suspend */
+"Suspend" = "Призупинити";
+
+/* Alert content body for suspendInProgress pod alert
+   Alert content title for suspendInProgress pod alert */
+"Suspend In Progress Reminder" = "Нагадування про призупинення";
+
+/* Description for suspend time expired */
+"Suspend time expired" = "Час припинення подачі минув";
+
+/* Delivery status when insulin delivery is suspended */
+"Suspended" = "Призупинено";
+
+/* The format string describing a suspend. (1: Time)(2: Scheduled certainty */
+"Suspend: %1$@ %2$@" = "Призупинено: %1$@ %2$@";
+
+/* Delivery status when insulin delivery is suspended */
+"Suspended" = "Призупинено";
+
+/* Alert notification body for suspendEnded pod alert user notification */
+"Suspension time is up. Open the app and resume." = "Час призупинення вже вичерпано. Відкрийте додаток та продовжуйте роботу.";
+
+/* Pod tank fill completed */
+"Tank fill completed" = "Наповнення Pod завершено";
+
+/* Pod power to motor activated */
+"Tank power activated" = "Живлення моторчика резервуара активоване";
+
+/* Pump Event title for UnfinalizedDose with doseType of .tempBasal */
+"Temp Basal" = "Тимчасова  Базальна Швидкість";
+
+/* Error message shown when temp basal could not be set due to existing temp basal in progress */
+"Temp basal in progress" = "Поки що працює тимчасовий базал";
+
+/* Delivery status when temp basal is running */
+"Temp basal running" = "Подається тимчасовий базал";
+
+/* The format string describing a temp basal. (1: The rate)(2: Start time)(3: duration)(4: volume)(5: scheduled certainty */
+"TempBasal: %1$@ U/hour %2$@ %3$@ %4$@ U %5$@" = "Тимчасовий Базал: %1$@ ед/ч %2$@ %3$@ %4$@ ед %5$@";
+
+/* Alert content body for suspendEnded pod alert */
+"The insulin suspension period has ended.\n\nYou can resume delivery from the banner on the home screen or from your pump settings screen. You will be reminded again in 15 minutes." = "Період призупинення подачі інсуліну закінчився.\n\nВи можете відновити інсулін з банеру на головному екрані програми або з екрана налаштувань вашої помпи. За 15 хвилин ви отримаєте повторне нагадування.";
+
+/* Alert content body for timeOffsetChangeDetected pod alert */
+"The time on your pump is different from the current time. You can review the pump time and and sync to current time in settings." = "Час на вашоій помпі відрізняється від поточного часу. Ви можете переглянути час помпи та синхронізувати його з поточним часом у налаштуваннях.";
+
+/* Alert content title for timeOffsetChangeDetected pod alert */
+"Time Change Detected" = "Виявлено зміну часу";
+
+/* The format string for pod expiration notification body (1: time until expiration) */
+"Time to replace your pod! Your pod will expire in %1$@" = "Час замінити Pod - Термін придатності спливає через %1$@";
+
+/* Error message for PodCommsError.tooManyPodsFound */
+"Too many pods found" = "Знайдено забагато Pods";
+
+/* Recovery suggestion when ack received instead of response */
+"Try again" = "Спробуйте знову";
+
+/* String describing a dose that was possibly scheduled */
+"Uncertain" = "Невизначений";
+
+/* Description for MessageError invalidSequence */
+"Unexpected message sequence number" = "Несподіваний номер повідомлення";
+
+/* Format string for unexpected pod change */
+"Unexpected pod change" = "Несподівана зміна Pod";
+
+/* Error message shown when empty response from pod was received */
+"Unexpected response from pod" = "Несподіваний відгук Pod";
+
+/* The format string for Unknown pod fault (1: The fault code value) */
+"Unknown pod fault %1$03d" = "Невідома несправність Pod %1$03d";
+
+/* Format string for description of MessageError unknownValue. (1: value) (2: Type) */
+"Unknown Value (%1$@) for type %2$@" = "Невідоме значення ( %1$@ ) для типу %2$@";
+
+/* Format string for description of MessageError validationFailed. (1: description of validation failure) */
+"Validation failed: %1$@" = "Помилка перевірки: %1$@";
+
+/* Recovery suggestion when operation could not be completed due to existing bolus in progress */
+"Wait for existing bolus to finish, or cancel bolus" = "Дочекайтеся закінчення подачі болюса або скасуйте його";
+
+/* Recovery suggestion when operation could not be completed due to existing temp basal in progress */
+"Wait for existing temp basal to finish, or suspend to cancel" = "Дочекайтеся закінчення введення поточної ТБШ або зупиніть помпу для скасування";
+
+/* Description waiting for pairing reminder */
+"Waiting for pairing reminder" = "Очікую нагадування про створення пари";

@@ -1,0 +1,98 @@
+/* Communications error for a bolus currently running */
+"A bolus is already in progress" = "En bolus er allerede i gang";
+
+/* The description of AlarmClockReminderPumpEvent */
+"AlarmClockReminder" = "AlarmUrPåmindelse";
+
+/* The description of AlarmSensorPumpEvent */
+"AlarmSensor" = "Alarm Sensor";
+
+/* Describing the battery chemistry as Alkaline */
+"Alkaline" = "Alkaline";
+
+/* The format string description of a BasalProfileStartPumpEvent. (1: The index of the profile)(2: The basal rate) */
+"Basal Profile %1$@: %2$@ U/hour" = "Basal Profil %1$@: %2$@ E/time";
+
+/* Pump error code when bolus is in progress */
+"Bolus in progress" = "Bolus i gang";
+
+/* Suggestions for diagnosing a command refused pump error */
+"Check that the pump is not suspended or priming, or has a percent temp basal type" = "Tjek, at pumpen ikke er suspenderet eller under klargøring, eller har en procent midlertidig basaltype";
+
+/* Pump error code returned when command refused */
+"Command refused" = "Kommando nægtet";
+
+/* No comment provided by engineer. */
+"Comms with another pump detected" = "Kommunikation med en anden pumpe opdaget.";
+
+/* Error description */
+"Decoding Error" = "Undersøger fejl";
+
+/* Error description */
+"Device Error" = "Enhedsfejl";
+
+/* Describing the pump history insulin data source */
+"Event History" = "Hændelseshistorik";
+
+/* Format string for failure reason. (1: The operation being performed) (2: The response data) */
+"Invalid response during %1$@: %2$@" = "Fejlagtigt svar ved %1$@: %2$@";
+
+/* Describing the battery chemistry as Lithium */
+"Lithium" = "Litium";
+
+/* Recovery suggestion */
+"Make sure your RileyLink is nearby and powered on" = "Sørg for, at din RileyLink er i nærheden og tændt";
+
+/* Pump error code describing max setting exceeded */
+"Max setting exceeded" = "Max indstilling overskredet";
+
+/* Pump title (1: model number) */
+"Minimed %@" = "Minimed %@";
+
+/* Generic title of the minimed pump manager */
+"Minimed 500/700 Series" = "Minimed 500/700 Serier";
+
+/* Describing the North America pump region */
+"North America" = "Nordamerika";
+
+/* No comment provided by engineer. */
+"Pump did not respond" = "Pumpe svarede ikke";
+
+/* Error description */
+"Pump Error" = "Pumpefejl";
+
+/* No comment provided by engineer. */
+"Pump is suspended" = "Pumpe er afbrudt";
+
+/* No comment provided by engineer. */
+"Pump responded unexpectedly" = "Pumpe reagerede uventet";
+
+/* The format string describing a pump message. (1: The packet type)(2: The message type)(3: The message address)(4: The message data */
+"PumpMessage(%1$@, %2$@, %3$@, %4$@)" = "Pumpebesked(%1$@, %2$@, %3$@, %4$@)";
+
+/* Describing the reservoir insulin data source */
+"Reservoir" = "Reservoir";
+
+/* Error description */
+"RileyLink radio tune failed" = "RileyLink radioindstilling fejlede";
+
+/* The format string description of a TempBasalPumpEvent. (1: The rate of the temp basal in minutes) */
+"Temporary Basal: %1$.3f U/hour" = "Midlertidig Basal: %1$.3f E/time";
+
+/* The format string description of a TempBasalDurationPumpEvent. (1: The duration of the temp basal in minutes) */
+"Temporary Basal: %1$d min" = "Midlertidig Basal: %1$d min";
+
+/* The format string description of a TempBasalPumpEvent. (1: The rate of the temp basal in percent) */
+"Temporary Basal: %1$d%%" = "Midlertidig basal: %1$d%%";
+
+/* The format string description of an unknown pump error code. (1: The specific error code raw value) */
+"Unknown pump error code: %1$@" = "Ukendt pumpe-fejlkode: %1$@";
+
+/* No comment provided by engineer. */
+"Unknown pump model: %@" = "Ukendt pumpemodel %@";
+
+/* Format string for an unknown response. (1: The operation being performed) (2: The response data) */
+"Unknown response during %1$@: %2$@" = "Ukendt svar under %1$@: %2$@";
+
+/* Describing the worldwide pump region */
+"World-Wide" = "Verdensomspændende";

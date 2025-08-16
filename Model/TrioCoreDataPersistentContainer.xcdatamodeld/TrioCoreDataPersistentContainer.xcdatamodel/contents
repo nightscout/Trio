@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="24C101" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="BolusStored" representedClassName="BolusStored" syncable="YES">
+        <attribute name="amount" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="isExternal" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isSMB" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <relationship name="pumpEvent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PumpEventStored" inverseName="bolus" inverseEntity="PumpEventStored"/>
+    </entity>
+    <entity name="CarbEntryStored" representedClassName="CarbEntryStored" syncable="YES">
+        <attribute name="carbs" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="fat" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="fpuID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isFPU" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToHealth" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToTidepool" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="note" optional="YES" attributeType="String"/>
+        <attribute name="protein" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <fetchIndex name="byDate">
+            <fetchIndexElement property="date" type="Binary" order="descending"/>
+        </fetchIndex>
+        <fetchIndex name="byIsFPU">
+            <fetchIndexElement property="isFPU" type="Binary" order="ascending"/>
+        </fetchIndex>
+    </entity>
+    <entity name="ContactImageEntryStored" representedClassName="ContactImageEntryStored" syncable="YES" codeGenerationType="class">
+        <attribute name="bottom" optional="YES" attributeType="String"/>
+        <attribute name="contactId" optional="YES" attributeType="String"/>
+        <attribute name="fontSize" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="fontSizeSecondary" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="fontWeight" optional="YES" attributeType="String"/>
+        <attribute name="fontWidth" optional="YES" attributeType="String"/>
+        <attribute name="hasHighContrast" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="layout" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="primary" optional="YES" attributeType="String"/>
+        <attribute name="ring" optional="YES" attributeType="String"/>
+        <attribute name="ringGap" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="ringWidth" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="top" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="Forecast" representedClassName="Forecast" syncable="YES">
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+        <relationship name="forecastValues" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ForecastValue" inverseName="forecast" inverseEntity="ForecastValue"/>
+        <relationship name="orefDetermination" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OrefDetermination" inverseName="forecasts" inverseEntity="OrefDetermination"/>
+        <fetchIndex name="byDate">
+            <fetchIndexElement property="date" type="Binary" order="descending"/>
+        </fetchIndex>
+        <fetchIndex name="byValue">
+            <fetchIndexElement property="forecastValues" type="Binary" order="ascending"/>
+        </fetchIndex>
+    </entity>
+    <entity name="ForecastValue" representedClassName="ForecastValue" syncable="YES">
+        <attribute name="index" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="value" optional="YES" attributeType="Integer 32" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="forecast" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Forecast" inverseName="forecastValues" inverseEntity="Forecast"/>
+    </entity>
+    <entity name="GlucoseStored" representedClassName="GlucoseStored" syncable="YES">
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="direction" optional="YES" attributeType="String"/>
+        <attribute name="glucose" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isManual" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToHealth" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToTidepool" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <fetchIndex name="byDate">
+            <fetchIndexElement property="date" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byIsManual">
+            <fetchIndexElement property="isManual" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byIsUploadedToNS">
+            <fetchIndexElement property="isUploadedToNS" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byIsUploadedToHealth">
+            <fetchIndexElement property="isUploadedToHealth" type="Binary" order="ascending"/>
+        </fetchIndex>
+    </entity>
+    <entity name="LoopStatRecord" representedClassName="LoopStatRecord" syncable="YES">
+        <attribute name="duration" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="end" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="interval" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="loopStatus" optional="YES" attributeType="String"/>
+        <attribute name="start" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="MealPresetStored" representedClassName="MealPresetStored" syncable="YES">
+        <attribute name="carbs" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="dish" optional="YES" attributeType="String"/>
+        <attribute name="fat" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="protein" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+    </entity>
+    <entity name="OpenAPS_Battery" representedClassName="OpenAPS_Battery" syncable="YES">
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="display" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="percent" optional="YES" attributeType="Double" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="status" optional="YES" attributeType="String"/>
+        <attribute name="voltage" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <fetchIndex name="byDate">
+            <fetchIndexElement property="date" type="Binary" order="descending"/>
+        </fetchIndex>
+    </entity>
+    <entity name="OrefDetermination" representedClassName="OrefDetermination" syncable="YES">
+        <attribute name="bolus" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="carbRatio" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="carbsRequired" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="cob" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="currentTarget" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="deliverAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="duration" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="enacted" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="eventualBG" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="expectedDelta" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="glucose" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="insulinForManualBolus" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="insulinReq" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="insulinSensitivity" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="iob" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="manualBolusErrorString" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="minDelta" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="rate" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="reason" optional="YES" attributeType="String"/>
+        <attribute name="received" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="reservoir" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="scheduledBasal" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="sensitivityRatio" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="smbToDeliver" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="temp" optional="YES" attributeType="String"/>
+        <attribute name="tempBasal" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="threshold" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="timestampEnacted" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="forecasts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Forecast" inverseName="orefDetermination" inverseEntity="Forecast"/>
+        <fetchIndex name="byDate">
+            <fetchIndexElement property="deliverAt" type="Binary" order="descending"/>
+        </fetchIndex>
+        <fetchIndex name="byTimestamp">
+            <fetchIndexElement property="timestamp" type="Binary" order="ascending"/>
+        </fetchIndex>
+    </entity>
+    <entity name="OverrideRunStored" representedClassName="OverrideRunStored" syncable="YES">
+        <attribute name="endDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="startDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="target" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <relationship name="override" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OverrideStored" inverseName="overrideRun" inverseEntity="OverrideStored"/>
+        <fetchIndex name="byDate">
+            <fetchIndexElement property="startDate" type="Binary" order="ascending"/>
+        </fetchIndex>
+    </entity>
+    <entity name="OverrideStored" representedClassName="OverrideStored" syncable="YES">
+        <attribute name="advancedSettings" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="cr" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="duration" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="enabled" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="end" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="indefinite" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isf" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="isfAndCr" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isPreset" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="orderPosition" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="percentage" optional="YES" attributeType="Double" defaultValueString="100" usesScalarValueType="YES"/>
+        <attribute name="smbIsOff" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="smbIsScheduledOff" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="smbMinutes" optional="YES" attributeType="Decimal" defaultValueString="30"/>
+        <attribute name="start" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="target" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="uamMinutes" optional="YES" attributeType="Decimal" defaultValueString="30"/>
+        <relationship name="overrideRun" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OverrideRunStored" inverseName="override" inverseEntity="OverrideRunStored"/>
+        <fetchIndex name="byDate">
+            <fetchIndexElement property="date" type="Binary" order="descending"/>
+        </fetchIndex>
+        <fetchIndex name="byIsPreset">
+            <fetchIndexElement property="isPreset" type="Binary" order="ascending"/>
+        </fetchIndex>
+    </entity>
+    <entity name="PumpEventStored" representedClassName="PumpEventStored" syncable="YES">
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="isUploadedToHealth" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToTidepool" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="note" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+        <relationship name="bolus" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="BolusStored" inverseName="pumpEvent" inverseEntity="BolusStored"/>
+        <relationship name="tempBasal" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TempBasalStored" inverseName="pumpEvent" inverseEntity="TempBasalStored"/>
+        <fetchIndex name="byTimestamp">
+            <fetchIndexElement property="timestamp" type="Binary" order="descending"/>
+        </fetchIndex>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="StatsData" representedClassName="StatsData" syncable="YES">
+        <attribute name="lastrun" attributeType="Date" defaultDateTimeInterval="704497620" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="TDDStored" representedClassName="TDDStored" syncable="YES">
+        <attribute name="bolus" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="scheduledBasal" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="tempBasal" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="total" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="weightedAverage" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+    </entity>
+    <entity name="TempBasalStored" representedClassName="TempBasalStored" syncable="YES">
+        <attribute name="duration" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="rate" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="tempType" optional="YES" attributeType="String"/>
+        <relationship name="pumpEvent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PumpEventStored" inverseName="tempBasal" inverseEntity="PumpEventStored"/>
+    </entity>
+    <entity name="TempTargetRunStored" representedClassName="TempTargetRunStored" syncable="YES">
+        <attribute name="endDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" defaultValueString="empy" usesScalarValueType="NO"/>
+        <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="startDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="target" optional="YES" attributeType="Decimal" defaultValueString="160"/>
+        <relationship name="tempTarget" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TempTargetStored" inverseName="tempTargetRun" inverseEntity="TempTargetStored"/>
+        <fetchIndex name="byDate">
+            <fetchIndexElement property="startDate" type="Binary" order="descending"/>
+        </fetchIndex>
+    </entity>
+    <entity name="TempTargetStored" representedClassName="TempTargetStored" syncable="YES">
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="duration" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="enabled" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="halfBasalTarget" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isPreset" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="orderPosition" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="target" optional="YES" attributeType="Decimal" defaultValueString="160"/>
+        <relationship name="tempTargetRun" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TempTargetRunStored" inverseName="tempTarget" inverseEntity="TempTargetRunStored"/>
+        <fetchIndex name="byDate">
+            <fetchIndexElement property="date" type="Binary" order="descending"/>
+        </fetchIndex>
+        <fetchIndex name="byIsPreset">
+            <fetchIndexElement property="isPreset" type="Binary" order="descending"/>
+        </fetchIndex>
+    </entity>
+</model>

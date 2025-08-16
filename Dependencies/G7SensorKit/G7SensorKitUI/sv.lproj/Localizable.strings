@@ -1,0 +1,117 @@
+/* No glucose value representation (3 dashes for mg/dL) */
+"– – –" = "– – –";
+
+/* Format string for glucose trend per minute. (1: glucose value and unit) */
+"%@/min" = "%@/min";
+
+/* No comment provided by engineer. */
+"Are you sure you want to delete this CGM?" = "År du säker på att du vill ta bort denna CGM?";
+
+/* No comment provided by engineer. */
+"Bluetooth" = "Bluetooth";
+
+/* Button text to cancel G7 setup */
+"Cancel" = "Avbryt";
+
+/* No comment provided by engineer. */
+"Configuration" = "Konfiguration";
+
+/* title for g7 settings connection status when connected */
+"Connected" = "Ansluten";
+
+/* title for g7 settings connection status when connecting */
+"Connecting" = "Ansluter";
+
+/* Button title for starting setup */
+"Continue" = "Fortsätt";
+
+/* Button label for removing CGM */
+"Delete CGM" = "Radera CGM";
+
+/* Navigation bar title for G7SettingsView
+   Title on WelcomeView */
+"Dexcom G7" = "Dexcom G7";
+
+/* No comment provided by engineer. */
+"Done" = "Klar";
+
+/* Field label */
+"Glucose" = "Glukos";
+
+/* title for g7 settings row showing sensor grace period end time */
+"Grace Period End" = "Reservperiod slutar";
+
+/* G7 Progress bar label when sensor grace period progress showing */
+"Grace period remaining" = "Tid kvar av reservtid";
+
+/* String displayed instead of a glucose value above the CGM range */
+"HIGH" = "HÖGT";
+
+/* title for g7 settings row showing sensor last connect time */
+"Last Connect" = "Senaste anslutning";
+
+/* No comment provided by engineer. */
+"Last Reading" = "Senaste avläsning";
+
+/* Descriptive text on G7StartupView */
+"iAPS can read G7 CGM data, but you must still use the Dexcom G7 App for pairing, calibration, and other sensor management." = "iAPS kan läsa G7 CGM-värden, men du måste alltjämt använda Dexcom G7-appen för parkoppling, kalibrering samt hantering av sensorn.";
+
+/* String displayed instead of a glucose value below the CGM range */
+"LOW" = "LÅGT";
+
+/* title for g7 settings row showing BLE Name */
+"Name" = "Namn";
+
+/* No comment provided by engineer. */
+"Scan for new sensor" = "Skanna efter ny sensor";
+
+/* title for g7 settings connection status when scanning */
+"Scanning" = "Skannar";
+
+/* G7 Status highlight text for searching for sensor */
+"Searching for\nSensor" = "Söker efter\nSensor";
+
+/* G7 Progress bar label when searching for sensor */
+"Searching for sensor" = "Söker efter sensor";
+
+/* G7 Status highlight text for sensor expired */
+"Sensor\nExpired" = "Sensor\nUtgått";
+
+/* G7 Status highlight text for sensor failed */
+"Sensor\nFailed" = "Sensor\nmisslyckades";
+
+/* G7 Status highlight text for sensor error */
+"Sensor\nIssue" = "Sensorproblem";
+
+/* G7 Status highlight text for sensor warmup */
+"Sensor\nWarmup" = "Sensor\nUppvärmning";
+
+/* title for g7 settings row showing sensor expiration time */
+"Sensor Expiration" = "Sensorns utgångsdatum";
+
+/* G7 Progress bar label when sensor expired */
+"Sensor expired" = "Sensorns livslängd är slut";
+
+/* G7 Progress bar label when sensor lifetime progress showing */
+"Sensor expires" = "Sensorn går ut";
+
+/* G7 Progress bar label when sensor failed */
+"Sensor failed" = "Sensorn misslyckades";
+
+/* title for g7 settings row showing sensor start time */
+"Sensor Start" = "Starta Sensor";
+
+/* G7 Status highlight text for signal loss */
+"Signal\nLoss" = "Signal-\nförlust";
+
+/* Field label */
+"Time" = "Tid";
+
+/* Field label */
+"Trend" = "Trend";
+
+/* title for g7 config settings to upload readings */
+"Upload Readings" = "Ladda upp blodsocker";
+
+/* G7 Progress bar label when sensor in warmup */
+"Warmup completes" = "Uppvärming av sensor";
