@@ -1,0 +1,587 @@
+/* Generic loading text */
+"loading" = "装载量";
+
+/* Generic Continue text */
+"Continue" = "继续";
+
+/* Title for DanaKitSetupView */
+"Dana-i/RS Setup" = "Dana-i/RS 设置";
+
+/* Subtitle for DanaKitSetupView */
+"Select your pump" = "选择泵";
+
+/* danaRS v1 option text for DanaKitSetupView */
+"DanaRS-v1" = "DanaRS-v1";
+
+/* danaRS v3 option text for DanaKitSetupView */
+"DanaRS-v3" = "DanaRS-v3";
+
+/* dana-i option text for DanaKitSetupView */
+"Dana-i" = "达娜伊";
+
+/* Title for danars v1 explaination */
+"Setting up DanaRS v1" = "设置 DanaRS v1";
+
+/* Subtext for danars v1 */
+"During the pairing process, your DanaRS v1 will show a pairing prompt while you iPhone will show a prompt for a pairing code. On your pump, select OK and type the code on your iPhone. After that, Loop is ready to communicate with your DanaRS v1" = "在配对过程中，您的 DanaRS v1 将显示配对提示，而您的 iPhone 将显示配对代码提示。在泵上选择 \"OK（确定）\"，然后在 iPhone 上键入代码。之后，Loop 就可以与 DanaRS v1 通信了。";
+
+/* check password text for danars v1 */
+"Before starting with the pairing process, it is recommended to check, and if needed update, the pump password. You can do this by going to the pump settings -> user settings -> password. The default password is 1234, if this is your password, please consider changing it" = "在开始配对过程之前，建议检查并根据需要更新泵密码。您可以进入泵设置 -> 用户设置 -> 密码进行检查。默认密码为 1234，如果这是您的密码，请考虑更改。";
+
+/* Title for danars v1 password */
+"Password DanaRS v1" = "密码 DanaRS v1";
+
+/* password placeholder danars v1 */
+"Fill in password" = "填写密码";
+
+/* Title for danars v3 explaination */
+"Setting up DanaRS v3" = "设置 DanaRS v3";
+
+/* Subtext for danars v3 */
+"During the pairing process, your DanaRS v3 will show a pairing prompt while you iPhone will show a prompt for two pairing codes. On your pump, select OK and type the two codes on your iPhone. After that, Loop is ready to communicate with your DanaRS v3" = "在配对过程中，您的 DanaRS v3 将显示配对提示，而您的 iPhone 将显示两个配对代码的提示。在泵上选择 \"OK（确定）\"，然后在 iPhone 上键入这两个代码。之后，Loop 就可以与 DanaRS v3 通信了。";
+
+/* Title for dana-i explaination */
+"Setting up Dana-i" = "设置 Dana-i";
+
+/* General subtext for dana */
+"After setting up the insulin type and bolus speed, you will see all the found Dana pumps. Select the pump you want to link with %1$@." = "设置完胰岛素类型和注射速度后，您将看到一个显示所有已找到的 Dana 泵的屏幕。选择要链接到 %1$@的泵。";
+
+/* Subtext for dana-i */
+"During the pairing process, your Dana-i will show a pairing prompt while your iPhone will show a prompt for a pairing code. On you pump, select OK and type the 6-digit code in screen on your iPhone. After that, %1$@ is ready to communicate with your Dana-i" = "在配对过程中，您的 Dana-i 将显示配对提示，而您的 iPhone 将显示配对代码提示。选择 \"OK（确定）\"，然后在 iPhone 的屏幕上输入 6 位数的密码。之后， %1$@ ，即可与您的 Dana-i 进行通信。";
+
+/* Dana-i/RS invalid ble5 keys */
+"ERROR: Failed to pair device" = "错误：配对设备失败";
+
+/* Dana-i oke invalid ble5 keys */
+"OK" = "好的";
+
+/* Cancel button title */
+"Cancel" = "取消";
+
+/* Title for DanaKitScanView */
+"Found Dana-i/RS pumps" = "发现 Dana-i/RS 泵";
+
+/* Dana-i/RS connecting alert title */
+"Scanning" = "扫描";
+
+/* Dana-i/RS connecting alert title */
+"Connecting" = "连接";
+
+/* Title text for insulin type confirmation page */
+"Select the type of insulin that you will be using in this pump" = "选择您将在该泵中使用的胰岛素类型";
+
+/* Title for Dana-i/RS PumpManager deletion action sheet. */
+"Remove Pump" = "卸下泵";
+
+/* Message for Dana-i/RS PumpManager deletion action sheet */
+"Are you sure you want to stop using Dana-i/RS?" = "您确定要停止使用 Dana-i/RS？";
+
+/* Button text to confirm Dana-i/RS PumpManager deletion */
+"Delete pump" = "删除泵";
+
+/* Label for PumpManager deletion button */
+"Delete Pump" = "删除泵";
+
+/* Connection error message */
+"Error while connecting to device" = "连接设备时出错";
+
+/* Dana-RS v3 found */
+"Dana-RS v3 found!" = "发现 Dana-RS v3！";
+
+/* Dana-RS v3 pincode prompt body */
+"Pincode required" = "需要邮政编码";
+
+/* Dana-RS v3 pincode prompt pin 1 */
+"Pin 1" = "引脚 1";
+
+/* Dana-RS v3 pincode prompt pin 2 */
+"Pin 2" = "引脚 2";
+
+/* Dana-RS v3 pincode prompt error invalid length */
+"Received invalid pincode lengths. Try again" = "收到无效的密码长度。再试一次";
+
+/* Dana-RS v3 pincode prompt error invalid hex */
+"Received invalid hex strings. Try again" = "收到无效十六进制字符串。重试";
+
+/* Dana-RS v3 pincode prompt error checksum failed */
+"Checksum failed. Try again" = "校验失败。重试";
+
+/* Title for delivery speed */
+"Delivery speed" = "交付速度";
+
+/* Dana bolus speed 12u per min */
+"12 sec/U" = "12 秒/U";
+
+/* Dana bolus speed 30u per min */
+"30 sec/U" = "30 秒/U";
+
+/* Dana bolus speed 60u per min */
+"60 sec/U" = "60 秒/U";
+
+/* Dana delivery speed body */
+"The Dana pumps support different delivery speeds. You can set it up here, but also in the settings menu" = "Dana 泵支持不同的输送速度。您可以在这里进行设置，也可以在设置菜单中进行设置";
+
+/* Text for finish button */
+"Finish" = "完成";
+
+/* Dana setup complete p1 */
+"Your " = "您的 ";
+
+/* Dana setup complete p2 */
+" is ready to be used!" = " 即可使用！";
+
+/* Dana setup SMB setting */
+"Note: You Dana pump has a special setting which allows you to silence your Dana pump beeps. To enable this, please contact your Dana distributor" = "注：您的德纳泵有一个特殊设置，允许您将德纳泵的蜂鸣声静音。要启用此功能，请联系您的德纳经销商。";
+
+/* Error description when no dana connected */
+"Failed to make a connection" = "连接失败";
+
+/* Error description when failed temp adjustment */
+"Failed to adjust temp basal" = "未能调整基础温度";
+
+/* Error description when failed suspension adjustment */
+"Failed to adjust suspension" = "未能调整悬挂系统";
+
+/* Error description when failed generating basal program */
+"Failed to generate Dana basal program" = "生成达纳基础程序失败";
+
+/* Error description when failed basal adjustment */
+"Failed to adjust basal" = "未能调整基础代谢率";
+
+/* Error description when pump time failed to sync */
+"Failed to adjust pump time" = "未能调整泵时间";
+
+/* Error description when trying to set temp basal */
+"Setting temp basal is not supported at this time" = "目前不支持设置基础温度";
+
+/* Error description when pump is suspended */
+"The insulin delivery has been suspend. Action failed" = "胰岛素输送已暂停。行动失败";
+
+/* Error description when pump is busy (with bolussing probably) */
+"Action has been canceled, because the pump is busy" = "已取消操作，因为泵忙";
+
+/* Error description when pump has an active blockage */
+"A bolus timeout is active. The loop cycle cannot be completed till the timeout is inactive" = "栓剂超时激活。在超时未激活之前，循环周期无法完成";
+
+/* Error description when pump has reached the bolus max */
+"The max bolus limit is reached. Please try a lower amount or increase the limit" = "已达到最大药量限制。请尝试更低的量或增加限制";
+
+/* Error description when pump has reached the daily max */
+"The max daily insulin limit is reached. Please try a lower amount or increase the limit" = "已达到每日胰岛素用量上限。请尝试降低用量或增加上限";
+
+/* dana AB limitation warning title */
+"Only Automatic Bolus is supported" = "仅支持自动注射";
+
+/* dana AB limitation warning body */
+"Please consider changing your dosing strategy in the setting menu" = "请考虑在设置菜单中更改配料策略";
+
+/* Dana settings resume delivery */
+"Resume delivery" = "简历交付";
+
+/* Dana settings suspend delivery */
+"Suspend delivery" = "暂停交付";
+
+/* Dana settings stop temp basal */
+"Stop temp basal" = "停止基础温度";
+
+/* Text for confidence reminders navigation link */
+"Insulin Type" = "胰岛素类型";
+
+/* Title for insulin type */
+"Select insulin Type" = "选择胰岛素类型";
+
+/* Title of insulin delivery section */
+"Scheduled Basal" = "预定的基质";
+
+/* Title of insulin delivery section */
+"Insulin Delivery" = "胰岛素输送";
+
+/* Text shown in insulin delivery space when insulin suspended */
+"Insulin\nSuspended" = "胰岛素\n暂停使用";
+
+/* Text shown in basal rate space when delivery status is unknown */
+"Unknown" = "未知";
+
+/* Units for showing temp basal rate */
+"U/hr" = "U/hr";
+
+/* Header for insulin remaining on pod settings screen */
+"Insulin Remaining" = "胰岛素剩余量";
+
+/* Text for Dana pump name */
+"Pump name" = "泵名称";
+
+/* Text for hardware model */
+"Hardware model" = "硬件模型";
+
+/* Text for firmware version */
+"Firmware version" = "固件版本";
+
+/* DanaKit sync pump */
+"Sync pump data" = "同步泵数据";
+
+/* Text for last sync */
+"Last sync" = "最后一次同步";
+
+/* Text for pump time */
+"Pump time" = "泵时间";
+
+/* Text for pump time synced at */
+"Checked at" = "在";
+
+/* Text for Nightly pump time sync */
+"Nightly pump time sync" = "夜间泵时间同步";
+
+/* Label for syncing the time on the pump */
+"Manually sync Pump time" = "手动同步泵时间";
+
+/* Alert content title for timeOffsetChangeDetected pod alert
+   Title for pod sync time action sheet.
+   title for time change detected notice */
+"Time Change Detected" = "检测到的时间变化";
+
+/* Message for pod sync time action sheet */
+"The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "泵上的时间与当前时间不同。您想将泵上的时间更新为当前时间吗？";
+
+/* description for time change detected notice */
+"The time on your pump is different from the current time. Your pump’s time controls your scheduled therapy settings. Scroll down to Pump Time row to review the time difference and configure your pump." = "泵上的时间与当前时间不同。泵上的时间控制着您的计划治疗设置。向下滚动到泵时间行，查看时差并配置您的泵。";
+
+/* Button text to confirm pump time sync */
+"Yes, Sync to Current Time" = "是，与当前时间同步";
+
+/* Button text to cancel pump time sync */
+"No, Keep Pump As Is" = "不，保持泵原样";
+
+/* Pump Event title for UnfinalizedDose with doseType of .bolus */
+"Bolus" = "玻流体";
+
+/* Pump Event title for UnfinalizedDose with doseType of .tempBasal */
+"Temp Basal" = "基础温度";
+
+/* Pump Event title for UnfinalizedDose with doseType of .basal */
+"Basal" = "基础";
+
+/* Pump Event title for UnfinalizedDose with doseType of .resume */
+"Resume" = "简历";
+
+/* Pump Event title for UnfinalizedDose with doseType of .suspend */
+"Suspend" = "暂停";
+
+/* Title for user options */
+"User options" = "用户选项";
+
+/* DanaKit share logs */
+"Share Dana pump logs" = "分享德纳泵日志";
+
+/* Loading */
+"Loading" = "加载中";
+
+/* Text for save button */
+"Save" = "节省";
+
+/* Text for 24h display */
+"24h display" = "24 小时显示";
+
+/* Description for 24h display */
+"Should time be display in 12h or 24h" = "时间应该以 12 小时还是 24 小时显示";
+
+/* text on */
+"On" = "关于";
+
+/* text off */
+"Off" = "关闭";
+
+/* 12h */
+"12h notation" = "12h 符号";
+
+/* 24h */
+"24h notation" = "24 小时符号";
+
+/* Text for Scroll function */
+"Scroll function" = "滚动功能";
+
+/* text for second */
+"sec" = "秒钟";
+
+/* backlightOnTimeInSec */
+"Backlight on time" = "背光开启时间";
+
+/* lcdOnTimeInSec */
+"Lcd on time" = "液晶显示屏开机时间";
+
+/* beepAndAlarm */
+"Alarm beeps" = "警报声";
+
+/* beepAndAlarm.sound */
+"Sound" = "声音";
+
+/* beepAndAlarm.vibration */
+"Vibration" = "振动";
+
+/* beepAndAlarm.both */
+"Both" = "两者";
+
+/* Alert title for batteryZeroPercent */
+"Pump battery 0%" = "泵电池 0";
+
+/* Alert body for batteryZeroPercent */
+"Pump battery is empty. Replace it now!" = "泵电池没电了。立即更换！";
+
+/* Alert title for pumpError */
+"Pump error" = "泵故障";
+
+/* Alert body for pumpError */
+"Check the pump and try again" = "检查泵，然后再试一次";
+
+/* Alert title for occlusion */
+"Occlusion" = "闭塞";
+
+/* Alert body for occlusion */
+"Check the reservoir and infus and try again" = "检查储液器和输液器，然后再试一次";
+
+/* Alert title for lowBattery */
+"Low pump battery" = "泵电池电量不足";
+
+/* Alert body for lowBattery */
+"Pump battery needs to be replaced soon" = "泵电池需要尽快更换";
+
+/* Alert title for shutdown */
+"Pump shutdown" = "泵关闭";
+
+/* Alert body for shutdown */
+"There has not been any interactions with the pump for too long. Either disable this function in the pump or interact with the pump" = "太久没有与泵进行任何交互。要么禁用泵中的这一功能，要么与泵进行交互";
+
+/* Alert title for basalCompare */
+"Basal Compare" = "基准比较";
+
+/* Alert title for bloodSugarMeasure */
+"Blood glucose Measure" = "血糖测量";
+
+/* Alert title for remainingInsulinLevel */
+"Remaining insulin level" = "胰岛素剩余水平";
+
+/* Alert title for emptyReservoir */
+"Empty reservoir" = "空水库";
+
+/* Alert body for emptyReservoir */
+"Reservoir is empty. Replace it now!" = "蓄水池已空。立即更换！";
+
+/* Alert title for emptyReservoir */
+"Check chaft" = "检查软轴";
+
+/* Alert body for checkShaft */
+"The pump has detected an issue with its chaft. Please remove the reservoir, check everything and try again" = "泵检测到其轴有问题。请卸下储液器，检查一切后再试一次";
+
+/* Alert title for basalMax */
+"Basal limit reached" = "达到基本极限";
+
+/* Alert body for basalMax */
+"Your daily basal limit has been reached. Please contact your Dana distributer to increase the limit" = "您的每日基础量已达上限。请联系您的德纳经销商以增加上限";
+
+/* Alert title for dailyMax */
+"Daily limit reached" = "达到每日限额";
+
+/* Alert body for basalMax */
+"Your daily insulin limit has been reached. Please contact your Dana distributer to increase the limit" = "已达到您的胰岛素日限额。请联系您的德纳经销商以增加限额";
+
+/* Alert title for bloodSugarCheckMiss */
+"Missed Blood glucose check" = "错过血糖检查";
+
+/* Alert body for bloodSugarCheckMiss */
+"A blood glucose check reminder has been setup in your pump and is triggered. Please remove it or give your glucose level to the pump" = "您的血糖泵中已设置了血糖检查提醒器并已触发。请将其移除或向血糖泵提供您的血糖值";
+
+/* Alert title for unknown */
+"Unknown error" = "未知错误";
+
+/* Alert body for unknown */
+"An unknown error has occurred during processing the alert from the pump. Please report this" = "在处理泵发出的警报时发生了未知错误。请报告此";
+
+/* The title of the pump information section in DanaKit settings */
+"Pump information" = "泵信息";
+
+/* Title for silent tone action sheet */
+"Toggle silent tone?" = "切换无声音调？";
+
+/* Button text to cancel silent tone */
+"No, Keep as is" = "不，保持原样";
+
+/* Button text to disable silent tone */
+"Yes, Disable silent tones" = "是，禁用无声提示音";
+
+/* Button text to enable silent tone */
+"Yes, Enable silent tones" = "是，启用无声提示音";
+
+/* Description for basal profile number */
+"Set the basal profile the pump should use. Note, that it will overwrite the profile that is in the pump, with the one in %1$@" = "设置泵应使用的基础曲线。注意，它将用 %1$@中的配置文件覆盖泵中的配置文件。";
+
+
+/* Error message for reservoir view when reservoir empty
+   Status highlight message for emptyReservoir alarm.
+   Status highlight that a pump is out of insulin. */
+"No Insulin" = "无胰岛素";
+
+/* Status highlight that insulin delivery was suspended. */
+"Insulin Suspended" = "胰岛素停用";
+
+/* Error message for reservoir view during general pod fault
+   Status highlight when communications with the pod haven't happened recently. */
+"Signal Loss" = "信号丢失";
+
+/* Text for Day unit */
+"day(s)" = "天数";
+
+/* Text for cannula age */
+"Cannula age" = "插管年龄";
+
+/* Text for reservoir age */
+"Reservoir age" = "水库年龄";
+
+/* Text for status */
+"Status" = "现状";
+
+/* DanaKit disconnecting */
+"Disconnecting..." = "断开...";
+
+/* DanaKit connecting */
+"Reconnecting..." = "重新连接...";
+
+/* DanaKit disconnect */
+"Disconnect from pump" = "断开泵连接";
+
+/* DanaKit connect */
+"Reconnect tp pump" = "重新连接 TP 泵";
+
+/* DanaKit disconnected */
+"Disconnected" = "断开";
+
+/* DanaKit connected */
+"Connected" = "已连接";
+
+/* Title disconnect reminder notification */
+"Pump is still disconnected" = "泵仍处于断开状态";
+
+/* Body disconnect reminder notification" */
+"Your pump is still disconnected after the set period!" = "设定时间过后，您的泵仍处于断开状态！";
+
+/* Title disconnect reminder sheet */
+"Set reminder for disconnect" = "设置断开连接提醒";
+
+/* body disconnect reminder sheet */
+"Do you wish to receive a notification when the pump is longer disconnected for a specific time?" = "您是否希望在泵断开连接较长时间后收到通知？";
+
+/* Button text to 5 min */
+"Yes, 5 minutes" = "是，5 分钟";
+
+/* Button text to 15 min */
+"Yes, 15 minutes" = "是，15 分钟";
+
+/* Button text to 30 min */
+"Yes, 30 minutes" = "是，30 分钟";
+
+/* Button text to 1h */
+"Yes, 1 hour" = "是，1 小时";
+
+/* Button text to just disconnect */
+"No, just disconnect" = "不，只是断开连接";
+
+/* Title for reservoir/cannula refill */
+"Reservoir/cannula refill" = "储液器/管筒注水";
+
+/* Title for reservoir/cannula refill */
+"Cannula refill" = "补充插管";
+
+/* Title for refill action */
+"Type of refill" = "笔芯类型";
+
+/* Button text to cannula only */
+"Cannula only" = "仅插管";
+
+/* Button text to Reservoir and cannula */
+"Reservoir and cannula" = "蓄水池和插管";
+
+/* Title for bluetooth mode action sheet */
+"Toggle Bluetooth mode" = "切换蓝牙模式";
+
+/* Button text to get help about Continuous mode */
+"What is this?" = "这是什么？";
+
+/* Button text to disable continuous mode */
+"Yes, Switch to interactive mode" = "是，切换到交互模式";
+
+/* Button text to enable continuous mode */
+"Yes, Switch to continuous mode" = "是，切换到连续模式";
+
+/* Title for bolus syncing disable action sheet */
+"Disable bolus syncing?" = "禁用栓剂同步？";
+
+/* Title for bolus syncing disable action sheet */
+"Re-enable bolus syncing?" = "重新启用栓剂同步？";
+
+/* Button text to re-enable bplus syncing */
+"Yes, re-enable bolus syncing" = "是，重新启用药量同步";
+
+/* Button text to disable bolus syncing */
+"Yes, disable bolus syncing" = "是，禁用栓剂同步";
+
+/* ana delivery speed body */
+"The Dana pumps support different delivery speeds. You can set it up here" = "Dana 泵支持不同的输送速度。您可以在这里进行设置";
+
+/* Text for Basal profile */
+"Basal profile" = "基本概况";
+
+/* Text for Battery level */
+"Battery level" = "电池电量";
+
+/* The title of the configuration section in DanaKit settings */
+"Configuration" = "配置";
+
+/* Text for low reservoir reminder */
+"Low reservoir reminder" = "低水位提醒";
+
+/* refillAmount */
+"Refill amount" = "加注量";
+
+/* Insulin unit */
+"U" = "U";
+
+/* Label for first step refill */
+"Step 1: Set reservoir level" = "步骤 1：设置蓄水池水位";
+
+/* Label for reservoir refilled amount */
+"Reservoir amount" = "水库容量";
+
+/* Label for second step refill */
+"Step 2: Set tube refill amount" = "步骤 2：设置软管填充量";
+
+/* Label for tube refilled amount */
+"Tube refill amount" = "软管填充量";
+
+/* Label for warning refill */
+"This method of refilling is only intended for when the pump cannot provide a way to refill the reservoir or prime the cannula" = "这种加注方法仅适用于泵无法提供给储液器加注或给插管填料的情况。";
+
+/* Title for warning refill */
+"WARNING: USE WITH CAUTION!" = "警告：慎用！";
+
+/* Label for warning refill */
+"This method of refilling is only intended for when the pump cannot provide a way to refill the reservoir or prime the cannula" = "这种加注方法仅适用于泵无法提供给储液器加注或给插管填料的情况。";
+
+/* Title for warning refill */
+"WARNING: USE WITH CAUTION!" = "警告：慎用！";
+
+/* Label for third step refill */
+"Step 1: Prime cannula" = "步骤 1：插管填料";
+
+/* Label for error first step refill */
+"Failed to set reservoir amount. Re-sync pump data and try again please" = "设置储液器容量失败。请重新同步泵数据并重试";
+
+/* Label for error third step refill */
+"Failed to prime the cannula. Please try again later" = "插管填料失败。请稍后再试";
+
+/* Label for error second step refill */
+"Failed to prime the tube. Please try again later" = "管道填料失败。请稍后再试";
+
+/* Battery age */
+"Battery age" = "电池寿命";
+
+/* advertise contact DanaRS v1 */
+"NOTE: The DanaRS v1 is not supported (yet). If you have a DanaRS v1 pump available for testing, please contact Bastiaan Verhaar!" = "注意： 目前尚不支持 DanaRS v1。如果您有 DanaRS v1 泵可供测试，请联系 Bastiaan Verhaar！";

@@ -1,0 +1,587 @@
+/* Generic loading text */
+"loading" = "nakladanie";
+
+/* Generic Continue text */
+"Continue" = "Pokračovať";
+
+/* Title for DanaKitSetupView */
+"Dana-i/RS Setup" = "Nastavenie Dana-i/RS";
+
+/* Subtitle for DanaKitSetupView */
+"Select your pump" = "Vyberte si svoje čerpadlo";
+
+/* danaRS v1 option text for DanaKitSetupView */
+"DanaRS-v1" = "DanaRS-v1";
+
+/* danaRS v3 option text for DanaKitSetupView */
+"DanaRS-v3" = "DanaRS-v3";
+
+/* dana-i option text for DanaKitSetupView */
+"Dana-i" = "Dana-i";
+
+/* Title for danars v1 explaination */
+"Setting up DanaRS v1" = "Nastavenie systému DanaRS v1";
+
+/* Subtext for danars v1 */
+"During the pairing process, your DanaRS v1 will show a pairing prompt while you iPhone will show a prompt for a pairing code. On your pump, select OK and type the code on your iPhone. After that, Loop is ready to communicate with your DanaRS v1" = "Počas procesu párovania sa na displeji DanaRS v1 zobrazí výzva na spárovanie, zatiaľ čo na displeji iPhone sa zobrazí výzva na zadanie párovacieho kódu. Na čerpadle vyberte OK a zadajte kód na iPhone. Potom je zariadenie Loop pripravené na komunikáciu s vaším zariadením DanaRS v1";
+
+/* check password text for danars v1 */
+"Before starting with the pairing process, it is recommended to check, and if needed update, the pump password. You can do this by going to the pump settings -> user settings -> password. The default password is 1234, if this is your password, please consider changing it" = "Pred začatím procesu párovania sa odporúča skontrolovať a v prípade potreby aktualizovať heslo čerpadla. Môžete to urobiť v nastaveniach čerpadla -> nastavenia používateľa -> heslo. Predvolené heslo je 1234, ak je to vaše heslo, zvážte jeho zmenu";
+
+/* Title for danars v1 password */
+"Password DanaRS v1" = "Heslo DanaRS v1";
+
+/* password placeholder danars v1 */
+"Fill in password" = "Vyplňte heslo";
+
+/* Title for danars v3 explaination */
+"Setting up DanaRS v3" = "Nastavenie systému DanaRS v3";
+
+/* Subtext for danars v3 */
+"During the pairing process, your DanaRS v3 will show a pairing prompt while you iPhone will show a prompt for two pairing codes. On your pump, select OK and type the two codes on your iPhone. After that, Loop is ready to communicate with your DanaRS v3" = "Počas procesu párovania sa na displeji DanaRS v3 zobrazí výzva na spárovanie, zatiaľ čo na displeji iPhonu sa zobrazí výzva na zadanie dvoch párovacích kódov. Na čerpadle vyberte OK a zadajte dva kódy na iPhone. Potom je zariadenie Loop pripravené na komunikáciu s vaším zariadením DanaRS v3";
+
+/* Title for dana-i explaination */
+"Setting up Dana-i" = "Nastavenie aplikácie Dana-i";
+
+/* General subtext for dana */
+"After setting up the insulin type and bolus speed, you will see all the found Dana pumps. Select the pump you want to link with %1$@." = "Po nastavení typu inzulínu a rýchlosti bolusu sa zobrazí obrazovka so všetkými nájdenými pumpami Dana. Vyberte pumpu, ktorú chcete prepojiť so stránkou %1$@.";
+
+/* Subtext for dana-i */
+"During the pairing process, your Dana-i will show a pairing prompt while your iPhone will show a prompt for a pairing code. On you pump, select OK and type the 6-digit code in screen on your iPhone. After that, %1$@ is ready to communicate with your Dana-i" = "Počas procesu párovania sa na zariadení Dana-i zobrazí výzva na spárovanie, zatiaľ čo na iPhone sa zobrazí výzva na zadanie párovacieho kódu. Na čerpadle vyberte OK a zadajte 6-miestny kód na obrazovke iPhonu. Potom je stránka %1$@ pripravená na komunikáciu s vaším zariadením Dana-i.";
+
+/* Dana-i/RS invalid ble5 keys */
+"ERROR: Failed to pair device" = "CHYBA: Nepodarilo sa spárovať zariadenie";
+
+/* Dana-i oke invalid ble5 keys */
+"OK" = "OK";
+
+/* Cancel button title */
+"Cancel" = "Zrušiť";
+
+/* Title for DanaKitScanView */
+"Found Dana-i/RS pumps" = "Nájdené čerpadlá Dana-i/RS";
+
+/* Dana-i/RS connecting alert title */
+"Scanning" = "Skenovanie";
+
+/* Dana-i/RS connecting alert title */
+"Connecting" = "Pripojenie";
+
+/* Title text for insulin type confirmation page */
+"Select the type of insulin that you will be using in this pump" = "Vyberte typ inzulínu, ktorý budete používať v tejto pumpe";
+
+/* Title for Dana-i/RS PumpManager deletion action sheet. */
+"Remove Pump" = "Odstránenie čerpadla";
+
+/* Message for Dana-i/RS PumpManager deletion action sheet */
+"Are you sure you want to stop using Dana-i/RS?" = "Ste si istí, že chcete prestať používať Dana-i/RS?";
+
+/* Button text to confirm Dana-i/RS PumpManager deletion */
+"Delete pump" = "Vymazať čerpadlo";
+
+/* Label for PumpManager deletion button */
+"Delete Pump" = "Odstrániť čerpadlo";
+
+/* Connection error message */
+"Error while connecting to device" = "Chyba pri pripájaní k zariadeniu";
+
+/* Dana-RS v3 found */
+"Dana-RS v3 found!" = "Dana-RS v3 nájdený!";
+
+/* Dana-RS v3 pincode prompt body */
+"Pincode required" = "Požadované PSČ";
+
+/* Dana-RS v3 pincode prompt pin 1 */
+"Pin 1" = "Pin 1";
+
+/* Dana-RS v3 pincode prompt pin 2 */
+"Pin 2" = "Pin 2";
+
+/* Dana-RS v3 pincode prompt error invalid length */
+"Received invalid pincode lengths. Try again" = "Prijaté neplatné dĺžky pincode. Skúste to znova";
+
+/* Dana-RS v3 pincode prompt error invalid hex */
+"Received invalid hex strings. Try again" = "Prijaté neplatné hexadecimálne reťazce. Skúste to znova";
+
+/* Dana-RS v3 pincode prompt error checksum failed */
+"Checksum failed. Try again" = "Kontrolný súčet zlyhal. Skúste to znova";
+
+/* Title for delivery speed */
+"Delivery speed" = "Rýchlosť dodania";
+
+/* Dana bolus speed 12u per min */
+"12 sec/U" = "12 sekúnd/U";
+
+/* Dana bolus speed 30u per min */
+"30 sec/U" = "30 sekúnd/U";
+
+/* Dana bolus speed 60u per min */
+"60 sec/U" = "60 sekúnd/U";
+
+/* Dana delivery speed body */
+"The Dana pumps support different delivery speeds. You can set it up here, but also in the settings menu" = "Čerpadlá Dana podporujú rôzne rýchlosti dodávky. Môžete ju nastaviť tu, ale aj v ponuke nastavení";
+
+/* Text for finish button */
+"Finish" = "Dokončenie";
+
+/* Dana setup complete p1 */
+"Your " = "Vaša stránka ";
+
+/* Dana setup complete p2 */
+" is ready to be used!" = " je pripravený na použitie!";
+
+/* Dana setup SMB setting */
+"Note: You Dana pump has a special setting which allows you to silence your Dana pump beeps. To enable this, please contact your Dana distributor" = "Poznámka: Čerpadlo Dana má špeciálne nastavenie, ktoré umožňuje stlmiť zvukový signál čerpadla Dana. Ak chcete túto funkciu zapnúť, obráťte sa na svojho distribútora Dana";
+
+/* Error description when no dana connected */
+"Failed to make a connection" = "Nepodarilo sa nadviazať spojenie";
+
+/* Error description when failed temp adjustment */
+"Failed to adjust temp basal" = "Nepodarilo sa nastaviť bazálnu teplotu";
+
+/* Error description when failed suspension adjustment */
+"Failed to adjust suspension" = "Nepodarilo sa nastaviť odpruženie";
+
+/* Error description when failed generating basal program */
+"Failed to generate Dana basal program" = "Nepodarilo sa vygenerovať základný program Dana";
+
+/* Error description when failed basal adjustment */
+"Failed to adjust basal" = "Nepodarilo sa upraviť bazálnu";
+
+/* Error description when pump time failed to sync */
+"Failed to adjust pump time" = "Nepodarilo sa nastaviť čas čerpadla";
+
+/* Error description when trying to set temp basal */
+"Setting temp basal is not supported at this time" = "Nastavenie bazálnej teploty nie je v súčasnosti podporované";
+
+/* Error description when pump is suspended */
+"The insulin delivery has been suspend. Action failed" = "Podávanie inzulínu bolo pozastavené. Akcia zlyhala";
+
+/* Error description when pump is busy (with bolussing probably) */
+"Action has been canceled, because the pump is busy" = "Akcia bola zrušená, pretože čerpadlo je obsadené";
+
+/* Error description when pump has an active blockage */
+"A bolus timeout is active. The loop cycle cannot be completed till the timeout is inactive" = "Časový limit pre podanie bolusu je aktívny. Cyklus slučky sa nemôže dokončiť, kým nie je časový limit neaktívny";
+
+/* Error description when pump has reached the bolus max */
+"The max bolus limit is reached. Please try a lower amount or increase the limit" = "Maximálny limit bolusu je dosiahnutý. Vyskúšajte nižšie množstvo alebo zvýšte limit";
+
+/* Error description when pump has reached the daily max */
+"The max daily insulin limit is reached. Please try a lower amount or increase the limit" = "Maximálny denný limit inzulínu je dosiahnutý. Prosím, skúste nižšie množstvo alebo zvýšte limit";
+
+/* dana AB limitation warning title */
+"Only Automatic Bolus is supported" = "Podporovaný je len automatický bolus";
+
+/* dana AB limitation warning body */
+"Please consider changing your dosing strategy in the setting menu" = "Zvážte zmenu stratégie dávkovania v ponuke nastavenia";
+
+/* Dana settings resume delivery */
+"Resume delivery" = "Doručenie životopisu";
+
+/* Dana settings suspend delivery */
+"Suspend delivery" = "Pozastavenie dodávky";
+
+/* Dana settings stop temp basal */
+"Stop temp basal" = "Zastavenie bazálnej teploty";
+
+/* Text for confidence reminders navigation link */
+"Insulin Type" = "Typ inzulínu";
+
+/* Title for insulin type */
+"Select insulin Type" = "Vyberte typ inzulínu";
+
+/* Title of insulin delivery section */
+"Scheduled Basal" = "Plánovaná základná";
+
+/* Title of insulin delivery section */
+"Insulin Delivery" = "Dodávka inzulínu";
+
+/* Text shown in insulin delivery space when insulin suspended */
+"Insulin\nSuspended" = "Inzulín\nPozastavený";
+
+/* Text shown in basal rate space when delivery status is unknown */
+"Unknown" = "Neznáme";
+
+/* Units for showing temp basal rate */
+"U/hr" = "U/hod";
+
+/* Header for insulin remaining on pod settings screen */
+"Insulin Remaining" = "Zostávajúci inzulín";
+
+/* Text for Dana pump name */
+"Pump name" = "Názov čerpadla";
+
+/* Text for hardware model */
+"Hardware model" = "Model hardvéru";
+
+/* Text for firmware version */
+"Firmware version" = "Verzia firmvéru";
+
+/* DanaKit sync pump */
+"Sync pump data" = "Synchronizácia údajov čerpadla";
+
+/* Text for last sync */
+"Last sync" = "Posledná synchronizácia";
+
+/* Text for pump time */
+"Pump time" = "Čas čerpadla";
+
+/* Text for pump time synced at */
+"Checked at" = "Skontrolované na";
+
+/* Text for Nightly pump time sync */
+"Nightly pump time sync" = "Nočná synchronizácia času čerpadla";
+
+/* Label for syncing the time on the pump */
+"Manually sync Pump time" = "Ručná synchronizácia času čerpadla";
+
+/* Alert content title for timeOffsetChangeDetected pod alert
+   Title for pod sync time action sheet.
+   title for time change detected notice */
+"Time Change Detected" = "Zistená zmena času";
+
+/* Message for pod sync time action sheet */
+"The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "Čas na vašej pumpe sa líši od aktuálneho času. Chcete aktualizovať čas na čerpadle na aktuálny čas?";
+
+/* description for time change detected notice */
+"The time on your pump is different from the current time. Your pump’s time controls your scheduled therapy settings. Scroll down to Pump Time row to review the time difference and configure your pump." = "Čas na vašej pumpe sa líši od aktuálneho času. Čas vašej pumpy riadi nastavenia plánovanej terapie. Prejdite na riadok Čas na pumpe, aby ste skontrolovali časový rozdiel a nakonfigurovali svoju pumpu.";
+
+/* Button text to confirm pump time sync */
+"Yes, Sync to Current Time" = "Áno, synchronizácia s aktuálnym časom";
+
+/* Button text to cancel pump time sync */
+"No, Keep Pump As Is" = "Nie, nechajte čerpadlo tak, ako je";
+
+/* Pump Event title for UnfinalizedDose with doseType of .bolus */
+"Bolus" = "Bolus";
+
+/* Pump Event title for UnfinalizedDose with doseType of .tempBasal */
+"Temp Basal" = "Temp Basal";
+
+/* Pump Event title for UnfinalizedDose with doseType of .basal */
+"Basal" = "Bazálna";
+
+/* Pump Event title for UnfinalizedDose with doseType of .resume */
+"Resume" = "Životopis";
+
+/* Pump Event title for UnfinalizedDose with doseType of .suspend */
+"Suspend" = "Pozastaviť";
+
+/* Title for user options */
+"User options" = "Možnosti používateľa";
+
+/* DanaKit share logs */
+"Share Dana pump logs" = "Zdieľanie protokolov čerpadla Dana";
+
+/* Loading */
+"Loading" = "Načítanie";
+
+/* Text for save button */
+"Save" = "Uložiť";
+
+/* Text for 24h display */
+"24h display" = "24-hodinový displej";
+
+/* Description for 24h display */
+"Should time be display in 12h or 24h" = "Či sa má čas zobrazovať v 12h alebo 24h";
+
+/* text on */
+"On" = "Na stránke";
+
+/* text off */
+"Off" = "Vypnuté";
+
+/* 12h */
+"12h notation" = "Zápis 12h";
+
+/* 24h */
+"24h notation" = "24-hodinový zápis";
+
+/* Text for Scroll function */
+"Scroll function" = "Funkcia posúvania";
+
+/* text for second */
+"sec" = "sek";
+
+/* backlightOnTimeInSec */
+"Backlight on time" = "Čas zapnutia podsvietenia";
+
+/* lcdOnTimeInSec */
+"Lcd on time" = "Lcd na čas";
+
+/* beepAndAlarm */
+"Alarm beeps" = "Pípanie budíka";
+
+/* beepAndAlarm.sound */
+"Sound" = "Zvuk";
+
+/* beepAndAlarm.vibration */
+"Vibration" = "Vibrácie";
+
+/* beepAndAlarm.both */
+"Both" = "Obe stránky";
+
+/* Alert title for batteryZeroPercent */
+"Pump battery 0%" = "Batéria čerpadla 0%";
+
+/* Alert body for batteryZeroPercent */
+"Pump battery is empty. Replace it now!" = "Batéria čerpadla je vybitá. Vymeňte ju teraz!";
+
+/* Alert title for pumpError */
+"Pump error" = "Chyba čerpadla";
+
+/* Alert body for pumpError */
+"Check the pump and try again" = "Skontrolujte čerpadlo a skúste to znova";
+
+/* Alert title for occlusion */
+"Occlusion" = "Oklúzia";
+
+/* Alert body for occlusion */
+"Check the reservoir and infus and try again" = "Skontrolujte zásobník a infúziu a skúste to znova";
+
+/* Alert title for lowBattery */
+"Low pump battery" = "Slabá batéria čerpadla";
+
+/* Alert body for lowBattery */
+"Pump battery needs to be replaced soon" = "Batéria čerpadla sa musí čoskoro vymeniť";
+
+/* Alert title for shutdown */
+"Pump shutdown" = "Vypnutie čerpadla";
+
+/* Alert body for shutdown */
+"There has not been any interactions with the pump for too long. Either disable this function in the pump or interact with the pump" = "Príliš dlho nedochádzalo k žiadnym interakciám s čerpadlom. Buď túto funkciu v čerpadle vypnite, alebo s čerpadlom interagujte";
+
+/* Alert title for basalCompare */
+"Basal Compare" = "Základné porovnanie";
+
+/* Alert title for bloodSugarMeasure */
+"Blood glucose Measure" = "Meranie glukózy v krvi";
+
+/* Alert title for remainingInsulinLevel */
+"Remaining insulin level" = "Zostávajúca hladina inzulínu";
+
+/* Alert title for emptyReservoir */
+"Empty reservoir" = "Prázdny zásobník";
+
+/* Alert body for emptyReservoir */
+"Reservoir is empty. Replace it now!" = "Nádrž je prázdna. Vymeňte ju teraz!";
+
+/* Alert title for emptyReservoir */
+"Check chaft" = "Kontrola reťaze";
+
+/* Alert body for checkShaft */
+"The pump has detected an issue with its chaft. Please remove the reservoir, check everything and try again" = "Čerpadlo zistilo problém so svojou reťazou. Vyberte nádrž, skontrolujte všetko a skúste to znova";
+
+/* Alert title for basalMax */
+"Basal limit reached" = "Dosiahnutý základný limit";
+
+/* Alert body for basalMax */
+"Your daily basal limit has been reached. Please contact your Dana distributer to increase the limit" = "Váš denný bazálny limit bol dosiahnutý. Pre zvýšenie limitu sa obráťte na svojho distribútora Dana";
+
+/* Alert title for dailyMax */
+"Daily limit reached" = "Dosiahnutý denný limit";
+
+/* Alert body for basalMax */
+"Your daily insulin limit has been reached. Please contact your Dana distributer to increase the limit" = "Váš denný inzulínový limit bol dosiahnutý. Prosím, kontaktujte svojho distribútora Dana, aby vám zvýšil limit";
+
+/* Alert title for bloodSugarCheckMiss */
+"Missed Blood glucose check" = "Zmeškaná kontrola glukózy v krvi";
+
+/* Alert body for bloodSugarCheckMiss */
+"A blood glucose check reminder has been setup in your pump and is triggered. Please remove it or give your glucose level to the pump" = "Vo vašej pumpe bola nastavená pripomienka kontroly hladiny glukózy v krvi, ktorá sa spúšťa. Odstráňte ju alebo dajte do pumpy zistiť hladinu glukózy";
+
+/* Alert title for unknown */
+"Unknown error" = "Neznáma chyba";
+
+/* Alert body for unknown */
+"An unknown error has occurred during processing the alert from the pump. Please report this" = "Počas spracovania upozornenia z čerpadla došlo k neznámej chybe. Nahláste to, prosím";
+
+/* The title of the pump information section in DanaKit settings */
+"Pump information" = "Informácie o čerpadle";
+
+/* Title for silent tone action sheet */
+"Toggle silent tone?" = "Prepínač tichého tónu?";
+
+/* Button text to cancel silent tone */
+"No, Keep as is" = "Nie, nechajte tak, ako je";
+
+/* Button text to disable silent tone */
+"Yes, Disable silent tones" = "Áno, Zakázať tiché tóny";
+
+/* Button text to enable silent tone */
+"Yes, Enable silent tones" = "Áno, Povolenie tichých tónov";
+
+/* Description for basal profile number */
+"Set the basal profile the pump should use. Note, that it will overwrite the profile that is in the pump, with the one in %1$@" = "Nastavte základný profil, ktorý má čerpadlo používať. Všimnite si, že sa prepíše profil, ktorý je v čerpadle, profilom na stránke %1$@.";
+
+
+/* Error message for reservoir view when reservoir empty
+   Status highlight message for emptyReservoir alarm.
+   Status highlight that a pump is out of insulin. */
+"No Insulin" = "Žiadny inzulín";
+
+/* Status highlight that insulin delivery was suspended. */
+"Insulin Suspended" = "Inzulín pozastavený";
+
+/* Error message for reservoir view during general pod fault
+   Status highlight when communications with the pod haven't happened recently. */
+"Signal Loss" = "Strata signálu";
+
+/* Text for Day unit */
+"day(s)" = "deň(y)";
+
+/* Text for cannula age */
+"Cannula age" = "Vek kanyly";
+
+/* Text for reservoir age */
+"Reservoir age" = "Vek nádrže";
+
+/* Text for status */
+"Status" = "Stav";
+
+/* DanaKit disconnecting */
+"Disconnecting..." = "Odpojenie...";
+
+/* DanaKit connecting */
+"Reconnecting..." = "Opätovné spojenie...";
+
+/* DanaKit disconnect */
+"Disconnect from pump" = "Odpojenie od čerpadla";
+
+/* DanaKit connect */
+"Reconnect tp pump" = "Opätovné pripojenie čerpadla tp";
+
+/* DanaKit disconnected */
+"Disconnected" = "Odpojené";
+
+/* DanaKit connected */
+"Connected" = "Pripojené";
+
+/* Title disconnect reminder notification */
+"Pump is still disconnected" = "Čerpadlo je stále odpojené";
+
+/* Body disconnect reminder notification" */
+"Your pump is still disconnected after the set period!" = "Vaše čerpadlo je po uplynutí nastavenej doby stále odpojené!";
+
+/* Title disconnect reminder sheet */
+"Set reminder for disconnect" = "Nastavenie pripomenutia odpojenia";
+
+/* body disconnect reminder sheet */
+"Do you wish to receive a notification when the pump is longer disconnected for a specific time?" = "Chcete dostávať upozornenia, keď je čerpadlo dlhšie odpojené na určitý čas?";
+
+/* Button text to 5 min */
+"Yes, 5 minutes" = "Áno, 5 minút";
+
+/* Button text to 15 min */
+"Yes, 15 minutes" = "Áno, 15 minút";
+
+/* Button text to 30 min */
+"Yes, 30 minutes" = "Áno, 30 minút";
+
+/* Button text to 1h */
+"Yes, 1 hour" = "Áno, 1 hodina";
+
+/* Button text to just disconnect */
+"No, just disconnect" = "Nie, len sa odpojte";
+
+/* Title for reservoir/cannula refill */
+"Reservoir/cannula refill" = "Doplnenie zásobníka/kanvy";
+
+/* Title for reservoir/cannula refill */
+"Cannula refill" = "Doplnenie kanyly";
+
+/* Title for refill action */
+"Type of refill" = "Typ náplne";
+
+/* Button text to cannula only */
+"Cannula only" = "Iba kanyla";
+
+/* Button text to Reservoir and cannula */
+"Reservoir and cannula" = "Zásobník a kanyla";
+
+/* Title for bluetooth mode action sheet */
+"Toggle Bluetooth mode" = "Bluetooth modus schakelen";
+
+/* Button text to get help about Continuous mode */
+"What is this?" = "Čo je to?";
+
+/* Button text to disable continuous mode */
+"Yes, Switch to interactive mode" = "Áno, prepnite na interaktívny režim";
+
+/* Button text to enable continuous mode */
+"Yes, Switch to continuous mode" = "Áno, prepnite na nepretržitý režim";
+
+/* Title for bolus syncing disable action sheet */
+"Disable bolus syncing?" = "Zakázať synchronizáciu bolusu?";
+
+/* Title for bolus syncing disable action sheet */
+"Re-enable bolus syncing?" = "Opätovné zapnutie synchronizácie bolusu?";
+
+/* Button text to re-enable bplus syncing */
+"Yes, re-enable bolus syncing" = "Áno, znovu zapnite synchronizáciu bolusu";
+
+/* Button text to disable bolus syncing */
+"Yes, disable bolus syncing" = "Áno, vypnite synchronizáciu bolusu";
+
+/* ana delivery speed body */
+"The Dana pumps support different delivery speeds. You can set it up here" = "Čerpadlá Dana podporujú rôzne rýchlosti dodávky. Nastaviť ju môžete tu";
+
+/* Text for Basal profile */
+"Basal profile" = "Základný profil";
+
+/* Text for Battery level */
+"Battery level" = "Úroveň nabitia batérie";
+
+/* The title of the configuration section in DanaKit settings */
+"Configuration" = "Konfigurácia";
+
+/* Text for low reservoir reminder */
+"Low reservoir reminder" = "Pripomienka nízkej nádrže";
+
+/* refillAmount */
+"Refill amount" = "Množstvo náplne";
+
+/* Insulin unit */
+"U" = "U";
+
+/* Label for first step refill */
+"Step 1: Set reservoir level" = "Krok 1: Nastavenie hladiny v nádrži";
+
+/* Label for reservoir refilled amount */
+"Reservoir amount" = "Množstvo zásobníka";
+
+/* Label for second step refill */
+"Step 2: Set tube refill amount" = "Krok 2: Nastavenie množstva náplne do tuby";
+
+/* Label for tube refilled amount */
+"Tube refill amount" = "Množstvo náplne do tuby";
+
+/* Label for warning refill */
+"This method of refilling is only intended for when the pump cannot provide a way to refill the reservoir or prime the cannula" = "Tento spôsob dopĺňania je určený len vtedy, keď čerpadlo nemôže poskytnúť spôsob, ako doplniť zásobník alebo naplniť kanylu.";
+
+/* Title for warning refill */
+"WARNING: USE WITH CAUTION!" = "UPOZORNENIE: POUŽÍVAJTE OPATRNE!";
+
+/* Label for warning refill */
+"This method of refilling is only intended for when the pump cannot provide a way to refill the reservoir or prime the cannula" = "Tento spôsob dopĺňania je určený len vtedy, keď čerpadlo nemôže poskytnúť spôsob, ako doplniť zásobník alebo naplniť kanylu.";
+
+/* Title for warning refill */
+"WARNING: USE WITH CAUTION!" = "UPOZORNENIE: POUŽÍVAJTE OPATRNE!";
+
+/* Label for third step refill */
+"Step 1: Prime cannula" = "Krok 1: Predplnenie kanyly";
+
+/* Label for error first step refill */
+"Failed to set reservoir amount. Re-sync pump data and try again please" = "Nepodarilo sa nastaviť množstvo zásobníka. Znovu synchronizujte údaje čerpadla a skúste to prosím znova";
+
+/* Label for error third step refill */
+"Failed to prime the cannula. Please try again later" = "Nepodarilo sa naplniť kanylu. Skúste to prosím neskôr";
+
+/* Label for error second step refill */
+"Failed to prime the tube. Please try again later" = "Nepodarilo sa naplniť trubicu. Skúste to prosím neskôr";
+
+/* Battery age */
+"Battery age" = "Vek batérie";
+
+/* advertise contact DanaRS v1 */
+"NOTE: The DanaRS v1 is not supported (yet). If you have a DanaRS v1 pump available for testing, please contact Bastiaan Verhaar!" = "POZNÁMKA: DanaRS v1 nie je (zatiaľ) podporovaný. Ak máte k dispozícii čerpadlo DanaRS v1 na testovanie, kontaktujte Bastiaana Verhaara!";

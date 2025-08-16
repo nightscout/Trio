@@ -1,0 +1,545 @@
+/* Generic loading text */
+"loading" = "ローディング";
+
+/* Generic Continue text */
+"Continue" = "続ける";
+
+/* Title for DanaKitSetupView */
+"Dana-i/RS Setup" = "Dana-i/RSセットアップ";
+
+/* Subtitle for DanaKitSetupView */
+"Select your pump" = "ポンプの選択";
+
+/* danaRS v1 option text for DanaKitSetupView */
+"DanaRS-v1" = "ダナRS-v1";
+
+/* danaRS v3 option text for DanaKitSetupView */
+"DanaRS-v3" = "ダナRS-v3";
+
+/* dana-i option text for DanaKitSetupView */
+"Dana-i" = "ダナアイ";
+
+/* Title for danars v1 explaination */
+"Setting up DanaRS v1" = "DanaRS v1のセットアップ";
+
+/* Subtext for danars v1 */
+"During the pairing process, your DanaRS v3 will show a pairing prompt while you iPhone will show a prompt for a pairing code. On your pump, select OK and type the code on your iPhone. After that, Loop is ready to communicate with your DanaRS v1" = "ペアリング中、DanaRS v3にはペアリングのプロンプトが表示され、iPhoneにはペアリングコードのプロンプトが表示されます。ポンプでOKを選択し、iPhoneにコードを入力します。その後、LoopはDanaRS v1と通信できます。";
+
+/* check password text for danars v1 */
+"Before starting with the pairing process, it is recommended to check, and if needed update, the pump password. You can do this by going to the pump settings -> user settings -> password. The default password is 1234, if this is your password, please consider changing it" = "ペアリングを開始する前に、ポンプのパスワードを確認し、必要に応じて更新することをお勧めします。これはポンプ設定→ユーザー設定→パスワードで行うことができます。デフォルトのパスワードは1234です。";
+
+/* Title for danars v1 password */
+"Password DanaRS v1" = "パスワード DanaRS v1";
+
+/* password placeholder danars v1 */
+"Fill in password" = "パスワードを入力";
+
+/* Title for danars v3 explaination */
+"Setting up DanaRS v3" = "DanaRS v3のセットアップ";
+
+/* Subtext for danars v3 */
+"During the pairing process, your DanaRS v3 will show a pairing prompt while you iPhone will show a prompt for two pairing codes. On your pump, select OK and type the two codes on your iPhone. After that, Loop is ready to communicate with your DanaRS v3" = "ペアリング中、DanaRS v3にはペアリングのプロンプトが表示され、iPhoneには2つのペアリングコードを入力するプロンプトが表示されます。ポンプでOKを選択し、iPhoneに2つのコードを入力します。その後、LoopはDanaRS v3と通信できるようになります。";
+
+/* Title for dana-i explaination */
+"Setting up Dana-i" = "ダナアイの設定";
+
+/* General subtext for dana */
+"After setting up the insulin type and bolus speed, you will see all the found Dana pumps. Select the pump you want to link with %1$@." = "インスリンの種類とボーラス速度を設定した後、見つかったすべての Dana ポンプの画面が表示されます。 %1$@とリンクさせたいポンプを選択してください。";
+
+/* Subtext for dana-i */
+"During the pairing process, your Dana-i will show a pairing prompt while your iPhone will show a prompt for a pairing code. On you pump, select OK and type the 6-digit code in screen on your iPhone. After that, %1$@ is ready to communicate with your Dana-i" = "ペアリング中、Dana-iにはペアリングのプロンプトが表示され、iPhoneにはペアリングコードのプロンプトが表示されます。あなたのポンプでOKを選択し、iPhoneの画面に6桁のコードを入力します。その後、 %1$@ 、Dana-iと通信する準備が整います。";
+
+/* Dana-i/RS invalid ble5 keys */
+"ERROR: Failed to pair device" = "ERROR：デバイスのペアリングに失敗しました";
+
+/* Dana-i oke invalid ble5 keys */
+"OK" = "OK";
+
+/* Cancel button title */
+"Cancel" = "キャンセル";
+
+/* Title for DanaKitScanView */
+"Found Dana-i/RS pumps" = "Dana-i/RSポンプを発見";
+
+/* Dana-i/RS connecting alert title */
+"Scanning" = "スキャニング";
+
+/* Dana-i/RS connecting alert title */
+"Connecting" = "接続";
+
+/* Title text for insulin type confirmation page */
+"Select the type of insulin that you will be using in this pump" = "このポンプで使用するインスリンの種類を選択してください。";
+
+/* Title for Dana-i/RS PumpManager deletion action sheet. */
+"Remove Pump" = "ポンプの取り外し";
+
+/* Message for Dana-i/RS PumpManager deletion action sheet */
+"Are you sure you want to stop using Dana-i/RS?" = "本当にDana-i/RSをやめたいのですか？";
+
+/* Button text to confirm Dana-i/RS PumpManager deletion */
+"Delete pump" = "ポンプの削除";
+
+/* Label for PumpManager deletion button */
+"Delete Pump" = "ポンプの削除";
+
+/* Connection error message */
+"Error while connecting to device" = "デバイス接続時のエラー";
+
+/* Dana-RS v3 found */
+"Dana-RS v3 found!" = "Dana-RS v3が見つかった！";
+
+/* Dana-RS v3 pincode prompt body */
+"Pincode required" = "ピンコード必須";
+
+/* Dana-RS v3 pincode prompt pin 1 */
+"Pin 1" = "ピン 1";
+
+/* Dana-RS v3 pincode prompt pin 2 */
+"Pin 2" = "ピン 2";
+
+/* Dana-RS v3 pincode prompt error invalid length */
+"Received invalid pincode lengths. Try again" = "無効なピンコード長を受信しました。再試行してください。";
+
+/* Dana-RS v3 pincode prompt error invalid hex */
+"Received invalid hex strings. Try again" = "無効な16進文字列を受信しました。再試行してください。";
+
+/* Dana-RS v3 pincode prompt error checksum failed */
+"Checksum failed. Try again" = "チェックサムに失敗しました。再試行してください。";
+
+/* Title for delivery speed */
+"Delivery speed" = "配送スピード";
+
+/* Dana bolus speed 12u per min */
+"12 sec/U" = "12秒/U";
+
+/* Dana bolus speed 30u per min */
+"30 sec/U" = "30秒/U";
+
+/* Dana bolus speed 60u per min */
+"60 sec/U" = "60秒/U";
+
+/* Dana delivery speed body */
+"The Dana pumps support different delivery speeds. You can set it up here, but also in the settings menu" = "Danaポンプは異なる吐出速度に対応しています。ここで設定できますが、設定メニューでも設定できます。";
+
+/* Text for finish button */
+"Finish" = "終了";
+
+/* Dana setup complete p1 */
+"Your " = "あなたの ";
+
+/* Dana setup complete p2 */
+" is ready to be used!" = " が使えるようになった！";
+
+/* Dana setup SMB setting */
+"Note: You Dana pump has a special setting which allows you to silence your Dana pump beeps. To enable this, please contact your Dana distributor" = "注：Danaポンプには、Danaポンプのビープ音を無音にする特別な設定があります。これを有効にするには、Danaの販売代理店にお問い合わせください。";
+
+/* Error description when no dana connected */
+"Failed to make a connection" = "接続に失敗しました";
+
+/* Error description when failed temp adjustment */
+"Failed to adjust temp basal" = "基礎体温の調整に失敗";
+
+/* Error description when failed suspension adjustment */
+"Failed to adjust suspension" = "サスペンションの調整に失敗";
+
+/* Error description when failed generating basal program */
+"Failed to generate Dana basal program" = "ダナ・ベーサル・プログラムの生成に失敗";
+
+/* Error description when failed basal adjustment */
+"Failed to adjust basal" = "基礎体温の調整に失敗";
+
+/* Error description when pump time failed to sync */
+"Failed to adjust pump time" = "ポンプ時間の調整に失敗";
+
+/* Error description when trying to set temp basal */
+"Setting temp basal is not supported at this time" = "基礎体温の設定は現在サポートされていません。";
+
+/* Error description when pump is suspended */
+"The insulin delivery has been suspend. Action failed" = "インスリン投与が中断されました。処置失敗";
+
+/* Error description when pump is busy (with bolussing probably) */
+"Action has been canceled, because the pump is busy" = "ポンプがビジー状態のため、アクションはキャンセルされました。";
+
+/* Error description when pump has an active blockage */
+"A bolus timeout is active. The loop cycle cannot be completed till the timeout is inactive" = "ボーラスタイムアウトが有効である。ループサイクルはタイムアウトが解除されるまで完了しない。";
+
+/* Error description when pump has reached the bolus max */
+"The max bolus limit is reached. Please try a lower amount or increase the limit" = "ボーラスの上限値に達しています。量を減らすか、上限を増やしてください。";
+
+/* Error description when pump has reached the daily max */
+"The max daily insulin limit is reached. Please try a lower amount or increase the limit" = "1日のインスリン量が上限に達しています。もう少し量を減らすか、上限を増やしてください。";
+
+/* dana AB limitation warning title */
+"Only Automatic Bolus is supported" = "自動ボーラスのみ対応";
+
+/* dana AB limitation warning body */
+"Please consider changing your dosing strategy in the setting menu" = "設定メニューで投与戦略の変更を検討してください。";
+
+/* Dana settings resume delivery */
+"Resume delivery" = "履歴書の送付";
+
+/* Dana settings suspend delivery */
+"Suspend delivery" = "配送の一時停止";
+
+/* Dana settings stop temp basal */
+"Stop temp basal" = "基礎体温停止";
+
+/* Text for confidence reminders navigation link */
+"Insulin Type" = "インスリンの種類";
+
+/* Title for insulin type */
+"Select insulin Type" = "インスリンタイプを選択";
+
+/* Title of insulin delivery section */
+"Scheduled Basal" = "予定ベース";
+
+/* Title of insulin delivery section */
+"Insulin Delivery" = "インスリンデリバリー";
+
+/* Text shown in insulin delivery space when insulin suspended */
+"Insulin\nSuspended" = "インスリン\n停止";
+
+/* Text shown in basal rate space when delivery status is unknown */
+"Unknown" = "不明";
+
+/* Units for showing temp basal rate */
+"U/hr" = "U/時";
+
+/* Header for insulin remaining on pod settings screen */
+"Insulin Remaining" = "インスリン残量";
+
+/* Text for Dana pump name */
+"Pump name" = "ポンプ名";
+
+/* Text for hardware model */
+"Hardware model" = "ハードウェア・モデル";
+
+/* Text for firmware version */
+"Firmware version" = "ファームウェアバージョン";
+
+/* DanaKit sync pump */
+"Sync pump data" = "ポンプデータの同期";
+
+/* Text for last sync */
+"Last sync" = "最後の同期";
+
+/* Text for pump time */
+"Pump time" = "ポンプ時間";
+
+/* Text for pump time synced at */
+"Checked at" = "でチェックした。";
+
+/* Text for Nightly pump time sync */
+"Nightly pump time sync" = "夜間ポンプ時刻同期";
+
+/* Label for syncing the time on the pump */
+"Manually sync Pump time" = "ポンプ時間を手動で同期";
+
+/* Alert content title for timeOffsetChangeDetected pod alert
+   Title for pod sync time action sheet.
+   title for time change detected notice */
+"Time Change Detected" = "検出された時間変化";
+
+/* Message for pod sync time action sheet */
+"The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "ポンプの時刻が現在時刻と異なっています。ポンプの時刻を現在時刻に更新しますか？";
+
+/* description for time change detected notice */
+"The time on your pump is different from the current time. Your pump’s time controls your scheduled therapy settings. Scroll down to Pump Time row to review the time difference and configure your pump." = "ポンプの時刻は現在時刻とは異なります。ポンプの時刻はスケジュールされた治療設定を制御します。ポンプ時刻の行までスクロールして、時差を確認し、ポンプを設定してください。";
+
+/* Button text to confirm pump time sync */
+"Yes, Sync to Current Time" = "はい、現在時刻に同期";
+
+/* Button text to cancel pump time sync */
+"No, Keep Pump As Is" = "いいえ、ポンプはそのままで";
+
+/* Pump Event title for UnfinalizedDose with doseType of .bolus */
+"Bolus" = "ボーラス";
+
+/* Pump Event title for UnfinalizedDose with doseType of .tempBasal */
+"Temp Basal" = "基礎温度";
+
+/* Pump Event title for UnfinalizedDose with doseType of .basal */
+"Basal" = "ベーサル";
+
+/* Pump Event title for UnfinalizedDose with doseType of .resume */
+"Resume" = "履歴書";
+
+/* Pump Event title for UnfinalizedDose with doseType of .suspend */
+"Suspend" = "サスペンド";
+
+/* Title for user options */
+"User options" = "ユーザーオプション";
+
+/* DanaKit share logs */
+"Share Dana pump logs" = "ダナ・ポンプの記録を共有する";
+
+/* Loading */
+"Loading" = "ローディング";
+
+/* Text for save button */
+"Save" = "セーブ";
+
+/* Text for 24h display */
+"24h display" = "24時間表示";
+
+/* Description for 24h display */
+"Should time be display in 12h or 24h" = "時刻は12時間表示か24時間表示か";
+
+/* text on */
+"On" = "オン";
+
+/* text off */
+"Off" = "オフ";
+
+/* 12h */
+"12h notation" = "12h表記";
+
+/* 24h */
+"24h notation" = "24時間表記";
+
+/* Text for Scroll function */
+"Scroll function" = "スクロール機能";
+
+/* text for second */
+"sec" = "秒";
+
+/* backlightOnTimeInSec */
+"Backlight on time" = "世界へ";
+
+/* lcdOnTimeInSec */
+"Lcd on time" = "液晶点灯時間";
+
+/* beepAndAlarm */
+"Alarm beeps" = "アラームビープ音";
+
+/* beepAndAlarm.sound */
+"Sound" = "サウンド";
+
+/* beepAndAlarm.vibration */
+"Vibration" = "振動";
+
+/* beepAndAlarm.both */
+"Both" = "両方";
+
+/* Alert title for batteryZeroPercent */
+"Pump battery 0%" = "ポンプ電池 0";
+
+/* Alert body for batteryZeroPercent */
+"Pump battery is empty. Replace it now!" = "ポンプのバッテリーが空です。すぐに交換してください！";
+
+/* Alert title for pumpError */
+"Pump error" = "ポンプエラー";
+
+/* Alert body for pumpError */
+"Check the pump and try again" = "ポンプをチェックし、もう一度試す";
+
+/* Alert title for occlusion */
+"Occlusion" = "咬合";
+
+/* Alert body for occlusion */
+"Check the reservoir and infus and try again" = "リザーバーと輸液を確認し、もう一度試してください。";
+
+/* Alert title for lowBattery */
+"Low pump battery" = "ポンプ電池残量低下";
+
+/* Alert body for lowBattery */
+"Pump battery needs to be replaced soon" = "ポンプのバッテリーはすぐに交換が必要";
+
+/* Alert title for shutdown */
+"Pump shutdown" = "ポンプ停止";
+
+/* Alert body for shutdown */
+"There has not been any interactions with the pump for too long. Either disable this function in the pump or interact with the pump" = "あまりにも長い間、ポンプとの相互作用がありません。ポンプのこの機能を無効にするか、ポンプと対話するかしてください。";
+
+/* Alert title for basalCompare */
+"Basal Compare" = "ベース比較";
+
+/* Alert title for bloodSugarMeasure */
+"Blood glucose Measure" = "血糖測定";
+
+/* Alert title for remainingInsulinLevel */
+"Remaining insulin level" = "インスリン残量";
+
+/* Alert title for emptyReservoir */
+"Empty reservoir" = "空のリザーバー";
+
+/* Alert body for emptyReservoir */
+"Reservoir is empty. Replace it now!" = "リザーバーが空です。すぐに交換してください！";
+
+/* Alert title for emptyReservoir */
+"Check chaft" = "シャフトのチェック";
+
+/* Alert body for checkShaft */
+"The pump has detected an issue with its chaft. Please remove the reservoir, check everything and try again" = "ポンプがシャフトの問題を検出しました。リザーバを取り外し、すべてを確認してから再度お試しください。";
+
+/* Alert title for basalMax */
+"Basal limit reached" = "基礎限界に到達";
+
+/* Alert body for basalMax */
+"Your daily basal limit has been reached. Please contact your Dana distributer to increase the limit" = "1日の基礎摂取量の上限に達しました。制限を増やすには、Danaの販売代理店にご連絡ください。";
+
+/* Alert title for dailyMax */
+"Daily limit reached" = "1日の制限に達した";
+
+/* Alert body for basalMax */
+"Your daily insulin limit has been reached. Please contact your Dana distributer to increase the limit" = "インスリンの1日あたりの摂取量が上限に達しました。限度額を増やすには、ダナ販売店にご連絡ください。";
+
+/* Alert title for bloodSugarCheckMiss */
+"Missed Blood glucose check" = "血糖値チェックの見落とし";
+
+/* Alert body for bloodSugarCheckMiss */
+"A blood glucose check reminder has been setup in your pump and is triggered. Please remove it or give your glucose level to the pump" = "血糖値チェックリマインダーがポンプに設定され、作動しています。リマインダーを外すか、血糖値をポンプに知らせてください。";
+
+/* Alert title for unknown */
+"Unknown error" = "不明なエラー";
+
+/* Alert body for unknown */
+"An unknown error has occurred during processing the alert from the pump. Please report this" = "ポンプからのアラート処理中に不明なエラーが発生しました。このエラーを報告してください。";
+
+/* The title of the pump information section in DanaKit settings */
+"Pump information" = "ポンプ情報";
+
+/* Title for silent tone action sheet */
+"Toggle silent tone?" = "トグル・サイレント・トーン？";
+
+/* Button text to cancel silent tone */
+"No, Keep as is" = "いいえ、そのままで";
+
+/* Button text to disable silent tone */
+"Yes, Disable silent tones" = "はい、サイレントトーンを無効にする";
+
+/* Button text to enable silent tone */
+"Yes, Enable silent tones" = "はい、サイレントトーンを有効にする";
+
+/* Description for basal profile number */
+"Set the basal profile the pump should use. Note, that it will overwrite the profile that is in the pump, with the one in %1$@" = "ポンプが使用する基礎プロフィールを設定する。ポンプに内蔵されているプロファイルを、 %1$@のプロファイルで上書きすることに注意してください。";
+
+
+/* Error message for reservoir view when reservoir empty
+   Status highlight message for emptyReservoir alarm.
+   Status highlight that a pump is out of insulin. */
+"No Insulin" = "インスリンなし";
+
+/* Status highlight that insulin delivery was suspended. */
+"Insulin Suspended" = "インスリン中断";
+
+/* Error message for reservoir view during general pod fault
+   Status highlight when communications with the pod haven't happened recently. */
+"Signal Loss" = "信号損失";
+
+/* Text for Day unit */
+"day(s)" = "日";
+
+/* Text for cannula age */
+"Cannula age" = "カニューレ年齢";
+
+/* Text for reservoir age */
+"Reservoir age" = "貯水池年齢";
+
+/* Text for status */
+"Status" = "ステータス";
+
+/* DanaKit disconnecting */
+"Disconnecting..." = "切断...";
+
+/* DanaKit connecting */
+"Reconnecting..." = "再接続...";
+
+/* DanaKit disconnect */
+"Disconnect from pump" = "ポンプから切り離す";
+
+/* DanaKit connect */
+"Reconnect tp pump" = "ポンプを再接続する";
+
+/* DanaKit disconnected */
+"Disconnected" = "切断";
+
+/* DanaKit connected */
+"Connected" = "接続済み";
+
+/* Title disconnect reminder notification */
+"Pump is still disconnected" = "ポンプはまだ接続されていない";
+
+/* Body disconnect reminder notification" */
+"Your pump is still disconnected after the set period!" = "設定時間経過後もポンプは切断されたままです！";
+
+/* Title disconnect reminder sheet */
+"Set reminder for disconnect" = "切断のリマインダーを設定する";
+
+/* body disconnect reminder sheet */
+"Do you wish to receive a notification when the pump is longer disconnected for a specific time?" = "ポンプが特定の時間切断された場合に通知を受け取りたいですか？";
+
+/* Button text to 5 min */
+"Yes, 5 minutes" = "はい、5分";
+
+/* Button text to 15 min */
+"Yes, 15 minutes" = "はい、15分";
+
+/* Button text to 30 min */
+"Yes, 30 minutes" = "はい、30分";
+
+/* Button text to 1h */
+"Yes, 1 hour" = "はい、1時間";
+
+/* Button text to just disconnect */
+"No, just disconnect" = "いいえ、切断するだけです";
+
+/* Title for reservoir/cannula refill */
+"Reservoir/cannula refill" = "リザーバー／カニューレ再充填";
+
+/* Title for reservoir/cannula refill */
+"Cannula refill" = "カニューレ再充填";
+
+/* Title for refill action */
+"Type of refill" = "詰め替えタイプ";
+
+/* Button text to cannula only */
+"Cannula only" = "カニューレのみ";
+
+/* Button text to Reservoir and cannula */
+"Reservoir and cannula" = "リザーバーとカニューレ";
+
+/* Title for bluetooth mode action sheet */
+"Toggle Bluetooth mode" = "ブルートゥース・モデル";
+
+/* Button text to get help about Continuous mode */
+"What is this?" = "これは何だ？";
+
+/* Button text to disable continuous mode */
+"Yes, Switch to interactive mode" = "はい、対話モードに切り替える";
+
+/* Button text to enable continuous mode */
+"Yes, Switch to continuous mode" = "はい、連続モードに切り替える";
+
+/* Title for bolus syncing disable action sheet */
+"Disable bolus syncing?" = "ボーラスの同期を無効にしますか？";
+
+/* Title for bolus syncing disable action sheet */
+"Re-enable bolus syncing?" = "ボーラス同期を再度有効にするか？";
+
+/* Button text to re-enable bplus syncing */
+"Yes, re-enable bolus syncing" = "はい、ボーラス同期を再度有効にしてください";
+
+/* Button text to disable bolus syncing */
+"Yes, disable bolus syncing" = "はい、ボーラス同期を無効にします";
+
+/* ana delivery speed body */
+"The Dana pumps support different delivery speeds. You can set it up here" = "Danaポンプは、異なる吐出速度に対応しています。ここで設定できる";
+
+/* Text for Basal profile */
+"Basal profile" = "基本プロファイル";
+
+/* Text for Battery level */
+"Battery level" = "バッテリー残量";
+
+/* The title of the configuration section in DanaKit settings */
+"Configuration" = "構成";
+
+/* Text for low reservoir reminder */
+"Low reservoir reminder" = "リザーバー残量警告";
+
+/* refillAmount */
+"Refill amount" = "補充量";
+
+/* Insulin unit */
+"U" = "U";

@@ -1,0 +1,587 @@
+/* Generic loading text */
+"loading" = "chargement";
+
+/* Generic Continue text */
+"Continue" = "Continuer";
+
+/* Title for DanaKitSetupView */
+"Dana-i/RS Setup" = "Configuration Dana-i/RS";
+
+/* Subtitle for DanaKitSetupView */
+"Select your pump" = "Sélectionnez votre pompe";
+
+/* danaRS v1 option text for DanaKitSetupView */
+"DanaRS-v1" = "DanaRS-v1";
+
+/* danaRS v3 option text for DanaKitSetupView */
+"DanaRS-v3" = "DanaRS-v3";
+
+/* dana-i option text for DanaKitSetupView */
+"Dana-i" = "Dana-i";
+
+/* Title for danars v1 explaination */
+"Setting up DanaRS v1" = "Mise en place de DanaRS v1";
+
+/* Subtext for danars v1 */
+"During the pairing process, your DanaRS v1 will show a pairing prompt while you iPhone will show a prompt for a pairing code. On your pump, select OK and type the code on your iPhone. After that, Loop is ready to communicate with your DanaRS v1" = "Pendant le processus de couplage, votre DanaRS v1 affichera une invite de couplage tandis que votre iPhone affichera une invitation à saisir un code de couplage. Sur votre pompe, sélectionnez OK et tapez le code sur votre iPhone. Après cela, Loop est prêt à communiquer avec votre DanaRS v1.";
+
+/* check password text for danars v1 */
+"Before starting with the pairing process, it is recommended to check, and if needed update, the pump password. You can do this by going to the pump settings -> user settings -> password. The default password is 1234, if this is your password, please consider changing it" = "Avant de commencer le processus d'appairage, il est recommandé de vérifier et, si nécessaire, de mettre à jour le mot de passe de la pompe. Vous pouvez le faire en allant dans les paramètres de la pompe -> paramètres utilisateur -> mot de passe. Le mot de passe par défaut est 1234, si c'est votre mot de passe, envisagez de le modifier.";
+
+/* Title for danars v1 password */
+"Password DanaRS v1" = "Mot de passe DanaRS v1";
+
+/* password placeholder danars v1 */
+"Fill in password" = "Remplir le mot de passe";
+
+/* Title for danars v3 explaination */
+"Setting up DanaRS v3" = "Mise en place de DanaRS v3";
+
+/* Subtext for danars v3 */
+"During the pairing process, your DanaRS v3 will show a pairing prompt while you iPhone will show a prompt for two pairing codes. On your pump, select OK and type the two codes on your iPhone. After that, Loop is ready to communicate with your DanaRS v3" = "Pendant le processus d'appairage, votre DanaRS v3 affichera une invite d'appairage tandis que votre iPhone affichera une invitation à saisir deux codes d'appairage. Sur votre pompe, sélectionnez OK et tapez les deux codes sur votre iPhone. Après cela, Loop est prêt à communiquer avec votre DanaRS v3.";
+
+/* Title for dana-i explaination */
+"Setting up Dana-i" = "Mise en place de Dana-i";
+
+/* General subtext for dana */
+"After setting up the insulin type and bolus speed, you will see all the found Dana pumps. Select the pump you want to link with %1$@." = "Après avoir configuré le type d'insuline et la vitesse du bolus, vous verrez un écran avec toutes les pompes Dana trouvées. Sélectionnez la pompe que vous souhaitez relier à %1$@.";
+
+/* Subtext for dana-i */
+"During the pairing process, your Dana-i will show a pairing prompt while your iPhone will show a prompt for a pairing code. On you pump, select OK and type the 6-digit code in screen on your iPhone. After that, %1$@ is ready to communicate with your Dana-i" = "Pendant le processus d'appairage, votre Dana-i affichera une invite d'appairage tandis que votre iPhone affichera une invite pour un code d'appairage. Sur votre pompe, sélectionnez OK et tapez le code à 6 chiffres sur l'écran de votre iPhone. Après cela, %1$@ est prêt à communiquer avec votre Dana-i.";
+
+/* Dana-i/RS invalid ble5 keys */
+"ERROR: Failed to pair device" = "ERREUR : Échec de l'appariement de l'appareil";
+
+/* Dana-i oke invalid ble5 keys */
+"OK" = "OK";
+
+/* Cancel button title */
+"Cancel" = "Annuler";
+
+/* Title for DanaKitScanView */
+"Found Dana-i/RS pumps" = "Pompes Dana-i/RS trouvées";
+
+/* Dana-i/RS connecting alert title */
+"Scanning" = "Numérisation";
+
+/* Dana-i/RS connecting alert title */
+"Connecting" = "Connexion";
+
+/* Title text for insulin type confirmation page */
+"Select the type of insulin that you will be using in this pump" = "Sélectionnez le type d'insuline que vous utiliserez dans cette pompe.";
+
+/* Title for Dana-i/RS PumpManager deletion action sheet. */
+"Remove Pump" = "Retirer la pompe";
+
+/* Message for Dana-i/RS PumpManager deletion action sheet */
+"Are you sure you want to stop using Dana-i/RS?" = "Êtes-vous sûr de vouloir cesser d'utiliser Dana-i/RS ?";
+
+/* Button text to confirm Dana-i/RS PumpManager deletion */
+"Delete pump" = "Supprimer la pompe";
+
+/* Label for PumpManager deletion button */
+"Delete Pump" = "Supprimer la pompe";
+
+/* Connection error message */
+"Error while connecting to device" = "Erreur lors de la connexion à l'appareil";
+
+/* Dana-RS v3 found */
+"Dana-RS v3 found!" = "Dana-RS v3 trouvée !";
+
+/* Dana-RS v3 pincode prompt body */
+"Pincode required" = "Code postal requis";
+
+/* Dana-RS v3 pincode prompt pin 1 */
+"Pin 1" = "Broche 1";
+
+/* Dana-RS v3 pincode prompt pin 2 */
+"Pin 2" = "Broche 2";
+
+/* Dana-RS v3 pincode prompt error invalid length */
+"Received invalid pincode lengths. Try again" = "Réception de longueurs de codes d'identification non valides. Réessayez";
+
+/* Dana-RS v3 pincode prompt error invalid hex */
+"Received invalid hex strings. Try again" = "Réception de chaînes hexagonales non valides. Réessayez";
+
+/* Dana-RS v3 pincode prompt error checksum failed */
+"Checksum failed. Try again" = "La somme de contrôle a échoué. Réessayez";
+
+/* Title for delivery speed */
+"Delivery speed" = "Vitesse de livraison";
+
+/* Dana bolus speed 12u per min */
+"12 sec/U" = "12 sec/U";
+
+/* Dana bolus speed 30u per min */
+"30 sec/U" = "30 sec/U";
+
+/* Dana bolus speed 60u per min */
+"60 sec/U" = "60 sec/U";
+
+/* Dana delivery speed body */
+"The Dana pumps support different delivery speeds. You can set it up here, but also in the settings menu" = "Les pompes Dana prennent en charge différentes vitesses de distribution. Vous pouvez les configurer ici, mais aussi dans le menu des réglages.";
+
+/* Text for finish button */
+"Finish" = "Finition";
+
+/* Dana setup complete p1 */
+"Your " = "Votre ";
+
+/* Dana setup complete p2 */
+" is ready to be used!" = " est prêt à être utilisé !";
+
+/* Dana setup SMB setting */
+"Note: You Dana pump has a special setting which allows you to silence your Dana pump beeps. To enable this, please contact your Dana distributor" = "Remarque : Votre pompe Dana dispose d'un réglage spécial qui vous permet de faire taire les signaux sonores de votre pompe Dana. Pour l'activer, veuillez contacter votre distributeur Dana.";
+
+/* Error description when no dana connected */
+"Failed to make a connection" = "Échec de la connexion";
+
+/* Error description when failed temp adjustment */
+"Failed to adjust temp basal" = "N'a pas ajusté la température basale";
+
+/* Error description when failed suspension adjustment */
+"Failed to adjust suspension" = "Absence de réglage de la suspension";
+
+/* Error description when failed generating basal program */
+"Failed to generate Dana basal program" = "Échec de la génération du programme de base de Dana";
+
+/* Error description when failed basal adjustment */
+"Failed to adjust basal" = "N'a pas ajusté la dose de base";
+
+/* Error description when pump time failed to sync */
+"Failed to adjust pump time" = "Le temps de pompage n'a pas été ajusté";
+
+/* Error description when trying to set temp basal */
+"Setting temp basal is not supported at this time" = "Le réglage de la température de base n'est pas pris en charge pour l'instant.";
+
+/* Error description when pump is suspended */
+"The insulin delivery has been suspend. Action failed" = "L'administration d'insuline a été suspendue. Action échouée";
+
+/* Error description when pump is busy (with bolussing probably) */
+"Action has been canceled, because the pump is busy" = "L'action a été annulée, car la pompe est occupée.";
+
+/* Error description when pump has an active blockage */
+"A bolus timeout is active. The loop cycle cannot be completed till the timeout is inactive" = "Un délai d'attente pour le bolus est actif. Le cycle de la boucle ne peut être achevé tant que le délai d'attente n'est pas inactif.";
+
+/* Error description when pump has reached the bolus max */
+"The max bolus limit is reached. Please try a lower amount or increase the limit" = "La limite maximale de bolus est atteinte. Veuillez essayer une quantité inférieure ou augmenter la limite";
+
+/* Error description when pump has reached the daily max */
+"The max daily insulin limit is reached. Please try a lower amount or increase the limit" = "La limite maximale d'insuline par jour est atteinte. Veuillez essayer une quantité plus faible ou augmenter la limite";
+
+/* dana AB limitation warning title */
+"Only Automatic Bolus is supported" = "Seul le bolus automatique est pris en charge";
+
+/* dana AB limitation warning body */
+"Please consider changing your dosing strategy in the setting menu" = "Veuillez envisager de modifier votre stratégie de dosage dans le menu de réglage.";
+
+/* Dana settings resume delivery */
+"Resume delivery" = "Remise de curriculum vitae";
+
+/* Dana settings suspend delivery */
+"Suspend delivery" = "Suspendre la livraison";
+
+/* Dana settings stop temp basal */
+"Stop temp basal" = "Arrêt de la température basale";
+
+/* Text for confidence reminders navigation link */
+"Insulin Type" = "Type d'insuline";
+
+/* Title for insulin type */
+"Select insulin Type" = "Sélectionner le type d'insuline";
+
+/* Title of insulin delivery section */
+"Scheduled Basal" = "Basale programmée";
+
+/* Title of insulin delivery section */
+"Insulin Delivery" = "Administration d'insuline";
+
+/* Text shown in insulin delivery space when insulin suspended */
+"Insulin\nSuspended" = "Suspension de l'insuline\n";
+
+/* Text shown in basal rate space when delivery status is unknown */
+"Unknown" = "Inconnu";
+
+/* Units for showing temp basal rate */
+"U/hr" = "U/h";
+
+/* Header for insulin remaining on pod settings screen */
+"Insulin Remaining" = "Insuline restante";
+
+/* Text for Dana pump name */
+"Pump name" = "Nom de la pompe";
+
+/* Text for hardware model */
+"Hardware model" = "Modèle de matériel";
+
+/* Text for firmware version */
+"Firmware version" = "Version du micrologiciel";
+
+/* DanaKit sync pump */
+"Sync pump data" = "Synchronisation des données de la pompe";
+
+/* Text for last sync */
+"Last sync" = "Dernière synchronisation";
+
+/* Text for pump time */
+"Pump time" = "Durée de la pompe";
+
+/* Text for pump time synced at */
+"Checked at" = "Vérifié à";
+
+/* Text for Nightly pump time sync */
+"Nightly pump time sync" = "Synchronisation nocturne de l'heure de la pompe";
+
+/* Label for syncing the time on the pump */
+"Manually sync Pump time" = "Synchronisation manuelle de l'heure de la pompe";
+
+/* Alert content title for timeOffsetChangeDetected pod alert
+   Title for pod sync time action sheet.
+   title for time change detected notice */
+"Time Change Detected" = "Changement d'heure détecté";
+
+/* Message for pod sync time action sheet */
+"The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "L'heure de votre pompe est différente de l'heure actuelle. Voulez-vous mettre à jour l'heure de votre pompe pour qu'elle corresponde à l'heure actuelle ?";
+
+/* description for time change detected notice */
+"The time on your pump is different from the current time. Your pump’s time controls your scheduled therapy settings. Scroll down to Pump Time row to review the time difference and configure your pump." = "L'heure de votre pompe est différente de l'heure actuelle. L'heure de votre pompe contrôle les paramètres de votre thérapie programmée. Faites défiler vers le bas jusqu'à la ligne Heure de la pompe pour consulter le décalage horaire et configurer votre pompe.";
+
+/* Button text to confirm pump time sync */
+"Yes, Sync to Current Time" = "Oui, synchronisation avec l'heure actuelle";
+
+/* Button text to cancel pump time sync */
+"No, Keep Pump As Is" = "Non, conserver la pompe en l'état";
+
+/* Pump Event title for UnfinalizedDose with doseType of .bolus */
+"Bolus" = "Bolus";
+
+/* Pump Event title for UnfinalizedDose with doseType of .tempBasal */
+"Temp Basal" = "Temp Basal";
+
+/* Pump Event title for UnfinalizedDose with doseType of .basal */
+"Basal" = "Basal";
+
+/* Pump Event title for UnfinalizedDose with doseType of .resume */
+"Resume" = "Curriculum vitae";
+
+/* Pump Event title for UnfinalizedDose with doseType of .suspend */
+"Suspend" = "Suspendre";
+
+/* Title for user options */
+"User options" = "Options pour l'utilisateur";
+
+/* DanaKit share logs */
+"Share Dana pump logs" = "Partager les journaux des pompes Dana";
+
+/* Loading */
+"Loading" = "Chargement";
+
+/* Text for save button */
+"Save" = "Économiser";
+
+/* Text for 24h display */
+"24h display" = "Affichage sur 24 heures";
+
+/* Description for 24h display */
+"Should time be display in 12h or 24h" = "L'heure doit-elle être affichée en 12 heures ou en 24 heures ?";
+
+/* text on */
+"On" = "Sur";
+
+/* text off */
+"Off" = "Arrêt";
+
+/* 12h */
+"12h notation" = "Notation 12h";
+
+/* 24h */
+"24h notation" = "Notation sur 24 heures";
+
+/* Text for Scroll function */
+"Scroll function" = "Fonction de défilement";
+
+/* text for second */
+"sec" = "sec";
+
+/* backlightOnTimeInSec */
+"Backlight on time" = "Durée d'allumage du rétroéclairage";
+
+/* lcdOnTimeInSec */
+"Lcd on time" = "Lcd on time";
+
+/* beepAndAlarm */
+"Alarm beeps" = "Bips d'alarme";
+
+/* beepAndAlarm.sound */
+"Sound" = "Son";
+
+/* beepAndAlarm.vibration */
+"Vibration" = "Vibrations";
+
+/* beepAndAlarm.both */
+"Both" = "Les deux";
+
+/* Alert title for batteryZeroPercent */
+"Pump battery 0%" = "Batterie de la pompe 0%";
+
+/* Alert body for batteryZeroPercent */
+"Pump battery is empty. Replace it now!" = "La batterie de la pompe est vide. Remplacez-la maintenant !";
+
+/* Alert title for pumpError */
+"Pump error" = "Erreur de pompe";
+
+/* Alert body for pumpError */
+"Check the pump and try again" = "Vérifier la pompe et réessayer";
+
+/* Alert title for occlusion */
+"Occlusion" = "Occlusion";
+
+/* Alert body for occlusion */
+"Check the reservoir and infus and try again" = "Vérifier le réservoir et l'infusion et réessayer.";
+
+/* Alert title for lowBattery */
+"Low pump battery" = "Batterie de la pompe faible";
+
+/* Alert body for lowBattery */
+"Pump battery needs to be replaced soon" = "La batterie de la pompe doit être remplacée prochainement";
+
+/* Alert title for shutdown */
+"Pump shutdown" = "Arrêt de la pompe";
+
+/* Alert body for shutdown */
+"There has not been any interactions with the pump for too long. Either disable this function in the pump or interact with the pump" = "Il n'y a pas eu d'interactions avec la pompe depuis trop longtemps. Désactivez cette fonction dans la pompe ou interagissez avec la pompe.";
+
+/* Alert title for basalCompare */
+"Basal Compare" = "Comparaison de base";
+
+/* Alert title for bloodSugarMeasure */
+"Blood glucose Measure" = "Mesure de la glycémie";
+
+/* Alert title for remainingInsulinLevel */
+"Remaining insulin level" = "Taux d'insuline restant";
+
+/* Alert title for emptyReservoir */
+"Empty reservoir" = "Réservoir vide";
+
+/* Alert body for emptyReservoir */
+"Reservoir is empty. Replace it now!" = "Le réservoir est vide. Remplacez-le maintenant !";
+
+/* Alert title for emptyReservoir */
+"Check chaft" = "Vérifier l'arbre";
+
+/* Alert body for checkShaft */
+"The pump has detected an issue with its chaft. Please remove the reservoir, check everything and try again" = "La pompe a détecté un problème avec son arbre. Retirez le réservoir, vérifiez tout et réessayez.";
+
+/* Alert title for basalMax */
+"Basal limit reached" = "Limite de base atteinte";
+
+/* Alert body for basalMax */
+"Your daily basal limit has been reached. Please contact your Dana distributer to increase the limit" = "Votre limite journalière de base a été atteinte. Veuillez contacter votre distributeur Dana pour augmenter la limite.";
+
+/* Alert title for dailyMax */
+"Daily limit reached" = "Limite journalière atteinte";
+
+/* Alert body for basalMax */
+"Your daily insulin limit has been reached. Please contact your Dana distributer to increase the limit" = "Votre limite quotidienne d'insuline a été atteinte. Veuillez contacter votre distributeur Dana pour augmenter la limite.";
+
+/* Alert title for bloodSugarCheckMiss */
+"Missed Blood glucose check" = "Contrôle de la glycémie manqué";
+
+/* Alert body for bloodSugarCheckMiss */
+"A blood glucose check reminder has been setup in your pump and is triggered. Please remove it or give your glucose level to the pump" = "Un rappel de vérification de la glycémie a été configuré dans votre pompe et est déclenché. Veuillez l'enlever ou donner votre taux de glucose à la pompe.";
+
+/* Alert title for unknown */
+"Unknown error" = "Erreur inconnue";
+
+/* Alert body for unknown */
+"An unknown error has occurred during processing the alert from the pump. Please report this" = "Une erreur inconnue s'est produite lors du traitement de l'alerte provenant de la pompe. Veuillez signaler cette";
+
+/* The title of the pump information section in DanaKit settings */
+"Pump information" = "Informations sur la pompe";
+
+/* Title for silent tone action sheet */
+"Toggle silent tone?" = "Tonalité silencieuse à bascule ?";
+
+/* Button text to cancel silent tone */
+"No, Keep as is" = "Non, conserver en l'état";
+
+/* Button text to disable silent tone */
+"Yes, Disable silent tones" = "Oui, désactiver les tonalités silencieuses";
+
+/* Button text to enable silent tone */
+"Yes, Enable silent tones" = "Oui, activer les tonalités silencieuses";
+
+/* Description for basal profile number */
+"Set the basal profile the pump should use. Note, that it will overwrite the profile that is in the pump, with the one in %1$@" = "Définit le profil basal que la pompe doit utiliser. Notez que cela remplacera le profil qui se trouve dans la pompe par celui qui se trouve dans %1$@.";
+
+
+/* Error message for reservoir view when reservoir empty
+   Status highlight message for emptyReservoir alarm.
+   Status highlight that a pump is out of insulin. */
+"No Insulin" = "Pas d'insuline";
+
+/* Status highlight that insulin delivery was suspended. */
+"Insulin Suspended" = "Suspension de l'insuline";
+
+/* Error message for reservoir view during general pod fault
+   Status highlight when communications with the pod haven't happened recently. */
+"Signal Loss" = "Perte de signal";
+
+/* Text for Day unit */
+"day(s)" = "jour(s)";
+
+/* Text for cannula age */
+"Cannula age" = "Âge de la canule";
+
+/* Text for reservoir age */
+"Reservoir age" = "Âge du réservoir";
+
+/* Text for status */
+"Status" = "Statut";
+
+/* DanaKit disconnecting */
+"Disconnecting..." = "Déconnexion...";
+
+/* DanaKit connecting */
+"Reconnecting..." = "Se reconnecter...";
+
+/* DanaKit disconnect */
+"Disconnect from pump" = "Déconnecter la pompe";
+
+/* DanaKit connect */
+"Reconnect tp pump" = "Reconnecter la pompe tp";
+
+/* DanaKit disconnected */
+"Disconnected" = "Déconnecté";
+
+/* DanaKit connected */
+"Connected" = "Connecté";
+
+/* Title disconnect reminder notification */
+"Pump is still disconnected" = "La pompe est toujours déconnectée";
+
+/* Body disconnect reminder notification" */
+"Your pump is still disconnected after the set period!" = "Votre pompe est toujours déconnectée après la période définie !";
+
+/* Title disconnect reminder sheet */
+"Set reminder for disconnect" = "Fixer un rappel pour la déconnexion";
+
+/* body disconnect reminder sheet */
+"Do you wish to receive a notification when the pump is longer disconnected for a specific time?" = "Souhaitez-vous recevoir une notification lorsque la pompe est déconnectée pour une durée déterminée ?";
+
+/* Button text to 5 min */
+"Yes, 5 minutes" = "Oui, 5 minutes";
+
+/* Button text to 15 min */
+"Yes, 15 minutes" = "Oui, 15 minutes";
+
+/* Button text to 30 min */
+"Yes, 30 minutes" = "Oui, 30 minutes";
+
+/* Button text to 1h */
+"Yes, 1 hour" = "Oui, 1 heure";
+
+/* Button text to just disconnect */
+"No, just disconnect" = "Non, il suffit de déconnecter";
+
+/* Title for reservoir/cannula refill */
+"Reservoir/cannula refill" = "Remplissage du réservoir/de la canule";
+
+/* Title for reservoir/cannula refill */
+"Cannula refill" = "Recharge de la canule";
+
+/* Title for refill action */
+"Type of refill" = "Type de recharge";
+
+/* Button text to cannula only */
+"Cannula only" = "Canule uniquement";
+
+/* Button text to Reservoir and cannula */
+"Reservoir and cannula" = "Réservoir et canule";
+
+/* Title for bluetooth mode action sheet */
+"Toggle Bluetooth mode" = "Mode d'emploi du Bluetooth";
+
+/* Button text to get help about Continuous mode */
+"What is this?" = "Qu'est-ce que c'est ?";
+
+/* Button text to disable continuous mode */
+"Yes, Switch to interactive mode" = "Oui, passer en mode interactif";
+
+/* Button text to enable continuous mode */
+"Yes, Switch to continuous mode" = "Oui, passage en mode continu";
+
+/* Title for bolus syncing disable action sheet */
+"Disable bolus syncing?" = "Désactiver la synchronisation des bolus ?";
+
+/* Title for bolus syncing disable action sheet */
+"Re-enable bolus syncing?" = "Réactiver la synchronisation des bolus ?";
+
+/* Button text to re-enable bplus syncing */
+"Yes, re-enable bolus syncing" = "Oui, réactiver la synchronisation des bolus";
+
+/* Button text to disable bolus syncing */
+"Yes, disable bolus syncing" = "Oui, désactiver la synchronisation des bolus";
+
+/* ana delivery speed body */
+"The Dana pumps support different delivery speeds. You can set it up here" = "Les pompes Dana prennent en charge différentes vitesses de distribution. Vous pouvez les configurer ici";
+
+/* Text for Basal profile */
+"Basal profile" = "Profil de base";
+
+/* Text for Battery level */
+"Battery level" = "Niveau de la batterie";
+
+/* The title of the configuration section in DanaKit settings */
+"Configuration" = "Configuration";
+
+/* Text for low reservoir reminder */
+"Low reservoir reminder" = "Rappel de niveau de réservoir bas";
+
+/* refillAmount */
+"Refill amount" = "Quantité de recharge";
+
+/* Insulin unit */
+"U" = "U";
+
+/* Label for first step refill */
+"Step 1: Set reservoir level" = "Étape 1 : Définir le niveau du réservoir";
+
+/* Label for reservoir refilled amount */
+"Reservoir amount" = "Montant du réservoir";
+
+/* Label for second step refill */
+"Step 2: Set tube refill amount" = "Étape 2 : Définir la quantité de remplissage du tube";
+
+/* Label for tube refilled amount */
+"Tube refill amount" = "Quantité de remplissage du tube";
+
+/* Label for warning refill */
+"This method of refilling is only intended for when the pump cannot provide a way to refill the reservoir or prime the cannula" = "Cette méthode de remplissage n'est prévue que lorsque la pompe ne permet pas de remplir le réservoir ou d'amorcer la canule.";
+
+/* Title for warning refill */
+"WARNING: USE WITH CAUTION!" = "AVERTISSEMENT : A UTILISER AVEC PRUDENCE !";
+
+/* Label for warning refill */
+"This method of refilling is only intended for when the pump cannot provide a way to refill the reservoir or prime the cannula" = "Cette méthode de remplissage n'est prévue que lorsque la pompe ne permet pas de remplir le réservoir ou d'amorcer la canule.";
+
+/* Title for warning refill */
+"WARNING: USE WITH CAUTION!" = "AVERTISSEMENT : A UTILISER AVEC PRUDENCE !";
+
+/* Label for third step refill */
+"Step 1: Prime cannula" = "Étape 1 : Amorcer la canule";
+
+/* Label for error first step refill */
+"Failed to set reservoir amount. Re-sync pump data and try again please" = "Échec du réglage du volume du réservoir. Resynchronisez les données de la pompe et réessayez s'il vous plaît.";
+
+/* Label for error third step refill */
+"Failed to prime the cannula. Please try again later" = "La canule n'a pas été amorcée. Veuillez réessayer plus tard";
+
+/* Label for error second step refill */
+"Failed to prime the tube. Please try again later" = "Le tube n'a pas été amorcé. Veuillez réessayer plus tard";
+
+/* Battery age */
+"Battery age" = "Âge de la batterie";
+
+/* advertise contact DanaRS v1 */
+"NOTE: The DanaRS v1 is not supported (yet). If you have a DanaRS v1 pump available for testing, please contact Bastiaan Verhaar!" = "NOTE : Le DanaRS v1 n'est pas (encore) supporté. Si vous avez une pompe DanaRS v1 disponible pour des tests, veuillez contacter Bastiaan Verhaar !";

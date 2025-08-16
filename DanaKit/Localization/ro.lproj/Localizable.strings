@@ -1,0 +1,545 @@
+/* Generic loading text */
+"loading" = "încărcare";
+
+/* Generic Continue text */
+"Continue" = "Continuați";
+
+/* Title for DanaKitSetupView */
+"Dana-i/RS Setup" = "Configurarea Dana-i/RS";
+
+/* Subtitle for DanaKitSetupView */
+"Select your pump" = "Selectați pompa dvs.";
+
+/* danaRS v1 option text for DanaKitSetupView */
+"DanaRS-v1" = "DanaRS-v1";
+
+/* danaRS v3 option text for DanaKitSetupView */
+"DanaRS-v3" = "DanaRS-v3";
+
+/* dana-i option text for DanaKitSetupView */
+"Dana-i" = "Dana-i";
+
+/* Title for danars v1 explaination */
+"Setting up DanaRS v1" = "Configurarea DanaRS v1";
+
+/* Subtext for danars v1 */
+"During the pairing process, your DanaRS v3 will show a pairing prompt while you iPhone will show a prompt for a pairing code. On your pump, select OK and type the code on your iPhone. After that, Loop is ready to communicate with your DanaRS v1" = "În timpul procesului de împerechere, DanaRS v3 va afișa o solicitare de împerechere, în timp ce iPhone-ul va afișa o solicitare pentru un cod de împerechere. Pe pompă, selectați OK și tastați codul de pe iPhone. După aceea, Loop este gata să comunice cu DanaRS v1";
+
+/* check password text for danars v1 */
+"Before starting with the pairing process, it is recommended to check, and if needed update, the pump password. You can do this by going to the pump settings -> user settings -> password. The default password is 1234, if this is your password, please consider changing it" = "Înainte de a începe procesul de împerechere, este recomandat să verificați și, dacă este necesar, să actualizați parola pompei. Puteți face acest lucru accesând setările pompei -> setări utilizator -> parolă. Parola implicită este 1234, dacă aceasta este parola dumneavoastră, vă rugăm să luați în considerare schimbarea acesteia";
+
+/* Title for danars v1 password */
+"Password DanaRS v1" = "Parolă DanaRS v1";
+
+/* password placeholder danars v1 */
+"Fill in password" = "Introduceți parola";
+
+/* Title for danars v3 explaination */
+"Setting up DanaRS v3" = "Configurarea DanaRS v3";
+
+/* Subtext for danars v3 */
+"During the pairing process, your DanaRS v3 will show a pairing prompt while you iPhone will show a prompt for two pairing codes. On your pump, select OK and type the two codes on your iPhone. After that, Loop is ready to communicate with your DanaRS v3" = "În timpul procesului de împerechere, DanaRS v3 va afișa o solicitare de împerechere, în timp ce iPhone-ul va afișa o solicitare pentru două coduri de împerechere. Pe pompă, selectați OK și tastați cele două coduri pe iPhone. După aceea, Loop este gata să comunice cu DanaRS v3";
+
+/* Title for dana-i explaination */
+"Setting up Dana-i" = "Configurarea Dana-i";
+
+/* General subtext for dana */
+"After setting up the insulin type and bolus speed, you will see all the found Dana pumps. Select the pump you want to link with %1$@." = "După setarea tipului de insulină și a vitezei bolusului, veți vedea un ecran cu toate pompele Dana găsite. Selectați pompa pe care doriți să o legați cu %1$@.";
+
+/* Subtext for dana-i */
+"During the pairing process, your Dana-i will show a pairing prompt while your iPhone will show a prompt for a pairing code. On you pump, select OK and type the 6-digit code in screen on your iPhone. After that, %1$@ is ready to communicate with your Dana-i" = "În timpul procesului de împerechere, Dana-i va afișa o solicitare de împerechere, în timp ce iPhone-ul va afișa o solicitare pentru un cod de împerechere. Pe pompă, selectați OK și tastați codul de 6 cifre în ecranul de pe iPhone. După aceea, %1$@ este gata să comunice cu Dana-i";
+
+/* Dana-i/RS invalid ble5 keys */
+"ERROR: Failed to pair device" = "ERROR: Eșec la împerecherea dispozitivului";
+
+/* Dana-i oke invalid ble5 keys */
+"OK" = "OK";
+
+/* Cancel button title */
+"Cancel" = "Anulează";
+
+/* Title for DanaKitScanView */
+"Found Dana-i/RS pumps" = "Pompe Dana-i/RS găsite";
+
+/* Dana-i/RS connecting alert title */
+"Scanning" = "Scanare";
+
+/* Dana-i/RS connecting alert title */
+"Connecting" = "Conectarea";
+
+/* Title text for insulin type confirmation page */
+"Select the type of insulin that you will be using in this pump" = "Selectați tipul de insulină pe care îl veți utiliza în această pompă";
+
+/* Title for Dana-i/RS PumpManager deletion action sheet. */
+"Remove Pump" = "Scoateți pompa";
+
+/* Message for Dana-i/RS PumpManager deletion action sheet */
+"Are you sure you want to stop using Dana-i/RS?" = "Sunteți sigur că doriți să nu mai folosiți Dana-i/RS?";
+
+/* Button text to confirm Dana-i/RS PumpManager deletion */
+"Delete pump" = "Ștergeți pompa";
+
+/* Label for PumpManager deletion button */
+"Delete Pump" = "Ștergeți pompa";
+
+/* Connection error message */
+"Error while connecting to device" = "Eroare în timpul conectării la dispozitiv";
+
+/* Dana-RS v3 found */
+"Dana-RS v3 found!" = "Dana-RS v3 găsit!";
+
+/* Dana-RS v3 pincode prompt body */
+"Pincode required" = "Cod pin necesar";
+
+/* Dana-RS v3 pincode prompt pin 1 */
+"Pin 1" = "Pin 1";
+
+/* Dana-RS v3 pincode prompt pin 2 */
+"Pin 2" = "Pin 2";
+
+/* Dana-RS v3 pincode prompt error invalid length */
+"Received invalid pincode lengths. Try again" = "S-au primit lungimi ale codului PIN invalide. Încercați din nou";
+
+/* Dana-RS v3 pincode prompt error invalid hex */
+"Received invalid hex strings. Try again" = "Am primit șiruri hexagonale invalide. Încercați din nou";
+
+/* Dana-RS v3 pincode prompt error checksum failed */
+"Checksum failed. Try again" = "Checksum-ul a eșuat. Încercați din nou";
+
+/* Title for delivery speed */
+"Delivery speed" = "Viteza de livrare";
+
+/* Dana bolus speed 12u per min */
+"12 sec/U" = "12 sec/U";
+
+/* Dana bolus speed 30u per min */
+"30 sec/U" = "30 sec/U";
+
+/* Dana bolus speed 60u per min */
+"60 sec/U" = "60 sec/U";
+
+/* Dana delivery speed body */
+"The Dana pumps support different delivery speeds. You can set it up here, but also in the settings menu" = "Pompele Dana acceptă diferite viteze de livrare. Puteți să le configurați aici, dar și în meniul de setări";
+
+/* Text for finish button */
+"Finish" = "Terminare";
+
+/* Dana setup complete p1 */
+"Your " = "dvs. ";
+
+/* Dana setup complete p2 */
+" is ready to be used!" = " este gata să fie utilizat!";
+
+/* Dana setup SMB setting */
+"Note: You Dana pump has a special setting which allows you to silence your Dana pump beeps. To enable this, please contact your Dana distributor" = "Notă: Pompa dvs. Dana are o setare specială care vă permite să reduceți la tăcere semnalele sonore ale pompei Dana. Pentru a activa acest lucru, vă rugăm să contactați distribuitorul Dana";
+
+/* Error description when no dana connected */
+"Failed to make a connection" = "A eșuat realizarea unei conexiuni";
+
+/* Error description when failed temp adjustment */
+"Failed to adjust temp basal" = "Nu a reușit să ajusteze temp basal";
+
+/* Error description when failed suspension adjustment */
+"Failed to adjust suspension" = "Nu a reușit să regleze suspensia";
+
+/* Error description when failed generating basal program */
+"Failed to generate Dana basal program" = "Nu a reușit să genereze programul de bază Dana";
+
+/* Error description when failed basal adjustment */
+"Failed to adjust basal" = "Nu a reușit să ajusteze bazal";
+
+/* Error description when pump time failed to sync */
+"Failed to adjust pump time" = "Nu a reușit să regleze timpul de pompare";
+
+/* Error description when trying to set temp basal */
+"Setting temp basal is not supported at this time" = "Setarea temp basal nu este susținută în acest moment";
+
+/* Error description when pump is suspended */
+"The insulin delivery has been suspend. Action failed" = "Administrarea insulinei a fost suspendată. Acțiune eșuată";
+
+/* Error description when pump is busy (with bolussing probably) */
+"Action has been canceled, because the pump is busy" = "Acțiunea a fost anulată, deoarece pompa este ocupată";
+
+/* Error description when pump has an active blockage */
+"A bolus timeout is active. The loop cycle cannot be completed till the timeout is inactive" = "Un timp de așteptare pentru bolus este activ. Ciclul de buclă nu poate fi finalizat până când timpul de așteptare nu este inactiv";
+
+/* Error description when pump has reached the bolus max */
+"The max bolus limit is reached. Please try a lower amount or increase the limit" = "Limita maximă de bolus a fost atinsă. Vă rugăm să încercați o cantitate mai mică sau să măriți limita";
+
+/* Error description when pump has reached the daily max */
+"The max daily insulin limit is reached. Please try a lower amount or increase the limit" = "Limita maximă zilnică de insulină a fost atinsă. Vă rugăm să încercați o cantitate mai mică sau să măriți limita";
+
+/* dana AB limitation warning title */
+"Only Automatic Bolus is supported" = "Numai Bolus automat este acceptat";
+
+/* dana AB limitation warning body */
+"Please consider changing your dosing strategy in the setting menu" = "Vă rugăm să luați în considerare schimbarea strategiei de dozare în meniul de setare";
+
+/* Dana settings resume delivery */
+"Resume delivery" = "Livrarea CV-ului";
+
+/* Dana settings suspend delivery */
+"Suspend delivery" = "Suspendarea livrării";
+
+/* Dana settings stop temp basal */
+"Stop temp basal" = "Opriți temp bazal";
+
+/* Text for confidence reminders navigation link */
+"Insulin Type" = "Tipul de insulină";
+
+/* Title for insulin type */
+"Select insulin Type" = "Selectați tipul de insulină";
+
+/* Title of insulin delivery section */
+"Scheduled Basal" = "Bazal programat";
+
+/* Title of insulin delivery section */
+"Insulin Delivery" = "Administrarea insulinei";
+
+/* Text shown in insulin delivery space when insulin suspended */
+"Insulin\nSuspended" = "Insulină\nSuspendată";
+
+/* Text shown in basal rate space when delivery status is unknown */
+"Unknown" = "Necunoscut";
+
+/* Units for showing temp basal rate */
+"U/hr" = "U/oră";
+
+/* Header for insulin remaining on pod settings screen */
+"Insulin Remaining" = "Insulină rămasă";
+
+/* Text for Dana pump name */
+"Pump name" = "Denumirea pompei";
+
+/* Text for hardware model */
+"Hardware model" = "Model hardware";
+
+/* Text for firmware version */
+"Firmware version" = "Versiunea firmware";
+
+/* DanaKit sync pump */
+"Sync pump data" = "Sincronizarea datelor pompei";
+
+/* Text for last sync */
+"Last sync" = "Ultima sincronizare";
+
+/* Text for pump time */
+"Pump time" = "Timp de pompare";
+
+/* Text for pump time synced at */
+"Checked at" = "Verificat la";
+
+/* Text for Nightly pump time sync */
+"Nightly pump time sync" = "Sincronizarea nocturnă a timpului de pompare";
+
+/* Label for syncing the time on the pump */
+"Manually sync Pump time" = "Sincronizarea manuală a timpului pompei";
+
+/* Alert content title for timeOffsetChangeDetected pod alert
+   Title for pod sync time action sheet.
+   title for time change detected notice */
+"Time Change Detected" = "Schimbare de timp detectată";
+
+/* Message for pod sync time action sheet */
+"The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "Ora de pe pompa dvs. este diferită de ora curentă. Doriți să actualizați ora de pe pompa dvs. la ora curentă?";
+
+/* description for time change detected notice */
+"The time on your pump is different from the current time. Your pump’s time controls your scheduled therapy settings. Scroll down to Pump Time row to review the time difference and configure your pump." = "Ora de pe pompa dvs. este diferită de ora curentă. Ora pompei dvs. controlează setările terapiei programate. Derulați în jos până la rândul Ora pompei pentru a verifica diferența de oră și pentru a configura pompa.";
+
+/* Button text to confirm pump time sync */
+"Yes, Sync to Current Time" = "Da, sincronizare cu ora curentă";
+
+/* Button text to cancel pump time sync */
+"No, Keep Pump As Is" = "Nu, păstrați pompa așa cum este";
+
+/* Pump Event title for UnfinalizedDose with doseType of .bolus */
+"Bolus" = "Bolus";
+
+/* Pump Event title for UnfinalizedDose with doseType of .tempBasal */
+"Temp Basal" = "Temperatură bazală";
+
+/* Pump Event title for UnfinalizedDose with doseType of .basal */
+"Basal" = "Bazal";
+
+/* Pump Event title for UnfinalizedDose with doseType of .resume */
+"Resume" = "CV";
+
+/* Pump Event title for UnfinalizedDose with doseType of .suspend */
+"Suspend" = "Suspendați";
+
+/* Title for user options */
+"User options" = "Opțiuni utilizator";
+
+/* DanaKit share logs */
+"Share Dana pump logs" = "Partajează jurnalele pompei Dana";
+
+/* Loading */
+"Loading" = "Încărcare";
+
+/* Text for save button */
+"Save" = "Salvați";
+
+/* Text for 24h display */
+"24h display" = "Afișaj 24h";
+
+/* Description for 24h display */
+"Should time be display in 12h or 24h" = "Timpul trebuie afișat în 12h sau 24h";
+
+/* text on */
+"On" = "Pe";
+
+/* text off */
+"Off" = "Oprit";
+
+/* 12h */
+"12h notation" = "Notație 12h";
+
+/* 24h */
+"24h notation" = "Notație 24h";
+
+/* Text for Scroll function */
+"Scroll function" = "Funcția de derulare";
+
+/* text for second */
+"sec" = "sec";
+
+/* backlightOnTimeInSec */
+"Backlight on time" = "Timp de aprindere a luminii de fundal";
+
+/* lcdOnTimeInSec */
+"Lcd on time" = "Lcd pe timp";
+
+/* beepAndAlarm */
+"Alarm beeps" = "Alarma emite un semnal sonor";
+
+/* beepAndAlarm.sound */
+"Sound" = "Sunet";
+
+/* beepAndAlarm.vibration */
+"Vibration" = "Vibrații";
+
+/* beepAndAlarm.both */
+"Both" = "Ambele";
+
+/* Alert title for batteryZeroPercent */
+"Pump battery 0%" = "Baterie pompă 0%";
+
+/* Alert body for batteryZeroPercent */
+"Pump battery is empty. Replace it now!" = "Bateria pompei este descărcată. Înlocuiți-o acum!";
+
+/* Alert title for pumpError */
+"Pump error" = "Eroare pompă";
+
+/* Alert body for pumpError */
+"Check the pump and try again" = "Verificați pompa și încercați din nou";
+
+/* Alert title for occlusion */
+"Occlusion" = "Ocluzie";
+
+/* Alert body for occlusion */
+"Check the reservoir and infus and try again" = "Verificați rezervorul și infuzați și încercați din nou";
+
+/* Alert title for lowBattery */
+"Low pump battery" = "Baterie slabă a pompei";
+
+/* Alert body for lowBattery */
+"Pump battery needs to be replaced soon" = "Bateria pompei trebuie să fie înlocuită în curând";
+
+/* Alert title for shutdown */
+"Pump shutdown" = "Oprirea pompei";
+
+/* Alert body for shutdown */
+"There has not been any interactions with the pump for too long. Either disable this function in the pump or interact with the pump" = "Nu a existat nicio interacțiune cu pompa de prea mult timp. Fie dezactivați această funcție în pompă, fie interacționați cu pompa";
+
+/* Alert title for basalCompare */
+"Basal Compare" = "Comparație bazală";
+
+/* Alert title for bloodSugarMeasure */
+"Blood glucose Measure" = "Măsurarea glicemiei";
+
+/* Alert title for remainingInsulinLevel */
+"Remaining insulin level" = "Nivelul rămas de insulină";
+
+/* Alert title for emptyReservoir */
+"Empty reservoir" = "Rezervor gol";
+
+/* Alert body for emptyReservoir */
+"Reservoir is empty. Replace it now!" = "Rezervorul este gol. Înlocuiți-l acum!";
+
+/* Alert title for emptyReservoir */
+"Check chaft" = "Verificarea chaft";
+
+/* Alert body for checkShaft */
+"The pump has detected an issue with its chaft. Please remove the reservoir, check everything and try again" = "Pompa a detectat o problemă cu șaiba sa. Vă rugăm să scoateți rezervorul, să verificați totul și să încercați din nou";
+
+/* Alert title for basalMax */
+"Basal limit reached" = "Limita bazală atinsă";
+
+/* Alert body for basalMax */
+"Your daily basal limit has been reached. Please contact your Dana distributer to increase the limit" = "Limita dvs. zilnică de bazalină a fost atinsă. Vă rugăm să contactați distribuitorul Dana pentru a crește limita";
+
+/* Alert title for dailyMax */
+"Daily limit reached" = "Limita zilnică atinsă";
+
+/* Alert body for basalMax */
+"Your daily insulin limit has been reached. Please contact your Dana distributer to increase the limit" = "Limita dvs. zilnică de insulină a fost atinsă. Vă rugăm să contactați distribuitorul Dana pentru a crește limita";
+
+/* Alert title for bloodSugarCheckMiss */
+"Missed Blood glucose check" = "Lipsa controlului glicemiei";
+
+/* Alert body for bloodSugarCheckMiss */
+"A blood glucose check reminder has been setup in your pump and is triggered. Please remove it or give your glucose level to the pump" = "Un memento de verificare a glicemiei a fost configurat în pompa dvs. și este activat. Vă rugăm să îl eliminați sau să comunicați nivelul de glucoză pompei";
+
+/* Alert title for unknown */
+"Unknown error" = "Eroare necunoscută";
+
+/* Alert body for unknown */
+"An unknown error has occurred during processing the alert from the pump. Please report this" = "O eroare necunoscută a apărut în timpul procesării alertei de la pompă. Vă rugăm să raportați acest lucru";
+
+/* The title of the pump information section in DanaKit settings */
+"Pump information" = "Informații despre pompă";
+
+/* Title for silent tone action sheet */
+"Toggle silent tone?" = "Toggle ton tăcut?";
+
+/* Button text to cancel silent tone */
+"No, Keep as is" = "Nu, păstrați așa cum este";
+
+/* Button text to disable silent tone */
+"Yes, Disable silent tones" = "Da, Dezactivați tonurile silențioase";
+
+/* Button text to enable silent tone */
+"Yes, Enable silent tones" = "Da, Activare tonuri silențioase";
+
+/* Description for basal profile number */
+"Set the basal profile the pump should use. Note, that it will overwrite the profile that is in the pump, with the one in %1$@" = "Setează profilul bazal pe care pompa ar trebui să îl utilizeze. Rețineți că se va suprascrie profilul care se află în pompă, cu cel din %1$@";
+
+
+/* Error message for reservoir view when reservoir empty
+   Status highlight message for emptyReservoir alarm.
+   Status highlight that a pump is out of insulin. */
+"No Insulin" = "Fără insulină";
+
+/* Status highlight that insulin delivery was suspended. */
+"Insulin Suspended" = "Insulină suspendată";
+
+/* Error message for reservoir view during general pod fault
+   Status highlight when communications with the pod haven't happened recently. */
+"Signal Loss" = "Pierderea semnalului";
+
+/* Text for Day unit */
+"day(s)" = "zi(e)";
+
+/* Text for cannula age */
+"Cannula age" = "Vârsta canulei";
+
+/* Text for reservoir age */
+"Reservoir age" = "Vârsta rezervorului";
+
+/* Text for status */
+"Status" = "Statut";
+
+/* DanaKit disconnecting */
+"Disconnecting..." = "Deconectarea...";
+
+/* DanaKit connecting */
+"Reconnecting..." = "Reconectarea...";
+
+/* DanaKit disconnect */
+"Disconnect from pump" = "Deconectați de la pompă";
+
+/* DanaKit connect */
+"Reconnect tp pump" = "Reconectați pompa tp";
+
+/* DanaKit disconnected */
+"Disconnected" = "Deconectat";
+
+/* DanaKit connected */
+"Connected" = "Conectat";
+
+/* Title disconnect reminder notification */
+"Pump is still disconnected" = "Pompa este încă deconectată";
+
+/* Body disconnect reminder notification" */
+"Your pump is still disconnected after the set period!" = "Pompa dvs. este încă deconectată după perioada stabilită!";
+
+/* Title disconnect reminder sheet */
+"Set reminder for disconnect" = "Setați un memento pentru deconectare";
+
+/* body disconnect reminder sheet */
+"Do you wish to receive a notification when the pump is longer disconnected for a specific time?" = "Doriți să primiți o notificare atunci când pompa este deconectată pentru o anumită perioadă de timp?";
+
+/* Button text to 5 min */
+"Yes, 5 minutes" = "Da, 5 minute";
+
+/* Button text to 15 min */
+"Yes, 15 minutes" = "Da, 15 minute";
+
+/* Button text to 30 min */
+"Yes, 30 minutes" = "Da, 30 de minute";
+
+/* Button text to 1h */
+"Yes, 1 hour" = "Da, 1 oră";
+
+/* Button text to just disconnect */
+"No, just disconnect" = "Nu, doar deconectați";
+
+/* Title for reservoir/cannula refill */
+"Reservoir/cannula refill" = "Reumplere rezervor/canulă";
+
+/* Title for reservoir/cannula refill */
+"Cannula refill" = "Reîncărcare canulă";
+
+/* Title for refill action */
+"Type of refill" = "Tip de reumplere";
+
+/* Button text to cannula only */
+"Cannula only" = "Numai canulă";
+
+/* Button text to Reservoir and cannula */
+"Reservoir and cannula" = "Rezervor și canulă";
+
+/* Title for bluetooth mode action sheet */
+"Toggle Bluetooth mode" = "Bluetooth modus schakelen";
+
+/* Button text to get help about Continuous mode */
+"What is this?" = "Ce este aceasta?";
+
+/* Button text to disable continuous mode */
+"Yes, Switch to interactive mode" = "Da, treceți la modul interactiv";
+
+/* Button text to enable continuous mode */
+"Yes, Switch to continuous mode" = "Da, Comutare la modul continuu";
+
+/* Title for bolus syncing disable action sheet */
+"Disable bolus syncing?" = "Dezactivați sincronizarea bolusurilor?";
+
+/* Title for bolus syncing disable action sheet */
+"Re-enable bolus syncing?" = "Reactivarea sincronizării bolusurilor?";
+
+/* Button text to re-enable bplus syncing */
+"Yes, re-enable bolus syncing" = "Da, reactivați sincronizarea bolusurilor";
+
+/* Button text to disable bolus syncing */
+"Yes, disable bolus syncing" = "Da, dezactivați sincronizarea bolusului";
+
+/* ana delivery speed body */
+"The Dana pumps support different delivery speeds. You can set it up here" = "Pompele Dana suportă diferite viteze de livrare. O puteți configura aici";
+
+/* Text for Basal profile */
+"Basal profile" = "Profil bazal";
+
+/* Text for Battery level */
+"Battery level" = "Nivelul bateriei";
+
+/* The title of the configuration section in DanaKit settings */
+"Configuration" = "Configurație";
+
+/* Text for low reservoir reminder */
+"Low reservoir reminder" = "Memento rezervor scăzut";
+
+/* refillAmount */
+"Refill amount" = "Cantitatea de reumplere";
+
+/* Insulin unit */
+"U" = "U";
