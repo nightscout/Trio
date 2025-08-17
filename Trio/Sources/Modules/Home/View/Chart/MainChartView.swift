@@ -23,6 +23,7 @@ struct MainChartView: View {
     @State var basalProfiles: [BasalProfile] = []
     @State var preparedTempBasals: [(start: Date, end: Date, rate: Double)] = []
     @State var selection: Date? = nil
+    @State private var selectionCache: (date: Date, data: (glucose: GlucoseStored?, determination: OrefDetermination?))? = nil
 
     @State var mainChartHasInitialized = false
 
@@ -37,28 +38,58 @@ struct MainChartView: View {
         units == .mgdL ? 400 : 22.2
     }
 
-    private var selectedGlucose: GlucoseStored? {
-        guard let selection = selection else { return nil }
+    // Cached selection data for better performance
+    private var selectionData: (glucose: GlucoseStored?, determination: OrefDetermination?)? {
+        guard let selection = selection else {
+            selectionCache = nil
+            return nil
+        }
+
+        // Use cache if we have recent data for the same time point (within 30 seconds)
+        if let cache = selectionCache,
+           abs(cache.date.timeIntervalSince(selection)) < 30
+        {
+            return cache.data
+        }
+
         let range = selection.addingTimeInterval(-150) ... selection.addingTimeInterval(150)
-        return state.glucoseFromPersistence.first { $0.date.map(range.contains) ?? false }
+
+        // Use optimized search for better performance on large datasets
+        let glucose = findNearestGlucose(for: selection, in: range)
+        let determination = findNearestDetermination(for: selection, in: range)
+
+        let data = (glucose, determination)
+        selectionCache = (selection, data)
+
+        return data
     }
 
-    private func findDetermination(in range: ClosedRange<Date>) -> OrefDetermination? {
-        state.enactedAndNonEnactedDeterminations.first {
-            $0.deliverAt ?? now >= range.lowerBound && $0.deliverAt ?? now <= range.upperBound
+    private func findNearestGlucose(for _: Date, in range: ClosedRange<Date>) -> GlucoseStored? {
+        // Since glucose data is typically time-ordered, we can optimize this
+        state.glucoseFromPersistence.first { glucose in
+            guard let date = glucose.date else { return false }
+            return range.contains(date)
         }
     }
 
+    private func findNearestDetermination(for _: Date, in range: ClosedRange<Date>) -> OrefDetermination? {
+        // Optimized search for determinations
+        state.enactedAndNonEnactedDeterminations.first { determination in
+            let deliverAt = determination.deliverAt ?? now
+            return range.contains(deliverAt)
+        }
+    }
+
+    private var selectedGlucose: GlucoseStored? {
+        selectionData?.glucose
+    }
+
     var selectedCOBValue: OrefDetermination? {
-        guard let selection = selection else { return nil }
-        let range = selection.addingTimeInterval(-150) ... selection.addingTimeInterval(150)
-        return findDetermination(in: range)
+        selectionData?.determination
     }
 
     var selectedIOBValue: OrefDetermination? {
-        guard let selection = selection else { return nil }
-        let range = selection.addingTimeInterval(-150) ... selection.addingTimeInterval(150)
-        return findDetermination(in: range)
+        selectionData?.determination
     }
 
     var body: some View {

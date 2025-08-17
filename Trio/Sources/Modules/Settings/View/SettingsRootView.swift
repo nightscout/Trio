@@ -398,7 +398,7 @@ extension Settings {
                     versionInfo.latestVersion = latestVersion
                     versionInfo.isUpdateAvailable = isNewer
                     versionInfo.isBlacklisted = isBlacklisted
-                    
+
                     // Fetch dev version if not on main branch
                     let buildDetails = BuildDetails.shared
                     if buildDetails.trioBranch != "main" {
