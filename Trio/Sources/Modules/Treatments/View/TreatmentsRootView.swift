@@ -86,6 +86,7 @@ extension Treatments {
             HStack {
                 HStack {
                     Text("Protein")
+                        .fixedSize(horizontal: true, vertical: false) // Prevent wrapping
                     TextFieldWithToolBar(
                         text: $state.protein,
                         placeholder: "0",

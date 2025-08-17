@@ -1053,6 +1053,18 @@
           }
         }
       }
+    },
+    "NSMotionUsageDescription" : {
+      "comment" : "Privacy - Motion Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Motion detection is used to automatically apply override presets when physical activity is detected."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

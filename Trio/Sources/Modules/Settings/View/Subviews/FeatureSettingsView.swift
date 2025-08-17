@@ -23,6 +23,7 @@ struct FeatureSettingsView: BaseView {
                 content: {
                     Text("Bolus Calculator").navigationLink(to: .bolusCalculatorConfig, from: self)
                     Text("Meal Settings").navigationLink(to: .mealSettings, from: self)
+                    Text("Auto Apply Override").navigationLink(to: .autoApplyOverride, from: self)
                     Text("Shortcuts").navigationLink(to: .shortcutsConfig, from: self)
                     Text("Remote Control").navigationLink(to: .remoteControlConfig, from: self)
                 }

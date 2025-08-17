@@ -15,6 +15,43 @@ enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
     }
 }
 
+enum ActivityType: String, JSON, CaseIterable, Identifiable {
+    var id: String { rawValue }
+    case walking
+    case running
+    case cycling
+    case other
+
+    var displayName: String {
+        switch self {
+        case .walking:
+            return String(localized: "Walking")
+        case .running:
+            return String(localized: "Running")
+        case .cycling:
+            return String(localized: "Cycling")
+        case .other:
+            return String(localized: "Other Activity")
+        }
+    }
+}
+
+struct ActivityLogEntry: JSON, Equatable {
+    let id: UUID
+    let activityType: ActivityType
+    let startDate: Date
+    let endDate: Date?
+    let overrideName: String?
+
+    init(id: UUID = UUID(), activityType: ActivityType, startDate: Date, endDate: Date? = nil, overrideName: String? = nil) {
+        self.id = id
+        self.activityType = activityType
+        self.startDate = startDate
+        self.endDate = endDate
+        self.overrideName = overrideName
+    }
+}
+
 struct TrioSettings: JSON, Equatable {
     var units: GlucoseUnits = .mgdL
     var closedLoop: Bool = false
@@ -70,6 +107,19 @@ struct TrioSettings: JSON, Equatable {
     var lockScreenView: LockScreenView = .simple
     var bolusShortcut: BolusShortcutLimit = .notAllowed
     var timeInRangeType: TimeInRangeType = .timeInTightRange
+
+    // AutoApplyOverride settings
+    var autoApplyOverrideEnabled: Bool = false
+    var autoApplyWalkingEnabled: Bool = false
+    var autoApplyRunningEnabled: Bool = false
+    var autoApplyCyclingEnabled: Bool = false
+    var autoApplyOtherEnabled: Bool = false
+    var autoApplyWalkingOverride: String = ""
+    var autoApplyRunningOverride: String = ""
+    var autoApplyCyclingOverride: String = ""
+    var autoApplyOtherOverride: String = ""
+    var autoApplyMinimumDurationMinutes: Int = 10
+    var autoApplyStopDurationMinutes: Int = 5
 }
 
 extension TrioSettings: Decodable {
@@ -298,6 +348,50 @@ extension TrioSettings: Decodable {
 
         if let timeInRangeType = try? container.decode(TimeInRangeType.self, forKey: .timeInRangeType) {
             settings.timeInRangeType = timeInRangeType
+        }
+
+        if let autoApplyOverrideEnabled = try? container.decode(Bool.self, forKey: .autoApplyOverrideEnabled) {
+            settings.autoApplyOverrideEnabled = autoApplyOverrideEnabled
+        }
+
+        if let autoApplyWalkingEnabled = try? container.decode(Bool.self, forKey: .autoApplyWalkingEnabled) {
+            settings.autoApplyWalkingEnabled = autoApplyWalkingEnabled
+        }
+
+        if let autoApplyRunningEnabled = try? container.decode(Bool.self, forKey: .autoApplyRunningEnabled) {
+            settings.autoApplyRunningEnabled = autoApplyRunningEnabled
+        }
+
+        if let autoApplyCyclingEnabled = try? container.decode(Bool.self, forKey: .autoApplyCyclingEnabled) {
+            settings.autoApplyCyclingEnabled = autoApplyCyclingEnabled
+        }
+
+        if let autoApplyOtherEnabled = try? container.decode(Bool.self, forKey: .autoApplyOtherEnabled) {
+            settings.autoApplyOtherEnabled = autoApplyOtherEnabled
+        }
+
+        if let autoApplyWalkingOverride = try? container.decode(String.self, forKey: .autoApplyWalkingOverride) {
+            settings.autoApplyWalkingOverride = autoApplyWalkingOverride
+        }
+
+        if let autoApplyRunningOverride = try? container.decode(String.self, forKey: .autoApplyRunningOverride) {
+            settings.autoApplyRunningOverride = autoApplyRunningOverride
+        }
+
+        if let autoApplyCyclingOverride = try? container.decode(String.self, forKey: .autoApplyCyclingOverride) {
+            settings.autoApplyCyclingOverride = autoApplyCyclingOverride
+        }
+
+        if let autoApplyOtherOverride = try? container.decode(String.self, forKey: .autoApplyOtherOverride) {
+            settings.autoApplyOtherOverride = autoApplyOtherOverride
+        }
+
+        if let autoApplyMinimumDurationMinutes = try? container.decode(Int.self, forKey: .autoApplyMinimumDurationMinutes) {
+            settings.autoApplyMinimumDurationMinutes = autoApplyMinimumDurationMinutes
+        }
+
+        if let autoApplyStopDurationMinutes = try? container.decode(Int.self, forKey: .autoApplyStopDurationMinutes) {
+            settings.autoApplyStopDurationMinutes = autoApplyStopDurationMinutes
         }
 
         self = settings

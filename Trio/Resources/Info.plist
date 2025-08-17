@@ -87,6 +87,8 @@
 	<string>Health App is used to store blood glucose, carbs and insulin</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>$(COPYRIGHT_NOTICE)</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Motion detection is used to automatically apply override presets when physical activity is detected.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>TeamID</key>

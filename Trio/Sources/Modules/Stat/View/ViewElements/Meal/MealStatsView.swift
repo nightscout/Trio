@@ -215,7 +215,7 @@ struct MealStatsView: View {
                 (String(localized: "Fat"), Color.purple)
             ] : [(String(localized: "Carbs"), Color.orange)]
 
-            let columns = [GridItem(.adaptive(minimum: 65), spacing: 4)]
+            let columns = [GridItem(.adaptive(minimum: 90), spacing: 4)]
 
             LazyVGrid(columns: columns, alignment: .leading, spacing: 4) {
                 ForEach(legendItems, id: \.0) { item in

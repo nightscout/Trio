@@ -79,6 +79,8 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var tddStorage: TDDStorage!
     @Injected() private var broadcaster: Broadcaster!
+    @Injected() private var activityDetectionManager: ActivityDetectionManager!
+    @Injected() private var overrideStorage: OverrideStorage!
     @Persisted(key: "lastLoopStartDate") private var lastLoopStartDate: Date = .distantPast
     @Persisted(key: "lastLoopDate") var lastLoopDate: Date = .distantPast {
         didSet {
@@ -133,9 +135,18 @@ final class BaseAPSManager: APSManager, Injectable {
         subscribe()
         lastLoopDateSubject.send(lastLoopDate)
 
+        setupActivityDetection()
+
         isLooping
             .weakAssign(to: \.deviceDataManager.loopInProgress, on: self)
             .store(in: &lifetime)
+    }
+
+    private func setupActivityDetection() {
+        activityDetectionManager.delegate = self
+        if settingsManager.settings.autoApplyOverrideEnabled {
+            activityDetectionManager.startMonitoring()
+        }
     }
 
     private func subscribe() {
@@ -1304,6 +1315,126 @@ extension BaseAPSManager: DoseProgressObserver {
         bolusProgress.send(Decimal(doseProgressReporter.progress.percentComplete))
         if doseProgressReporter.progress.isComplete {
             clearBolusReporter()
+        }
+    }
+}
+
+extension BaseAPSManager: ActivityDetectionDelegate {
+    func activityDetectionManager(_: ActivityDetectionManager, didDetectActivity activity: ActivityType) {
+        processQueue.async { [weak self] in
+            self?.handleActivityDetected(activity)
+        }
+    }
+
+    func activityDetectionManager(_: ActivityDetectionManager, didStopActivity activity: ActivityType) {
+        processQueue.async { [weak self] in
+            self?.handleActivityStopped(activity)
+        }
+    }
+
+    private func handleActivityDetected(_ activity: ActivityType) {
+        let overrideName = getOverrideName(for: activity)
+        guard !overrideName.isEmpty else {
+            debug(.apsManager, "No override configured for \(activity.displayName)")
+            return
+        }
+
+        debug(.apsManager, "Applying override '\(overrideName)' for detected \(activity.displayName) activity")
+
+        Task {
+            do {
+                try await self.applyOverrideByName(overrideName)
+            } catch {
+                debug(.apsManager, "Failed to apply override for activity: \(error)")
+            }
+        }
+    }
+
+    private func handleActivityStopped(_ activity: ActivityType) {
+        debug(.apsManager, "Activity \(activity.displayName) stopped, canceling auto-applied overrides")
+
+        Task {
+            do {
+                try await self.cancelCurrentOverride()
+            } catch {
+                debug(.apsManager, "Failed to cancel override after activity stop: \(error)")
+            }
+        }
+    }
+
+    private func getOverrideName(for activity: ActivityType) -> String {
+        let settings = settingsManager.settings
+        switch activity {
+        case .walking:
+            return settings.autoApplyWalkingOverride
+        case .running:
+            return settings.autoApplyRunningOverride
+        case .cycling:
+            return settings.autoApplyCyclingOverride
+        case .other:
+            return settings.autoApplyOtherOverride
+        }
+    }
+
+    private func applyOverrideByName(_ name: String) async throws {
+        let backgroundContext = CoreDataStack.shared.newTaskContext()
+
+        let request = OverrideStored.fetchRequest() as NSFetchRequest<OverrideStored>
+        request.predicate = NSPredicate(format: "name == %@ AND isPreset == true", name)
+
+        do {
+            let presets = try backgroundContext.fetch(request)
+            guard let preset = presets.first else {
+                throw APSError.apsError(message: "Override preset '\(name)' not found")
+            }
+
+            let override = Override(
+                name: preset.name ?? "",
+                enabled: true,
+                date: Date(),
+                duration: preset.duration?.decimalValue ?? 0,
+                indefinite: preset.indefinite,
+                percentage: preset.percentage,
+                smbIsOff: preset.smbIsOff,
+                isPreset: false,
+                id: UUID().uuidString,
+                overrideTarget: preset.target != nil && preset.target != 0,
+                target: preset.target?.decimalValue ?? 0,
+                advancedSettings: preset.advancedSettings,
+                isfAndCr: preset.isfAndCr,
+                isf: preset.isf,
+                cr: preset.cr,
+                smbIsScheduledOff: preset.smbIsScheduledOff,
+                start: preset.start?.decimalValue ?? 0,
+                end: preset.end?.decimalValue ?? 0,
+                smbMinutes: preset.smbMinutes?.decimalValue ?? 0,
+                uamMinutes: preset.uamMinutes?.decimalValue ?? 0
+            )
+
+            try await overrideStorage.storeOverride(override: override)
+        } catch {
+            debug(.apsManager, "Failed to apply override by name: \(error)")
+            throw error
+        }
+    }
+
+    private func cancelCurrentOverride() async throws {
+        do {
+            let request = OverrideStored.fetchRequest() as NSFetchRequest<OverrideStored>
+            request.predicate = NSPredicate(format: "enabled == true AND isPreset == false")
+            request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+            request.fetchLimit = 1
+
+            let activeOverrides = try viewContext.fetch(request)
+            if let activeOverride = activeOverrides.first {
+                await viewContext.perform {
+                    activeOverride.enabled = false
+                    try? self.viewContext.save()
+                }
+            }
+        } catch {
+            debug(.apsManager, "Failed to cancel current override: \(error)")
+            throw error
         }
     }
 }
