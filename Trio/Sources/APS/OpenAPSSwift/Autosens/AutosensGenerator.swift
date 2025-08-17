@@ -61,8 +61,17 @@ struct AutosensGenerator {
         // run through the simulation loop
         var state = SimulationState(meals: meals)
         var deviations: [Decimal] = []
-        // in JS the simulation loop starts at index 3
-        for (prevGlucose, currGlucose) in zip(bucketedData.dropFirst(2), bucketedData.dropFirst(3)) {
+        // in JS the simulation loop starts at index 3 but checks for i-1 (prev)
+        // and i-3 (old) values for computations
+        var oldGlucoseIndex = 0
+        for (oldGlucose, (prevGlucose, currGlucose)) in zip(
+            bucketedData,
+            zip(bucketedData.dropFirst(2), bucketedData.dropFirst(3))
+        ) {
+            if oldGlucose.glucose < 40 || prevGlucose.glucose < 40 || currGlucose.glucose < 40 {
+                continue
+            }
+
             guard let isfProfile = profile.isfProfile?.toInsulinSensitivities() else {
                 throw AutosensError.missingIsfProfile
             }
