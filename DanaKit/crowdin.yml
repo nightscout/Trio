@@ -1,0 +1,26 @@
+export_languages:
+  - ar
+  - ca
+  - da
+  - es-ES
+  - nl
+  - fi
+  - fr
+  - de
+  - he
+  - it
+  - nb
+  - pl
+  - ru
+  - sv-SE
+  - tr
+  - uk
+  - zh-CN
+  - pt-PT
+  - pt-BR
+  - sk
+  - vi
+  - hu
+files:
+  - source: /Localization/en.lproj/Localizable.strings
+    translation: /Localization/%osx_locale%.lproj/Localizable.strings

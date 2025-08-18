@@ -1,0 +1,804 @@
+/* No comment provided by engineer. */
+"—" = "—";
+
+/* Format string for last status date on pod details screen */
+"%@ ago" = "%@ siden";
+
+/* Unit format string for an RSSI value in decibles */
+"%@ dB" = "%@ dB";
+
+/* No comment provided by engineer. */
+"%@ has recovered communication with the pod on your body.\n\nInsulin delivery records have been updated and should match what has actually been delivered.\n\nYou may continue to use %@ normally now." = "%1$@ har genoprettet kommunikationen med Pod'en på din krop.\n\nHistorik for insulintilførsel er blevet opdateret og skal matche det, der faktisk er leveret.\n\nDu kan fortsætte med at bruge %2$@ normalt nu.";
+
+/* Format string for delivered insulin. (1: The localized amount)
+   Format string for insulin remaining in reservoir. (1: The localized amount) */
+"%@ U" = "%@ E";
+
+/* Format string for bolus progress when finished. (1: The localized amount) */
+"%@ U (Finished)" = "%@ E (Færdig)";
+
+/* Format string for bolus progress. (1: The delivered amount) (2: The programmed amount) (3: the percent progress) */
+"%@ U of %@ U (%@)" = "%1$@ E af %2$@ E (%3$@)";
+
+/* Format string for temp basal rate. (1: The localized amount) */
+"%@ U/hour" = "%@ E/time";
+
+/* Appends a full-stop to a statement */
+"%@." = "%@.";
+
+/* Format string for bolus percent progress. (1: Percent progress) */
+"%@%%" = "%@%%";
+
+/* Format string for reservoir reading when above or equal to maximum reading. (1: The localized amount) */
+"%@+ U" = "%@+ E";
+
+/* Format string for reservoir volume. (1: The localized volume) */
+"%@U" = "%@E";
+
+/* Summary string for temporary basal rate configuration page */
+"%1$@ for %2$@" = "%1$@ i %2$@";
+
+/* Format string for main text of delivery uncertainty recovery page. (1: app name)(2: date of command)(3: app name) */
+"%1$@ has been unable to communicate with the pod on your body since %2$@.\n\nWithout communication with the pod, the app cannot continue to send commands for insulin delivery or display accurate, recent information about your active insulin or the insulin being delivered by the Pod.\n\nMonitor your glucose closely for the next 6 or more hours, as there may or may not be insulin actively working in your body that %3$@ cannot display." = "%1$@ har ikke været i stand til at kommunikere med Pod'en på din krop siden %2$@.\n\nUden kommunikation med Pod'en kan appen ikke fortsætte med at sende kommandoer for insulintilførsel eller vise nøjagtige, nylige oplysninger om dit aktive insulin eller det insulin, der leveres af Pod'en.\n\nOvervåg din glukose nøje i de næste 6 eller flere timer, da der måske eller måske ikke er insulin, der aktivt arbejder i din krop, som %3$@ ikke kan vise.";
+
+/* Accessibility format string for (1: localized volume)(2: time) */
+"%1$@ units remaining at %2$@" = "%1$@ enheder tilbage på %2$@";
+
+/* Format string providing instructions for replacing pod due to a fault. (1: The fault description) */
+"%1$@. Insulin delivery has stopped. Please deactivate and remove pod." = "%1$@. Insulin indgivelse er stoppet. Venligst deaktiver og fjern Pod.";
+
+/* The format string for displaying an offset from a time zone: (1: GMT)(2: -)(3: 4:00) */
+"%1$@%2$@%3$@" = "%1$@%2$@%3$@";
+
+/* Format string for reservoir level above max measurable threshold. (1: measurable reservoir threshold) (2: units) */
+"%1$@+ %2$@" = "%1$@+ %2$@";
+
+/* Format string for total delivery on pod details screen */
+"%g U" = "%g E";
+
+/* Button text for 1 hour suspend duration */
+"1 hour" = "1 time";
+
+/* Button text for 1 hour 30 minute suspend duration */
+"1 hour 30 minutes" = "1 time 30 minutter";
+
+/* Button text for 2 hour suspend duration */
+"2 hours" = "2 timer";
+
+/* Button text for 30 minute suspend duration */
+"30 minutes" = "30 minutter";
+
+/* The title of the cell showing the pod activated at time */
+"Active Time" = "Aktiv tid";
+
+/* Section header for activity section */
+"Activity" = "Aktivitet";
+
+/* Text indicating ongoing pump time synchronization */
+"Adjusting Pump Time..." = "Justerer pumpetid...";
+
+/* The title of the cell showing alarm status */
+"Alarms" = "Alarmer";
+
+/* Alert title for cancel pairing modal */
+"Are you sure you want to cancel Pod setup?" = "Er du sikker på, at du vil annullere Pod-opsætningen?";
+
+/* Confirmation message for shutting down a pod */
+"Are you sure you want to shutdown this pod?" = "Er du sikker på, at du vil slukke for denne Pod?";
+
+/* No comment provided by engineer. */
+"Are you sure you want to skip Omnipod Onboarding?" = "Er du sikker på, at du vil springe Omnipod Onboarding over?";
+
+/* Confirmation message for removing Omnipod PumpManager */
+"Are you sure you want to stop using Omnipod?" = "Er du sikker på, at du vil stoppe med at bruge Omnipod?";
+
+/* The title text for the address assigned to the pod */
+"Assigned Address" = "Tildelt adresse";
+
+/* Title for Attach Pod screen */
+"Attach Pod" = "Påfør Pod";
+
+/* Description string above progress indicator while attempting to re-establish communication from an unacknowledged command */
+"Attemping to re-establish communication" = "Forsøger at genetablere kommunikationen";
+
+/* Back button text on DeliveryUncertaintyRecoveryView */
+"Back" = "Tilbage";
+
+/* The title of the cell showing pod basal status */
+"Basal Delivery" = "Basalindgivelse";
+
+/* The title text for the basal rate schedule */
+"Basal Rates" = "Basalrater";
+
+/* The title of the cell showing pod bolus status */
+"Bolus Delivery" = "Bolusindgivelse";
+
+/* The title of the cancel action in an action sheet */
+"Cancel" = "Annuller";
+
+/* Button title to cancel manual basal */
+"Cancel Manual Basal" = "Annuller manuel basal";
+
+/* Insert cannula action button accessibility label when cannula insertion succeeded */
+"Cannula inserted successfully. Continue." = "Kanylen blev indsat korrekt. Fortsæt.";
+
+/* The action string on pod status page when pod expired */
+"Change Pod now. Insulin delivery will stop 8 hours after the Pod has expired or when no more insulin remains." = "Skift Pod nu. Insulintilførsel stopper 8 timer efter, at Pod'en er udløbet, eller når der ikke er mere insulin tilbage.";
+
+/* Format string for the action string on pod status page when pod expired. (1: service time remaining) */
+"Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Skift Pod nu. Insulintilførsel stopper om %1$@, eller når der ikke er mere insulin tilbage.";
+
+/* The title of the command to change pump time zone */
+"Change Time Zone" = "Skift tidszone";
+
+/* Progress message for changing pod time. */
+"Changing time…" = "Ændrer tid...";
+
+/* Title for check cannula screen */
+"Check Cannula" = "Kontroller kanylen";
+
+/* Label text for step three of attach pod instructions */
+"Check Pod, apply to site, then confirm pod attachment." = "Tjek Pod, sæt på kroppen og bekræft derefter Pod er sat korrekt på.";
+
+/* Insert cannula action button accessibility label checking insertion */
+"Checking Insertion" = "Kontrollerer indsættelse";
+
+/* Cannula insertion button text while checking insertion */
+"Checking..." = "Kontrollerer...";
+
+/* Title for uncertainty recovered screen */
+"Comms Recovered" = "Kommunikation genoprettet";
+
+/* Text for confidence reminders navigation link */
+"Confidence Reminders" = "Påmindelse om succesfulde aktiviteter";
+
+/* Help text for BeepPreferenceSelectionView */
+"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced.";
+
+/* The title of the configuration section in settings */
+"Configuration" = "Konfiguration";
+
+/* Button title for confirm attachment option */
+"Confirm" = "Bekræft";
+
+/* Alert title for confirm pod attachment */
+"Confirm Pod Attachment" = "Bekræft fastgørelse af Pod";
+
+/* The title of the continue action in an action sheet */
+"Continue" = "Fortsæt";
+
+/* Title for critical alerts description */
+"Critical Alerts" = "Kritiske advarsler";
+
+/* Unit for singular day in pod life remaining */
+"day" = "dag";
+
+/* Unit for plural days in pod life remaining */
+"days" = "dage";
+
+/* Button title to deactivate pod because of fault during setup */
+"Deactivate" = "Deaktiver";
+
+/* Button title for pod deactivation
+   Button title to deactivate pod */
+"Deactivate Pod" = "Deaktiver Pod";
+
+/* Label text showing pod is deactivated */
+"Deactivated" = "Deaktiveret";
+
+/* Deactivate pod action button accessibility label while deactivating */
+"Deactivating." = "Deaktiverer.";
+
+/* Action button description while deactivating */
+"Deactivating..." = "Deaktiverer...";
+
+/* Button title to delete Omnipod PumpManager */
+"Delete Omnipod" = "Slet Omnipod";
+
+/* Title text for delivery limits */
+"Delivery Limits" = "Insulingrænser";
+
+/* Text for device details disclosure row
+   title for device details page */
+"Device Details" = "Enhedsdetaljer";
+
+/* The title of the device information section in settings */
+"Device Information" = "Oplysninger om enheden";
+
+/* Header for devices section of RileyLinkSetupView */
+"Devices" = "Enheder";
+
+/* Title text for button to disable bolus beeps */
+"Disable Bolus Beeps" = "Deaktiver bolus bip";
+
+/* Pairing interface navigation bar button text for discard pod action
+   Text for discard pod button */
+"Discard Pod" = "Kassér Pod";
+
+/* No comment provided by engineer. */
+"Done" = "Udført";
+
+/* Title text for button to enable bolus beeps */
+"Enable Bolus Beeps" = "Aktiver bolus bip";
+
+/* Accessibility label indicating an error occurred */
+"Error" = "Fejl";
+
+/* The alert title for disable bolus beeps error */
+"Error disabling bolus beeps" = "Fejl ved deaktivering af bolus bip";
+
+/* The alert title for enable bolus beeps error */
+"Error enabling bolus beeps" = "Fejl under aktivering af bolus bip";
+
+/* The alert title for a resume error */
+"Error Resuming" = "Fejl ved genoptagelse";
+
+/* The alert title for a suspend error */
+"Error Suspending" = "Fejl ved suspendering";
+
+/* The title of the cell showing the pod expiration reminder date */
+"Expiration Reminder" = "Påmindelse om udløb";
+
+/* Label text for expiration reminder default row */
+"Expiration Reminder Default" = "Standard for udløbspåmindelse";
+
+/* The title of the cell showing the pod expiration after expiry */
+"Expired" = "Udløbet";
+
+/* The title of the cell showing the pod expiration */
+"Expires" = "Udløber";
+
+/* Alert title for failing to cancel manual basal error */
+"Failed to Cancel Manual Basal" = "Kunne ikke annullere manuel basal";
+
+/* Alert title for resume error */
+"Failed to Resume Insulin Delivery" = "Kunne ikke genoptage insulintilførsel";
+
+/* Alert title for time sync error */
+"Failed to Set Pump Time" = "Kunne ikke indstille pumpetid";
+
+/* Alert title for suspend error */
+"Failed to Suspend Insulin Delivery" = "Kunne ikke suspendere insulintilførsel";
+
+/* Alert title for error when updating confidence reminder preference */
+"Failed to update confidence reminder preference." = "Kunne ikke opdatere påmindelser for succesfulde aktiviteter";
+
+/* Alert title for error when updating expiration reminder */
+"Failed to Update Expiration Reminder" = "Kunne ikke opdatere påmindelse om udløb";
+
+/* Alert title for error when updating low reservoir reminder */
+"Failed to Update Low Reservoir Reminder" = "Kunne ikke opdatere påmindelse om lavt reservoir";
+
+/* Pod life HUD view label */
+"Fault" = "Fejl";
+
+/* Label text for step 1 of pair pod instructions */
+"Fill a new pod with U-100 Insulin (leave Pod needle cap on). Listen for 2 beeps." = "Fyld en ny Pod med 100 E insulin (lad podnålehætten sidde på). Lyt efter 2 bip.";
+
+/* Settings page link description when next lifecycle action is to finish deactivation */
+"Finish deactivation" = "Afslut deaktivering";
+
+/* The title of the command to finish pod setup */
+"Finish pod setup" = "Afslut Pod-indstilling";
+
+/* Action button title to continue at Setup Complete */
+"Finish Setup" = "Afslut setup";
+
+/* Accessibility format string for (1: localized volume)(2: time) */
+"Greater than %1$@ units remaining at %2$@" = "Flere end %1$@ enheder tilbage ved %2$@";
+
+/* Unit for singular hour in pod life remaining */
+"hour" = "time";
+
+/* Unit for plural hours in pod life remaining */
+"hours" = "Timer";
+
+/* Alert message body for confirm pod attachment */
+"If you cancel Pod setup, the current Pod will be deactivated and will be unusable." = "Hvis du annullerer Pod-opsætningen, deaktiveres den aktuelle Pod og den vil være ubrugelig.";
+
+/* Instructions when deactivating pod that has been paired, but not attached. */
+"Incompletely set up pod must be deactivated before pairing with a new one. Please deactivate and discard pod." = "Ufuldstændigt indstillet Pod skal først deaktiveres, før der kan parres med en ny. Venligst deaktiver og fjern Pod.";
+
+/* Instructions when deactivating pod that has been paired and possibly attached. */
+"Incompletely set up pod must be deactivated before pairing with a new one. Please deactivate and remove pod." = "Ufuldstændigt indstillet Pod skal først deaktiveres, før der kan parres med en ny. Venligst deaktiver og fjern Pod.";
+
+/* Button title to insert cannula during setup */
+"Insert Cannula" = "Indfør kanyle";
+
+/* Label text indicating insertion finished. */
+"Inserted" = "Indsat";
+
+/* Insert cannula action button accessibility label while pairing */
+"Inserting. Please wait." = "Indsætter. Vent venligst.";
+
+/* Cannula insertion button text while inserting */
+"Inserting..." = "Indsætter...";
+
+/* Text shown in insulin delivery space when insulin suspended */
+"Insulin\nSuspended" = "Insulin \nsuspenderet";
+
+/* The title of the cell showing delivered insulin */
+"Insulin Delivered" = "Insulin leveret";
+
+/* Title of insulin delivery section */
+"Insulin Delivery" = "Insulintilførsel";
+
+/* The action string on pod status page when pod faulted */
+"Insulin delivery stopped. Change Pod now." = "Insulintilførslen er stoppet. Skift Pod nu.";
+
+/* Message for suspend duration selection action sheet */
+"Insulin delivery will be stopped until you resume manually. When would you like Loop to remind you to resume delivery?" = "Insulintilførsel vil blive stoppet, indtil du genoptager manuelt. Hvornår vil du have Loop til at minde dig om at genoptage leveringen?";
+
+/* Header for insulin remaining on pod settings screen */
+"Insulin Remaining" = "Insulin tilbage";
+
+/* Text for confidence reminders navigation link
+   Title for insulin type selection screen */
+"Insulin Type" = "Insulintype";
+
+/* The error message shown when Loop's basal schedule has an unsupported rate */
+"Invalid entry" = "Ugyldig indtastning";
+
+/* Question to confirm the cannula is inserted properly */
+"Is the cannula inserted properly?" = "Er kanylen indsat korrekt?";
+
+/* Label text for step 2 of pair pod instructions */
+"Keep the RileyLink about 6 inches from the pod during pairing." = "Hold RileyLink ca. 15 cm fra Pod, når der parres.";
+
+/* description label for last status date pod details row */
+"Last Status" = "Sidste status";
+
+/* Description text on manual temp basal action sheet */
+"Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "Loop justerer ikke automatisk din insulindosering, før den midlertidige basalrate er afsluttet eller annulleret.";
+
+/* The title of the cell showing the pod lot id */
+"Lot" = "Parti";
+
+/* description label for lot number pod details row */
+"Lot Number" = "Partinummer";
+
+/* Label text for low reservoir value row
+   Navigation bar title for LowReservoirReminderSetupView
+   Title for LowReservoirReminderSetupView */
+"Low Reservoir" = "Lavt reservoir";
+
+/* Label for low reservoir reminder row
+   Title for low reservoir reminder edit page */
+"Low Reservoir Reminder" = "Påmindelse om lavt reservoir";
+
+/* The action string on pod status page when pod data is stale */
+"Make sure your phone and pod are close to each other. If communication issues persist, move to a new area." = "Sørg for, at din telefon og Pod er tæt på hinanden. Hvis der fortsat er kommunikationsproblemer, skal du flytte til et nyt område.";
+
+/* Unit for singular minute in pod life remaining */
+"minute" = "minut";
+
+/* Unit for plural minutes in pod life remaining */
+"minutes" = "minutter";
+
+/* Alert title for missing temp basal configuration */
+"Missing Config" = "Manglende konfiguration";
+
+/* String shown on pod details for active time when conversion fails.
+   String shown on pod details for last status date when not available.
+   String shown on pod details for total delivery when not available. */
+"NA" = "NA";
+
+/* Text of continue button on ExpirationReminderSetupView */
+"Next" = "Næste";
+
+/* Button label for user to answer cannula was not properly inserted */
+"No" = "Nej";
+
+/* Text shown in insulin remaining space when no pod is paired */
+"No\nDelivery" = "Ingen\nlevering";
+
+/* Error message for reservoir view when reservoir empty */
+"No Insulin" = "Ingen insulin";
+
+/* Label for pod life state when no pod paired
+   Text shown in insulin remaining space when no pod is paired */
+"No Pod" = "Ingen Pod";
+
+/* Value text for no expiration reminder */
+"No Reminder" = "Ingen påmindelse";
+
+/* Continue pairing button title of in pairing cancel modal */
+"No, Continue With Pod" = "Nej, fortsæt med Pod";
+
+/* Button text to cancel pump time sync */
+"No, Keep Pump As Is" = "Nej, behold pumpen som den er";
+
+/* The detail text for bolus delivery when no bolus is being delivered */
+"None" = "Ingen";
+
+/* navigation title for notification settings
+   Text for pod details disclosure row */
+"Notification Settings" = "Notifikationsindstillinger";
+
+/* No comment provided by engineer. */
+"Numbers" = "Tal";
+
+/* Title for omnipod reminders section */
+"Omnipod Reminders" = "Omnipod-påmindelser";
+
+/* Button title to pair with pod during setup */
+"Pair" = "Par";
+
+/* The title of the command to pair new pod */
+"Pair New Pod" = "Par ny Pod";
+
+/* Navigation bar title for PairPodView
+   Pod pairing action button text while ready to pair
+   Settings page link description when next lifecycle action is to pair new pod
+   Title for pod pairing screen */
+"Pair Pod" = "Par Pod";
+
+/* Pairing action button accessibility label while ready to pair */
+"Pair pod." = "Par Pod";
+
+/* Label text indicating pairing finished. */
+"Paired" = "Parret";
+
+/* Pairing action button accessibility label while pairing */
+"Pairing." = "Parrer...";
+
+/* Pod pairing action button text while pairing */
+"Pairing..." = "Parrer...";
+
+/* No comment provided by engineer. */
+"Percent = %lf" = "Procent = %lf";
+
+/* The title of the cell showing the pod pi version */
+"PI Version" = "PI Version";
+
+/* The title of the command to play test beeps */
+"Play Test Beeps" = "Afspil test-bip";
+
+/* Progress message for play test beeps. */
+"Play Test Beeps…" = "Afspiller test-bip…";
+
+/* Alert message body for confirm pod attachment */
+"Please confirm that the Pod is securely attached to your body.\n\nThe cannula can be inserted only once with each Pod. Tap “Confirm” when Pod is attached." = "Bekræft venligst, at Pod er sikkert fastgjort til din krop.\n\nKanylen kan kun indsættes én gang med hver Pod. Tryk på \"Bekræft\", når Pod er tilsluttet.";
+
+/* Instructions for deactivate pod when pod not on body */
+"Please deactivate the pod. When deactivation is complete, you may pair a new pod." = "Deaktiver Poden. Når deaktiveringen er fuldført, kan du parre en ny Pod.";
+
+/* Instructions for deactivate pod when pod is on body */
+"Please deactivate the pod. When deactivation is complete, you may remove it and pair a new pod." = "Deaktiver Poden. Når deaktiveringen er fuldført, kan du fjerne den og parre en ny Pod.";
+
+/* The title of the cell showing the pod pm version */
+"PM Version" = "PM Version";
+
+/* description label for activated at time pod details row
+   Label for pod insertion row */
+"Pod Activated" = "Pod aktiveret";
+
+/* Label describing pod age view */
+"Pod Age" = "Pod-alder";
+
+/* Deactivate pod action button accessibility label when deactivation complete */
+"Pod deactivated successfully. Continue." = "Pod deaktiveret med succes. Fortsæt.";
+
+/* Error message for reservoir view during general pod fault */
+"Pod Error" = "Pod-fejl";
+
+/* Label for pod life state when within pod expiration window */
+"Pod expired" = "Pod udløbet";
+
+/* Error message for reservoir view when pod expired
+   Label for pod expiration row, past tense */
+"Pod Expired" = "Pod udløbet";
+
+/* Label for pod expiration row */
+"Pod Expires" = "Pod udløber";
+
+/* Label for pod life state when time remaining */
+"Pod expires in" = "Pod udløber om";
+
+/* description label for pod fault details */
+"Pod Fault Details" = "Detaljer om fejl i Pod";
+
+/* Error message for reservoir view when pod occlusion checks failed */
+"Pod Occlusion" = "Pod er blokeret";
+
+/* Pairing action button accessibility label when pairing succeeded */
+"Pod paired successfully. Continue." = "Pod'en blev parret med succes. Fortsæt.";
+
+/* Title of the pod settings view controller */
+"Pod Settings" = "Pod-Indstillinger";
+
+/* Title for PodSetupView */
+"Pod Setup" = "Pumpe Setup";
+
+/* Label text for step one of attach pod instructions */
+"Prepare site." = "Forbered indstikssted.";
+
+/* title for previous pod page */
+"Previous Pod" = "Forrige Pod";
+
+/* Text for previous pod information row */
+"Previous Pod Information" = "Oplysninger om forrige Pod";
+
+/* The text of the loading label when pod is primed */
+"Primed" = "Klargjort";
+
+/* Pairing action button accessibility label while priming */
+"Priming. Please wait." = "Klargør. Vent venligst.";
+
+/* Pod pairing action button text while priming */
+"Priming..." = "Klargør…";
+
+/* The text of the loading label when priming */
+"Priming…" = "Klargør…";
+
+/* The title of the command to change pump time zone */
+"Pump Time" = "Pumpetid";
+
+/* Label text for basal rate summary */
+"Rate" = "Værdi";
+
+/* Label describing time remaining view */
+"Remaining" = "Tilbage";
+
+/* Title for remove pod modal */
+"Remove Pod from Body" = "Fjern Pod fra kroppen";
+
+/* Title for Omnipod PumpManager deletion action sheet. */
+"Remove Pump" = "Fjern pumpe";
+
+/* Label text for step two of attach pod instructions */
+"Remove the Pod's clear needle cap and check cannula. Then remove paper backing." = "Remove the Pod's clear needle cap and check cannula. Then remove paper backing.";
+
+/* Label indicating pod replacement necessary
+   The title of the command to replace pod */
+"Replace Pod" = "Udskift Pod";
+
+/* The title of the command to replace pod when there is a pod fault */
+"Replace Pod Now" = "Udskift Pod nu";
+
+/* The title of the cell showing reservoir status */
+"Reservoir" = "Reservoir";
+
+/* Text for suspend resume button when insulin delivery is suspended */
+"Resume Insulin Delivery" = "Genoptag insulintilførsel...";
+
+/* Text for suspend resume button when insulin delivery is resuming */
+"Resuming insulin delivery..." = "Genoptager insulintilførsel...";
+
+/* Action button description for deactivate after failed attempt
+   Cannula insertion button text while showing error
+   Pod pairing action button text while showing error */
+"Retry" = "Forsøg igen";
+
+/* Button title for retrying pod deactivation */
+"Retry Pod Deactivation" = "Forsøg deaktivering af Pod igen";
+
+/* bodyText for RileyLinkSetupView */
+"RileyLink allows for communication with the pump over Bluetooth" = "RileyLink giver mulighed for kommunikation med pumpen via Bluetooth";
+
+/* Navigation title for RileyLinkSetupView */
+"RileyLink Setup" = "RileyLink indstilling";
+
+/* Title of button to save delivery limit settings
+   Title of button to sync basal profile when no pod paired */
+"Save" = "Gem";
+
+/* button title for saving low reservoir reminder while saving
+   button title for saving scheduled reminder while saving */
+"Saving..." = "Gemmer...";
+
+/* The detail text of the basal row when pod is running scheduled basal */
+"Schedule" = "Tidsplan";
+
+/* Title of insulin delivery section */
+"Scheduled Basal" = "Planlagt basal";
+
+/* Card title for scheduled reminder
+   Scheduled reminder card title on NotificationSettingsView
+   Title for scheduled expiration reminder edit page
+   Title of SetupCompleteView */
+"Scheduled Reminder" = "Planlagt påmindelse";
+
+/* Title text for insulin type confirmation page */
+"Select the type of insulin that you will be using in this pod." = "Vælg den type insulin, du vil bruge i denne Pod.";
+
+/* description label for sequence number pod details row */
+"Sequence Number" = "Sekvensnummer";
+
+/* Button text for setting manual temporary basal rate */
+"Set Temporary Basal" = "Indstil midlertidig basal";
+
+/* Button title to set temporary basal rate */
+"Set Temporary Basal Rate" = "Indstil midlertidig basalrate";
+
+/* Title for setup complete screen */
+"Setup Complete" = "Opsætning fuldført";
+
+/* Error message for reservoir view during general pod fault */
+"Signal Loss" = "Signaltab";
+
+/* No comment provided by engineer. */
+"Skip Omnipod Onboarding?" = "Spring Omnipod Onboarding over?";
+
+/* The title of the status section in settings */
+"Status" = "Status";
+
+/* A message indicating a command succeeded */
+"Succeeded" = "Gennemført";
+
+/* Title for suspend duration selection action sheet */
+"Suspend Delivery" = "Afbryd insulintilførsel";
+
+/* Text for suspend resume button when insulin delivery active */
+"Suspend Insulin Delivery" = "Afbryd insulintilførsel";
+
+/* The detail text of the basal row when pod is suspended */
+"Suspended" = "Suspenderet";
+
+/* Label for suspended at time */
+"Suspended At" = "Suspenderet";
+
+/* Text for suspend resume button when insulin delivery is suspending */
+"Suspending insulin delivery..." = "Afbryder insulintilførsel...";
+
+/* Title text for the button to delete Omnipod PumpManager */
+"Switch from Omnipod Pumps" = "Skift fra Omnipod-pumper";
+
+/* Label for PumpManager deletion button */
+"Switch to other insulin delivery device" = "Skift til en anden insulintilførselsenhed";
+
+/* The title of the command to change pump time zone */
+"Sync to Current Time" = "Synkroniser til aktuel tid";
+
+/* Title of button to sync basal profile from pod */
+"Sync With Pod" = "Synkroniser med Pod";
+
+/* Label text for step one of insert cannula instructions */
+"Tap below to start cannula insertion." = "Tryk nedenfor for at starte kanyleindsættelse.";
+
+/* Navigation Title for ManualTempBasalEntryView */
+"Temporary Basal" = "Midlertidig basal";
+
+/* Alert title for a failure to set temporary basal */
+"Temporary Basal Failed" = "Midlertidig basal mislykkedes";
+
+/* The title of the command to run the test command */
+"Test Command" = "Testkommando";
+
+/* Progress message for testing commands. */
+"Testing Commands…" = "Tester kommandoer…";
+
+/* Footer text for omnipod reminders section */
+"The app configures a reminder on the pod to notify you in advance of Pod expiration. Set the number of hours advance notice you would like to configure when pairing a new Pod." = "Appen konfigurerer en påmindelse på Pod'en for at give dig besked inden Pod-udløb. Indstil antallet af timer i forvejen, du vil konfigurere, når du parrer en ny Pod.";
+
+/* Description text on ExpirationReminderSetupView */
+"The App notifies you in advance of Pod expiration.\n\nScroll to set the number of hours advance notice you would like to have." = "Appen giver dig besked før Pod'en udløber.\n\nIndstil antallet af timer før udløb som påmindelse.";
+
+/* Description text on LowReservoirReminderSetupView */
+"The App notifies you when the amount of insulin in the Pod reaches this level (50-10 U).\n\nScroll to set the number of units at which you would like to be reminded." = "Appen giver dig besked, når mængden af insulin i Pod'en når dette niveau (50-10 E)\n\nIndstil antallet enheder, du vil bruge som påmindelse. ";
+
+/* Footer text for low reservoir value row */
+"The App notifies you when the amount of insulin in the Pod reaches this level." = "Appen giver dig besked, når mængden af insulin i Pod'en når dette niveau.";
+
+/* Description text for critical alerts */
+"The reminders above will not sound if your device is in Silent or Do Not Disturb mode.\n\nThere are other critical Pod alerts and alarms that will sound even if your device is set to Silent or Do Not Disturb mode." = "Påmindelserne ovenfor vil ikke lyde, hvis din enhed er i lydløs tilstand eller Forstyr ikke.\n\nDer er andre kritiske Pod alarmer og alarmer, der vil lyde, selvom din enhed er indstillet til Lydløs eller Forstyr ikke.";
+
+/* Message for pod sync time action sheet */
+"The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "Tiden på din pumpe er forskellig fra den aktuelle tid. Vil du opdatere tiden på din pumpe til det aktuelle tidspunkt?";
+
+/* description for time change detected notice */
+"The time on your pump is different from the current time. Your pump’s time controls your scheduled therapy settings. Scroll down to Pump Time row to review the time difference and configure your pump." = "Tiden på din pumpe er forskellig fra den aktuelle tid. Din pumpes tid styrer dine planlagte behandlingsindstillinger. Gå til Pumpetid for at gennemgå tidsforskellen og konfigurere din pumpe.";
+
+/* Description of proper cannula insertion */
+"The window on the top of the Pod should be colored pink when the cannula is properly inserted into the skin." = "Vinduet på toppen af Pod'en skal være farvet pink, når kanylen er korrekt indsat i huden.";
+
+/* Format string for recovery suggestion during deactivate pod. */
+"There was a problem communicating with the pod. If this problem persists, tap Discard Pod. You can then activate a new Pod." = "Kunne ikke kommunikere med Pod'en. Hvis problemet fortsætter, tryk Afbryd og kassér Pod'en. Du kan herefter aktivere en ny Pod.";
+
+/* Footer text for scheduled reminder area */
+"This is a reminder that you scheduled when you paired your current Pod." = "Dette er en påmindelse om, at du planlagde, hvornår du parrede din nuværende Pod.";
+
+/* Alert format string for missing temp basal configuration. */
+"This Pump has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to Therapy Settings -> Delivery Limits and set a new Maximum Basal Rate." = "Denne pumpe er ikke blevet konfigureret med en maksimal basalrate, fordi den blev tilføjet, før manuel en manuel midlertidig basal var en funktion. Gå venligst til Behandlingsindstillinger - > Leveringsgrænser og indstil en ny maksimal basalrate.";
+
+/* Label for expiration reminder row
+   Label for scheduled expiration reminder row
+   Label for scheduled reminder value row */
+"Time" = "Tid";
+
+/* Title for pod sync time action sheet.
+   title for time change detected notice */
+"Time Change Detected" = "Tidsændring registreret";
+
+/* No comment provided by engineer. */
+"Toggle sign" = "Skift tegn";
+
+/* The error message shown when Loop's basal schedule has more entries than the pod can support */
+"Too many entries" = "For mange indtastninger";
+
+/* description label for total delivery pod details row */
+"Total Delivery" = "Samlet indgivelse";
+
+/* Units for showing temp basal rate */
+"U/hr" = "E/t";
+
+/* Instructions when pod cannot be deactivated */
+"Unable to deactivate pod. Please continue and pair a new one." = "Kan ikke deaktivere Pod. Venligst fortsæt og par med en ny.";
+
+/* Title of delivery uncertainty recovery page */
+"Unable to Reach Pod" = "Kan ikke få kontakt til pumpen";
+
+
+/* Alert format string for a failure to set temporary basal. (1: error description) */
+"Unable to set a temporary basal rate: %1$@" = "Kan ikke indstille en midlertidig basalrate: %1$@";
+
+/* Alert format string for a failure to set temporary basal with recovery suggestion. (1: error description) (2: recovery text) */
+"Unable to set a temporary basal rate: %1$@\n\n%2$@" = "Kan ikke indstille en midlertidig basalrate: %1$@\n\n%2$@";
+
+/* Label for pod life state when pod not fully activated */
+"Unfinished Activation" = "Uafsluttet aktivering";
+
+/* Label for pod life state when pod not fully deactivated */
+"Unfinished deactivation" = "Uafsluttet deaktivering";
+
+/* The detail text for delivered insulin when no measurement is available */
+"Unknown" = "Ukendt";
+
+/* Label text for step two of insert cannula instructions */
+"Wait until insertion is completed." = "Vent, indtil indsættelsen er afsluttet.";
+
+/* Button label for user to answer cannula was properly inserted */
+"Yes" = "Ja";
+
+/* Button title for confirm deactivation option */
+"Yes, Deactivate Pod" = "Ja, deaktiver Pod";
+
+/* Button text to confirm pump time sync */
+"Yes, Sync to Current Time" = "Ja, synkroniser til det aktuelle klokkeslæt";
+
+/* bodyText for PodSetupView */
+"You will now begin the process of configuring your reminders, filling your Pod with insulin, pairing to your device and placing it on your body." = "Du skal nu begynde at konfigurere dine påmindelser, fylde din Pod med insulin, parre den med din enhed og placere den på din krop.";
+
+/* Format string for instructions for setup complete view. (1: app name) */
+"Your Pod is ready for use.\n\n%1$@ will remind you to change your pod before it expires. You can change this to a time convenient for you." = "Din pod er klar til brug.\n\n%1$@ minder dig om, at du skal skifte din pod, inden den udløber. Du kan ændre dette til et tidspunkt, der passer dig.";
+
+/* Alert message body for confirm pod attachment */
+"Your Pod may still be delivering Insulin.\nRemove it from your body, then tap “Continue.“" = "Din Pod leverer muligvis stadig insulin.\nFjern den fra din krop og tryk derefter på \"Fortsæt\".";
+
+/* Title string for SilencePodPreference.enabled */
+"Silenced" = "Silenced";
+
+/* Description for SilencePodPreference.disabled */
+"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled.";
+
+/* Description for SilencePodPreference.enabled */
+"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts.";
+
+/* Help text for Silence Pod view */
+/* navigation title for Silnce Pod" */
+
+"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping.
+Silence Pod" = "Silence Pod";
+
+/* title for pod details page */
+"Pod Details" = "Pod Details";
+
+/* Text for previous pod details row" */
+"Previous Pod Details" = "Previous Pod Details";
+
+/* Text for pump manager details navigation link */
+"Pump Manager Details" = "Pump Manager Details";
+
+/* button title when retrieving pump manager details */
+"Retrieving Pump Manager Details..." = "Retrieving Pump Manager Details...";
+/* button title to refresh pump manager details */
+"Refresh Pump Manager Details" = "Refresh Pump Manager Details";
+
+/* Alert title for error when updating silence pod preference */
+"Failed to update silence pod preference." = "Failed to update silence pod preference.";
+
+/* Section header for diagnostic section */
+"Diagnostics" = "Diagnostics";
+
+/* Text for read pod status navigation link */
+"Read Pod Status" = "Read Pod Status";

@@ -25,6 +25,7 @@ function defaults ( ) {
     // (If someone enters more carbs or stacks more; OpenAPS will just truncate dosing based on 120.
     // Essentially, this just limits AMA/SMB as a safety cap against excessive COB entry)
     , maxCOB: 120
+    , maxMealAbsorptionTime: 6 // Handling of long lasting effects of "heavy meals" containing large cqantities of fat and protein might be improved by letting the system consider meal effects for longer than the default six hours.
     , skip_neutral_temps: false // if true, don't set neutral temps
     , unsuspend_if_no_temp: false // if true, pump will un-suspend after a zero temp finishes
     , min_5m_carbimpact: 8 // mg/dL per 5m (8 mg/dL/5m corresponds to 24g/hr at a CSF of 4 mg/dL/g (x/5*60/4))
@@ -72,9 +73,8 @@ function defaults ( ) {
     , adjustmentFactor: 0.8
     , adjustmentFactorSigmoid: 0.5
     , useNewFormula: false
-    , enableDynamicCR: false
     , sigmoid: false
-    , weightPercentage: 0.65 
+    , weightPercentage: 0.65
     , tddAdjBasal: false // Enable adjustment of basal based on the ratio of 24 h : 10 day average TDD
     , threshold_setting: 60 // Use a configurable threshold setting
   }
@@ -104,13 +104,14 @@ function displayedDefaults () {
     profile.adjustmentFactor = allDefaults.adjustmentFactor;
     profile.adjustmentFactorSigmoid = allDefaults.adjustmentFactorSigmoid;
     profile.useNewFormula = allDefaults.useNewFormula;
-    profile.enableDynamicCR = allDefaults.enableDynamicCR;
     profile.sigmoid = allDefaults.sigmoid;
     profile.weightPercentage = allDefaults.weightPercentage;
     profile.tddAdjBasal = allDefaults.tddAdjBasal;
     profile.threshold_setting = allDefaults.threshold_setting;
     profile.enableSMB_high_bg = allDefaults.enableSMB_high_bg;
     profile.enableSMB_high_bg_target = allDefaults.enableSMB_high_bg_target;
+    profile.maxCOB = allDefaults.maxCOB;
+    profile.maxMealAbsorptionTime = allDefaults.maxMealAbsorptionTime;
 
     console.error(profile);
     return profile

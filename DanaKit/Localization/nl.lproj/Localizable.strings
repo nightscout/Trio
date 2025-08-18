@@ -1,0 +1,587 @@
+/* Generic loading text */
+"loading" = "laden";
+
+/* Generic Continue text */
+"Continue" = "Ga verder";
+
+/* Title for DanaKitSetupView */
+"Dana-i/RS Setup" = "Dana-i/RS-instelling";
+
+/* Subtitle for DanaKitSetupView */
+"Select your pump" = "Selecteer uw pomp";
+
+/* danaRS v1 option text for DanaKitSetupView */
+"DanaRS-v1" = "DanaRS-v1";
+
+/* danaRS v3 option text for DanaKitSetupView */
+"DanaRS-v3" = "DanaRS-v3";
+
+/* dana-i option text for DanaKitSetupView */
+"Dana-i" = "Dana-i";
+
+/* Title for danars v1 explaination */
+"Setting up DanaRS v1" = "DanaRS v1 instellen";
+
+/* Subtext for danars v1 */
+"During the pairing process, your DanaRS v1 will show a pairing prompt while you iPhone will show a prompt for a pairing code. On your pump, select OK and type the code on your iPhone. After that, Loop is ready to communicate with your DanaRS v1" = "Tijdens het koppelproces zal uw DanaRS v1 een koppelprompt tonen en uw iPhone een vraag om een koppelcode. Selecteer OK op je pomp en typ de code in op je iPhone. Daarna is Loop klaar om te communiceren met je DanaRS v1.";
+
+/* check password text for danars v1 */
+"Before starting with the pairing process, it is recommended to check, and if needed update, the pump password. You can do this by going to the pump settings -> user settings -> password. The default password is 1234, if this is your password, please consider changing it" = "Voordat je begint met het koppelproces, is het aan te raden om het wachtwoord van de pomp te controleren en zo nodig bij te werken. Je kunt dit doen via de pompinstellingen -> gebruikersinstellingen -> wachtwoord. Het standaard wachtwoord is 1234. Als dit je wachtwoord is, overweeg dan om het te wijzigen.";
+
+/* Title for danars v1 password */
+"Password DanaRS v1" = "Wachtwoord DanaRS v1";
+
+/* password placeholder danars v1 */
+"Fill in password" = "Wachtwoord invullen";
+
+/* Title for danars v3 explaination */
+"Setting up DanaRS v3" = "DanaRS v3 instellen";
+
+/* Subtext for danars v3 */
+"During the pairing process, your DanaRS v3 will show a pairing prompt while you iPhone will show a prompt for two pairing codes. On your pump, select OK and type the two codes on your iPhone. After that, Loop is ready to communicate with your DanaRS v3" = "Tijdens het koppelingsproces zal uw DanaRS v3 een koppelingsprompt tonen en uw iPhone zal een prompt tonen voor twee koppelingscodes. Selecteer OK op je pomp en typ de twee codes op je iPhone. Daarna is Loop klaar om te communiceren met je DanaRS v3.";
+
+/* Title for dana-i explaination */
+"Setting up Dana-i" = "Dana-i instellen";
+
+/* General subtext for dana */
+"After setting up the insulin type and bolus speed, you will see all the found Dana pumps. Select the pump you want to link with %1$@." = "Na het instellen van het insulinetype en de bolussnelheid, zie je een scherm met alle gevonden Dana-pompen. Selecteer de pomp die je wilt koppelen met %1$@.";
+
+/* Subtext for dana-i */
+"During the pairing process, your Dana-i will show a pairing prompt while your iPhone will show a prompt for a pairing code. On you pump, select OK and type the 6-digit code in screen on your iPhone. After that, %1$@ is ready to communicate with your Dana-i" = "Tijdens het koppelproces zal je Dana-i een koppelprompt tonen en je iPhone een vraag om een koppelcode. Selecteer OK op je pomp en typ de 6-cijferige code in op het scherm van je iPhone. Daarna is %1$@ klaar om te communiceren met je Dana-i.";
+
+/* Dana-i/RS invalid ble5 keys */
+"ERROR: Failed to pair device" = "FOUT: Koppeling van apparaat mislukt";
+
+/* Dana-i oke invalid ble5 keys */
+"OK" = "OK";
+
+/* Cancel button title */
+"Cancel" = "Annuleren";
+
+/* Title for DanaKitScanView */
+"Found Dana-i/RS pumps" = "Gevonden Dana-i/RS-pompen";
+
+/* Dana-i/RS connecting alert title */
+"Scanning" = "Scannen";
+
+/* Dana-i/RS connecting alert title */
+"Connecting" = "Aansluiten op";
+
+/* Title text for insulin type confirmation page */
+"Select the type of insulin that you will be using in this pump" = "Selecteer het type insuline dat je gaat gebruiken in deze pomp";
+
+/* Title for Dana-i/RS PumpManager deletion action sheet. */
+"Remove Pump" = "Pomp verwijderen";
+
+/* Message for Dana-i/RS PumpManager deletion action sheet */
+"Are you sure you want to stop using Dana-i/RS?" = "Weet je zeker dat je Dana-i/RS niet meer wilt gebruiken?";
+
+/* Button text to confirm Dana-i/RS PumpManager deletion */
+"Delete pump" = "Pomp verwijderen";
+
+/* Label for PumpManager deletion button */
+"Delete Pump" = "Pomp verwijderen";
+
+/* Connection error message */
+"Error while connecting to device" = "Fout bij verbinding met apparaat";
+
+/* Dana-RS v3 found */
+"Dana-RS v3 found!" = "Dana-RS v3 gevonden!";
+
+/* Dana-RS v3 pincode prompt body */
+"Pincode required" = "Pincode vereist";
+
+/* Dana-RS v3 pincode prompt pin 1 */
+"Pin 1" = "Pen 1";
+
+/* Dana-RS v3 pincode prompt pin 2 */
+"Pin 2" = "Pen 2";
+
+/* Dana-RS v3 pincode prompt error invalid length */
+"Received invalid pincode lengths. Try again" = "Ongeldige pincode ontvangen. Probeer opnieuw";
+
+/* Dana-RS v3 pincode prompt error invalid hex */
+"Received invalid hex strings. Try again" = "Ongeldige hexadecimale tekenreeksen ontvangen. Probeer opnieuw";
+
+/* Dana-RS v3 pincode prompt error checksum failed */
+"Checksum failed. Try again" = "Checksum mislukt. Probeer opnieuw";
+
+/* Title for delivery speed */
+"Delivery speed" = "Leversnelheid";
+
+/* Dana bolus speed 12u per min */
+"12 sec/U" = "12 sec/U";
+
+/* Dana bolus speed 30u per min */
+"30 sec/U" = "30 sec/U";
+
+/* Dana bolus speed 60u per min */
+"60 sec/U" = "60 sec/U";
+
+/* Dana delivery speed body */
+"The Dana pumps support different delivery speeds. You can set it up here, but also in the settings menu" = "De Dana-pompen ondersteunen verschillende afgiftesnelheden. Je kunt het hier instellen, maar ook in het instellingenmenu";
+
+/* Text for finish button */
+"Finish" = "Afwerking";
+
+/* Dana setup complete p1 */
+"Your " = "Jouw ";
+
+/* Dana setup complete p2 */
+" is ready to be used!" = " is klaar voor gebruik!";
+
+/* Dana setup SMB setting */
+"Note: You Dana pump has a special setting which allows you to silence your Dana pump beeps. To enable this, please contact your Dana distributor" = "Opmerking: Uw Dana-pomp heeft een speciale instelling waarmee u de pieptonen van uw Dana-pomp kunt uitschakelen. Neem contact op met uw Dana-distributeur om dit in te schakelen.";
+
+/* Error description when no dana connected */
+"Failed to make a connection" = "Verbinding kon niet tot stand worden gebracht";
+
+/* Error description when failed temp adjustment */
+"Failed to adjust temp basal" = "Temperatuur basaal niet aangepast";
+
+/* Error description when failed suspension adjustment */
+"Failed to adjust suspension" = "Opschorting niet afgesteld";
+
+/* Error description when failed generating basal program */
+"Failed to generate Dana basal program" = "Dana basaalprogramma niet gegenereerd";
+
+/* Error description when failed basal adjustment */
+"Failed to adjust basal" = "Basaal niet aangepast";
+
+/* Error description when pump time failed to sync */
+"Failed to adjust pump time" = "Pomptijd niet aangepast";
+
+/* Error description when trying to set temp basal */
+"Setting temp basal is not supported at this time" = "Temp basaal instellen wordt op dit moment niet ondersteund";
+
+/* Error description when pump is suspended */
+"The insulin delivery has been suspend. Action failed" = "De insulinetoediening is opgeschort. Actie mislukt";
+
+/* Error description when pump is busy (with bolussing probably) */
+"Action has been canceled, because the pump is busy" = "Actie is geannuleerd, omdat de pomp bezig is";
+
+/* Error description when pump has an active blockage */
+"A bolus timeout is active. The loop cycle cannot be completed till the timeout is inactive" = "Een bolustime-out is actief. De luscyclus kan niet worden voltooid totdat de time-out inactief is.";
+
+/* Error description when pump has reached the bolus max */
+"The max bolus limit is reached. Please try a lower amount or increase the limit" = "De maximale boluslimiet is bereikt. Probeer een lagere hoeveelheid of verhoog de limiet";
+
+/* Error description when pump has reached the daily max */
+"The max daily insulin limit is reached. Please try a lower amount or increase the limit" = "De maximale dagelijkse hoeveelheid insuline is bereikt. Probeer een lagere hoeveelheid of verhoog de limiet";
+
+/* dana AB limitation warning title */
+"Only Automatic Bolus is supported" = "Alleen automatische bolus wordt ondersteund";
+
+/* dana AB limitation warning body */
+"Please consider changing your dosing strategy in the setting menu" = "Overweeg om je doseerstrategie te wijzigen in het instellingenmenu";
+
+/* Dana settings resume delivery */
+"Resume delivery" = "Hervatten";
+
+/* Dana settings suspend delivery */
+"Suspend delivery" = "Levering opschorten";
+
+/* Dana settings stop temp basal */
+"Stop temp basal" = "Stop temp basaal";
+
+/* Text for confidence reminders navigation link */
+"Insulin Type" = "Type insuline";
+
+/* Title for insulin type */
+"Select insulin Type" = "Selecteer type insuline";
+
+/* Title of insulin delivery section */
+"Scheduled Basal" = "Gepland Basaal";
+
+/* Title of insulin delivery section */
+"Insulin Delivery" = "Insulinetoediening";
+
+/* Text shown in insulin delivery space when insulin suspended */
+"Insulin\nSuspended" = "Insuline\nopgeschort";
+
+/* Text shown in basal rate space when delivery status is unknown */
+"Unknown" = "Onbekend";
+
+/* Units for showing temp basal rate */
+"U/hr" = "Eh/u";
+
+/* Header for insulin remaining on pod settings screen */
+"Insulin Remaining" = "Resterende insuline";
+
+/* Text for Dana pump name */
+"Pump name" = "Naam pomp";
+
+/* Text for hardware model */
+"Hardware model" = "Hardwaremodel";
+
+/* Text for firmware version */
+"Firmware version" = "Firmwareversie";
+
+/* DanaKit sync pump */
+"Sync pump data" = "Pompgegevens synchroniseren";
+
+/* Text for last sync */
+"Last sync" = "Laatste synchronisatie";
+
+/* Text for pump time */
+"Pump time" = "Pomptijd";
+
+/* Text for pump time synced at */
+"Checked at" = "Gecontroleerd op";
+
+/* Text for Nightly pump time sync */
+"Nightly pump time sync" = "Nachtelijke pomptijdsynchronisatie";
+
+/* Label for syncing the time on the pump */
+"Manually sync Pump time" = "Pomptijd handmatig synchroniseren";
+
+/* Alert content title for timeOffsetChangeDetected pod alert
+   Title for pod sync time action sheet.
+   title for time change detected notice */
+"Time Change Detected" = "Tijdsverandering gedetecteerd";
+
+/* Message for pod sync time action sheet */
+"The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "De tijd op je pomp is anders dan de huidige tijd. Wil je de tijd op je pomp bijwerken naar de huidige tijd?";
+
+/* description for time change detected notice */
+"The time on your pump is different from the current time. Your pump’s time controls your scheduled therapy settings. Scroll down to Pump Time row to review the time difference and configure your pump." = "De tijd op je pomp verschilt van de huidige tijd. De tijd op je pomp bepaalt je geplande therapie-instellingen. Scroll naar beneden naar de rij Pomptijd om het tijdsverschil te bekijken en je pomp te configureren.";
+
+/* Button text to confirm pump time sync */
+"Yes, Sync to Current Time" = "Ja, synchroniseren met huidige tijd";
+
+/* Button text to cancel pump time sync */
+"No, Keep Pump As Is" = "Nee, houd de pomp zoals hij is";
+
+/* Pump Event title for UnfinalizedDose with doseType of .bolus */
+"Bolus" = "Bolus";
+
+/* Pump Event title for UnfinalizedDose with doseType of .tempBasal */
+"Temp Basal" = "Tijdelijk basaal";
+
+/* Pump Event title for UnfinalizedDose with doseType of .basal */
+"Basal" = "Basaal";
+
+/* Pump Event title for UnfinalizedDose with doseType of .resume */
+"Resume" = "Hervat";
+
+/* Pump Event title for UnfinalizedDose with doseType of .suspend */
+"Suspend" = "opschorten";
+
+/* Title for user options */
+"User options" = "Opties voor de gebruiker";
+
+/* DanaKit share logs */
+"Share Dana pump logs" = "Dana-pomplogs delen";
+
+/* Loading */
+"Loading" = "Laden";
+
+/* Text for save button */
+"Save" = "Opslaan";
+
+/* Text for 24h display */
+"24h display" = "24-uurs weergave";
+
+/* Description for 24h display */
+"Should time be display in 12h or 24h" = "Moet de tijd worden weergegeven in 12u of 24u?";
+
+/* text on */
+"On" = "Aan";
+
+/* text off */
+"Off" = "Uit";
+
+/* 12h */
+"12h notation" = "12h notatie";
+
+/* 24h */
+"24h notation" = "24h notatie";
+
+/* Text for Scroll function */
+"Scroll function" = "Scrollfunctie";
+
+/* text for second */
+"sec" = "sec";
+
+/* backlightOnTimeInSec */
+"Backlight on time" = "Tijd achtergrondverlichting";
+
+/* lcdOnTimeInSec */
+"Lcd on time" = "Lcd aan tijd";
+
+/* beepAndAlarm */
+"Alarm beeps" = "Alarm pieptonen";
+
+/* beepAndAlarm.sound */
+"Sound" = "Geluid";
+
+/* beepAndAlarm.vibration */
+"Vibration" = "Trilling";
+
+/* beepAndAlarm.both */
+"Both" = "Beide";
+
+/* Alert title for batteryZeroPercent */
+"Pump battery 0%" = "Pomp batterij 0%";
+
+/* Alert body for batteryZeroPercent */
+"Pump battery is empty. Replace it now!" = "De batterij van de pomp is leeg. Vervang hem nu!";
+
+/* Alert title for pumpError */
+"Pump error" = "Pompfout";
+
+/* Alert body for pumpError */
+"Check the pump and try again" = "Controleer de pomp en probeer het opnieuw";
+
+/* Alert title for occlusion */
+"Occlusion" = "Occlusie";
+
+/* Alert body for occlusion */
+"Check the reservoir and infus and try again" = "Controleer het reservoir en de infusen en probeer het opnieuw.";
+
+/* Alert title for lowBattery */
+"Low pump battery" = "Batterij van pomp bijna leeg";
+
+/* Alert body for lowBattery */
+"Pump battery needs to be replaced soon" = "De batterij van de pomp moet binnenkort worden vervangen";
+
+/* Alert title for shutdown */
+"Pump shutdown" = "Pomp uitschakelen";
+
+/* Alert body for shutdown */
+"There has not been any interactions with the pump for too long. Either disable this function in the pump or interact with the pump" = "Er is te lang geen interactie geweest met de pomp. Schakel deze functie in de pomp uit of zorg voor interactie met de pomp.";
+
+/* Alert title for basalCompare */
+"Basal Compare" = "Basaal vergelijken";
+
+/* Alert title for bloodSugarMeasure */
+"Blood glucose Measure" = "Bloedglucosemeting";
+
+/* Alert title for remainingInsulinLevel */
+"Remaining insulin level" = "Resterend insulineniveau";
+
+/* Alert title for emptyReservoir */
+"Empty reservoir" = "Leeg reservoir";
+
+/* Alert body for emptyReservoir */
+"Reservoir is empty. Replace it now!" = "Reservoir is leeg. Vervang het nu!";
+
+/* Alert title for emptyReservoir */
+"Check chaft" = "As controleren";
+
+/* Alert body for checkShaft */
+"The pump has detected an issue with its chaft. Please remove the reservoir, check everything and try again" = "De pomp heeft een probleem met de as gedetecteerd. Verwijder het reservoir, controleer alles en probeer het opnieuw.";
+
+/* Alert title for basalMax */
+"Basal limit reached" = "Basaal limiet bereikt";
+
+/* Alert body for basalMax */
+"Your daily basal limit has been reached. Please contact your Dana distributer to increase the limit" = "Uw dagelijkse basaallimiet is bereikt. Neem contact op met uw Dana-distributeur om de limiet te verhogen.";
+
+/* Alert title for dailyMax */
+"Daily limit reached" = "Daglimiet bereikt";
+
+/* Alert body for basalMax */
+"Your daily insulin limit has been reached. Please contact your Dana distributer to increase the limit" = "Uw dagelijkse insulinenlimiet is bereikt. Neem contact op met uw Dana-distributeur om de limiet te verhogen.";
+
+/* Alert title for bloodSugarCheckMiss */
+"Missed Blood glucose check" = "Gemiste bloedglucosecontrole";
+
+/* Alert body for bloodSugarCheckMiss */
+"A blood glucose check reminder has been setup in your pump and is triggered. Please remove it or give your glucose level to the pump" = "Er is een herinnering voor bloedglucosecontrole ingesteld in uw pomp en deze wordt geactiveerd. Verwijder deze a.u.b. of geef uw glucosespiegel door aan de pomp";
+
+/* Alert title for unknown */
+"Unknown error" = "Onbekende fout";
+
+/* Alert body for unknown */
+"An unknown error has occurred during processing the alert from the pump. Please report this" = "Er is een onbekende fout opgetreden tijdens het verwerken van de melding van de pomp. Rapporteer deze";
+
+/* The title of the pump information section in DanaKit settings */
+"Pump information" = "Pomp informatie";
+
+/* Title for silent tone action sheet */
+"Toggle silent tone?" = "Toggle stille toon?";
+
+/* Button text to cancel silent tone */
+"No, Keep as is" = "Nee, houden zoals het is";
+
+/* Button text to disable silent tone */
+"Yes, Disable silent tones" = "Ja, Stille tonen uitschakelen";
+
+/* Button text to enable silent tone */
+"Yes, Enable silent tones" = "Ja, stille tonen inschakelen";
+
+/* Description for basal profile number */
+"Set the basal profile the pump should use. Note, that it will overwrite the profile that is in the pump, with the one in %1$@" = "Stel het basaalprofiel in dat de pomp moet gebruiken. Merk op dat het profiel in de pomp wordt overschreven met dat in %1$@.";
+
+
+/* Error message for reservoir view when reservoir empty
+   Status highlight message for emptyReservoir alarm.
+   Status highlight that a pump is out of insulin. */
+"No Insulin" = "Geen insuline";
+
+/* Status highlight that insulin delivery was suspended. */
+"Insulin Suspended" = "Insuline Opgeschort";
+
+/* Error message for reservoir view during general pod fault
+   Status highlight when communications with the pod haven't happened recently. */
+"Signal Loss" = "Signaalverlies";
+
+/* Text for Day unit */
+"day(s)" = "dag(en)";
+
+/* Text for cannula age */
+"Cannula age" = "Leeftijd canule";
+
+/* Text for reservoir age */
+"Reservoir age" = "Leeftijd reservoir";
+
+/* Text for status */
+"Status" = "Status";
+
+/* DanaKit disconnecting */
+"Disconnecting..." = "Loskoppelen...";
+
+/* DanaKit connecting */
+"Reconnecting..." = "Opnieuw verbinden...";
+
+/* DanaKit disconnect */
+"Disconnect from pump" = "Loskoppelen van pomp";
+
+/* DanaKit connect */
+"Reconnect tp pump" = "Sluit de tp-pomp weer aan";
+
+/* DanaKit disconnected */
+"Disconnected" = "Ontkoppeld";
+
+/* DanaKit connected */
+"Connected" = "Aangesloten";
+
+/* Title disconnect reminder notification */
+"Pump is still disconnected" = "Pomp is nog steeds losgekoppeld";
+
+/* Body disconnect reminder notification" */
+"Your pump is still disconnected after the set period!" = "Je pomp is nog steeds losgekoppeld na de ingestelde periode!";
+
+/* Title disconnect reminder sheet */
+"Set reminder for disconnect" = "Herinnering instellen voor loskoppelen";
+
+/* body disconnect reminder sheet */
+"Do you wish to receive a notification when the pump is longer disconnected for a specific time?" = "Wil je een melding ontvangen als de pomp voor een bepaalde tijd is losgekoppeld?";
+
+/* Button text to 5 min */
+"Yes, 5 minutes" = "Ja, 5 minuten";
+
+/* Button text to 15 min */
+"Yes, 15 minutes" = "Ja, 15 minuten";
+
+/* Button text to 30 min */
+"Yes, 30 minutes" = "Ja, 30 minuten";
+
+/* Button text to 1h */
+"Yes, 1 hour" = "Ja, 1 uur";
+
+/* Button text to just disconnect */
+"No, just disconnect" = "Nee, gewoon loskoppelen";
+
+/* Title for reservoir/cannula refill */
+"Reservoir/cannula refill" = "Reservoir/canule bijvullen";
+
+/* Title for reservoir/cannula refill */
+"Cannula refill" = "Canule bijvullen";
+
+/* Title for refill action */
+"Type of refill" = "Type navulling";
+
+/* Button text to cannula only */
+"Cannula only" = "Alleen canule";
+
+/* Button text to Reservoir and cannula */
+"Reservoir and cannula" = "Reservoir en canule";
+
+/* Title for bluetooth mode action sheet */
+"Toggle Bluetooth mode" = "Bluetooth modus schakelen";
+
+/* Button text to get help about Continuous mode */
+"What is this?" = "Wat is dit?";
+
+/* Button text to disable continuous mode */
+"Yes, Switch to interactive mode" = "Ja, schakel over naar interactieve modus";
+
+/* Button text to enable continuous mode */
+"Yes, Switch to continuous mode" = "Ja, schakel naar continue modus";
+
+/* Title for bolus syncing disable action sheet */
+"Disable bolus syncing?" = "Bolussynchronisatie uitschakelen?";
+
+/* Title for bolus syncing disable action sheet */
+"Re-enable bolus syncing?" = "Bolussynchronisatie opnieuw inschakelen?";
+
+/* Button text to re-enable bplus syncing */
+"Yes, re-enable bolus syncing" = "Ja, bolussynchronisatie opnieuw inschakelen";
+
+/* Button text to disable bolus syncing */
+"Yes, disable bolus syncing" = "Ja, schakel bolussynchronisatie uit";
+
+/* ana delivery speed body */
+"The Dana pumps support different delivery speeds. You can set it up here" = "De Dana-pompen ondersteunen verschillende toedieningssnelheden. Je kunt het hier instellen";
+
+/* Text for Basal profile */
+"Basal profile" = "Basaal profiel";
+
+/* Text for Battery level */
+"Battery level" = "Batterijniveau";
+
+/* The title of the configuration section in DanaKit settings */
+"Configuration" = "Configuratie";
+
+/* Text for low reservoir reminder */
+"Low reservoir reminder" = "Herinnering laag reservoir";
+
+/* refillAmount */
+"Refill amount" = "Navulhoeveelheid";
+
+/* Insulin unit */
+"U" = "Eh";
+
+/* Label for first step refill */
+"Step 1: Set reservoir level" = "Stap 1: Stel het reservoirniveau in";
+
+/* Label for reservoir refilled amount */
+"Reservoir amount" = "Reservoir hoeveelheid";
+
+/* Label for second step refill */
+"Step 2: Set tube refill amount" = "Stap 2: Stel de hoeveelheid voor het bijvullen van de tube in";
+
+/* Label for tube refilled amount */
+"Tube refill amount" = "Navulhoeveelheid tube";
+
+/* Label for warning refill */
+"This method of refilling is only intended for when the pump cannot provide a way to refill the reservoir or prime the cannula" = "Deze methode van bijvullen is alleen bedoeld voor als de pomp geen manier heeft om het reservoir bij te vullen of de canule te vullen.";
+
+/* Title for warning refill */
+"WARNING: USE WITH CAUTION!" = "WAARSCHUWING: GEBRUIK VOORZICHTIG!";
+
+/* Label for warning refill */
+"This method of refilling is only intended for when the pump cannot provide a way to refill the reservoir or prime the cannula" = "Deze methode van bijvullen is alleen bedoeld voor als de pomp geen manier heeft om het reservoir bij te vullen of de canule te vullen.";
+
+/* Title for warning refill */
+"WARNING: USE WITH CAUTION!" = "WAARSCHUWING: GEBRUIK VOORZICHTIG!";
+
+/* Label for third step refill */
+"Step 1: Prime cannula" = "Stap 1: Vul de canule";
+
+/* Label for error first step refill */
+"Failed to set reservoir amount. Re-sync pump data and try again please" = "Het is niet gelukt om de reservoir in te stellen. Synchroniseer de pompgegevens opnieuw en probeer het opnieuw.";
+
+/* Label for error third step refill */
+"Failed to prime the cannula. Please try again later" = "Het is niet gelukt om de canule voor te vullen. Probeer het later opnieuw";
+
+/* Label for error second step refill */
+"Failed to prime the tube. Please try again later" = "Het is niet gelukt om de slang voor te vullen. Probeer het later opnieuw";
+
+/* Battery age */
+"Battery age" = "Leeftijd batterij";
+
+/* advertise contact DanaRS v1 */
+"NOTE: The DanaRS v1 is not supported (yet). If you have a DanaRS v1 pump available for testing, please contact Bastiaan Verhaar!" = "LET OP: De DanaRS v1 wordt (nog) niet ondersteund. Als je een DanaRS v1 pomp beschikbaar hebt om te testen, neem dan contact op met Bastiaan Verhaar!";

@@ -1,0 +1,587 @@
+/* Generic loading text */
+"loading" = "lastaus";
+
+/* Generic Continue text */
+"Continue" = "Jatka";
+
+/* Title for DanaKitSetupView */
+"Dana-i/RS Setup" = "Dana-i/RS-asetukset";
+
+/* Subtitle for DanaKitSetupView */
+"Select your pump" = "Valitse pumppu";
+
+/* danaRS v1 option text for DanaKitSetupView */
+"DanaRS-v1" = "DanaRS-v1";
+
+/* danaRS v3 option text for DanaKitSetupView */
+"DanaRS-v3" = "DanaRS-v3";
+
+/* dana-i option text for DanaKitSetupView */
+"Dana-i" = "Dana-i";
+
+/* Title for danars v1 explaination */
+"Setting up DanaRS v1" = "DanaRS v1:n määrittäminen";
+
+/* Subtext for danars v1 */
+"During the pairing process, your DanaRS v1 will show a pairing prompt while you iPhone will show a prompt for a pairing code. On your pump, select OK and type the code on your iPhone. After that, Loop is ready to communicate with your DanaRS v1" = "Pariliitosprosessin aikana DanaRS v1 näyttää pariliitoskehotteen, kun taas iPhone näyttää pariliitoskoodia koskevan kehotteen. Valitse pumpussa OK ja kirjoita koodi iPhonessa. Tämän jälkeen Loop on valmis kommunikoimaan DanaRS v1:n kanssa.";
+
+/* check password text for danars v1 */
+"Before starting with the pairing process, it is recommended to check, and if needed update, the pump password. You can do this by going to the pump settings -> user settings -> password. The default password is 1234, if this is your password, please consider changing it" = "Ennen pariliitoksen muodostamisen aloittamista on suositeltavaa tarkistaa ja tarvittaessa päivittää pumpun salasana. Voit tehdä tämän menemällä pumpun asetuksiin -> käyttäjäasetukset -> salasana. Oletussalasana on 1234, jos tämä on salasanasi, harkitse sen vaihtamista.";
+
+/* Title for danars v1 password */
+"Password DanaRS v1" = "Salasana DanaRS v1";
+
+/* password placeholder danars v1 */
+"Fill in password" = "Täytä salasana";
+
+/* Title for danars v3 explaination */
+"Setting up DanaRS v3" = "DanaRS v3:n määrittäminen";
+
+/* Subtext for danars v3 */
+"During the pairing process, your DanaRS v3 will show a pairing prompt while you iPhone will show a prompt for two pairing codes. On your pump, select OK and type the two codes on your iPhone. After that, Loop is ready to communicate with your DanaRS v3" = "Pariliitoksen aikana DanaRS v3 näyttää pariliitoskehotteen, kun taas iPhone näyttää kehotteen kahdesta pariliitoskoodista. Valitse pumpussa OK ja kirjoita kaksi koodia iPhonessa. Tämän jälkeen Loop on valmis kommunikoimaan DanaRS v3:n kanssa.";
+
+/* Title for dana-i explaination */
+"Setting up Dana-i" = "Dana-i:n käyttöönotto";
+
+/* General subtext for dana */
+"After setting up the insulin type and bolus speed, you will see all the found Dana pumps. Select the pump you want to link with %1$@." = "Kun olet määrittänyt insuliinityypin ja bolusnopeuden, näet näytön, jossa näkyvät kaikki löydetyt Dana-pumput. Valitse pumppu, jonka haluat yhdistää osoitteeseen %1$@.";
+
+/* Subtext for dana-i */
+"During the pairing process, your Dana-i will show a pairing prompt while your iPhone will show a prompt for a pairing code. On you pump, select OK and type the 6-digit code in screen on your iPhone. After that, %1$@ is ready to communicate with your Dana-i" = "Pariliitoksen muodostamisen aikana Dana-i näyttää pariliitoksen muodostamista koskevan kehotuksen, kun taas iPhone näyttää pariliitoskoodia koskevan kehotuksen. Valitse pumpulissasi OK ja kirjoita 6-numeroinen koodi iPhonen näytössä. Tämän jälkeen %1$@ on valmis kommunikoimaan Dana-i:n kanssa.";
+
+/* Dana-i/RS invalid ble5 keys */
+"ERROR: Failed to pair device" = "VIRHE: Laitteen pariliitoksen muodostaminen epäonnistui";
+
+/* Dana-i oke invalid ble5 keys */
+"OK" = "OK";
+
+/* Cancel button title */
+"Cancel" = "Peruuta";
+
+/* Title for DanaKitScanView */
+"Found Dana-i/RS pumps" = "Löytyi Dana-i/RS-pumput";
+
+/* Dana-i/RS connecting alert title */
+"Scanning" = "Skannaus";
+
+/* Dana-i/RS connecting alert title */
+"Connecting" = "Yhdistäminen";
+
+/* Title text for insulin type confirmation page */
+"Select the type of insulin that you will be using in this pump" = "Valitse insuliinityyppi, jota käytät tässä pumpussa.";
+
+/* Title for Dana-i/RS PumpManager deletion action sheet. */
+"Remove Pump" = "Poista pumppu";
+
+/* Message for Dana-i/RS PumpManager deletion action sheet */
+"Are you sure you want to stop using Dana-i/RS?" = "Oletko varma, että haluat lopettaa Dana-i/RS:n käytön?";
+
+/* Button text to confirm Dana-i/RS PumpManager deletion */
+"Delete pump" = "Poista pumppu";
+
+/* Label for PumpManager deletion button */
+"Delete Pump" = "Poista pumppu";
+
+/* Connection error message */
+"Error while connecting to device" = "Virhe yhteyden muodostamisen aikana laitteeseen";
+
+/* Dana-RS v3 found */
+"Dana-RS v3 found!" = "Dana-RS v3 löytyi!";
+
+/* Dana-RS v3 pincode prompt body */
+"Pincode required" = "Vaadittu pinssikoodi";
+
+/* Dana-RS v3 pincode prompt pin 1 */
+"Pin 1" = "Nasta 1";
+
+/* Dana-RS v3 pincode prompt pin 2 */
+"Pin 2" = "Nasta 2";
+
+/* Dana-RS v3 pincode prompt error invalid length */
+"Received invalid pincode lengths. Try again" = "Vastaanotettu virheellinen pin-koodin pituus. Yritä uudelleen";
+
+/* Dana-RS v3 pincode prompt error invalid hex */
+"Received invalid hex strings. Try again" = "Vastaanotettu virheellisiä heksamerkkejä. Yritä uudelleen";
+
+/* Dana-RS v3 pincode prompt error checksum failed */
+"Checksum failed. Try again" = "Tarkistussumma epäonnistui. Yritä uudelleen";
+
+/* Title for delivery speed */
+"Delivery speed" = "Toimitusnopeus";
+
+/* Dana bolus speed 12u per min */
+"12 sec/U" = "12 sek/U";
+
+/* Dana bolus speed 30u per min */
+"30 sec/U" = "30 sek/U";
+
+/* Dana bolus speed 60u per min */
+"60 sec/U" = "60 sekuntia/U";
+
+/* Dana delivery speed body */
+"The Dana pumps support different delivery speeds. You can set it up here, but also in the settings menu" = "Dana-pumput tukevat eri toimitusnopeuksia. Voit määrittää sen täältä, mutta myös asetusvalikosta.";
+
+/* Text for finish button */
+"Finish" = "Viimeistely";
+
+/* Dana setup complete p1 */
+"Your " = "Sinun ";
+
+/* Dana setup complete p2 */
+" is ready to be used!" = " on valmis käytettäväksi!";
+
+/* Dana setup SMB setting */
+"Note: You Dana pump has a special setting which allows you to silence your Dana pump beeps. To enable this, please contact your Dana distributor" = "Huomautus: Dana-pumpussa on erikoisasetus, jonka avulla voit hiljentää Dana-pumpun äänimerkit. Ota yhteyttä Danan jälleenmyyjään, jos haluat ottaa tämän käyttöön.";
+
+/* Error description when no dana connected */
+"Failed to make a connection" = "Yhteyden muodostaminen epäonnistui";
+
+/* Error description when failed temp adjustment */
+"Failed to adjust temp basal" = "Epäonnistui säätämään lämpötilan basaalia";
+
+/* Error description when failed suspension adjustment */
+"Failed to adjust suspension" = "Jousituksen säätäminen epäonnistui";
+
+/* Error description when failed generating basal program */
+"Failed to generate Dana basal program" = "Dana-perusohjelman luominen epäonnistui";
+
+/* Error description when failed basal adjustment */
+"Failed to adjust basal" = "Perusannoksen säätäminen epäonnistui";
+
+/* Error description when pump time failed to sync */
+"Failed to adjust pump time" = "Pumppuaikaa ei ole säädetty";
+
+/* Error description when trying to set temp basal */
+"Setting temp basal is not supported at this time" = "Temp basaalin asettamista ei tueta tällä hetkellä.";
+
+/* Error description when pump is suspended */
+"The insulin delivery has been suspend. Action failed" = "Insuliinin toimitus on keskeytetty. Toimenpide epäonnistui";
+
+/* Error description when pump is busy (with bolussing probably) */
+"Action has been canceled, because the pump is busy" = "Toiminto on peruutettu, koska pumppu on varattu.";
+
+/* Error description when pump has an active blockage */
+"A bolus timeout is active. The loop cycle cannot be completed till the timeout is inactive" = "Boluksen aikakatkaisu on aktiivinen. Silmukkasykliä ei voida suorittaa loppuun ennen kuin aikakatkaisu on inaktiivinen.";
+
+/* Error description when pump has reached the bolus max */
+"The max bolus limit is reached. Please try a lower amount or increase the limit" = "Maksimibolusraja on saavutettu. Kokeile pienempää määrää tai lisää rajaa";
+
+/* Error description when pump has reached the daily max */
+"The max daily insulin limit is reached. Please try a lower amount or increase the limit" = "Päivittäinen insuliinin enimmäismäärä on saavutettu. Kokeile pienempää määrää tai nosta rajaa.";
+
+/* dana AB limitation warning title */
+"Only Automatic Bolus is supported" = "Vain automaattinen bolus tuetaan";
+
+/* dana AB limitation warning body */
+"Please consider changing your dosing strategy in the setting menu" = "Harkitse annostelustrategian muuttamista asetusvalikossa.";
+
+/* Dana settings resume delivery */
+"Resume delivery" = "Jatko-osan toimitus";
+
+/* Dana settings suspend delivery */
+"Suspend delivery" = "Toimituksen keskeyttäminen";
+
+/* Dana settings stop temp basal */
+"Stop temp basal" = "Pysäytä temp basal";
+
+/* Text for confidence reminders navigation link */
+"Insulin Type" = "Insuliinityyppi";
+
+/* Title for insulin type */
+"Select insulin Type" = "Valitse insuliinityyppi";
+
+/* Title of insulin delivery section */
+"Scheduled Basal" = "Aikataulun mukainen Basal";
+
+/* Title of insulin delivery section */
+"Insulin Delivery" = "Insuliinin toimitus";
+
+/* Text shown in insulin delivery space when insulin suspended */
+"Insulin\nSuspended" = "Insuliini\nKeskeytetään";
+
+/* Text shown in basal rate space when delivery status is unknown */
+"Unknown" = "Tuntematon";
+
+/* Units for showing temp basal rate */
+"U/hr" = "U/h";
+
+/* Header for insulin remaining on pod settings screen */
+"Insulin Remaining" = "Jäljellä oleva insuliini";
+
+/* Text for Dana pump name */
+"Pump name" = "Pumpun nimi";
+
+/* Text for hardware model */
+"Hardware model" = "Laitteistomalli";
+
+/* Text for firmware version */
+"Firmware version" = "Firmware-versio";
+
+/* DanaKit sync pump */
+"Sync pump data" = "Pumpun tietojen synkronointi";
+
+/* Text for last sync */
+"Last sync" = "Viimeisin synkronointi";
+
+/* Text for pump time */
+"Pump time" = "Pumppausaika";
+
+/* Text for pump time synced at */
+"Checked at" = "Tarkistettu osoitteessa";
+
+/* Text for Nightly pump time sync */
+"Nightly pump time sync" = "Yöllinen pumppuaikojen synkronointi";
+
+/* Label for syncing the time on the pump */
+"Manually sync Pump time" = "Pumpun ajan synkronointi manuaalisesti";
+
+/* Alert content title for timeOffsetChangeDetected pod alert
+   Title for pod sync time action sheet.
+   title for time change detected notice */
+"Time Change Detected" = "Ajan muutos havaittu";
+
+/* Message for pod sync time action sheet */
+"The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "Pumppusi kellonaika poikkeaa nykyisestä kellonajasta. Haluatko päivittää pumppusi ajan nykyiseen aikaan?";
+
+/* description for time change detected notice */
+"The time on your pump is different from the current time. Your pump’s time controls your scheduled therapy settings. Scroll down to Pump Time row to review the time difference and configure your pump." = "Pumppusi kellonaika poikkeaa nykyisestä kellonajasta. Pumpun aika ohjaa ajastettuja hoitoasetuksia. Selaa alaspäin Pumpun aika -riville, jotta voit tarkistaa aikaeron ja määrittää pumpun asetukset.";
+
+/* Button text to confirm pump time sync */
+"Yes, Sync to Current Time" = "Kyllä, synkronointi nykyiseen aikaan";
+
+/* Button text to cancel pump time sync */
+"No, Keep Pump As Is" = "Ei, pidä pumppu sellaisenaan";
+
+/* Pump Event title for UnfinalizedDose with doseType of .bolus */
+"Bolus" = "Bolus";
+
+/* Pump Event title for UnfinalizedDose with doseType of .tempBasal */
+"Temp Basal" = "Lämpötila Peruslämpötila";
+
+/* Pump Event title for UnfinalizedDose with doseType of .basal */
+"Basal" = "Basaalinen";
+
+/* Pump Event title for UnfinalizedDose with doseType of .resume */
+"Resume" = "Yhteenveto";
+
+/* Pump Event title for UnfinalizedDose with doseType of .suspend */
+"Suspend" = "Keskeytä";
+
+/* Title for user options */
+"User options" = "Käyttäjän vaihtoehdot";
+
+/* DanaKit share logs */
+"Share Dana pump logs" = "Jaa Dana pumpun lokit";
+
+/* Loading */
+"Loading" = "Ladataan";
+
+/* Text for save button */
+"Save" = "Tallenna";
+
+/* Text for 24h display */
+"24h display" = "24h näyttö";
+
+/* Description for 24h display */
+"Should time be display in 12h or 24h" = "Pitäisikö kellonajan näyttää 12h tai 24h tarkkuudella?";
+
+/* text on */
+"On" = "Osoitteessa";
+
+/* text off */
+"Off" = "Off";
+
+/* 12h */
+"12h notation" = "12h merkintätapa";
+
+/* 24h */
+"24h notation" = "24h merkintätapa";
+
+/* Text for Scroll function */
+"Scroll function" = "Vieritystoiminto";
+
+/* text for second */
+"sec" = "sec";
+
+/* backlightOnTimeInSec */
+"Backlight on time" = "Taustavalo päälläoloaika";
+
+/* lcdOnTimeInSec */
+"Lcd on time" = "Lcd päälle aika";
+
+/* beepAndAlarm */
+"Alarm beeps" = "Hälytys piippaa";
+
+/* beepAndAlarm.sound */
+"Sound" = "Ääni";
+
+/* beepAndAlarm.vibration */
+"Vibration" = "Tärinä";
+
+/* beepAndAlarm.both */
+"Both" = "Molemmat";
+
+/* Alert title for batteryZeroPercent */
+"Pump battery 0%" = "Pumpun akku 0%";
+
+/* Alert body for batteryZeroPercent */
+"Pump battery is empty. Replace it now!" = "Pumpun akku on tyhjä. Vaihda se nyt!";
+
+/* Alert title for pumpError */
+"Pump error" = "Pumpun virhe";
+
+/* Alert body for pumpError */
+"Check the pump and try again" = "Tarkista pumppu ja yritä uudelleen";
+
+/* Alert title for occlusion */
+"Occlusion" = "Occlusion";
+
+/* Alert body for occlusion */
+"Check the reservoir and infus and try again" = "Tarkista säiliö ja infuusio ja yritä uudelleen.";
+
+/* Alert title for lowBattery */
+"Low pump battery" = "Pumpun akku on tyhjä";
+
+/* Alert body for lowBattery */
+"Pump battery needs to be replaced soon" = "Pumpun akku on vaihdettava pian";
+
+/* Alert title for shutdown */
+"Pump shutdown" = "Pumpun sammutus";
+
+/* Alert body for shutdown */
+"There has not been any interactions with the pump for too long. Either disable this function in the pump or interact with the pump" = "Pumpun kanssa ei ole ollut vuorovaikutusta liian pitkään. Poista tämä toiminto käytöstä pumpussa tai ole vuorovaikutuksessa pumpun kanssa.";
+
+/* Alert title for basalCompare */
+"Basal Compare" = "Perusvertailu";
+
+/* Alert title for bloodSugarMeasure */
+"Blood glucose Measure" = "Verensokeri Toimenpide";
+
+/* Alert title for remainingInsulinLevel */
+"Remaining insulin level" = "Jäljellä oleva insuliinitaso";
+
+/* Alert title for emptyReservoir */
+"Empty reservoir" = "Tyhjä säiliö";
+
+/* Alert body for emptyReservoir */
+"Reservoir is empty. Replace it now!" = "Säiliö on tyhjä. Vaihda se nyt!";
+
+/* Alert title for emptyReservoir */
+"Check chaft" = "Tarkista akseli";
+
+/* Alert body for checkShaft */
+"The pump has detected an issue with its chaft. Please remove the reservoir, check everything and try again" = "Pumppu on havainnut ongelman sen akselissa. Irrota säiliö, tarkista kaikki ja yritä uudelleen.";
+
+/* Alert title for basalMax */
+"Basal limit reached" = "Perusraja saavutettu";
+
+/* Alert body for basalMax */
+"Your daily basal limit has been reached. Please contact your Dana distributer to increase the limit" = "Päivittäinen perusannosrajasi on saavutettu. Ota yhteyttä Dana-jakelijaan korottaaksesi rajaa.";
+
+/* Alert title for dailyMax */
+"Daily limit reached" = "Päivittäinen raja saavutettu";
+
+/* Alert body for basalMax */
+"Your daily insulin limit has been reached. Please contact your Dana distributer to increase the limit" = "Päivittäinen insuliinimääräsi on saavutettu. Ota yhteyttä Dana-jakelijaan rajan nostamiseksi.";
+
+/* Alert title for bloodSugarCheckMiss */
+"Missed Blood glucose check" = "Unohdettu verensokerin tarkistus";
+
+/* Alert body for bloodSugarCheckMiss */
+"A blood glucose check reminder has been setup in your pump and is triggered. Please remove it or give your glucose level to the pump" = "Pumppuusi on asetettu muistutus verensokerin tarkistamisesta, ja se on käynnistetty. Poistakaa se tai antakaa glukoositaso pumppuun";
+
+/* Alert title for unknown */
+"Unknown error" = "Tuntematon virhe";
+
+/* Alert body for unknown */
+"An unknown error has occurred during processing the alert from the pump. Please report this" = "Pumpun hälytyksen käsittelyssä on tapahtunut tuntematon virhe. Ilmoita tästä";
+
+/* The title of the pump information section in DanaKit settings */
+"Pump information" = "Pumpun tiedot";
+
+/* Title for silent tone action sheet */
+"Toggle silent tone?" = "Vaihda hiljainen ääni?";
+
+/* Button text to cancel silent tone */
+"No, Keep as is" = "Ei, pitää sellaisenaan";
+
+/* Button text to disable silent tone */
+"Yes, Disable silent tones" = "Kyllä, Poista äänettömät äänet käytöstä";
+
+/* Button text to enable silent tone */
+"Yes, Enable silent tones" = "Kyllä, Ota äänettömät äänet käyttöön";
+
+/* Description for basal profile number */
+"Set the basal profile the pump should use. Note, that it will overwrite the profile that is in the pump, with the one in %1$@" = "Aseta perusprofiili, jota pumpun tulisi käyttää. Huomaa, että se korvaa pumpussa olevan profiilin osoitteessa %1$@olevalla profiililla.";
+
+
+/* Error message for reservoir view when reservoir empty
+   Status highlight message for emptyReservoir alarm.
+   Status highlight that a pump is out of insulin. */
+"No Insulin" = "Ei insuliinia";
+
+/* Status highlight that insulin delivery was suspended. */
+"Insulin Suspended" = "Insuliini keskeytetty";
+
+/* Error message for reservoir view during general pod fault
+   Status highlight when communications with the pod haven't happened recently. */
+"Signal Loss" = "Signaalin menetys";
+
+/* Text for Day unit */
+"day(s)" = "päivä(t)";
+
+/* Text for cannula age */
+"Cannula age" = "Kanyylin ikä";
+
+/* Text for reservoir age */
+"Reservoir age" = "Säiliön ikä";
+
+/* Text for status */
+"Status" = "Tila";
+
+/* DanaKit disconnecting */
+"Disconnecting..." = "Irrottaminen...";
+
+/* DanaKit connecting */
+"Reconnecting..." = "Yhteyden palauttaminen...";
+
+/* DanaKit disconnect */
+"Disconnect from pump" = "Irrota pumppu";
+
+/* DanaKit connect */
+"Reconnect tp pump" = "Kytke tp-pumppu uudelleen";
+
+/* DanaKit disconnected */
+"Disconnected" = "Irrotettu";
+
+/* DanaKit connected */
+"Connected" = "Yhdistetty";
+
+/* Title disconnect reminder notification */
+"Pump is still disconnected" = "Pumppu on edelleen kytketty irti";
+
+/* Body disconnect reminder notification" */
+"Your pump is still disconnected after the set period!" = "Pumppu on edelleen kytketty pois päältä asetetun ajanjakson jälkeen!";
+
+/* Title disconnect reminder sheet */
+"Set reminder for disconnect" = "Aseta muistutus yhteyden katkaisemisesta";
+
+/* body disconnect reminder sheet */
+"Do you wish to receive a notification when the pump is longer disconnected for a specific time?" = "Haluatko saada ilmoituksen, kun pumppu on pidempään poissa käytöstä tietyn ajan?";
+
+/* Button text to 5 min */
+"Yes, 5 minutes" = "Kyllä, 5 minuuttia";
+
+/* Button text to 15 min */
+"Yes, 15 minutes" = "Kyllä, 15 minuuttia";
+
+/* Button text to 30 min */
+"Yes, 30 minutes" = "Kyllä, 30 minuuttia";
+
+/* Button text to 1h */
+"Yes, 1 hour" = "Kyllä, 1 tunti";
+
+/* Button text to just disconnect */
+"No, just disconnect" = "Ei, katkaise vain yhteys";
+
+/* Title for reservoir/cannula refill */
+"Reservoir/cannula refill" = "Säiliön/kanavan täyttö";
+
+/* Title for reservoir/cannula refill */
+"Cannula refill" = "Kanyylin täyttö";
+
+/* Title for refill action */
+"Type of refill" = "Täyttötyyppi";
+
+/* Button text to cannula only */
+"Cannula only" = "Vain kanyyli";
+
+/* Button text to Reservoir and cannula */
+"Reservoir and cannula" = "Säiliö ja kanyyli";
+
+/* Title for bluetooth mode action sheet */
+"Toggle Bluetooth mode" = "Bluetooth modus schakelen";
+
+/* Button text to get help about Continuous mode */
+"What is this?" = "Mitä tämä on?";
+
+/* Button text to disable continuous mode */
+"Yes, Switch to interactive mode" = "Kyllä, Siirry interaktiiviseen tilaan";
+
+/* Button text to enable continuous mode */
+"Yes, Switch to continuous mode" = "Kyllä, Vaihda jatkuvaan tilaan";
+
+/* Title for bolus syncing disable action sheet */
+"Disable bolus syncing?" = "Bolus-synkronoinnin poistaminen käytöstä?";
+
+/* Title for bolus syncing disable action sheet */
+"Re-enable bolus syncing?" = "Ota bolus-synkronointi uudelleen käyttöön?";
+
+/* Button text to re-enable bplus syncing */
+"Yes, re-enable bolus syncing" = "Kyllä, ota bolus-synkronointi uudelleen käyttöön";
+
+/* Button text to disable bolus syncing */
+"Yes, disable bolus syncing" = "Kyllä, poista boluksen synkronointi käytöstä";
+
+/* ana delivery speed body */
+"The Dana pumps support different delivery speeds. You can set it up here" = "Dana-pumput tukevat eri toimitusnopeuksia. Voit määrittää sen täältä";
+
+/* Text for Basal profile */
+"Basal profile" = "Perusprofiili";
+
+/* Text for Battery level */
+"Battery level" = "Akun varaustaso";
+
+/* The title of the configuration section in DanaKit settings */
+"Configuration" = "Konfigurointi";
+
+/* Text for low reservoir reminder */
+"Low reservoir reminder" = "Alhaisen säiliön muistutus";
+
+/* refillAmount */
+"Refill amount" = "Täyttömäärä";
+
+/* Insulin unit */
+"U" = "U";
+
+/* Label for first step refill */
+"Step 1: Set reservoir level" = "Vaihe 1: Aseta säiliön taso";
+
+/* Label for reservoir refilled amount */
+"Reservoir amount" = "Säiliön määrä";
+
+/* Label for second step refill */
+"Step 2: Set tube refill amount" = "Vaihe 2: Aseta putken täyttömäärä";
+
+/* Label for tube refilled amount */
+"Tube refill amount" = "Putken täyttömäärä";
+
+/* Label for warning refill */
+"This method of refilling is only intended for when the pump cannot provide a way to refill the reservoir or prime the cannula" = "Tämä täyttömenetelmä on tarkoitettu vain silloin, kun pumppu ei pysty täyttämään säiliötä tai täyttämään kanyylia.";
+
+/* Title for warning refill */
+"WARNING: USE WITH CAUTION!" = "VAROITUS: KÄYTÄ VAROEN!";
+
+/* Label for warning refill */
+"This method of refilling is only intended for when the pump cannot provide a way to refill the reservoir or prime the cannula" = "Tämä täyttömenetelmä on tarkoitettu vain silloin, kun pumppu ei pysty täyttämään säiliötä tai täyttämään kanyylia.";
+
+/* Title for warning refill */
+"WARNING: USE WITH CAUTION!" = "VAROITUS: KÄYTÄ VAROEN!";
+
+/* Label for third step refill */
+"Step 1: Prime cannula" = "Vaihe 1: Kanyylin esivalmistelu";
+
+/* Label for error first step refill */
+"Failed to set reservoir amount. Re-sync pump data and try again please" = "Säiliön määrää ei onnistuttu asettamaan. Synkronoi pumpun tiedot uudelleen ja yritä uudelleen.";
+
+/* Label for error third step refill */
+"Failed to prime the cannula. Please try again later" = "Kanyylin esivalmistelu epäonnistui. Yritä myöhemmin uudelleen";
+
+/* Label for error second step refill */
+"Failed to prime the tube. Please try again later" = "Putki ei ole alustettu. Yritä myöhemmin uudelleen";
+
+/* Battery age */
+"Battery age" = "Akun ikä";
+
+/* advertise contact DanaRS v1 */
+"NOTE: The DanaRS v1 is not supported (yet). If you have a DanaRS v1 pump available for testing, please contact Bastiaan Verhaar!" = "HUOMAUTUS: DanaRS v1 ei ole tuettu (vielä). Jos sinulla on DanaRS v1 -pumppu testattavana, ota yhteyttä Bastiaan Verhaariin!";
