@@ -19,7 +19,10 @@ final class ActivityDetectionManager: Injectable {
     private var activityStartTime: Date?
     private var confirmationTimer: Timer?
     private var stopTimer: Timer?
+    private var validationTimer: Timer?
     private var isMonitoring = false
+    private var activityValidationCount = 0
+    private let requiredValidations = 3
 
     private var activityLog: [ActivityLogEntry] = []
 
@@ -106,6 +109,9 @@ final class ActivityDetectionManager: Injectable {
         confirmationTimer?.invalidate()
         confirmationTimer = nil
 
+        validationTimer?.invalidate()
+        validationTimer = nil
+
         stopTimer?.invalidate()
         stopTimer = nil
 
@@ -129,7 +135,7 @@ final class ActivityDetectionManager: Injectable {
     private func detectPrimaryActivity(from activity: CMMotionActivity) -> ActivityType? {
         let settings = settingsManager.settings
 
-        guard activity.confidence == .high || activity.confidence == .medium else {
+        guard activity.confidence == .high else {
             return nil
         }
 
@@ -149,17 +155,30 @@ final class ActivityDetectionManager: Injectable {
     private func handleActivityDetected(_ activity: ActivityType, confidence _: CMMotionActivityConfidence) {
         let now = Date()
 
-        if currentActivity != activity {
+        if currentActivity == activity {
+            // Same activity continuing - increment validation count
+            activityValidationCount += 1
+            stopTimer?.invalidate()
+            stopTimer = nil
+        } else {
+            // New activity detected
             if let currentActivity = currentActivity {
                 finalizeActivityStop(currentActivity)
             }
 
             currentActivity = activity
             activityStartTime = now
+            activityValidationCount = 1
 
             confirmationTimer?.invalidate()
+            validationTimer?.invalidate()
 
+            // Start validation timer to check every 20 seconds
             DispatchQueue.main.async { [weak self] in
+                self?.validationTimer = Timer.scheduledTimer(withTimeInterval: 20.0, repeats: true) { [weak self] _ in
+                    self?.validateContinuousActivity()
+                }
+
                 self?.confirmationTimer = Timer.scheduledTimer(
                     withTimeInterval: TimeInterval((self?.settingsManager.settings.autoApplyMinimumDurationMinutes ?? 10) * 60),
                     repeats: false
@@ -168,7 +187,10 @@ final class ActivityDetectionManager: Injectable {
                 }
             }
 
-            debug(.deviceManager, "Detected \(activity.displayName) activity, waiting for confirmation")
+            debug(
+                .deviceManager,
+                "Detected \(activity.displayName) activity, waiting for confirmation (validation: \(activityValidationCount)/\(requiredValidations))"
+            )
         }
 
         stopTimer?.invalidate()
@@ -190,8 +212,53 @@ final class ActivityDetectionManager: Injectable {
         }
     }
 
+    private func validateContinuousActivity() {
+        guard let currentActivity = currentActivity else {
+            validationTimer?.invalidate()
+            validationTimer = nil
+            return
+        }
+
+        // Query recent activity to ensure it's still happening
+        motionManager
+            .queryActivityStarting(
+                from: Date().addingTimeInterval(-30),
+                to: Date(),
+                to: activityQueue
+            ) { [weak self] activities, error in
+                guard let self = self, let activities = activities, error == nil else { return }
+
+                let recentActivity = activities.last
+                let detectedActivity = recentActivity.flatMap { self.detectPrimaryActivity(from: $0) }
+
+                DispatchQueue.main.async {
+                    if detectedActivity == currentActivity {
+                        self.activityValidationCount += 1
+                        debug(
+                            .deviceManager,
+                            "Activity validation: \(self.activityValidationCount)/\(self.requiredValidations) for \(currentActivity.displayName)"
+                        )
+                    } else {
+                        // Activity stopped or changed, reset validation
+                        debug(.deviceManager, "Activity validation failed, resetting detection")
+                        self.handleNoActivityDetected()
+                    }
+                }
+            }
+    }
+
     private func confirmActivity(_ activity: ActivityType) {
         guard currentActivity == activity else { return }
+        guard activityValidationCount >= requiredValidations else {
+            debug(
+                .deviceManager,
+                "Insufficient validations (\(activityValidationCount)/\(requiredValidations)) for \(activity.displayName)"
+            )
+            return
+        }
+
+        validationTimer?.invalidate()
+        validationTimer = nil
 
         let overrideName = getOverrideName(for: activity)
         guard !overrideName.isEmpty else {
@@ -220,6 +287,9 @@ final class ActivityDetectionManager: Injectable {
         confirmationTimer?.invalidate()
         confirmationTimer = nil
 
+        validationTimer?.invalidate()
+        validationTimer = nil
+
         stopTimer?.invalidate()
         stopTimer = nil
 
@@ -239,6 +309,7 @@ final class ActivityDetectionManager: Injectable {
 
         currentActivity = nil
         activityStartTime = nil
+        activityValidationCount = 0
 
         debug(.deviceManager, "Stopped \(activity.displayName) activity")
         delegate?.activityDetectionManager(self, didStopActivity: activity)
