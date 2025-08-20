@@ -40,7 +40,7 @@ struct Profile: Codable {
     var temptargetSet: Bool?
     var autosensMax: Decimal = 1.2
     var autosensMin: Decimal = 0.7
-    var outUnits: String?
+    var outUnits: GlucoseUnits?
 
     // Additional properties
     var maxMealAbsorptionTime: Decimal = 6.0

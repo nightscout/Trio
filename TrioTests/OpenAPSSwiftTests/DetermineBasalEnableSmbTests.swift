@@ -89,7 +89,7 @@ import Testing
 
     @Test("Should return false by default with no enabling preferences") func defaultIsFalse() throws {
         let inputs = createDefaultInputs()
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -104,7 +104,7 @@ import Testing
         inputs.trioCustomOrefVariables.smbIsOff = true
         inputs.profile.enableSMBAlways = true // Ensure smbIsOff takes precedence
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -119,7 +119,7 @@ import Testing
         inputs.trioCustomOrefVariables.shouldProtectDueToHIGH = true
         inputs.profile.enableSMBAlways = true // Ensure protection takes precedence
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -135,7 +135,7 @@ import Testing
         inputs.profile.temptargetSet = true
         inputs.adjustedTargetGlucose = 120
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -151,7 +151,7 @@ import Testing
         inputs.minGuardGlucose = 65
         inputs.threshold = 70
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -181,7 +181,7 @@ import Testing
             device: "test"
         )
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -198,7 +198,7 @@ import Testing
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBAlways = true
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -223,7 +223,7 @@ import Testing
             lastCarbTime: Date().timeIntervalSince1970
         )
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -248,7 +248,7 @@ import Testing
             lastCarbTime: Date().timeIntervalSince1970
         )
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -264,7 +264,7 @@ import Testing
         inputs.profile.temptargetSet = true
         inputs.adjustedTargetGlucose = 90
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -280,7 +280,7 @@ import Testing
         inputs.profile.enableSMBHighBgTarget = 140
         inputs.currentGlucose = 145
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -300,7 +300,7 @@ import Testing
         inputs.trioCustomOrefVariables.end = 17 // 5 PM
         inputs.clock = Calendar.current.date(bySettingHour: 14, minute: 0, second: 0, of: Date())!
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -318,7 +318,7 @@ import Testing
         inputs.trioCustomOrefVariables.end = 17 // 5 PM
         inputs.clock = Calendar.current.date(bySettingHour: 18, minute: 0, second: 0, of: Date())!
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -338,7 +338,7 @@ import Testing
         inputs.trioCustomOrefVariables.end = 6 // 6 AM
         inputs.clock = Calendar.current.date(bySettingHour: 2, minute: 0, second: 0, of: Date())!
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -358,7 +358,7 @@ import Testing
         inputs.trioCustomOrefVariables.end = 6 // 6 AM
         inputs.clock = Calendar.current.date(bySettingHour: 23, minute: 0, second: 0, of: Date())!
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -376,7 +376,7 @@ import Testing
         inputs.trioCustomOrefVariables.end = 6 // 6 AM
         inputs.clock = Calendar.current.date(bySettingHour: 12, minute: 0, second: 0, of: Date())!
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -394,7 +394,7 @@ import Testing
         inputs.trioCustomOrefVariables.end = 0
         inputs.clock = Calendar.current.date(bySettingHour: 15, minute: 0, second: 0, of: Date())!
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -412,7 +412,7 @@ import Testing
         inputs.trioCustomOrefVariables.end = 11 // 11 AM
         inputs.clock = Calendar.current.date(bySettingHour: 11, minute: 30, second: 0, of: Date())!
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
@@ -430,7 +430,7 @@ import Testing
         inputs.trioCustomOrefVariables.end = 11 // 11 AM
         inputs.clock = Calendar.current.date(bySettingHour: 12, minute: 0, second: 0, of: Date())!
 
-        let decision = try DosingEngine.shouldEnableSmb(
+        let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
             adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
             minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,

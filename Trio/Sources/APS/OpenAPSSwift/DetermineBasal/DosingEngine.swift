@@ -95,10 +95,10 @@ enum DosingEngine {
 
     /// helper function for reason string glucose output
     private static func convertGlucose(profile: Profile, glucose: Decimal) -> Decimal {
-        if profile.outUnits == "mmol/L" {
-            return (glucose * 0.0555).jsRounded(scale: 1)
-        } else {
-            return glucose.jsRounded()
+        let units = profile.outUnits ?? .mgdL
+        switch units {
+        case .mgdL: return glucose.jsRounded()
+        case .mmolL: return glucose.asMmolL
         }
     }
 
@@ -106,7 +106,7 @@ enum DosingEngine {
     ///
     /// This function includes both the profile / customOrefVariable checks from JS `enable_smb` as
     /// well as some of the later checks from `determineBasal` that can disable SMB
-    static func shouldEnableSmb(
+    static func makeSMBDosingDecision(
         profile: Profile,
         meal: ComputedCarbs,
         currentGlucose: Decimal,

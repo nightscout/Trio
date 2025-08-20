@@ -211,7 +211,7 @@ enum DeterminationGenerator {
             targetLog: "" // Placeholder
         )
 
-        let smbDecision = try DosingEngine.shouldEnableSmb(
+        let smbDecision = try DosingEngine.makeSMBDosingDecision(
             profile: profile,
             meal: mealData,
             currentGlucose: currentGlucose,
