@@ -87,7 +87,7 @@ import Testing
 
     // MARK: - Disabling Conditions
 
-    @Test("Should return false by default with no enabling preferences")  func defaultIsFalse() throws {
+    @Test("Should return false by default with no enabling preferences") func defaultIsFalse() throws {
         let inputs = createDefaultInputs()
         let decision = try DosingEngine.shouldEnableSmb(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
@@ -99,7 +99,7 @@ import Testing
         #expect(decision.isEnabled == false)
     }
 
-    @Test("Should disable SMB when smbIsOff is true")  func disableWhenSmbIsOff() throws {
+    @Test("Should disable SMB when smbIsOff is true") func disableWhenSmbIsOff() throws {
         var inputs = createDefaultInputs()
         inputs.trioCustomOrefVariables.smbIsOff = true
         inputs.profile.enableSMBAlways = true // Ensure smbIsOff takes precedence
@@ -114,7 +114,7 @@ import Testing
         #expect(decision.isEnabled == false)
     }
 
-    @Test("Should disable SMB when shouldProtectDueToHIGH is true")  func disableWhenProtectDueToHigh() throws {
+    @Test("Should disable SMB when shouldProtectDueToHIGH is true") func disableWhenProtectDueToHigh() throws {
         var inputs = createDefaultInputs()
         inputs.trioCustomOrefVariables.shouldProtectDueToHIGH = true
         inputs.profile.enableSMBAlways = true // Ensure protection takes precedence
@@ -129,7 +129,7 @@ import Testing
         #expect(decision.isEnabled == false)
     }
 
-    @Test("Should disable SMB with high temp target when not allowed")  func disableWithHighTempTarget() throws {
+    @Test("Should disable SMB with high temp target when not allowed") func disableWithHighTempTarget() throws {
         var inputs = createDefaultInputs()
         inputs.profile.allowSMBWithHighTemptarget = false
         inputs.profile.temptargetSet = true
@@ -145,7 +145,7 @@ import Testing
         #expect(decision.isEnabled == false)
     }
 
-    @Test("Should disable SMB when minGuardGlucose is below threshold")  func disableWhenMinGuardBelowThreshold() throws {
+    @Test("Should disable SMB when minGuardGlucose is below threshold") func disableWhenMinGuardBelowThreshold() throws {
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBAlways = true // Enable SMB initially to test the safety override
         inputs.minGuardGlucose = 65
@@ -164,7 +164,7 @@ import Testing
         #expect(decision.insulinForManualBolus != nil)
     }
 
-    @Test("Should disable SMB when maxDelta is too high")  func disableWhenMaxDeltaTooHigh() throws {
+    @Test("Should disable SMB when maxDelta is too high") func disableWhenMaxDeltaTooHigh() throws {
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBAlways = true // Enable SMB initially
         inputs.profile.maxDeltaBgThreshold = 0.2
@@ -194,7 +194,7 @@ import Testing
 
     // MARK: - Enabling Conditions
 
-    @Test("Should enable SMB when enableSMBAlways is true")  func enableWhenAlwaysOn() throws {
+    @Test("Should enable SMB when enableSMBAlways is true") func enableWhenAlwaysOn() throws {
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBAlways = true
 
@@ -208,7 +208,7 @@ import Testing
         #expect(decision.isEnabled == true)
     }
 
-    @Test("Should enable SMB with COB")  func enableWithCob() throws {
+    @Test("Should enable SMB with COB") func enableWithCob() throws {
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBWithCOB = true
         inputs.meal = ComputedCarbs(
@@ -233,7 +233,7 @@ import Testing
         #expect(decision.isEnabled == true)
     }
 
-    @Test("Should enable SMB after carbs")  func enableAfterCarbs() throws {
+    @Test("Should enable SMB after carbs") func enableAfterCarbs() throws {
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBAfterCarbs = true
         inputs.meal = ComputedCarbs(
@@ -258,7 +258,7 @@ import Testing
         #expect(decision.isEnabled == true)
     }
 
-    @Test("Should enable SMB with low temp target")  func enableWithLowTempTarget() throws {
+    @Test("Should enable SMB with low temp target") func enableWithLowTempTarget() throws {
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBWithTemptarget = true
         inputs.profile.temptargetSet = true
@@ -274,7 +274,7 @@ import Testing
         #expect(decision.isEnabled == true)
     }
 
-    @Test("Should enable SMB for high BG")  func enableWithHighBg() throws {
+    @Test("Should enable SMB for high BG") func enableWithHighBg() throws {
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBHighBg = true
         inputs.profile.enableSMBHighBgTarget = 140
@@ -292,7 +292,7 @@ import Testing
 
     // MARK: - Scheduled Off Tests
 
-    @Test("Scheduled Off (Normal): should disable SMB inside the window")  func scheduledOffNormal_Inside() throws {
+    @Test("Scheduled Off (Normal): should disable SMB inside the window") func scheduledOffNormal_Inside() throws {
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBAlways = true // Ensure schedule is the only reason for failure
         inputs.trioCustomOrefVariables.smbIsScheduledOff = true
@@ -310,7 +310,7 @@ import Testing
         #expect(decision.isEnabled == false)
     }
 
-    @Test("Scheduled Off (Normal): should NOT disable SMB outside the window")  func scheduledOffNormal_Outside() throws {
+    @Test("Scheduled Off (Normal): should NOT disable SMB outside the window") func scheduledOffNormal_Outside() throws {
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBAlways = true
         inputs.trioCustomOrefVariables.smbIsScheduledOff = true
@@ -330,7 +330,7 @@ import Testing
 
     @Test(
         "Scheduled Off (Wrapping): should disable SMB inside the window (after midnight)"
-    )  func scheduledOffWrapping_InsideAfterMidnight() throws {
+    ) func scheduledOffWrapping_InsideAfterMidnight() throws {
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBAlways = true
         inputs.trioCustomOrefVariables.smbIsScheduledOff = true
@@ -350,7 +350,7 @@ import Testing
 
     @Test(
         "Scheduled Off (Wrapping): should disable SMB inside the window (before midnight)"
-    )  func scheduledOffWrapping_InsideBeforeMidnight() throws {
+    ) func scheduledOffWrapping_InsideBeforeMidnight() throws {
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBAlways = true
         inputs.trioCustomOrefVariables.smbIsScheduledOff = true
@@ -368,7 +368,7 @@ import Testing
         #expect(decision.isEnabled == false)
     }
 
-    @Test("Scheduled Off (Wrapping): should NOT disable SMB outside the window")  func scheduledOffWrapping_Outside() throws {
+    @Test("Scheduled Off (Wrapping): should NOT disable SMB outside the window") func scheduledOffWrapping_Outside() throws {
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBAlways = true
         inputs.trioCustomOrefVariables.smbIsScheduledOff = true
@@ -386,7 +386,7 @@ import Testing
         #expect(decision.isEnabled == true)
     }
 
-    @Test("Scheduled Off (All Day): should disable SMB")  func scheduledOffAllDay() throws {
+    @Test("Scheduled Off (All Day): should disable SMB") func scheduledOffAllDay() throws {
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBAlways = true
         inputs.trioCustomOrefVariables.smbIsScheduledOff = true
@@ -404,7 +404,7 @@ import Testing
         #expect(decision.isEnabled == false)
     }
 
-    @Test("Scheduled Off (Single Hour): should disable SMB inside the window")  func scheduledOffSingleHour_Inside() throws {
+    @Test("Scheduled Off (Single Hour): should disable SMB inside the window") func scheduledOffSingleHour_Inside() throws {
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBAlways = true
         inputs.trioCustomOrefVariables.smbIsScheduledOff = true
@@ -422,7 +422,7 @@ import Testing
         #expect(decision.isEnabled == false)
     }
 
-    @Test("Scheduled Off (Single Hour): should NOT disable SMB outside the window")  func scheduledOffSingleHour_Outside() throws {
+    @Test("Scheduled Off (Single Hour): should NOT disable SMB outside the window") func scheduledOffSingleHour_Outside() throws {
         var inputs = createDefaultInputs()
         inputs.profile.enableSMBAlways = true
         inputs.trioCustomOrefVariables.smbIsScheduledOff = true
