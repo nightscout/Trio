@@ -21,7 +21,8 @@ enum DeterminationGenerator {
         reservoirData _: Decimal,
         glucose: [BloodGlucose],
         trioCustomOrefVariables: TrioCustomOrefVariables,
-        currentTime: Date
+        currentTime: Date,
+        includeDebugOutputs: Bool
     ) throws -> Determination? {
         var autosensData = autosensData
         let glucoseStatus = try Self.getGlucoseStatus(glucoseReadings: glucose)
@@ -254,10 +255,24 @@ enum DeterminationGenerator {
             targetLog: "" // Placeholder
         )
 
+        let smbDecision = try DosingEngine.shouldEnableSmb(
+            profile: profile,
+            meal: mealData,
+            currentGlucose: currentGlucose,
+            adjustedTargetGlucose: adjustedGlucoseTargets.targetGlucose,
+            adjustedSensitivity: adjustedSensitivity,
+            minGuardGlucose: forecastResult.minGuardGlucose,
+            eventualGlucose: eventualGlucose,
+            threshold: threshold,
+            glucoseStatus: glucoseStatus,
+            trioCustomOrefVariables: trioCustomOrefVariables,
+            clock: currentTime
+        )
+
         // TODO: STOPPING at LINE 1264
 
         // FIXME: properly populate all fields!
-        let temporaryResult = Determination(
+        var temporaryResult = Determination(
             id: UUID(),
             reason: dosingInputs.reason,
             units: nil,
@@ -293,6 +308,10 @@ enum DeterminationGenerator {
             carbRatio: forecastResult.adjustedCarbRatio.jsRounded(scale: 1),
             received: false,
         )
+
+        if includeDebugOutputs {
+            temporaryResult.enableSMB = smbDecision.isEnabled
+        }
 
         // TODO: how to handle output?
         // TODO: how to handle logging?

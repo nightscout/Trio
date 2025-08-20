@@ -301,7 +301,7 @@ struct IobHistory {
         // be small but at least it matches
         // the fix it to use minutesSinceMidnightWithPrecision
         guard let startMinutes = tempBasal.timestamp.minutesSinceMidnight.map({ Decimal($0) }) else {
-            throw MinutesFromMidnightError.invalidCalendar
+            throw CalendarError.invalidCalendar
         }
 
         guard let duration = tempBasal.duration else {
@@ -327,7 +327,7 @@ struct IobHistory {
         }
 
         guard let startMinutes = tempBasal.timestamp.minutesSinceMidnightWithPrecision else {
-            throw MinutesFromMidnightError.invalidCalendar
+            throw CalendarError.invalidCalendar
         }
 
         let endMinutes = startMinutes + duration
@@ -344,7 +344,7 @@ struct IobHistory {
     private static func splitAtMidnight(tempBasal: ComputedPumpHistoryEvent) throws -> [ComputedPumpHistoryEvent] {
         let minutesPerDay = Decimal(24 * 60)
         guard let startMinutes = tempBasal.timestamp.minutesSinceMidnightWithPrecision else {
-            throw MinutesFromMidnightError.invalidCalendar
+            throw CalendarError.invalidCalendar
         }
 
         guard let duration = tempBasal.duration else {
