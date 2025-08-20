@@ -77,6 +77,7 @@ extension Determination {
         case threshold
         case carbRatio = "CR"
         case received
+        case enableSMB
     }
 }
 
