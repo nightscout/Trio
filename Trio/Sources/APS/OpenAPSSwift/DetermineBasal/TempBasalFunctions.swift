@@ -1,16 +1,10 @@
 import Foundation
 
 enum TempBasalFunctionError: LocalizedError, Equatable {
-    case invalidMaxDailySafetyMultiplier
-    case invalidCurrentBasalSafetyMultiplier
     case invalidBasalRateOnProfile
 
     var errorDescription: String? {
         switch self {
-        case .invalidMaxDailySafetyMultiplier:
-            return "The max daily safety multiplier set on Profile is invalid"
-        case .invalidCurrentBasalSafetyMultiplier:
-            return "The current daily basal safety multiplier set on Profile is invalid"
         case .invalidBasalRateOnProfile:
             return "The max currentBasal, maxBasal, or maxDailyBasl wasn't set on Profile"
         }
@@ -43,13 +37,9 @@ enum TempBasalFunctions {
 
     /// defines the max safe basal rate given a profile
     static func getMaxSafeBasalRate(profile: Profile) throws -> Decimal {
-        guard !profile.maxDailySafetyMultiplier.isNaN else {
-            throw TempBasalFunctionError.invalidMaxDailySafetyMultiplier
-        }
-
-        guard !profile.currentBasalSafetyMultiplier.isNaN else {
-            throw TempBasalFunctionError.invalidCurrentBasalSafetyMultiplier
-        }
+        // use default values if either of these are NaN
+        let maxDailySafetyMultiplier = profile.maxDailySafetyMultiplier.isNaN ? 3 : profile.maxDailySafetyMultiplier
+        let currentBasalSafetyMultiplier = profile.currentBasalSafetyMultiplier.isNaN ? 4 : profile.currentBasalSafetyMultiplier
 
         guard let currentBasal = profile.currentBasal, let maxDailyBasal = profile.maxDailyBasal,
               let maxBasal = profile.maxBasal
@@ -59,8 +49,55 @@ enum TempBasalFunctions {
 
         return min(
             maxBasal,
-            profile.maxDailySafetyMultiplier * maxDailyBasal,
-            profile.currentBasalSafetyMultiplier * currentBasal
+            maxDailySafetyMultiplier * maxDailyBasal,
+            currentBasalSafetyMultiplier * currentBasal
         )
+    }
+    
+    static func setTempBasal(rate: Decimal, duration: Decimal, profile: Profile, determination: Determination, currentTemp: TempBasal) throws -> Determination {
+        var determination = determination
+        let maxSafeBasal = try getMaxSafeBasalRate(profile: profile)
+
+        var rate = rate
+        if rate < 0 {
+            rate = 0
+        } else if rate > maxSafeBasal {
+            rate = maxSafeBasal
+        }
+
+        let suggestedRate = roundBasal(profile: profile, basalRate: rate)
+
+        if currentTemp.duration > (duration - 10),
+           currentTemp.duration <= 120,
+           suggestedRate <= currentTemp.rate * 1.2,
+           suggestedRate >= currentTemp.rate * 0.8,
+           duration > 0
+        {
+            determination.reason += " \(currentTemp.duration)m left and \(currentTemp.rate) ~ req \(suggestedRate)U/hr: no temp required"
+            return determination
+        }
+
+        if suggestedRate == profile.currentBasal {
+            if profile.skipNeutralTemps {
+                if currentTemp.duration > 0 {
+                    determination.reason = (determination.reason ?? "") + "Suggested rate is same as profile rate, a temp basal is active, canceling current temp"
+                    determination.duration = 0
+                    determination.rate = 0
+                    return determination
+                } else {
+                    determination.reason = (determination.reason ?? "") + "Suggested rate is same as profile rate, no temp basal is active, doing nothing"
+                    return determination
+                }
+            } else {
+                determination.reason = (determination.reason ?? "") + "Setting neutral temp basal of \(profile.currentBasal)U/hr"
+                determination.duration = duration
+                determination.rate = suggestedRate
+                return determination
+            }
+        } else {
+            determination.duration = duration
+            determination.rate = suggestedRate
+            return determination
+        }
     }
 }
