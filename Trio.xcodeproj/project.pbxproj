@@ -301,6 +301,7 @@
 		3B997DD32DC02AEF006B6BB2 /* glucose.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B997DD12DC02AEF006B6BB2 /* glucose.json */; };
 		3BA8D1B32DDB87150006191F /* DecimalExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */; };
 		3BAAE60C2DE7766C0049589B /* DynamicISFEnableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */; };
+		3BAC929B2E55FF5300B853DA /* DetermineBasalEnableSmbTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAC929A2E55FF4F00B853DA /* DetermineBasalEnableSmbTests.swift */; };
 		3BAD36B22D7CDC1A00CC298D /* MainLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */; };
 		3BAD36CC2D7D420E00CC298D /* CoreDataInitializationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */; };
 		3BAE876E2E47F12900FCA8D2 /* DosingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAE876D2E47F12900FCA8D2 /* DosingEngine.swift */; };
@@ -648,7 +649,6 @@
 		DD30B9CA2E062A3400DA677C /* ForecastGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9C92E062A3300DA677C /* ForecastGenerator.swift */; };
 		DD30B9CC2E062A7000DA677C /* ForecastResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9CB2E062A7000DA677C /* ForecastResult.swift */; };
 		DD30B9CE2E062AA300DA677C /* ForecastGenerator+Forecasts.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9CD2E062AA300DA677C /* ForecastGenerator+Forecasts.swift */; };
-		DD30B9FE2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9FD2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift */; };
 		DD30BA002E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */; };
 		DD30BA022E074F0F00DA677C /* GlucoseStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA012E074F0F00DA677C /* GlucoseStatus.swift */; };
 		DD30BA062E07667000DA677C /* DetermineBasal+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA052E07667000DA677C /* DetermineBasal+Helpers.swift */; };
@@ -1225,6 +1225,7 @@
 		3B997DD12DC02AEF006B6BB2 /* glucose.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = glucose.json; sourceTree = "<group>"; };
 		3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalExtensions.swift; sourceTree = "<group>"; };
 		3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFEnableTests.swift; sourceTree = "<group>"; };
+		3BAC929A2E55FF4F00B853DA /* DetermineBasalEnableSmbTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalEnableSmbTests.swift; sourceTree = "<group>"; };
 		3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainLoadingView.swift; sourceTree = "<group>"; };
 		3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataInitializationCoordinator.swift; sourceTree = "<group>"; };
 		3BAE876D2E47F12900FCA8D2 /* DosingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DosingEngine.swift; sourceTree = "<group>"; };
@@ -1578,7 +1579,6 @@
 		DD30B9C92E062A3300DA677C /* ForecastGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastGenerator.swift; sourceTree = "<group>"; };
 		DD30B9CB2E062A7000DA677C /* ForecastResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastResult.swift; sourceTree = "<group>"; };
 		DD30B9CD2E062AA300DA677C /* ForecastGenerator+Forecasts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ForecastGenerator+Forecasts.swift"; sourceTree = "<group>"; };
-		DD30B9FD2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalSMBEnablementTests.swift; sourceTree = "<group>"; };
 		DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalDeltaCalculationTests.swift; sourceTree = "<group>"; };
 		DD30BA012E074F0F00DA677C /* GlucoseStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseStatus.swift; sourceTree = "<group>"; };
 		DD30BA052E07667000DA677C /* DetermineBasal+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DetermineBasal+Helpers.swift"; sourceTree = "<group>"; };
@@ -2933,8 +2933,8 @@
 				3B8B5D3B2DF523B800365ED3 /* AutosensJsonTests.swift */,
 				3BBC22622DF5B93900169236 /* AutosensTests.swift */,
 				DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */,
+				3BAC929A2E55FF4F00B853DA /* DetermineBasalEnableSmbTests.swift */,
 				3BE9F0BA2E28C993001B14EB /* DetermineBasalJsonTests.swift */,
-				DD30B9FD2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift */,
 				3B2A3BC22E2B19F700658FB9 /* DynamicISFTests.swift */,
 				3B1C5C352D68E269004E9273 /* IobCalculateTests.swift */,
 				3B2CE68A2E24ADF3005EF782 /* IobGenerateTests.swift */,
@@ -5208,7 +5208,6 @@
 				3BF8D14B2D530397001B3F84 /* JSONCompareTests.swift in Sources */,
 				3BEF6AB32D97316F0076089D /* MealTotalTests.swift in Sources */,
 				3BF8D0C12D5175BE001B3F84 /* ProfileJsNativeCompareTests.swift in Sources */,
-				DD30B9FE2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift in Sources */,
 				3BEF6AB12D9731660076089D /* MealHistoryTests.swift in Sources */,
 				BD8FC0572D66188700B95AED /* PumpHistoryStorageTests.swift in Sources */,
 				BD8FC0642D6619EF00B95AED /* TempTargetStorageTests.swift in Sources */,
@@ -5227,6 +5226,7 @@
 				BD8FC0662D661A0000B95AED /* GlucoseStorageTests.swift in Sources */,
 				BD8FC05B2D6618AF00B95AED /* DeterminationStorageTests.swift in Sources */,
 				3BAAE60C2DE7766C0049589B /* DynamicISFEnableTests.swift in Sources */,
+				3BAC929B2E55FF5300B853DA /* DetermineBasalEnableSmbTests.swift in Sources */,
 				CE1F6DD92BADF4620064EB8D /* PluginManagerTests.swift in Sources */,
 				3B1C5C432D68E269004E9273 /* Extensions.swift in Sources */,
 				3BC26E552D7418830066ACD6 /* IobSuspendTests.swift in Sources */,

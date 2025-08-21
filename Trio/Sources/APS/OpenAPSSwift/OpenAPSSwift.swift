@@ -54,7 +54,8 @@ struct OpenAPSSwift {
         preferences: JSON,
         basalProfile: JSON,
         trioCustomOrefVariables: JSON,
-        clock: Date
+        clock: Date,
+        includeDebugOutputs: Bool
     ) -> (OrefFunctionResult, DetermineBasalInputs?) {
         var determineBasalInputs: DetermineBasalInputs?
 
@@ -104,7 +105,8 @@ struct OpenAPSSwift {
                 reservoirData: reservoir ?? 100,
                 glucose: glucose,
                 trioCustomOrefVariables: trioCustomOrefVariables,
-                currentTime: clock
+                currentTime: clock,
+                includeDebugOutputs: includeDebugOutputs
             )
 
             return (try .success(JSONBridge.to(rawDetermination)), determineBasalInputs)

@@ -6,6 +6,159 @@ enum DosingEngine {
         let carbsRequired: (carbs: Decimal, minutes: Decimal)?
     }
 
+    /// struct to keep the relevant state needed for the output of the SMB decision logic
+    struct SMBDecision {
+        let isEnabled: Bool
+        let manualBolusError: Int?
+        let insulinForManualBolus: Decimal?
+        let minGuardGlucose: Decimal?
+        let reason: String?
+    }
+
+    /// checks to see if SMB are enabled via the profile
+    private static func isProfileSmbEnabled(
+        currentGlucose: Decimal,
+        adjustedTargetGlucose: Decimal,
+        profile: Profile,
+        meal: ComputedCarbs,
+        trioCustomOrefVariables: TrioCustomOrefVariables,
+        clock: Date
+    ) throws -> Bool {
+        if trioCustomOrefVariables.smbIsOff {
+            return false
+        }
+
+        if try isSmbScheduledOff(trioCustomOrefVariables: trioCustomOrefVariables, clock: clock) {
+            return false
+        }
+
+        if trioCustomOrefVariables.shouldProtectDueToHIGH {
+            return false
+        }
+
+        if !profile.allowSMBWithHighTemptarget, profile.temptargetSet == true, adjustedTargetGlucose > 100 {
+            return false
+        }
+
+        if profile.enableSMBAlways {
+            return true
+        }
+
+        if profile.enableSMBWithCOB, meal.mealCOB > 0 {
+            return true
+        }
+
+        if profile.enableSMBAfterCarbs, meal.carbs > 0 {
+            return true
+        }
+
+        if profile.enableSMBWithTemptarget, profile.temptargetSet == true, adjustedTargetGlucose < 100 {
+            return true
+        }
+
+        if profile.enableSMBHighBg, currentGlucose >= profile.enableSMBHighBgTarget {
+            return true
+        }
+
+        return false
+    }
+
+    /// helper function to check if SMB is scheduled off given the current timezone
+    private static func isSmbScheduledOff(trioCustomOrefVariables: TrioCustomOrefVariables, clock: Date) throws -> Bool {
+        guard trioCustomOrefVariables.smbIsScheduledOff else {
+            return false
+        }
+
+        guard let currentHour = clock.hourInLocalTime.map({ Decimal($0) }) else {
+            throw CalendarError.invalidCalendarHourOnly
+        }
+        let startHour = trioCustomOrefVariables.start
+        let endHour = trioCustomOrefVariables.end
+
+        // SMBs will be disabled from [start, end) local time
+        if startHour < endHour, currentHour >= startHour && currentHour < endHour {
+            // disable when the schedule does not wrap around midnight
+            return true
+        } else if startHour > endHour, currentHour >= startHour || currentHour < endHour {
+            // disable when the schedule does wrap around midnight
+            return true
+        } else if startHour == 0, endHour == 0 {
+            // schedule specifies the entire day
+            return true
+        } else if startHour == endHour, currentHour == startHour {
+            // one hour of scheduled off SMB
+            return true
+        }
+
+        return false
+    }
+
+    /// helper function for reason string glucose output
+    private static func convertGlucose(profile: Profile, glucose: Decimal) -> Decimal {
+        let units = profile.outUnits ?? .mgdL
+        switch units {
+        case .mgdL: return glucose.jsRounded()
+        case .mmolL: return glucose.asMmolL
+        }
+    }
+
+    /// Top level smb enabling logic
+    ///
+    /// This function includes both the profile / customOrefVariable checks from JS `enable_smb` as
+    /// well as some of the later checks from `determineBasal` that can disable SMB
+    static func makeSMBDosingDecision(
+        profile: Profile,
+        meal: ComputedCarbs,
+        currentGlucose: Decimal,
+        adjustedTargetGlucose: Decimal,
+        adjustedSensitivity: Decimal,
+        minGuardGlucose: Decimal,
+        eventualGlucose: Decimal,
+        threshold: Decimal,
+        glucoseStatus: GlucoseStatus,
+        trioCustomOrefVariables: TrioCustomOrefVariables,
+        clock: Date
+    ) throws -> SMBDecision {
+        var smbIsEnabled = try isProfileSmbEnabled(
+            currentGlucose: currentGlucose,
+            adjustedTargetGlucose: adjustedTargetGlucose,
+            profile: profile,
+            meal: meal,
+            trioCustomOrefVariables: trioCustomOrefVariables,
+            clock: clock
+        )
+
+        // these last two checks are implemented outside of the core enable_smb
+        // function in JS but we should keep all of the smb enabling logic
+        // in one place. Note: We can't shortcut the return value because
+        // the determineBasal logic always evaluates this logic
+        var manualBolusError: Int?
+        var insulinForManualBolus: Decimal?
+        var minGuardGlucoseDecision: Decimal?
+        var reason: String?
+        if smbIsEnabled, minGuardGlucose < threshold {
+            manualBolusError = 1
+            insulinForManualBolus = ((eventualGlucose - adjustedTargetGlucose) / adjustedSensitivity).jsRounded(scale: 2)
+            minGuardGlucoseDecision = minGuardGlucose
+            smbIsEnabled = false
+        }
+
+        let maxDeltaGlucoseThreshold = min(profile.maxDeltaBgThreshold, 0.4)
+        if glucoseStatus.maxDelta > maxDeltaGlucoseThreshold * currentGlucose {
+            reason =
+                "maxDelta \(convertGlucose(profile: profile, glucose: glucoseStatus.maxDelta)) > \(100 * maxDeltaGlucoseThreshold)% of BG \(convertGlucose(profile: profile, glucose: currentGlucose)) - SMB disabled!, "
+            smbIsEnabled = false
+        }
+
+        return SMBDecision(
+            isEnabled: smbIsEnabled,
+            manualBolusError: manualBolusError,
+            insulinForManualBolus: insulinForManualBolus,
+            minGuardGlucose: minGuardGlucoseDecision,
+            reason: reason
+        )
+    }
+
     static func prepareDosingInputs(
         profile: Profile,
         mealData: ComputedCarbs,

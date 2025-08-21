@@ -34,6 +34,9 @@ struct Determination: JSON, Equatable {
     var threshold: Decimal?
     let carbRatio: Decimal?
     let received: Bool?
+
+    // only used for debugging
+    var enableSMB: Bool? = nil
 }
 
 struct Predictions: JSON, Equatable {
@@ -74,6 +77,7 @@ extension Determination {
         case threshold
         case carbRatio = "CR"
         case received
+        case enableSMB
     }
 }
 

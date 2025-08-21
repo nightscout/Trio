@@ -1,17 +1,27 @@
 import Foundation
 
-enum MinutesFromMidnightError: LocalizedError, Equatable {
+enum CalendarError: LocalizedError, Equatable {
     case invalidCalendar
+    case invalidCalendarHourOnly
 
     var errorDescription: String? {
         switch self {
         case .invalidCalendar:
             return "Unable to extract hours and minutes from the current calendar"
+        case .invalidCalendarHourOnly:
+            return "Unable to extract hours from the current calendar"
         }
     }
 }
 
 extension Date {
+    /// Returns the hour component for the date using the current timezone
+    var hourInLocalTime: Int? {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.hour], from: self)
+        return components.hour
+    }
+
     /// Returns the total minutes elapsed since midnight for the current date
     var minutesSinceMidnight: Int? {
         let calendar = Calendar.current
@@ -51,7 +61,7 @@ extension Date {
     /// - Returns: Boolean indicating if the current time is within the specified range
     func isMinutesFromMidnightWithinRange(lowerBound: Int, upperBound: Int) throws -> Bool {
         guard let currentMinutes = minutesSinceMidnight else {
-            throw MinutesFromMidnightError.invalidCalendar
+            throw CalendarError.invalidCalendar
         }
         return currentMinutes >= lowerBound && currentMinutes < upperBound
     }

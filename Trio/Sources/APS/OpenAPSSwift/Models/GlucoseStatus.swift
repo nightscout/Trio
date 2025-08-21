@@ -20,4 +20,9 @@ public struct GlucoseStatus: Codable {
     public let lastCalIndex: Int?
     /// The original device/type string (e.g. “sgv” or “cal”)
     public let device: String?
+
+    /// helper function to calculate the maxDelta variable from JS
+    public var maxDelta: Decimal {
+        max(delta, shortAvgDelta, longAvgDelta)
+    }
 }

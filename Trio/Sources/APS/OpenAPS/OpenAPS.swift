@@ -877,7 +877,8 @@ final class OpenAPS {
             preferences: preferences,
             basalProfile: basalProfile,
             trioCustomOrefVariables: trioCustomOrefVariables,
-            clock: clock
+            clock: clock,
+            includeDebugOutputs: false
         )
         let swiftDuration = Date().timeIntervalSince(startSwiftAt)
 

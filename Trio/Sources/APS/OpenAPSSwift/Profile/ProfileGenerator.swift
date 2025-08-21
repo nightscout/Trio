@@ -168,7 +168,7 @@ enum ProfileGenerator {
             }
         }
 
-        profile.outUnits = bgTargets.userPreferredUnits.rawValue
+        profile.outUnits = bgTargets.userPreferredUnits
         let (updatedTargets, range) = try Targets.bgTargetsLookup(targets: bgTargets, tempTargets: tempTargets, profile: profile)
         profile.minBg = range.minBg?.rounded()
         profile.maxBg = range.maxBg?.rounded()

@@ -21,7 +21,8 @@ enum DeterminationGenerator {
         reservoirData _: Decimal,
         glucose: [BloodGlucose],
         trioCustomOrefVariables: TrioCustomOrefVariables,
-        currentTime: Date
+        currentTime: Date,
+        includeDebugOutputs: Bool
     ) throws -> Determination? {
         var autosensData = autosensData
         let glucoseStatus = try Self.getGlucoseStatus(glucoseReadings: glucose)
@@ -99,50 +100,6 @@ enum DeterminationGenerator {
             sensitivityRatio: sensitivityRatio,
             trioCustomOrefVariables: trioCustomOrefVariables
         )
-
-        // Safety check: current temp vs. last temp in iob
-        guard let lastTempTarget = iobData.first?.lastTemp else {
-            throw DeterminationError.missingIob
-        }
-        if !checkCurrentTempBasalRateSafety(
-            currentTemp: currentTemp,
-            lastTempTarget: lastTempTarget,
-            currentTime: currentTime
-        ) {
-            let reason =
-                "Safety check: currentTemp does not match lastTemp in IOB or lastTemp ended long ago; canceling temp basal."
-            return Determination(
-                id: UUID(),
-                reason: reason,
-                units: nil,
-                insulinReq: nil,
-                eventualBG: nil,
-                sensitivityRatio: nil,
-                rate: 0,
-                duration: 0,
-                iob: iobData.first?.iob,
-                cob: nil,
-                predictions: nil,
-                deliverAt: currentTime,
-                carbsReq: nil,
-                temp: .absolute,
-                bg: glucoseStatus.glucose,
-                reservoir: nil,
-                isf: profile.sens,
-                timestamp: currentTime,
-                tdd: nil,
-                current_target: profile.targetBg,
-                insulinForManualBolus: nil,
-                manualBolusErrorString: nil,
-                minDelta: nil,
-                expectedDelta: nil,
-                minGuardBG: nil,
-                minPredBG: nil,
-                threshold: nil,
-                carbRatio: profile.carbRatio,
-                received: false
-            )
-        }
 
         let (adjustedGlucoseTargets, threshold) = adjustGlucoseTargets(
             profile: profile,
@@ -254,50 +211,113 @@ enum DeterminationGenerator {
             targetLog: "" // Placeholder
         )
 
+        let smbDecision = try DosingEngine.makeSMBDosingDecision(
+            profile: profile,
+            meal: mealData,
+            currentGlucose: currentGlucose,
+            adjustedTargetGlucose: adjustedGlucoseTargets.targetGlucose,
+            adjustedSensitivity: adjustedSensitivity,
+            minGuardGlucose: forecastResult.minGuardGlucose,
+            eventualGlucose: eventualGlucose,
+            threshold: threshold,
+            glucoseStatus: glucoseStatus,
+            trioCustomOrefVariables: trioCustomOrefVariables,
+            clock: currentTime
+        )
+
         // TODO: STOPPING at LINE 1264
 
-        // FIXME: properly populate all fields!
-        let temporaryResult = Determination(
-            id: UUID(),
-            reason: dosingInputs.reason,
-            units: nil,
-            insulinReq: nil,
-            eventualBG: Int(forecastResult.eventualGlucose),
-            sensitivityRatio: sensitivityRatio, // this would only the AS-adjusted one for now
-            rate: nil,
-            duration: nil,
-            iob: iobData.first?.iob,
-            cob: mealData.mealCOB,
-            predictions: Predictions(
-                iob: forecastResult.iob.map { Int($0.jsRounded()) },
-                zt: forecastResult.zt.map { Int($0.jsRounded()) },
-                cob: forecastResult.cob?.map { Int($0.jsRounded()) },
-                uam: forecastResult.uam?.map { Int($0.jsRounded()) }
-            ),
-            deliverAt: currentTime,
-            carbsReq: dosingInputs.carbsRequired?.carbs,
-            temp: nil,
-            bg: currentGlucose,
-            reservoir: nil,
-            isf: nil,
-            timestamp: currentTime,
-            tdd: nil,
-            current_target: nil,
-            insulinForManualBolus: nil,
-            manualBolusErrorString: nil,
-            minDelta: nil,
-            expectedDelta: expectedDelta,
-            minGuardBG: forecastResult.minGuardGlucose,
-            minPredBG: forecastResult.minForecastedGlucose,
-            threshold: threshold.jsRounded(),
-            carbRatio: forecastResult.adjustedCarbRatio.jsRounded(scale: 1),
-            received: false,
-        )
+        var determination: Determination
+        // Safety check: current temp vs. last temp in iob
+        guard let lastTempTarget = iobData.first?.lastTemp else {
+            throw DeterminationError.missingIob
+        }
+        if !checkCurrentTempBasalRateSafety(
+            currentTemp: currentTemp,
+            lastTempTarget: lastTempTarget,
+            currentTime: currentTime
+        ) {
+            let reason =
+                "Safety check: currentTemp does not match lastTemp in IOB or lastTemp ended long ago; canceling temp basal."
+            determination = Determination(
+                id: UUID(),
+                reason: reason,
+                units: nil,
+                insulinReq: nil,
+                eventualBG: nil,
+                sensitivityRatio: nil,
+                rate: 0,
+                duration: 0,
+                iob: iobData.first?.iob,
+                cob: nil,
+                predictions: nil,
+                deliverAt: currentTime,
+                carbsReq: nil,
+                temp: .absolute,
+                bg: glucoseStatus.glucose,
+                reservoir: nil,
+                isf: profile.sens,
+                timestamp: currentTime,
+                tdd: nil,
+                current_target: profile.targetBg,
+                insulinForManualBolus: nil,
+                manualBolusErrorString: nil,
+                minDelta: nil,
+                expectedDelta: nil,
+                minGuardBG: nil,
+                minPredBG: nil,
+                threshold: nil,
+                carbRatio: profile.carbRatio,
+                received: false
+            )
+        } else {
+            // FIXME: properly populate all fields!
+            determination = Determination(
+                id: UUID(),
+                reason: dosingInputs.reason,
+                units: nil,
+                insulinReq: nil,
+                eventualBG: Int(forecastResult.eventualGlucose),
+                sensitivityRatio: sensitivityRatio, // this would only the AS-adjusted one for now
+                rate: nil,
+                duration: nil,
+                iob: iobData.first?.iob,
+                cob: mealData.mealCOB,
+                predictions: Predictions(
+                    iob: forecastResult.iob.map { Int($0.jsRounded()) },
+                    zt: forecastResult.zt.map { Int($0.jsRounded()) },
+                    cob: forecastResult.cob?.map { Int($0.jsRounded()) },
+                    uam: forecastResult.uam?.map { Int($0.jsRounded()) }
+                ),
+                deliverAt: currentTime,
+                carbsReq: dosingInputs.carbsRequired?.carbs,
+                temp: nil,
+                bg: currentGlucose,
+                reservoir: nil,
+                isf: nil,
+                timestamp: currentTime,
+                tdd: nil,
+                current_target: nil,
+                insulinForManualBolus: nil,
+                manualBolusErrorString: nil,
+                minDelta: nil,
+                expectedDelta: expectedDelta,
+                minGuardBG: forecastResult.minGuardGlucose,
+                minPredBG: forecastResult.minForecastedGlucose,
+                threshold: threshold.jsRounded(),
+                carbRatio: forecastResult.adjustedCarbRatio.jsRounded(scale: 1),
+                received: false,
+            )
+        }
+
+        if includeDebugOutputs {
+            determination.enableSMB = smbDecision.isEnabled
+        }
 
         // TODO: how to handle output?
         // TODO: how to handle logging?
 
-        return temporaryResult
+        return determination
     }
 
     static func checkDeterminationInputs(

@@ -528,6 +528,7 @@ extension Determination: Codable {
         case carbRatio = "CR"
         case received
         case receivedAlt = "recieved"
+        case enableSMB
     }
 
     init(from decoder: Decoder) throws {
@@ -604,6 +605,7 @@ extension Determination: Codable {
         try container.encodeIfPresent(threshold, forKey: .threshold)
         try container.encodeIfPresent(carbRatio, forKey: .carbRatio)
         try container.encodeIfPresent(received, forKey: .received) // always encode the correct spelling
+        try container.encodeIfPresent(enableSMB, forKey: .enableSMB)
     }
 
     func checkForRequiredFields() throws {
