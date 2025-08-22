@@ -3,6 +3,8 @@ import Foundation
 enum DeterminationError: LocalizedError, Equatable {
     case missingGlucoseStatus
     case missingProfile
+    case missingCurrentBasal
+    case missingMinBg
     case staleGlucoseData(ageMinutes: Double)
     case glucoseOutOfRange(glucose: Decimal)
     case cgmNoiseTooHigh(noise: Int)
@@ -18,6 +20,12 @@ enum DeterminationError: LocalizedError, Equatable {
             return String(localized: "No glucose status; cannot determine basal.")
         case .missingProfile:
             return String(localized: "No profile; cannot determine basal.")
+        case .missingCurrentBasal:
+            // string copied from JS
+            return String(localized: "Error: could not get current basal rate")
+        case .missingMinBg:
+            // string copied from JS including trailing space
+            return String(localized: "Error: could not determine target_bg. ")
         case let .staleGlucoseData(ageMinutes):
             return String(localized: "Glucose data is too old (\(ageMinutes) min ago).")
         case let .glucoseOutOfRange(glucose):

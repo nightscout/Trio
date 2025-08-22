@@ -55,8 +55,7 @@ import Testing
             preferences: determineBasalInput.preferences,
             basalProfile: determineBasalInput.basalProfile,
             trioCustomOrefVariables: determineBasalInput.trioCustomOrefVariables,
-            clock: determineBasalInput.clock,
-            includeDebugOutputs: true
+            clock: determineBasalInput.clock
         )
 
         let determineBasalResultJavascript = try await openAps.determineBasalJavascript(
@@ -131,8 +130,7 @@ import Testing
             preferences: determineBasalInput.preferences,
             basalProfile: determineBasalInput.basalProfile,
             trioCustomOrefVariables: determineBasalInput.trioCustomOrefVariables,
-            clock: determineBasalInput.clock,
-            includeDebugOutputs: true
+            clock: determineBasalInput.clock
         )
 
         print("Swift result")

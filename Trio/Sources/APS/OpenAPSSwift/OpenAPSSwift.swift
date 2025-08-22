@@ -54,8 +54,7 @@ struct OpenAPSSwift {
         preferences: JSON,
         basalProfile: JSON,
         trioCustomOrefVariables: JSON,
-        clock: Date,
-        includeDebugOutputs: Bool
+        clock: Date
     ) -> (OrefFunctionResult, DetermineBasalInputs?) {
         var determineBasalInputs: DetermineBasalInputs?
 
@@ -105,12 +104,20 @@ struct OpenAPSSwift {
                 reservoirData: reservoir ?? 100,
                 glucose: glucose,
                 trioCustomOrefVariables: trioCustomOrefVariables,
-                currentTime: clock,
-                includeDebugOutputs: includeDebugOutputs
+                currentTime: clock
             )
 
             return (try .success(JSONBridge.to(rawDetermination)), determineBasalInputs)
 
+        } catch let determinationError as DeterminationError {
+            // if we get a determination error we want to return it as a JSON
+            // object that is { "error": "some error" }
+            do {
+                let response = try JSONBridge.to(DeterminationErrorResponse(error: determinationError.localizedDescription))
+                return (.success(response), determineBasalInputs)
+            } catch {
+                return (.failure(determinationError), determineBasalInputs)
+            }
         } catch {
             return (.failure(error), determineBasalInputs)
         }

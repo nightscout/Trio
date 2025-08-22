@@ -287,6 +287,7 @@
 		3B5CD2CD2D4AECD500CE213C /* ProfileIsfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2C42D4AECD500CE213C /* ProfileIsfTests.swift */; };
 		3B5CD2CE2D4AECD500CE213C /* ProfileBasalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2C12D4AECD500CE213C /* ProfileBasalTests.swift */; };
 		3B5F45B62D6A239500F70982 /* DoubleApproximateMatching.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5F45B52D6A239000F70982 /* DoubleApproximateMatching.swift */; };
+		3B8221B22E5882E300585156 /* DetermineBasalEarlyExitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B8221B12E5882D900585156 /* DetermineBasalEarlyExitTests.swift */; };
 		3B8B5D332DF5238000365ED3 /* as-profile.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B8B5D302DF5238000365ED3 /* as-profile.json */; };
 		3B8B5D342DF5238000365ED3 /* as-glucose.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B8B5D2F2DF5238000365ED3 /* as-glucose.json */; };
 		3B8B5D352DF5238000365ED3 /* as-pump.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B8B5D312DF5238000365ED3 /* as-pump.json */; };
@@ -1213,6 +1214,7 @@
 		3B5CD2C52D4AECD500CE213C /* ProfileJavascriptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileJavascriptTests.swift; sourceTree = "<group>"; };
 		3B5CD2C62D4AECD500CE213C /* ProfileTargetsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileTargetsTests.swift; sourceTree = "<group>"; };
 		3B5F45B52D6A239000F70982 /* DoubleApproximateMatching.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleApproximateMatching.swift; sourceTree = "<group>"; };
+		3B8221B12E5882D900585156 /* DetermineBasalEarlyExitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalEarlyExitTests.swift; sourceTree = "<group>"; };
 		3B8B5D2D2DF5238000365ED3 /* as-basal.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "as-basal.json"; sourceTree = "<group>"; };
 		3B8B5D2E2DF5238000365ED3 /* as-carbs.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "as-carbs.json"; sourceTree = "<group>"; };
 		3B8B5D2F2DF5238000365ED3 /* as-glucose.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "as-glucose.json"; sourceTree = "<group>"; };
@@ -2937,6 +2939,7 @@
 				3B8B5D3B2DF523B800365ED3 /* AutosensJsonTests.swift */,
 				3BBC22622DF5B93900169236 /* AutosensTests.swift */,
 				DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */,
+				3B8221B12E5882D900585156 /* DetermineBasalEarlyExitTests.swift */,
 				3BAC929A2E55FF4F00B853DA /* DetermineBasalEnableSmbTests.swift */,
 				3BE9F0BA2E28C993001B14EB /* DetermineBasalJsonTests.swift */,
 				3B2A3BC22E2B19F700658FB9 /* DynamicISFTests.swift */,
@@ -5249,6 +5252,7 @@
 				3BC4053B2D931620006A03E9 /* IobJsonTests.swift in Sources */,
 				3BEF6AB72D9750780076089D /* MealJsonTests.swift in Sources */,
 				38FCF3F925E902C20078B0D1 /* FileStorageTests.swift in Sources */,
+				3B8221B22E5882E300585156 /* DetermineBasalEarlyExitTests.swift in Sources */,
 				BD8FC0602D6619DB00B95AED /* CarbsStorageTests.swift in Sources */,
 				DD30BA002E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift in Sources */,
 				BD8FC05E2D6618CE00B95AED /* BolusCalculatorTests.swift in Sources */,
