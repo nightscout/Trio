@@ -62,6 +62,7 @@ enum DeterminationGenerator {
             currentTemp: currentTemp,
             iobData: iobData,
             profile: profile,
+            trioCustomOrefVariables: trioCustomOrefVariables,
             currentTime: currentTime,
         )
 
@@ -347,6 +348,7 @@ enum DeterminationGenerator {
         currentTemp _: TempBasal?,
         iobData: [IobResult]?,
         profile: Profile?,
+        trioCustomOrefVariables: TrioCustomOrefVariables,
         currentTime: Date = Date()
     ) throws {
         guard let glucoseStatus = glucoseStatus else {
@@ -355,8 +357,8 @@ enum DeterminationGenerator {
         guard let profile = profile else {
             throw DeterminationError.missingProfile
         }
-        guard profile.minBg != nil else {
-            throw DeterminationError.missingMinBg
+        guard profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables) != nil else {
+            throw DeterminationError.invalidProfileTarget
         }
         let glucoseAge = currentTime.timeIntervalSince(glucoseStatus.date)
         if glucoseAge > 15 * 60 {

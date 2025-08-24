@@ -318,7 +318,7 @@ import Testing
         ) = createDefaultInputs()
         profile.minBg = nil
 
-        #expect(throws: DeterminationError.missingMinBg) { // Using a placeholder error
+        #expect(throws: DeterminationError.invalidProfileTarget) {
             _ = try DeterminationGenerator.determineBasal(
                 profile: profile,
                 preferences: preferences,
