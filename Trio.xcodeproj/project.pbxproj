@@ -2868,7 +2868,6 @@
 				3B5CD2B22D4AEA6600CE213C /* Models */,
 				3B5CD2972D4AEA3C00CE213C /* Profile */,
 				3B5CD2A02D4AEA5100CE213C /* Utils */,
-				3B2A3BC02E2B19C600658FB9 /* DynamicISF.swift */,
 				3B5CD1E92D4912A600CE213C /* OpenAPSSwift.swift */,
 				3B5CD1EA2D4912A600CE213C /* JSONBridge.swift */,
 			);
@@ -3756,6 +3755,7 @@
 				DD30BA052E07667000DA677C /* DetermineBasal+Helpers.swift */,
 				DD30B9C62E06257300DA677C /* DetermineBasalGenerator.swift */,
 				3BAE876D2E47F12900FCA8D2 /* DosingEngine.swift */,
+				3B2A3BC02E2B19C600658FB9 /* DynamicISF.swift */,
 				3BAC929C2E56A84E00B853DA /* TempBasalFunctions.swift */,
 			);
 			path = DetermineBasal;
