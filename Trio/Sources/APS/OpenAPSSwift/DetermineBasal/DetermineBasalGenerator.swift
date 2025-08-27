@@ -291,7 +291,7 @@ enum DeterminationGenerator {
             adjustedTargetGlucose: adjustedGlucoseTargets.targetGlucose,
             adjustedSensitivity: adjustedSensitivity,
             minGuardGlucose: forecastResult.minGuardGlucose,
-            eventualGlucose: eventualGlucose,
+            eventualGlucose: forecastResult.eventualGlucose,
             threshold: threshold,
             glucoseStatus: glucoseStatus,
             trioCustomOrefVariables: trioCustomOrefVariables,
@@ -305,7 +305,7 @@ enum DeterminationGenerator {
             reason: dosingInputs.reason,
             units: nil,
             insulinReq: nil,
-            eventualBG: Int(forecastResult.eventualGlucose),
+            eventualBG: Int(forecastResult.eventualGlucose.jsRounded()),
             sensitivityRatio: sensitivityRatio, // this would only the AS-adjusted one for now
             rate: nil,
             duration: nil,
