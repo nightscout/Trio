@@ -59,7 +59,7 @@ enum ForecastGenerator {
             glucoseImpactSeries: glucoseImpactSeries,
             iobData: iobData,
             carbImpact: carbImpact,
-            dynamicIsfState: preferences.dynamicIsfState(),
+            dynamicIsfState: preferences.dynamicIsfState(profile: profile, trioCustomOrefVariables: trioCustomOrefVariables),
             insulinFactor: dynamicIsfResult?.insulinFactor,
             tdd: trioCustomOrefVariables.tdd(profile: profile),
             adjustmentFactorLogrithmic: profile.adjustmentFactor
@@ -79,7 +79,7 @@ enum ForecastGenerator {
             uamCarbImpact: uamCarbImpact,
             carbImpact: carbImpact,
             iobData: iobData,
-            dynamicIsfState: preferences.dynamicIsfState(),
+            dynamicIsfState: preferences.dynamicIsfState(profile: profile, trioCustomOrefVariables: trioCustomOrefVariables),
             insulinFactor: dynamicIsfResult?.insulinFactor,
             tdd: trioCustomOrefVariables.tdd(profile: profile),
             adjustmentFactorLogrithmic: profile.adjustmentFactor
@@ -90,7 +90,7 @@ enum ForecastGenerator {
             glucoseImpactSeriesWithZeroTemp: glucoseImpactSeriesWithZeroTemp,
             targetBG: targetGlucose,
             iobData: iobData,
-            dynamicIsfState: preferences.dynamicIsfState(),
+            dynamicIsfState: preferences.dynamicIsfState(profile: profile, trioCustomOrefVariables: trioCustomOrefVariables),
             insulinFactor: dynamicIsfResult?.insulinFactor,
             tdd: trioCustomOrefVariables.tdd(profile: profile),
             adjustmentFactorLogrithmic: profile.adjustmentFactor

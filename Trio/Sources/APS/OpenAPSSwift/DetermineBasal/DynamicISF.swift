@@ -47,6 +47,10 @@ enum DynamicISF {
             return nil
         }
 
+        guard preferences.dynamicIsfState(profile: profile, trioCustomOrefVariables: trioCustomOrefVariables) != .off else {
+            return nil
+        }
+
         let bg = currentGlucose
 
         var tdd24h_14d_Ratio: Decimal
@@ -124,8 +128,27 @@ enum DynamicIsfState {
 }
 
 extension Preferences {
-    func dynamicIsfState() -> DynamicIsfState {
+    func dynamicIsfState(profile: Profile, trioCustomOrefVariables: TrioCustomOrefVariables) -> DynamicIsfState {
         guard useNewFormula else { return .off }
+
+        // Turn off when autosens.min = autosens.max
+        // BUG: This check matches the JS logic but there should
+        // be a check for max > min. It's impossible in the UI to have
+        // min > max so I'll leave it out (and we do a proper check
+        // elsewhere in DynamicISF)
+        let minLimit = min(profile.autosensMax, profile.autosensMin)
+        let maxLimit = max(profile.autosensMax, profile.autosensMin)
+        if maxLimit == minLimit || minLimit > 1 || maxLimit < 1 {
+            return .off
+        }
+
+        // checks for 'exercise mode' like conditions
+        if profile.highTemptargetRaisesSensitivity,
+           let profileTarget = profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables), profileTarget >= 118
+        {
+            return .off
+        }
+
         return sigmoid ? .sigmoid : .logrithmic
     }
 }
