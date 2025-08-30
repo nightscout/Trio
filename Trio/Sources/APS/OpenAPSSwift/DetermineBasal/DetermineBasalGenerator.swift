@@ -369,6 +369,27 @@ enum DeterminationGenerator {
             return determination
         }
 
+        let (setTempBasalForLowEventualGlucose, lowEventualGlucoseDetermination) = try DosingEngine.handleLowEventualGlucose(
+            eventualGlucose: forecastResult.eventualGlucose,
+            minGlucose: adjustedGlucoseTargets.minGlucose,
+            targetGlucose: adjustedGlucoseTargets.targetGlucose,
+            minDelta: minDelta,
+            expectedDelta: expectedDelta,
+            carbsRequired: dosingInputs.carbsRequired?.carbs ?? 0,
+            naiveEventualGlucose: naiveEventualGlucose,
+            glucoseStatus: glucoseStatus,
+            currentTemp: currentTemp,
+            basal: basal,
+            profile: profile,
+            determination: determination,
+            adjustedSensitivity: adjustedSensitivity,
+            overrideFactor: trioCustomOrefVariables.overrideFactor()
+        )
+        determination = lowEventualGlucoseDetermination
+        if setTempBasalForLowEventualGlucose {
+            return determination
+        }
+
         // TODO: how to handle output?
         // TODO: how to handle logging?
 

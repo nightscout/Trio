@@ -217,6 +217,7 @@
 		3B1C5C452D68E269004E9273 /* IobTotalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C382D68E269004E9273 /* IobTotalTests.swift */; };
 		3B1C5C472D68E269004E9273 /* IobCalculateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C352D68E269004E9273 /* IobCalculateTests.swift */; };
 		3B1C5C482D68E269004E9273 /* IobHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C362D68E269004E9273 /* IobHistoryTests.swift */; };
+		3B1DB90F2E63C14C00BD814B /* DetermineBasalLowEventualGlucoseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1DB90E2E63C14200BD814B /* DetermineBasalLowEventualGlucoseTests.swift */; };
 		3B214EEA2E29632900046304 /* determine-basal-prepare.js in Resources */ = {isa = PBXBuildFile; fileRef = 3B214EE92E29631F00046304 /* determine-basal-prepare.js */; };
 		3B2A3BC12E2B19C600658FB9 /* DynamicISF.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2A3BC02E2B19C600658FB9 /* DynamicISF.swift */; };
 		3B2A3BC32E2B19F700658FB9 /* DynamicISFTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2A3BC22E2B19F700658FB9 /* DynamicISFTests.swift */; };
@@ -1167,6 +1168,7 @@
 		3B1C5C382D68E269004E9273 /* IobTotalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobTotalTests.swift; sourceTree = "<group>"; };
 		3B1C5C3D2D68E269004E9273 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		3B1C5C3E2D68E269004E9273 /* IobJsonTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobJsonTypes.swift; sourceTree = "<group>"; };
+		3B1DB90E2E63C14200BD814B /* DetermineBasalLowEventualGlucoseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalLowEventualGlucoseTests.swift; sourceTree = "<group>"; };
 		3B214EE92E29631F00046304 /* determine-basal-prepare.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "determine-basal-prepare.js"; sourceTree = "<group>"; };
 		3B2A3BC02E2B19C600658FB9 /* DynamicISF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISF.swift; sourceTree = "<group>"; };
 		3B2A3BC22E2B19F700658FB9 /* DynamicISFTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFTests.swift; sourceTree = "<group>"; };
@@ -2952,6 +2954,7 @@
 				3B8221B12E5882D900585156 /* DetermineBasalEarlyExitTests.swift */,
 				3BAC929A2E55FF4F00B853DA /* DetermineBasalEnableSmbTests.swift */,
 				3BE9F0BA2E28C993001B14EB /* DetermineBasalJsonTests.swift */,
+				3B1DB90E2E63C14200BD814B /* DetermineBasalLowEventualGlucoseTests.swift */,
 				3B2A3BC22E2B19F700658FB9 /* DynamicISFTests.swift */,
 				3B1C5C352D68E269004E9273 /* IobCalculateTests.swift */,
 				3B2CE68A2E24ADF3005EF782 /* IobGenerateTests.swift */,
@@ -5221,6 +5224,7 @@
 			files = (
 				3B5CD2C92D4AECD500CE213C /* ProfileCarbsTests.swift in Sources */,
 				3B8B5D3E2DF5240C00365ED3 /* TimeZoneForTests.swift in Sources */,
+				3B1DB90F2E63C14C00BD814B /* DetermineBasalLowEventualGlucoseTests.swift in Sources */,
 				3B5CD2CA2D4AECD500CE213C /* ProfileJavascriptTests.swift in Sources */,
 				3B5CD2CB2D4AECD500CE213C /* ProfileTargetsTests.swift in Sources */,
 				3BAC92CD2E57859D00B853DA /* SetTempBasalTests.swift in Sources */,
