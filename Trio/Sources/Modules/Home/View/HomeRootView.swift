@@ -432,7 +432,7 @@ extension Home {
                     Text(
                         (
                             Formatter.decimalFormatterWithTwoFractionDigits
-                                .string(from: (state.enactedAndNonEnactedDeterminations.first?.iob ?? 0) as NSNumber) ?? "0"
+                                .string(from: state.currentIOB as NSNumber) ?? "0"
                         ) +
                             String(localized: " U", comment: "Insulin unit")
                     )

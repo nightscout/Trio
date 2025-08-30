@@ -93,10 +93,10 @@ extension Treatments {
                         numberFormatter: mealFormatter,
                         showArrows: true,
                         previousTextField: { focusedField = previousField(from: .protein) },
-                        nextTextField: { focusedField = nextField(from: .protein) }
+                        nextTextField: { focusedField = nextField(from: .protein) },
+                        unitsText: String(localized: "g", comment: "Units for carbs")
                     )
                     .focused($focusedField, equals: .protein)
-                    Text("g").foregroundColor(.secondary)
                 }
 
                 Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
@@ -110,10 +110,10 @@ extension Treatments {
                         numberFormatter: mealFormatter,
                         showArrows: true,
                         previousTextField: { focusedField = previousField(from: .fat) },
-                        nextTextField: { focusedField = nextField(from: .fat) }
+                        nextTextField: { focusedField = nextField(from: .fat) },
+                        unitsText: String(localized: "g", comment: "Units for carbs")
                     )
                     .focused($focusedField, equals: .fat)
-                    Text("g").foregroundColor(.secondary)
                 }
             }
         }
@@ -129,13 +129,13 @@ extension Treatments {
                     numberFormatter: mealFormatter,
                     showArrows: true,
                     previousTextField: { focusedField = previousField(from: .carbs) },
-                    nextTextField: { focusedField = nextField(from: .carbs) }
+                    nextTextField: { focusedField = nextField(from: .carbs) },
+                    unitsText: String(localized: "g", comment: "Units for carbs")
                 )
                 .focused($focusedField, equals: .carbs)
                 .onChange(of: state.carbs) {
                     handleDebouncedInput()
                 }
-                Text("g").foregroundColor(.secondary)
             }
         }
 
@@ -331,14 +331,14 @@ extension Treatments {
                                     numberFormatter: formatter,
                                     showArrows: true,
                                     previousTextField: { focusedField = previousField(from: .bolus) },
-                                    nextTextField: { focusedField = nextField(from: .bolus) }
+                                    nextTextField: { focusedField = nextField(from: .bolus) },
+                                    unitsText: String(localized: "U", comment: "Units for bolus amount")
                                 ).focused($focusedField, equals: .bolus)
                                     .onChange(of: state.amount) {
                                         Task {
                                             await state.updateForecasts()
                                         }
                                     }
-                                Text(" U").foregroundColor(.secondary)
                             }
 
                             HStack {

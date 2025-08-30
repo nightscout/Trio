@@ -138,9 +138,9 @@ struct CarbEntryEditorView: View {
                             text: $editedCarbs,
                             placeholder: "0",
                             keyboardType: .numberPad,
-                            numberFormatter: mealFormatter
+                            numberFormatter: mealFormatter,
+                            unitsText: String(localized: "g", comment: "Units for carbs")
                         )
-                        Text("g").foregroundStyle(.secondary)
                     }
 
                     if state.settingsManager.settings.useFPUconversion {
@@ -150,9 +150,9 @@ struct CarbEntryEditorView: View {
                                 text: $editedProtein,
                                 placeholder: "0",
                                 keyboardType: .numberPad,
-                                numberFormatter: mealFormatter
+                                numberFormatter: mealFormatter,
+                                unitsText: String(localized: "g", comment: "Units for carbs")
                             )
-                            Text("g").foregroundStyle(.secondary)
                         }
 
                         HStack {
@@ -161,9 +161,9 @@ struct CarbEntryEditorView: View {
                                 text: $editedFat,
                                 placeholder: "0",
                                 keyboardType: .numberPad,
-                                numberFormatter: mealFormatter
+                                numberFormatter: mealFormatter,
+                                unitsText: String(localized: "g", comment: "Units for carbs")
                             )
-                            Text("g").foregroundStyle(.secondary)
                         }
                     }
 

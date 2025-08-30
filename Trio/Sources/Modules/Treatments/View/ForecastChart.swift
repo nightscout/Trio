@@ -20,20 +20,6 @@ struct ForecastChart: View {
             )) // min is 1.5h -> (1.5*1h = 1.5*(5*12*60))
     }
 
-    private var glucoseFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-
-        if state.units == .mmolL {
-            formatter.maximumFractionDigits = 1
-            formatter.minimumFractionDigits = 1
-            formatter.roundingMode = .halfUp
-        } else {
-            formatter.maximumFractionDigits = 0
-        }
-        return formatter
-    }
-
     private var selectedGlucose: GlucoseStored? {
         guard let selection = selection else { return nil }
         let range = selection.addingTimeInterval(-150) ... selection.addingTimeInterval(150)
@@ -73,8 +59,11 @@ struct ForecastChart: View {
 
             HStack {
                 Image(systemName: "syringe.fill")
-                Text("\(state.amount.description) U")
+                Text(
+                    "\(Formatter.bolusFormatter.string(from: state.amount as NSNumber) ?? state.amount.description) "
+                ) + Text(String(localized: "U", comment: "Insulin unit"))
             }
+
             .font(.footnote)
             .foregroundStyle(.blue)
             .padding(8)
@@ -185,19 +174,19 @@ struct ForecastChart: View {
                 HStack(spacing: 10) {
                     HStack(spacing: 4) {
                         Image(systemName: "circle.fill").foregroundStyle(Color.insulin)
-                        Text("IOB").foregroundStyle(Color.secondary)
+                        Text(String(localized: "IOB")).foregroundStyle(Color.secondary)
                     }
                     HStack(spacing: 4) {
                         Image(systemName: "circle.fill").foregroundStyle(Color.uam)
-                        Text("UAM").foregroundStyle(Color.secondary)
+                        Text(String(localized: "UAM")).foregroundStyle(Color.secondary)
                     }
                     HStack(spacing: 4) {
                         Image(systemName: "circle.fill").foregroundStyle(Color.zt)
-                        Text("ZT").foregroundStyle(Color.secondary)
+                        Text(String(localized: "ZT")).foregroundStyle(Color.secondary)
                     }
                     HStack(spacing: 4) {
                         Image(systemName: "circle.fill").foregroundStyle(Color.orange)
-                        Text("COB").foregroundStyle(Color.secondary)
+                        Text(String(localized: "COB")).foregroundStyle(Color.secondary)
                     }
                 }.font(.caption2)
             }

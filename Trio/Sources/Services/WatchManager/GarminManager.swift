@@ -53,6 +53,8 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Stores, retrieves, and updates insulin dose determinations in CoreData.
     @Injected() private var determinationStorage: DeterminationStorage!
 
+    @Injected() private var iobService: IOBService!
+
     /// Persists the user's device list between app launches.
     @Persisted(key: "BaseGarminManager.persistedDevices") private var persistedDevices: [GarminDevice] = []
 
@@ -133,6 +135,27 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             .receive(on: DispatchQueue.global(qos: .background))
             .sink { [weak self] _ in
                 guard let self = self else { return }
+                // Skip if no Garmin devices are connected
+                guard !self.devices.isEmpty else { return }
+                Task {
+                    do {
+                        let watchState = try await self.setupGarminWatchState()
+                        let watchStateData = try JSONEncoder().encode(watchState)
+                        self.sendWatchStateData(watchStateData)
+                    } catch {
+                        debug(
+                            .watchManager,
+                            "\(DebuggingIdentifiers.failed) Error updating watch state: \(error)"
+                        )
+                    }
+                }
+            }
+            .store(in: &subscriptions)
+
+        iobService.iobPublisher
+            .receive(on: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                guard let self = self else { return }
                 Task {
                     do {
                         let watchState = try await self.setupGarminWatchState()
@@ -160,6 +183,8 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             .filteredByEntityName("OrefDetermination")
             .sink { [weak self] _ in
                 guard let self = self else { return }
+                // Skip if no Garmin devices are connected
+                guard !self.devices.isEmpty else { return }
                 Task {
                     do {
                         let watchState = try await self.setupGarminWatchState()
@@ -180,6 +205,8 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             .filteredByEntityName("GlucoseStored")
             .sink { [weak self] _ in
                 guard let self = self else { return }
+                // Skip if no Garmin devices are connected
+                guard !self.devices.isEmpty else { return }
                 Task {
                     do {
                         let watchState = try await self.setupGarminWatchState()
@@ -219,6 +246,11 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Builds a `GarminWatchState` reflecting the latest glucose, trend, delta, eventual BG, ISF, IOB, and COB.
     /// - Returns: A `GarminWatchState` containing the most recent device- and therapy-related info.
     func setupGarminWatchState() async throws -> GarminWatchState {
+        // Skip expensive calculations if no Garmin devices are connected
+        guard !devices.isEmpty else {
+            debug(.watchManager, "⌚️❌ Skipping setupGarminWatchState - No Garmin devices connected")
+            return GarminWatchState()
+        }
         do {
             // Get Glucose IDs
             let glucoseIds = try await fetchGlucose()
@@ -239,14 +271,14 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                 var watchState = GarminWatchState()
 
                 /// Pull `glucose`, `trendRaw`, `delta`, `lastLoopDateInterval`, `iob`, `cob`,  `isf`, and `eventualBGRaw` from the latest determination.
+                let iobValue = self.iobService.currentIOB ?? 0
+                watchState.iob = self.iobFormatterWithOneFractionDigit(iobValue)
+
                 if let latestDetermination = determinationObjects.first {
                     watchState.lastLoopDateInterval = latestDetermination.timestamp.map {
                         guard $0.timeIntervalSince1970 > 0 else { return 0 }
                         return UInt64($0.timeIntervalSince1970)
                     }
-
-                    let iobValue = latestDetermination.iob ?? 0
-                    watchState.iob = self.iobFormatterWithOneFractionDigit(iobValue as Decimal)
 
                     let cobNumber = NSNumber(value: latestDetermination.cob)
                     watchState.cob = Formatter.integerFormatter.string(from: cobNumber)

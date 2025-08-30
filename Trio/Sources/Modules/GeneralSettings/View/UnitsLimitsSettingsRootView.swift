@@ -75,7 +75,7 @@ extension UnitsLimitsSettings {
 
                         VStack(alignment: .leading, spacing: 0) {
                             Text("What's NOT limited:")
-                            Text("• Manual boluses you enter yoursef")
+                            Text("• Manual boluses you enter yourself")
                             Text("• Manual temporary basal rates you set yourself")
                         }
                     }

@@ -29,6 +29,8 @@ import UIKit
 final class LiveActivityData: ObservableObject {
     /// Determination data used to update live activity state.
     @Published var determination: DeterminationData?
+    /// The most recent IoB data
+    @Published var iob: Decimal?
     /// Array of glucose readings fetched from persistent storage.
     @Published var glucoseFromPersistence: [GlucoseData]?
     /// The current override data (if any).
@@ -51,6 +53,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var storage: FileStorage!
     @Injected() private var glucoseStorage: GlucoseStorage!
+    @Injected() private var iobService: IOBService!
 
     private let activityAuthorizationInfo = ActivityAuthorizationInfo()
     /// Indicates whether system live activities are enabled.
@@ -146,6 +149,12 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
             .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .utility))
             .sink { [weak self] _ in
                 Task { await self?.loadDetermination() }
+            }.store(in: &subscriptions)
+
+        iobService.iobPublisher
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .utility))
+            .sink { [weak self] _ in
+                self?.data.iob = self?.iobService.currentIOB
             }.store(in: &subscriptions)
     }
 
@@ -374,6 +383,7 @@ extension LiveActivityManager {
             chart: glucose,
             settings: settings,
             determination: determination,
+            iob: data.iob,
             override: data.override,
             widgetItems: data.widgetItems
         )

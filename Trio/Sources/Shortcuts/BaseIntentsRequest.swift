@@ -16,6 +16,7 @@ import Swinject
     @Injected() var overrideStorage: OverrideStorage!
     @Injected() var liveActivityManager: LiveActivityManager!
     @Injected() var pumpHistoryStorage: PumpHistoryStorage!
+    @Injected() var iobService: IOBService!
 
     let resolver: Resolver
 

@@ -100,7 +100,10 @@ struct MealStatsView: View {
         }
         .onAppear {
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-            updateAverages()
+            // Delay the initial update to ensure scroll position has been processed
+            DispatchQueue.main.async {
+                updateAverages()
+            }
         }
         .onChange(of: scrollPosition) {
             updateTimer.scheduleUpdate {
@@ -110,7 +113,10 @@ struct MealStatsView: View {
         .onChange(of: selectedInterval) {
             Task {
                 scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-                updateAverages()
+                // Use async dispatch to ensure scroll position is updated before calculating averages
+                await MainActor.run {
+                    updateAverages()
+                }
             }
         }
     }

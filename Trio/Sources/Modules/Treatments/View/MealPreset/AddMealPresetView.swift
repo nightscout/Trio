@@ -75,9 +75,9 @@ struct AddMealPresetView: View {
                 text: $presetCarbs,
                 placeholder: "0",
                 keyboardType: .numberPad,
-                numberFormatter: mealFormatter
+                numberFormatter: mealFormatter,
+                unitsText: String(localized: "g", comment: "Units for carbs")
             )
-            Text("g").foregroundColor(.secondary)
         }
     }
 
@@ -89,9 +89,9 @@ struct AddMealPresetView: View {
                 text: $presetProtein,
                 placeholder: "0",
                 keyboardType: .numberPad,
-                numberFormatter: mealFormatter
+                numberFormatter: mealFormatter,
+                unitsText: String(localized: "g", comment: "Units for carbs")
             )
-            Text("g").foregroundColor(.secondary)
         }
         HStack {
             Text("Fat").foregroundColor(.orange)
@@ -100,9 +100,9 @@ struct AddMealPresetView: View {
                 text: $presetFat,
                 placeholder: "0",
                 keyboardType: .numberPad,
-                numberFormatter: mealFormatter
+                numberFormatter: mealFormatter,
+                unitsText: String(localized: "g", comment: "Units for carbs")
             )
-            Text("g").foregroundColor(.secondary)
         }
     }
 

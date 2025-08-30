@@ -75,8 +75,11 @@ struct TotalDailyDoseChart: View {
         }
         .onAppear {
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-            updateAverages()
-            updateTotalDoses()
+            // Delay the initial update to ensure scroll position has been processed
+            DispatchQueue.main.async {
+                updateAverages()
+                updateTotalDoses()
+            }
         }
         .onChange(of: scrollPosition) {
             updateTimer.scheduleUpdate {
@@ -89,9 +92,12 @@ struct TotalDailyDoseChart: View {
         .onChange(of: selectedInterval) {
             Task {
                 scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-                updateAverages()
-                if selectedInterval == .day {
-                    updateTotalDoses()
+                // Use async dispatch to ensure scroll position is updated before calculating averages
+                await MainActor.run {
+                    updateAverages()
+                    if selectedInterval == .day {
+                        updateTotalDoses()
+                    }
                 }
             }
         }
