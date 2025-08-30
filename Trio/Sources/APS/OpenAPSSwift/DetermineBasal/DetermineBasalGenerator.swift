@@ -298,11 +298,15 @@ enum DeterminationGenerator {
             clock: currentTime
         )
 
-        // TODO: STOPPING at LINE 1264
+        let smbIsEnabled = smbDecision.isEnabled
+        var reason = dosingInputs.reason
+        if let smbReason = smbDecision.reason {
+            reason += smbReason
+        }
 
         var determination = Determination(
             id: UUID(),
-            reason: dosingInputs.reason,
+            reason: reason,
             units: nil,
             insulinReq: nil,
             eventualBG: Int(forecastResult.eventualGlucose.jsRounded()),
@@ -326,19 +330,50 @@ enum DeterminationGenerator {
             timestamp: currentTime,
             tdd: nil,
             current_target: nil,
-            insulinForManualBolus: nil,
-            manualBolusErrorString: nil,
+            insulinForManualBolus: smbDecision.insulinForManualBolus,
+            manualBolusErrorString: smbDecision.manualBolusError.map { Decimal($0) },
             minDelta: nil,
             expectedDelta: expectedDelta,
-            minGuardBG: forecastResult.minGuardGlucose,
+            minGuardBG: smbDecision.minGuardGlucose ?? forecastResult.minGuardGlucose,
             minPredBG: forecastResult.minForecastedGlucose,
             threshold: threshold.jsRounded(),
             carbRatio: forecastResult.adjustedCarbRatio.jsRounded(scale: 1),
-            received: false,
+            received: false
         )
 
-        // TODO: how to handle output?
-        // TODO: how to handle logging?
+        // MARK: - Core dosing logic
+
+        let (setTempBasalForLowGlucoseSuspend, lowGlucoseSuspendDetermination) = try DosingEngine.lowGlucoseSuspend(
+            currentGlucose: currentGlucose,
+            minGuardGlucose: forecastResult.minGuardGlucose,
+            iob: currentIob,
+            minDelta: minDelta,
+            expectedDelta: expectedDelta,
+            threshold: threshold,
+            overrideFactor: trioCustomOrefVariables.overrideFactor(),
+            profile: profile,
+            eventualGlucose: eventualGlucose,
+            adjustedSensitivity: adjustedSensitivity,
+            targetGlucose: adjustedGlucoseTargets.targetGlucose,
+            currentTemp: currentTemp,
+            determination: determination
+        )
+        determination = lowGlucoseSuspendDetermination
+        if setTempBasalForLowGlucoseSuspend {
+            return determination
+        }
+
+        let (setTempBasalForSkipNeutralTemp, skipNeutralTempDetermination) = try DosingEngine.skipNeutralTempBasal(
+            smbIsEnabled: smbIsEnabled,
+            profile: profile,
+            clock: currentTime,
+            currentTemp: currentTemp,
+            determination: determination
+        )
+        determination = skipNeutralTempDetermination
+        if setTempBasalForSkipNeutralTemp {
+            return determination
+        }
 
         return determination
     }

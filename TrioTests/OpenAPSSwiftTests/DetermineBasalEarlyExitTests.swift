@@ -467,4 +467,88 @@ import Testing
             )
         }
     }
+
+    // Test 9 from JS
+    @Test("should low-temp if BG is below threshold") func lowGlucoseSuspend() throws {
+        var (
+            profile,
+            preferences,
+            currentTemp,
+            iobData,
+            mealData,
+            autosensData,
+            reservoirData,
+            _,
+            trioCustomOrefVariables,
+            currentTime
+        ) = createDefaultInputs()
+
+        let glucoseStatus = GlucoseStatus(
+            delta: 0,
+            glucose: 70,
+            noise: 1,
+            shortAvgDelta: 0,
+            longAvgDelta: 0.1,
+            date: currentTime,
+            lastCalIndex: nil,
+            device: "test"
+        )
+
+        let result = try DeterminationGenerator.determineBasal(
+            profile: profile,
+            preferences: preferences,
+            currentTemp: currentTemp,
+            iobData: iobData,
+            mealData: mealData,
+            autosensData: autosensData,
+            reservoirData: reservoirData,
+            glucoseStatus: glucoseStatus,
+            trioCustomOrefVariables: trioCustomOrefVariables,
+            currentTime: currentTime
+        )
+
+        #expect(result?.rate == 0)
+        #expect((result?.duration ?? 0) >= 30)
+        #expect(result?.reason.contains("minGuardBG") == true)
+    }
+
+    // Test 10 from JS
+    @Test("should cancel temp before the hour if not doing SMB") func skipNeutralTemp() throws {
+        var (
+            profile,
+            preferences,
+            currentTemp,
+            iobData,
+            mealData,
+            autosensData,
+            reservoirData,
+            glucoseStatus,
+            trioCustomOrefVariables,
+            _
+        ) = createDefaultInputs()
+
+        profile.skipNeutralTemps = true
+
+        // Create a date that is 56 minutes past the hour
+        var components = Calendar.current.dateComponents(in: .current, from: Date())
+        components.minute = 56
+        let currentTime = Calendar.current.date(from: components)!
+
+        let result = try DeterminationGenerator.determineBasal(
+            profile: profile,
+            preferences: preferences,
+            currentTemp: currentTemp,
+            iobData: iobData,
+            mealData: mealData,
+            autosensData: autosensData,
+            reservoirData: reservoirData,
+            glucoseStatus: glucoseStatus,
+            trioCustomOrefVariables: trioCustomOrefVariables,
+            currentTime: currentTime
+        )
+
+        #expect(result?.rate == 0)
+        #expect(result?.duration == 0)
+        #expect(result?.reason.contains("Canceling temp") == true)
+    }
 }
