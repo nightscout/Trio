@@ -3,7 +3,7 @@ import Testing
 @testable import Trio
 
 @Suite("DetermineBasal early exits before core dosing logic") struct DetermineBasalEarlyExitTests {
-    private func createDefaultInputs() -> (
+    private func createDefaultInputs(currentTime: Date = Date()) -> (
         profile: Profile,
         preferences: Preferences,
         currentTemp: TempBasal,
@@ -15,7 +15,6 @@ import Testing
         trioCustomOrefVariables: TrioCustomOrefVariables,
         currentTime: Date
     ) {
-        let currentTime = Date()
         var profile = Profile()
         profile.maxIob = 2.5
         profile.dia = 3
@@ -466,5 +465,89 @@ import Testing
                 currentTime: currentTime
             )
         }
+    }
+
+    // Test 9 from JS
+    @Test("should low-temp if BG is below threshold") func lowGlucoseSuspend() throws {
+        let (
+            profile,
+            preferences,
+            currentTemp,
+            iobData,
+            mealData,
+            autosensData,
+            reservoirData,
+            _,
+            trioCustomOrefVariables,
+            currentTime
+        ) = createDefaultInputs()
+
+        let glucoseStatus = GlucoseStatus(
+            delta: 0,
+            glucose: 70,
+            noise: 1,
+            shortAvgDelta: 0,
+            longAvgDelta: 0.1,
+            date: currentTime,
+            lastCalIndex: nil,
+            device: "test"
+        )
+
+        let result = try DeterminationGenerator.determineBasal(
+            profile: profile,
+            preferences: preferences,
+            currentTemp: currentTemp,
+            iobData: iobData,
+            mealData: mealData,
+            autosensData: autosensData,
+            reservoirData: reservoirData,
+            glucoseStatus: glucoseStatus,
+            trioCustomOrefVariables: trioCustomOrefVariables,
+            currentTime: currentTime
+        )
+
+        #expect(result?.rate == 0)
+        #expect((result?.duration ?? 0) >= 30)
+        #expect(result?.reason.contains("minGuardBG") == true)
+    }
+
+    // Test 10 from JS
+    @Test("should cancel temp before the hour if not doing SMB") func skipNeutralTemp() throws {
+        // Create a date that is 56 minutes past the hour
+        var components = Calendar.current.dateComponents(in: .current, from: Date())
+        components.minute = 56
+        let currentTime = Calendar.current.date(from: components)!
+
+        var (
+            profile,
+            preferences,
+            currentTemp,
+            iobData,
+            mealData,
+            autosensData,
+            reservoirData,
+            glucoseStatus,
+            trioCustomOrefVariables,
+            _
+        ) = createDefaultInputs(currentTime: currentTime)
+
+        profile.skipNeutralTemps = true
+
+        let result = try DeterminationGenerator.determineBasal(
+            profile: profile,
+            preferences: preferences,
+            currentTemp: currentTemp,
+            iobData: iobData,
+            mealData: mealData,
+            autosensData: autosensData,
+            reservoirData: reservoirData,
+            glucoseStatus: glucoseStatus,
+            trioCustomOrefVariables: trioCustomOrefVariables,
+            currentTime: currentTime
+        )
+
+        #expect(result?.rate == 0)
+        #expect(result?.duration == 0)
+        #expect(result?.reason.contains("Canceling temp") == true)
     }
 }

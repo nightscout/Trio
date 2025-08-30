@@ -10,7 +10,6 @@ enum DosingEngine {
     struct SMBDecision {
         let isEnabled: Bool
         let manualBolusError: Int?
-        let insulinForManualBolus: Decimal?
         let minGuardGlucose: Decimal?
         let reason: String?
     }
@@ -111,9 +110,7 @@ enum DosingEngine {
         meal: ComputedCarbs,
         currentGlucose: Decimal,
         adjustedTargetGlucose: Decimal,
-        adjustedSensitivity: Decimal,
         minGuardGlucose: Decimal,
-        eventualGlucose: Decimal,
         threshold: Decimal,
         glucoseStatus: GlucoseStatus,
         trioCustomOrefVariables: TrioCustomOrefVariables,
@@ -133,12 +130,10 @@ enum DosingEngine {
         // in one place. Note: We can't shortcut the return value because
         // the determineBasal logic always evaluates this logic
         var manualBolusError: Int?
-        var insulinForManualBolus: Decimal?
         var minGuardGlucoseDecision: Decimal?
         var reason: String?
         if smbIsEnabled, minGuardGlucose < threshold {
             manualBolusError = 1
-            insulinForManualBolus = ((eventualGlucose - adjustedTargetGlucose) / adjustedSensitivity).jsRounded(scale: 2)
             minGuardGlucoseDecision = minGuardGlucose
             smbIsEnabled = false
         }
@@ -153,7 +148,6 @@ enum DosingEngine {
         return SMBDecision(
             isEnabled: smbIsEnabled,
             manualBolusError: manualBolusError,
-            insulinForManualBolus: insulinForManualBolus,
             minGuardGlucose: minGuardGlucoseDecision,
             reason: reason
         )
@@ -270,5 +264,120 @@ enum DosingEngine {
         }
 
         return nil
+    }
+
+    /// Determines if a low glucose suspend is warranted.
+    ///
+    /// This function checks for low glucose conditions and may modify the determination object
+    /// with a suspend recommendation and an updated reason string.
+    ///
+    /// - Returns: A tuple containing:
+    ///   - `setTempBasal`: A `Bool` that is `true` if `determineBasal` should exit and apply the recommendation immediately.
+    ///   - `determination`: The (potentially modified) determination object.
+    static func lowGlucoseSuspend(
+        currentGlucose: Decimal,
+        minGuardGlucose: Decimal,
+        iob: Decimal,
+        minDelta: Decimal,
+        expectedDelta: Decimal,
+        threshold: Decimal,
+        overrideFactor: Decimal,
+        profile: Profile,
+        adjustedSensitivity: Decimal,
+        targetGlucose: Decimal,
+        currentTemp: TempBasal,
+        determination: Determination
+    ) throws -> (shouldSetTempBasal: Bool, determination: Determination) {
+        var newDetermination = determination
+
+        guard let currentBasal = profile.currentBasal else {
+            // Should have been checked earlier
+            throw TempBasalFunctionError.invalidBasalRateOnProfile
+        }
+
+        let suspendThreshold = -currentBasal * overrideFactor * 20 / 60
+        if currentGlucose < threshold, iob < suspendThreshold, minDelta > 0, minDelta > expectedDelta {
+            let iobString = String(describing: iob)
+            let suspendString = String(describing: suspendThreshold.jsRounded(scale: 2))
+            let minDeltaString = String(describing: convertGlucose(profile: profile, glucose: minDelta))
+            let expectedDeltaString = String(describing: convertGlucose(profile: profile, glucose: expectedDelta))
+
+            newDetermination
+                .reason +=
+                "IOB \(iobString) < \(suspendString) and minDelta \(minDeltaString) > expectedDelta \(expectedDeltaString); "
+            return (shouldSetTempBasal: false, determination: newDetermination)
+        } else if currentGlucose < threshold || minGuardGlucose < threshold {
+            let minGuardGlucoseString = String(describing: convertGlucose(profile: profile, glucose: minGuardGlucose))
+            let thresholdString = String(describing: convertGlucose(profile: profile, glucose: threshold))
+            newDetermination.reason += "minGuardBG \(minGuardGlucoseString) < \(thresholdString)"
+
+            let glucoseUndershoot = targetGlucose - minGuardGlucose
+            if minGuardGlucose < threshold {
+                newDetermination.manualBolusErrorString = 2
+                newDetermination.minGuardBG = minGuardGlucose
+            }
+
+            let worstCaseInsulinRequired = glucoseUndershoot / adjustedSensitivity
+            var durationRequired = (60 * worstCaseInsulinRequired / (currentBasal * overrideFactor)).jsRounded()
+            durationRequired = (durationRequired / 30).jsRounded() * 30
+            durationRequired = max(30, min(120, durationRequired))
+
+            let finalDetermination = try TempBasalFunctions.setTempBasal(
+                rate: 0,
+                duration: durationRequired,
+                profile: profile,
+                determination: newDetermination,
+                currentTemp: currentTemp
+            )
+            return (shouldSetTempBasal: true, determination: finalDetermination)
+        }
+
+        return (shouldSetTempBasal: false, determination: determination)
+    }
+
+    /// Determines if a neutral temp basal should be skipped to avoid pump alerts.
+    ///
+    /// - Returns: A tuple containing:
+    ///   - `shouldSetTempBasal`: A `Bool` that is `true` if `determineBasal` should exit and apply the recommendation immediately.
+    ///   - `determination`: The (potentially modified) determination object.
+    static func skipNeutralTempBasal(
+        smbIsEnabled: Bool,
+        profile: Profile,
+        clock: Date,
+        currentTemp: TempBasal,
+        determination: Determination
+    ) throws -> (shouldSetTempBasal: Bool, determination: Determination) {
+        guard profile.skipNeutralTemps else {
+            return (shouldSetTempBasal: false, determination: determination)
+        }
+        guard let totalMinutes = clock.minutesSinceMidnight else {
+            throw CalendarError.invalidCalendar
+        }
+
+        let minute = totalMinutes % 60
+        guard minute >= 55 else {
+            return (shouldSetTempBasal: false, determination: determination)
+        }
+
+        if !smbIsEnabled {
+            var newDetermination = determination
+            let minutesLeft = 60 - minute
+            newDetermination
+                .reason +=
+                "; Canceling temp at \(minutesLeft)min before turn of the hour to avoid beeping of MDT. SMB are disabled anyways."
+
+            let finalDetermination = try TempBasalFunctions.setTempBasal(
+                rate: 0,
+                duration: 0,
+                profile: profile,
+                determination: newDetermination,
+                currentTemp: currentTemp
+            )
+            return (shouldSetTempBasal: true, determination: finalDetermination)
+        } else {
+            // In the JS, this path logs to the console but does not modify determination.
+            // We will do nothing here to match that behavior.
+            return (shouldSetTempBasal: false, determination: determination)
+        }
     }
 }

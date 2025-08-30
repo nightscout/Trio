@@ -29,8 +29,7 @@ struct Determination: JSON, Equatable {
     var tdd: Decimal?
 
     var current_target: Decimal?
-    let insulinForManualBolus: Decimal?
-    let manualBolusErrorString: Decimal?
+    var manualBolusErrorString: Decimal?
     var minDelta: Decimal?
     var expectedDelta: Decimal?
     var minGuardBG: Decimal?

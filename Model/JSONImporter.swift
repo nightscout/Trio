@@ -553,7 +553,6 @@ extension Determination: Codable {
         isf = try container.decodeIfPresent(Decimal.self, forKey: .isf)
         current_target = try container.decodeIfPresent(Decimal.self, forKey: .current_target)
         tdd = try container.decodeIfPresent(Decimal.self, forKey: .tdd)
-        insulinForManualBolus = try container.decodeIfPresent(Decimal.self, forKey: .insulinForManualBolus)
         manualBolusErrorString = try container.decodeIfPresent(Decimal.self, forKey: .manualBolusErrorString)
         minDelta = try container.decodeIfPresent(Decimal.self, forKey: .minDelta)
         expectedDelta = try container.decodeIfPresent(Decimal.self, forKey: .expectedDelta)
@@ -595,7 +594,6 @@ extension Determination: Codable {
         try container.encodeIfPresent(isf, forKey: .isf)
         try container.encodeIfPresent(current_target, forKey: .current_target)
         try container.encodeIfPresent(tdd, forKey: .tdd)
-        try container.encodeIfPresent(insulinForManualBolus, forKey: .insulinForManualBolus)
         try container.encodeIfPresent(manualBolusErrorString, forKey: .manualBolusErrorString)
         try container.encodeIfPresent(minDelta, forKey: .minDelta)
         try container.encodeIfPresent(expectedDelta, forKey: .expectedDelta)
@@ -637,9 +635,6 @@ extension Determination: Codable {
         guard let manualBolusErrorString = manualBolusErrorString else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("manualBolusErrorString")
         }
-        guard let insulinForManualBolus = insulinForManualBolus else {
-            throw JSONImporterError.missingRequiredPropertyInDetermination("insulinForManualBolus")
-        }
         guard let cob = cob else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("COB")
         }
@@ -676,7 +671,6 @@ extension Determination: Codable {
         newOrefDetermination.deliverAt = deliverAt
         newOrefDetermination.timestamp = timestamp
         newOrefDetermination.enacted = received ?? false
-        newOrefDetermination.insulinForManualBolus = decimalToNSDecimalNumber(insulinForManualBolus)
         newOrefDetermination.carbRatio = decimalToNSDecimalNumber(carbRatio)
         newOrefDetermination.glucose = decimalToNSDecimalNumber(bg)
         newOrefDetermination.reservoir = decimalToNSDecimalNumber(reservoir)

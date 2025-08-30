@@ -40,7 +40,6 @@ final class OpenAPS {
             newOrefDetermination.currentTarget = self.decimalToNSDecimalNumber(determination.current_target)
             newOrefDetermination.eventualBG = determination.eventualBG.map(NSDecimalNumber.init)
             newOrefDetermination.deliverAt = determination.deliverAt
-            newOrefDetermination.insulinForManualBolus = self.decimalToNSDecimalNumber(determination.insulinForManualBolus)
             newOrefDetermination.carbRatio = self.decimalToNSDecimalNumber(determination.carbRatio)
             newOrefDetermination.glucose = self.decimalToNSDecimalNumber(determination.bg)
             newOrefDetermination.reservoir = self.decimalToNSDecimalNumber(determination.reservoir)

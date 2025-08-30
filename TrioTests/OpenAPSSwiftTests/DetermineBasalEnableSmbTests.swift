@@ -10,9 +10,7 @@ import Testing
         meal: ComputedCarbs,
         currentGlucose: Decimal,
         adjustedTargetGlucose: Decimal,
-        adjustedSensitivity: Decimal,
         minGuardGlucose: Decimal,
-        eventualGlucose: Decimal,
         threshold: Decimal,
         glucoseStatus: GlucoseStatus,
         trioCustomOrefVariables: TrioCustomOrefVariables,
@@ -75,9 +73,7 @@ import Testing
             meal: meal,
             currentGlucose: 120,
             adjustedTargetGlucose: 100,
-            adjustedSensitivity: 50,
             minGuardGlucose: 110,
-            eventualGlucose: 115,
             threshold: 70,
             glucoseStatus: glucoseStatus,
             trioCustomOrefVariables: trioCustomOrefVariables,
@@ -91,8 +87,8 @@ import Testing
         let inputs = createDefaultInputs()
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -106,8 +102,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -121,8 +117,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -137,8 +133,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -153,15 +149,14 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
         #expect(decision.isEnabled == false)
         #expect(decision.manualBolusError == 1)
         #expect(decision.minGuardGlucose == 65)
-        #expect(decision.insulinForManualBolus != nil)
     }
 
     @Test("Should disable SMB when maxDelta is too high") func disableWhenMaxDeltaTooHigh() throws {
@@ -183,8 +178,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -200,8 +195,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -225,8 +220,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -250,8 +245,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -266,8 +261,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -282,8 +277,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -302,8 +297,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -320,8 +315,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -340,8 +335,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -360,8 +355,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -378,8 +373,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -396,8 +391,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -414,8 +409,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
@@ -432,8 +427,8 @@ import Testing
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose, adjustedSensitivity: inputs.adjustedSensitivity,
-            minGuardGlucose: inputs.minGuardGlucose, eventualGlucose: inputs.eventualGlucose,
+            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
+            minGuardGlucose: inputs.minGuardGlucose,
             threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
