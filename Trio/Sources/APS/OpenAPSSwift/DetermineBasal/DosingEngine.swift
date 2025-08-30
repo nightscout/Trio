@@ -10,7 +10,6 @@ enum DosingEngine {
     struct SMBDecision {
         let isEnabled: Bool
         let manualBolusError: Int?
-        let insulinForManualBolus: Decimal?
         let minGuardGlucose: Decimal?
         let reason: String?
     }
@@ -111,9 +110,9 @@ enum DosingEngine {
         meal: ComputedCarbs,
         currentGlucose: Decimal,
         adjustedTargetGlucose: Decimal,
-        adjustedSensitivity: Decimal,
+        adjustedSensitivity _: Decimal,
         minGuardGlucose: Decimal,
-        eventualGlucose: Decimal,
+        eventualGlucose _: Decimal,
         threshold: Decimal,
         glucoseStatus: GlucoseStatus,
         trioCustomOrefVariables: TrioCustomOrefVariables,
@@ -133,12 +132,10 @@ enum DosingEngine {
         // in one place. Note: We can't shortcut the return value because
         // the determineBasal logic always evaluates this logic
         var manualBolusError: Int?
-        var insulinForManualBolus: Decimal?
         var minGuardGlucoseDecision: Decimal?
         var reason: String?
         if smbIsEnabled, minGuardGlucose < threshold {
             manualBolusError = 1
-            insulinForManualBolus = ((eventualGlucose - adjustedTargetGlucose) / adjustedSensitivity).jsRounded(scale: 2)
             minGuardGlucoseDecision = minGuardGlucose
             smbIsEnabled = false
         }
@@ -153,7 +150,6 @@ enum DosingEngine {
         return SMBDecision(
             isEnabled: smbIsEnabled,
             manualBolusError: manualBolusError,
-            insulinForManualBolus: insulinForManualBolus,
             minGuardGlucose: minGuardGlucoseDecision,
             reason: reason
         )
@@ -289,12 +285,12 @@ enum DosingEngine {
         threshold: Decimal,
         overrideFactor: Decimal,
         profile: Profile,
-        eventualGlucose: Decimal,
+        eventualGlucose _: Decimal,
         adjustedSensitivity: Decimal,
         targetGlucose: Decimal,
         currentTemp: TempBasal,
         determination: Determination
-    ) throws -> (setTempBasal: Bool, determination: Determination) {
+    ) throws -> (shouldSetTempBasal: Bool, determination: Determination) {
         var newDetermination = determination
 
         guard let currentBasal = profile.currentBasal else {
@@ -312,43 +308,40 @@ enum DosingEngine {
             newDetermination
                 .reason +=
                 "IOB \(iobString) < \(suspendString) and minDelta \(minDeltaString) > expectedDelta \(expectedDeltaString); "
-            return (setTempBasal: false, determination: newDetermination)
+            return (shouldSetTempBasal: false, determination: newDetermination)
         } else if currentGlucose < threshold || minGuardGlucose < threshold {
             let minGuardGlucoseString = String(describing: convertGlucose(profile: profile, glucose: minGuardGlucose))
             let thresholdString = String(describing: convertGlucose(profile: profile, glucose: threshold))
             newDetermination.reason += "minGuardBG \(minGuardGlucoseString) < \(thresholdString)"
 
-            let bgUndershoot = targetGlucose - minGuardGlucose
+            let glucoseUndershoot = targetGlucose - minGuardGlucose
             if minGuardGlucose < threshold {
                 newDetermination.manualBolusErrorString = 2
                 newDetermination.minGuardBG = minGuardGlucose
             }
 
-            newDetermination.insulinForManualBolus = ((eventualGlucose - targetGlucose) / adjustedSensitivity)
-                .rounded(toPlaces: 2)
-
-            let worstCaseInsulinReq = bgUndershoot / adjustedSensitivity
-            var durationReq = (60 * worstCaseInsulinReq / (currentBasal * overrideFactor)).rounded()
-            durationReq = (durationReq / 30).rounded() * 30
-            durationReq = max(30, min(120, durationReq))
+            let worstCaseInsulinRequired = glucoseUndershoot / adjustedSensitivity
+            var durationRequired = (60 * worstCaseInsulinRequired / (currentBasal * overrideFactor)).jsRounded()
+            durationRequired = (durationRequired / 30).jsRounded() * 30
+            durationRequired = max(30, min(120, durationRequired))
 
             let finalDetermination = try TempBasalFunctions.setTempBasal(
                 rate: 0,
-                duration: durationReq,
+                duration: durationRequired,
                 profile: profile,
                 determination: newDetermination,
                 currentTemp: currentTemp
             )
-            return (setTempBasal: true, determination: finalDetermination)
+            return (shouldSetTempBasal: true, determination: finalDetermination)
         }
 
-        return (setTempBasal: false, determination: determination)
+        return (shouldSetTempBasal: false, determination: determination)
     }
 
     /// Determines if a neutral temp basal should be skipped to avoid pump alerts.
     ///
     /// - Returns: A tuple containing:
-    ///   - `setTempBasal`: A `Bool` that is `true` if `determineBasal` should exit and apply the recommendation immediately.
+    ///   - `shouldSetTempBasal`: A `Bool` that is `true` if `determineBasal` should exit and apply the recommendation immediately.
     ///   - `determination`: The (potentially modified) determination object.
     static func skipNeutralTempBasal(
         smbIsEnabled: Bool,
@@ -356,9 +349,9 @@ enum DosingEngine {
         clock: Date,
         currentTemp: TempBasal,
         determination: Determination
-    ) throws -> (setTempBasal: Bool, determination: Determination) {
+    ) throws -> (shouldSetTempBasal: Bool, determination: Determination) {
         guard profile.skipNeutralTemps else {
-            return (setTempBasal: false, determination: determination)
+            return (shouldSetTempBasal: false, determination: determination)
         }
         guard let totalMinutes = clock.minutesSinceMidnight else {
             throw CalendarError.invalidCalendar
@@ -366,7 +359,7 @@ enum DosingEngine {
 
         let minute = totalMinutes % 60
         guard minute >= 55 else {
-            return (setTempBasal: false, determination: determination)
+            return (shouldSetTempBasal: false, determination: determination)
         }
 
         if !smbIsEnabled {
@@ -383,11 +376,11 @@ enum DosingEngine {
                 determination: newDetermination,
                 currentTemp: currentTemp
             )
-            return (setTempBasal: true, determination: finalDetermination)
+            return (shouldSetTempBasal: true, determination: finalDetermination)
         } else {
             // In the JS, this path logs to the console but does not modify determination.
             // We will do nothing here to match that behavior.
-            return (setTempBasal: false, determination: determination)
+            return (shouldSetTempBasal: false, determination: determination)
         }
     }
 }

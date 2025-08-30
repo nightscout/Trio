@@ -109,7 +109,6 @@ enum DeterminationGenerator {
                 timestamp: currentTime,
                 tdd: nil,
                 current_target: profile.targetBg,
-                insulinForManualBolus: nil,
                 manualBolusErrorString: nil,
                 minDelta: nil,
                 expectedDelta: nil,
@@ -128,7 +127,6 @@ enum DeterminationGenerator {
             trioCustomOrefVariables: trioCustomOrefVariables
         )
 
-        // TODO: We need to add the dynamicIsfResult to our forcasting functions
         if let dynamicIsfResult = dynamicIsfResult {
             autosensData = Autosens(
                 ratio: dynamicIsfResult.ratio,
@@ -330,7 +328,6 @@ enum DeterminationGenerator {
             timestamp: currentTime,
             tdd: nil,
             current_target: nil,
-            insulinForManualBolus: smbDecision.insulinForManualBolus,
             manualBolusErrorString: smbDecision.manualBolusError.map { Decimal($0) },
             minDelta: nil,
             expectedDelta: expectedDelta,
@@ -374,6 +371,9 @@ enum DeterminationGenerator {
         if setTempBasalForSkipNeutralTemp {
             return determination
         }
+
+        // TODO: how to handle output?
+        // TODO: how to handle logging?
 
         return determination
     }
@@ -491,7 +491,6 @@ enum DeterminationGenerator {
                 timestamp: currentTime,
                 tdd: nil,
                 current_target: profile.targetBg,
-                insulinForManualBolus: nil,
                 manualBolusErrorString: nil,
                 minDelta: minDelta,
                 expectedDelta: nil,
@@ -525,7 +524,6 @@ enum DeterminationGenerator {
                 timestamp: currentTime,
                 tdd: nil,
                 current_target: profile.targetBg,
-                insulinForManualBolus: nil,
                 manualBolusErrorString: nil,
                 minDelta: minDelta,
                 expectedDelta: nil,
@@ -559,7 +557,6 @@ enum DeterminationGenerator {
                 timestamp: currentTime,
                 tdd: nil,
                 current_target: profile.targetBg,
-                insulinForManualBolus: nil,
                 manualBolusErrorString: nil,
                 minDelta: minDelta,
                 expectedDelta: nil,

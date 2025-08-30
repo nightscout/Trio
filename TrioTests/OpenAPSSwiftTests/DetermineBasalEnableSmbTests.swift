@@ -161,7 +161,6 @@ import Testing
         #expect(decision.isEnabled == false)
         #expect(decision.manualBolusError == 1)
         #expect(decision.minGuardGlucose == 65)
-        #expect(decision.insulinForManualBolus != nil)
     }
 
     @Test("Should disable SMB when maxDelta is too high") func disableWhenMaxDeltaTooHigh() throws {

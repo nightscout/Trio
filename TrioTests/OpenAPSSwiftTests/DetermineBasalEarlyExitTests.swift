@@ -3,7 +3,7 @@ import Testing
 @testable import Trio
 
 @Suite("DetermineBasal early exits before core dosing logic") struct DetermineBasalEarlyExitTests {
-    private func createDefaultInputs() -> (
+    private func createDefaultInputs(currentTime: Date = Date()) -> (
         profile: Profile,
         preferences: Preferences,
         currentTemp: TempBasal,
@@ -15,7 +15,6 @@ import Testing
         trioCustomOrefVariables: TrioCustomOrefVariables,
         currentTime: Date
     ) {
-        let currentTime = Date()
         var profile = Profile()
         profile.maxIob = 2.5
         profile.dia = 3
@@ -470,7 +469,7 @@ import Testing
 
     // Test 9 from JS
     @Test("should low-temp if BG is below threshold") func lowGlucoseSuspend() throws {
-        var (
+        let (
             profile,
             preferences,
             currentTemp,
@@ -514,6 +513,11 @@ import Testing
 
     // Test 10 from JS
     @Test("should cancel temp before the hour if not doing SMB") func skipNeutralTemp() throws {
+        // Create a date that is 56 minutes past the hour
+        var components = Calendar.current.dateComponents(in: .current, from: Date())
+        components.minute = 56
+        let currentTime = Calendar.current.date(from: components)!
+
         var (
             profile,
             preferences,
@@ -525,14 +529,9 @@ import Testing
             glucoseStatus,
             trioCustomOrefVariables,
             _
-        ) = createDefaultInputs()
+        ) = createDefaultInputs(currentTime: currentTime)
 
         profile.skipNeutralTemps = true
-
-        // Create a date that is 56 minutes past the hour
-        var components = Calendar.current.dateComponents(in: .current, from: Date())
-        components.minute = 56
-        let currentTime = Calendar.current.date(from: components)!
 
         let result = try DeterminationGenerator.determineBasal(
             profile: profile,
