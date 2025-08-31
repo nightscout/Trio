@@ -250,7 +250,7 @@ import Testing
         let (shouldSet, determination) = try callHandleLowEventualGlucose(
             minDelta: 1,
             expectedDelta: 0,
-            carbsRequired: 10,
+            carbsRequired: 0,
             naiveEventualGlucose: 39
         )
         #expect(shouldSet == true)
@@ -264,13 +264,19 @@ import Testing
         #expect(shouldSet == true)
     }
 
+    @Test("Min delta < 0") func testMinDeltaLessThanZero() throws {
+        let (shouldSet, determination) = try callHandleLowEventualGlucose(minDelta: -1, expectedDelta: -2, carbsRequired: 0)
+        #expect(shouldSet == true)
+        #expect(determination.rate == 0.6)
+    }
+
     @Test("Current temp rate matches basal") func testCurrentTempRateMatchesBasal() throws {
         let profile = defaultProfile()
         let currentTemp = TempBasal(duration: 20, rate: profile.currentBasal!, temp: .absolute, timestamp: Date())
         let (shouldSet, determination) = try callHandleLowEventualGlucose(
             minDelta: 1,
             expectedDelta: 0,
-            carbsRequired: 10,
+            carbsRequired: 0,
             currentTemp: currentTemp,
             profile: profile
         )
@@ -284,7 +290,7 @@ import Testing
         let (shouldSet, determination) = try callHandleLowEventualGlucose(
             minDelta: 1,
             expectedDelta: 0,
-            carbsRequired: 10,
+            carbsRequired: 0,
             profile: profile
         )
         #expect(shouldSet == true)
@@ -293,37 +299,31 @@ import Testing
         #expect(determination.reason.contains("setting current basal of \(profile.currentBasal!) as temp."))
     }
 
-    /*
-     @Test("Insulin scheduled less than required") func testInsulinScheduledLessThanRequired() throws {
-         let (shouldSet, determination) = try callHandleLowEventualGlucose(
-             eventualGlucose: 80,
-             naiveEventualGlucose: 70,
-             currentTemp: TempBasal(duration: 10, rate: 0, temp: .absolute, timestamp: Date())
-         )
-         #expect(shouldSet == true)
-         #expect(determination.rate != nil)
-         #expect(determination.duration == 30)
-         #expect(determination.reason.contains("is a lot less than needed"))
-     }*/
+    @Test("Insulin scheduled less than required") func testInsulinScheduledLessThanRequired() throws {
+        let (shouldSet, determination) = try callHandleLowEventualGlucose(
+            eventualGlucose: 80,
+            naiveEventualGlucose: 70,
+            currentTemp: TempBasal(duration: 120, rate: 0, temp: .absolute, timestamp: Date())
+        )
+        #expect(shouldSet == true)
+        #expect(determination.rate == nil)
+        #expect(determination.duration == nil)
+        #expect(determination.reason.contains("is a lot less than needed"))
+    }
 
-    /*
-     @Test("Rate similar to current temp") func testRateSimilarToCurrentTemp() throws {
-         let currentTemp = TempBasal(duration: 10, rate: 0.1, temp: .absolute, timestamp: Date())
-         let (shouldSet, determination) = try callHandleLowEventualGlucose(
-             eventualGlucose: 99,
-             targetGlucose: 110,
-             currentTemp: currentTemp,
-             adjustedSensitivity: 50
-         )
+    @Test("Rate similar to current temp") func testRateSimilarToCurrentTemp() throws {
+        let currentTemp = TempBasal(duration: 10, rate: 0.1, temp: .absolute, timestamp: Date())
+        let (shouldSet, determination) = try callHandleLowEventualGlucose(
+            eventualGlucose: 99,
+            targetGlucose: 110,
+            currentTemp: currentTemp,
+            adjustedSensitivity: 50
+        )
 
-         let insulinRequired = 2 * min(0, (Decimal(99) - Decimal(110)) / Decimal(50))
-         let expectedRate = (1.0 + (2 * insulinRequired)).rounded(toPlaces: 2)
-
-         #expect(shouldSet == true)
-         #expect(determination.rate == nil) // No change
-         #expect(determination.reason.contains("temp \(currentTemp.rate) ~< req \(expectedRate)U/hr."))
-     }
-      */
+        #expect(shouldSet == true)
+        #expect(determination.rate == nil) // No change
+        #expect(determination.reason.contains("temp \(currentTemp.rate) ~< req"))
+    }
 
     @Test("Set zero temp") func testSetZeroTemp() throws {
         let (shouldSet, determination) = try callHandleLowEventualGlucose(eventualGlucose: 70, naiveEventualGlucose: 60)
@@ -332,13 +332,4 @@ import Testing
         #expect(determination.duration! > 0)
         #expect(determination.reason.contains("setting \(determination.duration!)m zero temp."))
     }
-
-    /*
-     @Test("Set calculated rate") func testSetCalculatedRate() throws {
-         let (shouldSet, determination) = try callHandleLowEventualGlucose(eventualGlucose: 85)
-         #expect(shouldSet == true)
-         #expect(determination.rate! > 0)
-         #expect(determination.duration == 30)
-         #expect(determination.reason.contains("setting \(determination.rate!)U/hr."))
-     }*/
 }

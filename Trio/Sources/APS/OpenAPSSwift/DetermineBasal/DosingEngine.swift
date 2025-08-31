@@ -412,7 +412,7 @@ enum DosingEngine {
             "Eventual BG \(convertGlucose(profile: profile, glucose: eventualGlucose)) < \(convertGlucose(profile: profile, glucose: minGlucose))"
 
         // if 5m or 30m avg BG is rising faster than expected delta
-        if minDelta > expectedDelta, minDelta > 0, carbsRequired != 0 {
+        if minDelta > expectedDelta, minDelta > 0, carbsRequired == 0 {
             if naiveEventualGlucose < 40 {
                 newDetermination.reason += ", naive_eventualBG < 40. "
                 let finalDetermination = try TempBasalFunctions.setTempBasal(
@@ -461,8 +461,8 @@ enum DosingEngine {
         let naiveInsulinRequired = min(0, (naiveEventualGlucose - targetGlucose) / adjustedSensitivity).jsRounded(scale: 2)
 
         if minDelta < 0, minDelta > expectedDelta {
-            let newInsulinReq = (insulinRequired * (minDelta / expectedDelta)).jsRounded(scale: 2)
-            insulinRequired = newInsulinReq
+            let newInsulinRequired = (insulinRequired * (minDelta / expectedDelta)).jsRounded(scale: 2)
+            insulinRequired = newInsulinRequired
         }
 
         var rate = basal + (2 * insulinRequired)
