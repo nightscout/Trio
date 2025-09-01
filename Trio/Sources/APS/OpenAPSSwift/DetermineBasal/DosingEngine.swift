@@ -523,4 +523,60 @@ enum DosingEngine {
             return (shouldSetTempBasal: true, determination: finalDetermination)
         }
     }
+
+    /// Handles the case where glucose is falling faster than expected.
+    ///
+    /// - Returns: A tuple containing:
+    ///   - `shouldSetTempBasal`: A `Bool` that is `true` if `determineBasal` should exit and apply the recommendation immediately.
+    ///   - `determination`: The (potentially modified) determination object.
+    static func glucoseFallingFasterThanExpected(
+        eventualGlucose: Decimal,
+        minGlucose: Decimal,
+        minDelta: Decimal,
+        expectedDelta: Decimal,
+        glucoseStatus: GlucoseStatus,
+        currentTemp: TempBasal,
+        basal: Decimal,
+        smbIsEnabled: Bool,
+        profile: Profile,
+        determination: Determination
+    ) throws -> (shouldSetTempBasal: Bool, determination: Determination) {
+        guard minDelta < expectedDelta else {
+            return (shouldSetTempBasal: false, determination: determination)
+        }
+
+        var newDetermination = determination
+
+        if !smbIsEnabled {
+            if glucoseStatus.delta < minDelta {
+                newDetermination
+                    .reason +=
+                    "Eventual BG \(convertGlucose(profile: profile, glucose: eventualGlucose)) > \(convertGlucose(profile: profile, glucose: minGlucose)) but Delta \(convertGlucose(profile: profile, glucose: glucoseStatus.delta)) < Exp. Delta \(convertGlucose(profile: profile, glucose: expectedDelta))"
+            } else {
+                newDetermination
+                    .reason +=
+                    "Eventual BG \(convertGlucose(profile: profile, glucose: eventualGlucose)) > \(convertGlucose(profile: profile, glucose: minGlucose)) but Min. Delta \(minDelta.jsRounded(scale: 2)) < Exp. Delta \(convertGlucose(profile: profile, glucose: expectedDelta))"
+            }
+
+            let roundedBasal = TempBasalFunctions.roundBasal(profile: profile, basalRate: basal)
+            let roundedCurrentRate = TempBasalFunctions.roundBasal(profile: profile, basalRate: currentTemp.rate)
+
+            if currentTemp.duration > 15, roundedBasal == roundedCurrentRate {
+                newDetermination.reason += ", temp \(currentTemp.rate) ~ req \(basal)U/hr. "
+                return (shouldSetTempBasal: true, determination: newDetermination)
+            } else {
+                newDetermination.reason += "; setting current basal of \(basal) as temp. "
+                let finalDetermination = try TempBasalFunctions.setTempBasal(
+                    rate: basal,
+                    duration: 30,
+                    profile: profile,
+                    determination: newDetermination,
+                    currentTemp: currentTemp
+                )
+                return (shouldSetTempBasal: true, determination: finalDetermination)
+            }
+        }
+
+        return (shouldSetTempBasal: false, determination: determination)
+    }
 }

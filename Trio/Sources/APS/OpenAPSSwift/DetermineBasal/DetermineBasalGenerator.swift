@@ -389,6 +389,26 @@ enum DeterminationGenerator {
             return determination
         }
 
+        let (
+            shouldSetTempBasalForGlucoseFallingFasterThanExpected,
+            glucoseFallingFasterThanExpectedDetermination
+        ) = try DosingEngine.glucoseFallingFasterThanExpected(
+            eventualGlucose: forecastResult.eventualGlucose,
+            minGlucose: adjustedGlucoseTargets.minGlucose,
+            minDelta: minDelta,
+            expectedDelta: expectedDelta,
+            glucoseStatus: glucoseStatus,
+            currentTemp: currentTemp,
+            basal: basal,
+            smbIsEnabled: smbIsEnabled,
+            profile: profile,
+            determination: determination
+        )
+        determination = glucoseFallingFasterThanExpectedDetermination
+        if shouldSetTempBasalForGlucoseFallingFasterThanExpected {
+            return determination
+        }
+
         // TODO: how to handle output?
         // TODO: how to handle logging?
 
