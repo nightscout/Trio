@@ -380,4 +380,152 @@ enum DosingEngine {
             return (shouldSetTempBasal: false, determination: determination)
         }
     }
+
+    /// Handles the case where eventual glucose is predicted to be low.
+    ///
+    /// - Returns: A tuple containing:
+    ///   - `shouldSetTempBasal`: A `Bool` that is `true` if `determineBasal` should exit and apply the recommendation immediately.
+    ///   - `determination`: The (potentially modified) determination object.
+    static func handleLowEventualGlucose(
+        eventualGlucose: Decimal,
+        minGlucose: Decimal,
+        targetGlucose: Decimal,
+        minDelta: Decimal,
+        expectedDelta: Decimal,
+        carbsRequired: Decimal,
+        naiveEventualGlucose: Decimal,
+        glucoseStatus: GlucoseStatus,
+        currentTemp: TempBasal,
+        basal: Decimal,
+        profile: Profile,
+        determination: Determination,
+        adjustedSensitivity: Decimal,
+        overrideFactor: Decimal
+    ) throws -> (shouldSetTempBasal: Bool, determination: Determination) {
+        guard eventualGlucose < minGlucose else {
+            return (shouldSetTempBasal: false, determination: determination)
+        }
+
+        var newDetermination = determination
+        newDetermination
+            .reason +=
+            "Eventual BG \(convertGlucose(profile: profile, glucose: eventualGlucose)) < \(convertGlucose(profile: profile, glucose: minGlucose))"
+
+        // if 5m or 30m avg BG is rising faster than expected delta
+        if minDelta > expectedDelta, minDelta > 0, carbsRequired == 0 {
+            if naiveEventualGlucose < 40 {
+                newDetermination.reason += ", naive_eventualBG < 40. "
+                let finalDetermination = try TempBasalFunctions.setTempBasal(
+                    rate: 0,
+                    duration: 30,
+                    profile: profile,
+                    determination: newDetermination,
+                    currentTemp: currentTemp
+                )
+                return (shouldSetTempBasal: true, determination: finalDetermination)
+            }
+
+            if glucoseStatus.delta > minDelta {
+                newDetermination
+                    .reason +=
+                    ", but Delta \(convertGlucose(profile: profile, glucose: glucoseStatus.delta)) > expectedDelta \(convertGlucose(profile: profile, glucose: expectedDelta))"
+            } else {
+                newDetermination
+                    .reason +=
+                    ", but Min. Delta \(minDelta.jsRounded(scale: 2)) > Exp. Delta \(convertGlucose(profile: profile, glucose: expectedDelta))"
+            }
+
+            let roundedBasal = TempBasalFunctions.roundBasal(profile: profile, basalRate: basal)
+            let roundedCurrentRate = TempBasalFunctions.roundBasal(profile: profile, basalRate: currentTemp.rate)
+
+            if currentTemp.duration > 15, roundedBasal == roundedCurrentRate {
+                newDetermination.reason += ", temp \(currentTemp.rate) ~ req \(basal)U/hr. "
+                return (shouldSetTempBasal: true, determination: newDetermination)
+            } else {
+                newDetermination.reason += "; setting current basal of \(basal) as temp. "
+                let finalDetermination = try TempBasalFunctions.setTempBasal(
+                    rate: basal,
+                    duration: 30,
+                    profile: profile,
+                    determination: newDetermination,
+                    currentTemp: currentTemp
+                )
+                return (shouldSetTempBasal: true, determination: finalDetermination)
+            }
+        }
+
+        // calculate 30m low-temp required to get projected BG up to target
+        var insulinRequired = 2 * min(0, (eventualGlucose - targetGlucose) / adjustedSensitivity)
+        insulinRequired = insulinRequired.jsRounded(scale: 2)
+
+        let naiveInsulinRequired = min(0, (naiveEventualGlucose - targetGlucose) / adjustedSensitivity).jsRounded(scale: 2)
+
+        if minDelta < 0, minDelta > expectedDelta {
+            let newInsulinRequired = (insulinRequired * (minDelta / expectedDelta)).jsRounded(scale: 2)
+            insulinRequired = newInsulinRequired
+        }
+
+        var rate = basal + (2 * insulinRequired)
+        rate = TempBasalFunctions.roundBasal(profile: profile, basalRate: rate)
+
+        let insulinScheduled = Decimal(currentTemp.duration) * (currentTemp.rate - basal) / 60
+        let minInsulinRequired = min(insulinRequired, naiveInsulinRequired)
+
+        if insulinScheduled < minInsulinRequired - basal * 0.3 {
+            newDetermination
+                .reason += ", \(currentTemp.duration)m@\(currentTemp.rate.jsRounded(scale: 2)) is a lot less than needed. "
+            let finalDetermination = try TempBasalFunctions.setTempBasal(
+                rate: rate,
+                duration: 30,
+                profile: profile,
+                determination: newDetermination,
+                currentTemp: currentTemp
+            )
+            return (shouldSetTempBasal: true, determination: finalDetermination)
+        }
+
+        if currentTemp.duration > 5, rate >= currentTemp.rate * 0.8 {
+            newDetermination.reason += ", temp \(currentTemp.rate) ~< req \(rate)U/hr. "
+            return (shouldSetTempBasal: true, determination: newDetermination)
+        } else {
+            if rate <= 0 {
+                guard let currentBasal = profile.currentBasal else {
+                    throw TempBasalFunctionError.invalidBasalRateOnProfile
+                }
+                let glucoseUndershoot = targetGlucose - naiveEventualGlucose
+                let worstCaseInsulinRequired = glucoseUndershoot / adjustedSensitivity
+                var durationRequired = (60 * worstCaseInsulinRequired / (currentBasal * overrideFactor)).jsRounded()
+
+                if durationRequired < 0 {
+                    durationRequired = 0
+                } else {
+                    durationRequired = (durationRequired / 30).jsRounded() * 30
+                    durationRequired = min(120, max(0, durationRequired))
+                }
+
+                if durationRequired > 0 {
+                    newDetermination.reason += ", setting \(durationRequired)m zero temp. "
+                    let finalDetermination = try TempBasalFunctions.setTempBasal(
+                        rate: rate,
+                        duration: durationRequired,
+                        profile: profile,
+                        determination: newDetermination,
+                        currentTemp: currentTemp
+                    )
+                    return (shouldSetTempBasal: true, determination: finalDetermination)
+                }
+            } else {
+                newDetermination.reason += ", setting \(rate)U/hr. "
+            }
+
+            let finalDetermination = try TempBasalFunctions.setTempBasal(
+                rate: rate,
+                duration: 30,
+                profile: profile,
+                determination: newDetermination,
+                currentTemp: currentTemp
+            )
+            return (shouldSetTempBasal: true, determination: finalDetermination)
+        }
+    }
 }

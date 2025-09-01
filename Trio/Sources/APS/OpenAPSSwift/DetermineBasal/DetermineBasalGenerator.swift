@@ -338,7 +338,7 @@ enum DeterminationGenerator {
 
         // MARK: - Core dosing logic
 
-        let (setTempBasalForLowGlucoseSuspend, lowGlucoseSuspendDetermination) = try DosingEngine.lowGlucoseSuspend(
+        let (shouldSetTempBasalForLowGlucoseSuspend, lowGlucoseSuspendDetermination) = try DosingEngine.lowGlucoseSuspend(
             currentGlucose: currentGlucose,
             minGuardGlucose: forecastResult.minGuardGlucose,
             iob: currentIob,
@@ -353,11 +353,11 @@ enum DeterminationGenerator {
             determination: determination
         )
         determination = lowGlucoseSuspendDetermination
-        if setTempBasalForLowGlucoseSuspend {
+        if shouldSetTempBasalForLowGlucoseSuspend {
             return determination
         }
 
-        let (setTempBasalForSkipNeutralTemp, skipNeutralTempDetermination) = try DosingEngine.skipNeutralTempBasal(
+        let (shouldSetTempBasalForSkipNeutralTemp, skipNeutralTempDetermination) = try DosingEngine.skipNeutralTempBasal(
             smbIsEnabled: smbIsEnabled,
             profile: profile,
             clock: currentTime,
@@ -365,7 +365,29 @@ enum DeterminationGenerator {
             determination: determination
         )
         determination = skipNeutralTempDetermination
-        if setTempBasalForSkipNeutralTemp {
+        if shouldSetTempBasalForSkipNeutralTemp {
+            return determination
+        }
+
+        let (shouldSetTempBasalForLowEventualGlucose, lowEventualGlucoseDetermination) = try DosingEngine
+            .handleLowEventualGlucose(
+                eventualGlucose: forecastResult.eventualGlucose,
+                minGlucose: adjustedGlucoseTargets.minGlucose,
+                targetGlucose: adjustedGlucoseTargets.targetGlucose,
+                minDelta: minDelta,
+                expectedDelta: expectedDelta,
+                carbsRequired: dosingInputs.carbsRequired?.carbs ?? 0,
+                naiveEventualGlucose: naiveEventualGlucose,
+                glucoseStatus: glucoseStatus,
+                currentTemp: currentTemp,
+                basal: basal,
+                profile: profile,
+                determination: determination,
+                adjustedSensitivity: adjustedSensitivity,
+                overrideFactor: trioCustomOrefVariables.overrideFactor()
+            )
+        determination = lowEventualGlucoseDetermination
+        if shouldSetTempBasalForLowEventualGlucose {
             return determination
         }
 
