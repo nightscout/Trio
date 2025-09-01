@@ -48,7 +48,6 @@ import Testing
             timestamp: Date(),
             tdd: nil,
             current_target: nil,
-            manualBolusErrorString: nil,
             minDelta: nil,
             expectedDelta: nil,
             minGuardBG: nil,

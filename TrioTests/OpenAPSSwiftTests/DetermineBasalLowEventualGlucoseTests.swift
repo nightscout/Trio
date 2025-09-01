@@ -2,161 +2,10 @@ import Foundation
 import Testing
 @testable import Trio
 
-@Suite("DetermineBasal low eventual glucose") struct DetermineBasalLowEventualGlucoseTests {
-    // Helper to create a mock IOB array with linear decay for testing purposes
-    private func mockIobArray(iob: Decimal, activity: Decimal, currentTime: Date) -> [IobResult] {
-        (0 ..< 48).map { i in
-            IobResult(
-                iob: iob - (activity * Decimal(i)),
-                activity: activity,
-                basaliob: 0,
-                bolusiob: 0,
-                netbasalinsulin: 0,
-                bolusinsulin: 0,
-                time: currentTime,
-                iobWithZeroTemp: IobResult.IobWithZeroTemp(
-                    iob: 0, activity: 0, basaliob: 0, bolusiob: 0, netbasalinsulin: 0, bolusinsulin: 0, time: currentTime
-                ),
-                lastBolusTime: nil,
-                lastTemp: IobResult.LastTemp(
-                    rate: 0,
-                    timestamp: currentTime,
-                    started_at: currentTime,
-                    date: UInt64(currentTime.timeIntervalSince1970 * 1000),
-                    duration: 0
-                )
-            )
-        }
-    }
-
-    private func createDefaultInputs(currentTime: Date = Date()) -> (
-        profile: Profile,
-        preferences: Preferences,
-        currentTemp: TempBasal,
-        iobData: [IobResult],
-        mealData: ComputedCarbs,
-        autosensData: Autosens,
-        reservoirData: Decimal,
-        glucoseStatus: GlucoseStatus,
-        trioCustomOrefVariables: TrioCustomOrefVariables,
-        currentTime: Date
-    ) {
-        var profile = Profile()
-        profile.maxIob = 2.5
-        profile.dia = 3
-        profile.currentBasal = 1.0
-        profile.maxDailyBasal = 1.3
-        profile.maxBasal = 3.5
-        profile.maxBg = 120
-        profile.minBg = 100
-        profile.sens = 50
-        profile.carbRatio = 10
-        profile.thresholdSetting = 80
-        profile.temptargetSet = false
-        profile.bolusIncrement = 0.1
-        profile.useCustomPeakTime = false
-        profile.curve = .rapidActing
-        profile.enableUAM = false // Important for these tests
-
-        var preferences = Preferences()
-        preferences.useNewFormula = false
-        preferences.sigmoid = false
-        preferences.adjustmentFactor = 0.8
-        preferences.adjustmentFactorSigmoid = 0.5
-        preferences.curve = .rapidActing
-        preferences.useCustomPeakTime = false
-
-        let currentTemp = TempBasal(duration: 0, rate: 0, temp: .absolute, timestamp: currentTime)
-        let iobData = mockIobArray(iob: 0, activity: 0, currentTime: currentTime)
-        let mealData = ComputedCarbs(
-            carbs: 0,
-            mealCOB: 0,
-            currentDeviation: 0,
-            maxDeviation: 0,
-            minDeviation: 0,
-            slopeFromMaxDeviation: 0,
-            slopeFromMinDeviation: 0,
-            allDeviations: [0, 0, 0, 0, 0],
-            lastCarbTime: 0
-        )
-        let autosensData = Autosens(ratio: 1.0, newisf: nil)
-        let glucoseStatus = GlucoseStatus(
-            delta: 0,
-            glucose: 115,
-            noise: 1,
-            shortAvgDelta: 0,
-            longAvgDelta: 0.1,
-            date: currentTime,
-            lastCalIndex: nil,
-            device: "test"
-        )
-
-        let trioCustomOrefVariables = TrioCustomOrefVariables(
-            average_total_data: 0,
-            weightedAverage: 0,
-            currentTDD: 0,
-            past2hoursAverage: 0,
-            date: currentTime,
-            overridePercentage: 100,
-            useOverride: false,
-            duration: 0,
-            unlimited: false,
-            overrideTarget: 0,
-            smbIsOff: false,
-            advancedSettings: false,
-            isfAndCr: false,
-            isf: false,
-            cr: false,
-            smbIsScheduledOff: false,
-            start: 0,
-            end: 0,
-            smbMinutes: 30,
-            uamMinutes: 30,
-            shouldProtectDueToHIGH: false
-        )
-
-        return (
-            profile: profile,
-            preferences: preferences,
-            currentTemp: currentTemp,
-            iobData: iobData,
-            mealData: mealData,
-            autosensData: autosensData,
-            reservoirData: 100,
-            glucoseStatus: glucoseStatus,
-            trioCustomOrefVariables: trioCustomOrefVariables,
-            currentTime: currentTime
-        )
-    }
-
-    @Test("should set a low temp when eventual BG is low and rising") func lowTempRising() throws {
-        var (
-            profile, preferences, currentTemp, _, mealData, autosensData, reservoirData, _, trioCustomOrefVariables, currentTime
-        ) = createDefaultInputs()
-
-        profile.minBg = 100
-        let glucoseStatus = GlucoseStatus(
-            delta: 1, glucose: 90, noise: 1, shortAvgDelta: 1, longAvgDelta: 0.1, date: currentTime, lastCalIndex: nil,
-            device: "test"
-        )
-        let iobData = mockIobArray(iob: 0, activity: 0, currentTime: currentTime)
-
-        let result = try DeterminationGenerator.determineBasal(
-            profile: profile, preferences: preferences, currentTemp: currentTemp, iobData: iobData, mealData: mealData,
-            autosensData: autosensData, reservoirData: reservoirData, glucoseStatus: glucoseStatus,
-            trioCustomOrefVariables: trioCustomOrefVariables, currentTime: currentTime
-        )
-
-        #expect(result?.rate == 0.7)
-        #expect(result?.duration == 30)
-        #expect(result?.reason.contains("setting 0.7U/hr") == true)
-    }
-}
-
 /// these tests should be an exact copy of the JS tests here:
 /// - https://github.com/kingst/trio-oref/blob/dev-fixes-for-swift-comparison/tests/determine-basal-low-eventual-glucose.test.js
 /// We had to extract the key functionality from JS and put it in a function to facilitate testing
-@Suite("DosingEngine.handleLowEventualGlucose") struct HandleLowEventualGlucoseTests {
+@Suite("DetermineBasal low eventual glucose") struct HandleLowEventualGlucoseTests {
     private func defaultProfile() -> Profile {
         var profile = Profile()
         profile.minBg = 100
@@ -215,7 +64,6 @@ import Testing
             timestamp: nil,
             tdd: nil,
             current_target: nil,
-            manualBolusErrorString: nil,
             minDelta: nil,
             expectedDelta: nil,
             minGuardBG: nil,

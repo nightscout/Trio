@@ -155,7 +155,6 @@ import Testing
             trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
         )
         #expect(decision.isEnabled == false)
-        #expect(decision.manualBolusError == 1)
         #expect(decision.minGuardGlucose == 65)
     }
 
