@@ -433,6 +433,19 @@ enum DeterminationGenerator {
                 "Eventual BG \(DosingEngine.convertGlucose(profile: profile, glucose: forecastResult.eventualGlucose)) >= \(DosingEngine.convertGlucose(profile: profile, glucose: adjustedGlucoseTargets.maxGlucose)), "
         }
 
+        let (shouldSetTempBasalForIobGreaterThanMax, iobGreaterThanMaxDetermination) = try DosingEngine.iobGreaterThanMax(
+            iob: currentIob,
+            maxIob: profile.maxIob,
+            currentTemp: currentTemp,
+            basal: basal,
+            profile: profile,
+            determination: determination
+        )
+        determination = iobGreaterThanMaxDetermination
+        if shouldSetTempBasalForIobGreaterThanMax {
+            return determination
+        }
+
         // TODO: how to handle output?
         // TODO: how to handle logging?
 

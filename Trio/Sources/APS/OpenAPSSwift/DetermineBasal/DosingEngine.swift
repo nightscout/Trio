@@ -628,4 +628,43 @@ enum DosingEngine {
 
         return (shouldSetTempBasal: false, determination: determination)
     }
+
+    /// Handles the case where IOB is greater than the max IOB.
+    ///
+    /// - Returns: A tuple containing:
+    ///   - `shouldSetTempBasal`: A `Bool` that is `true` if `determineBasal` should exit and apply the recommendation immediately.
+    ///   - `determination`: The (potentially modified) determination object.
+    static func iobGreaterThanMax(
+        iob: Decimal,
+        maxIob: Decimal,
+        currentTemp: TempBasal,
+        basal: Decimal,
+        profile: Profile,
+        determination: Determination
+    ) throws -> (shouldSetTempBasal: Bool, determination: Determination) {
+        guard iob > maxIob else {
+            return (shouldSetTempBasal: false, determination: determination)
+        }
+
+        var newDetermination = determination
+        newDetermination.reason += "IOB \(iob.jsRounded(scale: 2)) > max_iob \(maxIob)"
+
+        let roundedBasal = TempBasalFunctions.roundBasal(profile: profile, basalRate: basal)
+        let roundedCurrentRate = TempBasalFunctions.roundBasal(profile: profile, basalRate: currentTemp.rate)
+
+        if currentTemp.duration > 15, roundedBasal == roundedCurrentRate {
+            newDetermination.reason += ", temp \(currentTemp.rate) ~ req \(basal)U/hr. "
+            return (shouldSetTempBasal: true, determination: newDetermination)
+        } else {
+            newDetermination.reason += "; setting current basal of \(basal) as temp. "
+            let finalDetermination = try TempBasalFunctions.setTempBasal(
+                rate: basal,
+                duration: 30,
+                profile: profile,
+                determination: newDetermination,
+                currentTemp: currentTemp
+            )
+            return (shouldSetTempBasal: true, determination: finalDetermination)
+        }
+    }
 }
