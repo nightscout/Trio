@@ -153,6 +153,9 @@ import Testing
     }
 }
 
+/// these tests should be an exact copy of the JS tests here:
+/// - https://github.com/kingst/trio-oref/blob/dev-fixes-for-swift-comparison/tests/determine-basal-low-eventual-glucose.test.js
+/// We had to extract the key functionality from JS and put it in a function to facilitate testing
 @Suite("DosingEngine.handleLowEventualGlucose") struct HandleLowEventualGlucoseTests {
     private func defaultProfile() -> Profile {
         var profile = Profile()
