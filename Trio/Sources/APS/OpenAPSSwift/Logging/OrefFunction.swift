@@ -57,11 +57,12 @@ enum OrefFunction: String, Codable {
                 "ISF",
                 "current_target",
                 "TDD",
-                "insulinForManualBolus",
-                "manualBolusErrorString",
                 "minDelta",
                 "received",
                 "reason",
+                // intentionally removed from Swift, but in JS
+                "insulinForManualBolus",
+                "manualBolusErrorString",
                 // in JS but not in Swift
                 "tick",
                 "BGI",

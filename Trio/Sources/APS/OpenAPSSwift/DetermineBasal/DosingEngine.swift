@@ -9,7 +9,6 @@ enum DosingEngine {
     /// struct to keep the relevant state needed for the output of the SMB decision logic
     struct SMBDecision {
         let isEnabled: Bool
-        let manualBolusError: Int?
         let minGuardGlucose: Decimal?
         let reason: String?
     }
@@ -129,11 +128,9 @@ enum DosingEngine {
         // function in JS but we should keep all of the smb enabling logic
         // in one place. Note: We can't shortcut the return value because
         // the determineBasal logic always evaluates this logic
-        var manualBolusError: Int?
         var minGuardGlucoseDecision: Decimal?
         var reason: String?
         if smbIsEnabled, minGuardGlucose < threshold {
-            manualBolusError = 1
             minGuardGlucoseDecision = minGuardGlucose
             smbIsEnabled = false
         }
@@ -147,7 +144,6 @@ enum DosingEngine {
 
         return SMBDecision(
             isEnabled: smbIsEnabled,
-            manualBolusError: manualBolusError,
             minGuardGlucose: minGuardGlucoseDecision,
             reason: reason
         )
@@ -313,7 +309,6 @@ enum DosingEngine {
 
             let glucoseUndershoot = targetGlucose - minGuardGlucose
             if minGuardGlucose < threshold {
-                newDetermination.manualBolusErrorString = 2
                 newDetermination.minGuardBG = minGuardGlucose
             }
 

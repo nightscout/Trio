@@ -29,7 +29,6 @@ struct Determination: JSON, Equatable {
     var tdd: Decimal?
 
     var current_target: Decimal?
-    var manualBolusErrorString: Decimal?
     var minDelta: Decimal?
     var expectedDelta: Decimal?
     var minGuardBG: Decimal?
@@ -69,7 +68,6 @@ extension Determination {
         case current_target
         case tdd = "TDD"
         case insulinForManualBolus
-        case manualBolusErrorString
         case minDelta
         case expectedDelta
         case minGuardBG
