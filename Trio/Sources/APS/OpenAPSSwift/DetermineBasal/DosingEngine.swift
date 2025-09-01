@@ -92,7 +92,7 @@ enum DosingEngine {
     }
 
     /// helper function for reason string glucose output
-    private static func convertGlucose(profile: Profile, glucose: Decimal) -> Decimal {
+    static func convertGlucose(profile: Profile, glucose: Decimal) -> Decimal {
         let units = profile.outUnits ?? .mgdL
         switch units {
         case .mgdL: return glucose.jsRounded()
@@ -557,6 +557,55 @@ enum DosingEngine {
                     .reason +=
                     "Eventual BG \(convertGlucose(profile: profile, glucose: eventualGlucose)) > \(convertGlucose(profile: profile, glucose: minGlucose)) but Min. Delta \(minDelta.jsRounded(scale: 2)) < Exp. Delta \(convertGlucose(profile: profile, glucose: expectedDelta))"
             }
+
+            let roundedBasal = TempBasalFunctions.roundBasal(profile: profile, basalRate: basal)
+            let roundedCurrentRate = TempBasalFunctions.roundBasal(profile: profile, basalRate: currentTemp.rate)
+
+            if currentTemp.duration > 15, roundedBasal == roundedCurrentRate {
+                newDetermination.reason += ", temp \(currentTemp.rate) ~ req \(basal)U/hr. "
+                return (shouldSetTempBasal: true, determination: newDetermination)
+            } else {
+                newDetermination.reason += "; setting current basal of \(basal) as temp. "
+                let finalDetermination = try TempBasalFunctions.setTempBasal(
+                    rate: basal,
+                    duration: 30,
+                    profile: profile,
+                    determination: newDetermination,
+                    currentTemp: currentTemp
+                )
+                return (shouldSetTempBasal: true, determination: finalDetermination)
+            }
+        }
+
+        return (shouldSetTempBasal: false, determination: determination)
+    }
+
+    /// Handles the case where the eventual or forecasted glucose is less than the max glucose.
+    ///
+    /// - Returns: A tuple containing:
+    ///   - `shouldSetTempBasal`: A `Bool` that is `true` if `determineBasal` should exit and apply the recommendation immediately.
+    ///   - `determination`: The (potentially modified) determination object.
+    static func eventualOrForecastGlucoseLessThanMax(
+        eventualGlucose: Decimal,
+        maxGlucose: Decimal,
+        minForecastGlucose: Decimal,
+        currentTemp: TempBasal,
+        basal: Decimal,
+        smbIsEnabled: Bool,
+        profile: Profile,
+        determination: Determination
+    ) throws -> (shouldSetTempBasal: Bool, determination: Determination) {
+        guard min(eventualGlucose, minForecastGlucose) < maxGlucose else {
+            return (shouldSetTempBasal: false, determination: determination)
+        }
+
+        var newDetermination = determination
+        newDetermination.minPredBG = minForecastGlucose
+
+        if !smbIsEnabled {
+            newDetermination
+                .reason +=
+                "\(convertGlucose(profile: profile, glucose: eventualGlucose))-\(convertGlucose(profile: profile, glucose: minForecastGlucose)) in range: no temp required"
 
             let roundedBasal = TempBasalFunctions.roundBasal(profile: profile, basalRate: basal)
             let roundedCurrentRate = TempBasalFunctions.roundBasal(profile: profile, basalRate: currentTemp.rate)

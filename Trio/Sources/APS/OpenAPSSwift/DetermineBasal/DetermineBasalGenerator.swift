@@ -409,6 +409,30 @@ enum DeterminationGenerator {
             return determination
         }
 
+        let (
+            shouldSetTempBasalEventualOrForecastGlucoseLessThanMax,
+            eventualOrForecastGlucoseLessThanMaxDetermination
+        ) = try DosingEngine.eventualOrForecastGlucoseLessThanMax(
+            eventualGlucose: forecastResult.eventualGlucose,
+            maxGlucose: adjustedGlucoseTargets.maxGlucose,
+            minForecastGlucose: forecastResult.minForecastedGlucose,
+            currentTemp: currentTemp,
+            basal: basal,
+            smbIsEnabled: smbIsEnabled,
+            profile: profile,
+            determination: determination
+        )
+        determination = eventualOrForecastGlucoseLessThanMaxDetermination
+        if shouldSetTempBasalEventualOrForecastGlucoseLessThanMax {
+            return determination
+        }
+
+        if forecastResult.eventualGlucose >= adjustedGlucoseTargets.maxGlucose {
+            determination
+                .reason +=
+                "Eventual BG \(DosingEngine.convertGlucose(profile: profile, glucose: forecastResult.eventualGlucose)) >= \(DosingEngine.convertGlucose(profile: profile, glucose: adjustedGlucoseTargets.maxGlucose)), "
+        }
+
         // TODO: how to handle output?
         // TODO: how to handle logging?
 
