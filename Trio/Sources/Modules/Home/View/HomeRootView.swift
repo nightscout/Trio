@@ -513,7 +513,7 @@ extension Home {
                 }
             }
             .onTapGesture {
-                selectedTab = 2
+                selectedTab = 3
             }
         }
 
@@ -530,7 +530,7 @@ extension Home {
                 }
             }
             .onTapGesture {
-                selectedTab = 2
+                selectedTab = 3
             }
         }
 
@@ -609,7 +609,7 @@ extension Home {
                     // clear color for the icon
                     .foregroundStyle(Color.clear)
             }.onTapGesture {
-                selectedTab = 2
+                selectedTab = 3
             }
         }
 
@@ -1033,31 +1033,43 @@ extension Home {
                         return nil
                     }()
 
+                    // Tab 0: Main
                     NavigationStack { mainView() }
                         .tabItem { Label("Main", systemImage: "chart.xyaxis.line") }
-                        .badge(carbsRequiredBadge).tag(0)
+                        .badge(carbsRequiredBadge)
+                        .tag(0)
 
+                    // Tab 1: History
                     NavigationStack { DataTable.RootView(resolver: resolver) }
-                        .tabItem { Label("History", systemImage: historySFSymbol) }.tag(1)
+                        .tabItem { Label("History", systemImage: historySFSymbol) }
+                        .tag(1)
 
-                    Spacer()
+                    // Tab 2: Empty middle tab (intercepted by onChange and image overlaid)
+                    Color.clear
+                        .tabItem {}
+                        .tag(2)
 
+                    // Tab 3: Adjustments
                     NavigationStack { Adjustments.RootView(resolver: resolver) }
-                        .tabItem {
-                            Label(
-                                "Adjustments",
-                                systemImage: "slider.horizontal.2.gobackward"
-                            ) }.tag(2)
+                        .tabItem { Label("Adjustments", systemImage: "slider.horizontal.2.gobackward") }
+                        .tag(3)
 
+                    // Tab 4: Settings
                     NavigationStack(path: self.$settingsPath) {
                         Settings.RootView(resolver: resolver) }
-                        .tabItem { Label(
-                            "Settings",
-                            systemImage: "gear"
-                        ) }.tag(3)
+                        .tabItem { Label("Settings", systemImage: "gear") }
+                        .tag(4)
                 }
                 .tint(Color.tabBar)
+                .onChange(of: selectedTab) { oldValue, newValue in
+                    if newValue == 2 {
+                        // Middle tab was selected – revert to previous tab and open sheet
+                        selectedTab = oldValue
+                        state.showModal(for: .treatmentView)
+                    }
+                }
 
+                // Overlay the plus button on top of the middle tab
                 Button(
                     action: {
                         state.showModal(for: .treatmentView) },
@@ -1069,12 +1081,14 @@ extension Home {
                             .padding(.horizontal, 24)
                     }
                 )
-            }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
-                .onChange(of: selectedTab) {
-                    if !settingsPath.isEmpty {
-                        settingsPath = NavigationPath()
-                    }
+            }
+            .ignoresSafeArea(.keyboard, edges: .bottom)
+            .blur(radius: state.waitForSuggestion ? 8 : 0)
+            .onChange(of: selectedTab) {
+                if !settingsPath.isEmpty {
+                    settingsPath = NavigationPath()
                 }
+            }
         }
 
         var body: some View {
