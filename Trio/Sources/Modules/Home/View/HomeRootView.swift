@@ -1063,9 +1063,12 @@ extension Home {
                 .tint(Color.tabBar)
                 .onChange(of: selectedTab) { oldValue, newValue in
                     if newValue == 2 {
-                        // Middle tab was selected – revert to previous tab and open sheet
-                        selectedTab = oldValue
+                        // Middle tab was selected - open treatment sheet and after delay revert to previous tab
                         state.showModal(for: .treatmentView)
+                        Task {
+                            try await Task.sleep(for: .seconds(1))
+                            selectedTab = oldValue
+                        }
                     }
                 }
 
