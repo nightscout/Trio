@@ -225,6 +225,9 @@
 		3B2F77862D7E52ED005ED9FA /* TDD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2F77852D7E52ED005ED9FA /* TDD.swift */; };
 		3B2F77882D7E5387005ED9FA /* CurrentTDDSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2F77872D7E5387005ED9FA /* CurrentTDDSetup.swift */; };
 		3B31D5742E0E26C00047D32D /* ReplayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B31D5732E0E26BB0047D32D /* ReplayTests.swift */; };
+		3B3B4F542E661A1200B668E3 /* DetermineBasalGlucoseFallingFasterThanExpectedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3B4F532E6619FF00B668E3 /* DetermineBasalGlucoseFallingFasterThanExpectedTests.swift */; };
+		3B3B4F562E661FD600B668E3 /* DetermineBasalEventualOrForecastGlucoseLessThanMaxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3B4F552E661FC700B668E3 /* DetermineBasalEventualOrForecastGlucoseLessThanMaxTests.swift */; };
+		3B3B4F582E662B1E00B668E3 /* DetermineBasalIobGreaterThanMaxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3B4F572E662B1500B668E3 /* DetermineBasalIobGreaterThanMaxTests.swift */; };
 		3B3B57C92DA07B3400849D16 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3B57C82DA07B3400849D16 /* GoogleService-Info.plist */; };
 		3B4196E02D8C4BC00091DFF7 /* HomeStateModel+CGM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4196DF2D8C4BBB0091DFF7 /* HomeStateModel+CGM.swift */; };
 		3B4550532D862C0000551B0D /* PumpHistoryEvent+Duplicates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4550522D862BF200551B0D /* PumpHistoryEvent+Duplicates.swift */; };
@@ -1175,6 +1178,9 @@
 		3B2F77852D7E52ED005ED9FA /* TDD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDD.swift; sourceTree = "<group>"; };
 		3B2F77872D7E5387005ED9FA /* CurrentTDDSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentTDDSetup.swift; sourceTree = "<group>"; };
 		3B31D5732E0E26BB0047D32D /* ReplayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayTests.swift; sourceTree = "<group>"; };
+		3B3B4F532E6619FF00B668E3 /* DetermineBasalGlucoseFallingFasterThanExpectedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalGlucoseFallingFasterThanExpectedTests.swift; sourceTree = "<group>"; };
+		3B3B4F552E661FC700B668E3 /* DetermineBasalEventualOrForecastGlucoseLessThanMaxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalEventualOrForecastGlucoseLessThanMaxTests.swift; sourceTree = "<group>"; };
+		3B3B4F572E662B1500B668E3 /* DetermineBasalIobGreaterThanMaxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalIobGreaterThanMaxTests.swift; sourceTree = "<group>"; };
 		3B3B57C82DA07B3400849D16 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		3B4196DF2D8C4BBB0091DFF7 /* HomeStateModel+CGM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeStateModel+CGM.swift"; sourceTree = "<group>"; };
 		3B4550522D862BF200551B0D /* PumpHistoryEvent+Duplicates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpHistoryEvent+Duplicates.swift"; sourceTree = "<group>"; };
@@ -2951,6 +2957,9 @@
 				DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */,
 				3B8221B12E5882D900585156 /* DetermineBasalEarlyExitTests.swift */,
 				3BAC929A2E55FF4F00B853DA /* DetermineBasalEnableSmbTests.swift */,
+				3B3B4F552E661FC700B668E3 /* DetermineBasalEventualOrForecastGlucoseLessThanMaxTests.swift */,
+				3B3B4F532E6619FF00B668E3 /* DetermineBasalGlucoseFallingFasterThanExpectedTests.swift */,
+				3B3B4F572E662B1500B668E3 /* DetermineBasalIobGreaterThanMaxTests.swift */,
 				3BE9F0BA2E28C993001B14EB /* DetermineBasalJsonTests.swift */,
 				3B1DB90E2E63C14200BD814B /* DetermineBasalLowEventualGlucoseTests.swift */,
 				3B2A3BC22E2B19F700658FB9 /* DynamicISFTests.swift */,
@@ -5222,13 +5231,16 @@
 				3B8B5D3E2DF5240C00365ED3 /* TimeZoneForTests.swift in Sources */,
 				3B1DB90F2E63C14C00BD814B /* DetermineBasalLowEventualGlucoseTests.swift in Sources */,
 				3B5CD2CA2D4AECD500CE213C /* ProfileJavascriptTests.swift in Sources */,
+				3B3B4F542E661A1200B668E3 /* DetermineBasalGlucoseFallingFasterThanExpectedTests.swift in Sources */,
 				3B5CD2CB2D4AECD500CE213C /* ProfileTargetsTests.swift in Sources */,
 				3BAC92CD2E57859D00B853DA /* SetTempBasalTests.swift in Sources */,
 				3B5CD2CD2D4AECD500CE213C /* ProfileIsfTests.swift in Sources */,
 				3B5CD2CE2D4AECD500CE213C /* ProfileBasalTests.swift in Sources */,
+				3B3B4F582E662B1E00B668E3 /* DetermineBasalIobGreaterThanMaxTests.swift in Sources */,
 				3BFA5BF92D989F510072B082 /* MockTDDStorage.swift in Sources */,
 				CEE9A65E2BBC9F6500EB5194 /* CalibrationsTests.swift in Sources */,
 				3BF8D14B2D530397001B3F84 /* JSONCompareTests.swift in Sources */,
+				3B3B4F562E661FD600B668E3 /* DetermineBasalEventualOrForecastGlucoseLessThanMaxTests.swift in Sources */,
 				3BEF6AB32D97316F0076089D /* MealTotalTests.swift in Sources */,
 				3BF8D0C12D5175BE001B3F84 /* ProfileJsNativeCompareTests.swift in Sources */,
 				3BEF6AB12D9731660076089D /* MealHistoryTests.swift in Sources */,

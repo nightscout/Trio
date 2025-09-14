@@ -389,6 +389,63 @@ enum DeterminationGenerator {
             return determination
         }
 
+        let (
+            shouldSetTempBasalForGlucoseFallingFasterThanExpected,
+            glucoseFallingFasterThanExpectedDetermination
+        ) = try DosingEngine.glucoseFallingFasterThanExpected(
+            eventualGlucose: forecastResult.eventualGlucose,
+            minGlucose: adjustedGlucoseTargets.minGlucose,
+            minDelta: minDelta,
+            expectedDelta: expectedDelta,
+            glucoseStatus: glucoseStatus,
+            currentTemp: currentTemp,
+            basal: basal,
+            smbIsEnabled: smbIsEnabled,
+            profile: profile,
+            determination: determination
+        )
+        determination = glucoseFallingFasterThanExpectedDetermination
+        if shouldSetTempBasalForGlucoseFallingFasterThanExpected {
+            return determination
+        }
+
+        let (
+            shouldSetTempBasalEventualOrForecastGlucoseLessThanMax,
+            eventualOrForecastGlucoseLessThanMaxDetermination
+        ) = try DosingEngine.eventualOrForecastGlucoseLessThanMax(
+            eventualGlucose: forecastResult.eventualGlucose,
+            maxGlucose: adjustedGlucoseTargets.maxGlucose,
+            minForecastGlucose: forecastResult.minForecastedGlucose,
+            currentTemp: currentTemp,
+            basal: basal,
+            smbIsEnabled: smbIsEnabled,
+            profile: profile,
+            determination: determination
+        )
+        determination = eventualOrForecastGlucoseLessThanMaxDetermination
+        if shouldSetTempBasalEventualOrForecastGlucoseLessThanMax {
+            return determination
+        }
+
+        if forecastResult.eventualGlucose >= adjustedGlucoseTargets.maxGlucose {
+            determination
+                .reason +=
+                "Eventual BG \(DosingEngine.convertGlucose(profile: profile, glucose: forecastResult.eventualGlucose)) >= \(DosingEngine.convertGlucose(profile: profile, glucose: adjustedGlucoseTargets.maxGlucose)), "
+        }
+
+        let (shouldSetTempBasalForIobGreaterThanMax, iobGreaterThanMaxDetermination) = try DosingEngine.iobGreaterThanMax(
+            iob: currentIob,
+            maxIob: profile.maxIob,
+            currentTemp: currentTemp,
+            basal: basal,
+            profile: profile,
+            determination: determination
+        )
+        determination = iobGreaterThanMaxDetermination
+        if shouldSetTempBasalForIobGreaterThanMax {
+            return determination
+        }
+
         // TODO: how to handle output?
         // TODO: how to handle logging?
 
