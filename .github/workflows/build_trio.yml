@@ -1,11 +1,12 @@
 name: 4. Build Trio
 run-name: Build Trio (${{ github.ref_name }})
 on:
-  workflow_dispatch:
+  workflow_dispatch:        # keep manual Run workflow button
   schedule:
-    # Check for updates every Sunday
-    #   Later logic builds if there are updates or if it is the 2nd Sunday of the month
-    - cron: "43 6 * * 0" # Sunday at UTC 06:43
+    - cron: "0 8 * * 3"     # every Wednesday 08:00 UTC
+      branches: [dev]       # only trigger on dev
+    - cron: "0 6 1 * *"     # 1st of month 06:00 UTC
+      branches: [dev]       # only trigger on dev
 
 env:
   GH_PAT: ${{ secrets.GH_PAT }}
