@@ -32,6 +32,7 @@ extension Formatter {
     static let decimalFormatterWithTwoFractionDigits: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
+        formatter.locale = .current
         formatter.maximumFractionDigits = 2
         return formatter
     }()
@@ -51,6 +52,7 @@ extension Formatter {
     static let decimalFormatterWithOneFractionDigit: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
+        formatter.locale = .current
         formatter.maximumFractionDigits = 1
         return formatter
     }()
@@ -69,6 +71,7 @@ extension Formatter {
 
         switch units {
         case .mmolL:
+            formatter.locale = .current
             formatter.minimumFractionDigits = 1
             formatter.maximumFractionDigits = 1
         case .mgdL:
@@ -81,9 +84,9 @@ extension Formatter {
     static let bolusFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
+        formatter.locale = .current
         formatter.minimumIntegerDigits = 0
         formatter.maximumFractionDigits = 2
-        formatter.decimalSeparator = "."
         return formatter
     }()
 
