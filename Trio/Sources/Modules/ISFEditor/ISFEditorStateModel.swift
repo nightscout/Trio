@@ -82,13 +82,13 @@ extension ISFEditor {
             shouldDisplaySaving.toggle()
 
             let sensitivities = items.map { item -> InsulinSensitivityEntry in
-                let fotmatter = DateFormatter()
-                fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
-                fotmatter.dateFormat = "HH:mm:ss"
+                let formatter = DateFormatter()
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                formatter.dateFormat = "HH:mm:ss"
                 let date = Date(timeIntervalSince1970: self.timeValues[item.timeIndex])
                 let minutes = Int(date.timeIntervalSince1970 / 60)
                 let rate = self.rateValues[item.rateIndex]
-                return InsulinSensitivityEntry(sensitivity: rate, offset: minutes, start: fotmatter.string(from: date))
+                return InsulinSensitivityEntry(sensitivity: rate, offset: minutes, start: formatter.string(from: date))
             }
             let profile = InsulinSensitivities(
                 units: .mgdL,
