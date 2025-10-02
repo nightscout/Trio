@@ -120,8 +120,12 @@ extension BasalProfileEditor {
 
         @MainActor func validate() {
             let uniq = Array(Set(items))
-            let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
-            sorted.first?.timeIndex = 0
+            var sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
+
+            if !sorted.isEmpty {
+                sorted[0].timeIndex = 0
+            }
+
             if items != sorted {
                 items = sorted
             }
