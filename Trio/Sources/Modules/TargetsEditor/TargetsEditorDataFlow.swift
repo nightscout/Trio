@@ -3,7 +3,7 @@ import Foundation
 enum TargetsEditor {
     enum Config {}
 
-    class Item: Identifiable, Hashable, Equatable {
+    struct Item: Identifiable, Hashable, Equatable {
         let id = UUID()
         var lowIndex = 0
         var highIndex = 0

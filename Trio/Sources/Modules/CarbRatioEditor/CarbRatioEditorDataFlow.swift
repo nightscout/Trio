@@ -3,7 +3,7 @@ import Foundation
 enum CarbRatioEditor {
     enum Config {}
 
-    class Item: Identifiable, Hashable, Equatable {
+    struct Item: Identifiable, Hashable, Equatable {
         let id = UUID()
         var rateIndex = 0
         var timeIndex = 0
