@@ -18,7 +18,9 @@ extension TrioRemoteControl {
         }
 
         let maxIOB = settings.preferences.maxIOB
-        let currentIOB = try await fetchCurrentIOB()
+        guard let currentIOB = iobService.currentIOB else {
+            throw CoreDataError.fetchError(function: #function, file: #file)
+        }
         if (currentIOB + bolusAmount) > maxIOB {
             await logError(
                 "Command rejected: bolus amount (\(bolusAmount) units) would exceed max IOB (\(maxIOB) units). Current IOB: \(currentIOB) units.",
@@ -54,30 +56,6 @@ extension TrioRemoteControl {
             .remoteControl,
             "Remote command processed successfully. \(pushMessage.humanReadableDescription())"
         )
-    }
-
-    private func fetchCurrentIOB() async throws -> Decimal {
-        let predicate = NSPredicate.predicateFor30MinAgoForDetermination
-
-        let determinations = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OrefDetermination.self,
-            onContext: pumpHistoryFetchContext,
-            predicate: predicate,
-            key: "timestamp",
-            ascending: false,
-            fetchLimit: 1,
-            propertiesToFetch: ["iob"]
-        )
-
-        guard let fetchedResults = determinations as? [[String: Any]],
-              let firstResult = fetchedResults.first,
-              let iob = firstResult["iob"] as? Decimal
-        else {
-            await logError("Failed to fetch current IOB.")
-            throw CoreDataError.fetchError(function: #function, file: #file)
-        }
-
-        return iob
     }
 
     private func fetchTotalRecentBolusAmount(since date: Date) async throws -> Decimal {

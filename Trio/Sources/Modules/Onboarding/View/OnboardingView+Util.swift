@@ -417,7 +417,7 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
 
                 VStack(alignment: .leading, spacing: 0) {
                     Text("What's NOT limited:")
-                    Text("• Manual boluses you enter yoursef")
+                    Text("• Manual boluses you enter yourself")
                     Text("• Manual temporary basal rates you set yourself")
                 }
             }
@@ -562,6 +562,8 @@ enum NightscoutImportOption: String, Equatable, CaseIterable, Identifiable {
 enum NightscoutSubstep: Int, CaseIterable, Identifiable {
     case setupSelection
     case connectToNightscout
+    case uploadToNightscout
+    case uploadGlucoseToNightscout
     case importFromNightscout
 
     var id: Int { rawValue }
