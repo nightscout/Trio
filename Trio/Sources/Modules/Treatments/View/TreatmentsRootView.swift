@@ -189,8 +189,8 @@ extension Treatments {
                 VStack {
                     List {
                         Section {
-                           // ForecastChart(state: state)
-                             //   .padding(.vertical)
+                            ForecastChart(state: state)
+                                .padding(.vertical)
                          }.listRowBackground(Color.chart)
 
                         Section {
