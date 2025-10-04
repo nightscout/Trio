@@ -31,7 +31,7 @@ struct ForecastChart: View {
             forecastChartLabels
                 .padding(.bottom, 8)
 
-            forecastChart
+           // forecastChart
         }
     }
 
