@@ -189,9 +189,9 @@ extension Treatments {
                 VStack {
                     List {
                         Section {
-                            ForecastChart(state: state)
-                                .padding(.vertical)
-                        }.listRowBackground(Color.chart)
+                           // ForecastChart(state: state)
+                             //   .padding(.vertical)
+                        // }.listRowBackground(Color.chart)
 
                         Section {
                             carbsTextField()
