@@ -188,7 +188,7 @@ extension Treatments {
             ZStack(alignment: .center) {
                 VStack {
                     List {
-                        Section {
+                       // Section {
                            // ForecastChart(state: state)
                              //   .padding(.vertical)
                         // }.listRowBackground(Color.chart)
