@@ -70,10 +70,22 @@ struct TrioSettings: JSON, Equatable {
     var lockScreenView: LockScreenView = .simple
     var bolusShortcut: BolusShortcutLimit = .notAllowed
     var timeInRangeType: TimeInRangeType = .timeInTightRange
+
+    /// Selected Garmin watchface (Trio or SwissAlpine)
+    var garminWatchface: GarminWatchface = .trio
+
+    /// Primary data type for Garmin display (COB or Sensitivity Ratio)
+    var garminDataType1: GarminDataType1 = .cob
+
+    /// Secondary data type for SwissAlpine watchface (TBR or Eventual BG)
+    var garminDataType2: GarminDataType2 = .tbr
+
+    /// Controls whether watchface data transmission is disabled
+    var garminDisableWatchfaceData: Bool = false
 }
 
 extension TrioSettings: Decodable {
-    // Needed to decode incomplete JSON
+    /// Custom decoder to handle incomplete JSON and provide default values for missing fields
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         var settings = TrioSettings()
@@ -298,6 +310,22 @@ extension TrioSettings: Decodable {
 
         if let timeInRangeType = try? container.decode(TimeInRangeType.self, forKey: .timeInRangeType) {
             settings.timeInRangeType = timeInRangeType
+        }
+
+        if let garminWatchface = try? container.decode(GarminWatchface.self, forKey: .garminWatchface) {
+            settings.garminWatchface = garminWatchface
+        }
+
+        if let garminDataType1 = try? container.decode(GarminDataType1.self, forKey: .garminDataType1) {
+            settings.garminDataType1 = garminDataType1
+        }
+
+        if let garminDataType2 = try? container.decode(GarminDataType2.self, forKey: .garminDataType2) {
+            settings.garminDataType2 = garminDataType2
+        }
+
+        if let garminDisableWatchfaceData = try? container.decode(Bool.self, forKey: .garminDisableWatchfaceData) {
+            settings.garminDisableWatchfaceData = garminDisableWatchfaceData
         }
 
         self = settings
