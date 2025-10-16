@@ -20,7 +20,7 @@ extension WatchConfig {
         @Published var garminDataType2: GarminDataType2 = .tbr
 
         /// Controls whether watchface data transmission is disabled
-        @Published var garminDisableWatchfaceData: Bool = false
+        @Published var garminDisableWatchfaceData: Bool = true
 
         /// Indicates if the disable toggle is locked during cooldown period
         @Published var isDisableToggleLocked: Bool = false

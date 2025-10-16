@@ -85,5 +85,5 @@ struct GarminWatchSettings: Codable, Hashable {
     var watchface: GarminWatchface = .trio
     var dataType1: GarminDataType1 = .cob
     var dataType2: GarminDataType2 = .tbr
-    var garminDisableWatchfaceData: Bool = false
+    var garminDisableWatchfaceData: Bool = true
 }
