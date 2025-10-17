@@ -15,8 +15,6 @@ final class PluginSource: GlucoseSource {
 
     var cgmHasValidSensorSession: Bool = false
 
-    private var promise: Future<[BloodGlucose], Error>.Promise?
-
     init(glucoseStorage: GlucoseStorage, glucoseManager: FetchGlucoseManager) {
         self.glucoseStorage = glucoseStorage
         self.glucoseManager = glucoseManager
@@ -34,25 +32,12 @@ final class PluginSource: GlucoseSource {
     /// - Parameter timer: An optional `DispatchTimer` (not used in the function but can be used to trigger fetch logic).
     /// - Returns: An `AnyPublisher` that emits an array of `BloodGlucose` values or an empty array if an error occurs or the timeout is reached.
     func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
-        Publishers.Merge(
-            callBLEFetch(),
-            fetchIfNeeded()
-        )
-        .filter { !$0.isEmpty }
-        .first()
-        .timeout(60 * 5, scheduler: processQueue, options: nil, customError: nil)
-        .replaceError(with: [])
-        .eraseToAnyPublisher()
-    }
-
-    func callBLEFetch() -> AnyPublisher<[BloodGlucose], Never> {
-        Future<[BloodGlucose], Error> { [weak self] promise in
-            self?.promise = promise
-        }
-        .timeout(60 * 5, scheduler: processQueue, options: nil, customError: nil)
-        .replaceError(with: [])
-        .replaceEmpty(with: [])
-        .eraseToAnyPublisher()
+        fetchIfNeeded()
+            .filter { !$0.isEmpty }
+            .first()
+            .timeout(60 * 5, scheduler: processQueue, options: nil, customError: nil)
+            .replaceError(with: [])
+            .eraseToAnyPublisher()
     }
 
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
@@ -60,8 +45,14 @@ final class PluginSource: GlucoseSource {
             guard let self = self else { return }
             self.processQueue.async {
                 guard let cgmManager = self.cgmManager else { return }
-                cgmManager.fetchNewDataIfNeeded { result in
-                    promise(self.readCGMResult(readingResult: result))
+                cgmManager.fetchNewDataIfNeeded { _ in
+                    // Ignore values returned from fetchNewDataIfNeeded since
+                    // these come from share client and cause a race condition
+                    // that causes the promise to complete before a CGM value
+                    // has a chance to return. From looking at the code this should
+                    // only impact G6 since that is the only CGM manager that will
+                    // return data and only if share credentials are set
+                    promise(.success([]))
                 }
             }
         }
@@ -123,7 +114,13 @@ extension PluginSource: CGMManagerDelegate {
 
             dispatchPrecondition(condition: .onQueue(self.processQueue))
 
-            self.promise?(self.readCGMResult(readingResult: readingResult))
+            switch self.readCGMResult(readingResult: readingResult) {
+            case let .success(glucose):
+                self.glucoseManager?.newGlucoseFromCgmManager(newGlucose: glucose)
+            case .failure:
+                debug(.deviceManager, "CGM PLUGIN - unable to read CGM result")
+            }
+
             debug(.deviceManager, "CGM PLUGIN - Direct return done")
         }
     }

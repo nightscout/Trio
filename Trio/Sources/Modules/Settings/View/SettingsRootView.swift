@@ -9,6 +9,8 @@ extension Settings {
         var latestVersion: String?
         var isUpdateAvailable: Bool
         var isBlacklisted: Bool
+        var latestDevVersion: String?
+        var isDevUpdateAvailable: Bool
     }
 
     struct RootView: BaseView {
@@ -27,7 +29,9 @@ extension Settings {
         @State private var versionInfo = VersionInfo(
             latestVersion: nil,
             isUpdateAvailable: false,
-            isBlacklisted: false
+            isBlacklisted: false,
+            latestDevVersion: nil,
+            isDevUpdateAvailable: false
         )
         @State private var closedLoopDisabled = true
 
@@ -40,12 +44,13 @@ extension Settings {
         }
 
         @ViewBuilder var versionInfoView: some View {
-            let latestVersion = versionInfo.latestVersion
-            if let version = latestVersion {
-                let updateColor: Color = versionInfo.isUpdateAvailable ? .orange : .green
-                let versionIconName = versionInfo.isUpdateAvailable ? "exclamationmark.triangle.fill" : "checkmark.circle.fill"
+            VStack(alignment: .leading, spacing: 4) {
+                // Main version info
+                if let version = versionInfo.latestVersion {
+                    let updateColor: Color = versionInfo.isUpdateAvailable ? .orange : .green
+                    let versionIconName = versionInfo
+                        .isUpdateAvailable ? "exclamationmark.triangle.fill" : "checkmark.circle.fill"
 
-                VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text("Latest version: \(version)")
                             .font(.footnote)
@@ -62,11 +67,33 @@ extension Settings {
                                 .foregroundColor(.red)
                         }
                     }
+                } else {
+                    Text("Latest version: Fetching...")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
                 }
-            } else {
-                Text("Latest version: Fetching...")
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
+
+                // Show latest dev version on any branch except main
+                let buildDetails = BuildDetails.shared
+                if buildDetails.trioBranch != "main" {
+                    if let devVersion = versionInfo.latestDevVersion {
+                        let devUpdateColor: Color = versionInfo.isDevUpdateAvailable ? .orange : .secondary
+                        let devVersionIconName = versionInfo.isDevUpdateAvailable ? "arrow.up.circle.fill" : "hammer.fill"
+
+                        HStack {
+                            Text("Latest dev: \(devVersion)")
+                                .font(.footnote)
+                                .foregroundColor(devUpdateColor)
+                            Image(systemName: devVersionIconName)
+                                .font(.footnote)
+                                .foregroundColor(devUpdateColor)
+                        }
+                    } else {
+                        Text("Latest dev: Fetching...")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                    }
+                }
             }
         }
 
@@ -366,14 +393,18 @@ extension Settings {
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
             .screenNavigation(self)
             .onAppear {
-                AppVersionChecker.shared.refreshVersionInfo { _, latestVersion, isNewer, isBlacklisted in
-                    let updateAvailable = isNewer
-                    DispatchQueue.main.async {
-                        versionInfo = VersionInfo(
-                            latestVersion: latestVersion,
-                            isUpdateAvailable: updateAvailable,
-                            isBlacklisted: isBlacklisted
-                        )
+                Task { @MainActor in
+                    let (_, latestVersion, isNewer, isBlacklisted) = await AppVersionChecker.shared.refreshVersionInfo()
+                    versionInfo.latestVersion = latestVersion
+                    versionInfo.isUpdateAvailable = isNewer
+                    versionInfo.isBlacklisted = isBlacklisted
+
+                    // Fetch dev version if not on main branch
+                    let buildDetails = BuildDetails.shared
+                    if buildDetails.trioBranch != "main" {
+                        let (devVersion, isDevNewer) = await AppVersionChecker.shared.checkForNewDevVersion()
+                        versionInfo.latestDevVersion = devVersion
+                        versionInfo.isDevUpdateAvailable = isDevNewer
                     }
                 }
             }

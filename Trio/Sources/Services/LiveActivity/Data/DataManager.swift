@@ -34,7 +34,7 @@ extension LiveActivityManager {
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1,
-            propertiesToFetch: ["iob", "cob", "currentTarget", "deliverAt"]
+            propertiesToFetch: ["cob", "currentTarget", "deliverAt"]
         )
 
         let tddResults = try await CoreDataStack.shared.fetchEntitiesAsync(
@@ -60,7 +60,6 @@ extension LiveActivityManager {
 
             return DeterminationData(
                 cob: (determination["cob"] as? Int) ?? 0,
-                iob: (determination["iob"] as? NSDecimalNumber)?.decimalValue ?? 0,
                 tdd: tddValue,
                 target: (determination["currentTarget"] as? NSDecimalNumber)?.decimalValue ?? 0,
                 date: determination["deliverAt"] as? Date ?? nil

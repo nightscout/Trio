@@ -20,6 +20,7 @@ extension Home {
         @ObservationIgnored @Injected() var tempTargetStorage: TempTargetsStorage!
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
         @ObservationIgnored @Injected() var bluetoothManager: BluetoothStateManager!
+        @ObservationIgnored @Injected() var iobService: IOBService!
 
         var cgmStateModel: CGMSettings.StateModel {
             CGMSettings.StateModel.shared
@@ -65,6 +66,7 @@ extension Home {
         var manualTempBasal = false
         var isSmoothingEnabled = false
         var maxIOB: Decimal = 0.0
+        var currentIOB: Decimal = 0.0
         var autosensMax: Decimal = 1.2
         var lowGlucose: Decimal = 70
         var highGlucose: Decimal = 180
@@ -215,12 +217,23 @@ extension Home {
                     group.addTask {
                         self.setupTempTargetsRunStored()
                     }
+                    group.addTask {
+                        self.iobService.updateIOB()
+                    }
                 }
             }
         }
 
         // These combine subscribers are only necessary due to the batch inserts of glucose/FPUs which do not trigger a ManagedObjectContext change notification
         private func registerSubscribers() {
+            iobService.iobPublisher
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    guard let self = self else { return }
+                    self.currentIOB = self.iobService.currentIOB ?? 0
+                }
+                .store(in: &subscriptions)
+
             glucoseStorage.updatePublisher
                 .receive(on: queue)
                 .sink { [weak self] _ in

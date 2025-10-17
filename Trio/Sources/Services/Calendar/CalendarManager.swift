@@ -18,6 +18,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var storage: FileStorage!
+    @Injected() private var iobService: IOBService!
 
     // Queue for handling Core Data change notifications
     private let queue = DispatchQueue(label: "BaseCalendarManager.queue", qos: .background)
@@ -273,7 +274,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             let deltaValue = settingsManager.settings.units == .mmolL ? delta.asMmolL : delta
             let deltaText = deltaFormatter.string(from: deltaValue as NSNumber) ?? "--"
 
-            let iobText = iobFormatter.string(from: (determinationObject.iob ?? 0) as NSNumber) ?? ""
+            let iobText = iobFormatter.string(from: (iobService.currentIOB ?? 0) as NSNumber) ?? ""
             let cobText = cobFormatter.string(from: determinationObject.cob as NSNumber) ?? ""
 
             var glucoseDisplayText = displayEmojis ? glucoseIcon + " " : ""
