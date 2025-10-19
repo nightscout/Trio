@@ -106,13 +106,12 @@ struct InsulinSensitivityStepView: View {
                             .padding(.horizontal)
 
                         VStack(alignment: .leading, spacing: 4) {
-                            let isfValue = "\(state.units == .mgdL ? Decimal(50) : 50.asMmolL)" +
-                                "\(state.units.rawValue)"
+                            let isfValue = "\(state.units == .mgdL ? Decimal(50) : 50.asMmolL)"
                             Text(
-                                "• An ISF of \(isfValue) means 1 U lowers your glucose by \(isfValue)"
+                                "• An ISF of \(isfValue) \(state.units.rawValue)/U means 1 U lowers your glucose by \(isfValue) \(state.units.rawValue)"
                             )
-                            Text("• A lower number means you're more sensitive to insulin")
-                            Text("• A higher number means you're less sensitive to insulin")
+                            Text("• A lower number means you're less sensitive (more resistant) to insulin")
+                            Text("• A higher number means you're more sensitive (less resistant) to insulin")
                         }
                         .font(.caption)
                         .foregroundColor(.secondary)
