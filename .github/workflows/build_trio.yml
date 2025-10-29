@@ -222,16 +222,17 @@ jobs:
               under the following path <code>Trio/fastlane/testflight.md</code>." >> $GITHUB_STEP_SUMMARY
 
   # Builds Trio
-  build:
+    build:
     name: Build
     needs: [check_certs, check_alive_and_permissions, check_latest_from_upstream, day_in_month]
     runs-on: macos-15
     permissions:
       contents: write
-      if: |
-          github.event_name == 'workflow_dispatch' ||
-          github.event_name == 'push' ||
-          github.event_name == 'schedule'
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
+      github.event_name == 'schedule'
+
     steps:
       - name: Select Xcode version
         run: "sudo xcode-select --switch /Applications/Xcode_16.4.app/Contents/Developer"
