@@ -9,8 +9,8 @@ on:
 
 env:
   UPSTREAM_REPO: nightscout/Trio
-  UPSTREAM_BRANCH: ${{ github.ref_name }} # branch on upstream repository to sync from (replace with specific branch name if needed)
-  TARGET_BRANCH: ${{ github.ref_name }} # target branch on fork to be kept in sync, and target branch on upstream to be kept alive (replace with specific branch name if needed)
+  UPSTREAM_BRANCH: nightscout/Trio/dev # branch on upstream repository to sync from (replace with specific branch name if needed)
+  TARGET_BRANCH: dev # target branch on fork to be kept in sync, and target branch on upstream to be kept alive (replace with specific branch name if needed)
   ALIVE_BRANCH_MAIN: alive-main
   ALIVE_BRANCH_DEV: alive-dev
 
