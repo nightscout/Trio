@@ -2,14 +2,17 @@ name: 4. Build Trio
 run-name: Build Trio (${{ github.ref_name }})
 on:
   workflow_dispatch:
+
+  push:
+    branches: [ dev ]
+
   schedule:
-    # Check for updates every Sunday
-    #   Later logic builds if there are updates or if it is the 2nd Sunday of the month
-    - cron: "43 6 * * 0" # Sunday at UTC 06:43
+    # weekly (Sunday 06:43 UTC) + keep your comment
+    - cron: "43 6 * * 0"
 
 env:
   UPSTREAM_REPO: nightscout/Trio
-  UPSTREAM_BRANCH: nightscout/Trio/dev # branch on upstream repository to sync from (replace with specific branch name if needed)
+  UPSTREAM_BRANCH: dev # branch on upstream repository to sync from (replace with specific branch name if needed)
   TARGET_BRANCH: dev # target branch on fork to be kept in sync, and target branch on upstream to be kept alive (replace with specific branch name if needed)
   ALIVE_BRANCH_MAIN: alive-main
   ALIVE_BRANCH_DEV: alive-dev
@@ -225,12 +228,10 @@ jobs:
     runs-on: macos-15
     permissions:
       contents: write
-    if:
-      | # builds with manual start; if automatic: once a month or when new commits are found
-      github.event_name == 'workflow_dispatch' ||
-      (needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
-        (vars.SCHEDULED_BUILD != 'false' && needs.day_in_month.outputs.IS_SECOND_IN_MONTH == 'true') ||
-        (vars.SCHEDULED_SYNC != 'false' && needs.check_latest_from_upstream.outputs.NEW_COMMITS == 'true' )
+      if: |
+          github.event_name == 'workflow_dispatch' ||
+          github.event_name == 'push' ||
+          github.event_name == 'schedule'
       )
     steps:
       - name: Select Xcode version
@@ -334,6 +335,9 @@ jobs:
       # Sync the GitHub runner clock with the Windows time server (workaround as suggested in https://github.com/actions/runner/issues/2996)
       - name: Sync clock
         run: sudo sntp -sS time.windows.com
+
+      - name: Increment build number
+        run: fastlane run increment_build_number
 
       # Build signed Trio IPA file
       - name: Fastlane Build & Archive
