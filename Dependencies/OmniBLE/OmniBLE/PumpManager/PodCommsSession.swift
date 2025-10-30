@@ -931,10 +931,9 @@ public class PodCommsSession {
             // If setup is not complete, try to cancel the finishSetupReminder alert (slot7Expired)
             // to prevent the pod from continuing to beep every 5 minutes after deactivation.
             // This is safe to do even if the alert was never configured or already replaced.
-            do {
-                let inactiveExpiredAlert = PodAlert.expired(offset: 0, absAlertTime: 0, duration: 0)
-                _ = try? configureAlerts([inactiveExpiredAlert])
-            }
+            // Using PodAlert.expired with absAlertTime=0 deactivates the alert on slot7Expired.
+            let inactiveExpiredAlert = PodAlert.expired(offset: 0, absAlertTime: 0, duration: 0)
+            _ = try? configureAlerts([inactiveExpiredAlert])
         }
 
         // Try to read the most recent pulse log entries for possible later analysis
