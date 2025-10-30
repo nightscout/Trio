@@ -206,4 +206,67 @@ import Testing
             "All entries should share the same fpuID"
         )
     }
+
+    @Test("Store multiple carb entries at the same timestamp") func testMultipleEntriesAtSameTimestamp() async throws {
+        // Given - Two different carb entries at the exact same time
+        let sharedTimestamp = Date()
+        let fpuID = UUID().uuidString
+        
+        let fpuEntry = CarbsEntry(
+            id: UUID().uuidString,
+            createdAt: sharedTimestamp,
+            actualDate: sharedTimestamp,
+            carbs: 10,
+            fat: 20,
+            protein: 15,
+            note: "FPU entry",
+            enteredBy: "Test",
+            isFPU: false,
+            fpuID: fpuID
+        )
+        
+        let regularEntry = CarbsEntry(
+            id: UUID().uuidString,
+            createdAt: sharedTimestamp,
+            actualDate: sharedTimestamp,
+            carbs: 123,
+            fat: nil,
+            protein: nil,
+            note: "Regular meal",
+            enteredBy: "Test",
+            isFPU: false,
+            fpuID: nil
+        )
+        
+        // When - Store both entries
+        try await storage.storeCarbs([fpuEntry], areFetchedFromRemote: false)
+        try await storage.storeCarbs([regularEntry], areFetchedFromRemote: false)
+        
+        // Then - Both entries should be stored
+        let allEntries = try await coreDataStack.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: testContext,
+            predicate: NSPredicate(format: "date == %@", sharedTimestamp as NSDate),
+            key: "date",
+            ascending: false
+        ) as? [CarbEntryStored]
+        
+        // Should have at least 2 non-FPU entries (the original ones)
+        let nonFpuEntries = allEntries?.filter { $0.isFPU == false } ?? []
+        #expect(nonFpuEntries.count >= 2, "Should have at least 2 non-FPU entries at the same timestamp")
+        
+        // Verify the regular meal entry exists
+        let mealEntry = nonFpuEntries.first { $0.carbs == 123 }
+        #expect(mealEntry != nil, "Regular meal entry should be stored")
+        #expect(mealEntry?.note == "Regular meal", "Regular meal note should match")
+        
+        // Verify the FPU parent entry exists
+        let fpuParent = nonFpuEntries.first { $0.carbs == 10 }
+        #expect(fpuParent != nil, "FPU parent entry should be stored")
+        #expect(fpuParent?.fat == 20, "FPU parent fat should match")
+        #expect(fpuParent?.protein == 15, "FPU parent protein should match")
+        
+        // Verify entries have different IDs
+        #expect(mealEntry?.id != fpuParent?.id, "Entries should have different IDs")
+    }
 }
