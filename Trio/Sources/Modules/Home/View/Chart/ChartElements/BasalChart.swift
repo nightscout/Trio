@@ -173,15 +173,21 @@ extension MainChartView {
         guard timeBegin < timeEnd else { return [] }
 
         let beginDate = Date(timeIntervalSince1970: timeBegin)
-        let startOfDay = Calendar.current.startOfDay(for: beginDate)
+        let calendar = Calendar.current
+        // Use the current timezone to properly handle DST transitions
+        // We need to recalculate startOfDay for each day to account for DST changes
         let profile = state.basalProfile
         var basalPoints: [BasalProfile] = []
 
-        // Iterate over the next three days, multiplying the time intervals
+        // Iterate over the next three days
         for dayOffset in 0 ..< 3 {
-            let dayTimeOffset = TimeInterval(dayOffset * 24 * 60 * 60) // One Day in seconds
+            // Calculate the date for this day
+            let dayDate = calendar.date(byAdding: .day, value: dayOffset, to: beginDate) ?? beginDate
+            // Get the start of day for this specific day (handles DST correctly)
+            let startOfDay = calendar.startOfDay(for: dayDate)
+            
             for entry in profile {
-                let basalTime = startOfDay.addingTimeInterval(entry.minutes.minutes.timeInterval + dayTimeOffset)
+                let basalTime = startOfDay.addingTimeInterval(entry.minutes.minutes.timeInterval)
                 let basalTimeInterval = basalTime.timeIntervalSince1970
 
                 // Only append points within the timeBegin and timeEnd range
