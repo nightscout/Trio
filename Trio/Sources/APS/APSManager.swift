@@ -554,15 +554,27 @@ final class BaseAPSManager: APSManager, Injectable {
 
         debug(.apsManager, "Enact bolus \(roundedAmount), manual \(!isSMB)")
 
+        // Separate error handling for bolus delivery vs. determine basal
+        // Only report bolus failure if the actual pump delivery fails
         do {
             try await pump.enactBolus(units: roundedAmount, automatic: isSMB)
             debug(.apsManager, "Bolus succeeded")
-            if !isSMB {
-                try await determineBasalSync()
-            }
             bolusProgress.send(0)
+            
+            // Attempt to update loop state, but don't fail the bolus if this fails
+            if !isSMB {
+                do {
+                    try await determineBasalSync()
+                } catch {
+                    // Log the error but don't treat it as a bolus failure
+                    warning(.apsManager, "Bolus succeeded, but determineBasal failed with error: \(error)")
+                    processError(error)
+                }
+            }
+            
             callback?(true, String(localized: "Bolus enacted successfully.", comment: "Success message for enacting a bolus"))
         } catch {
+            // Only actual bolus delivery failures are reported here
             warning(.apsManager, "Bolus failed with error: \(error)")
             processError(APSError.pumpError(error))
             if !isSMB {
