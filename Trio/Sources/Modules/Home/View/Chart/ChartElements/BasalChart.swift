@@ -187,7 +187,20 @@ extension MainChartView {
             let startOfDay = calendar.startOfDay(for: dayDate)
             
             for entry in profile {
-                let basalTime = startOfDay.addingTimeInterval(entry.minutes.minutes.timeInterval)
+                // Convert minutes to hours and minutes for wall clock time
+                // This properly handles DST transitions by setting the actual clock time
+                // rather than adding elapsed time, ensuring basal schedules display at
+                // the correct time even after DST changes
+                let hours = entry.minutes / 60
+                let minutes = entry.minutes % 60
+                
+                var components = calendar.dateComponents([.year, .month, .day], from: startOfDay)
+                components.hour = hours
+                components.minute = minutes
+                
+                guard let basalTime = calendar.date(from: components) else {
+                    continue
+                }
                 let basalTimeInterval = basalTime.timeIntervalSince1970
 
                 // Only append points within the timeBegin and timeEnd range
