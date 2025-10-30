@@ -567,6 +567,7 @@ final class BaseAPSManager: APSManager, Injectable {
                     try await determineBasalSync()
                 } catch {
                     // Log the error but don't treat it as a bolus failure
+                    // The error is still sent to lastError subject so UI can display it
                     warning(.apsManager, "Bolus succeeded, but determineBasal failed with error: \(error)")
                     processError(error)
                 }
