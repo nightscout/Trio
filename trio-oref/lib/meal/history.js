@@ -1,6 +1,10 @@
-function arrayHasElementWithSameTimestampAndProperty(array,t,propname) {
+function arrayHasElementWithSameTimestampAndProperty(array,t,propname,id) {
     for (var j=0; j < array.length; j++) {
         var element = array[j];
+        // Check if IDs are present and different - if so, not a duplicate
+        if (id && element.id && id !== element.id) {
+            continue;
+        }
         if (element.timestamp === t && element[propname] !== undefined) return true;
         if ( element[propname] !== undefined ) {
             var eDate = new Date(element.timestamp);
@@ -29,7 +33,8 @@ function findMealInputs (inputs) {
             temp.timestamp = current.created_at;
             temp.carbs = current.carbs;
             temp.nsCarbs = current.carbs;
-        if (!arrayHasElementWithSameTimestampAndProperty(mealInputs,current.created_at,"carbs")) {
+            temp.id = current.id;
+        if (!arrayHasElementWithSameTimestampAndProperty(mealInputs,current.created_at,"carbs",current.id)) {
                 mealInputs.push(temp);
             } else {
                 duplicates += 1;
@@ -44,8 +49,9 @@ function findMealInputs (inputs) {
             temp = {};
             temp.timestamp = current.timestamp;
             temp.bolus = current.amount;
+            temp.id = current.id;
 
-            if (!arrayHasElementWithSameTimestampAndProperty(mealInputs,current.timestamp,"bolus")) {
+            if (!arrayHasElementWithSameTimestampAndProperty(mealInputs,current.timestamp,"bolus",current.id)) {
                 mealInputs.push(temp);
             } else {
                 duplicates += 1;
@@ -62,9 +68,10 @@ function findMealInputs (inputs) {
             temp.timestamp = current.created_at;
             temp.carbs = current.carbs;
             temp.nsCarbs = current.carbs;
+            temp.id = current.id;
             // don't enter the treatment if there's another treatment with the same exact timestamp
             // to prevent duped carb entries from multiple sources
-            if (!arrayHasElementWithSameTimestampAndProperty(mealInputs,current.created_at,"carbs")) {
+            if (!arrayHasElementWithSameTimestampAndProperty(mealInputs,current.created_at,"carbs",current.id)) {
                 mealInputs.push(temp);
             } else {
                 duplicates += 1;
@@ -75,7 +82,8 @@ function findMealInputs (inputs) {
             temp.carbs = current.carbs;
             temp.nsCarbs = current.carbs;
             temp.bolus = current.insulin;
-            if (!arrayHasElementWithSameTimestampAndProperty(mealInputs,current.timestamp,"carbs")) {
+            temp.id = current.id;
+            if (!arrayHasElementWithSameTimestampAndProperty(mealInputs,current.timestamp,"carbs",current.id)) {
                 mealInputs.push(temp);
             } else {
                 duplicates += 1;
@@ -86,7 +94,8 @@ function findMealInputs (inputs) {
             temp.nsCarbs = current.carbs;
             temp.timestamp = current.created_at;
             temp.bolus = current.insulin;
-            if (!arrayHasElementWithSameTimestampAndProperty(mealInputs,current.timestamp,"carbs")) {
+            temp.id = current.id;
+            if (!arrayHasElementWithSameTimestampAndProperty(mealInputs,current.timestamp,"carbs",current.id)) {
                 mealInputs.push(temp);
             } else {
                 duplicates += 1;
@@ -96,7 +105,8 @@ function findMealInputs (inputs) {
             temp.timestamp = current.timestamp;
             temp.carbs = current.carb_input;
             temp.journalCarbs = current.carb_input;
-            if (!arrayHasElementWithSameTimestampAndProperty(mealInputs,current.timestamp,"carbs")) {
+            temp.id = current.id;
+            if (!arrayHasElementWithSameTimestampAndProperty(mealInputs,current.timestamp,"carbs",current.id)) {
                     mealInputs.push(temp);
                 } else {
                     duplicates += 1;
@@ -111,11 +121,12 @@ function findMealInputs (inputs) {
       temp.timestamp = current.timestamp;
       temp.carbs = current.carb_input;
       temp.bwCarbs = current.carb_input;
+      temp.id = current.id;
 
       // don't enter the treatment if there's another treatment with the same exact timestamp
       // to prevent duped carb entries from multiple sources
-      if (!arrayHasElementWithSameTimestampAndProperty(mealInputs,current.timestamp,"carbs")) {
-          if (arrayHasElementWithSameTimestampAndProperty(mealInputs,current.timestamp,"bolus")) {
+      if (!arrayHasElementWithSameTimestampAndProperty(mealInputs,current.timestamp,"carbs",current.id)) {
+          if (arrayHasElementWithSameTimestampAndProperty(mealInputs,current.timestamp,"bolus",current.id)) {
               mealInputs.push(temp);
               //bwCarbs += temp.carbs;
           } else {
