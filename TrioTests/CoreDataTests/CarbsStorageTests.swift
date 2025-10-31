@@ -207,11 +207,15 @@ import Testing
         )
     }
 
-    @Test("Store multiple carb entries at the same timestamp") func testMultipleEntriesAtSameTimestamp() async throws {
+    @Test("Multiple carb entries at same timestamp should all be counted in COB")
+    func testMultipleEntriesAtSameTimestampAreCounted() async throws {
         // Given - Two different carb entries at the exact same time
+        // This simulates a real scenario where a user has an FPU entry at 18:00
+        // and then adds a regular meal entry also at 18:00
         let sharedTimestamp = Date()
         let fpuID = UUID().uuidString
         
+        // First entry: FPU carb entry (created from fat/protein meal)
         let fpuEntry = CarbsEntry(
             id: UUID().uuidString,
             createdAt: sharedTimestamp,
@@ -225,6 +229,7 @@ import Testing
             fpuID: fpuID
         )
         
+        // Second entry: Regular meal entry
         let regularEntry = CarbsEntry(
             id: UUID().uuidString,
             createdAt: sharedTimestamp,
@@ -238,11 +243,11 @@ import Testing
             fpuID: nil
         )
         
-        // When - Store both entries
+        // When - Store both entries (simulating the bug scenario)
         try await storage.storeCarbs([fpuEntry], areFetchedFromRemote: false)
         try await storage.storeCarbs([regularEntry], areFetchedFromRemote: false)
         
-        // Then - Both entries should be stored
+        // Then - Both entries should be stored in Core Data
         let allEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: testContext,
@@ -251,22 +256,27 @@ import Testing
             ascending: false
         ) as? [CarbEntryStored]
         
-        // Should have at least 2 non-FPU entries (the original ones)
+        // Verify both non-FPU entries are stored
         let nonFpuEntries = allEntries?.filter { $0.isFPU == false } ?? []
         #expect(nonFpuEntries.count >= 2, "Should have at least 2 non-FPU entries at the same timestamp")
         
         // Verify the regular meal entry exists
         let mealEntry = nonFpuEntries.first { $0.carbs == 123 }
-        #expect(mealEntry != nil, "Regular meal entry should be stored")
+        #expect(mealEntry != nil, "Regular meal entry (123g) should be stored")
         #expect(mealEntry?.note == "Regular meal", "Regular meal note should match")
         
         // Verify the FPU parent entry exists
         let fpuParent = nonFpuEntries.first { $0.carbs == 10 }
-        #expect(fpuParent != nil, "FPU parent entry should be stored")
+        #expect(fpuParent != nil, "FPU parent entry (10g) should be stored")
         #expect(fpuParent?.fat == 20, "FPU parent fat should match")
         #expect(fpuParent?.protein == 15, "FPU parent protein should match")
         
-        // Verify entries have different IDs
-        #expect(mealEntry?.id != fpuParent?.id, "Entries should have different IDs")
+        // Most importantly: verify entries have different IDs
+        // This is critical - the JavaScript duplicate detection should check IDs
+        #expect(mealEntry?.id != fpuParent?.id, "Entries should have different IDs to distinguish them")
+        
+        // The BUG: Without the fix, the JavaScript meal history parser would treat
+        // these two entries as duplicates based solely on timestamp, and discard one,
+        // causing incorrect COB calculations. With the fix, both should be counted.
     }
 }

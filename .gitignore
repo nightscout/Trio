@@ -80,8 +80,3 @@ fastlane/test_output
 fastlane/FastlaneRunner
 
 ConfigOverride.xcconfig
-# Build artifacts
-trio-oref/node_modules/
-trio-oref/package-lock.json
-trio-oref/package.json
-trio-oref/webpack.config.js
