@@ -11,6 +11,7 @@ protocol FetchGlucoseManager: SourceInfoProvider {
     func updateGlucoseSource(cgmGlucoseSourceType: CGMType, cgmGlucosePluginId: String, newManager: CGMManagerUI?)
     func deleteGlucoseSource() async
     func removeCalibrations()
+    func newGlucoseFromCgmManager(newGlucose: [BloodGlucose])
     var glucoseSource: GlucoseSource? { get }
     var cgmManager: CGMManagerUI? { get }
     var cgmGlucoseSourceType: CGMType { get set }
@@ -55,6 +56,9 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
     private let context = CoreDataStack.shared.newTaskContext()
 
+    /// Enforce mutual exclusion on calls to glucoseStoreAndHeartDecision
+    private let glucoseStoreAndHeartLock = DispatchSemaphore(value: 1)
+
     var shouldSyncToRemoteService: Bool {
         guard let cgmManager = cgmManager else {
             return true
@@ -95,6 +99,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
                 )
                 .eraseToAnyPublisher()
                 .sink { newGlucose, syncDate in
+                    self.glucoseStoreAndHeartLock.wait()
                     Task {
                         do {
                             try await self.glucoseStoreAndHeartDecision(
@@ -104,6 +109,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
                         } catch {
                             debug(.deviceManager, "Failed to store glucose: \(error)")
                         }
+                        self.glucoseStoreAndHeartLock.signal()
                     }
                 }
                 .store(in: &self.lifetime)
@@ -111,6 +117,28 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             .store(in: &lifetime)
         timer.fire()
         timer.resume()
+    }
+
+    /// Store new glucose readings from the CGM manager
+    ///
+    /// This function enables plugin CGM managers to send new glucose readings directly
+    /// to the FetchGlucoseManager, bypassing the Combine pipeline. By bypassing the
+    /// Combine pipeline CGM managers can send backfill glucose readings, which come
+    /// right after a new glucose reading, typically.
+    func newGlucoseFromCgmManager(newGlucose: [BloodGlucose]) {
+        glucoseStoreAndHeartLock.wait()
+        let syncDate = glucoseStorage.syncDate()
+        Task {
+            do {
+                try await glucoseStoreAndHeartDecision(
+                    syncDate: syncDate,
+                    glucose: newGlucose
+                )
+            } catch {
+                debug(.deviceManager, "Failed to store glucose from CGM manager: \(error)")
+            }
+            glucoseStoreAndHeartLock.signal()
+        }
     }
 
     var glucoseSource: GlucoseSource?
@@ -255,6 +283,18 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             endBackgroundTaskSafely(&backgroundTaskID, taskName: "Glucose Store and Heartbeat Decision")
             return
         }
+
+        // TODO: Fix backfill logic https://github.com/nightscout/Trio/issues/737
+        /*
+         let backfillGlucose = newGlucose.filter { $0.dateString <= syncDate }
+         if backfillGlucose.isNotEmpty {
+             debug(.deviceManager, "Backfilling glucose...")
+             do {
+                 try await glucoseStorage.storeGlucose(backfillGlucose)
+             } catch {
+                 debug(.deviceManager, "Unable to backfill glucose: \(error)")
+             }
+         }*/
 
         filteredByDate = newGlucose.filter { $0.dateString > syncDate }
         filtered = glucoseStorage.filterTooFrequentGlucose(filteredByDate, at: syncDate)

@@ -69,7 +69,7 @@ struct CarbRatioStepView: View {
                             .padding(.horizontal)
 
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("For 45g of carbs, you would need:")
+                            Text("For 45 g of carbs, you would need:")
                                 .font(.subheadline)
                                 .padding(.horizontal)
 
@@ -79,7 +79,7 @@ struct CarbRatioStepView: View {
                                         .carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber
                                 )
                             Text(
-                                "45 \(String(localized: "g", comment: "Gram abbreviation")) / \(formatter.string(from: state.carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber) ?? "--")  = \(String(format: "%.1f", insulinNeeded))" +
+                                "45 \(String(localized: "g", comment: "Gram abbreviation")) / \(formatter.string(from: state.carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber) ?? "--") \(String(localized: "g/U")) = \(String(format: "%.1f", insulinNeeded))" +
                                     " " + String(localized: "U", comment: "Insulin unit abbreviation")
                             )
                             .font(.system(.body, design: .monospaced))
@@ -100,7 +100,7 @@ struct CarbRatioStepView: View {
                             .padding(.horizontal)
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("• A ratio of 10 g/U means 1 unit of insulin covers 10g of carbs")
+                            Text("• A ratio of 10 g/U means 1 unit of insulin covers 10 g of carbs")
                             Text("• A lower number means you need more insulin for the same amount of carbs")
                             Text("• A higher number means you need less insulin for the same amount of carbs")
                             Text("• Different times of day may require different ratios")
