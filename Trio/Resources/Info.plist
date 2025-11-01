@@ -107,6 +107,8 @@
 		<string>remote-notification</string>
 		<string>audio</string>
 	</array>
+    <key>UIDesignRequiresCompatibility</key>
+    <true/>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchScreen</key>

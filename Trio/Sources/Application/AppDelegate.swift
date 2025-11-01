@@ -32,11 +32,11 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
 
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: userInfo)
-            let pushMessage = try JSONDecoder().decode(PushMessage.self, from: jsonData)
+            let encryptedMessage = try JSONDecoder().decode(EncryptedPushMessage.self, from: jsonData)
 
             Task {
                 do {
-                    try await TrioRemoteControl.shared.handleRemoteNotification(pushMessage: pushMessage)
+                    try await TrioRemoteControl.shared.handleRemoteNotification(encryptedData: encryptedMessage.encryptedData)
                     completionHandler(.newData)
                 } catch {
                     debug(
@@ -47,7 +47,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
                 }
             }
         } catch {
-            debug(.remoteControl, "Error decoding push message: \(error)")
+            debug(.remoteControl, "Error decoding push message shell: \(error)")
             completionHandler(.failed)
         }
     }

@@ -562,6 +562,8 @@ enum NightscoutImportOption: String, Equatable, CaseIterable, Identifiable {
 enum NightscoutSubstep: Int, CaseIterable, Identifiable {
     case setupSelection
     case connectToNightscout
+    case uploadToNightscout
+    case uploadGlucoseToNightscout
     case importFromNightscout
 
     var id: Int { rawValue }
