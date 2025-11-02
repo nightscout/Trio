@@ -12,7 +12,7 @@ class TrioRemoteControl: Injectable {
     @Injected() internal var settings: SettingsManager!
     @Injected() internal var iobService: IOBService!
 
-    private let timeWindow: TimeInterval = 600 // Defines how old messages that are accepted, 10 minutes
+    private let timeWindow: TimeInterval = 600
 
     internal let pumpHistoryFetchContext: NSManagedObjectContext
     internal let viewContext: NSManagedObjectContext
@@ -23,96 +23,72 @@ class TrioRemoteControl: Injectable {
         injectServices(TrioApp.resolver)
     }
 
-    func handleRemoteNotification(pushMessage: PushMessage) async throws {
+    func handleRemoteNotification(encryptedData: String) async throws {
         let isTrioRemoteControlEnabled = UserDefaults.standard.bool(forKey: "isTrioRemoteControlEnabled")
         guard isTrioRemoteControlEnabled else {
             await logError("Remote command received, but remote control is disabled in settings. Ignoring the command.")
             return
         }
 
+        let storedSecret = UserDefaults.standard.string(forKey: "trioRemoteControlSharedSecret") ?? ""
+        guard !storedSecret.isEmpty else {
+            await logError("Command rejected: shared secret is missing in settings. Cannot authenticate the command.")
+            return
+        }
+
+        guard let messenger = SecureMessenger(sharedSecret: storedSecret) else {
+            await logError("Command rejected: Failed to initialize security module. The shared secret might be invalid.")
+            return
+        }
+
+        let commandPayload: CommandPayload
+        do {
+            commandPayload = try messenger.decrypt(base64EncodedString: encryptedData)
+        } catch {
+            await logError(
+                "Command rejected: Decryption failed. Mismatched shared secret or corrupted message. Error: \(error.localizedDescription)"
+            )
+            return
+        }
+
         let currentTime = Date().timeIntervalSince1970
-        let timeDifference = currentTime - pushMessage.timestamp
+        let timeDifference = currentTime - commandPayload.timestamp
 
         if timeDifference > timeWindow {
             await logError(
-                "Command rejected: the message is too old (sent \(Int(timeDifference)) seconds ago, which exceeds the allowed limit).",
-                pushMessage: pushMessage
+                "Command rejected: the message is too old (sent \(Int(timeDifference)) seconds ago).",
+                payload: commandPayload
             )
             return
         } else if timeDifference < -timeWindow {
             await logError(
-                "Command rejected: the message has an invalid future timestamp (timestamp is \(Int(-timeDifference)) seconds ahead of the current time).",
-                pushMessage: pushMessage
+                "Command rejected: the message has an invalid future timestamp.",
+                payload: commandPayload
             )
             return
         }
 
-        debug(.remoteControl, "Command received with acceptable time difference: \(Int(timeDifference)) seconds.")
+        debug(
+            .remoteControl,
+            "Command successfully decrypted and authenticated. Time difference: \(Int(timeDifference)) seconds."
+        )
 
-        let storedSecret = UserDefaults.standard.string(forKey: "trioRemoteControlSharedSecret") ?? ""
-        guard !storedSecret.isEmpty else {
-            await logError(
-                "Command rejected: shared secret is missing in settings. Cannot authenticate the command.",
-                pushMessage: pushMessage
-            )
-            return
-        }
-
-        guard pushMessage.sharedSecret == storedSecret else {
-            await logError(
-                "Command rejected: shared secret does not match. Cannot authenticate the command.",
-                pushMessage: pushMessage
-            )
-            return
-        }
-
-        switch pushMessage.commandType {
+        switch commandPayload.commandType {
         case .bolus:
-            try await handleBolusCommand(pushMessage)
+            try await handleBolusCommand(commandPayload)
         case .tempTarget:
-            try await handleTempTargetCommand(pushMessage)
+            try await handleTempTargetCommand(commandPayload)
         case .cancelTempTarget:
-            await cancelTempTarget(pushMessage)
+            await cancelTempTarget(commandPayload)
         case .meal:
-            try await handleMealCommand(pushMessage)
-
-            if pushMessage.bolusAmount != nil {
-                try await handleBolusCommand(pushMessage)
+            try await handleMealCommand(commandPayload)
+            if commandPayload.bolusAmount != nil {
+                try await handleBolusCommand(commandPayload)
             }
         case .startOverride:
-            await handleStartOverrideCommand(pushMessage)
+            await handleStartOverrideCommand(commandPayload)
         case .cancelOverride:
-            await handleCancelOverrideCommand(pushMessage)
-        }
-    }
-}
-
-// MARK: - CommandType Enum
-
-extension TrioRemoteControl {
-    enum CommandType: String, Codable {
-        case bolus
-        case tempTarget = "temp_target"
-        case cancelTempTarget = "cancel_temp_target"
-        case meal
-        case startOverride = "start_override"
-        case cancelOverride = "cancel_override"
-
-        var description: String {
-            switch self {
-            case .bolus:
-                return "Bolus"
-            case .tempTarget:
-                return "Temporary Target"
-            case .cancelTempTarget:
-                return "Cancel Temporary Target"
-            case .meal:
-                return "Meal"
-            case .startOverride:
-                return "Start Override"
-            case .cancelOverride:
-                return "Cancel Override"
-            }
+            await handleCancelOverrideCommand(commandPayload)
         }
     }
 }

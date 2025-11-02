@@ -2,14 +2,10 @@ name: 4. Build Trio
 run-name: Build Trio (${{ github.ref_name }})
 on:
   workflow_dispatch:
-
-  ## Remove the "#" sign from the beginning of the line below to get automated builds on push (code changes in your repository)
-  #push:
-
   schedule:
-    # avoid starting an action at xx:00 when GitHub resources are more likely to be impacted
-    - cron: "43 8 * * 3" # Checks for updates at 08:43 UTC every Wednesday
-    - cron: "43 6 1 * *" # Builds the app on the 1st of every month at 06:43 UTC
+    # Check for updates every Sunday
+    #   Later logic builds if there are updates or if it is the 2nd Sunday of the month
+    - cron: "43 6 * * 0" # Sunday at UTC 06:43
 
 env:
   UPSTREAM_REPO: nightscout/Trio
@@ -19,6 +15,26 @@ env:
   ALIVE_BRANCH_DEV: alive-dev
 
 jobs:
+
+  # Set a logic flag if this is the second instance of this day-of-week in this month
+  day_in_month:
+    runs-on: ubuntu-latest
+    name: Check day in month
+    outputs:
+      IS_SECOND_IN_MONTH: ${{ steps.date-check.outputs.is_second_instance }}
+
+    steps:
+      - id: date-check
+        name: Check if this is the second time this day-of-week happens this month
+        run: |
+          DAY_OF_MONTH=$(date +%-d)
+          WEEK_OF_MONTH=$(( ($(date +%-d) - 1) / 7 + 1 ))
+          if [[ $WEEK_OF_MONTH -eq 2 ]]; then
+            echo "is_second_instance=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_second_instance=false" >> "$GITHUB_OUTPUT"
+          fi
+
   # Checks if Distribution certificate is present and valid, optionally nukes and
   # creates new certs if the repository variable ENABLE_NUKE_CERTS == 'true'
   check_certs:
@@ -205,20 +221,20 @@ jobs:
   # Builds Trio
   build:
     name: Build
-    needs: [check_certs, check_alive_and_permissions, check_latest_from_upstream]
+    needs: [check_certs, check_alive_and_permissions, check_latest_from_upstream, day_in_month]
     runs-on: macos-15
     permissions:
       contents: write
     if:
-      | # runs if started manually, or if sync schedule is set and enabled and scheduled on the first Saturday each month, or if sync schedule is set and enabled and new commits were found
+      | # builds with manual start; if automatic: once a month or when new commits are found
       github.event_name == 'workflow_dispatch' ||
       (needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
-        (vars.SCHEDULED_BUILD != 'false' && github.event.schedule == '43 6 1 * *') ||
+        (vars.SCHEDULED_BUILD != 'false' && needs.day_in_month.outputs.IS_SECOND_IN_MONTH == 'true') ||
         (vars.SCHEDULED_SYNC != 'false' && needs.check_latest_from_upstream.outputs.NEW_COMMITS == 'true' )
       )
     steps:
       - name: Select Xcode version
-        run: "sudo xcode-select --switch /Applications/Xcode_16.3.app/Contents/Developer"
+        run: "sudo xcode-select --switch /Applications/Xcode_16.4.app/Contents/Developer"
       
       - name: Checkout Repo for syncing
         if: |
