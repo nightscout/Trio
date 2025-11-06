@@ -240,6 +240,7 @@ extension Treatments {
                             }
 
                             // Notes
+                            /*
                             HStack {
                                 Image(systemName: "square.and.pencil")
                                 TextFieldWithToolBarString(
@@ -249,7 +250,7 @@ extension Treatments {
                                 )
                             }
                         }.listRowBackground(Color.chart)
-
+                        */
                         Section {
                             if state.fattyMeals || state.sweetMeals {
                                 HStack(spacing: 10) {
@@ -340,14 +341,14 @@ extension Treatments {
                                         }
                                     }
                             }
-
+                            /*
                             HStack {
                                 Text("External Insulin")
                                 Spacer()
                                 Toggle("", isOn: $state.externalInsulin).toggleStyle(CheckboxToggleStyle())
                             }
                         }.listRowBackground(Color.chart)
-
+                        */
                         treatmentButton
                     }
                     .listSectionSpacing(sectionSpacing)
