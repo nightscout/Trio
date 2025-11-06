@@ -199,7 +199,7 @@ extension Treatments {
                             if state.useFPUconversion {
                                 proteinAndFat()
                             }
-
+                            /*
                             // Time
                             HStack {
                                 // Semi-hacky workaround to make sure the List renders the horizontal divider properly between the `Time` and `Note` rows within the Section
@@ -238,7 +238,7 @@ extension Treatments {
                                     label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
                                 }
                             }
-
+                            */
                             // Notes
                             /*
                             HStack {
