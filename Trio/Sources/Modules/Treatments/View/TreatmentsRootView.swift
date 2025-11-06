@@ -349,6 +349,8 @@ extension Treatments {
                             }
                         }.listRowBackground(Color.chart)
                         */
+                        }
+                            
                         treatmentButton
                     }
                     .listSectionSpacing(sectionSpacing)
