@@ -11,6 +11,7 @@ import WidgetKit
 
 struct LiveActivityChartView: View {
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.isWatchOS) var isWatchOS
 
     var context: ActivityViewContext<LiveActivityAttributes>
     var additionalState: LiveActivityAttributes.ContentAdditionalState
@@ -19,9 +20,11 @@ struct LiveActivityChartView: View {
         let state = context.state
         let isMgdL: Bool = state.unit == "mg/dL"
 
+        let maxThreshhold: Decimal = isWatchOS ? 220 : 300
+
         // Determine scale
-        let minValue = min(additionalState.chart.min() ?? 39, 39) as Decimal
-        let maxValue = max(additionalState.chart.max() ?? 300, 300) as Decimal
+        let minValue = min(additionalState.chart.min(by: { $0.value < $1.value })?.value ?? 39, 39)
+        let maxValue = max(additionalState.chart.max(by: { $0.value < $1.value })?.value ?? maxThreshhold, maxThreshhold)
 
         let yAxisRuleMarkMin = isMgdL ? state.lowGlucose : state.lowGlucose
             .asMmolL
@@ -34,8 +37,9 @@ struct LiveActivityChartView: View {
         let calendar = Calendar.current
         let now = Date()
 
-        let startDate = calendar.date(byAdding: .hour, value: -6, to: now) ?? now
-        let endDate = isOverrideActive ? (calendar.date(byAdding: .hour, value: 2, to: now) ?? now) : now
+        let startDate = calendar.date(byAdding: .hour, value: isWatchOS ? -3 : -6, to: now) ?? now
+        let endDate = isOverrideActive ? (calendar.date(byAdding: .hour, value: 2, to: now) ?? now) :
+            (calendar.date(byAdding: .minute, value: isWatchOS ? 5 : 0, to: now) ?? now)
 
         // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
         let hardCodedLow = isMgdL ? Decimal(55) : 55.asMmolL
@@ -104,13 +108,13 @@ struct LiveActivityChartView: View {
     }
 
     private func drawActiveOverrides() -> some ChartContent {
-        let start: Date = context.state.detailedViewState?.overrideDate ?? .distantPast
+        let start: Date = context.state.detailedViewState.overrideDate
 
-        let duration = context.state.detailedViewState?.overrideDuration ?? 0
+        let duration = context.state.detailedViewState.overrideDuration
         let durationAsTimeInterval = TimeInterval((duration as NSDecimalNumber).doubleValue * 60) // return seconds
 
         let end: Date = start.addingTimeInterval(durationAsTimeInterval)
-        let target = context.state.detailedViewState?.overrideTarget ?? 0
+        let target = context.state.detailedViewState.overrideTarget
 
         return RuleMark(
             xStart: .value("Start", start, unit: .second),
@@ -122,19 +126,22 @@ struct LiveActivityChartView: View {
     }
 
     private func drawChart(yAxisRuleMarkMin _: Decimal, yAxisRuleMarkMax _: Decimal) -> some ChartContent {
-        ForEach(additionalState.chart.indices, id: \.self) { index in
-            let isMgdL = context.state.unit == "mg/dL"
-            let currentValue = additionalState.chart[index]
-            let displayValue = isMgdL ? currentValue : currentValue.asMmolL
-            let chartDate = additionalState.chartDate[index] ?? Date()
+        // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+        let hardCodedLow = Decimal(55)
+        let hardCodedHigh = Decimal(220)
+        let hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
+        let isMgdL = context.state.unit == "mg/dL"
 
-            // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
-            let hardCodedLow = Decimal(55)
-            let hardCodedHigh = Decimal(220)
-            let hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
+        let threeHours = TimeInterval(10800)
+        let chartData = isWatchOS ? additionalState.chart
+            .filter { abs($0.date.timeIntervalSinceNow) < threeHours } : additionalState
+            .chart
+
+        return ForEach(chartData, id: \.self) { item in
+            let displayValue = isMgdL ? item.value : item.value.asMmolL
 
             let pointMarkColor = Color.getDynamicGlucoseColor(
-                glucoseValue: currentValue,
+                glucoseValue: item.value,
                 highGlucoseColorValue: !hasStaticColorScheme ? hardCodedHigh : context.state.highGlucose,
                 lowGlucoseColorValue: !hasStaticColorScheme ? hardCodedLow : context.state.lowGlucose,
                 targetGlucose: context.state.target,
@@ -142,7 +149,7 @@ struct LiveActivityChartView: View {
             )
 
             let pointMark = PointMark(
-                x: .value("Time", chartDate),
+                x: .value("Time", item.date),
                 y: .value("Value", displayValue)
             )
             .symbolSize(16)

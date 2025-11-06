@@ -68,6 +68,7 @@ struct TrioSettings: JSON, Equatable {
     var confirmBolus: Bool = false
     var useLiveActivity: Bool = false
     var lockScreenView: LockScreenView = .simple
+    var smartStackView: LockScreenView = .simple
     var bolusShortcut: BolusShortcutLimit = .notAllowed
     var timeInRangeType: TimeInRangeType = .timeInTightRange
 }
@@ -290,6 +291,10 @@ extension TrioSettings: Decodable {
 
         if let lockScreenView = try? container.decode(LockScreenView.self, forKey: .lockScreenView) {
             settings.lockScreenView = lockScreenView
+        }
+
+        if let smartStackView = try? container.decode(LockScreenView.self, forKey: .smartStackView) {
+            settings.smartStackView = smartStackView
         }
 
         if let bolusShortcut = try? container.decode(BolusShortcutLimit.self, forKey: .bolusShortcut) {
