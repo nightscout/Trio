@@ -419,7 +419,7 @@ extension Treatments {
                 Text("\(state.determinationFailureMessage)")
             }
         }
-
+        }
         var progressText: ProgressText {
             switch (state.amount > 0, state.carbs > 0) {
             case (true, true):
