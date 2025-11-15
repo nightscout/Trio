@@ -111,7 +111,7 @@ final class StateIntentRequest: BaseIntentsRequest {
             fetchLimit: 1
         ) as? [OrefDetermination] ?? []
 
-        let iobAsDouble = Double(truncating: (results.first?.iob ?? 0.0) as NSNumber)
+        let iobAsDouble = Double(truncating: (iobService.currentIOB ?? 0.0) as NSNumber)
         let cobAsDouble = Double(truncating: (results.first?.cob ?? 0) as NSNumber)
 
         return (iobAsDouble, cobAsDouble)

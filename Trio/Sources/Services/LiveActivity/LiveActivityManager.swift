@@ -10,7 +10,8 @@ import UIKit
 
     /// Determines if the current activity needs to be recreated.
     ///
-    /// - Returns: `true` if the activity is dismissed, ended, stale, or has been active for more than 60 minutes; otherwise, `false`.
+    /// - Returns: `true` if the activity is dismissed, ended, stale, or has been active for more than 60 minutes; otherwise,
+    /// `false`.
     func needsRecreation() -> Bool {
         switch activity.activityState {
         case .dismissed,
@@ -29,6 +30,8 @@ import UIKit
 final class LiveActivityData: ObservableObject {
     /// Determination data used to update live activity state.
     @Published var determination: DeterminationData?
+    /// The most recent IoB data
+    @Published var iob: Decimal?
     /// Array of glucose readings fetched from persistent storage.
     @Published var glucoseFromPersistence: [GlucoseData]?
     /// The current override data (if any).
@@ -45,12 +48,12 @@ final class LiveActivityData: ObservableObject {
 ///
 /// Additionally, it supports a restart functionality (via `restartActivityFromLiveActivityIntent()`)
 /// via iOS shortcuts, similar to other iOS apps like xDrip4iOS or Sweet Dreams.
-@available(iOS 16.2, *)
-final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver {
+@available(iOS 16.2, *) final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var storage: FileStorage!
     @Injected() private var glucoseStorage: GlucoseStorage!
+    @Injected() private var iobService: IOBService!
 
     private let activityAuthorizationInfo = ActivityAuthorizationInfo()
     /// Indicates whether system live activities are enabled.
@@ -146,6 +149,12 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
             .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .utility))
             .sink { [weak self] _ in
                 Task { await self?.loadDetermination() }
+            }.store(in: &subscriptions)
+
+        iobService.iobPublisher
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .utility))
+            .sink { [weak self] _ in
+                self?.data.iob = self?.iobService.currentIOB
             }.store(in: &subscriptions)
     }
 
@@ -279,7 +288,21 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
                             lowGlucose: settings.low,
                             target: data.determination?.target ?? 100 as Decimal,
                             glucoseColorScheme: settings.glucoseColorScheme.rawValue,
-                            detailedViewState: nil,
+                            useDetailedViewIOS: false,
+                            useDetailedViewWatchOS: false,
+                            detailedViewState: LiveActivityAttributes.ContentAdditionalState(
+                                chart: [],
+                                rotationDegrees: 0,
+                                cob: 0,
+                                iob: 0,
+                                tdd: 0,
+                                isOverrideActive: false,
+                                overrideName: "",
+                                overrideDate: Date.now,
+                                overrideDuration: 0,
+                                overrideTarget: 0,
+                                widgetItems: []
+                            ),
                             isInitialState: true
                         ),
                     staleDate: Date.now.addingTimeInterval(60)
@@ -331,7 +354,8 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
 
     /// Restarts the live activity from a Live Activity Intent.
     ///
-    /// This method mimics xdrip's `restartActivityFromLiveActivityIntent()` behavior by verifying that a valid content state exists,
+    /// This method mimics xdrip's `restartActivityFromLiveActivityIntent()` behavior by verifying that a valid content state
+    /// exists,
     /// ending the current live activity, and starting a new one using the current state.
     @MainActor func restartActivityFromLiveActivityIntent() async {
         await endActivity()
@@ -353,8 +377,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
     }
 }
 
-@available(iOS 16.2, *)
-extension LiveActivityManager {
+@available(iOS 16.2, *) extension LiveActivityManager {
     @MainActor func pushCurrentContent() async {
         guard let glucose = data.glucoseFromPersistence, let bg = glucose.first else {
             debug(.default, "[LiveActivityManager] pushCurrentContent: no current glucose data available")
@@ -374,6 +397,7 @@ extension LiveActivityManager {
             chart: glucose,
             settings: settings,
             determination: determination,
+            iob: data.iob,
             override: data.override,
             widgetItems: data.widgetItems
         )

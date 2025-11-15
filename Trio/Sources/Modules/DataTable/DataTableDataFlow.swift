@@ -6,6 +6,32 @@ import SwiftUI
 enum DataTable {
     enum Config {}
 
+    enum TreatmentType: String, CaseIterable {
+        case bolus = "Bolus"
+        case externalBolus = "External Bolus"
+        case smb = "SMB"
+        case tempBasal = "Temp Basal"
+        case suspend = "Suspend"
+        case other = "Other"
+
+        var displayName: String {
+            switch self {
+            case .bolus:
+                return String(localized: "Bolus")
+            case .externalBolus:
+                return String(localized: "External Bolus")
+            case .smb:
+                return String(localized: "SMB")
+            case .tempBasal:
+                return String(localized: "Temp Basal")
+            case .suspend:
+                return String(localized: "Suspend")
+            case .other:
+                return String(localized: "Other")
+            }
+        }
+    }
+
     enum Mode: String, Hashable, Identifiable, CaseIterable {
         case treatments
         case meals

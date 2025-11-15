@@ -36,6 +36,20 @@ struct GlucosePercentileChart: View {
         return hourlyStats.first { Int($0.hour) == hour }
     }
 
+    /// The minimum Y-axis value based on the lowest possible cgm reading
+    private var minYValue: Double {
+        40.0.asUnit(units)
+    }
+
+    /// The maximum Y-axis value based on the highest 90th percentile
+    private var maxYValue: Double {
+        let topLimit = 400.0.asUnit(units)
+        let validStats = hourlyStats.filter { $0.median > 0 }
+        guard !validStats.isEmpty else { return topLimit }
+        let maxPercentile90 = validStats.map(\.percentile90).max() ?? topLimit
+        return maxPercentile90.asUnit(units)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Ambulatory Glucose Profile (AGP)")
@@ -131,6 +145,7 @@ struct GlucosePercentileChart: View {
                     }
                 }
             }
+            .chartYScale(domain: minYValue ... maxYValue)
             .chartYAxis {
                 AxisMarks(position: .trailing) { value in
                     if let glucose = value.as(Double.self) {

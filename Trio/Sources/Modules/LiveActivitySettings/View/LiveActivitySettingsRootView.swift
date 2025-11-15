@@ -7,7 +7,8 @@ extension LiveActivitySettings {
         let resolver: Resolver
         @StateObject var state = StateModel()
 
-        @State private var shouldDisplayHint: Bool = false
+        @State private var shouldDisplayHintLockScreen: Bool = false
+        @State private var shouldDisplayHintSmartStack: Bool = false
         @State var hintDetent = PresentationDetent.large
         @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
@@ -48,7 +49,7 @@ extension LiveActivitySettings {
                     SettingInputSection(
                         decimalValue: $decimalPlaceholder,
                         booleanValue: $state.useLiveActivity,
-                        shouldDisplayHint: $shouldDisplayHint,
+                        shouldDisplayHint: $shouldDisplayHintLockScreen,
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
@@ -128,7 +129,7 @@ extension LiveActivitySettings {
                                                         }.font(.footnote)
                                                     }
                                                 )
-                                            shouldDisplayHint.toggle()
+                                            shouldDisplayHintLockScreen.toggle()
                                         },
                                         label: {
                                             HStack {
@@ -151,6 +152,58 @@ extension LiveActivitySettings {
                                 }
                             }
                         }.listRowBackground(Color.chart)
+
+                        Section {
+                            VStack {
+                                Picker(
+                                    selection: $state.smartStackView,
+                                    label: Text("Watch/Carplay Widget Style")
+                                ) {
+                                    ForEach(LockScreenView.allCases) { selection in
+                                        Text(selection.displayName).tag(selection)
+                                    }
+                                }.padding(.top)
+
+                                HStack(alignment: .center) {
+                                    Text(
+                                        "Select simple or detailed style. See hint for more details."
+                                    )
+                                    .font(.footnote)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(nil)
+                                    Spacer()
+                                    Button(
+                                        action: {
+                                            hintLabel = String(localized: "Watch/Carplay Widget Style")
+                                            selectedVerboseHint =
+                                                AnyView(
+                                                    VStack(alignment: .leading, spacing: 10) {
+                                                        Text("Default: Simple").bold()
+                                                        VStack(alignment: .leading, spacing: 10) {
+                                                            Text("Simple:").bold()
+                                                            Text(
+                                                                "Trio's Simple Watch/Carplay Widget displays current glucose reading, trend arrow, delta and the timestamp of the current reading."
+                                                            )
+                                                        }
+                                                        VStack(alignment: .leading, spacing: 10) {
+                                                            Text("Detailed:").bold()
+                                                            Text(
+                                                                "The Detailed Watch/Carplay Screen Widget offers users a glucose chart as well as the current glucose, delta and the timestamp of current reading."
+                                                            )
+                                                        }
+                                                    }
+                                                )
+                                            shouldDisplayHintSmartStack.toggle()
+                                        },
+                                        label: {
+                                            HStack {
+                                                Image(systemName: "questionmark.circle")
+                                            }
+                                        }
+                                    ).buttonStyle(BorderlessButtonStyle())
+                                }.padding(.top)
+                            }.padding(.bottom)
+                        }.listRowBackground(Color.chart)
                     }
                 }
             }
@@ -158,10 +211,19 @@ extension LiveActivitySettings {
             .onReceive(resolver.resolve(LiveActivityManager.self)!.$systemEnabled, perform: {
                 self.systemLiveActivitySetting = $0
             })
-            .sheet(isPresented: $shouldDisplayHint) {
+            .sheet(isPresented: $shouldDisplayHintLockScreen) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,
-                    shouldDisplayHint: $shouldDisplayHint,
+                    shouldDisplayHint: $shouldDisplayHintLockScreen,
+                    hintLabel: hintLabel ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
+                )
+            }
+            .sheet(isPresented: $shouldDisplayHintSmartStack) {
+                SettingInputHintView(
+                    hintDetent: $hintDetent,
+                    shouldDisplayHint: $shouldDisplayHintSmartStack,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: String(localized: "Help", comment: "Help sheet title")
