@@ -4,8 +4,9 @@ import WidgetKit
 
 struct LiveActivity: Widget {
     var body: some WidgetConfiguration {
-        ActivityConfiguration(for: LiveActivityAttributes.self) { context in
+        let configuration = ActivityConfiguration(for: LiveActivityAttributes.self) { context in
             LiveActivityView(context: context)
+                .addIsWatchOS()
         } dynamicIsland: { context in
             let hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
 
@@ -19,8 +20,10 @@ struct LiveActivity: Widget {
 
                 return Color.getDynamicGlucoseColor(
                     glucoseValue: Decimal(string: state.bg) ?? 100,
-                    highGlucoseColorValue: !hasStaticColorScheme ? hardCodedHigh : state.highGlucose,
-                    lowGlucoseColorValue: !hasStaticColorScheme ? hardCodedLow : state.lowGlucose,
+                    highGlucoseColorValue: !hasStaticColorScheme
+                        ? hardCodedHigh : state.highGlucose,
+                    lowGlucoseColorValue: !hasStaticColorScheme
+                        ? hardCodedLow : state.lowGlucose,
                     targetGlucose: isMgdL ? state.target : state.target.asMmolL,
                     glucoseColorScheme: state.glucoseColorScheme
                 )
@@ -28,7 +31,10 @@ struct LiveActivity: Widget {
 
             return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    LiveActivityExpandedLeadingView(context: context, glucoseColor: glucoseColor)
+                    LiveActivityExpandedLeadingView(
+                        context: context,
+                        glucoseColor: glucoseColor
+                    )
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     LiveActivityExpandedTrailingView(
@@ -43,17 +49,32 @@ struct LiveActivity: Widget {
                     LiveActivityExpandedCenterView(context: context)
                 }
             } compactLeading: {
-                LiveActivityCompactLeadingView(context: context, glucoseColor: glucoseColor)
+                LiveActivityCompactLeadingView(
+                    context: context,
+                    glucoseColor: glucoseColor
+                )
             } compactTrailing: {
-                LiveActivityCompactTrailingView(context: context, glucoseColor: hasStaticColorScheme ? .primary : glucoseColor)
+                LiveActivityCompactTrailingView(
+                    context: context,
+                    glucoseColor: hasStaticColorScheme ? .primary : glucoseColor
+                )
             } minimal: {
-                LiveActivityMinimalView(context: context, glucoseColor: glucoseColor)
+                LiveActivityMinimalView(
+                    context: context,
+                    glucoseColor: glucoseColor
+                )
             }
             .widgetURL(URL(string: "Trio://"))
             .keylineTint(glucoseColor)
             .contentMargins(.horizontal, 0, for: .minimal)
             .contentMargins(.trailing, 0, for: .compactLeading)
             .contentMargins(.leading, 0, for: .compactTrailing)
+        }
+
+        if #available(iOS 18.0, *) {
+            return configuration.supplementalActivityFamilies([.small])
+        } else {
+            return configuration
         }
     }
 }
@@ -73,25 +94,35 @@ private extension LiveActivityAttributes {
 
 private extension LiveActivityAttributes.ContentState {
     static var chartData: [MockGlucoseData] = [
-        MockGlucoseData(glucose: 120, date: Date().addingTimeInterval(-600), direction: "flat"),
-        MockGlucoseData(glucose: 125, date: Date().addingTimeInterval(-300), direction: "flat"),
+        MockGlucoseData(
+            glucose: 120,
+            date: Date().addingTimeInterval(-600),
+            direction: "flat"
+        ),
+        MockGlucoseData(
+            glucose: 125,
+            date: Date().addingTimeInterval(-300),
+            direction: "flat"
+        ),
         MockGlucoseData(glucose: 130, date: Date(), direction: "flat")
     ]
 
-    static var detailedViewState = LiveActivityAttributes.ContentAdditionalState(
-        chart: chartData.map { Decimal($0.glucose) },
-        chartDate: chartData.map(\.date),
-        rotationDegrees: 0,
-        cob: 20,
-        iob: 1.5,
-        tdd: 43.21,
-        isOverrideActive: false,
-        overrideName: "Exercise",
-        overrideDate: Date().addingTimeInterval(-3600),
-        overrideDuration: 120,
-        overrideTarget: 150,
-        widgetItems: LiveActivityAttributes.LiveActivityItem.defaultItems
-    )
+    static var detailedViewState =
+        LiveActivityAttributes.ContentAdditionalState(
+            chart: chartData.map {
+                LiveActivityAttributes.ChartItem(value: Decimal($0.glucose), date: $0.date)
+            },
+            rotationDegrees: 0,
+            cob: 20,
+            iob: 1.5,
+            tdd: 43.21,
+            isOverrideActive: false,
+            overrideName: "Exercise",
+            overrideDate: Date().addingTimeInterval(-3600),
+            overrideDuration: 120,
+            overrideTarget: 150,
+            widgetItems: LiveActivityAttributes.LiveActivityItem.defaultItems
+        )
 
     // 0 is the widest digit. Use this to get an upper bound on text width.
 
@@ -107,7 +138,9 @@ private extension LiveActivityAttributes.ContentState {
             lowGlucose: 70,
             target: 100,
             glucoseColorScheme: "staticColor",
-            detailedViewState: nil,
+            useDetailedViewIOS: false,
+            useDetailedViewWatchOS: false,
+            detailedViewState: detailedViewState,
             isInitialState: false
         )
     }
@@ -123,7 +156,9 @@ private extension LiveActivityAttributes.ContentState {
             lowGlucose: 70,
             target: 100,
             glucoseColorScheme: "staticColor",
-            detailedViewState: nil,
+            useDetailedViewIOS: false,
+            useDetailedViewWatchOS: false,
+            detailedViewState: detailedViewState,
             isInitialState: false
         )
     }
@@ -139,7 +174,9 @@ private extension LiveActivityAttributes.ContentState {
             lowGlucose: 70,
             target: 100,
             glucoseColorScheme: "staticColor",
-            detailedViewState: nil,
+            useDetailedViewIOS: false,
+            useDetailedViewWatchOS: false,
+            detailedViewState: detailedViewState,
             isInitialState: false
         )
     }
@@ -156,7 +193,9 @@ private extension LiveActivityAttributes.ContentState {
             lowGlucose: 70,
             target: 100,
             glucoseColorScheme: "staticColor",
-            detailedViewState: nil,
+            useDetailedViewIOS: false,
+            useDetailedViewWatchOS: false,
+            detailedViewState: detailedViewState,
             isInitialState: false
         )
     }
@@ -172,7 +211,9 @@ private extension LiveActivityAttributes.ContentState {
             lowGlucose: 70,
             target: 100,
             glucoseColorScheme: "staticColor",
-            detailedViewState: nil,
+            useDetailedViewIOS: false,
+            useDetailedViewWatchOS: false,
+            detailedViewState: detailedViewState,
             isInitialState: false
         )
     }
@@ -188,12 +229,15 @@ private extension LiveActivityAttributes.ContentState {
             lowGlucose: 70,
             target: 100,
             glucoseColorScheme: "staticColor",
-            detailedViewState: nil,
+            useDetailedViewIOS: false,
+            useDetailedViewWatchOS: false,
+            detailedViewState: detailedViewState,
             isInitialState: false
         )
     }
 
-    static var testWideDetailed: LiveActivityAttributes.ContentState {
+    static var testWideDetailed: LiveActivityAttributes.ContentState
+    {
         LiveActivityAttributes.ContentState(
             unit: "mg/dL",
             bg: "00.0",
@@ -204,12 +248,16 @@ private extension LiveActivityAttributes.ContentState {
             lowGlucose: 70,
             target: 100,
             glucoseColorScheme: "staticColor",
+            useDetailedViewIOS: true,
+            useDetailedViewWatchOS: true,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
     }
 
-    static var testVeryWideDetailed: LiveActivityAttributes.ContentState {
+    static var testVeryWideDetailed:
+        LiveActivityAttributes.ContentState
+    {
         LiveActivityAttributes.ContentState(
             unit: "mg/dL",
             bg: "00.0",
@@ -220,12 +268,16 @@ private extension LiveActivityAttributes.ContentState {
             lowGlucose: 70,
             target: 100,
             glucoseColorScheme: "staticColor",
+            useDetailedViewIOS: true,
+            useDetailedViewWatchOS: true,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
     }
 
-    static var testSuperWideDetailed: LiveActivityAttributes.ContentState {
+    static var testSuperWideDetailed:
+        LiveActivityAttributes.ContentState
+    {
         LiveActivityAttributes.ContentState(
             unit: "mg/dL",
             bg: "00.0",
@@ -236,13 +288,17 @@ private extension LiveActivityAttributes.ContentState {
             lowGlucose: 70,
             target: 100,
             glucoseColorScheme: "staticColor",
+            useDetailedViewIOS: true,
+            useDetailedViewWatchOS: true,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
     }
 
     // 2 characters for BG, 1 character for change is the minimum that will be shown
-    static var testNarrowDetailed: LiveActivityAttributes.ContentState {
+    static var testNarrowDetailed:
+        LiveActivityAttributes.ContentState
+    {
         LiveActivityAttributes.ContentState(
             unit: "mg/dL",
             bg: "00",
@@ -253,12 +309,16 @@ private extension LiveActivityAttributes.ContentState {
             lowGlucose: 70,
             target: 100,
             glucoseColorScheme: "staticColor",
+            useDetailedViewIOS: true,
+            useDetailedViewWatchOS: true,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
     }
 
-    static var testMediumDetailed: LiveActivityAttributes.ContentState {
+    static var testMediumDetailed:
+        LiveActivityAttributes.ContentState
+    {
         LiveActivityAttributes.ContentState(
             unit: "mg/dL",
             bg: "000",
@@ -269,12 +329,16 @@ private extension LiveActivityAttributes.ContentState {
             lowGlucose: 70,
             target: 100,
             glucoseColorScheme: "staticColor",
+            useDetailedViewIOS: true,
+            useDetailedViewWatchOS: true,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
     }
 
-    static var testExpiredDetailed: LiveActivityAttributes.ContentState {
+    static var testExpiredDetailed:
+        LiveActivityAttributes.ContentState
+    {
         LiveActivityAttributes.ContentState(
             unit: "mg/dL",
             bg: "--",
@@ -285,6 +349,8 @@ private extension LiveActivityAttributes.ContentState {
             lowGlucose: 70,
             target: 100,
             glucoseColorScheme: "staticColor",
+            useDetailedViewIOS: true,
+            useDetailedViewWatchOS: true,
             detailedViewState: detailedViewState,
             isInitialState: false
         )

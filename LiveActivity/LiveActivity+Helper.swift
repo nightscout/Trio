@@ -179,6 +179,7 @@ func bgAndTrend(
             case .minimal:
                 let scaledText = text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading)
                 scaledText.foregroundStyle(hasStaticColorScheme ? .primary : glucoseColor)
+
             case .compact:
                 text.scaleEffect(x: 0.8, y: 0.8, anchor: .leading).padding(.trailing, -3)
 
@@ -190,4 +191,57 @@ func bgAndTrend(
         .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
 
     return (stack, characters)
+}
+
+private struct LiveActivityWatchOS: EnvironmentKey {
+    // Value to add support for older iOS version (17 and lower) in order to keep using the ActivityFamily class
+    static let defaultValue = false
+}
+
+public extension EnvironmentValues {
+    var isWatchOS: Bool {
+        get { self[LiveActivityWatchOS.self] }
+        set { self[LiveActivityWatchOS.self] = newValue }
+    }
+}
+
+@available(iOS 18, *) struct LiveActivityWatchOSModifier: ViewModifier {
+    @Environment(\.activityFamily) var activityFamily
+
+    func body(content: Content) -> some View {
+        content.environment(\.isWatchOS, activityFamily == .small)
+    }
+}
+
+extension View {
+    @ViewBuilder func addIsWatchOS() -> some View {
+        if #available(iOS 18, *) {
+            modifier(LiveActivityWatchOSModifier())
+        } else {
+            self
+        }
+    }
+
+    @ViewBuilder func addLiveActivityModifiers(isWatchOS: Bool) -> some View {
+        modifier(LiveActivityModifiers(isWatchOS: isWatchOS))
+    }
+}
+
+struct LiveActivityModifiers: ViewModifier {
+    let isWatchOS: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .padding(.all, isWatchOS ? 10 : 14)
+            .frame(minHeight: 0, maxHeight: .infinity)
+            .privacySensitive()
+            // Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark
+            // mode)
+            // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of
+            // the interface style)
+            // The colorScheme environment variable does work here, but BackgroundStyle gives us this functionality for free
+            .foregroundStyle(Color.primary)
+            .background(BackgroundStyle.background.opacity(isWatchOS ? 1 : 0.4))
+            .activityBackgroundTint(isWatchOS ? .black : Color.clear)
+    }
 }
