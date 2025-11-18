@@ -7,8 +7,8 @@ struct DeterminationErrorResponse: JSON, Equatable {
 struct Determination: JSON, Equatable {
     let id: UUID?
     var reason: String
-    let units: Decimal?
-    let insulinReq: Decimal?
+    var units: Decimal?
+    var insulinReq: Decimal?
     var eventualBG: Int?
     let sensitivityRatio: Decimal?
     var rate: Decimal?

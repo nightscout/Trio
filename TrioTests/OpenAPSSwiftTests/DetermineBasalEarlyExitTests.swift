@@ -12,6 +12,7 @@ import Testing
         autosensData: Autosens,
         reservoirData: Decimal,
         glucoseStatus: GlucoseStatus,
+        microBolusAllowed: Bool,
         trioCustomOrefVariables: TrioCustomOrefVariables,
         currentTime: Date
     ) {
@@ -125,6 +126,7 @@ import Testing
             autosensData: autosensData,
             reservoirData: 100,
             glucoseStatus: glucoseStatus,
+            microBolusAllowed: true,
             trioCustomOrefVariables: trioCustomOrefVariables,
             currentTime: currentTime
         )
@@ -141,6 +143,7 @@ import Testing
             autosensData,
             reservoirData,
             glucoseStatus,
+            microBolusAllowed,
             trioCustomOrefVariables,
             currentTime
         ) = createDefaultInputs()
@@ -157,6 +160,7 @@ import Testing
                 autosensData: autosensData,
                 reservoirData: reservoirData,
                 glucoseStatus: glucoseStatus,
+                microBolusAllowed: microBolusAllowed,
                 trioCustomOrefVariables: trioCustomOrefVariables,
                 currentTime: currentTime
             )
@@ -174,6 +178,7 @@ import Testing
             autosensData,
             reservoirData,
             _,
+            microBolusAllowed,
             trioCustomOrefVariables,
             currentTime
         ) = createDefaultInputs()
@@ -199,6 +204,7 @@ import Testing
             autosensData: autosensData,
             reservoirData: reservoirData,
             glucoseStatus: glucoseStatus,
+            microBolusAllowed: microBolusAllowed,
             trioCustomOrefVariables: trioCustomOrefVariables,
             currentTime: currentTime
         )
@@ -219,6 +225,7 @@ import Testing
             autosensData,
             reservoirData,
             _,
+            microBolusAllowed,
             trioCustomOrefVariables,
             currentTime
         ) = createDefaultInputs()
@@ -245,6 +252,7 @@ import Testing
             autosensData: autosensData,
             reservoirData: reservoirData,
             glucoseStatus: glucoseStatus,
+            microBolusAllowed: microBolusAllowed,
             trioCustomOrefVariables: trioCustomOrefVariables,
             currentTime: currentTime
         )
@@ -265,6 +273,7 @@ import Testing
             autosensData,
             reservoirData,
             _,
+            microBolusAllowed,
             trioCustomOrefVariables,
             currentTime
         ) = createDefaultInputs()
@@ -291,6 +300,7 @@ import Testing
             autosensData: autosensData,
             reservoirData: reservoirData,
             glucoseStatus: glucoseStatus,
+            microBolusAllowed: microBolusAllowed,
             trioCustomOrefVariables: trioCustomOrefVariables,
             currentTime: currentTime
         )
@@ -311,6 +321,7 @@ import Testing
             autosensData,
             reservoirData,
             glucoseStatus,
+            microBolusAllowed,
             trioCustomOrefVariables,
             currentTime
         ) = createDefaultInputs()
@@ -326,6 +337,7 @@ import Testing
                 autosensData: autosensData,
                 reservoirData: reservoirData,
                 glucoseStatus: glucoseStatus,
+                microBolusAllowed: microBolusAllowed,
                 trioCustomOrefVariables: trioCustomOrefVariables,
                 currentTime: currentTime
             )
@@ -343,6 +355,7 @@ import Testing
             autosensData,
             reservoirData,
             glucoseStatus,
+            microBolusAllowed,
             trioCustomOrefVariables,
             currentTime
         ) = createDefaultInputs()
@@ -369,6 +382,7 @@ import Testing
             autosensData: autosensData,
             reservoirData: reservoirData,
             glucoseStatus: glucoseStatus,
+            microBolusAllowed: microBolusAllowed,
             trioCustomOrefVariables: trioCustomOrefVariables,
             currentTime: currentTime
         )
@@ -394,6 +408,7 @@ import Testing
             autosensData,
             reservoirData,
             glucoseStatus,
+            microBolusAllowed,
             trioCustomOrefVariables,
             currentTime
         ) = createDefaultInputs()
@@ -420,6 +435,7 @@ import Testing
             autosensData: autosensData,
             reservoirData: reservoirData,
             glucoseStatus: glucoseStatus,
+            microBolusAllowed: microBolusAllowed,
             trioCustomOrefVariables: trioCustomOrefVariables,
             currentTime: currentTime
         )
@@ -445,6 +461,7 @@ import Testing
             autosensData,
             reservoirData,
             glucoseStatus,
+            microBolusAllowed,
             trioCustomOrefVariables,
             currentTime
         ) = createDefaultInputs()
@@ -460,6 +477,7 @@ import Testing
                 autosensData: autosensData,
                 reservoirData: reservoirData,
                 glucoseStatus: glucoseStatus,
+                microBolusAllowed: microBolusAllowed,
                 trioCustomOrefVariables: trioCustomOrefVariables,
                 currentTime: currentTime
             )
@@ -477,6 +495,7 @@ import Testing
             autosensData,
             reservoirData,
             _,
+            microBolusAllowed,
             trioCustomOrefVariables,
             currentTime
         ) = createDefaultInputs()
@@ -501,6 +520,7 @@ import Testing
             autosensData: autosensData,
             reservoirData: reservoirData,
             glucoseStatus: glucoseStatus,
+            microBolusAllowed: microBolusAllowed,
             trioCustomOrefVariables: trioCustomOrefVariables,
             currentTime: currentTime
         )
@@ -526,6 +546,7 @@ import Testing
             autosensData,
             reservoirData,
             glucoseStatus,
+            microBolusAllowed,
             trioCustomOrefVariables,
             _
         ) = createDefaultInputs(currentTime: currentTime)
@@ -541,6 +562,7 @@ import Testing
             autosensData: autosensData,
             reservoirData: reservoirData,
             glucoseStatus: glucoseStatus,
+            microBolusAllowed: microBolusAllowed,
             trioCustomOrefVariables: trioCustomOrefVariables,
             currentTime: currentTime
         )
