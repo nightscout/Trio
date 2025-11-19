@@ -15,7 +15,10 @@ struct LiveActivityGlucoseDeltaLabelView: View {
     var body: some View {
         if !context.state.change.isEmpty {
             Text(context.state.change)
-                .foregroundStyle(context.state.glucoseColorScheme == "staticColor" ? .primary : glucoseColor)
+                .foregroundStyle(
+                    context.isStale ? .secondary : context.state
+                        .glucoseColorScheme == "staticColor" ? .primary : glucoseColor
+                )
                 .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
         } else {
             Text("--")

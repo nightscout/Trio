@@ -542,7 +542,8 @@ enum DeterminationGenerator {
 
         if currentTemp.rate >= basal { // high temp is running
             // Replace high temp with neutral temp at scheduled basal rate for 30min
-            let reasonWithAction = reason + ". Replacing high temp basal of \(currentTemp.rate)U/hr with neutral temp of \(basal)U/hr"
+            let reasonWithAction = reason +
+                ". Replacing high temp basal of \(currentTemp.rate)U/hr with neutral temp of \(basal)U/hr"
             return Determination(
                 id: UUID(),
                 reason: reasonWithAction,

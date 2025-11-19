@@ -1,6 +1,7 @@
-oref0 branch: dev - git version: 37896e5
+oref0 branch: remove-400-guard-trio-oref - git version: 3aeba68
 
 Last commits:
+3aeba68 feat(algo): Remove 400 / shouldProtectDueToHIGH guard #hackdiabetes2025
 37896e5 Merge pull request #48 from nightscout/fix-bundle-naming
 f21a187 Rename output library to trio_[name]
 c0b46d3 Merge pull request #47 from nightscout/fix-400-guard

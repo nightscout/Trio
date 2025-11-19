@@ -10,7 +10,8 @@ import UIKit
 
     /// Determines if the current activity needs to be recreated.
     ///
-    /// - Returns: `true` if the activity is dismissed, ended, stale, or has been active for more than 60 minutes; otherwise, `false`.
+    /// - Returns: `true` if the activity is dismissed, ended, stale, or has been active for more than 60 minutes; otherwise,
+    /// `false`.
     func needsRecreation() -> Bool {
         switch activity.activityState {
         case .dismissed,
@@ -47,8 +48,7 @@ final class LiveActivityData: ObservableObject {
 ///
 /// Additionally, it supports a restart functionality (via `restartActivityFromLiveActivityIntent()`)
 /// via iOS shortcuts, similar to other iOS apps like xDrip4iOS or Sweet Dreams.
-@available(iOS 16.2, *)
-final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver {
+@available(iOS 16.2, *) final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var storage: FileStorage!
@@ -288,7 +288,21 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
                             lowGlucose: settings.low,
                             target: data.determination?.target ?? 100 as Decimal,
                             glucoseColorScheme: settings.glucoseColorScheme.rawValue,
-                            detailedViewState: nil,
+                            useDetailedViewIOS: false,
+                            useDetailedViewWatchOS: false,
+                            detailedViewState: LiveActivityAttributes.ContentAdditionalState(
+                                chart: [],
+                                rotationDegrees: 0,
+                                cob: 0,
+                                iob: 0,
+                                tdd: 0,
+                                isOverrideActive: false,
+                                overrideName: "",
+                                overrideDate: Date.now,
+                                overrideDuration: 0,
+                                overrideTarget: 0,
+                                widgetItems: []
+                            ),
                             isInitialState: true
                         ),
                     staleDate: Date.now.addingTimeInterval(60)
@@ -340,7 +354,8 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
 
     /// Restarts the live activity from a Live Activity Intent.
     ///
-    /// This method mimics xdrip's `restartActivityFromLiveActivityIntent()` behavior by verifying that a valid content state exists,
+    /// This method mimics xdrip's `restartActivityFromLiveActivityIntent()` behavior by verifying that a valid content state
+    /// exists,
     /// ending the current live activity, and starting a new one using the current state.
     @MainActor func restartActivityFromLiveActivityIntent() async {
         await endActivity()
@@ -362,8 +377,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
     }
 }
 
-@available(iOS 16.2, *)
-extension LiveActivityManager {
+@available(iOS 16.2, *) extension LiveActivityManager {
     @MainActor func pushCurrentContent() async {
         guard let glucose = data.glucoseFromPersistence, let bg = glucose.first else {
             debug(.default, "[LiveActivityManager] pushCurrentContent: no current glucose data available")
