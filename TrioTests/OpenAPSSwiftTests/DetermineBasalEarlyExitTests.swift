@@ -113,8 +113,7 @@ import Testing
             start: 0,
             end: 0,
             smbMinutes: 30,
-            uamMinutes: 30,
-            shouldProtectDueToHIGH: false
+            uamMinutes: 30
         )
 
         return (
