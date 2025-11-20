@@ -64,8 +64,7 @@ import Testing
             start: 0,
             end: 0,
             smbMinutes: 0,
-            uamMinutes: 0,
-            shouldProtectDueToHIGH: false
+            uamMinutes: 0
         )
 
         return (
@@ -99,21 +98,6 @@ import Testing
         var inputs = createDefaultInputs()
         inputs.trioCustomOrefVariables.smbIsOff = true
         inputs.profile.enableSMBAlways = true // Ensure smbIsOff takes precedence
-
-        let decision = try DosingEngine.makeSMBDosingDecision(
-            profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,
-            adjustedTargetGlucose: inputs.adjustedTargetGlucose,
-            minGuardGlucose: inputs.minGuardGlucose,
-            threshold: inputs.threshold, glucoseStatus: inputs.glucoseStatus,
-            trioCustomOrefVariables: inputs.trioCustomOrefVariables, clock: inputs.clock
-        )
-        #expect(decision.isEnabled == false)
-    }
-
-    @Test("Should disable SMB when shouldProtectDueToHIGH is true") func disableWhenProtectDueToHigh() throws {
-        var inputs = createDefaultInputs()
-        inputs.trioCustomOrefVariables.shouldProtectDueToHIGH = true
-        inputs.profile.enableSMBAlways = true // Ensure protection takes precedence
 
         let decision = try DosingEngine.makeSMBDosingDecision(
             profile: inputs.profile, meal: inputs.meal, currentGlucose: inputs.currentGlucose,

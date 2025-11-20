@@ -113,8 +113,7 @@ import Testing
             start: 0,
             end: 0,
             smbMinutes: 30,
-            uamMinutes: 30,
-            shouldProtectDueToHIGH: false
+            uamMinutes: 30
         )
 
         return (
@@ -204,9 +203,9 @@ import Testing
             currentTime: currentTime
         )
 
-        #expect(result?.rate == 0)
-        #expect(result?.duration == 0)
-        #expect(result?.reason.contains("Canceling high temp basal") == true)
+        #expect(result?.rate == profile.currentBasal)
+        #expect(result?.duration == 30)
+        #expect(result?.reason.contains("Replacing high temp basal") == true)
     }
 
     // Test 3 from JS

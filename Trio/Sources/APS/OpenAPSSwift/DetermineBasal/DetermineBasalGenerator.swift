@@ -535,15 +535,15 @@ enum DeterminationGenerator {
             glucose == 38 ||
             noise >= 3 ||
             minAgo > 12 ||
-            minAgo < -5 ||
-            (shortAvgDelta == 0 && longAvgDelta == 0)
+            minAgo < -5
 
         // === IF ERROR, CANCEL/SHORTEN TEMPS ===
         guard errorDetected, let currentTemp = currentTemp else { return nil }
 
-        if currentTemp.rate >= basal {
-            // Cancel high temp: set 0U/hr for 0m (neutralizes)
-            let reasonWithAction = reason + ". Canceling high temp basal of \(currentTemp.rate)U/hr."
+        if currentTemp.rate >= basal { // high temp is running
+            // Replace high temp with neutral temp at scheduled basal rate for 30min
+            let reasonWithAction = reason +
+                ". Replacing high temp basal of \(currentTemp.rate)U/hr with neutral temp of \(basal)U/hr"
             return Determination(
                 id: UUID(),
                 reason: reasonWithAction,
@@ -551,8 +551,8 @@ enum DeterminationGenerator {
                 insulinReq: nil,
                 eventualBG: nil,
                 sensitivityRatio: nil,
-                rate: 0,
-                duration: 0,
+                rate: basal,
+                duration: 30,
                 iob: nil,
                 cob: nil,
                 predictions: nil,
