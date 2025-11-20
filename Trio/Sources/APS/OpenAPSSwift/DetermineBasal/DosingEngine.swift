@@ -30,10 +30,6 @@ enum DosingEngine {
             return false
         }
 
-        if trioCustomOrefVariables.shouldProtectDueToHIGH {
-            return false
-        }
-
         if !profile.allowSMBWithHighTemptarget, profile.temptargetSet == true, adjustedTargetGlucose > 100 {
             return false
         }

@@ -14,6 +14,7 @@ struct CarbRatioStepView: View {
     @State private var refreshUI = UUID() // to update chart when slider value changes
     @State private var therapyItems: [TherapySettingItem] = []
     @State private var now = Date()
+    @Namespace private var bottomID
 
     private var formatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -30,97 +31,105 @@ struct CarbRatioStepView: View {
     }
 
     var body: some View {
-        LazyVStack {
-            VStack(alignment: .leading, spacing: 0) {
-                // Chart visualization
-                if !state.carbRatioItems.isEmpty {
-                    VStack(alignment: .leading) {
-                        carbRatioChart
-                            .frame(height: 180)
-                            .padding(.horizontal)
-                    }
-                    .padding(.vertical)
-                    .background(Color.chart.opacity(0.65))
-                    .clipShape(
-                        .rect(
-                            topLeadingRadius: 10,
-                            bottomLeadingRadius: 0,
-                            bottomTrailingRadius: 0,
-                            topTrailingRadius: 10
+        ScrollViewReader { proxy in
+            LazyVStack {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Chart visualization
+                    if !state.carbRatioItems.isEmpty {
+                        VStack(alignment: .leading) {
+                            carbRatioChart
+                                .frame(height: 180)
+                                .padding(.horizontal)
+                        }
+                        .padding(.vertical)
+                        .background(Color.chart.opacity(0.65))
+                        .clipShape(
+                            .rect(
+                                topLeadingRadius: 10,
+                                bottomLeadingRadius: 0,
+                                bottomTrailingRadius: 0,
+                                topTrailingRadius: 10
+                            )
                         )
+                    }
+
+                    TherapySettingEditorView(
+                        items: $therapyItems,
+                        unit: .gramPerUnit,
+                        timeOptions: state.carbRatioTimeValues,
+                        valueOptions: state.carbRatioRateValues,
+                        validateOnDelete: state.validateCarbRatios,
+                        onItemAdded: {
+                            withAnimation {
+                                proxy.scrollTo(bottomID, anchor: .bottom)
+                            }
+                        }
                     )
-                }
 
-                TherapySettingEditorView(
-                    items: $therapyItems,
-                    unit: .gramPerUnit,
-                    timeOptions: state.carbRatioTimeValues,
-                    valueOptions: state.carbRatioRateValues,
-                    validateOnDelete: state.validateCarbRatios
-                )
-
-                // Example calculation based on first carb ratio
-                if !state.carbRatioItems.isEmpty {
-                    Spacer(minLength: 20)
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Example Calculation")
-                            .font(.headline)
-                            .padding(.horizontal)
+                    // Example calculation based on first carb ratio
+                    if !state.carbRatioItems.isEmpty {
+                        Spacer(minLength: 20)
 
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("For 45 g of carbs, you would need:")
-                                .font(.subheadline)
+                            Text("Example Calculation")
+                                .font(.headline)
                                 .padding(.horizontal)
 
-                            let insulinNeeded = 45 /
-                                Double(
-                                    truncating: state
-                                        .carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("For 45 g of carbs, you would need:")
+                                    .font(.subheadline)
+                                    .padding(.horizontal)
+
+                                let insulinNeeded = 45 /
+                                    Double(
+                                        truncating: state
+                                            .carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber
+                                    )
+                                Text(
+                                    "45 \(String(localized: "g", comment: "Gram abbreviation")) / \(formatter.string(from: state.carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber) ?? "--") \(String(localized: "g/U")) = \(String(format: "%.1f", insulinNeeded))" +
+                                        " " + String(localized: "U", comment: "Insulin unit abbreviation")
                                 )
-                            Text(
-                                "45 \(String(localized: "g", comment: "Gram abbreviation")) / \(formatter.string(from: state.carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber) ?? "--") \(String(localized: "g/U")) = \(String(format: "%.1f", insulinNeeded))" +
-                                    " " + String(localized: "U", comment: "Insulin unit abbreviation")
-                            )
-                            .font(.system(.body, design: .monospaced))
-                            .foregroundColor(.orange)
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .background(Color.chart.opacity(0.65))
-                            .cornerRadius(10)
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundColor(.orange)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .background(Color.chart.opacity(0.65))
+                                .cornerRadius(10)
+                            }
                         }
-                    }
 
-                    Spacer(minLength: 20)
+                        Spacer(minLength: 20)
 
-                    // Information about the carb ratio
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("What This Means")
-                            .font(.headline)
+                        // Information about the carb ratio
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("What This Means")
+                                .font(.headline)
+                                .padding(.horizontal)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("• A ratio of 10 g/U means 1 unit of insulin covers 10 g of carbs")
+                                Text("• A lower number means you need more insulin for the same amount of carbs")
+                                Text("• A higher number means you need less insulin for the same amount of carbs")
+                                Text("• Different times of day may require different ratios")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                             .padding(.horizontal)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("• A ratio of 10 g/U means 1 unit of insulin covers 10 g of carbs")
-                            Text("• A lower number means you need more insulin for the same amount of carbs")
-                            Text("• A higher number means you need less insulin for the same amount of carbs")
-                            Text("• Different times of day may require different ratios")
                         }
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal)
+                        .id(bottomID)
                     }
                 }
             }
-        }
-        .onAppear {
-            if state.carbRatioItems.isEmpty {
-                state.addInitialCarbRatio()
+            .onAppear {
+                if state.carbRatioItems.isEmpty {
+                    state.addInitialCarbRatio()
+                }
+                state.validateCarbRatios()
+                therapyItems = state.getCarbRatioTherapyItems()
+            }.onChange(of: therapyItems) { _, newItems in
+                state.updateCarbRatio(from: newItems)
+                refreshUI = UUID()
             }
-            state.validateCarbRatios()
-            therapyItems = state.getCarbRatioTherapyItems()
-        }.onChange(of: therapyItems) { _, newItems in
-            state.updateCarbRatio(from: newItems)
-            refreshUI = UUID()
         }
     }
 

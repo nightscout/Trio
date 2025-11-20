@@ -1,9 +1,3 @@
-//
-//  LiveActivityView.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 17.10.24.
-//
 import ActivityKit
 import Foundation
 import SwiftUI
@@ -11,6 +5,8 @@ import WidgetKit
 
 struct LiveActivityView: View {
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.isWatchOS) var isWatchOS
+
     var context: ActivityViewContext<LiveActivityAttributes>
 
     private var hasStaticColorScheme: Bool {
@@ -27,23 +23,49 @@ struct LiveActivityView: View {
 
         return Color.getDynamicGlucoseColor(
             glucoseValue: Decimal(string: state.bg) ?? 100,
-            highGlucoseColorValue: !hasStaticColorScheme ? hardCodedHigh : state.highGlucose,
-            lowGlucoseColorValue: !hasStaticColorScheme ? hardCodedLow : state.lowGlucose,
+            highGlucoseColorValue: !hasStaticColorScheme ? hardCodedHigh :
+                (isMgdL ? state.highGlucose : state.highGlucose.asMmolL),
+            lowGlucoseColorValue: !hasStaticColorScheme ? hardCodedLow : (isMgdL ? state.lowGlucose : state.lowGlucose.asMmolL),
             targetGlucose: isMgdL ? state.target : state.target.asMmolL,
             glucoseColorScheme: state.glucoseColorScheme
         )
     }
 
     var body: some View {
-        if let detailedViewState = context.state.detailedViewState {
+        if isWatchOS, context.state.useDetailedViewWatchOS {
             VStack {
-                LiveActivityChartView(context: context, additionalState: detailedViewState)
+                LiveActivityBGLabelWatchView(context: context, glucoseColor: glucoseColor)
+                LiveActivityChartView(context: context, additionalState: context.state.detailedViewState)
+                    .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
+            }
+            .addLiveActivityModifiers(isWatchOS: true)
+
+        } else if isWatchOS {
+            HStack {
+                LiveActivityBGLabelLargeView(
+                    context: context,
+                    glucoseColor: glucoseColor
+                )
+                Spacer()
+                VStack {
+                    LiveActivityGlucoseDeltaLabelView(
+                        context: context,
+                        glucoseColor: .primary
+                    )
+                    LiveActivityUpdatedLabelView(context: context, isDetailedLayout: false)
+                }
+            }
+            .addLiveActivityModifiers(isWatchOS: true)
+
+        } else if context.state.useDetailedViewIOS {
+            VStack {
+                LiveActivityChartView(context: context, additionalState: context.state.detailedViewState)
                     .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
                     .frame(height: 80)
                     .overlay(alignment: .topTrailing) {
-                        if detailedViewState.isOverrideActive {
+                        if context.state.detailedViewState.isOverrideActive {
                             HStack {
-                                Text("\(detailedViewState.overrideName)")
+                                Text("\(context.state.detailedViewState.overrideName)")
                                     .font(.footnote)
                                     .fontWeight(.bold)
                                     .foregroundStyle(.white)
@@ -57,12 +79,18 @@ struct LiveActivityView: View {
                     }
 
                 HStack {
-                    if detailedViewState.widgetItems.contains(where: { $0 != .empty }) {
-                        ForEach(Array(detailedViewState.widgetItems.enumerated()), id: \.element) { index, widgetItem in
+                    if context.state.detailedViewState.widgetItems.contains(where: { $0 != .empty }) {
+                        ForEach(
+                            Array(context.state.detailedViewState.widgetItems.enumerated()),
+                            id: \.element
+                        ) { index, widgetItem in
                             switch widgetItem {
                             case .currentGlucose:
                                 VStack {
-                                    LiveActivityBGLabelView(context: context, additionalState: detailedViewState)
+                                    LiveActivityBGLabelView(
+                                        context: context,
+                                        additionalState: context.state.detailedViewState
+                                    )
 
                                     HStack {
                                         LiveActivityGlucoseDeltaLabelView(
@@ -77,25 +105,27 @@ struct LiveActivityView: View {
                             case .currentGlucoseLarge:
                                 LiveActivityBGLabelLargeView(
                                     context: context,
-                                    additionalState: detailedViewState,
                                     glucoseColor: glucoseColor
                                 )
                             case .iob:
-                                LiveActivityIOBLabelView(context: context, additionalState: detailedViewState)
+                                LiveActivityIOBLabelView(context: context, additionalState: context.state.detailedViewState)
                             case .cob:
-                                LiveActivityCOBLabelView(context: context, additionalState: detailedViewState)
+                                LiveActivityCOBLabelView(context: context, additionalState: context.state.detailedViewState)
                             case .updatedLabel:
                                 LiveActivityUpdatedLabelView(context: context, isDetailedLayout: true)
                             case .totalDailyDose:
-                                LiveActivityTotalDailyDoseView(context: context, additionalState: detailedViewState)
+                                LiveActivityTotalDailyDoseView(
+                                    context: context,
+                                    additionalState: context.state.detailedViewState
+                                )
                             case .empty:
                                 Text("").frame(width: 50, height: 50)
                             }
 
                             /// Check if the next item is also non-empty to determine if a divider should be shown
-                            if index < detailedViewState.widgetItems.count - 1 {
-                                let currentItem = detailedViewState.widgetItems[index]
-                                let nextItem = detailedViewState.widgetItems[index + 1]
+                            if index < context.state.detailedViewState.widgetItems.count - 1 {
+                                let currentItem = context.state.detailedViewState.widgetItems[index]
+                                let nextItem = context.state.detailedViewState.widgetItems[index + 1]
 
                                 if currentItem != .empty, nextItem != .empty {
                                     Divider()
@@ -108,15 +138,7 @@ struct LiveActivityView: View {
                     }
                 }
             }
-            .privacySensitive()
-            .padding(.all, 14)
-            .foregroundStyle(Color.primary)
-            // Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark mode)
-            // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of the interface style)
-            // The colorScheme environment variable does work here, but BackgroundStyle gives us this functionality for free
-            .foregroundStyle(Color.primary)
-            .background(BackgroundStyle.background.opacity(0.4))
-            .activityBackgroundTint(Color.clear)
+            .addLiveActivityModifiers(isWatchOS: false)
         } else {
             Group {
                 if context.state.isInitialState {
@@ -130,21 +152,14 @@ struct LiveActivityView: View {
                                 context: context,
                                 glucoseColor: hasStaticColorScheme ? .primary : glucoseColor
                             ).font(.title3)
-                            LiveActivityUpdatedLabelView(context: context, isDetailedLayout: false).font(.caption)
+                            LiveActivityUpdatedLabelView(context: context, isDetailedLayout: false)
+                                .font(.caption)
                                 .foregroundStyle(.primary.opacity(0.7))
                         }
                     }
                 }
             }
-            .privacySensitive()
-            .padding(.all, 15)
-            .foregroundStyle(Color.primary)
-            /// Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark mode)
-            // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of the interface style)
-            // The colorScheme environment variable does work here, but BackgroundStyle gives us this functionality for free
-            .foregroundStyle(Color.primary)
-            .background(BackgroundStyle.background.opacity(0.4))
-            .activityBackgroundTint(Color.clear)
+            .addLiveActivityModifiers(isWatchOS: false)
         }
     }
 }
@@ -176,8 +191,9 @@ struct LiveActivityExpandedBottomView: View {
     var body: some View {
         if context.state.isInitialState {
             Text("Live Activity Expired. Open Trio to Refresh").minimumScaleFactor(0.01)
-        } else if let detailedViewState = context.state.detailedViewState {
-            LiveActivityChartView(context: context, additionalState: detailedViewState)
+        } else if context.state.useDetailedViewIOS {
+            LiveActivityChartView(context: context, additionalState: context.state.detailedViewState)
+                .addIsWatchOS()
         }
     }
 }
@@ -186,8 +202,10 @@ struct LiveActivityExpandedCenterView: View {
     var context: ActivityViewContext<LiveActivityAttributes>
 
     var body: some View {
-        LiveActivityUpdatedLabelView(context: context, isDetailedLayout: false).font(Font.caption)
+        LiveActivityUpdatedLabelView(context: context, isDetailedLayout: false)
+            .font(Font.caption)
             .foregroundStyle(Color.secondary)
+            .addIsWatchOS()
     }
 }
 

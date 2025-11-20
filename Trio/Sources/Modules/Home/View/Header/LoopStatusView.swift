@@ -53,49 +53,36 @@ struct LoopStatusView: View {
                 }
 
                 if let determination = state.determinationsFromPersistence.first {
-                    if determination.glucose == 400 {
-                        Text("Invalid CGM reading (HIGH).")
-                            .bold()
-                            .padding(.top)
-                            .foregroundStyle(Color.loopRed)
-                            .fixedSize(horizontal: false, vertical: true)
+                    Text("Latest Raw Algorithm Output")
+                        .bold()
+                        .padding(.top)
 
-                        Text("SMBs and Non-Zero Temp. Basal Rates are disabled.")
-                            .font(.subheadline)
-                            .fixedSize(horizontal: false, vertical: true)
+                    Text(
+                        "Trio is currently using these metrics and values as determined by the oref algorithm:"
+                    )
+                    .font(.subheadline)
+                    .lineLimit(nil)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                    } else {
-                        Text("Latest Raw Algorithm Output")
-                            .bold()
-                            .padding(.top)
+                    TagCloudView(
+                        tags: getComputedTags(determination),
+                        shouldParseToMmolL: state.units == .mmolL
+                    )
 
-                        Text(
-                            "Trio is currently using these metrics and values as determined by the oref algorithm:"
-                        )
-                        .font(.subheadline)
-                        .lineLimit(nil)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
+                    Text("Current Algorithm Reasoning").bold().padding(.top)
 
-                        TagCloudView(
-                            tags: getComputedTags(determination),
-                            shouldParseToMmolL: state.units == .mmolL
-                        )
-
-                        Text("Current Algorithm Reasoning").bold().padding(.top)
-
-                        Text(
-                            self
-                                .parseReasonConclusion(
-                                    determination.reasonConclusion,
-                                    isMmolL: state.units == .mmolL
-                                )
-                        )
-                        .font(.subheadline)
-                        .lineLimit(nil)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                    }
+                    Text(
+                        self
+                            .parseReasonConclusion(
+                                determination.reasonConclusion,
+                                isMmolL: state.units == .mmolL
+                            )
+                    )
+                    .font(.subheadline)
+                    .lineLimit(nil)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
                 } else {
                     Text("No recent oref algorithm determination.")
                 }
@@ -129,7 +116,10 @@ struct LoopStatusView: View {
         .onAppear {
             lastDetermination = state.determinationsFromPersistence.first
         }
-        .presentationDetents([.height(sheetContentHeight)])
+        .presentationDetents([
+            sheetContentHeight > 0 ? .height(sheetContentHeight) : .fraction(0.9),
+            .large
+        ])
         .presentationDragIndicator(.visible)
         .onPreferenceChange(ContentSizeKey.self) { newSize in
             sheetContentHeight = newSize.height
