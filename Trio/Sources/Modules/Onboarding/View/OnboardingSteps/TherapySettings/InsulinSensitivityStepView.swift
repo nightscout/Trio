@@ -14,6 +14,7 @@ struct InsulinSensitivityStepView: View {
     @State private var refreshUI = UUID() // to update chart when slider value changes
     @State private var therapyItems: [TherapySettingItem] = []
     @State private var now = Date()
+    @Namespace private var bottomID
 
     // For chart scaling
     private let chartScale = Calendar.current
@@ -34,101 +35,109 @@ struct InsulinSensitivityStepView: View {
     }
 
     var body: some View {
-        LazyVStack {
-            VStack(alignment: .leading, spacing: 0) {
-                // Chart visualization
-                if !state.isfItems.isEmpty {
-                    VStack(alignment: .leading) {
-                        isfChart
-                            .frame(height: 180)
-                            .padding(.horizontal)
-                    }
-                    .padding(.vertical)
-                    .background(Color.chart.opacity(0.65))
-                    .clipShape(
-                        .rect(
-                            topLeadingRadius: 10,
-                            bottomLeadingRadius: 0,
-                            bottomTrailingRadius: 0,
-                            topTrailingRadius: 10
+        ScrollViewReader { proxy in
+            LazyVStack {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Chart visualization
+                    if !state.isfItems.isEmpty {
+                        VStack(alignment: .leading) {
+                            isfChart
+                                .frame(height: 180)
+                                .padding(.horizontal)
+                        }
+                        .padding(.vertical)
+                        .background(Color.chart.opacity(0.65))
+                        .clipShape(
+                            .rect(
+                                topLeadingRadius: 10,
+                                bottomLeadingRadius: 0,
+                                bottomTrailingRadius: 0,
+                                topTrailingRadius: 10
+                            )
                         )
+                    }
+
+                    TherapySettingEditorView(
+                        items: $therapyItems,
+                        unit: state.units == .mgdL ? .mgdLPerUnit : .mmolLPerUnit,
+                        timeOptions: state.isfTimeValues,
+                        valueOptions: state.isfRateValues,
+                        validateOnDelete: state.validateISF,
+                        onItemAdded: {
+                            withAnimation {
+                                proxy.scrollTo(bottomID, anchor: .bottom)
+                            }
+                        }
                     )
-                }
 
-                TherapySettingEditorView(
-                    items: $therapyItems,
-                    unit: state.units == .mgdL ? .mgdLPerUnit : .mmolLPerUnit,
-                    timeOptions: state.isfTimeValues,
-                    valueOptions: state.isfRateValues,
-                    validateOnDelete: state.validateISF
-                )
-
-                // Example calculation based on first ISF
-                if !state.isfItems.isEmpty {
-                    Spacer(minLength: 20)
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Example Calculation")
-                            .font(.headline)
-                            .padding(.horizontal)
+                    // Example calculation based on first ISF
+                    if !state.isfItems.isEmpty {
+                        Spacer(minLength: 20)
 
                         VStack(alignment: .leading, spacing: 8) {
-                            // Current glucose is 40 mg/dL or 2.2 mmol/L above target
-                            let aboveTarget = state.units == .mgdL ? Decimal(40) : 40.asMmolL
-                            let firstIsfRate: Decimal = state.isfRateValues[state.isfItems.first?.rateIndex ?? 0]
-                            let isfValue = state.units == .mgdL ? firstIsfRate : firstIsfRate.asMmolL
-                            let insulinNeeded = aboveTarget / isfValue
+                            Text("Example Calculation")
+                                .font(.headline)
+                                .padding(.horizontal)
 
-                            Text(
-                                "If you are \(numberFormatter.string(from: aboveTarget as NSNumber) ?? "--") \(state.units.rawValue) above target:"
-                            )
-                            .font(.subheadline)
-                            .padding(.horizontal)
+                            VStack(alignment: .leading, spacing: 8) {
+                                // Current glucose is 40 mg/dL or 2.2 mmol/L above target
+                                let aboveTarget = state.units == .mgdL ? Decimal(40) : 40.asMmolL
+                                let firstIsfRate: Decimal = state.isfRateValues[state.isfItems.first?.rateIndex ?? 0]
+                                let isfValue = state.units == .mgdL ? firstIsfRate : firstIsfRate.asMmolL
+                                let insulinNeeded = aboveTarget / isfValue
 
-                            Text(
-                                "\(aboveTarget.description) \(state.units.rawValue) / \(isfValue.description) \(state.units.rawValue)/\(String(localized: "U", comment: "Insulin unit abbreviation")) = \(String(format: "%.1f", Double(insulinNeeded))) \(String(localized: "U", comment: "Insulin unit abbreviation"))"
-                            )
-                            .font(.system(.body, design: .monospaced))
-                            .foregroundColor(.cyan)
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .background(Color.chart.opacity(0.65))
-                            .cornerRadius(10)
+                                Text(
+                                    "If you are \(numberFormatter.string(from: aboveTarget as NSNumber) ?? "--") \(state.units.rawValue) above target:"
+                                )
+                                .font(.subheadline)
+                                .padding(.horizontal)
+
+                                Text(
+                                    "\(aboveTarget.description) \(state.units.rawValue) / \(isfValue.description) \(state.units.rawValue)/\(String(localized: "U", comment: "Insulin unit abbreviation")) = \(String(format: "%.1f", Double(insulinNeeded))) \(String(localized: "U", comment: "Insulin unit abbreviation"))"
+                                )
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundColor(.cyan)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .background(Color.chart.opacity(0.65))
+                                .cornerRadius(10)
+                            }
                         }
-                    }
 
-                    Spacer(minLength: 20)
+                        Spacer(minLength: 20)
 
-                    // Information about ISF
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("What This Means")
-                            .font(.headline)
+                        // Information about ISF
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("What This Means")
+                                .font(.headline)
+                                .padding(.horizontal)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                let isfValue = "\(state.units == .mgdL ? Decimal(50) : 50.asMmolL)"
+                                Text(
+                                    "• An ISF of \(isfValue) \(state.units.rawValue)/U means 1 U lowers your glucose by \(isfValue) \(state.units.rawValue)"
+                                )
+                                Text("• A lower number means you're less sensitive (more resistant) to insulin")
+                                Text("• A higher number means you're more sensitive (less resistant) to insulin")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                             .padding(.horizontal)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            let isfValue = "\(state.units == .mgdL ? Decimal(50) : 50.asMmolL)"
-                            Text(
-                                "• An ISF of \(isfValue) \(state.units.rawValue)/U means 1 U lowers your glucose by \(isfValue) \(state.units.rawValue)"
-                            )
-                            Text("• A lower number means you're less sensitive (more resistant) to insulin")
-                            Text("• A higher number means you're more sensitive (less resistant) to insulin")
                         }
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal)
+                        .id(bottomID)
                     }
                 }
             }
-        }
-        .onAppear {
-            if state.isfItems.isEmpty {
-                state.addInitialISF()
+            .onAppear {
+                if state.isfItems.isEmpty {
+                    state.addInitialISF()
+                }
+                state.validateISF()
+                therapyItems = state.getISFTherapyItems()
+            }.onChange(of: therapyItems) { _, newItems in
+                state.updateISF(from: newItems)
+                refreshUI = UUID()
             }
-            state.validateISF()
-            therapyItems = state.getISFTherapyItems()
-        }.onChange(of: therapyItems) { _, newItems in
-            state.updateISF(from: newItems)
-            refreshUI = UUID()
         }
     }
 

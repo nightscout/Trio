@@ -353,6 +353,8 @@
 		3BF92F382D86E10B006B545A /* OpenAPSFixed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF92F372D86E106006B545A /* OpenAPSFixed.swift */; };
 		3BF92F3A2D86F1AA006B545A /* iob-error-log.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BF92F392D86F1AA006B545A /* iob-error-log.json */; };
 		3BFA5BF92D989F510072B082 /* MockTDDStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BFA5BF82D989F460072B082 /* MockTDDStorage.swift */; };
+		3BF85FE32E427312000D7351 /* IOBService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF85FE12E427312000D7351 /* IOBService.swift */; };
+		3E28F2AB2EB5337F00FB9EEB /* ConnectIQ in Frameworks */ = {isa = PBXBuildFile; productRef = 3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */; };
 		45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */; };
 		45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */; };
 		491D6FBD2D56741C00C49F67 /* TempTargetStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491D6FBC2D56741C00C49F67 /* TempTargetStored+CoreDataProperties.swift */; };
@@ -563,8 +565,6 @@
 		CE3EEF9A2D463717001944DD /* CustomCGMOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3EEF992D46370A001944DD /* CustomCGMOptionsView.swift */; };
 		CE48C86428CA69D5007C0598 /* OmniBLEPumpManagerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE48C86328CA69D5007C0598 /* OmniBLEPumpManagerExtensions.swift */; };
 		CE48C86628CA6B48007C0598 /* OmniPodManagerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE48C86528CA6B48007C0598 /* OmniPodManagerExtensions.swift */; };
-		CE51DD1C2A01970900F163F7 /* ConnectIQ 2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51DD1B2A01970800F163F7 /* ConnectIQ 2.xcframework */; };
-		CE51DD1D2A01970900F163F7 /* ConnectIQ 2.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CE51DD1B2A01970800F163F7 /* ConnectIQ 2.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CE7950242997D81700FA576E /* CGMSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7950232997D81700FA576E /* CGMSettingsView.swift */; };
 		CE7950262998056D00FA576E /* CGMSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7950252998056D00FA576E /* CGMSetupView.swift */; };
 		CE7CA34E2A064973004BE681 /* AppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CA3432A064973004BE681 /* AppShortcuts.swift */; };
@@ -885,7 +885,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				CE51DD1D2A01970900F163F7 /* ConnectIQ 2.xcframework in Embed Frameworks */,
 				3B4BA78F2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Embed Frameworks */,
 				3B4BA7732D8DBD690069D5B8 /* G7SensorKitUI.framework in Embed Frameworks */,
 				3B4BA76D2D8DBD690069D5B8 /* CGMBLEKitUI.framework in Embed Frameworks */,
@@ -1803,7 +1802,6 @@
 				38E87401274F77E400975559 /* CoreNFC.framework in Frameworks */,
 				3B4BA78A2D8DC0EC0069D5B8 /* ShareClient.framework in Frameworks */,
 				3B4BA77E2D8DBD690069D5B8 /* OmniKit.framework in Frameworks */,
-				CE51DD1C2A01970900F163F7 /* ConnectIQ 2.xcframework in Frameworks */,
 				3811DE1025C9D37700A708ED /* Swinject in Frameworks */,
 				3B4BA78E2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Frameworks */,
 				B958F1B72BA0711600484851 /* MKRingProgressView in Frameworks */,
@@ -1826,6 +1824,7 @@
 				CE95BF612BA7715900DC3DE3 /* MockKitUI.framework in Frameworks */,
 				E0CC2C5C275B9F0F00A7BC71 /* HealthKit.framework in Frameworks */,
 				CE95BF5D2BA770C300DC3DE3 /* LoopKitUI.framework in Frameworks */,
+				3E28F2AB2EB5337F00FB9EEB /* ConnectIQ in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4259,6 +4258,7 @@
 				3BD9687E2D8DDD8800899469 /* CryptoSwift */,
 				3B47C60F2DA0A28F00B0E5EF /* FirebaseCrashlytics */,
 				DD17A0282E3FE0BD008E1BF0 /* SwiftJWT */,
+				3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */,
 			);
 			productName = Trio;
 			productReference = 388E595825AD948C0019842D /* Trio.app */;
@@ -4436,6 +4436,7 @@
 				3BD9687D2D8DDD8800899469 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
 				3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				DD868FD92E381E1C005D3308 /* XCRemoteSwiftPackageReference "Swift-JWT" */,
+				3E28F2A92EB5337F00FB9EEB /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */,
 			);
 			productRefGroup = 388E595925AD948C0019842D /* Products */;
 			projectDirPath = "";
@@ -6048,6 +6049,14 @@
 				minimumVersion = 1.8.2;
 			};
 		};
+		3E28F2A92EB5337F00FB9EEB /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/garmin/connectiq-companion-app-sdk-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.7.0;
+			};
+		};
 		B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/maxkonovalov/MKRingProgressView.git";
@@ -6109,6 +6118,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3BD9687D2D8DDD8800899469 /* XCRemoteSwiftPackageReference "CryptoSwift" */;
 			productName = CryptoSwift;
+		};
+		3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3E28F2A92EB5337F00FB9EEB /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */;
+			productName = ConnectIQ;
 		};
 		B958F1B62BA0711600484851 /* MKRingProgressView */ = {
 			isa = XCSwiftPackageProductDependency;
