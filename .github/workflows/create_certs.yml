@@ -45,6 +45,10 @@ jobs:
       - name: Install Project Dependencies
         run: bundle install
 
+      # Update fastlane so we don't hit the UNIVERSAL filter bug
+      - name: Update fastlane
+        run: bundle update fastlane
+
       # Create or update Distribution certificate and provisioning profiles
       - name: Check and create or update Distribution certificate and profiles if needed
         run: |
@@ -52,15 +56,17 @@ jobs:
           bundle exec fastlane certs || true # ignore and continue on errors without annotating an exit code
 
       - name: Check Distribution certificate and launch Nuke certificates if needed
-        run: bundle exec fastlane check_and_renew_certificates
         id: check_certs
+        run: bundle exec fastlane check_and_renew_certificates
 
       - name: Set output and annotations based on Fastlane result
         id: set_output
         run: |
           CERT_STATUS_FILE="${{ github.workspace }}/fastlane/new_certificate_needed.txt"
-          ENABLE_NUKE_CERTS=${{ vars.ENABLE_NUKE_CERTS }}
+          ENABLE_NUKE_CERTS="${{ vars.ENABLE_NUKE_CERTS }}"
+          FORCE_NUKE_CERTS="${{ vars.FORCE_NUKE_CERTS }}"
 
+          CERT_STATUS=false
           if [ -f "$CERT_STATUS_FILE" ]; then
             CERT_STATUS=$(cat "$CERT_STATUS_FILE" | tr -d '\n' | tr -d '\r') # Read file content and strip newlines
             echo "new_certificate_needed: $CERT_STATUS"
@@ -81,40 +87,41 @@ jobs:
             exit 1
           fi
 
-          # Check if vars.FORCE_NUKE_CERTS is not set to true
-          if [ vars.FORCE_NUKE_CERTS = "true" ]; then
+          # Check if vars.FORCE_NUKE_CERTS is set to true
+          if [ "$FORCE_NUKE_CERTS" = "true" ]; then
             echo "::warning::‼️ Nuking of certificates was forced because the repository variable FORCE_NUKE_CERTS is set to 'true'."
           fi
 
-  # Nuke Certs if needed, and if the repository variable ENABLE_NUKE_CERTS is set to 'true', or if FORCE_NUKE_CERTS is set to 'true', which will always force certs to be nuked
+  # Nuke Certs if needed, and if the repository variable ENABLE_NUKE_CERTS is set to 'true',
+  # or if FORCE_NUKE_CERTS is set to 'true', which will always force certs to be nuked
   nuke_certs:
-      name: Nuke certificates
-      needs: [validate, create_certs]
-      runs-on: macos-15
-      if: ${{ (needs.create_certs.outputs.new_certificate_needed == 'true' && vars.ENABLE_NUKE_CERTS == 'true') || vars.FORCE_NUKE_CERTS == 'true' }}
-      steps:
-        - name: Output from step id 'check_certs'
-          run: echo "new_certificate_needed=${{ needs.create_certs.outputs.new_certificate_needed }}"
+    name: Nuke certificates
+    needs: [validate, create_certs]
+    runs-on: macos-14
+    if: ${{ (needs.create_certs.outputs.new_certificate_needed == 'true' && vars.ENABLE_NUKE_CERTS == 'true') || vars.FORCE_NUKE_CERTS == 'true' }}
+    steps:
+      - name: Output from step id 'check_certs'
+        run: echo "new_certificate_needed=${{ needs.create_certs.outputs.new_certificate_needed }}"
 
-        - name: Checkout repository
-          uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-        - name: Install dependencies
-          run: bundle install
+      - name: Install dependencies
+        run: bundle install
 
-        - name: Run Fastlane nuke_certs
-          run: |
-            set -e # Set error immediately after this step if error occurs
-            bundle exec fastlane nuke_certs
+      - name: Run Fastlane nuke_certs
+        run: |
+          set -e # Set error immediately after this step if error occurs
+          bundle exec fastlane nuke_certs
 
-        - name: Recreate Distribution certificate after nuking
-          run: |
-            set -e # Set error immediately after this step if error occurs
-            bundle exec fastlane certs
+      - name: Recreate Distribution certificate after nuking
+        run: |
+          set -e # Set error immediately after this step if error occurs
+          bundle exec fastlane certs
 
-        - name: Add success annotations for nuke and certificate recreation
-          if: ${{ success() }}
-          run: |
-            echo "::warning::⚠️ All Distribution certificates and TestFlight profiles have been revoked and recreated."
-            echo "::warning::❗️ If you have other apps being distributed by GitHub Actions / Fastlane / TestFlight that does not renew certificates automatically, please run the '3. Create Certificates' workflow for each of these apps to allow these apps to be built."
-            echo "::warning::✅ But don't worry about your existing TestFlight builds, they will keep working!"
+      - name: Add success annotations for nuke and certificate recreation
+        if: ${{ success() }}
+        run: |
+          echo "::warning::⚠️ All Distribution certificates and TestFlight profiles have been revoked and recreated."
+          echo "::warning::❗️ If you have other apps being distributed by GitHub Actions / Fastlane / TestFlight that does not renew certificates automatically, please run the '3. Create Certificates' workflow for each of these apps to allow these apps to be built."
+          echo "::warning::✅ But don't worry about your existing TestFlight builds, they will keep working!"
