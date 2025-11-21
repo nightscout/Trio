@@ -43,4 +43,4 @@
 	url = https://github.com/loopandlearn/DanaKit
 [submodule "TandemKit"]
 	path = TandemKit
-	url = https://github.com/jwoglom/tandemkit
+	url = git@github.com:jwoglom/tandemkit
