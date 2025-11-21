@@ -41,23 +41,23 @@ jobs:
             exit 1
           fi
 
-      # Install project dependencies
+      # Install project dependencies (for match, etc)
       - name: Install Project Dependencies
         run: bundle install
 
-      # Update fastlane so we don't hit the UNIVERSAL filter bug
-      - name: Update fastlane
-        run: bundle update fastlane
+      # Install latest fastlane gem so we avoid the UNIVERSAL filter bug
+      - name: Install latest fastlane
+        run: gem install fastlane -NV
 
       # Create or update Distribution certificate and provisioning profiles
       - name: Check and create or update Distribution certificate and profiles if needed
         run: |
           echo "Running Fastlane certs lane..."
-          bundle exec fastlane certs || true # ignore and continue on errors without annotating an exit code
+          fastlane certs || true # ignore and continue on errors without annotating an exit code
 
       - name: Check Distribution certificate and launch Nuke certificates if needed
         id: check_certs
-        run: bundle exec fastlane check_and_renew_certificates
+        run: fastlane check_and_renew_certificates
 
       - name: Set output and annotations based on Fastlane result
         id: set_output
@@ -92,8 +92,8 @@ jobs:
             echo "::warning::‼️ Nuking of certificates was forced because the repository variable FORCE_NUKE_CERTS is set to 'true'."
           fi
 
-  # Nuke Certs if needed, and if the repository variable ENABLE_NUKE_CERTS is set to 'true',
-  # or if FORCE_NUKE_CERTS is set to 'true', which will always force certs to be nuked
+  # Nuke Certs if needed, and if ENABLE_NUKE_CERTS is true,
+  # or if FORCE_NUKE_CERTS is true, which will always force nuking
   nuke_certs:
     name: Nuke certificates
     needs: [validate, create_certs]
@@ -109,15 +109,18 @@ jobs:
       - name: Install dependencies
         run: bundle install
 
+      - name: Install latest fastlane
+        run: gem install fastlane -NV
+
       - name: Run Fastlane nuke_certs
         run: |
           set -e # Set error immediately after this step if error occurs
-          bundle exec fastlane nuke_certs
+          fastlane nuke_certs
 
       - name: Recreate Distribution certificate after nuking
         run: |
           set -e # Set error immediately after this step if error occurs
-          bundle exec fastlane certs
+          fastlane certs
 
       - name: Add success annotations for nuke and certificate recreation
         if: ${{ success() }}
