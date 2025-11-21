@@ -1,12 +1,7 @@
 name: 4. Build Trio
 run-name: Build Trio (${{ github.ref_name }})
 on:
-  workflow_dispatch:        # keep manual Run workflow button
-  schedule:
-    - cron: "0 8 * * 3"     # every Wednesday 08:00 UTC
-      branches: [dev]       # only trigger on dev
-    - cron: "0 6 1 * *"     # 1st of month 06:00 UTC
-      branches: [dev]       # only trigger on dev
+  workflow_dispatch:        # manual Run workflow button only
 
 env:
   GH_PAT: ${{ secrets.GH_PAT }}
