@@ -245,6 +245,8 @@
 		3B4BA78F2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7882D8DC0EC0069D5B8 /* TidepoolServiceKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3B4BA7902D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */; };
 		3B4BA7912D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B56079E2ECD62A800C723C1 /* DeletedGlucoseStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B56079D2ECD62A800C723C1 /* DeletedGlucoseStored+CoreDataClass.swift */; };
+		3B5607A02ECD62AC00C723C1 /* DeletedGlucoseStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B56079F2ECD62AC00C723C1 /* DeletedGlucoseStored+CoreDataProperties.swift */; };
 		3B997DCB2DC00849006B6BB2 /* JSONImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B997DCA2DC00849006B6BB2 /* JSONImporter.swift */; };
 		3B997DCF2DC00A3A006B6BB2 /* JSONImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */; };
 		3B997DD32DC02AEF006B6BB2 /* glucose.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B997DD12DC02AEF006B6BB2 /* glucose.json */; };
@@ -257,6 +259,7 @@
 		3BD9687C2D8DDD4600899469 /* SlideButton in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687B2D8DDD4600899469 /* SlideButton */; };
 		3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687E2D8DDD8800899469 /* CryptoSwift */; };
 		3BF85FE32E427312000D7351 /* IOBService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF85FE12E427312000D7351 /* IOBService.swift */; };
+		3E28F2AB2EB5337F00FB9EEB /* ConnectIQ in Frameworks */ = {isa = PBXBuildFile; productRef = 3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */; };
 		45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */; };
 		45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */; };
 		491D6FBD2D56741C00C49F67 /* TempTargetStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491D6FBC2D56741C00C49F67 /* TempTargetStored+CoreDataProperties.swift */; };
@@ -467,8 +470,6 @@
 		CE3EEF9A2D463717001944DD /* CustomCGMOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3EEF992D46370A001944DD /* CustomCGMOptionsView.swift */; };
 		CE48C86428CA69D5007C0598 /* OmniBLEPumpManagerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE48C86328CA69D5007C0598 /* OmniBLEPumpManagerExtensions.swift */; };
 		CE48C86628CA6B48007C0598 /* OmniPodManagerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE48C86528CA6B48007C0598 /* OmniPodManagerExtensions.swift */; };
-		CE51DD1C2A01970900F163F7 /* ConnectIQ 2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51DD1B2A01970800F163F7 /* ConnectIQ 2.xcframework */; };
-		CE51DD1D2A01970900F163F7 /* ConnectIQ 2.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CE51DD1B2A01970800F163F7 /* ConnectIQ 2.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CE7950242997D81700FA576E /* CGMSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7950232997D81700FA576E /* CGMSettingsView.swift */; };
 		CE7950262998056D00FA576E /* CGMSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7950252998056D00FA576E /* CGMSetupView.swift */; };
 		CE7CA34E2A064973004BE681 /* AppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CA3432A064973004BE681 /* AppShortcuts.swift */; };
@@ -607,6 +608,8 @@
 		DD82D4B82DCAB2BA00BAFC77 /* PropertyPersistentFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD82D4B72DCAB2BA00BAFC77 /* PropertyPersistentFlags.swift */; };
 		DD868FD82E381A54005D3308 /* APNSJWTClaims.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD868FD72E381A54005D3308 /* APNSJWTClaims.swift */; };
 		DD88C8E22C50420800F2D558 /* DefinitionRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD88C8E12C50420800F2D558 /* DefinitionRow.swift */; };
+		DD906BF42EA6AA0100262772 /* NightscoutUploadPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD906BF32EA6AA0100262772 /* NightscoutUploadPipeline.swift */; };
+		DD906BF62EA6AAE900262772 /* BaseNightscoutManager+Subscribers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD906BF52EA6AAE900262772 /* BaseNightscoutManager+Subscribers.swift */; };
 		DD940BAA2CA7585D000830A5 /* GlucoseColorScheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD940BA92CA7585D000830A5 /* GlucoseColorScheme.swift */; };
 		DD940BAC2CA75889000830A5 /* DynamicGlucoseColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD940BAB2CA75889000830A5 /* DynamicGlucoseColor.swift */; };
 		DD98ACC02D71013200C0778F /* StatChartUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD98ACBF2D71013200C0778F /* StatChartUtils.swift */; };
@@ -773,7 +776,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				CE51DD1D2A01970900F163F7 /* ConnectIQ 2.xcframework in Embed Frameworks */,
 				3B4BA78F2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Embed Frameworks */,
 				3B4BA7732D8DBD690069D5B8 /* G7SensorKitUI.framework in Embed Frameworks */,
 				3B4BA76D2D8DBD690069D5B8 /* CGMBLEKitUI.framework in Embed Frameworks */,
@@ -1070,6 +1072,8 @@
 		3B4BA7692D8DBD690069D5B8 /* RileyLinkKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RileyLinkKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7882D8DC0EC0069D5B8 /* TidepoolServiceKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TidepoolServiceKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TidepoolServiceKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B56079D2ECD62A800C723C1 /* DeletedGlucoseStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DeletedGlucoseStored+CoreDataClass.swift"; sourceTree = "<group>"; };
+		3B56079F2ECD62AC00C723C1 /* DeletedGlucoseStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DeletedGlucoseStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		3B997DCA2DC00849006B6BB2 /* JSONImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONImporter.swift; sourceTree = "<group>"; };
 		3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONImporterTests.swift; sourceTree = "<group>"; };
 		3B997DD12DC02AEF006B6BB2 /* glucose.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = glucose.json; sourceTree = "<group>"; };
@@ -1434,6 +1438,8 @@
 		DD82D4B72DCAB2BA00BAFC77 /* PropertyPersistentFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyPersistentFlags.swift; sourceTree = "<group>"; };
 		DD868FD72E381A54005D3308 /* APNSJWTClaims.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APNSJWTClaims.swift; sourceTree = "<group>"; };
 		DD88C8E12C50420800F2D558 /* DefinitionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefinitionRow.swift; sourceTree = "<group>"; };
+		DD906BF32EA6AA0100262772 /* NightscoutUploadPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutUploadPipeline.swift; sourceTree = "<group>"; };
+		DD906BF52EA6AAE900262772 /* BaseNightscoutManager+Subscribers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BaseNightscoutManager+Subscribers.swift"; sourceTree = "<group>"; };
 		DD940BA92CA7585D000830A5 /* GlucoseColorScheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseColorScheme.swift; sourceTree = "<group>"; };
 		DD940BAB2CA75889000830A5 /* DynamicGlucoseColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicGlucoseColor.swift; sourceTree = "<group>"; };
 		DD98ACBF2D71013200C0778F /* StatChartUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatChartUtils.swift; sourceTree = "<group>"; };
@@ -1579,7 +1585,6 @@
 				38E87401274F77E400975559 /* CoreNFC.framework in Frameworks */,
 				3B4BA78A2D8DC0EC0069D5B8 /* ShareClient.framework in Frameworks */,
 				3B4BA77E2D8DBD690069D5B8 /* OmniKit.framework in Frameworks */,
-				CE51DD1C2A01970900F163F7 /* ConnectIQ 2.xcframework in Frameworks */,
 				3811DE1025C9D37700A708ED /* Swinject in Frameworks */,
 				3B4BA78E2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Frameworks */,
 				B958F1B72BA0711600484851 /* MKRingProgressView in Frameworks */,
@@ -1602,6 +1607,7 @@
 				CE95BF612BA7715900DC3DE3 /* MockKitUI.framework in Frameworks */,
 				E0CC2C5C275B9F0F00A7BC71 /* HealthKit.framework in Frameworks */,
 				CE95BF5D2BA770C300DC3DE3 /* LoopKitUI.framework in Frameworks */,
+				3E28F2AB2EB5337F00FB9EEB /* ConnectIQ in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3472,8 +3478,10 @@
 		DDC9B9962CFD2332003E7721 /* Nightscout */ = {
 			isa = PBXGroup;
 			children = (
+				DD906BF32EA6AA0100262772 /* NightscoutUploadPipeline.swift */,
 				3811DE9725C9D88300A708ED /* NightscoutManager.swift */,
 				38FE826C25CC8461001FF17A /* NightscoutAPI.swift */,
+				DD906BF52EA6AAE900262772 /* BaseNightscoutManager+Subscribers.swift */,
 			);
 			path = Nightscout;
 			sourceTree = "<group>";
@@ -3552,6 +3560,8 @@
 				DDE1793B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift */,
 				DDB37CC22D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataClass.swift */,
 				DDB37CC32D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataProperties.swift */,
+				3B56079D2ECD62A800C723C1 /* DeletedGlucoseStored+CoreDataClass.swift */,
+				3B56079F2ECD62AC00C723C1 /* DeletedGlucoseStored+CoreDataProperties.swift */,
 				DDE179422C910127003CDDB7 /* Forecast+CoreDataClass.swift */,
 				DDE179432C910127003CDDB7 /* Forecast+CoreDataProperties.swift */,
 				DDE179382C910127003CDDB7 /* ForecastValue+CoreDataClass.swift */,
@@ -3779,6 +3789,7 @@
 				3BD9687E2D8DDD8800899469 /* CryptoSwift */,
 				3B47C60F2DA0A28F00B0E5EF /* FirebaseCrashlytics */,
 				DD17A0282E3FE0BD008E1BF0 /* SwiftJWT */,
+				3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */,
 			);
 			productName = Trio;
 			productReference = 388E595825AD948C0019842D /* Trio.app */;
@@ -3956,6 +3967,7 @@
 				3BD9687D2D8DDD8800899469 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
 				3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				DD868FD92E381E1C005D3308 /* XCRemoteSwiftPackageReference "Swift-JWT" */,
+				3E28F2A92EB5337F00FB9EEB /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */,
 			);
 			productRefGroup = 388E595925AD948C0019842D /* Products */;
 			projectDirPath = "";
@@ -4129,6 +4141,7 @@
 				F90692CF274B999A0037068D /* HealthKitDataFlow.swift in Sources */,
 				CE7CA3552A064973004BE681 /* ListStateIntent.swift in Sources */,
 				C28DD7262DBA9A9E00EC02DD /* GlucosePercentileDetailView.swift in Sources */,
+				DD906BF42EA6AA0100262772 /* NightscoutUploadPipeline.swift in Sources */, 
 				BDF530D82B40F8AC002CAF43 /* LockScreenView.swift in Sources */,
 				195D80B72AF697B800D25097 /* DynamicSettingsDataFlow.swift in Sources */,
 				DD98ACC02D71013200C0778F /* StatChartUtils.swift in Sources */,
@@ -4334,6 +4347,7 @@
 				3B4196E02D8C4BC00091DFF7 /* HomeStateModel+CGM.swift in Sources */,
 				38D0B3D925EC07C400CB6E88 /* CarbsEntry.swift in Sources */,
 				DD32CF9C2CC82499003686D6 /* TrioRemoteControl+TempTarget.swift in Sources */,
+				3B5607A02ECD62AC00C723C1 /* DeletedGlucoseStored+CoreDataProperties.swift in Sources */,
 				BD249D882D42FC0000412DEB /* BolusStatsView.swift in Sources */,
 				38A9260525F012D8009E3739 /* CarbRatios.swift in Sources */,
 				38FCF3D625E8FDF40078B0D1 /* MD5.swift in Sources */,
@@ -4424,6 +4438,7 @@
 				DDFF202F2DB1D14500AB8A96 /* NotificationPermissionStepView.swift in Sources */,
 				491D6FBD2D56741C00C49F67 /* TempTargetStored+CoreDataProperties.swift in Sources */,
 				491D6FBE2D56741C00C49F67 /* TempTargetRunStored+CoreDataClass.swift in Sources */,
+				3B56079E2ECD62A800C723C1 /* DeletedGlucoseStored+CoreDataClass.swift in Sources */,
 				491D6FBF2D56741C00C49F67 /* TempTargetRunStored+CoreDataProperties.swift in Sources */,
 				491D6FC02D56741C00C49F67 /* TempTargetStored+CoreDataClass.swift in Sources */,
 				DD1745442C55C60E00211FAC /* AutosensSettingsDataFlow.swift in Sources */,
@@ -4436,6 +4451,7 @@
 				BD7DA9AC2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift in Sources */,
 				AD3D2CD42CD01B9EB8F26522 /* PumpConfigDataFlow.swift in Sources */,
 				DD17452E2C55AE4800211FAC /* TargetBehavoirDataFlow.swift in Sources */,
+				DD906BF62EA6AAE900262772 /* BaseNightscoutManager+Subscribers.swift in Sources */,
 				53F2382465BF74DB1A967C8B /* PumpConfigProvider.swift in Sources */,
 				5D16287A969E64D18CE40E44 /* PumpConfigStateModel.swift in Sources */,
 				DDF6902C2DA028D3008BF16C /* DiagnosticsStepView.swift in Sources */,
@@ -5454,6 +5470,14 @@
 				minimumVersion = 1.8.2;
 			};
 		};
+		3E28F2A92EB5337F00FB9EEB /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/garmin/connectiq-companion-app-sdk-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.7.0;
+			};
+		};
 		B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/maxkonovalov/MKRingProgressView.git";
@@ -5515,6 +5539,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3BD9687D2D8DDD8800899469 /* XCRemoteSwiftPackageReference "CryptoSwift" */;
 			productName = CryptoSwift;
+		};
+		3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3E28F2A92EB5337F00FB9EEB /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */;
+			productName = ConnectIQ;
 		};
 		B958F1B62BA0711600484851 /* MKRingProgressView */ = {
 			isa = XCSwiftPackageProductDependency;

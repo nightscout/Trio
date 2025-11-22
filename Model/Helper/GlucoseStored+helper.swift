@@ -20,17 +20,6 @@ extension GlucoseStored {
         return request
     }
 
-    static func glucoseIsHIGH(_ glucose: [GlucoseStored]) -> Bool {
-        guard glucose.count >= 4 else { return false }
-
-        let firstValue = glucose.first?.glucose
-
-        /// 400 mg/dL covers all Dexcom CGMs as well as European Libre 2 and most readings from xDrip4iOS.
-        /// U.S. / Canadian Libres can emit up to 500 mg/dL until it reads "HI"
-        /// Our condition considers both these values, 400 and 500, as possible "flat" readings when paired CGM reads HIGH.
-        return glucose.allSatisfy { $0.glucose == firstValue && ($0.glucose == 400 || $0.glucose == 500) }
-    }
-
     // Preview
     @discardableResult static func makePreviewGlucose(count: Int, provider: CoreDataStack) -> [GlucoseStored] {
         let context = provider.persistentContainer.viewContext

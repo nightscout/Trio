@@ -1,6 +1,9 @@
-oref0 branch: dev - git version: 37896e5
+oref0 branch: dev - git version: 8282ce7
 
 Last commits:
+8282ce7 Merge pull request #49 from nightscout/remove-400-guard-trio-oref
+2319a16 feat(algo): Remove short and long delta condition to avoid early exit breaking loop; set 30min neutral temp like original openaps/oref0 does
+3aeba68 feat(algo): Remove 400 / shouldProtectDueToHIGH guard #hackdiabetes2025
 37896e5 Merge pull request #48 from nightscout/fix-bundle-naming
 f21a187 Rename output library to trio_[name]
 c0b46d3 Merge pull request #47 from nightscout/fix-400-guard
