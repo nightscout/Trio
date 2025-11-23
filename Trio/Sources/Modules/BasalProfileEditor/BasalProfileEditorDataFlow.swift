@@ -4,7 +4,7 @@ import Foundation
 enum BasalProfileEditor {
     enum Config {}
 
-    class Item: Identifiable, Hashable, Equatable {
+    struct Item: Identifiable, Hashable, Equatable {
         let id = UUID()
         var rateIndex: Int
         var timeIndex: Int

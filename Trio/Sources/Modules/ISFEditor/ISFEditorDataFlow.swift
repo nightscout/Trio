@@ -3,10 +3,10 @@ import Foundation
 enum ISFEditor {
     enum Config {}
 
-    class Item: Identifiable, Hashable, Equatable {
+    struct Item: Identifiable, Hashable, Equatable {
         let id = UUID()
-        var rateIndex = 0
-        var timeIndex = 0
+        var rateIndex: Int
+        var timeIndex: Int
 
         init(rateIndex: Int, timeIndex: Int) {
             self.rateIndex = rateIndex
