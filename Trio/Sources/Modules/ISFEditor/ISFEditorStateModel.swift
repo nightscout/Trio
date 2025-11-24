@@ -16,33 +16,33 @@ extension ISFEditor {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
         @ObservationIgnored @Injected() private var nightscout: NightscoutManager!
-        
+
         var items: [Item] = []
         var initialItems: [Item] = []
         var therapyItems: [TherapySettingItem] = []
         var shouldDisplaySaving: Bool = false
-        
+
         let context = CoreDataStack.shared.newTaskContext()
-        
+
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
-        
+
         var rateValues: [Decimal] {
             let settingsProvider = PickerSettingsProvider.shared
             let sensitivityPickerSetting = PickerSetting(value: 100, step: 1, min: 9, max: 540, type: .glucose)
             return settingsProvider.generatePickerValues(from: sensitivityPickerSetting, units: units)
         }
-        
+
         var canAdd: Bool {
             guard let lastItem = items.last else { return true }
             return lastItem.timeIndex < timeValues.count - 1
         }
-        
+
         var hasChanges: Bool {
             initialItems != items
         }
-        
+
         private(set) var units: GlucoseUnits = .mgdL
-        
+
         // Convert items to TherapySettingItem format
         func getTherapyItems() -> [TherapySettingItem] {
             items.map { item in
@@ -52,7 +52,7 @@ extension ISFEditor {
                 )
             }
         }
-        
+
         // Update items from TherapySettingItem format
         func updateFromTherapyItems(_ therapyItems: [TherapySettingItem]) {
             items = therapyItems.map { therapyItem in
@@ -61,12 +61,12 @@ extension ISFEditor {
                 return Item(rateIndex: rateIndex, timeIndex: timeIndex)
             }
         }
-        
+
         override func subscribe() {
             units = settingsManager.settings.units
-            
+
             let profile = provider.profile
-            
+
             items = profile.sensitivities.map { value in
                 let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
                 var rateIndex = rateValues.firstIndex(of: value.sensitivity)
@@ -80,10 +80,10 @@ extension ISFEditor {
                 }
                 return Item(rateIndex: rateIndex ?? 0, timeIndex: timeIndex)
             }
-            
+
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
         }
-        
+
         func add() {
             var time = 0
             var rate = 0
@@ -91,16 +91,16 @@ extension ISFEditor {
                 time = last.timeIndex + 1
                 rate = last.rateIndex
             }
-            
+
             let newItem = Item(rateIndex: rate, timeIndex: time)
-            
+
             items.append(newItem)
         }
-        
+
         func save() {
             guard hasChanges else { return }
             shouldDisplaySaving.toggle()
-            
+
             let sensitivities = items.map { item -> InsulinSensitivityEntry in
                 let fotmatter = DateFormatter()
                 fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -117,7 +117,7 @@ extension ISFEditor {
             )
             provider.saveProfile(profile)
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
-            
+
             Task.detached(priority: .low) {
                 do {
                     debug(.nightscout, "Attempting to upload ISF to Nightscout")
@@ -135,15 +135,15 @@ extension ISFEditor {
             DispatchQueue.main.async {
                 var uniq = Array(Set(self.items))
                 uniq.sort { $0.timeIndex < $1.timeIndex }
-                
+
                 if !uniq.isEmpty, uniq[0].timeIndex != 0 {
                     uniq[0].timeIndex = 0
                 }
-                
+
                 if self.items != uniq {
                     self.items = uniq
                 }
-                
+
                 if self.items.isEmpty {
                     self.units = self.settingsManager.settings.units
                 }

@@ -139,19 +139,19 @@ extension BasalProfileEditor {
         }
 
         @MainActor func validate() {
-                    var uniq = Array(Set(items))
-                    uniq.sort { $0.timeIndex < $1.timeIndex }
+            var uniq = Array(Set(items))
+            uniq.sort { $0.timeIndex < $1.timeIndex }
 
-                    if !uniq.isEmpty, uniq[0].timeIndex != 0 {
-                        uniq[0].timeIndex = 0
-                    }
+            if !uniq.isEmpty, uniq[0].timeIndex != 0 {
+                uniq[0].timeIndex = 0
+            }
 
-                    if items != uniq {
-                        items = uniq
-                    }
+            if items != uniq {
+                items = uniq
+            }
 
-                    calcTotal()
-                }
+            calcTotal()
+        }
 
         func availableTimeIndices(_ itemIndex: Int) -> [Int] {
             // avoid index out of range issues
