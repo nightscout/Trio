@@ -47,10 +47,10 @@ enum OrefFunction: String, Codable {
             return Set([
                 // Not calculating yet
                 "id",
-                "units",
-                "insulinReq",
-                "rate",
-                "duration",
+                // "units",
+                // "insulinReq",
+                // "rate",
+                // "duration",
                 "deliverAt",
                 "temp",
                 "reservoir",
