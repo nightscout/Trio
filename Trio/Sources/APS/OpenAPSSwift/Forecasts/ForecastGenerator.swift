@@ -220,7 +220,8 @@ enum ForecastGenerator {
                 forecasts: iobForecast.forecasts,
                 minGuardGlucose: iobForecast.minGuardGlucose,
                 minForecastGlucose: minIobForecastGlucose,
-                maxForecastGlucose: maxIobForecastGlucose
+                maxForecastGlucose: maxIobForecastGlucose,
+                lastForecastGlucose: iobForecast.rawForecasts.last ?? currentGlucose
             ),
             zt: ZTForecast(
                 forecasts: ztForecast.forecasts,
@@ -230,14 +231,16 @@ enum ForecastGenerator {
                 forecasts: cobForecast.forecasts,
                 minGuardGlucose: cobForecast.minGuardGlucose,
                 minForecastGlucose: minCobForecastGlucose,
-                maxForecastGlucose: maxCobForecastGlucose
+                maxForecastGlucose: maxCobForecastGlucose,
+                lastForecastGlucose: cobForecast.rawForecasts.last ?? currentGlucose
             ),
             uam: UAMForecast(
                 forecasts: uamForecast.forecasts,
                 minGuardGlucose: uamForecast.minGuardGlucose,
                 minForecastGlucose: minUamForecastGlucose,
                 maxForecastGlucose: maxUamForecastGlucose,
-                duration: uamForecast.duration!
+                duration: uamForecast.duration!,
+                lastForecastGlucose: uamForecast.rawForecasts.last ?? currentGlucose
             ) // I don't love the force unwrap here but it should always be set
         )
     }
@@ -309,19 +312,18 @@ enum ForecastGenerator {
         let avgerageForecastGlucose: Decimal
         if uamResult.minForecastGlucose < 999, cobResult.minForecastGlucose < 999 {
             avgerageForecastGlucose = (
-                (1 - fractionCarbsLeft) * (uamResult.forecasts.last ?? currentGlucose) + fractionCarbsLeft *
-                    (cobResult.forecasts.last ?? currentGlucose)
+                (1 - fractionCarbsLeft) * uamResult.lastForecastGlucose + fractionCarbsLeft * cobResult.lastForecastGlucose
             ).rounded()
         } else if cobResult.minForecastGlucose < 999 {
             avgerageForecastGlucose =
-                (((iobResult.forecasts.last ?? currentGlucose) + (cobResult.forecasts.last ?? currentGlucose)) / 2)
+                ((iobResult.lastForecastGlucose + cobResult.lastForecastGlucose) / 2)
                     .rounded()
         } else if uamResult.minForecastGlucose < 999 {
             avgerageForecastGlucose =
-                (((iobResult.forecasts.last ?? currentGlucose) + (uamResult.forecasts.last ?? currentGlucose)) / 2)
+                ((iobResult.lastForecastGlucose + uamResult.lastForecastGlucose) / 2)
                     .rounded()
         } else {
-            avgerageForecastGlucose = (iobResult.forecasts.last ?? currentGlucose).rounded()
+            avgerageForecastGlucose = iobResult.lastForecastGlucose.rounded()
         }
         let adjustedAverageForecastGlucose = max(avgerageForecastGlucose, ztResult.minGuardGlucose)
 

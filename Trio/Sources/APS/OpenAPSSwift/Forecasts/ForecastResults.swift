@@ -5,6 +5,7 @@ struct IOBForecast {
     let minGuardGlucose: Decimal // The absolute min of the untrimmed array
     let minForecastGlucose: Decimal // The min after the initial 90-min peak
     let maxForecastGlucose: Decimal // The absolute max of the untrimmed array
+    let lastForecastGlucose: Decimal // The last forecast (IOBPredBG in JS)
 }
 
 struct COBForecast {
@@ -12,6 +13,7 @@ struct COBForecast {
     let minGuardGlucose: Decimal // The absolute min of the untrimmed array
     let minForecastGlucose: Decimal // The min after the initial 90-min peak
     let maxForecastGlucose: Decimal // The absolute max of the untrimmed array
+    let lastForecastGlucose: Decimal // The last forecast (COBPredBG in JS)
 }
 
 struct UAMForecast {
@@ -20,6 +22,7 @@ struct UAMForecast {
     let minForecastGlucose: Decimal // The min after the initial 60-min peak
     let maxForecastGlucose: Decimal // The absolute max of the untrimmed array
     let duration: Decimal // The calculated UAM duration in hours
+    let lastForecastGlucose: Decimal // The last forecast (UAMPredBG in JS)
 }
 
 struct ZTForecast {
