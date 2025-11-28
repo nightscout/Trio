@@ -449,172 +449,53 @@ enum DeterminationGenerator {
             return determination
         }
 
-        var insulinRequired = (
-            (
-                min(forecastResult.minForecastedGlucose, forecastResult.eventualGlucose) - adjustedGlucoseTargets
-                    .targetGlucose
-            )
-                / adjustedSensitivity
+        // MARK: - Aggressive dosing logic (SMB, High Temps)
+
+        // Calculate Insulin Required
+        let (insulinRequired, insulinReqDetermination) = DosingEngine.calculateInsulinRequired(
+            minForecastGlucose: forecastResult.minForecastedGlucose,
+            eventualGlucose: forecastResult.eventualGlucose,
+            targetGlucose: adjustedGlucoseTargets.targetGlucose,
+            adjustedSensitivity: adjustedSensitivity,
+            maxIob: profile.maxIob,
+            currentIob: currentIob,
+            determination: determination
         )
-        .jsRounded(scale: 2)
+        determination = insulinReqDetermination
 
-        if insulinRequired > profile.maxIob - currentIob {
-            determination.reason += "max_iob \(profile.maxIob), "
-            insulinRequired = (profile.maxIob - currentIob).jsRounded(scale: 2)
-        }
-
-        var rate = basal + (2 * insulinRequired)
-        rate = TempBasalFunctions.roundBasal(profile: profile, basalRate: rate)
-
-        determination.insulinReq = insulinRequired
-
-        // minutes since last bolus
-        let lastBolusAge: Decimal?
-        if let lastBolusTime = iobData.first?.lastBolusTime {
-            let millisecondsSince1970 = Decimal(currentTime.timeIntervalSince1970 * 1000)
-            lastBolusAge = ((millisecondsSince1970 - Decimal(lastBolusTime)) / 60000).jsRounded(scale: 1)
-        } else {
-            lastBolusAge = nil
-        }
-
-        let minIOBForecastedGlucose = forecastResult.iob.min() ?? 0
-
-        // only allow microboluses with COB or low temp targets, or within DIA hours of a bolus
-        if microBolusAllowed, smbIsEnabled, currentGlucose > threshold {
-            let carbRatio = profile.carbRatio ?? profile.carbRatioFor(time: currentTime)
-            let currentBasal = profile.currentBasal ?? profile.basalFor(time: currentTime)
-            let mealInsulinRequired = (mealData.mealCOB / carbRatio).jsRounded(scale: 3)
-
-            let maxBolusCondition: Bool = currentIob > mealInsulinRequired && currentIob > 0
-            let maxBolus: Decimal =
-                (
-                    maxBolusCondition ? (currentBasal * profile.maxUAMSMBBasalMinutes / 60) :
-                        (currentBasal * profile.maxSMBBasalMinutes / 60)
-                ).jsRounded(scale: 1)
-
-            // FIXME: we technically do no longer need this NaN check for the 2 basal minutes settings -> our swift coding is much safer, value will always be present -- below code ported straight from JS in Swift syntax
-
-//                    if profile.maxSMBBasalMinutes.isNaN {
-//                        maxBolus = (currentBasal * 30 / 60).jsRounded(scale: 1)
-//                    } else if currentIob > mealInsulinRequired, currentIob > 0 {
-//                        if profile.maxUAMSMBBasalMinutes.isNaN {
-//                            maxBolus = (currentBasal * 30 / 60).jsRounded(scale: 1)
-//                        } else {
-//                            maxBolus = (currentBasal * profile.maxUAMSMBBasalMinutes / 60).jsRounded(scale: 1)
-//                        }
-//                    } else {
-//                        maxBolus = (currentBasal * profile.maxSMBBasalMinutes / 60).jsRounded(scale: 1)
-//                    }
-
-            // FIXME: round this to allowed pump increments?
-            let microBolus = min(insulinRequired / 2, maxBolus)
-
-            let smbTarget = adjustedGlucoseTargets.targetGlucose
-            let worstCaseInsulinRequired = (smbTarget - (naiveEventualGlucose + minIOBForecastedGlucose) / 2) /
-                adjustedSensitivity
-            var durationRequired = (60 * worstCaseInsulinRequired / currentBasal).jsRounded()
-
-            // if insulinRequired > 0 but not enough for a microBolus, don't set an SMB zero temp
-            if insulinRequired > 0, microBolus < profile.bolusIncrement {
-                durationRequired = 0
-            }
-
-            var smbLowTempRequired: Decimal = 0
-            if durationRequired <= 0 {
-                durationRequired = 0
-            } else if durationRequired >= 30 {
-                durationRequired = (durationRequired / 30).jsRounded() * 30
-                durationRequired = min(60, max(0, durationRequired))
-            } else {
-                smbLowTempRequired = (basal * durationRequired / 30).jsRounded(scale: 2)
-                durationRequired = 30
-            }
-
-            determination.reason += " insulinReq \(insulinRequired)"
-            if microBolus >= maxBolus {
-                determination.reason += "; maxBolus \(maxBolus)"
-            }
-            if durationRequired > 0 {
-                determination.reason += "; setting \(durationRequired)m low temp of \(smbLowTempRequired)U/h"
-            }
-            determination.reason += ". "
-
-            var smbInterval: Decimal = 3
-            if !profile.smbInterval.isNaN {
-                smbInterval = min(10, max(1, profile.smbInterval))
-            }
-
-            if let lastBolusAge {
-                let nextBolusMinutes = smbInterval - lastBolusAge
-                let nextBolusSeconds = (Int(smbInterval - lastBolusAge) * 60) % 60
-
-                if lastBolusAge > smbInterval {
-                    if microBolus > 0 {
-                        determination.units = microBolus
-                        determination.reason += "Microbolusing \(microBolus)U. "
-                    }
-                } else {
-                    determination.reason += "Waiting \(nextBolusMinutes)m \(nextBolusSeconds)s to microbolus again. "
-                }
-            }
-
-            if durationRequired > 0 {
-                determination.rate = smbLowTempRequired
-                determination.duration = durationRequired
-                return determination
-            }
-        }
-
-        let maxSafeBasal = try TempBasalFunctions.getMaxSafeBasalRate(profile: profile)
-
-        if rate > maxSafeBasal {
-            determination.reason += "adj. req. rate: \(rate) to maxSafeBasal: \(maxSafeBasal), "
-            rate = TempBasalFunctions.roundBasal(profile: profile, basalRate: maxSafeBasal)
-        }
-
-        let insulinScheduled = Decimal(currentTemp.duration) * (currentTemp.rate - basal) / 60
-        if insulinScheduled >= insulinRequired * 2 {
-            determination.reason +=
-                "\(currentTemp.duration)m@\(currentTemp.rate.jsRounded(scale: 2)) > 2 * insulinReq. Setting temp basal of \(rate)U/hr. "
-            let finalDetermination = try TempBasalFunctions.setTempBasal(
-                rate: rate,
-                duration: 30,
-                profile: profile,
-                determination: determination,
-                currentTemp: currentTemp
-            )
-            return finalDetermination
-        }
-
-        if currentTemp.duration == 0 {
-            determination.reason += "no temp, setting \(rate)U/hr. "
-            let finalDetermination = try TempBasalFunctions.setTempBasal(
-                rate: rate,
-                duration: 30,
-                profile: profile,
-                determination: determination,
-                currentTemp: currentTemp
-            )
-            return finalDetermination
-        }
-
-        let roundedRate = TempBasalFunctions.roundBasal(profile: profile, basalRate: rate)
-        let roundedCurrentRate = TempBasalFunctions.roundBasal(profile: profile, basalRate: currentTemp.rate)
-
-        if currentTemp.duration > 5, roundedRate <= roundedCurrentRate {
-            determination.reason += "temp \(currentTemp.rate) >~ req \(rate)U/hr. "
+        // SMB Delivery
+        let (shouldSetTempBasalForSMB, smbDetermination) = try DosingEngine.determineSMBDelivery(
+            insulinRequired: insulinRequired,
+            microBolusAllowed: microBolusAllowed,
+            smbIsEnabled: smbIsEnabled,
+            currentGlucose: currentGlucose,
+            threshold: threshold,
+            profile: profile,
+            mealData: mealData,
+            iobData: iobData,
+            currentTime: currentTime,
+            targetGlucose: adjustedGlucoseTargets.targetGlucose,
+            naiveEventualGlucose: naiveEventualGlucose,
+            minIOBForecastedGlucose: forecastResult.iob.min() ?? 0,
+            adjustedSensitivity: adjustedSensitivity,
+            overrideFactor: trioCustomOrefVariables.overrideFactor(),
+            adjustedCarbRatio: forecastResult.adjustedCarbRatio,
+            basal: basal,
+            determination: determination
+        )
+        determination = smbDetermination
+        if shouldSetTempBasalForSMB {
             return determination
         }
 
-        determination.reason += "temp \(currentTemp.rate)<\(rate)U/hr. "
-        let finalDetermination = try TempBasalFunctions.setTempBasal(
-            rate: rate,
-            duration: 30,
+        // High Temp Basal (Fallback)
+        return try DosingEngine.determineHighTempBasal(
+            insulinRequired: insulinRequired,
+            basal: basal,
             profile: profile,
-            determination: determination,
-            currentTemp: currentTemp
+            currentTemp: currentTemp,
+            determination: determination
         )
-        return finalDetermination
     }
 
     static func checkDeterminationInputs(

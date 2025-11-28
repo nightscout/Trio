@@ -25,6 +25,11 @@ extension Decimal {
         return (self * multiplier + 0.5).rounded(scale: 0, roundingMode: .down) / multiplier
     }
 
+    // Implement Math.floor from JS on Decimals
+    func floor() -> Decimal {
+        rounded(scale: 0, roundingMode: .down)
+    }
+
     func jsRounded() -> Decimal {
         jsRounded(scale: 0)
     }
