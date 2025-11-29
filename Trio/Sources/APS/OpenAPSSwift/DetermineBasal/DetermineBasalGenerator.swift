@@ -21,6 +21,7 @@ enum DeterminationGenerator {
         autosensData: Autosens,
         reservoirData: Decimal,
         glucose: [BloodGlucose],
+        microBolusAllowed: Bool,
         trioCustomOrefVariables: TrioCustomOrefVariables,
         currentTime: Date
     ) throws -> Determination? {
@@ -35,6 +36,7 @@ enum DeterminationGenerator {
             autosensData: autosensData,
             reservoirData: reservoirData,
             glucoseStatus: glucoseStatus,
+            microBolusAllowed: microBolusAllowed,
             trioCustomOrefVariables: trioCustomOrefVariables,
             currentTime: currentTime
         )
@@ -52,6 +54,7 @@ enum DeterminationGenerator {
         autosensData: Autosens,
         reservoirData _: Decimal,
         glucoseStatus: GlucoseStatus,
+        microBolusAllowed: Bool,
         trioCustomOrefVariables: TrioCustomOrefVariables,
         currentTime: Date
     ) throws -> Determination? {
@@ -446,10 +449,53 @@ enum DeterminationGenerator {
             return determination
         }
 
-        // TODO: how to handle output?
-        // TODO: how to handle logging?
+        // MARK: - Aggressive dosing logic (SMB, High Temps)
 
-        return determination
+        // Calculate Insulin Required
+        let (insulinRequired, insulinReqDetermination) = DosingEngine.calculateInsulinRequired(
+            minForecastGlucose: forecastResult.minForecastedGlucose,
+            eventualGlucose: forecastResult.eventualGlucose,
+            targetGlucose: adjustedGlucoseTargets.targetGlucose,
+            adjustedSensitivity: adjustedSensitivity,
+            maxIob: profile.maxIob,
+            currentIob: currentIob,
+            determination: determination
+        )
+        determination = insulinReqDetermination
+
+        // SMB Delivery
+        let (shouldSetTempBasalForSMB, smbDetermination) = try DosingEngine.determineSMBDelivery(
+            insulinRequired: insulinRequired,
+            microBolusAllowed: microBolusAllowed,
+            smbIsEnabled: smbIsEnabled,
+            currentGlucose: currentGlucose,
+            threshold: threshold,
+            profile: profile,
+            mealData: mealData,
+            iobData: iobData,
+            currentTime: currentTime,
+            targetGlucose: adjustedGlucoseTargets.targetGlucose,
+            naiveEventualGlucose: naiveEventualGlucose,
+            minIOBForecastedGlucose: forecastResult.iob.min() ?? 0,
+            adjustedSensitivity: adjustedSensitivity,
+            overrideFactor: trioCustomOrefVariables.overrideFactor(),
+            adjustedCarbRatio: forecastResult.adjustedCarbRatio,
+            basal: basal,
+            determination: determination
+        )
+        determination = smbDetermination
+        if shouldSetTempBasalForSMB {
+            return determination
+        }
+
+        // High Temp Basal (Fallback)
+        return try DosingEngine.determineHighTempBasal(
+            insulinRequired: insulinRequired,
+            basal: basal,
+            profile: profile,
+            currentTemp: currentTemp,
+            determination: determination
+        )
     }
 
     static func checkDeterminationInputs(

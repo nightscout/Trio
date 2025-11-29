@@ -305,6 +305,7 @@
 		3B997DCB2DC00849006B6BB2 /* JSONImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B997DCA2DC00849006B6BB2 /* JSONImporter.swift */; };
 		3B997DCF2DC00A3A006B6BB2 /* JSONImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */; };
 		3B997DD32DC02AEF006B6BB2 /* glucose.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B997DD12DC02AEF006B6BB2 /* glucose.json */; };
+		3BA643EA2ED9FAD8007BC31F /* DetermineBasalAggressiveDosingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA643E92ED9FAD8007BC31F /* DetermineBasalAggressiveDosingTests.swift */; };
 		3BA8D1B32DDB87150006191F /* DecimalExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */; };
 		3BAAE60C2DE7766C0049589B /* DynamicISFEnableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */; };
 		3BAC929B2E55FF5300B853DA /* DetermineBasalEnableSmbTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAC929A2E55FF4F00B853DA /* DetermineBasalEnableSmbTests.swift */; };
@@ -353,7 +354,6 @@
 		3BF92F382D86E10B006B545A /* OpenAPSFixed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF92F372D86E106006B545A /* OpenAPSFixed.swift */; };
 		3BF92F3A2D86F1AA006B545A /* iob-error-log.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BF92F392D86F1AA006B545A /* iob-error-log.json */; };
 		3BFA5BF92D989F510072B082 /* MockTDDStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BFA5BF82D989F460072B082 /* MockTDDStorage.swift */; };
-		3BF85FE32E427312000D7351 /* IOBService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF85FE12E427312000D7351 /* IOBService.swift */; };
 		3E28F2AB2EB5337F00FB9EEB /* ConnectIQ in Frameworks */ = {isa = PBXBuildFile; productRef = 3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */; };
 		45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */; };
 		45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */; };
@@ -712,6 +712,7 @@
 		DD6D67E42C9C253500660C9B /* ColorSchemeOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6D67E32C9C253500660C9B /* ColorSchemeOption.swift */; };
 		DD6F63CC2D27F615007D94CF /* TreatmentMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6F63CB2D27F606007D94CF /* TreatmentMenuView.swift */; };
 		DD73FA0F2D74F58E00D19D1E /* BackgroundTask+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD73FA0E2D74F57300D19D1E /* BackgroundTask+Helper.swift */; };
+		DD758EDE2ECC656500EF5D54 /* DetermineBasalSmbMicroBolusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD758EDD2ECC656500EF5D54 /* DetermineBasalSmbMicroBolusTests.swift */; };
 		DD8262CB2D289297009F6F62 /* BolusConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD8262CA2D289297009F6F62 /* BolusConfirmationView.swift */; };
 		DD82D4B82DCAB2BA00BAFC77 /* PropertyPersistentFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD82D4B72DCAB2BA00BAFC77 /* PropertyPersistentFlags.swift */; };
 		DD868FD82E381A54005D3308 /* APNSJWTClaims.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD868FD72E381A54005D3308 /* APNSJWTClaims.swift */; };
@@ -1241,6 +1242,7 @@
 		3B997DCA2DC00849006B6BB2 /* JSONImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONImporter.swift; sourceTree = "<group>"; };
 		3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONImporterTests.swift; sourceTree = "<group>"; };
 		3B997DD12DC02AEF006B6BB2 /* glucose.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = glucose.json; sourceTree = "<group>"; };
+		3BA643E92ED9FAD8007BC31F /* DetermineBasalAggressiveDosingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalAggressiveDosingTests.swift; sourceTree = "<group>"; };
 		3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalExtensions.swift; sourceTree = "<group>"; };
 		3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFEnableTests.swift; sourceTree = "<group>"; };
 		3BAC929A2E55FF4F00B853DA /* DetermineBasalEnableSmbTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalEnableSmbTests.swift; sourceTree = "<group>"; };
@@ -1650,6 +1652,7 @@
 		DD6D67E32C9C253500660C9B /* ColorSchemeOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeOption.swift; sourceTree = "<group>"; };
 		DD6F63CB2D27F606007D94CF /* TreatmentMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreatmentMenuView.swift; sourceTree = "<group>"; };
 		DD73FA0E2D74F57300D19D1E /* BackgroundTask+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundTask+Helper.swift"; sourceTree = "<group>"; };
+		DD758EDD2ECC656500EF5D54 /* DetermineBasalSmbMicroBolusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalSmbMicroBolusTests.swift; sourceTree = "<group>"; };
 		DD8262CA2D289297009F6F62 /* BolusConfirmationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusConfirmationView.swift; sourceTree = "<group>"; };
 		DD82D4B72DCAB2BA00BAFC77 /* PropertyPersistentFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyPersistentFlags.swift; sourceTree = "<group>"; };
 		DD868FD72E381A54005D3308 /* APNSJWTClaims.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APNSJWTClaims.swift; sourceTree = "<group>"; };
@@ -2965,6 +2968,7 @@
 				3B4D17122E1D89FE007FB180 /* AutosensJsonExtraTests.swift */,
 				3B8B5D3B2DF523B800365ED3 /* AutosensJsonTests.swift */,
 				3BBC22622DF5B93900169236 /* AutosensTests.swift */,
+				3BA643E92ED9FAD8007BC31F /* DetermineBasalAggressiveDosingTests.swift */,
 				DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */,
 				3B8221B12E5882D900585156 /* DetermineBasalEarlyExitTests.swift */,
 				3BAC929A2E55FF4F00B853DA /* DetermineBasalEnableSmbTests.swift */,
@@ -2973,6 +2977,7 @@
 				3B3B4F572E662B1500B668E3 /* DetermineBasalIobGreaterThanMaxTests.swift */,
 				3BE9F0BA2E28C993001B14EB /* DetermineBasalJsonTests.swift */,
 				3B1DB90E2E63C14200BD814B /* DetermineBasalLowEventualGlucoseTests.swift */,
+				DD758EDD2ECC656500EF5D54 /* DetermineBasalSmbMicroBolusTests.swift */,
 				3B2A3BC22E2B19F700658FB9 /* DynamicISFTests.swift */,
 				3B1C5C352D68E269004E9273 /* IobCalculateTests.swift */,
 				3B2CE68A2E24ADF3005EF782 /* IobGenerateTests.swift */,
@@ -5291,6 +5296,7 @@
 				3B1C5C432D68E269004E9273 /* Extensions.swift in Sources */,
 				3BC26E552D7418830066ACD6 /* IobSuspendTests.swift in Sources */,
 				3BF92F382D86E10B006B545A /* OpenAPSFixed.swift in Sources */,
+				DD758EDE2ECC656500EF5D54 /* DetermineBasalSmbMicroBolusTests.swift in Sources */,
 				3B4821822E080CAE00F0DD17 /* HttpFiles.swift in Sources */,
 				3B1C5C442D68E269004E9273 /* IobJsonTypes.swift in Sources */,
 				3B1C5C452D68E269004E9273 /* IobTotalTests.swift in Sources */,
@@ -5302,6 +5308,7 @@
 				3BEF6AB72D9750780076089D /* MealJsonTests.swift in Sources */,
 				38FCF3F925E902C20078B0D1 /* FileStorageTests.swift in Sources */,
 				3B8221B22E5882E300585156 /* DetermineBasalEarlyExitTests.swift in Sources */,
+				3BA643EA2ED9FAD8007BC31F /* DetermineBasalAggressiveDosingTests.swift in Sources */,
 				BD8FC0602D6619DB00B95AED /* CarbsStorageTests.swift in Sources */,
 				DD30BA002E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift in Sources */,
 				BD8FC05E2D6618CE00B95AED /* BolusCalculatorTests.swift in Sources */,
