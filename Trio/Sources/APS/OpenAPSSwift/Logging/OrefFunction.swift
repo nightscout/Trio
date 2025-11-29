@@ -45,12 +45,13 @@ enum OrefFunction: String, Codable {
         case .determineBasal:
             // FIXME: Adjust as we go
             return Set([
-                // Not calculating yet
-                "id",
+                // Final dosing calculation
                 // "units",
                 // "insulinReq",
                 // "rate",
                 // "duration",
+                // Not calculating yet
+                "id",
                 "deliverAt",
                 "temp",
                 "reservoir",

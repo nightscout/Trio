@@ -164,9 +164,14 @@ extension DeterminationGenerator {
         return (ratio, updateAutosensRatio)
     }
 
-    static func computeAdjustedBasal(currentBasalRate: Decimal, sensitivityRatio: Decimal) -> Decimal {
-        // FIXME: Ideally, we round this here to allowed pump basal increments
-        currentBasalRate * sensitivityRatio
+    static func computeAdjustedBasal(
+        profile: Profile,
+        currentBasalRate: Decimal,
+        sensitivityRatio: Decimal,
+        overrideFactor: Decimal
+    ) -> Decimal {
+        let adjustedBasal = currentBasalRate * sensitivityRatio * overrideFactor
+        return TempBasalFunctions.roundBasal(profile: profile, basalRate: adjustedBasal)
     }
 
     static func computeAdjustedSensitivity(

@@ -75,7 +75,8 @@ enum DeterminationGenerator {
             glucoseStatus: glucoseStatus,
             profile: profile,
             currentTemp: currentTemp,
-            currentTime: currentTime
+            currentTime: currentTime,
+            trioCustomOrefVariables: trioCustomOrefVariables
         ) {
             return errorDetermination
         }
@@ -157,13 +158,17 @@ enum DeterminationGenerator {
         let basal: Decimal
         if let dynamicIsfResult = dynamicIsfResult, profile.tddAdjBasal {
             basal = computeAdjustedBasal(
+                profile: profile,
                 currentBasalRate: profile.currentBasal ?? profile.basalFor(time: currentTime),
-                sensitivityRatio: dynamicIsfResult.tddRatio
+                sensitivityRatio: dynamicIsfResult.tddRatio,
+                overrideFactor: trioCustomOrefVariables.overrideFactor()
             )
         } else {
             basal = computeAdjustedBasal(
+                profile: profile,
                 currentBasalRate: profile.currentBasal ?? profile.basalFor(time: currentTime),
-                sensitivityRatio: sensitivityRatio
+                sensitivityRatio: sensitivityRatio,
+                overrideFactor: trioCustomOrefVariables.overrideFactor()
             )
         }
 
@@ -532,7 +537,8 @@ enum DeterminationGenerator {
         glucoseStatus: GlucoseStatus,
         profile: Profile,
         currentTemp: TempBasal?,
-        currentTime: Date
+        currentTime: Date,
+        trioCustomOrefVariables: TrioCustomOrefVariables
     ) throws -> Determination? {
         let glucose = glucoseStatus.glucose
         let noise = glucoseStatus.noise
@@ -544,9 +550,10 @@ enum DeterminationGenerator {
         let device = glucoseStatus.device
 
         // Always use profile-supplied basal
-        guard let basal = profile.currentBasal else {
+        guard let profileBasal = profile.currentBasal else {
             throw DeterminationError.missingCurrentBasal
         }
+        let basal = profileBasal * trioCustomOrefVariables.overrideFactor()
 
         // Compose tick for log
         let tick: String = (delta > -0.5) ? "+\(delta.rounded(toPlaces: 0))" : "\(delta.rounded(toPlaces: 0))"
