@@ -487,7 +487,7 @@ enum DosingEngine {
                 }
                 let glucoseUndershoot = targetGlucose - naiveEventualGlucose
                 let worstCaseInsulinRequired = glucoseUndershoot / adjustedSensitivity
-                var durationRequired = (60 * worstCaseInsulinRequired / (currentBasal * overrideFactor)).jsRounded()
+                var durationRequired = (60 * worstCaseInsulinRequired / currentBasal * overrideFactor).jsRounded()
 
                 if durationRequired < 0 {
                     durationRequired = 0
