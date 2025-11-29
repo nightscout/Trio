@@ -311,7 +311,7 @@ enum DeterminationGenerator {
             id: UUID(),
             reason: reason,
             units: nil,
-            insulinReq: nil,
+            insulinReq: 0,
             eventualBG: Int(forecastResult.eventualGlucose.jsRounded()),
             sensitivityRatio: sensitivityRatio, // this would only the AS-adjusted one for now
             rate: nil,
