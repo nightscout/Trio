@@ -103,7 +103,7 @@ import Testing
         // this test is meant for one-off analysis so it's ok to hard code
         // a file, just make sure to _not_ check in updates to this to
         // avoid polluting our change logs
-        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/cb0dac5c-4620-42ae-a66d-1fa54d89daaa.0.json")
+        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/240ecbe9-5903-46ca-a4af-a4a0aebbf8a0.1.json")
         let determineBasalInput = algorithmComparison.determineBasalInput!
 
         let encoder = JSONCoding.encoder

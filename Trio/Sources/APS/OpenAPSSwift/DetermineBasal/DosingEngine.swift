@@ -744,7 +744,7 @@ enum DosingEngine {
 
         let worstCaseInsulinRequired = (targetGlucose - (naiveEventualGlucose + minIOBForecastedGlucose) / 2) /
             adjustedSensitivity
-        var durationRequired = (60 * worstCaseInsulinRequired / (currentBasal * overrideFactor)).jsRounded()
+        var durationRequired = (60 * worstCaseInsulinRequired / currentBasal * overrideFactor).jsRounded()
 
         // if insulinRequired > 0 but not enough for a microBolus, don't set an SMB zero temp
         if insulinRequired > 0, microBolus < profile.bolusIncrement {
