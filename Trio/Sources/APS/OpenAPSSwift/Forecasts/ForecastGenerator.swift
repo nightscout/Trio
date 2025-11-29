@@ -119,7 +119,7 @@ enum ForecastGenerator {
             remainingCarbImpactPeak: carbImpactParams.remainingCarbImpactPeak,
             fractionCarbsLeft: mealData.carbs > 0 ? mealData.mealCOB / mealData.carbs : Decimal(0),
             threshold: threshold,
-            targetGlucose: profile.targetBg ?? 100,
+            targetGlucose: profile.minBg ?? 100,
             currentGlucose: glucose
         )
 
@@ -204,7 +204,9 @@ enum ForecastGenerator {
             if carbImpactDuration != 0 || remainingCarbImpactPeak > 0, length > insulinPeak5m, cob < minCobForecastGlucose {
                 minCobForecastGlucose = cob.jsRounded()
             }
-            if carbImpactDuration != 0 || remainingCarbImpactPeak > 0, cob > maxCobForecastGlucose {
+            // BUG: I can't tell if the comparison against maxIobForecastGlucose is
+            // intentional or not, but this is what is in JS
+            if carbImpactDuration != 0 || remainingCarbImpactPeak > 0, cob > maxIobForecastGlucose {
                 maxCobForecastGlucose = cob
             }
             if uamEnabled, length > 12, uam < minUamForecastGlucose {
@@ -313,6 +315,7 @@ enum ForecastGenerator {
             minZTUAMForecastGlucose = ((uamResult.minForecastGlucose + ztResult.minGuardGlucose) / 2)
                 .rounded()
         }
+        minZTUAMForecastGlucose = minZTUAMForecastGlucose.jsRounded()
 
         // 2. avgForecastGlucose blending (like avgPredBG)
         let avgerageForecastGlucose: Decimal
