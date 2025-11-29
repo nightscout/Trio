@@ -119,7 +119,7 @@ enum ForecastGenerator {
             remainingCarbImpactPeak: carbImpactParams.remainingCarbImpactPeak,
             fractionCarbsLeft: mealData.carbs > 0 ? mealData.mealCOB / mealData.carbs : Decimal(0),
             threshold: threshold,
-            targetGlucose: profile.minBg ?? 100,
+            targetGlucose: targetGlucose,
             currentGlucose: glucose
         )
 
