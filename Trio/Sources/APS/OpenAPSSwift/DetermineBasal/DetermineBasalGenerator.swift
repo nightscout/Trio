@@ -481,7 +481,7 @@ enum DeterminationGenerator {
             currentTime: currentTime,
             targetGlucose: adjustedGlucoseTargets.targetGlucose,
             naiveEventualGlucose: naiveEventualGlucose,
-            minIOBForecastedGlucose: forecastResult.iob.min() ?? 0,
+            minIOBForecastedGlucose: forecastResult.minIOBForecastedGlucose,
             adjustedSensitivity: adjustedSensitivity,
             overrideFactor: trioCustomOrefVariables.overrideFactor(),
             adjustedCarbRatio: forecastResult.adjustedCarbRatio,

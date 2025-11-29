@@ -149,6 +149,7 @@ enum ForecastGenerator {
             internalUam: uamResult.forecasts,
             eventualGlucose: eventualGlucose,
             minForecastedGlucose: blendedForecasts.minForecastedGlucose,
+            minIOBForecastedGlucose: initialForecasts.iob.minForecastGlucose,
             minGuardGlucose: blendedForecasts.minGuardGlucose,
             carbImpact: carbImpact,
             remainingCarbImpactPeak: carbImpactParams.remainingCarbImpactPeak,
@@ -215,6 +216,11 @@ enum ForecastGenerator {
                 maxUamForecastGlucose = uam
             }
         }
+
+        minIobForecastGlucose = max(39, minIobForecastGlucose)
+        minCobForecastGlucose = max(39, minCobForecastGlucose)
+        minUamForecastGlucose = max(39, minUamForecastGlucose)
+
         return AllForecasts(
             iob: IOBForecast(
                 forecasts: iobForecast.forecasts,
