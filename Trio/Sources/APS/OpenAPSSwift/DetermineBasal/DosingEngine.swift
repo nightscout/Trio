@@ -4,6 +4,7 @@ enum DosingEngine {
     struct DosingInputs {
         let reason: String
         let carbsRequired: (carbs: Decimal, minutes: Decimal)?
+        let rawCarbsRequired: Decimal
     }
 
     /// struct to keep the relevant state needed for the output of the SMB decision logic
@@ -192,18 +193,20 @@ enum DosingEngine {
             adjustedCarbRatio: forecast.adjustedCarbRatio
         )
 
-        if let result = carbsRequiredResult {
-            reason += "\(result.carbs) add'l carbs req w/in \(result.minutes)m; "
+        var carbsRequired: (carbs: Decimal, minutes: Decimal)?
+        if carbsRequiredResult.carbs >= profile.carbsReqThreshold, carbsRequiredResult.minutes <= 45 {
+            reason += "\(carbsRequiredResult.carbs) add'l carbs req w/in \(carbsRequiredResult.minutes)m; "
+            carbsRequired = carbsRequiredResult
         }
 
-        return DosingInputs(reason: reason, carbsRequired: carbsRequiredResult)
+        return DosingInputs(reason: reason, carbsRequired: carbsRequired, rawCarbsRequired: carbsRequiredResult.carbs)
     }
 
     /// Calculates the carbohydrates required to avoid a potential hypoglycemic event.
     ///
-    /// - Returns: A tuple containing the required carbs and minutes until BG is below threshold, or `nil` if no carbs are required.
+    /// - Returns: A tuple containing the required carbs and minutes until BG is below threshold.
     static func calculateCarbsRequired(
-        profile: Profile,
+        profile _: Profile,
         mealData: ComputedCarbs,
         naiveEventualGlucose: Decimal,
         minGuardGlucose: Decimal,
@@ -216,7 +219,7 @@ enum DosingEngine {
         overrideFactor: Decimal,
         adjustedSensitivity: Decimal,
         adjustedCarbRatio: Decimal
-    ) -> (carbs: Decimal, minutes: Decimal)? {
+    ) -> (carbs: Decimal, minutes: Decimal) {
         var carbsRequiredGlucose = naiveEventualGlucose
         if naiveEventualGlucose < 40 {
             carbsRequiredGlucose = min(minGuardGlucose, naiveEventualGlucose)
@@ -243,19 +246,14 @@ enum DosingEngine {
         let mealCarbs = mealData.carbs
         let cobForCarbsRequired = max(0, mealData.mealCOB - (Decimal(0.25) * mealCarbs))
 
-        guard adjustedCarbRatio > 0 else { return nil }
+        guard adjustedCarbRatio > 0 else { return (carbs: 0, minutes: minutesAboveThreshold) }
         let carbSensitivityFactor = adjustedSensitivity / adjustedCarbRatio
-        guard carbSensitivityFactor > 0 else { return nil }
+        guard carbSensitivityFactor > 0 else { return (carbs: 0, minutes: minutesAboveThreshold) }
 
         var carbsRequired = (glucoseUndershoot - zeroTempEffect) / carbSensitivityFactor - cobForCarbsRequired
         carbsRequired = carbsRequired.rounded(toPlaces: 0)
 
-        let carbsRequiredThreshold = profile.carbsReqThreshold
-        if carbsRequired >= carbsRequiredThreshold, minutesAboveThreshold <= 45 {
-            return (carbs: carbsRequired, minutes: minutesAboveThreshold)
-        }
-
-        return nil
+        return (carbs: carbsRequired, minutes: minutesAboveThreshold)
     }
 
     /// Determines if a low glucose suspend is warranted.
@@ -403,6 +401,10 @@ enum DosingEngine {
             "Eventual BG \(convertGlucose(profile: profile, glucose: eventualGlucose)) < \(convertGlucose(profile: profile, glucose: minGlucose))"
 
         // if 5m or 30m avg BG is rising faster than expected delta
+        // BUG: in JS it's doing a "truthiness" check for carbs required
+        //      but if you get a negative carbsRequired it will evaluate
+        //      to true when it should be false (negative carbs required
+        //      means no carbs required)
         if minDelta > expectedDelta, minDelta > 0, carbsRequired == 0 {
             if naiveEventualGlucose < 40 {
                 newDetermination.reason += ", naive_eventualBG < 40. "

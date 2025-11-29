@@ -382,7 +382,7 @@ enum DeterminationGenerator {
                 targetGlucose: adjustedGlucoseTargets.targetGlucose,
                 minDelta: minDelta,
                 expectedDelta: expectedDelta,
-                carbsRequired: dosingInputs.carbsRequired?.carbs ?? 0,
+                carbsRequired: dosingInputs.rawCarbsRequired,
                 naiveEventualGlucose: naiveEventualGlucose,
                 glucoseStatus: glucoseStatus,
                 currentTemp: currentTemp,
