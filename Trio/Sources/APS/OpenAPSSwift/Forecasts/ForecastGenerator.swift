@@ -313,10 +313,7 @@ enum ForecastGenerator {
         } else if ztResult.minGuardGlucose > uamResult.minForecastGlucose {
             minZTUAMForecastGlucose = (uamResult.minForecastGlucose + ztResult.minGuardGlucose) / 2
         }
-        // Note: We found at least one case where decmial weren't able
-        // to handle the precision of a calculation, so we'll do the
-        // double rounding trick we do in JS sometimes
-        minZTUAMForecastGlucose = minZTUAMForecastGlucose.jsRounded(scale: 6).jsRounded()
+        minZTUAMForecastGlucose = minZTUAMForecastGlucose.jsRounded()
 
         // 2. avgForecastGlucose blending (like avgPredBG)
         let avgerageForecastGlucose: Decimal
