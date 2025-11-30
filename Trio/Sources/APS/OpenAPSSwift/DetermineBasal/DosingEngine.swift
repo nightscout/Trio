@@ -687,7 +687,9 @@ enum DosingEngine {
 
         if insulinRequired > maxIob - currentIob {
             newDetermination.reason += "max_iob \(maxIob), "
-            insulinRequired = (maxIob - currentIob).jsRounded(scale: 2)
+            // Important: on this path insulinRequired gets rounded
+            // to three decimal places, not 2 like on the default path
+            insulinRequired = (maxIob - currentIob).jsRounded(scale: 3)
         }
         newDetermination.insulinReq = insulinRequired
         return (insulinRequired, newDetermination)
