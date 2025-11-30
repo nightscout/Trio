@@ -305,17 +305,18 @@ enum ForecastGenerator {
         // 1. Calculate minZTUAMForecastGlucose ("minZTUAMPredBG" in JS)
         var minZTUAMForecastGlucose = uamResult.minForecastGlucose
         if ztResult.minGuardGlucose < threshold {
-            minZTUAMForecastGlucose = ((uamResult.minForecastGlucose + ztResult.minGuardGlucose) / 2)
-                .rounded()
+            minZTUAMForecastGlucose = (uamResult.minForecastGlucose + ztResult.minGuardGlucose) / 2
         } else if ztResult.minGuardGlucose < targetGlucose {
             let blendPct = (ztResult.minGuardGlucose - threshold) / (targetGlucose - threshold)
             let blendedMinZTGuardGlucose = uamResult.minForecastGlucose * blendPct + ztResult.minGuardGlucose * (1 - blendPct)
-            minZTUAMForecastGlucose = ((uamResult.minForecastGlucose + blendedMinZTGuardGlucose) / 2).rounded()
+            minZTUAMForecastGlucose = (uamResult.minForecastGlucose + blendedMinZTGuardGlucose) / 2
         } else if ztResult.minGuardGlucose > uamResult.minForecastGlucose {
-            minZTUAMForecastGlucose = ((uamResult.minForecastGlucose + ztResult.minGuardGlucose) / 2)
-                .rounded()
+            minZTUAMForecastGlucose = (uamResult.minForecastGlucose + ztResult.minGuardGlucose) / 2
         }
-        minZTUAMForecastGlucose = minZTUAMForecastGlucose.jsRounded()
+        // Note: We found at least one case where decmial weren't able
+        // to handle the precision of a calculation, so we'll do the
+        // double rounding trick we do in JS sometimes
+        minZTUAMForecastGlucose = minZTUAMForecastGlucose.jsRounded(scale: 6).jsRounded()
 
         // 2. avgForecastGlucose blending (like avgPredBG)
         let avgerageForecastGlucose: Decimal
