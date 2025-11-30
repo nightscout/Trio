@@ -154,19 +154,19 @@ enum DeterminationGenerator {
             )
         }
 
-        let basal: Decimal
-        if let dynamicIsfResult = dynamicIsfResult, profile.tddAdjBasal {
-            basal = computeAdjustedBasal(
-                profile: profile,
-                currentBasalRate: profile.currentBasal ?? profile.basalFor(time: currentTime),
-                sensitivityRatio: dynamicIsfResult.tddRatio,
-                overrideFactor: trioCustomOrefVariables.overrideFactor()
-            )
-        } else {
+        var basal = profile.currentBasal ?? profile.basalFor(time: currentTime)
+        if dynamicIsfResult == nil {
             basal = computeAdjustedBasal(
                 profile: profile,
                 currentBasalRate: profile.currentBasal ?? profile.basalFor(time: currentTime),
                 sensitivityRatio: sensitivityRatio,
+                overrideFactor: trioCustomOrefVariables.overrideFactor()
+            )
+        } else if let dynamicIsfResult = dynamicIsfResult, profile.tddAdjBasal {
+            basal = computeAdjustedBasal(
+                profile: profile,
+                currentBasalRate: profile.currentBasal ?? profile.basalFor(time: currentTime),
+                sensitivityRatio: dynamicIsfResult.tddRatio,
                 overrideFactor: trioCustomOrefVariables.overrideFactor()
             )
         }
