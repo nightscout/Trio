@@ -128,7 +128,7 @@ enum ForecastGenerator {
         if mealData.mealCOB > 0, carbImpact > 0 || carbImpactParams.remainingCarbImpactPeak > 0 {
             finalCobForecast = cobResult.forecasts
             if let lastCobGlucose = cobResult.forecasts.last {
-                eventualGlucose = max(eventualGlucose, lastCobGlucose)
+                eventualGlucose = max(eventualGlucose, lastCobGlucose.jsRounded())
             }
         }
 
@@ -136,7 +136,7 @@ enum ForecastGenerator {
         if profile.enableUAM, carbImpact > 0 || carbImpactParams.remainingCarbImpactPeak > 0 {
             finalUamForecast = uamResult.forecasts
             if let lastUamGlucose = uamResult.forecasts.last {
-                eventualGlucose = max(eventualGlucose, lastUamGlucose)
+                eventualGlucose = max(eventualGlucose, lastUamGlucose.jsRounded())
             }
         }
 
