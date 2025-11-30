@@ -65,8 +65,7 @@ enum DeterminationGenerator {
             currentTemp: currentTemp,
             iobData: iobData,
             profile: profile,
-            trioCustomOrefVariables: trioCustomOrefVariables,
-            currentTime: currentTime,
+            trioCustomOrefVariables: trioCustomOrefVariables
         )
 
         let currentGlucose: Decimal = glucoseStatus.glucose
@@ -508,8 +507,7 @@ enum DeterminationGenerator {
         currentTemp _: TempBasal?,
         iobData: [IobResult]?,
         profile: Profile?,
-        trioCustomOrefVariables: TrioCustomOrefVariables,
-        currentTime: Date = Date()
+        trioCustomOrefVariables: TrioCustomOrefVariables
     ) throws {
         guard let glucoseStatus = glucoseStatus else {
             throw DeterminationError.missingGlucoseStatus
@@ -519,10 +517,6 @@ enum DeterminationGenerator {
         }
         guard profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables) != nil else {
             throw DeterminationError.invalidProfileTarget
-        }
-        let glucoseAge = currentTime.timeIntervalSince(glucoseStatus.date)
-        if glucoseAge > 15 * 60 {
-            throw DeterminationError.staleGlucoseData(ageMinutes: glucoseAge / 60)
         }
         // we have to allow 38 values so that we can cancel high temps
         if glucoseStatus.glucose < 38 || glucoseStatus.glucose > 600 {
@@ -612,7 +606,7 @@ enum DeterminationGenerator {
                 deliverAt: currentTime,
                 carbsReq: nil,
                 temp: .absolute,
-                bg: glucose,
+                bg: nil,
                 reservoir: nil,
                 isf: profile.sens,
                 timestamp: currentTime,
@@ -623,7 +617,7 @@ enum DeterminationGenerator {
                 minGuardBG: nil,
                 minPredBG: nil,
                 threshold: nil,
-                carbRatio: profile.carbRatio,
+                carbRatio: nil,
                 received: false
             )
         } else if currentTemp.rate == 0, currentTemp.duration > 30 {
@@ -644,7 +638,7 @@ enum DeterminationGenerator {
                 deliverAt: currentTime,
                 carbsReq: nil,
                 temp: .absolute,
-                bg: glucose,
+                bg: nil,
                 reservoir: nil,
                 isf: profile.sens,
                 timestamp: currentTime,
@@ -655,7 +649,7 @@ enum DeterminationGenerator {
                 minGuardBG: nil,
                 minPredBG: nil,
                 threshold: nil,
-                carbRatio: profile.carbRatio,
+                carbRatio: nil,
                 received: false
             )
         } else {
@@ -676,7 +670,7 @@ enum DeterminationGenerator {
                 deliverAt: currentTime,
                 carbsReq: nil,
                 temp: currentTemp.temp,
-                bg: glucose,
+                bg: nil,
                 reservoir: nil,
                 isf: profile.sens,
                 timestamp: currentTime,
@@ -687,7 +681,7 @@ enum DeterminationGenerator {
                 minGuardBG: nil,
                 minPredBG: nil,
                 threshold: nil,
-                carbRatio: profile.carbRatio,
+                carbRatio: nil,
                 received: false
             )
         }

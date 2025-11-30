@@ -5,7 +5,6 @@ enum DeterminationError: LocalizedError, Equatable {
     case missingProfile
     case missingCurrentBasal
     case invalidProfileTarget
-    case staleGlucoseData(ageMinutes: Double)
     case glucoseOutOfRange(glucose: Decimal)
     case cgmNoiseTooHigh(noise: Int)
     case noDelta
@@ -26,8 +25,6 @@ enum DeterminationError: LocalizedError, Equatable {
         case .invalidProfileTarget:
             // string copied from JS including trailing space
             return String(localized: "Error: could not determine target_bg. ")
-        case let .staleGlucoseData(ageMinutes):
-            return String(localized: "Glucose data is too old (\(ageMinutes) min ago).")
         case let .glucoseOutOfRange(glucose):
             return String(localized: "Glucose out of range: \(glucose.description).")
         case let .cgmNoiseTooHigh(noise):
