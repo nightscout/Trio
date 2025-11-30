@@ -180,8 +180,8 @@ extension DeterminationGenerator {
         trioCustomOrefVariables: TrioCustomOrefVariables
     ) -> Decimal {
         let sensitivity = trioCustomOrefVariables.override(sensitivity: sensitivity)
-        guard sensitivityRatio != 1.0 else { return sensitivity }
-        return (sensitivity / sensitivityRatio).rounded(toPlaces: 1)
+        guard sensitivityRatio != 1.0 else { return sensitivity.jsRounded(scale: 1) }
+        return (sensitivity / sensitivityRatio).jsRounded(scale: 1)
     }
 
     static func checkCurrentTempBasalRateSafety(
