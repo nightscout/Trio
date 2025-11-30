@@ -545,41 +545,8 @@ final class BaseTDDStorage: TDDStorage, Injectable {
               let minutes = Int(timeComponents[1])
         else { return nil }
 
-        // Convert time to total minutes since midnight for easier comparison
         let totalMinutes = hours * 60 + minutes
-
-        // Special case: If profile has only one entry, it applies for full 24 hours
-        // Return its rate immediately without searching
-        if profile.count == 1 {
-            return profile[0].rate
-        }
-
-        // Use binary search to efficiently find the applicable basal rate
-        // Profile entries are sorted by minutes, so we can divide and conquer
-        var left = 0
-        var right = profile.count - 1
-
-        while left <= right {
-            let mid = (left + right) / 2
-            let entry = profile[mid]
-            // Get end time for current entry - either next entry's start time or end of day (1440 mins)
-            let nextMinutes = mid + 1 < profile.count ? profile[mid + 1].minutes : 1440
-
-            // Check if target time falls within current entry's time range
-            if totalMinutes >= entry.minutes, totalMinutes < nextMinutes {
-                return entry.rate
-            }
-
-            // Adjust search range based on comparison
-            if totalMinutes < entry.minutes {
-                right = mid - 1 // Search in left half if target time is earlier
-            } else {
-                left = mid + 1 // Search in right half if target time is later
-            }
-        }
-
-        // No applicable rate found for the given time
-        return nil
+        return findBasalRateForOffset(for: totalMinutes, in: profile)
     }
 
     /// Calculates a weighted average of Total Daily Dose (TDD) based on recent and historical data
@@ -691,4 +658,48 @@ extension Decimal {
         NSDecimalRound(&result, &original, places, .down)
         return result
     }
+}
+
+/// Finds the basal rate at the specified minute offset using binary search
+/// - Parameters:
+///   - totalMinutes: minute offset into a 24 hour day
+///   - profile: Array of basal profile entries sorted by time
+/// - Returns: Basal rate in units per hour, or nil if not found
+func findBasalRateForOffset(for totalMinutes: Int, in profile: [BasalProfileEntry]) -> Decimal? {
+    if profile.isEmpty {
+        return nil // not yet initalized
+    }
+
+    // Special case: If profile has only one entry, it applies for full 24 hours
+    // Return its rate immediately without searching
+    if profile.count == 1 {
+        return profile[0].rate
+    }
+
+    // Use binary search to efficiently find the applicable basal rate
+    // Profile entries are sorted by minutes, so we can divide and conquer
+    var left = 0
+    var right = profile.count - 1
+
+    while left <= right {
+        let mid = (left + right) / 2
+        let entry = profile[mid]
+        // Get end time for current entry - either next entry's start time or end of day (24 * 60 mins)
+        let nextMinutes = mid + 1 < profile.count ? profile[mid + 1].minutes : 24 * 60
+
+        // Check if target time falls within current entry's time range
+        if totalMinutes >= entry.minutes, totalMinutes < nextMinutes {
+            return entry.rate
+        }
+
+        // Adjust search range based on comparison
+        if totalMinutes < entry.minutes {
+            right = mid - 1 // Search in left half if target time is earlier
+        } else {
+            left = mid + 1 // Search in right half if target time is later
+        }
+    }
+
+    // No applicable rate found for the given time
+    return nil
 }
