@@ -164,9 +164,14 @@ extension DeterminationGenerator {
         return (ratio, updateAutosensRatio)
     }
 
-    static func computeAdjustedBasal(currentBasalRate: Decimal, sensitivityRatio: Decimal) -> Decimal {
-        // FIXME: Ideally, we round this here to allowed pump basal increments
-        currentBasalRate * sensitivityRatio
+    static func computeAdjustedBasal(
+        profile: Profile,
+        currentBasalRate: Decimal,
+        sensitivityRatio: Decimal,
+        overrideFactor: Decimal
+    ) -> Decimal {
+        let adjustedBasal = currentBasalRate * sensitivityRatio * overrideFactor
+        return TempBasalFunctions.roundBasal(profile: profile, basalRate: adjustedBasal)
     }
 
     static func computeAdjustedSensitivity(
@@ -175,8 +180,8 @@ extension DeterminationGenerator {
         trioCustomOrefVariables: TrioCustomOrefVariables
     ) -> Decimal {
         let sensitivity = trioCustomOrefVariables.override(sensitivity: sensitivity)
-        guard sensitivityRatio != 1.0 else { return sensitivity }
-        return (sensitivity / sensitivityRatio).rounded(toPlaces: 1)
+        guard sensitivityRatio != 1.0 else { return sensitivity.jsRounded(scale: 1) }
+        return (sensitivity / sensitivityRatio).jsRounded(scale: 1)
     }
 
     static func checkCurrentTempBasalRateSafety(

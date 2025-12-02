@@ -9,6 +9,7 @@ struct ForecastResult {
     public let internalUam: [Decimal] // non optional, used downstream
     public let eventualGlucose: Decimal
     public let minForecastedGlucose: Decimal
+    public let minIOBForecastedGlucose: Decimal
     public let minGuardGlucose: Decimal
     public let carbImpact: Decimal
     public let remainingCarbImpactPeak: Decimal

@@ -305,8 +305,8 @@ import Testing
             currentTime: currentTime
         )
 
-        #expect(result?.rate == 0.5)
-        #expect(result?.duration == 30)
+        #expect(result?.rate == nil)
+        #expect(result?.duration == nil)
         #expect(result?.reason.contains("doing nothing") == true)
     }
 

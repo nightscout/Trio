@@ -31,7 +31,8 @@ extension Decimal {
     }
 
     func jsRounded() -> Decimal {
-        jsRounded(scale: 0)
+        // double rounding to help with imprecision in calculations
+        jsRounded(scale: 6).jsRounded(scale: 0)
     }
 
     func clamp(lowerBound: Decimal, upperBound: Decimal) -> Decimal {

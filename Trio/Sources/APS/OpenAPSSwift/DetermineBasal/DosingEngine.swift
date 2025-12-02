@@ -4,6 +4,7 @@ enum DosingEngine {
     struct DosingInputs {
         let reason: String
         let carbsRequired: (carbs: Decimal, minutes: Decimal)?
+        let rawCarbsRequired: Decimal
     }
 
     /// struct to keep the relevant state needed for the output of the SMB decision logic
@@ -177,7 +178,6 @@ enum DosingEngine {
         reason += "; " // Start of conclusion
 
         let carbsRequiredResult = calculateCarbsRequired(
-            profile: profile,
             mealData: mealData,
             naiveEventualGlucose: naiveEventualGlucose,
             minGuardGlucose: forecast.minGuardGlucose,
@@ -192,18 +192,19 @@ enum DosingEngine {
             adjustedCarbRatio: forecast.adjustedCarbRatio
         )
 
-        if let result = carbsRequiredResult {
-            reason += "\(result.carbs) add'l carbs req w/in \(result.minutes)m; "
+        var carbsRequired: (carbs: Decimal, minutes: Decimal)?
+        if carbsRequiredResult.carbs >= profile.carbsReqThreshold, carbsRequiredResult.minutes <= 45 {
+            reason += "\(carbsRequiredResult.carbs) add'l carbs req w/in \(carbsRequiredResult.minutes)m; "
+            carbsRequired = carbsRequiredResult
         }
 
-        return DosingInputs(reason: reason, carbsRequired: carbsRequiredResult)
+        return DosingInputs(reason: reason, carbsRequired: carbsRequired, rawCarbsRequired: carbsRequiredResult.carbs)
     }
 
     /// Calculates the carbohydrates required to avoid a potential hypoglycemic event.
     ///
-    /// - Returns: A tuple containing the required carbs and minutes until BG is below threshold, or `nil` if no carbs are required.
+    /// - Returns: A tuple containing the required carbs and minutes until glucose is below threshold.
     static func calculateCarbsRequired(
-        profile: Profile,
         mealData: ComputedCarbs,
         naiveEventualGlucose: Decimal,
         minGuardGlucose: Decimal,
@@ -216,7 +217,7 @@ enum DosingEngine {
         overrideFactor: Decimal,
         adjustedSensitivity: Decimal,
         adjustedCarbRatio: Decimal
-    ) -> (carbs: Decimal, minutes: Decimal)? {
+    ) -> (carbs: Decimal, minutes: Decimal) {
         var carbsRequiredGlucose = naiveEventualGlucose
         if naiveEventualGlucose < 40 {
             carbsRequiredGlucose = min(minGuardGlucose, naiveEventualGlucose)
@@ -243,19 +244,14 @@ enum DosingEngine {
         let mealCarbs = mealData.carbs
         let cobForCarbsRequired = max(0, mealData.mealCOB - (Decimal(0.25) * mealCarbs))
 
-        guard adjustedCarbRatio > 0 else { return nil }
+        guard adjustedCarbRatio > 0 else { return (carbs: 0, minutes: minutesAboveThreshold) }
         let carbSensitivityFactor = adjustedSensitivity / adjustedCarbRatio
-        guard carbSensitivityFactor > 0 else { return nil }
+        guard carbSensitivityFactor > 0 else { return (carbs: 0, minutes: minutesAboveThreshold) }
 
         var carbsRequired = (glucoseUndershoot - zeroTempEffect) / carbSensitivityFactor - cobForCarbsRequired
         carbsRequired = carbsRequired.rounded(toPlaces: 0)
 
-        let carbsRequiredThreshold = profile.carbsReqThreshold
-        if carbsRequired >= carbsRequiredThreshold, minutesAboveThreshold <= 45 {
-            return (carbs: carbsRequired, minutes: minutesAboveThreshold)
-        }
-
-        return nil
+        return (carbs: carbsRequired, minutes: minutesAboveThreshold)
     }
 
     /// Determines if a low glucose suspend is warranted.
@@ -309,7 +305,7 @@ enum DosingEngine {
             }
 
             let worstCaseInsulinRequired = glucoseUndershoot / adjustedSensitivity
-            var durationRequired = (60 * worstCaseInsulinRequired / (currentBasal * overrideFactor)).jsRounded()
+            var durationRequired = (60 * worstCaseInsulinRequired / currentBasal * overrideFactor).jsRounded()
             durationRequired = (durationRequired / 30).jsRounded() * 30
             durationRequired = max(30, min(120, durationRequired))
 
@@ -402,7 +398,11 @@ enum DosingEngine {
             .reason +=
             "Eventual BG \(convertGlucose(profile: profile, glucose: eventualGlucose)) < \(convertGlucose(profile: profile, glucose: minGlucose))"
 
-        // if 5m or 30m avg BG is rising faster than expected delta
+        // if 5m or 30m avg glucose is rising faster than expected delta
+        // BUG: in JS it's doing a "truthiness" check for carbs required
+        //      but if you get a negative carbsRequired it will evaluate
+        //      to true when it should be false (negative carbs required
+        //      means no carbs required)
         if minDelta > expectedDelta, minDelta > 0, carbsRequired == 0 {
             if naiveEventualGlucose < 40 {
                 newDetermination.reason += ", naive_eventualBG < 40. "
@@ -445,7 +445,7 @@ enum DosingEngine {
             }
         }
 
-        // calculate 30m low-temp required to get projected BG up to target
+        // calculate 30m low-temp required to get projected glucose up to target
         var insulinRequired = 2 * min(0, (eventualGlucose - targetGlucose) / adjustedSensitivity)
         insulinRequired = insulinRequired.jsRounded(scale: 2)
 
@@ -485,7 +485,7 @@ enum DosingEngine {
                 }
                 let glucoseUndershoot = targetGlucose - naiveEventualGlucose
                 let worstCaseInsulinRequired = glucoseUndershoot / adjustedSensitivity
-                var durationRequired = (60 * worstCaseInsulinRequired / (currentBasal * overrideFactor)).jsRounded()
+                var durationRequired = (60 * worstCaseInsulinRequired / currentBasal * overrideFactor).jsRounded()
 
                 if durationRequired < 0 {
                     durationRequired = 0
@@ -685,7 +685,9 @@ enum DosingEngine {
 
         if insulinRequired > maxIob - currentIob {
             newDetermination.reason += "max_iob \(maxIob), "
-            insulinRequired = (maxIob - currentIob).jsRounded(scale: 2)
+            // Important: on this path insulinRequired gets rounded
+            // to three decimal places, not 2 like on the default path
+            insulinRequired = (maxIob - currentIob).jsRounded(scale: 3)
         }
         newDetermination.insulinReq = insulinRequired
         return (insulinRequired, newDetermination)
@@ -744,7 +746,7 @@ enum DosingEngine {
 
         let worstCaseInsulinRequired = (targetGlucose - (naiveEventualGlucose + minIOBForecastedGlucose) / 2) /
             adjustedSensitivity
-        var durationRequired = (60 * worstCaseInsulinRequired / (currentBasal * overrideFactor)).jsRounded()
+        var durationRequired = (60 * worstCaseInsulinRequired / currentBasal * overrideFactor).jsRounded()
 
         // if insulinRequired > 0 but not enough for a microBolus, don't set an SMB zero temp
         if insulinRequired > 0, microBolus < profile.bolusIncrement {

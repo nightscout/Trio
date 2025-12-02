@@ -65,8 +65,7 @@ enum DeterminationGenerator {
             currentTemp: currentTemp,
             iobData: iobData,
             profile: profile,
-            trioCustomOrefVariables: trioCustomOrefVariables,
-            currentTime: currentTime,
+            trioCustomOrefVariables: trioCustomOrefVariables
         )
 
         let currentGlucose: Decimal = glucoseStatus.glucose
@@ -75,7 +74,8 @@ enum DeterminationGenerator {
             glucoseStatus: glucoseStatus,
             profile: profile,
             currentTemp: currentTemp,
-            currentTime: currentTime
+            currentTime: currentTime,
+            trioCustomOrefVariables: trioCustomOrefVariables
         ) {
             return errorDetermination
         }
@@ -100,24 +100,24 @@ enum DeterminationGenerator {
                 sensitivityRatio: nil,
                 rate: 0,
                 duration: 0,
-                iob: iobData.first?.iob,
+                iob: nil,
                 cob: nil,
                 predictions: nil,
                 deliverAt: currentTime,
                 carbsReq: nil,
                 temp: .absolute,
-                bg: glucoseStatus.glucose,
+                bg: nil,
                 reservoir: nil,
-                isf: profile.sens,
-                timestamp: currentTime,
+                isf: nil,
+                timestamp: nil,
                 tdd: nil,
-                current_target: profile.targetBg,
+                current_target: nil,
                 minDelta: nil,
                 expectedDelta: nil,
                 minGuardBG: nil,
                 minPredBG: nil,
                 threshold: nil,
-                carbRatio: profile.carbRatio,
+                carbRatio: nil,
                 received: false
             )
         }
@@ -154,16 +154,20 @@ enum DeterminationGenerator {
             )
         }
 
-        let basal: Decimal
-        if let dynamicIsfResult = dynamicIsfResult, profile.tddAdjBasal {
+        var basal = profile.currentBasal ?? profile.basalFor(time: currentTime)
+        if dynamicIsfResult == nil {
             basal = computeAdjustedBasal(
+                profile: profile,
                 currentBasalRate: profile.currentBasal ?? profile.basalFor(time: currentTime),
-                sensitivityRatio: dynamicIsfResult.tddRatio
+                sensitivityRatio: sensitivityRatio,
+                overrideFactor: trioCustomOrefVariables.overrideFactor()
             )
-        } else {
+        } else if let dynamicIsfResult = dynamicIsfResult, profile.tddAdjBasal {
             basal = computeAdjustedBasal(
+                profile: profile,
                 currentBasalRate: profile.currentBasal ?? profile.basalFor(time: currentTime),
-                sensitivityRatio: sensitivityRatio
+                sensitivityRatio: dynamicIsfResult.tddRatio,
+                overrideFactor: trioCustomOrefVariables.overrideFactor()
             )
         }
 
@@ -306,7 +310,7 @@ enum DeterminationGenerator {
             id: UUID(),
             reason: reason,
             units: nil,
-            insulinReq: nil,
+            insulinReq: 0,
             eventualBG: Int(forecastResult.eventualGlucose.jsRounded()),
             sensitivityRatio: sensitivityRatio, // this would only the AS-adjusted one for now
             rate: nil,
@@ -377,7 +381,7 @@ enum DeterminationGenerator {
                 targetGlucose: adjustedGlucoseTargets.targetGlucose,
                 minDelta: minDelta,
                 expectedDelta: expectedDelta,
-                carbsRequired: dosingInputs.carbsRequired?.carbs ?? 0,
+                carbsRequired: dosingInputs.rawCarbsRequired,
                 naiveEventualGlucose: naiveEventualGlucose,
                 glucoseStatus: glucoseStatus,
                 currentTemp: currentTemp,
@@ -476,7 +480,7 @@ enum DeterminationGenerator {
             currentTime: currentTime,
             targetGlucose: adjustedGlucoseTargets.targetGlucose,
             naiveEventualGlucose: naiveEventualGlucose,
-            minIOBForecastedGlucose: forecastResult.iob.min() ?? 0,
+            minIOBForecastedGlucose: forecastResult.minIOBForecastedGlucose,
             adjustedSensitivity: adjustedSensitivity,
             overrideFactor: trioCustomOrefVariables.overrideFactor(),
             adjustedCarbRatio: forecastResult.adjustedCarbRatio,
@@ -503,8 +507,7 @@ enum DeterminationGenerator {
         currentTemp _: TempBasal?,
         iobData: [IobResult]?,
         profile: Profile?,
-        trioCustomOrefVariables: TrioCustomOrefVariables,
-        currentTime: Date = Date()
+        trioCustomOrefVariables: TrioCustomOrefVariables
     ) throws {
         guard let glucoseStatus = glucoseStatus else {
             throw DeterminationError.missingGlucoseStatus
@@ -514,10 +517,6 @@ enum DeterminationGenerator {
         }
         guard profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables) != nil else {
             throw DeterminationError.invalidProfileTarget
-        }
-        let glucoseAge = currentTime.timeIntervalSince(glucoseStatus.date)
-        if glucoseAge > 15 * 60 {
-            throw DeterminationError.staleGlucoseData(ageMinutes: glucoseAge / 60)
         }
         // we have to allow 38 values so that we can cancel high temps
         if glucoseStatus.glucose < 38 || glucoseStatus.glucose > 600 {
@@ -532,7 +531,8 @@ enum DeterminationGenerator {
         glucoseStatus: GlucoseStatus,
         profile: Profile,
         currentTemp: TempBasal?,
-        currentTime: Date
+        currentTime: Date,
+        trioCustomOrefVariables: TrioCustomOrefVariables
     ) throws -> Determination? {
         let glucose = glucoseStatus.glucose
         let noise = glucoseStatus.noise
@@ -544,9 +544,10 @@ enum DeterminationGenerator {
         let device = glucoseStatus.device
 
         // Always use profile-supplied basal
-        guard let basal = profile.currentBasal else {
+        guard let profileBasal = profile.currentBasal else {
             throw DeterminationError.missingCurrentBasal
         }
+        let basal = profileBasal * trioCustomOrefVariables.overrideFactor()
 
         // Compose tick for log
         let tick: String = (delta > -0.5) ? "+\(delta.rounded(toPlaces: 0))" : "\(delta.rounded(toPlaces: 0))"
@@ -605,7 +606,7 @@ enum DeterminationGenerator {
                 deliverAt: currentTime,
                 carbsReq: nil,
                 temp: .absolute,
-                bg: glucose,
+                bg: nil,
                 reservoir: nil,
                 isf: profile.sens,
                 timestamp: currentTime,
@@ -616,7 +617,7 @@ enum DeterminationGenerator {
                 minGuardBG: nil,
                 minPredBG: nil,
                 threshold: nil,
-                carbRatio: profile.carbRatio,
+                carbRatio: nil,
                 received: false
             )
         } else if currentTemp.rate == 0, currentTemp.duration > 30 {
@@ -637,7 +638,7 @@ enum DeterminationGenerator {
                 deliverAt: currentTime,
                 carbsReq: nil,
                 temp: .absolute,
-                bg: glucose,
+                bg: nil,
                 reservoir: nil,
                 isf: profile.sens,
                 timestamp: currentTime,
@@ -648,7 +649,7 @@ enum DeterminationGenerator {
                 minGuardBG: nil,
                 minPredBG: nil,
                 threshold: nil,
-                carbRatio: profile.carbRatio,
+                carbRatio: nil,
                 received: false
             )
         } else {
@@ -661,15 +662,15 @@ enum DeterminationGenerator {
                 insulinReq: nil,
                 eventualBG: nil,
                 sensitivityRatio: nil,
-                rate: currentTemp.rate,
-                duration: Decimal(currentTemp.duration),
+                rate: nil,
+                duration: nil,
                 iob: nil,
                 cob: nil,
                 predictions: nil,
                 deliverAt: currentTime,
                 carbsReq: nil,
                 temp: currentTemp.temp,
-                bg: glucose,
+                bg: nil,
                 reservoir: nil,
                 isf: profile.sens,
                 timestamp: currentTime,
@@ -680,7 +681,7 @@ enum DeterminationGenerator {
                 minGuardBG: nil,
                 minPredBG: nil,
                 threshold: nil,
-                carbRatio: profile.carbRatio,
+                carbRatio: nil,
                 received: false
             )
         }
