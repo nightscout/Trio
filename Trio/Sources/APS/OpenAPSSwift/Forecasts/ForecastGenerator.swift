@@ -190,32 +190,34 @@ enum ForecastGenerator {
         // start at 1 because the first entry is currentGlucose
         for index in 1 ..< minCount {
             let length = index + 1
-            let iob = iobForecast.rawForecasts[index]
-            let cob = cobForecast.rawForecasts[index]
-            let uam = uamForecast.rawForecasts[index]
+            let currentIobForecastGlucose = iobForecast.rawForecasts[index]
+            let currentCobForecastGlucose = cobForecast.rawForecasts[index]
+            let currentUamForecastGlucose = uamForecast.rawForecasts[index]
 
             // the max calculations don't get rounded in JS
-            if length > insulinPeak5m, iob < minIobForecastGlucose {
-                minIobForecastGlucose = iob.jsRounded()
+            if length > insulinPeak5m, currentIobForecastGlucose < minIobForecastGlucose {
+                minIobForecastGlucose = currentIobForecastGlucose.jsRounded()
             }
-            if iob > maxIobForecastGlucose {
-                maxIobForecastGlucose = iob
+            if currentIobForecastGlucose > maxIobForecastGlucose {
+                maxIobForecastGlucose = currentIobForecastGlucose
             }
-            if carbImpactDuration != 0 || remainingCarbImpactPeak > 0, length > insulinPeak5m, cob < minCobForecastGlucose {
-                minCobForecastGlucose = cob.jsRounded()
-            }
-            // BUG: I can't tell if the comparison against maxIobForecastGlucose is
-            // intentional or not, but this is what is in JS
-            if carbImpactDuration != 0 || remainingCarbImpactPeak > 0, cob > maxIobForecastGlucose {
-                maxCobForecastGlucose = cob
-            }
-            if uamEnabled, length > 12, uam < minUamForecastGlucose {
-                minUamForecastGlucose = uam.jsRounded()
+            if carbImpactDuration != 0 || remainingCarbImpactPeak > 0, length > insulinPeak5m,
+               currentCobForecastGlucose < minCobForecastGlucose
+            {
+                minCobForecastGlucose = currentCobForecastGlucose.jsRounded()
             }
             // BUG: I can't tell if the comparison against maxIobForecastGlucose is
             // intentional or not, but this is what is in JS
-            if uamEnabled, uam > maxIobForecastGlucose {
-                maxUamForecastGlucose = uam
+            if carbImpactDuration != 0 || remainingCarbImpactPeak > 0, currentCobForecastGlucose > maxIobForecastGlucose {
+                maxCobForecastGlucose = currentCobForecastGlucose
+            }
+            if uamEnabled, length > 12, currentUamForecastGlucose < minUamForecastGlucose {
+                minUamForecastGlucose = currentUamForecastGlucose.jsRounded()
+            }
+            // BUG: I can't tell if the comparison against maxIobForecastGlucose is
+            // intentional or not, but this is what is in JS
+            if uamEnabled, currentUamForecastGlucose > maxIobForecastGlucose {
+                maxUamForecastGlucose = currentUamForecastGlucose
             }
         }
 

@@ -178,7 +178,6 @@ enum DosingEngine {
         reason += "; " // Start of conclusion
 
         let carbsRequiredResult = calculateCarbsRequired(
-            profile: profile,
             mealData: mealData,
             naiveEventualGlucose: naiveEventualGlucose,
             minGuardGlucose: forecast.minGuardGlucose,
@@ -204,9 +203,8 @@ enum DosingEngine {
 
     /// Calculates the carbohydrates required to avoid a potential hypoglycemic event.
     ///
-    /// - Returns: A tuple containing the required carbs and minutes until BG is below threshold.
+    /// - Returns: A tuple containing the required carbs and minutes until glucose is below threshold.
     static func calculateCarbsRequired(
-        profile _: Profile,
         mealData: ComputedCarbs,
         naiveEventualGlucose: Decimal,
         minGuardGlucose: Decimal,
@@ -400,7 +398,7 @@ enum DosingEngine {
             .reason +=
             "Eventual BG \(convertGlucose(profile: profile, glucose: eventualGlucose)) < \(convertGlucose(profile: profile, glucose: minGlucose))"
 
-        // if 5m or 30m avg BG is rising faster than expected delta
+        // if 5m or 30m avg glucose is rising faster than expected delta
         // BUG: in JS it's doing a "truthiness" check for carbs required
         //      but if you get a negative carbsRequired it will evaluate
         //      to true when it should be false (negative carbs required
@@ -447,7 +445,7 @@ enum DosingEngine {
             }
         }
 
-        // calculate 30m low-temp required to get projected BG up to target
+        // calculate 30m low-temp required to get projected glucose up to target
         var insulinRequired = 2 * min(0, (eventualGlucose - targetGlucose) / adjustedSensitivity)
         insulinRequired = insulinRequired.jsRounded(scale: 2)
 
