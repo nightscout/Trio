@@ -37,7 +37,7 @@ extension Treatments {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
             formatter.maximumIntegerDigits = 2
-            formatter.maximumFractionDigits = 2
+            formatter.maximumFractionDigits = 3
             return formatter
         }
 

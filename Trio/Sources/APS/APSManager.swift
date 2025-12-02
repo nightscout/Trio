@@ -19,6 +19,8 @@ protocol APSManager {
     var bolusProgress: CurrentValueSubject<Decimal?, Never> { get }
     var pumpExpiresAtDate: CurrentValueSubject<Date?, Never> { get }
     var isManualTempBasal: Bool { get }
+    var isScheduledBasal: Bool? { get }
+    var isSuspended: Bool { get }
     func enactTempBasal(rate: Double, duration: TimeInterval) async
     func determineBasal() async throws
     func determineBasalSync() async throws
@@ -104,6 +106,10 @@ final class BaseAPSManager: APSManager, Injectable {
 
     @Persisted(key: "isManualTempBasal") var isManualTempBasal: Bool = false
 
+    @Persisted(key: "isScheduledBasal") var isScheduledBasal: Bool? = false
+
+    @Persisted(key: "isSuspended") var isSuspended: Bool = false
+
     let isLooping = CurrentValueSubject<Bool, Never>(false)
     let lastLoopDateSubject = PassthroughSubject<Date, Never>()
     let lastError = CurrentValueSubject<Error?, Never>(nil)
@@ -183,7 +189,21 @@ final class BaseAPSManager: APSManager, Injectable {
             }
             .store(in: &lifetime)
 
-        // manage a manual Temp Basal from OmniPod - Force loop() after stop a temp basal or finished
+        deviceDataManager.scheduledBasal
+            .receive(on: processQueue)
+            .sink { scheduledBasal in
+                self.isScheduledBasal = scheduledBasal
+            }
+            .store(in: &lifetime)
+
+        deviceDataManager.suspended
+            .receive(on: processQueue)
+            .sink { suspended in
+                self.isSuspended = suspended
+            }
+            .store(in: &lifetime)
+
+        // manage a manual Temp Basal from PumpManager - force loop() after manual temp basal is cancelled or finishes
         deviceDataManager.manualTempBasal
             .receive(on: processQueue)
             .sink { manualBasal in

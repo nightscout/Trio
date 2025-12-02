@@ -113,6 +113,12 @@ extension BasalProfileEditor {
                         // Successfully saved and synced
                         self.initialItems = self.items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
 
+                        DispatchQueue.main.async {
+                            self.broadcaster.notify(BasalProfileObserver.self, on: .main) {
+                                $0.basalProfileDidChange(profile)
+                            }
+                        }
+
                         Task.detached(priority: .low) {
                             do {
                                 debug(.nightscout, "Attempting to upload basal rates to Nightscout")
@@ -130,12 +136,6 @@ extension BasalProfileEditor {
                     print("We were successful")
                 }
                 .store(in: &lifetime)
-
-            DispatchQueue.main.async {
-                self.broadcaster.notify(BasalProfileObserver.self, on: .main) {
-                    $0.basalProfileDidChange(profile)
-                }
-            }
         }
 
         @MainActor func validate() {
