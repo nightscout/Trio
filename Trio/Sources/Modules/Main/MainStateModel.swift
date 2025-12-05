@@ -283,6 +283,14 @@ extension Main {
                     self.router.mainSecondaryModalView.send(nil)
                 }
                 .store(in: &lifetime)
+
+            // Subscribe to BarcodeAI shortcut notification
+            Foundation.NotificationCenter.default.publisher(for: .openBarcodeAI)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    self?.router.mainModalScreen.send(.barcodeAiView)
+                }
+                .store(in: &lifetime)
         }
     }
 }
