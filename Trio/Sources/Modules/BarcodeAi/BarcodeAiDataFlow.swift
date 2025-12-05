@@ -1,11 +1,5 @@
-enum BarcodeAi {
-    enum Config {
-        static let geminiApiKeyKey = "BarcodeAi.geminiApiKey"
-    }
+enum BarcodeScanner {
+    enum Config {}
 }
 
-protocol BarcodeAiProvider: Provider {}
-
-protocol BarcodeScannerPreviewCoordinator: AnyObject {
-    func capturePhoto()
-}
+protocol BarcodeScannerProvider: Provider {}

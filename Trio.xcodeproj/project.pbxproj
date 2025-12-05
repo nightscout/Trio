@@ -10,11 +10,9 @@
 		041D1E995A6AE92E9289DC49 /* TreatmentsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */; };
 		0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5822B15939E719628E9FF7C /* SnoozeRootView.swift */; };
 		09A169602EE302EB0026711C /* BarcodeAiDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695B2EE302EB0026711C /* BarcodeAiDataFlow.swift */; };
-		09A169612EE302EB0026711C /* BarcodeAiStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695E2EE302EB0026711C /* BarcodeAiStateModel.swift */; };
-		09A169622EE302EB0026711C /* BarcodeAiSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695D2EE302EB0026711C /* BarcodeAiSettingsStateModel.swift */; };
-		09A169632EE302EB0026711C /* BarcodeAiSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169592EE302EB0026711C /* BarcodeAiSettingsView.swift */; };
-		09A169642EE302EB0026711C /* BarcodeAiProvider.swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695C2EE302EB0026711C /* BarcodeAiProvider.swift.swift */; };
-		09A169652EE302EB0026711C /* BarcodeAiRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169582EE302EB0026711C /* BarcodeAiRootView.swift */; };
+		09A169612EE302EB0026711C /* BarcodeScannerStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695E2EE302EB0026711C /* BarcodeScannerStateModel.swift */; };
+		09A169642EE302EB0026711C /* BarcodeAiProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695C2EE302EB0026711C /* BarcodeAiProvider.swift */; };
+		09A169652EE302EB0026711C /* BarcodeScannerRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169582EE302EB0026711C /* BarcodeScannerRootView.swift */; };
 		09A169682EE3030D0026711C /* OpenBarcodeAIIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169662EE3030D0026711C /* OpenBarcodeAIIntent.swift */; };
 		0D9A5E34A899219C5C4CDFAF /* DataTableStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9455FA2D92E77A6C4AFED8A3 /* DataTableStateModel.swift */; };
 		0F7A65FBD2CD8D6477ED4539 /* GlucoseNotificationSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E625985B47742D498CB1681A /* GlucoseNotificationSettingsProvider.swift */; };
@@ -847,12 +845,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		09A169582EE302EB0026711C /* BarcodeAiRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeAiRootView.swift; sourceTree = "<group>"; };
-		09A169592EE302EB0026711C /* BarcodeAiSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeAiSettingsView.swift; sourceTree = "<group>"; };
+		09A169582EE302EB0026711C /* BarcodeScannerRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerRootView.swift; sourceTree = "<group>"; };
 		09A1695B2EE302EB0026711C /* BarcodeAiDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeAiDataFlow.swift; sourceTree = "<group>"; };
-		09A1695C2EE302EB0026711C /* BarcodeAiProvider.swift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeAiProvider.swift.swift; sourceTree = "<group>"; };
-		09A1695D2EE302EB0026711C /* BarcodeAiSettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeAiSettingsStateModel.swift; sourceTree = "<group>"; };
-		09A1695E2EE302EB0026711C /* BarcodeAiStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeAiStateModel.swift; sourceTree = "<group>"; };
+		09A1695C2EE302EB0026711C /* BarcodeAiProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeAiProvider.swift; sourceTree = "<group>"; };
+		09A1695E2EE302EB0026711C /* BarcodeScannerStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerStateModel.swift; sourceTree = "<group>"; };
 		09A169662EE3030D0026711C /* OpenBarcodeAIIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenBarcodeAIIntent.swift; sourceTree = "<group>"; };
 		110AEDE02C5193D100615CC9 /* BolusIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntent.swift; sourceTree = "<group>"; };
 		110AEDE12C5193D100615CC9 /* BolusIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntentRequest.swift; sourceTree = "<group>"; };
@@ -1679,8 +1675,7 @@
 		09A1695A2EE302EB0026711C /* View */ = {
 			isa = PBXGroup;
 			children = (
-				09A169582EE302EB0026711C /* BarcodeAiRootView.swift */,
-				09A169592EE302EB0026711C /* BarcodeAiSettingsView.swift */,
+				09A169582EE302EB0026711C /* BarcodeScannerRootView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -1690,9 +1685,8 @@
 			children = (
 				09A1695A2EE302EB0026711C /* View */,
 				09A1695B2EE302EB0026711C /* BarcodeAiDataFlow.swift */,
-				09A1695C2EE302EB0026711C /* BarcodeAiProvider.swift.swift */,
-				09A1695D2EE302EB0026711C /* BarcodeAiSettingsStateModel.swift */,
-				09A1695E2EE302EB0026711C /* BarcodeAiStateModel.swift */,
+				09A1695C2EE302EB0026711C /* BarcodeAiProvider.swift */,
+				09A1695E2EE302EB0026711C /* BarcodeScannerStateModel.swift */,
 			);
 			path = BarcodeAi;
 			sourceTree = "<group>";
@@ -4675,11 +4669,9 @@
 				DD3F1F832D9DC78800DCE7B3 /* UnitSelectionStepView.swift in Sources */,
 				DD09D47D2C5986DA003FEA5D /* CalendarEventSettingsProvider.swift in Sources */,
 				09A169602EE302EB0026711C /* BarcodeAiDataFlow.swift in Sources */,
-				09A169612EE302EB0026711C /* BarcodeAiStateModel.swift in Sources */,
-				09A169622EE302EB0026711C /* BarcodeAiSettingsStateModel.swift in Sources */,
-				09A169632EE302EB0026711C /* BarcodeAiSettingsView.swift in Sources */,
-				09A169642EE302EB0026711C /* BarcodeAiProvider.swift.swift in Sources */,
-				09A169652EE302EB0026711C /* BarcodeAiRootView.swift in Sources */,
+				09A169612EE302EB0026711C /* BarcodeScannerStateModel.swift in Sources */,
+				09A169642EE302EB0026711C /* BarcodeAiProvider.swift in Sources */,
+				09A169652EE302EB0026711C /* BarcodeScannerRootView.swift in Sources */,
 				DD09D47B2C5986D1003FEA5D /* CalendarEventSettingsDataFlow.swift in Sources */,
 				DD1745202C55523E00211FAC /* SMBSettingsDataFlow.swift in Sources */,
 				D6D02515BBFBE64FEBE89856 /* DataTableRootView.swift in Sources */,
@@ -5012,7 +5004,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPER_TEAM = "$(DEVELOPER_TEAM)";
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
+				DEVELOPMENT_TEAM = R38MGGHZ58;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Trio/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -5057,7 +5049,7 @@
 				CURRENT_PROJECT_VERSION = $APP_BUILD_NUMBER;
 				DEVELOPER_TEAM = "$(DEVELOPER_TEAM)";
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
+				DEVELOPMENT_TEAM = R38MGGHZ58;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Trio/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -5092,7 +5084,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
+				DEVELOPMENT_TEAM = R38MGGHZ58;
 				INFOPLIST_FILE = TrioTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -5113,7 +5105,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
+				DEVELOPMENT_TEAM = R38MGGHZ58;
 				INFOPLIST_FILE = TrioTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -5138,7 +5130,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(APP_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
+				DEVELOPMENT_TEAM = R38MGGHZ58;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -5172,7 +5164,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(APP_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
+				DEVELOPMENT_TEAM = R38MGGHZ58;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -5206,7 +5198,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(APP_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
+				DEVELOPMENT_TEAM = R38MGGHZ58;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -5243,7 +5235,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(APP_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
+				DEVELOPMENT_TEAM = R38MGGHZ58;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -5280,7 +5272,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(APP_BUILD_NUMBER)";
 				DEVELOPMENT_ASSET_PATHS = "\"Trio Watch App Extension/Preview Content\"";
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
+				DEVELOPMENT_TEAM = R38MGGHZ58;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -5317,7 +5309,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(APP_BUILD_NUMBER)";
 				DEVELOPMENT_ASSET_PATHS = "\"Trio Watch App Extension/Preview Content\"";
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
+				DEVELOPMENT_TEAM = R38MGGHZ58;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -5350,7 +5342,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(APP_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
+				DEVELOPMENT_TEAM = R38MGGHZ58;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -5376,7 +5368,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(APP_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
+				DEVELOPMENT_TEAM = R38MGGHZ58;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
