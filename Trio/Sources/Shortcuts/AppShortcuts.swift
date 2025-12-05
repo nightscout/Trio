@@ -75,5 +75,15 @@ struct AppShortcuts: AppShortcutsProvider {
             shortTitle: "Restart Live Activity",
             systemImageName: "arrow.clockwise.circle.fill"
         )
+        AppShortcut(
+            intent: OpenBarcodeAIIntent(),
+            phrases: [
+                "Open \(.applicationName) Barcode Scanner",
+                "Scan food with \(.applicationName)",
+                "\(.applicationName) food scanner"
+            ],
+            shortTitle: "Barcode AI Scanner",
+            systemImageName: "barcode.viewfinder"
+        )
     }
 }

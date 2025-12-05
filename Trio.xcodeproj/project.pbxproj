@@ -9,6 +9,13 @@
 /* Begin PBXBuildFile section */
 		041D1E995A6AE92E9289DC49 /* TreatmentsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */; };
 		0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5822B15939E719628E9FF7C /* SnoozeRootView.swift */; };
+		09A169602EE302EB0026711C /* BarcodeAiDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695B2EE302EB0026711C /* BarcodeAiDataFlow.swift */; };
+		09A169612EE302EB0026711C /* BarcodeAiStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695E2EE302EB0026711C /* BarcodeAiStateModel.swift */; };
+		09A169622EE302EB0026711C /* BarcodeAiSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695D2EE302EB0026711C /* BarcodeAiSettingsStateModel.swift */; };
+		09A169632EE302EB0026711C /* BarcodeAiSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169592EE302EB0026711C /* BarcodeAiSettingsView.swift */; };
+		09A169642EE302EB0026711C /* BarcodeAiProvider.swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695C2EE302EB0026711C /* BarcodeAiProvider.swift.swift */; };
+		09A169652EE302EB0026711C /* BarcodeAiRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169582EE302EB0026711C /* BarcodeAiRootView.swift */; };
+		09A169682EE3030D0026711C /* OpenBarcodeAIIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169662EE3030D0026711C /* OpenBarcodeAIIntent.swift */; };
 		0D9A5E34A899219C5C4CDFAF /* DataTableStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9455FA2D92E77A6C4AFED8A3 /* DataTableStateModel.swift */; };
 		0F7A65FBD2CD8D6477ED4539 /* GlucoseNotificationSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E625985B47742D498CB1681A /* GlucoseNotificationSettingsProvider.swift */; };
 		110AEDE32C5193D200615CC9 /* BolusIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE02C5193D100615CC9 /* BolusIntent.swift */; };
@@ -840,6 +847,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		09A169582EE302EB0026711C /* BarcodeAiRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeAiRootView.swift; sourceTree = "<group>"; };
+		09A169592EE302EB0026711C /* BarcodeAiSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeAiSettingsView.swift; sourceTree = "<group>"; };
+		09A1695B2EE302EB0026711C /* BarcodeAiDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeAiDataFlow.swift; sourceTree = "<group>"; };
+		09A1695C2EE302EB0026711C /* BarcodeAiProvider.swift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeAiProvider.swift.swift; sourceTree = "<group>"; };
+		09A1695D2EE302EB0026711C /* BarcodeAiSettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeAiSettingsStateModel.swift; sourceTree = "<group>"; };
+		09A1695E2EE302EB0026711C /* BarcodeAiStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeAiStateModel.swift; sourceTree = "<group>"; };
+		09A169662EE3030D0026711C /* OpenBarcodeAIIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenBarcodeAIIntent.swift; sourceTree = "<group>"; };
 		110AEDE02C5193D100615CC9 /* BolusIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntent.swift; sourceTree = "<group>"; };
 		110AEDE12C5193D100615CC9 /* BolusIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntentRequest.swift; sourceTree = "<group>"; };
 		110AEDE52C51A0AE00615CC9 /* ShortcutsConfigView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigView.swift; sourceTree = "<group>"; };
@@ -1662,6 +1676,35 @@
 			path = ConfigEditor;
 			sourceTree = "<group>";
 		};
+		09A1695A2EE302EB0026711C /* View */ = {
+			isa = PBXGroup;
+			children = (
+				09A169582EE302EB0026711C /* BarcodeAiRootView.swift */,
+				09A169592EE302EB0026711C /* BarcodeAiSettingsView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		09A1695F2EE302EB0026711C /* BarcodeAi */ = {
+			isa = PBXGroup;
+			children = (
+				09A1695A2EE302EB0026711C /* View */,
+				09A1695B2EE302EB0026711C /* BarcodeAiDataFlow.swift */,
+				09A1695C2EE302EB0026711C /* BarcodeAiProvider.swift.swift */,
+				09A1695D2EE302EB0026711C /* BarcodeAiSettingsStateModel.swift */,
+				09A1695E2EE302EB0026711C /* BarcodeAiStateModel.swift */,
+			);
+			path = BarcodeAi;
+			sourceTree = "<group>";
+		};
+		09A169672EE3030D0026711C /* BarcodeAI */ = {
+			isa = PBXGroup;
+			children = (
+				09A169662EE3030D0026711C /* OpenBarcodeAIIntent.swift */,
+			);
+			path = BarcodeAI;
+			sourceTree = "<group>";
+		};
 		0A67A70F9438DB6586398458 /* View */ = {
 			isa = PBXGroup;
 			children = (
@@ -1888,6 +1931,7 @@
 				DDF690FE2DA2C9EE008BF16C /* AppDiagnostics */,
 				DD1745422C55C5C400211FAC /* AutosensSettings */,
 				A42F1FEDFFD0DDE00AAD54D3 /* BasalProfileEditor */,
+				09A1695F2EE302EB0026711C /* BarcodeAi */,
 				3811DE0425C9D32E00A708ED /* Base */,
 				BD7DA9A32AE06DBA00601B20 /* BolusCalculatorConfig */,
 				DD09D4792C5986BA003FEA5D /* CalendarEventSettings */,
@@ -3082,6 +3126,7 @@
 				DD4C57A42D73ADDA001BFF2C /* LiveActivity */,
 				118DF7692C5ECBC60067FEB7 /* Override */,
 				110AEDE22C5193D100615CC9 /* Bolus */,
+				09A169672EE3030D0026711C /* BarcodeAI */,
 				CE1856F32ADC4835007E39C7 /* Carbs */,
 				CE7CA3432A064973004BE681 /* AppShortcuts.swift */,
 				CE7CA3442A064973004BE681 /* BaseIntentsRequest.swift */,
@@ -4168,6 +4213,7 @@
 				DD1745262C55526F00211FAC /* SMBSettingsRootView.swift in Sources */,
 				3811DE3025C9D49500A708ED /* HomeStateModel.swift in Sources */,
 				38BF021725E7CBBC00579895 /* PumpManagerExtensions.swift in Sources */,
+				09A169682EE3030D0026711C /* OpenBarcodeAIIntent.swift in Sources */,
 				118DF76E2C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift in Sources */,
 				CEE9A6552BBB418300EB5194 /* CalibrationsProvider.swift in Sources */,
 				19F95FF529F10FCF00314DDC /* StatProvider.swift in Sources */,
@@ -4628,6 +4674,12 @@
 				195D80B92AF697F700D25097 /* DynamicSettingsProvider.swift in Sources */,
 				DD3F1F832D9DC78800DCE7B3 /* UnitSelectionStepView.swift in Sources */,
 				DD09D47D2C5986DA003FEA5D /* CalendarEventSettingsProvider.swift in Sources */,
+				09A169602EE302EB0026711C /* BarcodeAiDataFlow.swift in Sources */,
+				09A169612EE302EB0026711C /* BarcodeAiStateModel.swift in Sources */,
+				09A169622EE302EB0026711C /* BarcodeAiSettingsStateModel.swift in Sources */,
+				09A169632EE302EB0026711C /* BarcodeAiSettingsView.swift in Sources */,
+				09A169642EE302EB0026711C /* BarcodeAiProvider.swift.swift in Sources */,
+				09A169652EE302EB0026711C /* BarcodeAiRootView.swift in Sources */,
 				DD09D47B2C5986D1003FEA5D /* CalendarEventSettingsDataFlow.swift in Sources */,
 				DD1745202C55523E00211FAC /* SMBSettingsDataFlow.swift in Sources */,
 				D6D02515BBFBE64FEBE89856 /* DataTableRootView.swift in Sources */,

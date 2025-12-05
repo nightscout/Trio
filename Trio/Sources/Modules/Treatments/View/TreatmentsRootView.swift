@@ -16,6 +16,10 @@ extension Treatments {
         @FocusState private var focusedField: FocusedField?
 
         let resolver: Resolver
+        let initialCarbs: Decimal?
+        let initialFat: Decimal?
+        let initialProtein: Decimal?
+        let initialNote: String?
 
         @State var state = StateModel()
 
@@ -184,6 +188,20 @@ extension Treatments {
             }
         }
 
+        init(
+            resolver: Resolver,
+            initialCarbs: Decimal? = nil,
+            initialFat: Decimal? = nil,
+            initialProtein: Decimal? = nil,
+            initialNote: String? = nil
+        ) {
+            self.resolver = resolver
+            self.initialCarbs = initialCarbs
+            self.initialFat = initialFat
+            self.initialProtein = initialProtein
+            self.initialNote = initialNote
+        }
+
         var body: some View {
             ZStack(alignment: .center) {
                 VStack {
@@ -245,7 +263,7 @@ extension Treatments {
                                 TextFieldWithToolBarString(
                                     text: $state.note,
                                     placeholder: String(localized: "Note..."),
-                                    maxLength: 25
+                                    maxLength: 100
                                 )
                             }
                         }.listRowBackground(Color.chart)
@@ -388,6 +406,18 @@ extension Treatments {
             .onAppear {
                 configureView {
                     state.isActive = true
+                    if let initialCarbs {
+                        state.carbs = initialCarbs
+                    }
+                    if let initialFat {
+                        state.fat = initialFat
+                    }
+                    if let initialProtein {
+                        state.protein = initialProtein
+                    }
+                    if let initialNote {
+                        state.note = initialNote
+                    }
                     Task { @MainActor in
                         state.insulinCalculated = await state.calculateInsulin()
                     }
