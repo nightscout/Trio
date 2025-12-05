@@ -155,6 +155,7 @@ enum DeterminationGenerator {
         }
 
         var basal = profile.currentBasal ?? profile.basalFor(time: currentTime)
+        basal *= trioCustomOrefVariables.overrideFactor()
         if dynamicIsfResult == nil {
             basal = computeAdjustedBasal(
                 profile: profile,
