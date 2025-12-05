@@ -2,11 +2,11 @@ import AVFoundation
 import SwiftUI
 import Swinject
 
-extension BarcodeAi {
+extension BarcodeScanner {
     struct RootView: BaseView {
         let resolver: Resolver
 
-        @StateObject var state = StateModel()
+        @State var state = StateModel()
 
         @Environment(AppState.self) var appState
         @Environment(\.colorScheme) var colorScheme
@@ -31,11 +31,11 @@ extension BarcodeAi {
                 }
             }
             .background(appState.trioBackgroundColor(for: colorScheme))
-            .navigationTitle("Barcode AI")
+            .navigationTitle(String(localized: "Barcode Scanner"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(content: {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Close", action: state.hideModal)
+                    Button(String(localized: "Close"), action: state.hideModal)
                 }
             })
             .onAppear {
@@ -46,12 +46,12 @@ extension BarcodeAi {
 
         private var header: some View {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Barcode AI")
+                Text("Barcode Scanner")
                     .font(.title)
                     .bold()
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Scan EAN/UPC barcodes or use AI image analysis to identify packaged foods.")
+                    Text("Scan EAN/UPC barcodes to identify packaged foods.")
                 }
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -70,15 +70,12 @@ extension BarcodeAi {
                     VStack(spacing: 0) {
                         ZStack {
                             BarcodeScannerPreview(
-                                isRunning: $state.isScanning,
+                                isRunning: Binding(
+                                    get: { state.isScanning },
+                                    set: { state.isScanning = $0 }
+                                ),
                                 onDetected: { state.didDetect(barcode: $0) },
-                                onFailure: state.reportScannerIssue,
-                                onPhotoCaptured: { image in
-                                    state.analyzeImageWithGemini(image)
-                                },
-                                onCoordinatorReady: { coordinator in
-                                    state.setCameraCoordinator(coordinator)
-                                }
+                                onFailure: state.reportScannerIssue
                             )
                             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                             .overlay(
@@ -88,25 +85,8 @@ extension BarcodeAi {
                             )
                             .padding(.horizontal)
 
-                            // Overlay when analyzing
-                            if state.isAnalyzingImage {
-                                Color.black.opacity(0.6)
-                                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                                    .padding(.horizontal)
-                                    .overlay(
-                                        VStack(spacing: 12) {
-                                            ProgressView()
-                                                .scaleEffect(1.5)
-                                                .tint(.white)
-                                            Text("Analyzing with AI...")
-                                                .font(.headline)
-                                                .foregroundStyle(.white)
-                                        }
-                                    )
-                            }
-
                             // Scanning indicator overlay
-                            if state.isScanning && !state.isAnalyzingImage {
+                            if state.isScanning {
                                 VStack {
                                     Spacer()
                                     HStack {
@@ -125,25 +105,8 @@ extension BarcodeAi {
                         }
                         .frame(height: max(minScannerHeight, maxScannerHeight))
 
-                        // Single row of action buttons
+                        // Action buttons
                         HStack(spacing: 12) {
-                            // AI Analyze button
-                            Button {
-                                state.capturePhoto()
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "sparkles")
-                                    Text("AI Analyze")
-                                }
-                                .font(.subheadline.weight(.semibold))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 4)
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(.tabBar)
-                            .disabled(state.isAnalyzingImage)
-
-                            // Resume/Pause scanning button
                             Button {
                                 if state.isScanning {
                                     state.isScanning = false
@@ -161,14 +124,13 @@ extension BarcodeAi {
                             }
                             .buttonStyle(.borderedProminent)
                             .tint(.insulin)
-                            .disabled(state.isAnalyzingImage)
                         }
                         .padding(.horizontal)
                         .padding(.vertical, 12)
                         .padding(.bottom, 8)
                     }
                 case .notDetermined:
-                    ProgressView("Requesting camera access…")
+                    ProgressView(String(localized: "Requesting camera access…"))
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(.thinMaterial)
@@ -176,9 +138,9 @@ extension BarcodeAi {
                         .padding(.horizontal)
                 default:
                     VStack(alignment: .leading, spacing: 8) {
-                        Label("Enable camera access to start scanning.", systemImage: "lock.shield")
+                        Label(String(localized: "Enable camera access to start scanning."), systemImage: "lock.shield")
                             .font(.subheadline)
-                        Button("Open Settings", action: state.openAppSettings)
+                        Button(String(localized: "Open Settings"), action: state.openAppSettings)
                             .buttonStyle(.borderedProminent)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -203,16 +165,14 @@ extension BarcodeAi {
                         )
                     }
 
-                    if !state.scannedProducts.isEmpty {
-                        Button {
-                            state.openInTreatments()
-                        } label: {
-                            Label("Use in bolus calculator", systemImage: "arrow.right.circle.fill")
-                                .font(.footnote.weight(.semibold))
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
+                    Button {
+                        state.openInTreatments()
+                    } label: {
+                        Label(String(localized: "Use in bolus calculator"), systemImage: "arrow.right.circle.fill")
+                            .font(.footnote.weight(.semibold))
+                            .frame(maxWidth: .infinity)
                     }
+                    .buttonStyle(.borderedProminent)
                 }
             }
         }
@@ -220,7 +180,7 @@ extension BarcodeAi {
         @ViewBuilder private var lastScanSection: some View {
             if let barcode = state.scannedBarcode {
                 VStack(alignment: .leading, spacing: 8) {
-                    Label("Last scanned item", systemImage: "barcode")
+                    Label(String(localized: "Last scanned item"), systemImage: "barcode")
                         .font(.headline)
                     Text(barcode)
                         .font(.system(.body, design: .monospaced))
@@ -234,10 +194,10 @@ extension BarcodeAi {
 
         @ViewBuilder private var productSection: some View {
             if state.isFetchingProduct {
-                ProgressView("Looking up product…")
+                ProgressView(String(localized: "Looking up product…"))
                     .frame(maxWidth: .infinity)
             } else if let product = state.product {
-                ProductDetailsView(product: product, capturedImage: state.lastCapturedImage)
+                ProductDetailsView(product: product)
             }
         }
 
@@ -258,20 +218,12 @@ extension BarcodeAi {
 // MARK: - Product Details
 
 private struct ProductDetailsView: View {
-    let product: BarcodeAi.OpenFoodFactsProduct
-    var capturedImage: UIImage? = nil
+    let product: BarcodeScanner.OpenFoodFactsProduct
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .top, spacing: 16) {
-                // Priority: 1. Captured image, 2. Product URL image, 3. Placeholder
-                if let capturedImage = capturedImage {
-                    Image(uiImage: capturedImage)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 88, height: 88)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                } else if let imageURL = product.imageURL {
+                if let imageURL = product.imageURL {
                     AsyncImage(url: imageURL) { phase in
                         switch phase {
                         case let .success(image):
@@ -340,9 +292,11 @@ private struct ProductDetailsView: View {
     }
 }
 
+// MARK: - Scanned Product Row
+
 private struct ScannedProductRow: View {
-    let item: BarcodeAi.ScannedProductItem
-    @ObservedObject var state: BarcodeAi.StateModel
+    let item: BarcodeScanner.ScannedProductItem
+    var state: BarcodeScanner.StateModel
 
     @State private var amountText: String = ""
     @State private var isMlInput: Bool = false
@@ -352,14 +306,7 @@ private struct ScannedProductRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 12) {
-                // Priority: 1. Captured image, 2. Product URL image, 3. Placeholder
-                if let capturedImage = item.capturedImage {
-                    Image(uiImage: capturedImage)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 60, height: 60)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                } else if let imageURL = item.product.imageURL {
+                if let imageURL = item.product.imageURL {
                     AsyncImage(url: imageURL) { phase in
                         switch phase {
                         case let .success(image):
@@ -402,13 +349,13 @@ private struct ScannedProductRow: View {
 
             HStack(spacing: 12) {
                 TextField(
-                    "Amount",
+                    String(localized: "Amount"),
                     text: $amountText
                 )
                 .keyboardType(.decimalPad)
                 .textFieldStyle(.roundedBorder)
                 .focused($isTextFieldFocused)
-                .onChange(of: amountText) { newValue in
+                .onChange(of: amountText) { _, newValue in
                     if let amount = Double(newValue.replacingOccurrences(of: ",", with: ".")) {
                         state.updateScannedProductAmount(item, amount: amount, isMlInput: isMlInput)
                     }
@@ -431,7 +378,7 @@ private struct ScannedProductRow: View {
                 }
                 .pickerStyle(.segmented)
                 .frame(width: 100)
-                .onChange(of: isMlInput) { newValue in
+                .onChange(of: isMlInput) { _, newValue in
                     if let amount = Double(amountText.replacingOccurrences(of: ",", with: ".")) {
                         state.updateScannedProductAmount(item, amount: amount, isMlInput: newValue)
                     }
@@ -493,10 +440,10 @@ private struct ScannedProductRow: View {
         .onAppear {
             updateFromItem()
         }
-        .onChange(of: item.amount) { _ in
+        .onChange(of: item.amount) { _, _ in
             updateFromItem()
         }
-        .onChange(of: item.isMlInput) { _ in
+        .onChange(of: item.isMlInput) { _, _ in
             updateFromItem()
         }
     }
@@ -536,21 +483,23 @@ private struct ScannedProductRow: View {
     }
 }
 
+// MARK: - Nutriment Grid
+
 private struct NutrimentGrid: View {
-    let nutriments: BarcodeAi.OpenFoodFactsProduct.Nutriments
+    let nutriments: BarcodeScanner.OpenFoodFactsProduct.Nutriments
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Per 100g")
+            Text("Per 100\(nutriments.basis == .per100ml ? "ml" : "g")")
                 .font(.subheadline.weight(.semibold))
 
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 2), spacing: 12) {
-                NutrimentTile(title: "Energy (kcal)", value: nutriments.energyKcalPer100g, unit: "kcal")
-                NutrimentTile(title: "Carbs", value: nutriments.carbohydratesPer100g, unit: "g")
-                NutrimentTile(title: "Sugars", value: nutriments.sugarsPer100g, unit: "g")
-                NutrimentTile(title: "Fat", value: nutriments.fatPer100g, unit: "g")
-                NutrimentTile(title: "Protein", value: nutriments.proteinPer100g, unit: "g")
-                NutrimentTile(title: "Fiber", value: nutriments.fiberPer100g, unit: "g")
+                NutrimentTile(title: String(localized: "Energy (kcal)"), value: nutriments.energyKcalPer100g, unit: "kcal")
+                NutrimentTile(title: String(localized: "Carbs"), value: nutriments.carbohydratesPer100g, unit: "g")
+                NutrimentTile(title: String(localized: "Sugars"), value: nutriments.sugarsPer100g, unit: "g")
+                NutrimentTile(title: String(localized: "Fat"), value: nutriments.fatPer100g, unit: "g")
+                NutrimentTile(title: String(localized: "Protein"), value: nutriments.proteinPer100g, unit: "g")
+                NutrimentTile(title: String(localized: "Fiber"), value: nutriments.fiberPer100g, unit: "g")
             }
         }
     }
@@ -588,17 +537,13 @@ private struct BarcodeScannerPreview: UIViewRepresentable {
     var supportedTypes: [AVMetadataObject.ObjectType] = [.ean13, .ean8, .upce, .code128, .code39]
     let onDetected: (String) -> Void
     let onFailure: (String) -> Void
-    let onPhotoCaptured: (UIImage) -> Void
-    let onCoordinatorReady: (BarcodeScannerPreviewCoordinator) -> Void
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
             isRunning: $isRunning,
             supportedTypes: supportedTypes,
             onDetected: onDetected,
-            onFailure: onFailure,
-            onPhotoCaptured: onPhotoCaptured,
-            onCoordinatorReady: onCoordinatorReady
+            onFailure: onFailure
         )
     }
 
@@ -616,91 +561,31 @@ private struct BarcodeScannerPreview: UIViewRepresentable {
         coordinator.cleanup()
     }
 
-    final class Coordinator: NSObject, AVCaptureMetadataOutputObjectsDelegate, AVCapturePhotoCaptureDelegate,
-        BarcodeScannerPreviewCoordinator
-    {
+    final class Coordinator: NSObject, AVCaptureMetadataOutputObjectsDelegate {
         private var isRunning: Binding<Bool>
         private let supportedTypes: [AVMetadataObject.ObjectType]
         private let onDetected: (String) -> Void
         private let onFailure: (String) -> Void
-        private let onPhotoCaptured: (UIImage) -> Void
-        private let onCoordinatorReady: (BarcodeScannerPreviewCoordinator) -> Void
 
         private let session = AVCaptureSession()
         private let metadataOutput = AVCaptureMetadataOutput()
-        private var photoOutput: AVCapturePhotoOutput?
-        private var captureDevice: AVCaptureDevice?
         private var isConfigured = false
-        private var isCaptureInProgress = false
 
         init(
             isRunning: Binding<Bool>,
             supportedTypes: [AVMetadataObject.ObjectType],
             onDetected: @escaping (String) -> Void,
-            onFailure: @escaping (String) -> Void,
-            onPhotoCaptured: @escaping (UIImage) -> Void,
-            onCoordinatorReady: @escaping (BarcodeScannerPreviewCoordinator) -> Void
+            onFailure: @escaping (String) -> Void
         ) {
             self.isRunning = isRunning
             self.supportedTypes = supportedTypes
             self.onDetected = onDetected
             self.onFailure = onFailure
-            self.onPhotoCaptured = onPhotoCaptured
-            self.onCoordinatorReady = onCoordinatorReady
             super.init()
         }
 
-        func capturePhoto() {
-            print("[Camera] capturePhoto() called")
-            print("[Camera] photoOutput: \(photoOutput != nil), session.isRunning: \(session.isRunning)")
-
-            guard let photoOutput = photoOutput, session.isRunning else {
-                print(
-                    "[Camera] ERROR: Camera not ready - photoOutput: \(photoOutput != nil), session.isRunning: \(session.isRunning)"
-                )
-                DispatchQueue.main.async {
-                    self.isCaptureInProgress = false
-                    self.onFailure("Camera is not ready. Please wait for the camera to start.")
-                }
-                return
-            }
-
-            print("[Camera] Requesting photo capture...")
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                guard let self else {
-                    print("[Camera] ERROR: self is nil")
-                    return
-                }
-
-                print("[Camera] Creating photo settings...")
-                var settings = AVCapturePhotoSettings()
-
-                // Set photo quality
-                settings.isHighResolutionPhotoEnabled = false
-                settings.isAutoStillImageStabilizationEnabled = true
-
-                // Configure format if available
-                if photoOutput.availablePhotoCodecTypes.contains(.jpeg) {
-                    print("[Camera] Setting JPEG format")
-                    let format: [String: Any] = [
-                        AVVideoCodecKey: AVVideoCodecType.jpeg
-                    ]
-                    settings = AVCapturePhotoSettings(format: format)
-                }
-
-                // Configure flash
-                if photoOutput.supportedFlashModes.contains(.off) {
-                    settings.flashMode = .off
-                }
-
-                print("[Camera] Calling photoOutput.capturePhoto()...")
-                photoOutput.capturePhoto(with: settings, delegate: self)
-                print("[Camera] capturePhoto() call completed")
-            }
-        }
-
         func cleanup() {
-            // Stop session on background thread to avoid blocking UI and Fig errors
+            // Stop session on background thread to avoid blocking UI
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 guard let self = self, self.session.isRunning else { return }
                 self.session.stopRunning()
@@ -712,9 +597,6 @@ private struct BarcodeScannerPreview: UIViewRepresentable {
             view.videoPreviewLayer.session = session
             view.videoPreviewLayer.videoGravity = .resizeAspectFill
             setRunning(isRunning.wrappedValue)
-
-            // Call the callback to let StateModel know the coordinator is ready
-            onCoordinatorReady(self)
         }
 
         func setRunning(_: Bool) {
@@ -733,29 +615,27 @@ private struct BarcodeScannerPreview: UIViewRepresentable {
             session.sessionPreset = .high
 
             guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
-                onFailure("Camera is not available on this device.")
+                onFailure(String(localized: "Camera is not available on this device."))
                 session.commitConfiguration()
                 return
             }
 
-            captureDevice = device
-
             do {
                 let input = try AVCaptureDeviceInput(device: device)
                 guard session.canAddInput(input) else {
-                    onFailure("Unable to use the back camera.")
+                    onFailure(String(localized: "Unable to use the back camera."))
                     session.commitConfiguration()
                     return
                 }
                 session.addInput(input)
             } catch {
-                onFailure("Failed to configure camera: \(error.localizedDescription)")
+                onFailure(String(localized: "Failed to configure camera: \(error.localizedDescription)"))
                 session.commitConfiguration()
                 return
             }
 
             guard session.canAddOutput(metadataOutput) else {
-                onFailure("Unable to read barcodes on this device.")
+                onFailure(String(localized: "Unable to read barcodes on this device."))
                 session.commitConfiguration()
                 return
             }
@@ -763,13 +643,6 @@ private struct BarcodeScannerPreview: UIViewRepresentable {
             session.addOutput(metadataOutput)
             metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
             metadataOutput.metadataObjectTypes = supportedTypes
-
-            // Add photo output for capturing images
-            let photoOutput = AVCapturePhotoOutput()
-            if session.canAddOutput(photoOutput) {
-                session.addOutput(photoOutput)
-                self.photoOutput = photoOutput
-            }
 
             session.commitConfiguration()
             isConfigured = true
@@ -779,13 +652,6 @@ private struct BarcodeScannerPreview: UIViewRepresentable {
             guard !session.isRunning else { return }
             DispatchQueue.global(qos: .userInitiated).async {
                 self.session.startRunning()
-            }
-        }
-
-        private func stopSession() {
-            guard session.isRunning else { return }
-            DispatchQueue.global(qos: .userInitiated).async {
-                self.session.stopRunning()
             }
         }
 
@@ -803,73 +669,6 @@ private struct BarcodeScannerPreview: UIViewRepresentable {
 
             // Don't stop scanning - the cooldown in StateModel handles rapid scanning prevention
             onDetected(stringValue)
-        }
-
-        // MARK: - AVCapturePhotoCaptureDelegate
-
-        func photoOutput(_: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-            print("[Camera] photoOutput:didFinishProcessingPhoto called")
-            defer {
-                DispatchQueue.main.async {
-                    self.isCaptureInProgress = false
-                    print("[Camera] Capture in progress reset to false")
-                }
-            }
-
-            if let error = error {
-                print("[Camera] ERROR in photo processing: \(error)")
-                DispatchQueue.main.async {
-                    self.onFailure("Failed to capture photo: Error code \(error._code) - \(error.localizedDescription)")
-                }
-                return
-            }
-
-            print("[Camera] Photo received, extracting data...")
-            // Try multiple ways to get image data
-            var imageData: Data?
-
-            // First try: fileDataRepresentation (preferred)
-            if let data = photo.fileDataRepresentation() {
-                print("[Camera] Using fileDataRepresentation: \(data.count) bytes")
-                imageData = data
-            }
-            // Second try: JPEG representation
-            else if let image = UIImage(data: photo.fileDataRepresentation() ?? Data()) {
-                print("[Camera] Converting to JPEG")
-                imageData = image.jpegData(compressionQuality: 0.8)
-            }
-
-            guard let data = imageData, let image = UIImage(data: data) else {
-                print("[Camera] ERROR: Unable to create image from data")
-                DispatchQueue.main.async {
-                    self.onFailure("Failed to convert captured photo to image")
-                }
-                return
-            }
-
-            print("[Camera] Image created: \(image.size)")
-            DispatchQueue.main.async {
-                print("[Camera] Calling onPhotoCaptured callback")
-                self.onPhotoCaptured(image)
-            }
-        }
-
-        func photoOutput(_: AVCapturePhotoOutput, didFinishCaptureFor _: AVCaptureResolvedPhotoSettings, error: Error?) {
-            print("[Camera] photoOutput:didFinishCaptureFor called")
-            defer {
-                DispatchQueue.main.async {
-                    self.isCaptureInProgress = false
-                }
-            }
-
-            if let error = error {
-                print("[Camera] ERROR in capture process: \(error)")
-                DispatchQueue.main.async {
-                    self.onFailure("Photo capture process failed: Error code \(error._code)")
-                }
-            } else {
-                print("[Camera] Photo capture process completed successfully")
-            }
         }
     }
 }

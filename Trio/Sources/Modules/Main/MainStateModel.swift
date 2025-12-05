@@ -284,11 +284,11 @@ extension Main {
                 }
                 .store(in: &lifetime)
 
-            // Subscribe to BarcodeAI shortcut notification
+            // Subscribe to BarcodeScanner shortcut notification
             Foundation.NotificationCenter.default.publisher(for: .openBarcodeAI)
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] _ in
-                    self?.router.mainModalScreen.send(.barcodeAiView)
+                    self?.router.mainModalScreen.send(.barcodeScanner)
                 }
                 .store(in: &lifetime)
         }

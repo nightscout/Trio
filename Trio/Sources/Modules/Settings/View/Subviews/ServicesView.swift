@@ -27,7 +27,6 @@ struct ServicesView: BaseView {
                     if HKHealthStore.isHealthDataAvailable() {
                         Text("Apple Health").navigationLink(to: .healthkit, from: self)
                     }
-                    Text("AI").navigationLink(to: .aiSettings, from: self)
                 }
             )
             .listRowBackground(Color.chart)

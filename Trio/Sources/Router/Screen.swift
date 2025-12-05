@@ -15,8 +15,9 @@ enum Screen: Identifiable, Hashable {
     case isfEditor
     case crEditor
     case targetsEditor
-    case barcodeAiView
+    case barcodeScanner
     case treatmentView(carbs: Decimal?, fat: Decimal?, protein: Decimal?, note: String?)
+    case barcodeScannerTreatment(carbs: Decimal, fat: Decimal, protein: Decimal, note: String)
     case manualTempBasal
     case dataTable
     case cgm
@@ -50,7 +51,6 @@ enum Screen: Identifiable, Hashable {
     case algorithmAdvancedSettings
     case unitsAndLimits
     case appDiagnostics
-    case aiSettings
 
     var id: Int { String(reflecting: self).hashValue }
 }
@@ -92,9 +92,17 @@ extension Screen {
             CarbRatioEditor.RootView(resolver: resolver)
         case .targetsEditor:
             TargetsEditor.RootView(resolver: resolver)
-        case .barcodeAiView:
-            BarcodeAi.RootView(resolver: resolver)
+        case .barcodeScanner:
+            BarcodeScanner.RootView(resolver: resolver)
         case let .treatmentView(carbs, fat, protein, note):
+            Treatments.RootView(
+                resolver: resolver,
+                initialCarbs: carbs,
+                initialFat: fat,
+                initialProtein: protein,
+                initialNote: note
+            )
+        case let .barcodeScannerTreatment(carbs, fat, protein, note):
             Treatments.RootView(
                 resolver: resolver,
                 initialCarbs: carbs,
@@ -172,8 +180,6 @@ extension Screen {
             UnitsLimitsSettings.RootView(resolver: resolver)
         case .appDiagnostics:
             AppDiagnostics.RootView(resolver: resolver)
-        case .aiSettings:
-            BarcodeAi.SettingsView(resolver: resolver)
         }
     }
 
