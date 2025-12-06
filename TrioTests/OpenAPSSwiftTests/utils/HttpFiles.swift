@@ -13,18 +13,23 @@ struct HttpFiles {
         let url = URL(string: "http://localhost:8123/list")!
         let (data, _) = try await URLSession.shared.data(from: url)
         let allFiles = try JSONDecoder().decode([String].self, from: data)
-        
+
         let files: [String]
         let env = ProcessInfo.processInfo.environment
-        if let offsetString = env["HTTP_FILES_OFFSET"], let lengthString = env["HTTP_FILES_LENGTH"], let offset = Int(offsetString), let length = Int(lengthString) {
+        if let offset = ReplayTests.filesOffset, let length = ReplayTests.filesLength
+        {
             // Both variables exist and are valid integers
             let endIndex = min(offset + length, allFiles.count)
             let startIndex = min(offset, allFiles.count)
-            files = Array(allFiles[startIndex..<endIndex])
+            files = Array(allFiles[startIndex ..< endIndex])
         } else {
             files = allFiles
         }
-        
+
+        if files.count > 5000 {
+            fatalError("too many files: \(files.count) \(ProcessInfo.processInfo.environment)")
+        }
+
         return files
     }
 
