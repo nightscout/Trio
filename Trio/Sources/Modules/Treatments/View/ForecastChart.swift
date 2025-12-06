@@ -75,6 +75,22 @@ struct ForecastChart: View {
             Spacer()
 
             HStack {
+                Text("IOB:")
+                Text(
+                    "\(Formatter.bolusFormatter.string(from: state.iob as NSNumber) ?? state.iob.description) "
+                ) + Text(String(localized: "U", comment: "Insulin unit"))
+            }
+            .font(.footnote)
+            .foregroundStyle(Color.insulin)
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.insulin.opacity(0.2))
+            }
+
+            Spacer()
+
+            HStack {
                 Image(systemName: "arrow.right.circle")
 
                 if let simulatedDetermination = state.simulatedDetermination, let eventualBG = simulatedDetermination.eventualBG {
