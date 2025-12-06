@@ -172,7 +172,7 @@ import Testing
             lastCarbTime: 0
         ),
         iobData: [IobResult],
-        overrideFactor: Decimal = 1.0,
+        trioCustomOrefVariables: TrioCustomOrefVariables? = nil,
         adjustedCarbRatio: Decimal = 10,
         basal: Decimal = 1.0,
         naiveEventualGlucose: Decimal = 120,
@@ -208,6 +208,34 @@ import Testing
             received: nil
         )
 
+        var finalTrioCustomOrefVariables: TrioCustomOrefVariables
+        if let customOrefVars = trioCustomOrefVariables {
+            finalTrioCustomOrefVariables = customOrefVars
+        } else {
+            finalTrioCustomOrefVariables = TrioCustomOrefVariables(
+                average_total_data: 0,
+                weightedAverage: 0,
+                currentTDD: 0,
+                past2hoursAverage: 0,
+                date: Date(),
+                overridePercentage: 100,
+                useOverride: false,
+                duration: 0,
+                unlimited: false,
+                overrideTarget: 0,
+                smbIsOff: false,
+                advancedSettings: false,
+                isfAndCr: false,
+                isf: false,
+                cr: false,
+                smbIsScheduledOff: false,
+                start: 0,
+                end: 0,
+                smbMinutes: 30,
+                uamMinutes: 30
+            )
+        }
+
         return try DosingEngine.determineSMBDelivery(
             insulinRequired: insulinRequired,
             microBolusAllowed: microBolusAllowed,
@@ -215,6 +243,7 @@ import Testing
             currentGlucose: currentGlucose,
             threshold: threshold,
             profile: profile,
+            trioCustomOrefVariables: finalTrioCustomOrefVariables,
             mealData: mealData,
             iobData: iobData,
             currentTime: Date(),
@@ -222,7 +251,6 @@ import Testing
             naiveEventualGlucose: naiveEventualGlucose,
             minIOBForecastedGlucose: minIOBForecastedGlucose,
             adjustedSensitivity: profile.sens ?? 40,
-            overrideFactor: overrideFactor,
             adjustedCarbRatio: adjustedCarbRatio,
             basal: basal,
             determination: determination
@@ -322,30 +350,114 @@ import Testing
         // insulinReq = 3.0
         // smb = min(3.0 * 0.5, 1.0) = min(1.5, 1.0) = 1.0
 
+        var customOrefVars = TrioCustomOrefVariables(
+            average_total_data: 0,
+            weightedAverage: 0,
+            currentTDD: 0,
+            past2hoursAverage: 0,
+            date: Date(),
+            overridePercentage: 200, // 2.0 * 100
+            useOverride: true,
+            duration: 0,
+            unlimited: false,
+            overrideTarget: 0,
+            smbIsOff: false,
+            advancedSettings: false,
+            isfAndCr: false,
+            isf: false,
+            cr: false,
+            smbIsScheduledOff: false,
+            start: 0,
+            end: 0,
+            smbMinutes: 30,
+            uamMinutes: 30
+        )
+
         let result = try callDetermineSMBDelivery(
             insulinRequired: 3.0,
             profile: profile,
             iobData: iobData,
-            overrideFactor: 2.0
+            trioCustomOrefVariables: customOrefVars
         )
 
         #expect(result.determination.units == 1.0)
     }
 
-    @Test("should use UAM max minutes when appropriate") func testUAMMaxMinutes() throws {
+    @Test(
+        "should override smbMinutes and uamMinutes when useOverride and advancedSettings are true"
+    ) func testOverrideSmbUamMinutes() throws {
         var profile = Profile()
         profile.currentBasal = 1.0
         profile.maxSMBBasalMinutes = 30 // 0.5U
-        profile.maxUAMSMBBasalMinutes = 60 // 1.0U
+        profile.maxUAMSMBBasalMinutes = 30 // 0.5U
         profile.smbDeliveryRatio = 0.5
         profile.bolusIncrement = 0.1
         profile.sens = 40
         profile.targetBg = 100
 
         let now = Date()
-        let lastBolusTime = UInt64(now.addingTimeInterval(-600).timeIntervalSince1970 * 1000) // 10 minutes ago
+        let lastBolusTime = UInt64(now.addingTimeInterval(-600).timeIntervalSince1970 * 1000)
 
-        // IOB > mealInsulinReq
+        // Case 1: Regular SMB (IOB <= mealInsulinReq)
+        // insulinReq = 3.0
+        // maxBolus should be 1.0 (60 mins override) instead of 0.5 (30 mins profile)
+        // smb = min(3.0 * 0.5, 1.0) = 1.0
+
+        var customOrefVars = TrioCustomOrefVariables(
+            average_total_data: 0,
+            weightedAverage: 0,
+            currentTDD: 0,
+            past2hoursAverage: 0,
+            date: Date(),
+            overridePercentage: 100,
+            useOverride: true,
+            duration: 0,
+            unlimited: false,
+            overrideTarget: 0,
+            smbIsOff: false,
+            advancedSettings: true,
+            isfAndCr: false,
+            isf: false,
+            cr: false,
+            smbIsScheduledOff: false,
+            start: 0,
+            end: 0,
+            smbMinutes: 60,
+            uamMinutes: 60
+        )
+
+        let dummyIobWithZeroTemp = IobResult.IobWithZeroTemp(
+            iob: 0,
+            activity: 0,
+            basaliob: 0,
+            bolusiob: 0,
+            netbasalinsulin: 0,
+            bolusinsulin: 0,
+            time: Date()
+        )
+        let iobData = [IobResult(
+            iob: 0,
+            activity: 0,
+            basaliob: 0,
+            bolusiob: 0,
+            netbasalinsulin: 0,
+            bolusinsulin: 0,
+            time: Date(),
+            iobWithZeroTemp: dummyIobWithZeroTemp,
+            lastBolusTime: lastBolusTime,
+            lastTemp: nil
+        )]
+
+        let result = try callDetermineSMBDelivery(
+            insulinRequired: 3.0,
+            profile: profile,
+            iobData: iobData,
+            trioCustomOrefVariables: customOrefVars
+        )
+
+        #expect(result.determination.units == 1.0)
+
+        // Case 2: UAM SMB (IOB > mealInsulinReq)
         // mealCOB = 10, CR = 10 => mealInsulinReq = 1.0
         // iob = 1.5
         let mealData = ComputedCarbs(
@@ -359,16 +471,7 @@ import Testing
             allDeviations: [],
             lastCarbTime: 0
         )
-        let dummyIobWithZeroTemp = IobResult.IobWithZeroTemp(
-            iob: 0,
-            activity: 0,
-            basaliob: 0,
-            bolusiob: 0,
-            netbasalinsulin: 0,
-            bolusinsulin: 0,
-            time: Date()
-        )
-        let iobData = [IobResult(
+        let uamIobData = [IobResult(
             iob: 1.5,
             activity: 0,
             basaliob: 0,
@@ -381,14 +484,156 @@ import Testing
             lastTemp: nil
         )]
 
+        let uamResult = try callDetermineSMBDelivery(
+            insulinRequired: 3.0,
+            profile: profile,
+            mealData: mealData,
+            iobData: uamIobData,
+            trioCustomOrefVariables: customOrefVars
+        )
+
+        #expect(uamResult.determination.units == 1.0)
+    }
+
+    @Test(
+        "should not override smbMinutes and uamMinutes when advancedSettings is false"
+    ) func testNoOverrideWhenAdvancedSettingsFalse() throws {
+        var profile = Profile()
+        profile.currentBasal = 1.0
+        profile.maxSMBBasalMinutes = 30 // 0.5U
+        profile.smbDeliveryRatio = 0.5
+        profile.bolusIncrement = 0.1
+        profile.sens = 40
+        profile.targetBg = 100
+
+        let now = Date()
+        let lastBolusTime = UInt64(now.addingTimeInterval(-600).timeIntervalSince1970 * 1000)
+
+        var customOrefVars = TrioCustomOrefVariables(
+            average_total_data: 0,
+            weightedAverage: 0,
+            currentTDD: 0,
+            past2hoursAverage: 0,
+            date: Date(),
+            overridePercentage: 100,
+            useOverride: true,
+            duration: 0,
+            unlimited: false,
+            overrideTarget: 0,
+            smbIsOff: false,
+            advancedSettings: false,
+            isfAndCr: false,
+            isf: false,
+            cr: false,
+            smbIsScheduledOff: false,
+            start: 0,
+            end: 0,
+            smbMinutes: 60,
+            uamMinutes: 60
+        )
+
+        let dummyIobWithZeroTemp = IobResult.IobWithZeroTemp(
+            iob: 0,
+            activity: 0,
+            basaliob: 0,
+            bolusiob: 0,
+            netbasalinsulin: 0,
+            bolusinsulin: 0,
+            time: Date()
+        )
+        let iobData = [IobResult(
+            iob: 0,
+            activity: 0,
+            basaliob: 0,
+            bolusiob: 0,
+            netbasalinsulin: 0,
+            bolusinsulin: 0,
+            time: Date(),
+            iobWithZeroTemp: dummyIobWithZeroTemp,
+            lastBolusTime: lastBolusTime,
+            lastTemp: nil
+        )]
+
         // insulinReq = 3.0
-        // smb = min(3.0 * 0.5, 1.0) = 1.0 (uses UAM limit)
+        // maxBolus should be 0.5 (30 mins from profile), ignoring override 60 because advancedSettings is false
+        // smb = min(1.5, 0.5) = 0.5
 
         let result = try callDetermineSMBDelivery(
             insulinRequired: 3.0,
             profile: profile,
-            mealData: mealData,
-            iobData: iobData
+            iobData: iobData,
+            trioCustomOrefVariables: customOrefVars
+        )
+
+        #expect(result.determination.units == 0.5)
+    }
+
+    @Test("should use overridePercentage from custom vars if provided") func testOverridePercentageFromCustomVars() throws {
+        var profile = Profile()
+        profile.currentBasal = 1.0
+        profile.maxSMBBasalMinutes = 30 // 0.5U
+        profile.smbDeliveryRatio = 0.5
+        profile.bolusIncrement = 0.1
+        profile.sens = 40
+        profile.targetBg = 100
+
+        let now = Date()
+        let lastBolusTime = UInt64(now.addingTimeInterval(-600).timeIntervalSince1970 * 1000)
+
+        var customOrefVars = TrioCustomOrefVariables(
+            average_total_data: 0,
+            weightedAverage: 0,
+            currentTDD: 0,
+            past2hoursAverage: 0,
+            date: Date(),
+            overridePercentage: 200, // 200%
+            useOverride: true,
+            duration: 0,
+            unlimited: false,
+            overrideTarget: 0,
+            smbIsOff: false,
+            advancedSettings: false,
+            isfAndCr: false,
+            isf: false,
+            cr: false,
+            smbIsScheduledOff: false,
+            start: 0,
+            end: 0,
+            smbMinutes: 30,
+            uamMinutes: 30
+        )
+
+        let dummyIobWithZeroTemp = IobResult.IobWithZeroTemp(
+            iob: 0,
+            activity: 0,
+            basaliob: 0,
+            bolusiob: 0,
+            netbasalinsulin: 0,
+            bolusinsulin: 0,
+            time: Date()
+        )
+        let iobData = [IobResult(
+            iob: 0,
+            activity: 0,
+            basaliob: 0,
+            bolusiob: 0,
+            netbasalinsulin: 0,
+            bolusinsulin: 0,
+            time: Date(),
+            iobWithZeroTemp: dummyIobWithZeroTemp,
+            lastBolusTime: lastBolusTime,
+            lastTemp: nil
+        )]
+
+        // maxBolus = 1.0 * 2.0 * 30/60 = 1.0
+        // insulinReq = 3.0
+        // smb = min(3.0 * 0.5, 1.0) = 1.0
+
+        let result = try callDetermineSMBDelivery(
+            insulinRequired: 3.0,
+            profile: profile,
+            iobData: iobData,
+            trioCustomOrefVariables: customOrefVars
         )
 
         #expect(result.determination.units == 1.0)

@@ -476,6 +476,7 @@ enum DeterminationGenerator {
             currentGlucose: currentGlucose,
             threshold: threshold,
             profile: profile,
+            trioCustomOrefVariables: trioCustomOrefVariables,
             mealData: mealData,
             iobData: iobData,
             currentTime: currentTime,
@@ -483,7 +484,6 @@ enum DeterminationGenerator {
             naiveEventualGlucose: naiveEventualGlucose,
             minIOBForecastedGlucose: forecastResult.minIOBForecastedGlucose,
             adjustedSensitivity: adjustedSensitivity,
-            overrideFactor: trioCustomOrefVariables.overrideFactor(),
             adjustedCarbRatio: forecastResult.adjustedCarbRatio,
             basal: basal,
             determination: determination
