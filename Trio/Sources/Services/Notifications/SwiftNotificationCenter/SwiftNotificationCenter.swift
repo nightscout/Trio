@@ -1,0 +1,75 @@
+import Foundation
+
+public enum SwiftNotificationCenter {
+    fileprivate static var observersDic = [String: Any]()
+
+    fileprivate static let notificationQueue = DispatchQueue(
+        label: "com.swift.notification.center.dispatch.queue",
+        attributes: .concurrent
+    )
+
+    public static func register<T>(_ protocolType: T.Type, observer: T) {
+        let key = "\(protocolType)"
+        safeSet(key: key, object: observer as AnyObject)
+    }
+
+    public static func unregister<T>(_ protocolType: T.Type, observer: T) {
+        let key = "\(protocolType)"
+        safeRemove(key: key, object: observer as AnyObject)
+    }
+
+    /// Remove all observers which comform to the protocol
+    public static func unregister<T>(_ protocolType: T.Type) {
+        let key = "\(protocolType)"
+        safeRemove(key: key)
+    }
+
+    public static func notify<T>(_ protocolType: T.Type, block: (T) -> Void) {
+        let key = "\(protocolType)"
+        guard let objectSet = safeGetObjectSet(key: key) else {
+            return
+        }
+
+        for observer in objectSet {
+            if let observer = observer as? T {
+                block(observer)
+            }
+        }
+    }
+}
+
+private extension SwiftNotificationCenter {
+    static func safeSet(key: String, object: AnyObject) {
+        notificationQueue.async(flags: .barrier) {
+            if var set = observersDic[key] as? WeakObjectSet<AnyObject> {
+                set.add(object)
+                observersDic[key] = set
+            } else {
+                observersDic[key] = WeakObjectSet(object)
+            }
+        }
+    }
+
+    static func safeRemove(key: String, object: AnyObject) {
+        notificationQueue.async(flags: .barrier) {
+            if var set = observersDic[key] as? WeakObjectSet<AnyObject> {
+                set.remove(object)
+                observersDic[key] = set
+            }
+        }
+    }
+
+    static func safeRemove(key: String) {
+        notificationQueue.async(flags: .barrier) {
+            observersDic.removeValue(forKey: key)
+        }
+    }
+
+    static func safeGetObjectSet(key: String) -> WeakObjectSet<AnyObject>? {
+        var objectSet: WeakObjectSet<AnyObject>?
+        notificationQueue.sync {
+            objectSet = observersDic[key] as? WeakObjectSet<AnyObject>
+        }
+        return objectSet
+    }
+}

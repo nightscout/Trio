@@ -166,8 +166,8 @@ _Referring to the table below, tap on each **IDENTIFIER** that has a different *
 |:--|:--|:--|
 | Trio | XC org nightscout TEAMID trio | org.nightscout.TEAMID.trio |
 | Trio LiveActivity | - | org.nightscout.TEAMID.trio.LiveActivity |
-| Trio Watch | XC IDENTIFIER | org.nightscout.TEAMID.trio.watchkitapp |
-| Trio WatchKit Extension | XC IDENTIFIER | org.nightscout.TEAMID.trio.watchkitapp.watchkitextension |
+| Trio Watch App | XC IDENTIFIER | org.nightscout.TEAMID.trio.watchkitapp |
+| Trio Watch Complication | XC IDENTIFIER | org.nightscout.TEAMID.trio.watchkitapp.TrioWatchComplication |
 
 ## Add App Group to Bundle Identifiers
 
@@ -180,8 +180,8 @@ _Referring to the table below, tap on each **IDENTIFIER** that has a different *
 1. Go to [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list) on the Apple developer site.
 1. Repeat this step for these three Identifier **NAMES** - refer to the [Table](#table-of-identifiers) above if your Names look different; if they do, see [Optional: Identifier Description Modification](#optional-identifier-description-modification)
     * Trio
-    * Trio Watch
-    * Trio WatchKit Extension
+    * Trio Watch App
+    * Trio Watch Complication
 1. Click on the **IDENTIFIER** row.
 1. Scroll down to the "App Groups" capabilies row, click on the "Configure" (or "Edit") button.
 1. Select the "Trio App Group" _(yes, "Trio App Group" is correct)_

@@ -1,0 +1,16 @@
+
+/* Privacy - Bluetooth Always Usage Description */
+"NSBluetoothAlwaysUsageDescription" = "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices";
+
+"NSBluetoothPeripheralUsageDescription" = "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices";
+
+/* Privacy - Face ID Usage Description */
+"NSFaceIDUsageDescription" = "For authorized acces to bolus";
+
+/* Privacy - NFC Scan Usage Description */
+"NFCReaderUsageDescription" = "NFC is used to scan Libre sensors.";
+
+/* Privacy - Calendars Usage Description */
+"NSCalendarsUsageDescription" = "Calendar is used to create a new glucose events.";
+
+

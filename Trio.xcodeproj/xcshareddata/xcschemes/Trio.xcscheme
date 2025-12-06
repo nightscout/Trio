@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1620"
+   version = "1.3">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "43D8FDCA1C728FDF0073BE78"
+               BuildableName = "LoopKit.framework"
+               BlueprintName = "LoopKit"
+               ReferencedContainer = "container:LoopKit/LoopKit.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A9E6758022713F4700E25293"
+               BuildableName = "LoopKit.framework"
+               BlueprintName = "LoopKit-watchOS"
+               ReferencedContainer = "container:LoopKit/LoopKit.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "43BA7153201E484D0058961E"
+               BuildableName = "LoopKitUI.framework"
+               BlueprintName = "LoopKitUI"
+               ReferencedContainer = "container:LoopKit/LoopKit.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "892A5D33222F03CB008961AB"
+               BuildableName = "LoopTestingKit.framework"
+               BlueprintName = "LoopTestingKit"
+               ReferencedContainer = "container:LoopKit/LoopKit.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "89D2047121CC7BD7001238CC"
+               BuildableName = "MockKit.framework"
+               BlueprintName = "MockKit"
+               ReferencedContainer = "container:LoopKit/LoopKit.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "89D2048E21CC7C12001238CC"
+               BuildableName = "MockKitUI.framework"
+               BlueprintName = "MockKitUI"
+               ReferencedContainer = "container:LoopKit/LoopKit.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "388E595725AD948C0019842D"
+               BuildableName = "Trio.app"
+               BlueprintName = "Trio"
+               ReferencedContainer = "container:Trio.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "NO"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "38FCF3EC25E9028E0078B0D1"
+               BuildableName = "TrioTests.xctest"
+               BlueprintName = "TrioTests"
+               ReferencedContainer = "container:Trio.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "NO"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "43D8FDD41C728FDF0073BE78"
+               BuildableName = "LoopKitTests.xctest"
+               BlueprintName = "LoopKitTests"
+               ReferencedContainer = "container:LoopKit/LoopKit.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "NO"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "84752E8A26ED0FFE009FD801"
+               BuildableName = "OmniBLETests.xctest"
+               BlueprintName = "OmniBLETests"
+               ReferencedContainer = "container:OmniBLE/OmniBLE.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "43CABDFC1C3506F100005705"
+               BuildableName = "CGMBLEKitTests.xctest"
+               BlueprintName = "CGMBLEKitTests"
+               ReferencedContainer = "container:CGMBLEKit/CGMBLEKit.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C17F50CD291EAC3800555EB5"
+               BuildableName = "G7SensorKitTests.xctest"
+               BlueprintName = "G7SensorKitTests"
+               ReferencedContainer = "container:G7SensorKit/G7SensorKit.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "B4CEE2DF257129780093111B"
+               BuildableName = "MockKitTests.xctest"
+               BlueprintName = "MockKitTests"
+               ReferencedContainer = "container:LoopKit/LoopKit.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C13CC34029C7B73A007F25DE"
+               BuildableName = "MinimedKitTests.xctest"
+               BlueprintName = "MinimedKitTests"
+               ReferencedContainer = "container:MinimedKit/MinimedKit.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C12ED9C929C7DBA900435701"
+               BuildableName = "OmniKitTests.xctest"
+               BlueprintName = "OmniKitTests"
+               ReferencedContainer = "container:OmniKit/OmniKit.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "431CE7761F98564200255374"
+               BuildableName = "RileyLinkBLEKitTests.xctest"
+               BlueprintName = "RileyLinkBLEKitTests"
+               ReferencedContainer = "container:RileyLinkKit/RileyLinkKit.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      enableThreadSanitizer = "YES"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "388E595725AD948C0019842D"
+            BuildableName = "Trio.app"
+            BlueprintName = "Trio"
+            ReferencedContainer = "container:Trio.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "-com.apple.CoreData.ConcurrencyDebug 1"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-FIRDebugEnabled "
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-com.apple.CoreData.SQLDebug 1"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-com.apple.CoreData.MigrationDebug 1"
+            isEnabled = "NO">
+         </CommandLineArgument>
+      </CommandLineArguments>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "CG_NUMERICS_SHOW_BACKTRACE"
+            value = ""
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "388E595725AD948C0019842D"
+            BuildableName = "Trio.app"
+            BlueprintName = "Trio"
+            ReferencedContainer = "container:Trio.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>
