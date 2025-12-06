@@ -3,29 +3,25 @@ import SwiftUI
 import WidgetKit
 
 struct LiveActivityBGLabelLargeView: View {
+    @Environment(\.isWatchOS) var isWatchOS
+
     var context: ActivityViewContext<LiveActivityAttributes>
-    var additionalState: LiveActivityAttributes.ContentAdditionalState
     var glucoseColor: Color
 
     var body: some View {
         HStack(alignment: .center) {
-            if let trendArrow = context.state.direction {
-                Text(context.state.bg)
-                    .fontWeight(.bold)
-                    .font(.title)
-                    .foregroundStyle(context.isStale ? .secondary : glucoseColor)
-                    .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+            Text(context.state.bg)
+                .fontWeight(.bold)
+                .font(!isWatchOS ? .title : .title3)
+                .foregroundStyle(context.isStale ? .secondary : glucoseColor)
+                .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
 
+            if let trendArrow = context.state.direction {
                 Text(trendArrow)
                     .foregroundStyle(context.isStale ? .secondary : glucoseColor)
                     .fontWeight(.bold)
-                    .font(.headline)
-            } else {
-                Text(context.state.bg)
-                    .fontWeight(.bold)
-                    .font(.title)
-                    .foregroundStyle(context.isStale ? .secondary : glucoseColor)
-                    .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+                    .font(!isWatchOS ? .headline : .subheadline)
+                    .padding(.leading, !isWatchOS ? 0 : -5)
             }
         }
     }

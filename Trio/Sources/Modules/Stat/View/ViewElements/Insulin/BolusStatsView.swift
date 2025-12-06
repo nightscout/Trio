@@ -327,29 +327,32 @@ private struct BolusSelectionPopover: View {
     }
 
     private func xOffset() -> CGFloat {
+        // If the selected date is outside the visible domain, hide the popover
+        guard selectedDate >= domain.start && selectedDate <= domain.end else { return 0 }
+
         let domainDuration = domain.end.timeIntervalSince(domain.start)
         guard domainDuration > 0, chartWidth > 0 else { return 0 }
 
         let popoverWidth = popoverSize.width
+        let padding: CGFloat = 10 // Padding from screen edges
 
-        // Convert dates to pixel'd x-condition
+        // Convert dates to pixel'd x-position
         let dateFraction = selectedDate.timeIntervalSince(domain.start) / domainDuration
         let x_selected = dateFraction * chartWidth
 
-        // TODO: this is semi hacky, can this be improved?
-        let x_left = x_selected - (popoverWidth / 2) // Left edge of popover
-        let x_right = x_selected + (popoverWidth / 2) // Right edge of popover
+        // Calculate popover edges
+        let x_left = x_selected - (popoverWidth / 2)
+        let x_right = x_selected + (popoverWidth / 2)
 
-        var offset: CGFloat = 0 // Default = no shift
+        var offset: CGFloat = 0
 
-        // Push popover to right if its left edge is (nearing) out-of-bounds
-        if x_left < 0 {
-            offset = abs(x_left) // push to right
-        }
-
-        // Push popover to left if its right edge is (nearing) out-of-bounds)
-        if x_right > chartWidth {
-            offset = -(x_right - chartWidth) // push to left
+        // Ensure the popover stays within screen bounds
+        if x_left < padding {
+            // Popover would extend past left edge, shift it right
+            offset = padding - x_left
+        } else if x_right > chartWidth - padding {
+            // Popover would extend past right edge, shift it left
+            offset = (chartWidth - padding) - x_right
         }
 
         return offset
@@ -413,5 +416,7 @@ private struct BolusSelectionPopover: View {
         )
         // Apply calculated xOffset to keep within bounds
         .offset(x: xOffset(), y: 0)
+        // Hide popover if selected date is outside visible domain
+        .opacity(selectedDate >= domain.start && selectedDate <= domain.end ? 1 : 0)
     }
 }

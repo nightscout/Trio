@@ -21,7 +21,6 @@ struct TrioCustomOrefVariables: JSON, Equatable {
     var end: Decimal
     var smbMinutes: Decimal
     var uamMinutes: Decimal
-    var shouldProtectDueToHIGH: Bool
 
     init(
         average_total_data: Decimal,
@@ -44,7 +43,6 @@ struct TrioCustomOrefVariables: JSON, Equatable {
         end: Decimal,
         smbMinutes: Decimal,
         uamMinutes: Decimal,
-        shouldProtectDueToHIGH: Bool
     ) {
         self.average_total_data = average_total_data
         self.weightedAverage = weightedAverage
@@ -66,7 +64,6 @@ struct TrioCustomOrefVariables: JSON, Equatable {
         self.end = end
         self.smbMinutes = smbMinutes
         self.uamMinutes = uamMinutes
-        self.shouldProtectDueToHIGH = shouldProtectDueToHIGH
     }
 }
 
@@ -92,6 +89,5 @@ extension TrioCustomOrefVariables {
         case end
         case smbMinutes
         case uamMinutes
-        case shouldProtectDueToHIGH
     }
 }

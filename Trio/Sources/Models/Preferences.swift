@@ -253,7 +253,7 @@ extension Preferences: Decodable {
         }
 
         if let bolusIncrement = try? container.decode(Decimal.self, forKey: .bolusIncrement) {
-            preferences.bolusIncrement = bolusIncrement
+            preferences.bolusIncrement = bolusIncrement > 0 ? bolusIncrement : 0.1
         }
 
         if let curve = try? container.decode(InsulinCurve.self, forKey: .curve) {
