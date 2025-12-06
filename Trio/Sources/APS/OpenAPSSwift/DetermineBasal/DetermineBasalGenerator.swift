@@ -207,11 +207,11 @@ enum DeterminationGenerator {
 
         let intervals: Decimal = 6 // 30 / 5
 
-        var deviation = (intervals * (minDelta - currentGlucoseImpact)).rounded(toPlaces: 0)
+        var deviation = (intervals * (minDelta - currentGlucoseImpact)).jsRounded()
         if deviation < 0 {
-            deviation = (intervals * (minAvgDelta - currentGlucoseImpact)).rounded(toPlaces: 0)
+            deviation = (intervals * (minAvgDelta - currentGlucoseImpact)).jsRounded()
             if deviation < 0 {
-                deviation = (intervals * (longAvgDelta - currentGlucoseImpact)).rounded(toPlaces: 0)
+                deviation = (intervals * (longAvgDelta - currentGlucoseImpact)).jsRounded()
             }
         }
 
