@@ -54,11 +54,17 @@ extension Home {
         )) var latestTempTarget: FetchedResults<TempTargetStored>
 
         var bolusProgressFormatter: NumberFormatter {
+            let fractionDigits: Int = switch state.settingsManager.preferences.bolusIncrement {
+            case 0.1: 1
+            case 0.025: 3
+            default: 2
+            }
+
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
             formatter.minimum = 0
-            formatter.maximumFractionDigits = state.settingsManager.preferences.bolusIncrement > 0.05 ? 1 : 2
-            formatter.minimumFractionDigits = state.settingsManager.preferences.bolusIncrement > 0.05 ? 1 : 2
+            formatter.maximumFractionDigits = fractionDigits
+            formatter.minimumFractionDigits = fractionDigits
             formatter.allowsFloats = true
             formatter.roundingIncrement = Double(state.settingsManager.preferences.bolusIncrement) as NSNumber
             return formatter
@@ -188,7 +194,7 @@ extension Home {
                 rate = tempRate
             }
 
-            let rateString = Formatter.decimalFormatterWithTwoFractionDigits.string(from: rate) ?? "0"
+            let rateString = Formatter.decimalFormatterWithThreeFractionDigits.string(from: rate) ?? "0"
             return rateString + String(localized: " U/hr", comment: "Unit per hour with space") +
                 manualBasalString
         }
@@ -768,7 +774,7 @@ extension Home {
                 let bolusString =
                     (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
                         + String(localized: " of ", comment: "Bolus string partial message: 'x U of y U' in home view") +
-                        (Formatter.decimalFormatterWithTwoFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
+                        (Formatter.decimalFormatterWithThreeFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
                         + String(localized: " U", comment: "Insulin unit")
 
                 ZStack {

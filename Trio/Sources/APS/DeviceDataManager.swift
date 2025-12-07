@@ -102,7 +102,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                         )
                 )
                 modifiedPreferences
-                    .bolusIncrement = bolusIncrement != 0.025 ? bolusIncrement : 0.1
+                    .bolusIncrement = bolusIncrement > 0 ? bolusIncrement : 0.1
                 storage.save(modifiedPreferences, as: OpenAPS.Settings.preferences)
 
                 if let omnipod = pumpManager as? OmnipodPumpManager {
