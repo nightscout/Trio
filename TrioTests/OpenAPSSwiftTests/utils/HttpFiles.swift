@@ -4,7 +4,7 @@ import Foundation
 /// Helper struct to download files from localhost via HTTP. Must have a HTTP server
 /// running on port 8123 that supports listing files and downloading files.
 ///
-/// You can set two environment variables `HTTP_FILES_OFFSET` and `HTTP_FILES_LENGTH`
+/// You can set two ReplayTests variables `HTTP_FILES_OFFSET` and `HTTP_FILES_LENGTH`
 /// to implement paging
 ///
 /// This struct is only useful during testing as it is missing a number of error checks
@@ -15,7 +15,6 @@ struct HttpFiles {
         let allFiles = try JSONDecoder().decode([String].self, from: data)
 
         let files: [String]
-        let env = ProcessInfo.processInfo.environment
         if let offset = ReplayTests.filesOffset, let length = ReplayTests.filesLength
         {
             // Both variables exist and are valid integers
