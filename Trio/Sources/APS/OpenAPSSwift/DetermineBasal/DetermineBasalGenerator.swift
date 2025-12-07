@@ -155,6 +155,7 @@ enum DeterminationGenerator {
         }
 
         var basal = profile.currentBasal ?? profile.basalFor(time: currentTime)
+        basal *= trioCustomOrefVariables.overrideFactor()
         if dynamicIsfResult == nil {
             basal = computeAdjustedBasal(
                 profile: profile,
@@ -206,11 +207,11 @@ enum DeterminationGenerator {
 
         let intervals: Decimal = 6 // 30 / 5
 
-        var deviation = (intervals * (minDelta - currentGlucoseImpact)).rounded(toPlaces: 0)
+        var deviation = (intervals * (minDelta - currentGlucoseImpact)).jsRounded()
         if deviation < 0 {
-            deviation = (intervals * (minAvgDelta - currentGlucoseImpact)).rounded(toPlaces: 0)
+            deviation = (intervals * (minAvgDelta - currentGlucoseImpact)).jsRounded()
             if deviation < 0 {
-                deviation = (intervals * (longAvgDelta - currentGlucoseImpact)).rounded(toPlaces: 0)
+                deviation = (intervals * (longAvgDelta - currentGlucoseImpact)).jsRounded()
             }
         }
 
@@ -475,6 +476,7 @@ enum DeterminationGenerator {
             currentGlucose: currentGlucose,
             threshold: threshold,
             profile: profile,
+            trioCustomOrefVariables: trioCustomOrefVariables,
             mealData: mealData,
             iobData: iobData,
             currentTime: currentTime,
@@ -482,7 +484,6 @@ enum DeterminationGenerator {
             naiveEventualGlucose: naiveEventualGlucose,
             minIOBForecastedGlucose: forecastResult.minIOBForecastedGlucose,
             adjustedSensitivity: adjustedSensitivity,
-            overrideFactor: trioCustomOrefVariables.overrideFactor(),
             adjustedCarbRatio: forecastResult.adjustedCarbRatio,
             basal: basal,
             determination: determination

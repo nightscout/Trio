@@ -693,6 +693,40 @@ enum DosingEngine {
         return (insulinRequired, newDetermination)
     }
 
+    /// Determines the maxBolus possible for a Super Micro Bolus (SMB)
+    static func determineMaxBolus(
+        currentBasal: Decimal,
+        currentIob: Decimal,
+        adjustedCarbRatio: Decimal,
+        mealData: ComputedCarbs,
+        profile: Profile,
+        trioCustomOrefVariables: TrioCustomOrefVariables
+    ) -> Decimal {
+        let mealInsulinRequired = (mealData.mealCOB / adjustedCarbRatio).jsRounded(scale: 3)
+        let overrideFactor = trioCustomOrefVariables.overrideFactor()
+
+        var smbMinutesSetting = profile.maxSMBBasalMinutes
+        if trioCustomOrefVariables.useOverride, trioCustomOrefVariables.advancedSettings {
+            smbMinutesSetting = trioCustomOrefVariables.smbMinutes
+        }
+
+        var uamMinutesSetting = profile.maxUAMSMBBasalMinutes
+        if trioCustomOrefVariables.useOverride, trioCustomOrefVariables.advancedSettings {
+            uamMinutesSetting = trioCustomOrefVariables.uamMinutes
+        }
+
+        if currentIob > mealInsulinRequired, currentIob > 0 {
+            if uamMinutesSetting > 0 {
+                return (currentBasal * overrideFactor * uamMinutesSetting / 60).jsRounded(scale: 1)
+            } else {
+                // Note: It should be impossible to have uamMinutesSetting of 0 so this shouldn't execute
+                return (currentBasal * overrideFactor * 30 / 60).jsRounded(scale: 1)
+            }
+        } else {
+            return (currentBasal * overrideFactor * smbMinutesSetting / 60).jsRounded(scale: 1)
+        }
+    }
+
     /// Determines if a Super Micro Bolus (SMB) should be delivered and calculates its size and associated temp basal.
     ///
     /// - Returns: A tuple containing:
@@ -705,6 +739,7 @@ enum DosingEngine {
         currentGlucose: Decimal,
         threshold: Decimal,
         profile: Profile,
+        trioCustomOrefVariables: TrioCustomOrefVariables,
         mealData: ComputedCarbs,
         iobData: [IobResult],
         currentTime: Date,
@@ -712,7 +747,6 @@ enum DosingEngine {
         naiveEventualGlucose: Decimal,
         minIOBForecastedGlucose: Decimal,
         adjustedSensitivity: Decimal,
-        overrideFactor: Decimal,
         adjustedCarbRatio: Decimal,
         basal: Decimal,
         determination: Determination
@@ -731,13 +765,14 @@ enum DosingEngine {
             return (false, newDetermination)
         }
 
-        let mealInsulinRequired = (mealData.mealCOB / adjustedCarbRatio).jsRounded(scale: 3)
-
-        let maxBolusCondition: Bool = currentIob > mealInsulinRequired && currentIob > 0
-        let maxBolus: Decimal = (
-            maxBolusCondition ? (currentBasal * overrideFactor * profile.maxUAMSMBBasalMinutes / 60) :
-                (currentBasal * overrideFactor * profile.maxSMBBasalMinutes / 60)
-        ).jsRounded(scale: 1)
+        let maxBolus = determineMaxBolus(
+            currentBasal: currentBasal,
+            currentIob: currentIob,
+            adjustedCarbRatio: adjustedCarbRatio,
+            mealData: mealData,
+            profile: profile,
+            trioCustomOrefVariables: trioCustomOrefVariables
+        )
 
         let smbDeliveryRatio = min(profile.smbDeliveryRatio, 1)
         let roundSmbTo = 1 / profile.bolusIncrement
@@ -746,7 +781,8 @@ enum DosingEngine {
 
         let worstCaseInsulinRequired = (targetGlucose - (naiveEventualGlucose + minIOBForecastedGlucose) / 2) /
             adjustedSensitivity
-        var durationRequired = (60 * worstCaseInsulinRequired / currentBasal * overrideFactor).jsRounded()
+        var durationRequired = (60 * worstCaseInsulinRequired / currentBasal * trioCustomOrefVariables.overrideFactor())
+            .jsRounded()
 
         // if insulinRequired > 0 but not enough for a microBolus, don't set an SMB zero temp
         if insulinRequired > 0, microBolus < profile.bolusIncrement {
