@@ -5,25 +5,48 @@ import Observation
 import SwiftUI
 
 extension BarcodeScanner {
+    /// Scan mode for the barcode scanner
+    enum ScanMode: String, CaseIterable {
+        case barcode = "Barcode"
+        case nutritionLabel = "Nutrition Label"
+
+        var icon: String {
+            switch self {
+            case .barcode: return "barcode.viewfinder"
+            case .nutritionLabel: return "doc.text.viewfinder"
+            }
+        }
+
+        var localizedName: String {
+            switch self {
+            case .barcode: return String(localized: "Barcode")
+            case .nutritionLabel: return String(localized: "Nutrition Label")
+            }
+        }
+    }
+
     /// Represents a scanned product with user-entered amount.
     struct ScannedProductItem: Identifiable, Equatable {
         let id: UUID
         let product: OpenFoodFactsProduct
         var amount: Double
         var isMlInput: Bool
+        let isManualEntry: Bool
 
-        init(product: OpenFoodFactsProduct, amount: Double = 0, isMlInput: Bool = false) {
+        init(product: OpenFoodFactsProduct, amount: Double = 0, isMlInput: Bool = false, isManualEntry: Bool = false) {
             id = UUID()
             self.product = product
             self.amount = amount
             self.isMlInput = isMlInput
+            self.isManualEntry = isManualEntry
         }
 
         static func == (lhs: ScannedProductItem, rhs: ScannedProductItem) -> Bool {
             lhs.id == rhs.id &&
                 lhs.product == rhs.product &&
                 lhs.amount == rhs.amount &&
-                lhs.isMlInput == rhs.isMlInput
+                lhs.isMlInput == rhs.isMlInput &&
+                lhs.isManualEntry == rhs.isManualEntry
         }
     }
 
@@ -36,7 +59,25 @@ extension BarcodeScanner {
         var errorMessage: String?
         var scannedProducts: [ScannedProductItem] = []
 
+        // Scan mode
+        var scanMode: ScanMode = .barcode
+
+        // Nutrition label scanning
+        var isCapturingPhoto = false
+        var capturedImage: UIImage?
+        var scannedNutritionData: NutritionLabelScanner.NutritionData?
+        var isProcessingLabel = false
+        var showNutritionEditor = false
+        var editableNutritionName: String = ""
+        var showCameraPicker = false
+
+        // AI Model for nutrition label extraction
+        let modelManager = NutritionModelManager()
+        var showModelFilePicker = false
+        var useAIModel = true // Toggle between AI model and regex-based extraction
+
         private let client = OpenFoodFactsClient()
+        private let nutritionScanner = NutritionLabelScanner()
         private var lastScanTime: Date?
         private let scanCooldownSeconds: TimeInterval = 1.0
 
@@ -46,6 +87,15 @@ extension BarcodeScanner {
 
         func handleAppear() {
             refreshCameraStatus()
+            modelManager.checkModelStatus()
+
+            // Auto-load model if downloaded but not ready
+            if case .downloaded = modelManager.state {
+                Task {
+                    try? await modelManager.loadModel()
+                }
+            }
+
             switch cameraStatus {
             case .notDetermined:
                 requestCameraAccess()
@@ -201,6 +251,162 @@ extension BarcodeScanner {
         func openAppSettings() {
             guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
             UIApplication.shared.open(url)
+        }
+
+        // MARK: - Nutrition Label Scanning
+
+        /// Switches the scan mode
+        func switchScanMode(to mode: ScanMode) {
+            scanMode = mode
+            errorMessage = nil
+
+            // Reset nutrition label specific state when switching away
+            if mode == .barcode {
+                capturedImage = nil
+                scannedNutritionData = nil
+                showNutritionEditor = false
+                editableNutritionName = ""
+            }
+        }
+
+        /// Captures a photo for nutrition label scanning
+        func capturePhoto() {
+            print("📸 [StateModel] capturePhoto() triggered, setting isCapturingPhoto = true")
+            isCapturingPhoto = true
+        }
+
+        /// Called when a photo is captured from the camera
+        func didCapturePhoto(_ image: UIImage) {
+            print("📷 [StateModel] Photo captured!")
+            print("📷 [StateModel] Image dimensions: \(image.size.width) x \(image.size.height)")
+            isCapturingPhoto = false
+            capturedImage = image
+            isScanning = false
+            processNutritionLabel(image)
+        }
+
+        /// Processes a captured image to extract nutrition data
+        private func processNutritionLabel(_ image: UIImage) {
+            print("📸 [StateModel] Processing nutrition label...")
+            print("📸 [StateModel] Image size: \(image.size)")
+            print("📸 [StateModel] useAIModel: \(useAIModel), modelReady: \(modelManager.isReady)")
+
+            isProcessingLabel = true
+            errorMessage = nil
+
+            Task {
+                do {
+                    let data: NutritionLabelScanner.NutritionData
+
+                    // Use AI model if available and enabled, otherwise fall back to regex-based OCR
+                    if useAIModel, modelManager.isReady {
+                        print("🤖 [StateModel] Using AI model for extraction...")
+                        data = try await nutritionScanner.scanWithAIModel(from: image, modelManager: modelManager)
+                    } else {
+                        print("📝 [StateModel] Using regex-based extraction...")
+                        // Fall back to regex-based OCR extraction
+                        data = try await nutritionScanner.scanNutritionLabel(from: image)
+                    }
+
+                    print("✅ [StateModel] Extraction complete - hasData: \(data.hasAnyData)")
+                    print(
+                        "✅ [StateModel] Calories: \(String(describing: data.calories)), Carbs: \(String(describing: data.carbohydrates))"
+                    )
+
+                    await MainActor.run {
+                        self.scannedNutritionData = data
+                        self.isProcessingLabel = false
+
+                        if data.hasAnyData {
+                            print("✅ [StateModel] Showing nutrition editor")
+                            self.showNutritionEditor = true
+                            self.editableNutritionName = String(localized: "Scanned Label")
+                        } else {
+                            print("⚠️ [StateModel] No nutrition data found")
+                            self.errorMessage = String(localized: "No nutrition information found. Try taking a clearer photo.")
+                        }
+                    }
+                } catch {
+                    print("❌ [StateModel] Extraction failed: \(error)")
+                    print("❌ [StateModel] Error: \(error.localizedDescription)")
+                    await MainActor.run {
+                        self.isProcessingLabel = false
+                        self.errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                    }
+                }
+            }
+        }
+
+        // MARK: - Model Management
+
+        /// Loads the AI model if downloaded
+        func loadModelIfNeeded() {
+            guard modelManager.state == .downloaded else { return }
+
+            Task {
+                try? await modelManager.loadModel()
+            }
+        }
+
+        /// Deletes the downloaded model
+        func deleteModel() {
+            modelManager.deleteModel()
+        }
+
+        /// Retakes the nutrition label photo
+        func retakePhoto() {
+            capturedImage = nil
+            scannedNutritionData = nil
+            showNutritionEditor = false
+            errorMessage = nil
+            isScanning = true
+        }
+
+        /// Adds the scanned nutrition data as a product item
+        func addScannedNutritionLabel() {
+            guard let data = scannedNutritionData else { return }
+
+            let product = data
+                .toProduct(name: editableNutritionName.isEmpty ? String(localized: "Scanned Label") : editableNutritionName)
+            let item = ScannedProductItem(
+                product: product,
+                amount: data.servingSizeGrams ?? 100,
+                isMlInput: false,
+                isManualEntry: true
+            )
+
+            scannedProducts.append(item)
+
+            // Reset for next scan
+            capturedImage = nil
+            scannedNutritionData = nil
+            showNutritionEditor = false
+            editableNutritionName = ""
+            isScanning = true
+        }
+
+        /// Updates the scanned nutrition data with edited values
+        func updateScannedNutritionData(
+            calories: Double?,
+            carbohydrates: Double?,
+            sugars: Double?,
+            fat: Double?,
+            protein: Double?,
+            fiber: Double?,
+            servingSizeGrams: Double?
+        ) {
+            scannedNutritionData = NutritionLabelScanner.NutritionData(
+                calories: calories,
+                carbohydrates: carbohydrates,
+                sugars: sugars,
+                fat: fat,
+                saturatedFat: scannedNutritionData?.saturatedFat,
+                protein: protein,
+                fiber: fiber,
+                sodium: scannedNutritionData?.sodium,
+                servingSize: scannedNutritionData?.servingSize,
+                servingSizeGrams: servingSizeGrams
+            )
         }
     }
 }
