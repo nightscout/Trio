@@ -18,5 +18,9 @@
 	<string>$(ENABLE_REPLAY_TESTS)</string>
 	<key>ReplayTestTimezone</key>
 	<string>$(REPLAY_TEST_TIMEZONE)</string>
+	<key>HttpFilesOffset</key>
+	<string>$(HTTP_FILES_OFFSET)</string>
+	<key>HttpFilesLength</key>
+	<string>$(HTTP_FILES_LENGTH)</string>
 </dict>
 </plist>
