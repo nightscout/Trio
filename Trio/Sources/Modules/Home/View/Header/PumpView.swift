@@ -142,7 +142,12 @@ struct PumpView: View {
         }
 
         if hours >= 1 {
-            return "\(hours)" + String(localized: "h", comment: "abbreviation for hours")
+            var remainingHoursString = "\(hours)" + String(localized: "h", comment: "abbreviation for hours")
+            if hours < 12 {
+                remainingHoursString += " " + "\(minutes)" +
+                    String(localized: "m", comment: "abbreviation for minutes")
+            }
+            return remainingHoursString
         }
 
         return "\(minutes)" + String(localized: "m", comment: "abbreviation for minutes")
