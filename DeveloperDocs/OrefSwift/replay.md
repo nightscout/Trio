@@ -140,7 +140,7 @@ From the JS repo that has the fixed JS implementation, copy in the inputs:
 ```bash
 $ cd trio-oref
 $ git checkout dev-fixes-for-swift-comparison
-$ cp cp /Users/kingst/Library/Developer/CoreSimulator/Devices/98ED1614-33B5-4F12-906B-D5C092AD0EB5/data/Containers/Data/Application/F9F20EFC-128C-482B-85E3-C59A3242DDEB/tmp/determine_basal_error_inputs.json tests
+$ cp /Users/kingst/Library/Developer/CoreSimulator/Devices/98ED1614-33B5-4F12-906B-D5C092AD0EB5/data/Containers/Data/Application/F9F20EFC-128C-482B-85E3-C59A3242DDEB/tmp/determine_basal_error_inputs.json tests
 $ ./node_modules/.bin/mocha --inspect-brk -c tests/determine-basal-replay.test.js
 ```
 
