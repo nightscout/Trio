@@ -104,7 +104,7 @@ extension MainChartView {
     }
 
     func drawSuspensions() -> some ChartContent {
-        let suspensions = state.suspensions
+        let suspensions = state.suspendAndResumeEvents
         return ForEach(suspensions) { suspension in
             let now = Date()
 
@@ -154,7 +154,8 @@ extension MainChartView {
             let duration = temp.tempBasal?.duration ?? 0
             let timestamp = temp.timestamp ?? Date()
             let end = timestamp + duration.minutes
-            let isInsulinSuspended = state.suspensions.contains { $0.timestamp ?? now >= timestamp && $0.timestamp ?? now <= end }
+            let isInsulinSuspended = state.suspendAndResumeEvents
+                .contains { $0.timestamp ?? now >= timestamp && $0.timestamp ?? now <= end }
 
             let rate = Double(truncating: temp.tempBasal?.rate ?? Decimal.zero as NSDecimalNumber) * (isInsulinSuspended ? 0 : 1)
 

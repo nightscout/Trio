@@ -37,6 +37,14 @@ extension Formatter {
         return formatter
     }()
 
+    static let decimalFormatterWithThreeFractionDigits: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.locale = .current
+        formatter.maximumFractionDigits = 3
+        return formatter
+    }()
+
     static let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.timeStyle = .short

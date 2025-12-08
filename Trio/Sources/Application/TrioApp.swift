@@ -407,6 +407,8 @@ extension Notification.Name {
 
     private func purgeOldNSManagedObjects() async throws {
         async let glucoseDeletion: () = coreDataStack.batchDeleteOlderThan(GlucoseStored.self, dateKey: "date", days: 90)
+        async let archivedGlucoseDeletion: () = coreDataStack
+            .batchDeleteOlderThan(DeletedGlucoseStored.self, dateKey: "date", days: 90)
         async let pumpEventDeletion: () = coreDataStack.batchDeleteOlderThan(PumpEventStored.self, dateKey: "timestamp", days: 90)
         async let bolusDeletion: () = coreDataStack.batchDeleteOlderThan(
             parentType: PumpEventStored.self,
@@ -441,6 +443,7 @@ extension Notification.Name {
 
         // Await each task to ensure they are all completed
         try await glucoseDeletion
+        try await archivedGlucoseDeletion
         try await pumpEventDeletion
         try await bolusDeletion
         try await tempBasalDeletion

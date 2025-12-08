@@ -54,11 +54,17 @@ extension Home {
         )) var latestTempTarget: FetchedResults<TempTargetStored>
 
         var bolusProgressFormatter: NumberFormatter {
+            let fractionDigits: Int = switch state.settingsManager.preferences.bolusIncrement {
+            case 0.1: 1
+            case 0.025: 3
+            default: 2
+            }
+
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
             formatter.minimum = 0
-            formatter.maximumFractionDigits = state.settingsManager.preferences.bolusIncrement > 0.05 ? 1 : 2
-            formatter.minimumFractionDigits = state.settingsManager.preferences.bolusIncrement > 0.05 ? 1 : 2
+            formatter.maximumFractionDigits = fractionDigits
+            formatter.minimumFractionDigits = fractionDigits
             formatter.allowsFloats = true
             formatter.roundingIncrement = Double(state.settingsManager.preferences.bolusIncrement) as NSNumber
             return formatter
@@ -162,22 +168,51 @@ extension Home {
             }
         }
 
-        var tempBasalString: String? {
-            guard let lastTempBasal = state.tempBasals.last?.tempBasal, let tempRate = lastTempBasal.rate else {
-                return nil
-            }
-            let rateString = Formatter.decimalFormatterWithTwoFractionDigits.string(from: tempRate as NSNumber) ?? "0"
+        var basalString: String? {
+            var rate: NSNumber = 0
             var manualBasalString = ""
 
-            if let apsManager = state.apsManager, apsManager.isManualTempBasal {
-                manualBasalString = String(
-                    localized:
-                    " - Manual Basal ⚠️",
-                    comment: "Manual Temp basal"
-                )
+            guard let apsManager = state.apsManager else {
+                return nil
             }
 
-            return rateString + String(localized: " U/hr", comment: "Unit per hour with space") + manualBasalString
+            if apsManager.isScheduledBasal == true {
+                guard let scheduledRate = scheduledBasalDeliveryRate(at: Date()) else {
+                    return nil
+                }
+                rate = scheduledRate
+            } else {
+                guard let lastTempBasal = state.tempBasals.last?.tempBasal, let tempRate = lastTempBasal.rate else {
+                    return nil
+                }
+                if apsManager.isManualTempBasal {
+                    manualBasalString = String(
+                        localized: " - Manual Basal ⚠️",
+                        comment: "Manual Temp basal"
+                    )
+                }
+                rate = tempRate
+            }
+
+            let rateString = Formatter.decimalFormatterWithThreeFractionDigits.string(from: rate) ?? "0"
+            return rateString + String(localized: " U/hr", comment: "Unit per hour with space") +
+                manualBasalString
+        }
+
+        // Returns the scheduled basal rate for the current time based on the saved basal scheduled.
+        // Would be better if in the future BasalDeliveryStatus could be updated to include this info.
+        func scheduledBasalDeliveryRate(at when: Date) -> NSNumber? {
+            let calendar = Calendar(identifier: .gregorian)
+            // calendar.timeZone = timeZone /// should come from pumpManager in case it's different!
+
+            let hours = calendar.component(.hour, from: when)
+            let minutes = calendar.component(.minute, from: when)
+            let totalMinutes = hours * 60 + minutes
+
+            if let rate = findBasalRateForOffset(for: totalMinutes, in: state.basalProfile) {
+                return NSDecimalNumber(decimal: rate)
+            }
+            return nil
         }
 
         var overrideString: String? {
@@ -467,31 +502,34 @@ extension Home {
                         .font(.callout)
                 } else {
                     HStack {
-                        if state.pumpSuspended {
-                            Text("Pump suspended")
-                                .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                                .foregroundColor(.loopGray)
-                        } else if let tempBasalString = tempBasalString {
+                        /// Only display the insulin delivery rate info if the pump is not
+                        /// suspended and is available (e.g., pod is paired & not faulted).
+                        let pumpAvailable = state.apsManager.isScheduledBasal != nil
+                        if !state.apsManager.isSuspended && pumpAvailable {
                             Image(systemName: "drop.circle")
                                 .font(.callout)
                                 .foregroundColor(.insulinTintColor)
-                            if tempBasalString.count > 5 {
-                                Text(tempBasalString)
-                                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.85)
-                                    .truncationMode(.tail)
-                                    .allowsTightening(true)
+                            if let basalString = self.basalString {
+                                /// Adjust opacity when displaying a scheduled basal rate
+                                let opacity = state.apsManager?.isScheduledBasal == true ? 0.6 : 1.0
+                                if basalString.count > 5 {
+                                    Text(basalString)
+                                        .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.85)
+                                        .truncationMode(.tail)
+                                        .allowsTightening(true)
+                                        .opacity(opacity)
+                                } else {
+                                    // Short strings can just display normally
+                                    Text(basalString)
+                                        .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                                        .opacity(opacity)
+                                }
                             } else {
-                                // Short strings can just display normally
-                                Text(tempBasalString).font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                                Text("No Data")
+                                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                             }
-                        } else {
-                            Image(systemName: "drop.circle")
-                                .font(.callout)
-                                .foregroundColor(.insulinTintColor)
-                            Text("No Data")
-                                .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                         }
                     }
                 }
@@ -736,7 +774,7 @@ extension Home {
                 let bolusString =
                     (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
                         + String(localized: " of ", comment: "Bolus string partial message: 'x U of y U' in home view") +
-                        (Formatter.decimalFormatterWithTwoFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
+                        (Formatter.decimalFormatterWithThreeFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
                         + String(localized: " U", comment: "Insulin unit")
 
                 ZStack {
@@ -964,7 +1002,7 @@ extension Home {
                 } else {
                     PumpConfig.PumpSetupView(
                         pumpType: state.setupPumpType,
-                        pumpInitialSettings: PumpConfig.PumpInitialSettings.default,
+                        pumpInitialSettings: state.pumpInitialSettings,
                         bluetoothManager: state.provider.apsManager.bluetoothManager!,
                         completionDelegate: state,
                         setupDelegate: state
