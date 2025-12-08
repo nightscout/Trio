@@ -11,6 +11,8 @@
 		0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5822B15939E719628E9FF7C /* SnoozeRootView.swift */; };
 		09A169602EE302EB0026711C /* BarcodeAiDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695B2EE302EB0026711C /* BarcodeAiDataFlow.swift */; };
 		09A169612EE302EB0026711C /* BarcodeScannerStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695E2EE302EB0026711C /* BarcodeScannerStateModel.swift */; };
+		09A169622EE302EB0026711C /* NutritionLabelScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695D2EE302EB0026711C /* NutritionLabelScanner.swift */; };
+		09A169632EE302EB0026711C /* NutritionModelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695F2EE302EB0026712C /* NutritionModelManager.swift */; };
 		09A169642EE302EB0026711C /* BarcodeAiProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695C2EE302EB0026711C /* BarcodeAiProvider.swift */; };
 		09A169652EE302EB0026711C /* BarcodeScannerRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169582EE302EB0026711C /* BarcodeScannerRootView.swift */; };
 		09A169682EE3030D0026711C /* OpenBarcodeAIIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169662EE3030D0026711C /* OpenBarcodeAIIntent.swift */; };
@@ -848,7 +850,9 @@
 		09A169582EE302EB0026711C /* BarcodeScannerRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerRootView.swift; sourceTree = "<group>"; };
 		09A1695B2EE302EB0026711C /* BarcodeAiDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeAiDataFlow.swift; sourceTree = "<group>"; };
 		09A1695C2EE302EB0026711C /* BarcodeAiProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeAiProvider.swift; sourceTree = "<group>"; };
+		09A1695D2EE302EB0026711C /* NutritionLabelScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionLabelScanner.swift; sourceTree = "<group>"; };
 		09A1695E2EE302EB0026711C /* BarcodeScannerStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerStateModel.swift; sourceTree = "<group>"; };
+		09A1695F2EE302EB0026712C /* NutritionModelManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionModelManager.swift; sourceTree = "<group>"; };
 		09A169662EE3030D0026711C /* OpenBarcodeAIIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenBarcodeAIIntent.swift; sourceTree = "<group>"; };
 		110AEDE02C5193D100615CC9 /* BolusIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntent.swift; sourceTree = "<group>"; };
 		110AEDE12C5193D100615CC9 /* BolusIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntentRequest.swift; sourceTree = "<group>"; };
@@ -1686,6 +1690,8 @@
 				09A1695A2EE302EB0026711C /* View */,
 				09A1695B2EE302EB0026711C /* BarcodeAiDataFlow.swift */,
 				09A1695C2EE302EB0026711C /* BarcodeAiProvider.swift */,
+				09A1695D2EE302EB0026711C /* NutritionLabelScanner.swift */,
+				09A1695F2EE302EB0026712C /* NutritionModelManager.swift */,
 				09A1695E2EE302EB0026711C /* BarcodeScannerStateModel.swift */,
 			);
 			path = BarcodeAi;
@@ -4670,6 +4676,8 @@
 				DD09D47D2C5986DA003FEA5D /* CalendarEventSettingsProvider.swift in Sources */,
 				09A169602EE302EB0026711C /* BarcodeAiDataFlow.swift in Sources */,
 				09A169612EE302EB0026711C /* BarcodeScannerStateModel.swift in Sources */,
+				09A169622EE302EB0026711C /* NutritionLabelScanner.swift in Sources */,
+				09A169632EE302EB0026711C /* NutritionModelManager.swift in Sources */,
 				09A169642EE302EB0026711C /* BarcodeAiProvider.swift in Sources */,
 				09A169652EE302EB0026711C /* BarcodeScannerRootView.swift in Sources */,
 				DD09D47B2C5986D1003FEA5D /* CalendarEventSettingsDataFlow.swift in Sources */,
