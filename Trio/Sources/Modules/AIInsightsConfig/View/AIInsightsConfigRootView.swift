@@ -512,7 +512,7 @@ extension AIInsightsConfig {
             .background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Weekly Report")
             .sheet(isPresented: $showShareSheet) {
-                ShareSheet(activityItems: [state.getShareableReport()])
+                AIInsightsShareSheet(activityItems: [state.getShareableReport()])
             }
         }
     }
@@ -619,5 +619,16 @@ extension AIInsightsConfig {
                 Text("This will remove your API key from the device. You can add a new one later.")
             }
         }
+    }
+    // MARK: - Share Sheet for AI Insights
+
+    struct AIInsightsShareSheet: UIViewControllerRepresentable {
+        let activityItems: [Any]
+
+        func makeUIViewController(context: Context) -> UIActivityViewController {
+            UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+        }
+
+        func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
     }
 }
