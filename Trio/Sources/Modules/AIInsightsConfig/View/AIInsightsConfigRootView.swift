@@ -587,7 +587,7 @@ extension AIInsightsConfig {
                     header: Text("About"),
                     footer: Text("Claude is Anthropic's AI assistant. API usage is billed to your Anthropic account.")
                 ) {
-                    Link(destination: URL(string: "https://console.anthropic.com")!) {
+                    SwiftUI.Link(destination: URL(string: "https://console.anthropic.com")!) {
                         HStack {
                             Text("Get API Key")
                             Spacer()
@@ -596,7 +596,7 @@ extension AIInsightsConfig {
                         }
                     }
 
-                    Link(destination: URL(string: "https://www.anthropic.com/pricing")!) {
+                    SwiftUI.Link(destination: URL(string: "https://www.anthropic.com/pricing")!) {
                         HStack {
                             Text("View Pricing")
                             Spacer()
