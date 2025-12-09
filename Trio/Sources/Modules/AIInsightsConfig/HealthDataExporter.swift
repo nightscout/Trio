@@ -13,6 +13,7 @@ final class HealthDataExporter {
         let glucoseReadings: [GlucoseReading]
         let carbEntries: [CarbEntry]
         let bolusEvents: [BolusEvent]
+        let loopStates: [LoopState]
         let settings: SettingsSummary
         let statistics: Statistics
 
@@ -38,6 +39,20 @@ final class HealthDataExporter {
             let isExternal: Bool
         }
 
+        /// Loop state snapshot from OrefDetermination - captured every ~5 minutes
+        struct LoopState {
+            let date: Date
+            let glucose: Decimal
+            let iob: Decimal
+            let cob: Int
+            let tempBasalRate: Decimal
+            let scheduledBasalRate: Decimal
+            let smbDelivered: Decimal
+            let eventualBG: Decimal?
+            let insulinReq: Decimal
+            let reason: String?
+        }
+
         struct SettingsSummary {
             let units: String
             let targetLow: Int
@@ -58,6 +73,7 @@ final class HealthDataExporter {
             let timeAboveRange: Double
             let totalCarbs: Double
             let totalBolus: Decimal
+            let totalBasal: Decimal
             let readingCount: Int
         }
     }
@@ -84,11 +100,15 @@ final class HealthDataExporter {
         // Fetch bolus events
         let bolusEvents = try await fetchBolusEvents(since: sevenDaysAgo)
 
+        // Fetch loop states (OrefDetermination data)
+        let loopStates = try await fetchLoopStates(since: sevenDaysAgo)
+
         // Calculate statistics
         let statistics = calculateStatistics(
             glucose: glucoseReadings,
             carbs: carbEntries,
             boluses: bolusEvents,
+            loopStates: loopStates,
             lowThreshold: targetLow,
             highThreshold: targetHigh
         )
@@ -108,6 +128,7 @@ final class HealthDataExporter {
             glucoseReadings: glucoseReadings,
             carbEntries: carbEntries,
             bolusEvents: bolusEvents,
+            loopStates: loopStates,
             settings: settings,
             statistics: statistics
         )
@@ -193,10 +214,48 @@ final class HealthDataExporter {
         }
     }
 
+    private func fetchLoopStates(since date: Date) async throws -> [ExportedData.LoopState] {
+        try await context.perform {
+            let request = NSFetchRequest<NSManagedObject>(entityName: "OrefDetermination")
+            request.predicate = NSPredicate(format: "deliverAt >= %@", date as NSDate)
+            request.sortDescriptors = [NSSortDescriptor(key: "deliverAt", ascending: true)]
+
+            let results = try self.context.fetch(request)
+
+            return results.compactMap { obj -> ExportedData.LoopState? in
+                guard let deliverAt = obj.value(forKey: "deliverAt") as? Date else { return nil }
+
+                let glucose = (obj.value(forKey: "glucose") as? NSDecimalNumber)?.decimalValue ?? 0
+                let iob = (obj.value(forKey: "iob") as? NSDecimalNumber)?.decimalValue ?? 0
+                let cob = obj.value(forKey: "cob") as? Int16 ?? 0
+                let rate = (obj.value(forKey: "rate") as? NSDecimalNumber)?.decimalValue ?? 0
+                let scheduledBasal = (obj.value(forKey: "scheduledBasal") as? NSDecimalNumber)?.decimalValue ?? 0
+                let smbToDeliver = (obj.value(forKey: "smbToDeliver") as? NSDecimalNumber)?.decimalValue ?? 0
+                let eventualBG = (obj.value(forKey: "eventualBG") as? NSDecimalNumber)?.decimalValue
+                let insulinReq = (obj.value(forKey: "insulinReq") as? NSDecimalNumber)?.decimalValue ?? 0
+                let reason = obj.value(forKey: "reason") as? String
+
+                return ExportedData.LoopState(
+                    date: deliverAt,
+                    glucose: glucose,
+                    iob: iob,
+                    cob: Int(cob),
+                    tempBasalRate: rate,
+                    scheduledBasalRate: scheduledBasal,
+                    smbDelivered: smbToDeliver,
+                    eventualBG: eventualBG,
+                    insulinReq: insulinReq,
+                    reason: reason
+                )
+            }
+        }
+    }
+
     private func calculateStatistics(
         glucose: [ExportedData.GlucoseReading],
         carbs: [ExportedData.CarbEntry],
         boluses: [ExportedData.BolusEvent],
+        loopStates: [ExportedData.LoopState],
         lowThreshold: Int,
         highThreshold: Int
     ) -> ExportedData.Statistics {
@@ -218,6 +277,11 @@ final class HealthDataExporter {
         let totalCarbs = carbs.reduce(0.0) { $0 + $1.carbs }
         let totalBolus = boluses.reduce(Decimal(0)) { $0 + $1.amount }
 
+        // Estimate total basal from loop states (temp basal rate * 5min intervals)
+        let totalBasal = loopStates.reduce(Decimal(0)) { sum, state in
+            sum + (state.tempBasalRate * Decimal(5) / Decimal(60)) // rate * 5min in hours
+        }
+
         return ExportedData.Statistics(
             averageGlucose: average,
             minGlucose: minVal,
@@ -227,6 +291,7 @@ final class HealthDataExporter {
             timeAboveRange: tar,
             totalCarbs: totalCarbs,
             totalBolus: totalBolus,
+            totalBasal: totalBasal,
             readingCount: glucoseValues.count
         )
     }
@@ -237,69 +302,147 @@ final class HealthDataExporter {
         dateFormatter.dateStyle = .short
         dateFormatter.timeStyle = .short
 
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "MM/dd HH:mm"
+
         var prompt = """
         Here is my diabetes data from the last 7 days:
 
-        ## Settings
-        - Units: \(data.settings.units)
-        - Target Range: \(data.settings.targetLow)-\(data.settings.targetHigh) \(data.settings.units)
-        - Max IOB: \(data.settings.maxIOB) U
-        - Max Bolus: \(data.settings.maxBolus) U
-        - DIA: \(data.settings.dia) hours
-        - Carb Ratios: \(data.settings.carbRatio)
-        - ISF: \(data.settings.isf)
+        ⚙️ SETTINGS
+        • Units: \(data.settings.units)
+        • Target Range: \(data.settings.targetLow)-\(data.settings.targetHigh) \(data.settings.units)
+        • Max IOB: \(data.settings.maxIOB) U
+        • Max Bolus: \(data.settings.maxBolus) U
+        • DIA: \(data.settings.dia) hours
+        • Carb Ratios: \(data.settings.carbRatio)
+        • ISF: \(data.settings.isf)
 
-        ## Statistics (Last 7 Days)
-        - Average Glucose: \(data.statistics.averageGlucose) \(data.settings.units)
-        - Min: \(data.statistics.minGlucose), Max: \(data.statistics.maxGlucose)
-        - Time in Range (\(data.settings.targetLow)-\(data.settings.targetHigh)): \(String(format: "%.1f", data.statistics.timeInRange))%
-        - Time Below Range: \(String(format: "%.1f", data.statistics.timeBelowRange))%
-        - Time Above Range: \(String(format: "%.1f", data.statistics.timeAboveRange))%
-        - Total Carbs: \(String(format: "%.0f", data.statistics.totalCarbs))g
-        - Total Bolus Insulin: \(data.statistics.totalBolus) U
-        - Reading Count: \(data.statistics.readingCount)
+        📊 STATISTICS (Last 7 Days)
+        • Average Glucose: \(data.statistics.averageGlucose) \(data.settings.units)
+        • Range: \(data.statistics.minGlucose) - \(data.statistics.maxGlucose) \(data.settings.units)
+        • Time in Range (\(data.settings.targetLow)-\(data.settings.targetHigh)): \(String(format: "%.1f", data.statistics.timeInRange))%
+        • Time Below Range: \(String(format: "%.1f", data.statistics.timeBelowRange))%
+        • Time Above Range: \(String(format: "%.1f", data.statistics.timeAboveRange))%
+        • Total Carbs: \(String(format: "%.0f", data.statistics.totalCarbs))g
+        • Total Bolus Insulin: \(data.statistics.totalBolus) U
+        • Total Basal Insulin: \(String(format: "%.1f", NSDecimalNumber(decimal: data.statistics.totalBasal).doubleValue)) U
+        • CGM Readings: \(data.statistics.readingCount)
 
         """
 
         switch analysisType {
         case .quick:
+            // Add sampled raw data for quick analysis (every 15 min for last 24h)
             prompt += """
 
-            Please provide a quick analysis (3-4 paragraphs) covering:
-            1. Notable patterns you observe
-            2. Any concerns or areas for attention
-            3. One actionable suggestion to discuss with my healthcare provider
+            📈 RAW LOOP DATA (Last 24 hours, ~15 min intervals)
+            Format: Time | BG | IOB | COB | TempBasal | SMB
+            \(formatLoopStatesCompact(data.loopStates, timeFormatter: timeFormatter, hours: 24, intervalMinutes: 15))
+
+            🍽️ RECENT MEALS
+            \(formatCarbEntries(data.carbEntries.filter { $0.date > Calendar.current.date(byAdding: .day, value: -1, to: Date())! }, dateFormatter: timeFormatter))
+
+            Please provide a quick analysis using these sections:
+            📊 **Overview** - Brief summary of glucose control
+            🔍 **Key Patterns** - Notable trends you observe
+            ⚠️ **Concerns** - Any issues needing attention
+            💡 **Quick Tip** - One actionable suggestion
             """
 
         case .weeklyReport:
-            // Add more detailed data for weekly report
+            // Add comprehensive raw data for weekly report
             prompt += """
 
-            ## Recent Glucose Readings (sample of last 24 hours)
-            \(formatRecentGlucose(data.glucoseReadings, dateFormatter: dateFormatter))
+            📈 RAW LOOP DATA (Last 7 days, ~15 min intervals)
+            Format: Time | BG | IOB | COB | TempBasal | SMB
+            \(formatLoopStatesCompact(data.loopStates, timeFormatter: timeFormatter, hours: 168, intervalMinutes: 15))
 
-            ## Carb Entries
-            \(formatCarbEntries(data.carbEntries, dateFormatter: dateFormatter))
+            🍽️ ALL CARB ENTRIES
+            \(formatCarbEntries(data.carbEntries, dateFormatter: timeFormatter))
 
-            ## Bolus History
-            \(formatBolusEvents(data.bolusEvents, dateFormatter: dateFormatter))
+            💉 BOLUS HISTORY
+            \(formatBolusEvents(data.bolusEvents, dateFormatter: timeFormatter))
 
-            Please provide a comprehensive weekly report with:
-            1. **Summary Statistics** - Overview of glucose control
-            2. **Pattern Analysis** - Time-of-day trends, post-meal responses
-            3. **What's Working Well** - Positive observations
-            4. **Areas for Improvement** - Concerns or patterns to address
-            5. **Recommendations** - Conservative percentage adjustments (5-15%) to discuss with my healthcare provider
+            Please provide a comprehensive weekly report with these sections:
 
-            Format this as a report I can share with my doctor.
+            📊 **Summary**
+            - Overall glucose control assessment
+            - Key metrics interpretation
+
+            📈 **Pattern Analysis**
+            - Time-of-day trends (morning, afternoon, evening, overnight)
+            - Post-meal responses
+            - Any recurring issues
+
+            ✅ **What's Working Well**
+            - Positive observations
+            - Good control periods
+
+            ⚠️ **Areas for Improvement**
+            - Concerning patterns
+            - Missed meals or unlogged carbs
+
+            💡 **Recommendations**
+            - Specific setting adjustments (be specific with numbers)
+            - Behavioral suggestions
+            - Follow-up items to monitor
+
+            Format this as a professional report suitable for sharing with a healthcare provider.
             """
 
         case .chat:
-            // For chat, just include the context
-            prompt += "\n\nBased on this data, please answer my question."
+            // For chat, include recent context
+            prompt += """
+
+            📈 RECENT LOOP DATA (Last 6 hours)
+            Format: Time | BG | IOB | COB | TempBasal | SMB
+            \(formatLoopStatesCompact(data.loopStates, timeFormatter: timeFormatter, hours: 6, intervalMinutes: 10))
+
+            Based on this data, please answer my question.
+            """
         }
 
         return prompt
+    }
+
+    private func formatLoopStatesCompact(
+        _ states: [ExportedData.LoopState],
+        timeFormatter: DateFormatter,
+        hours: Int,
+        intervalMinutes: Int
+    ) -> String {
+        let cutoff = Calendar.current.date(byAdding: .hour, value: -hours, to: Date())!
+        let filtered = states.filter { $0.date > cutoff }
+
+        if filtered.isEmpty {
+            return "No loop data available"
+        }
+
+        // Sample at specified intervals
+        var sampled: [ExportedData.LoopState] = []
+        var lastTime: Date?
+        let intervalSeconds = Double(intervalMinutes * 60)
+
+        for state in filtered {
+            if let last = lastTime {
+                if state.date.timeIntervalSince(last) >= intervalSeconds {
+                    sampled.append(state)
+                    lastTime = state.date
+                }
+            } else {
+                sampled.append(state)
+                lastTime = state.date
+            }
+        }
+
+        return sampled.map { state in
+            let bg = String(format: "%.0f", NSDecimalNumber(decimal: state.glucose).doubleValue)
+            let iob = String(format: "%.2f", NSDecimalNumber(decimal: state.iob).doubleValue)
+            let tempBasal = String(format: "%.2f", NSDecimalNumber(decimal: state.tempBasalRate).doubleValue)
+            let smb = state.smbDelivered > 0 ? String(format: "%.2f", NSDecimalNumber(decimal: state.smbDelivered).doubleValue) : "-"
+
+            return "\(timeFormatter.string(from: state.date)) | \(bg) | \(iob) | \(state.cob) | \(tempBasal) | \(smb)"
+        }.joined(separator: "\n")
     }
 
     private func formatRecentGlucose(_ readings: [ExportedData.GlucoseReading], dateFormatter: DateFormatter) -> String {
@@ -331,16 +474,16 @@ final class HealthDataExporter {
 
     private func formatCarbEntries(_ entries: [ExportedData.CarbEntry], dateFormatter: DateFormatter) -> String {
         if entries.isEmpty {
-            return "No carb entries"
+            return "No carb entries logged"
         }
 
-        return entries.prefix(50).map { entry in
-            var str = "\(dateFormatter.string(from: entry.date)): \(String(format: "%.0f", entry.carbs))g carbs"
+        return entries.prefix(100).map { entry in
+            var str = "\(dateFormatter.string(from: entry.date)) | \(String(format: "%.0f", entry.carbs))g"
             if entry.fat > 0 || entry.protein > 0 {
-                str += " (F: \(String(format: "%.0f", entry.fat))g, P: \(String(format: "%.0f", entry.protein))g)"
+                str += " (F:\(String(format: "%.0f", entry.fat))g P:\(String(format: "%.0f", entry.protein))g)"
             }
             if let note = entry.note, !note.isEmpty {
-                str += " - \(note)"
+                str += " \"\(note)\""
             }
             return str
         }.joined(separator: "\n")
@@ -351,17 +494,35 @@ final class HealthDataExporter {
             return "No bolus events"
         }
 
-        return events.prefix(100).map { event in
-            var str = "\(dateFormatter.string(from: event.date)): \(event.amount) U"
-            if event.isSMB {
-                str += " (SMB)"
-            } else if event.isExternal {
-                str += " (External)"
-            } else {
-                str += " (Manual)"
-            }
-            return str
-        }.joined(separator: "\n")
+        // Group by type for cleaner output
+        let manual = events.filter { !$0.isSMB && !$0.isExternal }
+        let smbs = events.filter { $0.isSMB }
+        let external = events.filter { $0.isExternal }
+
+        var output = ""
+
+        if !manual.isEmpty {
+            output += "Manual Boluses:\n"
+            output += manual.prefix(50).map { event in
+                "\(dateFormatter.string(from: event.date)) | \(event.amount) U"
+            }.joined(separator: "\n")
+        }
+
+        if !smbs.isEmpty {
+            if !output.isEmpty { output += "\n\n" }
+            let totalSMB = smbs.reduce(Decimal(0)) { $0 + $1.amount }
+            output += "SMBs: \(smbs.count) deliveries, \(String(format: "%.2f", NSDecimalNumber(decimal: totalSMB).doubleValue)) U total"
+        }
+
+        if !external.isEmpty {
+            if !output.isEmpty { output += "\n\n" }
+            output += "External/Pen Injections:\n"
+            output += external.prefix(20).map { event in
+                "\(dateFormatter.string(from: event.date)) | \(event.amount) U"
+            }.joined(separator: "\n")
+        }
+
+        return output
     }
 
     enum AnalysisType {
