@@ -17,7 +17,7 @@ struct CarbImpactParams {
         currentTime: Date
     ) -> CarbImpactParams {
         let maxCarbAbsorptionRate: Decimal = 30 // g/h
-        let maxCarbImpact = (maxCarbAbsorptionRate * carbSensitivityFactor * 5 / 60).rounded(toPlaces: 1)
+        let maxCarbImpact = (maxCarbAbsorptionRate * carbSensitivityFactor * 5 / 60).jsRounded(scale: 1)
         let cappedCarbImpact = min(carbImpact, maxCarbImpact)
 
         let remainingCarbAbsorptionTime = ForecastGenerator.calculateRemainingCarbAbsorptionTime(
