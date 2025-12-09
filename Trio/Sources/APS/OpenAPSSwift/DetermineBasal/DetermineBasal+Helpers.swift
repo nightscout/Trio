@@ -92,11 +92,11 @@ extension DeterminationGenerator {
         let longAvg: Decimal = longDeltas.mean
 
         return GlucoseStatus(
-            delta: lastDelta.rounded(toPlaces: 2),
+            delta: lastDelta.jsRounded(scale: 2),
             glucose: mostRecentGlucoseReading,
             noise: Int(sorted[0].noise ?? 0),
             shortAvgDelta: shortAvg.jsRounded(scale: 2),
-            longAvgDelta: longAvg.rounded(toPlaces: 2),
+            longAvgDelta: longAvg.jsRounded(scale: 2),
             date: mostRecentGlucoseDate,
             lastCalIndex: nil,
             device: "", // FIXME: will be filled once this gets moved back to GlucoseStorage
@@ -240,18 +240,18 @@ extension DeterminationGenerator {
             if (profile.sensitivityRaisesTarget && autosens.ratio < 1) ||
                 (profile.resistanceLowersTarget && autosens.ratio > 1)
             {
-                minGlucose = ((minGlucose - 60) / autosens.ratio + 60).rounded(toPlaces: 0)
-                maxGlucose = ((maxGlucose - 60) / autosens.ratio + 60).rounded(toPlaces: 0)
-                targetGlucose = max(80, ((targetGlucose - 60) / autosens.ratio + 60).rounded(toPlaces: 0))
+                minGlucose = ((minGlucose - 60) / autosens.ratio + 60).jsRounded()
+                maxGlucose = ((maxGlucose - 60) / autosens.ratio + 60).jsRounded()
+                targetGlucose = max(80, ((targetGlucose - 60) / autosens.ratio + 60).jsRounded())
             }
         }
 
         // Raise target for noisy/CGM data
         if noise >= 2 {
             let noisyCGMTargetMultiplier = max(1.1, profile.noisyCGMTargetMultiplier)
-            minGlucose = min(200, minGlucose * noisyCGMTargetMultiplier).rounded(toPlaces: 0)
-            targetGlucose = min(200, targetGlucose * noisyCGMTargetMultiplier).rounded(toPlaces: 0)
-            maxGlucose = min(200, maxGlucose * noisyCGMTargetMultiplier).rounded(toPlaces: 0)
+            minGlucose = min(200, minGlucose * noisyCGMTargetMultiplier).jsRounded()
+            targetGlucose = min(200, targetGlucose * noisyCGMTargetMultiplier).jsRounded()
+            maxGlucose = min(200, maxGlucose * noisyCGMTargetMultiplier).jsRounded()
         }
 
         // Calculate threshold: minGlucose thresholds: 80->60, 90->65, etc.

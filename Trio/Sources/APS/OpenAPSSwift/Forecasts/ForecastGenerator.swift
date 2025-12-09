@@ -322,17 +322,17 @@ enum ForecastGenerator {
         if uamResult.minForecastGlucose < 999, cobResult.minForecastGlucose < 999 {
             avgerageForecastGlucose = (
                 (1 - fractionCarbsLeft) * uamResult.lastForecastGlucose + fractionCarbsLeft * cobResult.lastForecastGlucose
-            ).rounded()
+            ).jsRounded()
         } else if cobResult.minForecastGlucose < 999 {
             avgerageForecastGlucose =
                 ((iobResult.lastForecastGlucose + cobResult.lastForecastGlucose) / 2)
-                    .rounded()
+                    .jsRounded()
         } else if uamResult.minForecastGlucose < 999 {
             avgerageForecastGlucose =
                 ((iobResult.lastForecastGlucose + uamResult.lastForecastGlucose) / 2)
-                    .rounded()
+                    .jsRounded()
         } else {
-            avgerageForecastGlucose = iobResult.lastForecastGlucose.rounded()
+            avgerageForecastGlucose = iobResult.lastForecastGlucose.jsRounded()
         }
         let adjustedAverageForecastGlucose = max(avgerageForecastGlucose, ztResult.minGuardGlucose)
 
@@ -344,16 +344,16 @@ enum ForecastGenerator {
                     fractionCarbsLeft * cobResult.minGuardGlucose + (1 - fractionCarbsLeft) * uamResult.minGuardGlucose
                 ).jsRounded()
             } else {
-                minGuardGlucose = cobResult.minGuardGlucose.rounded()
+                minGuardGlucose = cobResult.minGuardGlucose.jsRounded()
             }
         } else if enableUAM {
-            minGuardGlucose = uamResult.minGuardGlucose.rounded()
+            minGuardGlucose = uamResult.minGuardGlucose.jsRounded()
         } else {
-            minGuardGlucose = iobResult.minGuardGlucose.rounded()
+            minGuardGlucose = iobResult.minGuardGlucose.jsRounded()
         }
 
         // 4. minForecastedGlucose ("minPredBG")
-        var minForecastedGlucose: Decimal = iobResult.minForecastGlucose.rounded()
+        var minForecastedGlucose: Decimal = iobResult.minForecastGlucose.jsRounded()
         if carbs > 0 {
             if !enableUAM, cobResult.minForecastGlucose < 999 {
                 minForecastedGlucose = max(iobResult.minForecastGlucose, cobResult.minForecastGlucose)
@@ -364,14 +364,14 @@ enum ForecastGenerator {
                     iobResult.minForecastGlucose,
                     cobResult.minForecastGlucose,
                     blendedMinForecastGlucose
-                ).rounded()
+                ).jsRounded()
             } else if enableUAM {
                 minForecastedGlucose = minZTUAMForecastGlucose
             } else {
                 minForecastedGlucose = minGuardGlucose
             }
         } else if enableUAM {
-            minForecastedGlucose = max(iobResult.minForecastGlucose, minZTUAMForecastGlucose).rounded()
+            minForecastedGlucose = max(iobResult.minForecastGlucose, minZTUAMForecastGlucose).jsRounded()
         }
 
         // Clamp minForecastedGlucose to not exceed adjustedAvgForecastGlucose

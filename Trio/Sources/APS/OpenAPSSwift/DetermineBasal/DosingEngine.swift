@@ -249,7 +249,7 @@ enum DosingEngine {
         guard carbSensitivityFactor > 0 else { return (carbs: 0, minutes: minutesAboveThreshold) }
 
         var carbsRequired = (glucoseUndershoot - zeroTempEffect) / carbSensitivityFactor - cobForCarbsRequired
-        carbsRequired = carbsRequired.rounded(toPlaces: 0)
+        carbsRequired = carbsRequired.jsRounded()
 
         return (carbs: carbsRequired, minutes: minutesAboveThreshold)
     }

@@ -222,7 +222,7 @@ enum DeterminationGenerator {
 
         let naiveEventualGlucose: Decimal
         if currentIob > 0 {
-            naiveEventualGlucose = (currentGlucose - (currentIob * adjustedSensitivity)).rounded(toPlaces: 0)
+            naiveEventualGlucose = (currentGlucose - (currentIob * adjustedSensitivity)).jsRounded()
         } else {
             naiveEventualGlucose =
                 (
@@ -235,7 +235,7 @@ enum DeterminationGenerator {
                                 )
                         )
                 )
-                .rounded(toPlaces: 0)
+                .jsRounded()
         }
 
         let eventualGlucose = naiveEventualGlucose + deviation
