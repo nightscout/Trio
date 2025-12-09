@@ -60,8 +60,10 @@ final class HealthDataExporter {
             let maxIOB: Decimal
             let maxBolus: Decimal
             let dia: Decimal
-            let carbRatio: String
-            let isf: String
+            let carbRatioSchedule: [(time: String, ratio: Decimal)]
+            let isfSchedule: [(time: String, sensitivity: Decimal)]
+            let basalSchedule: [(time: String, rate: Decimal)]
+            let targetSchedule: [(time: String, low: Decimal, high: Decimal)]
         }
 
         struct Statistics {
@@ -86,8 +88,10 @@ final class HealthDataExporter {
         maxIOB: Decimal,
         maxBolus: Decimal,
         dia: Decimal,
-        carbRatios: String,
-        isfs: String
+        carbRatioSchedule: [(time: String, ratio: Decimal)],
+        isfSchedule: [(time: String, sensitivity: Decimal)],
+        basalSchedule: [(time: String, rate: Decimal)],
+        targetSchedule: [(time: String, low: Decimal, high: Decimal)]
     ) async throws -> ExportedData {
         let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
 
@@ -120,8 +124,10 @@ final class HealthDataExporter {
             maxIOB: maxIOB,
             maxBolus: maxBolus,
             dia: dia,
-            carbRatio: carbRatios,
-            isf: isfs
+            carbRatioSchedule: carbRatioSchedule,
+            isfSchedule: isfSchedule,
+            basalSchedule: basalSchedule,
+            targetSchedule: targetSchedule
         )
 
         return ExportedData(
@@ -314,8 +320,18 @@ final class HealthDataExporter {
         • Max IOB: \(data.settings.maxIOB) U
         • Max Bolus: \(data.settings.maxBolus) U
         • DIA: \(data.settings.dia) hours
-        • Carb Ratios: \(data.settings.carbRatio)
-        • ISF: \(data.settings.isf)
+
+        📋 CARB RATIOS (1 unit insulin per X grams)
+        \(formatSchedule(data.settings.carbRatioSchedule.map { "\($0.time): 1:\($0.ratio)" }))
+
+        📋 INSULIN SENSITIVITY FACTORS (1 unit drops BG by X \(data.settings.units))
+        \(formatSchedule(data.settings.isfSchedule.map { "\($0.time): \($0.sensitivity)" }))
+
+        📋 BASAL RATES (U/hr)
+        \(formatSchedule(data.settings.basalSchedule.map { "\($0.time): \($0.rate) U/hr" }))
+
+        📋 TARGET GLUCOSE RANGES
+        \(formatSchedule(data.settings.targetSchedule.map { "\($0.time): \($0.low)-\($0.high) \(data.settings.units)" }))
 
         📊 STATISTICS (Last 7 Days)
         • Average Glucose: \(data.statistics.averageGlucose) \(data.settings.units)
@@ -403,6 +419,13 @@ final class HealthDataExporter {
         }
 
         return prompt
+    }
+
+    private func formatSchedule(_ entries: [String]) -> String {
+        if entries.isEmpty {
+            return "Not configured"
+        }
+        return entries.joined(separator: " | ")
     }
 
     private func formatLoopStatesCompact(

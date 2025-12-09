@@ -83,9 +83,11 @@ extension AIInsightsConfig {
             let preferences = settingsManager.preferences
             let pumpSettings = settingsManager.pumpSettings
 
-            // Format carb ratios and ISF as strings
-            let carbRatios = "Varies by time of day"
-            let isfs = "Varies by time of day"
+            // Fetch detailed schedules from file storage
+            let carbRatioSchedule = await fetchCarbRatios()
+            let isfSchedule = await fetchISFSchedule()
+            let basalSchedule = await fetchBasalSchedule()
+            let targetSchedule = await fetchTargetSchedule()
 
             let lowTarget = settings.units == .mgdL ? Int(settings.low) : Int(settings.low * 18)
             let highTarget = settings.units == .mgdL ? Int(settings.high) : Int(settings.high * 18)
@@ -97,9 +99,39 @@ extension AIInsightsConfig {
                 maxIOB: preferences.maxIOB,
                 maxBolus: pumpSettings.maxBolus,
                 dia: pumpSettings.insulinActionCurve,
-                carbRatios: carbRatios,
-                isfs: isfs
+                carbRatioSchedule: carbRatioSchedule,
+                isfSchedule: isfSchedule,
+                basalSchedule: basalSchedule,
+                targetSchedule: targetSchedule
             )
+        }
+
+        private func fetchCarbRatios() async -> [(time: String, ratio: Decimal)] {
+            guard let carbRatios = await storage.retrieveAsync(OpenAPS.Settings.carbRatios, as: CarbRatios.self) else {
+                return []
+            }
+            return carbRatios.schedule.map { (time: $0.start, ratio: $0.ratio) }
+        }
+
+        private func fetchISFSchedule() async -> [(time: String, sensitivity: Decimal)] {
+            guard let isf = await storage.retrieveAsync(OpenAPS.Settings.insulinSensitivities, as: InsulinSensitivities.self) else {
+                return []
+            }
+            return isf.sensitivities.map { (time: $0.start, sensitivity: $0.sensitivity) }
+        }
+
+        private func fetchBasalSchedule() async -> [(time: String, rate: Decimal)] {
+            guard let basals = await storage.retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) else {
+                return []
+            }
+            return basals.map { (time: $0.start, rate: $0.rate) }
+        }
+
+        private func fetchTargetSchedule() async -> [(time: String, low: Decimal, high: Decimal)] {
+            guard let targets = await storage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self) else {
+                return []
+            }
+            return targets.targets.map { (time: $0.start, low: $0.low, high: $0.high) }
         }
 
         // MARK: - Quick Analysis
