@@ -165,15 +165,18 @@ final class HealthDataExporter {
 
     private func fetchBolusEvents(since date: Date) async throws -> [ExportedData.BolusEvent] {
         try await context.perform {
-            let request = NSFetchRequest<NSManagedObject>(entityName: "PumpEventStored")
-            request.predicate = NSPredicate(format: "timestamp >= %@ AND type == %@", date as NSDate, "bolus")
-            request.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: true)]
+            // Fetch directly from BolusStored entity (like BolusStatsSetup does)
+            let request = NSFetchRequest<NSManagedObject>(entityName: "BolusStored")
+            // Filter by the parent pumpEvent's timestamp
+            request.predicate = NSPredicate(format: "pumpEvent.timestamp >= %@", date as NSDate)
+            request.sortDescriptors = [NSSortDescriptor(key: "pumpEvent.timestamp", ascending: true)]
 
             let results = try self.context.fetch(request)
 
-            return results.compactMap { obj -> ExportedData.BolusEvent? in
-                guard let timestamp = obj.value(forKey: "timestamp") as? Date,
-                      let bolus = obj.value(forKey: "bolus") as? NSManagedObject
+            return results.compactMap { bolus -> ExportedData.BolusEvent? in
+                // Get the timestamp from the related pumpEvent
+                guard let pumpEvent = bolus.value(forKey: "pumpEvent") as? NSManagedObject,
+                      let timestamp = pumpEvent.value(forKey: "timestamp") as? Date
                 else { return nil }
 
                 let amount = (bolus.value(forKey: "amount") as? NSDecimalNumber)?.decimalValue ?? 0
