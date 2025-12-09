@@ -1,8 +1,6 @@
 import Combine
 import Foundation
 
-enum AIInsightsConfig {
-    enum Config {}
-}
+enum AIInsightsConfig {}
 
 protocol AIInsightsConfigProvider: Provider {}
