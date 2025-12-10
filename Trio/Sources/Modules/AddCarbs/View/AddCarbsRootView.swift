@@ -51,6 +51,53 @@ extension AddCarbs {
                         Text(state.carbs > state.maxCarbs ? "⚠️" : "g").foregroundColor(.secondary)
                     }.padding(.vertical)
 
+                    // Quick-add carb buttons
+                    HStack(spacing: 12) {
+                        Text("Quick Add:")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+
+                        Button(action: {
+                            state.carbs += 5
+                        }) {
+                            Text("+5g")
+                                .font(.subheadline.weight(.medium))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.blue.opacity(0.15))
+                                .foregroundColor(.blue)
+                                .cornerRadius(8)
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: {
+                            state.carbs += 10
+                        }) {
+                            Text("+10g")
+                                .font(.subheadline.weight(.medium))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.blue.opacity(0.15))
+                                .foregroundColor(.blue)
+                                .cornerRadius(8)
+                        }
+                        .buttonStyle(.plain)
+
+                        Spacer()
+
+                        // Clear button
+                        if state.carbs > 0 {
+                            Button(action: {
+                                state.carbs = 0
+                            }) {
+                                Text("Clear")
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
                     if state.useFPUconversion {
                         proteinAndFat()
                     }
