@@ -1,3 +1,4 @@
+import PDFKit
 import SwiftUI
 import Swinject
 
@@ -86,6 +87,29 @@ extension AIInsightsConfig {
                 )
                 .listRowBackground(Color.chart)
 
+                // Saved Reports Section
+                if !state.savedReports.isEmpty {
+                    Section(
+                        header: Text("Saved Reports"),
+                        footer: Text("Reports are automatically saved. Tap to view or share.")
+                    ) {
+                        NavigationLink(destination: SavedReportsListView(state: state)) {
+                            HStack {
+                                Image(systemName: "folder.fill")
+                                    .foregroundColor(.blue)
+                                VStack(alignment: .leading) {
+                                    Text("View Saved Reports")
+                                        .font(.headline)
+                                    Text("\(state.savedReports.count) report\(state.savedReports.count == 1 ? "" : "s") saved")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                    }
+                    .listRowBackground(Color.chart)
+                }
+
                 Section(
                     header: Text("Configuration"),
                     footer: Text("Your Claude API key is stored securely in the iOS Keychain.")
@@ -119,6 +143,7 @@ extension AIInsightsConfig {
         @ObservedObject var state: StateModel
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
+        @State private var showShareSheet = false
 
         var body: some View {
             ScrollView {
@@ -213,23 +238,39 @@ extension AIInsightsConfig {
                                     .foregroundColor(.secondary)
                             }
 
-                            Text(state.quickAnalysisResult)
-                                .font(.body)
+                            // Rich markdown rendering
+                            RichMarkdownView(content: state.quickAnalysisResult)
                                 .padding()
                                 .background(Color.chart)
                                 .cornerRadius(12)
 
-                            Button(action: {
-                                Task {
-                                    await state.runQuickAnalysis()
+                            HStack {
+                                Button(action: {
+                                    Task {
+                                        await state.runQuickAnalysis()
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "arrow.clockwise")
+                                        Text("Run Again")
+                                    }
                                 }
-                            }) {
-                                HStack {
-                                    Image(systemName: "arrow.clockwise")
-                                    Text("Run Again")
+                                .buttonStyle(.bordered)
+
+                                Spacer()
+
+                                if state.quickAnalysisPDFData != nil {
+                                    Button(action: {
+                                        showShareSheet = true
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "square.and.arrow.up")
+                                            Text("Share PDF")
+                                        }
+                                    }
+                                    .buttonStyle(.borderedProminent)
                                 }
                             }
-                            .buttonStyle(.bordered)
                         }
                         .padding()
                     }
@@ -244,6 +285,11 @@ extension AIInsightsConfig {
                     NavigationLink(destination: QuickAnalysisSettingsView(state: state)) {
                         Image(systemName: "gearshape")
                     }
+                }
+            }
+            .sheet(isPresented: $showShareSheet) {
+                if let pdfData = state.quickAnalysisPDFData {
+                    AIInsightsShareSheet(activityItems: [pdfData])
                 }
             }
         }
@@ -499,15 +545,17 @@ extension AIInsightsConfig {
                                 Text("Report Generated")
                                     .font(.headline)
                                 Spacer()
-                                Button(action: {
-                                    showShareSheet = true
-                                }) {
-                                    Image(systemName: "square.and.arrow.up")
+                                if state.weeklyReportPDFData != nil {
+                                    Button(action: {
+                                        showShareSheet = true
+                                    }) {
+                                        Image(systemName: "square.and.arrow.up")
+                                    }
                                 }
                             }
 
-                            Text(state.weeklyReport)
-                                .font(.body)
+                            // Rich markdown rendering
+                            RichMarkdownView(content: state.weeklyReport)
                                 .padding()
                                 .background(Color.chart)
                                 .cornerRadius(12)
@@ -527,15 +575,17 @@ extension AIInsightsConfig {
 
                                 Spacer()
 
-                                Button(action: {
-                                    showShareSheet = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "square.and.arrow.up")
-                                        Text("Share")
+                                if state.weeklyReportPDFData != nil {
+                                    Button(action: {
+                                        showShareSheet = true
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "square.and.arrow.up")
+                                            Text("Share PDF")
+                                        }
                                     }
+                                    .buttonStyle(.borderedProminent)
                                 }
-                                .buttonStyle(.borderedProminent)
                             }
                         }
                         .padding()
@@ -547,7 +597,9 @@ extension AIInsightsConfig {
             .background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Weekly Report")
             .sheet(isPresented: $showShareSheet) {
-                AIInsightsShareSheet(activityItems: [state.getShareableReport()])
+                if let pdfData = state.weeklyReportPDFData {
+                    AIInsightsShareSheet(activityItems: [pdfData])
+                }
             }
         }
     }
@@ -558,7 +610,6 @@ extension AIInsightsConfig {
         @ObservedObject var state: StateModel
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
-        @State private var showShareSheet = false
         @State private var showPDFShare = false
 
         var body: some View {
@@ -685,51 +736,41 @@ extension AIInsightsConfig {
                                     .foregroundColor(.secondary)
                             }
 
-                            Text(state.doctorVisitReport)
-                                .font(.body)
+                            // Rich markdown rendering
+                            RichMarkdownView(content: state.doctorVisitReport)
                                 .padding()
                                 .background(Color.chart)
                                 .cornerRadius(12)
 
-                            // Share options
-                            VStack(spacing: 12) {
+                            // Share and regenerate buttons
+                            HStack {
                                 Button(action: {
-                                    showShareSheet = true
+                                    Task {
+                                        await state.generateDoctorVisitReport()
+                                    }
                                 }) {
                                     HStack {
-                                        Image(systemName: "doc.text")
-                                        Text("Share as Text")
+                                        Image(systemName: "arrow.clockwise")
+                                        Text("Regenerate")
                                     }
-                                    .frame(maxWidth: .infinity)
                                 }
                                 .buttonStyle(.bordered)
+
+                                Spacer()
 
                                 if state.doctorReportPDFData != nil {
                                     Button(action: {
                                         showPDFShare = true
                                     }) {
                                         HStack {
-                                            Image(systemName: "doc.richtext")
-                                            Text("Share as PDF")
+                                            Image(systemName: "square.and.arrow.up")
+                                            Text("Share PDF")
                                         }
-                                        .frame(maxWidth: .infinity)
                                     }
                                     .buttonStyle(.borderedProminent)
                                     .tint(.purple)
                                 }
                             }
-
-                            Button(action: {
-                                Task {
-                                    await state.generateDoctorVisitReport()
-                                }
-                            }) {
-                                HStack {
-                                    Image(systemName: "arrow.clockwise")
-                                    Text("Regenerate Report")
-                                }
-                            }
-                            .buttonStyle(.bordered)
                         }
                         .padding()
                     }
@@ -745,9 +786,6 @@ extension AIInsightsConfig {
                         Image(systemName: "gearshape")
                     }
                 }
-            }
-            .sheet(isPresented: $showShareSheet) {
-                AIInsightsShareSheet(activityItems: [state.getShareableDoctorReport()])
             }
             .sheet(isPresented: $showPDFShare) {
                 if let pdfData = state.doctorReportPDFData {
@@ -1055,6 +1093,173 @@ extension AIInsightsConfig {
                 }
             } message: {
                 Text("This will remove your API key from the device. You can add a new one later.")
+            }
+        }
+    }
+
+    // MARK: - Saved Reports List View
+
+    struct SavedReportsListView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+
+        var body: some View {
+            List {
+                ForEach(SavedReportsManager.ReportType.allCases, id: \.rawValue) { type in
+                    let reportsOfType = state.savedReports.filter { $0.type == type.rawValue }
+                    if !reportsOfType.isEmpty {
+                        Section(header: Text(type.displayName)) {
+                            ForEach(reportsOfType) { report in
+                                NavigationLink(destination: SavedReportDetailView(report: report)) {
+                                    SavedReportRow(report: report)
+                                }
+                            }
+                            .onDelete { indexSet in
+                                for index in indexSet {
+                                    state.deleteSavedReport(reportsOfType[index])
+                                }
+                            }
+                        }
+                        .listRowBackground(Color.chart)
+                    }
+                }
+
+                if state.savedReports.isEmpty {
+                    Section {
+                        VStack(spacing: 12) {
+                            Image(systemName: "doc.text.magnifyingglass")
+                                .font(.system(size: 40))
+                                .foregroundColor(.secondary)
+                            Text("No Saved Reports")
+                                .font(.headline)
+                            Text("Reports are automatically saved when generated.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                    }
+                    .listRowBackground(Color.chart)
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Saved Reports")
+            .onAppear {
+                state.loadSavedReports()
+            }
+        }
+    }
+
+    struct SavedReportRow: View {
+        let report: SavedReportsManager.SavedReport
+
+        var body: some View {
+            HStack(spacing: 12) {
+                // Report type icon
+                Image(systemName: report.reportType?.icon ?? "doc")
+                    .foregroundColor(iconColor)
+                    .font(.title2)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(report.reportType?.displayName ?? "Report")
+                        .font(.headline)
+
+                    HStack {
+                        Text(report.formattedDate)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+
+                        Text("•")
+                            .foregroundColor(.secondary)
+
+                        Text(report.timePeriod)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                Spacer()
+            }
+            .padding(.vertical, 4)
+        }
+
+        private var iconColor: Color {
+            switch report.reportType {
+            case .quickAnalysis: return .yellow
+            case .weeklyReport: return .green
+            case .doctorReport: return .purple
+            case .none: return .gray
+            }
+        }
+    }
+
+    // MARK: - PDF Viewer for Saved Reports
+
+    struct PDFViewer: UIViewRepresentable {
+        let data: Data
+
+        func makeUIView(context: Context) -> PDFView {
+            let pdfView = PDFView()
+            pdfView.autoScales = true
+            pdfView.displayMode = .singlePageContinuous
+            pdfView.displayDirection = .vertical
+            if let document = PDFDocument(data: data) {
+                pdfView.document = document
+            }
+            return pdfView
+        }
+
+        func updateUIView(_ uiView: PDFView, context: Context) {
+            if let document = PDFDocument(data: data) {
+                uiView.document = document
+            }
+        }
+    }
+
+    // MARK: - Saved Report Detail View
+
+    struct SavedReportDetailView: View {
+        let report: SavedReportsManager.SavedReport
+        @State private var pdfData: Data?
+        @State private var showShareSheet = false
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+
+        var body: some View {
+            Group {
+                if let data = pdfData {
+                    PDFViewer(data: data)
+                        .edgesIgnoringSafeArea(.bottom)
+                } else {
+                    VStack(spacing: 16) {
+                        ProgressView()
+                        Text("Loading report...")
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .navigationTitle(report.reportType?.displayName ?? "Report")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showShareSheet = true
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .disabled(pdfData == nil)
+                }
+            }
+            .onAppear {
+                pdfData = SavedReportsManager.shared.getPDFData(for: report)
+            }
+            .sheet(isPresented: $showShareSheet) {
+                if let data = pdfData {
+                    AIInsightsShareSheet(activityItems: [data])
+                }
             }
         }
     }

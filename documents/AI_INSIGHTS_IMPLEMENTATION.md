@@ -165,6 +165,154 @@ HStack(spacing: 12) {
 7. Safety Concerns
 8. Discussion Points for Provider
 
+### Phase 9: Time Period Selector & Settings Enhancement
+
+**Changes:**
+
+#### 1. Time Period Selector
+Added a `TimePeriod` enum with options:
+- 1 Day
+- 3 Days
+- 7 Days (default for Quick Analysis)
+- 14 Days
+- 30 Days (default for Doctor Report)
+- 3 Months (90 days)
+
+#### 2. Doctor Report Settings
+- Added time period picker at the top of settings
+- Settings persist via UserDefaults
+- Data toggles and custom prompt work as before
+
+#### 3. Quick Analysis Settings (New)
+- Added gear icon in toolbar to access settings
+- Time period selector
+- Same data toggles as Doctor Report (independent settings)
+- Custom prompt with reset to default
+- All settings persist via UserDefaults
+
+#### 4. Removed Nightscout Data Source
+- Simplified to use only local CoreData (which stores 90 days of data)
+- Local data has richer information (loop algorithm decisions, fat/protein, SMB flags)
+- Faster and more reliable than network calls
+
+**Key Files Modified:**
+- `AIInsightsConfigStateModel.swift` - Added Quick Analysis settings, time period properties, persistence
+- `HealthDataExporter.swift` - Simplified to single `exportData(days:)` method, added `QuickAnalysisSettings`
+- `AIInsightsConfigRootView.swift` - Added `QuickAnalysisSettingsView`, time picker to Doctor Report settings, removed Nightscout UI
+
+**UserDefaults Keys Added:**
+```swift
+// Doctor Report Settings
+AIInsightsConfig.dr.timePeriod
+AIInsightsConfig.dr.showCarbRatios
+AIInsightsConfig.dr.showISF
+AIInsightsConfig.dr.showBasalRates
+AIInsightsConfig.dr.showTargets
+AIInsightsConfig.dr.showInsulinSettings
+AIInsightsConfig.dr.showStatistics
+AIInsightsConfig.dr.showLoopData
+AIInsightsConfig.dr.showCarbEntries
+AIInsightsConfig.dr.showBolusHistory
+AIInsightsConfig.dr.customPrompt
+
+// Quick Analysis Settings (same structure with qa. prefix)
+AIInsightsConfig.qa.timePeriod
+AIInsightsConfig.qa.showCarbRatios
+// ... etc
+```
+
+### Phase 10: Saved Reports, PDF Fixes & Markdown Rendering
+
+**Date:** December 10, 2025
+
+**Changes:**
+
+#### 1. Saved Reports with Auto-Save
+- Reports automatically saved as PDFs when generated
+- Storage in app's Documents/AIReports/ directory
+- Keeps last 10 reports per type (Quick Analysis, Weekly Report, Doctor Report)
+- New "Saved Reports" section on AI Insights main menu
+- `SavedReportsListView` displays all saved reports grouped by type
+- Tap any report to share via iOS share sheet
+- Swipe to delete individual reports
+- Manifest file (`reports_manifest.json`) tracks report metadata
+
+#### 2. PDF Multi-Page Fix
+- Fixed bug where PDF only rendered first page
+- Implemented proper pagination using `NSLayoutManager` and `NSTextContainer`
+- Header on first page with title, date, and time period
+- Footer with page numbers on all pages
+- Disclaimer on first page footer
+- Safety limit of 50 pages to prevent infinite loops
+
+#### 3. Native Markdown Rendering (No External Dependencies)
+- Created `MarkdownParser.swift` using native iOS APIs
+- `RichMarkdownView` SwiftUI component for display
+- Supports:
+  - **Bold** (`**text**`) and *italic* (`*text*`)
+  - Headers (`###`, `##`, `#`) with appropriate font sizes
+  - Bullet points (`-` or `*`)
+  - Numbered lists
+  - Tables with proper column alignment and styling
+- `TableView` renders tables with alternating row colors and header styling
+- Consistent styling between screen display and PDF output
+
+#### 4. PDF Markdown Formatting
+- `MarkdownParser.parseToNSAttributedString()` converts markdown to styled text
+- Two style configurations: `.default` for UI, `.pdf` for document generation
+- Bold text rendered with bold system font
+- Headers rendered with larger font sizes (16pt, 14pt, 12pt)
+- Tables formatted as aligned text columns
+- Line spacing and paragraph spacing for readability
+
+#### 5. PDF-Only Sharing
+- Removed text share option from all report views
+- All share buttons now share PDF files only
+- Uses `UIActivityViewController` via `AIInsightsShareSheet`
+- PDFs can be saved to Files, shared via Messages, Email, AirDrop, etc.
+
+**Files Created:**
+- `MarkdownParser.swift` - Native markdown to NSAttributedString conversion (~540 lines)
+- `SavedReportsManager.swift` - PDF storage, retrieval, and cleanup (~260 lines)
+
+**Files Modified:**
+- `AIInsightsConfigStateModel.swift` - Multi-page PDF generation, auto-save integration
+- `AIInsightsConfigRootView.swift` - RichMarkdownView usage, SavedReportsListView, PDF sharing
+
+**Storage Structure:**
+```
+Documents/
+└── AIReports/
+    ├── reports_manifest.json      # Tracks all saved reports
+    ├── QuickAnalysis/
+    │   └── report_YYYY-MM-DD_HH-mm-ss.pdf
+    ├── WeeklyReport/
+    │   └── report_YYYY-MM-DD_HH-mm-ss.pdf
+    └── DoctorReport/
+        └── report_YYYY-MM-DD_HH-mm-ss.pdf
+```
+
+**Key Implementation Details:**
+
+```swift
+// MarkdownParser usage
+let attributed = MarkdownParser.parseToNSAttributedString(markdown, style: .pdf)
+
+// SavedReportsManager usage
+SavedReportsManager.shared.saveReport(
+    type: .quickAnalysis,
+    content: result,
+    timePeriod: "7 Days",
+    pdfData: pdfData
+)
+
+// RichMarkdownView in SwiftUI
+RichMarkdownView(content: state.quickAnalysisResult)
+    .padding()
+    .background(Color.chart)
+    .cornerRadius(12)
+```
+
 ---
 
 ## Architecture Overview
@@ -177,7 +325,9 @@ AIInsightsConfig/
 ├── AIInsightsConfigStateModel.swift  # Business logic and state
 ├── AIInsightsConfigProvider.swift    # Dependency injection
 ├── HealthDataExporter.swift          # Data extraction and formatting
-├── NightscoutDataFetcher.swift       # Nightscout API integration
+├── NightscoutDataFetcher.swift       # Nightscout API integration (deprecated)
+├── SavedReportsManager.swift         # Report storage/retrieval (Phase 10)
+├── MarkdownParser.swift              # Native markdown parsing (Phase 10)
 └── View/
     └── AIInsightsConfigRootView.swift # All UI views
 ```
@@ -612,8 +762,8 @@ ca9d37689 Add full treatment settings export to AI analysis
 
 ## Document Information
 
-- **Version:** 1.0
+- **Version:** 1.2
 - **Last Updated:** December 10, 2025
 - **Author:** Claude AI (Implementation Assistant)
 - **Repository:** Trio iOS App
-- **Branch:** claude/add-ai-insights-feature-01MddDMcSDP7SXKRMQRSYxzV
+- **Current Branch:** claude/save-analysis-reports-01JjR83ie5CxN6uUDL1WcKh7
