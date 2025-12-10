@@ -72,10 +72,9 @@ final class NightscoutDataFetcher {
 
             if readings.isEmpty { break }
 
-            let converted = readings.compactMap { bg -> FetchedData.GlucoseReading? in
-                guard let date = bg.dateString else { return nil }
-                return FetchedData.GlucoseReading(
-                    date: date,
+            let converted = readings.map { bg -> FetchedData.GlucoseReading in
+                FetchedData.GlucoseReading(
+                    date: bg.dateString,
                     value: bg.glucose ?? bg.sgv ?? 0,
                     direction: bg.direction?.rawValue
                 )
@@ -115,10 +114,9 @@ final class NightscoutDataFetcher {
 
         // Fetch carbs
         let carbs = try await api.fetchCarbs(sinceDate: sinceDate)
-        let carbTreatments = carbs.compactMap { entry -> FetchedData.Treatment? in
-            guard let date = entry.createdAt else { return nil }
-            return FetchedData.Treatment(
-                date: date,
+        let carbTreatments = carbs.map { entry -> FetchedData.Treatment in
+            FetchedData.Treatment(
+                date: entry.createdAt,
                 type: .carbs,
                 amount: Double(truncating: entry.carbs as NSNumber),
                 notes: entry.note
