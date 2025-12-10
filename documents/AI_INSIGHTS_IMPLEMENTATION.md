@@ -221,61 +221,96 @@ AIInsightsConfig.qa.showCarbRatios
 // ... etc
 ```
 
-### Phase 10: Saved Reports, PDF Fixes & Markdown Rendering (In Progress)
+### Phase 10: Saved Reports, PDF Fixes & Markdown Rendering
 
-**Planned Changes:**
+**Date:** December 10, 2025
+
+**Changes:**
 
 #### 1. Saved Reports with Auto-Save
-- Auto-save all generated reports (Quick Analysis, Weekly Report, Doctor Report)
-- Store as PDF files in app's documents directory
-- Keep last 10 reports per type
-- New "Saved Reports" section in AI Insights menu
-- List view showing: report type, date generated, time period analyzed
-- Tap to view saved PDF, swipe to delete
-- Share button uses standard iOS share sheet for PDF
+- Reports automatically saved as PDFs when generated
+- Storage in app's Documents/AIReports/ directory
+- Keeps last 10 reports per type (Quick Analysis, Weekly Report, Doctor Report)
+- New "Saved Reports" section on AI Insights main menu
+- `SavedReportsListView` displays all saved reports grouped by type
+- Tap any report to share via iOS share sheet
+- Swipe to delete individual reports
+- Manifest file (`reports_manifest.json`) tracks report metadata
 
 #### 2. PDF Multi-Page Fix
-- Current bug: PDF only renders first page of content
-- Fix: Implement proper pagination with `NSAttributedString.boundingRect` height calculation
-- Split content into page-sized chunks
-- Call `context.beginPage()` for each page
-- Track y-position across pages
+- Fixed bug where PDF only rendered first page
+- Implemented proper pagination using `NSLayoutManager` and `NSTextContainer`
+- Header on first page with title, date, and time period
+- Footer with page numbers on all pages
+- Disclaimer on first page footer
+- Safety limit of 50 pages to prevent infinite loops
 
-#### 3. Markdown Rendering with MarkdownUI
-- Add `MarkdownUI` Swift Package dependency
-- Replace plain `Text()` views with `Markdown()` views
-- Proper rendering of:
-  - **Bold** and *italic* text
-  - Headers (###, ##, #)
-  - Bullet points and numbered lists
-  - Tables with proper column alignment
-  - Code blocks
-- Match PDF appearance to screen appearance
+#### 3. Native Markdown Rendering (No External Dependencies)
+- Created `MarkdownParser.swift` using native iOS APIs
+- `RichMarkdownView` SwiftUI component for display
+- Supports:
+  - **Bold** (`**text**`) and *italic* (`*text*`)
+  - Headers (`###`, `##`, `#`) with appropriate font sizes
+  - Bullet points (`-` or `*`)
+  - Numbered lists
+  - Tables with proper column alignment and styling
+- `TableView` renders tables with alternating row colors and header styling
+- Consistent styling between screen display and PDF output
 
 #### 4. PDF Markdown Formatting
-- Parse markdown into `NSAttributedString` with proper styling
-- Bold text rendered with bold font
-- Headers rendered with larger font sizes
-- Tables rendered with proper column alignment
-- Consistent styling between screen and PDF
+- `MarkdownParser.parseToNSAttributedString()` converts markdown to styled text
+- Two style configurations: `.default` for UI, `.pdf` for document generation
+- Bold text rendered with bold system font
+- Headers rendered with larger font sizes (16pt, 14pt, 12pt)
+- Tables formatted as aligned text columns
+- Line spacing and paragraph spacing for readability
 
-**Files to be Modified:**
-- `Package.swift` or Xcode project - Add MarkdownUI dependency
-- `AIInsightsConfigStateModel.swift` - Add saved reports management, fix PDF pagination
-- `AIInsightsConfigRootView.swift` - Add Saved Reports view, replace Text with Markdown
-- New: `SavedReportsManager.swift` - Handle report storage/retrieval
+#### 5. PDF-Only Sharing
+- Removed text share option from all report views
+- All share buttons now share PDF files only
+- Uses `UIActivityViewController` via `AIInsightsShareSheet`
+- PDFs can be saved to Files, shared via Messages, Email, AirDrop, etc.
+
+**Files Created:**
+- `MarkdownParser.swift` - Native markdown to NSAttributedString conversion (~540 lines)
+- `SavedReportsManager.swift` - PDF storage, retrieval, and cleanup (~260 lines)
+
+**Files Modified:**
+- `AIInsightsConfigStateModel.swift` - Multi-page PDF generation, auto-save integration
+- `AIInsightsConfigRootView.swift` - RichMarkdownView usage, SavedReportsListView, PDF sharing
 
 **Storage Structure:**
 ```
 Documents/
 └── AIReports/
+    ├── reports_manifest.json      # Tracks all saved reports
     ├── QuickAnalysis/
-    │   ├── report_2024-12-10_14-30.pdf
-    │   └── report_2024-12-09_09-15.pdf
+    │   └── report_YYYY-MM-DD_HH-mm-ss.pdf
     ├── WeeklyReport/
-    │   └── report_2024-12-08_10-00.pdf
+    │   └── report_YYYY-MM-DD_HH-mm-ss.pdf
     └── DoctorReport/
-        └── report_2024-12-07_16-45.pdf
+        └── report_YYYY-MM-DD_HH-mm-ss.pdf
+```
+
+**Key Implementation Details:**
+
+```swift
+// MarkdownParser usage
+let attributed = MarkdownParser.parseToNSAttributedString(markdown, style: .pdf)
+
+// SavedReportsManager usage
+SavedReportsManager.shared.saveReport(
+    type: .quickAnalysis,
+    content: result,
+    timePeriod: "7 Days",
+    pdfData: pdfData
+)
+
+// RichMarkdownView in SwiftUI
+RichMarkdownView(content: state.quickAnalysisResult)
+    .padding()
+    .background(Color.chart)
+    .cornerRadius(12)
 ```
 
 ---
