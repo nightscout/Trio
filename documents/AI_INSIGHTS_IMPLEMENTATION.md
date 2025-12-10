@@ -435,8 +435,11 @@ IMPORTANT SAFETY GUIDELINES:
 #### 1. Meal Photo Carb Estimation
 **Description:** Use Claude's vision capabilities to estimate carbs from food photos
 **Implementation:**
-- Add camera/photo picker to carb entry
-- Send image to Claude with prompt for carb estimation
+- Add camera/photo picker button to carb entry screen
+- Include optional text field for additional context ("there's also a glass of milk not shown", "this is a small portion", "dressing on the side")
+- Send image + context to Claude with prompt for carb estimation
+- Display itemized breakdown (e.g., "Pasta: ~35g, Bread: ~15g, Sauce: ~5g = ~55g total")
+- Allow conversational follow-up to refine estimate
 - Pre-fill carb field with AI estimate
 - Allow user to adjust before confirming
 
@@ -578,6 +581,20 @@ IMPORTANT SAFETY GUIDELINES:
 
 **Complexity:** Low
 **Value:** Medium - accessibility
+
+#### 14. Why Am I High/Low Right Now?
+**Description:** One-tap analysis explaining current out-of-range glucose
+**Implementation:**
+
+- Add button to home screen when BG is out of range (e.g., <70 or >180)
+- Analyze last 4-6 hours: carbs, boluses, temp basals, IOB curve
+- Compare to similar situations in history
+- Generate concise explanation with likely cause
+- "Probable cause: You bolused 3.2U for 40g carbs at 12:30, but your lunch ISF historically needs ~15% more insulin"
+- Optionally suggest corrective action
+
+**Complexity:** Medium
+Value: High - answers the most common diabetes question
 
 ---
 
