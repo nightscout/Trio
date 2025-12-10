@@ -1,9 +1,12 @@
 import Foundation
-import Swinject
 
 /// Fetches comprehensive historical data from Nightscout for AI analysis
 final class NightscoutDataFetcher {
-    @Injected() private var keychain: Keychain!
+    private let keychain: Keychain
+
+    init(keychain: Keychain) {
+        self.keychain = keychain
+    }
 
     struct FetchedData {
         let glucoseReadings: [GlucoseReading]

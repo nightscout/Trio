@@ -24,7 +24,7 @@ extension AIInsightsConfig {
 
         private let coredataContext = CoreDataStack.shared.newTaskContext()
         private let claudeService = ClaudeAPIService()
-        private let nightscoutFetcher = NightscoutDataFetcher()
+        private var nightscoutFetcher: NightscoutDataFetcher!
 
         // API Key
         @Published var apiKey = ""
@@ -58,6 +58,9 @@ extension AIInsightsConfig {
         @Published var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
+            // Initialize NightscoutDataFetcher with keychain
+            nightscoutFetcher = NightscoutDataFetcher(keychain: keychain)
+
             // Load API key from keychain
             if let storedKey = keychain.getValue(String.self, forKey: Config.apiKeyKey) {
                 apiKey = storedKey
