@@ -7,7 +7,55 @@ extension AIInsightsConfig {
     enum Config {
         static let apiKeyKey = "AIInsightsConfig.claudeAPIKey"
         static let useNightscoutKey = "AIInsightsConfig.useNightscout"
+        // Doctor Report Settings Keys
+        static let drShowCarbRatiosKey = "AIInsightsConfig.dr.showCarbRatios"
+        static let drShowISFKey = "AIInsightsConfig.dr.showISF"
+        static let drShowBasalRatesKey = "AIInsightsConfig.dr.showBasalRates"
+        static let drShowTargetsKey = "AIInsightsConfig.dr.showTargets"
+        static let drShowInsulinSettingsKey = "AIInsightsConfig.dr.showInsulinSettings"
+        static let drShowStatisticsKey = "AIInsightsConfig.dr.showStatistics"
+        static let drShowLoopDataKey = "AIInsightsConfig.dr.showLoopData"
+        static let drShowCarbEntriesKey = "AIInsightsConfig.dr.showCarbEntries"
+        static let drShowBolusHistoryKey = "AIInsightsConfig.dr.showBolusHistory"
+        static let drCustomPromptKey = "AIInsightsConfig.dr.customPrompt"
     }
+
+    /// Default AI prompt for doctor visit report
+    static let defaultDoctorReportPrompt = """
+Please analyze this data and provide a comprehensive report for discussion with my healthcare provider. Include:
+
+### 📊 **Executive Summary**
+- Overall diabetes management assessment
+- Key metrics vs targets (TIR goal >70%, TBR <4%, CV <36%)
+
+### 📈 **Trend Analysis**
+- Compare metrics across timeframes (improving, stable, or declining)
+- Identify any concerning trends
+
+### 🕐 **Time-of-Day Patterns**
+- Morning/dawn phenomenon analysis
+- Post-meal patterns
+- Overnight control
+- Any consistent problem times
+
+### ⚙️ **Settings Recommendations**
+- Specific basal rate adjustments (time and amount)
+- Carb ratio changes needed
+- ISF modifications
+- Target range considerations
+
+### ⚠️ **Safety Concerns**
+- Hypoglycemia patterns and prevention
+- Severe hyperglycemia events
+- Glycemic variability concerns
+
+### 💡 **Discussion Points for Provider**
+- Priority items to address
+- Questions to ask
+- Suggested next steps
+
+Format this professionally for sharing with an endocrinologist or diabetes care team.
+"""
 
     struct ChatMessage: Identifiable, Equatable {
         let id = UUID()
@@ -54,6 +102,18 @@ extension AIInsightsConfig {
         @Published var isGeneratingDoctorReport = false
         @Published var doctorReportPDFData: Data?
 
+        // Doctor Report Settings - Data to include
+        @Published var drShowCarbRatios = true
+        @Published var drShowISF = true
+        @Published var drShowBasalRates = true
+        @Published var drShowTargets = true
+        @Published var drShowInsulinSettings = true
+        @Published var drShowStatistics = true
+        @Published var drShowLoopData = true
+        @Published var drShowCarbEntries = true
+        @Published var drShowBolusHistory = true
+        @Published var drCustomPrompt: String = AIInsightsConfig.defaultDoctorReportPrompt
+
         // Settings for context
         @Published var units: GlucoseUnits = .mgdL
 
@@ -79,6 +139,51 @@ extension AIInsightsConfig {
 
             // Get current units
             units = settingsManager.settings.units
+
+            // Load Doctor Report Settings
+            loadDoctorReportSettings()
+        }
+
+        private func loadDoctorReportSettings() {
+            let defaults = UserDefaults.standard
+            let keys = defaults.dictionaryRepresentation().keys
+
+            // Load toggles with default true if not set
+            drShowCarbRatios = keys.contains(Config.drShowCarbRatiosKey) ? defaults.bool(forKey: Config.drShowCarbRatiosKey) : true
+            drShowISF = keys.contains(Config.drShowISFKey) ? defaults.bool(forKey: Config.drShowISFKey) : true
+            drShowBasalRates = keys.contains(Config.drShowBasalRatesKey) ? defaults.bool(forKey: Config.drShowBasalRatesKey) : true
+            drShowTargets = keys.contains(Config.drShowTargetsKey) ? defaults.bool(forKey: Config.drShowTargetsKey) : true
+            drShowInsulinSettings = keys.contains(Config.drShowInsulinSettingsKey) ? defaults.bool(forKey: Config.drShowInsulinSettingsKey) : true
+            drShowStatistics = keys.contains(Config.drShowStatisticsKey) ? defaults.bool(forKey: Config.drShowStatisticsKey) : true
+            drShowLoopData = keys.contains(Config.drShowLoopDataKey) ? defaults.bool(forKey: Config.drShowLoopDataKey) : true
+            drShowCarbEntries = keys.contains(Config.drShowCarbEntriesKey) ? defaults.bool(forKey: Config.drShowCarbEntriesKey) : true
+            drShowBolusHistory = keys.contains(Config.drShowBolusHistoryKey) ? defaults.bool(forKey: Config.drShowBolusHistoryKey) : true
+
+            // Load custom prompt, default to the standard prompt
+            if let savedPrompt = defaults.string(forKey: Config.drCustomPromptKey), !savedPrompt.isEmpty {
+                drCustomPrompt = savedPrompt
+            } else {
+                drCustomPrompt = AIInsightsConfig.defaultDoctorReportPrompt
+            }
+        }
+
+        func saveDoctorReportSettings() {
+            let defaults = UserDefaults.standard
+            defaults.set(drShowCarbRatios, forKey: Config.drShowCarbRatiosKey)
+            defaults.set(drShowISF, forKey: Config.drShowISFKey)
+            defaults.set(drShowBasalRates, forKey: Config.drShowBasalRatesKey)
+            defaults.set(drShowTargets, forKey: Config.drShowTargetsKey)
+            defaults.set(drShowInsulinSettings, forKey: Config.drShowInsulinSettingsKey)
+            defaults.set(drShowStatistics, forKey: Config.drShowStatisticsKey)
+            defaults.set(drShowLoopData, forKey: Config.drShowLoopDataKey)
+            defaults.set(drShowCarbEntries, forKey: Config.drShowCarbEntriesKey)
+            defaults.set(drShowBolusHistory, forKey: Config.drShowBolusHistoryKey)
+            defaults.set(drCustomPrompt, forKey: Config.drCustomPromptKey)
+        }
+
+        func resetDoctorReportPrompt() {
+            drCustomPrompt = AIInsightsConfig.defaultDoctorReportPrompt
+            UserDefaults.standard.set(drCustomPrompt, forKey: Config.drCustomPromptKey)
         }
 
         // MARK: - API Key Management
@@ -376,7 +481,22 @@ extension AIInsightsConfig {
             do {
                 let data = try await exportDataForDoctorVisit()
                 let exporter = HealthDataExporter(context: coredataContext)
-                let prompt = exporter.formatForPrompt(data, analysisType: .doctorVisit)
+
+                // Build settings from current preferences
+                let reportSettings = HealthDataExporter.DoctorReportSettings(
+                    showCarbRatios: drShowCarbRatios,
+                    showISF: drShowISF,
+                    showBasalRates: drShowBasalRates,
+                    showTargets: drShowTargets,
+                    showInsulinSettings: drShowInsulinSettings,
+                    showStatistics: drShowStatistics,
+                    showLoopData: drShowLoopData,
+                    showCarbEntries: drShowCarbEntries,
+                    showBolusHistory: drShowBolusHistory,
+                    customPrompt: drCustomPrompt
+                )
+
+                let prompt = exporter.formatForPrompt(data, analysisType: .doctorVisit(settings: reportSettings))
 
                 let result = try await claudeService.analyze(prompt: prompt, apiKey: apiKey)
                 doctorVisitReport = result
