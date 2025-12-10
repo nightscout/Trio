@@ -30,6 +30,14 @@ struct ServicesView: BaseView {
                 }
             )
             .listRowBackground(Color.chart)
+
+            Section(
+                header: Text("Food Scanner"),
+                content: {
+                    Text("Barcode Scanner Settings").navigationLink(to: .barcodeScannerSettings, from: self)
+                }
+            )
+            .listRowBackground(Color.chart)
         }
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))
