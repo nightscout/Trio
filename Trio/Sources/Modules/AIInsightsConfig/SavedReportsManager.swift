@@ -248,7 +248,7 @@ final class SavedReportsManager {
 
 // MARK: - Date Formatting Extension
 
-extension SavedReport {
+extension SavedReportsManager.SavedReport {
     var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
