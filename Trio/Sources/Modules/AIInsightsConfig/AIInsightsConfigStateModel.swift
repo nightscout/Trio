@@ -4,10 +4,45 @@ import PDFKit
 import SwiftUI
 
 extension AIInsightsConfig {
+    // MARK: - Time Period Enum
+
+    enum TimePeriod: String, CaseIterable, Identifiable {
+        case oneDay = "1d"
+        case threeDays = "3d"
+        case sevenDays = "7d"
+        case fourteenDays = "14d"
+        case thirtyDays = "30d"
+        case ninetyDays = "90d"
+
+        var id: String { rawValue }
+
+        var days: Int {
+            switch self {
+            case .oneDay: return 1
+            case .threeDays: return 3
+            case .sevenDays: return 7
+            case .fourteenDays: return 14
+            case .thirtyDays: return 30
+            case .ninetyDays: return 90
+            }
+        }
+
+        var displayName: String {
+            switch self {
+            case .oneDay: return "1 Day"
+            case .threeDays: return "3 Days"
+            case .sevenDays: return "7 Days"
+            case .fourteenDays: return "14 Days"
+            case .thirtyDays: return "30 Days"
+            case .ninetyDays: return "3 Months"
+            }
+        }
+    }
+
     enum Config {
         static let apiKeyKey = "AIInsightsConfig.claudeAPIKey"
-        static let useNightscoutKey = "AIInsightsConfig.useNightscout"
         // Doctor Report Settings Keys
+        static let drTimePeriodKey = "AIInsightsConfig.dr.timePeriod"
         static let drShowCarbRatiosKey = "AIInsightsConfig.dr.showCarbRatios"
         static let drShowISFKey = "AIInsightsConfig.dr.showISF"
         static let drShowBasalRatesKey = "AIInsightsConfig.dr.showBasalRates"
@@ -18,6 +53,18 @@ extension AIInsightsConfig {
         static let drShowCarbEntriesKey = "AIInsightsConfig.dr.showCarbEntries"
         static let drShowBolusHistoryKey = "AIInsightsConfig.dr.showBolusHistory"
         static let drCustomPromptKey = "AIInsightsConfig.dr.customPrompt"
+        // Quick Analysis Settings Keys
+        static let qaTimePeriodKey = "AIInsightsConfig.qa.timePeriod"
+        static let qaShowCarbRatiosKey = "AIInsightsConfig.qa.showCarbRatios"
+        static let qaShowISFKey = "AIInsightsConfig.qa.showISF"
+        static let qaShowBasalRatesKey = "AIInsightsConfig.qa.showBasalRates"
+        static let qaShowTargetsKey = "AIInsightsConfig.qa.showTargets"
+        static let qaShowInsulinSettingsKey = "AIInsightsConfig.qa.showInsulinSettings"
+        static let qaShowStatisticsKey = "AIInsightsConfig.qa.showStatistics"
+        static let qaShowLoopDataKey = "AIInsightsConfig.qa.showLoopData"
+        static let qaShowCarbEntriesKey = "AIInsightsConfig.qa.showCarbEntries"
+        static let qaShowBolusHistoryKey = "AIInsightsConfig.qa.showBolusHistory"
+        static let qaCustomPromptKey = "AIInsightsConfig.qa.customPrompt"
     }
 
     /// Default AI prompt for doctor visit report
@@ -57,6 +104,15 @@ Please analyze this data and provide a comprehensive report for discussion with 
 Format this professionally for sharing with an endocrinologist or diabetes care team.
 """
 
+    /// Default AI prompt for quick analysis
+    static let defaultQuickAnalysisPrompt = """
+Please provide a quick analysis using these sections:
+📊 **Overview** - Brief summary of glucose control
+🔍 **Key Patterns** - Notable trends you observe
+⚠️ **Concerns** - Any issues needing attention
+💡 **Quick Tip** - One actionable suggestion
+"""
+
     struct ChatMessage: Identifiable, Equatable {
         let id = UUID()
         let role: String
@@ -72,21 +128,29 @@ Format this professionally for sharing with an endocrinologist or diabetes care 
 
         private let coredataContext = CoreDataStack.shared.newTaskContext()
         private let claudeService = ClaudeAPIService()
-        private var nightscoutFetcher: NightscoutDataFetcher!
 
         // API Key
         @Published var apiKey = ""
         @Published var isAPIKeyConfigured = false
         @Published var isAPIKeyVisible = false
 
-        // Nightscout Data Source
-        @Published var useNightscout = true
-        @Published var isNightscoutAvailable = false
-
         // Quick Analysis
         @Published var quickAnalysisResult = ""
         @Published var isAnalyzing = false
         @Published var analysisError: String?
+
+        // Quick Analysis Settings
+        @Published var qaTimePeriod: TimePeriod = .sevenDays
+        @Published var qaShowCarbRatios = true
+        @Published var qaShowISF = true
+        @Published var qaShowBasalRates = true
+        @Published var qaShowTargets = true
+        @Published var qaShowInsulinSettings = true
+        @Published var qaShowStatistics = true
+        @Published var qaShowLoopData = true
+        @Published var qaShowCarbEntries = true
+        @Published var qaShowBolusHistory = true
+        @Published var qaCustomPrompt: String = AIInsightsConfig.defaultQuickAnalysisPrompt
 
         // Chat
         @Published var chatMessages: [ChatMessage] = []
@@ -102,7 +166,8 @@ Format this professionally for sharing with an endocrinologist or diabetes care 
         @Published var isGeneratingDoctorReport = false
         @Published var doctorReportPDFData: Data?
 
-        // Doctor Report Settings - Data to include
+        // Doctor Report Settings
+        @Published var drTimePeriod: TimePeriod = .thirtyDays
         @Published var drShowCarbRatios = true
         @Published var drShowISF = true
         @Published var drShowBasalRates = true
@@ -118,35 +183,31 @@ Format this professionally for sharing with an endocrinologist or diabetes care 
         @Published var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
-            // Initialize NightscoutDataFetcher with keychain
-            nightscoutFetcher = NightscoutDataFetcher(keychain: keychain)
-
             // Load API key from keychain
             if let storedKey = keychain.getValue(String.self, forKey: Config.apiKeyKey) {
                 apiKey = storedKey
                 isAPIKeyConfigured = !storedKey.isEmpty
             }
 
-            // Load Nightscout preference
-            useNightscout = UserDefaults.standard.bool(forKey: Config.useNightscoutKey)
-            if !UserDefaults.standard.dictionaryRepresentation().keys.contains(Config.useNightscoutKey) {
-                // Default to true if not set
-                useNightscout = true
-            }
-
-            // Check if Nightscout is available
-            isNightscoutAvailable = nightscoutFetcher.isNightscoutConfigured
-
             // Get current units
             units = settingsManager.settings.units
 
-            // Load Doctor Report Settings
+            // Load settings
             loadDoctorReportSettings()
+            loadQuickAnalysisSettings()
         }
 
         private func loadDoctorReportSettings() {
             let defaults = UserDefaults.standard
             let keys = defaults.dictionaryRepresentation().keys
+
+            // Load time period (default to 30 days)
+            if let savedPeriod = defaults.string(forKey: Config.drTimePeriodKey),
+               let period = TimePeriod(rawValue: savedPeriod) {
+                drTimePeriod = period
+            } else {
+                drTimePeriod = .thirtyDays
+            }
 
             // Load toggles with default true if not set
             drShowCarbRatios = keys.contains(Config.drShowCarbRatiosKey) ? defaults.bool(forKey: Config.drShowCarbRatiosKey) : true
@@ -167,8 +228,40 @@ Format this professionally for sharing with an endocrinologist or diabetes care 
             }
         }
 
+        private func loadQuickAnalysisSettings() {
+            let defaults = UserDefaults.standard
+            let keys = defaults.dictionaryRepresentation().keys
+
+            // Load time period (default to 7 days)
+            if let savedPeriod = defaults.string(forKey: Config.qaTimePeriodKey),
+               let period = TimePeriod(rawValue: savedPeriod) {
+                qaTimePeriod = period
+            } else {
+                qaTimePeriod = .sevenDays
+            }
+
+            // Load toggles with default true if not set
+            qaShowCarbRatios = keys.contains(Config.qaShowCarbRatiosKey) ? defaults.bool(forKey: Config.qaShowCarbRatiosKey) : true
+            qaShowISF = keys.contains(Config.qaShowISFKey) ? defaults.bool(forKey: Config.qaShowISFKey) : true
+            qaShowBasalRates = keys.contains(Config.qaShowBasalRatesKey) ? defaults.bool(forKey: Config.qaShowBasalRatesKey) : true
+            qaShowTargets = keys.contains(Config.qaShowTargetsKey) ? defaults.bool(forKey: Config.qaShowTargetsKey) : true
+            qaShowInsulinSettings = keys.contains(Config.qaShowInsulinSettingsKey) ? defaults.bool(forKey: Config.qaShowInsulinSettingsKey) : true
+            qaShowStatistics = keys.contains(Config.qaShowStatisticsKey) ? defaults.bool(forKey: Config.qaShowStatisticsKey) : true
+            qaShowLoopData = keys.contains(Config.qaShowLoopDataKey) ? defaults.bool(forKey: Config.qaShowLoopDataKey) : true
+            qaShowCarbEntries = keys.contains(Config.qaShowCarbEntriesKey) ? defaults.bool(forKey: Config.qaShowCarbEntriesKey) : true
+            qaShowBolusHistory = keys.contains(Config.qaShowBolusHistoryKey) ? defaults.bool(forKey: Config.qaShowBolusHistoryKey) : true
+
+            // Load custom prompt, default to the standard prompt
+            if let savedPrompt = defaults.string(forKey: Config.qaCustomPromptKey), !savedPrompt.isEmpty {
+                qaCustomPrompt = savedPrompt
+            } else {
+                qaCustomPrompt = AIInsightsConfig.defaultQuickAnalysisPrompt
+            }
+        }
+
         func saveDoctorReportSettings() {
             let defaults = UserDefaults.standard
+            defaults.set(drTimePeriod.rawValue, forKey: Config.drTimePeriodKey)
             defaults.set(drShowCarbRatios, forKey: Config.drShowCarbRatiosKey)
             defaults.set(drShowISF, forKey: Config.drShowISFKey)
             defaults.set(drShowBasalRates, forKey: Config.drShowBasalRatesKey)
@@ -181,9 +274,29 @@ Format this professionally for sharing with an endocrinologist or diabetes care 
             defaults.set(drCustomPrompt, forKey: Config.drCustomPromptKey)
         }
 
+        func saveQuickAnalysisSettings() {
+            let defaults = UserDefaults.standard
+            defaults.set(qaTimePeriod.rawValue, forKey: Config.qaTimePeriodKey)
+            defaults.set(qaShowCarbRatios, forKey: Config.qaShowCarbRatiosKey)
+            defaults.set(qaShowISF, forKey: Config.qaShowISFKey)
+            defaults.set(qaShowBasalRates, forKey: Config.qaShowBasalRatesKey)
+            defaults.set(qaShowTargets, forKey: Config.qaShowTargetsKey)
+            defaults.set(qaShowInsulinSettings, forKey: Config.qaShowInsulinSettingsKey)
+            defaults.set(qaShowStatistics, forKey: Config.qaShowStatisticsKey)
+            defaults.set(qaShowLoopData, forKey: Config.qaShowLoopDataKey)
+            defaults.set(qaShowCarbEntries, forKey: Config.qaShowCarbEntriesKey)
+            defaults.set(qaShowBolusHistory, forKey: Config.qaShowBolusHistoryKey)
+            defaults.set(qaCustomPrompt, forKey: Config.qaCustomPromptKey)
+        }
+
         func resetDoctorReportPrompt() {
             drCustomPrompt = AIInsightsConfig.defaultDoctorReportPrompt
             UserDefaults.standard.set(drCustomPrompt, forKey: Config.drCustomPromptKey)
+        }
+
+        func resetQuickAnalysisPrompt() {
+            qaCustomPrompt = AIInsightsConfig.defaultQuickAnalysisPrompt
+            UserDefaults.standard.set(qaCustomPrompt, forKey: Config.qaCustomPromptKey)
         }
 
         // MARK: - API Key Management
@@ -203,16 +316,9 @@ Format this professionally for sharing with an endocrinologist or diabetes care 
             isAPIKeyVisible.toggle()
         }
 
-        // MARK: - Nightscout Settings
-
-        func toggleNightscout(_ enabled: Bool) {
-            useNightscout = enabled
-            UserDefaults.standard.set(enabled, forKey: Config.useNightscoutKey)
-        }
-
         // MARK: - Data Export
 
-        private func exportData() async throws -> HealthDataExporter.ExportedData {
+        private func exportData(days: Int) async throws -> HealthDataExporter.ExportedData {
             let exporter = HealthDataExporter(context: coredataContext)
 
             // Get current settings
@@ -229,30 +335,8 @@ Format this professionally for sharing with an endocrinologist or diabetes care 
             let lowTarget = settings.units == .mgdL ? Int(settings.low) : Int(settings.low * 18)
             let highTarget = settings.units == .mgdL ? Int(settings.high) : Int(settings.high * 18)
 
-            // If Nightscout is enabled and available, use it
-            if useNightscout && isNightscoutAvailable {
-                do {
-                    let nsData = try await nightscoutFetcher.fetchComprehensiveData(days: 7)
-                    return try await exporter.exportWithNightscout(
-                        nightscoutData: nsData,
-                        units: settings.units.rawValue,
-                        targetLow: lowTarget,
-                        targetHigh: highTarget,
-                        maxIOB: preferences.maxIOB,
-                        maxBolus: pumpSettings.maxBolus,
-                        dia: pumpSettings.insulinActionCurve,
-                        carbRatioSchedule: carbRatioSchedule,
-                        isfSchedule: isfSchedule,
-                        basalSchedule: basalSchedule,
-                        targetSchedule: targetSchedule
-                    )
-                } catch {
-                    // Fall back to local data if Nightscout fails
-                    print("Nightscout fetch failed, using local data: \(error)")
-                }
-            }
-
-            return try await exporter.exportLast7Days(
+            return try await exporter.exportData(
+                days: days,
                 units: settings.units.rawValue,
                 targetLow: lowTarget,
                 targetHigh: highTarget,
@@ -263,48 +347,6 @@ Format this professionally for sharing with an endocrinologist or diabetes care 
                 isfSchedule: isfSchedule,
                 basalSchedule: basalSchedule,
                 targetSchedule: targetSchedule
-            )
-        }
-
-        private func exportDataForDoctorVisit() async throws -> HealthDataExporter.ExportedData {
-            let exporter = HealthDataExporter(context: coredataContext)
-
-            // Get current settings
-            let settings = settingsManager.settings
-            let preferences = settingsManager.preferences
-            let pumpSettings = settingsManager.pumpSettings
-
-            // Fetch detailed schedules from file storage
-            let carbRatioSchedule = await fetchCarbRatios()
-            let isfSchedule = await fetchISFSchedule()
-            let basalSchedule = await fetchBasalSchedule()
-            let targetSchedule = await fetchTargetSchedule()
-
-            let lowTarget = settings.units == .mgdL ? Int(settings.low) : Int(settings.low * 18)
-            let highTarget = settings.units == .mgdL ? Int(settings.high) : Int(settings.high * 18)
-
-            // For Doctor Visit, try to get 90 days of data from Nightscout
-            var nightscoutData: NightscoutDataFetcher.FetchedData?
-            if useNightscout && isNightscoutAvailable {
-                do {
-                    nightscoutData = try await nightscoutFetcher.fetchComprehensiveData(days: 90)
-                } catch {
-                    print("Nightscout fetch for doctor visit failed: \(error)")
-                }
-            }
-
-            return try await exporter.exportForDoctorVisit(
-                units: settings.units.rawValue,
-                targetLow: lowTarget,
-                targetHigh: highTarget,
-                maxIOB: preferences.maxIOB,
-                maxBolus: pumpSettings.maxBolus,
-                dia: pumpSettings.insulinActionCurve,
-                carbRatioSchedule: carbRatioSchedule,
-                isfSchedule: isfSchedule,
-                basalSchedule: basalSchedule,
-                targetSchedule: targetSchedule,
-                nightscoutData: nightscoutData
             )
         }
 
@@ -350,9 +392,25 @@ Format this professionally for sharing with an endocrinologist or diabetes care 
             quickAnalysisResult = ""
 
             do {
-                let data = try await exportData()
+                let data = try await exportData(days: qaTimePeriod.days)
                 let exporter = HealthDataExporter(context: coredataContext)
-                let prompt = exporter.formatForPrompt(data, analysisType: .quick)
+
+                // Build settings from current Quick Analysis preferences
+                let qaSettings = HealthDataExporter.QuickAnalysisSettings(
+                    showCarbRatios: qaShowCarbRatios,
+                    showISF: qaShowISF,
+                    showBasalRates: qaShowBasalRates,
+                    showTargets: qaShowTargets,
+                    showInsulinSettings: qaShowInsulinSettings,
+                    showStatistics: qaShowStatistics,
+                    showLoopData: qaShowLoopData,
+                    showCarbEntries: qaShowCarbEntries,
+                    showBolusHistory: qaShowBolusHistory,
+                    customPrompt: qaCustomPrompt,
+                    days: qaTimePeriod.days
+                )
+
+                let prompt = exporter.formatForPrompt(data, analysisType: .quick(settings: qaSettings))
 
                 let result = try await claudeService.analyze(prompt: prompt, apiKey: apiKey)
                 quickAnalysisResult = result
@@ -384,9 +442,9 @@ Format this professionally for sharing with an endocrinologist or diabetes care 
                 // Build messages array with context
                 var apiMessages: [ClaudeAPIService.Message] = []
 
-                // If this is the first message, include data context
+                // If this is the first message, include data context (use 7 days for chat)
                 if chatMessages.count == 1 {
-                    let data = try await exportData()
+                    let data = try await exportData(days: 7)
                     let exporter = HealthDataExporter(context: coredataContext)
                     let context = exporter.formatForPrompt(data, analysisType: .chat)
                     apiMessages.append(ClaudeAPIService.Message(role: "user", content: context))
@@ -433,7 +491,7 @@ Format this professionally for sharing with an endocrinologist or diabetes care 
             weeklyReport = ""
 
             do {
-                let data = try await exportData()
+                let data = try await exportData(days: 7)
                 let exporter = HealthDataExporter(context: coredataContext)
                 let prompt = exporter.formatForPrompt(data, analysisType: .weeklyReport)
 
@@ -479,7 +537,7 @@ Format this professionally for sharing with an endocrinologist or diabetes care 
             doctorReportPDFData = nil
 
             do {
-                let data = try await exportDataForDoctorVisit()
+                let data = try await exportData(days: drTimePeriod.days)
                 let exporter = HealthDataExporter(context: coredataContext)
 
                 // Build settings from current preferences
@@ -493,7 +551,8 @@ Format this professionally for sharing with an endocrinologist or diabetes care 
                     showLoopData: drShowLoopData,
                     showCarbEntries: drShowCarbEntries,
                     showBolusHistory: drShowBolusHistory,
-                    customPrompt: drCustomPrompt
+                    customPrompt: drCustomPrompt,
+                    days: drTimePeriod.days
                 )
 
                 let prompt = exporter.formatForPrompt(data, analysisType: .doctorVisit(settings: reportSettings))
@@ -522,7 +581,7 @@ Format this professionally for sharing with an endocrinologist or diabetes care 
             ═══════════════════════════════════════════════════════════════
 
             Generated: \(dateFormatter.string(from: Date()))
-            Data Source: \(useNightscout && isNightscoutAvailable ? "Nightscout (up to 90 days)" : "Local App Data (7 days)")
+            Data Period: \(drTimePeriod.displayName)
 
             \(doctorVisitReport)
 
