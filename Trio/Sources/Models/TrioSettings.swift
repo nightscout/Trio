@@ -71,6 +71,7 @@ struct TrioSettings: JSON, Equatable {
     var smartStackView: LockScreenView = .simple
     var bolusShortcut: BolusShortcutLimit = .notAllowed
     var timeInRangeType: TimeInRangeType = .timeInTightRange
+    var useAINutritionScanner: Bool = false
 }
 
 extension TrioSettings: Decodable {
@@ -303,6 +304,10 @@ extension TrioSettings: Decodable {
 
         if let timeInRangeType = try? container.decode(TimeInRangeType.self, forKey: .timeInRangeType) {
             settings.timeInRangeType = timeInRangeType
+        }
+
+        if let useAINutritionScanner = try? container.decode(Bool.self, forKey: .useAINutritionScanner) {
+            settings.useAINutritionScanner = useAINutritionScanner
         }
 
         self = settings
