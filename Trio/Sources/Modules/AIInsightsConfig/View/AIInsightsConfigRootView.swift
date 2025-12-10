@@ -1,3 +1,4 @@
+import PDFKit
 import SwiftUI
 import Swinject
 
@@ -1102,9 +1103,6 @@ extension AIInsightsConfig {
         @ObservedObject var state: StateModel
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
-        @State private var selectedReport: SavedReportsManager.SavedReport?
-        @State private var showShareSheet = false
-        @State private var reportToShare: Data?
 
         var body: some View {
             List {
@@ -1113,14 +1111,9 @@ extension AIInsightsConfig {
                     if !reportsOfType.isEmpty {
                         Section(header: Text(type.displayName)) {
                             ForEach(reportsOfType) { report in
-                                SavedReportRow(report: report)
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        if let pdfData = SavedReportsManager.shared.getPDFData(for: report) {
-                                            reportToShare = pdfData
-                                            showShareSheet = true
-                                        }
-                                    }
+                                NavigationLink(destination: SavedReportDetailView(report: report)) {
+                                    SavedReportRow(report: report)
+                                }
                             }
                             .onDelete { indexSet in
                                 for index in indexSet {
@@ -1157,11 +1150,6 @@ extension AIInsightsConfig {
             .onAppear {
                 state.loadSavedReports()
             }
-            .sheet(isPresented: $showShareSheet) {
-                if let data = reportToShare {
-                    AIInsightsShareSheet(activityItems: [data])
-                }
-            }
         }
     }
 
@@ -1194,9 +1182,6 @@ extension AIInsightsConfig {
                 }
 
                 Spacer()
-
-                Image(systemName: "square.and.arrow.up")
-                    .foregroundColor(.accentColor)
             }
             .padding(.vertical, 4)
         }
@@ -1207,6 +1192,74 @@ extension AIInsightsConfig {
             case .weeklyReport: return .green
             case .doctorReport: return .purple
             case .none: return .gray
+            }
+        }
+    }
+
+    // MARK: - PDF Viewer for Saved Reports
+
+    struct PDFViewer: UIViewRepresentable {
+        let data: Data
+
+        func makeUIView(context: Context) -> PDFView {
+            let pdfView = PDFView()
+            pdfView.autoScales = true
+            pdfView.displayMode = .singlePageContinuous
+            pdfView.displayDirection = .vertical
+            if let document = PDFDocument(data: data) {
+                pdfView.document = document
+            }
+            return pdfView
+        }
+
+        func updateUIView(_ uiView: PDFView, context: Context) {
+            if let document = PDFDocument(data: data) {
+                uiView.document = document
+            }
+        }
+    }
+
+    // MARK: - Saved Report Detail View
+
+    struct SavedReportDetailView: View {
+        let report: SavedReportsManager.SavedReport
+        @State private var pdfData: Data?
+        @State private var showShareSheet = false
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+
+        var body: some View {
+            Group {
+                if let data = pdfData {
+                    PDFViewer(data: data)
+                        .edgesIgnoringSafeArea(.bottom)
+                } else {
+                    VStack(spacing: 16) {
+                        ProgressView()
+                        Text("Loading report...")
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .navigationTitle(report.reportType?.displayName ?? "Report")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showShareSheet = true
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .disabled(pdfData == nil)
+                }
+            }
+            .onAppear {
+                pdfData = SavedReportsManager.shared.getPDFData(for: report)
+            }
+            .sheet(isPresented: $showShareSheet) {
+                if let data = pdfData {
+                    AIInsightsShareSheet(activityItems: [data])
+                }
             }
         }
     }
