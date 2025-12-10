@@ -165,6 +165,119 @@ HStack(spacing: 12) {
 7. Safety Concerns
 8. Discussion Points for Provider
 
+### Phase 9: Time Period Selector & Settings Enhancement
+
+**Changes:**
+
+#### 1. Time Period Selector
+Added a `TimePeriod` enum with options:
+- 1 Day
+- 3 Days
+- 7 Days (default for Quick Analysis)
+- 14 Days
+- 30 Days (default for Doctor Report)
+- 3 Months (90 days)
+
+#### 2. Doctor Report Settings
+- Added time period picker at the top of settings
+- Settings persist via UserDefaults
+- Data toggles and custom prompt work as before
+
+#### 3. Quick Analysis Settings (New)
+- Added gear icon in toolbar to access settings
+- Time period selector
+- Same data toggles as Doctor Report (independent settings)
+- Custom prompt with reset to default
+- All settings persist via UserDefaults
+
+#### 4. Removed Nightscout Data Source
+- Simplified to use only local CoreData (which stores 90 days of data)
+- Local data has richer information (loop algorithm decisions, fat/protein, SMB flags)
+- Faster and more reliable than network calls
+
+**Key Files Modified:**
+- `AIInsightsConfigStateModel.swift` - Added Quick Analysis settings, time period properties, persistence
+- `HealthDataExporter.swift` - Simplified to single `exportData(days:)` method, added `QuickAnalysisSettings`
+- `AIInsightsConfigRootView.swift` - Added `QuickAnalysisSettingsView`, time picker to Doctor Report settings, removed Nightscout UI
+
+**UserDefaults Keys Added:**
+```swift
+// Doctor Report Settings
+AIInsightsConfig.dr.timePeriod
+AIInsightsConfig.dr.showCarbRatios
+AIInsightsConfig.dr.showISF
+AIInsightsConfig.dr.showBasalRates
+AIInsightsConfig.dr.showTargets
+AIInsightsConfig.dr.showInsulinSettings
+AIInsightsConfig.dr.showStatistics
+AIInsightsConfig.dr.showLoopData
+AIInsightsConfig.dr.showCarbEntries
+AIInsightsConfig.dr.showBolusHistory
+AIInsightsConfig.dr.customPrompt
+
+// Quick Analysis Settings (same structure with qa. prefix)
+AIInsightsConfig.qa.timePeriod
+AIInsightsConfig.qa.showCarbRatios
+// ... etc
+```
+
+### Phase 10: Saved Reports, PDF Fixes & Markdown Rendering (In Progress)
+
+**Planned Changes:**
+
+#### 1. Saved Reports with Auto-Save
+- Auto-save all generated reports (Quick Analysis, Weekly Report, Doctor Report)
+- Store as PDF files in app's documents directory
+- Keep last 10 reports per type
+- New "Saved Reports" section in AI Insights menu
+- List view showing: report type, date generated, time period analyzed
+- Tap to view saved PDF, swipe to delete
+- Share button uses standard iOS share sheet for PDF
+
+#### 2. PDF Multi-Page Fix
+- Current bug: PDF only renders first page of content
+- Fix: Implement proper pagination with `NSAttributedString.boundingRect` height calculation
+- Split content into page-sized chunks
+- Call `context.beginPage()` for each page
+- Track y-position across pages
+
+#### 3. Markdown Rendering with MarkdownUI
+- Add `MarkdownUI` Swift Package dependency
+- Replace plain `Text()` views with `Markdown()` views
+- Proper rendering of:
+  - **Bold** and *italic* text
+  - Headers (###, ##, #)
+  - Bullet points and numbered lists
+  - Tables with proper column alignment
+  - Code blocks
+- Match PDF appearance to screen appearance
+
+#### 4. PDF Markdown Formatting
+- Parse markdown into `NSAttributedString` with proper styling
+- Bold text rendered with bold font
+- Headers rendered with larger font sizes
+- Tables rendered with proper column alignment
+- Consistent styling between screen and PDF
+
+**Files to be Modified:**
+- `Package.swift` or Xcode project - Add MarkdownUI dependency
+- `AIInsightsConfigStateModel.swift` - Add saved reports management, fix PDF pagination
+- `AIInsightsConfigRootView.swift` - Add Saved Reports view, replace Text with Markdown
+- New: `SavedReportsManager.swift` - Handle report storage/retrieval
+
+**Storage Structure:**
+```
+Documents/
+└── AIReports/
+    ├── QuickAnalysis/
+    │   ├── report_2024-12-10_14-30.pdf
+    │   └── report_2024-12-09_09-15.pdf
+    ├── WeeklyReport/
+    │   └── report_2024-12-08_10-00.pdf
+    └── DoctorReport/
+        └── report_2024-12-07_16-45.pdf
+```
+
 ---
 
 ## Architecture Overview
@@ -177,7 +290,9 @@ AIInsightsConfig/
 ├── AIInsightsConfigStateModel.swift  # Business logic and state
 ├── AIInsightsConfigProvider.swift    # Dependency injection
 ├── HealthDataExporter.swift          # Data extraction and formatting
-├── NightscoutDataFetcher.swift       # Nightscout API integration
+├── NightscoutDataFetcher.swift       # Nightscout API integration (deprecated)
+├── SavedReportsManager.swift         # Report storage/retrieval (Phase 10)
+├── MarkdownParser.swift              # Native markdown parsing (Phase 10)
 └── View/
     └── AIInsightsConfigRootView.swift # All UI views
 ```
@@ -612,8 +727,8 @@ ca9d37689 Add full treatment settings export to AI analysis
 
 ## Document Information
 
-- **Version:** 1.0
+- **Version:** 1.2
 - **Last Updated:** December 10, 2025
 - **Author:** Claude AI (Implementation Assistant)
 - **Repository:** Trio iOS App
-- **Branch:** claude/add-ai-insights-feature-01MddDMcSDP7SXKRMQRSYxzV
+- **Current Branch:** claude/save-analysis-reports-01JjR83ie5CxN6uUDL1WcKh7
