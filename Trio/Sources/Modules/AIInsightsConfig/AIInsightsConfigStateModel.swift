@@ -166,6 +166,15 @@ Please provide a quick analysis using these sections:
         @Published var isGeneratingDoctorReport = false
         @Published var doctorReportPDFData: Data?
 
+        // Quick Analysis PDF (for saving)
+        @Published var quickAnalysisPDFData: Data?
+
+        // Weekly Report PDF (for saving)
+        @Published var weeklyReportPDFData: Data?
+
+        // Saved Reports
+        @Published var savedReports: [SavedReportsManager.SavedReport] = []
+
         // Doctor Report Settings
         @Published var drTimePeriod: TimePeriod = .thirtyDays
         @Published var drShowCarbRatios = true
@@ -195,6 +204,18 @@ Please provide a quick analysis using these sections:
             // Load settings
             loadDoctorReportSettings()
             loadQuickAnalysisSettings()
+
+            // Load saved reports
+            loadSavedReports()
+        }
+
+        func loadSavedReports() {
+            savedReports = SavedReportsManager.shared.getSavedReports()
+        }
+
+        func deleteSavedReport(_ report: SavedReportsManager.SavedReport) {
+            SavedReportsManager.shared.deleteReport(report)
+            loadSavedReports()
         }
 
         private func loadDoctorReportSettings() {
@@ -414,6 +435,22 @@ Please provide a quick analysis using these sections:
 
                 let result = try await claudeService.analyze(prompt: prompt, apiKey: apiKey)
                 quickAnalysisResult = result
+
+                // Generate PDF and auto-save
+                if let pdfData = generatePDF(
+                    from: result,
+                    title: "Quick Analysis Report",
+                    timePeriod: qaTimePeriod.displayName
+                ) {
+                    quickAnalysisPDFData = pdfData
+                    SavedReportsManager.shared.saveReport(
+                        type: .quickAnalysis,
+                        content: result,
+                        timePeriod: qaTimePeriod.displayName,
+                        pdfData: pdfData
+                    )
+                    loadSavedReports()
+                }
             } catch {
                 analysisError = error.localizedDescription
             }
@@ -497,6 +534,22 @@ Please provide a quick analysis using these sections:
 
                 let result = try await claudeService.analyze(prompt: prompt, apiKey: apiKey)
                 weeklyReport = result
+
+                // Generate PDF and auto-save
+                if let pdfData = generatePDF(
+                    from: result,
+                    title: "Weekly Report",
+                    timePeriod: "7 Days"
+                ) {
+                    weeklyReportPDFData = pdfData
+                    SavedReportsManager.shared.saveReport(
+                        type: .weeklyReport,
+                        content: result,
+                        timePeriod: "7 Days",
+                        pdfData: pdfData
+                    )
+                    loadSavedReports()
+                }
             } catch {
                 analysisError = error.localizedDescription
             }
@@ -560,8 +613,21 @@ Please provide a quick analysis using these sections:
                 let result = try await claudeService.analyze(prompt: prompt, apiKey: apiKey)
                 doctorVisitReport = result
 
-                // Generate PDF
-                doctorReportPDFData = generatePDF(from: result, data: data)
+                // Generate PDF and auto-save
+                if let pdfData = generatePDF(
+                    from: result,
+                    title: "Doctor Visit Report",
+                    timePeriod: drTimePeriod.displayName
+                ) {
+                    doctorReportPDFData = pdfData
+                    SavedReportsManager.shared.saveReport(
+                        type: .doctorReport,
+                        content: result,
+                        timePeriod: drTimePeriod.displayName,
+                        pdfData: pdfData
+                    )
+                    loadSavedReports()
+                }
             } catch {
                 analysisError = error.localizedDescription
             }
@@ -599,18 +665,23 @@ Please provide a quick analysis using these sections:
             """
         }
 
+        // MARK: - PDF Generation with Multi-Page Support
+
         private func generatePDF(
             from report: String,
-            data: HealthDataExporter.ExportedData
+            title: String,
+            timePeriod: String
         ) -> Data? {
             let pageWidth: CGFloat = 612 // Letter size
             let pageHeight: CGFloat = 792
             let margin: CGFloat = 50
+            let contentWidth = pageWidth - 2 * margin
+            let headerHeight: CGFloat = 80 // Space for title, date, and separator
 
             let pdfMetaData = [
                 kCGPDFContextCreator: "Trio AI Insights",
                 kCGPDFContextAuthor: "Trio App",
-                kCGPDFContextTitle: "Diabetes Management Report"
+                kCGPDFContextTitle: title
             ]
 
             let format = UIGraphicsPDFRendererFormat()
@@ -619,95 +690,244 @@ Please provide a quick analysis using these sections:
             let pageRect = CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
             let renderer = UIGraphicsPDFRenderer(bounds: pageRect, format: format)
 
+            // Parse markdown to attributed string
+            let attributedContent = MarkdownParser.parseToNSAttributedString(report, style: .pdf)
+
+            // Calculate total content height
+            let contentRect = CGRect(x: 0, y: 0, width: contentWidth, height: .greatestFiniteMagnitude)
+            let boundingRect = attributedContent.boundingRect(
+                with: contentRect.size,
+                options: [.usesLineFragmentOrigin, .usesFontLeading],
+                context: nil
+            )
+            let totalContentHeight = boundingRect.height
+
+            // Calculate available height per page
+            let firstPageContentHeight = pageHeight - margin - headerHeight - margin
+            let subsequentPageContentHeight = pageHeight - margin - margin
+
             let data = renderer.pdfData { context in
-                context.beginPage()
+                var currentY: CGFloat = 0
+                var remainingHeight = totalContentHeight
+                var isFirstPage = true
+                var pageNumber = 1
 
-                var yPosition: CGFloat = margin
+                // Create text storage for drawing
+                let textStorage = NSTextStorage(attributedString: attributedContent)
+                let layoutManager = NSLayoutManager()
+                textStorage.addLayoutManager(layoutManager)
 
-                // Title
-                let titleFont = UIFont.boldSystemFont(ofSize: 18)
-                let titleAttr: [NSAttributedString.Key: Any] = [
-                    .font: titleFont,
-                    .foregroundColor: UIColor.black
-                ]
+                let textContainer = NSTextContainer(size: CGSize(width: contentWidth, height: .greatestFiniteMagnitude))
+                textContainer.lineFragmentPadding = 0
+                layoutManager.addTextContainer(textContainer)
 
-                let title = "Trio Diabetes Management Report"
-                let titleSize = title.size(withAttributes: titleAttr)
-                let titleRect = CGRect(
-                    x: (pageWidth - titleSize.width) / 2,
-                    y: yPosition,
-                    width: titleSize.width,
-                    height: titleSize.height
-                )
-                title.draw(in: titleRect, withAttributes: titleAttr)
-                yPosition += titleSize.height + 10
+                // Force layout
+                layoutManager.ensureLayout(for: textContainer)
 
-                // Date
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateStyle = .long
-                dateFormatter.timeStyle = .short
-                let dateString = "Generated: \(dateFormatter.string(from: Date()))"
-                let dateFont = UIFont.systemFont(ofSize: 10)
-                let dateAttr: [NSAttributedString.Key: Any] = [
-                    .font: dateFont,
-                    .foregroundColor: UIColor.gray
-                ]
-                let dateSize = dateString.size(withAttributes: dateAttr)
-                let dateRect = CGRect(
-                    x: (pageWidth - dateSize.width) / 2,
-                    y: yPosition,
-                    width: dateSize.width,
-                    height: dateSize.height
-                )
-                dateString.draw(in: dateRect, withAttributes: dateAttr)
-                yPosition += dateSize.height + 20
+                var glyphRange = NSRange(location: 0, length: 0)
+                var drawnGlyphRange = NSRange(location: 0, length: 0)
 
-                // Separator line
-                let linePath = UIBezierPath()
-                linePath.move(to: CGPoint(x: margin, y: yPosition))
-                linePath.addLine(to: CGPoint(x: pageWidth - margin, y: yPosition))
-                UIColor.gray.setStroke()
-                linePath.stroke()
-                yPosition += 20
+                while drawnGlyphRange.location + drawnGlyphRange.length < layoutManager.numberOfGlyphs {
+                    context.beginPage()
 
-                // Body content
-                let bodyFont = UIFont.systemFont(ofSize: 11)
-                let bodyAttr: [NSAttributedString.Key: Any] = [
-                    .font: bodyFont,
-                    .foregroundColor: UIColor.black
-                ]
+                    var yPosition: CGFloat = margin
 
-                let textRect = CGRect(
-                    x: margin,
-                    y: yPosition,
-                    width: pageWidth - 2 * margin,
-                    height: pageHeight - yPosition - margin
-                )
+                    if isFirstPage {
+                        // Draw header on first page
+                        yPosition = drawHeader(
+                            context: context,
+                            title: title,
+                            timePeriod: timePeriod,
+                            pageWidth: pageWidth,
+                            margin: margin,
+                            yPosition: yPosition
+                        )
+                        isFirstPage = false
+                    }
 
-                // Clean up markdown for PDF
-                let cleanReport = report
-                    .replacingOccurrences(of: "**", with: "")
-                    .replacingOccurrences(of: "###", with: "")
-                    .replacingOccurrences(of: "##", with: "")
-                    .replacingOccurrences(of: "#", with: "")
+                    // Calculate content area for this page
+                    let availableHeight = pageHeight - yPosition - margin - 30 // 30 for footer
 
-                let paragraphStyle = NSMutableParagraphStyle()
-                paragraphStyle.lineBreakMode = .byWordWrapping
-                paragraphStyle.lineSpacing = 4
+                    // Find the glyph range that fits in this page
+                    let startGlyph = drawnGlyphRange.location + drawnGlyphRange.length
+                    let contentOrigin = CGPoint(x: margin, y: yPosition)
 
-                let attrString = NSAttributedString(
-                    string: cleanReport,
-                    attributes: [
-                        .font: bodyFont,
-                        .foregroundColor: UIColor.black,
-                        .paragraphStyle: paragraphStyle
-                    ]
-                )
+                    // Create a temporary container for this page
+                    let pageContainer = NSTextContainer(size: CGSize(width: contentWidth, height: availableHeight))
+                    pageContainer.lineFragmentPadding = 0
 
-                attrString.draw(in: textRect)
+                    let pageLayoutManager = NSLayoutManager()
+                    let pageTextStorage = NSTextStorage(attributedString: attributedContent)
+                    pageTextStorage.addLayoutManager(pageLayoutManager)
+                    pageLayoutManager.addTextContainer(pageContainer)
+
+                    // Get the range that fits
+                    let rangeToShow = pageLayoutManager.glyphRange(for: pageContainer)
+
+                    if rangeToShow.length == 0 && startGlyph > 0 {
+                        break
+                    }
+
+                    // Adjust for what we've already drawn
+                    let adjustedStart = min(startGlyph, layoutManager.numberOfGlyphs - 1)
+                    let remainingGlyphs = layoutManager.numberOfGlyphs - adjustedStart
+
+                    // Draw the text for this page
+                    UIGraphicsPushContext(context.cgContext)
+
+                    // Translate context to content origin
+                    context.cgContext.saveGState()
+                    context.cgContext.translateBy(x: contentOrigin.x, y: contentOrigin.y)
+
+                    // Calculate what fits on this page
+                    var lineY: CGFloat = 0
+                    var lastGlyphIndex = adjustedStart
+
+                    // Draw line by line until we run out of space
+                    var lineIndex = 0
+                    let totalLines = layoutManager.numberOfGlyphs > 0 ? Int(totalContentHeight / 15) : 0
+
+                    // Simple approach: draw text that fits
+                    let remainingText = attributedContent.attributedSubstring(
+                        from: NSRange(location: adjustedStart, length: min(remainingGlyphs, attributedContent.length - adjustedStart))
+                    )
+
+                    let pageBoundingRect = CGRect(x: 0, y: 0, width: contentWidth, height: availableHeight)
+                    remainingText.draw(with: pageBoundingRect, options: [.usesLineFragmentOrigin, .truncatesLastVisibleLine], context: nil)
+
+                    context.cgContext.restoreGState()
+                    UIGraphicsPopContext()
+
+                    // Calculate how much we drew (estimate based on available height)
+                    let drawnRect = remainingText.boundingRect(
+                        with: CGSize(width: contentWidth, height: availableHeight),
+                        options: [.usesLineFragmentOrigin, .usesFontLeading],
+                        context: nil
+                    )
+
+                    let charactersFit = Int((availableHeight / totalContentHeight) * CGFloat(attributedContent.length))
+                    drawnGlyphRange = NSRange(
+                        location: adjustedStart,
+                        length: min(charactersFit, attributedContent.length - adjustedStart)
+                    )
+
+                    // Draw footer
+                    drawFooter(
+                        context: context,
+                        pageNumber: pageNumber,
+                        pageWidth: pageWidth,
+                        pageHeight: pageHeight,
+                        margin: margin
+                    )
+
+                    pageNumber += 1
+
+                    // Safety check to prevent infinite loops
+                    if drawnGlyphRange.length == 0 || pageNumber > 50 {
+                        break
+                    }
+                }
             }
 
             return data
+        }
+
+        private func drawHeader(
+            context: UIGraphicsPDFRendererContext,
+            title: String,
+            timePeriod: String,
+            pageWidth: CGFloat,
+            margin: CGFloat,
+            yPosition: CGFloat
+        ) -> CGFloat {
+            var y = yPosition
+
+            // Title
+            let titleFont = UIFont.boldSystemFont(ofSize: 18)
+            let titleAttr: [NSAttributedString.Key: Any] = [
+                .font: titleFont,
+                .foregroundColor: UIColor.black
+            ]
+
+            let fullTitle = "Trio \(title)"
+            let titleSize = fullTitle.size(withAttributes: titleAttr)
+            let titleRect = CGRect(
+                x: (pageWidth - titleSize.width) / 2,
+                y: y,
+                width: titleSize.width,
+                height: titleSize.height
+            )
+            fullTitle.draw(in: titleRect, withAttributes: titleAttr)
+            y += titleSize.height + 8
+
+            // Subtitle with date and time period
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateStyle = .long
+            dateFormatter.timeStyle = .short
+            let subtitle = "Generated: \(dateFormatter.string(from: Date())) | Period: \(timePeriod)"
+            let subtitleFont = UIFont.systemFont(ofSize: 10)
+            let subtitleAttr: [NSAttributedString.Key: Any] = [
+                .font: subtitleFont,
+                .foregroundColor: UIColor.gray
+            ]
+            let subtitleSize = subtitle.size(withAttributes: subtitleAttr)
+            let subtitleRect = CGRect(
+                x: (pageWidth - subtitleSize.width) / 2,
+                y: y,
+                width: subtitleSize.width,
+                height: subtitleSize.height
+            )
+            subtitle.draw(in: subtitleRect, withAttributes: subtitleAttr)
+            y += subtitleSize.height + 15
+
+            // Separator line
+            let linePath = UIBezierPath()
+            linePath.move(to: CGPoint(x: margin, y: y))
+            linePath.addLine(to: CGPoint(x: pageWidth - margin, y: y))
+            UIColor.lightGray.setStroke()
+            linePath.lineWidth = 0.5
+            linePath.stroke()
+            y += 15
+
+            return y
+        }
+
+        private func drawFooter(
+            context: UIGraphicsPDFRendererContext,
+            pageNumber: Int,
+            pageWidth: CGFloat,
+            pageHeight: CGFloat,
+            margin: CGFloat
+        ) {
+            let footerFont = UIFont.systemFont(ofSize: 9)
+            let footerAttr: [NSAttributedString.Key: Any] = [
+                .font: footerFont,
+                .foregroundColor: UIColor.gray
+            ]
+
+            // Page number
+            let pageText = "Page \(pageNumber)"
+            let pageSize = pageText.size(withAttributes: footerAttr)
+            let pageRect = CGRect(
+                x: (pageWidth - pageSize.width) / 2,
+                y: pageHeight - margin + 10,
+                width: pageSize.width,
+                height: pageSize.height
+            )
+            pageText.draw(in: pageRect, withAttributes: footerAttr)
+
+            // Disclaimer on first page footer
+            if pageNumber == 1 {
+                let disclaimer = "This report is for informational purposes. Consult your healthcare provider before making changes."
+                let disclaimerSize = disclaimer.size(withAttributes: footerAttr)
+                let disclaimerRect = CGRect(
+                    x: (pageWidth - disclaimerSize.width) / 2,
+                    y: pageHeight - margin + 22,
+                    width: disclaimerSize.width,
+                    height: disclaimerSize.height
+                )
+                disclaimer.draw(in: disclaimerRect, withAttributes: footerAttr)
+            }
         }
     }
 }
