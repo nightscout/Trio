@@ -65,46 +65,19 @@ final class NightscoutDataFetcher {
 
         let sinceDate = Calendar.current.date(byAdding: .day, value: -days, to: Date())!
 
-        // Nightscout API may limit results, so we need to paginate
-        var allReadings: [FetchedData.GlucoseReading] = []
-        var currentEndDate = Date()
-        let batchSize = 1600 // Max entries per request
+        // Fetch glucose readings since the target date
+        let readings = try await api.fetchLastGlucose(sinceDate: sinceDate)
 
-        while currentEndDate > sinceDate {
-            let readings = try await fetchGlucoseBatch(api: api, before: currentEndDate, count: batchSize)
-
-            if readings.isEmpty { break }
-
-            let converted = readings.map { bg -> FetchedData.GlucoseReading in
-                FetchedData.GlucoseReading(
-                    date: bg.dateString,
-                    value: bg.glucose ?? bg.sgv ?? 0,
-                    direction: bg.direction?.rawValue
-                )
-            }.filter { $0.date >= sinceDate }
-
-            allReadings.append(contentsOf: converted)
-
-            // Get the oldest reading's date for next batch
-            if let oldest = readings.last?.dateString {
-                currentEndDate = oldest.addingTimeInterval(-1)
-            } else {
-                break
-            }
-
-            // Stop if we've gone past our target date
-            if currentEndDate <= sinceDate { break }
+        // Convert to our format
+        let converted = readings.map { bg -> FetchedData.GlucoseReading in
+            FetchedData.GlucoseReading(
+                date: bg.dateString,
+                value: bg.glucose ?? bg.sgv ?? 0,
+                direction: bg.direction?.rawValue
+            )
         }
 
-        return allReadings.sorted { $0.date < $1.date }
-    }
-
-    private func fetchGlucoseBatch(api: NightscoutAPI, before: Date, count: Int) async throws -> [BloodGlucose] {
-        // Use the existing API but we need to handle pagination
-        // The fetchLastGlucose uses sinceDate, but for historical we need "before" semantics
-        // For now, use the sinceDate approach with the older date
-        let oldDate = Calendar.current.date(byAdding: .day, value: -90, to: before)!
-        return try await api.fetchLastGlucose(sinceDate: oldDate)
+        return converted.sorted { $0.date < $1.date }
     }
 
     /// Fetch all treatments (carbs, boluses) for the specified number of days

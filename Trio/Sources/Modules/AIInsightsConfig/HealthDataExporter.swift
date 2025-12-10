@@ -724,14 +724,18 @@ final class HealthDataExporter {
             Based on this data, please answer my question.
             """
 
-        case .doctorVisit:
-            prompt = formatDoctorVisitPrompt(data, timeFormatter: timeFormatter)
+        case .doctorVisit(let settings):
+            prompt = formatDoctorVisitPrompt(data, timeFormatter: timeFormatter, settings: settings)
         }
 
         return prompt
     }
 
-    private func formatDoctorVisitPrompt(_ data: ExportedData, timeFormatter: DateFormatter) -> String {
+    private func formatDoctorVisitPrompt(
+        _ data: ExportedData,
+        timeFormatter: DateFormatter,
+        settings: DoctorReportSettings
+    ) -> String {
         var prompt = """
         # COMPREHENSIVE DIABETES DATA EXPORT FOR HEALTHCARE PROVIDER REVIEW
 
@@ -739,104 +743,165 @@ final class HealthDataExporter {
 
         ---
 
-        ## ⚙️ CURRENT TREATMENT SETTINGS
-
-        ### Insulin Settings
-        • Insulin Duration of Action (DIA): \(data.settings.dia) hours
-        • Maximum IOB: \(data.settings.maxIOB) U
-        • Maximum Bolus: \(data.settings.maxBolus) U
-
-        ### Carb Ratios (1 unit insulin per X grams carbs)
-        \(formatScheduleVertical(data.settings.carbRatioSchedule.map { "  \($0.time): 1:\($0.ratio)" }))
-
-        ### Insulin Sensitivity Factors (1 unit drops BG by X \(data.settings.units))
-        \(formatScheduleVertical(data.settings.isfSchedule.map { "  \($0.time): \($0.sensitivity) \(data.settings.units)" }))
-
-        ### Basal Rates
-        \(formatScheduleVertical(data.settings.basalSchedule.map { "  \($0.time): \($0.rate) U/hr" }))
-        • Total Daily Basal: \(String(format: "%.2f", data.settings.basalSchedule.reduce(0.0) { $0 + NSDecimalNumber(decimal: $1.rate).doubleValue })) U (if constant)
-
-        ### Target Glucose Ranges
-        \(formatScheduleVertical(data.settings.targetSchedule.map { "  \($0.time): \($0.low)-\($0.high) \(data.settings.units)" }))
-
-        ---
-
-        ## 📊 MULTI-TIMEFRAME STATISTICS
-
         """
 
-        if let multi = data.multiTimeframeStats {
-            prompt += formatMultiTimeframeTable(multi, units: data.settings.units)
-        } else {
+        // MARK: - Treatment Settings Section
+        var hasSettingsSection = false
+
+        if settings.showInsulinSettings || settings.showCarbRatios || settings.showISF ||
+           settings.showBasalRates || settings.showTargets {
+            prompt += "## ⚙️ CURRENT TREATMENT SETTINGS\n\n"
+            hasSettingsSection = true
+        }
+
+        if settings.showInsulinSettings {
             prompt += """
-            | Metric | 7 Days |
-            |--------|--------|
-            | Avg Glucose | \(data.statistics.averageGlucose) \(data.settings.units) |
-            | Std Dev | \(String(format: "%.1f", data.statistics.standardDeviation)) |
-            | CV | \(String(format: "%.1f", data.statistics.coefficientOfVariation))% |
-            | GMI | \(String(format: "%.1f", data.statistics.gmi))% |
-            | Time in Range | \(String(format: "%.1f", data.statistics.timeInRange))% |
-            | Time Below | \(String(format: "%.1f", data.statistics.timeBelowRange))% |
-            | Time Above | \(String(format: "%.1f", data.statistics.timeAboveRange))% |
-            | Readings | \(data.statistics.readingCount) |
+            ### Insulin Settings
+            • Insulin Duration of Action (DIA): \(data.settings.dia) hours
+            • Maximum IOB: \(data.settings.maxIOB) U
+            • Maximum Bolus: \(data.settings.maxBolus) U
 
             """
         }
 
-        prompt += """
+        if settings.showCarbRatios {
+            prompt += """
+            ### Carb Ratios (1 unit insulin per X grams carbs)
+            \(formatScheduleVertical(data.settings.carbRatioSchedule.map { "  \($0.time): 1:\($0.ratio)" }))
 
-        ---
+            """
+        }
 
-        ## 📈 DETAILED 7-DAY DATA
+        if settings.showISF {
+            prompt += """
+            ### Insulin Sensitivity Factors (1 unit drops BG by X \(data.settings.units))
+            \(formatScheduleVertical(data.settings.isfSchedule.map { "  \($0.time): \($0.sensitivity) \(data.settings.units)" }))
 
-        ### Recent Loop States (Every glucose reading with algorithm data)
-        Format: DateTime | BG | IOB | COB | TempBasal | SMB
-        \(formatLoopStatesCompact(data.loopStates, timeFormatter: timeFormatter, hours: 168, intervalMinutes: 5))
+            """
+        }
 
-        ### Carb Entries
-        \(formatCarbEntries(data.carbEntries, dateFormatter: timeFormatter))
+        if settings.showBasalRates {
+            let totalDaily = data.settings.basalSchedule.reduce(0.0) { $0 + NSDecimalNumber(decimal: $1.rate).doubleValue }
+            prompt += """
+            ### Basal Rates
+            \(formatScheduleVertical(data.settings.basalSchedule.map { "  \($0.time): \($0.rate) U/hr" }))
+            • Total Daily Basal: \(String(format: "%.2f", totalDaily)) U (if constant)
 
-        ### Bolus History
-        \(formatBolusEvents(data.bolusEvents, dateFormatter: timeFormatter))
+            """
+        }
 
-        ---
+        if settings.showTargets {
+            prompt += """
+            ### Target Glucose Ranges
+            \(formatScheduleVertical(data.settings.targetSchedule.map { "  \($0.time): \($0.low)-\($0.high) \(data.settings.units)" }))
 
-        ## 🤖 AI ANALYSIS REQUEST
+            """
+        }
 
-        Please analyze this data and provide a comprehensive report for discussion with my healthcare provider. Include:
+        if hasSettingsSection {
+            prompt += "---\n\n"
+        }
 
-        ### 📊 **Executive Summary**
-        - Overall diabetes management assessment
-        - Key metrics vs targets (TIR goal >70%, TBR <4%, CV <36%)
+        // MARK: - Statistics Section
+        if settings.showStatistics {
+            prompt += "## 📊 MULTI-TIMEFRAME STATISTICS\n\n"
 
-        ### 📈 **Trend Analysis**
-        - Compare metrics across timeframes (improving, stable, or declining)
-        - Identify any concerning trends
+            if let multi = data.multiTimeframeStats {
+                prompt += formatMultiTimeframeTable(multi, units: data.settings.units)
+            } else {
+                prompt += """
+                | Metric | 7 Days |
+                |--------|--------|
+                | Avg Glucose | \(data.statistics.averageGlucose) \(data.settings.units) |
+                | Std Dev | \(String(format: "%.1f", data.statistics.standardDeviation)) |
+                | CV | \(String(format: "%.1f", data.statistics.coefficientOfVariation))% |
+                | GMI | \(String(format: "%.1f", data.statistics.gmi))% |
+                | Time in Range | \(String(format: "%.1f", data.statistics.timeInRange))% |
+                | Time Below | \(String(format: "%.1f", data.statistics.timeBelowRange))% |
+                | Time Above | \(String(format: "%.1f", data.statistics.timeAboveRange))% |
+                | Readings | \(data.statistics.readingCount) |
 
-        ### 🕐 **Time-of-Day Patterns**
-        - Morning/dawn phenomenon analysis
-        - Post-meal patterns
-        - Overnight control
-        - Any consistent problem times
+                """
+            }
 
-        ### ⚙️ **Settings Recommendations**
-        - Specific basal rate adjustments (time and amount)
-        - Carb ratio changes needed
-        - ISF modifications
-        - Target range considerations
+            prompt += "\n---\n\n"
+        }
 
-        ### ⚠️ **Safety Concerns**
-        - Hypoglycemia patterns and prevention
-        - Severe hyperglycemia events
-        - Glycemic variability concerns
+        // MARK: - Detailed Data Section
+        if settings.showLoopData || settings.showCarbEntries || settings.showBolusHistory {
+            prompt += "## 📈 DETAILED 7-DAY DATA\n\n"
 
-        ### 💡 **Discussion Points for Provider**
-        - Priority items to address
-        - Questions to ask
-        - Suggested next steps
+            if settings.showLoopData {
+                prompt += """
+                ### Recent Loop States (Every glucose reading with algorithm data)
+                Format: DateTime | BG | IOB | COB | TempBasal | SMB
+                \(formatLoopStatesCompact(data.loopStates, timeFormatter: timeFormatter, hours: 168, intervalMinutes: 5))
 
-        Format this professionally for sharing with an endocrinologist or diabetes care team.
-        """
+                """
+            }
+
+            if settings.showCarbEntries {
+                prompt += """
+                ### Carb Entries
+                \(formatCarbEntries(data.carbEntries, dateFormatter: timeFormatter))
+
+                """
+            }
+
+            if settings.showBolusHistory {
+                prompt += """
+                ### Bolus History
+                \(formatBolusEvents(data.bolusEvents, dateFormatter: timeFormatter))
+
+                """
+            }
+
+            prompt += "---\n\n"
+        }
+
+        // MARK: - AI Analysis Request (Custom Prompt)
+        prompt += "## 🤖 AI ANALYSIS REQUEST\n\n"
+
+        if settings.customPrompt.isEmpty {
+            // Use default prompt if custom is empty
+            prompt += """
+            Please analyze this data and provide a comprehensive report for discussion with my healthcare provider. Include:
+
+            ### 📊 **Executive Summary**
+            - Overall diabetes management assessment
+            - Key metrics vs targets (TIR goal >70%, TBR <4%, CV <36%)
+
+            ### 📈 **Trend Analysis**
+            - Compare metrics across timeframes (improving, stable, or declining)
+            - Identify any concerning trends
+
+            ### 🕐 **Time-of-Day Patterns**
+            - Morning/dawn phenomenon analysis
+            - Post-meal patterns
+            - Overnight control
+            - Any consistent problem times
+
+            ### ⚙️ **Settings Recommendations**
+            - Specific basal rate adjustments (time and amount)
+            - Carb ratio changes needed
+            - ISF modifications
+            - Target range considerations
+
+            ### ⚠️ **Safety Concerns**
+            - Hypoglycemia patterns and prevention
+            - Severe hyperglycemia events
+            - Glycemic variability concerns
+
+            ### 💡 **Discussion Points for Provider**
+            - Priority items to address
+            - Questions to ask
+            - Suggested next steps
+
+            Format this professionally for sharing with an endocrinologist or diabetes care team.
+            """
+        } else {
+            prompt += settings.customPrompt
+        }
 
         return prompt
     }
@@ -1033,6 +1098,19 @@ final class HealthDataExporter {
         case quick
         case weeklyReport
         case chat
-        case doctorVisit
+        case doctorVisit(settings: DoctorReportSettings)
+    }
+
+    struct DoctorReportSettings {
+        var showCarbRatios: Bool = true
+        var showISF: Bool = true
+        var showBasalRates: Bool = true
+        var showTargets: Bool = true
+        var showInsulinSettings: Bool = true
+        var showStatistics: Bool = true
+        var showLoopData: Bool = true
+        var showCarbEntries: Bool = true
+        var showBolusHistory: Bool = true
+        var customPrompt: String = ""
     }
 }

@@ -788,6 +788,13 @@ extension AIInsightsConfig {
             }
             .background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Doctor Visit Report")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink(destination: DoctorReportSettingsView(state: state)) {
+                        Image(systemName: "gearshape")
+                    }
+                }
+            }
             .sheet(isPresented: $showShareSheet) {
                 AIInsightsShareSheet(activityItems: [state.getShareableDoctorReport()])
             }
@@ -795,6 +802,91 @@ extension AIInsightsConfig {
                 if let pdfData = state.doctorReportPDFData {
                     AIInsightsShareSheet(activityItems: [pdfData])
                 }
+            }
+        }
+    }
+
+    // MARK: - Doctor Report Settings View
+
+    struct DoctorReportSettingsView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+        @State private var showResetPromptAlert = false
+
+        var body: some View {
+            Form {
+                Section(
+                    header: Text("Data to Include"),
+                    footer: Text("Toggle which sections of your treatment data to include in the report sent to Claude.")
+                ) {
+                    Toggle("Insulin Settings (DIA, Max IOB, Max Bolus)", isOn: $state.drShowInsulinSettings)
+                        .onChange(of: state.drShowInsulinSettings) { _, _ in state.saveDoctorReportSettings() }
+
+                    Toggle("Carb Ratios", isOn: $state.drShowCarbRatios)
+                        .onChange(of: state.drShowCarbRatios) { _, _ in state.saveDoctorReportSettings() }
+
+                    Toggle("Insulin Sensitivity Factors (ISF)", isOn: $state.drShowISF)
+                        .onChange(of: state.drShowISF) { _, _ in state.saveDoctorReportSettings() }
+
+                    Toggle("Basal Rates", isOn: $state.drShowBasalRates)
+                        .onChange(of: state.drShowBasalRates) { _, _ in state.saveDoctorReportSettings() }
+
+                    Toggle("Target Glucose Ranges", isOn: $state.drShowTargets)
+                        .onChange(of: state.drShowTargets) { _, _ in state.saveDoctorReportSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("Statistics & History"),
+                    footer: Text("Include glucose statistics and detailed treatment history.")
+                ) {
+                    Toggle("Multi-Timeframe Statistics", isOn: $state.drShowStatistics)
+                        .onChange(of: state.drShowStatistics) { _, _ in state.saveDoctorReportSettings() }
+
+                    Toggle("Loop Data (BG, IOB, COB, Temp Basals)", isOn: $state.drShowLoopData)
+                        .onChange(of: state.drShowLoopData) { _, _ in state.saveDoctorReportSettings() }
+
+                    Toggle("Carb Entries", isOn: $state.drShowCarbEntries)
+                        .onChange(of: state.drShowCarbEntries) { _, _ in state.saveDoctorReportSettings() }
+
+                    Toggle("Bolus History", isOn: $state.drShowBolusHistory)
+                        .onChange(of: state.drShowBolusHistory) { _, _ in state.saveDoctorReportSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("AI Prompt"),
+                    footer: Text("Customize the instructions sent to Claude for analyzing your data. This tells Claude what kind of report to generate.")
+                ) {
+                    TextEditor(text: $state.drCustomPrompt)
+                        .frame(minHeight: 300)
+                        .font(.system(.body, design: .monospaced))
+                        .onChange(of: state.drCustomPrompt) { _, _ in state.saveDoctorReportSettings() }
+
+                    Button(action: {
+                        showResetPromptAlert = true
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Reset to Default Prompt")
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+                .listRowBackground(Color.chart)
+            }
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Report Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .alert("Reset Prompt?", isPresented: $showResetPromptAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Reset", role: .destructive) {
+                    state.resetDoctorReportPrompt()
+                }
+            } message: {
+                Text("This will reset the AI prompt to the default. Your custom prompt will be lost.")
             }
         }
     }
