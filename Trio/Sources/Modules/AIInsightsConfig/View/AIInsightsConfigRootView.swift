@@ -34,7 +34,7 @@ extension AIInsightsConfig {
                                 VStack(alignment: .leading) {
                                     Text("Quick Analysis")
                                         .font(.headline)
-                                    Text("Instant insights from last 7 days")
+                                    Text("Instant insights from your data")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -87,39 +87,6 @@ extension AIInsightsConfig {
                 .listRowBackground(Color.chart)
 
                 Section(
-                    header: Text("Data Source"),
-                    footer: Text(
-                        state.isNightscoutAvailable
-                            ? "When enabled, AI analysis uses data from Nightscout for more comprehensive history."
-                            : "Configure Nightscout in Settings to enable cloud data sync."
-                    )
-                ) {
-                    Toggle(isOn: Binding(
-                        get: { state.useNightscout },
-                        set: { state.toggleNightscout($0) }
-                    )) {
-                        HStack {
-                            Image(systemName: "cloud.fill")
-                                .foregroundColor(state.isNightscoutAvailable ? .green : .gray)
-                            VStack(alignment: .leading) {
-                                Text("Use Nightscout Data")
-                                if state.isNightscoutAvailable {
-                                    Text("Connected - up to 90 days of history")
-                                        .font(.caption)
-                                        .foregroundColor(.green)
-                                } else {
-                                    Text("Not configured")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                        }
-                    }
-                    .disabled(!state.isNightscoutAvailable)
-                }
-                .listRowBackground(Color.chart)
-
-                Section(
                     header: Text("Configuration"),
                     footer: Text("Your Claude API key is stored securely in the iOS Keychain.")
                 ) {
@@ -167,16 +134,15 @@ extension AIInsightsConfig {
                                 .font(.title2)
                                 .fontWeight(.bold)
 
-                            Text("Get instant AI-powered insights about your last 7 days of glucose data.")
+                            Text("Get instant AI-powered insights about your glucose data.")
                                 .multilineTextAlignment(.center)
                                 .foregroundColor(.secondary)
                                 .padding(.horizontal)
 
-                            if state.useNightscout && state.isNightscoutAvailable {
-                                Label("Using Nightscout data", systemImage: "cloud.fill")
-                                    .font(.caption)
-                                    .foregroundColor(.green)
-                            }
+                            // Data period info
+                            Label("Analyzing last \(state.qaTimePeriod.displayName)", systemImage: "calendar")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
 
                             Button(action: {
                                 Task {
@@ -241,6 +207,10 @@ extension AIInsightsConfig {
                                     .foregroundColor(.green)
                                 Text("Analysis Complete")
                                     .font(.headline)
+                                Spacer()
+                                Label(state.qaTimePeriod.displayName, systemImage: "calendar")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
 
                             Text(state.quickAnalysisResult)
@@ -269,6 +239,13 @@ extension AIInsightsConfig {
             }
             .background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Quick Analysis")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink(destination: QuickAnalysisSettingsView(state: state)) {
+                        Image(systemName: "gearshape")
+                    }
+                }
+            }
         }
     }
 
@@ -605,19 +582,11 @@ extension AIInsightsConfig {
                             .foregroundColor(.secondary)
                             .padding(.horizontal)
 
-                            // Data source info
-                            VStack(spacing: 8) {
-                                if state.useNightscout && state.isNightscoutAvailable {
-                                    Label("Will use up to 90 days of Nightscout data", systemImage: "cloud.fill")
-                                        .font(.caption)
-                                        .foregroundColor(.green)
-                                } else {
-                                    Label("Will use 7 days of local app data", systemImage: "iphone")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                            .padding(.vertical, 8)
+                            // Data period info
+                            Label("Will analyze last \(state.drTimePeriod.displayName)", systemImage: "calendar")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.vertical, 8)
 
                             // What's included
                             VStack(alignment: .leading, spacing: 6) {
@@ -711,27 +680,9 @@ extension AIInsightsConfig {
                                 Text("Report Generated")
                                     .font(.headline)
                                 Spacer()
-                            }
-
-                            // Data source badge
-                            HStack {
-                                if state.useNightscout && state.isNightscoutAvailable {
-                                    Label("Nightscout Data", systemImage: "cloud.fill")
-                                        .font(.caption)
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 4)
-                                        .background(Color.green.opacity(0.2))
-                                        .foregroundColor(.green)
-                                        .cornerRadius(8)
-                                } else {
-                                    Label("Local Data", systemImage: "iphone")
-                                        .font(.caption)
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 4)
-                                        .background(Color.gray.opacity(0.2))
-                                        .foregroundColor(.secondary)
-                                        .cornerRadius(8)
-                                }
+                                Label(state.drTimePeriod.displayName, systemImage: "calendar")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
 
                             Text(state.doctorVisitReport)
@@ -806,6 +757,104 @@ extension AIInsightsConfig {
         }
     }
 
+    // MARK: - Quick Analysis Settings View
+
+    struct QuickAnalysisSettingsView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+        @State private var showResetPromptAlert = false
+
+        var body: some View {
+            Form {
+                Section(
+                    header: Text("Time Period"),
+                    footer: Text("Select how much historical data to analyze. Longer periods provide more context but may take longer to process.")
+                ) {
+                    Picker("Data Period", selection: $state.qaTimePeriod) {
+                        ForEach(TimePeriod.allCases) { period in
+                            Text(period.displayName).tag(period)
+                        }
+                    }
+                    .onChange(of: state.qaTimePeriod) { _, _ in state.saveQuickAnalysisSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("Data to Include"),
+                    footer: Text("Toggle which sections of your treatment data to include in the analysis sent to Claude.")
+                ) {
+                    Toggle("Insulin Settings (DIA, Max IOB, Max Bolus)", isOn: $state.qaShowInsulinSettings)
+                        .onChange(of: state.qaShowInsulinSettings) { _, _ in state.saveQuickAnalysisSettings() }
+
+                    Toggle("Carb Ratios", isOn: $state.qaShowCarbRatios)
+                        .onChange(of: state.qaShowCarbRatios) { _, _ in state.saveQuickAnalysisSettings() }
+
+                    Toggle("Insulin Sensitivity Factors (ISF)", isOn: $state.qaShowISF)
+                        .onChange(of: state.qaShowISF) { _, _ in state.saveQuickAnalysisSettings() }
+
+                    Toggle("Basal Rates", isOn: $state.qaShowBasalRates)
+                        .onChange(of: state.qaShowBasalRates) { _, _ in state.saveQuickAnalysisSettings() }
+
+                    Toggle("Target Glucose Ranges", isOn: $state.qaShowTargets)
+                        .onChange(of: state.qaShowTargets) { _, _ in state.saveQuickAnalysisSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("Statistics & History"),
+                    footer: Text("Include glucose statistics and detailed treatment history.")
+                ) {
+                    Toggle("Statistics Summary", isOn: $state.qaShowStatistics)
+                        .onChange(of: state.qaShowStatistics) { _, _ in state.saveQuickAnalysisSettings() }
+
+                    Toggle("Loop Data (BG, IOB, COB, Temp Basals)", isOn: $state.qaShowLoopData)
+                        .onChange(of: state.qaShowLoopData) { _, _ in state.saveQuickAnalysisSettings() }
+
+                    Toggle("Carb Entries", isOn: $state.qaShowCarbEntries)
+                        .onChange(of: state.qaShowCarbEntries) { _, _ in state.saveQuickAnalysisSettings() }
+
+                    Toggle("Bolus History", isOn: $state.qaShowBolusHistory)
+                        .onChange(of: state.qaShowBolusHistory) { _, _ in state.saveQuickAnalysisSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("AI Prompt"),
+                    footer: Text("Customize the instructions sent to Claude for analyzing your data.")
+                ) {
+                    TextEditor(text: $state.qaCustomPrompt)
+                        .frame(minHeight: 150)
+                        .font(.system(.body, design: .monospaced))
+                        .onChange(of: state.qaCustomPrompt) { _, _ in state.saveQuickAnalysisSettings() }
+
+                    Button(action: {
+                        showResetPromptAlert = true
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Reset to Default Prompt")
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+                .listRowBackground(Color.chart)
+            }
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Quick Analysis Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .alert("Reset Prompt?", isPresented: $showResetPromptAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Reset", role: .destructive) {
+                    state.resetQuickAnalysisPrompt()
+                }
+            } message: {
+                Text("This will reset the AI prompt to the default. Your custom prompt will be lost.")
+            }
+        }
+    }
+
     // MARK: - Doctor Report Settings View
 
     struct DoctorReportSettingsView: View {
@@ -816,6 +865,19 @@ extension AIInsightsConfig {
 
         var body: some View {
             Form {
+                Section(
+                    header: Text("Time Period"),
+                    footer: Text("Select how much historical data to include in the report. More data provides better trend analysis.")
+                ) {
+                    Picker("Data Period", selection: $state.drTimePeriod) {
+                        ForEach(TimePeriod.allCases) { period in
+                            Text(period.displayName).tag(period)
+                        }
+                    }
+                    .onChange(of: state.drTimePeriod) { _, _ in state.saveDoctorReportSettings() }
+                }
+                .listRowBackground(Color.chart)
+
                 Section(
                     header: Text("Data to Include"),
                     footer: Text("Toggle which sections of your treatment data to include in the report sent to Claude.")
