@@ -68,8 +68,55 @@ extension AIInsightsConfig {
                                 }
                             }
                         }
+
+                        NavigationLink(destination: DoctorVisitReportView(state: state)) {
+                            HStack {
+                                Image(systemName: "stethoscope")
+                                    .foregroundColor(.purple)
+                                VStack(alignment: .leading) {
+                                    Text("Doctor Visit Report")
+                                        .font(.headline)
+                                    Text("Full export for your healthcare provider")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
                     }
                 )
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("Data Source"),
+                    footer: Text(
+                        state.isNightscoutAvailable
+                            ? "When enabled, AI analysis uses data from Nightscout for more comprehensive history."
+                            : "Configure Nightscout in Settings to enable cloud data sync."
+                    )
+                ) {
+                    Toggle(isOn: Binding(
+                        get: { state.useNightscout },
+                        set: { state.toggleNightscout($0) }
+                    )) {
+                        HStack {
+                            Image(systemName: "cloud.fill")
+                                .foregroundColor(state.isNightscoutAvailable ? .green : .gray)
+                            VStack(alignment: .leading) {
+                                Text("Use Nightscout Data")
+                                if state.isNightscoutAvailable {
+                                    Text("Connected - up to 90 days of history")
+                                        .font(.caption)
+                                        .foregroundColor(.green)
+                                } else {
+                                    Text("Not configured")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                    }
+                    .disabled(!state.isNightscoutAvailable)
+                }
                 .listRowBackground(Color.chart)
 
                 Section(
@@ -124,6 +171,12 @@ extension AIInsightsConfig {
                                 .multilineTextAlignment(.center)
                                 .foregroundColor(.secondary)
                                 .padding(.horizontal)
+
+                            if state.useNightscout && state.isNightscoutAvailable {
+                                Label("Using Nightscout data", systemImage: "cloud.fill")
+                                    .font(.caption)
+                                    .foregroundColor(.green)
+                            }
 
                             Button(action: {
                                 Task {
@@ -251,7 +304,10 @@ extension AIInsightsConfig {
                             Text("Example questions:")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            ForEach(["Why am I high in the morning?", "Are my carb ratios working?", "When do I tend to go low?"], id: \.self) { example in
+                            ForEach(
+                                ["Why am I high in the morning?", "Are my carb ratios working?", "When do I tend to go low?"],
+                                id: \.self
+                            ) { example in
                                 Button(action: {
                                     state.currentMessage = example
                                 }) {
@@ -392,10 +448,12 @@ extension AIInsightsConfig {
                                 .font(.title2)
                                 .fontWeight(.bold)
 
-                            Text("Generate a comprehensive analysis of your last 7 days. Includes statistics, patterns, and recommendations to discuss with your healthcare provider.")
-                                .multilineTextAlignment(.center)
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal)
+                            Text(
+                                "Generate a comprehensive analysis of your last 7 days. Includes statistics, patterns, and recommendations to discuss with your healthcare provider."
+                            )
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal)
 
                             Button(action: {
                                 Task {
@@ -517,6 +575,322 @@ extension AIInsightsConfig {
         }
     }
 
+    // MARK: - Doctor Visit Report View
+
+    struct DoctorVisitReportView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+        @State private var showShareSheet = false
+        @State private var showPDFShare = false
+
+        var body: some View {
+            ScrollView {
+                VStack(spacing: 20) {
+                    if state.doctorVisitReport.isEmpty && !state.isGeneratingDoctorReport {
+                        // Initial state
+                        VStack(spacing: 16) {
+                            Image(systemName: "stethoscope")
+                                .font(.system(size: 50))
+                                .foregroundColor(.purple)
+
+                            Text("Doctor Visit Report")
+                                .font(.title2)
+                                .fontWeight(.bold)
+
+                            Text(
+                                "Generate a comprehensive report for your healthcare provider. Includes all treatment settings, multi-timeframe statistics, and AI-powered pattern analysis."
+                            )
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal)
+
+                            // Data source info
+                            VStack(spacing: 8) {
+                                if state.useNightscout && state.isNightscoutAvailable {
+                                    Label("Will use up to 90 days of Nightscout data", systemImage: "cloud.fill")
+                                        .font(.caption)
+                                        .foregroundColor(.green)
+                                } else {
+                                    Label("Will use 7 days of local app data", systemImage: "iphone")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .padding(.vertical, 8)
+
+                            // What's included
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Report includes:")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.secondary)
+
+                                Group {
+                                    Label("All treatment settings (basals, ratios, ISF, targets)", systemImage: "gearshape.fill")
+                                    Label("Multi-timeframe stats (1, 3, 7, 14, 30, 90 days)", systemImage: "chart.bar.fill")
+                                    Label("Time in range breakdown", systemImage: "target")
+                                    Label("AI pattern analysis & recommendations", systemImage: "brain.head.profile")
+                                    Label("Discussion points for your provider", systemImage: "text.bubble.fill")
+                                }
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            }
+                            .padding()
+                            .background(Color.chart.opacity(0.5))
+                            .cornerRadius(12)
+                            .padding(.horizontal)
+
+                            Button(action: {
+                                Task {
+                                    await state.generateDoctorVisitReport()
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "doc.badge.gearshape")
+                                    Text("Generate Doctor Report")
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(state.isAPIKeyConfigured ? Color.purple : Color.gray)
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                            }
+                            .disabled(!state.isAPIKeyConfigured)
+                            .padding(.horizontal)
+
+                            if !state.isAPIKeyConfigured {
+                                Text("Please configure your API key first")
+                                    .font(.caption)
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                        .padding(.top, 20)
+                    }
+
+                    if state.isGeneratingDoctorReport {
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                            Text("Generating your comprehensive report...")
+                                .foregroundColor(.secondary)
+                            Text("Fetching historical data and analyzing patterns...")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text("This may take a minute")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.top, 60)
+                    }
+
+                    if let error = state.analysisError, state.doctorVisitReport.isEmpty {
+                        VStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 40))
+                                .foregroundColor(.red)
+                            Text(error)
+                                .foregroundColor(.red)
+                                .multilineTextAlignment(.center)
+
+                            Button("Try Again") {
+                                Task {
+                                    await state.generateDoctorVisitReport()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                        .padding()
+                    }
+
+                    if !state.doctorVisitReport.isEmpty {
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                Text("Report Generated")
+                                    .font(.headline)
+                                Spacer()
+                            }
+
+                            // Data source badge
+                            HStack {
+                                if state.useNightscout && state.isNightscoutAvailable {
+                                    Label("Nightscout Data", systemImage: "cloud.fill")
+                                        .font(.caption)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.green.opacity(0.2))
+                                        .foregroundColor(.green)
+                                        .cornerRadius(8)
+                                } else {
+                                    Label("Local Data", systemImage: "iphone")
+                                        .font(.caption)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.gray.opacity(0.2))
+                                        .foregroundColor(.secondary)
+                                        .cornerRadius(8)
+                                }
+                            }
+
+                            Text(state.doctorVisitReport)
+                                .font(.body)
+                                .padding()
+                                .background(Color.chart)
+                                .cornerRadius(12)
+
+                            // Share options
+                            VStack(spacing: 12) {
+                                Button(action: {
+                                    showShareSheet = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "doc.text")
+                                        Text("Share as Text")
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(.bordered)
+
+                                if state.doctorReportPDFData != nil {
+                                    Button(action: {
+                                        showPDFShare = true
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "doc.richtext")
+                                            Text("Share as PDF")
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    .tint(.purple)
+                                }
+                            }
+
+                            Button(action: {
+                                Task {
+                                    await state.generateDoctorVisitReport()
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.clockwise")
+                                    Text("Regenerate Report")
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                        .padding()
+                    }
+
+                    Spacer()
+                }
+            }
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Doctor Visit Report")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink(destination: DoctorReportSettingsView(state: state)) {
+                        Image(systemName: "gearshape")
+                    }
+                }
+            }
+            .sheet(isPresented: $showShareSheet) {
+                AIInsightsShareSheet(activityItems: [state.getShareableDoctorReport()])
+            }
+            .sheet(isPresented: $showPDFShare) {
+                if let pdfData = state.doctorReportPDFData {
+                    AIInsightsShareSheet(activityItems: [pdfData])
+                }
+            }
+        }
+    }
+
+    // MARK: - Doctor Report Settings View
+
+    struct DoctorReportSettingsView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+        @State private var showResetPromptAlert = false
+
+        var body: some View {
+            Form {
+                Section(
+                    header: Text("Data to Include"),
+                    footer: Text("Toggle which sections of your treatment data to include in the report sent to Claude.")
+                ) {
+                    Toggle("Insulin Settings (DIA, Max IOB, Max Bolus)", isOn: $state.drShowInsulinSettings)
+                        .onChange(of: state.drShowInsulinSettings) { _, _ in state.saveDoctorReportSettings() }
+
+                    Toggle("Carb Ratios", isOn: $state.drShowCarbRatios)
+                        .onChange(of: state.drShowCarbRatios) { _, _ in state.saveDoctorReportSettings() }
+
+                    Toggle("Insulin Sensitivity Factors (ISF)", isOn: $state.drShowISF)
+                        .onChange(of: state.drShowISF) { _, _ in state.saveDoctorReportSettings() }
+
+                    Toggle("Basal Rates", isOn: $state.drShowBasalRates)
+                        .onChange(of: state.drShowBasalRates) { _, _ in state.saveDoctorReportSettings() }
+
+                    Toggle("Target Glucose Ranges", isOn: $state.drShowTargets)
+                        .onChange(of: state.drShowTargets) { _, _ in state.saveDoctorReportSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("Statistics & History"),
+                    footer: Text("Include glucose statistics and detailed treatment history.")
+                ) {
+                    Toggle("Multi-Timeframe Statistics", isOn: $state.drShowStatistics)
+                        .onChange(of: state.drShowStatistics) { _, _ in state.saveDoctorReportSettings() }
+
+                    Toggle("Loop Data (BG, IOB, COB, Temp Basals)", isOn: $state.drShowLoopData)
+                        .onChange(of: state.drShowLoopData) { _, _ in state.saveDoctorReportSettings() }
+
+                    Toggle("Carb Entries", isOn: $state.drShowCarbEntries)
+                        .onChange(of: state.drShowCarbEntries) { _, _ in state.saveDoctorReportSettings() }
+
+                    Toggle("Bolus History", isOn: $state.drShowBolusHistory)
+                        .onChange(of: state.drShowBolusHistory) { _, _ in state.saveDoctorReportSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("AI Prompt"),
+                    footer: Text("Customize the instructions sent to Claude for analyzing your data. This tells Claude what kind of report to generate.")
+                ) {
+                    TextEditor(text: $state.drCustomPrompt)
+                        .frame(minHeight: 300)
+                        .font(.system(.body, design: .monospaced))
+                        .onChange(of: state.drCustomPrompt) { _, _ in state.saveDoctorReportSettings() }
+
+                    Button(action: {
+                        showResetPromptAlert = true
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Reset to Default Prompt")
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+                .listRowBackground(Color.chart)
+            }
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Report Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .alert("Reset Prompt?", isPresented: $showResetPromptAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Reset", role: .destructive) {
+                    state.resetDoctorReportPrompt()
+                }
+            } message: {
+                Text("This will reset the AI prompt to the default. Your custom prompt will be lost.")
+            }
+        }
+    }
+
     // MARK: - API Key Settings View
 
     struct APIKeySettingsView: View {
@@ -529,7 +903,9 @@ extension AIInsightsConfig {
             Form {
                 Section(
                     header: Text("Claude API Key"),
-                    footer: Text("Get your API key from console.anthropic.com. Your key is stored securely in the iOS Keychain and never sent anywhere except to Claude's API.")
+                    footer: Text(
+                        "Get your API key from console.anthropic.com. Your key is stored securely in the iOS Keychain and never sent anywhere except to Claude's API."
+                    )
                 ) {
                     HStack {
                         if state.isAPIKeyVisible {
@@ -620,6 +996,7 @@ extension AIInsightsConfig {
             }
         }
     }
+
     // MARK: - Share Sheet for AI Insights
 
     struct AIInsightsShareSheet: UIViewControllerRepresentable {

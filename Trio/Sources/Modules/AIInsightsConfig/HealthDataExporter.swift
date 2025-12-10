@@ -9,6 +9,8 @@ final class HealthDataExporter {
         self.context = context
     }
 
+    // MARK: - Data Structures
+
     struct ExportedData {
         let glucoseReadings: [GlucoseReading]
         let carbEntries: [CarbEntry]
@@ -16,6 +18,7 @@ final class HealthDataExporter {
         let loopStates: [LoopState]
         let settings: SettingsSummary
         let statistics: Statistics
+        let multiTimeframeStats: MultiTimeframeStatistics?
 
         struct GlucoseReading {
             let date: Date
@@ -68,19 +71,50 @@ final class HealthDataExporter {
 
         struct Statistics {
             let averageGlucose: Int
+            let standardDeviation: Double
+            let coefficientOfVariation: Double
+            let gmi: Double
             let minGlucose: Int
             let maxGlucose: Int
             let timeInRange: Double
             let timeBelowRange: Double
             let timeAboveRange: Double
+            let timeVeryLow: Double
+            let timeVeryHigh: Double
             let totalCarbs: Double
             let totalBolus: Decimal
             let totalBasal: Decimal
             let readingCount: Int
+            let daysOfData: Int
+        }
+
+        struct MultiTimeframeStatistics {
+            let day1: TimeframeStat?
+            let day3: TimeframeStat?
+            let day7: TimeframeStat?
+            let day14: TimeframeStat?
+            let day30: TimeframeStat?
+            let day90: TimeframeStat?
+
+            struct TimeframeStat {
+                let days: Int
+                let averageGlucose: Int
+                let standardDeviation: Double
+                let coefficientOfVariation: Double
+                let gmi: Double
+                let timeInRange: Double
+                let timeBelowRange: Double
+                let timeAboveRange: Double
+                let timeVeryLow: Double
+                let timeVeryHigh: Double
+                let readingCount: Int
+            }
         }
     }
 
-    /// Export the last 7 days of data
+    // MARK: - Export Methods
+
+    /// Export the last 7 days of data with full detail
     func exportLast7Days(
         units: String,
         targetLow: Int,
@@ -114,7 +148,8 @@ final class HealthDataExporter {
             boluses: bolusEvents,
             loopStates: loopStates,
             lowThreshold: targetLow,
-            highThreshold: targetHigh
+            highThreshold: targetHigh,
+            daysOfData: 7
         )
 
         let settings = ExportedData.SettingsSummary(
@@ -136,9 +171,194 @@ final class HealthDataExporter {
             bolusEvents: bolusEvents,
             loopStates: loopStates,
             settings: settings,
-            statistics: statistics
+            statistics: statistics,
+            multiTimeframeStats: nil
         )
     }
+
+    /// Export comprehensive data with multi-timeframe statistics for Doctor Visit
+    func exportForDoctorVisit(
+        units: String,
+        targetLow: Int,
+        targetHigh: Int,
+        maxIOB: Decimal,
+        maxBolus: Decimal,
+        dia: Decimal,
+        carbRatioSchedule: [(time: String, ratio: Decimal)],
+        isfSchedule: [(time: String, sensitivity: Decimal)],
+        basalSchedule: [(time: String, rate: Decimal)],
+        targetSchedule: [(time: String, low: Decimal, high: Decimal)],
+        nightscoutData: NightscoutDataFetcher.FetchedData?
+    ) async throws -> ExportedData {
+        // If we have Nightscout data, use it for longer historical analysis
+        // Otherwise fall back to local Core Data
+
+        var allGlucose: [ExportedData.GlucoseReading]
+        var multiStats: ExportedData.MultiTimeframeStatistics?
+
+        if let nsData = nightscoutData {
+            // Convert Nightscout data to our format
+            allGlucose = nsData.glucoseReadings.map { reading in
+                ExportedData.GlucoseReading(
+                    date: reading.date,
+                    value: reading.value,
+                    direction: reading.direction,
+                    isManual: false
+                )
+            }
+
+            // Calculate multi-timeframe stats from Nightscout data
+            multiStats = calculateMultiTimeframeStats(
+                glucose: allGlucose,
+                lowThreshold: targetLow,
+                highThreshold: targetHigh
+            )
+        } else {
+            // Use local data - fetch as much as we have
+            let ninetyDaysAgo = Calendar.current.date(byAdding: .day, value: -90, to: Date())!
+            allGlucose = try await fetchGlucoseReadings(since: ninetyDaysAgo)
+
+            multiStats = calculateMultiTimeframeStats(
+                glucose: allGlucose,
+                lowThreshold: targetLow,
+                highThreshold: targetHigh
+            )
+        }
+
+        // Get 7 days of detailed data
+        let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
+        let recentGlucose = allGlucose.filter { $0.date >= sevenDaysAgo }
+
+        let carbEntries = try await fetchCarbEntries(since: sevenDaysAgo)
+        let bolusEvents = try await fetchBolusEvents(since: sevenDaysAgo)
+        let loopStates = try await fetchLoopStates(since: sevenDaysAgo)
+
+        let statistics = calculateStatistics(
+            glucose: recentGlucose,
+            carbs: carbEntries,
+            boluses: bolusEvents,
+            loopStates: loopStates,
+            lowThreshold: targetLow,
+            highThreshold: targetHigh,
+            daysOfData: 7
+        )
+
+        let settings = ExportedData.SettingsSummary(
+            units: units,
+            targetLow: targetLow,
+            targetHigh: targetHigh,
+            maxIOB: maxIOB,
+            maxBolus: maxBolus,
+            dia: dia,
+            carbRatioSchedule: carbRatioSchedule,
+            isfSchedule: isfSchedule,
+            basalSchedule: basalSchedule,
+            targetSchedule: targetSchedule
+        )
+
+        return ExportedData(
+            glucoseReadings: recentGlucose,
+            carbEntries: carbEntries,
+            bolusEvents: bolusEvents,
+            loopStates: loopStates,
+            settings: settings,
+            statistics: statistics,
+            multiTimeframeStats: multiStats
+        )
+    }
+
+    /// Export with Nightscout data for full 7-day detail
+    func exportWithNightscout(
+        nightscoutData: NightscoutDataFetcher.FetchedData,
+        units: String,
+        targetLow: Int,
+        targetHigh: Int,
+        maxIOB: Decimal,
+        maxBolus: Decimal,
+        dia: Decimal,
+        carbRatioSchedule: [(time: String, ratio: Decimal)],
+        isfSchedule: [(time: String, sensitivity: Decimal)],
+        basalSchedule: [(time: String, rate: Decimal)],
+        targetSchedule: [(time: String, low: Decimal, high: Decimal)]
+    ) async throws -> ExportedData {
+        let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
+
+        // Convert Nightscout glucose to our format
+        let glucoseReadings = nightscoutData.glucoseReadings
+            .filter { $0.date >= sevenDaysAgo }
+            .map { reading in
+                ExportedData.GlucoseReading(
+                    date: reading.date,
+                    value: reading.value,
+                    direction: reading.direction,
+                    isManual: false
+                )
+            }
+
+        // Convert treatments to carbs and boluses
+        var carbEntries: [ExportedData.CarbEntry] = []
+        var bolusEvents: [ExportedData.BolusEvent] = []
+
+        for treatment in nightscoutData.treatments.filter({ $0.date >= sevenDaysAgo }) {
+            switch treatment.type {
+            case .carbs:
+                carbEntries.append(ExportedData.CarbEntry(
+                    date: treatment.date,
+                    carbs: treatment.amount,
+                    fat: 0,
+                    protein: 0,
+                    note: treatment.notes
+                ))
+            case .bolus, .correction:
+                bolusEvents.append(ExportedData.BolusEvent(
+                    date: treatment.date,
+                    amount: Decimal(treatment.amount),
+                    isSMB: false,
+                    isExternal: false
+                ))
+            default:
+                break
+            }
+        }
+
+        // Still fetch loop states from local Core Data (Nightscout doesn't have this detail)
+        let loopStates = try await fetchLoopStates(since: sevenDaysAgo)
+
+        let statistics = calculateStatistics(
+            glucose: glucoseReadings,
+            carbs: carbEntries,
+            boluses: bolusEvents,
+            loopStates: loopStates,
+            lowThreshold: targetLow,
+            highThreshold: targetHigh,
+            daysOfData: 7
+        )
+
+        let settings = ExportedData.SettingsSummary(
+            units: units,
+            targetLow: targetLow,
+            targetHigh: targetHigh,
+            maxIOB: maxIOB,
+            maxBolus: maxBolus,
+            dia: dia,
+            carbRatioSchedule: carbRatioSchedule,
+            isfSchedule: isfSchedule,
+            basalSchedule: basalSchedule,
+            targetSchedule: targetSchedule
+        )
+
+        return ExportedData(
+            glucoseReadings: glucoseReadings,
+            carbEntries: carbEntries,
+            bolusEvents: bolusEvents,
+            loopStates: loopStates,
+            settings: settings,
+            statistics: statistics,
+            multiTimeframeStats: nil
+        )
+    }
+
+    // MARK: - Private Fetch Methods
 
     private func fetchGlucoseReadings(since date: Date) async throws -> [ExportedData.GlucoseReading] {
         try await context.perform {
@@ -257,13 +477,16 @@ final class HealthDataExporter {
         }
     }
 
+    // MARK: - Statistics Calculation
+
     private func calculateStatistics(
         glucose: [ExportedData.GlucoseReading],
         carbs: [ExportedData.CarbEntry],
         boluses: [ExportedData.BolusEvent],
         loopStates: [ExportedData.LoopState],
         lowThreshold: Int,
-        highThreshold: Int
+        highThreshold: Int,
+        daysOfData: Int
     ) -> ExportedData.Statistics {
         let glucoseValues = glucose.map(\.value)
 
@@ -271,14 +494,28 @@ final class HealthDataExporter {
         let minVal = glucoseValues.min() ?? 0
         let maxVal = glucoseValues.max() ?? 0
 
+        // Standard deviation
+        let sd = calculateStandardDeviation(glucoseValues)
+
+        // Coefficient of variation (SD / Mean * 100)
+        let cv = average > 0 ? (sd / Double(average)) * 100 : 0
+
+        // GMI (Glucose Management Indicator) = 3.31 + 0.02392 * mean glucose (mg/dL)
+        let gmi = 3.31 + 0.02392 * Double(average)
+
+        // Time in ranges
+        let veryLow = glucoseValues.filter { $0 < 54 }.count
+        let low = glucoseValues.filter { $0 >= 54 && $0 < lowThreshold }.count
         let inRange = glucoseValues.filter { $0 >= lowThreshold && $0 <= highThreshold }.count
-        let belowRange = glucoseValues.filter { $0 < lowThreshold }.count
-        let aboveRange = glucoseValues.filter { $0 > highThreshold }.count
+        let high = glucoseValues.filter { $0 > highThreshold && $0 <= 250 }.count
+        let veryHigh = glucoseValues.filter { $0 > 250 }.count
 
         let total = Double(glucoseValues.count)
         let tir = total > 0 ? Double(inRange) / total * 100 : 0
-        let tbr = total > 0 ? Double(belowRange) / total * 100 : 0
-        let tar = total > 0 ? Double(aboveRange) / total * 100 : 0
+        let tbr = total > 0 ? Double(low + veryLow) / total * 100 : 0
+        let tar = total > 0 ? Double(high + veryHigh) / total * 100 : 0
+        let tvl = total > 0 ? Double(veryLow) / total * 100 : 0
+        let tvh = total > 0 ? Double(veryHigh) / total * 100 : 0
 
         let totalCarbs = carbs.reduce(0.0) { $0 + $1.carbs }
         let totalBolus = boluses.reduce(Decimal(0)) { $0 + $1.amount }
@@ -290,17 +527,84 @@ final class HealthDataExporter {
 
         return ExportedData.Statistics(
             averageGlucose: average,
+            standardDeviation: sd,
+            coefficientOfVariation: cv,
+            gmi: gmi,
             minGlucose: minVal,
             maxGlucose: maxVal,
             timeInRange: tir,
             timeBelowRange: tbr,
             timeAboveRange: tar,
+            timeVeryLow: tvl,
+            timeVeryHigh: tvh,
             totalCarbs: totalCarbs,
             totalBolus: totalBolus,
             totalBasal: totalBasal,
-            readingCount: glucoseValues.count
+            readingCount: glucoseValues.count,
+            daysOfData: daysOfData
         )
     }
+
+    private func calculateMultiTimeframeStats(
+        glucose: [ExportedData.GlucoseReading],
+        lowThreshold: Int,
+        highThreshold: Int
+    ) -> ExportedData.MultiTimeframeStatistics {
+        let now = Date()
+
+        func statsFor(days: Int) -> ExportedData.MultiTimeframeStatistics.TimeframeStat? {
+            let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: now)!
+            let filtered = glucose.filter { $0.date >= cutoff }
+
+            guard !filtered.isEmpty else { return nil }
+
+            let values = filtered.map(\.value)
+            let average = values.reduce(0, +) / values.count
+            let sd = calculateStandardDeviation(values)
+            let cv = average > 0 ? (sd / Double(average)) * 100 : 0
+            let gmi = 3.31 + 0.02392 * Double(average)
+
+            let total = Double(values.count)
+            let veryLow = values.filter { $0 < 54 }.count
+            let low = values.filter { $0 >= 54 && $0 < lowThreshold }.count
+            let inRange = values.filter { $0 >= lowThreshold && $0 <= highThreshold }.count
+            let high = values.filter { $0 > highThreshold && $0 <= 250 }.count
+            let veryHigh = values.filter { $0 > 250 }.count
+
+            return ExportedData.MultiTimeframeStatistics.TimeframeStat(
+                days: days,
+                averageGlucose: average,
+                standardDeviation: sd,
+                coefficientOfVariation: cv,
+                gmi: gmi,
+                timeInRange: Double(inRange) / total * 100,
+                timeBelowRange: Double(low + veryLow) / total * 100,
+                timeAboveRange: Double(high + veryHigh) / total * 100,
+                timeVeryLow: Double(veryLow) / total * 100,
+                timeVeryHigh: Double(veryHigh) / total * 100,
+                readingCount: values.count
+            )
+        }
+
+        return ExportedData.MultiTimeframeStatistics(
+            day1: statsFor(days: 1),
+            day3: statsFor(days: 3),
+            day7: statsFor(days: 7),
+            day14: statsFor(days: 14),
+            day30: statsFor(days: 30),
+            day90: statsFor(days: 90)
+        )
+    }
+
+    private func calculateStandardDeviation(_ values: [Int]) -> Double {
+        guard values.count > 1 else { return 0 }
+        let mean = Double(values.reduce(0, +)) / Double(values.count)
+        let squaredDiffs = values.map { pow(Double($0) - mean, 2) }
+        let variance = squaredDiffs.reduce(0, +) / Double(values.count - 1)
+        return sqrt(variance)
+    }
+
+    // MARK: - Prompt Formatting
 
     /// Format data as a prompt for Claude
     func formatForPrompt(_ data: ExportedData, analysisType: AnalysisType) -> String {
@@ -335,10 +639,13 @@ final class HealthDataExporter {
 
         📊 STATISTICS (Last 7 Days)
         • Average Glucose: \(data.statistics.averageGlucose) \(data.settings.units)
+        • Standard Deviation: \(String(format: "%.1f", data.statistics.standardDeviation)) \(data.settings.units)
+        • CV (Coefficient of Variation): \(String(format: "%.1f", data.statistics.coefficientOfVariation))%
+        • GMI (Glucose Management Indicator): \(String(format: "%.1f", data.statistics.gmi))%
         • Range: \(data.statistics.minGlucose) - \(data.statistics.maxGlucose) \(data.settings.units)
         • Time in Range (\(data.settings.targetLow)-\(data.settings.targetHigh)): \(String(format: "%.1f", data.statistics.timeInRange))%
-        • Time Below Range: \(String(format: "%.1f", data.statistics.timeBelowRange))%
-        • Time Above Range: \(String(format: "%.1f", data.statistics.timeAboveRange))%
+        • Time Below Range: \(String(format: "%.1f", data.statistics.timeBelowRange))% (Very Low <54: \(String(format: "%.1f", data.statistics.timeVeryLow))%)
+        • Time Above Range: \(String(format: "%.1f", data.statistics.timeAboveRange))% (Very High >250: \(String(format: "%.1f", data.statistics.timeVeryHigh))%)
         • Total Carbs: \(String(format: "%.0f", data.statistics.totalCarbs))g
         • Total Bolus Insulin: \(data.statistics.totalBolus) U
         • Total Basal Insulin: \(String(format: "%.1f", NSDecimalNumber(decimal: data.statistics.totalBasal).doubleValue)) U
@@ -416,9 +723,264 @@ final class HealthDataExporter {
 
             Based on this data, please answer my question.
             """
+
+        case .doctorVisit(let settings):
+            prompt = formatDoctorVisitPrompt(data, timeFormatter: timeFormatter, settings: settings)
         }
 
         return prompt
+    }
+
+    private func formatDoctorVisitPrompt(
+        _ data: ExportedData,
+        timeFormatter: DateFormatter,
+        settings: DoctorReportSettings
+    ) -> String {
+        var prompt = """
+        # COMPREHENSIVE DIABETES DATA EXPORT FOR HEALTHCARE PROVIDER REVIEW
+
+        Generated: \(DateFormatter.localizedString(from: Date(), dateStyle: .full, timeStyle: .short))
+
+        ---
+
+        """
+
+        // MARK: - Treatment Settings Section
+        var hasSettingsSection = false
+
+        if settings.showInsulinSettings || settings.showCarbRatios || settings.showISF ||
+           settings.showBasalRates || settings.showTargets {
+            prompt += "## ⚙️ CURRENT TREATMENT SETTINGS\n\n"
+            hasSettingsSection = true
+        }
+
+        if settings.showInsulinSettings {
+            prompt += """
+            ### Insulin Settings
+            • Insulin Duration of Action (DIA): \(data.settings.dia) hours
+            • Maximum IOB: \(data.settings.maxIOB) U
+            • Maximum Bolus: \(data.settings.maxBolus) U
+
+            """
+        }
+
+        if settings.showCarbRatios {
+            prompt += """
+            ### Carb Ratios (1 unit insulin per X grams carbs)
+            \(formatScheduleVertical(data.settings.carbRatioSchedule.map { "  \($0.time): 1:\($0.ratio)" }))
+
+            """
+        }
+
+        if settings.showISF {
+            prompt += """
+            ### Insulin Sensitivity Factors (1 unit drops BG by X \(data.settings.units))
+            \(formatScheduleVertical(data.settings.isfSchedule.map { "  \($0.time): \($0.sensitivity) \(data.settings.units)" }))
+
+            """
+        }
+
+        if settings.showBasalRates {
+            let totalDaily = data.settings.basalSchedule.reduce(0.0) { $0 + NSDecimalNumber(decimal: $1.rate).doubleValue }
+            prompt += """
+            ### Basal Rates
+            \(formatScheduleVertical(data.settings.basalSchedule.map { "  \($0.time): \($0.rate) U/hr" }))
+            • Total Daily Basal: \(String(format: "%.2f", totalDaily)) U (if constant)
+
+            """
+        }
+
+        if settings.showTargets {
+            prompt += """
+            ### Target Glucose Ranges
+            \(formatScheduleVertical(data.settings.targetSchedule.map { "  \($0.time): \($0.low)-\($0.high) \(data.settings.units)" }))
+
+            """
+        }
+
+        if hasSettingsSection {
+            prompt += "---\n\n"
+        }
+
+        // MARK: - Statistics Section
+        if settings.showStatistics {
+            prompt += "## 📊 MULTI-TIMEFRAME STATISTICS\n\n"
+
+            if let multi = data.multiTimeframeStats {
+                prompt += formatMultiTimeframeTable(multi, units: data.settings.units)
+            } else {
+                prompt += """
+                | Metric | 7 Days |
+                |--------|--------|
+                | Avg Glucose | \(data.statistics.averageGlucose) \(data.settings.units) |
+                | Std Dev | \(String(format: "%.1f", data.statistics.standardDeviation)) |
+                | CV | \(String(format: "%.1f", data.statistics.coefficientOfVariation))% |
+                | GMI | \(String(format: "%.1f", data.statistics.gmi))% |
+                | Time in Range | \(String(format: "%.1f", data.statistics.timeInRange))% |
+                | Time Below | \(String(format: "%.1f", data.statistics.timeBelowRange))% |
+                | Time Above | \(String(format: "%.1f", data.statistics.timeAboveRange))% |
+                | Readings | \(data.statistics.readingCount) |
+
+                """
+            }
+
+            prompt += "\n---\n\n"
+        }
+
+        // MARK: - Detailed Data Section
+        if settings.showLoopData || settings.showCarbEntries || settings.showBolusHistory {
+            prompt += "## 📈 DETAILED 7-DAY DATA\n\n"
+
+            if settings.showLoopData {
+                prompt += """
+                ### Recent Loop States (Every glucose reading with algorithm data)
+                Format: DateTime | BG | IOB | COB | TempBasal | SMB
+                \(formatLoopStatesCompact(data.loopStates, timeFormatter: timeFormatter, hours: 168, intervalMinutes: 5))
+
+                """
+            }
+
+            if settings.showCarbEntries {
+                prompt += """
+                ### Carb Entries
+                \(formatCarbEntries(data.carbEntries, dateFormatter: timeFormatter))
+
+                """
+            }
+
+            if settings.showBolusHistory {
+                prompt += """
+                ### Bolus History
+                \(formatBolusEvents(data.bolusEvents, dateFormatter: timeFormatter))
+
+                """
+            }
+
+            prompt += "---\n\n"
+        }
+
+        // MARK: - AI Analysis Request (Custom Prompt)
+        prompt += "## 🤖 AI ANALYSIS REQUEST\n\n"
+
+        if settings.customPrompt.isEmpty {
+            // Use default prompt if custom is empty
+            prompt += """
+            Please analyze this data and provide a comprehensive report for discussion with my healthcare provider. Include:
+
+            ### 📊 **Executive Summary**
+            - Overall diabetes management assessment
+            - Key metrics vs targets (TIR goal >70%, TBR <4%, CV <36%)
+
+            ### 📈 **Trend Analysis**
+            - Compare metrics across timeframes (improving, stable, or declining)
+            - Identify any concerning trends
+
+            ### 🕐 **Time-of-Day Patterns**
+            - Morning/dawn phenomenon analysis
+            - Post-meal patterns
+            - Overnight control
+            - Any consistent problem times
+
+            ### ⚙️ **Settings Recommendations**
+            - Specific basal rate adjustments (time and amount)
+            - Carb ratio changes needed
+            - ISF modifications
+            - Target range considerations
+
+            ### ⚠️ **Safety Concerns**
+            - Hypoglycemia patterns and prevention
+            - Severe hyperglycemia events
+            - Glycemic variability concerns
+
+            ### 💡 **Discussion Points for Provider**
+            - Priority items to address
+            - Questions to ask
+            - Suggested next steps
+
+            Format this professionally for sharing with an endocrinologist or diabetes care team.
+            """
+        } else {
+            prompt += settings.customPrompt
+        }
+
+        return prompt
+    }
+
+    private func formatMultiTimeframeTable(
+        _ stats: ExportedData.MultiTimeframeStatistics,
+        units: String
+    ) -> String {
+        var rows: [(String, ExportedData.MultiTimeframeStatistics.TimeframeStat)] = []
+        if let s = stats.day1 { rows.append(("1 Day", s)) }
+        if let s = stats.day3 { rows.append(("3 Days", s)) }
+        if let s = stats.day7 { rows.append(("7 Days", s)) }
+        if let s = stats.day14 { rows.append(("14 Days", s)) }
+        if let s = stats.day30 { rows.append(("30 Days", s)) }
+        if let s = stats.day90 { rows.append(("90 Days", s)) }
+
+        guard !rows.isEmpty else { return "No historical data available" }
+
+        // Build markdown table
+        var header = "| Metric |"
+        var divider = "|--------|"
+        for (label, _) in rows {
+            header += " \(label) |"
+            divider += "--------|"
+        }
+
+        var table = header + "\n" + divider + "\n"
+
+        // Average Glucose
+        table += "| Avg Glucose |"
+        for (_, s) in rows { table += " \(s.averageGlucose) |" }
+        table += "\n"
+
+        // Standard Deviation
+        table += "| Std Dev |"
+        for (_, s) in rows { table += " \(String(format: "%.1f", s.standardDeviation)) |" }
+        table += "\n"
+
+        // CV
+        table += "| CV% |"
+        for (_, s) in rows { table += " \(String(format: "%.1f", s.coefficientOfVariation))% |" }
+        table += "\n"
+
+        // GMI
+        table += "| GMI |"
+        for (_, s) in rows { table += " \(String(format: "%.1f", s.gmi))% |" }
+        table += "\n"
+
+        // Time in Range
+        table += "| TIR |"
+        for (_, s) in rows { table += " \(String(format: "%.1f", s.timeInRange))% |" }
+        table += "\n"
+
+        // Time Below Range
+        table += "| TBR |"
+        for (_, s) in rows { table += " \(String(format: "%.1f", s.timeBelowRange))% |" }
+        table += "\n"
+
+        // Time Above Range
+        table += "| TAR |"
+        for (_, s) in rows { table += " \(String(format: "%.1f", s.timeAboveRange))% |" }
+        table += "\n"
+
+        // Very Low
+        table += "| Very Low (<54) |"
+        for (_, s) in rows { table += " \(String(format: "%.1f", s.timeVeryLow))% |" }
+        table += "\n"
+
+        // Very High (>250)
+        table += "| Very High (>250) |"
+        for (_, s) in rows { table += " \(String(format: "%.1f", s.timeVeryHigh))% |" }
+        table += "\n"
+
+        // Reading Count
+        table += "| Readings |"
+        for (_, s) in rows { table += " \(s.readingCount) |" }
+        table += "\n"
+
+        return table
     }
 
     private func formatSchedule(_ entries: [String]) -> String {
@@ -426,6 +988,13 @@ final class HealthDataExporter {
             return "Not configured"
         }
         return entries.joined(separator: " | ")
+    }
+
+    private func formatScheduleVertical(_ entries: [String]) -> String {
+        if entries.isEmpty {
+            return "  Not configured"
+        }
+        return entries.joined(separator: "\n")
     }
 
     private func formatLoopStatesCompact(
@@ -462,37 +1031,13 @@ final class HealthDataExporter {
             let bg = String(format: "%.0f", NSDecimalNumber(decimal: state.glucose).doubleValue)
             let iob = String(format: "%.2f", NSDecimalNumber(decimal: state.iob).doubleValue)
             let tempBasal = String(format: "%.2f", NSDecimalNumber(decimal: state.tempBasalRate).doubleValue)
-            let smb = state.smbDelivered > 0 ? String(format: "%.2f", NSDecimalNumber(decimal: state.smbDelivered).doubleValue) : "-"
+            let smb = state.smbDelivered > 0 ? String(
+                format: "%.2f",
+                NSDecimalNumber(decimal: state.smbDelivered).doubleValue
+            ) : "-"
 
             return "\(timeFormatter.string(from: state.date)) | \(bg) | \(iob) | \(state.cob) | \(tempBasal) | \(smb)"
         }.joined(separator: "\n")
-    }
-
-    private func formatRecentGlucose(_ readings: [ExportedData.GlucoseReading], dateFormatter: DateFormatter) -> String {
-        let last24Hours = readings.filter {
-            $0.date > Calendar.current.date(byAdding: .hour, value: -24, to: Date())!
-        }
-
-        if last24Hours.isEmpty {
-            return "No readings in last 24 hours"
-        }
-
-        // Sample every 30 minutes to keep prompt size manageable
-        var sampled: [ExportedData.GlucoseReading] = []
-        var lastTime: Date?
-        for reading in last24Hours {
-            if let last = lastTime {
-                if reading.date.timeIntervalSince(last) >= 1800 { // 30 minutes
-                    sampled.append(reading)
-                    lastTime = reading.date
-                }
-            } else {
-                sampled.append(reading)
-                lastTime = reading.date
-            }
-        }
-
-        return sampled.map { "\(dateFormatter.string(from: $0.date)): \($0.value)" }.joined(separator: "\n")
     }
 
     private func formatCarbEntries(_ entries: [ExportedData.CarbEntry], dateFormatter: DateFormatter) -> String {
@@ -534,7 +1079,8 @@ final class HealthDataExporter {
         if !smbs.isEmpty {
             if !output.isEmpty { output += "\n\n" }
             let totalSMB = smbs.reduce(Decimal(0)) { $0 + $1.amount }
-            output += "SMBs: \(smbs.count) deliveries, \(String(format: "%.2f", NSDecimalNumber(decimal: totalSMB).doubleValue)) U total"
+            output +=
+                "SMBs: \(smbs.count) deliveries, \(String(format: "%.2f", NSDecimalNumber(decimal: totalSMB).doubleValue)) U total"
         }
 
         if !external.isEmpty {
@@ -552,5 +1098,19 @@ final class HealthDataExporter {
         case quick
         case weeklyReport
         case chat
+        case doctorVisit(settings: DoctorReportSettings)
+    }
+
+    struct DoctorReportSettings {
+        var showCarbRatios: Bool = true
+        var showISF: Bool = true
+        var showBasalRates: Bool = true
+        var showTargets: Bool = true
+        var showInsulinSettings: Bool = true
+        var showStatistics: Bool = true
+        var showLoopData: Bool = true
+        var showCarbEntries: Bool = true
+        var showBolusHistory: Bool = true
+        var customPrompt: String = ""
     }
 }
