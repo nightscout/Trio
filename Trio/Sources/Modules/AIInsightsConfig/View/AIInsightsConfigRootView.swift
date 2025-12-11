@@ -1029,11 +1029,26 @@ extension AIInsightsConfig {
         @Environment(AppState.self) var appState
         @State private var showResetPromptAlert = false
 
-        private var thresholdFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = state.units == .mmolL ? 1 : 0
-            return formatter
+        // Slider ranges based on units
+        private var highThresholdRange: ClosedRange<Double> {
+            state.units == .mmolL ? 8.0...16.0 : 150.0...300.0
+        }
+
+        private var lowThresholdRange: ClosedRange<Double> {
+            state.units == .mmolL ? 2.5...5.5 : 50.0...100.0
+        }
+
+        private var sliderStep: Double {
+            state.units == .mmolL ? 0.5 : 5.0
+        }
+
+        private func formatThreshold(_ value: Decimal) -> String {
+            let number = NSDecimalNumber(decimal: value).doubleValue
+            if state.units == .mmolL {
+                return String(format: "%.1f", number)
+            } else {
+                return String(format: "%.0f", number)
+            }
         }
 
         var body: some View {
@@ -1042,37 +1057,51 @@ extension AIInsightsConfig {
                     header: Text("Glucose Thresholds"),
                     footer: Text("Set the glucose levels that trigger the \"Why High\" or \"Why Low\" analysis banner on the home screen.")
                 ) {
-                    HStack {
-                        Text("High Threshold")
-                        Spacer()
-                        TextField(
-                            "180",
-                            value: $state.whlHighThreshold,
-                            formatter: thresholdFormatter
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("High Threshold")
+                            Spacer()
+                            Text("\(formatThreshold(state.whlHighThreshold)) \(state.units.rawValue)")
+                                .fontWeight(.medium)
+                                .foregroundColor(.orange)
+                        }
+                        Slider(
+                            value: Binding(
+                                get: { NSDecimalNumber(decimal: state.whlHighThreshold).doubleValue },
+                                set: { state.whlHighThreshold = Decimal($0) }
+                            ),
+                            in: highThresholdRange,
+                            step: sliderStep
                         )
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 80)
-                        .onChange(of: state.whlHighThreshold) { _, _ in state.saveWhyHighLowSettings() }
-                        Text(state.units.rawValue)
-                            .foregroundColor(.secondary)
+                        .tint(.orange)
+                        .onChange(of: state.whlHighThreshold) { _, _ in
+                            state.saveWhyHighLowSettings()
+                        }
                     }
+                    .padding(.vertical, 4)
 
-                    HStack {
-                        Text("Low Threshold")
-                        Spacer()
-                        TextField(
-                            "70",
-                            value: $state.whlLowThreshold,
-                            formatter: thresholdFormatter
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Low Threshold")
+                            Spacer()
+                            Text("\(formatThreshold(state.whlLowThreshold)) \(state.units.rawValue)")
+                                .fontWeight(.medium)
+                                .foregroundColor(.red)
+                        }
+                        Slider(
+                            value: Binding(
+                                get: { NSDecimalNumber(decimal: state.whlLowThreshold).doubleValue },
+                                set: { state.whlLowThreshold = Decimal($0) }
+                            ),
+                            in: lowThresholdRange,
+                            step: sliderStep
                         )
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 80)
-                        .onChange(of: state.whlLowThreshold) { _, _ in state.saveWhyHighLowSettings() }
-                        Text(state.units.rawValue)
-                            .foregroundColor(.secondary)
+                        .tint(.red)
+                        .onChange(of: state.whlLowThreshold) { _, _ in
+                            state.saveWhyHighLowSettings()
+                        }
                     }
+                    .padding(.vertical, 4)
                 }
                 .listRowBackground(Color.chart)
 
