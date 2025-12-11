@@ -157,13 +157,26 @@ final class ClaudeAPIService {
     - Consider standard portion sizes unless the user indicates otherwise
     - If you cannot identify a food clearly, ask for clarification or note the uncertainty
     - Always provide a single number for total carbs, not a range
+    - Do NOT list multiple possible values - pick the most likely one
 
-    FORMATTING REQUIREMENTS:
-    - List each food item clearly with its portion and carb estimate
-    - Format: "🍽️ Food item (portion): ~Xg"
-    - Provide a clear total at the end
-    - Include a confidence level (Low/Medium/High)
-    - Note any assumptions you're making
+    CRITICAL FORMATTING REQUIREMENTS:
+    1. List each distinct food item with its carb estimate
+       Format: "• Food item (portion): Xg"
+    2. At the very end, you MUST include this exact line with the final total:
+       TOTAL_CARBS: Xg
+       (Replace X with the single final number - this is what the app will use)
+    3. Include confidence level: "Confidence: Low/Medium/High"
+    4. Add any notes about assumptions
+
+    EXAMPLE OUTPUT:
+    • Banana (medium): 27g
+    • Apple slices (1/2 cup): 10g
+
+    TOTAL_CARBS: 37g
+
+    Confidence: High
+
+    Notes: Assumed medium-sized banana based on appearance.
     """
 
     func sendMessage(
