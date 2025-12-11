@@ -817,6 +817,186 @@ Be conservative when uncertain. Round to nearest 5g.
             whyHighLowPDFData = nil
         }
 
+        // MARK: - Photo Carb Estimation
+
+        @MainActor
+        func estimateCarbsFromPhoto() async {
+            guard isAPIKeyConfigured else {
+                carbEstimateError = "Please configure your Claude API key first."
+                return
+            }
+
+            guard let image = selectedFoodImage else {
+                carbEstimateError = "Please select or take a photo first."
+                return
+            }
+
+            isEstimatingCarbs = true
+            carbEstimateError = nil
+            carbEstimateResult = nil
+
+            do {
+                let result = try await claudeService.estimateCarbs(
+                    from: image,
+                    description: foodDescription.isEmpty ? nil : foodDescription,
+                    customPrompt: photoCustomPrompt,
+                    defaultPortion: photoDefaultPortion.displayName,
+                    apiKey: apiKey
+                )
+
+                // Parse the result to extract total carbs
+                let parsedResult = parseCarbEstimateResponse(result)
+                carbEstimateResult = parsedResult
+            } catch {
+                carbEstimateError = error.localizedDescription
+            }
+
+            isEstimatingCarbs = false
+        }
+
+        /// Parse the AI response to extract carb estimate details
+        private func parseCarbEstimateResponse(_ response: String) -> CarbEstimateResult {
+            var items: [CarbEstimateResult.CarbItem] = []
+            var totalCarbs: Decimal = 0
+            var confidence: CarbEstimateResult.ConfidenceLevel = .medium
+            var notes: String?
+
+            let lines = response.components(separatedBy: "\n")
+
+            for line in lines {
+                // Look for food items with carb estimates (e.g., "🍽️ Pasta (1 cup): ~35g" or "Pasta: ~35g")
+                if let match = extractCarbItem(from: line) {
+                    items.append(match)
+                }
+
+                // Look for total (e.g., "Total: ~55g" or "**Total Estimate: ~55g**")
+                let lowercaseLine = line.lowercased()
+                if lowercaseLine.contains("total") {
+                    if let carbValue = extractCarbValue(from: line) {
+                        totalCarbs = carbValue
+                    }
+                }
+
+                // Look for confidence level
+                if lowercaseLine.contains("confidence") {
+                    if lowercaseLine.contains("high") {
+                        confidence = .high
+                    } else if lowercaseLine.contains("low") {
+                        confidence = .low
+                    } else {
+                        confidence = .medium
+                    }
+                }
+
+                // Look for notes/assumptions
+                if lowercaseLine.contains("note") || lowercaseLine.contains("assumption") {
+                    if notes == nil {
+                        notes = line
+                    } else {
+                        notes! += "\n" + line
+                    }
+                }
+            }
+
+            // If we didn't find a total but have items, sum them up
+            if totalCarbs == 0 && !items.isEmpty {
+                totalCarbs = items.reduce(0) { $0 + $1.carbs }
+            }
+
+            return CarbEstimateResult(
+                items: items,
+                totalCarbs: totalCarbs,
+                confidence: confidence,
+                notes: notes,
+                rawResponse: response
+            )
+        }
+
+        /// Extract a carb item from a line like "🍽️ Pasta (1 cup): ~35g"
+        private func extractCarbItem(from line: String) -> CarbEstimateResult.CarbItem? {
+            // Skip lines that are headers or totals
+            let lowercaseLine = line.lowercased()
+            if lowercaseLine.contains("total") || lowercaseLine.contains("confidence") ||
+               lowercaseLine.contains("note") || lowercaseLine.contains("assumption") {
+                return nil
+            }
+
+            // Look for carb value patterns like "~35g", "35g", "35 g"
+            guard let carbValue = extractCarbValue(from: line), carbValue > 0 else {
+                return nil
+            }
+
+            // Extract the food name (everything before the carb value)
+            var foodName = line
+
+            // Remove common prefixes
+            let prefixes = ["🍽️", "•", "-", "*", "**"]
+            for prefix in prefixes {
+                foodName = foodName.trimmingCharacters(in: .whitespaces)
+                if foodName.hasPrefix(prefix) {
+                    foodName = String(foodName.dropFirst(prefix.count))
+                }
+            }
+
+            // Remove the carb value from the name
+            if let range = foodName.range(of: "~?\\d+\\s*g", options: .regularExpression) {
+                foodName = String(foodName[..<range.lowerBound])
+            }
+
+            // Clean up
+            foodName = foodName.trimmingCharacters(in: .whitespaces)
+            foodName = foodName.trimmingCharacters(in: CharacterSet(charactersIn: ":"))
+            foodName = foodName.trimmingCharacters(in: .whitespaces)
+
+            // Extract portion if present (in parentheses)
+            var portion = ""
+            if let openParen = foodName.firstIndex(of: "("),
+               let closeParen = foodName.firstIndex(of: ")") {
+                portion = String(foodName[foodName.index(after: openParen)..<closeParen])
+                foodName = String(foodName[..<openParen]).trimmingCharacters(in: .whitespaces)
+            }
+
+            guard !foodName.isEmpty else { return nil }
+
+            return CarbEstimateResult.CarbItem(
+                name: foodName,
+                portion: portion,
+                carbs: carbValue
+            )
+        }
+
+        /// Extract a carb value from a string like "~35g" or "35 g"
+        private func extractCarbValue(from string: String) -> Decimal? {
+            // Pattern to match carb values: "~35g", "35g", "35 g", "~35 g"
+            let pattern = "~?(\\d+)\\s*g"
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
+                return nil
+            }
+
+            let range = NSRange(string.startIndex..<string.endIndex, in: string)
+            guard let match = regex.firstMatch(in: string, options: [], range: range) else {
+                return nil
+            }
+
+            guard let valueRange = Range(match.range(at: 1), in: string) else {
+                return nil
+            }
+
+            let valueString = String(string[valueRange])
+            guard let intValue = Int(valueString) else {
+                return nil
+            }
+
+            return Decimal(intValue)
+        }
+
+        func clearCarbEstimate() {
+            carbEstimateResult = nil
+            carbEstimateError = nil
+            selectedFoodImage = nil
+            foodDescription = ""
+        }
+
         // MARK: - Weekly Report
 
         @MainActor
