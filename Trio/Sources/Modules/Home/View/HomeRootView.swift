@@ -1069,8 +1069,11 @@ extension Home {
                 configureView {
                     highlightButtons()
                 }
-                // Load AI Insights settings for Why High/Low banner (safe method without DI)
-                aiInsightsState.loadWhyHighLowSettingsOnly()
+                // Initialize AI Insights state with resolver for dependency injection
+                // This enables the Why High/Low banner and analysis features
+                if aiInsightsState.resolver == nil {
+                    aiInsightsState.resolver = resolver
+                }
             }
             .navigationTitle("Home")
             .navigationBarHidden(true)
