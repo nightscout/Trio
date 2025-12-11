@@ -832,13 +832,22 @@ Be conservative when uncertain. Round to nearest 5g.
 
         @MainActor
         func estimateCarbsFromPhoto() async {
-            guard isAPIKeyConfigured else {
+            // Use static check and get API key directly from keychain
+            guard Config.isAPIKeyConfigured else {
                 carbEstimateError = "Please configure your Claude API key first."
                 return
             }
 
             guard let image = selectedFoodImage else {
                 carbEstimateError = "Please select or take a photo first."
+                return
+            }
+
+            // Get API key directly from keychain
+            let keychain = BaseKeychain()
+            guard case let .success(storedKey) = keychain.getValue(String.self, forKey: Config.apiKeyKey),
+                  let currentApiKey = storedKey, !currentApiKey.isEmpty else {
+                carbEstimateError = "Could not retrieve API key."
                 return
             }
 
@@ -852,7 +861,7 @@ Be conservative when uncertain. Round to nearest 5g.
                     description: foodDescription.isEmpty ? nil : foodDescription,
                     customPrompt: photoCustomPrompt,
                     defaultPortion: photoDefaultPortion.displayName,
-                    apiKey: apiKey
+                    apiKey: currentApiKey
                 )
 
                 // Parse the result to extract total carbs

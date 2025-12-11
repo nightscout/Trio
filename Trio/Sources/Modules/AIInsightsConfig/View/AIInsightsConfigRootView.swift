@@ -1711,7 +1711,7 @@ extension AIInsightsConfig {
             }
             .buttonStyle(.borderedProminent)
             .tint(.mint)
-            .disabled(!state.isAPIKeyConfigured || state.isEstimatingCarbs)
+            .disabled(!AIInsightsConfig.Config.isAPIKeyConfigured || state.isEstimatingCarbs)
         }
 
         private var loadingView: some View {
@@ -1830,21 +1830,44 @@ extension AIInsightsConfig {
 
                 Divider()
 
-                // Accept button (if callback provided)
+                // Action buttons
                 if let onAccept = onAcceptCarbs {
+                    // From bolus calculator - button to use carbs
                     Button(action: {
                         onAccept(result.totalCarbs)
                         dismiss()
                     }) {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
-                            Text("Use \(NSDecimalNumber(decimal: result.totalCarbs).intValue)g")
+                            Text("Use \(NSDecimalNumber(decimal: result.totalCarbs).intValue)g in Calculator")
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.green)
+                } else {
+                    // Standalone mode - show carbs prominently with copy option
+                    VStack(spacing: 12) {
+                        Text("Estimated Carbs")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("\(NSDecimalNumber(decimal: result.totalCarbs).intValue)g")
+                            .font(.system(size: 48, weight: .bold))
+                            .foregroundColor(.mint)
+
+                        Button(action: {
+                            UIPasteboard.general.string = "\(NSDecimalNumber(decimal: result.totalCarbs).intValue)"
+                        }) {
+                            HStack {
+                                Image(systemName: "doc.on.doc")
+                                Text("Copy to Clipboard")
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.mint)
+                    }
+                    .padding(.vertical, 8)
                 }
 
                 // Show raw response option
