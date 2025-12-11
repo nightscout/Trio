@@ -10,12 +10,14 @@ final class SavedReportsManager {
         case quickAnalysis = "QuickAnalysis"
         case weeklyReport = "WeeklyReport"
         case doctorReport = "DoctorReport"
+        case claudeOTune = "ClaudeOTune"
 
         var displayName: String {
             switch self {
             case .quickAnalysis: return "Quick Analysis"
             case .weeklyReport: return "Weekly Report"
             case .doctorReport: return "Doctor Report"
+            case .claudeOTune: return "Claude-o-Tune"
             }
         }
 
@@ -24,6 +26,7 @@ final class SavedReportsManager {
             case .quickAnalysis: return "bolt.fill"
             case .weeklyReport: return "doc.text.fill"
             case .doctorReport: return "stethoscope"
+            case .claudeOTune: return "slider.horizontal.3"
             }
         }
 
@@ -32,6 +35,7 @@ final class SavedReportsManager {
             case .quickAnalysis: return "yellow"
             case .weeklyReport: return "green"
             case .doctorReport: return "purple"
+            case .claudeOTune: return "blue"
             }
         }
     }
