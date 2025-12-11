@@ -96,7 +96,7 @@ extension Home {
         /// Determines if the Why High/Low banner should be shown
         private var shouldShowWhyHighLowBanner: Bool {
             guard !isWhyHighLowBannerDismissed,
-                  aiInsightsState.isAPIKeyConfigured,
+                  AIInsightsConfig.Config.isAPIKeyConfigured,
                   let latestGlucose = state.latestTwoGlucoseValues.first
             else { return false }
 
