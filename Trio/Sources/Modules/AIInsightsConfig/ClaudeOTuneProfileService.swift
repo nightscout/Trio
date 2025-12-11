@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import LoopKit
 
 /// Service for applying Claude-o-Tune recommendations to the user's profile
 /// Handles backup, apply, and undo operations with safety checks
