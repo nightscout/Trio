@@ -2339,6 +2339,31 @@ extension AIInsightsConfig {
                     confidenceBadge(result.confidence)
                 }
 
+                // Success/Error messages
+                if let success = state.applySuccess {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        Text(success)
+                            .font(.subheadline)
+                    }
+                    .padding()
+                    .background(Color.green.opacity(0.1))
+                    .cornerRadius(8)
+                }
+
+                if let error = state.applyError {
+                    HStack {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .foregroundColor(.red)
+                        Text(error)
+                            .font(.subheadline)
+                    }
+                    .padding()
+                    .background(Color.red.opacity(0.1))
+                    .cornerRadius(8)
+                }
+
                 // Summary card
                 summaryCard(result)
 
@@ -2350,10 +2375,8 @@ extension AIInsightsConfig {
                     patternsCard(result.patternsDetected)
                 }
 
-                // Recommendations
-                if !result.adjustments.isEmpty {
-                    recommendationsCard(result.adjustments)
-                }
+                // Selectable Profile Recommendations
+                selectableRecommendationsSection(result)
 
                 // Concerns
                 if !result.concerns.isEmpty {
@@ -2363,8 +2386,16 @@ extension AIInsightsConfig {
                 // Explanation
                 explanationCard(result.explanation)
 
+                // Profile Backups (undo)
+                if !state.cotProfileBackups.isEmpty {
+                    backupsCard
+                }
+
                 // Action buttons
                 actionButtons
+            }
+            .onAppear {
+                state.loadProfileBackups()
             }
         }
 
@@ -2553,21 +2584,348 @@ extension AIInsightsConfig {
             }
         }
 
+        // MARK: - Selectable Recommendations
+
+        private func selectableRecommendationsSection(_ result: ClaudeOTuneRecommendation) -> some View {
+            VStack(alignment: .leading, spacing: 16) {
+                // Header with select all options
+                HStack {
+                    Text("Profile Recommendations")
+                        .font(.headline)
+                    Spacer()
+                    if state.hasSelectedChanges {
+                        Text("\(state.selectedChangesCount) selected")
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                    }
+                }
+
+                // Basal Rate Changes
+                let basalChanges = result.recommendedProfile.basalRates.filter { $0.change != 0 }
+                if !basalChanges.isEmpty {
+                    selectableBasalCard(result.recommendedProfile.basalRates)
+                }
+
+                // ISF Changes
+                let isfChanges = result.recommendedProfile.isfValues.filter { $0.change != 0 }
+                if !isfChanges.isEmpty {
+                    selectableISFCard(result.recommendedProfile.isfValues)
+                }
+
+                // CR Changes
+                let crChanges = result.recommendedProfile.crValues.filter { $0.change != 0 }
+                if !crChanges.isEmpty {
+                    selectableCRCard(result.recommendedProfile.crValues)
+                }
+
+                // Apply section
+                if state.hasSelectedChanges {
+                    applySection
+                }
+            }
+        }
+
+        private func selectableBasalCard(_ rates: [ClaudeOTuneRecommendation.BasalRateRecommendation]) -> some View {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "chart.bar.fill")
+                        .foregroundColor(.blue)
+                    Text("Basal Rates")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    Spacer()
+                    Button(action: {
+                        if state.cotSelectedBasalChanges.count == rates.filter({ $0.change != 0 }).count {
+                            state.cotSelectedBasalChanges.removeAll()
+                        } else {
+                            state.selectAllBasalChanges()
+                        }
+                    }) {
+                        Text(state.cotSelectedBasalChanges.count == rates.filter({ $0.change != 0 }).count ? "Deselect All" : "Select All")
+                            .font(.caption)
+                    }
+                }
+
+                ForEach(Array(rates.enumerated()), id: \.element.id) { index, rate in
+                    if rate.change != 0 {
+                        selectableChangeRow(
+                            isSelected: state.cotSelectedBasalChanges.contains(index),
+                            time: rate.time,
+                            currentValue: "\(rate.currentValue) U/hr",
+                            newValue: "\(rate.recommendedValue) U/hr",
+                            percentChange: rate.percentChange,
+                            onToggle: {
+                                if state.cotSelectedBasalChanges.contains(index) {
+                                    state.cotSelectedBasalChanges.remove(index)
+                                } else {
+                                    state.cotSelectedBasalChanges.insert(index)
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func selectableISFCard(_ values: [ClaudeOTuneRecommendation.ISFRecommendation]) -> some View {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "arrow.down.right")
+                        .foregroundColor(.green)
+                    Text("Insulin Sensitivity (ISF)")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    Spacer()
+                    Button(action: {
+                        if state.cotSelectedISFChanges.count == values.filter({ $0.change != 0 }).count {
+                            state.cotSelectedISFChanges.removeAll()
+                        } else {
+                            state.selectAllISFChanges()
+                        }
+                    }) {
+                        Text(state.cotSelectedISFChanges.count == values.filter({ $0.change != 0 }).count ? "Deselect All" : "Select All")
+                            .font(.caption)
+                    }
+                }
+
+                ForEach(Array(values.enumerated()), id: \.element.id) { index, isf in
+                    if isf.change != 0 {
+                        selectableChangeRow(
+                            isSelected: state.cotSelectedISFChanges.contains(index),
+                            time: isf.time,
+                            currentValue: "\(isf.currentValue) \(state.units.rawValue)/U",
+                            newValue: "\(isf.recommendedValue) \(state.units.rawValue)/U",
+                            percentChange: isf.percentChange,
+                            onToggle: {
+                                if state.cotSelectedISFChanges.contains(index) {
+                                    state.cotSelectedISFChanges.remove(index)
+                                } else {
+                                    state.cotSelectedISFChanges.insert(index)
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func selectableCRCard(_ values: [ClaudeOTuneRecommendation.CRRecommendation]) -> some View {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "fork.knife")
+                        .foregroundColor(.orange)
+                    Text("Carb Ratios")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    Spacer()
+                    Button(action: {
+                        if state.cotSelectedCRChanges.count == values.filter({ $0.change != 0 }).count {
+                            state.cotSelectedCRChanges.removeAll()
+                        } else {
+                            state.selectAllCRChanges()
+                        }
+                    }) {
+                        Text(state.cotSelectedCRChanges.count == values.filter({ $0.change != 0 }).count ? "Deselect All" : "Select All")
+                            .font(.caption)
+                    }
+                }
+
+                ForEach(Array(values.enumerated()), id: \.element.id) { index, cr in
+                    if cr.change != 0 {
+                        selectableChangeRow(
+                            isSelected: state.cotSelectedCRChanges.contains(index),
+                            time: cr.time,
+                            currentValue: "1:\(cr.currentValue)",
+                            newValue: "1:\(cr.recommendedValue)",
+                            percentChange: cr.percentChange,
+                            onToggle: {
+                                if state.cotSelectedCRChanges.contains(index) {
+                                    state.cotSelectedCRChanges.remove(index)
+                                } else {
+                                    state.cotSelectedCRChanges.insert(index)
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func selectableChangeRow(
+            isSelected: Bool,
+            time: String,
+            currentValue: String,
+            newValue: String,
+            percentChange: Double,
+            onToggle: @escaping () -> Void
+        ) -> some View {
+            Button(action: onToggle) {
+                HStack {
+                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                        .foregroundColor(isSelected ? .blue : .secondary)
+
+                    Text(time)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(width: 50, alignment: .leading)
+
+                    Text(currentValue)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    Image(systemName: "arrow.right")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+
+                    Text(newValue)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+
+                    Spacer()
+
+                    Text("\(percentChange > 0 ? "+" : "")\(String(format: "%.1f", percentChange))%")
+                        .font(.caption)
+                        .foregroundColor(percentChange > 0 ? .orange : .green)
+                }
+                .padding(.vertical, 6)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
+
+        private var applySection: some View {
+            VStack(spacing: 12) {
+                // Warning card
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                        Text("Review Before Applying")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                    }
+                    Text(
+                        "Selected changes will be applied to your profile. A backup will be created automatically so you can undo if needed."
+                    )
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                }
+                .padding()
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(8)
+
+                // Apply button
+                Button(action: {
+                    state.showApplyConfirmation = true
+                }) {
+                    HStack {
+                        if state.isApplyingChanges {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Image(systemName: "checkmark.circle")
+                        }
+                        Text("Apply \(state.selectedChangesCount) Selected Changes")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                }
+                .disabled(state.isApplyingChanges)
+                .confirmationDialog(
+                    "Apply Changes",
+                    isPresented: $state.showApplyConfirmation,
+                    titleVisibility: .visible
+                ) {
+                    Button("Apply \(state.selectedChangesCount) Changes", role: .destructive) {
+                        Task {
+                            await state.applySelectedRecommendations()
+                        }
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text(
+                        "This will modify your profile settings. A backup will be created so you can undo these changes if needed. Have you discussed these changes with your healthcare provider?"
+                    )
+                }
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private var backupsCard: some View {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .foregroundColor(.purple)
+                    Text("Profile Backups")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    Spacer()
+                    Text("Tap to restore")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                ForEach(state.cotProfileBackups.prefix(3), id: \.id) { backup in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(backup.formattedDate)
+                                .font(.subheadline)
+                            Text(backup.reason)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+
+                        Spacer()
+
+                        Button(action: {
+                            Task {
+                                await state.restoreFromBackup(backup)
+                            }
+                        }) {
+                            Text("Restore")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                        }
+                        .disabled(state.isApplyingChanges)
+                    }
+                    .padding(.vertical, 4)
+                }
+
+                if state.cotProfileBackups.count > 3 {
+                    Text("+ \(state.cotProfileBackups.count - 3) more backups")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        // Keep old recommendationsCard for adjustments list (read-only view of rationale)
         private func recommendationsCard(_ adjustments: [ClaudeOTuneRecommendation.ProfileAdjustment]) -> some View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("Recommended Changes")
+                    Text("Adjustment Rationale")
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundColor(.secondary)
                     Spacer()
-                    Text("Advisory Only")
-                        .font(.caption2)
-                        .foregroundColor(.orange)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(Color.orange.opacity(0.2))
-                        .cornerRadius(8)
                 }
 
                 ForEach(adjustments.sorted { $0.priority < $1.priority }) { adjustment in
@@ -2583,20 +2941,6 @@ extension AIInsightsConfig {
                             Spacer()
                             confidenceBadge(adjustment.confidence)
                         }
-
-                        HStack {
-                            Text("\(adjustment.oldValue)")
-                                .foregroundColor(.secondary)
-                            Image(systemName: "arrow.right")
-                                .foregroundColor(.blue)
-                            Text("\(adjustment.newValue)")
-                                .fontWeight(.semibold)
-                                .foregroundColor(.blue)
-                            Text("(\(adjustment.percentChange > 0 ? "+" : "")\(String(format: "%.1f", adjustment.percentChange))%)")
-                                .font(.caption)
-                                .foregroundColor(adjustment.percentChange > 0 ? .orange : .green)
-                        }
-                        .font(.subheadline)
 
                         Text(adjustment.rationale)
                             .font(.caption)
