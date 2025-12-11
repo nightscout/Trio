@@ -1524,8 +1524,13 @@ extension AIInsightsConfig {
         @Environment(\.dismiss) var dismiss
 
         @State private var showImagePicker = false
-        @State private var showCamera = false
         @State private var imagePickerSourceType: UIImagePickerController.SourceType = .photoLibrary
+        @State private var showCameraUnavailableAlert = false
+
+        /// Check if camera is available on this device
+        private var isCameraAvailable: Bool {
+            UIImagePickerController.isSourceTypeAvailable(.camera)
+        }
 
         /// Optional callback when user accepts the carb estimate (for integration with bolus calculator)
         var onAcceptCarbs: ((Decimal) -> Void)?
@@ -1573,6 +1578,11 @@ extension AIInsightsConfig {
                     sourceType: imagePickerSourceType
                 )
             }
+            .alert("Camera Unavailable", isPresented: $showCameraUnavailableAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Camera is not available on this device. Please use the Photos option to select an image.")
+            }
             .onDisappear {
                 // Only clear if not accepting carbs
                 if onAcceptCarbs == nil {
@@ -1595,12 +1605,17 @@ extension AIInsightsConfig {
                     // Change photo button
                     HStack {
                         Button(action: {
-                            imagePickerSourceType = .camera
-                            showImagePicker = true
+                            if isCameraAvailable {
+                                imagePickerSourceType = .camera
+                                showImagePicker = true
+                            } else {
+                                showCameraUnavailableAlert = true
+                            }
                         }) {
                             Label("Retake", systemImage: "camera")
                         }
                         .buttonStyle(.bordered)
+                        .disabled(!isCameraAvailable)
 
                         Button(action: {
                             imagePickerSourceType = .photoLibrary
@@ -1624,8 +1639,12 @@ extension AIInsightsConfig {
 
                         HStack(spacing: 20) {
                             Button(action: {
-                                imagePickerSourceType = .camera
-                                showImagePicker = true
+                                if isCameraAvailable {
+                                    imagePickerSourceType = .camera
+                                    showImagePicker = true
+                                } else {
+                                    showCameraUnavailableAlert = true
+                                }
                             }) {
                                 VStack {
                                     Image(systemName: "camera.fill")
@@ -1636,7 +1655,8 @@ extension AIInsightsConfig {
                                 .frame(width: 100, height: 80)
                             }
                             .buttonStyle(.bordered)
-                            .tint(.mint)
+                            .tint(isCameraAvailable ? .mint : .gray)
+                            .disabled(!isCameraAvailable)
 
                             Button(action: {
                                 imagePickerSourceType = .photoLibrary
