@@ -74,8 +74,8 @@ struct ClaudeOTuneRecommendation: Codable, Equatable {
         var id: String { parameter + timePeriod }
         let parameter: String
         let timePeriod: String
-        let oldValue: Decimal
-        let newValue: Decimal
+        let oldValue: String
+        let newValue: String
         let percentChange: Double
         let rationale: String
         let confidence: ConfidenceLevel
