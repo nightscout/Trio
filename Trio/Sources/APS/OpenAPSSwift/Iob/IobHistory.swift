@@ -115,7 +115,15 @@ struct IobHistory {
     /// The algorithm just looks at time intervals from suspend events to resume events to calculate
     /// periods of suspension.
     private static func getSuspends(pumpHistory: [ComputedPumpHistoryEvent], clock: Date) throws -> [PumpSuspended] {
-        let pumpSuspendResume = pumpHistory.filter { $0.type == .pumpSuspend || $0.type == .pumpResume }
+        let pumpSuspendResumeFull = pumpHistory.filter { $0.type == .pumpSuspend || $0.type == .pumpResume }
+
+        // drop all repeated suspend / resume events to match JS
+        var pumpSuspendResume = pumpSuspendResumeFull.first.flatMap({ [$0] }) ?? []
+        for (prev, curr) in zip(pumpSuspendResumeFull, pumpSuspendResumeFull.dropFirst()) {
+            if prev.type != curr.type {
+                pumpSuspendResume.append(curr)
+            }
+        }
 
         for (curr, next) in zip(pumpSuspendResume, pumpSuspendResume.dropFirst()) {
             guard curr.type != next.type, curr.timestamp != next.timestamp else {
