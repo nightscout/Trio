@@ -16,6 +16,8 @@
 		A1B1C1D1E1F101010101A1B7 /* NightscoutDataFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A7 /* NightscoutDataFetcher.swift */; };
 		A1B1C1D1E1F101010101A1B8 /* MarkdownParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A8 /* MarkdownParser.swift */; };
 		A1B1C1D1E1F101010101A1B9 /* SavedReportsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A9 /* SavedReportsManager.swift */; };
+		A1B1C1D1E1F101010101A1BA /* ClaudeOTuneModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1AA /* ClaudeOTuneModels.swift */; };
+		A1B1C1D1E1F101010101A1BB /* ClaudeOTuneProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1AB /* ClaudeOTuneProfileService.swift */; };
 		041D1E995A6AE92E9289DC49 /* TreatmentsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */; };
 		0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5822B15939E719628E9FF7C /* SnoozeRootView.swift */; };
 		0D9A5E34A899219C5C4CDFAF /* DataTableStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9455FA2D92E77A6C4AFED8A3 /* DataTableStateModel.swift */; };
@@ -857,6 +859,8 @@
 		A1B1C1D1E1F101010101A1A7 /* NightscoutDataFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutDataFetcher.swift; sourceTree = "<group>"; };
 		A1B1C1D1E1F101010101A1A8 /* MarkdownParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownParser.swift; sourceTree = "<group>"; };
 		A1B1C1D1E1F101010101A1A9 /* SavedReportsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedReportsManager.swift; sourceTree = "<group>"; };
+		A1B1C1D1E1F101010101A1AA /* ClaudeOTuneModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeOTuneModels.swift; sourceTree = "<group>"; };
+		A1B1C1D1E1F101010101A1AB /* ClaudeOTuneProfileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeOTuneProfileService.swift; sourceTree = "<group>"; };
 		110AEDE02C5193D100615CC9 /* BolusIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntent.swift; sourceTree = "<group>"; };
 		110AEDE12C5193D100615CC9 /* BolusIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntentRequest.swift; sourceTree = "<group>"; };
 		110AEDE52C51A0AE00615CC9 /* ShortcutsConfigView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigView.swift; sourceTree = "<group>"; };
@@ -3550,6 +3554,8 @@
 				A1B1C1D1E1F101010101A1A8 /* MarkdownParser.swift */,
 				A1B1C1D1E1F101010101A1A7 /* NightscoutDataFetcher.swift */,
 				A1B1C1D1E1F101010101A1A9 /* SavedReportsManager.swift */,
+				A1B1C1D1E1F101010101A1AA /* ClaudeOTuneModels.swift */,
+				A1B1C1D1E1F101010101A1AB /* ClaudeOTuneProfileService.swift */,
 				A1B1C1D1E1F101010101C2C2 /* View */,
 			);
 			path = AIInsightsConfig;
@@ -4165,6 +4171,8 @@
 				A1B1C1D1E1F101010101A1B8 /* MarkdownParser.swift in Sources */,
 				A1B1C1D1E1F101010101A1B7 /* NightscoutDataFetcher.swift in Sources */,
 				A1B1C1D1E1F101010101A1B9 /* SavedReportsManager.swift in Sources */,
+				A1B1C1D1E1F101010101A1BA /* ClaudeOTuneModels.swift in Sources */,
+				A1B1C1D1E1F101010101A1BB /* ClaudeOTuneProfileService.swift in Sources */,
 				DD5DC9F12CF3D97C00AB8703 /* AdjustmentsStateModel+Overrides.swift in Sources */,
 				3811DE2325C9D48300A708ED /* MainDataFlow.swift in Sources */,
 				C2A0A42F2CE03131003B98E8 /* ConstantValues.swift in Sources */,
