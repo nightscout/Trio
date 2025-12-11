@@ -34,6 +34,10 @@ extension Home {
         @State var showPumpSelection: Bool = false
         @State var showCGMSelection: Bool = false
         @State var notificationsDisabled = false
+        // Why High/Low Banner State
+        @State var isWhyHighLowBannerDismissed = false
+        @State var showWhyHighLowAnalysis = false
+        @StateObject var aiInsightsState = AIInsightsConfig.StateModel()
         @State var timeButtons: [TimePicker] = [
             TimePicker(active: false, hours: 4),
             TimePicker(active: false, hours: 6),
@@ -84,6 +88,96 @@ extension Home {
                 return "book.pages"
             } else {
                 return "book"
+            }
+        }
+
+        // MARK: - Why High/Low Banner
+
+        /// Determines if the Why High/Low banner should be shown
+        private var shouldShowWhyHighLowBanner: Bool {
+            guard !isWhyHighLowBannerDismissed,
+                  aiInsightsState.isAPIKeyConfigured,
+                  let latestGlucose = state.latestTwoGlucoseValues.first,
+                  let glucoseValue = latestGlucose.value
+            else { return false }
+
+            let bg = glucoseValue.decimalValue
+            let highThreshold = aiInsightsState.whlHighThreshold
+            let lowThreshold = aiInsightsState.whlLowThreshold
+
+            return bg > highThreshold || bg < lowThreshold
+        }
+
+        /// Whether the current glucose is high (vs low)
+        private var isGlucoseHigh: Bool {
+            guard let latestGlucose = state.latestTwoGlucoseValues.first,
+                  let glucoseValue = latestGlucose.value
+            else { return true }
+
+            return glucoseValue.decimalValue > aiInsightsState.whlHighThreshold
+        }
+
+        /// Current glucose value
+        private var currentBGValue: Decimal {
+            state.latestTwoGlucoseValues.first?.value?.decimalValue ?? 0
+        }
+
+        /// Current glucose trend as a string
+        private var currentBGTrend: String {
+            guard let direction = state.latestTwoGlucoseValues.first?.directionEnum else {
+                return "unknown"
+            }
+            switch direction {
+            case .doubleUp, .tripleUp:
+                return "rising rapidly"
+            case .singleUp:
+                return "rising"
+            case .fortyFiveUp:
+                return "rising slightly"
+            case .flat:
+                return "stable"
+            case .fortyFiveDown:
+                return "falling slightly"
+            case .singleDown:
+                return "falling"
+            case .doubleDown, .tripleDown:
+                return "falling rapidly"
+            default:
+                return "unknown"
+            }
+        }
+
+        /// Current IOB value
+        private var currentIOB: Decimal {
+            state.enactedAndNonEnactedDeterminations.first?.iob?.decimalValue ?? 0
+        }
+
+        /// Current COB value
+        private var currentCOB: Int {
+            Int(state.enactedAndNonEnactedDeterminations.first?.cob ?? 0)
+        }
+
+        @ViewBuilder private var whyHighLowBanner: some View {
+            if shouldShowWhyHighLowBanner {
+                WhyHighLowBannerView(
+                    currentBG: currentBGValue,
+                    bgTrend: currentBGTrend,
+                    currentIOB: currentIOB,
+                    currentCOB: currentCOB,
+                    isHigh: isGlucoseHigh,
+                    units: state.units.rawValue,
+                    onAnalyze: {
+                        showWhyHighLowAnalysis = true
+                    },
+                    onDismiss: {
+                        withAnimation {
+                            isWhyHighLowBannerDismissed = true
+                        }
+                    }
+                )
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
 
@@ -903,12 +997,16 @@ extension Home {
                 }
                 .padding(.top, 10)
                 .safeAreaInset(edge: .top, spacing: 0) {
-                    if notificationsDisabled {
-                        alertSafetyNotificationsView(geo: geo)
-                    }
-                    if let badgeImage = state.pumpStatusBadgeImage, let badgeColor = state.pumpStatusBadgeColor {
-                        pumpTimezoneView(badgeImage, badgeColor)
-                            .padding(.horizontal, 20)
+                    VStack(spacing: 8) {
+                        if notificationsDisabled {
+                            alertSafetyNotificationsView(geo: geo)
+                        }
+                        if let badgeImage = state.pumpStatusBadgeImage, let badgeColor = state.pumpStatusBadgeColor {
+                            pumpTimezoneView(badgeImage, badgeColor)
+                                .padding(.horizontal, 20)
+                        }
+                        // Why High/Low Banner
+                        whyHighLowBanner
                     }
                 }
 
@@ -982,6 +1080,26 @@ extension Home {
             }
             .sheet(isPresented: $state.isLegendPresented) {
                 ChartLegendView(state: state)
+            }
+            // WHY HIGH/LOW ANALYSIS
+            .sheet(isPresented: $showWhyHighLowAnalysis) {
+                AIInsightsConfig.WhyHighLowAnalysisView(
+                    state: aiInsightsState,
+                    currentBG: currentBGValue,
+                    bgTrend: currentBGTrend,
+                    currentIOB: currentIOB,
+                    currentCOB: currentCOB,
+                    isHigh: isGlucoseHigh
+                )
+            }
+            .onChange(of: state.latestTwoGlucoseValues.first?.value) { _, newValue in
+                // Reset banner dismissal when glucose returns to range
+                if let value = newValue?.decimalValue {
+                    let isInRange = value <= aiInsightsState.whlHighThreshold && value >= aiInsightsState.whlLowThreshold
+                    if isInRange && isWhyHighLowBannerDismissed {
+                        isWhyHighLowBannerDismissed = false
+                    }
+                }
             }
             // PUMP RELATED
             .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
