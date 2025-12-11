@@ -26,6 +26,7 @@ extension Treatments {
         @State private var debounce: DispatchWorkItem?
         // Photo Carb Estimation
         @State private var showPhotoCarbSheet = false
+        @State private var showAPIKeyRequiredAlert = false
         @StateObject private var aiInsightsState = AIInsightsConfig.StateModel()
 
         private enum Config {
@@ -145,25 +146,27 @@ extension Treatments {
 
                 // Quick-add carb buttons
                 HStack(spacing: 8) {
-                    // Photo AI button - prominent placement
-                    if aiInsightsState.isAPIKeyConfigured {
-                        Button(action: {
+                    // Photo AI button - always visible
+                    Button(action: {
+                        if aiInsightsState.isAPIKeyConfigured {
                             showPhotoCarbSheet = true
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "camera.fill")
-                                    .font(.caption)
-                                Text("Photo")
-                                    .font(.subheadline.weight(.medium))
-                            }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(Color.mint.opacity(0.15))
-                            .foregroundColor(.mint)
-                            .cornerRadius(8)
+                        } else {
+                            showAPIKeyRequiredAlert = true
                         }
-                        .buttonStyle(.plain)
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "camera.fill")
+                                .font(.caption)
+                            Text("Photo")
+                                .font(.subheadline.weight(.medium))
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.mint.opacity(0.15))
+                        .foregroundColor(.mint)
+                        .cornerRadius(8)
                     }
+                    .buttonStyle(.plain)
 
                     Button(action: {
                         state.carbs += 5
@@ -486,6 +489,11 @@ extension Treatments {
                 }
             } message: {
                 Text("\(state.determinationFailureMessage)")
+            }
+            .alert("API Key Required", isPresented: $showAPIKeyRequiredAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Please configure your Claude API key in Settings → AI Insights → API Configuration to use Photo Carb Estimation.")
             }
             .sheet(isPresented: $showPhotoCarbSheet) {
                 AIInsightsConfig.PhotoCarbEstimateView(
