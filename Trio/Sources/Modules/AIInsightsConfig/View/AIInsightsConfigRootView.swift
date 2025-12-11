@@ -97,6 +97,20 @@ extension AIInsightsConfig {
                                 }
                             }
                         }
+
+                        NavigationLink(destination: ClaudeOTuneView(state: state)) {
+                            HStack {
+                                Image(systemName: "slider.horizontal.3")
+                                    .foregroundColor(.blue)
+                                VStack(alignment: .leading) {
+                                    Text("Claude-o-Tune")
+                                        .font(.headline)
+                                    Text("AI-powered profile optimization")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
                     }
                 )
                 .listRowBackground(Color.chart)
@@ -2065,6 +2079,7 @@ extension AIInsightsConfig {
             case .quickAnalysis: return .yellow
             case .weeklyReport: return .green
             case .doctorReport: return .purple
+            case .claudeOTune: return .blue
             case .none: return .gray
             }
         }
@@ -2148,5 +2163,694 @@ extension AIInsightsConfig {
         }
 
         func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+    }
+
+    // MARK: - Claude-o-Tune View
+
+    struct ClaudeOTuneView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+        @State private var showShareSheet = false
+
+        var body: some View {
+            ScrollView {
+                VStack(spacing: 20) {
+                    if state.claudeOTuneResult == nil && state.claudeOTuneRawResponse.isEmpty && !state.isRunningClaudeOTune {
+                        // Initial state
+                        initialStateView
+                    }
+
+                    if state.isRunningClaudeOTune {
+                        loadingView
+                    }
+
+                    if let error = state.claudeOTuneError, state.claudeOTuneResult == nil && state.claudeOTuneRawResponse.isEmpty {
+                        errorView(error)
+                    }
+
+                    if let result = state.claudeOTuneResult {
+                        resultView(result)
+                    } else if !state.claudeOTuneRawResponse.isEmpty {
+                        // Fallback to raw response if parsing failed
+                        rawResponseView
+                    }
+
+                    Spacer()
+                }
+                .padding()
+            }
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Claude-o-Tune")
+            .navigationBarTitleDisplayMode(.automatic)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink(destination: ClaudeOTuneSettingsView(state: state)) {
+                        Image(systemName: "gearshape")
+                    }
+                }
+            }
+            .sheet(isPresented: $showShareSheet) {
+                if let pdfData = state.claudeOTunePDFData {
+                    AIInsightsShareSheet(activityItems: [pdfData])
+                }
+            }
+        }
+
+        private var initialStateView: some View {
+            VStack(spacing: 16) {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 50))
+                    .foregroundColor(.blue)
+
+                Text("Claude-o-Tune")
+                    .font(.title2)
+                    .fontWeight(.bold)
+
+                Text("AI-powered profile optimization")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+
+                Text(
+                    "Analyze your glucose data and get personalized recommendations for basal rates, ISF, and carb ratios. All recommendations are advisory only."
+                )
+                .multilineTextAlignment(.center)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
+
+                // Data period info
+                Label("Will analyze last \(state.cotTimePeriod.displayName)", systemImage: "calendar")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                // Advisory warning
+                advisoryWarningCard
+
+                Button(action: {
+                    Task {
+                        await state.runClaudeOTuneAnalysis()
+                    }
+                }) {
+                    HStack {
+                        Image(systemName: "sparkles")
+                        Text("Analyze & Optimize")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(state.isAPIKeyConfigured ? Color.blue : Color.gray)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                }
+                .disabled(!state.isAPIKeyConfigured)
+                .padding(.horizontal)
+
+                if !state.isAPIKeyConfigured {
+                    Text("Please configure your API key first")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                }
+            }
+            .padding(.top, 20)
+        }
+
+        private var advisoryWarningCard: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    Text("Advisory Mode Only")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                }
+
+                Text(
+                    "Claude-o-Tune provides recommendations only. It does NOT automatically change your profile settings. Always review recommendations with your healthcare provider before making any changes."
+                )
+                .font(.caption)
+                .foregroundColor(.secondary)
+            }
+            .padding()
+            .background(Color.orange.opacity(0.1))
+            .cornerRadius(12)
+            .padding(.horizontal)
+        }
+
+        private var loadingView: some View {
+            VStack(spacing: 16) {
+                ProgressView()
+                    .scaleEffect(1.5)
+                Text("Analyzing your data...")
+                    .foregroundColor(.secondary)
+                Text("This may take a minute for \(state.cotTimePeriod.displayName) of data")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.top, 60)
+        }
+
+        private func errorView(_ error: String) -> some View {
+            VStack(spacing: 12) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 40))
+                    .foregroundColor(.red)
+                Text(error)
+                    .foregroundColor(.red)
+                    .multilineTextAlignment(.center)
+
+                Button("Try Again") {
+                    Task {
+                        await state.runClaudeOTuneAnalysis()
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .padding()
+        }
+
+        private func resultView(_ result: ClaudeOTuneRecommendation) -> some View {
+            VStack(alignment: .leading, spacing: 16) {
+                // Header
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("Analysis Complete")
+                        .font(.headline)
+                    Spacer()
+                    confidenceBadge(result.confidence)
+                }
+
+                // Summary card
+                summaryCard(result)
+
+                // Metrics card
+                metricsCard(result)
+
+                // Patterns detected
+                if !result.patternsDetected.isEmpty {
+                    patternsCard(result.patternsDetected)
+                }
+
+                // Recommendations
+                if !result.adjustments.isEmpty {
+                    recommendationsCard(result.adjustments)
+                }
+
+                // Concerns
+                if !result.concerns.isEmpty {
+                    concernsCard(result.concerns)
+                }
+
+                // Explanation
+                explanationCard(result.explanation)
+
+                // Action buttons
+                actionButtons
+            }
+        }
+
+        private var rawResponseView: some View {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    Image(systemName: "doc.text.fill")
+                        .foregroundColor(.blue)
+                    Text("Analysis Result")
+                        .font(.headline)
+                }
+
+                if let error = state.claudeOTuneError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                        .padding(.bottom, 8)
+                }
+
+                RichMarkdownView(content: state.claudeOTuneRawResponse)
+                    .padding()
+                    .background(Color.chart)
+                    .cornerRadius(12)
+
+                actionButtons
+            }
+        }
+
+        private func confidenceBadge(_ confidence: ClaudeOTuneRecommendation.ConfidenceLevel) -> some View {
+            Text(confidence.displayName)
+                .font(.caption)
+                .fontWeight(.medium)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
+                .background(confidenceColor(confidence).opacity(0.2))
+                .foregroundColor(confidenceColor(confidence))
+                .cornerRadius(12)
+        }
+
+        private func confidenceColor(_ confidence: ClaudeOTuneRecommendation.ConfidenceLevel) -> Color {
+            switch confidence {
+            case .low: return .red
+            case .medium: return .orange
+            case .high: return .green
+            }
+        }
+
+        private func summaryCard(_ result: ClaudeOTuneRecommendation) -> some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Summary")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+
+                Text(result.analysisSummary)
+                    .font(.body)
+
+                HStack {
+                    Label("Data Quality: \(result.dataQuality.score)/100", systemImage: "chart.bar.fill")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Spacer()
+
+                    Label("\(result.totalRecommendedChanges) changes", systemImage: "arrow.triangle.2.circlepath")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                }
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func metricsCard(_ result: ClaudeOTuneRecommendation) -> some View {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Current Metrics")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+
+                HStack(spacing: 16) {
+                    metricItem(
+                        "TIR",
+                        value: String(format: "%.0f%%", result.currentMetrics.timeInRange),
+                        color: result.currentMetrics.timeInRange >= 70 ? .green : .orange
+                    )
+                    metricItem(
+                        "TBR",
+                        value: String(format: "%.0f%%", result.currentMetrics.timeBelowRange),
+                        color: result.currentMetrics.timeBelowRange < 4 ? .green : .red
+                    )
+                    metricItem(
+                        "TAR",
+                        value: String(format: "%.0f%%", result.currentMetrics.timeAboveRange),
+                        color: result.currentMetrics.timeAboveRange < 25 ? .green : .orange
+                    )
+                    metricItem(
+                        "CV",
+                        value: String(format: "%.0f%%", result.currentMetrics.glucoseVariability),
+                        color: result.currentMetrics.glucoseVariability < 36 ? .green : .orange
+                    )
+                }
+
+                HStack {
+                    Label(
+                        "Avg: \(result.currentMetrics.averageGlucose) \(state.units.rawValue)",
+                        systemImage: "waveform.path.ecg"
+                    )
+                    .font(.caption)
+                    Spacer()
+                    Label("GMI: \(String(format: "%.1f", result.currentMetrics.gmi))%", systemImage: "percent")
+                        .font(.caption)
+                }
+                .foregroundColor(.secondary)
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func metricItem(_ label: String, value: String, color: Color) -> some View {
+            VStack(spacing: 4) {
+                Text(value)
+                    .font(.headline)
+                    .foregroundColor(color)
+                Text(label)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+        }
+
+        private func patternsCard(_ patterns: [ClaudeOTuneRecommendation.PatternDetected]) -> some View {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Patterns Detected")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+
+                ForEach(patterns) { pattern in
+                    HStack(alignment: .top, spacing: 12) {
+                        Image(systemName: patternIcon(pattern.patternType))
+                            .foregroundColor(.blue)
+                            .frame(width: 24)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(pattern.description)
+                                .font(.subheadline)
+                            HStack {
+                                Text(pattern.frequency)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("•")
+                                    .foregroundColor(.secondary)
+                                Text(pattern.impact)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+
+                        Spacer()
+
+                        confidenceBadge(pattern.confidence)
+                    }
+                    .padding(.vertical, 4)
+
+                    if pattern.id != patterns.last?.id {
+                        Divider()
+                    }
+                }
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func patternIcon(_ patternType: String) -> String {
+            switch patternType.lowercased() {
+            case "dawn_phenomenon": return "sunrise.fill"
+            case "post_exercise": return "figure.run"
+            case "post_meal": return "fork.knife"
+            case "overnight": return "moon.fill"
+            case "afternoon_resistance": return "sun.max.fill"
+            default: return "waveform.path.ecg"
+            }
+        }
+
+        private func recommendationsCard(_ adjustments: [ClaudeOTuneRecommendation.ProfileAdjustment]) -> some View {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("Recommended Changes")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("Advisory Only")
+                        .font(.caption2)
+                        .foregroundColor(.orange)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Color.orange.opacity(0.2))
+                        .cornerRadius(8)
+                }
+
+                ForEach(adjustments.sorted { $0.priority < $1.priority }) { adjustment in
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            priorityBadge(adjustment.priority)
+                            Text(adjustment.parameter.uppercased())
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                            Text(adjustment.timePeriod)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            confidenceBadge(adjustment.confidence)
+                        }
+
+                        HStack {
+                            Text("\(adjustment.oldValue)")
+                                .foregroundColor(.secondary)
+                            Image(systemName: "arrow.right")
+                                .foregroundColor(.blue)
+                            Text("\(adjustment.newValue)")
+                                .fontWeight(.semibold)
+                                .foregroundColor(.blue)
+                            Text("(\(adjustment.percentChange > 0 ? "+" : "")\(String(format: "%.1f", adjustment.percentChange))%)")
+                                .font(.caption)
+                                .foregroundColor(adjustment.percentChange > 0 ? .orange : .green)
+                        }
+                        .font(.subheadline)
+
+                        Text(adjustment.rationale)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding()
+                    .background(Color.chart.opacity(0.5))
+                    .cornerRadius(8)
+                }
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func priorityBadge(_ priority: Int) -> some View {
+            Text("P\(priority)")
+                .font(.caption2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(priorityColor(priority))
+                .cornerRadius(4)
+        }
+
+        private func priorityColor(_ priority: Int) -> Color {
+            switch priority {
+            case 1: return .red
+            case 2: return .orange
+            case 3: return .yellow
+            default: return .gray
+            }
+        }
+
+        private func concernsCard(_ concerns: [ClaudeOTuneRecommendation.SafetyConcern]) -> some View {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.red)
+                    Text("Safety Concerns")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                }
+
+                ForEach(concerns) { concern in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            severityBadge(concern.severity)
+                            Text(concern.description)
+                                .font(.subheadline)
+                        }
+                        Text(concern.recommendation)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding()
+                    .background(severityBackgroundColor(concern.severity))
+                    .cornerRadius(8)
+                }
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func severityBadge(_ severity: ClaudeOTuneRecommendation.SafetyConcern.Severity) -> some View {
+            Text(severity.displayName)
+                .font(.caption2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(severityColor(severity))
+                .cornerRadius(4)
+        }
+
+        private func severityColor(_ severity: ClaudeOTuneRecommendation.SafetyConcern.Severity) -> Color {
+            switch severity {
+            case .high: return .red
+            case .medium: return .orange
+            case .low: return .yellow
+            }
+        }
+
+        private func severityBackgroundColor(_ severity: ClaudeOTuneRecommendation.SafetyConcern.Severity) -> Color {
+            switch severity {
+            case .high: return .red.opacity(0.1)
+            case .medium: return .orange.opacity(0.1)
+            case .low: return .yellow.opacity(0.1)
+            }
+        }
+
+        private func explanationCard(_ explanation: String) -> some View {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "brain.head.profile")
+                        .foregroundColor(.purple)
+                    Text("AI Analysis")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                }
+
+                Text(explanation)
+                    .font(.body)
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private var actionButtons: some View {
+            VStack(spacing: 12) {
+                HStack {
+                    Button(action: {
+                        Task {
+                            await state.runClaudeOTuneAnalysis()
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.clockwise")
+                            Text("Run Again")
+                        }
+                    }
+                    .buttonStyle(.bordered)
+
+                    Spacer()
+
+                    if state.claudeOTunePDFData != nil {
+                        Button(action: {
+                            showShareSheet = true
+                        }) {
+                            HStack {
+                                Image(systemName: "square.and.arrow.up")
+                                Text("Share PDF")
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                }
+
+                // Disclaimer
+                Text(
+                    "These recommendations are for informational purposes only. Always consult your healthcare provider before making any changes to your insulin therapy."
+                )
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.top, 8)
+            }
+            .padding()
+        }
+    }
+
+    // MARK: - Claude-o-Tune Settings View
+
+    struct ClaudeOTuneSettingsView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+        @State private var showResetPromptAlert = false
+
+        var body: some View {
+            Form {
+                Section(
+                    header: Text("Analysis Period"),
+                    footer: Text(
+                        "Longer periods provide more data for pattern detection but take longer to analyze. 30 days is recommended."
+                    )
+                ) {
+                    Picker("Data Period", selection: $state.cotTimePeriod) {
+                        ForEach(TimePeriod.allCases) { period in
+                            Text(period.displayName).tag(period)
+                        }
+                    }
+                    .onChange(of: state.cotTimePeriod) { _, _ in state.saveClaudeOTuneSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("Recommendations to Include"),
+                    footer: Text("Choose which profile settings Claude-o-Tune should analyze and recommend changes for.")
+                ) {
+                    Toggle("Pattern Analysis", isOn: $state.cotIncludePatternAnalysis)
+                        .onChange(of: state.cotIncludePatternAnalysis) { _, _ in state.saveClaudeOTuneSettings() }
+
+                    Toggle("Basal Rate Recommendations", isOn: $state.cotIncludeBasalRecommendations)
+                        .onChange(of: state.cotIncludeBasalRecommendations) { _, _ in state.saveClaudeOTuneSettings() }
+
+                    Toggle("ISF Recommendations", isOn: $state.cotIncludeISFRecommendations)
+                        .onChange(of: state.cotIncludeISFRecommendations) { _, _ in state.saveClaudeOTuneSettings() }
+
+                    Toggle("Carb Ratio Recommendations", isOn: $state.cotIncludeCRRecommendations)
+                        .onChange(of: state.cotIncludeCRRecommendations) { _, _ in state.saveClaudeOTuneSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("Safety Limits"),
+                    footer: Text(
+                        "Maximum percentage change allowed per recommendation. Lower values are more conservative. Your algorithm's autosens limits are also applied."
+                    )
+                ) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Max Adjustment")
+                            Spacer()
+                            Text("\(Int(state.cotMaxAdjustmentPercent))%")
+                                .fontWeight(.medium)
+                                .foregroundColor(.blue)
+                        }
+                        Slider(value: $state.cotMaxAdjustmentPercent, in: 5 ... 30, step: 5)
+                            .tint(.blue)
+                            .onChange(of: state.cotMaxAdjustmentPercent) { _, _ in
+                                state.saveClaudeOTuneSettings()
+                            }
+                    }
+                    .padding(.vertical, 4)
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("AI Prompt"),
+                    footer: Text("Customize the instructions sent to Claude for analyzing your data.")
+                ) {
+                    TextEditor(text: $state.cotCustomPrompt)
+                        .frame(minHeight: 200)
+                        .font(.system(.body, design: .monospaced))
+                        .onChange(of: state.cotCustomPrompt) { _, _ in state.saveClaudeOTuneSettings() }
+
+                    Button(action: {
+                        showResetPromptAlert = true
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Reset to Default Prompt")
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+                .listRowBackground(Color.chart)
+            }
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Claude-o-Tune Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .alert("Reset Prompt?", isPresented: $showResetPromptAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Reset", role: .destructive) {
+                    state.resetClaudeOTunePrompt()
+                }
+            } message: {
+                Text("This will reset the AI prompt to the default. Your custom prompt will be lost.")
+            }
+        }
     }
 }
