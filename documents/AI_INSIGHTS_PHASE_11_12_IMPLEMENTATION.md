@@ -562,9 +562,42 @@ extension HealthDataExporter {
 
 ---
 
+## Implementation Status
+
+### Phase 11: Why High/Low - ✅ COMPLETE
+
+| Step | Description | Status |
+|------|-------------|--------|
+| 11.1 | Add settings properties to StateModel | ✅ Done |
+| 11.2 | Create WhyHighLowSettingsView | ✅ Done |
+| 11.3 | Add settings navigation to AI Insights menu | ✅ Done |
+| 11.4 | Create data export function for recent hours | ✅ Done |
+| 11.5 | Create WhyHighLowAnalysisView sheet | ✅ Done |
+| 11.6 | Implement analyzeWhyHighLow() method | ✅ Done |
+| 11.7 | Create WhyHighLowBannerView component | ✅ Done |
+| 11.8 | Integrate banner into HomeRootView | ✅ Done |
+| 11.9 | Add banner state management to Home | ✅ Done |
+
+### Phase 12: Photo Carb Estimation - ✅ COMPLETE
+
+| Step | Description | Status |
+|------|-------------|--------|
+| 12.1 | Add vision support to ClaudeAPIService | ✅ Done |
+| 12.2 | Add photo carb settings to StateModel | ✅ Done |
+| 12.3 | Create CarbEstimateResult data model | ✅ Done |
+| 12.4 | Create PhotoCarbSettingsView | ✅ Done |
+| 12.5 | Create PhotoCarbEstimateView with camera/picker | ✅ Done |
+| 12.6 | Create ImagePicker UIViewControllerRepresentable | ✅ Done |
+| 12.7 | Implement estimateCarbsFromPhoto() | ✅ Done |
+| 12.8 | Add standalone entry in AI Insights menu | ✅ Done |
+| 12.9 | Add camera button to TreatmentsRootView | ✅ Done |
+
+---
+
 ## Document Information
 
-- **Version:** 1.0
+- **Version:** 1.1
 - **Created:** December 11, 2025
+- **Updated:** December 11, 2025
 - **Author:** Claude AI (Implementation Assistant)
-- **Status:** Planning Complete - Ready for Implementation
+- **Status:** ✅ Implementation Complete

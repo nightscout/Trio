@@ -24,6 +24,9 @@ extension Treatments {
         @State private var calculatorDetent = PresentationDetent.large
         @State private var pushed: Bool = false
         @State private var debounce: DispatchWorkItem?
+        // Photo Carb Estimation
+        @State private var showPhotoCarbSheet = false
+        @StateObject private var aiInsightsState = AIInsightsConfig.StateModel()
 
         private enum Config {
             static let dividerHeight: CGFloat = 2
@@ -122,6 +125,19 @@ extension Treatments {
             VStack(spacing: 8) {
                 HStack {
                     Text("Carbs")
+
+                    // Camera button for photo carb estimation
+                    if aiInsightsState.isAPIKeyConfigured {
+                        Button(action: {
+                            showPhotoCarbSheet = true
+                        }) {
+                            Image(systemName: "camera.fill")
+                                .font(.subheadline)
+                                .foregroundColor(.mint)
+                        }
+                        .buttonStyle(.plain)
+                    }
+
                     Spacer()
                     TextFieldWithToolBar(
                         text: $state.carbs,
@@ -466,6 +482,15 @@ extension Treatments {
                 }
             } message: {
                 Text("\(state.determinationFailureMessage)")
+            }
+            .sheet(isPresented: $showPhotoCarbSheet) {
+                AIInsightsConfig.PhotoCarbEstimateView(
+                    state: aiInsightsState,
+                    onAcceptCarbs: { carbs in
+                        state.carbs = carbs
+                        handleDebouncedInput()
+                    }
+                )
             }
         }
 
