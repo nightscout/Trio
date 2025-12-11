@@ -869,11 +869,25 @@ Be conservative when uncertain. Round to nearest 5g.
                     items.append(match)
                 }
 
-                // Look for total (e.g., "Total: ~55g" or "**Total Estimate: ~55g**")
+                // Look for total - be more specific to avoid false matches
+                // Match patterns like "Total Estimate: ~125g", "**Total: 125g**", "Total: ~125g"
                 let lowercaseLine = line.lowercased()
-                if lowercaseLine.contains("total") {
+                if lowercaseLine.contains("total") &&
+                   (lowercaseLine.contains("estimate") || lowercaseLine.contains("carb") ||
+                    line.contains("**Total") || line.hasPrefix("Total:") || line.contains("─")) {
                     if let carbValue = extractCarbValue(from: line) {
+                        // Always use the latest total found (the real total is usually at the end)
                         totalCarbs = carbValue
+                    }
+                }
+
+                // Also check for standalone total lines with larger values (likely the real total)
+                if lowercaseLine.hasPrefix("total") || lowercaseLine.contains("**total") {
+                    if let carbValue = extractCarbValue(from: line) {
+                        // Prefer larger totals as they're more likely to be the sum
+                        if carbValue > totalCarbs {
+                            totalCarbs = carbValue
+                        }
                     }
                 }
 
@@ -901,6 +915,12 @@ Be conservative when uncertain. Round to nearest 5g.
             // If we didn't find a total but have items, sum them up
             if totalCarbs == 0 && !items.isEmpty {
                 totalCarbs = items.reduce(0) { $0 + $1.carbs }
+            }
+
+            // Sanity check: if items sum to more than parsed total, use the sum
+            let itemsSum = items.reduce(Decimal(0)) { $0 + $1.carbs }
+            if itemsSum > totalCarbs && itemsSum > 0 {
+                totalCarbs = itemsSum
             }
 
             return CarbEstimateResult(
