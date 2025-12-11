@@ -126,18 +126,6 @@ extension Treatments {
                 HStack {
                     Text("Carbs")
 
-                    // Camera button for photo carb estimation
-                    if aiInsightsState.isAPIKeyConfigured {
-                        Button(action: {
-                            showPhotoCarbSheet = true
-                        }) {
-                            Image(systemName: "camera.fill")
-                                .font(.subheadline)
-                                .foregroundColor(.mint)
-                        }
-                        .buttonStyle(.plain)
-                    }
-
                     Spacer()
                     TextFieldWithToolBar(
                         text: $state.carbs,
@@ -156,10 +144,26 @@ extension Treatments {
                 }
 
                 // Quick-add carb buttons
-                HStack(spacing: 12) {
-                    Text("Quick Add:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                HStack(spacing: 8) {
+                    // Photo AI button - prominent placement
+                    if aiInsightsState.isAPIKeyConfigured {
+                        Button(action: {
+                            showPhotoCarbSheet = true
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "camera.fill")
+                                    .font(.caption)
+                                Text("Photo")
+                                    .font(.subheadline.weight(.medium))
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.mint.opacity(0.15))
+                            .foregroundColor(.mint)
+                            .cornerRadius(8)
+                        }
+                        .buttonStyle(.plain)
+                    }
 
                     Button(action: {
                         state.carbs += 5
