@@ -531,6 +531,9 @@ final class HealthDataExporter {
 
         case .doctorVisit(let settings):
             prompt = formatDoctorVisitPrompt(data, timeFormatter: timeFormatter, settings: settings)
+
+        case .whyHighLow(let settings):
+            prompt = formatWhyHighLowPrompt(data, timeFormatter: timeFormatter, settings: settings)
         }
 
         return prompt

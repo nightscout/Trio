@@ -1478,7 +1478,7 @@ extension AIInsightsConfig {
                         .font(.headline)
                 }
 
-                MarkdownView(text: state.whyHighLowResult)
+                RichMarkdownView(content: state.whyHighLowResult)
 
                 // Disclaimer
                 Text("This analysis is for informational purposes only. Always consult your healthcare provider before making treatment changes.")

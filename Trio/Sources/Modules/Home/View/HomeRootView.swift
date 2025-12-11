@@ -97,11 +97,10 @@ extension Home {
         private var shouldShowWhyHighLowBanner: Bool {
             guard !isWhyHighLowBannerDismissed,
                   aiInsightsState.isAPIKeyConfigured,
-                  let latestGlucose = state.latestTwoGlucoseValues.first,
-                  let glucoseValue = latestGlucose.value
+                  let latestGlucose = state.latestTwoGlucoseValues.first
             else { return false }
 
-            let bg = glucoseValue.decimalValue
+            let bg = Decimal(latestGlucose.glucose)
             let highThreshold = aiInsightsState.whlHighThreshold
             let lowThreshold = aiInsightsState.whlLowThreshold
 
@@ -110,16 +109,16 @@ extension Home {
 
         /// Whether the current glucose is high (vs low)
         private var isGlucoseHigh: Bool {
-            guard let latestGlucose = state.latestTwoGlucoseValues.first,
-                  let glucoseValue = latestGlucose.value
+            guard let latestGlucose = state.latestTwoGlucoseValues.first
             else { return true }
 
-            return glucoseValue.decimalValue > aiInsightsState.whlHighThreshold
+            return Decimal(latestGlucose.glucose) > aiInsightsState.whlHighThreshold
         }
 
         /// Current glucose value
         private var currentBGValue: Decimal {
-            state.latestTwoGlucoseValues.first?.value?.decimalValue ?? 0
+            guard let latestGlucose = state.latestTwoGlucoseValues.first else { return 0 }
+            return Decimal(latestGlucose.glucose)
         }
 
         /// Current glucose trend as a string
@@ -1092,9 +1091,10 @@ extension Home {
                     isHigh: isGlucoseHigh
                 )
             }
-            .onChange(of: state.latestTwoGlucoseValues.first?.value) { _, newValue in
+            .onChange(of: state.latestTwoGlucoseValues.first?.glucose) { _, newValue in
                 // Reset banner dismissal when glucose returns to range
-                if let value = newValue?.decimalValue {
+                if let glucoseInt = newValue {
+                    let value = Decimal(glucoseInt)
                     let isInRange = value <= aiInsightsState.whlHighThreshold && value >= aiInsightsState.whlLowThreshold
                     if isInRange && isWhyHighLowBannerDismissed {
                         isWhyHighLowBannerDismissed = false
