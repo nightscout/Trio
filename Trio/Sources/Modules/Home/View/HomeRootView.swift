@@ -1069,8 +1069,8 @@ extension Home {
                 configureView {
                     highlightButtons()
                 }
-                // Load AI Insights settings for Why High/Low banner
-                aiInsightsState.subscribe()
+                // Load AI Insights settings for Why High/Low banner (safe method without DI)
+                aiInsightsState.loadWhyHighLowSettingsOnly()
             }
             .navigationTitle("Home")
             .navigationBarHidden(true)

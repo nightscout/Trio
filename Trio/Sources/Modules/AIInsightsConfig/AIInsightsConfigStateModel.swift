@@ -539,6 +539,28 @@ Respond with a JSON object following the Claude-o-Tune output format.
             defaults.set(whlCustomPrompt, forKey: Config.whlCustomPromptKey)
         }
 
+        /// Load only Why High/Low settings - safe to call without dependency injection
+        /// Used by HomeRootView which creates its own StateModel instance
+        func loadWhyHighLowSettingsOnly() {
+            let defaults = UserDefaults.standard
+
+            // Load thresholds (default: 180 high, 70 low)
+            if let highThreshold = defaults.object(forKey: Config.whlHighThresholdKey) as? Double {
+                whlHighThreshold = Decimal(highThreshold)
+            } else {
+                whlHighThreshold = 180
+            }
+
+            if let lowThreshold = defaults.object(forKey: Config.whlLowThresholdKey) as? Double {
+                whlLowThreshold = Decimal(lowThreshold)
+            } else {
+                whlLowThreshold = 70
+            }
+
+            // Also check if API key is configured (using static method to avoid DI)
+            isAPIKeyConfigured = Config.isAPIKeyConfigured
+        }
+
         func resetWhyHighLowPrompt() {
             whlCustomPrompt = AIInsightsConfig.defaultWhyHighLowPrompt
             UserDefaults.standard.set(whlCustomPrompt, forKey: Config.whlCustomPromptKey)
