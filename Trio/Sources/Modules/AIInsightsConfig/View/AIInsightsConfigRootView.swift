@@ -1114,6 +1114,10 @@ extension AIInsightsConfig {
             .background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Why High/Low Settings")
             .navigationBarTitleDisplayMode(.inline)
+            .onDisappear {
+                // Ensure settings are saved when leaving the view
+                state.saveWhyHighLowSettings()
+            }
             .alert("Reset Prompt?", isPresented: $showResetPromptAlert) {
                 Button("Cancel", role: .cancel) {}
                 Button("Reset", role: .destructive) {
@@ -1173,6 +1177,10 @@ extension AIInsightsConfig {
             .background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Photo Carb Settings")
             .navigationBarTitleDisplayMode(.inline)
+            .onDisappear {
+                // Ensure settings are saved when leaving the view
+                state.savePhotoCarbSettings()
+            }
             .alert("Reset Prompt?", isPresented: $showResetPromptAlert) {
                 Button("Cancel", role: .cancel) {}
                 Button("Reset", role: .destructive) {
