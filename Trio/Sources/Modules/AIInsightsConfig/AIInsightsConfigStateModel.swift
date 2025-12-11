@@ -883,36 +883,37 @@ Be conservative when uncertain. Round to nearest 5g.
 
             let lines = response.components(separatedBy: "\n")
 
+            // FIRST PRIORITY: Look for the explicit TOTAL_CARBS tag
             for line in lines {
-                // Look for food items with carb estimates (e.g., "🍽️ Pasta (1 cup): ~35g" or "Pasta: ~35g")
-                if let match = extractCarbItem(from: line) {
-                    items.append(match)
-                }
-
-                // Look for total - be more specific to avoid false matches
-                // Match patterns like "Total Estimate: ~125g", "**Total: 125g**", "Total: ~125g"
-                let lowercaseLine = line.lowercased()
-                if lowercaseLine.contains("total") &&
-                   (lowercaseLine.contains("estimate") || lowercaseLine.contains("carb") ||
-                    line.contains("**Total") || line.hasPrefix("Total:") || line.contains("─")) {
+                let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+                if trimmedLine.uppercased().hasPrefix("TOTAL_CARBS:") {
                     if let carbValue = extractCarbValue(from: line) {
-                        // Always use the latest total found (the real total is usually at the end)
                         totalCarbs = carbValue
+                        break // Found the authoritative total, stop looking
                     }
                 }
+            }
 
-                // Also check for standalone total lines with larger values (likely the real total)
-                if lowercaseLine.hasPrefix("total") || lowercaseLine.contains("**total") {
-                    if let carbValue = extractCarbValue(from: line) {
-                        // Prefer larger totals as they're more likely to be the sum
-                        if carbValue > totalCarbs {
-                            totalCarbs = carbValue
-                        }
+            // Parse food items and other info
+            for line in lines {
+                let lowercaseLine = line.lowercased()
+                let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+
+                // Skip the TOTAL_CARBS line when looking for items
+                if trimmedLine.uppercased().hasPrefix("TOTAL_CARBS:") {
+                    continue
+                }
+
+                // Look for food items (lines starting with bullet points or emoji)
+                if trimmedLine.hasPrefix("•") || trimmedLine.hasPrefix("-") ||
+                   trimmedLine.hasPrefix("🍽️") || trimmedLine.hasPrefix("*") {
+                    if let match = extractCarbItem(from: line) {
+                        items.append(match)
                     }
                 }
 
                 // Look for confidence level
-                if lowercaseLine.contains("confidence") {
+                if lowercaseLine.contains("confidence:") {
                     if lowercaseLine.contains("high") {
                         confidence = .high
                     } else if lowercaseLine.contains("low") {
@@ -923,24 +924,36 @@ Be conservative when uncertain. Round to nearest 5g.
                 }
 
                 // Look for notes/assumptions
-                if lowercaseLine.contains("note") || lowercaseLine.contains("assumption") {
-                    if notes == nil {
-                        notes = line
-                    } else {
-                        notes! += "\n" + line
+                if lowercaseLine.hasPrefix("note") || lowercaseLine.contains("assumption") {
+                    let noteText = line.replacingOccurrences(of: "Notes:", with: "")
+                        .replacingOccurrences(of: "Note:", with: "")
+                        .trimmingCharacters(in: .whitespaces)
+                    if !noteText.isEmpty {
+                        if notes == nil {
+                            notes = noteText
+                        } else {
+                            notes! += "\n" + noteText
+                        }
                     }
                 }
             }
 
-            // If we didn't find a total but have items, sum them up
-            if totalCarbs == 0 && !items.isEmpty {
-                totalCarbs = items.reduce(0) { $0 + $1.carbs }
+            // FALLBACK: If no TOTAL_CARBS tag found, try to find a total line
+            if totalCarbs == 0 {
+                for line in lines.reversed() { // Check from end first
+                    let lowercaseLine = line.lowercased()
+                    if lowercaseLine.contains("total") && !lowercaseLine.contains("total_carbs") {
+                        if let carbValue = extractCarbValue(from: line) {
+                            totalCarbs = carbValue
+                            break
+                        }
+                    }
+                }
             }
 
-            // Sanity check: if items sum to more than parsed total, use the sum
-            let itemsSum = items.reduce(Decimal(0)) { $0 + $1.carbs }
-            if itemsSum > totalCarbs && itemsSum > 0 {
-                totalCarbs = itemsSum
+            // LAST RESORT: If still no total, sum the items
+            if totalCarbs == 0 && !items.isEmpty {
+                totalCarbs = items.reduce(0) { $0 + $1.carbs }
             }
 
             return CarbEstimateResult(
