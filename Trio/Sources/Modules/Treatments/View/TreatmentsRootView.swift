@@ -146,7 +146,7 @@ extension Treatments {
                 // Photo AI button - always visible
                 HStack {
                     Button(action: {
-                        if aiInsightsState.isAPIKeyConfigured {
+                        if AIInsightsConfig.Config.isAPIKeyConfigured {
                             showPhotoCarbSheet = true
                         } else {
                             showAPIKeyRequiredAlert = true

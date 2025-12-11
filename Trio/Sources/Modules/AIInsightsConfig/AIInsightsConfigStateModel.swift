@@ -41,6 +41,17 @@ extension AIInsightsConfig {
 
     enum Config {
         static let apiKeyKey = "AIInsightsConfig.claudeAPIKey"
+
+        /// Check if API key is configured without needing dependency injection
+        static var isAPIKeyConfigured: Bool {
+            let keychain = BaseKeychain()
+            if case let .success(value) = keychain.getValue(String.self, forKey: apiKeyKey),
+               let key = value, !key.isEmpty {
+                return true
+            }
+            return false
+        }
+
         // Doctor Report Settings Keys
         static let drTimePeriodKey = "AIInsightsConfig.dr.timePeriod"
         static let drShowCarbRatiosKey = "AIInsightsConfig.dr.showCarbRatios"
