@@ -83,6 +83,20 @@ extension AIInsightsConfig {
                                 }
                             }
                         }
+
+                        NavigationLink(destination: PhotoCarbEstimateView(state: state, onAcceptCarbs: nil)) {
+                            HStack {
+                                Image(systemName: "camera.fill")
+                                    .foregroundColor(.mint)
+                                VStack(alignment: .leading) {
+                                    Text("Estimate Carbs from Photo")
+                                        .font(.headline)
+                                    Text("AI-powered carb counting")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
                     }
                 )
                 .listRowBackground(Color.chart)
@@ -1498,6 +1512,382 @@ extension AIInsightsConfig {
             }
             .buttonStyle(.borderedProminent)
             .disabled(!state.isAPIKeyConfigured)
+        }
+    }
+
+    // MARK: - Photo Carb Estimate View
+
+    struct PhotoCarbEstimateView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+        @Environment(\.dismiss) var dismiss
+
+        @State private var showImagePicker = false
+        @State private var showCamera = false
+        @State private var imagePickerSourceType: UIImagePickerController.SourceType = .photoLibrary
+
+        /// Optional callback when user accepts the carb estimate (for integration with bolus calculator)
+        var onAcceptCarbs: ((Decimal) -> Void)?
+
+        var body: some View {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Photo Selection Section
+                    photoSelectionSection
+
+                    // Description Input
+                    descriptionSection
+
+                    // Estimate Button
+                    if state.selectedFoodImage != nil {
+                        estimateButton
+                    }
+
+                    // Results Section
+                    if state.isEstimatingCarbs {
+                        loadingView
+                    } else if let error = state.carbEstimateError {
+                        errorView(error)
+                    } else if let result = state.carbEstimateResult {
+                        resultView(result)
+                    }
+                }
+                .padding()
+            }
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Estimate Carbs")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if state.selectedFoodImage != nil || state.carbEstimateResult != nil {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Clear") {
+                            state.clearCarbEstimate()
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $showImagePicker) {
+                ImagePicker(
+                    image: $state.selectedFoodImage,
+                    sourceType: imagePickerSourceType
+                )
+            }
+            .onDisappear {
+                // Only clear if not accepting carbs
+                if onAcceptCarbs == nil {
+                    state.clearCarbEstimate()
+                }
+            }
+        }
+
+        private var photoSelectionSection: some View {
+            VStack(spacing: 16) {
+                if let image = state.selectedFoodImage {
+                    // Show selected image
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 250)
+                        .cornerRadius(12)
+                        .shadow(radius: 4)
+
+                    // Change photo button
+                    HStack {
+                        Button(action: {
+                            imagePickerSourceType = .camera
+                            showImagePicker = true
+                        }) {
+                            Label("Retake", systemImage: "camera")
+                        }
+                        .buttonStyle(.bordered)
+
+                        Button(action: {
+                            imagePickerSourceType = .photoLibrary
+                            showImagePicker = true
+                        }) {
+                            Label("Choose Another", systemImage: "photo")
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                } else {
+                    // Photo selection buttons
+                    VStack(spacing: 12) {
+                        Image(systemName: "fork.knife.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.mint.opacity(0.6))
+
+                        Text("Take or select a photo of your meal")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+
+                        HStack(spacing: 20) {
+                            Button(action: {
+                                imagePickerSourceType = .camera
+                                showImagePicker = true
+                            }) {
+                                VStack {
+                                    Image(systemName: "camera.fill")
+                                        .font(.title)
+                                    Text("Camera")
+                                        .font(.caption)
+                                }
+                                .frame(width: 100, height: 80)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.mint)
+
+                            Button(action: {
+                                imagePickerSourceType = .photoLibrary
+                                showImagePicker = true
+                            }) {
+                                VStack {
+                                    Image(systemName: "photo.fill")
+                                        .font(.title)
+                                    Text("Photos")
+                                        .font(.caption)
+                                }
+                                .frame(width: 100, height: 80)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.blue)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(30)
+                    .background(Color.chart)
+                    .cornerRadius(12)
+                }
+            }
+        }
+
+        private var descriptionSection: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Description (optional)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                TextField("e.g., small portion, dressing on the side", text: $state.foodDescription)
+                    .textFieldStyle(.roundedBorder)
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private var estimateButton: some View {
+            Button(action: {
+                Task {
+                    await state.estimateCarbsFromPhoto()
+                }
+            }) {
+                HStack {
+                    Image(systemName: "sparkles")
+                    Text("Estimate Carbs")
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.mint)
+            .disabled(!state.isAPIKeyConfigured || state.isEstimatingCarbs)
+        }
+
+        private var loadingView: some View {
+            VStack(spacing: 16) {
+                ProgressView()
+                    .scaleEffect(1.5)
+                Text("Analyzing your meal...")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(40)
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func errorView(_ error: String) -> some View {
+            VStack(spacing: 12) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.title)
+                    .foregroundColor(.orange)
+                Text("Estimation Error")
+                    .font(.headline)
+                Text(error)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+
+                Button("Try Again") {
+                    Task {
+                        await state.estimateCarbsFromPhoto()
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func resultView(_ result: CarbEstimateResult) -> some View {
+            VStack(alignment: .leading, spacing: 16) {
+                // Header with total
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text("Estimated Carbs")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Text("\(NSDecimalNumber(decimal: result.totalCarbs).intValue)g")
+                            .font(.system(size: 48, weight: .bold))
+                            .foregroundColor(.mint)
+                    }
+
+                    Spacer()
+
+                    // Confidence badge
+                    VStack {
+                        Text("Confidence")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Text(result.confidence.rawValue)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 4)
+                            .background(confidenceColor(result.confidence).opacity(0.2))
+                            .foregroundColor(confidenceColor(result.confidence))
+                            .cornerRadius(12)
+                    }
+                }
+
+                Divider()
+
+                // Itemized breakdown
+                if !result.items.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Breakdown")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+
+                        ForEach(result.items) { item in
+                            HStack {
+                                Text("🍽️")
+                                VStack(alignment: .leading) {
+                                    Text(item.name)
+                                        .font(.subheadline)
+                                    if !item.portion.isEmpty {
+                                        Text(item.portion)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                Spacer()
+                                Text("~\(NSDecimalNumber(decimal: item.carbs).intValue)g")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                }
+
+                // Notes
+                if let notes = result.notes {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Notes")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(.secondary)
+                        Text(notes)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                Divider()
+
+                // Accept button (if callback provided)
+                if let onAccept = onAcceptCarbs {
+                    Button(action: {
+                        onAccept(result.totalCarbs)
+                        dismiss()
+                    }) {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                            Text("Use \(NSDecimalNumber(decimal: result.totalCarbs).intValue)g")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.green)
+                }
+
+                // Show raw response option
+                DisclosureGroup("View Full Analysis") {
+                    MarkdownView(text: result.rawResponse)
+                        .padding(.top, 8)
+                }
+                .font(.caption)
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func confidenceColor(_ confidence: CarbEstimateResult.ConfidenceLevel) -> Color {
+            switch confidence {
+            case .low: return .red
+            case .medium: return .orange
+            case .high: return .green
+            }
+        }
+    }
+
+    // MARK: - Image Picker
+
+    struct ImagePicker: UIViewControllerRepresentable {
+        @Binding var image: UIImage?
+        let sourceType: UIImagePickerController.SourceType
+        @Environment(\.dismiss) var dismiss
+
+        func makeUIViewController(context: Context) -> UIImagePickerController {
+            let picker = UIImagePickerController()
+            picker.sourceType = sourceType
+            picker.delegate = context.coordinator
+            return picker
+        }
+
+        func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+        func makeCoordinator() -> Coordinator {
+            Coordinator(self)
+        }
+
+        class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+            let parent: ImagePicker
+
+            init(_ parent: ImagePicker) {
+                self.parent = parent
+            }
+
+            func imagePickerController(
+                _ picker: UIImagePickerController,
+                didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
+            ) {
+                if let image = info[.originalImage] as? UIImage {
+                    parent.image = image
+                }
+                parent.dismiss()
+            }
+
+            func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+                parent.dismiss()
+            }
         }
     }
 
