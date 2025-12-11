@@ -1829,7 +1829,7 @@ extension AIInsightsConfig {
 
                 // Show raw response option
                 DisclosureGroup("View Full Analysis") {
-                    MarkdownView(text: result.rawResponse)
+                    RichMarkdownView(content: result.rawResponse)
                         .padding(.top, 8)
                 }
                 .font(.caption)

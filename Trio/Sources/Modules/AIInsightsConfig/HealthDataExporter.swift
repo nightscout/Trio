@@ -532,8 +532,10 @@ final class HealthDataExporter {
         case .doctorVisit(let settings):
             prompt = formatDoctorVisitPrompt(data, timeFormatter: timeFormatter, settings: settings)
 
-        case .whyHighLow(let settings):
-            prompt = formatWhyHighLowPrompt(data, timeFormatter: timeFormatter, settings: settings)
+        case .whyHighLow:
+            // Why High/Low uses a different data path via exportDataForHours() and formatWhyHighLowPrompt()
+            // This case should not be reached through generatePrompt()
+            prompt = "Error: whyHighLow should use exportDataForHours() instead"
         }
 
         return prompt
