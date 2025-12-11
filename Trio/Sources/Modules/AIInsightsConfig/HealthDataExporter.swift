@@ -536,6 +536,9 @@ final class HealthDataExporter {
             // Why High/Low uses a different data path via exportDataForHours() and formatWhyHighLowPrompt()
             // This case should not be reached through generatePrompt()
             prompt = "Error: whyHighLow should use exportDataForHours() instead"
+
+        case .claudeOTune(let settings):
+            prompt = formatClaudeOTunePrompt(data, settings: settings)
         }
 
         return prompt
@@ -1057,6 +1060,7 @@ final class HealthDataExporter {
         case chat
         case doctorVisit(settings: DoctorReportSettings)
         case whyHighLow(settings: WhyHighLowSettings)
+        case claudeOTune(settings: ClaudeOTuneAnalysisSettings)
     }
 
     struct QuickAnalysisSettings {
@@ -1094,6 +1098,18 @@ final class HealthDataExporter {
         var currentCOB: Int
         var isHigh: Bool // true = high, false = low
         var analysisHours: Int = 4
+        var customPrompt: String = ""
+    }
+
+    struct ClaudeOTuneAnalysisSettings {
+        var days: Int = 30
+        var includePatternAnalysis: Bool = true
+        var includeBasalRecommendations: Bool = true
+        var includeISFRecommendations: Bool = true
+        var includeCRRecommendations: Bool = true
+        var maxAdjustmentPercent: Double = 20.0
+        var autosensMax: Double = 1.2
+        var autosensMin: Double = 0.7
         var customPrompt: String = ""
     }
 
@@ -1243,5 +1259,214 @@ final class HealthDataExporter {
         }
 
         return prompt
+    }
+
+    // MARK: - Claude-o-Tune Profile Optimization
+
+    /// Format data for Claude-o-Tune profile optimization analysis
+    func formatClaudeOTunePrompt(_ data: ExportedData, settings: ClaudeOTuneAnalysisSettings) -> String {
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "MM/dd HH:mm"
+
+        var prompt = """
+        # CLAUDE-O-TUNE PROFILE OPTIMIZATION REQUEST
+
+        Generated: \(DateFormatter.localizedString(from: Date(), dateStyle: .full, timeStyle: .short))
+        Analysis Period: Last \(settings.days) days
+
+        ## SAFETY CONSTRAINTS
+        - Maximum adjustment per recommendation: \(String(format: "%.0f", settings.maxAdjustmentPercent))%
+        - Autosens Max (max sensitivity multiplier): \(String(format: "%.2f", settings.autosensMax))
+        - Autosens Min (min sensitivity multiplier): \(String(format: "%.2f", settings.autosensMin))
+
+        ---
+
+        ## ⚙️ CURRENT PROFILE SETTINGS
+
+        ### Units
+        • Glucose Units: \(data.settings.units)
+        • Target Range: \(data.settings.targetLow)-\(data.settings.targetHigh) \(data.settings.units)
+
+        ### Insulin Settings
+        • Duration of Insulin Action (DIA): \(data.settings.dia) hours
+        • Maximum IOB: \(data.settings.maxIOB) U
+        • Maximum Bolus: \(data.settings.maxBolus) U
+
+        """
+
+        // Add basal rates
+        if settings.includeBasalRecommendations {
+            prompt += """
+
+            ### Current Basal Rates (U/hr)
+            """
+            for entry in data.settings.basalSchedule {
+                prompt += "\n• \(entry.time): \(entry.rate) U/hr"
+            }
+            let totalBasal = data.settings.basalSchedule.reduce(Decimal(0)) { sum, entry in
+                // Approximate daily total assuming each rate applies until next change
+                sum + entry.rate
+            }
+            prompt += "\n• (Approximate daily basal if rates were constant: \(String(format: "%.2f", NSDecimalNumber(decimal: totalBasal).doubleValue)) U)"
+        }
+
+        // Add ISF schedule
+        if settings.includeISFRecommendations {
+            prompt += """
+
+            ### Current Insulin Sensitivity Factors (1U drops BG by X \(data.settings.units))
+            """
+            for entry in data.settings.isfSchedule {
+                prompt += "\n• \(entry.time): \(entry.sensitivity) \(data.settings.units)"
+            }
+        }
+
+        // Add CR schedule
+        if settings.includeCRRecommendations {
+            prompt += """
+
+            ### Current Carb Ratios (1U insulin per X grams)
+            """
+            for entry in data.settings.carbRatioSchedule {
+                prompt += "\n• \(entry.time): 1:\(entry.ratio)"
+            }
+        }
+
+        // Add target schedule
+        prompt += """
+
+        ### Target Glucose Ranges
+        """
+        for entry in data.settings.targetSchedule {
+            prompt += "\n• \(entry.time): \(entry.low)-\(entry.high) \(data.settings.units)"
+        }
+
+        // Add comprehensive statistics
+        prompt += """
+
+        ---
+
+        ## 📊 GLUCOSE STATISTICS (Last \(settings.days) Days)
+
+        ### Overview
+        • Average Glucose: \(data.statistics.averageGlucose) \(data.settings.units)
+        • Standard Deviation: \(String(format: "%.1f", data.statistics.standardDeviation)) \(data.settings.units)
+        • Coefficient of Variation (CV): \(String(format: "%.1f", data.statistics.coefficientOfVariation))%
+        • GMI (estimated A1C): \(String(format: "%.1f", data.statistics.gmi))%
+        • Range: \(data.statistics.minGlucose) - \(data.statistics.maxGlucose) \(data.settings.units)
+
+        ### Time in Range Breakdown
+        • Time in Range (\(data.settings.targetLow)-\(data.settings.targetHigh)): \(String(format: "%.1f", data.statistics.timeInRange))%
+        • Time Below Range (<\(data.settings.targetLow)): \(String(format: "%.1f", data.statistics.timeBelowRange))%
+        • Time Very Low (<54): \(String(format: "%.1f", data.statistics.timeVeryLow))%
+        • Time Above Range (>\(data.settings.targetHigh)): \(String(format: "%.1f", data.statistics.timeAboveRange))%
+        • Time Very High (>250): \(String(format: "%.1f", data.statistics.timeVeryHigh))%
+
+        ### Insulin & Carbs Summary
+        • Total Carbs: \(String(format: "%.0f", data.statistics.totalCarbs))g
+        • Total Bolus Insulin: \(data.statistics.totalBolus) U
+        • Total Basal Insulin (estimated): \(String(format: "%.1f", NSDecimalNumber(decimal: data.statistics.totalBasal).doubleValue)) U
+        • CGM Readings: \(data.statistics.readingCount)
+        • Days of Data: \(data.statistics.daysOfData)
+
+        """
+
+        // Add multi-timeframe statistics if available
+        if let multiStats = data.multiTimeframeStats {
+            prompt += """
+
+        ### Multi-Timeframe Comparison
+        """
+            prompt += formatMultiTimeframeForClaudeOTune(multiStats, units: data.settings.units)
+        }
+
+        // Add pattern analysis data
+        if settings.includePatternAnalysis {
+            prompt += """
+
+        ---
+
+        ## 📈 DETAILED GLUCOSE DATA FOR PATTERN ANALYSIS
+
+        ### Loop States (Every 15 minutes)
+        Format: DateTime | BG | IOB | COB | TempBasal | SMB
+        """
+            let hoursToShow = min(settings.days * 24, 168) // Cap at 7 days of detailed data
+            prompt += "\n\(formatLoopStatesCompact(data.loopStates, timeFormatter: timeFormatter, hours: hoursToShow, intervalMinutes: 15))"
+
+            prompt += """
+
+        ### Carb Entries
+        """
+            prompt += "\n\(formatCarbEntries(data.carbEntries, dateFormatter: timeFormatter))"
+
+            prompt += """
+
+        ### Bolus History
+        """
+            prompt += "\n\(formatBolusEvents(data.bolusEvents, dateFormatter: timeFormatter))"
+        }
+
+        // Add the analysis request
+        prompt += """
+
+        ---
+
+        ## 🤖 ANALYSIS REQUEST
+
+        """
+
+        if !settings.customPrompt.isEmpty {
+            prompt += settings.customPrompt
+        } else {
+            prompt += """
+        Please analyze my \(settings.days)-day diabetes data and provide profile optimization recommendations.
+
+        Focus on:
+        1. **Pattern Detection**: Identify recurring glucose patterns (dawn phenomenon, post-meal spikes, overnight trends)
+        2. **Basal Rate Analysis**: Are there times when basal rates are too high (causing lows) or too low (causing highs)?
+        3. **ISF Analysis**: Is my insulin sensitivity factor accurate throughout the day?
+        4. **Carb Ratio Analysis**: Do my carb ratios need adjustment for different meals/times?
+        5. **Safety Review**: Flag any concerning patterns (frequent hypos, severe highs)
+
+        IMPORTANT CONSTRAINTS:
+        - Keep all recommended changes within \(String(format: "%.0f", settings.maxAdjustmentPercent))% of current values
+        - Prioritize safety over optimization
+        - Recommend gradual changes, not aggressive adjustments
+        - This is ADVISORY only - I will review with my healthcare provider before making changes
+
+        Respond with a JSON object following the specified output format.
+        """
+        }
+
+        return prompt
+    }
+
+    private func formatMultiTimeframeForClaudeOTune(
+        _ stats: ExportedData.MultiTimeframeStatistics,
+        units: String
+    ) -> String {
+        var output = ""
+
+        let timeframes: [(String, ExportedData.MultiTimeframeStatistics.TimeframeStat?)] = [
+            ("1 Day", stats.day1),
+            ("3 Days", stats.day3),
+            ("7 Days", stats.day7),
+            ("14 Days", stats.day14),
+            ("30 Days", stats.day30),
+            ("90 Days", stats.day90)
+        ]
+
+        for (label, stat) in timeframes {
+            if let s = stat {
+                output += """
+
+        #### \(label)
+        • Avg: \(s.averageGlucose) \(units) | CV: \(String(format: "%.1f", s.coefficientOfVariation))% | TIR: \(String(format: "%.1f", s.timeInRange))% | TBR: \(String(format: "%.1f", s.timeBelowRange))% | TAR: \(String(format: "%.1f", s.timeAboveRange))%
+        """
+            }
+        }
+
+        return output
     }
 }

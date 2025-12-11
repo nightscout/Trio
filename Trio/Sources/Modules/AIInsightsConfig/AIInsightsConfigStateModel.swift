@@ -84,6 +84,14 @@ extension AIInsightsConfig {
         // Photo Carb Estimation Settings Keys
         static let photoCustomPromptKey = "AIInsightsConfig.photo.customPrompt"
         static let photoDefaultPortionKey = "AIInsightsConfig.photo.defaultPortion"
+        // Claude-o-Tune Settings Keys
+        static let cotTimePeriodKey = "AIInsightsConfig.cot.timePeriod"
+        static let cotIncludePatternAnalysisKey = "AIInsightsConfig.cot.includePatternAnalysis"
+        static let cotIncludeBasalRecommendationsKey = "AIInsightsConfig.cot.includeBasalRecommendations"
+        static let cotIncludeISFRecommendationsKey = "AIInsightsConfig.cot.includeISFRecommendations"
+        static let cotIncludeCRRecommendationsKey = "AIInsightsConfig.cot.includeCRRecommendations"
+        static let cotMaxAdjustmentPercentKey = "AIInsightsConfig.cot.maxAdjustmentPercent"
+        static let cotCustomPromptKey = "AIInsightsConfig.cot.customPrompt"
     }
 
     /// Default AI prompt for doctor visit report
@@ -156,6 +164,22 @@ Provide:
 4. **Notes**: Any assumptions made
 
 Be conservative when uncertain. Round to nearest 5g.
+"""
+
+    /// Default AI prompt for Claude-o-Tune profile optimization
+    static let defaultClaudeOTunePrompt = """
+Please analyze my diabetes data and provide profile optimization recommendations.
+
+Focus on:
+1. **Pattern Detection**: Identify recurring glucose patterns (dawn phenomenon, post-meal spikes, overnight trends)
+2. **Basal Rate Analysis**: Are there times when basal rates are too high (causing lows) or too low (causing highs)?
+3. **ISF Analysis**: Is my insulin sensitivity factor accurate throughout the day?
+4. **Carb Ratio Analysis**: Do my carb ratios need adjustment for different meals/times?
+5. **Safety Review**: Flag any concerning patterns (frequent hypos, severe highs)
+
+IMPORTANT: This is ADVISORY only - I will review all recommendations with my healthcare provider before making any changes.
+
+Respond with a JSON object following the Claude-o-Tune output format.
 """
 
     /// Analysis hours options for Why High/Low
@@ -312,6 +336,34 @@ Be conservative when uncertain. Round to nearest 5g.
         @Published var photoCustomPrompt: String = AIInsightsConfig.defaultPhotoCarbPrompt
         @Published var photoDefaultPortion: PortionSize = .standard
 
+        // Claude-o-Tune Profile Optimization
+        @Published var claudeOTuneResult: ClaudeOTuneRecommendation?
+        @Published var claudeOTuneRawResponse: String = ""
+        @Published var isRunningClaudeOTune = false
+        @Published var claudeOTuneError: String?
+        @Published var claudeOTunePDFData: Data?
+
+        // Claude-o-Tune Settings
+        @Published var cotTimePeriod: TimePeriod = .thirtyDays
+        @Published var cotIncludePatternAnalysis = true
+        @Published var cotIncludeBasalRecommendations = true
+        @Published var cotIncludeISFRecommendations = true
+        @Published var cotIncludeCRRecommendations = true
+        @Published var cotMaxAdjustmentPercent: Double = 20.0
+        @Published var cotCustomPrompt: String = AIInsightsConfig.defaultClaudeOTunePrompt
+
+        // Claude-o-Tune Apply State
+        @Published var cotSelectedBasalChanges: Set<Int> = []
+        @Published var cotSelectedISFChanges: Set<Int> = []
+        @Published var cotSelectedCRChanges: Set<Int> = []
+        @Published var isApplyingChanges = false
+        @Published var applyError: String?
+        @Published var applySuccess: String?
+        @Published var showApplyConfirmation = false
+        @Published var cotProfileBackups: [ClaudeOTuneProfileService.ProfileBackup] = []
+
+        private let profileService = ClaudeOTuneProfileService()
+
         // Settings for context
         @Published var units: GlucoseUnits = .mgdL
 
@@ -330,6 +382,7 @@ Be conservative when uncertain. Round to nearest 5g.
             loadQuickAnalysisSettings()
             loadWhyHighLowSettings()
             loadPhotoCarbSettings()
+            loadClaudeOTuneSettings()
 
             // Load saved reports
             loadSavedReports()
@@ -1070,6 +1123,261 @@ Be conservative when uncertain. Round to nearest 5g.
             carbEstimateError = nil
             selectedFoodImage = nil
             foodDescription = ""
+        }
+
+        // MARK: - Claude-o-Tune Profile Optimization
+
+        @MainActor
+        func runClaudeOTuneAnalysis() async {
+            guard isAPIKeyConfigured else {
+                claudeOTuneError = "Please configure your Claude API key first."
+                return
+            }
+
+            isRunningClaudeOTune = true
+            claudeOTuneError = nil
+            claudeOTuneResult = nil
+            claudeOTuneRawResponse = ""
+
+            do {
+                // Get current autosens limits from settings
+                let preferences = storage.retrieve(Preferences.self, atURL: Preferences.url)
+                let autosensMax = preferences?.autosensMax ?? 1.2
+                let autosensMin = preferences?.autosensMin ?? 0.7
+
+                // Export data for the configured time period
+                let data = try await exportData(days: cotTimePeriod.days)
+                let exporter = HealthDataExporter(context: coredataContext)
+
+                // Build Claude-o-Tune settings
+                let cotSettings = HealthDataExporter.ClaudeOTuneAnalysisSettings(
+                    days: cotTimePeriod.days,
+                    includePatternAnalysis: cotIncludePatternAnalysis,
+                    includeBasalRecommendations: cotIncludeBasalRecommendations,
+                    includeISFRecommendations: cotIncludeISFRecommendations,
+                    includeCRRecommendations: cotIncludeCRRecommendations,
+                    maxAdjustmentPercent: cotMaxAdjustmentPercent,
+                    autosensMax: NSDecimalNumber(decimal: autosensMax).doubleValue,
+                    autosensMin: NSDecimalNumber(decimal: autosensMin).doubleValue,
+                    customPrompt: cotCustomPrompt
+                )
+
+                // Format the prompt
+                let prompt = exporter.formatForPrompt(data, analysisType: .claudeOTune(settings: cotSettings))
+
+                // Call Claude API with the Claude-o-Tune system prompt
+                let result = try await claudeService.analyze(
+                    prompt: prompt,
+                    apiKey: apiKey,
+                    systemPrompt: ClaudeAPIService.claudeOTuneSystemPrompt
+                )
+
+                claudeOTuneRawResponse = result
+
+                // Try to parse the JSON response
+                if let recommendation = ClaudeOTuneRecommendation.parse(from: result) {
+                    claudeOTuneResult = recommendation
+                } else {
+                    // If parsing fails, still show the raw response
+                    claudeOTuneError = "Could not parse recommendations. Showing raw response."
+                }
+
+                // Generate PDF for saving
+                if let pdfData = generatePDF(
+                    from: result,
+                    title: "Claude-o-Tune Profile Analysis",
+                    timePeriod: cotTimePeriod.displayName
+                ) {
+                    claudeOTunePDFData = pdfData
+
+                    // Auto-save the report
+                    SavedReportsManager.shared.saveReport(
+                        type: .claudeOTune,
+                        content: result,
+                        timePeriod: cotTimePeriod.displayName,
+                        pdfData: pdfData
+                    )
+                    loadSavedReports()
+                }
+            } catch {
+                claudeOTuneError = error.localizedDescription
+            }
+
+            isRunningClaudeOTune = false
+        }
+
+        func clearClaudeOTuneResult() {
+            claudeOTuneResult = nil
+            claudeOTuneRawResponse = ""
+            claudeOTuneError = nil
+            claudeOTunePDFData = nil
+        }
+
+        // MARK: - Claude-o-Tune Settings
+
+        private func loadClaudeOTuneSettings() {
+            let defaults = UserDefaults.standard
+            let keys = defaults.dictionaryRepresentation().keys
+
+            // Load time period (default to 30 days)
+            if let savedPeriod = defaults.string(forKey: Config.cotTimePeriodKey),
+               let period = TimePeriod(rawValue: savedPeriod) {
+                cotTimePeriod = period
+            } else {
+                cotTimePeriod = .thirtyDays
+            }
+
+            // Load toggles with default true if not set
+            cotIncludePatternAnalysis = keys.contains(Config.cotIncludePatternAnalysisKey)
+                ? defaults.bool(forKey: Config.cotIncludePatternAnalysisKey) : true
+            cotIncludeBasalRecommendations = keys.contains(Config.cotIncludeBasalRecommendationsKey)
+                ? defaults.bool(forKey: Config.cotIncludeBasalRecommendationsKey) : true
+            cotIncludeISFRecommendations = keys.contains(Config.cotIncludeISFRecommendationsKey)
+                ? defaults.bool(forKey: Config.cotIncludeISFRecommendationsKey) : true
+            cotIncludeCRRecommendations = keys.contains(Config.cotIncludeCRRecommendationsKey)
+                ? defaults.bool(forKey: Config.cotIncludeCRRecommendationsKey) : true
+
+            // Load max adjustment percent (default 20%)
+            if keys.contains(Config.cotMaxAdjustmentPercentKey) {
+                cotMaxAdjustmentPercent = defaults.double(forKey: Config.cotMaxAdjustmentPercentKey)
+            } else {
+                cotMaxAdjustmentPercent = 20.0
+            }
+
+            // Load custom prompt
+            if let savedPrompt = defaults.string(forKey: Config.cotCustomPromptKey), !savedPrompt.isEmpty {
+                cotCustomPrompt = savedPrompt
+            } else {
+                cotCustomPrompt = AIInsightsConfig.defaultClaudeOTunePrompt
+            }
+        }
+
+        func saveClaudeOTuneSettings() {
+            let defaults = UserDefaults.standard
+            defaults.set(cotTimePeriod.rawValue, forKey: Config.cotTimePeriodKey)
+            defaults.set(cotIncludePatternAnalysis, forKey: Config.cotIncludePatternAnalysisKey)
+            defaults.set(cotIncludeBasalRecommendations, forKey: Config.cotIncludeBasalRecommendationsKey)
+            defaults.set(cotIncludeISFRecommendations, forKey: Config.cotIncludeISFRecommendationsKey)
+            defaults.set(cotIncludeCRRecommendations, forKey: Config.cotIncludeCRRecommendationsKey)
+            defaults.set(cotMaxAdjustmentPercent, forKey: Config.cotMaxAdjustmentPercentKey)
+            defaults.set(cotCustomPrompt, forKey: Config.cotCustomPromptKey)
+        }
+
+        func resetClaudeOTunePrompt() {
+            cotCustomPrompt = AIInsightsConfig.defaultClaudeOTunePrompt
+            saveClaudeOTuneSettings()
+        }
+
+        // MARK: - Claude-o-Tune Apply Recommendations
+
+        /// Load profile backups
+        func loadProfileBackups() {
+            cotProfileBackups = profileService.getBackups()
+        }
+
+        /// Select all changes of a specific type
+        func selectAllBasalChanges() {
+            guard let result = claudeOTuneResult else { return }
+            cotSelectedBasalChanges = Set(result.recommendedProfile.basalRates.indices.filter {
+                result.recommendedProfile.basalRates[$0].change != 0
+            })
+        }
+
+        func selectAllISFChanges() {
+            guard let result = claudeOTuneResult else { return }
+            cotSelectedISFChanges = Set(result.recommendedProfile.isfValues.indices.filter {
+                result.recommendedProfile.isfValues[$0].change != 0
+            })
+        }
+
+        func selectAllCRChanges() {
+            guard let result = claudeOTuneResult else { return }
+            cotSelectedCRChanges = Set(result.recommendedProfile.crValues.indices.filter {
+                result.recommendedProfile.crValues[$0].change != 0
+            })
+        }
+
+        /// Clear all selections
+        func clearAllSelections() {
+            cotSelectedBasalChanges.removeAll()
+            cotSelectedISFChanges.removeAll()
+            cotSelectedCRChanges.removeAll()
+        }
+
+        /// Check if any changes are selected
+        var hasSelectedChanges: Bool {
+            !cotSelectedBasalChanges.isEmpty || !cotSelectedISFChanges.isEmpty || !cotSelectedCRChanges.isEmpty
+        }
+
+        /// Total number of selected changes
+        var selectedChangesCount: Int {
+            cotSelectedBasalChanges.count + cotSelectedISFChanges.count + cotSelectedCRChanges.count
+        }
+
+        /// Apply selected recommendations
+        @MainActor
+        func applySelectedRecommendations() async {
+            guard let recommendation = claudeOTuneResult else {
+                applyError = "No recommendations to apply"
+                return
+            }
+
+            guard hasSelectedChanges else {
+                applyError = "Please select at least one change to apply"
+                return
+            }
+
+            isApplyingChanges = true
+            applyError = nil
+            applySuccess = nil
+
+            do {
+                let result = try await profileService.applyRecommendations(
+                    recommendation: recommendation,
+                    selectedBasalChanges: cotSelectedBasalChanges,
+                    selectedISFChanges: cotSelectedISFChanges,
+                    selectedCRChanges: cotSelectedCRChanges
+                )
+
+                if result.success {
+                    applySuccess = "Successfully applied: \(result.appliedChanges.joined(separator: ", "))"
+                    clearAllSelections()
+                    loadProfileBackups()
+                } else {
+                    applyError = result.error
+                    if !result.appliedChanges.isEmpty {
+                        applySuccess = "Partially applied: \(result.appliedChanges.joined(separator: ", "))"
+                    }
+                }
+            } catch {
+                applyError = error.localizedDescription
+            }
+
+            isApplyingChanges = false
+        }
+
+        /// Restore profile from a backup
+        @MainActor
+        func restoreFromBackup(_ backup: ClaudeOTuneProfileService.ProfileBackup) async {
+            isApplyingChanges = true
+            applyError = nil
+            applySuccess = nil
+
+            do {
+                try await profileService.restoreFromBackup(backup)
+                applySuccess = "Profile restored from backup (\(backup.formattedDate))"
+                loadProfileBackups()
+            } catch {
+                applyError = "Restore failed: \(error.localizedDescription)"
+            }
+
+            isApplyingChanges = false
+        }
+
+        /// Delete a specific backup
+        func deleteBackup(_ backup: ClaudeOTuneProfileService.ProfileBackup) {
+            profileService.deleteBackup(backup)
+            loadProfileBackups()
         }
 
         // MARK: - Weekly Report
