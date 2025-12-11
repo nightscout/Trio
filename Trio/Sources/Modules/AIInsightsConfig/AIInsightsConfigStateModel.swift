@@ -1141,7 +1141,7 @@ Respond with a JSON object following the Claude-o-Tune output format.
 
             do {
                 // Get current autosens limits from settings
-                let preferences = storage.retrieve(Preferences.self, atURL: Preferences.url)
+                let preferences = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
                 let autosensMax = preferences?.autosensMax ?? 1.2
                 let autosensMin = preferences?.autosensMin ?? 0.7
 
