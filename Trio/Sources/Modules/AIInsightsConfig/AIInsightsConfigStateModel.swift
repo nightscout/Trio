@@ -352,6 +352,18 @@ Respond with a JSON object following the Claude-o-Tune output format.
         @Published var cotMaxAdjustmentPercent: Double = 20.0
         @Published var cotCustomPrompt: String = AIInsightsConfig.defaultClaudeOTunePrompt
 
+        // Claude-o-Tune Apply State
+        @Published var cotSelectedBasalChanges: Set<Int> = []
+        @Published var cotSelectedISFChanges: Set<Int> = []
+        @Published var cotSelectedCRChanges: Set<Int> = []
+        @Published var isApplyingChanges = false
+        @Published var applyError: String?
+        @Published var applySuccess: String?
+        @Published var showApplyConfirmation = false
+        @Published var cotProfileBackups: [ClaudeOTuneProfileService.ProfileBackup] = []
+
+        private let profileService = ClaudeOTuneProfileService()
+
         // Settings for context
         @Published var units: GlucoseUnits = .mgdL
 
@@ -1232,6 +1244,118 @@ Respond with a JSON object following the Claude-o-Tune output format.
         func resetClaudeOTunePrompt() {
             cotCustomPrompt = AIInsightsConfig.defaultClaudeOTunePrompt
             saveClaudeOTuneSettings()
+        }
+
+        // MARK: - Claude-o-Tune Apply Recommendations
+
+        /// Load profile backups
+        func loadProfileBackups() {
+            cotProfileBackups = profileService.getBackups()
+        }
+
+        /// Select all changes of a specific type
+        func selectAllBasalChanges() {
+            guard let result = claudeOTuneResult else { return }
+            cotSelectedBasalChanges = Set(result.recommendedProfile.basalRates.indices.filter {
+                result.recommendedProfile.basalRates[$0].change != 0
+            })
+        }
+
+        func selectAllISFChanges() {
+            guard let result = claudeOTuneResult else { return }
+            cotSelectedISFChanges = Set(result.recommendedProfile.isfValues.indices.filter {
+                result.recommendedProfile.isfValues[$0].change != 0
+            })
+        }
+
+        func selectAllCRChanges() {
+            guard let result = claudeOTuneResult else { return }
+            cotSelectedCRChanges = Set(result.recommendedProfile.crValues.indices.filter {
+                result.recommendedProfile.crValues[$0].change != 0
+            })
+        }
+
+        /// Clear all selections
+        func clearAllSelections() {
+            cotSelectedBasalChanges.removeAll()
+            cotSelectedISFChanges.removeAll()
+            cotSelectedCRChanges.removeAll()
+        }
+
+        /// Check if any changes are selected
+        var hasSelectedChanges: Bool {
+            !cotSelectedBasalChanges.isEmpty || !cotSelectedISFChanges.isEmpty || !cotSelectedCRChanges.isEmpty
+        }
+
+        /// Total number of selected changes
+        var selectedChangesCount: Int {
+            cotSelectedBasalChanges.count + cotSelectedISFChanges.count + cotSelectedCRChanges.count
+        }
+
+        /// Apply selected recommendations
+        @MainActor
+        func applySelectedRecommendations() async {
+            guard let recommendation = claudeOTuneResult else {
+                applyError = "No recommendations to apply"
+                return
+            }
+
+            guard hasSelectedChanges else {
+                applyError = "Please select at least one change to apply"
+                return
+            }
+
+            isApplyingChanges = true
+            applyError = nil
+            applySuccess = nil
+
+            do {
+                let result = try await profileService.applyRecommendations(
+                    recommendation: recommendation,
+                    selectedBasalChanges: cotSelectedBasalChanges,
+                    selectedISFChanges: cotSelectedISFChanges,
+                    selectedCRChanges: cotSelectedCRChanges
+                )
+
+                if result.success {
+                    applySuccess = "Successfully applied: \(result.appliedChanges.joined(separator: ", "))"
+                    clearAllSelections()
+                    loadProfileBackups()
+                } else {
+                    applyError = result.error
+                    if !result.appliedChanges.isEmpty {
+                        applySuccess = "Partially applied: \(result.appliedChanges.joined(separator: ", "))"
+                    }
+                }
+            } catch {
+                applyError = error.localizedDescription
+            }
+
+            isApplyingChanges = false
+        }
+
+        /// Restore profile from a backup
+        @MainActor
+        func restoreFromBackup(_ backup: ClaudeOTuneProfileService.ProfileBackup) async {
+            isApplyingChanges = true
+            applyError = nil
+            applySuccess = nil
+
+            do {
+                try await profileService.restoreFromBackup(backup)
+                applySuccess = "Profile restored from backup (\(backup.formattedDate))"
+                loadProfileBackups()
+            } catch {
+                applyError = "Restore failed: \(error.localizedDescription)"
+            }
+
+            isApplyingChanges = false
+        }
+
+        /// Delete a specific backup
+        func deleteBackup(_ backup: ClaudeOTuneProfileService.ProfileBackup) {
+            profileService.deleteBackup(backup)
+            loadProfileBackups()
         }
 
         // MARK: - Weekly Report
