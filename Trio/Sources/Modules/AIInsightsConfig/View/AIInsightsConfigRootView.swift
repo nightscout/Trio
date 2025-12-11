@@ -126,6 +126,22 @@ extension AIInsightsConfig {
                             }
                         }
                     }
+
+                    NavigationLink(destination: WhyHighLowSettingsView(state: state)) {
+                        HStack {
+                            Image(systemName: "exclamationmark.bubble.fill")
+                                .foregroundColor(.red)
+                            Text("Why High/Low Settings")
+                        }
+                    }
+
+                    NavigationLink(destination: PhotoCarbSettingsView(state: state)) {
+                        HStack {
+                            Image(systemName: "camera.fill")
+                                .foregroundColor(.mint)
+                            Text("Photo Carb Settings")
+                        }
+                    }
                 }
                 .listRowBackground(Color.chart)
             }
@@ -984,6 +1000,169 @@ extension AIInsightsConfig {
                 Button("Cancel", role: .cancel) {}
                 Button("Reset", role: .destructive) {
                     state.resetDoctorReportPrompt()
+                }
+            } message: {
+                Text("This will reset the AI prompt to the default. Your custom prompt will be lost.")
+            }
+        }
+    }
+
+    // MARK: - Why High/Low Settings View
+
+    struct WhyHighLowSettingsView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+        @State private var showResetPromptAlert = false
+
+        private var thresholdFormatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.maximumFractionDigits = state.units == .mmolL ? 1 : 0
+            return formatter
+        }
+
+        var body: some View {
+            Form {
+                Section(
+                    header: Text("Glucose Thresholds"),
+                    footer: Text("Set the glucose levels that trigger the \"Why High\" or \"Why Low\" analysis banner on the home screen.")
+                ) {
+                    HStack {
+                        Text("High Threshold")
+                        Spacer()
+                        TextField(
+                            "180",
+                            value: $state.whlHighThreshold,
+                            formatter: thresholdFormatter
+                        )
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
+                        .onChange(of: state.whlHighThreshold) { _, _ in state.saveWhyHighLowSettings() }
+                        Text(state.units.rawValue)
+                            .foregroundColor(.secondary)
+                    }
+
+                    HStack {
+                        Text("Low Threshold")
+                        Spacer()
+                        TextField(
+                            "70",
+                            value: $state.whlLowThreshold,
+                            formatter: thresholdFormatter
+                        )
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
+                        .onChange(of: state.whlLowThreshold) { _, _ in state.saveWhyHighLowSettings() }
+                        Text(state.units.rawValue)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("Analysis Period"),
+                    footer: Text("How far back to look when analyzing why your glucose is out of range. Shorter periods focus on recent events.")
+                ) {
+                    Picker("Look Back", selection: $state.whlAnalysisHours) {
+                        ForEach(AnalysisHours.allCases) { hours in
+                            Text(hours.displayName).tag(hours)
+                        }
+                    }
+                    .onChange(of: state.whlAnalysisHours) { _, _ in state.saveWhyHighLowSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("AI Prompt"),
+                    footer: Text("Customize the instructions sent to Claude when analyzing why your glucose is out of range.")
+                ) {
+                    TextEditor(text: $state.whlCustomPrompt)
+                        .frame(minHeight: 150)
+                        .font(.system(.body, design: .monospaced))
+                        .onChange(of: state.whlCustomPrompt) { _, _ in state.saveWhyHighLowSettings() }
+
+                    Button(action: {
+                        showResetPromptAlert = true
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Reset to Default Prompt")
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+                .listRowBackground(Color.chart)
+            }
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Why High/Low Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .alert("Reset Prompt?", isPresented: $showResetPromptAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Reset", role: .destructive) {
+                    state.resetWhyHighLowPrompt()
+                }
+            } message: {
+                Text("This will reset the AI prompt to the default. Your custom prompt will be lost.")
+            }
+        }
+    }
+
+    // MARK: - Photo Carb Settings View
+
+    struct PhotoCarbSettingsView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+        @State private var showResetPromptAlert = false
+
+        var body: some View {
+            Form {
+                Section(
+                    header: Text("Portion Size"),
+                    footer: Text("Default assumption for portion sizes when not specified in the photo description.")
+                ) {
+                    Picker("Default Portion", selection: $state.photoDefaultPortion) {
+                        ForEach(PortionSize.allCases) { size in
+                            Text(size.displayName).tag(size)
+                        }
+                    }
+                    .onChange(of: state.photoDefaultPortion) { _, _ in state.savePhotoCarbSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("AI Prompt"),
+                    footer: Text("Customize the instructions sent to Claude when estimating carbs from food photos.")
+                ) {
+                    TextEditor(text: $state.photoCustomPrompt)
+                        .frame(minHeight: 200)
+                        .font(.system(.body, design: .monospaced))
+                        .onChange(of: state.photoCustomPrompt) { _, _ in state.savePhotoCarbSettings() }
+
+                    Button(action: {
+                        showResetPromptAlert = true
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Reset to Default Prompt")
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+                .listRowBackground(Color.chart)
+            }
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Photo Carb Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .alert("Reset Prompt?", isPresented: $showResetPromptAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Reset", role: .destructive) {
+                    state.resetPhotoCarbPrompt()
                 }
             } message: {
                 Text("This will reset the AI prompt to the default. Your custom prompt will be lost.")

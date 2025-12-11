@@ -65,6 +65,14 @@ extension AIInsightsConfig {
         static let qaShowCarbEntriesKey = "AIInsightsConfig.qa.showCarbEntries"
         static let qaShowBolusHistoryKey = "AIInsightsConfig.qa.showBolusHistory"
         static let qaCustomPromptKey = "AIInsightsConfig.qa.customPrompt"
+        // Why High/Low Settings Keys
+        static let whlHighThresholdKey = "AIInsightsConfig.whl.highThreshold"
+        static let whlLowThresholdKey = "AIInsightsConfig.whl.lowThreshold"
+        static let whlAnalysisHoursKey = "AIInsightsConfig.whl.analysisHours"
+        static let whlCustomPromptKey = "AIInsightsConfig.whl.customPrompt"
+        // Photo Carb Estimation Settings Keys
+        static let photoCustomPromptKey = "AIInsightsConfig.photo.customPrompt"
+        static let photoDefaultPortionKey = "AIInsightsConfig.photo.defaultPortion"
     }
 
     /// Default AI prompt for doctor visit report
@@ -112,6 +120,88 @@ Please provide a quick analysis using these sections:
 ⚠️ **Concerns** - Any issues needing attention
 💡 **Quick Tip** - One actionable suggestion
 """
+
+    /// Default AI prompt for Why High/Low analysis
+    static let defaultWhyHighLowPrompt = """
+Please analyze why my blood glucose is currently out of range.
+
+Provide:
+1. **Probable Cause**: The most likely reason (be specific about timing and amounts)
+2. **Contributing Factors**: Any secondary factors
+3. **Suggestion**: A conservative recommendation if appropriate
+
+Keep the response concise and actionable. Focus on the most likely explanation.
+"""
+
+    /// Default AI prompt for photo carb estimation
+    static let defaultPhotoCarbPrompt = """
+Analyze this food photo and estimate the carbohydrate content.
+
+Provide:
+1. **Itemized Breakdown**: List each food item with estimated carbs
+   - Format: "Food item (portion): ~Xg"
+2. **Total Estimate**: Sum of all items (single number, not a range)
+3. **Confidence Level**: Low / Medium / High
+4. **Notes**: Any assumptions made
+
+Be conservative when uncertain. Round to nearest 5g.
+"""
+
+    /// Analysis hours options for Why High/Low
+    enum AnalysisHours: Int, CaseIterable, Identifiable {
+        case two = 2
+        case four = 4
+        case six = 6
+
+        var id: Int { rawValue }
+
+        var displayName: String {
+            "\(rawValue) Hours"
+        }
+    }
+
+    /// Portion size options for photo carb estimation
+    enum PortionSize: String, CaseIterable, Identifiable {
+        case small
+        case standard
+        case large
+
+        var id: String { rawValue }
+
+        var displayName: String {
+            rawValue.capitalized
+        }
+    }
+
+    /// Result from photo carb estimation
+    struct CarbEstimateResult {
+        let items: [CarbItem]
+        let totalCarbs: Decimal
+        let confidence: ConfidenceLevel
+        let notes: String?
+        let rawResponse: String
+
+        struct CarbItem: Identifiable {
+            let id = UUID()
+            let name: String
+            let portion: String
+            let carbs: Decimal
+        }
+
+        enum ConfidenceLevel: String {
+            case low = "Low"
+            case medium = "Medium"
+            case high = "High"
+
+            var color: String {
+                switch self {
+                case .low: return "red"
+                case .medium: return "orange"
+                case .high: return "green"
+                }
+            }
+        }
+    }
 
     struct ChatMessage: Identifiable, Equatable {
         let id = UUID()
@@ -188,6 +278,29 @@ Please provide a quick analysis using these sections:
         @Published var drShowBolusHistory = true
         @Published var drCustomPrompt: String = AIInsightsConfig.defaultDoctorReportPrompt
 
+        // Why High/Low Analysis
+        @Published var whyHighLowResult = ""
+        @Published var isAnalyzingWhyHighLow = false
+        @Published var whyHighLowError: String?
+        @Published var whyHighLowPDFData: Data?
+
+        // Why High/Low Settings
+        @Published var whlHighThreshold: Decimal = 180
+        @Published var whlLowThreshold: Decimal = 70
+        @Published var whlAnalysisHours: AnalysisHours = .four
+        @Published var whlCustomPrompt: String = AIInsightsConfig.defaultWhyHighLowPrompt
+
+        // Photo Carb Estimation
+        @Published var carbEstimateResult: CarbEstimateResult?
+        @Published var isEstimatingCarbs = false
+        @Published var carbEstimateError: String?
+        @Published var selectedFoodImage: UIImage?
+        @Published var foodDescription: String = ""
+
+        // Photo Carb Settings
+        @Published var photoCustomPrompt: String = AIInsightsConfig.defaultPhotoCarbPrompt
+        @Published var photoDefaultPortion: PortionSize = .standard
+
         // Settings for context
         @Published var units: GlucoseUnits = .mgdL
 
@@ -204,6 +317,8 @@ Please provide a quick analysis using these sections:
             // Load settings
             loadDoctorReportSettings()
             loadQuickAnalysisSettings()
+            loadWhyHighLowSettings()
+            loadPhotoCarbSettings()
 
             // Load saved reports
             loadSavedReports()
@@ -318,6 +433,81 @@ Please provide a quick analysis using these sections:
         func resetQuickAnalysisPrompt() {
             qaCustomPrompt = AIInsightsConfig.defaultQuickAnalysisPrompt
             UserDefaults.standard.set(qaCustomPrompt, forKey: Config.qaCustomPromptKey)
+        }
+
+        private func loadWhyHighLowSettings() {
+            let defaults = UserDefaults.standard
+
+            // Load thresholds (default: 180 high, 70 low)
+            if let highThreshold = defaults.object(forKey: Config.whlHighThresholdKey) as? Double {
+                whlHighThreshold = Decimal(highThreshold)
+            } else {
+                whlHighThreshold = 180
+            }
+
+            if let lowThreshold = defaults.object(forKey: Config.whlLowThresholdKey) as? Double {
+                whlLowThreshold = Decimal(lowThreshold)
+            } else {
+                whlLowThreshold = 70
+            }
+
+            // Load analysis hours (default: 4 hours)
+            if let hours = defaults.object(forKey: Config.whlAnalysisHoursKey) as? Int,
+               let analysisHours = AnalysisHours(rawValue: hours) {
+                whlAnalysisHours = analysisHours
+            } else {
+                whlAnalysisHours = .four
+            }
+
+            // Load custom prompt
+            if let savedPrompt = defaults.string(forKey: Config.whlCustomPromptKey), !savedPrompt.isEmpty {
+                whlCustomPrompt = savedPrompt
+            } else {
+                whlCustomPrompt = AIInsightsConfig.defaultWhyHighLowPrompt
+            }
+        }
+
+        func saveWhyHighLowSettings() {
+            let defaults = UserDefaults.standard
+            defaults.set(Double(truncating: whlHighThreshold as NSNumber), forKey: Config.whlHighThresholdKey)
+            defaults.set(Double(truncating: whlLowThreshold as NSNumber), forKey: Config.whlLowThresholdKey)
+            defaults.set(whlAnalysisHours.rawValue, forKey: Config.whlAnalysisHoursKey)
+            defaults.set(whlCustomPrompt, forKey: Config.whlCustomPromptKey)
+        }
+
+        func resetWhyHighLowPrompt() {
+            whlCustomPrompt = AIInsightsConfig.defaultWhyHighLowPrompt
+            UserDefaults.standard.set(whlCustomPrompt, forKey: Config.whlCustomPromptKey)
+        }
+
+        private func loadPhotoCarbSettings() {
+            let defaults = UserDefaults.standard
+
+            // Load custom prompt
+            if let savedPrompt = defaults.string(forKey: Config.photoCustomPromptKey), !savedPrompt.isEmpty {
+                photoCustomPrompt = savedPrompt
+            } else {
+                photoCustomPrompt = AIInsightsConfig.defaultPhotoCarbPrompt
+            }
+
+            // Load default portion size
+            if let savedPortion = defaults.string(forKey: Config.photoDefaultPortionKey),
+               let portion = PortionSize(rawValue: savedPortion) {
+                photoDefaultPortion = portion
+            } else {
+                photoDefaultPortion = .standard
+            }
+        }
+
+        func savePhotoCarbSettings() {
+            let defaults = UserDefaults.standard
+            defaults.set(photoCustomPrompt, forKey: Config.photoCustomPromptKey)
+            defaults.set(photoDefaultPortion.rawValue, forKey: Config.photoDefaultPortionKey)
+        }
+
+        func resetPhotoCarbPrompt() {
+            photoCustomPrompt = AIInsightsConfig.defaultPhotoCarbPrompt
+            UserDefaults.standard.set(photoCustomPrompt, forKey: Config.photoCustomPromptKey)
         }
 
         // MARK: - API Key Management
