@@ -41,6 +41,17 @@ extension AIInsightsConfig {
 
     enum Config {
         static let apiKeyKey = "AIInsightsConfig.claudeAPIKey"
+
+        /// Check if API key is configured without needing dependency injection
+        static var isAPIKeyConfigured: Bool {
+            let keychain = BaseKeychain()
+            if case let .success(value) = keychain.getValue(String.self, forKey: apiKeyKey),
+               let key = value, !key.isEmpty {
+                return true
+            }
+            return false
+        }
+
         // Doctor Report Settings Keys
         static let drTimePeriodKey = "AIInsightsConfig.dr.timePeriod"
         static let drShowCarbRatiosKey = "AIInsightsConfig.dr.showCarbRatios"
@@ -65,6 +76,14 @@ extension AIInsightsConfig {
         static let qaShowCarbEntriesKey = "AIInsightsConfig.qa.showCarbEntries"
         static let qaShowBolusHistoryKey = "AIInsightsConfig.qa.showBolusHistory"
         static let qaCustomPromptKey = "AIInsightsConfig.qa.customPrompt"
+        // Why High/Low Settings Keys
+        static let whlHighThresholdKey = "AIInsightsConfig.whl.highThreshold"
+        static let whlLowThresholdKey = "AIInsightsConfig.whl.lowThreshold"
+        static let whlAnalysisHoursKey = "AIInsightsConfig.whl.analysisHours"
+        static let whlCustomPromptKey = "AIInsightsConfig.whl.customPrompt"
+        // Photo Carb Estimation Settings Keys
+        static let photoCustomPromptKey = "AIInsightsConfig.photo.customPrompt"
+        static let photoDefaultPortionKey = "AIInsightsConfig.photo.defaultPortion"
     }
 
     /// Default AI prompt for doctor visit report
@@ -112,6 +131,88 @@ Please provide a quick analysis using these sections:
 ⚠️ **Concerns** - Any issues needing attention
 💡 **Quick Tip** - One actionable suggestion
 """
+
+    /// Default AI prompt for Why High/Low analysis
+    static let defaultWhyHighLowPrompt = """
+Please analyze why my blood glucose is currently out of range.
+
+Provide:
+1. **Probable Cause**: The most likely reason (be specific about timing and amounts)
+2. **Contributing Factors**: Any secondary factors
+3. **Suggestion**: A conservative recommendation if appropriate
+
+Keep the response concise and actionable. Focus on the most likely explanation.
+"""
+
+    /// Default AI prompt for photo carb estimation
+    static let defaultPhotoCarbPrompt = """
+Analyze this food photo and estimate the carbohydrate content.
+
+Provide:
+1. **Itemized Breakdown**: List each food item with estimated carbs
+   - Format: "Food item (portion): ~Xg"
+2. **Total Estimate**: Sum of all items (single number, not a range)
+3. **Confidence Level**: Low / Medium / High
+4. **Notes**: Any assumptions made
+
+Be conservative when uncertain. Round to nearest 5g.
+"""
+
+    /// Analysis hours options for Why High/Low
+    enum AnalysisHours: Int, CaseIterable, Identifiable {
+        case two = 2
+        case four = 4
+        case six = 6
+
+        var id: Int { rawValue }
+
+        var displayName: String {
+            "\(rawValue) Hours"
+        }
+    }
+
+    /// Portion size options for photo carb estimation
+    enum PortionSize: String, CaseIterable, Identifiable {
+        case small
+        case standard
+        case large
+
+        var id: String { rawValue }
+
+        var displayName: String {
+            rawValue.capitalized
+        }
+    }
+
+    /// Result from photo carb estimation
+    struct CarbEstimateResult {
+        let items: [CarbItem]
+        let totalCarbs: Decimal
+        let confidence: ConfidenceLevel
+        let notes: String?
+        let rawResponse: String
+
+        struct CarbItem: Identifiable {
+            let id = UUID()
+            let name: String
+            let portion: String
+            let carbs: Decimal
+        }
+
+        enum ConfidenceLevel: String {
+            case low = "Low"
+            case medium = "Medium"
+            case high = "High"
+
+            var color: String {
+                switch self {
+                case .low: return "red"
+                case .medium: return "orange"
+                case .high: return "green"
+                }
+            }
+        }
+    }
 
     struct ChatMessage: Identifiable, Equatable {
         let id = UUID()
@@ -188,6 +289,29 @@ Please provide a quick analysis using these sections:
         @Published var drShowBolusHistory = true
         @Published var drCustomPrompt: String = AIInsightsConfig.defaultDoctorReportPrompt
 
+        // Why High/Low Analysis
+        @Published var whyHighLowResult = ""
+        @Published var isAnalyzingWhyHighLow = false
+        @Published var whyHighLowError: String?
+        @Published var whyHighLowPDFData: Data?
+
+        // Why High/Low Settings
+        @Published var whlHighThreshold: Decimal = 180
+        @Published var whlLowThreshold: Decimal = 70
+        @Published var whlAnalysisHours: AnalysisHours = .four
+        @Published var whlCustomPrompt: String = AIInsightsConfig.defaultWhyHighLowPrompt
+
+        // Photo Carb Estimation
+        @Published var carbEstimateResult: CarbEstimateResult?
+        @Published var isEstimatingCarbs = false
+        @Published var carbEstimateError: String?
+        @Published var selectedFoodImage: UIImage?
+        @Published var foodDescription: String = ""
+
+        // Photo Carb Settings
+        @Published var photoCustomPrompt: String = AIInsightsConfig.defaultPhotoCarbPrompt
+        @Published var photoDefaultPortion: PortionSize = .standard
+
         // Settings for context
         @Published var units: GlucoseUnits = .mgdL
 
@@ -204,6 +328,8 @@ Please provide a quick analysis using these sections:
             // Load settings
             loadDoctorReportSettings()
             loadQuickAnalysisSettings()
+            loadWhyHighLowSettings()
+            loadPhotoCarbSettings()
 
             // Load saved reports
             loadSavedReports()
@@ -318,6 +444,81 @@ Please provide a quick analysis using these sections:
         func resetQuickAnalysisPrompt() {
             qaCustomPrompt = AIInsightsConfig.defaultQuickAnalysisPrompt
             UserDefaults.standard.set(qaCustomPrompt, forKey: Config.qaCustomPromptKey)
+        }
+
+        private func loadWhyHighLowSettings() {
+            let defaults = UserDefaults.standard
+
+            // Load thresholds (default: 180 high, 70 low)
+            if let highThreshold = defaults.object(forKey: Config.whlHighThresholdKey) as? Double {
+                whlHighThreshold = Decimal(highThreshold)
+            } else {
+                whlHighThreshold = 180
+            }
+
+            if let lowThreshold = defaults.object(forKey: Config.whlLowThresholdKey) as? Double {
+                whlLowThreshold = Decimal(lowThreshold)
+            } else {
+                whlLowThreshold = 70
+            }
+
+            // Load analysis hours (default: 4 hours)
+            if let hours = defaults.object(forKey: Config.whlAnalysisHoursKey) as? Int,
+               let analysisHours = AnalysisHours(rawValue: hours) {
+                whlAnalysisHours = analysisHours
+            } else {
+                whlAnalysisHours = .four
+            }
+
+            // Load custom prompt
+            if let savedPrompt = defaults.string(forKey: Config.whlCustomPromptKey), !savedPrompt.isEmpty {
+                whlCustomPrompt = savedPrompt
+            } else {
+                whlCustomPrompt = AIInsightsConfig.defaultWhyHighLowPrompt
+            }
+        }
+
+        func saveWhyHighLowSettings() {
+            let defaults = UserDefaults.standard
+            defaults.set(Double(truncating: whlHighThreshold as NSNumber), forKey: Config.whlHighThresholdKey)
+            defaults.set(Double(truncating: whlLowThreshold as NSNumber), forKey: Config.whlLowThresholdKey)
+            defaults.set(whlAnalysisHours.rawValue, forKey: Config.whlAnalysisHoursKey)
+            defaults.set(whlCustomPrompt, forKey: Config.whlCustomPromptKey)
+        }
+
+        func resetWhyHighLowPrompt() {
+            whlCustomPrompt = AIInsightsConfig.defaultWhyHighLowPrompt
+            UserDefaults.standard.set(whlCustomPrompt, forKey: Config.whlCustomPromptKey)
+        }
+
+        private func loadPhotoCarbSettings() {
+            let defaults = UserDefaults.standard
+
+            // Load custom prompt
+            if let savedPrompt = defaults.string(forKey: Config.photoCustomPromptKey), !savedPrompt.isEmpty {
+                photoCustomPrompt = savedPrompt
+            } else {
+                photoCustomPrompt = AIInsightsConfig.defaultPhotoCarbPrompt
+            }
+
+            // Load default portion size
+            if let savedPortion = defaults.string(forKey: Config.photoDefaultPortionKey),
+               let portion = PortionSize(rawValue: savedPortion) {
+                photoDefaultPortion = portion
+            } else {
+                photoDefaultPortion = .standard
+            }
+        }
+
+        func savePhotoCarbSettings() {
+            let defaults = UserDefaults.standard
+            defaults.set(photoCustomPrompt, forKey: Config.photoCustomPromptKey)
+            defaults.set(photoDefaultPortion.rawValue, forKey: Config.photoDefaultPortionKey)
+        }
+
+        func resetPhotoCarbPrompt() {
+            photoCustomPrompt = AIInsightsConfig.defaultPhotoCarbPrompt
+            UserDefaults.standard.set(photoCustomPrompt, forKey: Config.photoCustomPromptKey)
         }
 
         // MARK: - API Key Management
@@ -512,6 +713,341 @@ Please provide a quick analysis using these sections:
 
         func clearChat() {
             chatMessages.removeAll()
+        }
+
+        // MARK: - Why High/Low Analysis
+
+        @MainActor
+        func analyzeWhyHighLow(
+            currentBG: Decimal,
+            bgTrend: String,
+            currentIOB: Decimal,
+            currentCOB: Int,
+            isHigh: Bool
+        ) async {
+            guard isAPIKeyConfigured else {
+                whyHighLowError = "Please configure your Claude API key first."
+                return
+            }
+
+            isAnalyzingWhyHighLow = true
+            whyHighLowError = nil
+            whyHighLowResult = ""
+
+            do {
+                let exporter = HealthDataExporter(context: coredataContext)
+
+                // Get current settings
+                let settings = settingsManager.settings
+                let carbRatios = await fetchCarbRatios()
+                let isfSchedule = await fetchISFSchedule()
+                let basalSchedule = await fetchBasalSchedule()
+
+                // Get current values based on time of day
+                let currentCR = getCurrentScheduleValue(from: carbRatios.map { ($0.time, $0.ratio) }) ?? 10
+                let currentISF = getCurrentScheduleValue(from: isfSchedule.map { ($0.time, $0.sensitivity) }) ?? 50
+                let currentBasal = getCurrentScheduleValue(from: basalSchedule.map { ($0.time, $0.rate) }) ?? 1
+
+                let lowTarget = settings.units == .mgdL ? Int(settings.low) : Int(settings.low * 18)
+                let highTarget = settings.units == .mgdL ? Int(settings.high) : Int(settings.high * 18)
+
+                // Export recent data
+                let data = try await exporter.exportDataForHours(
+                    hours: whlAnalysisHours.rawValue,
+                    units: settings.units.rawValue,
+                    currentISF: currentISF,
+                    currentCR: currentCR,
+                    currentBasalRate: currentBasal,
+                    targetLow: lowTarget,
+                    targetHigh: highTarget
+                )
+
+                // Build settings for prompt
+                let whlSettings = HealthDataExporter.WhyHighLowSettings(
+                    currentBG: currentBG,
+                    bgTrend: bgTrend,
+                    currentIOB: currentIOB,
+                    currentCOB: currentCOB,
+                    isHigh: isHigh,
+                    analysisHours: whlAnalysisHours.rawValue,
+                    customPrompt: whlCustomPrompt
+                )
+
+                // Format prompt
+                let prompt = exporter.formatWhyHighLowPrompt(data, settings: whlSettings)
+
+                // Call Claude API
+                let result = try await claudeService.analyze(prompt: prompt, apiKey: apiKey)
+                whyHighLowResult = result
+
+                // Generate PDF
+                let title = isHigh ? "Why Am I High?" : "Why Am I Low?"
+                if let pdfData = generatePDF(
+                    from: result,
+                    title: title,
+                    timePeriod: "\(whlAnalysisHours.rawValue) Hours"
+                ) {
+                    whyHighLowPDFData = pdfData
+                }
+            } catch {
+                whyHighLowError = error.localizedDescription
+            }
+
+            isAnalyzingWhyHighLow = false
+        }
+
+        /// Get the current value from a time-based schedule
+        private func getCurrentScheduleValue(from schedule: [(String, Decimal)]) -> Decimal? {
+            guard !schedule.isEmpty else { return nil }
+
+            let now = Date()
+            let calendar = Calendar.current
+            let currentMinutes = calendar.component(.hour, from: now) * 60 + calendar.component(.minute, from: now)
+
+            // Find the applicable schedule entry
+            var result: Decimal = schedule.first!.1
+
+            for (timeString, value) in schedule {
+                let components = timeString.split(separator: ":")
+                if components.count >= 2,
+                   let hour = Int(components[0]),
+                   let minute = Int(components[1]) {
+                    let scheduleMinutes = hour * 60 + minute
+                    if scheduleMinutes <= currentMinutes {
+                        result = value
+                    }
+                }
+            }
+
+            return result
+        }
+
+        func clearWhyHighLowResult() {
+            whyHighLowResult = ""
+            whyHighLowError = nil
+            whyHighLowPDFData = nil
+        }
+
+        // MARK: - Photo Carb Estimation
+
+        @MainActor
+        func estimateCarbsFromPhoto() async {
+            // Use static check and get API key directly from keychain
+            guard Config.isAPIKeyConfigured else {
+                carbEstimateError = "Please configure your Claude API key first."
+                return
+            }
+
+            guard let image = selectedFoodImage else {
+                carbEstimateError = "Please select or take a photo first."
+                return
+            }
+
+            // Get API key directly from keychain
+            let keychain = BaseKeychain()
+            guard case let .success(storedKey) = keychain.getValue(String.self, forKey: Config.apiKeyKey),
+                  let currentApiKey = storedKey, !currentApiKey.isEmpty else {
+                carbEstimateError = "Could not retrieve API key."
+                return
+            }
+
+            isEstimatingCarbs = true
+            carbEstimateError = nil
+            carbEstimateResult = nil
+
+            do {
+                let result = try await claudeService.estimateCarbs(
+                    from: image,
+                    description: foodDescription.isEmpty ? nil : foodDescription,
+                    customPrompt: photoCustomPrompt,
+                    defaultPortion: photoDefaultPortion.displayName,
+                    apiKey: currentApiKey
+                )
+
+                // Parse the result to extract total carbs
+                let parsedResult = parseCarbEstimateResponse(result)
+                carbEstimateResult = parsedResult
+            } catch {
+                carbEstimateError = error.localizedDescription
+            }
+
+            isEstimatingCarbs = false
+        }
+
+        /// Parse the AI response to extract carb estimate details
+        private func parseCarbEstimateResponse(_ response: String) -> CarbEstimateResult {
+            var items: [CarbEstimateResult.CarbItem] = []
+            var totalCarbs: Decimal = 0
+            var confidence: CarbEstimateResult.ConfidenceLevel = .medium
+            var notes: String?
+
+            let lines = response.components(separatedBy: "\n")
+
+            // FIRST PRIORITY: Look for the explicit TOTAL_CARBS tag
+            for line in lines {
+                let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+                if trimmedLine.uppercased().hasPrefix("TOTAL_CARBS:") {
+                    if let carbValue = extractCarbValue(from: line) {
+                        totalCarbs = carbValue
+                        break // Found the authoritative total, stop looking
+                    }
+                }
+            }
+
+            // Parse food items and other info
+            for line in lines {
+                let lowercaseLine = line.lowercased()
+                let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+
+                // Skip the TOTAL_CARBS line when looking for items
+                if trimmedLine.uppercased().hasPrefix("TOTAL_CARBS:") {
+                    continue
+                }
+
+                // Look for food items (lines starting with bullet points or emoji)
+                if trimmedLine.hasPrefix("•") || trimmedLine.hasPrefix("-") ||
+                   trimmedLine.hasPrefix("🍽️") || trimmedLine.hasPrefix("*") {
+                    if let match = extractCarbItem(from: line) {
+                        items.append(match)
+                    }
+                }
+
+                // Look for confidence level
+                if lowercaseLine.contains("confidence:") {
+                    if lowercaseLine.contains("high") {
+                        confidence = .high
+                    } else if lowercaseLine.contains("low") {
+                        confidence = .low
+                    } else {
+                        confidence = .medium
+                    }
+                }
+
+                // Look for notes/assumptions
+                if lowercaseLine.hasPrefix("note") || lowercaseLine.contains("assumption") {
+                    let noteText = line.replacingOccurrences(of: "Notes:", with: "")
+                        .replacingOccurrences(of: "Note:", with: "")
+                        .trimmingCharacters(in: .whitespaces)
+                    if !noteText.isEmpty {
+                        if notes == nil {
+                            notes = noteText
+                        } else {
+                            notes! += "\n" + noteText
+                        }
+                    }
+                }
+            }
+
+            // FALLBACK: If no TOTAL_CARBS tag found, try to find a total line
+            if totalCarbs == 0 {
+                for line in lines.reversed() { // Check from end first
+                    let lowercaseLine = line.lowercased()
+                    if lowercaseLine.contains("total") && !lowercaseLine.contains("total_carbs") {
+                        if let carbValue = extractCarbValue(from: line) {
+                            totalCarbs = carbValue
+                            break
+                        }
+                    }
+                }
+            }
+
+            // LAST RESORT: If still no total, sum the items
+            if totalCarbs == 0 && !items.isEmpty {
+                totalCarbs = items.reduce(0) { $0 + $1.carbs }
+            }
+
+            return CarbEstimateResult(
+                items: items,
+                totalCarbs: totalCarbs,
+                confidence: confidence,
+                notes: notes,
+                rawResponse: response
+            )
+        }
+
+        /// Extract a carb item from a line like "🍽️ Pasta (1 cup): ~35g"
+        private func extractCarbItem(from line: String) -> CarbEstimateResult.CarbItem? {
+            // Skip lines that are headers or totals
+            let lowercaseLine = line.lowercased()
+            if lowercaseLine.contains("total") || lowercaseLine.contains("confidence") ||
+               lowercaseLine.contains("note") || lowercaseLine.contains("assumption") {
+                return nil
+            }
+
+            // Look for carb value patterns like "~35g", "35g", "35 g"
+            guard let carbValue = extractCarbValue(from: line), carbValue > 0 else {
+                return nil
+            }
+
+            // Extract the food name (everything before the carb value)
+            var foodName = line
+
+            // Remove common prefixes
+            let prefixes = ["🍽️", "•", "-", "*", "**"]
+            for prefix in prefixes {
+                foodName = foodName.trimmingCharacters(in: .whitespaces)
+                if foodName.hasPrefix(prefix) {
+                    foodName = String(foodName.dropFirst(prefix.count))
+                }
+            }
+
+            // Remove the carb value from the name
+            if let range = foodName.range(of: "~?\\d+\\s*g", options: .regularExpression) {
+                foodName = String(foodName[..<range.lowerBound])
+            }
+
+            // Clean up
+            foodName = foodName.trimmingCharacters(in: .whitespaces)
+            foodName = foodName.trimmingCharacters(in: CharacterSet(charactersIn: ":"))
+            foodName = foodName.trimmingCharacters(in: .whitespaces)
+
+            // Extract portion if present (in parentheses)
+            var portion = ""
+            if let openParen = foodName.firstIndex(of: "("),
+               let closeParen = foodName.firstIndex(of: ")") {
+                portion = String(foodName[foodName.index(after: openParen)..<closeParen])
+                foodName = String(foodName[..<openParen]).trimmingCharacters(in: .whitespaces)
+            }
+
+            guard !foodName.isEmpty else { return nil }
+
+            return CarbEstimateResult.CarbItem(
+                name: foodName,
+                portion: portion,
+                carbs: carbValue
+            )
+        }
+
+        /// Extract a carb value from a string like "~35g" or "35 g"
+        private func extractCarbValue(from string: String) -> Decimal? {
+            // Pattern to match carb values: "~35g", "35g", "35 g", "~35 g"
+            let pattern = "~?(\\d+)\\s*g"
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
+                return nil
+            }
+
+            let range = NSRange(string.startIndex..<string.endIndex, in: string)
+            guard let match = regex.firstMatch(in: string, options: [], range: range) else {
+                return nil
+            }
+
+            guard let valueRange = Range(match.range(at: 1), in: string) else {
+                return nil
+            }
+
+            let valueString = String(string[valueRange])
+            guard let intValue = Int(valueString) else {
+                return nil
+            }
+
+            return Decimal(intValue)
+        }
+
+        func clearCarbEstimate() {
+            carbEstimateResult = nil
+            carbEstimateError = nil
+            selectedFoodImage = nil
+            foodDescription = ""
         }
 
         // MARK: - Weekly Report

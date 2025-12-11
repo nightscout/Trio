@@ -34,6 +34,10 @@ extension Home {
         @State var showPumpSelection: Bool = false
         @State var showCGMSelection: Bool = false
         @State var notificationsDisabled = false
+        // Why High/Low Banner State
+        @State var isWhyHighLowBannerDismissed = false
+        @State var showWhyHighLowAnalysis = false
+        @StateObject var aiInsightsState = AIInsightsConfig.StateModel()
         @State var timeButtons: [TimePicker] = [
             TimePicker(active: false, hours: 4),
             TimePicker(active: false, hours: 6),
@@ -84,6 +88,95 @@ extension Home {
                 return "book.pages"
             } else {
                 return "book"
+            }
+        }
+
+        // MARK: - Why High/Low Banner
+
+        /// Determines if the Why High/Low banner should be shown
+        private var shouldShowWhyHighLowBanner: Bool {
+            guard !isWhyHighLowBannerDismissed,
+                  aiInsightsState.isAPIKeyConfigured,
+                  let latestGlucose = state.latestTwoGlucoseValues.first
+            else { return false }
+
+            let bg = Decimal(latestGlucose.glucose)
+            let highThreshold = aiInsightsState.whlHighThreshold
+            let lowThreshold = aiInsightsState.whlLowThreshold
+
+            return bg > highThreshold || bg < lowThreshold
+        }
+
+        /// Whether the current glucose is high (vs low)
+        private var isGlucoseHigh: Bool {
+            guard let latestGlucose = state.latestTwoGlucoseValues.first
+            else { return true }
+
+            return Decimal(latestGlucose.glucose) > aiInsightsState.whlHighThreshold
+        }
+
+        /// Current glucose value
+        private var currentBGValue: Decimal {
+            guard let latestGlucose = state.latestTwoGlucoseValues.first else { return 0 }
+            return Decimal(latestGlucose.glucose)
+        }
+
+        /// Current glucose trend as a string
+        private var currentBGTrend: String {
+            guard let direction = state.latestTwoGlucoseValues.first?.directionEnum else {
+                return "unknown"
+            }
+            switch direction {
+            case .doubleUp, .tripleUp:
+                return "rising rapidly"
+            case .singleUp:
+                return "rising"
+            case .fortyFiveUp:
+                return "rising slightly"
+            case .flat:
+                return "stable"
+            case .fortyFiveDown:
+                return "falling slightly"
+            case .singleDown:
+                return "falling"
+            case .doubleDown, .tripleDown:
+                return "falling rapidly"
+            default:
+                return "unknown"
+            }
+        }
+
+        /// Current IOB value
+        private var currentIOB: Decimal {
+            state.enactedAndNonEnactedDeterminations.first?.iob?.decimalValue ?? 0
+        }
+
+        /// Current COB value
+        private var currentCOB: Int {
+            Int(state.enactedAndNonEnactedDeterminations.first?.cob ?? 0)
+        }
+
+        @ViewBuilder private var whyHighLowBanner: some View {
+            if shouldShowWhyHighLowBanner {
+                WhyHighLowBannerView(
+                    currentBG: currentBGValue,
+                    bgTrend: currentBGTrend,
+                    currentIOB: currentIOB,
+                    currentCOB: currentCOB,
+                    isHigh: isGlucoseHigh,
+                    units: state.units.rawValue,
+                    onAnalyze: {
+                        showWhyHighLowAnalysis = true
+                    },
+                    onDismiss: {
+                        withAnimation {
+                            isWhyHighLowBannerDismissed = true
+                        }
+                    }
+                )
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
 
@@ -903,12 +996,16 @@ extension Home {
                 }
                 .padding(.top, 10)
                 .safeAreaInset(edge: .top, spacing: 0) {
-                    if notificationsDisabled {
-                        alertSafetyNotificationsView(geo: geo)
-                    }
-                    if let badgeImage = state.pumpStatusBadgeImage, let badgeColor = state.pumpStatusBadgeColor {
-                        pumpTimezoneView(badgeImage, badgeColor)
-                            .padding(.horizontal, 20)
+                    VStack(spacing: 8) {
+                        if notificationsDisabled {
+                            alertSafetyNotificationsView(geo: geo)
+                        }
+                        if let badgeImage = state.pumpStatusBadgeImage, let badgeColor = state.pumpStatusBadgeColor {
+                            pumpTimezoneView(badgeImage, badgeColor)
+                                .padding(.horizontal, 20)
+                        }
+                        // Why High/Low Banner
+                        whyHighLowBanner
                     }
                 }
 
@@ -972,6 +1069,8 @@ extension Home {
                 configureView {
                     highlightButtons()
                 }
+                // Load AI Insights settings for Why High/Low banner
+                aiInsightsState.subscribe()
             }
             .navigationTitle("Home")
             .navigationBarHidden(true)
@@ -982,6 +1081,27 @@ extension Home {
             }
             .sheet(isPresented: $state.isLegendPresented) {
                 ChartLegendView(state: state)
+            }
+            // WHY HIGH/LOW ANALYSIS
+            .sheet(isPresented: $showWhyHighLowAnalysis) {
+                AIInsightsConfig.WhyHighLowAnalysisView(
+                    state: aiInsightsState,
+                    currentBG: currentBGValue,
+                    bgTrend: currentBGTrend,
+                    currentIOB: currentIOB,
+                    currentCOB: currentCOB,
+                    isHigh: isGlucoseHigh
+                )
+            }
+            .onChange(of: state.latestTwoGlucoseValues.first?.glucose) { _, newValue in
+                // Reset banner dismissal when glucose returns to range
+                if let glucoseInt = newValue {
+                    let value = Decimal(glucoseInt)
+                    let isInRange = value <= aiInsightsState.whlHighThreshold && value >= aiInsightsState.whlLowThreshold
+                    if isInRange && isWhyHighLowBannerDismissed {
+                        isWhyHighLowBannerDismissed = false
+                    }
+                }
             }
             // PUMP RELATED
             .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
@@ -1215,5 +1335,73 @@ func formatTimeRange(start: String?, end: String?) -> String {
         } else {
             return ""
         }
+    }
+}
+
+// MARK: - Why High/Low Banner View
+
+/// A dismissible banner that appears when glucose is out of range
+/// Provides quick access to AI analysis of why glucose might be high or low
+struct WhyHighLowBannerView: View {
+    let currentBG: Decimal
+    let bgTrend: String
+    let currentIOB: Decimal
+    let currentCOB: Int
+    let isHigh: Bool // true = high, false = low
+    let units: String
+    let onAnalyze: () -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Icon
+            Image(systemName: isHigh ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
+                .font(.title2)
+                .foregroundColor(.white)
+
+            // Text content
+            VStack(alignment: .leading, spacing: 2) {
+                Text(isHigh ? "Blood Glucose is High" : "Blood Glucose is Low")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+
+                Text("\(NSDecimalNumber(decimal: currentBG).intValue) \(units)")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.9))
+            }
+
+            Spacer()
+
+            // Analyze button
+            Button(action: onAnalyze) {
+                Text("Analyze")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.white.opacity(0.25))
+                    .foregroundColor(.white)
+                    .cornerRadius(16)
+            }
+
+            // Dismiss button
+            Button(action: onDismiss) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title3)
+                    .foregroundColor(.white.opacity(0.7))
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: isHigh ? [.orange, .red.opacity(0.8)] : [.red, .red.opacity(0.8)]),
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        )
+        .cornerRadius(12)
+        .shadow(color: (isHigh ? Color.orange : Color.red).opacity(0.3), radius: 8, x: 0, y: 4)
     }
 }

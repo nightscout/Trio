@@ -531,6 +531,11 @@ final class HealthDataExporter {
 
         case .doctorVisit(let settings):
             prompt = formatDoctorVisitPrompt(data, timeFormatter: timeFormatter, settings: settings)
+
+        case .whyHighLow:
+            // Why High/Low uses a different data path via exportDataForHours() and formatWhyHighLowPrompt()
+            // This case should not be reached through generatePrompt()
+            prompt = "Error: whyHighLow should use exportDataForHours() instead"
         }
 
         return prompt
@@ -1051,6 +1056,7 @@ final class HealthDataExporter {
         case weeklyReport
         case chat
         case doctorVisit(settings: DoctorReportSettings)
+        case whyHighLow(settings: WhyHighLowSettings)
     }
 
     struct QuickAnalysisSettings {
@@ -1079,5 +1085,163 @@ final class HealthDataExporter {
         var showBolusHistory: Bool = true
         var customPrompt: String = ""
         var days: Int = 30
+    }
+
+    struct WhyHighLowSettings {
+        var currentBG: Decimal
+        var bgTrend: String // "rising", "falling", "stable", "unknown"
+        var currentIOB: Decimal
+        var currentCOB: Int
+        var isHigh: Bool // true = high, false = low
+        var analysisHours: Int = 4
+        var customPrompt: String = ""
+    }
+
+    // MARK: - Why High/Low Data Export
+
+    /// Export data for a specified number of hours (for Why High/Low analysis)
+    func exportDataForHours(
+        hours: Int,
+        units: String,
+        currentISF: Decimal,
+        currentCR: Decimal,
+        currentBasalRate: Decimal,
+        targetLow: Int,
+        targetHigh: Int
+    ) async throws -> WhyHighLowData {
+        let startDate = Calendar.current.date(byAdding: .hour, value: -hours, to: Date())!
+
+        // Fetch data for the requested period
+        let glucoseReadings = try await fetchGlucoseReadings(since: startDate)
+        let carbEntries = try await fetchCarbEntries(since: startDate)
+        let bolusEvents = try await fetchBolusEvents(since: startDate)
+        let loopStates = try await fetchLoopStates(since: startDate)
+
+        return WhyHighLowData(
+            glucoseReadings: glucoseReadings,
+            carbEntries: carbEntries,
+            bolusEvents: bolusEvents,
+            loopStates: loopStates,
+            currentISF: currentISF,
+            currentCR: currentCR,
+            currentBasalRate: currentBasalRate,
+            targetLow: targetLow,
+            targetHigh: targetHigh,
+            units: units,
+            hours: hours
+        )
+    }
+
+    struct WhyHighLowData {
+        let glucoseReadings: [ExportedData.GlucoseReading]
+        let carbEntries: [ExportedData.CarbEntry]
+        let bolusEvents: [ExportedData.BolusEvent]
+        let loopStates: [ExportedData.LoopState]
+        let currentISF: Decimal
+        let currentCR: Decimal
+        let currentBasalRate: Decimal
+        let targetLow: Int
+        let targetHigh: Int
+        let units: String
+        let hours: Int
+    }
+
+    /// Format data for Why High/Low analysis prompt
+    func formatWhyHighLowPrompt(_ data: WhyHighLowData, settings: WhyHighLowSettings) -> String {
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "HH:mm"
+
+        let dateTimeFormatter = DateFormatter()
+        dateTimeFormatter.dateFormat = "MM/dd HH:mm"
+
+        let condition = settings.isHigh ? "HIGH" : "LOW"
+        let emoji = settings.isHigh ? "📈" : "📉"
+
+        var prompt = """
+        \(emoji) CURRENT STATE: Blood glucose is \(condition)
+        • Current BG: \(settings.currentBG) \(data.units) (\(settings.bgTrend))
+        • Current IOB: \(String(format: "%.2f", NSDecimalNumber(decimal: settings.currentIOB).doubleValue)) U
+        • Current COB: \(settings.currentCOB) g
+        • Time: \(timeFormatter.string(from: Date()))
+
+        ⚙️ CURRENT SETTINGS
+        • ISF: 1U drops BG by \(settings.isHigh ? data.currentISF : data.currentISF) \(data.units)
+        • Carb Ratio: 1U per \(data.currentCR) g
+        • Basal Rate: \(data.currentBasalRate) U/hr
+        • Target Range: \(data.targetLow)-\(data.targetHigh) \(data.units)
+
+        📊 LAST \(data.hours) HOURS OF DATA
+
+        """
+
+        // Add glucose readings (every reading)
+        if !data.glucoseReadings.isEmpty {
+            prompt += "\n🩸 GLUCOSE READINGS\n"
+            for reading in data.glucoseReadings.suffix(50) { // Last 50 readings max
+                let directionArrow = reading.direction ?? ""
+                prompt += "\(timeFormatter.string(from: reading.date)): \(reading.value) \(data.units) \(directionArrow)\n"
+            }
+        }
+
+        // Add carb entries
+        if !data.carbEntries.isEmpty {
+            prompt += "\n🍽️ CARB ENTRIES\n"
+            for entry in data.carbEntries {
+                var line = "\(dateTimeFormatter.string(from: entry.date)): \(Int(entry.carbs))g"
+                if let note = entry.note, !note.isEmpty {
+                    line += " (\(note))"
+                }
+                prompt += line + "\n"
+            }
+        } else {
+            prompt += "\n🍽️ CARB ENTRIES: None in this period\n"
+        }
+
+        // Add bolus events
+        if !data.bolusEvents.isEmpty {
+            prompt += "\n💉 BOLUSES\n"
+            for bolus in data.bolusEvents {
+                let type = bolus.isSMB ? "SMB" : "Bolus"
+                prompt += "\(dateTimeFormatter.string(from: bolus.date)): \(bolus.amount)U (\(type))\n"
+            }
+        } else {
+            prompt += "\n💉 BOLUSES: None in this period\n"
+        }
+
+        // Add loop states (algorithm decisions)
+        if !data.loopStates.isEmpty {
+            prompt += "\n🔄 LOOP ALGORITHM DECISIONS (sampled)\n"
+            prompt += "Time | BG | IOB | COB | TempBasal | SMB\n"
+
+            // Sample every 3rd entry to keep prompt manageable
+            let sampledStates = data.loopStates.enumerated().compactMap { index, state in
+                index % 3 == 0 ? state : nil
+            }
+
+            for state in sampledStates.suffix(20) { // Max 20 entries
+                let smb = state.smbDelivered > 0 ? "\(state.smbDelivered)U" : "-"
+                prompt += "\(timeFormatter.string(from: state.date)) | \(state.glucose) | \(String(format: "%.2f", NSDecimalNumber(decimal: state.iob).doubleValue))U | \(state.cob)g | \(state.tempBasalRate)U/hr | \(smb)\n"
+            }
+        }
+
+        // Add the analysis request
+        prompt += "\n---\n\n"
+
+        if !settings.customPrompt.isEmpty {
+            prompt += settings.customPrompt
+        } else {
+            prompt += """
+            Please analyze why my blood glucose is currently \(condition.lowercased()).
+
+            Provide:
+            1. **Probable Cause**: The most likely reason (be specific about timing and amounts)
+            2. **Contributing Factors**: Any secondary factors
+            3. **Suggestion**: A conservative recommendation if appropriate
+
+            Keep the response concise and actionable. Focus on the most likely explanation.
+            """
+        }
+
+        return prompt
     }
 }

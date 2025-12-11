@@ -83,6 +83,20 @@ extension AIInsightsConfig {
                                 }
                             }
                         }
+
+                        NavigationLink(destination: PhotoCarbEstimateView(state: state, onAcceptCarbs: nil)) {
+                            HStack {
+                                Image(systemName: "camera.fill")
+                                    .foregroundColor(.mint)
+                                VStack(alignment: .leading) {
+                                    Text("Estimate Carbs from Photo")
+                                        .font(.headline)
+                                    Text("AI-powered carb counting")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
                     }
                 )
                 .listRowBackground(Color.chart)
@@ -124,6 +138,22 @@ extension AIInsightsConfig {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(.green)
                             }
+                        }
+                    }
+
+                    NavigationLink(destination: WhyHighLowSettingsView(state: state)) {
+                        HStack {
+                            Image(systemName: "exclamationmark.bubble.fill")
+                                .foregroundColor(.red)
+                            Text("Why High/Low Settings")
+                        }
+                    }
+
+                    NavigationLink(destination: PhotoCarbSettingsView(state: state)) {
+                        HStack {
+                            Image(systemName: "camera.fill")
+                                .foregroundColor(.mint)
+                            Text("Photo Carb Settings")
                         }
                     }
                 }
@@ -991,6 +1021,206 @@ extension AIInsightsConfig {
         }
     }
 
+    // MARK: - Why High/Low Settings View
+
+    struct WhyHighLowSettingsView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+        @State private var showResetPromptAlert = false
+
+        // Slider ranges based on units
+        private var highThresholdRange: ClosedRange<Double> {
+            state.units == .mmolL ? 6.7...16.0 : 120.0...300.0
+        }
+
+        private var lowThresholdRange: ClosedRange<Double> {
+            state.units == .mmolL ? 2.5...6.1 : 50.0...110.0
+        }
+
+        private var sliderStep: Double {
+            state.units == .mmolL ? 0.5 : 5.0
+        }
+
+        private func formatThreshold(_ value: Decimal) -> String {
+            let number = NSDecimalNumber(decimal: value).doubleValue
+            if state.units == .mmolL {
+                return String(format: "%.1f", number)
+            } else {
+                return String(format: "%.0f", number)
+            }
+        }
+
+        var body: some View {
+            Form {
+                Section(
+                    header: Text("Glucose Thresholds"),
+                    footer: Text("Set the glucose levels that trigger the \"Why High\" or \"Why Low\" analysis banner on the home screen.")
+                ) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("High Threshold")
+                            Spacer()
+                            Text("\(formatThreshold(state.whlHighThreshold)) \(state.units.rawValue)")
+                                .fontWeight(.medium)
+                                .foregroundColor(.orange)
+                        }
+                        Slider(
+                            value: Binding(
+                                get: { NSDecimalNumber(decimal: state.whlHighThreshold).doubleValue },
+                                set: { state.whlHighThreshold = Decimal($0) }
+                            ),
+                            in: highThresholdRange,
+                            step: sliderStep
+                        )
+                        .tint(.orange)
+                        .onChange(of: state.whlHighThreshold) { _, _ in
+                            state.saveWhyHighLowSettings()
+                        }
+                    }
+                    .padding(.vertical, 4)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Low Threshold")
+                            Spacer()
+                            Text("\(formatThreshold(state.whlLowThreshold)) \(state.units.rawValue)")
+                                .fontWeight(.medium)
+                                .foregroundColor(.red)
+                        }
+                        Slider(
+                            value: Binding(
+                                get: { NSDecimalNumber(decimal: state.whlLowThreshold).doubleValue },
+                                set: { state.whlLowThreshold = Decimal($0) }
+                            ),
+                            in: lowThresholdRange,
+                            step: sliderStep
+                        )
+                        .tint(.red)
+                        .onChange(of: state.whlLowThreshold) { _, _ in
+                            state.saveWhyHighLowSettings()
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("Analysis Period"),
+                    footer: Text("How far back to look when analyzing why your glucose is out of range. Shorter periods focus on recent events.")
+                ) {
+                    Picker("Look Back", selection: $state.whlAnalysisHours) {
+                        ForEach(AnalysisHours.allCases) { hours in
+                            Text(hours.displayName).tag(hours)
+                        }
+                    }
+                    .onChange(of: state.whlAnalysisHours) { _, _ in state.saveWhyHighLowSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("AI Prompt"),
+                    footer: Text("Customize the instructions sent to Claude when analyzing why your glucose is out of range.")
+                ) {
+                    TextEditor(text: $state.whlCustomPrompt)
+                        .frame(minHeight: 150)
+                        .font(.system(.body, design: .monospaced))
+                        .onChange(of: state.whlCustomPrompt) { _, _ in state.saveWhyHighLowSettings() }
+
+                    Button(action: {
+                        showResetPromptAlert = true
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Reset to Default Prompt")
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+                .listRowBackground(Color.chart)
+            }
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Why High/Low Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .onDisappear {
+                // Ensure settings are saved when leaving the view
+                state.saveWhyHighLowSettings()
+            }
+            .alert("Reset Prompt?", isPresented: $showResetPromptAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Reset", role: .destructive) {
+                    state.resetWhyHighLowPrompt()
+                }
+            } message: {
+                Text("This will reset the AI prompt to the default. Your custom prompt will be lost.")
+            }
+        }
+    }
+
+    // MARK: - Photo Carb Settings View
+
+    struct PhotoCarbSettingsView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+        @State private var showResetPromptAlert = false
+
+        var body: some View {
+            Form {
+                Section(
+                    header: Text("Portion Size"),
+                    footer: Text("Default assumption for portion sizes when not specified in the photo description.")
+                ) {
+                    Picker("Default Portion", selection: $state.photoDefaultPortion) {
+                        ForEach(PortionSize.allCases) { size in
+                            Text(size.displayName).tag(size)
+                        }
+                    }
+                    .onChange(of: state.photoDefaultPortion) { _, _ in state.savePhotoCarbSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("AI Prompt"),
+                    footer: Text("Customize the instructions sent to Claude when estimating carbs from food photos.")
+                ) {
+                    TextEditor(text: $state.photoCustomPrompt)
+                        .frame(minHeight: 200)
+                        .font(.system(.body, design: .monospaced))
+                        .onChange(of: state.photoCustomPrompt) { _, _ in state.savePhotoCarbSettings() }
+
+                    Button(action: {
+                        showResetPromptAlert = true
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Reset to Default Prompt")
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+                .listRowBackground(Color.chart)
+            }
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Photo Carb Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .onDisappear {
+                // Ensure settings are saved when leaving the view
+                state.savePhotoCarbSettings()
+            }
+            .alert("Reset Prompt?", isPresented: $showResetPromptAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Reset", role: .destructive) {
+                    state.resetPhotoCarbPrompt()
+                }
+            } message: {
+                Text("This will reset the AI prompt to the default. Your custom prompt will be lost.")
+            }
+        }
+    }
+
     // MARK: - API Key Settings View
 
     struct APIKeySettingsView: View {
@@ -1093,6 +1323,650 @@ extension AIInsightsConfig {
                 }
             } message: {
                 Text("This will remove your API key from the device. You can add a new one later.")
+            }
+        }
+    }
+
+    // MARK: - Why High/Low Analysis View
+
+    struct WhyHighLowAnalysisView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+        @Environment(\.dismiss) var dismiss
+        @State private var showShareSheet = false
+
+        let currentBG: Decimal
+        let bgTrend: String
+        let currentIOB: Decimal
+        let currentCOB: Int
+        let isHigh: Bool
+
+        var body: some View {
+            NavigationView {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Current Status Card
+                        currentStatusCard
+
+                        // Analysis Result or Loading
+                        if state.isAnalyzingWhyHighLow {
+                            loadingView
+                        } else if let error = state.whyHighLowError {
+                            errorView(error)
+                        } else if !state.whyHighLowResult.isEmpty {
+                            resultView
+                        } else {
+                            analyzeButton
+                        }
+                    }
+                    .padding()
+                }
+                .background(appState.trioBackgroundColor(for: colorScheme))
+                .navigationTitle(isHigh ? "Why Am I High?" : "Why Am I Low?")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Close") {
+                            dismiss()
+                        }
+                    }
+
+                    if !state.whyHighLowResult.isEmpty {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button(action: { showShareSheet = true }) {
+                                Image(systemName: "square.and.arrow.up")
+                            }
+                        }
+                    }
+                }
+                .sheet(isPresented: $showShareSheet) {
+                    if let pdfData = state.whyHighLowPDFData {
+                        ShareSheet(activityItems: [pdfData])
+                    }
+                }
+            }
+            .onAppear {
+                // Auto-analyze when view appears
+                Task {
+                    await state.analyzeWhyHighLow(
+                        currentBG: currentBG,
+                        bgTrend: bgTrend,
+                        currentIOB: currentIOB,
+                        currentCOB: currentCOB,
+                        isHigh: isHigh
+                    )
+                }
+            }
+            .onDisappear {
+                state.clearWhyHighLowResult()
+            }
+        }
+
+        private var currentStatusCard: some View {
+            VStack(spacing: 12) {
+                HStack {
+                    Image(systemName: isHigh ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
+                        .font(.title)
+                        .foregroundColor(isHigh ? .orange : .red)
+
+                    VStack(alignment: .leading) {
+                        Text("Current BG: \(NSDecimalNumber(decimal: currentBG).intValue) \(state.units.rawValue)")
+                            .font(.headline)
+                        Text("Trend: \(bgTrend)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+
+                    Spacer()
+                }
+
+                HStack(spacing: 20) {
+                    VStack {
+                        Text("IOB")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("\(String(format: "%.2f", NSDecimalNumber(decimal: currentIOB).doubleValue)) U")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+
+                    Divider()
+                        .frame(height: 30)
+
+                    VStack {
+                        Text("COB")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("\(currentCOB) g")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+
+                    Divider()
+                        .frame(height: 30)
+
+                    VStack {
+                        Text("Analysis Period")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("\(state.whlAnalysisHours.displayName)")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                }
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private var loadingView: some View {
+            VStack(spacing: 16) {
+                ProgressView()
+                    .scaleEffect(1.5)
+                Text("Analyzing your data...")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(40)
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func errorView(_ error: String) -> some View {
+            VStack(spacing: 12) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.title)
+                    .foregroundColor(.orange)
+                Text("Analysis Error")
+                    .font(.headline)
+                Text(error)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+
+                Button("Try Again") {
+                    Task {
+                        await state.analyzeWhyHighLow(
+                            currentBG: currentBG,
+                            bgTrend: bgTrend,
+                            currentIOB: currentIOB,
+                            currentCOB: currentCOB,
+                            isHigh: isHigh
+                        )
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private var resultView: some View {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    Image(systemName: "brain.head.profile")
+                        .foregroundColor(.purple)
+                    Text("AI Analysis")
+                        .font(.headline)
+                }
+
+                RichMarkdownView(content: state.whyHighLowResult)
+
+                // Disclaimer
+                Text("This analysis is for informational purposes only. Always consult your healthcare provider before making treatment changes.")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 8)
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private var analyzeButton: some View {
+            Button(action: {
+                Task {
+                    await state.analyzeWhyHighLow(
+                        currentBG: currentBG,
+                        bgTrend: bgTrend,
+                        currentIOB: currentIOB,
+                        currentCOB: currentCOB,
+                        isHigh: isHigh
+                    )
+                }
+            }) {
+                HStack {
+                    Image(systemName: "brain.head.profile")
+                    Text("Analyze")
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(!state.isAPIKeyConfigured)
+        }
+    }
+
+    // MARK: - Photo Carb Estimate View
+
+    struct PhotoCarbEstimateView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+        @Environment(\.dismiss) var dismiss
+
+        @State private var showImagePicker = false
+        @State private var imagePickerSourceType: UIImagePickerController.SourceType = .photoLibrary
+        @State private var showCameraUnavailableAlert = false
+
+        /// Check if camera is available on this device
+        private var isCameraAvailable: Bool {
+            UIImagePickerController.isSourceTypeAvailable(.camera)
+        }
+
+        /// Optional callback when user accepts the carb estimate (for integration with bolus calculator)
+        var onAcceptCarbs: ((Decimal) -> Void)?
+
+        var body: some View {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Photo Selection Section
+                    photoSelectionSection
+
+                    // Description Input
+                    descriptionSection
+
+                    // Estimate Button
+                    if state.selectedFoodImage != nil {
+                        estimateButton
+                    }
+
+                    // Results Section
+                    if state.isEstimatingCarbs {
+                        loadingView
+                    } else if let error = state.carbEstimateError {
+                        errorView(error)
+                    } else if let result = state.carbEstimateResult {
+                        resultView(result)
+                    }
+                }
+                .padding()
+            }
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Estimate Carbs")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if state.selectedFoodImage != nil || state.carbEstimateResult != nil {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Clear") {
+                            state.clearCarbEstimate()
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $showImagePicker) {
+                ImagePicker(
+                    image: $state.selectedFoodImage,
+                    sourceType: imagePickerSourceType
+                )
+            }
+            .alert("Camera Unavailable", isPresented: $showCameraUnavailableAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Camera is not available on this device. Please use the Photos option to select an image.")
+            }
+            .onDisappear {
+                // Only clear if not accepting carbs
+                if onAcceptCarbs == nil {
+                    state.clearCarbEstimate()
+                }
+            }
+        }
+
+        private var photoSelectionSection: some View {
+            VStack(spacing: 16) {
+                if let image = state.selectedFoodImage {
+                    // Show selected image
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 250)
+                        .cornerRadius(12)
+                        .shadow(radius: 4)
+
+                    // Change photo button
+                    HStack {
+                        Button(action: {
+                            if isCameraAvailable {
+                                imagePickerSourceType = .camera
+                                showImagePicker = true
+                            } else {
+                                showCameraUnavailableAlert = true
+                            }
+                        }) {
+                            Label("Retake", systemImage: "camera")
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(!isCameraAvailable)
+
+                        Button(action: {
+                            imagePickerSourceType = .photoLibrary
+                            showImagePicker = true
+                        }) {
+                            Label("Choose Another", systemImage: "photo")
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                } else {
+                    // Photo selection buttons
+                    VStack(spacing: 12) {
+                        Image(systemName: "fork.knife.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.mint.opacity(0.6))
+
+                        Text("Take or select a photo of your meal")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+
+                        HStack(spacing: 20) {
+                            Button(action: {
+                                if isCameraAvailable {
+                                    imagePickerSourceType = .camera
+                                    showImagePicker = true
+                                } else {
+                                    showCameraUnavailableAlert = true
+                                }
+                            }) {
+                                VStack {
+                                    Image(systemName: "camera.fill")
+                                        .font(.title)
+                                    Text("Camera")
+                                        .font(.caption)
+                                }
+                                .frame(width: 100, height: 80)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(isCameraAvailable ? .mint : .gray)
+                            .disabled(!isCameraAvailable)
+
+                            Button(action: {
+                                imagePickerSourceType = .photoLibrary
+                                showImagePicker = true
+                            }) {
+                                VStack {
+                                    Image(systemName: "photo.fill")
+                                        .font(.title)
+                                    Text("Photos")
+                                        .font(.caption)
+                                }
+                                .frame(width: 100, height: 80)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.blue)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(30)
+                    .background(Color.chart)
+                    .cornerRadius(12)
+                }
+            }
+        }
+
+        private var descriptionSection: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Description (optional)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                TextField("e.g., small portion, dressing on the side", text: $state.foodDescription)
+                    .textFieldStyle(.roundedBorder)
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private var estimateButton: some View {
+            Button(action: {
+                Task {
+                    await state.estimateCarbsFromPhoto()
+                }
+            }) {
+                HStack {
+                    Image(systemName: "sparkles")
+                    Text("Estimate Carbs")
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.mint)
+            .disabled(!AIInsightsConfig.Config.isAPIKeyConfigured || state.isEstimatingCarbs)
+        }
+
+        private var loadingView: some View {
+            VStack(spacing: 16) {
+                ProgressView()
+                    .scaleEffect(1.5)
+                Text("Analyzing your meal...")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(40)
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func errorView(_ error: String) -> some View {
+            VStack(spacing: 12) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.title)
+                    .foregroundColor(.orange)
+                Text("Estimation Error")
+                    .font(.headline)
+                Text(error)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+
+                Button("Try Again") {
+                    Task {
+                        await state.estimateCarbsFromPhoto()
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func resultView(_ result: CarbEstimateResult) -> some View {
+            VStack(alignment: .leading, spacing: 16) {
+                // Header with total
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text("Estimated Carbs")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Text("\(NSDecimalNumber(decimal: result.totalCarbs).intValue)g")
+                            .font(.system(size: 48, weight: .bold))
+                            .foregroundColor(.mint)
+                    }
+
+                    Spacer()
+
+                    // Confidence badge
+                    VStack {
+                        Text("Confidence")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Text(result.confidence.rawValue)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 4)
+                            .background(confidenceColor(result.confidence).opacity(0.2))
+                            .foregroundColor(confidenceColor(result.confidence))
+                            .cornerRadius(12)
+                    }
+                }
+
+                Divider()
+
+                // Itemized breakdown
+                if !result.items.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Breakdown")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+
+                        ForEach(result.items) { item in
+                            HStack {
+                                Text("🍽️")
+                                VStack(alignment: .leading) {
+                                    Text(item.name)
+                                        .font(.subheadline)
+                                    if !item.portion.isEmpty {
+                                        Text(item.portion)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                Spacer()
+                                Text("~\(NSDecimalNumber(decimal: item.carbs).intValue)g")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                }
+
+                // Notes
+                if let notes = result.notes {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Notes")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(.secondary)
+                        Text(notes)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                Divider()
+
+                // Action buttons
+                if let onAccept = onAcceptCarbs {
+                    // From bolus calculator - button to use carbs
+                    Button(action: {
+                        onAccept(result.totalCarbs)
+                        dismiss()
+                    }) {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                            Text("Use \(NSDecimalNumber(decimal: result.totalCarbs).intValue)g in Calculator")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.green)
+                } else {
+                    // Standalone mode - show carbs prominently with copy option
+                    VStack(spacing: 12) {
+                        Text("Estimated Carbs")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("\(NSDecimalNumber(decimal: result.totalCarbs).intValue)g")
+                            .font(.system(size: 48, weight: .bold))
+                            .foregroundColor(.mint)
+
+                        Button(action: {
+                            UIPasteboard.general.string = "\(NSDecimalNumber(decimal: result.totalCarbs).intValue)"
+                        }) {
+                            HStack {
+                                Image(systemName: "doc.on.doc")
+                                Text("Copy to Clipboard")
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.mint)
+                    }
+                    .padding(.vertical, 8)
+                }
+
+                // Show raw response option
+                DisclosureGroup("View Full Analysis") {
+                    RichMarkdownView(content: result.rawResponse)
+                        .padding(.top, 8)
+                }
+                .font(.caption)
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func confidenceColor(_ confidence: CarbEstimateResult.ConfidenceLevel) -> Color {
+            switch confidence {
+            case .low: return .red
+            case .medium: return .orange
+            case .high: return .green
+            }
+        }
+    }
+
+    // MARK: - Image Picker
+
+    struct ImagePicker: UIViewControllerRepresentable {
+        @Binding var image: UIImage?
+        let sourceType: UIImagePickerController.SourceType
+        @Environment(\.dismiss) var dismiss
+
+        func makeUIViewController(context: Context) -> UIImagePickerController {
+            let picker = UIImagePickerController()
+            picker.sourceType = sourceType
+            picker.delegate = context.coordinator
+            return picker
+        }
+
+        func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+        func makeCoordinator() -> Coordinator {
+            Coordinator(self)
+        }
+
+        class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+            let parent: ImagePicker
+
+            init(_ parent: ImagePicker) {
+                self.parent = parent
+            }
+
+            func imagePickerController(
+                _ picker: UIImagePickerController,
+                didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
+            ) {
+                if let image = info[.originalImage] as? UIImage {
+                    parent.image = image
+                }
+                parent.dismiss()
+            }
+
+            func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+                parent.dismiss()
             }
         }
     }

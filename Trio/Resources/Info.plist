@@ -79,8 +79,12 @@
 	<string>Calendar is used to create a new glucose events.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Contact is used to create a Apple Watch complication</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera is used to take photos of meals for AI-powered carb estimation</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>For authorized acces to bolus</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo library access is used to select meal photos for AI-powered carb estimation</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Health App is used to store blood glucose, carbs and insulin</string>
 	<key>NSHealthUpdateUsageDescription</key>
