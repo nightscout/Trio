@@ -96,7 +96,7 @@ extension Home {
         /// Determines if the Why High/Low banner should be shown
         private var shouldShowWhyHighLowBanner: Bool {
             guard !isWhyHighLowBannerDismissed,
-                  aiInsightsState.isAPIKeyConfigured,
+                  AIInsightsConfig.Config.isAPIKeyConfigured,
                   let latestGlucose = state.latestTwoGlucoseValues.first
             else { return false }
 
@@ -1069,8 +1069,11 @@ extension Home {
                 configureView {
                     highlightButtons()
                 }
-                // Load AI Insights settings for Why High/Low banner
-                aiInsightsState.subscribe()
+                // Initialize AI Insights state with resolver for dependency injection
+                // This enables the Why High/Low banner and analysis features
+                if aiInsightsState.resolver == nil {
+                    aiInsightsState.resolver = resolver
+                }
             }
             .navigationTitle("Home")
             .navigationBarHidden(true)
