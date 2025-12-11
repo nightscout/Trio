@@ -122,35 +122,47 @@ extension Treatments {
         }
 
         @ViewBuilder private func carbsTextField() -> some View {
-            HStack {
-                Text("Carbs")
-
-                // Camera button for photo carb estimation
-                if aiInsightsState.isAPIKeyConfigured {
-                    Button(action: {
-                        showPhotoCarbSheet = true
-                    }) {
-                        Image(systemName: "camera.fill")
-                            .font(.subheadline)
-                            .foregroundColor(.mint)
+            VStack(spacing: 8) {
+                HStack {
+                    Text("Carbs")
+                    Spacer()
+                    TextFieldWithToolBar(
+                        text: $state.carbs,
+                        placeholder: "0",
+                        keyboardType: .numberPad,
+                        numberFormatter: mealFormatter,
+                        showArrows: true,
+                        previousTextField: { focusedField = previousField(from: .carbs) },
+                        nextTextField: { focusedField = nextField(from: .carbs) },
+                        unitsText: String(localized: "g", comment: "Units for carbs")
+                    )
+                    .focused($focusedField, equals: .carbs)
+                    .onChange(of: state.carbs) {
+                        handleDebouncedInput()
                     }
-                    .buttonStyle(.plain)
                 }
 
-                Spacer()
-                TextFieldWithToolBar(
-                    text: $state.carbs,
-                    placeholder: "0",
-                    keyboardType: .numberPad,
-                    numberFormatter: mealFormatter,
-                    showArrows: true,
-                    previousTextField: { focusedField = previousField(from: .carbs) },
-                    nextTextField: { focusedField = nextField(from: .carbs) },
-                    unitsText: String(localized: "g", comment: "Units for carbs")
-                )
-                .focused($focusedField, equals: .carbs)
-                .onChange(of: state.carbs) {
-                    handleDebouncedInput()
+                // Photo AI button - prominent placement
+                if aiInsightsState.isAPIKeyConfigured {
+                    HStack {
+                        Button(action: {
+                            showPhotoCarbSheet = true
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "camera.fill")
+                                    .font(.caption)
+                                Text("Photo")
+                                    .font(.subheadline.weight(.medium))
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.mint.opacity(0.15))
+                            .foregroundColor(.mint)
+                            .cornerRadius(8)
+                        }
+                        .buttonStyle(.plain)
+                        Spacer()
+                    }
                 }
             }
         }
