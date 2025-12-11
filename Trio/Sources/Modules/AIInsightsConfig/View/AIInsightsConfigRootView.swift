@@ -1276,6 +1276,231 @@ extension AIInsightsConfig {
         }
     }
 
+    // MARK: - Why High/Low Analysis View
+
+    struct WhyHighLowAnalysisView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+        @Environment(\.dismiss) var dismiss
+        @State private var showShareSheet = false
+
+        let currentBG: Decimal
+        let bgTrend: String
+        let currentIOB: Decimal
+        let currentCOB: Int
+        let isHigh: Bool
+
+        var body: some View {
+            NavigationView {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Current Status Card
+                        currentStatusCard
+
+                        // Analysis Result or Loading
+                        if state.isAnalyzingWhyHighLow {
+                            loadingView
+                        } else if let error = state.whyHighLowError {
+                            errorView(error)
+                        } else if !state.whyHighLowResult.isEmpty {
+                            resultView
+                        } else {
+                            analyzeButton
+                        }
+                    }
+                    .padding()
+                }
+                .background(appState.trioBackgroundColor(for: colorScheme))
+                .navigationTitle(isHigh ? "Why Am I High?" : "Why Am I Low?")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Close") {
+                            dismiss()
+                        }
+                    }
+
+                    if !state.whyHighLowResult.isEmpty {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button(action: { showShareSheet = true }) {
+                                Image(systemName: "square.and.arrow.up")
+                            }
+                        }
+                    }
+                }
+                .sheet(isPresented: $showShareSheet) {
+                    if let pdfData = state.whyHighLowPDFData {
+                        ShareSheet(activityItems: [pdfData])
+                    }
+                }
+            }
+            .onAppear {
+                // Auto-analyze when view appears
+                Task {
+                    await state.analyzeWhyHighLow(
+                        currentBG: currentBG,
+                        bgTrend: bgTrend,
+                        currentIOB: currentIOB,
+                        currentCOB: currentCOB,
+                        isHigh: isHigh
+                    )
+                }
+            }
+            .onDisappear {
+                state.clearWhyHighLowResult()
+            }
+        }
+
+        private var currentStatusCard: some View {
+            VStack(spacing: 12) {
+                HStack {
+                    Image(systemName: isHigh ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
+                        .font(.title)
+                        .foregroundColor(isHigh ? .orange : .red)
+
+                    VStack(alignment: .leading) {
+                        Text("Current BG: \(NSDecimalNumber(decimal: currentBG).intValue) \(state.units.rawValue)")
+                            .font(.headline)
+                        Text("Trend: \(bgTrend)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+
+                    Spacer()
+                }
+
+                HStack(spacing: 20) {
+                    VStack {
+                        Text("IOB")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("\(String(format: "%.2f", NSDecimalNumber(decimal: currentIOB).doubleValue)) U")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+
+                    Divider()
+                        .frame(height: 30)
+
+                    VStack {
+                        Text("COB")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("\(currentCOB) g")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+
+                    Divider()
+                        .frame(height: 30)
+
+                    VStack {
+                        Text("Analysis Period")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("\(state.whlAnalysisHours.displayName)")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                }
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private var loadingView: some View {
+            VStack(spacing: 16) {
+                ProgressView()
+                    .scaleEffect(1.5)
+                Text("Analyzing your data...")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(40)
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private func errorView(_ error: String) -> some View {
+            VStack(spacing: 12) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.title)
+                    .foregroundColor(.orange)
+                Text("Analysis Error")
+                    .font(.headline)
+                Text(error)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+
+                Button("Try Again") {
+                    Task {
+                        await state.analyzeWhyHighLow(
+                            currentBG: currentBG,
+                            bgTrend: bgTrend,
+                            currentIOB: currentIOB,
+                            currentCOB: currentCOB,
+                            isHigh: isHigh
+                        )
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private var resultView: some View {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    Image(systemName: "brain.head.profile")
+                        .foregroundColor(.purple)
+                    Text("AI Analysis")
+                        .font(.headline)
+                }
+
+                MarkdownView(text: state.whyHighLowResult)
+
+                // Disclaimer
+                Text("This analysis is for informational purposes only. Always consult your healthcare provider before making treatment changes.")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 8)
+            }
+            .padding()
+            .background(Color.chart)
+            .cornerRadius(12)
+        }
+
+        private var analyzeButton: some View {
+            Button(action: {
+                Task {
+                    await state.analyzeWhyHighLow(
+                        currentBG: currentBG,
+                        bgTrend: bgTrend,
+                        currentIOB: currentIOB,
+                        currentCOB: currentCOB,
+                        isHigh: isHigh
+                    )
+                }
+            }) {
+                HStack {
+                    Image(systemName: "brain.head.profile")
+                    Text("Analyze")
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(!state.isAPIKeyConfigured)
+        }
+    }
+
     // MARK: - Saved Reports List View
 
     struct SavedReportsListView: View {

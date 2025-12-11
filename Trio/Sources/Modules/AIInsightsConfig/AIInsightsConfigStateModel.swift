@@ -704,6 +704,119 @@ Be conservative when uncertain. Round to nearest 5g.
             chatMessages.removeAll()
         }
 
+        // MARK: - Why High/Low Analysis
+
+        @MainActor
+        func analyzeWhyHighLow(
+            currentBG: Decimal,
+            bgTrend: String,
+            currentIOB: Decimal,
+            currentCOB: Int,
+            isHigh: Bool
+        ) async {
+            guard isAPIKeyConfigured else {
+                whyHighLowError = "Please configure your Claude API key first."
+                return
+            }
+
+            isAnalyzingWhyHighLow = true
+            whyHighLowError = nil
+            whyHighLowResult = ""
+
+            do {
+                let exporter = HealthDataExporter(context: coredataContext)
+
+                // Get current settings
+                let settings = settingsManager.settings
+                let carbRatios = await fetchCarbRatios()
+                let isfSchedule = await fetchISFSchedule()
+                let basalSchedule = await fetchBasalSchedule()
+
+                // Get current values based on time of day
+                let currentCR = getCurrentScheduleValue(from: carbRatios.map { ($0.time, $0.ratio) }) ?? 10
+                let currentISF = getCurrentScheduleValue(from: isfSchedule.map { ($0.time, $0.sensitivity) }) ?? 50
+                let currentBasal = getCurrentScheduleValue(from: basalSchedule.map { ($0.time, $0.rate) }) ?? 1
+
+                let lowTarget = settings.units == .mgdL ? Int(settings.low) : Int(settings.low * 18)
+                let highTarget = settings.units == .mgdL ? Int(settings.high) : Int(settings.high * 18)
+
+                // Export recent data
+                let data = try await exporter.exportDataForHours(
+                    hours: whlAnalysisHours.rawValue,
+                    units: settings.units.rawValue,
+                    currentISF: currentISF,
+                    currentCR: currentCR,
+                    currentBasalRate: currentBasal,
+                    targetLow: lowTarget,
+                    targetHigh: highTarget
+                )
+
+                // Build settings for prompt
+                let whlSettings = HealthDataExporter.WhyHighLowSettings(
+                    currentBG: currentBG,
+                    bgTrend: bgTrend,
+                    currentIOB: currentIOB,
+                    currentCOB: currentCOB,
+                    isHigh: isHigh,
+                    analysisHours: whlAnalysisHours.rawValue,
+                    customPrompt: whlCustomPrompt
+                )
+
+                // Format prompt
+                let prompt = exporter.formatWhyHighLowPrompt(data, settings: whlSettings)
+
+                // Call Claude API
+                let result = try await claudeService.analyze(prompt: prompt, apiKey: apiKey)
+                whyHighLowResult = result
+
+                // Generate PDF
+                let title = isHigh ? "Why Am I High?" : "Why Am I Low?"
+                if let pdfData = generatePDF(
+                    from: result,
+                    title: title,
+                    timePeriod: "\(whlAnalysisHours.rawValue) Hours"
+                ) {
+                    whyHighLowPDFData = pdfData
+                }
+            } catch {
+                whyHighLowError = error.localizedDescription
+            }
+
+            isAnalyzingWhyHighLow = false
+        }
+
+        /// Get the current value from a time-based schedule
+        private func getCurrentScheduleValue(from schedule: [(String, Decimal)]) -> Decimal? {
+            guard !schedule.isEmpty else { return nil }
+
+            let now = Date()
+            let calendar = Calendar.current
+            let currentMinutes = calendar.component(.hour, from: now) * 60 + calendar.component(.minute, from: now)
+
+            // Find the applicable schedule entry
+            var result: Decimal = schedule.first!.1
+
+            for (timeString, value) in schedule {
+                let components = timeString.split(separator: ":")
+                if components.count >= 2,
+                   let hour = Int(components[0]),
+                   let minute = Int(components[1]) {
+                    let scheduleMinutes = hour * 60 + minute
+                    if scheduleMinutes <= currentMinutes {
+                        result = value
+                    }
+                }
+            }
+
+            return result
+        }
+
+        func clearWhyHighLowResult() {
+            whyHighLowResult = ""
+            whyHighLowError = nil
+            whyHighLowPDFData = nil
+        }
+
         // MARK: - Weekly Report
 
         @MainActor
