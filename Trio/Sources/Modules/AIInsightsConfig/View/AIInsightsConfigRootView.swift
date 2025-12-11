@@ -1031,11 +1031,11 @@ extension AIInsightsConfig {
 
         // Slider ranges based on units
         private var highThresholdRange: ClosedRange<Double> {
-            state.units == .mmolL ? 8.0...16.0 : 150.0...300.0
+            state.units == .mmolL ? 6.7...16.0 : 120.0...300.0
         }
 
         private var lowThresholdRange: ClosedRange<Double> {
-            state.units == .mmolL ? 2.5...5.5 : 50.0...100.0
+            state.units == .mmolL ? 2.5...6.1 : 50.0...110.0
         }
 
         private var sliderStep: Double {
