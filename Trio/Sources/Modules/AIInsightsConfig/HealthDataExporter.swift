@@ -1644,9 +1644,7 @@ final class HealthDataExporter {
             let waketimeStr = dateFormatter.string(from: recentSleep.wakeTime)
             output += "• Bedtime: \(bedtimeStr), Wake: \(waketimeStr)\n"
             output += "• Duration: \(String(format: "%.1f", recentSleep.hoursAsleep)) hours"
-            if let efficiency = recentSleep.sleepEfficiency {
-                output += " (\(Int(efficiency))% efficient)"
-            }
+            output += " (\(Int(recentSleep.sleepEfficiency))% efficient)"
             output += "\n"
             if recentSleep.hoursAsleep < 6 {
                 output += "• ⚠️ Short sleep may increase insulin resistance\n"
