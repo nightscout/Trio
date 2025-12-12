@@ -16,7 +16,7 @@ import Testing
 
     @Test(
         "should treat two consecutive PumpSuspend events as a single, longer suspend from the first event"
-    )  func consecutivePumpSuspendEvents() async throws {
+    ) func consecutivePumpSuspendEvents() async throws {
         let basalprofile = createBasicBasalProfile()
         let now = Calendar.current.startOfDay(for: Date()) + 60.minutesToSeconds // Current time 01:00
 
@@ -62,7 +62,7 @@ import Testing
 
     @Test(
         "should consider only the first PumpResume after a suspend event, ignoring subsequent consecutive resumes"
-    )  func consecutivePumpResumeEvents() async throws {
+    ) func consecutivePumpResumeEvents() async throws {
         let basalprofile = createBasicBasalProfile()
         let now = Calendar.current.startOfDay(for: Date()) + 60.minutesToSeconds // Current time 01:00
 
@@ -107,7 +107,7 @@ import Testing
 
     @Test(
         "should correctly process a complex sequence of suspend, suspend, resume, resume, suspend, resume events"
-    )  func complexSequenceEvents() async throws {
+    ) func complexSequenceEvents() async throws {
         let basalprofile = createBasicBasalProfile()
         let now = Calendar.current.startOfDay(for: Date()) + 90.minutesToSeconds // Current time 01:30
 
