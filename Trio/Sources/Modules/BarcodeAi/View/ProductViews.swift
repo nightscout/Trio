@@ -4,13 +4,14 @@ import SwiftUI
 
 extension BarcodeScanner {
     struct ProductDetailsView: View {
-        let product: OpenFoodFactsProduct
+        let product: FoodItem
 
         var body: some View {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(alignment: .top, spacing: 16) {
-                    if let imageURL = product.imageURL {
-                        AsyncImage(url: imageURL) { phase in
+                    switch product.imageSource {
+                    case let .url(url):
+                        AsyncImage(url: url) { phase in
                             switch phase {
                             case let .success(image):
                                 image
@@ -24,7 +25,15 @@ extension BarcodeScanner {
                         }
                         .frame(width: 88, height: 88)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
-                    } else {
+
+                    case let .image(uiImage):
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 88, height: 88)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+
+                    case .none:
                         placeholder
                             .frame(width: 88, height: 88)
                     }
@@ -83,7 +92,7 @@ extension BarcodeScanner {
 
 extension BarcodeScanner {
     struct ScannedProductRow: View {
-        let item: ScannedProductItem
+        let item: FoodItem
         var state: StateModel
 
         @State private var amountText: String = ""
@@ -94,31 +103,13 @@ extension BarcodeScanner {
         var body: some View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top, spacing: 12) {
-                    if let imageURL = item.product.imageURL {
-                        AsyncImage(url: imageURL) { phase in
-                            switch phase {
-                            case let .success(image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                            case .failure:
-                                placeholder
-                            default:
-                                ProgressView()
-                            }
-                        }
-                        .frame(width: 60, height: 60)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    } else {
-                        placeholder
-                            .frame(width: 60, height: 60)
-                    }
+                    productImage
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(item.product.name)
+                        Text(item.name)
                             .font(.subheadline.weight(.semibold))
                             .lineLimit(2)
-                        if let brand = item.product.brand {
+                        if let brand = item.brand {
                             Text(brand)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -126,13 +117,6 @@ extension BarcodeScanner {
                     }
 
                     Spacer()
-
-                    Button(role: .destructive) {
-                        state.removeScannedProduct(item)
-                    } label: {
-                        Image(systemName: "trash")
-                            .foregroundStyle(.red)
-                    }
                 }
 
                 HStack(spacing: 12) {
@@ -145,7 +129,9 @@ extension BarcodeScanner {
                     .focused($isTextFieldFocused)
                     .onChange(of: amountText) { _, newValue in
                         if let amount = Double(newValue.replacingOccurrences(of: ",", with: ".")) {
-                            state.updateScannedProductAmount(item, amount: amount, isMlInput: isMlInput)
+                            if amount.isFinite {
+                                state.updateScannedProductAmount(item, amount: amount, isMlInput: isMlInput)
+                            }
                         }
                     }
 
@@ -165,38 +151,10 @@ extension BarcodeScanner {
                 if showQuickSelector {
                     VStack(spacing: 8) {
                         HStack(spacing: 8) {
-                            ForEach(1 ... 5, id: \.self) { multiplier in
-                                Button {
-                                    if let servingQuantity = item.product.servingQuantity, servingQuantity > 0 {
-                                        updateAmount(servingQuantity * Double(multiplier))
-                                    } else {
-                                        updateAmount(Double(multiplier) * 100)
-                                    }
-                                    showQuickSelector = false
-                                } label: {
-                                    Text("\(multiplier)x")
-                                        .font(.caption.weight(.medium))
-                                        .frame(maxWidth: .infinity)
-                                }
-                                .buttonStyle(.bordered)
-                            }
+                            firstRowButtons
                         }
                         HStack(spacing: 8) {
-                            ForEach(6 ... 10, id: \.self) { multiplier in
-                                Button {
-                                    if let servingQuantity = item.product.servingQuantity, servingQuantity > 0 {
-                                        updateAmount(servingQuantity * Double(multiplier))
-                                    } else {
-                                        updateAmount(Double(multiplier) * 100)
-                                    }
-                                    showQuickSelector = false
-                                } label: {
-                                    Text("\(multiplier)x")
-                                        .font(.caption.weight(.medium))
-                                        .frame(maxWidth: .infinity)
-                                }
-                                .buttonStyle(.bordered)
-                            }
+                            secondRowButtons
                         }
                     }
                     .transition(.opacity.combined(with: .move(edge: .top)))
@@ -240,12 +198,80 @@ extension BarcodeScanner {
         }
 
         private func updateAmount(_ amount: Double) {
+            guard amount.isFinite else { return }
+
             if amount.truncatingRemainder(dividingBy: 1) == 0 {
                 amountText = String(format: "%.0f", amount)
             } else {
                 amountText = String(format: "%.1f", amount)
             }
             state.updateScannedProductAmount(item, amount: amount, isMlInput: isMlInput)
+        }
+
+        @ViewBuilder private var firstRowButtons: some View {
+            ForEach(1 ... 5, id: \.self) { multiplier in
+                Button {
+                    quickSelectMultiplier(multiplier)
+                } label: {
+                    Text("\(multiplier)x")
+                        .font(.caption.weight(.medium))
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+
+        @ViewBuilder private var secondRowButtons: some View {
+            ForEach(6 ... 10, id: \.self) { multiplier in
+                Button {
+                    quickSelectMultiplier(multiplier)
+                } label: {
+                    Text("\(multiplier)x")
+                        .font(.caption.weight(.medium))
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+
+        private func quickSelectMultiplier(_ multiplier: Int) {
+            if let servingQuantity = item.servingQuantity, servingQuantity > 0 {
+                updateAmount(servingQuantity * Double(multiplier))
+            } else {
+                updateAmount(Double(multiplier) * 100)
+            }
+            showQuickSelector = false
+        }
+
+        @ViewBuilder private var productImage: some View {
+            switch item.imageSource {
+            case let .image(uiImage):
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 60, height: 60)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+
+            case let .url(url):
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case let .success(image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    case .failure:
+                        placeholder
+                    default:
+                        ProgressView()
+                    }
+                }
+                .frame(width: 60, height: 60)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+            case .none:
+                placeholder
+                    .frame(width: 60, height: 60)
+            }
         }
 
         private var placeholder: some View {
@@ -264,7 +290,7 @@ extension BarcodeScanner {
 
 extension BarcodeScanner {
     struct NutrimentGrid: View {
-        let nutriments: OpenFoodFactsProduct.Nutriments
+        let nutriments: FoodItem.Nutriments
 
         var body: some View {
             VStack(alignment: .leading, spacing: 8) {

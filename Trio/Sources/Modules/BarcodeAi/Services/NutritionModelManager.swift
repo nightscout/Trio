@@ -169,7 +169,7 @@ extension BarcodeScanner {
 
             do {
                 let config = MLModelConfiguration()
-                config.computeUnits = .cpuOnly
+                config.computeUnits = .all
 
                 if FileManager.default.fileExists(atPath: compiledModelPath.path) {
                     model = try MLModel(contentsOf: compiledModelPath, configuration: config)

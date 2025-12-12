@@ -10,12 +10,14 @@ extension BarcodeScanner {
 
         @State var state = StateModel()
         @State private var showListView = false
+        @State private var isEditingFromList = false
 
         @Environment(AppState.self) var appState
         @Environment(\.colorScheme) var colorScheme
         @FocusState private var focusedField: NutritionField?
 
         enum NutritionField: Hashable {
+            case name
             case amount
             case calories
             case carbs
@@ -100,7 +102,7 @@ extension BarcodeScanner {
 
         /// Whether to show the editor view (product or nutrition data available)
         private var showEditorView: Bool {
-            state.product != nil || state.scannedNutritionData != nil
+            state.currentScannedItem != nil || state.scannedNutritionData != nil
         }
 
         // MARK: - Scanner View Content
@@ -168,11 +170,12 @@ extension BarcodeScanner {
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        if let product = state.product {
+                        if let product = state.currentScannedItem {
                             // Product header
                             HStack(alignment: .top, spacing: 12) {
-                                if let imageURL = product.imageURL {
-                                    AsyncImage(url: imageURL) { phase in
+                                switch product.imageSource {
+                                case let .url(url):
+                                    AsyncImage(url: url) { phase in
                                         switch phase {
                                         case let .success(image):
                                             image
@@ -186,7 +189,15 @@ extension BarcodeScanner {
                                     }
                                     .frame(width: 70, height: 70)
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                                } else {
+
+                                case let .image(uiImage):
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 70, height: 70)
+                                        .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                                case .none:
                                     productPlaceholder
                                         .frame(width: 70, height: 70)
                                 }
@@ -275,8 +286,30 @@ extension BarcodeScanner {
                             amountInputSection
 
                         } else if state.scannedNutritionData != nil {
-                            Label(String(localized: "Scanned Nutrition Label"), systemImage: "doc.text.magnifyingglass")
-                                .font(.headline)
+                            HStack {
+                                Image(systemName: "doc.text.magnifyingglass")
+                                TextField("Product Name", text: $state.editableNutritionName)
+                                    .focused($focusedField, equals: .name)
+                                    .submitLabel(.done)
+                            }
+                            .font(.headline)
+
+                            HStack(spacing: 4) {
+                                Text("Values per")
+                                TextField("100", value: $state.scannedLabelBasisAmount, format: .number)
+                                    .font(.subheadline.weight(.semibold))
+                                    .multilineTextAlignment(.center)
+                                    .keyboardType(.decimalPad)
+                                    .frame(width: 50)
+                                    .padding(.horizontal, 4)
+                                    .background(Color.secondary.opacity(0.1))
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                                Text("g")
+                                Spacer()
+                            }
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 8)
 
                             VStack(spacing: 0) {
                                 editableNutritionRow(
@@ -351,6 +384,9 @@ extension BarcodeScanner {
                             }
                             .background(Color.secondary.opacity(0.1))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                            // Amount input section
+                            amountInputSection
                         }
                     }
                     .padding()
@@ -363,10 +399,15 @@ extension BarcodeScanner {
                     // Add & Continue button
                     Button {
                         dismissKeyboard()
-                        if state.product != nil {
+                        if state.currentScannedItem != nil {
                             state.addProductToList()
                         } else {
                             state.addScannedNutritionToMeals()
+                        }
+
+                        if isEditingFromList {
+                            isEditingFromList = false
+                            showListView = true
                         }
                     } label: {
                         Label(String(localized: "Add to List"), systemImage: "plus.circle.fill")
@@ -377,32 +418,14 @@ extension BarcodeScanner {
                     .buttonStyle(.borderedProminent)
                     .tint(.insulin)
 
-                    // Add & Go to Calculator button (if items already in list)
-                    if !state.scannedProducts.isEmpty {
-                        Button {
-                            dismissKeyboard()
-                            if state.product != nil {
-                                state.addProductToList()
-                            } else {
-                                state.addScannedNutritionToMeals()
-                            }
-                            // Small delay to let the list update, then open calculator
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                state.openInTreatments()
-                            }
-                        } label: {
-                            Label(String(localized: "Add & Use in Calculator"), systemImage: "arrow.right.circle.fill")
-                                .font(.subheadline.weight(.semibold))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.green)
-                    }
-
                     Button {
                         dismissKeyboard()
                         state.cancelEditing()
+
+                        if isEditingFromList {
+                            isEditingFromList = false
+                            showListView = true
+                        }
                     } label: {
                         Text("Cancel")
                             .font(.subheadline.weight(.medium))
@@ -489,7 +512,7 @@ extension BarcodeScanner {
                                 .padding(.vertical, 6)
                                 .background(.ultraThinMaterial)
                                 .clipShape(Capsule())
-                                .padding(.bottom, 150)
+                                .padding(.bottom, 140)
                             }
                         }
 
@@ -580,6 +603,22 @@ extension BarcodeScanner {
                         .tint(.green)
                         .disabled(state.isProcessingLabel)
                     }
+
+                    if !state.scannedProducts.isEmpty {
+                        Button {
+                            state.openInTreatments()
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "arrow.right.circle.fill")
+                                Text("Calculator")
+                            }
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.blue)
+                    }
                 }
             }
             .padding(.horizontal)
@@ -628,20 +667,29 @@ extension BarcodeScanner {
                 }
 
                 // Show calculated nutrition based on amount
-                if state.editingAmount > 0, let product = state.product {
-                    let carbsTotal = (product.nutriments.carbohydratesPer100g ?? 0) * state.editingAmount / 100
-                    let kcalTotal = (product.nutriments.energyKcalPer100g ?? 0) * state.editingAmount / 100
-
-                    HStack(spacing: 16) {
-                        Label("\(carbsTotal, specifier: "%.1f") g carbs", systemImage: "leaf.fill")
-                            .foregroundStyle(.green)
-                        Label("\(kcalTotal, specifier: "%.0f") kcal", systemImage: "flame.fill")
-                            .foregroundStyle(.orange)
+                if state.editingAmount > 0 {
+                    if let product = state.currentScannedItem {
+                        let carbsTotal = (product.nutriments.carbohydratesPer100g ?? 0) * state.editingAmount / 100
+                        let kcalTotal = (product.nutriments.energyKcalPer100g ?? 0) * state.editingAmount / 100
+                        nutritionSummary(carbs: carbsTotal, kcal: kcalTotal)
+                    } else if let data = state.scannedNutritionData {
+                        let carbsTotal = (data.carbohydrates ?? 0) * state.editingAmount / 100
+                        let kcalTotal = (data.calories ?? 0) * state.editingAmount / 100
+                        nutritionSummary(carbs: carbsTotal, kcal: kcalTotal)
                     }
-                    .font(.caption)
-                    .padding(.top, 4)
                 }
             }
+        }
+
+        private func nutritionSummary(carbs: Double, kcal: Double) -> some View {
+            HStack(spacing: 16) {
+                Label("\(carbs, specifier: "%.1f") g carbs", systemImage: "leaf.fill")
+                    .foregroundStyle(.green)
+                Label("\(kcal, specifier: "%.0f") kcal", systemImage: "flame.fill")
+                    .foregroundStyle(.orange)
+            }
+            .font(.caption)
+            .padding(.top, 4)
         }
 
         private var productPlaceholder: some View {
@@ -655,7 +703,7 @@ extension BarcodeScanner {
 
         private func editableProductNutritionRow(
             label: String,
-            keyPath: WritableKeyPath<OpenFoodFactsProduct.Nutriments, Double?>,
+            keyPath: WritableKeyPath<FoodItem.Nutriments, Double?>,
             unit: String,
             field: NutritionField
         ) -> some View {
@@ -669,7 +717,7 @@ extension BarcodeScanner {
                     TextField(
                         "0",
                         value: Binding(
-                            get: { state.product?.nutriments[keyPath: keyPath] },
+                            get: { state.currentScannedItem?.nutriments[keyPath: keyPath] },
                             set: { newValue in
                                 state.updateProductNutriment(keyPath: keyPath, value: newValue)
                             }
@@ -700,14 +748,59 @@ extension BarcodeScanner {
                 if state.scannedProducts.isEmpty {
                     emptyListView
                 } else {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 16) {
+                    List {
+                        Section {
                             listHeader
-                            scannedProductsList
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                                .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
                         }
-                        .padding()
+
+                        Section {
+                            ForEach(state.scannedProducts) { item in
+                                ScannedProductRow(item: item, state: state)
+                                    .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden)
+                                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                        Button(role: .destructive) {
+                                            withAnimation {
+                                                state.removeScannedProduct(item)
+                                            }
+                                        } label: {
+                                            Label("Delete", systemImage: "trash")
+                                        }
+                                        .tint(.red)
+                                    }
+                                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                                        Button {
+                                            state.editScannedProduct(item)
+                                            isEditingFromList = true
+                                            showListView = false
+                                        } label: {
+                                            Label("Edit", systemImage: "pencil")
+                                        }
+                                        .tint(.blue)
+                                    }
+                            }
+                        }
+
+                        Section {
+                            Button {
+                                state.openInTreatments()
+                            } label: {
+                                Label(String(localized: "Use in bolus calculator"), systemImage: "arrow.right.circle.fill")
+                                    .font(.footnote.weight(.semibold))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 32, trailing: 16))
+                        }
                     }
-                    .scrollIndicators(.hidden)
+                    .listStyle(.plain)
                     .scrollContentBackground(.hidden)
                 }
             }
@@ -740,12 +833,14 @@ extension BarcodeScanner {
 
         private var listHeader: some View {
             let totalCarbs = state.scannedProducts.reduce(into: 0.0) { result, item in
-                let carbsPer100 = item.product.nutriments.carbohydratesPer100g ?? 0
-                result += (carbsPer100 * item.amount) / 100.0
+                let carbsPer100 = item.nutriments.carbohydratesPer100g ?? 0
+                let amount = item.amount.isFinite ? item.amount : 0
+                result += (carbsPer100 * amount) / 100.0
             }
             let totalCalories = state.scannedProducts.reduce(into: 0.0) { result, item in
-                let kcalPer100 = item.product.nutriments.energyKcalPer100g ?? 0
-                result += (kcalPer100 * item.amount) / 100.0
+                let kcalPer100 = item.nutriments.energyKcalPer100g ?? 0
+                let amount = item.amount.isFinite ? item.amount : 0
+                result += (kcalPer100 * amount) / 100.0
             }
 
             return VStack(alignment: .leading, spacing: 8) {
@@ -760,24 +855,6 @@ extension BarcodeScanner {
                         .foregroundStyle(.orange)
                 }
                 .font(.subheadline)
-            }
-        }
-
-        private var scannedProductsList: some View {
-            VStack(spacing: 12) {
-                ForEach(state.scannedProducts) { item in
-                    ScannedProductRow(item: item, state: state)
-                }
-
-                Button {
-                    state.openInTreatments()
-                } label: {
-                    Label(String(localized: "Use in bolus calculator"), systemImage: "arrow.right.circle.fill")
-                        .font(.footnote.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .padding(.top, 8)
             }
         }
 

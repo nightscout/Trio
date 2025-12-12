@@ -1,10 +1,14 @@
 import Foundation
+import SwiftUI
+import UIKit
 
-// MARK: - OpenFoodFacts Models
+// MARK: - Food Item Model
 
 extension BarcodeScanner {
-    /// Represents a product from OpenFoodFacts API
-    struct OpenFoodFactsProduct: Identifiable, Equatable {
+    /// A unified food item model representing both scanned barcodes (API) and camera-scanned labels
+    struct FoodItem: Identifiable, Equatable {
+        // MARK: - Subtypes
+
         struct Nutriments: Equatable {
             enum Basis: Equatable {
                 case per100g
@@ -20,49 +24,78 @@ extension BarcodeScanner {
             var fiberPer100g: Double?
         }
 
-        var id: String { barcode }
+        enum ImageSource: Equatable {
+            case url(URL)
+            case image(UIImage)
+            case none
 
-        let barcode: String
+            static func == (lhs: ImageSource, rhs: ImageSource) -> Bool {
+                switch (lhs, rhs) {
+                case let (.url(u1), .url(u2)): return u1 == u2
+                case let (.image(i1), .image(i2)): return i1 === i2
+                case (.none, .none): return true
+                default: return false
+                }
+            }
+        }
+
+        // MARK: - Properties
+
+        let id: UUID
+        let barcode: String?
         let name: String
         let brand: String?
         let quantity: String?
         let servingSize: String?
         let ingredients: String?
-        let imageURL: URL?
-        /// Preferred unit for user input (true = ml, false = g),
-        /// primarily derived from `product_quantity_unit`.
+
+        /// Preferred unit for user input (true = ml, false = g)
         let defaultPortionIsMl: Bool
         let servingQuantity: Double?
         let servingQuantityUnit: String?
+
         var nutriments: Nutriments
-    }
-}
 
-// MARK: - Scanned Product Item
-
-extension BarcodeScanner {
-    /// Represents a scanned product with user-entered amount
-    struct ScannedProductItem: Identifiable, Equatable {
-        let id: UUID
-        let product: OpenFoodFactsProduct
+        // User-editable state
         var amount: Double
         var isMlInput: Bool
-        let isManualEntry: Bool
+        var isManualEntry: Bool
+        var imageSource: ImageSource
 
-        init(product: OpenFoodFactsProduct, amount: Double = 0, isMlInput: Bool = false, isManualEntry: Bool = false) {
-            id = UUID()
-            self.product = product
+        // MARK: - Initialization
+
+        init(
+            id: UUID = UUID(),
+            barcode: String? = nil,
+            name: String,
+            brand: String? = nil,
+            quantity: String? = nil,
+            servingSize: String? = nil,
+            ingredients: String? = nil,
+            imageSource: ImageSource = .none,
+            defaultPortionIsMl: Bool = false,
+            servingQuantity: Double? = nil,
+            servingQuantityUnit: String? = nil,
+            nutriments: Nutriments,
+            amount: Double = 0,
+            isMlInput: Bool = false,
+            isManualEntry: Bool = false
+        ) {
+            self.id = id
+            self.barcode = barcode
+            self.name = name
+            self.brand = brand
+            self.quantity = quantity
+            self.servingSize = servingSize
+            self.ingredients = ingredients
+            self.imageSource = imageSource
+            self.defaultPortionIsMl = defaultPortionIsMl
+            self.servingQuantity = servingQuantity
+            self.servingQuantityUnit = servingQuantityUnit
+            self.nutriments = nutriments
             self.amount = amount
             self.isMlInput = isMlInput
             self.isManualEntry = isManualEntry
-        }
-
-        static func == (lhs: ScannedProductItem, rhs: ScannedProductItem) -> Bool {
-            lhs.id == rhs.id &&
-                lhs.product == rhs.product &&
-                lhs.amount == rhs.amount &&
-                lhs.isMlInput == rhs.isMlInput &&
-                lhs.isManualEntry == rhs.isManualEntry
         }
     }
 }

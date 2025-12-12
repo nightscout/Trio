@@ -83,12 +83,30 @@ extension BarcodeScanner {
                         )
                     }
 
+                    // Log recognized text
+                    let fullText = elements.map(\.text).joined(separator: "\n")
+                    print("----- Recognized Text Content START -----")
+                    print(fullText)
+                    print("----- Recognized Text Content END -----")
+
                     continuation.resume(returning: elements)
                 }
 
                 request.recognitionLevel = .accurate
                 request.usesLanguageCorrection = true
-                request.recognitionLanguages = ["en-US", "de-DE", "fr-FR", "es-ES", "it-IT"]
+                request.automaticallyDetectsLanguage = true
+
+                // Use all supported languages for the current revision to mimic "Photos app" behavior
+                do {
+                    let allLanguages = try VNRecognizeTextRequest.supportedRecognitionLanguages(
+                        for: .accurate,
+                        revision: request.revision
+                    )
+                    request.recognitionLanguages = allLanguages
+                } catch {
+                    // Fallback to major languages if dynamic retrieval fails
+                    request.recognitionLanguages = ["en-US", "de-DE", "fr-FR", "es-ES", "it-IT", "zh-Hans", "ja-JP"]
+                }
 
                 let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
                 do {
@@ -492,14 +510,120 @@ extension BarcodeScanner {
             var data = NutritionData()
 
             let nutrientKeywords: [(keywords: [String], setter: (Double) -> Void)] = [
-                (["kohlenhydrate", "carbohydrate", "carbs", "glucide"], { data.carbohydrates = $0 }),
-                (["davon zucker", "zucker", "sugar", "sucre", "zuccheri"], { data.sugars = $0 }),
-                (["eiweiß", "eiweiss", "protein", "proteine", "protéine"], { data.protein = $0 }),
-                (["fett", "fat", "lipide", "grassi", "matières grasses"], { data.fat = $0 }),
-                (["gesättigte", "saturated", "saturi"], { data.saturatedFat = $0 }),
-                (["ballaststoffe", "fiber", "fibre"], { data.fiber = $0 }),
-                (["salz", "salt", "sel", "sodium", "natrium"], { data.sodium = $0 }),
-                (["energie", "energy", "brennwert", "kcal", "kj"], { data.calories = $0 })
+                (
+                    [
+                        "kohlenhydrate",
+                        "carbohydrate",
+                        "carbs",
+                        "glucide",
+                        "carboidrati",
+                        "hidratos de carbono",
+                        "carboidratos",
+                        "koolhydraten",
+                        "углеводы",
+                        "碳水化合物",
+                        "炭水化物",
+                        "karbonhidrat"
+                    ],
+                    { data.carbohydrates = $0 }
+                ),
+                (
+                    [
+                        "davon zucker",
+                        "zucker",
+                        "sugar",
+                        "sucre",
+                        "zuccheri",
+                        "azúcares",
+                        "açúcares",
+                        "suikers",
+                        "сахар",
+                        "糖",
+                        "糖類",
+                        "şeker"
+                    ],
+                    { data.sugars = $0 }
+                ),
+                (
+                    [
+                        "eiweiß",
+                        "eiweiss",
+                        "protein",
+                        "proteine",
+                        "protéine",
+                        "proteínas",
+                        "eiwitten",
+                        "белки",
+                        "蛋白质",
+                        "たんぱく質",
+                        "タンパク質"
+                    ],
+                    { data.protein = $0 }
+                ),
+                (
+                    [
+                        "fett",
+                        "fat",
+                        "lipide",
+                        "grassi",
+                        "matières grasses",
+                        "grasas",
+                        "gorduras",
+                        "vetten",
+                        "vet",
+                        "жиры",
+                        "脂肪",
+                        "脂質",
+                        "yağ"
+                    ],
+                    { data.fat = $0 }
+                ),
+                (
+                    ["gesättigte", "saturated", "saturi", "saturadas", "saturados", "verzadigd", "насыщенные", "饱和", "飽和"],
+                    { data.saturatedFat = $0 }
+                ),
+                (
+                    ["ballaststoffe", "fiber", "fibre", "fibra", "vezels", "волокна", "клетчатка", "膳食纤维", "食物繊維", "lif"],
+                    { data.fiber = $0 }
+                ),
+                (
+                    [
+                        "salz",
+                        "salt",
+                        "sel",
+                        "sodium",
+                        "natrium",
+                        "sal",
+                        "sodio",
+                        "sódio",
+                        "zout",
+                        "соль",
+                        "натрий",
+                        "钠",
+                        "ナトリウム",
+                        "食塩相当量",
+                        "tuz"
+                    ],
+                    { data.sodium = $0 }
+                ),
+                (
+                    [
+                        "energie",
+                        "energy",
+                        "brennwert",
+                        "kcal",
+                        "kj",
+                        "energía",
+                        "energia",
+                        "энергетическая ценность",
+                        "калорийность",
+                        "能量",
+                        "热量",
+                        "熱量",
+                        "エネルギー"
+                    ],
+                    { data.calories = $0 }
+                )
             ]
 
             for (keywords, setter) in nutrientKeywords {
@@ -596,7 +720,13 @@ extension BarcodeScanner {
                 "serving size[:\\s]*(.+)",
                 "portion[:\\s]*(.+)",
                 "portionsgröße[:\\s]*(.+)",
-                "porzione[:\\s]*(.+)"
+                "porzione[:\\s]*(.+)",
+                "tamaño por ración[:\\s]*(.+)",
+                "tamanho da porção[:\\s]*(.+)",
+                "portiegrootte[:\\s]*(.+)",
+                "размер порции[:\\s]*(.+)",
+                "食用份量[:\\s]*(.+)",
+                "1食分[:\\s]*(.+)"
             ]
 
             for line in lines {
@@ -616,7 +746,7 @@ extension BarcodeScanner {
         }
 
         private func extractServingSizeGrams(from lines: [String]) -> Double? {
-            let pattern = "(\\d+(?:[.,]\\d+)?)\\s*(?:g|grams?|gramm)"
+            let pattern = "(\\d+(?:[.,]\\d+)?)\\s*(?:g|grams?|gramm|gramos|grammes|г|克)"
 
             for line in lines {
                 let lowercased = line.lowercased()
@@ -681,6 +811,14 @@ private enum NutrientPatterns {
         "kcal[:\\s]*(\\d+(?:[.,]\\d+)?)",
         "brennwert[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:kcal|kj)",
         "energie[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:kcal|kj)",
+        "energía[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:kcal|kj)",
+        "energia[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:kcal|kj)",
+        "энергетическая ценность[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:ккал|кдж)?",
+        "калорийность[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:ккал)?",
+        "能量[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:kcal|kJ|千焦)?",
+        "热量[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:kcal|kJ|千焦)?",
+        "エネルギー[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:kcal|kJ)?",
+        "熱量[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:kcal|kJ)?",
         "(\\d+(?:[.,]\\d+)?)\\s*(?:kcal|cal)\\b"
     ]
 
@@ -689,7 +827,13 @@ private enum NutrientPatterns {
         "carbs?[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
         "kohlenhydrate[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
         "glucides?[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
-        "carboidrati[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?"
+        "carboidrati[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "hidratos de carbono[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "carboidratos[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "koolhydraten[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "углеводы[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*г?",
+        "碳水化合物[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*克?",
+        "炭水化物[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?"
     ]
 
     static let sugars: [String] = [
@@ -697,7 +841,13 @@ private enum NutrientPatterns {
         "zucker[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
         "sucres?[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
         "zuccheri[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
-        "davon\\s+zucker[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?"
+        "davon\\s+zucker[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "azúcares[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "açúcares[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "suikers[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "сахар[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*г?",
+        "糖[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*克?",
+        "糖類[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?"
     ]
 
     static let fat: [String] = [
@@ -705,28 +855,51 @@ private enum NutrientPatterns {
         "fett[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
         "lipides?[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
         "grassi[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
-        "matières\\s+grasses[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?"
+        "matières\\s+grasses[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "grasas?[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "gorduras?[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "vetten[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "жиры[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*г?",
+        "脂肪[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*克?",
+        "脂質[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?"
     ]
 
     static let saturatedFat: [String] = [
         "saturated\\s+fat[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
         "gesättigte\\s+(?:fett)?säuren?[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
         "acides\\s+gras\\s+saturés[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
-        "grassi\\s+saturi[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?"
+        "grassi\\s+saturi[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "grasas\\s+saturadas[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "gorduras\\s+saturadas[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "verzadigde\\s+vetten[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "насыщенные\\s+жиры[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*г?",
+        "饱和脂肪[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*克?",
+        "飽和脂肪酸[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?"
     ]
 
     static let protein: [String] = [
         "proteins?[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
         "eiweiß[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
         "protéines?[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
-        "proteine[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?"
+        "proteine[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "proteínas[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "eiwitten[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "белки[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*г?",
+        "蛋白质[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*克?",
+        "たんぱく質[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "タンパク質[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?"
     ]
 
     static let fiber: [String] = [
         "(?:dietary\\s+)?fiber[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
         "fibre[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
         "ballaststoffe[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
-        "fibres?\\s+alimentaires?[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?"
+        "fibres?\\s+alimentaires?[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "fibra[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "vezels[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?",
+        "пищевые\\s+волокна[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*г?",
+        "膳食纤维[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*克?",
+        "食物繊維[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*g?"
     ]
 
     static let sodium: [String] = [
@@ -734,7 +907,16 @@ private enum NutrientPatterns {
         "natrium[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:mg|g)?",
         "salt[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:mg|g)?",
         "salz[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:mg|g)?",
-        "sel[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:mg|g)?"
+        "sel[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:mg|g)?",
+        "sal[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:mg|g)?",
+        "sodio[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:mg|g)?",
+        "sódio[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:mg|g)?",
+        "zout[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:mg|g)?",
+        "соль[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:мг|г)?",
+        "натрий[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:мг|г)?",
+        "钠[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:毫克|克)?",
+        "ナトリウム[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:mg|g)?",
+        "食塩相当量[:\\s]*(\\d+(?:[.,]\\d+)?)\\s*(?:mg|g)?"
     ]
 }
 

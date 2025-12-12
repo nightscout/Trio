@@ -5,7 +5,7 @@ import Foundation
 extension BarcodeScanner {
     /// Client for fetching product data from OpenFoodFacts API
     struct OpenFoodFactsClient {
-        func fetchProduct(barcode: String) async throws -> OpenFoodFactsProduct {
+        func fetchProduct(barcode: String) async throws -> FoodItem {
             guard let url = URL(string: "https://world.openfoodfacts.org/api/v2/product/\(barcode).json") else {
                 throw OpenFoodFactsError.invalidResponse
             }
@@ -41,7 +41,12 @@ extension BarcodeScanner {
                 return productData.nutriments?.basis == .per100ml
             }()
 
-            return OpenFoodFactsProduct(
+            var imageSource: FoodItem.ImageSource = .none
+            if let url = productData.imageURL {
+                imageSource = .url(url)
+            }
+
+            return FoodItem(
                 barcode: apiResponse.code,
                 name: productData.productName?.trimmingCharacters(in: .whitespacesAndNewlines)
                     .nonEmpty ?? String(localized: "Unknown product"),
@@ -49,7 +54,7 @@ extension BarcodeScanner {
                 quantity: productData.quantity,
                 servingSize: productData.servingSize,
                 ingredients: productData.ingredientsText,
-                imageURL: productData.imageURL,
+                imageSource: imageSource,
                 defaultPortionIsMl: isMlQuantityUnit,
                 servingQuantity: productData.servingQuantity,
                 servingQuantityUnit: productData.servingQuantityUnit,
@@ -166,7 +171,7 @@ private extension BarcodeScanner.OpenFoodFactsClient {
     }
 
     struct NutrimentsData: Decodable {
-        let basis: BarcodeScanner.OpenFoodFactsProduct.Nutriments.Basis
+        let basis: BarcodeScanner.FoodItem.Nutriments.Basis
         let energyKcal100g: Double?
         let carbohydrates100g: Double?
         let sugars100g: Double?

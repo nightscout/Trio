@@ -14,10 +14,10 @@ extension BarcodeScanner {
         var isScanning = false
         var isKeyboardVisible = false
         var scannedBarcode: String?
-        var product: OpenFoodFactsProduct?
+        var currentScannedItem: FoodItem?
         var isFetchingProduct = false
         var errorMessage: String?
-        var scannedProducts: [ScannedProductItem] = []
+        var scannedProducts: [FoodItem] = []
 
         // Nutrition label scanning
         var capturedImage: UIImage?
@@ -25,6 +25,7 @@ extension BarcodeScanner {
         var isProcessingLabel = false
         var showNutritionEditor = false
         var editableNutritionName: String = ""
+        var scannedLabelBasisAmount: Double = 100.0
 
         // Editor amount input
         var editingAmount: Double = 0
@@ -115,7 +116,7 @@ extension BarcodeScanner {
         func scanAgain(resetResults: Bool = false) {
             guard cameraStatus == .authorized else { return }
             if resetResults {
-                product = nil
+                currentScannedItem = nil
                 scannedBarcode = nil
                 errorMessage = nil
                 scannedProducts.removeAll()
@@ -142,15 +143,18 @@ extension BarcodeScanner {
 
             Task {
                 do {
-                    let fetchedProduct = try await client.fetchProduct(barcode: barcode)
-                    self.product = fetchedProduct
+                    var fetchedProduct = try await client.fetchProduct(barcode: barcode)
                     self.setupEditingAmount(for: fetchedProduct)
+
+                    // Pre-fill amount in the item for display, though editingAmount controls input
+                    fetchedProduct.amount = self.editingAmount
+                    fetchedProduct.isMlInput = self.editingIsMl
+
+                    self.currentScannedItem = fetchedProduct
                     self.isFetchingProduct = false
-                    // Product is shown in editor for review/editing
-                    // It will be added to list when user taps "Add to List"
                 } catch {
                     guard !Task.isCancelled else { return }
-                    self.product = nil
+                    self.currentScannedItem = nil
                     self.isFetchingProduct = false
                     self.errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
                 }
@@ -159,49 +163,63 @@ extension BarcodeScanner {
 
         // MARK: - Product Management
 
-        func removeScannedProduct(_ item: ScannedProductItem) {
+        func removeScannedProduct(_ item: FoodItem) {
             scannedProducts.removeAll { $0.id == item.id }
             // Allow re-scanning if no other product with the same barcode exists
-            if !scannedProducts.contains(where: { $0.product.barcode == item.product.barcode }) {
-                if scannedBarcode == item.product.barcode {
+            if let barcode = item.barcode, !scannedProducts.contains(where: { $0.barcode == barcode }) {
+                if scannedBarcode == barcode {
                     scannedBarcode = nil
                 }
             }
         }
 
-        func updateScannedProductAmount(_ item: ScannedProductItem, amount: Double, isMlInput: Bool) {
+        func updateScannedProductAmount(_ item: FoodItem, amount: Double, isMlInput: Bool) {
             if let index = scannedProducts.firstIndex(where: { $0.id == item.id }) {
                 scannedProducts[index].amount = amount
                 scannedProducts[index].isMlInput = isMlInput
             }
         }
 
+        func editScannedProduct(_ item: FoodItem) {
+            // Set as current item for editing
+            currentScannedItem = item
+
+            // Set up editing state
+            editingAmount = item.amount
+            editingIsMl = item.isMlInput
+
+            // Stop scanning while editing
+            isScanning = false
+        }
+
         /// Updates a nutriment value for the currently displayed product
         func updateProductNutriment(
-            keyPath: WritableKeyPath<OpenFoodFactsProduct.Nutriments, Double?>,
+            keyPath: WritableKeyPath<FoodItem.Nutriments, Double?>,
             value: Double?
         ) {
-            product?.nutriments[keyPath: keyPath] = value
+            currentScannedItem?.nutriments[keyPath: keyPath] = value
         }
 
         /// Adds the currently displayed product (with edited nutriments) to the list
         func addProductToList() {
-            guard let currentProduct = product else { return }
+            guard var item = currentScannedItem else { return }
 
-            // Add the edited product to the list with user-specified amount
-            let item = ScannedProductItem(
-                product: currentProduct,
-                amount: editingAmount,
-                isMlInput: editingIsMl
-            )
-            scannedProducts.append(item)
+            // Update with latest user edits
+            item.amount = editingAmount
+            item.isMlInput = editingIsMl
+
+            if let index = scannedProducts.firstIndex(where: { $0.id == item.id }) {
+                scannedProducts[index] = item
+            } else {
+                scannedProducts.append(item)
+            }
 
             // Clear the editor and resume scanning
             clearScannedProduct()
         }
 
         /// Sets up editing state when a product is loaded
-        func setupEditingAmount(for product: OpenFoodFactsProduct) {
+        func setupEditingAmount(for product: FoodItem) {
             // Determine initial amount and unit from serving info
             editingAmount = product.servingQuantity ?? 100
             if let servingUnit = product.servingQuantityUnit?.lowercased() {
@@ -213,7 +231,7 @@ extension BarcodeScanner {
 
         /// Clears the currently displayed product from the overlay
         func clearScannedProduct() {
-            product = nil
+            currentScannedItem = nil
             scannedBarcode = nil
             errorMessage = nil
             isScanning = true
@@ -227,10 +245,15 @@ extension BarcodeScanner {
             isScanning = true
         }
 
+        /// Whether to show the editor view (product or nutrition data available)
+        var showEditorView: Bool {
+            currentScannedItem != nil || scannedNutritionData != nil
+        }
+
         /// Cancels the current editing session and returns to scanner
         func cancelEditing() {
             // Clear all editing state (product was not added to list yet)
-            product = nil
+            currentScannedItem = nil
             scannedBarcode = nil
             scannedNutritionData = nil
             capturedImage = nil
@@ -255,11 +278,11 @@ extension BarcodeScanner {
                     return amountDecimal * Decimal(per100g) / 100
                 }
 
-                totalCarbs += macro(item.product.nutriments.carbohydratesPer100g)
-                totalFat += macro(item.product.nutriments.fatPer100g)
-                totalProtein += macro(item.product.nutriments.proteinPer100g)
+                totalCarbs += macro(item.nutriments.carbohydratesPer100g)
+                totalFat += macro(item.nutriments.fatPer100g)
+                totalProtein += macro(item.nutriments.proteinPer100g)
 
-                productNames.append(item.product.name)
+                productNames.append(item.name)
             }
 
             let note = productNames.joined(separator: ", ")
@@ -297,8 +320,10 @@ extension BarcodeScanner {
 
                     // Use AI model if available and enabled, otherwise fall back to regex-based OCR
                     if isAINutritionScannerEnabled, modelManager.isReady {
+                        print("🤖 Using AI Nutrition Scanner")
                         data = try await nutritionScanner.scanWithAIModel(from: image, modelManager: modelManager)
                     } else {
+                        print("📝 Using Regex-based OCR Scanner (AI disabled or model not ready)")
                         data = try await nutritionScanner.scanNutritionLabel(from: image)
                     }
 
@@ -309,6 +334,9 @@ extension BarcodeScanner {
                         if data.hasAnyData {
                             self.showNutritionEditor = true
                             self.editableNutritionName = String(localized: "Scanned Label")
+                            self.editingAmount = data.servingSizeGrams ?? 100
+                            self.editingIsMl = false
+                            self.scannedLabelBasisAmount = 100.0
                         } else {
                             self.errorMessage = String(localized: "No nutrition information found. Try taking a clearer photo.")
                         }
@@ -350,17 +378,17 @@ extension BarcodeScanner {
         func addScannedNutritionLabel() {
             guard let data = scannedNutritionData else { return }
 
-            let product = data.toProduct(
-                name: editableNutritionName.isEmpty ? String(localized: "Scanned Label") : editableNutritionName
+            let item = data.toProduct(
+                name: editableNutritionName.isEmpty ? String(localized: "Scanned Label") : editableNutritionName,
+                basisAmount: scannedLabelBasisAmount,
+                capturedImage: capturedImage
             )
-            let item = ScannedProductItem(
-                product: product,
-                amount: data.servingSizeGrams ?? 100,
-                isMlInput: false,
-                isManualEntry: true
-            )
+            // Amount is set in toProduct now or we should set it explicitly
+            var finalItem = item
+            finalItem.amount = data.servingSizeGrams ?? 100
+            finalItem.isManualEntry = true
 
-            scannedProducts.append(item)
+            scannedProducts.append(finalItem)
 
             // Reset for next scan
             capturedImage = nil
@@ -374,15 +402,17 @@ extension BarcodeScanner {
         func addScannedNutritionToMeals() {
             guard let data = scannedNutritionData else { return }
 
-            let product = data.toProduct(name: String(localized: "Scanned Label"))
-            let item = ScannedProductItem(
-                product: product,
-                amount: data.servingSizeGrams ?? 100,
-                isMlInput: false,
-                isManualEntry: true
+            let item = data.toProduct(
+                name: editableNutritionName.isEmpty ? String(localized: "Scanned Label") : editableNutritionName,
+                basisAmount: scannedLabelBasisAmount,
+                capturedImage: capturedImage
             )
+            var finalItem = item
+            finalItem.amount = editingAmount
+            finalItem.isMlInput = editingIsMl
+            finalItem.isManualEntry = true
 
-            scannedProducts.append(item)
+            scannedProducts.append(finalItem)
 
             // Reset for next scan
             capturedImage = nil
