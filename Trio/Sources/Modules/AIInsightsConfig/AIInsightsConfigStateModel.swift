@@ -1175,11 +1175,13 @@ Respond with a JSON object following the Claude-o-Tune output format.
                 claudeOTuneRawResponse = result
 
                 // Try to parse the JSON response
-                if let recommendation = ClaudeOTuneRecommendation.parse(from: result) {
+                let parseResult = ClaudeOTuneRecommendation.parse(from: result)
+                if let recommendation = parseResult.recommendation {
                     claudeOTuneResult = recommendation
                 } else {
-                    // If parsing fails, still show the raw response
-                    claudeOTuneError = "Could not parse recommendations. Showing raw response."
+                    // If parsing fails, show the specific error and raw response
+                    let errorDetail = parseResult.error ?? "Unknown parsing error"
+                    claudeOTuneError = "Could not parse recommendations: \(errorDetail). Showing raw response."
                 }
 
                 // Generate PDF for saving
