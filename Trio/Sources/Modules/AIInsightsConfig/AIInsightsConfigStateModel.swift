@@ -368,6 +368,10 @@ Respond with a JSON object following the Claude-o-Tune output format.
         @Published var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
+            // Inject services into profile service for dependency resolution
+            if let resolver = resolver {
+                profileService.injectServices(resolver)
+            }
             // Load API key from keychain
             if let storedKey = keychain.getValue(String.self, forKey: Config.apiKeyKey) {
                 apiKey = storedKey

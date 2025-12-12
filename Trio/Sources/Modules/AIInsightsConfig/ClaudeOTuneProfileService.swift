@@ -1,10 +1,11 @@
 import Combine
 import Foundation
 import LoopKit
+import Swinject
 
 /// Service for applying Claude-o-Tune recommendations to the user's profile
 /// Handles backup, apply, and undo operations with safety checks
-final class ClaudeOTuneProfileService {
+final class ClaudeOTuneProfileService: Injectable {
     // MARK: - Types
 
     struct ProfileBackup: Codable {
