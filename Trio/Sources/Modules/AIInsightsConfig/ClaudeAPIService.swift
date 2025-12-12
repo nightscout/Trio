@@ -228,6 +228,11 @@ final class ClaudeAPIService {
       "explanation": "Detailed natural language explanation of the analysis and recommendations"
     }
 
+    CRITICAL JSON TYPE REQUIREMENTS:
+    - For all "adjustments" objects: old_value and new_value MUST be strings (e.g., "0.7" not 0.7)
+    - For "recommended_profile" objects (basal_rates, isf_values, cr_values): current_value, recommended_value, change, and percent_change MUST be numbers (e.g., 0.7 not "0.7")
+    - Mixing types will cause parsing errors in the app
+
     IMPORTANT GUIDELINES:
     - Never recommend changes that exceed safety limits
     - Always explain your reasoning clearly
