@@ -534,3 +534,312 @@ struct TableView: View {
         return rows
     }
 }
+
+// MARK: - Sectioned Markdown View (Card-based display like Claude-o-Tune)
+
+/// A view that parses markdown into sections based on ## headers and displays each section in a beautiful card
+struct SectionedMarkdownView: View {
+    let content: String
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        VStack(spacing: 16) {
+            ForEach(parseSections(), id: \.id) { section in
+                sectionCard(section)
+            }
+        }
+    }
+
+    private func parseSections() -> [MarkdownSection] {
+        var sections: [MarkdownSection] = []
+        var currentSection: MarkdownSection?
+        var sectionId = 0
+
+        let lines = content.components(separatedBy: "\n")
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            // Check for ## header (section start)
+            if trimmed.hasPrefix("## ") {
+                // Save previous section if exists
+                if let section = currentSection {
+                    sections.append(section)
+                }
+
+                // Parse the header - extract emoji and title
+                let headerText = String(trimmed.dropFirst(3))
+                let (emoji, title) = extractEmojiAndTitle(from: headerText)
+
+                currentSection = MarkdownSection(
+                    id: sectionId,
+                    emoji: emoji,
+                    title: title,
+                    content: ""
+                )
+                sectionId += 1
+            } else if trimmed.hasPrefix("# ") && !trimmed.hasPrefix("## ") && !trimmed.hasPrefix("### ") {
+                // Top-level header - skip it (usually just the document title)
+                continue
+            } else if trimmed == "---" {
+                // Skip horizontal rules
+                continue
+            } else {
+                // Add content to current section
+                if currentSection != nil {
+                    if currentSection!.content.isEmpty {
+                        currentSection!.content = line
+                    } else {
+                        currentSection!.content += "\n" + line
+                    }
+                } else if !trimmed.isEmpty {
+                    // Content before any section header - create an intro section
+                    currentSection = MarkdownSection(
+                        id: sectionId,
+                        emoji: "📋",
+                        title: "Overview",
+                        content: line
+                    )
+                    sectionId += 1
+                }
+            }
+        }
+
+        // Don't forget the last section
+        if let section = currentSection {
+            sections.append(section)
+        }
+
+        return sections
+    }
+
+    private func extractEmojiAndTitle(from text: String) -> (String, String) {
+        let trimmed = text.trimmingCharacters(in: .whitespaces)
+
+        // Check if the text starts with an emoji
+        if let firstScalar = trimmed.unicodeScalars.first {
+            // Check if it's an emoji (simplified check)
+            if firstScalar.properties.isEmoji && firstScalar.value > 0x238C {
+                // Find where the emoji ends
+                var emojiEndIndex = trimmed.startIndex
+                for (index, char) in trimmed.enumerated() {
+                    if char.unicodeScalars.first?.properties.isEmoji == true && char.unicodeScalars.first!.value > 0x238C {
+                        emojiEndIndex = trimmed.index(trimmed.startIndex, offsetBy: index + 1)
+                    } else {
+                        break
+                    }
+                }
+
+                let emoji = String(trimmed[..<emojiEndIndex])
+                let title = String(trimmed[emojiEndIndex...]).trimmingCharacters(in: .whitespaces)
+                    .trimmingCharacters(in: CharacterSet(charactersIn: "**")) // Remove bold markers
+
+                return (emoji, title.isEmpty ? "Section" : title)
+            }
+        }
+
+        // No emoji found, use a default
+        let title = trimmed.trimmingCharacters(in: CharacterSet(charactersIn: "**"))
+        return (sectionIcon(for: title), title)
+    }
+
+    private func sectionIcon(for title: String) -> String {
+        let lowercased = title.lowercased()
+
+        if lowercased.contains("summary") || lowercased.contains("overview") {
+            return "📊"
+        } else if lowercased.contains("pattern") || lowercased.contains("trend") {
+            return "📈"
+        } else if lowercased.contains("concern") || lowercased.contains("warning") || lowercased.contains("alert") {
+            return "⚠️"
+        } else if lowercased.contains("recommendation") || lowercased.contains("suggestion") || lowercased.contains("tip") {
+            return "💡"
+        } else if lowercased.contains("working") || lowercased.contains("positive") || lowercased.contains("success") {
+            return "✅"
+        } else if lowercased.contains("goal") || lowercased.contains("target") || lowercased.contains("action") {
+            return "🎯"
+        } else if lowercased.contains("metric") || lowercased.contains("statistic") || lowercased.contains("data") {
+            return "📋"
+        } else if lowercased.contains("setting") || lowercased.contains("config") {
+            return "⚙️"
+        } else if lowercased.contains("lifestyle") || lowercased.contains("health") || lowercased.contains("activity") {
+            return "🏃"
+        } else if lowercased.contains("sleep") {
+            return "😴"
+        } else if lowercased.contains("meal") || lowercased.contains("food") || lowercased.contains("carb") {
+            return "🍽️"
+        } else if lowercased.contains("insulin") || lowercased.contains("bolus") || lowercased.contains("basal") {
+            return "💉"
+        } else if lowercased.contains("doctor") || lowercased.contains("provider") || lowercased.contains("discussion") {
+            return "👨‍⚕️"
+        } else if lowercased.contains("executive") {
+            return "📊"
+        } else if lowercased.contains("analysis") {
+            return "🔍"
+        }
+
+        return "📌"
+    }
+
+    private func sectionCard(_ section: MarkdownSection) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Section header
+            HStack(spacing: 8) {
+                Text(section.emoji)
+                    .font(.title3)
+
+                Text(section.title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+
+                Spacer()
+            }
+
+            // Section content
+            if !section.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                if #available(iOS 15.0, *) {
+                    SectionContentView(content: section.content)
+                } else {
+                    Text(section.content)
+                        .font(.body)
+                }
+            }
+        }
+        .padding()
+        .background(Color.chart)
+        .cornerRadius(12)
+    }
+}
+
+/// A section parsed from markdown
+struct MarkdownSection {
+    let id: Int
+    let emoji: String
+    let title: String
+    var content: String
+}
+
+/// View for rendering section content with markdown formatting
+@available(iOS 15.0, *)
+struct SectionContentView: View {
+    let content: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(parseContentLines(), id: \.id) { line in
+                renderLine(line)
+            }
+        }
+    }
+
+    private func parseContentLines() -> [ContentLine] {
+        var lines: [ContentLine] = []
+        var lineId = 0
+        var inTable = false
+        var tableLines: [String] = []
+
+        for line in content.components(separatedBy: "\n") {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            // Skip empty lines at the start
+            if trimmed.isEmpty && lines.isEmpty {
+                continue
+            }
+
+            // Check for table
+            if trimmed.hasPrefix("|") && trimmed.hasSuffix("|") {
+                if !inTable {
+                    inTable = true
+                }
+                tableLines.append(line)
+                continue
+            } else if inTable {
+                // End of table
+                lines.append(ContentLine(id: lineId, type: .table, text: tableLines.joined(separator: "\n")))
+                lineId += 1
+                tableLines.removeAll()
+                inTable = false
+            }
+
+            // Check line type
+            if trimmed.hasPrefix("### ") {
+                lines.append(ContentLine(id: lineId, type: .subheader, text: String(trimmed.dropFirst(4))))
+            } else if trimmed.hasPrefix("- ") || trimmed.hasPrefix("* ") || trimmed.hasPrefix("• ") {
+                lines.append(ContentLine(id: lineId, type: .bullet, text: String(trimmed.dropFirst(2))))
+            } else if let match = trimmed.range(of: #"^\d+\.\s+"#, options: .regularExpression) {
+                lines.append(ContentLine(id: lineId, type: .numbered, text: trimmed))
+            } else if !trimmed.isEmpty {
+                lines.append(ContentLine(id: lineId, type: .text, text: trimmed))
+            } else if !lines.isEmpty {
+                // Empty line - add spacing
+                lines.append(ContentLine(id: lineId, type: .spacer, text: ""))
+            }
+
+            lineId += 1
+        }
+
+        // Handle remaining table
+        if !tableLines.isEmpty {
+            lines.append(ContentLine(id: lineId, type: .table, text: tableLines.joined(separator: "\n")))
+        }
+
+        return lines
+    }
+
+    @ViewBuilder
+    private func renderLine(_ line: ContentLine) -> some View {
+        switch line.type {
+        case .subheader:
+            Text(cleanMarkdown(line.text))
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .padding(.top, 4)
+
+        case .bullet:
+            HStack(alignment: .top, spacing: 8) {
+                Text("•")
+                    .foregroundColor(.secondary)
+                Text(try! AttributedString(markdown: line.text, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)))
+                    .font(.body)
+            }
+
+        case .numbered:
+            Text(try! AttributedString(markdown: line.text, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)))
+                .font(.body)
+
+        case .text:
+            Text(try! AttributedString(markdown: line.text, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)))
+                .font(.body)
+
+        case .table:
+            TableView(content: line.text)
+                .padding(.vertical, 4)
+
+        case .spacer:
+            Spacer()
+                .frame(height: 8)
+        }
+    }
+
+    private func cleanMarkdown(_ text: String) -> String {
+        text.replacingOccurrences(of: "**", with: "")
+            .replacingOccurrences(of: "__", with: "")
+    }
+}
+
+/// A line of content within a section
+struct ContentLine: Identifiable {
+    let id: Int
+    let type: LineType
+    let text: String
+
+    enum LineType {
+        case subheader
+        case bullet
+        case numbered
+        case text
+        case table
+        case spacer
+    }
+}
