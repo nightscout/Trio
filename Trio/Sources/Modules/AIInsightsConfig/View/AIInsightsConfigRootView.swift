@@ -457,13 +457,50 @@ extension AIInsightsConfig {
             .navigationTitle("Ask Claude")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    if !state.chatMessages.isEmpty {
-                        Button("Clear") {
-                            state.clearChat()
+                    HStack(spacing: 16) {
+                        if !state.chatMessages.isEmpty {
+                            Button("Clear") {
+                                state.clearChat()
+                            }
+                        }
+                        NavigationLink(destination: ChatSettingsView(state: state)) {
+                            Image(systemName: "gearshape")
                         }
                     }
                 }
             }
+        }
+    }
+
+    // MARK: - Chat Settings View
+
+    struct ChatSettingsView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+
+        var body: some View {
+            Form {
+                Section(
+                    header: Text("Health Metrics"),
+                    footer: Text("Include health data from Apple Health (activity, sleep, heart rate, HRV, workouts) when chatting with Claude. Changes apply to new conversations.")
+                ) {
+                    Toggle("Include Health Metrics", isOn: $state.chatShowHealthMetrics)
+                        .onChange(of: state.chatShowHealthMetrics) { _, _ in state.saveQuickAnalysisSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    footer: Text("Health metrics help Claude understand lifestyle factors that may affect your glucose patterns, such as sleep quality, exercise, and stress levels.")
+                ) {
+                    EmptyView()
+                }
+                .listRowBackground(Color.clear)
+            }
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Chat Settings")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 
@@ -902,6 +939,15 @@ extension AIInsightsConfig {
                 .listRowBackground(Color.chart)
 
                 Section(
+                    header: Text("Health Metrics"),
+                    footer: Text("Include health data from Apple Health (activity, sleep, heart rate, HRV, workouts). Configure which data types are enabled in Settings > Apple Health.")
+                ) {
+                    Toggle("Include Health Metrics", isOn: $state.qaShowHealthMetrics)
+                        .onChange(of: state.qaShowHealthMetrics) { _, _ in state.saveQuickAnalysisSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
                     header: Text("AI Prompt"),
                     footer: Text("Customize the instructions sent to Claude for analyzing your data.")
                 ) {
@@ -996,6 +1042,15 @@ extension AIInsightsConfig {
 
                     Toggle("Bolus History", isOn: $state.drShowBolusHistory)
                         .onChange(of: state.drShowBolusHistory) { _, _ in state.saveDoctorReportSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("Health Metrics"),
+                    footer: Text("Include health data from Apple Health (activity, sleep, heart rate, HRV, workouts). Configure which data types are enabled in Settings > Apple Health.")
+                ) {
+                    Toggle("Include Health Metrics", isOn: $state.drShowHealthMetrics)
+                        .onChange(of: state.drShowHealthMetrics) { _, _ in state.saveDoctorReportSettings() }
                 }
                 .listRowBackground(Color.chart)
 
@@ -1129,6 +1184,15 @@ extension AIInsightsConfig {
                         }
                     }
                     .onChange(of: state.whlAnalysisHours) { _, _ in state.saveWhyHighLowSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("Health Metrics"),
+                    footer: Text("Include recent health data (activity, sleep, heart rate, HRV, workouts) to help identify lifestyle factors affecting your glucose.")
+                ) {
+                    Toggle("Include Health Metrics", isOn: $state.whlShowHealthMetrics)
+                        .onChange(of: state.whlShowHealthMetrics) { _, _ in state.saveWhyHighLowSettings() }
                 }
                 .listRowBackground(Color.chart)
 
@@ -3159,6 +3223,15 @@ extension AIInsightsConfig {
                             }
                     }
                     .padding(.vertical, 4)
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("Health Metrics"),
+                    footer: Text("Include health data from Apple Health (activity, sleep, heart rate, HRV, workouts) to improve pattern detection and lifestyle correlation analysis.")
+                ) {
+                    Toggle("Include Health Metrics", isOn: $state.cotIncludeHealthMetrics)
+                        .onChange(of: state.cotIncludeHealthMetrics) { _, _ in state.saveClaudeOTuneSettings() }
                 }
                 .listRowBackground(Color.chart)
 
