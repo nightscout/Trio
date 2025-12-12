@@ -92,6 +92,12 @@ extension AIInsightsConfig {
         static let cotIncludeCRRecommendationsKey = "AIInsightsConfig.cot.includeCRRecommendations"
         static let cotMaxAdjustmentPercentKey = "AIInsightsConfig.cot.maxAdjustmentPercent"
         static let cotCustomPromptKey = "AIInsightsConfig.cot.customPrompt"
+        static let cotIncludeHealthMetricsKey = "AIInsightsConfig.cot.includeHealthMetrics"
+        // Health Metrics Settings Keys (per-feature toggles)
+        static let qaShowHealthMetricsKey = "AIInsightsConfig.qa.showHealthMetrics"
+        static let drShowHealthMetricsKey = "AIInsightsConfig.dr.showHealthMetrics"
+        static let whlShowHealthMetricsKey = "AIInsightsConfig.whl.showHealthMetrics"
+        static let chatShowHealthMetricsKey = "AIInsightsConfig.chat.showHealthMetrics"
     }
 
     /// Default AI prompt for doctor visit report
@@ -276,11 +282,13 @@ Respond with a JSON object following the Claude-o-Tune output format.
         @Published var qaShowLoopData = true
         @Published var qaShowCarbEntries = true
         @Published var qaShowBolusHistory = true
+        @Published var qaShowHealthMetrics = true
         @Published var qaCustomPrompt: String = AIInsightsConfig.defaultQuickAnalysisPrompt
 
         // Chat
         @Published var chatMessages: [ChatMessage] = []
         @Published var currentMessage = ""
+        @Published var chatShowHealthMetrics = true
         @Published var isSendingMessage = false
 
         // Weekly Report
@@ -312,11 +320,13 @@ Respond with a JSON object following the Claude-o-Tune output format.
         @Published var drShowLoopData = true
         @Published var drShowCarbEntries = true
         @Published var drShowBolusHistory = true
+        @Published var drShowHealthMetrics = true
         @Published var drCustomPrompt: String = AIInsightsConfig.defaultDoctorReportPrompt
 
         // Why High/Low Analysis
         @Published var whyHighLowResult = ""
         @Published var isAnalyzingWhyHighLow = false
+        @Published var whlShowHealthMetrics = true
         @Published var whyHighLowError: String?
         @Published var whyHighLowPDFData: Data?
 
@@ -351,6 +361,7 @@ Respond with a JSON object following the Claude-o-Tune output format.
         @Published var cotIncludeISFRecommendations = true
         @Published var cotIncludeCRRecommendations = true
         @Published var cotMaxAdjustmentPercent: Double = 20.0
+        @Published var cotIncludeHealthMetrics = true
         @Published var cotCustomPrompt: String = AIInsightsConfig.defaultClaudeOTunePrompt
 
         // Claude-o-Tune Apply State
@@ -424,6 +435,7 @@ Respond with a JSON object following the Claude-o-Tune output format.
             drShowLoopData = keys.contains(Config.drShowLoopDataKey) ? defaults.bool(forKey: Config.drShowLoopDataKey) : true
             drShowCarbEntries = keys.contains(Config.drShowCarbEntriesKey) ? defaults.bool(forKey: Config.drShowCarbEntriesKey) : true
             drShowBolusHistory = keys.contains(Config.drShowBolusHistoryKey) ? defaults.bool(forKey: Config.drShowBolusHistoryKey) : true
+            drShowHealthMetrics = keys.contains(Config.drShowHealthMetricsKey) ? defaults.bool(forKey: Config.drShowHealthMetricsKey) : true
 
             // Load custom prompt, default to the standard prompt
             if let savedPrompt = defaults.string(forKey: Config.drCustomPromptKey), !savedPrompt.isEmpty {
@@ -455,6 +467,7 @@ Respond with a JSON object following the Claude-o-Tune output format.
             qaShowLoopData = keys.contains(Config.qaShowLoopDataKey) ? defaults.bool(forKey: Config.qaShowLoopDataKey) : true
             qaShowCarbEntries = keys.contains(Config.qaShowCarbEntriesKey) ? defaults.bool(forKey: Config.qaShowCarbEntriesKey) : true
             qaShowBolusHistory = keys.contains(Config.qaShowBolusHistoryKey) ? defaults.bool(forKey: Config.qaShowBolusHistoryKey) : true
+            qaShowHealthMetrics = keys.contains(Config.qaShowHealthMetricsKey) ? defaults.bool(forKey: Config.qaShowHealthMetricsKey) : true
 
             // Load custom prompt, default to the standard prompt
             if let savedPrompt = defaults.string(forKey: Config.qaCustomPromptKey), !savedPrompt.isEmpty {
@@ -462,6 +475,9 @@ Respond with a JSON object following the Claude-o-Tune output format.
             } else {
                 qaCustomPrompt = AIInsightsConfig.defaultQuickAnalysisPrompt
             }
+
+            // Load chat health metrics setting
+            chatShowHealthMetrics = keys.contains(Config.chatShowHealthMetricsKey) ? defaults.bool(forKey: Config.chatShowHealthMetricsKey) : true
         }
 
         func saveDoctorReportSettings() {
@@ -476,6 +492,7 @@ Respond with a JSON object following the Claude-o-Tune output format.
             defaults.set(drShowLoopData, forKey: Config.drShowLoopDataKey)
             defaults.set(drShowCarbEntries, forKey: Config.drShowCarbEntriesKey)
             defaults.set(drShowBolusHistory, forKey: Config.drShowBolusHistoryKey)
+            defaults.set(drShowHealthMetrics, forKey: Config.drShowHealthMetricsKey)
             defaults.set(drCustomPrompt, forKey: Config.drCustomPromptKey)
         }
 
@@ -491,7 +508,10 @@ Respond with a JSON object following the Claude-o-Tune output format.
             defaults.set(qaShowLoopData, forKey: Config.qaShowLoopDataKey)
             defaults.set(qaShowCarbEntries, forKey: Config.qaShowCarbEntriesKey)
             defaults.set(qaShowBolusHistory, forKey: Config.qaShowBolusHistoryKey)
+            defaults.set(qaShowHealthMetrics, forKey: Config.qaShowHealthMetricsKey)
             defaults.set(qaCustomPrompt, forKey: Config.qaCustomPromptKey)
+            // Save chat health metrics setting
+            defaults.set(chatShowHealthMetrics, forKey: Config.chatShowHealthMetricsKey)
         }
 
         func resetDoctorReportPrompt() {
@@ -534,6 +554,10 @@ Respond with a JSON object following the Claude-o-Tune output format.
             } else {
                 whlCustomPrompt = AIInsightsConfig.defaultWhyHighLowPrompt
             }
+
+            // Load health metrics setting
+            let keys = defaults.dictionaryRepresentation().keys
+            whlShowHealthMetrics = keys.contains(Config.whlShowHealthMetricsKey) ? defaults.bool(forKey: Config.whlShowHealthMetricsKey) : true
         }
 
         func saveWhyHighLowSettings() {
@@ -542,6 +566,7 @@ Respond with a JSON object following the Claude-o-Tune output format.
             defaults.set(Double(truncating: whlLowThreshold as NSNumber), forKey: Config.whlLowThresholdKey)
             defaults.set(whlAnalysisHours.rawValue, forKey: Config.whlAnalysisHoursKey)
             defaults.set(whlCustomPrompt, forKey: Config.whlCustomPromptKey)
+            defaults.set(whlShowHealthMetrics, forKey: Config.whlShowHealthMetricsKey)
         }
 
         /// Load only Why High/Low settings - safe to call without dependency injection
@@ -712,6 +737,7 @@ Respond with a JSON object following the Claude-o-Tune output format.
                     showLoopData: qaShowLoopData,
                     showCarbEntries: qaShowCarbEntries,
                     showBolusHistory: qaShowBolusHistory,
+                    showHealthMetrics: qaShowHealthMetrics,
                     customPrompt: qaCustomPrompt,
                     days: qaTimePeriod.days
                 )
@@ -768,11 +794,15 @@ Respond with a JSON object following the Claude-o-Tune output format.
                 if chatMessages.count == 1 {
                     let data = try await exportData(days: 7)
                     let exporter = HealthDataExporter(context: coredataContext)
-                    let context = exporter.formatForPrompt(data, analysisType: .chat)
+                    let chatSettings = HealthDataExporter.ChatSettings(showHealthMetrics: chatShowHealthMetrics)
+                    let context = exporter.formatForPrompt(data, analysisType: .chat(settings: chatSettings))
                     apiMessages.append(ClaudeAPIService.Message(role: "user", content: context))
+
+                    let healthMetricsInfo = chatShowHealthMetrics && data.healthMetrics?.hasAnyData == true
+                        ? " I also have your health metrics (activity, sleep, heart rate, HRV, workouts)." : ""
                     apiMessages.append(ClaudeAPIService.Message(
                         role: "assistant",
-                        content: "I've reviewed your glucose data. I can see your settings, statistics, and trends. What would you like to know?"
+                        content: "I've reviewed your glucose data. I can see your settings, statistics, and trends.\(healthMetricsInfo) What would you like to know?"
                     ))
                 }
 
@@ -854,11 +884,20 @@ Respond with a JSON object following the Claude-o-Tune output format.
                     currentCOB: currentCOB,
                     isHigh: isHigh,
                     analysisHours: whlAnalysisHours.rawValue,
+                    showHealthMetrics: whlShowHealthMetrics,
                     customPrompt: whlCustomPrompt
                 )
 
+                // Fetch recent health metrics if enabled
+                var healthMetrics: HealthDataExporter.ExportedData.HealthMetrics?
+                if whlShowHealthMetrics {
+                    let hoursInDays = max(1, whlAnalysisHours.rawValue / 24 + 1) // Convert hours to days (at least 1 day)
+                    let fullData = try await exportData(days: hoursInDays)
+                    healthMetrics = fullData.healthMetrics
+                }
+
                 // Format prompt
-                let prompt = exporter.formatWhyHighLowPrompt(data, settings: whlSettings)
+                let prompt = exporter.formatWhyHighLowPrompt(data, settings: whlSettings, healthMetrics: healthMetrics)
 
                 // Call Claude API
                 let result = try await claudeService.analyze(prompt: prompt, apiKey: apiKey)
@@ -1165,6 +1204,7 @@ Respond with a JSON object following the Claude-o-Tune output format.
                     includeBasalRecommendations: cotIncludeBasalRecommendations,
                     includeISFRecommendations: cotIncludeISFRecommendations,
                     includeCRRecommendations: cotIncludeCRRecommendations,
+                    includeHealthMetrics: cotIncludeHealthMetrics,
                     maxAdjustmentPercent: cotMaxAdjustmentPercent,
                     autosensMax: NSDecimalNumber(decimal: autosensMax).doubleValue,
                     autosensMin: NSDecimalNumber(decimal: autosensMin).doubleValue,
@@ -1261,6 +1301,10 @@ Respond with a JSON object following the Claude-o-Tune output format.
             } else {
                 cotCustomPrompt = AIInsightsConfig.defaultClaudeOTunePrompt
             }
+
+            // Load health metrics setting
+            cotIncludeHealthMetrics = keys.contains(Config.cotIncludeHealthMetricsKey)
+                ? defaults.bool(forKey: Config.cotIncludeHealthMetricsKey) : true
         }
 
         func saveClaudeOTuneSettings() {
@@ -1271,6 +1315,7 @@ Respond with a JSON object following the Claude-o-Tune output format.
             defaults.set(cotIncludeISFRecommendations, forKey: Config.cotIncludeISFRecommendationsKey)
             defaults.set(cotIncludeCRRecommendations, forKey: Config.cotIncludeCRRecommendationsKey)
             defaults.set(cotMaxAdjustmentPercent, forKey: Config.cotMaxAdjustmentPercentKey)
+            defaults.set(cotIncludeHealthMetrics, forKey: Config.cotIncludeHealthMetricsKey)
             defaults.set(cotCustomPrompt, forKey: Config.cotCustomPromptKey)
         }
 
@@ -1481,6 +1526,7 @@ Respond with a JSON object following the Claude-o-Tune output format.
                     showLoopData: drShowLoopData,
                     showCarbEntries: drShowCarbEntries,
                     showBolusHistory: drShowBolusHistory,
+                    showHealthMetrics: drShowHealthMetrics,
                     customPrompt: drCustomPrompt,
                     days: drTimePeriod.days
                 )

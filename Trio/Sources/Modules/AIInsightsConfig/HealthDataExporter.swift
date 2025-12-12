@@ -719,13 +719,22 @@ final class HealthDataExporter {
             Format this as a professional report suitable for sharing with a healthcare provider.
             """
 
-        case .chat:
+        case .chat(let settings):
             // For chat, include recent context
             prompt += """
 
             📈 RECENT LOOP DATA (Last 6 hours)
             Format: Time | BG | IOB | COB | TempBasal | SMB
             \(formatLoopStatesCompact(data.loopStates, timeFormatter: timeFormatter, hours: 6, intervalMinutes: 10))
+
+            """
+
+            // Include health metrics if enabled and available
+            if settings.showHealthMetrics, let healthMetrics = data.healthMetrics, healthMetrics.hasAnyData {
+                prompt += formatHealthMetrics(healthMetrics, dateFormatter: timeFormatter)
+            }
+
+            prompt += """
 
             Based on this data, please answer my question.
             """
@@ -1407,7 +1416,7 @@ final class HealthDataExporter {
     enum AnalysisType {
         case quick(settings: QuickAnalysisSettings)
         case weeklyReport
-        case chat
+        case chat(settings: ChatSettings)
         case doctorVisit(settings: DoctorReportSettings)
         case whyHighLow(settings: WhyHighLowSettings)
         case claudeOTune(settings: ClaudeOTuneAnalysisSettings)
@@ -1443,6 +1452,10 @@ final class HealthDataExporter {
         var days: Int = 30
     }
 
+    struct ChatSettings {
+        var showHealthMetrics: Bool = true
+    }
+
     struct WhyHighLowSettings {
         var currentBG: Decimal
         var bgTrend: String // "rising", "falling", "stable", "unknown"
@@ -1450,6 +1463,7 @@ final class HealthDataExporter {
         var currentCOB: Int
         var isHigh: Bool // true = high, false = low
         var analysisHours: Int = 4
+        var showHealthMetrics: Bool = true
         var customPrompt: String = ""
     }
 
@@ -1516,7 +1530,7 @@ final class HealthDataExporter {
     }
 
     /// Format data for Why High/Low analysis prompt
-    func formatWhyHighLowPrompt(_ data: WhyHighLowData, settings: WhyHighLowSettings) -> String {
+    func formatWhyHighLowPrompt(_ data: WhyHighLowData, settings: WhyHighLowSettings, healthMetrics: ExportedData.HealthMetrics? = nil) -> String {
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "HH:mm"
 
@@ -1593,6 +1607,11 @@ final class HealthDataExporter {
             }
         }
 
+        // Add health metrics if enabled and available
+        if settings.showHealthMetrics, let metrics = healthMetrics, metrics.hasAnyData {
+            prompt += formatHealthMetricsForWhyHighLow(metrics, dateFormatter: timeFormatter)
+        }
+
         // Add the analysis request
         prompt += "\n---\n\n"
 
@@ -1612,6 +1631,74 @@ final class HealthDataExporter {
         }
 
         return prompt
+    }
+
+    /// Format health metrics for Why High/Low analysis (concise version focused on recent context)
+    private func formatHealthMetricsForWhyHighLow(_ metrics: ExportedData.HealthMetrics, dateFormatter: DateFormatter) -> String {
+        var output = "\n\n🏃‍♂️ RECENT HEALTH METRICS (may affect glucose)\n"
+
+        // Recent sleep (last night)
+        if let recentSleep = metrics.sleepSummaries.last {
+            output += "\n😴 **Last Night's Sleep**\n"
+            let bedtimeStr = dateFormatter.string(from: recentSleep.bedtime)
+            let waketimeStr = dateFormatter.string(from: recentSleep.wakeTime)
+            output += "• Bedtime: \(bedtimeStr), Wake: \(waketimeStr)\n"
+            output += "• Duration: \(String(format: "%.1f", recentSleep.hoursAsleep)) hours"
+            if let efficiency = recentSleep.sleepEfficiency {
+                output += " (\(Int(efficiency))% efficient)"
+            }
+            output += "\n"
+            if recentSleep.hoursAsleep < 6 {
+                output += "• ⚠️ Short sleep may increase insulin resistance\n"
+            }
+        }
+
+        // Recent activity (today)
+        if let todayActivity = metrics.dailyActivity.first {
+            output += "\n🚶 **Today's Activity**\n"
+            output += "• Steps: \(todayActivity.steps), Active calories: \(todayActivity.activeCalories)\n"
+            if todayActivity.exerciseMinutes > 0 {
+                output += "• Exercise: \(todayActivity.exerciseMinutes) minutes\n"
+            }
+            if todayActivity.exerciseMinutes > 30 {
+                output += "• ℹ️ Significant exercise may increase insulin sensitivity\n"
+            }
+        }
+
+        // Recent workouts
+        let recentWorkouts = metrics.workouts.prefix(2)
+        if !recentWorkouts.isEmpty {
+            output += "\n🏋️ **Recent Workouts**\n"
+            for workout in recentWorkouts {
+                let duration = Int(workout.durationMinutes)
+                output += "• \(workout.workoutType): \(duration) min"
+                if let calories = workout.caloriesBurned {
+                    output += ", \(Int(calories)) cal"
+                }
+                output += "\n"
+            }
+        }
+
+        // Recent heart rate / stress indicator
+        if let avgHR = metrics.averageHeartRate {
+            output += "\n❤️ **Heart Rate**\n"
+            output += "• Average: \(Int(avgHR)) bpm"
+            if let resting = metrics.restingHeartRate {
+                output += ", Resting: \(Int(resting)) bpm"
+            }
+            output += "\n"
+        }
+
+        // HRV (stress indicator)
+        if let todayHRV = metrics.hrvReadings.first {
+            output += "• HRV: \(Int(todayHRV.averageSDNN)) ms"
+            if todayHRV.averageSDNN < 30 {
+                output += " (low - may indicate stress)"
+            }
+            output += "\n"
+        }
+
+        return output
     }
 
     // MARK: - Claude-o-Tune Profile Optimization
