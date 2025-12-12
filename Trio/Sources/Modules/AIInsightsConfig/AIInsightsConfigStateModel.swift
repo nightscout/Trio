@@ -250,6 +250,7 @@ Respond with a JSON object following the Claude-o-Tune output format.
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var keychain: Keychain!
         @Injected() private var storage: FileStorage!
+        @Injected() private var healthMetricsService: HealthMetricsService!
 
         private let coredataContext = CoreDataStack.shared.newTaskContext()
         private let claudeService = ClaudeAPIService()
@@ -622,6 +623,9 @@ Respond with a JSON object following the Claude-o-Tune output format.
         private func exportData(days: Int) async throws -> HealthDataExporter.ExportedData {
             let exporter = HealthDataExporter(context: coredataContext)
 
+            // Inject health metrics service for fetching activity, sleep, heart rate, and workout data
+            exporter.setHealthMetricsService(healthMetricsService)
+
             // Get current settings
             let settings = settingsManager.settings
             let preferences = settingsManager.preferences
@@ -647,7 +651,8 @@ Respond with a JSON object following the Claude-o-Tune output format.
                 carbRatioSchedule: carbRatioSchedule,
                 isfSchedule: isfSchedule,
                 basalSchedule: basalSchedule,
-                targetSchedule: targetSchedule
+                targetSchedule: targetSchedule,
+                healthMetricsSettings: settings.healthMetricsSettings
             )
         }
 
