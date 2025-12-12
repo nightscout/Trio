@@ -1671,8 +1671,8 @@ final class HealthDataExporter {
             output += "\n🏋️ **Recent Workouts**\n"
             for workout in recentWorkouts {
                 let duration = Int(workout.durationMinutes)
-                output += "• \(workout.workoutType): \(duration) min"
-                if let calories = workout.caloriesBurned {
+                output += "• \(workout.type): \(duration) min"
+                if let calories = workout.calories {
                     output += ", \(Int(calories)) cal"
                 }
                 output += "\n"
@@ -1680,17 +1680,17 @@ final class HealthDataExporter {
         }
 
         // Recent heart rate / stress indicator
-        if let avgHR = metrics.averageHeartRate {
+        if let avgHR = metrics.heartRateStats?.averageHR {
             output += "\n❤️ **Heart Rate**\n"
-            output += "• Average: \(Int(avgHR)) bpm"
-            if let resting = metrics.restingHeartRate {
-                output += ", Resting: \(Int(resting)) bpm"
+            output += "• Average: \(avgHR) bpm"
+            if let resting = metrics.heartRateStats?.averageRestingHR {
+                output += ", Resting: \(resting) bpm"
             }
             output += "\n"
         }
 
         // HRV (stress indicator)
-        if let todayHRV = metrics.hrvReadings.first {
+        if let todayHRV = metrics.hrvData.first {
             output += "• HRV: \(Int(todayHRV.averageSDNN)) ms"
             if todayHRV.averageSDNN < 30 {
                 output += " (low - may indicate stress)"
