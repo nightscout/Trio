@@ -133,8 +133,8 @@ struct ClaudeOTuneRecommendation: Codable, Equatable {
         var id: String { parameter + timePeriod }
         let parameter: String
         let timePeriod: String
-        let oldValue: Double
-        let newValue: Double
+        let oldValue: String  // String to handle ranges like "0.9-1.0 U/hr"
+        let newValue: String  // String to handle ranges like "1.05-1.15 U/hr"
         let percentChange: Double
         let rationale: String
         let confidence: ConfidenceLevel
