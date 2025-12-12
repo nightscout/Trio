@@ -237,7 +237,7 @@ final class ClaudeOTuneProfileService {
                 currentProfile[matchIndex] = BasalProfileEntry(
                     start: entry.start,
                     minutes: entry.minutes,
-                    rate: rec.recommendedValue
+                    rate: Decimal(rec.recommendedValue)
                 )
             }
         }
@@ -289,7 +289,7 @@ final class ClaudeOTuneProfileService {
             if let matchIndex = sensitivities.firstIndex(where: { $0.start.hasPrefix(rec.time) }) {
                 let entry = sensitivities[matchIndex]
                 sensitivities[matchIndex] = InsulinSensitivityEntry(
-                    sensitivity: rec.recommendedValue,
+                    sensitivity: Decimal(rec.recommendedValue),
                     offset: entry.offset,
                     start: entry.start
                 )
@@ -326,7 +326,7 @@ final class ClaudeOTuneProfileService {
                 schedule[matchIndex] = CarbRatioEntry(
                     start: entry.start,
                     offset: entry.offset,
-                    ratio: rec.recommendedValue
+                    ratio: Decimal(rec.recommendedValue)
                 )
             }
         }

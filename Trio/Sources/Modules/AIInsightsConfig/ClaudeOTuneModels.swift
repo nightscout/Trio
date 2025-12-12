@@ -14,6 +14,18 @@ struct ClaudeOTuneRecommendation: Codable, Equatable {
     let confidence: ConfidenceLevel
     let explanation: String
 
+    enum CodingKeys: String, CodingKey {
+        case analysisSummary = "analysis_summary"
+        case dataQuality = "data_quality"
+        case currentMetrics = "current_metrics"
+        case patternsDetected = "patterns_detected"
+        case recommendedProfile = "recommended_profile"
+        case adjustments
+        case concerns
+        case confidence
+        case explanation
+    }
+
     struct DataQuality: Codable, Equatable {
         let score: Int // 0-100
         let issues: [String]
@@ -26,6 +38,15 @@ struct ClaudeOTuneRecommendation: Codable, Equatable {
         let averageGlucose: Int
         let glucoseVariability: Double
         let gmi: Double
+
+        enum CodingKeys: String, CodingKey {
+            case timeInRange = "time_in_range"
+            case timeBelowRange = "time_below_range"
+            case timeAboveRange = "time_above_range"
+            case averageGlucose = "average_glucose"
+            case glucoseVariability = "glucose_variability"
+            case gmi
+        }
     }
 
     struct PatternDetected: Codable, Equatable, Identifiable {
@@ -35,51 +56,100 @@ struct ClaudeOTuneRecommendation: Codable, Equatable {
         let frequency: String
         let impact: String
         let confidence: ConfidenceLevel
+
+        enum CodingKeys: String, CodingKey {
+            case patternType = "pattern_type"
+            case description
+            case frequency
+            case impact
+            case confidence
+        }
     }
 
     struct RecommendedProfile: Codable, Equatable {
         let basalRates: [BasalRateRecommendation]
         let isfValues: [ISFRecommendation]
         let crValues: [CRRecommendation]
+
+        enum CodingKeys: String, CodingKey {
+            case basalRates = "basal_rates"
+            case isfValues = "isf_values"
+            case crValues = "cr_values"
+        }
     }
 
     struct BasalRateRecommendation: Codable, Equatable, Identifiable {
         var id: String { time }
         let time: String
-        let currentValue: Decimal
-        let recommendedValue: Decimal
-        let change: Decimal
+        let currentValue: Double
+        let recommendedValue: Double
+        let change: Double
         let percentChange: Double
+
+        enum CodingKeys: String, CodingKey {
+            case time
+            case currentValue = "current_value"
+            case recommendedValue = "recommended_value"
+            case change
+            case percentChange = "percent_change"
+        }
     }
 
     struct ISFRecommendation: Codable, Equatable, Identifiable {
         var id: String { time }
         let time: String
-        let currentValue: Decimal
-        let recommendedValue: Decimal
-        let change: Decimal
+        let currentValue: Double
+        let recommendedValue: Double
+        let change: Double
         let percentChange: Double
+
+        enum CodingKeys: String, CodingKey {
+            case time
+            case currentValue = "current_value"
+            case recommendedValue = "recommended_value"
+            case change
+            case percentChange = "percent_change"
+        }
     }
 
     struct CRRecommendation: Codable, Equatable, Identifiable {
         var id: String { time }
         let time: String
-        let currentValue: Decimal
-        let recommendedValue: Decimal
-        let change: Decimal
+        let currentValue: Double
+        let recommendedValue: Double
+        let change: Double
         let percentChange: Double
+
+        enum CodingKeys: String, CodingKey {
+            case time
+            case currentValue = "current_value"
+            case recommendedValue = "recommended_value"
+            case change
+            case percentChange = "percent_change"
+        }
     }
 
     struct ProfileAdjustment: Codable, Equatable, Identifiable {
         var id: String { parameter + timePeriod }
         let parameter: String
         let timePeriod: String
-        let oldValue: String
-        let newValue: String
+        let oldValue: Double
+        let newValue: Double
         let percentChange: Double
         let rationale: String
         let confidence: ConfidenceLevel
         let priority: Int // 1-5, 1 being highest priority
+
+        enum CodingKeys: String, CodingKey {
+            case parameter
+            case timePeriod = "time_period"
+            case oldValue = "old_value"
+            case newValue = "new_value"
+            case percentChange = "percent_change"
+            case rationale
+            case confidence
+            case priority
+        }
     }
 
     struct SafetyConcern: Codable, Equatable, Identifiable {
@@ -130,31 +200,52 @@ struct ClaudeOTuneSettings: Codable, Equatable {
 
 extension ClaudeOTuneRecommendation {
     /// Attempts to parse a Claude-o-Tune recommendation from JSON response text
-    static func parse(from jsonString: String) -> ClaudeOTuneRecommendation? {
+    /// Returns a tuple with the recommendation (if successful) and any error message
+    static func parse(from jsonString: String) -> (recommendation: ClaudeOTuneRecommendation?, error: String?) {
         // Try to extract JSON from the response (Claude may include markdown)
-        var jsonToParse = jsonString
+        var jsonToParse = jsonString.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // Look for JSON block markers
         if let jsonStart = jsonString.range(of: "```json"),
            let jsonEnd = jsonString.range(of: "```", range: jsonStart.upperBound..<jsonString.endIndex) {
             jsonToParse = String(jsonString[jsonStart.upperBound..<jsonEnd.lowerBound])
+                .trimmingCharacters(in: .whitespacesAndNewlines)
         } else if let jsonStart = jsonString.firstIndex(of: "{"),
                   let jsonEnd = jsonString.lastIndex(of: "}") {
             jsonToParse = String(jsonString[jsonStart...jsonEnd])
         }
 
         guard let data = jsonToParse.data(using: .utf8) else {
-            return nil
+            return (nil, "Failed to convert response to data")
         }
 
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        // Note: Using explicit CodingKeys instead of .convertFromSnakeCase for reliability
 
         do {
-            return try decoder.decode(ClaudeOTuneRecommendation.self, from: data)
+            let result = try decoder.decode(ClaudeOTuneRecommendation.self, from: data)
+            return (result, nil)
+        } catch let DecodingError.keyNotFound(key, context) {
+            let errorMsg = "Missing key '\(key.stringValue)' in \(context.codingPath.map { $0.stringValue }.joined(separator: "."))"
+            print("Claude-o-Tune JSON parsing error: \(errorMsg)")
+            return (nil, errorMsg)
+        } catch let DecodingError.typeMismatch(type, context) {
+            let path = context.codingPath.map { $0.stringValue }.joined(separator: ".")
+            let errorMsg = "Type mismatch for \(type) at '\(path)': \(context.debugDescription)"
+            print("Claude-o-Tune JSON parsing error: \(errorMsg)")
+            return (nil, errorMsg)
+        } catch let DecodingError.valueNotFound(type, context) {
+            let path = context.codingPath.map { $0.stringValue }.joined(separator: ".")
+            let errorMsg = "Value not found for \(type) at '\(path)'"
+            print("Claude-o-Tune JSON parsing error: \(errorMsg)")
+            return (nil, errorMsg)
+        } catch let DecodingError.dataCorrupted(context) {
+            let errorMsg = "Data corrupted: \(context.debugDescription)"
+            print("Claude-o-Tune JSON parsing error: \(errorMsg)")
+            return (nil, errorMsg)
         } catch {
             print("Claude-o-Tune JSON parsing error: \(error)")
-            return nil
+            return (nil, "JSON parsing failed: \(error.localizedDescription)")
         }
     }
 }
