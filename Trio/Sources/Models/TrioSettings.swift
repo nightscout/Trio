@@ -46,6 +46,7 @@ struct TrioSettings: JSON, Equatable {
     var minuteInterval: Decimal = 30
     var delay: Decimal = 60
     var useAppleHealth: Bool = false
+    var healthMetricsSettings: HealthMetricsSettings = HealthMetricsSettings()
     var smoothGlucose: Bool = false
     var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent
     var high: Decimal = 180
@@ -133,6 +134,10 @@ extension TrioSettings: Decodable {
 
         if let useAppleHealth = try? container.decode(Bool.self, forKey: .useAppleHealth) {
             settings.useAppleHealth = useAppleHealth
+        }
+
+        if let healthMetricsSettings = try? container.decode(HealthMetricsSettings.self, forKey: .healthMetricsSettings) {
+            settings.healthMetricsSettings = healthMetricsSettings
         }
 
         if let glucoseBadge = try? container.decode(Bool.self, forKey: .glucoseBadge) {
