@@ -4,9 +4,15 @@ import Foundation
 /// Exports health data for AI analysis
 final class HealthDataExporter {
     private let context: NSManagedObjectContext
+    private var healthMetricsService: HealthMetricsService?
 
     init(context: NSManagedObjectContext) {
         self.context = context
+    }
+
+    /// Set the health metrics service for fetching activity, sleep, heart rate, and workout data
+    func setHealthMetricsService(_ service: HealthMetricsService) {
+        self.healthMetricsService = service
     }
 
     // MARK: - Data Structures
@@ -19,6 +25,7 @@ final class HealthDataExporter {
         let settings: SettingsSummary
         let statistics: Statistics
         let multiTimeframeStats: MultiTimeframeStatistics?
+        let healthMetrics: HealthMetrics?
 
         struct GlucoseReading {
             let date: Date
@@ -110,6 +117,69 @@ final class HealthDataExporter {
                 let readingCount: Int
             }
         }
+
+        /// Health metrics from wearables (activity, sleep, heart rate, workouts)
+        struct HealthMetrics {
+            let dailyActivity: [DailyActivitySummary]
+            let sleepSummaries: [SleepSummary]
+            let hrvData: [HRVDataPoint]
+            let heartRateStats: HeartRateStats?
+            let workouts: [WorkoutSummary]
+
+            struct DailyActivitySummary {
+                let date: Date
+                let steps: Int
+                let activeCalories: Double
+                let exerciseMinutes: Int
+            }
+
+            struct SleepSummary {
+                let date: Date
+                let bedtime: Date
+                let wakeTime: Date
+                let hoursAsleep: Double
+                let sleepEfficiency: Double
+                let deepSleepHours: Double?
+                let remSleepHours: Double?
+            }
+
+            struct HRVDataPoint {
+                let date: Date
+                let averageSDNN: Double
+                let minSDNN: Double
+                let maxSDNN: Double
+            }
+
+            struct HeartRateStats {
+                let averageRestingHR: Int
+                let minHR: Int
+                let maxHR: Int
+                let averageHR: Int
+            }
+
+            struct WorkoutSummary {
+                let date: Date
+                let type: String
+                let durationMinutes: Int
+                let calories: Double?
+                let averageHeartRate: Int?
+            }
+
+            var hasAnyData: Bool {
+                !dailyActivity.isEmpty || !sleepSummaries.isEmpty || !hrvData.isEmpty ||
+                    heartRateStats != nil || !workouts.isEmpty
+            }
+
+            static var empty: HealthMetrics {
+                HealthMetrics(
+                    dailyActivity: [],
+                    sleepSummaries: [],
+                    hrvData: [],
+                    heartRateStats: nil,
+                    workouts: []
+                )
+            }
+        }
     }
 
     // MARK: - Export Methods
@@ -126,7 +196,8 @@ final class HealthDataExporter {
         carbRatioSchedule: [(time: String, ratio: Decimal)],
         isfSchedule: [(time: String, sensitivity: Decimal)],
         basalSchedule: [(time: String, rate: Decimal)],
-        targetSchedule: [(time: String, low: Decimal, high: Decimal)]
+        targetSchedule: [(time: String, low: Decimal, high: Decimal)],
+        healthMetricsSettings: HealthMetricsSettings? = nil
     ) async throws -> ExportedData {
         let startDate = Calendar.current.date(byAdding: .day, value: -days, to: Date())!
 
@@ -154,6 +225,9 @@ final class HealthDataExporter {
             highThreshold: targetHigh
         ) : nil
 
+        // Fetch health metrics if service is available and settings are provided
+        let healthMetrics = await fetchHealthMetrics(days: days, settings: healthMetricsSettings)
+
         let settings = ExportedData.SettingsSummary(
             units: units,
             targetLow: targetLow,
@@ -174,7 +248,8 @@ final class HealthDataExporter {
             loopStates: loopStates,
             settings: settings,
             statistics: statistics,
-            multiTimeframeStats: multiStats
+            multiTimeframeStats: multiStats,
+            healthMetrics: healthMetrics
         )
     }
 
@@ -295,6 +370,132 @@ final class HealthDataExporter {
                 )
             }
         }
+    }
+
+    // MARK: - Health Metrics Fetching
+
+    private func fetchHealthMetrics(days: Int, settings: HealthMetricsSettings?) async -> ExportedData.HealthMetrics? {
+        guard let service = healthMetricsService,
+              let settings = settings,
+              settings.hasAnyEnabled else {
+            return nil
+        }
+
+        let endDate = Date()
+        let startDate = Calendar.current.date(byAdding: .day, value: -days, to: endDate)!
+
+        var dailyActivity: [ExportedData.HealthMetrics.DailyActivitySummary] = []
+        var sleepSummaries: [ExportedData.HealthMetrics.SleepSummary] = []
+        var hrvData: [ExportedData.HealthMetrics.HRVDataPoint] = []
+        var heartRateStats: ExportedData.HealthMetrics.HeartRateStats?
+        var workouts: [ExportedData.HealthMetrics.WorkoutSummary] = []
+
+        // Fetch activity data if enabled
+        if settings.enableActivityData {
+            do {
+                let activities = try await service.fetchDailyActivity(from: startDate, to: endDate)
+                dailyActivity = activities.map { activity in
+                    ExportedData.HealthMetrics.DailyActivitySummary(
+                        date: activity.date,
+                        steps: activity.steps,
+                        activeCalories: activity.activeCalories,
+                        exerciseMinutes: activity.exerciseMinutes
+                    )
+                }
+            } catch {
+                // Log but don't fail - activity data is optional
+                print("Failed to fetch activity data: \(error)")
+            }
+        }
+
+        // Fetch sleep data if enabled
+        if settings.enableSleepData {
+            do {
+                let sleepData = try await service.fetchNightSleepSummaries(from: startDate, to: endDate)
+                sleepSummaries = sleepData.map { sleep in
+                    ExportedData.HealthMetrics.SleepSummary(
+                        date: sleep.date,
+                        bedtime: sleep.bedtime,
+                        wakeTime: sleep.wakeTime,
+                        hoursAsleep: sleep.hoursAsleep,
+                        sleepEfficiency: sleep.sleepEfficiency,
+                        deepSleepHours: sleep.deepSleepDuration.map { $0 / 3600 },
+                        remSleepHours: sleep.remSleepDuration.map { $0 / 3600 }
+                    )
+                }
+            } catch {
+                print("Failed to fetch sleep data: \(error)")
+            }
+        }
+
+        // Fetch heart rate and HRV data if enabled
+        if settings.enableHeartRateData {
+            do {
+                // Fetch HRV summaries
+                let hrvSummaries = try await service.fetchHRVReadings(from: startDate, to: endDate)
+
+                // Group HRV readings by day and summarize
+                let groupedHRV = Dictionary(grouping: hrvSummaries) { reading in
+                    Calendar.current.startOfDay(for: reading.date)
+                }
+
+                hrvData = groupedHRV.map { date, readings in
+                    let sdnnValues = readings.map(\.sdnn)
+                    return ExportedData.HealthMetrics.HRVDataPoint(
+                        date: date,
+                        averageSDNN: sdnnValues.reduce(0, +) / Double(sdnnValues.count),
+                        minSDNN: sdnnValues.min() ?? 0,
+                        maxSDNN: sdnnValues.max() ?? 0
+                    )
+                }.sorted { $0.date < $1.date }
+
+                // Fetch heart rate readings for statistics
+                let heartRates = try await service.fetchHeartRateReadings(from: startDate, to: endDate)
+                let restingHR = try await service.fetchRestingHeartRate(from: startDate, to: endDate)
+
+                if !heartRates.isEmpty {
+                    let bpmValues = heartRates.map(\.bpm)
+                    let avgResting = restingHR.isEmpty ? nil : restingHR.map(\.bpm).reduce(0, +) / restingHR.count
+
+                    heartRateStats = ExportedData.HealthMetrics.HeartRateStats(
+                        averageRestingHR: avgResting ?? 0,
+                        minHR: bpmValues.min() ?? 0,
+                        maxHR: bpmValues.max() ?? 0,
+                        averageHR: bpmValues.reduce(0, +) / bpmValues.count
+                    )
+                }
+            } catch {
+                print("Failed to fetch heart rate data: \(error)")
+            }
+        }
+
+        // Fetch workout data if enabled
+        if settings.enableWorkoutData {
+            do {
+                let workoutSessions = try await service.fetchWorkouts(from: startDate, to: endDate)
+                workouts = workoutSessions.map { workout in
+                    ExportedData.HealthMetrics.WorkoutSummary(
+                        date: workout.start,
+                        type: workout.workoutType,
+                        durationMinutes: workout.durationMinutes,
+                        calories: workout.calories,
+                        averageHeartRate: workout.averageHeartRate
+                    )
+                }
+            } catch {
+                print("Failed to fetch workout data: \(error)")
+            }
+        }
+
+        let metrics = ExportedData.HealthMetrics(
+            dailyActivity: dailyActivity,
+            sleepSummaries: sleepSummaries,
+            hrvData: hrvData,
+            heartRateStats: heartRateStats,
+            workouts: workouts
+        )
+
+        return metrics.hasAnyData ? metrics : nil
     }
 
     // MARK: - Statistics Calculation
@@ -518,13 +719,22 @@ final class HealthDataExporter {
             Format this as a professional report suitable for sharing with a healthcare provider.
             """
 
-        case .chat:
+        case .chat(let settings):
             // For chat, include recent context
             prompt += """
 
             📈 RECENT LOOP DATA (Last 6 hours)
             Format: Time | BG | IOB | COB | TempBasal | SMB
             \(formatLoopStatesCompact(data.loopStates, timeFormatter: timeFormatter, hours: 6, intervalMinutes: 10))
+
+            """
+
+            // Include health metrics if enabled and available
+            if settings.showHealthMetrics, let healthMetrics = data.healthMetrics, healthMetrics.hasAnyData {
+                prompt += formatHealthMetrics(healthMetrics, dateFormatter: timeFormatter)
+            }
+
+            prompt += """
 
             Based on this data, please answer my question.
             """
@@ -670,18 +880,32 @@ final class HealthDataExporter {
             prompt += "---\n\n"
         }
 
+        // MARK: - Health Metrics Section
+        if settings.showHealthMetrics, let healthMetrics = data.healthMetrics, healthMetrics.hasAnyData {
+            prompt += formatHealthMetrics(healthMetrics, dateFormatter: timeFormatter)
+            prompt += "\n---\n\n"
+        }
+
         // MARK: - AI Analysis Request (Custom Prompt)
         prompt += "## 🤖 AI ANALYSIS REQUEST\n\n"
 
         if settings.customPrompt.isEmpty {
             // Use default prompt if custom is empty
-            prompt += """
+            var defaultPrompt = """
             Please provide a quick analysis using these sections:
             📊 **Overview** - Brief summary of glucose control
             🔍 **Key Patterns** - Notable trends you observe
             ⚠️ **Concerns** - Any issues needing attention
             💡 **Quick Tip** - One actionable suggestion
             """
+
+            if settings.showHealthMetrics, let healthMetrics = data.healthMetrics, healthMetrics.hasAnyData {
+                defaultPrompt += """
+
+            🏃 **Lifestyle Insights** - How activity, sleep, or heart rate patterns may be affecting glucose
+            """
+            }
+            prompt += defaultPrompt
         } else {
             prompt += settings.customPrompt
         }
@@ -819,12 +1043,18 @@ final class HealthDataExporter {
             prompt += "---\n\n"
         }
 
+        // MARK: - Health Metrics Section
+        if settings.showHealthMetrics, let healthMetrics = data.healthMetrics, healthMetrics.hasAnyData {
+            prompt += formatHealthMetrics(healthMetrics, dateFormatter: timeFormatter)
+            prompt += "\n---\n\n"
+        }
+
         // MARK: - AI Analysis Request (Custom Prompt)
         prompt += "## 🤖 AI ANALYSIS REQUEST\n\n"
 
         if settings.customPrompt.isEmpty {
             // Use default prompt if custom is empty
-            prompt += """
+            var defaultPrompt = """
             Please analyze this data and provide a comprehensive report for discussion with my healthcare provider. Include:
 
             ### 📊 **Executive Summary**
@@ -851,6 +1081,20 @@ final class HealthDataExporter {
             - Hypoglycemia patterns and prevention
             - Severe hyperglycemia events
             - Glycemic variability concerns
+            """
+
+            if settings.showHealthMetrics, let healthMetrics = data.healthMetrics, healthMetrics.hasAnyData {
+                defaultPrompt += """
+
+            ### 🏃 **Lifestyle Factor Analysis**
+            - Impact of physical activity on glucose control
+            - Sleep quality correlation with glucose stability
+            - Heart rate variability trends and stress indicators
+            - Exercise recommendations based on observed patterns
+            """
+            }
+
+            defaultPrompt += """
 
             ### 💡 **Discussion Points for Provider**
             - Priority items to address
@@ -859,6 +1103,7 @@ final class HealthDataExporter {
 
             Format this professionally for sharing with an endocrinologist or diabetes care team.
             """
+            prompt += defaultPrompt
         } else {
             prompt += settings.customPrompt
         }
@@ -1054,10 +1299,124 @@ final class HealthDataExporter {
         return output
     }
 
+    // MARK: - Health Metrics Formatting
+
+    private func formatHealthMetrics(_ metrics: ExportedData.HealthMetrics?, dateFormatter: DateFormatter) -> String {
+        guard let metrics = metrics, metrics.hasAnyData else {
+            return ""
+        }
+
+        var output = "\n## 🏃 HEALTH & FITNESS METRICS (from Apple Health)\n\n"
+
+        // Activity Data
+        if !metrics.dailyActivity.isEmpty {
+            output += "### Daily Activity\n"
+            let avgSteps = metrics.dailyActivity.map(\.steps).reduce(0, +) / max(metrics.dailyActivity.count, 1)
+            let avgCalories = metrics.dailyActivity.map(\.activeCalories).reduce(0, +) / Double(max(metrics.dailyActivity.count, 1))
+            let avgExercise = metrics.dailyActivity.map(\.exerciseMinutes).reduce(0, +) / max(metrics.dailyActivity.count, 1)
+
+            output += "• Average Daily Steps: \(avgSteps)\n"
+            output += "• Average Active Calories: \(String(format: "%.0f", avgCalories)) kcal\n"
+            output += "• Average Exercise Minutes: \(avgExercise) min\n\n"
+
+            output += "Daily Breakdown:\n"
+            let dayFormatter = DateFormatter()
+            dayFormatter.dateFormat = "MM/dd (EEE)"
+            for activity in metrics.dailyActivity.suffix(14) { // Show last 14 days
+                output += "\(dayFormatter.string(from: activity.date)): \(activity.steps) steps | \(String(format: "%.0f", activity.activeCalories)) kcal | \(activity.exerciseMinutes) min exercise\n"
+            }
+            output += "\n"
+        }
+
+        // Sleep Data
+        if !metrics.sleepSummaries.isEmpty {
+            output += "### Sleep Analysis\n"
+            let avgSleepHours = metrics.sleepSummaries.map(\.hoursAsleep).reduce(0, +) / Double(max(metrics.sleepSummaries.count, 1))
+            let avgEfficiency = metrics.sleepSummaries.map(\.sleepEfficiency).reduce(0, +) / Double(max(metrics.sleepSummaries.count, 1))
+
+            output += "• Average Sleep Duration: \(String(format: "%.1f", avgSleepHours)) hours\n"
+            output += "• Average Sleep Efficiency: \(String(format: "%.0f", avgEfficiency * 100))%\n\n"
+
+            output += "Nightly Breakdown:\n"
+            let timeFormatter = DateFormatter()
+            timeFormatter.dateFormat = "HH:mm"
+            let dayFormatter = DateFormatter()
+            dayFormatter.dateFormat = "MM/dd"
+
+            for sleep in metrics.sleepSummaries.suffix(14) { // Show last 14 nights
+                var line = "\(dayFormatter.string(from: sleep.date)): \(timeFormatter.string(from: sleep.bedtime))-\(timeFormatter.string(from: sleep.wakeTime)) | \(String(format: "%.1f", sleep.hoursAsleep))h"
+                if let deep = sleep.deepSleepHours {
+                    line += " | Deep: \(String(format: "%.1f", deep))h"
+                }
+                if let rem = sleep.remSleepHours {
+                    line += " | REM: \(String(format: "%.1f", rem))h"
+                }
+                output += line + "\n"
+            }
+            output += "\n"
+        }
+
+        // Heart Rate & HRV Data
+        if let hrStats = metrics.heartRateStats {
+            output += "### Heart Rate\n"
+            output += "• Average Resting HR: \(hrStats.averageRestingHR) bpm\n"
+            output += "• Average HR: \(hrStats.averageHR) bpm\n"
+            output += "• HR Range: \(hrStats.minHR)-\(hrStats.maxHR) bpm\n\n"
+        }
+
+        if !metrics.hrvData.isEmpty {
+            output += "### Heart Rate Variability (HRV)\n"
+            let avgHRV = metrics.hrvData.map(\.averageSDNN).reduce(0, +) / Double(max(metrics.hrvData.count, 1))
+            output += "• Average HRV (SDNN): \(String(format: "%.1f", avgHRV)) ms\n\n"
+
+            output += "Daily HRV:\n"
+            let dayFormatter = DateFormatter()
+            dayFormatter.dateFormat = "MM/dd"
+            for hrv in metrics.hrvData.suffix(14) { // Show last 14 days
+                output += "\(dayFormatter.string(from: hrv.date)): \(String(format: "%.1f", hrv.averageSDNN)) ms (range: \(String(format: "%.0f", hrv.minSDNN))-\(String(format: "%.0f", hrv.maxSDNN)))\n"
+            }
+            output += "\n"
+        }
+
+        // Workout Data
+        if !metrics.workouts.isEmpty {
+            output += "### Workouts\n"
+            let totalWorkoutMinutes = metrics.workouts.map(\.durationMinutes).reduce(0, +)
+            let totalCalories = metrics.workouts.compactMap(\.calories).reduce(0, +)
+
+            output += "• Total Workouts: \(metrics.workouts.count)\n"
+            output += "• Total Workout Time: \(totalWorkoutMinutes) min\n"
+            output += "• Total Workout Calories: \(String(format: "%.0f", totalCalories)) kcal\n\n"
+
+            // Group by type
+            let workoutsByType = Dictionary(grouping: metrics.workouts) { $0.type }
+            output += "By Type:\n"
+            for (type, workouts) in workoutsByType.sorted(by: { $0.value.count > $1.value.count }) {
+                let totalMin = workouts.map(\.durationMinutes).reduce(0, +)
+                output += "• \(type): \(workouts.count)x, \(totalMin) min total\n"
+            }
+            output += "\n"
+
+            output += "Recent Workouts:\n"
+            for workout in metrics.workouts.suffix(10) { // Show last 10 workouts
+                var line = "\(dateFormatter.string(from: workout.date)): \(workout.type) | \(workout.durationMinutes) min"
+                if let calories = workout.calories {
+                    line += " | \(String(format: "%.0f", calories)) kcal"
+                }
+                if let hr = workout.averageHeartRate {
+                    line += " | Avg HR: \(hr)"
+                }
+                output += line + "\n"
+            }
+        }
+
+        return output
+    }
+
     enum AnalysisType {
         case quick(settings: QuickAnalysisSettings)
         case weeklyReport
-        case chat
+        case chat(settings: ChatSettings)
         case doctorVisit(settings: DoctorReportSettings)
         case whyHighLow(settings: WhyHighLowSettings)
         case claudeOTune(settings: ClaudeOTuneAnalysisSettings)
@@ -1073,6 +1432,7 @@ final class HealthDataExporter {
         var showLoopData: Bool = true
         var showCarbEntries: Bool = true
         var showBolusHistory: Bool = true
+        var showHealthMetrics: Bool = true
         var customPrompt: String = ""
         var days: Int = 7
     }
@@ -1087,8 +1447,13 @@ final class HealthDataExporter {
         var showLoopData: Bool = true
         var showCarbEntries: Bool = true
         var showBolusHistory: Bool = true
+        var showHealthMetrics: Bool = true
         var customPrompt: String = ""
         var days: Int = 30
+    }
+
+    struct ChatSettings {
+        var showHealthMetrics: Bool = true
     }
 
     struct WhyHighLowSettings {
@@ -1098,6 +1463,7 @@ final class HealthDataExporter {
         var currentCOB: Int
         var isHigh: Bool // true = high, false = low
         var analysisHours: Int = 4
+        var showHealthMetrics: Bool = true
         var customPrompt: String = ""
     }
 
@@ -1107,6 +1473,7 @@ final class HealthDataExporter {
         var includeBasalRecommendations: Bool = true
         var includeISFRecommendations: Bool = true
         var includeCRRecommendations: Bool = true
+        var includeHealthMetrics: Bool = true
         var maxAdjustmentPercent: Double = 20.0
         var autosensMax: Double = 1.2
         var autosensMin: Double = 0.7
@@ -1163,7 +1530,7 @@ final class HealthDataExporter {
     }
 
     /// Format data for Why High/Low analysis prompt
-    func formatWhyHighLowPrompt(_ data: WhyHighLowData, settings: WhyHighLowSettings) -> String {
+    func formatWhyHighLowPrompt(_ data: WhyHighLowData, settings: WhyHighLowSettings, healthMetrics: ExportedData.HealthMetrics? = nil) -> String {
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "HH:mm"
 
@@ -1240,6 +1607,11 @@ final class HealthDataExporter {
             }
         }
 
+        // Add health metrics if enabled and available
+        if settings.showHealthMetrics, let metrics = healthMetrics, metrics.hasAnyData {
+            prompt += formatHealthMetricsForWhyHighLow(metrics, dateFormatter: timeFormatter)
+        }
+
         // Add the analysis request
         prompt += "\n---\n\n"
 
@@ -1259,6 +1631,72 @@ final class HealthDataExporter {
         }
 
         return prompt
+    }
+
+    /// Format health metrics for Why High/Low analysis (concise version focused on recent context)
+    private func formatHealthMetricsForWhyHighLow(_ metrics: ExportedData.HealthMetrics, dateFormatter: DateFormatter) -> String {
+        var output = "\n\n🏃‍♂️ RECENT HEALTH METRICS (may affect glucose)\n"
+
+        // Recent sleep (last night)
+        if let recentSleep = metrics.sleepSummaries.last {
+            output += "\n😴 **Last Night's Sleep**\n"
+            let bedtimeStr = dateFormatter.string(from: recentSleep.bedtime)
+            let waketimeStr = dateFormatter.string(from: recentSleep.wakeTime)
+            output += "• Bedtime: \(bedtimeStr), Wake: \(waketimeStr)\n"
+            output += "• Duration: \(String(format: "%.1f", recentSleep.hoursAsleep)) hours"
+            output += " (\(Int(recentSleep.sleepEfficiency))% efficient)"
+            output += "\n"
+            if recentSleep.hoursAsleep < 6 {
+                output += "• ⚠️ Short sleep may increase insulin resistance\n"
+            }
+        }
+
+        // Recent activity (today)
+        if let todayActivity = metrics.dailyActivity.first {
+            output += "\n🚶 **Today's Activity**\n"
+            output += "• Steps: \(todayActivity.steps), Active calories: \(todayActivity.activeCalories)\n"
+            if todayActivity.exerciseMinutes > 0 {
+                output += "• Exercise: \(todayActivity.exerciseMinutes) minutes\n"
+            }
+            if todayActivity.exerciseMinutes > 30 {
+                output += "• ℹ️ Significant exercise may increase insulin sensitivity\n"
+            }
+        }
+
+        // Recent workouts
+        let recentWorkouts = metrics.workouts.prefix(2)
+        if !recentWorkouts.isEmpty {
+            output += "\n🏋️ **Recent Workouts**\n"
+            for workout in recentWorkouts {
+                let duration = Int(workout.durationMinutes)
+                output += "• \(workout.type): \(duration) min"
+                if let calories = workout.calories {
+                    output += ", \(Int(calories)) cal"
+                }
+                output += "\n"
+            }
+        }
+
+        // Recent heart rate / stress indicator
+        if let avgHR = metrics.heartRateStats?.averageHR {
+            output += "\n❤️ **Heart Rate**\n"
+            output += "• Average: \(avgHR) bpm"
+            if let resting = metrics.heartRateStats?.averageRestingHR {
+                output += ", Resting: \(resting) bpm"
+            }
+            output += "\n"
+        }
+
+        // HRV (stress indicator)
+        if let todayHRV = metrics.hrvData.first {
+            output += "• HRV: \(Int(todayHRV.averageSDNN)) ms"
+            if todayHRV.averageSDNN < 30 {
+                output += " (low - may indicate stress)"
+            }
+            output += "\n"
+        }
+
+        return output
     }
 
     // MARK: - Claude-o-Tune Profile Optimization
@@ -1407,6 +1845,11 @@ final class HealthDataExporter {
             prompt += "\n\(formatBolusEvents(data.bolusEvents, dateFormatter: timeFormatter))"
         }
 
+        // Add health metrics data if available
+        if settings.includeHealthMetrics, let healthMetrics = data.healthMetrics, healthMetrics.hasAnyData {
+            prompt += formatHealthMetrics(healthMetrics, dateFormatter: timeFormatter)
+        }
+
         // Add the analysis request
         prompt += """
 
@@ -1419,7 +1862,7 @@ final class HealthDataExporter {
         if !settings.customPrompt.isEmpty {
             prompt += settings.customPrompt
         } else {
-            prompt += """
+            var analysisPrompt = """
         Please analyze my \(settings.days)-day diabetes data and provide profile optimization recommendations.
 
         Focus on:
@@ -1428,6 +1871,21 @@ final class HealthDataExporter {
         3. **ISF Analysis**: Is my insulin sensitivity factor accurate throughout the day?
         4. **Carb Ratio Analysis**: Do my carb ratios need adjustment for different meals/times?
         5. **Safety Review**: Flag any concerning patterns (frequent hypos, severe highs)
+        """
+
+            // Add health metrics analysis instructions if data is available
+            if settings.includeHealthMetrics, let healthMetrics = data.healthMetrics, healthMetrics.hasAnyData {
+                analysisPrompt += """
+
+        6. **Lifestyle Correlation Analysis**: Analyze how my health metrics correlate with glucose patterns:
+           - **Exercise Impact**: How do workouts and daily activity levels affect my glucose control?
+           - **Sleep Quality**: Are there patterns between sleep quality/duration and next-day glucose stability?
+           - **HRV Trends**: Does HRV (stress/recovery indicator) correlate with insulin sensitivity changes?
+           - **Activity Patterns**: On high vs low activity days, are there noticeable glucose differences?
+        """
+            }
+
+            analysisPrompt += """
 
         IMPORTANT CONSTRAINTS:
         - Keep all recommended changes within \(String(format: "%.0f", settings.maxAdjustmentPercent))% of current values
@@ -1437,6 +1895,7 @@ final class HealthDataExporter {
 
         Respond with a JSON object following the specified output format.
         """
+            prompt += analysisPrompt
         }
 
         return prompt

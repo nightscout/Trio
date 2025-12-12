@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		HME7A7FED7B34D0D8F5BC383 /* HealthMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = HMF49BBBF5CD4A9BBC14CC1F /* HealthMetrics.swift */; };
+		HS65A6D45B1A4FC1B3A02035 /* HealthMetricsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = HS70616C45944CE888DC2C8D /* HealthMetricsService.swift */; };
 		A1B1C1D1E1F101010101A1B1 /* AIInsightsConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A1 /* AIInsightsConfigDataFlow.swift */; };
 		A1B1C1D1E1F101010101A1B2 /* AIInsightsConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A2 /* AIInsightsConfigStateModel.swift */; };
 		A1B1C1D1E1F101010101A1B3 /* AIInsightsConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A3 /* AIInsightsConfigProvider.swift */; };
@@ -856,6 +858,8 @@
 		A1B1C1D1E1F101010101A1A4 /* AIInsightsConfigRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightsConfigRootView.swift; sourceTree = "<group>"; };
 		A1B1C1D1E1F101010101A1A5 /* ClaudeAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeAPIService.swift; sourceTree = "<group>"; };
 		A1B1C1D1E1F101010101A1A6 /* HealthDataExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDataExporter.swift; sourceTree = "<group>"; };
+		HMF49BBBF5CD4A9BBC14CC1F /* HealthMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetrics.swift; sourceTree = "<group>"; };
+		HS70616C45944CE888DC2C8D /* HealthMetricsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricsService.swift; sourceTree = "<group>"; };
 		A1B1C1D1E1F101010101A1A7 /* NightscoutDataFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutDataFetcher.swift; sourceTree = "<group>"; };
 		A1B1C1D1E1F101010101A1A8 /* MarkdownParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownParser.swift; sourceTree = "<group>"; };
 		A1B1C1D1E1F101010101A1A9 /* SavedReportsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedReportsManager.swift; sourceTree = "<group>"; };
@@ -2379,6 +2383,7 @@
 		388E5A5925B6F0250019842D /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				HMF49BBBF5CD4A9BBC14CC1F /* HealthMetrics.swift */,
 				DDFF204F2DB2C11900AB8A96 /* WatchStateSnapshot.swift */,
 				DDEBB05B2D89E9050032305D /* TimeInRangeType.swift */,
 				3B2F77852D7E52ED005ED9FA /* TDD.swift */,
@@ -3773,6 +3778,7 @@
 		F90692A8274B7A980037068D /* HealthKit */ = {
 			isa = PBXGroup;
 			children = (
+				HS70616C45944CE888DC2C8D /* HealthMetricsService.swift */,
 				F90692A9274B7AAE0037068D /* HealthKitManager.swift */,
 			);
 			path = HealthKit;
@@ -4162,6 +4168,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				HME7A7FED7B34D0D8F5BC383 /* HealthMetrics.swift in Sources */,
+				HS65A6D45B1A4FC1B3A02035 /* HealthMetricsService.swift in Sources */,
 				A1B1C1D1E1F101010101A1B1 /* AIInsightsConfigDataFlow.swift in Sources */,
 				A1B1C1D1E1F101010101A1B2 /* AIInsightsConfigStateModel.swift in Sources */,
 				A1B1C1D1E1F101010101A1B3 /* AIInsightsConfigProvider.swift in Sources */,

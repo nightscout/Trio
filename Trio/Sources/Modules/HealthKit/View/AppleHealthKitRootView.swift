@@ -63,6 +63,9 @@ extension AppleHealthKit {
                         .foregroundColor(Color.secondary)
                     }.listRowBackground(Color.chart)
                 }
+
+                // Health Metrics for AI Analysis Section
+                healthMetricsSection
             }
             .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
@@ -78,6 +81,86 @@ extension AppleHealthKit {
             .onAppear(perform: configureView)
             .navigationTitle("Apple Health")
             .navigationBarTitleDisplayMode(.automatic)
+        }
+
+        @ViewBuilder
+        private var healthMetricsSection: some View {
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "waveform.path.ecg")
+                            .foregroundColor(.blue)
+                        Text("Health Metrics for AI Analysis")
+                            .font(.headline)
+                    }
+                    Text("Enable these options to include health data from your wearables (Apple Watch, Garmin, etc.) in Claude AI analysis. This helps identify patterns between lifestyle factors and glucose control.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 4)
+            }
+
+            Section {
+                Toggle(isOn: $state.enableActivityData) {
+                    HStack {
+                        Image(systemName: "figure.walk")
+                            .foregroundColor(.green)
+                            .frame(width: 24)
+                        VStack(alignment: .leading) {
+                            Text("Activity Data")
+                            Text("Steps, active calories, exercise minutes")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+
+                Toggle(isOn: $state.enableSleepData) {
+                    HStack {
+                        Image(systemName: "bed.double.fill")
+                            .foregroundColor(.indigo)
+                            .frame(width: 24)
+                        VStack(alignment: .leading) {
+                            Text("Sleep Data")
+                            Text("Sleep duration, stages, efficiency")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+
+                Toggle(isOn: $state.enableHeartRateData) {
+                    HStack {
+                        Image(systemName: "heart.fill")
+                            .foregroundColor(.red)
+                            .frame(width: 24)
+                        VStack(alignment: .leading) {
+                            Text("Heart Rate & HRV")
+                            Text("Resting HR, heart rate variability")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+
+                Toggle(isOn: $state.enableWorkoutData) {
+                    HStack {
+                        Image(systemName: "flame.fill")
+                            .foregroundColor(.orange)
+                            .frame(width: 24)
+                        VStack(alignment: .leading) {
+                            Text("Workout Data")
+                            Text("Exercise sessions, duration, calories")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            } header: {
+                Text("AI Analysis Data Sources")
+            } footer: {
+                Text("When enabled, this data will be included in Claude-o-Tune, Quick Analysis, and Doctor Visit reports to help identify correlations between lifestyle and glucose patterns.")
+            }
         }
     }
 }

@@ -282,11 +282,8 @@ extension AIInsightsConfig {
                                     .foregroundColor(.secondary)
                             }
 
-                            // Rich markdown rendering
-                            RichMarkdownView(content: state.quickAnalysisResult)
-                                .padding()
-                                .background(Color.chart)
-                                .cornerRadius(12)
+                            // Sectioned card-based rendering (like Claude-o-Tune)
+                            SectionedMarkdownView(content: state.quickAnalysisResult)
 
                             HStack {
                                 Button(action: {
@@ -457,13 +454,50 @@ extension AIInsightsConfig {
             .navigationTitle("Ask Claude")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    if !state.chatMessages.isEmpty {
-                        Button("Clear") {
-                            state.clearChat()
+                    HStack(spacing: 16) {
+                        if !state.chatMessages.isEmpty {
+                            Button("Clear") {
+                                state.clearChat()
+                            }
+                        }
+                        NavigationLink(destination: ChatSettingsView(state: state)) {
+                            Image(systemName: "gearshape")
                         }
                     }
                 }
             }
+        }
+    }
+
+    // MARK: - Chat Settings View
+
+    struct ChatSettingsView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+
+        var body: some View {
+            Form {
+                Section(
+                    header: Text("Health Metrics"),
+                    footer: Text("Include health data from Apple Health (activity, sleep, heart rate, HRV, workouts) when chatting with Claude. Changes apply to new conversations.")
+                ) {
+                    Toggle("Include Health Metrics", isOn: $state.chatShowHealthMetrics)
+                        .onChange(of: state.chatShowHealthMetrics) { _, _ in state.saveQuickAnalysisSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    footer: Text("Health metrics help Claude understand lifestyle factors that may affect your glucose patterns, such as sleep quality, exercise, and stress levels.")
+                ) {
+                    EmptyView()
+                }
+                .listRowBackground(Color.clear)
+            }
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Chat Settings")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 
@@ -780,11 +814,8 @@ extension AIInsightsConfig {
                                     .foregroundColor(.secondary)
                             }
 
-                            // Rich markdown rendering
-                            RichMarkdownView(content: state.doctorVisitReport)
-                                .padding()
-                                .background(Color.chart)
-                                .cornerRadius(12)
+                            // Sectioned card-based rendering (like Claude-o-Tune)
+                            SectionedMarkdownView(content: state.doctorVisitReport)
 
                             // Share and regenerate buttons
                             HStack {
@@ -902,6 +933,15 @@ extension AIInsightsConfig {
                 .listRowBackground(Color.chart)
 
                 Section(
+                    header: Text("Health Metrics"),
+                    footer: Text("Include health data from Apple Health (activity, sleep, heart rate, HRV, workouts). Configure which data types are enabled in Settings > Apple Health.")
+                ) {
+                    Toggle("Include Health Metrics", isOn: $state.qaShowHealthMetrics)
+                        .onChange(of: state.qaShowHealthMetrics) { _, _ in state.saveQuickAnalysisSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
                     header: Text("AI Prompt"),
                     footer: Text("Customize the instructions sent to Claude for analyzing your data.")
                 ) {
@@ -996,6 +1036,15 @@ extension AIInsightsConfig {
 
                     Toggle("Bolus History", isOn: $state.drShowBolusHistory)
                         .onChange(of: state.drShowBolusHistory) { _, _ in state.saveDoctorReportSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("Health Metrics"),
+                    footer: Text("Include health data from Apple Health (activity, sleep, heart rate, HRV, workouts). Configure which data types are enabled in Settings > Apple Health.")
+                ) {
+                    Toggle("Include Health Metrics", isOn: $state.drShowHealthMetrics)
+                        .onChange(of: state.drShowHealthMetrics) { _, _ in state.saveDoctorReportSettings() }
                 }
                 .listRowBackground(Color.chart)
 
@@ -1129,6 +1178,15 @@ extension AIInsightsConfig {
                         }
                     }
                     .onChange(of: state.whlAnalysisHours) { _, _ in state.saveWhyHighLowSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("Health Metrics"),
+                    footer: Text("Include recent health data (activity, sleep, heart rate, HRV, workouts) to help identify lifestyle factors affecting your glucose.")
+                ) {
+                    Toggle("Include Health Metrics", isOn: $state.whlShowHealthMetrics)
+                        .onChange(of: state.whlShowHealthMetrics) { _, _ in state.saveWhyHighLowSettings() }
                 }
                 .listRowBackground(Color.chart)
 
@@ -2205,8 +2263,13 @@ extension AIInsightsConfig {
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink(destination: ClaudeOTuneSettingsView(state: state)) {
-                        Image(systemName: "gearshape")
+                    HStack(spacing: 16) {
+                        NavigationLink(destination: ProfileHistoryView(state: state)) {
+                            Image(systemName: "clock.arrow.circlepath")
+                        }
+                        NavigationLink(destination: ClaudeOTuneSettingsView(state: state)) {
+                            Image(systemName: "gearshape")
+                        }
                     }
                 }
             }
@@ -3163,6 +3226,15 @@ extension AIInsightsConfig {
                 .listRowBackground(Color.chart)
 
                 Section(
+                    header: Text("Health Metrics"),
+                    footer: Text("Include health data from Apple Health (activity, sleep, heart rate, HRV, workouts) to improve pattern detection and lifestyle correlation analysis.")
+                ) {
+                    Toggle("Include Health Metrics", isOn: $state.cotIncludeHealthMetrics)
+                        .onChange(of: state.cotIncludeHealthMetrics) { _, _ in state.saveClaudeOTuneSettings() }
+                }
+                .listRowBackground(Color.chart)
+
+                Section(
                     header: Text("AI Prompt"),
                     footer: Text("Customize the instructions sent to Claude for analyzing your data.")
                 ) {
@@ -3194,6 +3266,176 @@ extension AIInsightsConfig {
                 }
             } message: {
                 Text("This will reset the AI prompt to the default. Your custom prompt will be lost.")
+            }
+        }
+    }
+
+    // MARK: - Profile History View
+
+    struct ProfileHistoryView: View {
+        @ObservedObject var state: StateModel
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
+        @State private var showRestoreAlert = false
+        @State private var selectedBackup: ClaudeOTuneProfileService.ProfileBackup?
+        @State private var isRestoring = false
+        @State private var restoreError: String?
+        @State private var showDeleteAllAlert = false
+
+        private let profileService = ClaudeOTuneProfileService()
+
+        var body: some View {
+            List {
+                let backups = profileService.getBackups()
+
+                if backups.isEmpty {
+                    Section {
+                        VStack(spacing: 16) {
+                            Image(systemName: "clock.badge.questionmark")
+                                .font(.system(size: 50))
+                                .foregroundColor(.secondary)
+
+                            Text("No Profile History")
+                                .font(.headline)
+
+                            Text("Profile backups are automatically created when you apply Claude-o-Tune recommendations. You can restore previous settings from here.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                    }
+                    .listRowBackground(Color.clear)
+                } else {
+                    Section(
+                        header: Text("Profile Backups"),
+                        footer: Text("Backups are created automatically before applying changes. Tap to restore a previous profile.")
+                    ) {
+                        ForEach(backups, id: \.id) { backup in
+                            Button(action: {
+                                selectedBackup = backup
+                                showRestoreAlert = true
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(backup.formattedDate)
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+
+                                        Text(backup.reason)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+
+                                        HStack(spacing: 12) {
+                                            Label("\(backup.basalProfile.count) basal", systemImage: "waveform.path")
+                                            Label("\(backup.insulinSensitivities.sensitivities.count) ISF", systemImage: "arrow.down.right")
+                                            Label("\(backup.carbRatios.schedule.count) CR", systemImage: "fork.knife")
+                                        }
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                    }
+
+                                    Spacer()
+
+                                    Image(systemName: "arrow.counterclockwise.circle")
+                                        .foregroundColor(.blue)
+                                        .font(.title2)
+                                }
+                            }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                Button(role: .destructive) {
+                                    profileService.deleteBackup(backup)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+                        }
+                    }
+                    .listRowBackground(Color.chart)
+
+                    Section {
+                        Button(role: .destructive) {
+                            showDeleteAllAlert = true
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Label("Delete All Backups", systemImage: "trash")
+                                Spacer()
+                            }
+                        }
+                    }
+                    .listRowBackground(Color.chart)
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Profile History")
+            .navigationBarTitleDisplayMode(.inline)
+            .alert("Restore Profile?", isPresented: $showRestoreAlert) {
+                Button("Cancel", role: .cancel) {
+                    selectedBackup = nil
+                }
+                Button("Restore") {
+                    if let backup = selectedBackup {
+                        restoreProfile(backup)
+                    }
+                }
+            } message: {
+                if let backup = selectedBackup {
+                    Text("This will restore your profile settings to how they were on \(backup.formattedDate). Current settings will be overwritten.")
+                }
+            }
+            .alert("Delete All Backups?", isPresented: $showDeleteAllAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Delete All", role: .destructive) {
+                    profileService.deleteAllBackups()
+                }
+            } message: {
+                Text("This will permanently delete all profile backups. This action cannot be undone.")
+            }
+            .alert("Restore Failed", isPresented: .constant(restoreError != nil)) {
+                Button("OK") {
+                    restoreError = nil
+                }
+            } message: {
+                Text(restoreError ?? "Unknown error")
+            }
+            .overlay {
+                if isRestoring {
+                    ZStack {
+                        Color.black.opacity(0.3)
+                            .ignoresSafeArea()
+
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                            Text("Restoring profile...")
+                                .foregroundColor(.white)
+                        }
+                        .padding(30)
+                        .background(Color(.systemBackground).opacity(0.9))
+                        .cornerRadius(16)
+                    }
+                }
+            }
+        }
+
+        private func restoreProfile(_ backup: ClaudeOTuneProfileService.ProfileBackup) {
+            isRestoring = true
+            Task {
+                do {
+                    try await profileService.restoreFromBackup(backup)
+                    await MainActor.run {
+                        isRestoring = false
+                        selectedBackup = nil
+                    }
+                } catch {
+                    await MainActor.run {
+                        isRestoring = false
+                        restoreError = error.localizedDescription
+                    }
+                }
             }
         }
     }
