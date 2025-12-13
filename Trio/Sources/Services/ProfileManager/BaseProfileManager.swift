@@ -55,6 +55,10 @@ final class BaseProfileManager: ProfileManager, Injectable {
 
         // Load active profile
         loadActiveProfile()
+
+        // Check for scheduled switch on startup
+        // This ensures the correct profile is active based on today's day of week
+        checkForScheduledSwitch()
     }
 
     // MARK: - Profile Management
