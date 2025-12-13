@@ -81,6 +81,7 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var tddStorage: TDDStorage!
     @Injected() private var broadcaster: Broadcaster!
+    @Injected() private var profileManager: ProfileManager!
     @Persisted(key: "lastLoopStartDate") private var lastLoopStartDate: Date = .distantPast
     @Persisted(key: "lastLoopDate") var lastLoopDate: Date = .distantPast {
         didSet {
@@ -221,6 +222,8 @@ final class BaseAPSManager: APSManager, Injectable {
 
     func heartbeat(date: Date) {
         deviceDataManager.heartbeat(date: date)
+        // Check for scheduled therapy profile switch
+        profileManager.checkForScheduledSwitch()
     }
 
     // Loop entry point

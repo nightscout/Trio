@@ -1246,6 +1246,15 @@ extension Home {
                     CustomProgressView(text: String(localized: "Updating IOB...", comment: "Progress text when updating IOB"))
                 }
             }
+            .profileSwitchBanner(
+                event: Binding(
+                    get: { state.pendingProfileSwitchNotification },
+                    set: { state.pendingProfileSwitchNotification = $0 }
+                ),
+                onDismiss: {
+                    state.acknowledgeProfileSwitch()
+                }
+            )
         }
     }
 }

@@ -50,6 +50,8 @@ enum Screen: Identifiable, Hashable {
     case unitsAndLimits
     case appDiagnostics
     case aiInsightsConfig
+    case therapyProfileList
+    case therapyProfileEditor(profile: TherapyProfile, isNew: Bool)
 
     var id: Int { String(reflecting: self).hashValue }
 }
@@ -165,7 +167,24 @@ extension Screen {
             AppDiagnostics.RootView(resolver: resolver)
         case .aiInsightsConfig:
             AIInsightsConfig.RootView(resolver: resolver)
+        case .therapyProfileList:
+            TherapyProfileList.RootView(resolver: resolver)
+        case let .therapyProfileEditor(profile, isNew):
+            configuredTherapyProfileEditor(resolver: resolver, profile: profile, isNew: isNew)
         }
+    }
+
+    @ViewBuilder
+    private func configuredTherapyProfileEditor(
+        resolver: Resolver,
+        profile: TherapyProfile,
+        isNew: Bool
+    ) -> some View {
+        let _ = {
+            TherapyProfileEditor.Config.profile = profile
+            TherapyProfileEditor.Config.isNew = isNew
+        }()
+        TherapyProfileEditor.RootView(resolver: resolver)
     }
 
     func modal(resolver: Resolver) -> Main.Modal {
