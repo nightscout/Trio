@@ -22,6 +22,7 @@ extension Home {
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
         @ObservationIgnored @Injected() var bluetoothManager: BluetoothStateManager!
         @ObservationIgnored @Injected() var iobService: IOBService!
+        @ObservationIgnored @Injected() var profileManager: ProfileManager!
 
         var cgmStateModel: CGMSettings.StateModel {
             CGMSettings.StateModel.shared
@@ -109,6 +110,7 @@ extension Home {
         var cgmCurrent = cgmDefaultModel
         var pumpInitialSettings = PumpConfig.PumpInitialSettings.default
         var shouldRunDeleteOnSettingsChange = true
+        var pendingProfileSwitchNotification: ProfileSwitchEvent?
 
         var showCarbsRequiredBadge: Bool = true
         private(set) var setupPumpType: PumpConfig.PumpType = .minimed
@@ -380,6 +382,14 @@ extension Home {
                     }
                 }
                 .store(in: &lifetime)
+
+            // Subscribe to therapy profile switch notifications
+            profileManager.pendingSwitchNotificationPublisher
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] event in
+                    self?.pendingProfileSwitchNotification = event
+                }
+                .store(in: &lifetime)
         }
 
         private enum SettingType {
@@ -548,6 +558,11 @@ extension Home {
                 // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator again
                 try await apsManager.determineBasalSync()
             }
+        }
+
+        func acknowledgeProfileSwitch() {
+            profileManager.acknowledgeSwitchNotification()
+            pendingProfileSwitchNotification = nil
         }
 
         private func setupPumpSettings() async {

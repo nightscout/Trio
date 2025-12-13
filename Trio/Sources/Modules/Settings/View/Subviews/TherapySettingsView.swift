@@ -27,6 +27,14 @@ struct TherapySettingsView: BaseView {
             .listRowBackground(Color.chart)
 
             Section(
+                header: Text("Therapy Profiles"),
+                content: {
+                    Text("Therapy Profiles").navigationLink(to: .therapyProfileList, from: self)
+                }
+            )
+            .listRowBackground(Color.chart)
+
+            Section(
                 header: Text("Basic Insulin Rates & Targets"),
                 content: {
                     Text("Glucose Targets").navigationLink(to: .targetsEditor, from: self)

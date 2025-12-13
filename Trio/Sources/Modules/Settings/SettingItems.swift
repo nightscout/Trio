@@ -91,6 +91,17 @@ enum SettingItems {
             ],
             path: ["Therapy Settings", "Units and Limits"]
         ),
+        SettingItem(
+            title: "Therapy Profiles",
+            view: .therapyProfileList,
+            searchContents: [
+                "Weekday",
+                "Weekend",
+                "Profile Schedule",
+                "Automatic Profile Switch"
+            ],
+            path: ["Therapy Settings", "Therapy Profiles"]
+        ),
         SettingItem(title: "Basal Rates", view: .basalProfileEditor, path: ["Therapy Settings"]),
         SettingItem(title: "Insulin Sensitivities", view: .isfEditor, path: ["Therapy Settings"]),
         SettingItem(title: "ISF", view: .isfEditor, path: ["Therapy Settings"]),
