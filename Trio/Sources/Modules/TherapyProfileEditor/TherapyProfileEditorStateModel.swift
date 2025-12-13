@@ -234,13 +234,14 @@ extension TherapyProfileEditor {
 
         func updateBasalEntry(at index: Int, rate: Decimal) {
             guard index < basalProfile.count else { return }
-            basalProfile[index].rate = rate
+            let existing = basalProfile[index]
+            basalProfile[index] = BasalProfileEntry(start: existing.start, minutes: existing.minutes, rate: rate)
         }
 
         func updateBasalEntryTime(at index: Int, minutes: Int) {
             guard index < basalProfile.count else { return }
-            basalProfile[index].minutes = minutes
-            basalProfile[index].start = minutesToTimeString(minutes)
+            let existing = basalProfile[index]
+            basalProfile[index] = BasalProfileEntry(start: minutesToTimeString(minutes), minutes: minutes, rate: existing.rate)
             basalProfile.sort { $0.minutes < $1.minutes }
         }
 
@@ -296,7 +297,8 @@ extension TherapyProfileEditor {
 
         func updateISFEntry(at index: Int, sensitivity: Decimal) {
             guard var isf = insulinSensitivities, index < isf.sensitivities.count else { return }
-            isf.sensitivities[index].sensitivity = sensitivity
+            let existing = isf.sensitivities[index]
+            isf.sensitivities[index] = InsulinSensitivityEntry(sensitivity: sensitivity, offset: existing.offset, start: existing.start)
             insulinSensitivities = isf
         }
 
@@ -309,7 +311,7 @@ extension TherapyProfileEditor {
         // MARK: - Carb Ratio Editing
 
         func addCarbRatioEntry() {
-            guard var cr = carbRatios else {
+            guard let cr = carbRatios else {
                 carbRatios = CarbRatios(
                     units: .grams,
                     schedule: [CarbRatioEntry(start: "00:00", offset: 0, ratio: 0)]
@@ -322,21 +324,25 @@ extension TherapyProfileEditor {
                 offset: min(nextOffset, 23 * 60),
                 ratio: cr.schedule.last?.ratio ?? 0
             )
-            cr.schedule.append(newEntry)
-            cr.schedule.sort { $0.offset < $1.offset }
-            carbRatios = cr
+            var newSchedule = cr.schedule
+            newSchedule.append(newEntry)
+            newSchedule.sort { $0.offset < $1.offset }
+            carbRatios = CarbRatios(units: cr.units, schedule: newSchedule)
         }
 
         func updateCarbRatioEntry(at index: Int, ratio: Decimal) {
-            guard var cr = carbRatios, index < cr.schedule.count else { return }
-            cr.schedule[index].ratio = ratio
-            carbRatios = cr
+            guard let cr = carbRatios, index < cr.schedule.count else { return }
+            let existing = cr.schedule[index]
+            var newSchedule = cr.schedule
+            newSchedule[index] = CarbRatioEntry(start: existing.start, offset: existing.offset, ratio: ratio)
+            carbRatios = CarbRatios(units: cr.units, schedule: newSchedule)
         }
 
         func deleteCarbRatioEntry(at index: Int) {
-            guard var cr = carbRatios, index < cr.schedule.count else { return }
-            cr.schedule.remove(at: index)
-            carbRatios = cr
+            guard let cr = carbRatios, index < cr.schedule.count else { return }
+            var newSchedule = cr.schedule
+            newSchedule.remove(at: index)
+            carbRatios = CarbRatios(units: cr.units, schedule: newSchedule)
         }
 
         // MARK: - Glucose Targets Editing
@@ -364,8 +370,8 @@ extension TherapyProfileEditor {
 
         func updateTargetEntry(at index: Int, low: Decimal, high: Decimal) {
             guard var targets = bgTargets, index < targets.targets.count else { return }
-            targets.targets[index].low = low
-            targets.targets[index].high = high
+            let existing = targets.targets[index]
+            targets.targets[index] = BGTargetEntry(low: low, high: high, start: existing.start, offset: existing.offset)
             bgTargets = targets
         }
 
