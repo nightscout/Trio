@@ -174,17 +174,14 @@ extension Screen {
         }
     }
 
-    @ViewBuilder
     private func configuredTherapyProfileEditor(
         resolver: Resolver,
         profile: TherapyProfile,
         isNew: Bool
     ) -> some View {
-        let _ = {
-            TherapyProfileEditor.Config.profile = profile
-            TherapyProfileEditor.Config.isNew = isNew
-        }()
-        TherapyProfileEditor.RootView(resolver: resolver)
+        TherapyProfileEditor.Config.profile = profile
+        TherapyProfileEditor.Config.isNew = isNew
+        return TherapyProfileEditor.RootView(resolver: resolver)
     }
 
     func modal(resolver: Resolver) -> Main.Modal {
