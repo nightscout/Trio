@@ -119,22 +119,74 @@ extension Treatments {
         }
 
         @ViewBuilder private func carbsTextField() -> some View {
-            HStack {
-                Text("Carbs")
-                Spacer()
-                TextFieldWithToolBar(
-                    text: $state.carbs,
-                    placeholder: "0",
-                    keyboardType: .numberPad,
-                    numberFormatter: mealFormatter,
-                    showArrows: true,
-                    previousTextField: { focusedField = previousField(from: .carbs) },
-                    nextTextField: { focusedField = nextField(from: .carbs) },
-                    unitsText: String(localized: "g", comment: "Units for carbs")
-                )
-                .focused($focusedField, equals: .carbs)
-                .onChange(of: state.carbs) {
-                    handleDebouncedInput()
+            VStack(spacing: 8) {
+                HStack {
+                    Text("Carbs")
+                    Spacer()
+                    TextFieldWithToolBar(
+                        text: $state.carbs,
+                        placeholder: "0",
+                        keyboardType: .numberPad,
+                        numberFormatter: mealFormatter,
+                        showArrows: true,
+                        previousTextField: { focusedField = previousField(from: .carbs) },
+                        nextTextField: { focusedField = nextField(from: .carbs) },
+                        unitsText: String(localized: "g", comment: "Units for carbs")
+                    )
+                    .focused($focusedField, equals: .carbs)
+                    .onChange(of: state.carbs) {
+                        handleDebouncedInput()
+                    }
+                }
+
+                // Quick-add carb buttons
+                HStack(spacing: 12) {
+                    Text("Quick Add:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Button(action: {
+                        state.carbs += 5
+                        handleDebouncedInput()
+                    }) {
+                        Text("+5g")
+                            .font(.subheadline.weight(.medium))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.blue.opacity(0.15))
+                            .foregroundColor(.blue)
+                            .cornerRadius(8)
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: {
+                        state.carbs += 10
+                        handleDebouncedInput()
+                    }) {
+                        Text("+10g")
+                            .font(.subheadline.weight(.medium))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.blue.opacity(0.15))
+                            .foregroundColor(.blue)
+                            .cornerRadius(8)
+                    }
+                    .buttonStyle(.plain)
+
+                    Spacer()
+
+                    // Clear button
+                    if state.carbs > 0 {
+                        Button(action: {
+                            state.carbs = 0
+                            handleDebouncedInput()
+                        }) {
+                            Text("Clear")
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
         }
