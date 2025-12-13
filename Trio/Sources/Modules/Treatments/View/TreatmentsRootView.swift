@@ -24,6 +24,10 @@ extension Treatments {
         @State private var calculatorDetent = PresentationDetent.large
         @State private var pushed: Bool = false
         @State private var debounce: DispatchWorkItem?
+        // Photo Carb Estimation
+        @State private var showPhotoCarbSheet = false
+        @State private var showAPIKeyRequiredAlert = false
+        @StateObject private var aiInsightsState = AIInsightsConfig.StateModel()
 
         private enum Config {
             static let dividerHeight: CGFloat = 2
@@ -119,22 +123,49 @@ extension Treatments {
         }
 
         @ViewBuilder private func carbsTextField() -> some View {
-            HStack {
-                Text("Carbs")
-                Spacer()
-                TextFieldWithToolBar(
-                    text: $state.carbs,
-                    placeholder: "0",
-                    keyboardType: .numberPad,
-                    numberFormatter: mealFormatter,
-                    showArrows: true,
-                    previousTextField: { focusedField = previousField(from: .carbs) },
-                    nextTextField: { focusedField = nextField(from: .carbs) },
-                    unitsText: String(localized: "g", comment: "Units for carbs")
-                )
-                .focused($focusedField, equals: .carbs)
-                .onChange(of: state.carbs) {
-                    handleDebouncedInput()
+            VStack(spacing: 8) {
+                HStack {
+                    Text("Carbs")
+                    Spacer()
+                    TextFieldWithToolBar(
+                        text: $state.carbs,
+                        placeholder: "0",
+                        keyboardType: .numberPad,
+                        numberFormatter: mealFormatter,
+                        showArrows: true,
+                        previousTextField: { focusedField = previousField(from: .carbs) },
+                        nextTextField: { focusedField = nextField(from: .carbs) },
+                        unitsText: String(localized: "g", comment: "Units for carbs")
+                    )
+                    .focused($focusedField, equals: .carbs)
+                    .onChange(of: state.carbs) {
+                        handleDebouncedInput()
+                    }
+                }
+
+                // Photo AI button - always visible
+                HStack {
+                    Button(action: {
+                        if AIInsightsConfig.Config.isAPIKeyConfigured {
+                            showPhotoCarbSheet = true
+                        } else {
+                            showAPIKeyRequiredAlert = true
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "camera.fill")
+                                .font(.caption)
+                            Text("Photo")
+                                .font(.subheadline.weight(.medium))
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.mint.opacity(0.15))
+                        .foregroundColor(.mint)
+                        .cornerRadius(8)
+                    }
+                    .buttonStyle(.plain)
+                    Spacer()
                 }
             }
         }
@@ -414,6 +445,20 @@ extension Treatments {
                 }
             } message: {
                 Text("\(state.determinationFailureMessage)")
+            }
+            .alert("API Key Required", isPresented: $showAPIKeyRequiredAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Please configure your Claude API key in Settings → AI Insights → API Configuration to use Photo Carb Estimation.")
+            }
+            .sheet(isPresented: $showPhotoCarbSheet) {
+                AIInsightsConfig.PhotoCarbEstimateView(
+                    state: aiInsightsState,
+                    onAcceptCarbs: { carbs in
+                        state.carbs = carbs
+                        handleDebouncedInput()
+                    }
+                )
             }
         }
 

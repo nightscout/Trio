@@ -7,6 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		HME7A7FED7B34D0D8F5BC383 /* HealthMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = HMF49BBBF5CD4A9BBC14CC1F /* HealthMetrics.swift */; };
+		HS65A6D45B1A4FC1B3A02035 /* HealthMetricsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = HS70616C45944CE888DC2C8D /* HealthMetricsService.swift */; };
+		A1B1C1D1E1F101010101A1B1 /* AIInsightsConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A1 /* AIInsightsConfigDataFlow.swift */; };
+		A1B1C1D1E1F101010101A1B2 /* AIInsightsConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A2 /* AIInsightsConfigStateModel.swift */; };
+		A1B1C1D1E1F101010101A1B3 /* AIInsightsConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A3 /* AIInsightsConfigProvider.swift */; };
+		A1B1C1D1E1F101010101A1B4 /* AIInsightsConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A4 /* AIInsightsConfigRootView.swift */; };
+		A1B1C1D1E1F101010101A1B5 /* ClaudeAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A5 /* ClaudeAPIService.swift */; };
+		A1B1C1D1E1F101010101A1B6 /* HealthDataExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A6 /* HealthDataExporter.swift */; };
+		A1B1C1D1E1F101010101A1B7 /* NightscoutDataFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A7 /* NightscoutDataFetcher.swift */; };
+		A1B1C1D1E1F101010101A1B8 /* MarkdownParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A8 /* MarkdownParser.swift */; };
+		A1B1C1D1E1F101010101A1B9 /* SavedReportsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A9 /* SavedReportsManager.swift */; };
+		A1B1C1D1E1F101010101A1BA /* ClaudeOTuneModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1AA /* ClaudeOTuneModels.swift */; };
+		A1B1C1D1E1F101010101A1BB /* ClaudeOTuneProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1AB /* ClaudeOTuneProfileService.swift */; };
 		041D1E995A6AE92E9289DC49 /* TreatmentsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */; };
 		0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5822B15939E719628E9FF7C /* SnoozeRootView.swift */; };
 		0D9A5E34A899219C5C4CDFAF /* DataTableStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9455FA2D92E77A6C4AFED8A3 /* DataTableStateModel.swift */; };
@@ -839,6 +852,19 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A1B1C1D1E1F101010101A1A1 /* AIInsightsConfigDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightsConfigDataFlow.swift; sourceTree = "<group>"; };
+		A1B1C1D1E1F101010101A1A2 /* AIInsightsConfigStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightsConfigStateModel.swift; sourceTree = "<group>"; };
+		A1B1C1D1E1F101010101A1A3 /* AIInsightsConfigProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightsConfigProvider.swift; sourceTree = "<group>"; };
+		A1B1C1D1E1F101010101A1A4 /* AIInsightsConfigRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightsConfigRootView.swift; sourceTree = "<group>"; };
+		A1B1C1D1E1F101010101A1A5 /* ClaudeAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeAPIService.swift; sourceTree = "<group>"; };
+		A1B1C1D1E1F101010101A1A6 /* HealthDataExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDataExporter.swift; sourceTree = "<group>"; };
+		HMF49BBBF5CD4A9BBC14CC1F /* HealthMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetrics.swift; sourceTree = "<group>"; };
+		HS70616C45944CE888DC2C8D /* HealthMetricsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricsService.swift; sourceTree = "<group>"; };
+		A1B1C1D1E1F101010101A1A7 /* NightscoutDataFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutDataFetcher.swift; sourceTree = "<group>"; };
+		A1B1C1D1E1F101010101A1A8 /* MarkdownParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownParser.swift; sourceTree = "<group>"; };
+		A1B1C1D1E1F101010101A1A9 /* SavedReportsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedReportsManager.swift; sourceTree = "<group>"; };
+		A1B1C1D1E1F101010101A1AA /* ClaudeOTuneModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeOTuneModels.swift; sourceTree = "<group>"; };
+		A1B1C1D1E1F101010101A1AB /* ClaudeOTuneProfileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeOTuneProfileService.swift; sourceTree = "<group>"; };
 		110AEDE02C5193D100615CC9 /* BolusIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntent.swift; sourceTree = "<group>"; };
 		110AEDE12C5193D100615CC9 /* BolusIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntentRequest.swift; sourceTree = "<group>"; };
 		110AEDE52C51A0AE00615CC9 /* ShortcutsConfigView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigView.swift; sourceTree = "<group>"; };
@@ -1881,6 +1907,7 @@
 		3811DE0325C9D31700A708ED /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				A1B1C1D1E1F101010101C1C1 /* AIInsightsConfig */,
 				DDD163032C4C67B400CD525A /* Adjustments */,
 				DD1745382C55BF8B00211FAC /* AlgorithmAdvancedSettings */,
 				DDF690FE2DA2C9EE008BF16C /* AppDiagnostics */,
@@ -2356,6 +2383,7 @@
 		388E5A5925B6F0250019842D /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				HMF49BBBF5CD4A9BBC14CC1F /* HealthMetrics.swift */,
 				DDFF204F2DB2C11900AB8A96 /* WatchStateSnapshot.swift */,
 				DDEBB05B2D89E9050032305D /* TimeInRangeType.swift */,
 				3B2F77852D7E52ED005ED9FA /* TDD.swift */,
@@ -3520,6 +3548,32 @@
 			path = Glucose;
 			sourceTree = "<group>";
 		};
+		A1B1C1D1E1F101010101C1C1 /* AIInsightsConfig */ = {
+			isa = PBXGroup;
+			children = (
+				A1B1C1D1E1F101010101A1A1 /* AIInsightsConfigDataFlow.swift */,
+				A1B1C1D1E1F101010101A1A3 /* AIInsightsConfigProvider.swift */,
+				A1B1C1D1E1F101010101A1A2 /* AIInsightsConfigStateModel.swift */,
+				A1B1C1D1E1F101010101A1A5 /* ClaudeAPIService.swift */,
+				A1B1C1D1E1F101010101A1A6 /* HealthDataExporter.swift */,
+				A1B1C1D1E1F101010101A1A8 /* MarkdownParser.swift */,
+				A1B1C1D1E1F101010101A1A7 /* NightscoutDataFetcher.swift */,
+				A1B1C1D1E1F101010101A1A9 /* SavedReportsManager.swift */,
+				A1B1C1D1E1F101010101A1AA /* ClaudeOTuneModels.swift */,
+				A1B1C1D1E1F101010101A1AB /* ClaudeOTuneProfileService.swift */,
+				A1B1C1D1E1F101010101C2C2 /* View */,
+			);
+			path = AIInsightsConfig;
+			sourceTree = "<group>";
+		};
+		A1B1C1D1E1F101010101C2C2 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				A1B1C1D1E1F101010101A1A4 /* AIInsightsConfigRootView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
 		DDD163032C4C67B400CD525A /* Adjustments */ = {
 			isa = PBXGroup;
 			children = (
@@ -3724,6 +3778,7 @@
 		F90692A8274B7A980037068D /* HealthKit */ = {
 			isa = PBXGroup;
 			children = (
+				HS70616C45944CE888DC2C8D /* HealthMetricsService.swift */,
 				F90692A9274B7AAE0037068D /* HealthKitManager.swift */,
 			);
 			path = HealthKit;
@@ -4113,6 +4168,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				HME7A7FED7B34D0D8F5BC383 /* HealthMetrics.swift in Sources */,
+				HS65A6D45B1A4FC1B3A02035 /* HealthMetricsService.swift in Sources */,
+				A1B1C1D1E1F101010101A1B1 /* AIInsightsConfigDataFlow.swift in Sources */,
+				A1B1C1D1E1F101010101A1B2 /* AIInsightsConfigStateModel.swift in Sources */,
+				A1B1C1D1E1F101010101A1B3 /* AIInsightsConfigProvider.swift in Sources */,
+				A1B1C1D1E1F101010101A1B4 /* AIInsightsConfigRootView.swift in Sources */,
+				A1B1C1D1E1F101010101A1B5 /* ClaudeAPIService.swift in Sources */,
+				A1B1C1D1E1F101010101A1B6 /* HealthDataExporter.swift in Sources */,
+				A1B1C1D1E1F101010101A1B8 /* MarkdownParser.swift in Sources */,
+				A1B1C1D1E1F101010101A1B7 /* NightscoutDataFetcher.swift in Sources */,
+				A1B1C1D1E1F101010101A1B9 /* SavedReportsManager.swift in Sources */,
+				A1B1C1D1E1F101010101A1BA /* ClaudeOTuneModels.swift in Sources */,
+				A1B1C1D1E1F101010101A1BB /* ClaudeOTuneProfileService.swift in Sources */,
 				DD5DC9F12CF3D97C00AB8703 /* AdjustmentsStateModel+Overrides.swift in Sources */,
 				3811DE2325C9D48300A708ED /* MainDataFlow.swift in Sources */,
 				C2A0A42F2CE03131003B98E8 /* ConstantValues.swift in Sources */,
