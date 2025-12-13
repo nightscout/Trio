@@ -15,12 +15,24 @@ extension TherapyProfileEditor {
         @Published var showDiscardAlert: Bool = false
         @Published var nameError: String?
 
-        // MARK: - Therapy Settings (read from profile)
+        // MARK: - Therapy Settings
 
         @Published var basalProfile: [BasalProfileEntry] = []
         @Published var insulinSensitivities: InsulinSensitivities?
         @Published var carbRatios: CarbRatios?
         @Published var bgTargets: BGTargets?
+
+        // MARK: - UI State
+
+        @Published var showCopySheet: Bool = false
+        @Published var expandedSection: SettingsSection?
+
+        enum SettingsSection: String, CaseIterable {
+            case basal
+            case isf
+            case carbRatio
+            case targets
+        }
 
         // MARK: - Private Properties
 
@@ -60,17 +72,33 @@ extension TherapyProfileEditor {
                     self?.hasChanges = true
                 }
                 .store(in: &cancellables)
+
+            Publishers.CombineLatest3($insulinSensitivities, $carbRatios, $bgTargets)
+                .dropFirst()
+                .sink { [weak self] _ in
+                    self?.hasChanges = true
+                }
+                .store(in: &cancellables)
         }
 
         // MARK: - Computed Properties
 
         var conflictingDays: Set<Weekday> {
-            // Find days assigned to other profiles
             var conflicts = Set<Weekday>()
             for profile in provider.allProfiles where profile.id != profileId {
                 conflicts.formUnion(profile.activeDays)
             }
             return conflicts
+        }
+
+        var conflictingDayOwners: [Weekday: String] {
+            var owners: [Weekday: String] = [:]
+            for profile in provider.allProfiles where profile.id != profileId {
+                for day in profile.activeDays {
+                    owners[day] = profile.name
+                }
+            }
+            return owners
         }
 
         var canSave: Bool {
@@ -79,6 +107,14 @@ extension TherapyProfileEditor {
 
         var units: GlucoseUnits {
             provider.units
+        }
+
+        var availableProfilesForCopy: [TherapyProfile] {
+            provider.allProfiles.filter { $0.id != profileId }
+        }
+
+        var hasCurrentActiveSettings: Bool {
+            provider.hasCurrentActiveSettings
         }
 
         // MARK: - Actions
@@ -91,7 +127,6 @@ extension TherapyProfileEditor {
                 return
             }
 
-            // Check for duplicate names (excluding current profile)
             let isDuplicate = provider.allProfiles.contains { profile in
                 profile.id != profileId && profile.name.lowercased() == trimmedName.lowercased()
             }
@@ -142,23 +177,202 @@ extension TherapyProfileEditor {
             }
         }
 
-        // MARK: - Navigation to Editors
+        // MARK: - Copy Settings
 
-        func editBasalRates() {
-            // Navigate to basal editor with callback
-            showModal(for: .basalProfileEditor)
+        func showCopyOptions() {
+            showCopySheet = true
         }
 
-        func editInsulinSensitivities() {
-            showModal(for: .isfEditor)
+        func copySettingsFrom(profile: TherapyProfile) {
+            basalProfile = profile.basalProfile
+            insulinSensitivities = profile.insulinSensitivities
+            carbRatios = profile.carbRatios
+            bgTargets = profile.bgTargets
+            hasChanges = true
         }
 
-        func editCarbRatios() {
-            showModal(for: .crEditor)
+        func copyFromCurrentActiveSettings() {
+            let currentBasal = provider.currentBasalProfile
+            let currentISF = provider.currentInsulinSensitivities
+            let currentCR = provider.currentCarbRatios
+            let currentTargets = provider.currentBGTargets
+
+            basalProfile = currentBasal
+            if let isf = currentISF {
+                insulinSensitivities = isf
+            }
+            if let cr = currentCR {
+                carbRatios = cr
+            }
+            if let targets = currentTargets {
+                bgTargets = targets
+            }
+            hasChanges = true
         }
 
-        func editGlucoseTargets() {
-            showModal(for: .targetsEditor)
+        // MARK: - Section Expansion
+
+        func toggleSection(_ section: SettingsSection) {
+            if expandedSection == section {
+                expandedSection = nil
+            } else {
+                expandedSection = section
+            }
+        }
+
+        // MARK: - Basal Rate Editing
+
+        func addBasalEntry() {
+            let newEntry = BasalProfileEntry(
+                start: nextAvailableBasalTime(),
+                minutes: nextAvailableBasalMinutes(),
+                rate: 0.0
+            )
+            basalProfile.append(newEntry)
+            basalProfile.sort { $0.minutes < $1.minutes }
+        }
+
+        func updateBasalEntry(at index: Int, rate: Decimal) {
+            guard index < basalProfile.count else { return }
+            basalProfile[index].rate = rate
+        }
+
+        func updateBasalEntryTime(at index: Int, minutes: Int) {
+            guard index < basalProfile.count else { return }
+            basalProfile[index].minutes = minutes
+            basalProfile[index].start = minutesToTimeString(minutes)
+            basalProfile.sort { $0.minutes < $1.minutes }
+        }
+
+        func deleteBasalEntry(at index: Int) {
+            guard index < basalProfile.count else { return }
+            basalProfile.remove(at: index)
+        }
+
+        private func nextAvailableBasalTime() -> String {
+            if basalProfile.isEmpty {
+                return "00:00"
+            }
+            let lastMinutes = basalProfile.last?.minutes ?? 0
+            let nextMinutes = min(lastMinutes + 60, 23 * 60)
+            return minutesToTimeString(nextMinutes)
+        }
+
+        private func nextAvailableBasalMinutes() -> Int {
+            if basalProfile.isEmpty {
+                return 0
+            }
+            let lastMinutes = basalProfile.last?.minutes ?? 0
+            return min(lastMinutes + 60, 23 * 60)
+        }
+
+        private func minutesToTimeString(_ minutes: Int) -> String {
+            let hours = minutes / 60
+            let mins = minutes % 60
+            return String(format: "%02d:%02d", hours, mins)
+        }
+
+        // MARK: - ISF Editing
+
+        func addISFEntry() {
+            guard var isf = insulinSensitivities else {
+                insulinSensitivities = InsulinSensitivities(
+                    units: units,
+                    userPreferredUnits: units,
+                    sensitivities: [InsulinSensitivityEntry(sensitivity: 0, offset: 0, start: "00:00")]
+                )
+                return
+            }
+            let nextOffset = (isf.sensitivities.last?.offset ?? 0) + 60
+            let newEntry = InsulinSensitivityEntry(
+                sensitivity: isf.sensitivities.last?.sensitivity ?? 0,
+                offset: min(nextOffset, 23 * 60),
+                start: minutesToTimeString(min(nextOffset, 23 * 60))
+            )
+            isf.sensitivities.append(newEntry)
+            isf.sensitivities.sort { $0.offset < $1.offset }
+            insulinSensitivities = isf
+        }
+
+        func updateISFEntry(at index: Int, sensitivity: Decimal) {
+            guard var isf = insulinSensitivities, index < isf.sensitivities.count else { return }
+            isf.sensitivities[index].sensitivity = sensitivity
+            insulinSensitivities = isf
+        }
+
+        func deleteISFEntry(at index: Int) {
+            guard var isf = insulinSensitivities, index < isf.sensitivities.count else { return }
+            isf.sensitivities.remove(at: index)
+            insulinSensitivities = isf
+        }
+
+        // MARK: - Carb Ratio Editing
+
+        func addCarbRatioEntry() {
+            guard var cr = carbRatios else {
+                carbRatios = CarbRatios(
+                    units: .grams,
+                    schedule: [CarbRatioEntry(start: "00:00", offset: 0, ratio: 0)]
+                )
+                return
+            }
+            let nextOffset = (cr.schedule.last?.offset ?? 0) + 60
+            let newEntry = CarbRatioEntry(
+                start: minutesToTimeString(min(nextOffset, 23 * 60)),
+                offset: min(nextOffset, 23 * 60),
+                ratio: cr.schedule.last?.ratio ?? 0
+            )
+            cr.schedule.append(newEntry)
+            cr.schedule.sort { $0.offset < $1.offset }
+            carbRatios = cr
+        }
+
+        func updateCarbRatioEntry(at index: Int, ratio: Decimal) {
+            guard var cr = carbRatios, index < cr.schedule.count else { return }
+            cr.schedule[index].ratio = ratio
+            carbRatios = cr
+        }
+
+        func deleteCarbRatioEntry(at index: Int) {
+            guard var cr = carbRatios, index < cr.schedule.count else { return }
+            cr.schedule.remove(at: index)
+            carbRatios = cr
+        }
+
+        // MARK: - Glucose Targets Editing
+
+        func addTargetEntry() {
+            guard var targets = bgTargets else {
+                bgTargets = BGTargets(
+                    units: units,
+                    userPreferredUnits: units,
+                    targets: [BGTargetEntry(low: 100, high: 120, start: "00:00", offset: 0)]
+                )
+                return
+            }
+            let nextOffset = (targets.targets.last?.offset ?? 0) + 60
+            let newEntry = BGTargetEntry(
+                low: targets.targets.last?.low ?? 100,
+                high: targets.targets.last?.high ?? 120,
+                start: minutesToTimeString(min(nextOffset, 23 * 60)),
+                offset: min(nextOffset, 23 * 60)
+            )
+            targets.targets.append(newEntry)
+            targets.targets.sort { $0.offset < $1.offset }
+            bgTargets = targets
+        }
+
+        func updateTargetEntry(at index: Int, low: Decimal, high: Decimal) {
+            guard var targets = bgTargets, index < targets.targets.count else { return }
+            targets.targets[index].low = low
+            targets.targets[index].high = high
+            bgTargets = targets
+        }
+
+        func deleteTargetEntry(at index: Int) {
+            guard var targets = bgTargets, index < targets.targets.count else { return }
+            targets.targets.remove(at: index)
+            bgTargets = targets
         }
     }
 }
