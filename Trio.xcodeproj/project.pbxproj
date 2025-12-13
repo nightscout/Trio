@@ -867,7 +867,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		03CADE5D659AFE6D0385E900 /* TherapyProfileEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileEditorProvider.swift; path = Trio/Sources/Modules/TherapyProfileEditor/TherapyProfileEditorProvider.swift; sourceTree = "<group>"; };
+		03CADE5D659AFE6D0385E900 /* TherapyProfileEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileEditorProvider.swift; path = TherapyProfileEditorProvider.swift; sourceTree = "<group>"; };
 		110AEDE02C5193D100615CC9 /* BolusIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntent.swift; sourceTree = "<group>"; };
 		110AEDE12C5193D100615CC9 /* BolusIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntentRequest.swift; sourceTree = "<group>"; };
 		110AEDE52C51A0AE00615CC9 /* ShortcutsConfigView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigView.swift; sourceTree = "<group>"; };
@@ -878,7 +878,7 @@
 		118DF7652C5ECBC60067FEB7 /* CancelOverrideIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CancelOverrideIntent.swift; sourceTree = "<group>"; };
 		118DF7672C5ECBC60067FEB7 /* OverridePresetEntity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OverridePresetEntity.swift; sourceTree = "<group>"; };
 		118DF7682C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OverridePresetsIntentRequest.swift; sourceTree = "<group>"; };
-		18ED8EA2AF12F8301B9CC005 /* TherapyProfile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfile.swift; path = Trio/Sources/Models/TherapyProfile.swift; sourceTree = "<group>"; };
+		18ED8EA2AF12F8301B9CC005 /* TherapyProfile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfile.swift; path = TherapyProfile.swift; sourceTree = "<group>"; };
 		19012CDB291D2CB900FB8210 /* LoopStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStats.swift; sourceTree = "<group>"; };
 		190EBCC329FF136900BA767D /* UserInterfaceSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInterfaceSettingsDataFlow.swift; sourceTree = "<group>"; };
 		190EBCC529FF138000BA767D /* UserInterfaceSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInterfaceSettingsProvider.swift; sourceTree = "<group>"; };
@@ -914,10 +914,10 @@
 		1CAE81192B118804DCD23034 /* SnoozeProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeProvider.swift; sourceTree = "<group>"; };
 		223EC0494F55A91E3EA69EF4 /* TreatmentsStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TreatmentsStateModel.swift; sourceTree = "<group>"; };
 		22963BD06A9C83959D4914E4 /* GlucoseNotificationSettingsRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlucoseNotificationSettingsRootView.swift; sourceTree = "<group>"; };
-		2593404672BB08B4E9D1B22D /* ProfileSwitchEvent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProfileSwitchEvent.swift; path = Trio/Sources/Models/ProfileSwitchEvent.swift; sourceTree = "<group>"; };
+		2593404672BB08B4E9D1B22D /* ProfileSwitchEvent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProfileSwitchEvent.swift; path = ProfileSwitchEvent.swift; sourceTree = "<group>"; };
 		2AD22C985B79A2F0D2EA3D9D /* PumpConfigRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigRootView.swift; sourceTree = "<group>"; };
 		2F2A13DF0EDEEEDC4106AA2A /* NightscoutConfigDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NightscoutConfigDataFlow.swift; sourceTree = "<group>"; };
-		30B146108512F66E88E846CC /* BaseProfileManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BaseProfileManager.swift; path = Trio/Sources/Services/ProfileManager/BaseProfileManager.swift; sourceTree = "<group>"; };
+		30B146108512F66E88E846CC /* BaseProfileManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BaseProfileManager.swift; path = BaseProfileManager.swift; sourceTree = "<group>"; };
 		3260468377DA9DB4DEE9AF6D /* GlucoseNotificationSettingsDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlucoseNotificationSettingsDataFlow.swift; sourceTree = "<group>"; };
 		36A708CDB546692C2230B385 /* SnoozeDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeDataFlow.swift; sourceTree = "<group>"; };
 		36F58DDD71F0E795464FA3F0 /* TargetsEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorStateModel.swift; sourceTree = "<group>"; };
@@ -986,7 +986,7 @@
 		38569345270B5DFA0002C50D /* GlucoseSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GlucoseSource.swift; sourceTree = "<group>"; };
 		38569346270B5DFB0002C50D /* AppGroupSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppGroupSource.swift; sourceTree = "<group>"; };
 		38569352270B5E350002C50D /* CGMRootView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGMRootView.swift; sourceTree = "<group>"; };
-		385A9890F5418D3299CE7F41 /* TherapyProfileListDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileListDataFlow.swift; path = Trio/Sources/Modules/TherapyProfileList/TherapyProfileListDataFlow.swift; sourceTree = "<group>"; };
+		385A9890F5418D3299CE7F41 /* TherapyProfileListDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileListDataFlow.swift; path = TherapyProfileListDataFlow.swift; sourceTree = "<group>"; };
 		385CEA8125F23DFD002D6D5B /* NightscoutStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutStatus.swift; sourceTree = "<group>"; };
 		3862CC2D2743F9F700BF832C /* CalendarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarManager.swift; sourceTree = "<group>"; };
 		3870FF4225EC13F40088248F /* BloodGlucose.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BloodGlucose.swift; sourceTree = "<group>"; };
@@ -1121,7 +1121,7 @@
 		3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorDataFlow.swift; sourceTree = "<group>"; };
 		42369F66CF91F30624C0B3A6 /* BasalProfileEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorProvider.swift; sourceTree = "<group>"; };
 		44080E4709E3AE4B73054563 /* ConfigEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorProvider.swift; sourceTree = "<group>"; };
-		4901ED795DB4552A4329842A /* TherapyProfileEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileEditorRootView.swift; path = Trio/Sources/Modules/TherapyProfileEditor/View/TherapyProfileEditorRootView.swift; sourceTree = "<group>"; };
+		4901ED795DB4552A4329842A /* TherapyProfileEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileEditorRootView.swift; path = TherapyProfileEditorRootView.swift; sourceTree = "<group>"; };
 		491D6FB92D56741C00C49F67 /* TempTargetRunStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetRunStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		491D6FBA2D56741C00C49F67 /* TempTargetRunStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetRunStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		491D6FBB2D56741C00C49F67 /* TempTargetStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetStored+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -1129,7 +1129,7 @@
 		49B9B57E2D5768D2009C6B59 /* AdjustmentStored+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdjustmentStored+Helper.swift"; sourceTree = "<group>"; };
 		4DD795BA46B193644D48138C /* TargetsEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorRootView.swift; sourceTree = "<group>"; };
 		505E09DC17A0C3D0AF4B66FE /* ISFEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorStateModel.swift; sourceTree = "<group>"; };
-		53CF6A38074A1E05033BA704 /* TherapyProfileListProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileListProvider.swift; path = Trio/Sources/Modules/TherapyProfileList/TherapyProfileListProvider.swift; sourceTree = "<group>"; };
+		53CF6A38074A1E05033BA704 /* TherapyProfileListProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileListProvider.swift; path = TherapyProfileListProvider.swift; sourceTree = "<group>"; };
 		581516A32BCED84A00BF67D7 /* DebuggingIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggingIdentifiers.swift; sourceTree = "<group>"; };
 		581516A82BCEEDF800BF67D7 /* NSPredicates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSPredicates.swift; sourceTree = "<group>"; };
 		581AC4382BE22ED10038760C /* JSONConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONConverter.swift; sourceTree = "<group>"; };
@@ -1168,7 +1168,7 @@
 		5A2325572BFCC168003518CA /* NightscoutConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutConnectView.swift; sourceTree = "<group>"; };
 		5C018D1680307A31C9ED7120 /* CGMSettingsStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CGMSettingsStateModel.swift; sourceTree = "<group>"; };
 		5D5B4F8B4194BB7E260EF251 /* ConfigEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorStateModel.swift; sourceTree = "<group>"; };
-		5FEFD9852C2751F2B74D71B3 /* Weekday.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Weekday.swift; path = Trio/Sources/Models/Weekday.swift; sourceTree = "<group>"; };
+		5FEFD9852C2751F2B74D71B3 /* Weekday.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Weekday.swift; path = Weekday.swift; sourceTree = "<group>"; };
 		60744C3E9BB3652895C908CC /* DataTableProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DataTableProvider.swift; sourceTree = "<group>"; };
 		64AA5E04A2761F6EEA6568E1 /* CarbRatioEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarbRatioEditorStateModel.swift; sourceTree = "<group>"; };
 		65070A322BFDCB83006F213F /* TidepoolStartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TidepoolStartView.swift; sourceTree = "<group>"; };
@@ -1186,10 +1186,10 @@
 		6BCF84DC2B16843A003AD46E /* LiveActitiyAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActitiyAttributes.swift; sourceTree = "<group>"; };
 		715120D12D3C2B84005D9FB6 /* GlucoseNotificationsOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseNotificationsOption.swift; sourceTree = "<group>"; };
 		71D44AAA2CA5F5EA0036EE9E /* AlertPermissionsChecker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlertPermissionsChecker.swift; sourceTree = "<group>"; };
-		7254020C7405D49944F2A362 /* TherapyProfileListRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileListRootView.swift; path = Trio/Sources/Modules/TherapyProfileList/View/TherapyProfileListRootView.swift; sourceTree = "<group>"; };
+		7254020C7405D49944F2A362 /* TherapyProfileListRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileListRootView.swift; path = TherapyProfileListRootView.swift; sourceTree = "<group>"; };
 		79BDA519C9B890FD9A5DFCF3 /* ISFEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorDataFlow.swift; sourceTree = "<group>"; };
 		7E22146D3DF4853786C78132 /* CarbRatioEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarbRatioEditorDataFlow.swift; sourceTree = "<group>"; };
-		845BF021B868C40808247497 /* TherapyProfileEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileEditorDataFlow.swift; path = Trio/Sources/Modules/TherapyProfileEditor/TherapyProfileEditorDataFlow.swift; sourceTree = "<group>"; };
+		845BF021B868C40808247497 /* TherapyProfileEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileEditorDataFlow.swift; path = TherapyProfileEditorDataFlow.swift; sourceTree = "<group>"; };
 		8782B44544F38F2B2D82C38E /* NightscoutConfigRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NightscoutConfigRootView.swift; sourceTree = "<group>"; };
 		881E04BA5E0A003DE8E0A9C6 /* DataTableRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DataTableRootView.swift; sourceTree = "<group>"; };
 		8A9134292D63D9A1007F8874 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
@@ -1215,7 +1215,7 @@
 		A8630D58BDAD6D9C650B9B39 /* PumpConfigProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigProvider.swift; sourceTree = "<group>"; };
 		AAFF91130F2FCCC7EBBA11AD /* BasalProfileEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorStateModel.swift; sourceTree = "<group>"; };
 		AF65DA88F972B56090AD6AC3 /* PumpConfigDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigDataFlow.swift; sourceTree = "<group>"; };
-		B50F1AF1D917100604E5DD84 /* TherapyProfileEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileEditorStateModel.swift; path = Trio/Sources/Modules/TherapyProfileEditor/TherapyProfileEditorStateModel.swift; sourceTree = "<group>"; };
+		B50F1AF1D917100604E5DD84 /* TherapyProfileEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileEditorStateModel.swift; path = TherapyProfileEditorStateModel.swift; sourceTree = "<group>"; };
 		B5822B15939E719628E9FF7C /* SnoozeRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeRootView.swift; sourceTree = "<group>"; };
 		B9B5C0607505A38F256BF99A /* CGMSettingsDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CGMSettingsDataFlow.swift; sourceTree = "<group>"; };
 		BA49538D56989D8DA6FCF538 /* TargetsEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorDataFlow.swift; sourceTree = "<group>"; };
@@ -1324,7 +1324,7 @@
 		BDFF7A922D25F97D0016C40C /* TrioWatchAppExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatchAppExtension.swift; sourceTree = "<group>"; };
 		BF8BCB0C37DEB5EC377B9612 /* BasalProfileEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorRootView.swift; sourceTree = "<group>"; };
 		C19984D62EFC0035A9E9644D /* TreatmentsProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TreatmentsProvider.swift; sourceTree = "<group>"; };
-		C1C9F7352C6C00A9970A4790 /* TherapyProfileListStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileListStateModel.swift; path = Trio/Sources/Modules/TherapyProfileList/TherapyProfileListStateModel.swift; sourceTree = "<group>"; };
+		C1C9F7352C6C00A9970A4790 /* TherapyProfileListStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileListStateModel.swift; path = TherapyProfileListStateModel.swift; sourceTree = "<group>"; };
 		C21FE1E62DA59C6B007D550B /* GlucoseDailyDistributionChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseDailyDistributionChart.swift; sourceTree = "<group>"; };
 		C263D59E2E4267F400CBF08C /* NightscoutUploadGlucoseStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutUploadGlucoseStepView.swift; sourceTree = "<group>"; };
 		C28DD7252DBA9A9E00EC02DD /* GlucosePercentileDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucosePercentileDetailView.swift; sourceTree = "<group>"; };
@@ -1395,7 +1395,7 @@
 		CEF1ED6A2D58FB4600FAF41E /* CGMOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGMOptions.swift; sourceTree = "<group>"; };
 		CFCFE0781F9074C2917890E8 /* ManualTempBasalStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualTempBasalStateModel.swift; sourceTree = "<group>"; };
 		D0BDC6993C1087310EDFC428 /* CarbRatioEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarbRatioEditorRootView.swift; sourceTree = "<group>"; };
-		D32D8A4C1E2034FA022A3361 /* ProfileManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProfileManager.swift; path = Trio/Sources/Services/ProfileManager/ProfileManager.swift; sourceTree = "<group>"; };
+		D32D8A4C1E2034FA022A3361 /* ProfileManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProfileManager.swift; path = ProfileManager.swift; sourceTree = "<group>"; };
 		DC2C6489D29ECCCAD78E0721 /* GlucoseNotificationSettingsStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlucoseNotificationSettingsStateModel.swift; sourceTree = "<group>"; };
 		DD09D47A2C5986D1003FEA5D /* CalendarEventSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventSettingsDataFlow.swift; sourceTree = "<group>"; };
 		DD09D47C2C5986DA003FEA5D /* CalendarEventSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventSettingsProvider.swift; sourceTree = "<group>"; };
@@ -1589,8 +1589,8 @@
 		E0CC2C5B275B9DAE00A7BC71 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		E0D4F80427513ECF00BDF1FE /* HealthKitSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitSample.swift; sourceTree = "<group>"; };
 		E26904AACA8D9C15D229D675 /* SnoozeStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeStateModel.swift; sourceTree = "<group>"; };
-		E26FF508B6A5D8FB0D60275A /* ProfileSwitchBannerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProfileSwitchBannerView.swift; path = Trio/Sources/Views/ProfileSwitchBannerView.swift; sourceTree = "<group>"; };
-		E41F65D7FA7986001C975515 /* WeekdayPickerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WeekdayPickerView.swift; path = Trio/Sources/Views/WeekdayPickerView.swift; sourceTree = "<group>"; };
+		E26FF508B6A5D8FB0D60275A /* ProfileSwitchBannerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProfileSwitchBannerView.swift; path = ProfileSwitchBannerView.swift; sourceTree = "<group>"; };
+		E41F65D7FA7986001C975515 /* WeekdayPickerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WeekdayPickerView.swift; path = WeekdayPickerView.swift; sourceTree = "<group>"; };
 		E592A36F2CEEC01E009A472C /* ContactTrickEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickEntry.swift; sourceTree = "<group>"; };
 		E592A3712CEEC038009A472C /* ContactImageRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageRootView.swift; sourceTree = "<group>"; };
 		E592A3732CEEC038009A472C /* ContactImageDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageDataFlow.swift; sourceTree = "<group>"; };
@@ -1938,7 +1938,6 @@
 		1E21A617A191D93F649BC2B7 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				B14C55392B0FC21725BE31EB /* Models */,
 				9289E093E9746636A8B44B67 /* Services */,
 				A3560286C3C14EE8FBF6E9EF /* Views */,
 				55B8B15029594C4735BDD058 /* Modules */,
@@ -2445,6 +2444,9 @@
 		388E5A5925B6F0250019842D /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				5FEFD9852C2751F2B74D71B3 /* Weekday.swift */,
+				18ED8EA2AF12F8301B9CC005 /* TherapyProfile.swift */,
+				2593404672BB08B4E9D1B22D /* ProfileSwitchEvent.swift */,
 				HMF49BBBF5CD4A9BBC14CC1F /* HealthMetrics.swift */,
 				DDFF204F2DB2C11900AB8A96 /* WatchStateSnapshot.swift */,
 				DDEBB05B2D89E9050032305D /* TimeInRangeType.swift */,
@@ -2877,8 +2879,8 @@
 				B50F1AF1D917100604E5DD84 /* TherapyProfileEditorStateModel.swift */,
 				A277BC90AAEB5DA3D7958028 /* View */,
 			);
-			name = TherapyProfileEditor;
-			sourceTree = "<group>";
+			path = Trio/Sources/Modules/TherapyProfileEditor;
+			sourceTree = SOURCE_ROOT;
 		};
 		84BDC840A57C65A1E6F9F780 /* View */ = {
 			isa = PBXGroup;
@@ -2894,8 +2896,8 @@
 				D32D8A4C1E2034FA022A3361 /* ProfileManager.swift */,
 				30B146108512F66E88E846CC /* BaseProfileManager.swift */,
 			);
-			name = ProfileManager;
-			sourceTree = "<group>";
+			path = Trio/Sources/Services/ProfileManager;
+			sourceTree = SOURCE_ROOT;
 		};
 		8DB05841EC75E741077749C5 /* TherapyProfileList */ = {
 			isa = PBXGroup;
@@ -2905,8 +2907,8 @@
 				C1C9F7352C6C00A9970A4790 /* TherapyProfileListStateModel.swift */,
 				EC4F00394DA94ACF17B4045A /* View */,
 			);
-			name = TherapyProfileList;
-			sourceTree = "<group>";
+			path = Trio/Sources/Modules/TherapyProfileList;
+			sourceTree = SOURCE_ROOT;
 		};
 		9289E093E9746636A8B44B67 /* Services */ = {
 			isa = PBXGroup;
@@ -2969,7 +2971,7 @@
 			children = (
 				4901ED795DB4552A4329842A /* TherapyProfileEditorRootView.swift */,
 			);
-			name = View;
+			path = View;
 			sourceTree = "<group>";
 		};
 		A3560286C3C14EE8FBF6E9EF /* Views */ = {
@@ -2978,8 +2980,8 @@
 				E41F65D7FA7986001C975515 /* WeekdayPickerView.swift */,
 				E26FF508B6A5D8FB0D60275A /* ProfileSwitchBannerView.swift */,
 			);
-			name = Views;
-			sourceTree = "<group>";
+			path = Trio/Sources/Views;
+			sourceTree = SOURCE_ROOT;
 		};
 		A42F1FEDFFD0DDE00AAD54D3 /* BasalProfileEditor */ = {
 			isa = PBXGroup;
@@ -2990,16 +2992,6 @@
 				18B49BC9587A59E3A347C1CD /* View */,
 			);
 			path = BasalProfileEditor;
-			sourceTree = "<group>";
-		};
-		B14C55392B0FC21725BE31EB /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				5FEFD9852C2751F2B74D71B3 /* Weekday.swift */,
-				18ED8EA2AF12F8301B9CC005 /* TherapyProfile.swift */,
-				2593404672BB08B4E9D1B22D /* ProfileSwitchEvent.swift */,
-			);
-			name = Models;
 			sourceTree = "<group>";
 		};
 		B9488883C59C31550E0B4CEC /* View */ = {
@@ -3879,7 +3871,7 @@
 			children = (
 				7254020C7405D49944F2A362 /* TherapyProfileListRootView.swift */,
 			);
-			name = View;
+			path = View;
 			sourceTree = "<group>";
 		};
 		EEC747824D6593B5CD87E195 /* View */ = {
