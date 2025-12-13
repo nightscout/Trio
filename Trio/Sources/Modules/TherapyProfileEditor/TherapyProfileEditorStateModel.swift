@@ -84,6 +84,7 @@ extension TherapyProfileEditor {
         // MARK: - Computed Properties
 
         var conflictingDays: Set<Weekday> {
+            guard let provider = provider else { return [] }
             var conflicts = Set<Weekday>()
             for profile in provider.allProfiles where profile.id != profileId {
                 conflicts.formUnion(profile.activeDays)
@@ -92,6 +93,7 @@ extension TherapyProfileEditor {
         }
 
         var conflictingDayOwners: [Weekday: String] {
+            guard let provider = provider else { return [:] }
             var owners: [Weekday: String] = [:]
             for profile in provider.allProfiles where profile.id != profileId {
                 for day in profile.activeDays {
@@ -106,15 +108,16 @@ extension TherapyProfileEditor {
         }
 
         var units: GlucoseUnits {
-            provider.units
+            provider?.units ?? .mgdL
         }
 
         var availableProfilesForCopy: [TherapyProfile] {
-            provider.allProfiles.filter { $0.id != profileId }
+            guard let provider = provider else { return [] }
+            return provider.allProfiles.filter { $0.id != profileId }
         }
 
         var hasCurrentActiveSettings: Bool {
-            provider.hasCurrentActiveSettings
+            provider?.hasCurrentActiveSettings ?? false
         }
 
         // MARK: - Actions
@@ -124,6 +127,11 @@ extension TherapyProfileEditor {
 
             if trimmedName.isEmpty {
                 nameError = NSLocalizedString("Profile name is required", comment: "Validation error")
+                return
+            }
+
+            guard let provider = provider else {
+                nameError = nil
                 return
             }
 
@@ -192,6 +200,7 @@ extension TherapyProfileEditor {
         }
 
         func copyFromCurrentActiveSettings() {
+            guard let provider = provider else { return }
             let currentBasal = provider.currentBasalProfile
             let currentISF = provider.currentInsulinSensitivities
             let currentCR = provider.currentCarbRatios
