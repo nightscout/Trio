@@ -14,4 +14,11 @@ protocol TherapyProfileEditorProvider: Provider {
     var isNew: Bool { get }
     var allProfiles: [TherapyProfile] { get }
     var units: GlucoseUnits { get }
+
+    // Current active settings for copy feature
+    var hasCurrentActiveSettings: Bool { get }
+    var currentBasalProfile: [BasalProfileEntry] { get }
+    var currentInsulinSensitivities: InsulinSensitivities? { get }
+    var currentCarbRatios: CarbRatios? { get }
+    var currentBGTargets: BGTargets? { get }
 }

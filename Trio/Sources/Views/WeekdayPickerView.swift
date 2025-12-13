@@ -5,14 +5,18 @@ import SwiftUI
 struct WeekdayPickerView: View {
     @Binding var selectedDays: Set<Weekday>
 
-    /// Days that are already assigned to other profiles (shown as disabled/conflicting)
+    /// Days that are already assigned to other profiles (shown with warning indicator)
     var conflictingDays: Set<Weekday> = []
+
+    /// Map of conflicting days to profile names that own them
+    var conflictingDayOwners: [Weekday: String] = [:]
 
     /// Whether to show quick select options (Weekdays, Weekends, All)
     var showQuickSelect: Bool = true
 
-    /// Callback when a conflict is tapped
-    var onConflictTapped: ((Weekday) -> Void)?
+    /// State for confirmation alert
+    @State private var showConflictAlert = false
+    @State private var pendingConflictDay: Weekday?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -21,6 +25,28 @@ struct WeekdayPickerView: View {
             }
 
             dayButtons
+
+            if !conflictingDays.isEmpty {
+                Text("Days with ⚠️ are assigned to other profiles and will be reassigned.")
+                    .font(.caption)
+                    .foregroundColor(.orange)
+            }
+        }
+        .alert("Reassign Day?", isPresented: $showConflictAlert) {
+            Button("Cancel", role: .cancel) {
+                pendingConflictDay = nil
+            }
+            Button("Reassign") {
+                if let day = pendingConflictDay {
+                    selectedDays.insert(day)
+                    pendingConflictDay = nil
+                }
+            }
+        } message: {
+            if let day = pendingConflictDay {
+                let ownerName = conflictingDayOwners[day] ?? "another profile"
+                Text("\(day.localizedName) is currently assigned to \"\(ownerName)\". Selecting it will reassign it to this profile.")
+            }
         }
     }
 
@@ -31,21 +57,21 @@ struct WeekdayPickerView: View {
                 title: NSLocalizedString("Weekdays", comment: "Quick select weekdays"),
                 isSelected: selectedDays == Weekday.weekdays
             ) {
-                selectedDays = Weekday.weekdays
+                selectDaysWithConflictCheck(Weekday.weekdays)
             }
 
             QuickSelectButton(
                 title: NSLocalizedString("Weekends", comment: "Quick select weekends"),
                 isSelected: selectedDays == Weekday.weekend
             ) {
-                selectedDays = Weekday.weekend
+                selectDaysWithConflictCheck(Weekday.weekend)
             }
 
             QuickSelectButton(
                 title: NSLocalizedString("All", comment: "Quick select all days"),
                 isSelected: selectedDays == Weekday.allDays
             ) {
-                selectedDays = Weekday.allDays
+                selectDaysWithConflictCheck(Weekday.allDays)
             }
 
             QuickSelectButton(
@@ -64,23 +90,35 @@ struct WeekdayPickerView: View {
                 DayButton(
                     day: day,
                     isSelected: selectedDays.contains(day),
-                    isConflicting: conflictingDays.contains(day)
+                    isConflicting: conflictingDays.contains(day) && !selectedDays.contains(day)
                 ) {
-                    if conflictingDays.contains(day) {
-                        onConflictTapped?(day)
-                    } else {
-                        toggleDay(day)
-                    }
+                    handleDayTap(day)
                 }
             }
         }
     }
 
-    private func toggleDay(_ day: Weekday) {
+    private func handleDayTap(_ day: Weekday) {
         if selectedDays.contains(day) {
+            // Always allow deselection
             selectedDays.remove(day)
+        } else if conflictingDays.contains(day) {
+            // Show confirmation for conflicting days
+            pendingConflictDay = day
+            showConflictAlert = true
         } else {
+            // Normal selection
             selectedDays.insert(day)
+        }
+    }
+
+    private func selectDaysWithConflictCheck(_ days: Set<Weekday>) {
+        let conflicts = days.intersection(conflictingDays).subtracting(selectedDays)
+        if conflicts.isEmpty {
+            selectedDays = days
+        } else {
+            // For quick select, just select all including conflicts (simpler UX)
+            selectedDays = days
         }
     }
 }
@@ -115,17 +153,25 @@ private struct DayButton: View {
 
     var body: some View {
         Button(action: action) {
-            Text(day.veryShortName)
-                .font(.subheadline)
-                .fontWeight(isSelected ? .bold : .regular)
-                .frame(width: 36, height: 36)
-                .background(backgroundColor)
-                .foregroundColor(foregroundColor)
-                .cornerRadius(18)
-                .overlay(
-                    Circle()
-                        .stroke(borderColor, lineWidth: isConflicting ? 2 : 0)
-                )
+            ZStack(alignment: .topTrailing) {
+                Text(day.veryShortName)
+                    .font(.subheadline)
+                    .fontWeight(isSelected ? .bold : .regular)
+                    .frame(width: 36, height: 36)
+                    .background(backgroundColor)
+                    .foregroundColor(foregroundColor)
+                    .cornerRadius(18)
+                    .overlay(
+                        Circle()
+                            .stroke(borderColor, lineWidth: isConflicting ? 2 : 0)
+                    )
+
+                if isConflicting {
+                    Text("⚠️")
+                        .font(.system(size: 10))
+                        .offset(x: 4, y: -4)
+                }
+            }
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -139,7 +185,7 @@ private struct DayButton: View {
 
     private var foregroundColor: Color {
         if isConflicting {
-            return .secondary
+            return .primary
         }
         return isSelected ? .white : .primary
     }
