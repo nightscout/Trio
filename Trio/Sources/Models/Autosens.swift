@@ -5,4 +5,5 @@ struct Autosens: JSON {
     let newisf: Decimal?
     var deviationsUnsorted: [Decimal]?
     var timestamp: Date?
+    var error: String?
 }
