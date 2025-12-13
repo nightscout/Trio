@@ -118,7 +118,7 @@ extension TherapyProfileEditor {
                 }
 
                 NavigationLink {
-                    CREditor.RootView(resolver: resolver)
+                    CarbRatioEditor.RootView(resolver: resolver)
                 } label: {
                     settingsRow(
                         title: "Carb Ratios",
