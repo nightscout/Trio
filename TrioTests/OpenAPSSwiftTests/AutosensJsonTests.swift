@@ -59,6 +59,15 @@ import Testing
         let swiftDict = try JSONSerialization.jsonObject(with: swiftData) as! [String: Any]
         let jsDict = try JSONSerialization.jsonObject(with: jsData) as! [String: Any]
 
+        // Extract debug info
+        let swiftDebugInfo = swiftDict["debugInfo"] as! [Any]
+        let jsDebugInfo = jsDict["debugInfo"] as! [Any]
+        for (s, js) in zip(swiftDebugInfo, jsDebugInfo) {
+            print("Debug Info")
+            print("  - Swift: \(s)")
+            print("  - JS: \(js)")
+        }
+
         // Extract deviationsUnsorted arrays
         let swiftDeviations = swiftDict["deviationsUnsorted"] as! [Any]
         let jsDeviations = jsDict["deviationsUnsorted"] as! [Any]
@@ -86,8 +95,14 @@ import Testing
 
         guard swiftDoubles.count == jsDoubles.count else {
             print("Arrays have different lengths!")
-            print("Swift: \(swiftDoubles)")
-            print("JS: \(jsDoubles)")
+            let count = max(swiftDoubles.count, jsDoubles.count)
+            var index = 0
+            while index < count {
+                let swiftDouble = index < swiftDoubles.count ? String(swiftDoubles[index]) : "nil"
+                let jsDouble = index < jsDoubles.count ? String(jsDoubles[index]) : "nil"
+                print("Index: \(index), Swift: \(swiftDouble), JS: \(jsDouble)")
+                index += 1
+            }
             return
         }
 
@@ -155,6 +170,9 @@ import Testing
         let outputURL = sharedDir.appendingPathComponent("autosens_error_inputs.json")
         try output.write(to: outputURL)
 
+        // Print the path so you can find it
+        print("Writing to: \(outputURL.path)")
+
         timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
 
         let openAps = OpenAPSFixed()
@@ -183,8 +201,7 @@ import Testing
             try compareDeviations(swiftJson: swiftJson, jsJson: jsJson)
         }
 
-        // Print the path so you can find it
-        print("Writing to: \(outputURL.path)")
+        try await checkFixedJsAgainstSwift(autosensInputs: autosensInputs)
 
         timeZoneForTests.resetTimezone()
     }

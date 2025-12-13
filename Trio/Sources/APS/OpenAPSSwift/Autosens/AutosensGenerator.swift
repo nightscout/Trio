@@ -9,11 +9,12 @@ struct AutosensGenerator {
 
     /// Internal structure to keep track of the insulin effects simulation state
     struct SimulationState {
-        enum StateType {
-            case initialState
+        // match the state strings from JS
+        enum StateType: String {
+            case initialState = ""
             case csf
             case uam
-            case nonMeal
+            case nonMeal = "non-meal"
         }
 
         var meals: [MealInput]
@@ -61,9 +62,9 @@ struct AutosensGenerator {
         // run through the simulation loop
         var state = SimulationState(meals: meals)
         var deviations: [Decimal] = []
+        var debugInfoList: [Autosens.DebugInfo] = []
         // in JS the simulation loop starts at index 3 but checks for i-1 (prev)
         // and i-3 (old) values for computations
-        var oldGlucoseIndex = 0
         for (oldGlucose, (prevGlucose, currGlucose)) in zip(
             bucketedData,
             zip(bucketedData.dropFirst(2), bucketedData.dropFirst(3))
@@ -108,6 +109,14 @@ struct AutosensGenerator {
                 deviation: deviation
             )
 
+            debugInfoList.append(Autosens.DebugInfo(
+                bgi: bgi,
+                iobActivity: iob.activity,
+                deltaGlucose: deltaGlucose,
+                deviation: deviation,
+                stateType: state.type.rawValue
+            ))
+
             if state.type == .nonMeal {
                 deviations.append(deviation)
             }
@@ -145,6 +154,7 @@ struct AutosensGenerator {
         return try statisticsOnDeviations(
             deviations: deviations,
             profile: profile,
+            debugInfoList: debugInfoList,
             includeDeviationsForTesting: includeDeviationsForTesting
         )
     }
@@ -169,6 +179,7 @@ struct AutosensGenerator {
     private static func statisticsOnDeviations(
         deviations: [Decimal],
         profile: Profile,
+        debugInfoList: [Autosens.DebugInfo],
         includeDeviationsForTesting: Bool
     ) throws -> Autosens {
         guard let profileSensitivity = profile.sens else {
@@ -209,7 +220,7 @@ struct AutosensGenerator {
         let newISF = (profileSensitivity / ratio).rounded()
 
         if includeDeviationsForTesting {
-            return Autosens(ratio: ratio, newisf: newISF, deviationsUnsorted: deviationsUnsorted)
+            return Autosens(ratio: ratio, newisf: newISF, deviationsUnsorted: deviationsUnsorted, debugInfo: debugInfoList)
         } else {
             return Autosens(ratio: ratio, newisf: newISF)
         }
