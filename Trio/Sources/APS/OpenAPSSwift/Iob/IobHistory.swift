@@ -261,8 +261,7 @@ struct IobHistory {
             if event.end < firstResumeDate {
                 return event.copyWith(duration: 0)
             } else {
-                let duration = event.duration ?? 0
-                let newDuration = duration - event.end.timeIntervalSince(firstResumeDate).secondsToMinutes
+                let newDuration = event.end.timeIntervalSince(firstResumeDate).secondsToMinutes
                 return event.copyWith(duration: newDuration, timestamp: firstResumeDate)
             }
         }

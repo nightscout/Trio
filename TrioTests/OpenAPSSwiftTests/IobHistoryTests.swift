@@ -576,4 +576,61 @@ import Testing
 
         #expect(treatments.netInsulin().isWithin(0.01, of: -0.7))
     }
+
+    @Test(
+        "should handle temp basal overlapping resume with prior suspension"
+    ) func handleTempBasalOverlappingResumeWithPriorSuspension() async throws {
+        let basalprofile = createBasicBasalProfile()
+        let now = Calendar.current.startOfDay(for: Date()) + 10.hoursToSeconds // Ensure we are well past 8h ago
+        let resumeTime = now - 30.minutesToSeconds
+
+        // Temp basal starts 10 mins before resume, lasts 40 mins.
+        // So it ends 30 mins after resume.
+        let tempStart = resumeTime - 10.minutesToSeconds
+        let tempDuration = 40
+
+        let pumpHistory = [
+            ComputedPumpHistoryEvent.forTest(
+                type: .pumpResume,
+                timestamp: resumeTime
+            ),
+            ComputedPumpHistoryEvent.forTest(
+                type: .tempBasal,
+                timestamp: tempStart,
+                duration: nil,
+                rate: 2,
+                temp: .absolute
+            ),
+            ComputedPumpHistoryEvent.forTest(
+                type: .tempBasalDuration,
+                timestamp: tempStart,
+                durationMin: tempDuration
+            )
+        ]
+
+        var profile = Profile()
+        profile.dia = 3
+        profile.basalprofile = basalprofile
+        profile.currentBasal = 1
+        profile.maxDailyBasal = 1
+        profile.suspendZerosIob = true
+
+        let treatments = try IobHistory.calcTempTreatments(
+            history: pumpHistory,
+            profile: profile,
+            clock: now,
+            autosens: nil,
+            zeroTempDuration: nil
+        )
+
+        let tempBasals = treatments.filter { $0.type == .tempBasal && $0.rate == 2 }
+
+        #expect(tempBasals.count == 1)
+        if let temp = tempBasals.first {
+            // Should start at resumeTime
+            #expect(temp.timestamp == resumeTime)
+            // Should have duration of 30 minutes
+            #expect(temp.duration == 30)
+        }
+    }
 }
