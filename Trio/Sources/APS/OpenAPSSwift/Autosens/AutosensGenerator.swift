@@ -41,7 +41,7 @@ struct AutosensGenerator {
     ) throws -> Autosens {
         // from prepare/autosens.js
         guard glucose.count >= 72 else {
-            return Autosens(ratio: 1, newisf: nil)
+            return Autosens(ratio: 1, newisf: nil, error: "not enough glucose data to calculate autosens")
         }
 
         let lastSiteChange = determineLastSiteChange(pumpHistory: pumpHistory, profile: profile, clock: clock)
