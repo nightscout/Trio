@@ -118,10 +118,9 @@ struct IobHistory {
         let pumpSuspendResumeFull = pumpHistory.filter { $0.type == .pumpSuspend || $0.type == .pumpResume }
 
         // drop all repeated suspend / resume events to match JS
-        var pumpSuspendResume = pumpSuspendResumeFull.first.flatMap({ [$0] }) ?? []
-        for (prev, curr) in zip(pumpSuspendResumeFull, pumpSuspendResumeFull.dropFirst()) {
-            if prev.type != curr.type {
-                pumpSuspendResume.append(curr)
+        let pumpSuspendResume = pumpSuspendResumeFull.reduce(into: [ComputedPumpHistoryEvent]()) { result, event in
+            if result.last?.type != event.type {
+                result.append(event)
             }
         }
 
