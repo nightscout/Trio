@@ -6,10 +6,10 @@ import Foundation
 /// for scanning food barcodes and analyzing food images.
 struct OpenBarcodeAIIntent: AppIntent {
     /// Title of the action in the Shortcuts app.
-    static var title = LocalizedStringResource("Open Barcode AI Scanner")
+    static var title = LocalizedStringResource("Open Barcode Scanner")
 
     /// Description of the action in the Shortcuts app.
-    static var description = IntentDescription(.init("Opens Trio's Barcode AI scanner for food analysis"))
+    static var description = IntentDescription(.init("Opens Trio's Barcode scanner for scanning processed food"))
 
     /// This intent opens the app when run
     static var openAppWhenRun: Bool = true

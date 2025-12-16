@@ -401,8 +401,6 @@ extension BarcodeScanner {
                         dismissKeyboard()
                         if state.currentScannedItem != nil {
                             state.addProductToList()
-                        } else {
-                            state.addScannedNutritionToMeals()
                         }
 
                         if isEditingFromList {
@@ -458,21 +456,6 @@ extension BarcodeScanner {
                                 )
                                 .padding(.horizontal)
                                 .padding(.top, 8)
-
-                            if state.isProcessingLabel {
-                                VStack {
-                                    ProgressView()
-                                        .scaleEffect(1.5)
-                                        .tint(.white)
-                                    Text("Analyzing nutrition label...")
-                                        .font(.caption)
-                                        .foregroundStyle(.white)
-                                        .padding(.top, 8)
-                                }
-                                .padding()
-                                .background(.ultraThinMaterial)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                            }
                         } else {
                             ScannerPreviewView(
                                 isRunning: Binding(

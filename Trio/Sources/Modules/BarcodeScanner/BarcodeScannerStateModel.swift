@@ -9,8 +9,6 @@ extension BarcodeScanner {
     final class StateModel: BaseStateModel<Provider> {
         // MARK: - Properties
 
-        @Published var barcodeScannerLongTapEnabled: Bool = false
-
         @Published var cameraStatus: AVAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
         @Published var isScanning = true
         @Published var isKeyboardVisible = false
@@ -42,11 +40,6 @@ extension BarcodeScanner {
         private let scanCooldownSeconds: TimeInterval = 1.0
 
         // MARK: - Lifecycle
-
-        override func subscribe() {
-            subscribeSetting(\.barcodeScannerLongTapEnabled, on: $barcodeScannerLongTapEnabled) {
-                barcodeScannerLongTapEnabled = $0 }
-        }
 
         func handleAppear() {
             refreshCameraStatus()
@@ -273,54 +266,6 @@ extension BarcodeScanner {
             showModal(for: .barcodeScannerTreatment(carbs: totalCarbs, fat: totalFat, protein: totalProtein, note: note))
         }
 
-        // MARK: - Nutrition Label Scanning
-
-        /// Adds the scanned nutrition data as a product item
-        func addScannedNutritionLabel() {
-            guard let data = scannedNutritionData else { return }
-
-            let item = data.toProduct(
-                name: editableNutritionName.isEmpty ? String(localized: "Scanned Label") : editableNutritionName,
-                basisAmount: scannedLabelBasisAmount,
-                capturedImage: capturedImage
-            )
-            // Amount is set in toProduct now or we should set it explicitly
-            var finalItem = item
-            finalItem.amount = data.servingSizeGrams ?? 100
-            finalItem.isManualEntry = true
-
-            scannedProducts.append(finalItem)
-
-            // Reset for next scan
-            capturedImage = nil
-            scannedNutritionData = nil
-            showNutritionEditor = false
-            editableNutritionName = ""
-            isScanning = true
-        }
-
-        func addScannedNutritionToMeals() {
-            guard let data = scannedNutritionData else { return }
-
-            let item = data.toProduct(
-                name: editableNutritionName.isEmpty ? String(localized: "Scanned Label") : editableNutritionName,
-                basisAmount: scannedLabelBasisAmount,
-                capturedImage: capturedImage
-            )
-            var finalItem = item
-            finalItem.amount = editingAmount
-            finalItem.isMlInput = editingIsMl
-            finalItem.isManualEntry = true
-
-            scannedProducts.append(finalItem)
-
-            // Reset for next scan
-            capturedImage = nil
-            scannedNutritionData = nil
-            errorMessage = nil
-            isScanning = true
-        }
-
         /// Clears the captured image and returns to live camera
         func clearCapturedImage() {
             capturedImage = nil
@@ -330,28 +275,5 @@ extension BarcodeScanner {
             isScanning = true
         }
 
-        /// Updates the scanned nutrition data with edited values
-        func updateScannedNutritionData(
-            calories: Double?,
-            carbohydrates: Double?,
-            sugars: Double?,
-            fat: Double?,
-            protein: Double?,
-            fiber: Double?,
-            servingSizeGrams: Double?
-        ) {
-            scannedNutritionData = NutritionData(
-                calories: calories,
-                carbohydrates: carbohydrates,
-                sugars: sugars,
-                fat: fat,
-                saturatedFat: scannedNutritionData?.saturatedFat,
-                protein: protein,
-                fiber: fiber,
-                sodium: scannedNutritionData?.sodium,
-                servingSize: scannedNutritionData?.servingSize,
-                servingSizeGrams: servingSizeGrams
-            )
-        }
     }
 }
