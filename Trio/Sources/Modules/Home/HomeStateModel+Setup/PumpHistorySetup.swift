@@ -41,15 +41,11 @@ extension Home.StateModel {
         insulinFromPersistence = insulinObjects
 
         manualTempBasal = apsManager.isManualTempBasal
-        tempBasals = insulinFromPersistence.filter({ $0.tempBasal != nil })
+        tempBasals = insulinFromPersistence.filter { $0.tempBasal != nil }
 
-        suspensions = insulinFromPersistence.filter {
+        suspendAndResumeEvents = insulinFromPersistence.filter {
             $0.type == EventType.pumpSuspend.rawValue || $0.type == EventType.pumpResume.rawValue
         }
-        let lastSuspension = suspensions.last
-
-        pumpSuspended = tempBasals.last?.timestamp ?? Date() > lastSuspension?.timestamp ?? .distantPast && lastSuspension?
-            .type == EventType.pumpSuspend.rawValue
     }
 
     // Setup Last Bolus to display the bolus progress bar

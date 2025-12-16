@@ -5,6 +5,7 @@ extension CarbRatioEditor {
         @Injected() private var nightscout: NightscoutManager!
         @Published var items: [Item] = []
         @Published var initialItems: [Item] = []
+        @Published var therapyItems: [TherapySettingItem] = []
         @Published var shouldDisplaySaving: Bool = false
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
@@ -28,6 +29,25 @@ extension CarbRatioEditor {
             }
 
             return false
+        }
+
+        // Convert items to TherapySettingItem format
+        func getTherapyItems() -> [TherapySettingItem] {
+            items.map { item in
+                TherapySettingItem(
+                    time: timeValues[item.timeIndex],
+                    value: rateValues[item.rateIndex]
+                )
+            }
+        }
+
+        // Update items from TherapySettingItem format
+        func updateFromTherapyItems(_ therapyItems: [TherapySettingItem]) {
+            items = therapyItems.map { therapyItem in
+                let timeIndex = timeValues.firstIndex(where: { abs($0 - therapyItem.time) < 1 }) ?? 0
+                let rateIndex = rateValues.firstIndex(of: therapyItem.value) ?? 0
+                return Item(rateIndex: rateIndex, timeIndex: timeIndex)
+            }
         }
 
         override func subscribe() {
