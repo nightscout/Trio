@@ -216,6 +216,34 @@ extension BolusCalculatorConfig {
                         )
                     }
                 )
+
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.barcodeScannerOnlyCarbs,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = String(localized: "Only allow Carbs from Barcode Scanner")
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: String(localized: "Only allow Carbs from Barcode Scanner"),
+                    miniHint: String(
+                        localized: "Do not allow logging of FTUs"
+                    ),
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text(
+                            "For users who only want to log carbs via the barcode scanner and not FTUs (Fats, Proteins, and Fibers)."
+                        )
+                        Text(
+                            "Note: Enable this if FTUs are causing issues for you."
+                        )
+                    }
+                )
             }
             .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {

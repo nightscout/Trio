@@ -71,8 +71,8 @@ struct TrioSettings: JSON, Equatable {
     var smartStackView: LockScreenView = .simple
     var bolusShortcut: BolusShortcutLimit = .notAllowed
     var timeInRangeType: TimeInRangeType = .timeInTightRange
-    var useAINutritionScanner: Bool = false
     var barcodeScannerLongTapEnabled: Bool = false
+    var barcodeScannerOnlyCarbs: Bool = false
 }
 
 extension TrioSettings: Decodable {

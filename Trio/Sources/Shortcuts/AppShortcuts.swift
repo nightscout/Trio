@@ -76,7 +76,7 @@ struct AppShortcuts: AppShortcutsProvider {
             systemImageName: "arrow.clockwise.circle.fill"
         )
         AppShortcut(
-            intent: OpenBarcodeAIIntent(),
+            intent: OpenBarcodeScannerIntent(),
             phrases: [
                 "Open \(.applicationName) Barcode Scanner",
                 "Scan food with \(.applicationName)",
