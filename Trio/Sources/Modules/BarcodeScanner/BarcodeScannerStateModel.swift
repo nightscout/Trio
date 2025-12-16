@@ -1,5 +1,4 @@
 import AVFoundation
-import Combine
 import Foundation
 import Observation
 import SwiftUI
@@ -7,65 +6,50 @@ import SwiftUI
 // MARK: - StateModel
 
 extension BarcodeScanner {
-    @Observable final class StateModel: BaseStateModel<Provider> {
+    final class StateModel: BaseStateModel<Provider> {
         // MARK: - Properties
 
-        var cameraStatus: AVAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
-        var isScanning = false
-        var isKeyboardVisible = false
-        var scannedBarcode: String?
-        var currentScannedItem: FoodItem?
-        var isFetchingProduct = false
-        var errorMessage: String?
-        var scannedProducts: [FoodItem] = []
+        @Published var barcodeScannerLongTapEnabled: Bool = false
+
+        @Published var cameraStatus: AVAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
+        @Published var isScanning = true
+        @Published var isKeyboardVisible = false
+        @Published var scannedBarcode: String?
+        @Published var currentScannedItem: FoodItem?
+        @Published var isFetchingProduct = false
+        @Published var errorMessage: String?
+        @Published var scannedProducts: [FoodItem] = []
 
         // Nutrition label scanning
-        var capturedImage: UIImage?
-        var scannedNutritionData: NutritionData?
-        var isProcessingLabel = false
-        var showNutritionEditor = false
-        var editableNutritionName: String = ""
-        var scannedLabelBasisAmount: Double = 100.0
+        @Published var capturedImage: UIImage?
+        @Published var scannedNutritionData: NutritionData?
+        @Published var isProcessingLabel = false
+        @Published var showNutritionEditor = false
+        @Published var editableNutritionName: String = ""
+        @Published var scannedLabelBasisAmount: Double = 100.0
 
         // Editor amount input
-        var editingAmount: Double = 0
-        var editingIsMl: Bool = false
+        @Published var editingAmount: Double = 0
+        @Published var editingIsMl: Bool = false
 
         // Camera frame for nutrition analysis
-        var lastCameraFrame: UIImage?
-
-        // AI Model for nutrition label extraction
-        var modelManager: NutritionModelManager { NutritionModelManager.shared }
-
-        /// Whether AI nutrition scanning is enabled (from settings)
-        var isAINutritionScannerEnabled: Bool {
-            guard resolver != nil else { return false }
-            return settingsManager.settings.useAINutritionScanner
-        }
+        @Published var lastCameraFrame: UIImage?
 
         // MARK: - Private Properties
 
         private let client = OpenFoodFactsClient()
-        private let nutritionScanner = NutritionLabelScanner()
         private var lastScanTime: Date?
         private let scanCooldownSeconds: TimeInterval = 1.0
 
         // MARK: - Lifecycle
 
         override func subscribe() {
-            // No subscriptions needed for barcode scanner
+            subscribeSetting(\.barcodeScannerLongTapEnabled, on: $barcodeScannerLongTapEnabled) {
+                barcodeScannerLongTapEnabled = $0 }
         }
 
         func handleAppear() {
             refreshCameraStatus()
-            modelManager.checkModelStatus()
-
-            // Auto-load model if downloaded but not ready
-            if case .downloaded = modelManager.state {
-                Task {
-                    try? await modelManager.loadModel()
-                }
-            }
 
             switch cameraStatus {
             case .notDetermined:
@@ -291,89 +275,6 @@ extension BarcodeScanner {
 
         // MARK: - Nutrition Label Scanning
 
-        /// Captures the current camera frame for nutrition label analysis
-        func captureFrameForNutritionAnalysis() {
-            guard let frame = lastCameraFrame else {
-                errorMessage = String(localized: "No camera frame available. Please try again.")
-                return
-            }
-
-            isScanning = false
-            didCapturePhoto(frame)
-        }
-
-        /// Called when a photo is captured from the camera
-        func didCapturePhoto(_ image: UIImage) {
-            capturedImage = image
-            isScanning = false
-            processNutritionLabel(image)
-        }
-
-        /// Processes a captured image to extract nutrition data
-        private func processNutritionLabel(_ image: UIImage) {
-            isProcessingLabel = true
-            errorMessage = nil
-
-            Task {
-                do {
-                    let data: NutritionData
-
-                    // Use AI model if available and enabled, otherwise fall back to regex-based OCR
-                    if isAINutritionScannerEnabled, modelManager.isReady {
-                        print("🤖 Using AI Nutrition Scanner")
-                        data = try await nutritionScanner.scanWithAIModel(from: image, modelManager: modelManager)
-                    } else {
-                        print("📝 Using Regex-based OCR Scanner (AI disabled or model not ready)")
-                        data = try await nutritionScanner.scanNutritionLabel(from: image)
-                    }
-
-                    await MainActor.run {
-                        self.scannedNutritionData = data
-                        self.isProcessingLabel = false
-
-                        if data.hasAnyData {
-                            self.showNutritionEditor = true
-                            self.editableNutritionName = String(localized: "Scanned Label")
-                            self.editingAmount = data.servingSizeGrams ?? 100
-                            self.editingIsMl = false
-                            self.scannedLabelBasisAmount = 100.0
-                        } else {
-                            self.errorMessage = String(localized: "No nutrition information found. Try taking a clearer photo.")
-                        }
-                    }
-                } catch {
-                    await MainActor.run {
-                        self.isProcessingLabel = false
-                        self.errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-                    }
-                }
-            }
-        }
-
-        // MARK: - Model Management
-
-        /// Loads the AI model if downloaded
-        func loadModelIfNeeded() {
-            guard modelManager.state == .downloaded else { return }
-            Task {
-                try? await modelManager.loadModel()
-            }
-        }
-
-        /// Deletes the downloaded model
-        func deleteModel() {
-            modelManager.deleteModel()
-        }
-
-        /// Clears the captured image and returns to live camera
-        func clearCapturedImage() {
-            capturedImage = nil
-            scannedNutritionData = nil
-            showNutritionEditor = false
-            errorMessage = nil
-            isScanning = true
-        }
-
         /// Adds the scanned nutrition data as a product item
         func addScannedNutritionLabel() {
             guard let data = scannedNutritionData else { return }
@@ -398,7 +299,6 @@ extension BarcodeScanner {
             isScanning = true
         }
 
-        /// Adds the scanned nutrition data directly to meals (inline editing)
         func addScannedNutritionToMeals() {
             guard let data = scannedNutritionData else { return }
 
@@ -417,6 +317,15 @@ extension BarcodeScanner {
             // Reset for next scan
             capturedImage = nil
             scannedNutritionData = nil
+            errorMessage = nil
+            isScanning = true
+        }
+
+        /// Clears the captured image and returns to live camera
+        func clearCapturedImage() {
+            capturedImage = nil
+            scannedNutritionData = nil
+            showNutritionEditor = false
             errorMessage = nil
             isScanning = true
         }

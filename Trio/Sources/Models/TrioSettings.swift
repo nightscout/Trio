@@ -72,6 +72,7 @@ struct TrioSettings: JSON, Equatable {
     var bolusShortcut: BolusShortcutLimit = .notAllowed
     var timeInRangeType: TimeInRangeType = .timeInTightRange
     var useAINutritionScanner: Bool = false
+    var barcodeScannerLongTapEnabled: Bool = false
 }
 
 extension TrioSettings: Decodable {
@@ -306,8 +307,8 @@ extension TrioSettings: Decodable {
             settings.timeInRangeType = timeInRangeType
         }
 
-        if let useAINutritionScanner = try? container.decode(Bool.self, forKey: .useAINutritionScanner) {
-            settings.useAINutritionScanner = useAINutritionScanner
+        if let barcodeScannerLongTapEnabled = try? container.decode(Bool.self, forKey: .barcodeScannerLongTapEnabled) {
+            settings.barcodeScannerLongTapEnabled = barcodeScannerLongTapEnabled
         }
 
         self = settings

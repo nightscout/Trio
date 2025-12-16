@@ -10,6 +10,7 @@ extension BolusCalculatorConfig {
         @Published var sweetMealFactor: Decimal = 0
         @Published var displayPresets: Bool = true
         @Published var confirmBolusWhenVeryLowGlucose: Bool = false
+        @Published var barcodeScannerLongTapEnabled: Bool = false
 
         override func subscribe() {
             units = settingsManager.settings.units
@@ -21,6 +22,8 @@ extension BolusCalculatorConfig {
             subscribeSetting(\.sweetMeals, on: $sweetMeals) { sweetMeals = $0 }
             subscribeSetting(\.sweetMealFactor, on: $sweetMealFactor) { sweetMealFactor = $0 }
             subscribeSetting(\.confirmBolus, on: $confirmBolusWhenVeryLowGlucose) { confirmBolusWhenVeryLowGlucose = $0 }
+            subscribeSetting(\.barcodeScannerLongTapEnabled, on: $barcodeScannerLongTapEnabled) {
+                barcodeScannerLongTapEnabled = $0 }
         }
     }
 }

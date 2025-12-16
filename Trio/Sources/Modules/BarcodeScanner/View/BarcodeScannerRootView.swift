@@ -1,4 +1,3 @@
-import AVFoundation
 import SwiftUI
 import Swinject
 
@@ -8,7 +7,8 @@ extension BarcodeScanner {
     struct RootView: BaseView {
         let resolver: Resolver
 
-        @State var state = StateModel()
+        @StateObject var state = StateModel()
+
         @State private var showListView = false
         @State private var isEditingFromList = false
 
@@ -586,23 +586,6 @@ extension BarcodeScanner {
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(state.isScanning ? .orange : .insulin)
-
-                    if state.isAINutritionScannerEnabled, state.modelManager.isReady {
-                        Button {
-                            state.captureFrameForNutritionAnalysis()
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: "doc.text.viewfinder")
-                                Text("Analyze Label")
-                            }
-                            .font(.subheadline.weight(.semibold))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.green)
-                        .disabled(state.isProcessingLabel)
-                    }
 
                     if !state.scannedProducts.isEmpty {
                         Button {

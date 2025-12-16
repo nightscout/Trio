@@ -4,7 +4,7 @@ import SwiftUI
 
 extension BarcodeScanner {
     struct NutritionEditorSheet: View {
-        @Bindable var state: StateModel
+        var state: StateModel
         @Environment(\.dismiss) private var dismiss
 
         @State private var name: String = ""
