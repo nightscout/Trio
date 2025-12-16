@@ -15,7 +15,24 @@ struct IobGenerator {
 
         // we have to keep all of our suspend/resume events due to a hardcoded
         // DIA value in dealing with suspended pumps in JS
-        let pumpHistory = history.filter({ $0.timestamp >= lastDia || $0.isSuspendOrResume() }).map({ $0.computedEvent() })
+        var pumpHistory = history.filter({ $0.timestamp >= lastDia || $0.isSuspendOrResume() }).map({ $0.computedEvent() })
+
+        // To make sure that lastTemp is filled in correctly, we need to check
+        // if there aren't any tempBasal events in the DIA-filtered list.
+        // If not, find the most recent one from the full history and add it.
+        if pumpHistory.filter({ $0.type == .tempBasal }).isEmpty {
+            // Find the most recent TempBasal event from before the DIA cutoff
+            let olderTempBasals = history.filter({ $0.type == .tempBasal && $0.timestamp < lastDia })
+            if let lastTempBasal = olderTempBasals.max(by: { $0.timestamp < $1.timestamp }) {
+                // Find its matching TempBasalDuration (same timestamp)
+                if let matchingDuration = history
+                    .first(where: { $0.type == .tempBasalDuration && $0.timestamp == lastTempBasal.timestamp })
+                {
+                    pumpHistory.append(lastTempBasal.computedEvent())
+                    pumpHistory.append(matchingDuration.computedEvent())
+                }
+            }
+        }
 
         let treatments = try IobHistory.calcTempTreatments(
             history: pumpHistory,
