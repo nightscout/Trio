@@ -25,7 +25,9 @@ extension Export {
 
         // Export categories for selective export
         enum ExportCategory: String, CaseIterable, Identifiable {
-            case exportInfo = "Export Info"
+            var id: String { rawValue }
+
+            case metadata = "Metadata"
             case devices = "Devices"
             case therapy = "Therapy"
             case algorithm = "Algorithm"
@@ -35,50 +37,13 @@ extension Export {
             case tempTargetPresets = "Temp Target Presets"
             case overridePresets = "Override Presets"
             case mealPresets = "Meal Presets"
-
-            var id: String { rawValue }
-
-            var description: String {
-                switch self {
-                case .exportInfo:
-                    return "Date, app version, build information"
-                case .devices:
-                    return "CGM and pump configuration"
-                case .therapy:
-                    return "Basal profiles, ISF, carb ratios, targets"
-                case .algorithm:
-                    return "SMB, autosens, dynamic settings"
-                case .features:
-                    return "UI preferences, meal settings"
-                case .notifications:
-                    return "Alert and notification settings"
-                case .services:
-                    return "Nightscout, Apple Health integration"
-                case .tempTargetPresets:
-                    return "Exercise, eating soon, and custom temp targets"
-                case .overridePresets:
-                    return "Sensitivity adjustments and insulin factor overrides"
-                case .mealPresets:
-                    return "Saved meal configurations with carbs, fat, and protein"
-                }
-            }
         }
 
         // Export formats for different file types
         enum ExportFormat: String, CaseIterable, Identifiable {
-            case csv = "CSV"
-            case json = "JSON"
-
             var id: String { rawValue }
-
-            var description: String {
-                switch self {
-                case .csv:
-                    return "Comma-separated values format, compatible with spreadsheets"
-                case .json:
-                    return "JavaScript Object Notation format, structured data"
-                }
-            }
+            case csv
+            case json
 
             var fileExtension: String {
                 switch self {
@@ -193,8 +158,8 @@ extension Export {
             }
 
             // Export metadata - always include basic export info
-            if categoriesToExport.contains(.exportInfo) {
-                let exportCategory = String(localized: "Export Info")
+            if categoriesToExport.contains(.metadata) {
+                let exportCategory = String(localized: "Metadata")
                 addSetting(
                     category: exportCategory,
                     name: String(localized: "Export Date"),
@@ -256,7 +221,7 @@ extension Export {
                     subcategory: unitsLimitsSubcategory,
                     name: String(localized: "Maximum Basal Rate"),
                     value: String(describing: pumpSettings.maxBasal),
-                    unit: "U/hr"
+                    unit: String(localized: "U/hr", comment: "Insulin unit per hour abbreviation")
                 )
                 // Get insulin type from pump manager if available, otherwise from preferences
                 let insulinTypeValue: String
@@ -278,7 +243,7 @@ extension Export {
                     subcategory: unitsLimitsSubcategory,
                     name: String(localized: "Maximum Carbs on Board (COB)"),
                     value: String(describing: preferences.maxCOB),
-                    unit: "g"
+                    unit: String(localized: "g", comment: "Units for carbs")
                 )
                 addSetting(
                     category: therapyCategory,
@@ -320,7 +285,7 @@ extension Export {
                         subcategory: basalRatesSubcategory,
                         name: "Basal Rate (\(entry.start))",
                         value: String(describing: entry.rate),
-                        unit: "U/hr"
+                        unit: String(localized: "U/hr", comment: "Insulin unit per hour abbreviation")
                     )
                 }
 
@@ -333,7 +298,7 @@ extension Export {
                             subcategory: carbRatiosSubcategory,
                             name: "Carb Ratio (\(entry.start))",
                             value: String(describing: entry.ratio),
-                            unit: "g/U"
+                            unit: String(localized: "g/U")
                         )
                     }
                 }
@@ -348,7 +313,7 @@ extension Export {
                             subcategory: insulinSensitivitiesSubcategory,
                             name: "ISF (\(entry.start))",
                             value: String(describing: isfValue),
-                            unit: trioSettings.units == .mgdL ? "mg/dL/U" : "mmol/L/U"
+                            unit: trioSettings.units.rawValue
                         )
                     }
                 }
@@ -635,7 +600,7 @@ extension Export {
                     value: trioSettings
                         .units == .mgdL ? String(describing: preferences.min5mCarbimpact) :
                         String(describing: preferences.min5mCarbimpact.asMmolL),
-                    unit: trioSettings.units == .mgdL ? "mg/dL" : "mmol/L"
+                    unit: trioSettings.units.rawValue
                 )
                 addSetting(
                     category: algorithmCategory,
@@ -649,7 +614,7 @@ extension Export {
                     subcategory: additionalsSubcategory,
                     name: String(localized: "Remaining Carbs Cap"),
                     value: String(describing: preferences.remainingCarbsCap),
-                    unit: "g"
+                    unit: String(localized: "g", comment: "Units for carbs")
                 )
                 addSetting(
                     category: algorithmCategory,
@@ -665,7 +630,6 @@ extension Export {
                 let featuresCategory = String(localized: "Features", comment: "Features menu item in the Settings main view.")
 
                 // Trio Features subcategory - Bolus Calculator
-                let trioFeaturesSubcategory = String(localized: "Trio Features")
                 let bolusCalculatorSubcategory = String(localized: "Bolus Calculator")
                 addSetting(
                     category: featuresCategory,
@@ -724,21 +688,21 @@ extension Export {
                     subcategory: mealSettingsSubcategory,
                     name: String(localized: "Max Carbs"),
                     value: String(describing: trioSettings.maxCarbs),
-                    unit: "g"
+                    unit: String(localized: "g", comment: "Units for carbs")
                 )
                 addSetting(
                     category: featuresCategory,
                     subcategory: mealSettingsSubcategory,
                     name: String(localized: "Max Fat"),
                     value: String(describing: trioSettings.maxFat),
-                    unit: "g"
+                    unit: String(localized: "g", comment: "Units for carbs")
                 )
                 addSetting(
                     category: featuresCategory,
                     subcategory: mealSettingsSubcategory,
                     name: String(localized: "Max Protein"),
                     value: String(describing: trioSettings.maxProtein),
-                    unit: "g"
+                    unit: String(localized: "g", comment: "Units for carbs")
                 )
                 addSetting(
                     category: featuresCategory,
@@ -803,7 +767,6 @@ extension Export {
                 )
 
                 // Trio Personalization subcategory - User Interface
-                let trioPersonalizationSubcategory = String(localized: "Trio Personalization")
                 let userInterfaceSubcategory = String(localized: "User Interface")
                 addSetting(
                     category: featuresCategory,
@@ -856,7 +819,7 @@ extension Export {
                     subcategory: userInterfaceSubcategory,
                     name: String(localized: "Carbs Required Threshold"),
                     value: String(describing: trioSettings.carbsRequiredThreshold),
-                    unit: "g"
+                    unit: String(localized: "g", comment: "Units for carbs")
                 )
                 addSetting(
                     category: featuresCategory,
@@ -1349,7 +1312,7 @@ extension Export {
                                     subcategory: mealSubcategory,
                                     name: "\(mealPreset.dish) Carbs",
                                     value: String(describing: carbs),
-                                    unit: "g"
+                                    unit: String(localized: "g", comment: "Units for carbs")
                                 )
                             }
 
@@ -1359,7 +1322,7 @@ extension Export {
                                     subcategory: mealSubcategory,
                                     name: "\(mealPreset.dish) Fat",
                                     value: String(describing: fat),
-                                    unit: "g"
+                                    unit: String(localized: "g", comment: "Units for carbs")
                                 )
                             }
 
@@ -1369,7 +1332,7 @@ extension Export {
                                     subcategory: mealSubcategory,
                                     name: "\(mealPreset.dish) Protein",
                                     value: String(describing: protein),
-                                    unit: "g"
+                                    unit: String(localized: "g", comment: "Units for carbs")
                                 )
                             }
                         }
