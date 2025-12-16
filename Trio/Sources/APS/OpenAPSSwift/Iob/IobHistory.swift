@@ -114,7 +114,11 @@ struct IobHistory {
     ///
     /// The algorithm just looks at time intervals from suspend events to resume events to calculate
     /// periods of suspension.
-    private static func getSuspends(pumpHistory: [ComputedPumpHistoryEvent], clock: Date) throws -> [PumpSuspended] {
+    private static func getSuspends(
+        pumpHistory: [ComputedPumpHistoryEvent],
+        profile: Profile,
+        clock: Date
+    ) throws -> [PumpSuspended] {
         let pumpSuspendResumeFull = pumpHistory.filter { $0.type == .pumpSuspend || $0.type == .pumpResume }
 
         // drop all repeated suspend / resume events to match JS
@@ -142,8 +146,12 @@ struct IobHistory {
         // If our first suspend/resume event is a resume, the pump is suspended
         // when our history begins
 
-        // this dia is hard-coded in Javascript, it doesn't use the profile
-        let maxDiaAgo = clock - 8.hoursToSeconds
+        var profileDia = profile.dia ?? 10
+        if profileDia < 5 {
+            profileDia = 5
+        }
+
+        let maxDiaAgo = clock - profileDia.hoursToSeconds
         if let first = pumpSuspendResume.first, first.type == .pumpResume, maxDiaAgo < first.timestamp {
             let start = maxDiaAgo
             let duration = first.timestamp.timeIntervalSince(start).secondsToMinutes
@@ -457,7 +465,7 @@ struct IobHistory {
         // ignore any records in the future and sort them
         let pumpHistory = history.filter({ $0.timestamp <= clock }).sorted { $0.timestamp < $1.timestamp }
         let tempBasals = try getTempBasals(pumpHistory: pumpHistory, clock: clock, zeroTempDuration: zeroTempDuration)
-        let suspends = try getSuspends(pumpHistory: pumpHistory, clock: clock)
+        let suspends = try getSuspends(pumpHistory: pumpHistory, profile: profile, clock: clock)
         let boluses = pumpHistory.filter({ $0.type == .bolus }).map { $0.copyWith(insulin: $0.amount) }
 
         var tempHistory: [ComputedPumpHistoryEvent]
