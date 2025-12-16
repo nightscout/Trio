@@ -2,6 +2,7 @@ import AVFoundation
 import CoreImage
 import CoreMedia
 import SwiftUI
+import UIKit
 
 // MARK: - Barcode Scanner Preview
 
@@ -55,6 +56,7 @@ extension BarcodeScanner.ScannerPreviewView {
         private let videoOutput = AVCaptureVideoDataOutput()
         private var isConfigured = false
         private let videoQueue = DispatchQueue(label: "video.frame.queue")
+        private let sessionQueue = DispatchQueue(label: "camera.session.queue")
         private var lastFrameTime: Date = .distantPast
         private let frameInterval: TimeInterval = 0.5
 
@@ -82,7 +84,7 @@ extension BarcodeScanner.ScannerPreviewView {
             focusObservation?.invalidate()
             focusObservation = nil
             Foundation.NotificationCenter.default.removeObserver(self)
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            sessionQueue.async { [weak self] in
                 guard let self, self.session.isRunning else { return }
                 self.session.stopRunning()
             }
@@ -90,18 +92,134 @@ extension BarcodeScanner.ScannerPreviewView {
 
         func attach(to view: CameraPreviewView) {
             previewView = view
-            configureIfNeeded()
             view.videoPreviewLayer.session = session
             view.videoPreviewLayer.videoGravity = .resizeAspectFill
-            setRunning(isRunning.wrappedValue)
-        }
 
-        func setRunning(_: Bool) {
-            guard isConfigured else { return }
-            if !session.isRunning {
-                startSession()
+            sessionQueue.async { [weak self] in
+                self?.configureIfNeeded()
+
+                DispatchQueue.main.async {
+                    guard let self else { return }
+                    self.setRunning(self.isRunning.wrappedValue)
+                }
             }
         }
+
+        func setRunning(_ shouldRun: Bool) {
+            guard isConfigured else { return }
+            sessionQueue.async { [weak self] in
+                guard let self else { return }
+                if shouldRun, !self.session.isRunning {
+                    self.session.startRunning()
+                } else if !shouldRun, self.session.isRunning {
+                    self.session.stopRunning()
+                }
+            }
+        }
+
+        // ... tap to focus ...
+
+        private func startSession() {
+            // Deprecated helper, logic moved to setRunning
+            setRunning(true)
+        }
+
+        // ...
+
+        private func configureIfNeeded() {
+            // Must be called on sessionQueue
+            guard !isConfigured else { return }
+
+            session.beginConfiguration()
+            session.sessionPreset = .high
+
+            let device = getBestCameraForScanning()
+
+            guard let device else {
+                DispatchQueue.main.async { self.onFailure(String(localized: "Camera is not available on this device.")) }
+                session.commitConfiguration()
+                return
+            }
+
+            currentDevice = device
+            configureFocusSettings(for: device)
+
+            do {
+                let input = try AVCaptureDeviceInput(device: device)
+                guard session.canAddInput(input) else {
+                    DispatchQueue.main.async { self.onFailure(String(localized: "Unable to use the back camera.")) }
+                    session.commitConfiguration()
+                    return
+                }
+                session.addInput(input)
+            } catch {
+                DispatchQueue.main
+                    .async { self.onFailure(String(localized: "Failed to configure camera: \(error.localizedDescription)")) }
+                session.commitConfiguration()
+                return
+            }
+
+            guard session.canAddOutput(metadataOutput) else {
+                DispatchQueue.main.async { self.onFailure(String(localized: "Unable to read barcodes on this device.")) }
+                session.commitConfiguration()
+                return
+            }
+
+            session.addOutput(metadataOutput)
+            metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
+            metadataOutput.metadataObjectTypes = supportedTypes
+
+            if onFrameCaptured != nil, session.canAddOutput(videoOutput) {
+                videoOutput.setSampleBufferDelegate(self, queue: videoQueue)
+                videoOutput.alwaysDiscardsLateVideoFrames = true
+                session.addOutput(videoOutput)
+            }
+
+            session.commitConfiguration()
+            isConfigured = true
+
+            setupFocusMonitoring()
+        }
+
+        func metadataOutput(
+            _: AVCaptureMetadataOutput,
+            didOutput metadataObjects: [AVMetadataObject],
+            from _: AVCaptureConnection
+        ) {
+            guard isRunning.wrappedValue else { return }
+            guard let readableObject = metadataObjects.compactMap({ $0 as? AVMetadataMachineReadableCodeObject }).first,
+                  let stringValue = readableObject.stringValue
+            else {
+                return
+            }
+
+            onDetected(stringValue)
+        }
+
+        func captureOutput(
+            _: AVCaptureOutput,
+            didOutput sampleBuffer: CMSampleBuffer,
+            from _: AVCaptureConnection
+        ) {
+            let now = Date()
+            guard now.timeIntervalSince(lastFrameTime) >= frameInterval else { return }
+            lastFrameTime = now
+
+            guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+
+            let ciImage = CIImage(cvPixelBuffer: imageBuffer)
+            let context = CIContext()
+            guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return }
+
+            let orientation: UIImage.Orientation = .right
+            let fullImage = UIImage(cgImage: cgImage, scale: 1.0, orientation: orientation)
+
+            DispatchQueue.main.async { [weak self] in
+                self?.onFrameCaptured?(fullImage)
+            }
+        }
+
+        // MARK: - Missing Helper Methods
 
         func handleTapToFocus(at point: CGPoint, in view: UIView) {
             guard let device = currentDevice,
@@ -228,59 +346,6 @@ extension BarcodeScanner.ScannerPreviewView {
             } catch {}
         }
 
-        private func configureIfNeeded() {
-            guard !isConfigured else { return }
-
-            session.beginConfiguration()
-            session.sessionPreset = .high
-
-            let device = getBestCameraForScanning()
-
-            guard let device else {
-                onFailure(String(localized: "Camera is not available on this device."))
-                session.commitConfiguration()
-                return
-            }
-
-            currentDevice = device
-            configureFocusSettings(for: device)
-
-            do {
-                let input = try AVCaptureDeviceInput(device: device)
-                guard session.canAddInput(input) else {
-                    onFailure(String(localized: "Unable to use the back camera."))
-                    session.commitConfiguration()
-                    return
-                }
-                session.addInput(input)
-            } catch {
-                onFailure(String(localized: "Failed to configure camera: \(error.localizedDescription)"))
-                session.commitConfiguration()
-                return
-            }
-
-            guard session.canAddOutput(metadataOutput) else {
-                onFailure(String(localized: "Unable to read barcodes on this device."))
-                session.commitConfiguration()
-                return
-            }
-
-            session.addOutput(metadataOutput)
-            metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
-            metadataOutput.metadataObjectTypes = supportedTypes
-
-            if onFrameCaptured != nil, session.canAddOutput(videoOutput) {
-                videoOutput.setSampleBufferDelegate(self, queue: videoQueue)
-                videoOutput.alwaysDiscardsLateVideoFrames = true
-                session.addOutput(videoOutput)
-            }
-
-            session.commitConfiguration()
-            isConfigured = true
-
-            setupFocusMonitoring()
-        }
-
         private func getBestCameraForScanning() -> AVCaptureDevice? {
             if #available(iOS 15.4, *) {
                 if let multiCamera = AVCaptureDevice.default(.builtInDualWideCamera, for: .video, position: .back) {
@@ -290,7 +355,6 @@ extension BarcodeScanner.ScannerPreviewView {
                     return tripleCamera
                 }
             }
-
             return AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)
         }
 
@@ -333,51 +397,6 @@ extension BarcodeScanner.ScannerPreviewView {
 
                 device.unlockForConfiguration()
             } catch {}
-        }
-
-        private func startSession() {
-            guard !session.isRunning else { return }
-            DispatchQueue.global(qos: .userInitiated).async {
-                self.session.startRunning()
-            }
-        }
-
-        func metadataOutput(
-            _: AVCaptureMetadataOutput,
-            didOutput metadataObjects: [AVMetadataObject],
-            from _: AVCaptureConnection
-        ) {
-            guard isRunning.wrappedValue else { return }
-            guard let readableObject = metadataObjects.compactMap({ $0 as? AVMetadataMachineReadableCodeObject }).first,
-                  let stringValue = readableObject.stringValue
-            else {
-                return
-            }
-
-            onDetected(stringValue)
-        }
-
-        func captureOutput(
-            _: AVCaptureOutput,
-            didOutput sampleBuffer: CMSampleBuffer,
-            from _: AVCaptureConnection
-        ) {
-            let now = Date()
-            guard now.timeIntervalSince(lastFrameTime) >= frameInterval else { return }
-            lastFrameTime = now
-
-            guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-
-            let ciImage = CIImage(cvPixelBuffer: imageBuffer)
-            let context = CIContext()
-            guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return }
-
-            let orientation: UIImage.Orientation = .right
-            let fullImage = UIImage(cgImage: cgImage, scale: 1.0, orientation: orientation)
-
-            DispatchQueue.main.async { [weak self] in
-                self?.onFrameCaptured?(fullImage)
-            }
         }
     }
 }

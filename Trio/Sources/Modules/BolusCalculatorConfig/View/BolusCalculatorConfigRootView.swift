@@ -185,6 +185,37 @@ extension BolusCalculatorConfig {
                         )
                     }
                 )
+
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.barcodeScannerLongTapEnabled,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = String(localized: "Enable Barcode Scanner")
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: String(localized: "Enable Barcode Scanner"),
+                    miniHint: String(
+                        localized: "Scan Qr-Codes to enter carbs"
+                    ),
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text(
+                            "Enables you to scann barcodes and get nutritional data direcltly in the app."
+                        )
+                        Text(
+                            "To add more then one food item scan again and optionally edit or remove specific info of the item in the listview."
+                        )
+                        Text(
+                            "Note: Nutritional data can be slightly inaccurate as producers might change the recipes over time of specific products. It's recomended to check the nutrional data on first scan. Also if wrong data is seen maybe supporting the openfoodfacs project via correcting the nutritional data in thier app is a option."
+                        )
+                    }
+                )
             }
             .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {

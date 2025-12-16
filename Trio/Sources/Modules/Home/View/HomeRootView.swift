@@ -1199,6 +1199,7 @@ extension Home {
                     }
                 )
                 .simultaneousGesture(LongPressGesture().onEnded { _ in
+                    guard state.settingsManager.settings.barcodeScannerLongTapEnabled else { return }
                     didLongPress = true
                     state.showModal(for: .barcodeScanner)
                     playHaptics(haptics)
