@@ -9,11 +9,12 @@
 /* Begin PBXBuildFile section */
 		041D1E995A6AE92E9289DC49 /* TreatmentsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */; };
 		0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5822B15939E719628E9FF7C /* SnoozeRootView.swift */; };
+		096F54772EF21D4B00B557C1 /* NutritionEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 096F54762EF21D4B00B557C1 /* NutritionEditorView.swift */; };
 		0977A2262EF1F35C00A1AF88 /* BarcodeScannerStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0977A2252EF1F35200A1AF88 /* BarcodeScannerStateModel.swift */; };
 		09A169602EE302EB0026711C /* BarcodeScannerDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695B2EE302EB0026711C /* BarcodeScannerDataFlow.swift */; };
 		09A169642EE302EB0026711C /* BarcodeScannerProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695C2EE302EB0026711C /* BarcodeScannerProvider.swift */; };
 		09A169652EE302EB0026711C /* BarcodeScannerRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169582EE302EB0026711C /* BarcodeScannerRootView.swift */; };
-		09A169682EE3030D0026711C /* OpenBarcodeAIIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169662EE3030D0026711C /* OpenBarcodeAIIntent.swift */; };
+		09A169682EE3030D0026711C /* OpenBarcodeScannerIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169662EE3030D0026711C /* OpenBarcodeScannerIntent.swift */; };
 		09A169782EE302EB0026711D /* NutritionData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169702EE302EB0026711D /* NutritionData.swift */; };
 		09A169792EE302EB0026711D /* OpenFoodFactsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169712EE302EB0026711D /* OpenFoodFactsModels.swift */; };
 		09A1697A2EE302EB0026711D /* OpenFoodFactsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169722EE302EB0026711D /* OpenFoodFactsClient.swift */; };
@@ -850,11 +851,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		096F54762EF21D4B00B557C1 /* NutritionEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionEditorView.swift; sourceTree = "<group>"; };
 		0977A2252EF1F35200A1AF88 /* BarcodeScannerStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerStateModel.swift; sourceTree = "<group>"; };
 		09A169582EE302EB0026711C /* BarcodeScannerRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerRootView.swift; sourceTree = "<group>"; };
 		09A1695B2EE302EB0026711C /* BarcodeScannerDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerDataFlow.swift; sourceTree = "<group>"; };
 		09A1695C2EE302EB0026711C /* BarcodeScannerProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerProvider.swift; sourceTree = "<group>"; };
-		09A169662EE3030D0026711C /* OpenBarcodeAIIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenBarcodeAIIntent.swift; sourceTree = "<group>"; };
+		09A169662EE3030D0026711C /* OpenBarcodeScannerIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenBarcodeScannerIntent.swift; sourceTree = "<group>"; };
 		09A169702EE302EB0026711D /* NutritionData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionData.swift; sourceTree = "<group>"; };
 		09A169712EE302EB0026711D /* OpenFoodFactsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenFoodFactsModels.swift; sourceTree = "<group>"; };
 		09A169722EE302EB0026711D /* OpenFoodFactsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenFoodFactsClient.swift; sourceTree = "<group>"; };
@@ -1686,8 +1688,10 @@
 			isa = PBXGroup;
 			children = (
 				09A169582EE302EB0026711C /* BarcodeScannerRootView.swift */,
+				096F54762EF21D4B00B557C1 /* NutritionEditorView.swift */,
 				09A169732EE302EB0026711D /* ScannerPreviewView.swift */,
 				09A169742EE302EB0026711D /* ProductViews.swift */,
+				09A169722EE302EB0026711D /* OpenFoodFactsClient.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -1696,7 +1700,6 @@
 			isa = PBXGroup;
 			children = (
 				09A1695A2EE302EB0026711C /* View */,
-				09A169722EE302EB0026711D /* OpenFoodFactsClient.swift */,
 				0977A2252EF1F35200A1AF88 /* BarcodeScannerStateModel.swift */,
 				09A1695B2EE302EB0026711C /* BarcodeScannerDataFlow.swift */,
 				09A1695C2EE302EB0026711C /* BarcodeScannerProvider.swift */,
@@ -1707,7 +1710,7 @@
 		09A169672EE3030D0026711C /* BarcodeScanner */ = {
 			isa = PBXGroup;
 			children = (
-				09A169662EE3030D0026711C /* OpenBarcodeAIIntent.swift */,
+				09A169662EE3030D0026711C /* OpenBarcodeScannerIntent.swift */,
 			);
 			path = BarcodeScanner;
 			sourceTree = "<group>";
@@ -4222,7 +4225,7 @@
 				DD1745262C55526F00211FAC /* SMBSettingsRootView.swift in Sources */,
 				3811DE3025C9D49500A708ED /* HomeStateModel.swift in Sources */,
 				38BF021725E7CBBC00579895 /* PumpManagerExtensions.swift in Sources */,
-				09A169682EE3030D0026711C /* OpenBarcodeAIIntent.swift in Sources */,
+				09A169682EE3030D0026711C /* OpenBarcodeScannerIntent.swift in Sources */,
 				118DF76E2C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift in Sources */,
 				CEE9A6552BBB418300EB5194 /* CalibrationsProvider.swift in Sources */,
 				19F95FF529F10FCF00314DDC /* StatProvider.swift in Sources */,
@@ -4628,6 +4631,7 @@
 				CE82E02728E869DF00473A9C /* AlertEntry.swift in Sources */,
 				DD30786A2D42F94000DE0490 /* GarminDevice.swift in Sources */,
 				38E4451E274DB04600EC9A94 /* AppDelegate.swift in Sources */,
+				096F54772EF21D4B00B557C1 /* NutritionEditorView.swift in Sources */,
 				BD2FF1A02AE29D43005D1C5D /* ToggleStyles.swift in Sources */,
 				DDD163162C4C690300CD525A /* AdjustmentsDataFlow.swift in Sources */,
 				BDF34F932C10D0E100D51995 /* LiveActivityAttributes+Helper.swift in Sources */,

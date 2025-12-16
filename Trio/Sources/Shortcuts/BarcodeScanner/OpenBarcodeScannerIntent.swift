@@ -4,7 +4,7 @@ import Foundation
 /// App Intent used to open the Barcode AI scanner via Apple Shortcuts.
 /// When invoked, this intent opens the app and navigates to the Barcode AI view
 /// for scanning food barcodes and analyzing food images.
-struct OpenBarcodeAIIntent: AppIntent {
+struct OpenBarcodeScannerIntent: AppIntent {
     /// Title of the action in the Shortcuts app.
     static var title = LocalizedStringResource("Open Barcode Scanner")
 

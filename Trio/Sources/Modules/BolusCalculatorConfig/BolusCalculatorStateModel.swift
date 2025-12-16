@@ -11,6 +11,7 @@ extension BolusCalculatorConfig {
         @Published var displayPresets: Bool = true
         @Published var confirmBolusWhenVeryLowGlucose: Bool = false
         @Published var barcodeScannerLongTapEnabled: Bool = false
+        @Published var barcodeScannerOnlyCarbs: Bool = false
 
         override func subscribe() {
             units = settingsManager.settings.units
@@ -24,6 +25,8 @@ extension BolusCalculatorConfig {
             subscribeSetting(\.confirmBolus, on: $confirmBolusWhenVeryLowGlucose) { confirmBolusWhenVeryLowGlucose = $0 }
             subscribeSetting(\.barcodeScannerLongTapEnabled, on: $barcodeScannerLongTapEnabled) {
                 barcodeScannerLongTapEnabled = $0 }
+            subscribeSetting(\.barcodeScannerOnlyCarbs, on: $barcodeScannerOnlyCarbs) {
+                barcodeScannerOnlyCarbs = $0 }
         }
     }
 }

@@ -250,14 +250,19 @@ extension BarcodeScanner {
             for item in scannedProducts where item.amount > 0 {
                 let amountDecimal = Decimal(item.amount)
 
-                func macro(_ per100g: Double?) -> Decimal {
+                func amount(_ per100g: Double?) -> Decimal {
                     guard let per100g else { return 0 }
                     return amountDecimal * Decimal(per100g) / 100
                 }
 
-                totalCarbs += macro(item.nutriments.carbohydratesPer100g)
-                totalFat += macro(item.nutriments.fatPer100g)
-                totalProtein += macro(item.nutriments.proteinPer100g)
+                totalCarbs += amount(item.nutriments.carbohydratesPer100g)
+                if !settingsManager.settings.barcodeScannerOnlyCarbs {
+                    totalFat += amount(item.nutriments.fatPer100g)
+                    totalProtein += amount(item.nutriments.proteinPer100g)
+                } else {
+                    totalFat = 0
+                    totalProtein = 0
+                }
 
                 productNames.append(item.name)
             }
@@ -274,6 +279,5 @@ extension BarcodeScanner {
             errorMessage = nil
             isScanning = true
         }
-
     }
 }
