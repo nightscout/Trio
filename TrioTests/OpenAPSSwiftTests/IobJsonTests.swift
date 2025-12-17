@@ -65,8 +65,10 @@ import Testing
             // The JS implementation of IoB when the pump is suspend is so fundamentally
             // broken that I wasn't able to fix it in JS. So we'll just skip these, but I
             // verified them by hand and the Swift implementation appears to be correct
-            if let mostRecentPumpEvent = iobInputs.history.filter({ $0.isExternal != true }).first {
-                if mostRecentPumpEvent.type == .pumpSuspend
+            if let mostRecentSuspendResumeEvent = iobInputs.history.filter({ $0.type == .pumpSuspend || $0.type == .pumpResume })
+                .first
+            {
+                if mostRecentSuspendResumeEvent.type == .pumpSuspend
                 {
                     print("Skipping, known issue with JS and currently suspended pumps")
                     continue
