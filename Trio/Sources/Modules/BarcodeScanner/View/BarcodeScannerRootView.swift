@@ -9,6 +9,7 @@ extension BarcodeScanner {
         @StateObject var state = StateModel()
         @State private var showListView = false
         @State private var isEditingFromList = false
+        @State private var showEditorCard = false
 
         @Environment(AppState.self) var appState
         @Environment(\.colorScheme) var colorScheme
@@ -69,7 +70,8 @@ extension BarcodeScanner {
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    if !showListView {
+                    // Hide the item list button while editing nutrition details
+                    if !showListView && !showEditorView {
                         Button(
                             action: {
                                 showListView = true
@@ -110,6 +112,47 @@ extension BarcodeScanner {
                         )
                         .buttonStyle(BorderlessButtonStyle())
                     }
+                }
+            }
+            .gesture(
+                DragGesture()
+                    .onEnded { value in
+                        // Ignore when keyboard or nutrition editor is visible
+                        guard !state.isKeyboardVisible else { return }
+
+                        let horizontalTranslation = value.translation.width
+                        let verticalTranslation = value.translation.height
+
+                        // Only react to mostly horizontal swipes
+                        guard abs(horizontalTranslation) > abs(verticalTranslation),
+                              abs(horizontalTranslation) > 40 else { return }
+
+                        if horizontalTranslation < 0, !showListView, !showEditorView {
+                            // Swipe left from scanner view → go to item list
+                            showListView = true
+                        } else if horizontalTranslation > 0, showListView {
+                            // Swipe right from item list → back to scanner
+                            showListView = false
+                        }
+                    }
+            )
+            .sheet(isPresented: $showEditorCard) {
+                NavigationStack {
+                    NutritionEditorView(
+                        state: state,
+                        focusedField: $focusedField,
+                        isEditingFromList: $isEditingFromList,
+                        onDismissList: { showEditorCard = false }
+                    )
+                    .navigationTitle(String(localized: "Edit Item"))
+                    .navigationBarTitleDisplayMode(.inline)
+                }
+            }
+            .onChange(of: showEditorCard) { _, isPresented in
+                // If the sheet is dismissed interactively while editing from list, reset editing state
+                if !isPresented, isEditingFromList {
+                    isEditingFromList = false
+                    state.cancelEditing()
                 }
             }
             .onAppear {
@@ -385,7 +428,7 @@ extension BarcodeScanner {
                                         Button {
                                             state.editScannedProduct(item)
                                             isEditingFromList = true
-                                            showListView = false
+                                            showEditorCard = true
                                         } label: {
                                             Label("Edit", systemImage: "pencil")
                                         }
@@ -460,10 +503,8 @@ extension BarcodeScanner {
                     .bold()
 
                 HStack(spacing: 16) {
-                    Label("\(totalCarbs, specifier: "%.1f") g carbs", systemImage: "leaf.fill")
-                        .foregroundStyle(.green)
-                    Label("\(totalCalories, specifier: "%.0f") kcal", systemImage: "flame.fill")
-                        .foregroundStyle(.orange)
+                    Text("total \(totalCarbs, specifier: "%.1f") g of carbs")
+                        .foregroundStyle(.blue)
                 }
                 .font(.subheadline)
             }

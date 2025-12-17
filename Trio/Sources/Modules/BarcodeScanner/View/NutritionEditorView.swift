@@ -76,127 +76,25 @@ extension BarcodeScanner {
                                     unit: "g",
                                     field: .carbs
                                 )
+                                if !state.settingsManager.settings.barcodeScannerOnlyCarbs {
+                                    Divider().padding(.leading)
 
-                                Divider().padding(.leading)
+                                    editableProductNutritionRow(
+                                        label: String(localized: "Fat"),
+                                        keyPath: \.fatPer100g,
+                                        unit: "g",
+                                        field: .fat
+                                    )
 
-                                editableProductNutritionRow(
-                                    label: String(localized: "Fat"),
-                                    keyPath: \.fatPer100g,
-                                    unit: "g",
-                                    field: .fat
-                                )
+                                    Divider().padding(.leading)
 
-                                Divider().padding(.leading)
-
-                                editableProductNutritionRow(
-                                    label: String(localized: "Protein"),
-                                    keyPath: \.proteinPer100g,
-                                    unit: "g",
-                                    field: .protein
-                                )
-                            }
-                            .background(Color.secondary.opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                            // Amount input section
-                            amountInputSection
-
-                        } else if state.scannedNutritionData != nil {
-                            HStack {
-                                Image(systemName: "doc.text.magnifyingglass")
-                                TextField("Product Name", text: $state.editableNutritionName)
-                                    .focused(focusedField, equals: .name)
-                                    .submitLabel(.done)
-                            }
-                            .font(.headline)
-
-                            HStack(spacing: 4) {
-                                Text("Values per")
-                                TextField("100", value: $state.scannedLabelBasisAmount, format: .number)
-                                    .font(.subheadline.weight(.semibold))
-                                    .multilineTextAlignment(.center)
-                                    .keyboardType(.decimalPad)
-                                    .frame(width: 50)
-                                    .padding(.horizontal, 4)
-                                    .background(Color.secondary.opacity(0.1))
-                                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                                Text("g")
-                                Spacer()
-                            }
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(.secondary)
-                            .padding(.top, 8)
-
-                            VStack(spacing: 0) {
-                                editableNutritionRow(
-                                    label: String(localized: "Calories"),
-                                    value: Binding(
-                                        get: { state.scannedNutritionData?.calories },
-                                        set: { state.scannedNutritionData?.calories = $0 }
-                                    ),
-                                    unit: "kcal",
-                                    field: .calories
-                                )
-
-                                Divider().padding(.leading)
-
-                                editableNutritionRow(
-                                    label: String(localized: "Carbohydrates"),
-                                    value: Binding(
-                                        get: { state.scannedNutritionData?.carbohydrates },
-                                        set: { state.scannedNutritionData?.carbohydrates = $0 }
-                                    ),
-                                    unit: "g",
-                                    field: .carbs
-                                )
-
-                                Divider().padding(.leading)
-
-                                editableNutritionRow(
-                                    label: String(localized: "  └ Sugars"),
-                                    value: Binding(
-                                        get: { state.scannedNutritionData?.sugars },
-                                        set: { state.scannedNutritionData?.sugars = $0 }
-                                    ),
-                                    unit: "g",
-                                    field: .sugars
-                                )
-
-                                Divider().padding(.leading)
-
-                                editableNutritionRow(
-                                    label: String(localized: "Fat"),
-                                    value: Binding(
-                                        get: { state.scannedNutritionData?.fat },
-                                        set: { state.scannedNutritionData?.fat = $0 }
-                                    ),
-                                    unit: "g",
-                                    field: .fat
-                                )
-
-                                Divider().padding(.leading)
-
-                                editableNutritionRow(
-                                    label: String(localized: "Protein"),
-                                    value: Binding(
-                                        get: { state.scannedNutritionData?.protein },
-                                        set: { state.scannedNutritionData?.protein = $0 }
-                                    ),
-                                    unit: "g",
-                                    field: .protein
-                                )
-
-                                Divider().padding(.leading)
-
-                                editableNutritionRow(
-                                    label: String(localized: "Fiber"),
-                                    value: Binding(
-                                        get: { state.scannedNutritionData?.fiber },
-                                        set: { state.scannedNutritionData?.fiber = $0 }
-                                    ),
-                                    unit: "g",
-                                    field: .fiber
-                                )
+                                    editableProductNutritionRow(
+                                        label: String(localized: "Protein"),
+                                        keyPath: \.proteinPer100g,
+                                        unit: "g",
+                                        field: .protein
+                                    )
+                                }
                             }
                             .background(Color.secondary.opacity(0.1))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -309,12 +207,10 @@ extension BarcodeScanner {
             }
         }
 
-        private func nutritionSummary(carbs: Double, kcal: Double) -> some View {
+        private func nutritionSummary(carbs: Double, kcal _: Double) -> some View {
             HStack(spacing: 16) {
-                Label("\(carbs, specifier: "%.1f") g carbs", systemImage: "leaf.fill")
-                    .foregroundStyle(.green)
-                Label("\(kcal, specifier: "%.0f") kcal", systemImage: "flame.fill")
-                    .foregroundStyle(.orange)
+                Text("total \(carbs, specifier: "%.1f") g of carbs")
+                    .foregroundStyle(.blue)
             }
             .font(.caption)
             .padding(.top, 4)
@@ -365,6 +261,10 @@ extension BarcodeScanner {
             }
             .padding(.horizontal)
             .padding(.vertical, 10)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                focusedField.wrappedValue = field
+            }
             .background(isFocused ? Color.accentColor.opacity(0.1) : Color.clear)
             .animation(.easeInOut(duration: 0.15), value: isFocused)
         }
