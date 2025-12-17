@@ -65,8 +65,10 @@ import Testing
             // The JS implementation of IoB when the pump is suspend is so fundamentally
             // broken that I wasn't able to fix it in JS. So we'll just skip these, but I
             // verified them by hand and the Swift implementation appears to be correct
-            if let mostRecentPumpEvent = iobInputs.history.filter({ $0.isExternal != true }).first {
-                if mostRecentPumpEvent.type == .pumpSuspend
+            if let mostRecentSuspendResumeEvent = iobInputs.history.filter({ $0.type == .pumpSuspend || $0.type == .pumpResume })
+                .first
+            {
+                if mostRecentSuspendResumeEvent.type == .pumpSuspend
                 {
                     print("Skipping, known issue with JS and currently suspended pumps")
                     continue
@@ -97,6 +99,27 @@ import Testing
             clock: iobInputs.clock,
             autosens: try JSONBridge.to(iobInputs.autosens)
         )
+
+        // In suspendedPrior mode (first suspend/resume event is a Resume), JS incorrectly
+        // returns pre-resume temp basals in lastTemp because history.js line 566 uses
+        // tempHistory instead of splitHistory. Swift correctly handles this case.
+        if case let .success(jsRawJson) = iobResultJavascript,
+           let jsIobEntries = try? JSONBridge.iobResult(from: jsRawJson),
+           let jsLastTempDate = jsIobEntries.first?.lastTemp?.date
+        {
+            let suspendResumeEvents = iobInputs.history
+                .filter { $0.type == .pumpSuspend || $0.type == .pumpResume }
+                .sorted { $0.timestamp < $1.timestamp }
+            if let firstEvent = suspendResumeEvents.first,
+               firstEvent.type == .pumpResume
+            {
+                let firstResumeTime = UInt64(firstEvent.timestamp.timeIntervalSince1970 * 1000)
+                if jsLastTempDate < firstResumeTime {
+                    print("Skipping, known issue with JS lastTemp in suspendedPrior mode")
+                    return
+                }
+            }
+        }
 
         let comparison = JSONCompare.createComparison(
             function: .iob,

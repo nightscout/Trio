@@ -92,10 +92,7 @@ enum OrefFunction: String, Codable {
                 "basaliob": 0.25,
                 "bolusiob": 0.25,
                 "netbasalinsulin": 0.25,
-                "bolusinsulin": 0.25,
-                // Please see this issue for context on duration:
-                // https://github.com/nightscout/Trio-dev/issues/453
-                "duration": 120
+                "bolusinsulin": 0.25
             ]
         case .meal:
             return [
@@ -145,6 +142,21 @@ enum OrefFunction: String, Codable {
             return ["predBGs.UAM", "predBGs.COB", "predBGs.ZT", "predBGs.IOB"]
         default:
             return []
+        }
+    }
+
+    /// Properties to skip during object comparison. Unlike keysToIgnore which filters
+    /// final differences, this skips properties during the recursive comparison itself.
+    /// This is needed for array return types where differences are recorded at the
+    /// element level rather than at individual property paths.
+    func propertiesToSkip() -> Set<String> {
+        switch self {
+        case .iob:
+            // Please see this issue for context on skipping lastTemp:
+            // https://github.com/nightscout/Trio-dev/issues/453
+            return Set(["lastTemp"])
+        default:
+            return Set()
         }
     }
 }
