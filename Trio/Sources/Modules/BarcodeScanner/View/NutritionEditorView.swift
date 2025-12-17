@@ -71,28 +71,10 @@ extension BarcodeScanner {
                             // Editable nutrition rows for product
                             VStack(spacing: 0) {
                                 editableProductNutritionRow(
-                                    label: String(localized: "Calories"),
-                                    keyPath: \.energyKcalPer100g,
-                                    unit: "kcal",
-                                    field: .calories
-                                )
-
-                                Divider().padding(.leading)
-
-                                editableProductNutritionRow(
                                     label: String(localized: "Carbohydrates"),
                                     keyPath: \.carbohydratesPer100g,
                                     unit: "g",
                                     field: .carbs
-                                )
-
-                                Divider().padding(.leading)
-
-                                editableProductNutritionRow(
-                                    label: String(localized: "  └ Sugars"),
-                                    keyPath: \.sugarsPer100g,
-                                    unit: "g",
-                                    field: .sugars
                                 )
 
                                 Divider().padding(.leading)
@@ -111,15 +93,6 @@ extension BarcodeScanner {
                                     keyPath: \.proteinPer100g,
                                     unit: "g",
                                     field: .protein
-                                )
-
-                                Divider().padding(.leading)
-
-                                editableProductNutritionRow(
-                                    label: String(localized: "Fiber"),
-                                    keyPath: \.fiberPer100g,
-                                    unit: "g",
-                                    field: .fiber
                                 )
                             }
                             .background(Color.secondary.opacity(0.1))

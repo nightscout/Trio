@@ -6,9 +6,7 @@ import Swinject
 extension BarcodeScanner {
     struct RootView: BaseView {
         let resolver: Resolver
-
         @StateObject var state = StateModel()
-
         @State private var showListView = false
         @State private var isEditingFromList = false
 
@@ -39,49 +37,78 @@ extension BarcodeScanner {
             }
             .animation(.easeInOut(duration: 0.3), value: showListView)
             .background(appState.trioBackgroundColor(for: colorScheme))
-            .navigationTitle(String(localized: showListView ? "Scanned Items" : "Food Scanner"))
+            .navigationTitle(String(localized: showListView ? "Scanned Items" : "Barcode Scanner"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     if showListView {
-                        Button {
-                            showListView = false
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "chevron.left")
-                                Text("Scanner")
+                        Button(
+                            action: {
+                                showListView = false
+                            },
+                            label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "chevron.left")
+                                    Text("Scanner")
+                                }
                             }
-                        }
+                        )
+                        .buttonStyle(BorderlessButtonStyle())
                     } else {
-                        Button(String(localized: "Close"), action: state.hideModal)
+                        Button(
+                            action: {
+                                state.hideModal()
+                            },
+                            label: {
+                                HStack(spacing: 4) {
+                                    Text(String(localized: "Close"))
+                                }
+                            }
+                        )
+                        .buttonStyle(BorderlessButtonStyle())
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     if !showListView {
-                        Button {
-                            showListView = true
-                        } label: {
-                            ZStack(alignment: .topTrailing) {
-                                Image(systemName: "list.bullet")
-                                    .font(.body)
-                                if !state.scannedProducts.isEmpty {
-                                    Text("\(state.scannedProducts.count)")
-                                        .font(.caption2.weight(.bold))
-                                        .foregroundStyle(.white)
-                                        .padding(4)
-                                        .background(Circle().fill(Color.red))
-                                        .offset(x: 8, y: -8)
+                        Button(
+                            action: {
+                                showListView = true
+                            },
+                            label: {
+                                HStack {
+                                    ZStack(alignment: .topTrailing) {
+                                        Image(systemName: "list.bullet")
+                                            .font(.body)
+                                        if !state.scannedProducts.isEmpty {
+                                            Text("\(state.scannedProducts.count)")
+                                                .font(.caption2.weight(.bold))
+                                                .foregroundStyle(.white)
+                                                .padding(4)
+                                                .background(Circle().fill(Color.red))
+                                                .offset(x: 8, y: -8)
+                                        }
+                                    }
                                 }
                             }
-                        }
+                        )
+                        .buttonStyle(BorderlessButtonStyle())
                     }
                 }
                 ToolbarItem(placement: .keyboard) {
                     HStack {
                         Spacer()
-                        Button(String(localized: "Done")) {
-                            dismissKeyboard()
-                        }
+                        Button(
+                            action: {
+                                dismissKeyboard()
+                            },
+                            label: {
+                                HStack {
+                                    Image(systemName: "keyboard.chevron.compact.down")
+                                    Text(String(localized: "Done"))
+                                }
+                            }
+                        )
+                        .buttonStyle(BorderlessButtonStyle())
                     }
                 }
             }
