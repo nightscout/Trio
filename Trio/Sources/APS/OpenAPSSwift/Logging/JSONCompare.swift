@@ -259,6 +259,7 @@ enum JSONCompare {
         var differences: [String: ValueDifference] = [:]
         let approximateKeys = function.approximateMatchingNumbers()
         let flexibleArrayKeys = function.flexibleArrayKeys()
+        let propertiesToSkip = function.propertiesToSkip()
 
         // Check all keys present in either dictionary
         Set(jsDict.keys).union(swiftDict.keys).forEach { key in
@@ -271,6 +272,7 @@ enum JSONCompare {
                 approximately: approximateKeys[key],
                 approximateKeys: approximateKeys,
                 flexibleArrayKeys: flexibleArrayKeys,
+                propertiesToSkip: propertiesToSkip,
                 currentPath: currentPath
             ) {
                 differences[currentPath] = ValueDifference(
@@ -317,6 +319,7 @@ enum JSONCompare {
         approximately: Double?,
         approximateKeys: [String: Double],
         flexibleArrayKeys: [String],
+        propertiesToSkip: Set<String>,
         currentPath: String
     ) -> Bool {
         switch (value1, value2) {
@@ -341,22 +344,28 @@ enum JSONCompare {
                 return zip(a1.prefix(shortestCount), a2.prefix(shortestCount)).allSatisfy { v1, v2 in
                     valuesAreEqual(
                         v1, v2, approximately: approximately, approximateKeys: approximateKeys,
-                        flexibleArrayKeys: flexibleArrayKeys, currentPath: currentPath
+                        flexibleArrayKeys: flexibleArrayKeys, propertiesToSkip: propertiesToSkip,
+                        currentPath: currentPath
                     )
                 }
             }
             return a1.count == a2.count && zip(a1, a2).allSatisfy { v1, v2 in
                 valuesAreEqual(
                     v1, v2, approximately: approximately, approximateKeys: approximateKeys,
-                    flexibleArrayKeys: flexibleArrayKeys, currentPath: currentPath
+                    flexibleArrayKeys: flexibleArrayKeys, propertiesToSkip: propertiesToSkip,
+                    currentPath: currentPath
                 )
             }
         case let (.object(o1), .object(o2)):
-            return o1.keys == o2.keys && o1.keys.allSatisfy { key in
+            // Filter out properties that should be skipped during comparison
+            let keys1 = Set(o1.keys).subtracting(propertiesToSkip)
+            let keys2 = Set(o2.keys).subtracting(propertiesToSkip)
+            return keys1 == keys2 && keys1.allSatisfy { key in
                 guard let v1 = o1[key], let v2 = o2[key] else { return false }
                 return valuesAreEqual(
                     v1, v2, approximately: approximateKeys[key], approximateKeys: approximateKeys,
-                    flexibleArrayKeys: flexibleArrayKeys, currentPath: "\(currentPath).\(key)"
+                    flexibleArrayKeys: flexibleArrayKeys, propertiesToSkip: propertiesToSkip,
+                    currentPath: "\(currentPath).\(key)"
                 )
             }
         default:
