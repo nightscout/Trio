@@ -109,22 +109,24 @@ extension BarcodeScanner {
         }
 
         func didDetect(barcode: String) {
-            // Prevent rapid scanning - require cooldown between scans
-            if let lastScan = lastScanTime, Date().timeIntervalSince(lastScan) < scanCooldownSeconds {
-                return
-            }
+            Task { @MainActor in
+                // Prevent rapid scanning - require cooldown between scans
+                if let lastScan = lastScanTime, Date().timeIntervalSince(lastScan) < scanCooldownSeconds {
+                    return
+                }
 
-            guard barcode != scannedBarcode else { return }
-            scannedBarcode = barcode
-            lastScanTime = Date()
-            fetchProduct(for: barcode)
+                guard barcode != scannedBarcode else { return }
+                scannedBarcode = barcode
+                lastScanTime = Date()
+                fetchProduct(for: barcode)
+            }
         }
 
         private func fetchProduct(for barcode: String) {
             isFetchingProduct = true
             errorMessage = nil
 
-            Task {
+            Task { @MainActor in
                 do {
                     var fetchedProduct = try await client.fetchProduct(barcode: barcode)
                     self.setupEditingAmount(for: fetchedProduct)
@@ -247,53 +249,6 @@ extension BarcodeScanner {
             editingAmount = 0
             editingIsMl = false
             isScanning = true
-        }
-
-        /// Opens the Treatments view with carbs, fat and protein prefilled
-        func openInTreatments() {
-            var totalCarbs: Decimal = 0
-            var totalFat: Decimal = 0
-            var totalProtein: Decimal = 0
-            var productNames: [String] = []
-
-            for item in scannedProducts where item.amount > 0 {
-                let amountDecimal = Decimal(item.amount)
-
-                func amount(_ per100g: Double?) -> Decimal {
-                    guard let per100g else { return 0 }
-                    return amountDecimal * Decimal(per100g) / 100
-                }
-
-                totalCarbs += amount(item.nutriments.carbohydratesPer100g)
-                if !settingsManager.settings.barcodeScannerOnlyCarbs {
-                    totalFat += amount(item.nutriments.fatPer100g)
-                    totalProtein += amount(item.nutriments.proteinPer100g)
-                } else {
-                    totalFat = 0
-                    totalProtein = 0
-                }
-
-                productNames.append(item.name)
-            }
-
-            let displayNote = productNames.joined(separator: ", ")
-            if let onAddTreatments = onAddTreatments {
-                debug(
-                    .default,
-                    "openInTreatments calling onAddTreatments with carbs=\(totalCarbs) fat=\(totalFat) protein=\(totalProtein) note=\(displayNote)"
-                )
-                onAddTreatments(totalCarbs, totalFat, totalProtein, displayNote)
-                // Close the modal
-                performDismissal()
-            } else {
-                debug(.default, "openInTreatments has no onAddTreatments; showing treatments modal with carbs=\(totalCarbs)")
-                showModal(for: .barcodeScannerTreatment(
-                    carbs: totalCarbs,
-                    fat: totalFat,
-                    protein: totalProtein,
-                    note: displayNote
-                ))
-            }
         }
 
         /// Clears the captured image and returns to live camera

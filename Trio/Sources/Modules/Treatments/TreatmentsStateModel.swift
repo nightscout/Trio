@@ -708,25 +708,27 @@ extension Treatments {
         }
 
         func addScannedAmounts(carbs: Decimal, fat: Decimal, protein: Decimal, note: String) {
-            debug(.bolusState, "addScannedAmounts called with carbs=\(carbs) fat=\(fat) protein=\(protein) note=\(note)")
-            self.carbs += carbs
-            self.fat += fat
-            self.protein += protein
+            Task { @MainActor in
+                debug(.bolusState, "addScannedAmounts called with carbs=\(carbs) fat=\(fat) protein=\(protein) note=\(note)")
+                self.carbs += carbs
+                self.fat += fat
+                self.protein += protein
 
-            scannedCarbs += carbs
-            scannedFat += fat
-            scannedProtein += protein
+                scannedCarbs += carbs
+                scannedFat += fat
+                scannedProtein += protein
 
-            debug(
-                .bolusState,
-                "new totals: carbs=\(self.carbs) scannedCarbs=\(scannedCarbs) fat=\(self.fat) protein=\(self.protein)"
-            )
+                debug(
+                    .bolusState,
+                    "new totals: carbs=\(self.carbs) scannedCarbs=\(scannedCarbs) fat=\(self.fat) protein=\(self.protein)"
+                )
 
-            if !note.isEmpty {
-                if self.note.isEmpty {
-                    self.note = note
-                } else {
-                    self.note += ", " + note
+                if !note.isEmpty {
+                    if self.note.isEmpty {
+                        self.note = note
+                    } else {
+                        self.note += ", " + note
+                    }
                 }
             }
         }

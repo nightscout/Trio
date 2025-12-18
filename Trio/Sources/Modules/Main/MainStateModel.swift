@@ -288,7 +288,7 @@ extension Main {
             Foundation.NotificationCenter.default.publisher(for: .openBarcodeAI)
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] _ in
-                    self?.router.mainModalScreen.send(.barcodeScanner)
+                    self?.router.mainModalScreen.send(.treatmentWithScanner)
                 }
                 .store(in: &lifetime)
         }

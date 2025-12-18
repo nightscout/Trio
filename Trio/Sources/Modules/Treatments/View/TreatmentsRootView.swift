@@ -20,6 +20,7 @@ extension Treatments {
         let initialFat: Decimal?
         let initialProtein: Decimal?
         let initialNote: String?
+        let openWithScanner: Bool
 
         @StateObject var state = StateModel()
 
@@ -28,6 +29,14 @@ extension Treatments {
         @State private var calculatorDetent = PresentationDetent.large
         @State private var pushed: Bool = false
         @State private var debounce: DispatchWorkItem?
+
+        // Food search state
+        @State private var searchQuery = ""
+        @State private var searchResults: [BarcodeScanner.FoodItem] = []
+        @State private var isSearching = false
+        @State private var searchError: String?
+        @State private var searchDebounce: DispatchWorkItem?
+        @State private var showAllSearchResults = false
 
         private enum Config {
             static let dividerHeight: CGFloat = 2
@@ -106,8 +115,8 @@ extension Treatments {
                             handleDebouncedInput()
                         }
                     }
-                    if state.scannedProtein > 0 {
-                        Text("+ \(Double(truncating: state.scannedProtein as NSNumber), specifier: "%.1f")g from scan")
+                    if state.scannedProtein > 0 && !state.settings.settings.barcodeScannerOnlyCarbs {
+                        Text("+ \(Double(truncating: state.scannedProtein as NSNumber), specifier: "%.1f")g")
                             .font(.caption)
                             .foregroundStyle(.blue)
                     }
@@ -133,8 +142,8 @@ extension Treatments {
                             handleDebouncedInput()
                         }
                     }
-                    if state.scannedFat > 0 {
-                        Text("+ \(Double(truncating: state.scannedFat as NSNumber), specifier: "%.1f")g from scan")
+                    if state.scannedFat > 0 && !state.settings.settings.barcodeScannerOnlyCarbs {
+                        Text("+ \(Double(truncating: state.scannedFat as NSNumber), specifier: "%.1f")g")
                             .font(.caption)
                             .foregroundStyle(.blue)
                     }
@@ -162,7 +171,7 @@ extension Treatments {
                         handleDebouncedInput()
                     }
                     if state.scannedCarbs > 0 {
-                        Text("+ \(Double(truncating: state.scannedCarbs as NSNumber), specifier: "%.1f")g from scan")
+                        Text("+ \(Double(truncating: state.scannedCarbs as NSNumber), specifier: "%.1f")g")
                             .font(.caption)
                             .foregroundStyle(.blue)
                     }
@@ -220,47 +229,130 @@ extension Treatments {
             initialCarbs: Decimal? = nil,
             initialFat: Decimal? = nil,
             initialProtein: Decimal? = nil,
-            initialNote: String? = nil
+            initialNote: String? = nil,
+            openWithScanner: Bool = false
         ) {
             self.resolver = resolver
             self.initialCarbs = initialCarbs
             self.initialFat = initialFat
             self.initialProtein = initialProtein
             self.initialNote = initialNote
+            self.openWithScanner = openWithScanner
         }
 
         var body: some View {
             ZStack(alignment: .center) {
                 VStack {
                     List {
-                        // Quick Add Buttons
+                        // Food Search & Quick Actions
                         if state.settings != nil && state.settings.settings.barcodeScannerLongTapEnabled {
                             Section {
-                                HStack(spacing: 20) {
+                                // Combined search bar with action buttons
+                                HStack(spacing: 8) {
+                                    // Scanner button
                                     Button {
-                                        // Open Scanner directly
                                         configureAndShowScanner(showList: false)
                                     } label: {
-                                        Label("Scanner", systemImage: "barcode.viewfinder")
-                                            .frame(maxWidth: .infinity)
+                                        Image(systemName: "barcode.viewfinder")
+                                            .font(.title2)
+                                            .foregroundStyle(.blue)
                                     }
-                                    .buttonStyle(.bordered)
-                                    .tint(.blue)
+                                    .buttonStyle(.plain)
 
+                                    // Search field
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "magnifyingglass")
+                                            .foregroundStyle(.secondary)
+                                        TextField("Search foods...", text: $searchQuery)
+                                            .textFieldStyle(.plain)
+                                            .autocorrectionDisabled()
+                                            .textInputAutocapitalization(.never)
+                                            .onChange(of: searchQuery) { _, _ in
+                                                showAllSearchResults = false
+                                                performFoodSearch()
+                                            }
+                                        if !searchQuery.isEmpty {
+                                            Button {
+                                                searchQuery = ""
+                                                searchResults = []
+                                                showAllSearchResults = false
+                                            } label: {
+                                                Image(systemName: "xmark.circle.fill")
+                                                    .foregroundStyle(.secondary)
+                                            }
+                                            .buttonStyle(.plain)
+                                        }
+                                    }
+                                    .padding(10)
+                                    .background(Color.secondary.opacity(0.1))
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                                    // List button
                                     Button {
-                                        // Open List directly
                                         configureAndShowScanner(showList: true)
                                     } label: {
-                                        Label("List", systemImage: "list.bullet")
-                                            .frame(maxWidth: .infinity)
+                                        ZStack(alignment: .topTrailing) {
+                                            Image(systemName: "list.bullet")
+                                                .font(.title2)
+                                                .foregroundStyle(.blue)
+
+                                            if !scannerState.scannedProducts.isEmpty {
+                                                Text("\(scannerState.scannedProducts.count)")
+                                                    .font(.caption2.weight(.bold))
+                                                    .foregroundStyle(.white)
+                                                    .padding(4)
+                                                    .background(Circle().fill(Color.red))
+                                                    .offset(x: 8, y: -8)
+                                            }
+                                        }
                                     }
-                                    .buttonStyle(.bordered)
-                                    .tint(.blue)
+                                    .buttonStyle(.plain)
                                 }
-                                .padding(.vertical, 4)
+
+                                // Search results
+                                if isSearching {
+                                    HStack {
+                                        Spacer()
+                                        ProgressView()
+                                            .padding(.vertical, 8)
+                                        Spacer()
+                                    }
+                                } else if let error = searchError {
+                                    Text(error)
+                                        .font(.caption)
+                                        .foregroundStyle(.red)
+                                } else if !searchResults.isEmpty {
+                                    let displayResults = showAllSearchResults ? searchResults : Array(searchResults.prefix(5))
+                                    ForEach(displayResults) { item in
+                                        FoodSearchResultRow(item: item) {
+                                            addSearchResultToMeal(item)
+                                        }
+                                    }
+                                    if searchResults.count > 5 {
+                                        Button {
+                                            withAnimation {
+                                                showAllSearchResults.toggle()
+                                            }
+                                        } label: {
+                                            HStack {
+                                                Text(
+                                                    showAllSearchResults ? "Show less" :
+                                                        "Show \(searchResults.count - 5) more results"
+                                                )
+                                                .font(.caption.weight(.medium))
+                                                Image(systemName: showAllSearchResults ? "chevron.up" : "chevron.down")
+                                                    .font(.caption)
+                                            }
+                                            .foregroundStyle(.blue)
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 6)
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
                             }
                             .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets()) // Reduce padding
+                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                         }
 
                         Section {
@@ -478,6 +570,11 @@ extension Treatments {
                     Task { @MainActor in
                         state.insulinCalculated = await state.calculateInsulin()
                     }
+
+                    // Auto-open scanner if requested
+                    if openWithScanner {
+                        configureAndShowScanner(showList: false)
+                    }
                 }
             }
             .onDisappear {
@@ -534,6 +631,55 @@ extension Treatments {
         func configureAndShowScanner(showList: Bool) {
             showBarcodeScanner = true
             initialShowList = showList
+        }
+
+        /// Performs debounced food search using Open Food Facts API
+        private func performFoodSearch() {
+            searchDebounce?.cancel()
+            searchError = nil
+
+            let query = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !query.isEmpty else {
+                searchResults = []
+                isSearching = false
+                return
+            }
+
+            // Capture the query value explicitly to ensure correct search term is used
+            let capturedQuery = query
+            searchDebounce = DispatchWorkItem {
+                Task { @MainActor in
+                    self.isSearching = true
+                    defer { self.isSearching = false }
+
+                    do {
+                        let client = BarcodeScanner.OpenFoodFactsClient()
+                        self.searchResults = try await client.searchProducts(query: capturedQuery)
+                    } catch {
+                        self.searchError = error.localizedDescription
+                        self.searchResults = []
+                    }
+                }
+            }
+
+            if let workItem = searchDebounce {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: workItem)
+            }
+        }
+
+        /// Adds a search result to the scanned products and updates calculations
+        private func addSearchResultToMeal(_ item: BarcodeScanner.FoodItem) {
+            // Add to scanner state's scanned products with default amount
+            var mutableItem = item
+            mutableItem.amount = item.servingQuantity ?? 100 // Default to serving or 100g
+            scannerState.scannedProducts.append(mutableItem)
+
+            // Clear search
+            searchQuery = ""
+            searchResults = []
+
+            // Sync amounts and recalculate
+            syncScannedAmounts()
         }
 
         private func syncScannedAmounts() {
@@ -767,6 +913,91 @@ extension Treatments {
                 .frame(height: 1)
                 .foregroundColor(.gray.opacity(0.65))
                 .padding(.vertical)
+        }
+    }
+
+    /// A compact row view for displaying food search results
+    struct FoodSearchResultRow: View {
+        let item: BarcodeScanner.FoodItem
+        let onAdd: () -> Void
+
+        var body: some View {
+            Button(action: onAdd) {
+                HStack(spacing: 12) {
+                    // Product image
+                    productImage
+                        .frame(width: 44, height: 44)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                    // Product info
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(item.name)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+
+                        HStack(spacing: 8) {
+                            if let brand = item.brand {
+                                Text(brand)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                            if let carbs = item.nutriments.carbohydratesPer100g {
+                                Text("\(carbs, specifier: "%.1f")g carbs/100g")
+                                    .font(.caption)
+                                    .foregroundStyle(.blue)
+                            }
+                        }
+                    }
+
+                    Spacer()
+
+                    // Add button indicator
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(.blue)
+                }
+                .padding(.vertical, 6)
+            }
+            .buttonStyle(.plain)
+        }
+
+        @ViewBuilder private var productImage: some View {
+            switch item.imageSource {
+            case let .url(url):
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case let .success(image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    case .failure:
+                        imagePlaceholder
+                    default:
+                        ProgressView()
+                            .frame(width: 44, height: 44)
+                    }
+                }
+
+            case let .image(uiImage):
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+
+            case .none:
+                imagePlaceholder
+            }
+        }
+
+        private var imagePlaceholder: some View {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.secondary.opacity(0.2))
+                .overlay(
+                    Image(systemName: "fork.knife")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                )
         }
     }
 }

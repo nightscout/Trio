@@ -69,6 +69,94 @@ extension BarcodeScanner {
                 )
             )
         }
+
+        /// Search products by name/text query
+        /// - Parameters:
+        ///   - query: The search term to look for
+        ///   - page: Page number for pagination (1-indexed)
+        ///   - pageSize: Number of results per page
+        /// - Returns: Array of matching FoodItems
+        func searchProducts(query: String, page: Int = 1, pageSize: Int = 24) async throws -> [FoodItem] {
+            guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                return []
+            }
+
+            guard var components = URLComponents(string: "https://world.openfoodfacts.org/cgi/search.pl") else {
+                throw OpenFoodFactsError.invalidResponse
+            }
+
+            components.queryItems = [
+                URLQueryItem(name: "search_terms", value: query),
+                URLQueryItem(name: "search_simple", value: "1"),
+                URLQueryItem(name: "action", value: "process"),
+                URLQueryItem(name: "json", value: "1"),
+                URLQueryItem(name: "page", value: String(page)),
+                URLQueryItem(name: "page_size", value: String(pageSize))
+            ]
+
+            guard let url = components.url else {
+                throw OpenFoodFactsError.invalidResponse
+            }
+
+            var request = URLRequest(url: url)
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            request.setValue("Trio-iOS/1.0", forHTTPHeaderField: "User-Agent")
+            request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData // No cache
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse,
+                  200 ..< 300 ~= httpResponse.statusCode
+            else {
+                throw OpenFoodFactsError.invalidResponse
+            }
+
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+            let searchResponse = try decoder.decode(SearchAPIResponse.self, from: data)
+
+            return searchResponse.products.compactMap { productData -> FoodItem? in
+                let servingUnit = productData.servingQuantityUnit?.lowercased() ?? productData.productQuantityUnit?
+                    .lowercased()
+                let isMlQuantityUnit: Bool = {
+                    if let unit = servingUnit {
+                        if unit.contains("ml") || unit == "l" || unit.contains("fl oz") {
+                            return true
+                        }
+                        return false
+                    }
+                    return productData.nutriments?.basis == .per100ml
+                }()
+
+                var imageSource: FoodItem.ImageSource = .none
+                if let url = productData.imageURL {
+                    imageSource = .url(url)
+                }
+
+                return FoodItem(
+                    barcode: productData.code,
+                    name: productData.productName?.trimmingCharacters(in: .whitespacesAndNewlines)
+                        .nonEmpty ?? String(localized: "Unknown product"),
+                    brand: productData.primaryBrand,
+                    quantity: productData.quantity,
+                    servingSize: productData.servingSize,
+                    ingredients: productData.ingredientsText,
+                    imageSource: imageSource,
+                    defaultPortionIsMl: isMlQuantityUnit,
+                    servingQuantity: productData.servingQuantity,
+                    servingQuantityUnit: productData.servingQuantityUnit,
+                    nutriments: .init(
+                        basis: productData.nutriments?.basis ?? .per100g,
+                        energyKcalPer100g: productData.nutriments?.energyKcal100g,
+                        carbohydratesPer100g: productData.nutriments?.carbohydrates100g,
+                        sugarsPer100g: productData.nutriments?.sugars100g,
+                        fatPer100g: productData.nutriments?.fat100g,
+                        proteinPer100g: productData.nutriments?.proteins100g,
+                        fiberPer100g: productData.nutriments?.fiber100g
+                    )
+                )
+            }
+        }
     }
 }
 
@@ -100,7 +188,16 @@ private extension BarcodeScanner.OpenFoodFactsClient {
         let product: ProductData?
     }
 
+    /// Response structure for search API endpoint
+    struct SearchAPIResponse: Decodable {
+        let count: Int
+        let page: Int
+        let pageSize: Int
+        let products: [ProductData]
+    }
+
     struct ProductData: Decodable {
+        let code: String?
         let productName: String?
         let brands: String?
         let quantity: String?
@@ -115,6 +212,7 @@ private extension BarcodeScanner.OpenFoodFactsClient {
         let nutriments: NutrimentsData?
 
         private enum CodingKeys: String, CodingKey {
+            case code
             case productName
             case brands
             case quantity
@@ -131,6 +229,7 @@ private extension BarcodeScanner.OpenFoodFactsClient {
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
+            code = try container.decodeIfPresent(String.self, forKey: .code)
             productName = try container.decodeIfPresent(String.self, forKey: .productName)
             brands = try container.decodeIfPresent(String.self, forKey: .brands)
             quantity = try container.decodeIfPresent(String.self, forKey: .quantity)
