@@ -40,12 +40,13 @@ struct ForecastChart: View {
         let isBackdated = abs(state.date.timeIntervalSince(state.defaultDate)) > 1.0
 
         // When backdated, display no carbs as this label is only supposed to show current entered carbs
-        let displayedCarbs = isBackdated ? 0 : state.carbs
+        // Use combined carbs (user entered + scanned) so chart reflects scanned items immediately
+        let displayedCarbs = isBackdated ? 0 : (state.carbs + state.scannedCarbs)
 
         return HStack {
             HStack {
                 Image(systemName: "fork.knife")
-                Text("\(displayedCarbs.description) g")
+                Text("\(Double(truncating: displayedCarbs as NSNumber), specifier: "%.1f") g")
             }
             .font(.footnote)
             .foregroundStyle(.orange)
