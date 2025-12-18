@@ -37,6 +37,7 @@ extension Treatments {
         @State private var searchError: String?
         @State private var searchDebounce: DispatchWorkItem?
         @State private var showAllSearchResults = false
+        @FocusState private var isSearchFocused: Bool
 
         private enum Config {
             static let dividerHeight: CGFloat = 2
@@ -264,9 +265,27 @@ extension Treatments {
                                         Image(systemName: "magnifyingglass")
                                             .foregroundStyle(.secondary)
                                         TextField("Search foods...", text: $searchQuery)
+                                            .focused($isSearchFocused)
                                             .textFieldStyle(.plain)
                                             .autocorrectionDisabled()
                                             .textInputAutocapitalization(.never)
+                                            .toolbar {
+                                                if isSearchFocused {
+                                                    ToolbarItemGroup(placement: .keyboard) {
+                                                        Button(action: {
+                                                            searchQuery = ""
+                                                        }) {
+                                                            Image(systemName: "trash")
+                                                        }
+                                                        Spacer()
+                                                        Button(action: {
+                                                            isSearchFocused = false
+                                                        }) {
+                                                            Image(systemName: "keyboard.chevron.compact.down")
+                                                        }
+                                                    }
+                                                }
+                                            }
                                             .onChange(of: searchQuery) { _, _ in
                                                 showAllSearchResults = false
                                                 performFoodSearch()
@@ -518,6 +537,10 @@ extension Treatments {
                         treatmentButton
                     }
                     .listSectionSpacing(sectionSpacing)
+                    .scrollDismissesKeyboard(.interactively)
+                }
+                .onTapGesture {
+                    isSearchFocused = false
                 }
                 .blur(radius: state.isAwaitingDeterminationResult ? 5 : 0)
 
@@ -680,6 +703,7 @@ extension Treatments {
 
             // Sync amounts and recalculate
             syncScannedAmounts()
+            isSearchFocused = false
         }
 
         private func syncScannedAmounts() {
