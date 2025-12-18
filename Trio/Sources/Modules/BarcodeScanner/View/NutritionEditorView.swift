@@ -9,6 +9,9 @@ extension BarcodeScanner {
         @Binding var isEditingFromList: Bool
         var onDismissList: () -> Void
 
+        @Environment(AppState.self) var appState
+        @Environment(\.colorScheme) var colorScheme
+
         var body: some View {
             VStack(spacing: 0) {
                 ScrollView {
@@ -150,6 +153,7 @@ extension BarcodeScanner {
                 .padding(.bottom, 16)
                 .padding(.top, 8)
             }
+            .background(appState.trioBackgroundColor(for: colorScheme).ignoresSafeArea())
         }
 
         // MARK: - Helper Views
@@ -232,40 +236,48 @@ extension BarcodeScanner {
             field: RootView.NutritionField
         ) -> some View {
             let isFocused = focusedField.wrappedValue == field
-            return HStack {
-                Text(label)
-                    .foregroundStyle(isFocused ? .primary : .secondary)
-                    .font(.subheadline.weight(isFocused ? .semibold : .regular))
-                Spacer()
-                HStack(spacing: 4) {
-                    TextField(
-                        "0",
-                        value: Binding(
-                            get: { state.currentScannedItem?.nutriments[keyPath: keyPath] },
-                            set: { newValue in
-                                state.updateProductNutriment(keyPath: keyPath, value: newValue)
-                            }
-                        ),
-                        format: .number.precision(.fractionLength(0 ... 1))
-                    )
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 60)
-                    .focused(focusedField, equals: field)
+            // Make the TextField occupy the full row so tapping anywhere focuses it.
+            return ZStack {
+                // Full-width TextField (number) as primary hit target
+                TextField(
+                    "0",
+                    value: Binding(
+                        get: { state.currentScannedItem?.nutriments[keyPath: keyPath] },
+                        set: { newValue in
+                            state.updateProductNutriment(keyPath: keyPath, value: newValue)
+                        }
+                    ),
+                    format: .number.precision(.fractionLength(0 ... 1))
+                )
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
+                .focused(focusedField, equals: field)
+                .accentColor(.accentColor)
+                .padding(.horizontal)
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity)
 
+                // Overlays: label (left) and unit (right) — don't intercept taps
+                HStack {
+                    Text(label)
+                        .foregroundStyle(isFocused ? .primary : .secondary)
+                        .font(.subheadline.weight(isFocused ? .semibold : .regular))
+                        .allowsHitTesting(false)
+                    Spacer()
                     Text(unit)
                         .foregroundStyle(.secondary)
-                        .frame(width: 35, alignment: .leading)
+                        .frame(width: 20, alignment: .trailing)
+                        .allowsHitTesting(false)
                 }
-                .font(.subheadline.weight(.medium))
+                .padding(.horizontal)
+                .padding(.vertical, 10)
             }
-            .padding(.horizontal)
-            .padding(.vertical, 10)
+            .background(isFocused ? Color.accentColor.opacity(0.15) : Color.clear)
             .contentShape(Rectangle())
             .onTapGesture {
+                // Ensure focus when tapping the row area
                 focusedField.wrappedValue = field
             }
-            .background(isFocused ? Color.accentColor.opacity(0.1) : Color.clear)
             .animation(.easeInOut(duration: 0.15), value: isFocused)
         }
 

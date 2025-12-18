@@ -96,21 +96,24 @@ extension BarcodeScanner {
                         .buttonStyle(BorderlessButtonStyle())
                     }
                 }
-                ToolbarItem(placement: .keyboard) {
-                    HStack {
-                        Spacer()
-                        Button(
-                            action: {
-                                dismissKeyboard()
-                            },
-                            label: {
-                                HStack {
-                                    Image(systemName: "keyboard.chevron.compact.down")
-                                    Text(String(localized: "Done"))
+                // Only show keyboard toolbar when not in sheet mode (sheet has its own toolbar)
+                if !showEditorCard {
+                    ToolbarItem(placement: .keyboard) {
+                        HStack {
+                            Spacer()
+                            Button(
+                                action: {
+                                    dismissKeyboard()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "keyboard.chevron.compact.down")
+                                        Text(String(localized: "Done"))
+                                    }
                                 }
-                            }
-                        )
-                        .buttonStyle(BorderlessButtonStyle())
+                            )
+                            .buttonStyle(BorderlessButtonStyle())
+                        }
                     }
                 }
             }
