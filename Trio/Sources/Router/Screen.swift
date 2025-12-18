@@ -93,7 +93,7 @@ extension Screen {
         case .targetsEditor:
             TargetsEditor.RootView(resolver: resolver)
         case .barcodeScanner:
-            BarcodeScanner.RootView(resolver: resolver)
+            BarcodeScanner.RootView(resolver: resolver, state: BarcodeScanner.StateModel())
         case let .treatmentView(carbs, fat, protein, note):
             Treatments.RootView(
                 resolver: resolver,

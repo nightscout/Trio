@@ -94,11 +94,11 @@ extension BarcodeScanner {
     struct ScannedProductRow: View {
         let item: FoodItem
         var state: StateModel
+        var focusedItemID: FocusState<UUID?>.Binding
 
         @State private var amountText: String = ""
         @State private var isMlInput: Bool = false
         @State private var showQuickSelector: Bool = false
-        @FocusState private var isTextFieldFocused: Bool
 
         var body: some View {
             VStack(alignment: .leading, spacing: 12) {
@@ -126,7 +126,10 @@ extension BarcodeScanner {
                     )
                     .keyboardType(.decimalPad)
                     .textFieldStyle(.roundedBorder)
-                    .focused($isTextFieldFocused)
+                    .focused(focusedItemID, equals: item.id)
+                    .toolbar {
+                        // Custom toolbar is handled in RootView via overlay
+                    }
                     .onChange(of: amountText) { _, newValue in
                         if let amount = Double(newValue.replacingOccurrences(of: ",", with: ".")) {
                             if amount.isFinite {
@@ -177,10 +180,11 @@ extension BarcodeScanner {
             .onChange(of: item.isMlInput) { _, _ in
                 updateFromItem()
             }
-            .onChange(of: isTextFieldFocused) { _, newValue in
+            .onChange(of: focusedItemID.wrappedValue) { _, newValue in
                 // Pause scanner and hide scanner view when numpad is opened
-                state.isScanning = false
-                state.isKeyboardVisible = newValue
+                if newValue == item.id {
+                    // handled in parent now
+                }
             }
         }
 

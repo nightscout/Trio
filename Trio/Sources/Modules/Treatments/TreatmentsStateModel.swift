@@ -100,6 +100,11 @@ extension Treatments {
         var maxFat: Decimal = 0
         var maxProtein: Decimal = 0
 
+        // Scanned amounts for blue labels
+        var scannedCarbs: Decimal = 0
+        var scannedFat: Decimal = 0
+        var scannedProtein: Decimal = 0
+
         var id_: String = ""
         var summary: String = ""
 
@@ -394,8 +399,10 @@ extension Treatments {
             // Check if this is a backdated entry by comparing with the default date using a tolerance
             let isBackdated = abs(date.timeIntervalSince(defaultDate)) > 1.0
 
+            let combinedCarbs = carbs + scannedCarbs
+
             let result = await bolusCalculationManager.handleBolusCalculation(
-                carbs: carbs,
+                carbs: combinedCarbs,
                 useFattyMealCorrection: useFattyMealCorrectionFactor,
                 useSuperBolus: useSuperBolus,
                 lastLoopDate: apsManager.lastLoopDate,
@@ -429,9 +436,9 @@ extension Treatments {
                     self.addButtonPressed = true
                 }
                 let isInsulinGiven = amount > 0
-                let isCarbsPresent = carbs > 0
-                let isFatPresent = fat > 0
-                let isProteinPresent = protein > 0
+                let isCarbsPresent = carbs > 0 || scannedCarbs > 0
+                let isFatPresent = fat > 0 || scannedFat > 0
+                let isProteinPresent = protein > 0 || scannedProtein > 0
 
                 if isCarbsPresent || isFatPresent || isProteinPresent {
                     await saveMeal()
@@ -624,12 +631,13 @@ extension Treatments {
 
         func saveMeal() async {
             do {
-                guard carbs > 0 || fat > 0 || protein > 0 else { return }
+                let totalCarbs = carbs + scannedCarbs
+                let totalFat = fat + scannedFat
+                let totalProtein = protein + scannedProtein
+
+                guard totalCarbs > 0 || totalFat > 0 || totalProtein > 0 else { return }
 
                 await MainActor.run {
-                    self.carbs = min(self.carbs, self.maxCarbs)
-                    self.fat = min(self.fat, self.maxFat)
-                    self.protein = min(self.protein, self.maxProtein)
                     self.id_ = UUID().uuidString
                 }
 
@@ -637,13 +645,13 @@ extension Treatments {
                     id: id_,
                     createdAt: now,
                     actualDate: date,
-                    carbs: carbs,
-                    fat: fat,
-                    protein: protein,
+                    carbs: min(totalCarbs, maxCarbs),
+                    fat: min(totalFat, maxFat),
+                    protein: min(totalProtein, maxProtein),
                     note: note,
                     enteredBy: CarbsEntry.local,
                     isFPU: false,
-                    fpuID: fat > 0 || protein > 0 ? UUID().uuidString : nil
+                    fpuID: totalFat > 0 || totalProtein > 0 ? UUID().uuidString : nil
                 )]
                 try await carbsStorage.storeCarbs(carbsToStore, areFetchedFromRemote: false)
 
@@ -697,6 +705,30 @@ extension Treatments {
 
         func addToSummation() {
             summation.append(selection?.dish ?? "")
+        }
+
+        func addScannedAmounts(carbs: Decimal, fat: Decimal, protein: Decimal, note: String) {
+            debug(.bolusState, "addScannedAmounts called with carbs=\(carbs) fat=\(fat) protein=\(protein) note=\(note)")
+            self.carbs += carbs
+            self.fat += fat
+            self.protein += protein
+
+            scannedCarbs += carbs
+            scannedFat += fat
+            scannedProtein += protein
+
+            debug(
+                .bolusState,
+                "new totals: carbs=\(self.carbs) scannedCarbs=\(scannedCarbs) fat=\(self.fat) protein=\(self.protein)"
+            )
+
+            if !note.isEmpty {
+                if self.note.isEmpty {
+                    self.note = note
+                } else {
+                    self.note += ", " + note
+                }
+            }
         }
     }
 }
@@ -919,10 +951,10 @@ extension Treatments.StateModel {
 }
 
 extension Treatments.StateModel {
-    @MainActor func updateForecasts(with forecastData: Determination? = nil) async {
-        guard isActive else {
+    @MainActor func updateForecasts(with forecastData: Determination? = nil, force: Bool = false) async {
+        guard isActive || force else {
+            debug(.bolusState, "updateForecasts not fired")
             return
-                debug(.bolusState, "updateForecasts not fired")
         }
 
         debug(.bolusState, "updateForecasts fired")
@@ -933,7 +965,7 @@ extension Treatments.StateModel {
             simulatedDetermination = await Task { [self] in
                 debug(.bolusState, "calling simulateDetermineBasal to get forecast data")
                 return await apsManager.simulateDetermineBasal(
-                    simulatedCarbsAmount: carbs,
+                    simulatedCarbsAmount: carbs + scannedCarbs,
                     simulatedBolusAmount: amount,
                     simulatedCarbsDate: date
                 )

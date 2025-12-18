@@ -6,14 +6,32 @@ import Swinject
 extension BarcodeScanner {
     struct RootView: BaseView {
         let resolver: Resolver
-        @StateObject var state = StateModel()
-        @State private var showListView = false
+        var showListInitially: Bool = false
+        var onAddTreatments: ((Decimal, Decimal, Decimal, String) -> Void)?
+
+        @ObservedObject var state: StateModel
         @State private var isEditingFromList = false
         @State private var showEditorCard = false
+        @FocusState private var focusedItemID: UUID?
+
+        init(
+            resolver: Resolver,
+            state: StateModel,
+            showListInitially: Bool = false,
+            onAddTreatments: ((Decimal, Decimal, Decimal, String) -> Void)? = nil,
+            onDismiss: (() -> Void)? = nil
+        ) {
+            self.resolver = resolver
+            _state = ObservedObject(wrappedValue: state)
+            self.showListInitially = showListInitially
+            self.onAddTreatments = onAddTreatments
+            // Wire optional callback into the state so it can call back when user selects "Add to Treatments"
+            self.state.onAddTreatments = onAddTreatments
+            self.state.onDismiss = onDismiss
+        }
 
         @Environment(AppState.self) var appState
         @Environment(\.colorScheme) var colorScheme
-        @FocusState private var focusedField: NutritionField?
 
         enum NutritionField: Hashable {
             case name
@@ -28,7 +46,7 @@ extension BarcodeScanner {
 
         var body: some View {
             ZStack {
-                if showListView {
+                if state.showListView {
                     listViewContent
                         .transition(.move(edge: .trailing).combined(with: .opacity))
                 } else {
@@ -36,21 +54,31 @@ extension BarcodeScanner {
                         .transition(.move(edge: .leading).combined(with: .opacity))
                 }
             }
-            .animation(.easeInOut(duration: 0.3), value: showListView)
+            .gesture(
+                DragGesture()
+                    .onEnded { value in
+                        if value.translation.width > 50 {
+                            state.showListView = false
+                        } else if value.translation.width < -50 {
+                            state.showListView = true
+                        }
+                    }
+            )
+            .animation(.easeInOut(duration: 0.3), value: state.showListView)
             .background(appState.trioBackgroundColor(for: colorScheme))
-            .navigationTitle(String(localized: showListView ? "Scanned Items" : "Barcode Scanner"))
+            .navigationTitle(String(localized: state.showListView ? "Scanned Items" : "Barcode Scanner"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    if showListView {
+                    if showEditorView {
                         Button(
                             action: {
-                                showListView = false
+                                state.cancelEditing()
                             },
                             label: {
                                 HStack(spacing: 4) {
                                     Image(systemName: "chevron.left")
-                                    Text("Scanner")
+                                    Text(String(localized: "Back"))
                                 }
                             }
                         )
@@ -58,12 +86,10 @@ extension BarcodeScanner {
                     } else {
                         Button(
                             action: {
-                                state.hideModal()
+                                state.performDismissal()
                             },
                             label: {
-                                HStack(spacing: 4) {
-                                    Text(String(localized: "Close"))
-                                }
+                                Text(String(localized: "Close"))
                             }
                         )
                         .buttonStyle(BorderlessButtonStyle())
@@ -71,10 +97,10 @@ extension BarcodeScanner {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     // Hide the item list button while editing nutrition details
-                    if !showListView && !showEditorView {
+                    if !state.showListView && !showEditorView {
                         Button(
                             action: {
-                                showListView = true
+                                state.showListView = true
                             },
                             label: {
                                 HStack {
@@ -96,59 +122,28 @@ extension BarcodeScanner {
                         .buttonStyle(BorderlessButtonStyle())
                     }
                 }
-                // Only show keyboard toolbar when not in sheet mode (sheet has its own toolbar)
-                if !showEditorCard {
-                    ToolbarItem(placement: .keyboard) {
-                        HStack {
-                            Spacer()
-                            Button(
-                                action: {
-                                    dismissKeyboard()
-                                },
-                                label: {
-                                    HStack {
-                                        Image(systemName: "keyboard.chevron.compact.down")
-                                        Text(String(localized: "Done"))
-                                    }
-                                }
-                            )
-                            .buttonStyle(BorderlessButtonStyle())
-                        }
-                    }
-                }
             }
-            .gesture(
-                DragGesture()
-                    .onEnded { value in
-                        // Ignore when keyboard or nutrition editor is visible
-                        guard !state.isKeyboardVisible else { return }
-
-                        let horizontalTranslation = value.translation.width
-                        let verticalTranslation = value.translation.height
-
-                        // Only react to mostly horizontal swipes
-                        guard abs(horizontalTranslation) > abs(verticalTranslation),
-                              abs(horizontalTranslation) > 40 else { return }
-
-                        if horizontalTranslation < 0, !showListView, !showEditorView {
-                            // Swipe left from scanner view → go to item list
-                            showListView = true
-                        } else if horizontalTranslation > 0, showListView {
-                            // Swipe right from item list → back to scanner
-                            showListView = false
-                        }
-                    }
-            )
             .sheet(isPresented: $showEditorCard) {
                 NavigationStack {
                     NutritionEditorView(
                         state: state,
-                        focusedField: $focusedField,
                         isEditingFromList: $isEditingFromList,
                         onDismissList: { showEditorCard = false }
                     )
                     .navigationTitle(String(localized: "Edit Item"))
                     .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button(String(localized: "Cancel")) {
+                                showEditorCard = false
+                                if isEditingFromList {
+                                    isEditingFromList = false
+                                    state.isEditingFromList = false
+                                    state.cancelEditing()
+                                }
+                            }
+                        }
+                    }
                 }
             }
             .onChange(of: showEditorCard) { _, isPresented in
@@ -161,15 +156,7 @@ extension BarcodeScanner {
             .onAppear {
                 configureView()
                 state.handleAppear()
-            }
-            .onChange(of: focusedField) { _, newValue in
-                // Pause scanner and hide scanner view when numpad is opened
-                if newValue != nil {
-                    state.isScanning = false
-                    state.isKeyboardVisible = true
-                } else {
-                    state.isKeyboardVisible = false
-                }
+                state.showListView = showListInitially
             }
         }
 
@@ -190,10 +177,10 @@ extension BarcodeScanner {
                     // Show full editor view when product/nutrition data is available
                     NutritionEditorView(
                         state: state,
-                        focusedField: $focusedField,
                         isEditingFromList: $isEditingFromList,
-                        onDismissList: { showListView = true }
+                        onDismissList: { state.showListView = true }
                     )
+
                     .transition(.move(edge: .trailing).combined(with: .opacity))
                 } else {
                     // Scanner view
@@ -217,10 +204,25 @@ extension BarcodeScanner {
                     }
                     .allowsHitTesting(false)
                 }
+
+                // Custom Keyboard Toolbar (Overlay when keyboard is visible in List)
+                if focusedItemID != nil {
+                    VStack {
+                        Spacer()
+                        customKeyboardToolbar
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                            .zIndex(100)
+                    }
+                }
             }
-            .animation(.easeInOut(duration: 0.3), value: showEditorView)
-            .animation(.easeInOut(duration: 0.2), value: state.isFetchingProduct)
-            .animation(.easeInOut(duration: 0.2), value: state.isProcessingLabel)
+            .onChange(of: focusedItemID) { _, newValue in
+                if newValue != nil {
+                    state.isKeyboardVisible = true
+                    state.isScanning = false
+                } else {
+                    state.isKeyboardVisible = false
+                }
+            }
         }
 
         // MARK: - Loading View
@@ -375,19 +377,7 @@ extension BarcodeScanner {
                     .tint(state.isScanning ? .orange : .insulin)
 
                     if !state.scannedProducts.isEmpty {
-                        Button {
-                            state.openInTreatments()
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: "arrow.right.circle.fill")
-                                Text("Calculator")
-                            }
-                            .font(.subheadline.weight(.semibold))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.blue)
+                        // "Calculator" button removed as per request for live updates
                     }
                 }
             }
@@ -399,65 +389,69 @@ extension BarcodeScanner {
         // MARK: - List View Content
 
         private var listViewContent: some View {
-            Group {
-                if state.scannedProducts.isEmpty {
-                    emptyListView
-                } else {
-                    List {
-                        Section {
-                            listHeader
-                                .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
-                                .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
-                        }
-
-                        Section {
-                            ForEach(state.scannedProducts) { item in
-                                ScannedProductRow(item: item, state: state)
+            ZStack(alignment: .leading) {
+                Group {
+                    if state.scannedProducts.isEmpty {
+                        emptyListView
+                    } else {
+                        List {
+                            Section {
+                                listHeader
                                     .listRowBackground(Color.clear)
                                     .listRowSeparator(.hidden)
-                                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                        Button(role: .destructive) {
-                                            withAnimation {
-                                                state.removeScannedProduct(item)
+                                    .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
+                            }
+
+                            Section {
+                                ForEach(state.scannedProducts) { item in
+                                    ScannedProductRow(item: item, state: state, focusedItemID: $focusedItemID)
+                                        .listRowBackground(Color.clear)
+                                        .listRowSeparator(.hidden)
+                                        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                            Button(role: .destructive) {
+                                                withAnimation {
+                                                    state.removeScannedProduct(item)
+                                                }
+                                            } label: {
+                                                Label("Delete", systemImage: "trash")
                                             }
-                                        } label: {
-                                            Label("Delete", systemImage: "trash")
+                                            .tint(.red)
                                         }
-                                        .tint(.red)
-                                    }
-                                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                                        Button {
-                                            state.editScannedProduct(item)
-                                            isEditingFromList = true
-                                            showEditorCard = true
-                                        } label: {
-                                            Label("Edit", systemImage: "pencil")
+                                        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                                            Button {
+                                                state.editScannedProduct(item)
+                                                isEditingFromList = true
+                                                state.isEditingFromList = true
+                                                showEditorCard = true
+                                            } label: {
+                                                Label("Edit", systemImage: "pencil")
+                                            }
+                                            .tint(.blue)
                                         }
-                                        .tint(.blue)
-                                    }
+                                }
                             }
                         }
-
-                        Section {
-                            Button {
-                                state.openInTreatments()
-                            } label: {
-                                Label(String(localized: "Use in bolus calculator"), systemImage: "arrow.right.circle.fill")
-                                    .font(.footnote.weight(.semibold))
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 8)
+                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
+                        .safeAreaInset(edge: .bottom) {
+                            // Show keyboard dismiss button when numpad is visible
+                            if focusedItemID != nil {
+                                customKeyboardToolbar
                             }
-                            .buttonStyle(.borderedProminent)
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 32, trailing: 16))
+                        }
+                        if !state.scannedProducts.isEmpty {
+                            // "Use in bolus calculator" button removed for live sync
                         }
                     }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
                 }
+
+                // Edge Swipe Overlay: Invisible touch zone on the left edge
+                // Captures swipes to go back to scanner, preventing conflict with list row swipes
+                Color.clear
+                    .contentShape(Rectangle())
+                    .frame(width: 30)
+                    .frame(maxHeight: .infinity)
             }
         }
 
@@ -474,7 +468,7 @@ extension BarcodeScanner {
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                 Button {
-                    showListView = false
+                    state.showListView = false
                 } label: {
                     Label("Start Scanning", systemImage: "barcode.viewfinder")
                         .font(.subheadline.weight(.semibold))
@@ -486,6 +480,29 @@ extension BarcodeScanner {
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(appState.trioBackgroundColor(for: colorScheme))
+        }
+
+        private var customKeyboardToolbar: some View {
+            VStack(spacing: 0) {
+                Divider()
+                HStack {
+                    Spacer()
+                    Button {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "keyboard.chevron.compact.down")
+                            Text("Done")
+                        }
+                        .font(.headline)
+                        .foregroundStyle(Color.accentColor)
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+                .background(Color(uiColor: .secondarySystemBackground))
+            }
         }
 
         private var listHeader: some View {
@@ -514,10 +531,5 @@ extension BarcodeScanner {
         }
 
         // MARK: - Helper Functions
-
-        private func dismissKeyboard() {
-            focusedField = nil
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        }
     }
 }

@@ -21,7 +21,7 @@ extension Treatments {
         let initialProtein: Decimal?
         let initialNote: String?
 
-        @State var state = StateModel()
+        @StateObject var state = StateModel()
 
         @State private var showPresetSheet = false
         @State private var autofocus: Bool = true
@@ -88,36 +88,56 @@ extension Treatments {
 
         @ViewBuilder private func proteinAndFat() -> some View {
             HStack {
-                HStack {
-                    Text("Protein")
-                    TextFieldWithToolBar(
-                        text: $state.protein,
-                        placeholder: "0",
-                        keyboardType: .numberPad,
-                        numberFormatter: mealFormatter,
-                        showArrows: true,
-                        previousTextField: { focusedField = previousField(from: .protein) },
-                        nextTextField: { focusedField = nextField(from: .protein) },
-                        unitsText: String(localized: "g", comment: "Units for carbs")
-                    )
-                    .focused($focusedField, equals: .protein)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Text("Protein")
+                        TextFieldWithToolBar(
+                            text: $state.protein,
+                            placeholder: "0",
+                            keyboardType: .numberPad,
+                            numberFormatter: mealFormatter,
+                            showArrows: true,
+                            previousTextField: { focusedField = previousField(from: .protein) },
+                            nextTextField: { focusedField = nextField(from: .protein) },
+                            unitsText: String(localized: "g", comment: "Units for carbs")
+                        )
+                        .focused($focusedField, equals: .protein)
+                        .onChange(of: state.protein) {
+                            handleDebouncedInput()
+                        }
+                    }
+                    if state.scannedProtein > 0 {
+                        Text("+ \(Double(truncating: state.scannedProtein as NSNumber), specifier: "%.1f")g from scan")
+                            .font(.caption)
+                            .foregroundStyle(.blue)
+                    }
                 }
 
                 Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
 
-                HStack {
-                    Text("Fat")
-                    TextFieldWithToolBar(
-                        text: $state.fat,
-                        placeholder: "0",
-                        keyboardType: .numberPad,
-                        numberFormatter: mealFormatter,
-                        showArrows: true,
-                        previousTextField: { focusedField = previousField(from: .fat) },
-                        nextTextField: { focusedField = nextField(from: .fat) },
-                        unitsText: String(localized: "g", comment: "Units for carbs")
-                    )
-                    .focused($focusedField, equals: .fat)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Text("Fat")
+                        TextFieldWithToolBar(
+                            text: $state.fat,
+                            placeholder: "0",
+                            keyboardType: .numberPad,
+                            numberFormatter: mealFormatter,
+                            showArrows: true,
+                            previousTextField: { focusedField = previousField(from: .fat) },
+                            nextTextField: { focusedField = nextField(from: .fat) },
+                            unitsText: String(localized: "g", comment: "Units for carbs")
+                        )
+                        .focused($focusedField, equals: .fat)
+                        .onChange(of: state.fat) {
+                            handleDebouncedInput()
+                        }
+                    }
+                    if state.scannedFat > 0 {
+                        Text("+ \(Double(truncating: state.scannedFat as NSNumber), specifier: "%.1f")g from scan")
+                            .font(.caption)
+                            .foregroundStyle(.blue)
+                    }
                 }
             }
         }
@@ -126,19 +146,26 @@ extension Treatments {
             HStack {
                 Text("Carbs")
                 Spacer()
-                TextFieldWithToolBar(
-                    text: $state.carbs,
-                    placeholder: "0",
-                    keyboardType: .numberPad,
-                    numberFormatter: mealFormatter,
-                    showArrows: true,
-                    previousTextField: { focusedField = previousField(from: .carbs) },
-                    nextTextField: { focusedField = nextField(from: .carbs) },
-                    unitsText: String(localized: "g", comment: "Units for carbs")
-                )
-                .focused($focusedField, equals: .carbs)
-                .onChange(of: state.carbs) {
-                    handleDebouncedInput()
+                VStack(alignment: .trailing, spacing: 2) {
+                    TextFieldWithToolBar(
+                        text: $state.carbs,
+                        placeholder: "0",
+                        keyboardType: .numberPad,
+                        numberFormatter: mealFormatter,
+                        showArrows: true,
+                        previousTextField: { focusedField = previousField(from: .carbs) },
+                        nextTextField: { focusedField = nextField(from: .carbs) },
+                        unitsText: String(localized: "g", comment: "Units for carbs")
+                    )
+                    .focused($focusedField, equals: .carbs)
+                    .onChange(of: state.carbs) {
+                        handleDebouncedInput()
+                    }
+                    if state.scannedCarbs > 0 {
+                        Text("+ \(Double(truncating: state.scannedCarbs as NSNumber), specifier: "%.1f")g from scan")
+                            .font(.caption)
+                            .foregroundStyle(.blue)
+                    }
                 }
             }
         }
@@ -206,6 +233,36 @@ extension Treatments {
             ZStack(alignment: .center) {
                 VStack {
                     List {
+                        // Quick Add Buttons
+                        if state.settings != nil && state.settings.settings.barcodeScannerLongTapEnabled {
+                            Section {
+                                HStack(spacing: 20) {
+                                    Button {
+                                        // Open Scanner directly
+                                        configureAndShowScanner(showList: false)
+                                    } label: {
+                                        Label("Scanner", systemImage: "barcode.viewfinder")
+                                            .frame(maxWidth: .infinity)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .tint(.blue)
+
+                                    Button {
+                                        // Open List directly
+                                        configureAndShowScanner(showList: true)
+                                    } label: {
+                                        Label("List", systemImage: "list.bullet")
+                                            .frame(maxWidth: .infinity)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .tint(.blue)
+                                }
+                                .padding(.vertical, 4)
+                            }
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets()) // Reduce padding
+                        }
+
                         Section {
                             ForecastChart(state: state)
                                 .padding(.vertical)
@@ -445,6 +502,75 @@ extension Treatments {
             } message: {
                 Text("\(state.determinationFailureMessage)")
             }
+            .sheet(isPresented: $showBarcodeScanner) {
+                NavigationStack {
+                    BarcodeScanner.RootView(
+                        resolver: resolver,
+                        state: scannerState,
+                        showListInitially: initialShowList,
+                        onAddTreatments: { carbs, fat, protein, note in
+                            // Directly merge scanned amounts into Treatments state
+                            Task { @MainActor in
+                                state.addScannedAmounts(carbs: carbs, fat: fat, protein: protein, note: note)
+                                // Force forecasts update and recalc insulin
+                                await state.updateForecasts(force: true)
+                                state.insulinCalculated = await state.calculateInsulin()
+                            }
+                        },
+                        onDismiss: { showBarcodeScanner = false }
+                    )
+                    .environment(appState)
+                }
+                .onChange(of: scannerState.scannedProducts) {
+                    syncScannedAmounts()
+                }
+            }
+        }
+
+        @StateObject private var scannerState = BarcodeScanner.StateModel()
+        @State private var showBarcodeScanner = false
+        @State private var initialShowList = false
+
+        func configureAndShowScanner(showList: Bool) {
+            showBarcodeScanner = true
+            initialShowList = showList
+        }
+
+        private func syncScannedAmounts() {
+            let totalCarbs = scannerState.scannedProducts.reduce(into: 0.0) { result, item in
+                let carbsPer100 = item.nutriments.carbohydratesPer100g ?? 0
+                let amount = item.amount.isFinite ? item.amount : 0
+                result += (carbsPer100 * amount) / 100.0
+            }
+            let totalProtein = scannerState.scannedProducts.reduce(into: 0.0) { result, item in
+                let protPer100 = item.nutriments.proteinPer100g ?? 0
+                let amount = item.amount.isFinite ? item.amount : 0
+                result += (protPer100 * amount) / 100.0
+            }
+            let totalFat = scannerState.scannedProducts.reduce(into: 0.0) { result, item in
+                let fatPer100 = item.nutriments.fatPer100g ?? 0
+                let amount = item.amount.isFinite ? item.amount : 0
+                result += (fatPer100 * amount) / 100.0
+            }
+
+            state.scannedCarbs = Decimal(totalCarbs)
+            state.scannedProtein = Decimal(totalProtein)
+            state.scannedFat = Decimal(totalFat)
+
+            // Trigger a recalculation immediately (sheet may make view inactive, so do it directly)
+            Task { @MainActor in
+                // Update forecasts and insulin immediately (force update even if view not active)
+                debug(
+                    .bolusState,
+                    "syncScannedAmounts: carbs=\(state.carbs) scannedCarbs=\(state.scannedCarbs) totalCarbs=\(state.carbs + state.scannedCarbs)"
+                )
+                await state.updateForecasts(force: true)
+                state.insulinCalculated = await state.calculateInsulin()
+                debug(.bolusState, "syncScannedAmounts: insulinCalculated=\(state.insulinCalculated)")
+            }
+
+            // Also keep the debounced update for smoother UI updates
+            handleDebouncedInput()
         }
 
         var progressText: ProgressText {
@@ -554,8 +680,8 @@ extension Treatments {
             }
 
             let hasInsulin = state.amount > 0
-            let hasCarbs = state.carbs > 0
-            let hasFatOrProtein = state.fat > 0 || state.protein > 0
+            let hasCarbs = state.carbs > 0 || state.scannedCarbs > 0
+            let hasFatOrProtein = state.fat > 0 || state.scannedFat > 0 || state.protein > 0 || state.scannedProtein > 0
             let bolusString = state.externalInsulin ? String(localized: "External Insulin") : String(localized: "Enact Bolus")
 
             if state.isBolusInProgress && hasInsulin && !state.externalInsulin && (!hasCarbs || !hasFatOrProtein) {
@@ -591,15 +717,15 @@ extension Treatments {
         }
 
         private var carbLimitExceeded: Bool {
-            state.carbs > state.maxCarbs
+            (state.carbs + state.scannedCarbs) > state.maxCarbs
         }
 
         private var fatLimitExceeded: Bool {
-            state.fat > state.maxFat
+            (state.fat + state.scannedFat) > state.maxFat
         }
 
         private var proteinLimitExceeded: Bool {
-            state.protein > state.maxProtein
+            (state.protein + state.scannedProtein) > state.maxProtein
         }
 
         private var limitExceeded: Bool {
@@ -609,7 +735,12 @@ extension Treatments {
         private var disableTaskButton: Bool {
             (
                 state.isBolusInProgress && state
-                    .amount > 0 && !state.externalInsulin && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
+                    .amount > 0 && !state
+                    .externalInsulin &&
+                    (
+                        state.carbs == 0 && state.scannedCarbs == 0 || state.fat == 0 && state.scannedFat == 0 || state
+                            .protein == 0 && state.scannedProtein == 0
+                    )
             ) || state
                 .addButtonPressed || limitExceeded
         }

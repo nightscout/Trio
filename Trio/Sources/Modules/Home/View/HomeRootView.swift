@@ -52,7 +52,6 @@ extension Home {
         @State var showPumpSelection: Bool = false
         @State var showCGMSelection: Bool = false
         @State var notificationsDisabled = false
-        @State var didLongPress = false
         @State var timeButtons: [TimePicker] = [
             TimePicker(active: false, hours: 4),
             TimePicker(active: false, hours: 6),
@@ -1183,12 +1182,7 @@ extension Home {
 
                 Button(
                     action: {
-                        if didLongPress {
-                            didLongPress = false
-                        } else {
-                            print("Tapped")
-                            state.showModal(for: .treatmentView(carbs: nil, fat: nil, protein: nil, note: nil))
-                        }
+                        state.showModal(for: .treatmentView(carbs: nil, fat: nil, protein: nil, note: nil))
                     },
                     label: {
                         Image(systemName: "plus.circle.fill")
@@ -1198,16 +1192,6 @@ extension Home {
                             .padding(.horizontal, 24)
                     }
                 )
-                .simultaneousGesture(LongPressGesture().onEnded { _ in
-                    guard state.settingsManager.settings.barcodeScannerLongTapEnabled else { return }
-                    didLongPress = true
-                    state.showModal(for: .barcodeScanner)
-                    playHaptics(haptics)
-                    print("Secret Long Press Action!")
-                })
-                .simultaneousGesture(TapGesture().onEnded {
-                    didLongPress = false
-                })
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
                 .onChange(of: selectedTab) {
                     if !settingsPath.isEmpty {

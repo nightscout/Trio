@@ -17,6 +17,7 @@ extension BarcodeScanner {
         @Published var isFetchingProduct = false
         @Published var errorMessage: String?
         @Published var scannedProducts: [FoodItem] = []
+        @Published var isEditingFromList: Bool = false
 
         // Nutrition label scanning
         @Published var capturedImage: UIImage?
@@ -25,6 +26,11 @@ extension BarcodeScanner {
         @Published var showNutritionEditor = false
         @Published var editableNutritionName: String = ""
         @Published var scannedLabelBasisAmount: Double = 100.0
+
+        // External control
+        @Published var showListView = false
+        var onAddTreatments: ((Decimal, Decimal, Decimal, String) -> Void)?
+        var onDismiss: (() -> Void)?
 
         // Editor amount input
         @Published var editingAmount: Double = 0
@@ -193,6 +199,9 @@ extension BarcodeScanner {
 
             // Clear the editor and resume scanning
             clearScannedProduct()
+
+            // Automatically switch to list view after adding
+            showListView = true
         }
 
         /// Sets up editing state when a product is loaded
@@ -267,8 +276,24 @@ extension BarcodeScanner {
                 productNames.append(item.name)
             }
 
-            let note = productNames.joined(separator: ", ")
-            showModal(for: .barcodeScannerTreatment(carbs: totalCarbs, fat: totalFat, protein: totalProtein, note: note))
+            let displayNote = productNames.joined(separator: ", ")
+            if let onAddTreatments = onAddTreatments {
+                debug(
+                    .default,
+                    "openInTreatments calling onAddTreatments with carbs=\(totalCarbs) fat=\(totalFat) protein=\(totalProtein) note=\(displayNote)"
+                )
+                onAddTreatments(totalCarbs, totalFat, totalProtein, displayNote)
+                // Close the modal
+                performDismissal()
+            } else {
+                debug(.default, "openInTreatments has no onAddTreatments; showing treatments modal with carbs=\(totalCarbs)")
+                showModal(for: .barcodeScannerTreatment(
+                    carbs: totalCarbs,
+                    fat: totalFat,
+                    protein: totalProtein,
+                    note: displayNote
+                ))
+            }
         }
 
         /// Clears the captured image and returns to live camera
@@ -278,6 +303,15 @@ extension BarcodeScanner {
             showNutritionEditor = false
             errorMessage = nil
             isScanning = true
+        }
+
+        /// Performs the dismissal of the barcode scanner module
+        func performDismissal() {
+            if let onDismiss = onDismiss {
+                onDismiss()
+            } else {
+                hideModal()
+            }
         }
     }
 }
