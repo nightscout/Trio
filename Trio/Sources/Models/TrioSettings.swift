@@ -311,6 +311,10 @@ extension TrioSettings: Decodable {
             settings.barcodeScannerLongTapEnabled = barcodeScannerLongTapEnabled
         }
 
+        if let barcodeScannerOnlyCarbs = try? container.decode(Bool.self, forKey: .barcodeScannerOnlyCarbs) {
+            settings.barcodeScannerOnlyCarbs = barcodeScannerOnlyCarbs
+        }
+
         self = settings
     }
 }
