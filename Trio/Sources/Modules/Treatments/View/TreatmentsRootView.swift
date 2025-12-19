@@ -652,6 +652,7 @@ extension Treatments {
         @State private var initialShowList = false
 
         func configureAndShowScanner(showList: Bool) {
+            scannerState.showListView = showList
             showBarcodeScanner = true
             initialShowList = showList
         }
