@@ -54,18 +54,31 @@ extension BarcodeScanner {
                         .transition(.move(edge: .leading).combined(with: .opacity))
                 }
             }
-            .gesture(
+            .simultaneousGesture(
                 DragGesture()
                     .onEnded { value in
-                        if value.translation.width > 50 {
-                            state.showListView = false
-                        } else if value.translation.width < -50 {
-                            state.showListView = true
+                        if abs(value.translation.width) > abs(value.translation.height) {
+                            // Horizontal Swipe - Switch Views
+                            // In List View, require Edge Swipe (from left) to avoid conflict with row actions
+                            let isEdgeSwipe = value.startLocation.x < 50
+                            // Higher threshold to distinguish from accidental diagonal drags
+                            let threshold: CGFloat = 80
+
+                            if value.translation.width > threshold {
+                                // Swipe Right (Back to Scanner)
+                                // Only allow if (Scanner Mode) OR (List Mode AND Edge Swipe)
+                                if !state.showListView || isEdgeSwipe {
+                                    state.showListView = false
+                                }
+                            } else if value.translation.width < -threshold {
+                                // Swipe Left (Go to List)
+                                state.showListView = true
+                            }
                         }
                     }
             )
             .animation(.easeInOut(duration: 0.3), value: state.showListView)
-            .background(appState.trioBackgroundColor(for: colorScheme))
+            .background(appState.trioBackgroundColor(for: colorScheme).ignoresSafeArea())
             .navigationTitle(String(localized: state.showListView ? "Scanned Items" : "Barcode Scanner"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -97,7 +110,17 @@ extension BarcodeScanner {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     // Hide the item list button while editing nutrition details
-                    if !state.showListView && !showEditorView {
+                    if state.showListView {
+                        Button(
+                            action: {
+                                state.showListView = false
+                            },
+                            label: {
+                                Image(systemName: "barcode.viewfinder")
+                                    .font(.body)
+                            }
+                        )
+                    } else if !showEditorView {
                         Button(
                             action: {
                                 state.showListView = true
@@ -136,7 +159,8 @@ extension BarcodeScanner {
                         ToolbarItem(placement: .topBarLeading) {
                             Button(String(localized: "Cancel")) {
                                 showEditorCard = false
-                                if isEditingFromList {
+                                // Robust cleanup: Check either local or state flag
+                                if isEditingFromList || state.isEditingFromList {
                                     isEditingFromList = false
                                     state.isEditingFromList = false
                                     state.cancelEditing()
@@ -148,9 +172,12 @@ extension BarcodeScanner {
             }
             .onChange(of: showEditorCard) { _, isPresented in
                 // If the sheet is dismissed interactively while editing from list, reset editing state
-                if !isPresented, isEditingFromList {
-                    isEditingFromList = false
-                    state.cancelEditing()
+                if !isPresented {
+                    if isEditingFromList || state.isEditingFromList {
+                        isEditingFromList = false
+                        state.isEditingFromList = false
+                        state.cancelEditing()
+                    }
                 }
             }
             .onAppear {
@@ -162,58 +189,66 @@ extension BarcodeScanner {
 
         /// Whether to show the editor view (product or nutrition data available)
         private var showEditorView: Bool {
-            state.currentScannedItem != nil || state.scannedNutritionData != nil
+            // Do not show inline editor if we are editing from the list (sheet presented)
+            if state.isEditingFromList { return false }
+            return state.currentScannedItem != nil || state.scannedNutritionData != nil
         }
 
         // MARK: - Scanner View Content
 
         private var scannerViewContent: some View {
-            ZStack {
-                if state.isFetchingProduct || state.isProcessingLabel {
-                    // Loading state
-                    loadingView
-                        .transition(.opacity)
-                } else if showEditorView {
-                    // Show full editor view when product/nutrition data is available
-                    NutritionEditorView(
-                        state: state,
-                        isEditingFromList: $isEditingFromList,
-                        onDismissList: { state.showListView = true }
-                    )
+            GeometryReader { geo in
+                ScrollView {
+                    ZStack {
+                        if state.isFetchingProduct || state.isProcessingLabel {
+                            // Loading state
+                            loadingView
+                                .transition(.opacity)
+                        } else if showEditorView {
+                            // Show full editor view when product/nutrition data is available
+                            NutritionEditorView(
+                                state: state,
+                                isEditingFromList: $isEditingFromList,
+                                onDismissList: { state.showListView = true }
+                            )
 
-                    .transition(.move(edge: .trailing).combined(with: .opacity))
-                } else {
-                    // Scanner view
-                    fullScreenCameraView
-                        .transition(.move(edge: .leading).combined(with: .opacity))
-                }
+                            .transition(.move(edge: .trailing).combined(with: .opacity))
+                        } else {
+                            // Scanner view
+                            fullScreenCameraView
+                                .transition(.move(edge: .leading).combined(with: .opacity))
+                        }
 
-                // Error overlay (always visible if there's an error)
-                if let message = state.errorMessage, !showEditorView {
-                    VStack {
-                        Spacer()
-                        Label(message, systemImage: "exclamationmark.triangle.fill")
-                            .font(.footnote)
-                            .foregroundStyle(.orange)
-                            .padding(12)
-                            .background(Color.orange.opacity(0.12))
-                            .background(.ultraThinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .padding(.horizontal)
-                            .padding(.bottom, 100)
+                        // Error overlay (always visible if there's an error)
+                        if let message = state.errorMessage, !showEditorView {
+                            VStack {
+                                Spacer()
+                                Label(message, systemImage: "exclamationmark.triangle.fill")
+                                    .font(.footnote)
+                                    .foregroundStyle(.orange)
+                                    .padding(12)
+                                    .background(Color.orange.opacity(0.12))
+                                    .background(.ultraThinMaterial)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    .padding(.horizontal)
+                                    .padding(.bottom, 100)
+                            }
+                            .allowsHitTesting(false)
+                        }
+
+                        // Custom Keyboard Toolbar (Overlay when keyboard is visible in List)
+                        if focusedItemID != nil {
+                            VStack {
+                                Spacer()
+                                customKeyboardToolbar
+                                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                                    .zIndex(100)
+                            }
+                        }
                     }
-                    .allowsHitTesting(false)
+                    .frame(minHeight: geo.size.height)
                 }
-
-                // Custom Keyboard Toolbar (Overlay when keyboard is visible in List)
-                if focusedItemID != nil {
-                    VStack {
-                        Spacer()
-                        customKeyboardToolbar
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                            .zIndex(100)
-                    }
-                }
+                .scrollIndicators(.hidden)
             }
             .onChange(of: focusedItemID) { _, newValue in
                 if newValue != nil {
@@ -456,30 +491,35 @@ extension BarcodeScanner {
         }
 
         private var emptyListView: some View {
-            VStack(spacing: 16) {
-                Spacer()
-                Image(systemName: "barcode.viewfinder")
-                    .font(.system(size: 60))
-                    .foregroundStyle(.secondary)
-                Text("No items scanned yet")
-                    .font(.title3.weight(.medium))
-                Text("Scan barcodes add items here.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                Button {
-                    state.showListView = false
-                } label: {
-                    Label("Start Scanning", systemImage: "barcode.viewfinder")
-                        .font(.subheadline.weight(.semibold))
+            GeometryReader { geo in
+                ScrollView {
+                    VStack(spacing: 16) {
+                        Spacer()
+                        Image(systemName: "barcode.viewfinder")
+                            .font(.system(size: 60))
+                            .foregroundStyle(.secondary)
+                        Text("No items scanned yet")
+                            .font(.title3.weight(.medium))
+                        Text("Scan barcodes add items here.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                        Button {
+                            state.showListView = false
+                        } label: {
+                            Label("Start Scanning", systemImage: "barcode.viewfinder")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding(.top, 8)
+                        Spacer()
+                    }
+                    .padding()
+                    .frame(minWidth: geo.size.width, minHeight: geo.size.height)
+                    .background(appState.trioBackgroundColor(for: colorScheme))
                 }
-                .buttonStyle(.borderedProminent)
-                .padding(.top, 8)
-                Spacer()
+                .scrollIndicators(.hidden)
             }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(appState.trioBackgroundColor(for: colorScheme))
         }
 
         private var customKeyboardToolbar: some View {
