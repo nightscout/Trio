@@ -79,8 +79,15 @@ public extension PumpEventStored {
 }
 
 extension NSPredicate {
+    /// Used to fetch the last 24 hours of pump history
     static var pumpHistoryLast1440Minutes: NSPredicate {
         let date = Date.oneDayAgoInMinutes
+        return NSPredicate(format: "timestamp >= %@", date as NSDate)
+    }
+
+    /// Used to fetch the last 1.5 days of pump history
+    static var pumpHistoryLast2160Minutes: NSPredicate {
+        let date = Date.oneDayAgoInMinutes - TimeInterval(hours: 12)
         return NSPredicate(format: "timestamp >= %@", date as NSDate)
     }
 

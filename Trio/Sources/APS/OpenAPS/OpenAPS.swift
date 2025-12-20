@@ -171,11 +171,11 @@ final class OpenAPS {
         return json
     }
 
-    private func fetchPumpHistoryObjectIDs() async throws -> [NSManagedObjectID]? {
+    private func fetchPumpHistoryObjectIDs(predicate: NSPredicate) async throws -> [NSManagedObjectID]? {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
-            predicate: NSPredicate.pumpHistoryLast1440Minutes,
+            predicate: predicate,
             key: "timestamp",
             ascending: false,
             batchSize: 50
@@ -290,7 +290,7 @@ final class OpenAPS {
         let tempBasal = currentTemp.rawJSON
 
         // Perform asynchronous calls in parallel
-        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
+        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs(predicate: NSPredicate.pumpHistoryLast1440Minutes) ?? []
         async let carbs = fetchAndProcessCarbs(additionalCarbs: simulatedCarbsAmount ?? 0, carbsDate: simulatedCarbsDate)
         async let glucose = fetchAndProcessGlucose(fetchLimit: 72)
         async let prepareTrioCustomOrefVariables = prepareTrioCustomOrefVariables()
@@ -465,7 +465,10 @@ final class OpenAPS {
         debug(.openAPS, "Start autosens")
 
         // Perform asynchronous calls in parallel
-        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
+        // For the pump history it's important that we get all of the pump
+        // entries that could impact IoB (activity) for 24 hours of glucose
+        // readings, thus pulling 36 hours of pump history
+        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs(predicate: NSPredicate.pumpHistoryLast2160Minutes) ?? []
         async let carbs = fetchAndProcessCarbs()
         async let glucose = fetchAndProcessGlucose(fetchLimit: nil)
         async let getProfile = loadFileFromStorageAsync(name: Settings.profile)
