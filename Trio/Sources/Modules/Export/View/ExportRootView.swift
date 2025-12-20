@@ -67,6 +67,7 @@ extension Export {
 
                 Section(
                     header: Text("Export Information"),
+                    footer: Text(""),
                     content: {
                         Picker(
                             selection: $state.selectedFormat,
@@ -78,13 +79,6 @@ extension Export {
                         }
 
                         HStack {
-                            Text("Content")
-                            Spacer()
-                            Text("\(state.selectedCategories.count) Selected Categories")
-                                .foregroundColor(.secondary)
-                        }
-
-                        HStack {
                             Text("File Name")
                             Spacer()
                             Text("TrioSettings_[timestamp].\(state.selectedFormat.fileExtension)")
@@ -93,81 +87,98 @@ extension Export {
                         }
                     }
                 ).listRowBackground(Color.chart)
+
+                Section {
+                    Button(action: {
+                        Task {
+                            let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                            impactHeavy.impactOccurred()
+                            state.isExporting = true
+
+                            switch await state.exportSelectedSettings() {
+                            case let .success(fileURL):
+                                if FileManager.default.fileExists(atPath: fileURL.path) {
+                                    do {
+                                        let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+                                        let fileSize = attributes[.size] as? Int ?? 0
+
+                                        if fileSize > 0 {
+                                            exportedFileURL = fileURL
+                                            // Stop spinner on successful export
+                                            state.isExporting = false
+                                            showSettingsExport = true
+                                        } else {
+                                            exportErrorMessage = "Export file is empty (0 bytes)"
+                                            showExportError = true
+                                            state.isExporting = false
+                                        }
+                                    } catch {
+                                        exportErrorMessage = "Could not verify file attributes: \(error.localizedDescription)"
+                                        showExportError = true
+                                        // Stop spinner on error
+                                        state.isExporting = false
+                                    }
+                                } else {
+                                    exportErrorMessage = "Export file was created but could not be found at: \(fileURL.path)"
+                                    showExportError = true
+                                    // Stop spinner on error
+                                    state.isExporting = false
+                                }
+                            case let .failure(error):
+                                exportErrorMessage = error.localizedDescription
+                                showExportError = true
+                                // Stop spinner on error
+                                state.isExporting = false
+                            }
+                        }
+                    }, label: {
+                        if state.isExporting {
+                            HStack {
+                                ProgressView().padding(.trailing, 10)
+                                Text("Exporting...")
+                            }
+                        } else {
+                            Text("Export Settings")
+                        }
+
+                    })
+                        .disabled(state.selectedCategories.isEmpty)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .tint(.white)
+                }.listRowBackground(
+                    state.selectedCategories.isEmpty ? Color(.systemGray4) : Color(.systemBlue)
+                )
             }
             .listSectionSpacing(sectionSpacing)
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
             .navigationTitle("Export Settings")
             .navigationBarTitleDisplayMode(.automatic)
-//            .toolbar {
-//                ToolbarItem(placement: .topBarTrailing) {
-//                    if state.isExporting {
-//                        HStack(spacing: 8) {
-//                            ProgressView()
-//                                .scaleEffect(0.8)
-//                            Text("Exporting...")
-//                                .font(.caption)
-//                                .foregroundColor(.secondary)
-//                        }
-//                    } else {
-//                        Button("Export") {
-//                            Task {
-//                                print("🚀 UI: Export button tapped")
-//                                // Start loading spinner
-//                                state.isExporting = true
-//                                print("🚀 UI: Loading spinner started")
-//
-//                                switch await state.exportSelectedSettings() {
-//                                case let .success(fileURL):
-//                                    print("✅ UI: Export returned success with URL: \(fileURL)")
-//                                    if FileManager.default.fileExists(atPath: fileURL.path) {
-//                                        do {
-//                                            let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
-//                                            let fileSize = attributes[.size] as? Int ?? 0
-//                                            print("📊 UI: Export file size: \(fileSize) bytes at \(fileURL.path)")
-//
-//                                            if fileSize > 0 {
-//                                                print("✅ UI: File validation passed, setting up share sheet")
-//                                                exportedFileURL = fileURL
-//                                                // Stop spinner on successful export
-//                                                state.isExporting = false
-//                                                print("🔄 UI: Loading spinner stopped")
-//                                                showSettingsExport = true
-//                                                print("📤 UI: Share sheet triggered")
-//                                            } else {
-//                                                print("❌ UI: File is empty")
-//                                                exportErrorMessage = "Export file is empty (0 bytes)"
-//                                                showExportError = true
-//                                                // Stop spinner on error
-//                                                state.isExporting = false
-//                                            }
-//                                        } catch {
-//                                            print("❌ UI: Could not verify file attributes: \(error)")
-//                                            exportErrorMessage = "Could not verify file attributes: \(error.localizedDescription)"
-//                                            showExportError = true
-//                                            // Stop spinner on error
-//                                            state.isExporting = false
-//                                        }
-//                                    } else {
-//                                        print("❌ UI: File does not exist at expected path: \(fileURL.path)")
-//                                        exportErrorMessage = "Export file was created but could not be found at: \(fileURL.path)"
-//                                        showExportError = true
-//                                        // Stop spinner on error
-//                                        state.isExporting = false
-//                                    }
-//                                case let .failure(error):
-//                                    print("❌ UI: Export failed with error: \(error)")
-//                                    exportErrorMessage = error.localizedDescription
-//                                    showExportError = true
-//                                    // Stop spinner on error
-//                                    state.isExporting = false
-//                                }
-//                            }
-//                        }
-//                        .disabled(state.selectedCategories.isEmpty)
-//                    }
-//                }
-//            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(
+                        action: {
+                            state.isHelpSheetPresented.toggle()
+                        },
+                        label: {
+                            Image(systemName: "questionmark.circle")
+                        }
+                    )
+                }
+            }
+            .sheet(isPresented: $state.isHelpSheetPresented) {
+                // TODO: implement help sheet 
+                NavigationStack {
+                    List {
+                        Text("Hello World!")
+                    }
+                }
+                .padding()
+                .presentationDetents(
+                    [.fraction(0.9), .large],
+                    selection: $state.helpSheetDetent
+                )
+            }
             .sheet(isPresented: $showSettingsExport) {
                 if let fileURL = exportedFileURL {
                     ShareSheet(activityItems: [fileURL])

@@ -4,6 +4,10 @@ import LoopKit
 import SwiftUI
 import Swinject
 
+// TODO: 1. Split up this state model into smaller sub-files.
+// TODO: 2. Rework the AI slob for the export.
+// TODO: 3. Ensure that all settings that we want to see exported actually are exported. Watch is missing, some recent LiveActivity stuff is missing, Tidepool is missing, ...
+
 extension Export {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var broadcaster: Broadcaster!
@@ -11,6 +15,10 @@ extension Export {
         @Injected() private var storage: FileStorage!
         @Injected() var overrideStorage: OverrideStorage!
         @Injected() var tempTargetsStorage: TempTargetsStorage!
+
+        // Help Sheet
+        var isHelpSheetPresented: Bool = false
+        var helpSheetDetent = PresentationDetent.large
 
         // Version information
         private var versionNumber: String = ""
