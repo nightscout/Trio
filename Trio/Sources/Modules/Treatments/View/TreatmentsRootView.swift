@@ -671,7 +671,7 @@ extension Treatments {
             }
 
             if let workItem = searchDebounce {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: workItem)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.75, execute: workItem)
             }
         }
 
