@@ -653,13 +653,14 @@ extension Treatments {
                 return
             }
 
+            // Show spinner immediately when scheduling a search
+            isSearching = true
+            searchResults = [] // Clear old results so spinner shows
+
             // Capture the query value explicitly to ensure correct search term is used
             let capturedQuery = query
-            searchDebounce = DispatchWorkItem {
+            searchDebounce = DispatchWorkItem { [self] in
                 Task { @MainActor in
-                    self.isSearching = true
-                    defer { self.isSearching = false }
-
                     do {
                         let client = BarcodeScanner.OpenFoodFactsClient()
                         self.searchResults = try await client.searchProducts(query: capturedQuery)
@@ -667,6 +668,7 @@ extension Treatments {
                         self.searchError = error.localizedDescription
                         self.searchResults = []
                     }
+                    self.isSearching = false
                 }
             }
 
@@ -781,8 +783,12 @@ extension Treatments {
                 } label: {
                     HStack {
                         if state.isBolusInProgress && state.amount > 0 &&
-                            !state.externalInsulin && (state.carbs == 0 && state.scannedCarbs == 0 || state.fat == 0 && state.scannedFat == 0 || state
-                            .protein == 0 && state.scannedProtein == 0)
+                            !state
+                            .externalInsulin &&
+                            (
+                                state.carbs == 0 && state.scannedCarbs == 0 || state.fat == 0 && state.scannedFat == 0 || state
+                                    .protein == 0 && state.scannedProtein == 0
+                            )
                         {
                             ProgressView()
                         }
