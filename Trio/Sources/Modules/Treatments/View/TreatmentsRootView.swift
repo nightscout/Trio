@@ -539,9 +539,6 @@ extension Treatments {
                     .listSectionSpacing(sectionSpacing)
                     .scrollDismissesKeyboard(.interactively)
                 }
-                .onTapGesture {
-                    isSearchFocused = false
-                }
                 .blur(radius: state.isAwaitingDeterminationResult ? 5 : 0)
 
                 if state.isAwaitingDeterminationResult {
@@ -578,22 +575,9 @@ extension Treatments {
             .onAppear {
                 configureView {
                     state.isActive = true
-                    if let initialCarbs {
-                        state.carbs = initialCarbs
-                    }
-                    if let initialFat {
-                        state.fat = initialFat
-                    }
-                    if let initialProtein {
-                        state.protein = initialProtein
-                    }
-                    if let initialNote {
-                        state.note = initialNote
-                    }
                     Task { @MainActor in
                         state.insulinCalculated = await state.calculateInsulin()
                     }
-
                     // Auto-open scanner if requested
                     if openWithScanner {
                         configureAndShowScanner(showList: false)
@@ -797,7 +781,8 @@ extension Treatments {
                 } label: {
                     HStack {
                         if state.isBolusInProgress && state.amount > 0 &&
-                            !state.externalInsulin && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
+                            !state.externalInsulin && (state.carbs == 0 && state.scannedCarbs == 0 || state.fat == 0 && state.scannedFat == 0 || state
+                            .protein == 0 && state.scannedProtein == 0)
                         {
                             ProgressView()
                         }
