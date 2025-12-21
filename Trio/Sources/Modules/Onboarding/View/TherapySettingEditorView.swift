@@ -52,104 +52,109 @@ struct TherapySettingEditorView: View {
                 .background(Color.chart.opacity(0.65))
                 .padding(.bottom, -8)
 
-                // Subtle separator at the head of the list
-                Rectangle()
-                    .fill(Color.secondary.opacity(0.3))
-                    .frame(height: 1)
-                    .padding(.horizontal, 20)
-
-                List {
-                    ForEach($items) { $item in
-                        VStack(spacing: 0) {
-                            Button {
-                                selectedItemID = selectedItemID == item.id ? nil : item.id
-                                sortTherapyItems()
-                            } label: {
-                                HStack {
-                                    HStack {
-                                        Text(displayText(for: unit, decimalValue: item.value))
-                                            .foregroundStyle(
-                                                selectedItemID == item.id ? Color.accentColor : Color
-                                                    .primary
-                                            )
-                                        Text(unit.displayName)
-                                            .foregroundStyle(Color.secondary)
-                                    }
-
-                                    Spacer()
-
-                                    HStack {
-                                        Text("starts at").foregroundStyle(Color.secondary)
-                                        let timeIndex = timeOptions.firstIndex { abs($0 - item.time) < 1 } ?? 0
-                                        let time = timeOptions[timeIndex]
-                                        let date = Date(timeIntervalSince1970: time)
-                                        let timeString = timeFormatter.string(from: date)
-                                        Text(timeString)
-                                            .foregroundStyle(selectedItemID == item.id ? Color.accentColor : Color.primary)
-                                    }
-                                }
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-
-                            if selectedItemID == item.id {
-                                timeValuePickerRow(
-                                    item: $item,
-                                    timeOptions: timeOptions,
-                                    valueOptions: valueOptions,
-                                    unit: unit
-                                )
-                                .transition(.slide)
-                            }
-                        }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            if let index = items.firstIndex(where: { $0.id == item.id }), items.count > 1 {
-                                Button(role: .destructive) {
-                                    items.remove(at: index)
-                                    selectedItemID = nil
-                                    validateTherapySettingItems()
+                ZStack(alignment: .top) {
+                    List {
+                        ForEach($items) { $item in
+                            VStack(spacing: 0) {
+                                Button {
+                                    selectedItemID = selectedItemID == item.id ? nil : item.id
+                                    sortTherapyItems()
                                 } label: {
-                                    Label("Delete", systemImage: "trash")
+                                    HStack {
+                                        HStack {
+                                            Text(displayText(for: unit, decimalValue: item.value))
+                                                .foregroundStyle(
+                                                    selectedItemID == item.id ? Color.accentColor : Color
+                                                        .primary
+                                                )
+                                            Text(unit.displayName)
+                                                .foregroundStyle(Color.secondary)
+                                        }
+
+                                        Spacer()
+
+                                        HStack {
+                                            Text("starts at").foregroundStyle(Color.secondary)
+                                            let timeIndex = timeOptions.firstIndex { abs($0 - item.time) < 1 } ?? 0
+                                            let time = timeOptions[timeIndex]
+                                            let date = Date(timeIntervalSince1970: time)
+                                            let timeString = timeFormatter.string(from: date)
+                                            Text(timeString)
+                                                .foregroundStyle(selectedItemID == item.id ? Color.accentColor : Color.primary)
+                                        }
+                                    }
+                                    .contentShape(Rectangle())
                                 }
-                                .tint(.red)
+                                .buttonStyle(.plain)
+
+                                if selectedItemID == item.id {
+                                    timeValuePickerRow(
+                                        item: $item,
+                                        timeOptions: timeOptions,
+                                        valueOptions: valueOptions,
+                                        unit: unit
+                                    )
+                                    .transition(.slide)
+                                }
+                            }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                if let index = items.firstIndex(where: { $0.id == item.id }), items.count > 1 {
+                                    Button(role: .destructive) {
+                                        items.remove(at: index)
+                                        selectedItemID = nil
+                                        validateTherapySettingItems()
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                    .tint(.red)
+                                }
                             }
                         }
-                    }
-                    .listRowBackground(Color.chart.opacity(0.65))
+                        .listRowBackground(Color.chart.opacity(0.65))
 
-                    Rectangle().fill(Color.chart.opacity(0.65)).frame(height: 10)
-                        .clipShape(
-                            .rect(
-                                topLeadingRadius: 0,
-                                bottomLeadingRadius: 10,
-                                bottomTrailingRadius: 10,
-                                topTrailingRadius: 0
+                        Rectangle().fill(Color.chart.opacity(0.65)).frame(height: 10)
+                            .clipShape(
+                                .rect(
+                                    topLeadingRadius: 0,
+                                    bottomLeadingRadius: 10,
+                                    bottomTrailingRadius: 10,
+                                    topTrailingRadius: 0
+                                )
                             )
-                        )
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: -22, leading: 0, bottom: 0, trailing: 0))
-                        .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets(top: -22, leading: 0, bottom: 0, trailing: 0))
+                            .listRowSeparator(.hidden)
+                    }
+                    .id(bottomID)
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                    // 55 for header row, item counts x 45 for every entry row + 230 for a visible picker row
+                    .frame(
+                        height: 55 + CGFloat(items.count) * 45 +
+                            (items.contains(where: { $0.id == selectedItemID }) ? 230 : 0)
+                    )
+                    .onAppear {
+                        // ensure picker is closed when view appears
+                        selectedItemID = nil
+                        // sorts items
+                        validateTherapySettingItems()
+                    }
+                    .onDisappear {
+                        // ensure picker is closed when view appears
+                        selectedItemID = nil
+                        // sorts items
+                        validateTherapySettingItems()
+                    }
+                    .onChange(of: items, { _, _ in
+                        validateTherapySettingItems()
+                    })
+
+                    // Separator line at top of list
+                    Rectangle()
+                        .fill(Color.secondary.opacity(0.3))
+                        .frame(height: 0.5)
+                        .padding(.leading, 18)
                 }
-                .id(bottomID)
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
-                // 55 for header row, item counts x 45 for every entry row + 230 for a visible picker row
-                .frame(height: 55 + CGFloat(items.count) * 45 + (items.contains(where: { $0.id == selectedItemID }) ? 230 : 0))
-                .onAppear {
-                    // ensure picker is closed when view appears
-                    selectedItemID = nil
-                    // sorts items
-                    validateTherapySettingItems()
-                }
-                .onDisappear {
-                    // ensure picker is closed when view appears
-                    selectedItemID = nil
-                    // sorts items
-                    validateTherapySettingItems()
-                }
-                .onChange(of: items, { _, _ in
-                    validateTherapySettingItems()
-                })
             }
         }
     }
