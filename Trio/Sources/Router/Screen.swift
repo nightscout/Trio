@@ -16,7 +16,7 @@ enum Screen: Identifiable, Hashable {
     case crEditor
     case targetsEditor
     case barcodeScanner
-    case treatmentView(carbs: Decimal?, fat: Decimal?, protein: Decimal?, note: String?)
+    case treatmentView
     case treatmentWithScanner
     case manualTempBasal
     case dataTable
@@ -94,14 +94,8 @@ extension Screen {
             TargetsEditor.RootView(resolver: resolver)
         case .barcodeScanner:
             BarcodeScanner.RootView(resolver: resolver, state: BarcodeScanner.StateModel())
-        case let .treatmentView(carbs, fat, protein, note):
-            Treatments.RootView(
-                resolver: resolver,
-                initialCarbs: carbs,
-                initialFat: fat,
-                initialProtein: protein,
-                initialNote: note
-            )
+        case .treatmentView:
+            Treatments.RootView(resolver: resolver)
         case .treatmentWithScanner:
             Treatments.RootView(
                 resolver: resolver,

@@ -285,7 +285,7 @@ extension Main {
                 .store(in: &lifetime)
 
             // Subscribe to BarcodeScanner shortcut notification
-            Foundation.NotificationCenter.default.publisher(for: .openBarcodeAI)
+            Foundation.NotificationCenter.default.publisher(for: .openBarcode)
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] _ in
                     self?.router.mainModalScreen.send(.treatmentWithScanner)
