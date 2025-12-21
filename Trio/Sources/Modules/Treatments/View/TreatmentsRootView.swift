@@ -16,11 +16,7 @@ extension Treatments {
         @FocusState private var focusedField: FocusedField?
 
         let resolver: Resolver
-        let initialCarbs: Decimal?
-        let initialFat: Decimal?
-        let initialProtein: Decimal?
-        let initialNote: String?
-        let openWithScanner: Bool
+        var openWithScanner: Bool = false
 
         @StateObject var state = StateModel()
 
@@ -223,22 +219,6 @@ extension Treatments {
             case .bolus:
                 return showFPU ? .fat : .carbs
             }
-        }
-
-        init(
-            resolver: Resolver,
-            initialCarbs: Decimal? = nil,
-            initialFat: Decimal? = nil,
-            initialProtein: Decimal? = nil,
-            initialNote: String? = nil,
-            openWithScanner: Bool = false
-        ) {
-            self.resolver = resolver
-            self.initialCarbs = initialCarbs
-            self.initialFat = initialFat
-            self.initialProtein = initialProtein
-            self.initialNote = initialNote
-            self.openWithScanner = openWithScanner
         }
 
         var body: some View {

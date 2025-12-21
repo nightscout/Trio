@@ -14,12 +14,12 @@ struct OpenBarcodeScannerIntent: AppIntent {
     /// This intent opens the app when run
     static var openAppWhenRun: Bool = true
 
-    /// Performs the intent by opening the Barcode AI view.
+    /// Performs the intent by opening the Barcode view.
     ///
     /// - Returns: An intent result indicating the action was triggered.
     @MainActor func perform() async throws -> some IntentResult {
         // Post notification to open BarcodeAI view
-        Foundation.NotificationCenter.default.post(name: .openBarcodeAI, object: nil)
+        Foundation.NotificationCenter.default.post(name: .openBarcode, object: nil)
         return .result()
     }
 }

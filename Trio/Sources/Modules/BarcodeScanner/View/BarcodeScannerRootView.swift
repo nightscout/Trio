@@ -81,7 +81,7 @@ extension BarcodeScanner {
             .background(appState.trioBackgroundColor(for: colorScheme).ignoresSafeArea())
             .navigationTitle(String(localized: state.showListView ? "Scanned Items" : "Barcode Scanner"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .topBarLeading) {
                     if showEditorView {
                         Button(
@@ -92,6 +92,7 @@ extension BarcodeScanner {
                                 HStack(spacing: 4) {
                                     Image(systemName: "chevron.left")
                                     Text(String(localized: "Back"))
+                                        .fixedSize(horizontal: true, vertical: false)
                                 }
                             }
                         )
@@ -103,6 +104,7 @@ extension BarcodeScanner {
                             },
                             label: {
                                 Text(String(localized: "Close"))
+                                    .fixedSize(horizontal: true, vertical: false)
                             }
                         )
                         .buttonStyle(BorderlessButtonStyle())
@@ -145,7 +147,7 @@ extension BarcodeScanner {
                         .buttonStyle(BorderlessButtonStyle())
                     }
                 }
-            }
+            })
             .sheet(isPresented: $showEditorCard) {
                 NavigationStack {
                     NutritionEditorView(

@@ -1182,7 +1182,7 @@ extension Home {
 
                 Button(
                     action: {
-                        state.showModal(for: .treatmentView(carbs: nil, fat: nil, protein: nil, note: nil))
+                        state.showModal(for: .treatmentView)
                     },
                     label: {
                         Image(systemName: "plus.circle.fill")
