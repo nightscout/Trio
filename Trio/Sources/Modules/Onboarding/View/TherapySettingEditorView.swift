@@ -50,7 +50,7 @@ struct TherapySettingEditorView: View {
                     .disabled(cannotAddMoreEntries)
                 }
                 .background(Color.chart.opacity(0.65))
-                .padding(.bottom, -10)
+                .padding(.bottom, -8)
 
                 List {
                     ForEach($items) { $item in
