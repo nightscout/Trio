@@ -52,6 +52,12 @@ struct TherapySettingEditorView: View {
                 .background(Color.chart.opacity(0.65))
                 .padding(.bottom, -8)
 
+                // Subtle separator at the head of the list
+                Rectangle()
+                    .fill(Color.secondary.opacity(0.3))
+                    .frame(height: 1)
+                    .padding(.horizontal, 20)
+
                 List {
                     ForEach($items) { $item in
                         VStack(spacing: 0) {
