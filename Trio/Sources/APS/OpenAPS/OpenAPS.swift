@@ -534,15 +534,31 @@ final class OpenAPS {
 
         // Check for active Temp Targets and adjust HBT if necessary
         try await context.perform {
-            // Check if a Temp Target is active and if its HBT differs from user preferences
+            // Check if a Temp Target is active and check HBT differs from setting and adjust
             if let activeTempTarget = try self.fetchActiveTempTargets().first,
                activeTempTarget.enabled,
-               let activeHBT = activeTempTarget.halfBasalTarget?.decimalValue,
-               activeHBT != defaultHalfBasalTarget
+               let targetValue = activeTempTarget.target?.decimalValue
             {
-                // Overwrite the HBT in preferences
-                adjustedPreferences.halfBasalExerciseTarget = activeHBT
-                debug(.openAPS, "Updated halfBasalExerciseTarget to active Temp Target value: \(activeHBT)")
+                // Compute effective HBT - handles both custom HBT and standard TT (where HBT might need adjustment)
+                let effectiveHBT = TempTargetCalculations.computeEffectiveHBT(
+                    tempTargetHalfBasalTarget: activeTempTarget.halfBasalTarget?.decimalValue,
+                    settingHalfBasalTarget: defaultHalfBasalTarget,
+                    target: targetValue,
+                    autosensMax: preferences.autosensMax
+                )
+
+                if let effectiveHBT, effectiveHBT != defaultHalfBasalTarget {
+                    adjustedPreferences.halfBasalExerciseTarget = effectiveHBT
+                    let percentage = Int(TempTargetCalculations.computeAdjustedPercentage(
+                        halfBasalTarget: effectiveHBT,
+                        target: targetValue,
+                        autosensMax: preferences.autosensMax
+                    ))
+                    debug(
+                        .openAPS,
+                        "TempTarget: target=\(targetValue), HBT=\(defaultHalfBasalTarget), effectiveHBT=\(effectiveHBT), percentage=\(percentage)%, adjustmentType=Custom"
+                    )
+                }
             }
             // Overwrite the lowTTlowersSens if autosensMax does not support it
             if preferences.lowTemptargetLowersSensitivity, preferences.autosensMax <= 1 {

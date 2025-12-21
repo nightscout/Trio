@@ -172,7 +172,11 @@ extension Adjustments.RootView {
                 .RawValue ?? Double(state.settingHalfBasalTarget)
         )
         let percentage = Int(
-            state.computeAdjustedPercentage(usingHBT: tempTargetHalfBasal, usingTarget: tempTargetValue)
+            TempTargetCalculations.computeAdjustedPercentage(
+                halfBasalTarget: tempTargetHalfBasal,
+                target: tempTargetValue,
+                autosensMax: state.autosensMax
+            )
         )
         let remainingTime = tempTarget.date?.timeIntervalSinceNow ?? 0
 
