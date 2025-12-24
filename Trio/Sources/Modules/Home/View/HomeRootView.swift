@@ -1,15 +1,8 @@
 import CoreData
-import CoreHaptics
 import SpriteKit
 import SwiftDate
 import SwiftUI
 import Swinject
-
-struct Haptic: Hashable {
-    var intensity: CGFloat
-    var sharpness: CGFloat
-    var interval: CGFloat
-}
 
 struct TimePicker: Identifiable {
     var active: Bool
@@ -22,20 +15,9 @@ extension Home {
         let resolver: Resolver
         let safeAreaSize: CGFloat = 0.08
 
-        // Explicit initializer so this view can be constructed from other files/modules.
-        init(resolver: Resolver) {
-            self.resolver = resolver
-        }
-
         @Environment(\.managedObjectContext) var moc
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
-
-        @State private var engine: CHHapticEngine?
-        private var haptics: [Haptic] = [
-            Haptic(intensity: 0.5, sharpness: 0.5, interval: 0.0),
-            Haptic(intensity: 0.7, sharpness: 0.2, interval: 0.3)
-        ]
 
         @State var state = StateModel()
 
@@ -102,67 +84,6 @@ extension Home {
                 return "book.pages"
             } else {
                 return "book"
-            }
-        }
-
-        func playHaptics(_ haptics: [Haptic]) {
-            guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
-
-            // Ensure engine is started before playing
-            if engine == nil {
-                prepareHaptics()
-            }
-
-            guard let engine else { return }
-
-            // Try to start the engine in case it was stopped
-            do {
-                try engine.start()
-            } catch {
-                // Engine might already be running, which is fine
-            }
-
-            var events: [CHHapticEvent] = []
-            var currentTime: TimeInterval = 0
-
-            for h in haptics {
-                currentTime += TimeInterval(h.interval)
-
-                let event = CHHapticEvent(
-                    eventType: .hapticTransient,
-                    parameters: [
-                        .init(parameterID: .hapticIntensity, value: Float(h.intensity)),
-                        .init(parameterID: .hapticSharpness, value: Float(h.sharpness))
-                    ],
-                    relativeTime: currentTime
-                )
-
-                events.append(event)
-            }
-
-            do {
-                let pattern = try CHHapticPattern(events: events, parameters: [])
-                let player = try engine.makePlayer(with: pattern)
-                try player.start(atTime: CHHapticTimeImmediate)
-            } catch {
-                print("Haptic error: \(error.localizedDescription)")
-            }
-        }
-
-        func prepareHaptics() {
-            guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
-
-            do {
-                engine = try CHHapticEngine()
-                try engine?.start()
-            } catch {
-                print("Engine start error: \(error.localizedDescription)")
-            }
-
-            engine?.resetHandler = { [weak engine] in
-                do { try engine?.start() } catch {
-                    print("Engine restart failed: \(error)")
-                }
             }
         }
 
@@ -1055,7 +976,6 @@ extension Home {
                 configureView {
                     highlightButtons()
                 }
-                prepareHaptics()
             }
             .navigationTitle("Home")
             .navigationBarHidden(true)
