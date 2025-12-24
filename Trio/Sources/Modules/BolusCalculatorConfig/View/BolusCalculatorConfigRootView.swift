@@ -188,7 +188,7 @@ extension BolusCalculatorConfig {
 
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.barcodeScannerLongTapEnabled,
+                    booleanValue: $state.barcodeScannerEnabled,
                     shouldDisplayHint: $shouldDisplayHint,
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },

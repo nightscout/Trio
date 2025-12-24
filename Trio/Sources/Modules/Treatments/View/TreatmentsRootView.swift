@@ -150,7 +150,7 @@ extension Treatments {
 
         @ViewBuilder var foodSearch: some View {
             // Food Search & Quick Actions
-            if state.settings != nil && state.settings.settings.barcodeScannerLongTapEnabled {
+            if state.settings != nil && state.settings.settings.barcodeScannerEnabled{
                 Section {
                     // Combined search bar with action buttons
                     HStack(spacing: 8) {
