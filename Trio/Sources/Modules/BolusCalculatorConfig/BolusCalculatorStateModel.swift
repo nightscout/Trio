@@ -23,7 +23,7 @@ extension BolusCalculatorConfig {
             subscribeSetting(\.sweetMeals, on: $sweetMeals) { sweetMeals = $0 }
             subscribeSetting(\.sweetMealFactor, on: $sweetMealFactor) { sweetMealFactor = $0 }
             subscribeSetting(\.confirmBolus, on: $confirmBolusWhenVeryLowGlucose) { confirmBolusWhenVeryLowGlucose = $0 }
-            subscribeSetting(\.barcodeScannerEnabled, on: barcodeScannerEnabled) {
+            subscribeSetting(\.barcodeScannerEnabled, on: $barcodeScannerEnabled) {
                 barcodeScannerEnabled = $0 }
             subscribeSetting(\.barcodeScannerOnlyCarbs, on: $barcodeScannerOnlyCarbs) {
                 barcodeScannerOnlyCarbs = $0 }
