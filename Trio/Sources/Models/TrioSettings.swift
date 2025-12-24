@@ -71,7 +71,7 @@ struct TrioSettings: JSON, Equatable {
     var smartStackView: LockScreenView = .simple
     var bolusShortcut: BolusShortcutLimit = .notAllowed
     var timeInRangeType: TimeInRangeType = .timeInTightRange
-    var barcodeScannerLongTapEnabled: Bool = false
+    var barcodeScannerEnabled: Bool = false
     var barcodeScannerOnlyCarbs: Bool = false
 }
 
@@ -307,8 +307,8 @@ extension TrioSettings: Decodable {
             settings.timeInRangeType = timeInRangeType
         }
 
-        if let barcodeScannerLongTapEnabled = try? container.decode(Bool.self, forKey: .barcodeScannerLongTapEnabled) {
-            settings.barcodeScannerLongTapEnabled = barcodeScannerLongTapEnabled
+        if let barcodeScannerEnabled = try? container.decode(Bool.self, forKey: .barcodeScannerEnabled) {
+            settings.barcodeScannerEnabled = barcodeScannerEnabled
         }
 
         if let barcodeScannerOnlyCarbs = try? container.decode(Bool.self, forKey: .barcodeScannerOnlyCarbs) {
