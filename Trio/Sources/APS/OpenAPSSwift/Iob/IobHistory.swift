@@ -27,6 +27,9 @@ import Foundation
 /// These seem like small issues, and they are, but I have seen both in my data over a few days of running.
 
 struct IobHistory {
+    /// Used for calculating the beginning of a 0 temp when the pump history begins suspended
+    static let MAX_PUMP_HISTORY_HOURS: Double = 36
+
     struct PumpSuspended {
         let timestamp: Date
         let durationInMinutes: Decimal
@@ -116,7 +119,6 @@ struct IobHistory {
     /// periods of suspension.
     private static func getSuspends(
         pumpHistory: [ComputedPumpHistoryEvent],
-        profile: Profile,
         clock: Date
     ) throws -> [PumpSuspended] {
         let pumpSuspendResumeFull = pumpHistory.filter { $0.type == .pumpSuspend || $0.type == .pumpResume }
@@ -146,14 +148,9 @@ struct IobHistory {
         // If our first suspend/resume event is a resume, the pump is suspended
         // when our history begins
 
-        var profileDia = profile.dia ?? 10
-        if profileDia < 5 {
-            profileDia = 5
-        }
-
-        let maxDiaAgo = clock - profileDia.hoursToSeconds
-        if let first = pumpSuspendResume.first, first.type == .pumpResume, maxDiaAgo < first.timestamp {
-            let start = maxDiaAgo
+        let maxPumpHistoryAgo = clock - TimeInterval(hours: MAX_PUMP_HISTORY_HOURS)
+        if let first = pumpSuspendResume.first, first.type == .pumpResume, maxPumpHistoryAgo < first.timestamp {
+            let start = maxPumpHistoryAgo
             let duration = first.timestamp.timeIntervalSince(start).secondsToMinutes
             suspends.append(PumpSuspended(timestamp: start, durationInMinutes: duration, isSuspendedPrior: true))
         }
@@ -465,7 +462,7 @@ struct IobHistory {
         // ignore any records in the future and sort them
         let pumpHistory = history.filter({ $0.timestamp <= clock }).sorted { $0.timestamp < $1.timestamp }
         let tempBasals = try getTempBasals(pumpHistory: pumpHistory, clock: clock, zeroTempDuration: zeroTempDuration)
-        let suspends = try getSuspends(pumpHistory: pumpHistory, profile: profile, clock: clock)
+        let suspends = try getSuspends(pumpHistory: pumpHistory, clock: clock)
         let boluses = pumpHistory.filter({ $0.type == .bolus }).map { $0.copyWith(insulin: $0.amount) }
 
         var tempHistory: [ComputedPumpHistoryEvent]
