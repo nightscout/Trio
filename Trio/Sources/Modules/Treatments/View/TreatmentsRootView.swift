@@ -152,85 +152,91 @@ extension Treatments {
             // Food Search & Quick Actions
             if state.settings != nil && state.settings.settings.barcodeScannerEnabled {
                 // Combined search bar with action buttons
-                HStack(spacing: 8) {
-                    // Scanner button
-                    Button {
-                        configureAndShowScanner(showList: false)
-                    } label: {
-                        Image(systemName: "barcode.viewfinder")
-                            .font(.title2)
-                            .foregroundStyle(.blue)
-                    }
-                    .buttonStyle(.plain)
-
-                    // Search field
+                VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 8) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundStyle(.secondary)
-                        TextField("Search foods...", text: $searchQuery)
-                            .focused($isSearchFocused)
-                            .textFieldStyle(.plain)
-                            .autocorrectionDisabled()
-                            .textInputAutocapitalization(.never)
-                            .toolbar {
-                                if isSearchFocused {
-                                    ToolbarItemGroup(placement: .keyboard) {
-                                        Button(action: {
-                                            searchQuery = ""
-                                        }) {
-                                            Image(systemName: "trash")
-                                        }
-                                        Spacer()
-                                        Button(action: {
-                                            isSearchFocused = false
-                                        }) {
-                                            Image(systemName: "keyboard.chevron.compact.down")
+                        // Scanner button
+                        Button {
+                            configureAndShowScanner(showList: false)
+                        } label: {
+                            Image(systemName: "barcode.viewfinder")
+                                .font(.title2)
+                                .foregroundStyle(.blue)
+                        }
+                        .buttonStyle(.plain)
+
+                        // Search field
+                        HStack(spacing: 8) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundStyle(.secondary)
+                            TextField("Search foods...", text: $searchQuery)
+                                .focused($isSearchFocused)
+                                .textFieldStyle(.plain)
+                                .autocorrectionDisabled()
+                                .textInputAutocapitalization(.never)
+                                .submitLabel(.search)
+                                .onSubmit {
+                                    showAllSearchResults = false
+                                    performFoodSearch()
+                                }
+                                .toolbar {
+                                    if isSearchFocused {
+                                        ToolbarItemGroup(placement: .keyboard) {
+                                            Button(action: {
+                                                searchQuery = ""
+                                            }) {
+                                                Image(systemName: "trash")
+                                            }
+                                            Spacer()
+                                            Button(action: {
+                                                isSearchFocused = false
+                                            }) {
+                                                Image(systemName: "keyboard.chevron.compact.down")
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            .onChange(of: searchQuery) { _, _ in
-                                showAllSearchResults = false
-                                performFoodSearch()
-                            }
-                        if !searchQuery.isEmpty {
-                            Button {
-                                searchQuery = ""
-                                searchResults = []
-                                showAllSearchResults = false
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.secondary)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(10)
-                    .background(Color.secondary.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-
-                    // List button
-                    Button {
-                        configureAndShowScanner(showList: true)
-                    } label: {
-                        ZStack(alignment: .topTrailing) {
-                            Image(systemName: "list.bullet")
-                                .font(.title2)
-                                .foregroundStyle(.blue)
-
-                            if !scannerState.scannedProducts.isEmpty {
-                                Text("\(scannerState.scannedProducts.count)")
-                                    .font(.caption2.weight(.bold))
-                                    .foregroundStyle(.white)
-                                    .padding(4)
-                                    .background(Circle().fill(Color.red))
-                                    .offset(x: 8, y: -8)
+                                .onChange(of: searchQuery) { _, _ in
+                                    showAllSearchResults = false
+                                }
+                            if !searchQuery.isEmpty {
+                                Button {
+                                    searchQuery = ""
+                                    searchResults = []
+                                    showAllSearchResults = false
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundStyle(.secondary)
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
-                    }
-                    .buttonStyle(.plain)
+                        .padding(10)
+                        .background(Color.secondary.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
 
-                    // Search results
+                        // List button
+                        Button {
+                            configureAndShowScanner(showList: true)
+                        } label: {
+                            ZStack(alignment: .topTrailing) {
+                                Image(systemName: "list.bullet")
+                                    .font(.title2)
+                                    .foregroundStyle(.blue)
+
+                                if !scannerState.scannedProducts.isEmpty {
+                                    Text("\(scannerState.scannedProducts.count)")
+                                        .font(.caption2.weight(.bold))
+                                        .foregroundStyle(.white)
+                                        .padding(4)
+                                        .background(Circle().fill(Color.red))
+                                        .offset(x: 8, y: -8)
+                                }
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    // Search results and Spinner
                     if isSearching {
                         HStack {
                             Spacer()
@@ -243,32 +249,38 @@ extension Treatments {
                             .font(.caption)
                             .foregroundStyle(.red)
                     } else if !searchResults.isEmpty {
-                        let displayResults = showAllSearchResults ? searchResults : Array(searchResults.prefix(5))
-                        ForEach(displayResults) { item in
-                            FoodSearchResultRow(item: item) {
-                                addSearchResultToMeal(item)
-                            }
-                        }
-                        if searchResults.count > 5 {
-                            Button {
-                                withAnimation {
-                                    showAllSearchResults.toggle()
+                        VStack(spacing: 0) {
+                            let displayResults = showAllSearchResults ? searchResults : Array(searchResults.prefix(5))
+                            ForEach(displayResults) { item in
+                                FoodSearchResultRow(item: item) {
+                                    addSearchResultToMeal(item)
                                 }
-                            } label: {
-                                HStack {
-                                    Text(
-                                        showAllSearchResults ? "Show less" :
-                                            "Show \(searchResults.count - 5) more results"
-                                    )
-                                    .font(.caption.weight(.medium))
-                                    Image(systemName: showAllSearchResults ? "chevron.up" : "chevron.down")
-                                        .font(.caption)
+                                if item.id != displayResults.last?.id {
+                                    Divider().opacity(0.3)
                                 }
-                                .foregroundStyle(.blue)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 6)
                             }
-                            .buttonStyle(.plain)
+
+                            if searchResults.count > 5 {
+                                Button {
+                                    withAnimation {
+                                        showAllSearchResults.toggle()
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(
+                                            showAllSearchResults ? "Show less" :
+                                                "Show \(searchResults.count - 5) more results"
+                                        )
+                                        .font(.caption.weight(.medium))
+                                        Image(systemName: showAllSearchResults ? "chevron.up" : "chevron.down")
+                                            .font(.caption)
+                                    }
+                                    .foregroundStyle(.blue)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
                     }
                 }
@@ -696,9 +708,8 @@ extension Treatments {
             initialShowList = showList
         }
 
-        /// Performs debounced food search using Open Food Facts API
+        /// Performs food search using Open Food Facts API
         private func performFoodSearch() {
-            searchDebounce?.cancel()
             searchError = nil
 
             let query = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -708,27 +719,19 @@ extension Treatments {
                 return
             }
 
-            // Show spinner immediately when scheduling a search
+            // Show spinner immediately
             isSearching = true
             searchResults = [] // Clear old results so spinner shows
 
-            // Capture the query value explicitly to ensure correct search term is used
-            let capturedQuery = query
-            searchDebounce = DispatchWorkItem { [self] in
-                Task { @MainActor in
-                    do {
-                        let client = BarcodeScanner.OpenFoodFactsClient()
-                        self.searchResults = try await client.searchProducts(query: capturedQuery)
-                    } catch {
-                        self.searchError = error.localizedDescription
-                        self.searchResults = []
-                    }
-                    self.isSearching = false
+            Task { @MainActor in
+                do {
+                    let client = BarcodeScanner.OpenFoodFactsClient()
+                    self.searchResults = try await client.searchProducts(query: query)
+                } catch {
+                    self.searchError = error.localizedDescription
+                    self.searchResults = []
                 }
-            }
-
-            if let workItem = searchDebounce {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.75, execute: workItem)
+                self.isSearching = false
             }
         }
 
