@@ -18,7 +18,7 @@ extension Treatments {
         let resolver: Resolver
         var openWithScanner: Bool = false
 
-        @StateObject var state = StateModel()
+        @State var state = StateModel()
 
         @State private var showPresetSheet = false
         @State private var autofocus: Bool = true
@@ -94,7 +94,7 @@ extension Treatments {
 
         @ViewBuilder private func proteinAndFat() -> some View {
             HStack {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack {
                     HStack {
                         Text("Protein")
                         TextFieldWithToolBar(
@@ -121,7 +121,7 @@ extension Treatments {
 
                 Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack {
                     HStack {
                         Text("Fat")
                         TextFieldWithToolBar(
@@ -150,87 +150,85 @@ extension Treatments {
 
         @ViewBuilder var foodSearch: some View {
             // Food Search & Quick Actions
-            if state.settings != nil && state.settings.settings.barcodeScannerEnabled{
-                Section {
-                    // Combined search bar with action buttons
-                    HStack(spacing: 8) {
-                        // Scanner button
-                        Button {
-                            configureAndShowScanner(showList: false)
-                        } label: {
-                            Image(systemName: "barcode.viewfinder")
-                                .font(.title2)
-                                .foregroundStyle(.blue)
-                        }
-                        .buttonStyle(.plain)
+            if state.settings != nil && state.settings.settings.barcodeScannerEnabled {
+                // Combined search bar with action buttons
+                HStack(spacing: 8) {
+                    // Scanner button
+                    Button {
+                        configureAndShowScanner(showList: false)
+                    } label: {
+                        Image(systemName: "barcode.viewfinder")
+                            .font(.title2)
+                            .foregroundStyle(.blue)
+                    }
+                    .buttonStyle(.plain)
 
-                        // Search field
-                        HStack(spacing: 8) {
-                            Image(systemName: "magnifyingglass")
-                                .foregroundStyle(.secondary)
-                            TextField("Search foods...", text: $searchQuery)
-                                .focused($isSearchFocused)
-                                .textFieldStyle(.plain)
-                                .autocorrectionDisabled()
-                                .textInputAutocapitalization(.never)
-                                .toolbar {
-                                    if isSearchFocused {
-                                        ToolbarItemGroup(placement: .keyboard) {
-                                            Button(action: {
-                                                searchQuery = ""
-                                            }) {
-                                                Image(systemName: "trash")
-                                            }
-                                            Spacer()
-                                            Button(action: {
-                                                isSearchFocused = false
-                                            }) {
-                                                Image(systemName: "keyboard.chevron.compact.down")
-                                            }
+                    // Search field
+                    HStack(spacing: 8) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(.secondary)
+                        TextField("Search foods...", text: $searchQuery)
+                            .focused($isSearchFocused)
+                            .textFieldStyle(.plain)
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+                            .toolbar {
+                                if isSearchFocused {
+                                    ToolbarItemGroup(placement: .keyboard) {
+                                        Button(action: {
+                                            searchQuery = ""
+                                        }) {
+                                            Image(systemName: "trash")
+                                        }
+                                        Spacer()
+                                        Button(action: {
+                                            isSearchFocused = false
+                                        }) {
+                                            Image(systemName: "keyboard.chevron.compact.down")
                                         }
                                     }
                                 }
-                                .onChange(of: searchQuery) { _, _ in
-                                    showAllSearchResults = false
-                                    performFoodSearch()
-                                }
-                            if !searchQuery.isEmpty {
-                                Button {
-                                    searchQuery = ""
-                                    searchResults = []
-                                    showAllSearchResults = false
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(.secondary)
-                                }
-                                .buttonStyle(.plain)
                             }
-                        }
-                        .padding(10)
-                        .background(Color.secondary.opacity(0.1))
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-
-                        // List button
-                        Button {
-                            configureAndShowScanner(showList: true)
-                        } label: {
-                            ZStack(alignment: .topTrailing) {
-                                Image(systemName: "list.bullet")
-                                    .font(.title2)
-                                    .foregroundStyle(.blue)
-
-                                if !scannerState.scannedProducts.isEmpty {
-                                    Text("\(scannerState.scannedProducts.count)")
-                                        .font(.caption2.weight(.bold))
-                                        .foregroundStyle(.white)
-                                        .padding(4)
-                                        .background(Circle().fill(Color.red))
-                                        .offset(x: 8, y: -8)
-                                }
+                            .onChange(of: searchQuery) { _, _ in
+                                showAllSearchResults = false
+                                performFoodSearch()
                             }
+                        if !searchQuery.isEmpty {
+                            Button {
+                                searchQuery = ""
+                                searchResults = []
+                                showAllSearchResults = false
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
+                    .padding(10)
+                    .background(Color.secondary.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                    // List button
+                    Button {
+                        configureAndShowScanner(showList: true)
+                    } label: {
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: "list.bullet")
+                                .font(.title2)
+                                .foregroundStyle(.blue)
+
+                            if !scannerState.scannedProducts.isEmpty {
+                                Text("\(scannerState.scannedProducts.count)")
+                                    .font(.caption2.weight(.bold))
+                                    .foregroundStyle(.white)
+                                    .padding(4)
+                                    .background(Circle().fill(Color.red))
+                                    .offset(x: 8, y: -8)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
 
                     // Search results
                     if isSearching {
@@ -274,8 +272,6 @@ extension Treatments {
                         }
                     }
                 }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
             }
         }
 
@@ -283,26 +279,24 @@ extension Treatments {
             HStack {
                 Text("Carbs")
                 Spacer()
-                VStack(alignment: .trailing, spacing: 2) {
-                    TextFieldWithToolBar(
-                        text: $state.carbs,
-                        placeholder: "0",
-                        keyboardType: .numberPad,
-                        numberFormatter: mealFormatter,
-                        showArrows: true,
-                        previousTextField: { focusedField = previousField(from: .carbs) },
-                        nextTextField: { focusedField = nextField(from: .carbs) },
-                        unitsText: String(localized: "g", comment: "Units for carbs")
-                    )
-                    .focused($focusedField, equals: .carbs)
-                    .onChange(of: state.carbs) {
-                        handleDebouncedInput()
-                    }
-                    if state.scannedCarbs > 0 {
-                        Text("+ \(Double(truncating: state.scannedCarbs as NSNumber), specifier: "%.1f")g")
-                            .font(.caption)
-                            .foregroundStyle(.blue)
-                    }
+                TextFieldWithToolBar(
+                    text: $state.carbs,
+                    placeholder: "0",
+                    keyboardType: .numberPad,
+                    numberFormatter: mealFormatter,
+                    showArrows: true,
+                    previousTextField: { focusedField = previousField(from: .carbs) },
+                    nextTextField: { focusedField = nextField(from: .carbs) },
+                    unitsText: String(localized: "g", comment: "Units for carbs")
+                )
+                .focused($focusedField, equals: .carbs)
+                .onChange(of: state.carbs) {
+                    handleDebouncedInput()
+                }
+                if state.scannedCarbs > 0 {
+                    Text("+ \(Double(truncating: state.scannedCarbs as NSNumber), specifier: "%.1f")g")
+                        .font(.caption)
+                        .foregroundStyle(.blue)
                 }
             }
         }
@@ -354,6 +348,7 @@ extension Treatments {
 
         @ViewBuilder var inputsView: some View {
             VStack {
+                Spacer()
                 carbsTextField()
 
                 Divider()
@@ -365,10 +360,7 @@ extension Treatments {
 
                 // Time
                 HStack {
-                    // Semi-hacky workaround to make sure the List renders the horizontal divider properly between the `Time` and `Note` rows within the Section
-                    HStack {
-                        Image(systemName: "clock")
-                    }
+                    Image(systemName: "clock")
 
                     Spacer()
                     if !pushed {
@@ -412,12 +404,14 @@ extension Treatments {
                         maxLength: 25
                     )
                 }
+                Spacer()
             }
         }
 
         @ViewBuilder var optionsView: some View {
             VStack {
                 if state.fattyMeals || state.sweetMeals {
+                    Spacer()
                     HStack(spacing: 10) {
                         if state.fattyMeals {
                             Toggle(isOn: $state.useFattyMealCorrectionFactor) {
@@ -452,6 +446,8 @@ extension Treatments {
                     }
                     Divider()
                 }
+
+                Spacer()
 
                 HStack {
                     HStack {
@@ -488,6 +484,7 @@ extension Treatments {
                 }
 
                 Divider()
+                Spacer()
 
                 HStack {
                     Text("Bolus")
@@ -511,12 +508,15 @@ extension Treatments {
                 }
 
                 Divider()
+                Spacer()
 
                 HStack {
                     Text("External Insulin")
                     Spacer()
                     Toggle("", isOn: $state.externalInsulin).toggleStyle(CheckboxToggleStyle())
                 }
+
+                Spacer()
             }
         }
 
@@ -569,29 +569,29 @@ extension Treatments {
         }
 
         @ViewBuilder func listView() -> some View {
-            VStack {
-                List {
-                    Section {
-                        foodSearch
-                    }.listRowBackground(Color.chart)
+            List {
+                Section {
+                    foodSearch
+                }.listRowBackground(Color.chart)
 
-                    Section {
-                        ForecastChart(state: state)
-                            .padding(.vertical)
-                    }.listRowBackground(Color.chart)
+                Section {
+                    ForecastChart(state: state)
+                        .padding(.vertical)
+                }.listRowBackground(Color.chart)
 
-                    Section {
-                        inputsView
-                    }.listRowBackground(Color.chart)
+                Section {
+                    inputsView
+                }.listRowBackground(Color.chart)
 
-                    Section {
-                        optionsView
-                    }.listRowBackground(Color.chart)
+                Section {
+                    optionsView
+                }.listRowBackground(Color.chart)
 
-                    treatmentButton
-                }
-                .listSectionSpacing(sectionSpacing)
+                treatmentButton
             }
+            .listStyle(.insetGrouped)
+            .listSectionSpacing(sectionSpacing)
+            .contentMargins(.top, 0, for: .scrollContent)
         }
 
         var body: some View {
