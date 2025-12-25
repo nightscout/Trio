@@ -41,7 +41,7 @@ enum OrefFunction: String, Codable {
             // can ignore them in our comparison
             return Set(["maxDeviation", "minDeviation", "allDeviations", "bwCarbs", "bwFound", "journalCarbs", "nsCarbs"])
         case .autosens:
-            return Set(["deviationsUnsorted"])
+            return Set(["deviationsUnsorted", "debugInfo"])
         case .determineBasal:
             // FIXME: Adjust as we go
             return Set([
