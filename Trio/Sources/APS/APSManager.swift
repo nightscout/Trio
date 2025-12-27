@@ -19,6 +19,8 @@ protocol APSManager {
     var bolusProgress: CurrentValueSubject<Decimal?, Never> { get }
     var pumpExpiresAtDate: CurrentValueSubject<Date?, Never> { get }
     var isManualTempBasal: Bool { get }
+    var isScheduledBasal: Bool? { get }
+    var isSuspended: Bool { get }
     func enactTempBasal(rate: Double, duration: TimeInterval) async
     func determineBasal() async throws
     func determineBasalSync() async throws
@@ -76,7 +78,6 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var determinationStorage: DeterminationStorage!
     @Injected() private var deviceDataManager: DeviceDataManager!
-    @Injected() private var nightscout: NightscoutManager!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var tddStorage: TDDStorage!
     @Injected() private var broadcaster: Broadcaster!
@@ -104,6 +105,10 @@ final class BaseAPSManager: APSManager, Injectable {
     var bluetoothManager: BluetoothStateManager? { deviceDataManager.bluetoothManager }
 
     @Persisted(key: "isManualTempBasal") var isManualTempBasal: Bool = false
+
+    @Persisted(key: "isScheduledBasal") var isScheduledBasal: Bool? = false
+
+    @Persisted(key: "isSuspended") var isSuspended: Bool = false
 
     let isLooping = CurrentValueSubject<Bool, Never>(false)
     let lastLoopDateSubject = PassthroughSubject<Date, Never>()
@@ -184,7 +189,21 @@ final class BaseAPSManager: APSManager, Injectable {
             }
             .store(in: &lifetime)
 
-        // manage a manual Temp Basal from OmniPod - Force loop() after stop a temp basal or finished
+        deviceDataManager.scheduledBasal
+            .receive(on: processQueue)
+            .sink { scheduledBasal in
+                self.isScheduledBasal = scheduledBasal
+            }
+            .store(in: &lifetime)
+
+        deviceDataManager.suspended
+            .receive(on: processQueue)
+            .sink { suspended in
+                self.isSuspended = suspended
+            }
+            .store(in: &lifetime)
+
+        // manage a manual Temp Basal from PumpManager - force loop() after manual temp basal is cancelled or finishes
         deviceDataManager.manualTempBasal
             .receive(on: processQueue)
             .sink { manualBasal in
@@ -219,13 +238,10 @@ final class BaseAPSManager: APSManager, Injectable {
                 // Execute loop logic
                 try await self.executeLoop(loopStatRecord: &loopStatRecord)
 
-                // Upload data to Nightscout if available
-                if let nightscoutManager = self.nightscout {
-                    await nightscoutManager.uploadCarbs()
-                    await nightscoutManager.uploadPumpHistory()
-                    await nightscoutManager.uploadOverrides()
-                    await nightscoutManager.uploadTempTargets()
-                }
+                requestNightscoutUpload(
+                    [.carbs, .pumpHistory, .overrides, .tempTargets],
+                    source: "APSManager"
+                )
             } catch {
                 var updatedStats = loopStatRecord
                 updatedStats.end = Date()

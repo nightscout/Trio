@@ -47,7 +47,7 @@ struct GlucosePercentileChart: View {
         let validStats = hourlyStats.filter { $0.median > 0 }
         guard !validStats.isEmpty else { return topLimit }
         let maxPercentile90 = validStats.map(\.percentile90).max() ?? topLimit
-        return maxPercentile90.asUnit(units)
+        return max(maxPercentile90.asUnit(units), Double(highLimit.asUnit(units)))
     }
 
     var body: some View {

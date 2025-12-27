@@ -138,6 +138,11 @@ extension Adjustments.StateModel {
         let date = self.date
         guard date > Date() else { return }
 
+        let adjustmentType = halfBasalTarget == settingHalfBasalTarget ? "Standard" : "Custom"
+        debug(
+            .default,
+            "TempTarget: target=\(tempTargetTarget), HBT=\(settingHalfBasalTarget), effectiveHBT=\(halfBasalTarget), percentage=\(Int(percentage))%, adjustmentType=\(adjustmentType)"
+        )
         let tempTarget = TempTarget(
             name: tempTargetName,
             createdAt: date,
@@ -203,6 +208,11 @@ extension Adjustments.StateModel {
     /// Saves a custom Temp Target and disables existing ones.
     func saveCustomTempTarget() async throws {
         await disableAllActiveTempTargets(createTempTargetRunEntry: true)
+        let adjustmentType = halfBasalTarget == settingHalfBasalTarget ? "Standard" : "Custom"
+        debug(
+            .default,
+            "TempTarget: target=\(tempTargetTarget), HBT=\(settingHalfBasalTarget), effectiveHBT=\(halfBasalTarget), percentage=\(Int(percentage))%, adjustmentType=\(adjustmentType)"
+        )
         let tempTarget = TempTarget(
             name: tempTargetName,
             /// We don't need to use the state var date here as we are using a different function for scheduled Temp Targets 'saveScheduledTempTarget()'
@@ -225,6 +235,11 @@ extension Adjustments.StateModel {
 
     /// Creates a new Temp Target preset.
     func saveTempTargetPreset() async throws {
+        let adjustmentType = halfBasalTarget == settingHalfBasalTarget ? "Standard" : "Custom"
+        debug(
+            .default,
+            "TempTarget: target=\(tempTargetTarget), HBT=\(settingHalfBasalTarget), effectiveHBT=\(halfBasalTarget), percentage=\(Int(percentage))%, adjustmentType=\(adjustmentType)"
+        )
         let tempTarget = TempTarget(
             name: tempTargetName,
             createdAt: Date(),
@@ -384,35 +399,19 @@ extension Adjustments.StateModel {
 
     // MARK: - Calculations
 
-    /// Computes the half-basal target based on the current settings.
-    func computeHalfBasalTarget(
-        usingTarget initialTarget: Decimal? = nil,
-        usingPercentage initialPercentage: Double? = nil
-    ) -> Double {
-        let adjustmentPercentage = initialPercentage ?? percentage
-        let adjustmentRatio = Decimal(adjustmentPercentage / 100)
-        let tempTargetValue: Decimal = initialTarget ?? tempTargetTarget
-        var halfBasalTargetValue = halfBasalTarget
-        if adjustmentRatio != 1 {
-            halfBasalTargetValue = ((2 * adjustmentRatio * normalTarget) - normalTarget - (adjustmentRatio * tempTargetValue)) /
-                (adjustmentRatio - 1)
-        }
-        return round(Double(halfBasalTargetValue))
-    }
-
     /// Determines if sensitivity adjustment is enabled based on target.
     func isAdjustSensEnabled(usingTarget initialTarget: Decimal? = nil) -> Bool {
         let target = initialTarget ?? tempTargetTarget
-        if target < normalTarget, lowTTlowersSens && autosensMax > 1 { return true }
-        if target > normalTarget, highTTraisesSens || isExerciseModeActive { return true }
+        if target < TempTargetCalculations.normalTarget, lowTTlowersSens && autosensMax > 1 { return true }
+        if target > TempTargetCalculations.normalTarget, highTTraisesSens || isExerciseModeActive { return true }
         return false
     }
 
     /// Computes the low value for the slider based on the target.
     func computeSliderLow(usingTarget initialTarget: Decimal? = nil) -> Double {
         let calcTarget = initialTarget ?? tempTargetTarget
-        guard calcTarget != 0 else { return 15 } // oref defined maximum sensitivity
-        let minSens = calcTarget < normalTarget ? 105 : 15
+        guard calcTarget != 0 else { return TempTargetCalculations.minSensitivityRatioTT } // oref defined maximum sensitivity
+        let minSens = calcTarget < TempTargetCalculations.normalTarget ? 105 : TempTargetCalculations.minSensitivityRatioTT
         return Double(max(0, minSens))
     }
 
@@ -421,24 +420,8 @@ extension Adjustments.StateModel {
         let calcTarget = initialTarget ?? tempTargetTarget
         guard calcTarget != 0
         else { return Double(autosensMax * 100) } // oref defined limit for increased insulin delivery
-        let maxSens = calcTarget > normalTarget ? 95 : Double(autosensMax * 100)
+        let maxSens = calcTarget > TempTargetCalculations.normalTarget ? 95 : Double(autosensMax * 100)
         return maxSens
-    }
-
-    /// Computes the adjusted percentage for the slider.
-    func computeAdjustedPercentage(
-        usingHBT initialHalfBasalTarget: Decimal? = nil,
-        usingTarget initialTarget: Decimal? = nil
-    ) -> Double {
-        let halfBasalTargetValue = initialHalfBasalTarget ?? halfBasalTarget
-        let calcTarget = initialTarget ?? tempTargetTarget
-        let deviationFromNormal = halfBasalTargetValue - normalTarget
-
-        let adjustmentFactor = deviationFromNormal + (calcTarget - normalTarget)
-        let adjustmentRatio: Decimal = (deviationFromNormal * adjustmentFactor <= 0) ? autosensMax : deviationFromNormal /
-            adjustmentFactor
-
-        return Double(min(adjustmentRatio, autosensMax) * 100).rounded()
     }
 }
 
