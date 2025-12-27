@@ -97,6 +97,7 @@ trailingClosures \
 --typeattributes same-line \
 --varattributes same-line \
 --wrapcollections before-first \
+--trailing-commas collections-only \
 --exclude Pods, Generated, \
   R.generated.swift, \
   fastlane/swift, \
