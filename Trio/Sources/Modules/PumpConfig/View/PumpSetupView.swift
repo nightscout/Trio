@@ -9,6 +9,7 @@ import OmniBLE
 import OmniKit
 import OmniKitUI
 import SwiftUI
+import TandemKit
 import UIKit
 
 extension PumpConfig {
@@ -61,6 +62,15 @@ extension PumpConfig {
                 )
             case .dana:
                 setupViewController = DanaKitPumpManager.setupViewController(
+                    initialSettings: initialSettings,
+                    bluetoothProvider: bluetoothManager,
+                    colorPalette: .default,
+                    allowDebugFeatures: true,
+                    prefersToSkipUserInteraction: false,
+                    allowedInsulinTypes: [.apidra, .humalog, .novolog, .fiasp, .lyumjev]
+                )
+            case .tandem:
+                setupViewController = TandemPumpManager.setupViewController(
                     initialSettings: initialSettings,
                     bluetoothProvider: bluetoothManager,
                     colorPalette: .default,

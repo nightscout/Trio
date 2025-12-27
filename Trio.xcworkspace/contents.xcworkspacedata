@@ -37,4 +37,7 @@
    <FileRef
       location = "group:TidepoolService/TidepoolService.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:TandemKit/TandemKit.xcodeproj">
+   </FileRef>
 </Workspace>

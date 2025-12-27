@@ -53,6 +53,8 @@
 		19F95FF529F10FCF00314DDC /* StatProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19F95FF429F10FCF00314DDC /* StatProvider.swift */; };
 		19F95FF729F10FEE00314DDC /* StatStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19F95FF629F10FEE00314DDC /* StatStateModel.swift */; };
 		19F95FFA29F1102A00314DDC /* StatRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19F95FF929F1102A00314DDC /* StatRootView.swift */; };
+		1A2FA9422EC8F83000DF080F /* TandemKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A2FA9412EC8F83000DF080F /* TandemKit.framework */; };
+		1A2FA9432EC8F83000DF080F /* TandemKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1A2FA9412EC8F83000DF080F /* TandemKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		1BBB001DAD60F3B8CEA4B1C7 /* ISFEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505E09DC17A0C3D0AF4B66FE /* ISFEditorStateModel.swift */; };
 		1D845DF2E3324130E1D95E67 /* DataTableProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60744C3E9BB3652895C908CC /* DataTableProvider.swift */; };
 		23888883D4EA091C88480FF2 /* TreatmentsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19984D62EFC0035A9E9644D /* TreatmentsProvider.swift */; };
@@ -260,6 +262,10 @@
 		3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687E2D8DDD8800899469 /* CryptoSwift */; };
 		3BF85FE32E427312000D7351 /* IOBService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF85FE12E427312000D7351 /* IOBService.swift */; };
 		3E28F2AB2EB5337F00FB9EEB /* ConnectIQ in Frameworks */ = {isa = PBXBuildFile; productRef = 3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */; };
+		3EE3460C2EC91955008A07F6 /* TandemBLE.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EE3460A2EC91955008A07F6 /* TandemBLE.framework */; };
+		3EE3460D2EC91955008A07F6 /* TandemBLE.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3EE3460A2EC91955008A07F6 /* TandemBLE.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3EE3460E2EC91955008A07F6 /* TandemCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EE3460B2EC91955008A07F6 /* TandemCore.framework */; };
+		3EE3460F2EC91955008A07F6 /* TandemCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3EE3460B2EC91955008A07F6 /* TandemCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */; };
 		45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */; };
 		491D6FBD2D56741C00C49F67 /* TempTargetStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491D6FBC2D56741C00C49F67 /* TempTargetStored+CoreDataProperties.swift */; };
@@ -777,12 +783,14 @@
 			files = (
 				3B4BA78F2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Embed Frameworks */,
 				3B4BA7732D8DBD690069D5B8 /* G7SensorKitUI.framework in Embed Frameworks */,
+				3EE3460D2EC91955008A07F6 /* TandemBLE.framework in Embed Frameworks */,
 				3B4BA76D2D8DBD690069D5B8 /* CGMBLEKitUI.framework in Embed Frameworks */,
 				3B4BA76B2D8DBD690069D5B8 /* CGMBLEKit.framework in Embed Frameworks */,
 				3B4BA7792D8DBD690069D5B8 /* MinimedKit.framework in Embed Frameworks */,
 				CE95BF5C2BA770C300DC3DE3 /* LoopKit.framework in Embed Frameworks */,
 				3B4BA7712D8DBD690069D5B8 /* G7SensorKit.framework in Embed Frameworks */,
 				CEB434FE28B90B8C00B70274 /* SwiftCharts in Embed Frameworks */,
+				3EE3460F2EC91955008A07F6 /* TandemCore.framework in Embed Frameworks */,
 				3B4BA7812D8DBD690069D5B8 /* OmniKitUI.framework in Embed Frameworks */,
 				3B4BA76F2D8DBD690069D5B8 /* DanaKit.framework in Embed Frameworks */,
 				3B4BA77D2D8DBD690069D5B8 /* OmniBLE.framework in Embed Frameworks */,
@@ -798,6 +806,7 @@
 				3B4BA7872D8DBD690069D5B8 /* RileyLinkKitUI.framework in Embed Frameworks */,
 				3B4BA78B2D8DC0EC0069D5B8 /* ShareClient.framework in Embed Frameworks */,
 				3B4BA7912D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework in Embed Frameworks */,
+				1A2FA9432EC8F83000DF080F /* TandemKit.framework in Embed Frameworks */,
 				CE95BF602BA7715800DC3DE3 /* MockKit.framework in Embed Frameworks */,
 				CE95BF5E2BA770C300DC3DE3 /* LoopKitUI.framework in Embed Frameworks */,
 			);
@@ -882,6 +891,7 @@
 		19F95FF429F10FCF00314DDC /* StatProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatProvider.swift; sourceTree = "<group>"; };
 		19F95FF629F10FEE00314DDC /* StatStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatStateModel.swift; sourceTree = "<group>"; };
 		19F95FF929F1102A00314DDC /* StatRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatRootView.swift; sourceTree = "<group>"; };
+		1A2FA9412EC8F83000DF080F /* TandemKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TandemKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1CAE81192B118804DCD23034 /* SnoozeProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeProvider.swift; sourceTree = "<group>"; };
 		223EC0494F55A91E3EA69EF4 /* TreatmentsStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TreatmentsStateModel.swift; sourceTree = "<group>"; };
 		22963BD06A9C83959D4914E4 /* GlucoseNotificationSettingsRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlucoseNotificationSettingsRootView.swift; sourceTree = "<group>"; };
@@ -1085,6 +1095,8 @@
 		3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorProvider.swift; sourceTree = "<group>"; };
 		3BF768BD6264FF7D71D66767 /* NightscoutConfigProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NightscoutConfigProvider.swift; sourceTree = "<group>"; };
 		3BF85FE12E427312000D7351 /* IOBService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOBService.swift; sourceTree = "<group>"; };
+		3EE3460A2EC91955008A07F6 /* TandemBLE.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TandemBLE.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3EE3460B2EC91955008A07F6 /* TandemCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TandemCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F60E97100041040446F44E7 /* PumpConfigStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigStateModel.swift; sourceTree = "<group>"; };
 		3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorDataFlow.swift; sourceTree = "<group>"; };
 		42369F66CF91F30624C0B3A6 /* BasalProfileEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorProvider.swift; sourceTree = "<group>"; };
@@ -1577,14 +1589,17 @@
 				3B4BA7782D8DBD690069D5B8 /* MinimedKit.framework in Frameworks */,
 				3B4BA7762D8DBD690069D5B8 /* LibreTransmitterUI.framework in Frameworks */,
 				3B4BA7902D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework in Frameworks */,
+				1A2FA9422EC8F83000DF080F /* TandemKit.framework in Frameworks */,
 				3B4BA76A2D8DBD690069D5B8 /* CGMBLEKit.framework in Frameworks */,
 				3B4BA77C2D8DBD690069D5B8 /* OmniBLE.framework in Frameworks */,
 				38E87403274F78C000975559 /* libswiftCoreNFC.tbd in Frameworks */,
+				3EE3460E2EC91955008A07F6 /* TandemCore.framework in Frameworks */,
 				38E87401274F77E400975559 /* CoreNFC.framework in Frameworks */,
 				3B4BA78A2D8DC0EC0069D5B8 /* ShareClient.framework in Frameworks */,
 				3B4BA77E2D8DBD690069D5B8 /* OmniKit.framework in Frameworks */,
 				3811DE1025C9D37700A708ED /* Swinject in Frameworks */,
 				3B4BA78E2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Frameworks */,
+				3EE3460C2EC91955008A07F6 /* TandemBLE.framework in Frameworks */,
 				B958F1B72BA0711600484851 /* MKRingProgressView in Frameworks */,
 				3B4BA7702D8DBD690069D5B8 /* G7SensorKit.framework in Frameworks */,
 				3B4BA76C2D8DBD690069D5B8 /* CGMBLEKitUI.framework in Frameworks */,
@@ -2180,6 +2195,9 @@
 		3818AA48274C267000843DB3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3EE3460A2EC91955008A07F6 /* TandemBLE.framework */,
+				3EE3460B2EC91955008A07F6 /* TandemCore.framework */,
+				1A2FA9412EC8F83000DF080F /* TandemKit.framework */,
 				3B4BA7882D8DC0EC0069D5B8 /* TidepoolServiceKit.framework */,
 				3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */,
 				3B4BA75B2D8DBD690069D5B8 /* CGMBLEKit.framework */,

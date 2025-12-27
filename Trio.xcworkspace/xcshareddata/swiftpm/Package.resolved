@@ -20,6 +20,24 @@
       }
     },
     {
+      "identity" : "asn1",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leif-ibsen/ASN1",
+      "state" : {
+        "revision" : "e38d1b8b43d8b53ffadde9836f34289176bb7a0c",
+        "version" : "2.7.0"
+      }
+    },
+    {
+      "identity" : "bigint",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leif-ibsen/BigInt",
+      "state" : {
+        "revision" : "8c6f93aa37504b7b1ba3954335b5548a19fbbd82",
+        "version" : "1.22.0"
+      }
+    },
+    {
       "identity" : "bluecryptor",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Kitura/BlueCryptor.git",
@@ -62,6 +80,15 @@
       "state" : {
         "revision" : "c9c3df6ab812de32bae61fc0cd1bf6d45170ebf0",
         "version" : "1.8.2"
+      }
+    },
+    {
+      "identity" : "digest",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leif-ibsen/Digest",
+      "state" : {
+        "revision" : "95ba89b494aaff5f3cd2933c03b9a890323dbf2c",
+        "version" : "1.13.0"
       }
     },
     {
@@ -251,6 +278,15 @@
       "state" : {
         "revision" : "6190d0cefff3013e77ed567e6b074f324e5c5bf5",
         "version" : "6.3.1"
+      }
+    },
+    {
+      "identity" : "swiftecc",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leif-ibsen/SwiftECC",
+      "state" : {
+        "revision" : "85c529c9c56b649a8d8edcef60aab3925ab0f69f",
+        "version" : "5.5.0"
       }
     },
     {
