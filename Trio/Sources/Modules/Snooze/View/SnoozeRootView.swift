@@ -87,10 +87,13 @@ extension Snooze {
                     let interval = pickerTimes[selectedInterval]
                     let snoozeFor = formatter.string(from: interval)!
                     let untilDate = Date() + interval
-                    state.snoozeUntilDate = untilDate < Date() ? .distantPast : untilDate
-                    debug(.default, "will snooze for \(snoozeFor) until \(dateFormatter.string(from: untilDate))")
-                    snoozeDescription = getSnoozeDescription()
-                    state.hideModal()
+
+                    Task { @MainActor in
+                        await state.applySnooze(interval)
+                        debug(.default, "will snooze for \(snoozeFor) until \(dateFormatter.string(from: untilDate))")
+                        snoozeDescription = getSnoozeDescription()
+                        state.hideModal()
+                    }
                 } label: {
                     Text("Click to Snooze Alerts")
                         .padding()
