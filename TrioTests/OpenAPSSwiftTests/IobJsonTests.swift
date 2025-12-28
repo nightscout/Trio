@@ -37,6 +37,18 @@ import Testing
         }
     }
 
+    static func pumpIsSuspended(history: [PumpHistoryEvent]) -> Bool {
+        // The JS implementation of IoB when the pump is suspend is so fundamentally
+        // broken that I wasn't able to fix it in JS. So we'll just skip these, but I
+        // verified them by hand and the Swift implementation appears to be correct
+        if let mostRecentSuspendResumeEvent = history.filter({ $0.type == .pumpSuspend || $0.type == .pumpResume })
+            .first
+        {
+            return mostRecentSuspendResumeEvent.type == .pumpSuspend
+        }
+        return false
+    }
+    
     // Note: This test case has a memory leak so limit your inputs
     // to about 250 files at a time
     @Test(
@@ -62,17 +74,9 @@ import Testing
                 continue
             }
 
-            // The JS implementation of IoB when the pump is suspend is so fundamentally
-            // broken that I wasn't able to fix it in JS. So we'll just skip these, but I
-            // verified them by hand and the Swift implementation appears to be correct
-            if let mostRecentSuspendResumeEvent = iobInputs.history.filter({ $0.type == .pumpSuspend || $0.type == .pumpResume })
-                .first
-            {
-                if mostRecentSuspendResumeEvent.type == .pumpSuspend
-                {
-                    print("Skipping, known issue with JS and currently suspended pumps")
-                    continue
-                }
+            if IobJsonTests.pumpIsSuspended(history: iobInputs.history) {
+                print("Skipping, known issue with JS and currently suspended pumps")
+                continue
             }
 
             timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
