@@ -1,7 +1,7 @@
 import Foundation
 
 enum NotificationCategoryIdentifier: String {
-    case glucoseAlert = "Trio.glucoseAlert"
+    case trioAlert = "Trio.alert"
 }
 
 enum NotificationResponseAction: String, CaseIterable {

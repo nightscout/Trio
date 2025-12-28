@@ -110,15 +110,16 @@ extension Snooze {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Close") {
-                        Task { @MainActor in
-                            state.hideModal()
-                        }
+                        state.hideModal()
                     }
                 }
             }
             .onAppear {
                 configureView()
                 snoozeDescription = getSnoozeDescription()
+            }
+            .onDisappear {
+                state.unsubscribe()
             }
         }
     }

@@ -43,7 +43,7 @@ protocol pumpNotificationObserver {
 
 // MARK: - SnoozeObserver Protocol
 protocol SnoozeObserver {
-    func snoozeDidChange(_ untilDate: Date)
+    @MainActor func snoozeDidChange(_ untilDate: Date)
 }
 
 final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, Injectable {
@@ -123,7 +123,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             }
 
             let glucoseCategory = UNNotificationCategory(
-                identifier: NotificationCategoryIdentifier.glucoseAlert.rawValue,
+                identifier: NotificationCategoryIdentifier.trioAlert.rawValue,
                 actions: snoozeActions,
                 intentIdentifiers: [],
                 options: []
@@ -369,7 +369,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 if notificationAlarm {
                     content.sound = .default
                     content.userInfo[NotificationAction.key] = NotificationAction.snooze.rawValue
-                    content.categoryIdentifier = NotificationCategoryIdentifier.glucoseAlert.rawValue
+                    content.categoryIdentifier = NotificationCategoryIdentifier.trioAlert.rawValue
                 }
 
                 addRequest(

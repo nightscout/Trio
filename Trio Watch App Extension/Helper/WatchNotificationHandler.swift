@@ -26,7 +26,7 @@ final class WatchNotificationHandler: NSObject, UNUserNotificationCenterDelegate
             }
 
             let glucoseCategory = UNNotificationCategory(
-                identifier: NotificationCategoryIdentifier.glucoseAlert.rawValue,
+                identifier: NotificationCategoryIdentifier.trioAlert.rawValue,
                 actions: snoozeActions,
                 intentIdentifiers: [],
                 options: []
