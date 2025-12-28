@@ -13,7 +13,8 @@ function generate(glucose_data, pumphistory_data, basalprofile, profile_data, ca
     
     var iob_inputs = {
         history: pumphistory_data,
-        profile: profile_data
+        profile: profile_data,
+        clock: now
     };
 
     var detection_inputs = {
