@@ -8,6 +8,11 @@ struct Autosens: JSON {
         let deltaGlucose: Decimal
         let deviation: Decimal
         let stateType: String
+        // COB state for debugging state transitions
+        var mealCOB: Decimal?
+        var absorbing: Bool?
+        var mealCarbs: Decimal?
+        var mealStartCounter: Int?
     }
 
     let ratio: Decimal

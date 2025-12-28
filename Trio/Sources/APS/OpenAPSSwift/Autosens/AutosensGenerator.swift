@@ -115,7 +115,11 @@ struct AutosensGenerator {
                 iobActivity: iob.activity,
                 deltaGlucose: deltaGlucose,
                 deviation: deviation,
-                stateType: state.type.rawValue
+                stateType: state.type.rawValue,
+                mealCOB: state.mealCOB,
+                absorbing: state.absorbing,
+                mealCarbs: state.mealCarbs,
+                mealStartCounter: state.mealStartCounter
             ))
 
             if state.type == .nonMeal {

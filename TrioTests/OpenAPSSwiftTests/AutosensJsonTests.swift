@@ -25,7 +25,8 @@ import Testing
             profile: try JSONBridge.to(autosensInputs.profile),
             carbs: autosensInputs.carbs,
             temptargets: autosensInputs.tempTargets,
-            clock: autosensInputs.clock
+            clock: autosensInputs.clock,
+            prepareFile: OpenAPSFixed.prepare
         )
 
         let comparison = JSONCompare.createComparison(
@@ -158,7 +159,7 @@ import Testing
                 print("Skipping, known issue with JS and currently suspended pumps")
                 continue
             }
-            
+
             timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
 
             try await checkFixedJsAgainstSwift(autosensInputs: autosensInputs)
@@ -238,7 +239,7 @@ import Testing
         timeZoneForTests.resetTimezone()
     }
 
-    @Test("Format autosens inputs for running in JS", .enabled(if: true)) func formatInputs() async throws {
+    @Test("Format autosens inputs for running in JS", .enabled(if: false)) func formatInputs() async throws {
         // this test is meant for one-off analysis so it's ok to hard code
         // a file, just make sure to _not_ check in updates to this to
         // avoid polluting our change logs
@@ -276,11 +277,82 @@ import Testing
             profile: try JSONBridge.to(autosensInputs.profile),
             carbs: autosensInputs.carbs,
             temptargets: autosensInputs.tempTargets,
-            clock: autosensInputs.clock
+            clock: autosensInputs.clock,
+            prepareFile: OpenAPSFixed.prepare
         )
 
         if case let .success(swiftJson) = autosensResultSwift, case let .success(jsJson) = autosensResultJavascript {
             try compareDeviations(swiftJson: swiftJson, jsJson: jsJson)
+        }
+
+        try await checkFixedJsAgainstSwift(autosensInputs: autosensInputs)
+
+        timeZoneForTests.resetTimezone()
+    }
+
+    @Test(
+        "Format autosens inputs for running in JS, 24 hours only",
+        .enabled(if: false)
+    ) func formatInputsFixedTime() async throws {
+        // this test is meant for one-off analysis so it's ok to hard code
+        // a file, just make sure to _not_ check in updates to this to
+        // avoid polluting our change logs
+        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/2084152d-a95e-4d0e-9254-e0951f7aa519.0.json")
+        let autosensInputs = algorithmComparison.autosensInput!
+
+        // change these variables to switch between 24 and 8 hours
+        // 288 for 24 hours, 96 for 8 hours
+        let maxDeviations = 288
+        // OpenAPSFixed.prepare24 and OpenAPSFixed.prepare8
+        let prepareFile = OpenAPSFixed.prepare24
+
+        let encoder = JSONCoding.encoder
+        let output = try encoder.encode(autosensInputs)
+
+        let sharedDir = FileManager.default.temporaryDirectory
+        let outputURL = sharedDir.appendingPathComponent("autosens_error_inputs.json")
+        try output.write(to: outputURL)
+
+        // Print the path so you can find it
+        print("Writing to: \(outputURL.path)")
+
+        timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
+
+        let openAps = OpenAPSFixed()
+
+        let glucose = try JSONBridge.glucose(from: autosensInputs.glucose)
+        let pumpHistory = try JSONBridge.pumpHistory(from: autosensInputs.history)
+        let basalProfile = try JSONBridge.basalProfile(from: autosensInputs.basalProfile)
+        let profile = autosensInputs.profile
+        let carbs = try JSONBridge.carbs(from: autosensInputs.carbs)
+        let tempTargets = try JSONBridge.tempTargets(from: autosensInputs.tempTargets)
+        let clock = autosensInputs.clock
+
+        let autosensResultSwift = try AutosensGenerator.generate(
+            glucose: glucose,
+            pumpHistory: pumpHistory,
+            basalProfile: basalProfile,
+            profile: profile,
+            carbs: carbs,
+            tempTargets: tempTargets,
+            maxDeviations: maxDeviations,
+            clock: clock,
+            includeDeviationsForTesting: true
+        )
+
+        let autosensResultJavascript = await openAps.autosenseJavascript(
+            glucose: autosensInputs.glucose,
+            pumpHistory: autosensInputs.history,
+            basalprofile: autosensInputs.basalProfile,
+            profile: try JSONBridge.to(autosensInputs.profile),
+            carbs: autosensInputs.carbs,
+            temptargets: autosensInputs.tempTargets,
+            clock: autosensInputs.clock,
+            prepareFile: prepareFile
+        )
+
+        if case let .success(jsJson) = autosensResultJavascript {
+            try compareDeviations(swiftJson: JSONBridge.to(autosensResultSwift), jsJson: jsJson)
         }
 
         try await checkFixedJsAgainstSwift(autosensInputs: autosensInputs)
