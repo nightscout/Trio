@@ -6,7 +6,11 @@ extension BarcodeScanner {
     /// Client for fetching product data from OpenFoodFacts API
     struct OpenFoodFactsClient {
         func fetchProduct(barcode: String) async throws -> FoodItem {
-            guard let url = URL(string: "https://world.openfoodfacts.org/api/v2/product/\(barcode).json") else {
+            guard let url =
+                URL(
+                    string: "https://world.openfoodfacts.org/api/v2/product/\(barcode).json&fields=code,product_name,image_url,image_front_small_url,nutriments,serving_quantity_unit,serving_quantity,product_quantity,product_quantity_unit"
+                )
+            else {
                 throw OpenFoodFactsError.invalidResponse
             }
 
@@ -31,9 +35,10 @@ extension BarcodeScanner {
 
             // Decide preferred portion unit for user input
             let servingUnit = productData.servingQuantityUnit?.lowercased() ?? productData.productQuantityUnit?.lowercased()
+            let servingSize = productData.servingQuantity ?? productData.productQuantity
             let isMlQuantityUnit: Bool = {
                 if let unit = servingUnit {
-                    if unit.contains("ml") || unit == "l" || unit.contains("fl oz") {
+                    if unit.contains("ml") || unit.contains("l") || unit.contains("fl oz") {
                         return true
                     }
                     return false
@@ -120,7 +125,7 @@ extension BarcodeScanner {
                     .lowercased()
                 let isMlQuantityUnit: Bool = {
                     if let unit = servingUnit {
-                        if unit.contains("ml") || unit == "l" || unit.contains("fl oz") {
+                        if unit.contains("ml") || unit.contains("l") || unit.contains("fl oz") {
                             return true
                         }
                         return false
@@ -205,6 +210,7 @@ private extension BarcodeScanner.OpenFoodFactsClient {
         let servingSize: String?
         let servingQuantity: Double?
         let servingQuantityUnit: String?
+        let productQuantity: Double?
         let ingredientsText: String?
         let imageUrl: String?
         let imageFrontUrl: String?
@@ -219,6 +225,7 @@ private extension BarcodeScanner.OpenFoodFactsClient {
             case productQuantityUnit
             case servingSize
             case servingQuantity
+            case productQuantity
             case servingQuantityUnit
             case ingredientsText
             case imageUrl
@@ -236,6 +243,7 @@ private extension BarcodeScanner.OpenFoodFactsClient {
             productQuantityUnit = try container.decodeIfPresent(String.self, forKey: .productQuantityUnit)
             servingSize = try container.decodeIfPresent(String.self, forKey: .servingSize)
             servingQuantityUnit = try container.decodeIfPresent(String.self, forKey: .servingQuantityUnit)
+            productQuantity = try container.decodeIfPresent(Double.self, forKey: .productQuantity)
             ingredientsText = try container.decodeIfPresent(String.self, forKey: .ingredientsText)
             imageUrl = try container.decodeIfPresent(String.self, forKey: .imageUrl)
             imageFrontUrl = try container.decodeIfPresent(String.self, forKey: .imageFrontUrl)

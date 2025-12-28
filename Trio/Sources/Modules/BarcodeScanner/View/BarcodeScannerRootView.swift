@@ -83,7 +83,7 @@ extension BarcodeScanner {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(content: {
                 ToolbarItem(placement: .topBarLeading) {
-                    if showEditorView {
+                    if state.showEditorView {
                         Button(
                             action: {
                                 state.cancelEditing()
@@ -122,7 +122,7 @@ extension BarcodeScanner {
                                     .font(.body)
                             }
                         )
-                    } else if !showEditorView {
+                    } else if !state.showEditorView {
                         Button(
                             action: {
                                 state.showListView = true
@@ -189,24 +189,17 @@ extension BarcodeScanner {
             }
         }
 
-        /// Whether to show the editor view (product or nutrition data available)
-        private var showEditorView: Bool {
-            // Do not show inline editor if we are editing from the list (sheet presented)
-            if state.isEditingFromList { return false }
-            return state.currentScannedItem != nil || state.scannedNutritionData != nil
-        }
-
         // MARK: - Scanner View Content
 
         private var scannerViewContent: some View {
             GeometryReader { geo in
                 ScrollView {
                     ZStack {
-                        if state.isFetchingProduct || state.isProcessingLabel {
+                        if state.isFetchingProduct {
                             // Loading state
                             loadingView
                                 .transition(.opacity)
-                        } else if showEditorView {
+                        } else if state.showEditorView {
                             // Show full editor view when product/nutrition data is available
                             NutritionEditorView(
                                 state: state,
@@ -222,7 +215,7 @@ extension BarcodeScanner {
                         }
 
                         // Error overlay (always visible if there's an error)
-                        if let message = state.errorMessage, !showEditorView {
+                        if let message = state.errorMessage, !state.showEditorView {
                             VStack {
                                 Spacer()
                                 Label(message, systemImage: "exclamationmark.triangle.fill")
@@ -270,9 +263,7 @@ extension BarcodeScanner {
                 ProgressView()
                     .scaleEffect(1.5)
                 Text(
-                    state
-                        .isFetchingProduct ? String(localized: "Looking up product…") :
-                        String(localized: "Analyzing nutrition label…")
+                    String(localized: "Looking up product…")
                 )
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -288,59 +279,22 @@ extension BarcodeScanner {
                 switch state.cameraStatus {
                 case .authorized:
                     ZStack {
-                        if let capturedImage = state.capturedImage {
-                            Image(uiImage: capturedImage)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                        .strokeBorder(.white.opacity(0.3), lineWidth: 1)
-                                )
-                                .padding(.horizontal)
-                                .padding(.top, 8)
-                        } else {
-                            ScannerPreviewView(
-                                isRunning: Binding(
-                                    get: { state.isScanning },
-                                    set: { state.isScanning = $0 }
-                                ),
-                                onDetected: { state.didDetect(barcode: $0) },
-                                onFailure: state.reportScannerIssue,
-                                onFrameCaptured: { state.lastCameraFrame = $0 }
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                    .strokeBorder(.white.opacity(0.3), lineWidth: 1)
-                            )
-                            .padding(.horizontal)
-                            .padding(.top, 8)
-                            .padding(.bottom, 120)
-
-                            // Scanning indicator
-                            VStack {
-                                Spacer()
-                                HStack {
-                                    if state.isScanning {
-                                        Image(systemName: "barcode.viewfinder")
-                                            .font(.caption)
-                                        Text("Scanning barcodes...")
-                                            .font(.caption)
-                                    } else {
-                                        Image(systemName: "pause.fill")
-                                            .font(.caption)
-                                        Text("Paused")
-                                            .font(.caption)
-                                    }
-                                }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(.ultraThinMaterial)
-                                .clipShape(Capsule())
-                                .padding(.bottom, 140)
-                            }
-                        }
+                        ScannerPreviewView(
+                            isRunning: Binding(
+                                get: { state.isScanning },
+                                set: { state.isScanning = $0 }
+                            ),
+                            onDetected: { state.didDetect(barcode: $0) },
+                            onFailure: state.reportScannerIssue
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .strokeBorder(.white.opacity(0.3), lineWidth: 1)
+                        )
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        .padding(.bottom, 120)
 
                         // Action buttons at bottom
                         VStack {
@@ -380,42 +334,26 @@ extension BarcodeScanner {
 
         private var cameraActionButtons: some View {
             HStack(spacing: 12) {
-                if state.capturedImage != nil {
-                    Button {
-                        state.clearCapturedImage()
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "camera")
-                            Text("Back")
-                        }
-                        .font(.subheadline.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
+                Button {
+                    if state.isScanning {
+                        state.isScanning = false
+                    } else {
+                        state.scanAgain(resetResults: false)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.insulin)
-                } else {
-                    Button {
-                        if state.isScanning {
-                            state.isScanning = false
-                        } else {
-                            state.scanAgain(resetResults: false)
-                        }
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: state.isScanning ? "pause.fill" : "barcode.viewfinder")
-                            Text(state.isScanning ? "Pause" : "Scan")
-                        }
-                        .font(.subheadline.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: state.isScanning ? "pause.fill" : "barcode.viewfinder")
+                        Text(state.isScanning ? "Pause" : "Scan")
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(state.isScanning ? .orange : .insulin)
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(state.isScanning ? .orange : .insulin)
 
-                    if !state.scannedProducts.isEmpty {
-                        // "Calculator" button removed as per request for live updates
-                    }
+                if !state.scannedProducts.isEmpty {
+                    // "Calculator" button removed as per request for live updates
                 }
             }
             .padding(.horizontal)

@@ -169,12 +169,6 @@ extension BarcodeScanner.ScannerPreviewView {
             metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
             metadataOutput.metadataObjectTypes = supportedTypes
 
-            if onFrameCaptured != nil, session.canAddOutput(videoOutput) {
-                videoOutput.setSampleBufferDelegate(self, queue: videoQueue)
-                videoOutput.alwaysDiscardsLateVideoFrames = true
-                session.addOutput(videoOutput)
-            }
-
             session.commitConfiguration()
             isConfigured = true
 

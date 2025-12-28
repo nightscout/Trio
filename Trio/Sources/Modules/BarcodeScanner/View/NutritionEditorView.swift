@@ -256,10 +256,6 @@ extension BarcodeScanner {
                         let carbsTotal = (product.nutriments.carbohydratesPer100g ?? 0) * state.editingAmount / 100
                         let kcalTotal = (product.nutriments.energyKcalPer100g ?? 0) * state.editingAmount / 100
                         nutritionSummary(carbs: carbsTotal, kcal: kcalTotal)
-                    } else if let data = state.scannedNutritionData {
-                        let carbsTotal = (data.carbohydrates ?? 0) * state.editingAmount / 100
-                        let kcalTotal = (data.calories ?? 0) * state.editingAmount / 100
-                        nutritionSummary(carbs: carbsTotal, kcal: kcalTotal)
                     }
                 }
             }
