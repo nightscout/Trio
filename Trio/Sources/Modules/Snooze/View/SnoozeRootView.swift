@@ -14,29 +14,12 @@ extension Snooze {
         @State private var snoozeDescription = "nothing to see here"
 
         private var pickerTimes: [TimeInterval] {
-            var arr: [TimeInterval] = []
-
-            let mins10 = 0.166_67
-            let mins20 = mins10 * 2
-            let mins30 = mins10 * 3
-            // let mins40 = mins10 * 4
-
-            for hr in 0 ..< 2 {
-                for min in [0.0, mins20, mins20 * 2] {
-                    arr.append(TimeInterval(hours: Double(hr) + min))
-                }
-            }
-            for hr in 2 ..< 4 {
-                for min in [0.0, mins30] {
-                    arr.append(TimeInterval(hours: Double(hr) + min))
-                }
-            }
-
-            for hr in 4 ... 8 {
-                arr.append(TimeInterval(hours: Double(hr)))
-            }
-
-            return arr
+            [
+                TimeInterval(minutes: 20),   // 20 minutes
+                TimeInterval(hours: 1),      // 1 hour
+                TimeInterval(hours: 3),      // 3 hours
+                TimeInterval(hours: 6)       // 6 hours
+            ]
         }
 
         private var formatter: DateComponentsFormatter {

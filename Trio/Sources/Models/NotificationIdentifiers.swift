@@ -6,8 +6,9 @@ enum NotificationCategoryIdentifier: String {
 
 enum NotificationResponseAction: String, CaseIterable {
     case snooze20 = "Trio.snooze20"
-    case snooze40 = "Trio.snooze40"
-    case snooze60 = "Trio.snooze60"
+    case snooze1hr = "Trio.snooze1hr"
+    case snooze3hr = "Trio.snooze3hr"
+    case snooze6hr = "Trio.snooze6hr"
 
     var duration: TimeInterval {
         TimeInterval(minutes * 60)
@@ -17,10 +18,12 @@ enum NotificationResponseAction: String, CaseIterable {
         switch self {
         case .snooze20:
             return 20
-        case .snooze40:
-            return 40
-        case .snooze60:
+        case .snooze1hr:
             return 60
+        case .snooze3hr:
+            return 180
+        case .snooze6hr:
+            return 360
         }
     }
 }

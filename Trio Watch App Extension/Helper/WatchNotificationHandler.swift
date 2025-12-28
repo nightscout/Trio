@@ -41,11 +41,13 @@ final class WatchNotificationHandler: NSObject, UNUserNotificationCenterDelegate
     private func title(for action: NotificationResponseAction) -> String {
         switch action {
         case .snooze20:
-            return String(localized: "Snooze 20 min", comment: "Snooze glucose alerts for 20 minutes")
-        case .snooze40:
-            return String(localized: "Snooze 40 min", comment: "Snooze glucose alerts for 40 minutes")
-        case .snooze60:
-            return String(localized: "Snooze 1 hr", comment: "Snooze glucose alerts for 60 minutes")
+            return String(localized: "20 min", comment: "Snooze glucose alerts for 20 minutes")
+        case .snooze1hr:
+            return String(localized: "1 hour", comment: "Snooze glucose alerts for 1 hour")
+        case .snooze3hr:
+            return String(localized: "3 hours", comment: "Snooze glucose alerts for 3 hours")
+        case .snooze6hr:
+            return String(localized: "6 hours", comment: "Snooze glucose alerts for 6 hours")
         }
     }
 
