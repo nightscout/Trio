@@ -110,6 +110,7 @@ struct AutosensGenerator {
             )
 
             debugInfoList.append(Autosens.DebugInfo(
+                iobClock: currGlucose.date,
                 bgi: bgi,
                 iobActivity: iob.activity,
                 deltaGlucose: deltaGlucose,

@@ -62,15 +62,22 @@ import Testing
         // Extract debug info
         let swiftDebugInfo = swiftDict["debugInfo"] as! [Any]
         let jsDebugInfo = jsDict["debugInfo"] as! [Any]
-        for (s, js) in zip(swiftDebugInfo, jsDebugInfo) {
-            print("Debug Info")
-            print("  - Swift: \(s)")
-            print("  - JS: \(js)")
-        }
 
         // Extract deviationsUnsorted arrays
         let swiftDeviations = swiftDict["deviationsUnsorted"] as! [Any]
         let jsDeviations = jsDict["deviationsUnsorted"] as! [Any]
+
+        let combined: [String: Any] = [
+            "swiftDebugInfo": swiftDebugInfo,
+            "jsDebugInfo": jsDebugInfo,
+            "swiftDeviations": swiftDeviations,
+            "jsDeviations": jsDeviations
+        ]
+        let sharedDir = FileManager.default.temporaryDirectory
+        let outputURL = sharedDir.appendingPathComponent("autosens_debug.json")
+        let jsonData = try JSONSerialization.data(withJSONObject: combined, options: .prettyPrinted)
+        try jsonData.write(to: outputURL)
+        print("Writing debug info to: \(outputURL.path)")
 
         // Convert both to Double arrays
         let swiftDoubles = swiftDeviations.compactMap { value -> Double? in
@@ -154,6 +161,76 @@ import Testing
 
             timeZoneForTests.resetTimezone()
         }
+    }
+
+    @Test("Compare IoB calculation at specific time", .enabled(if: false)) func compareIobAtTime() async throws {
+        // Hard-code the file and time to investigate
+        let filePath = "/files/9e146319-5160-482e-9135-f461b97f1a9f.0.json"
+        let targetClock = Date("2025-09-08T10:42:44.333Z")!
+
+        let algorithmComparison = try await HttpFiles.downloadFile(at: filePath)
+        guard let autosensInputs = algorithmComparison.autosensInput else {
+            print("No autosensInputs found")
+            return
+        }
+
+        timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
+
+        let profile = autosensInputs.profile
+
+        // Prepare treatments the same way AutosensGenerator does
+        let swiftTreatments = try IobHistory.calcTempTreatments(
+            history: autosensInputs.history.map { $0.computedEvent() },
+            profile: profile,
+            clock: autosensInputs.clock,
+            autosens: nil,
+            zeroTempDuration: nil
+        )
+
+        let encoder = JSONCoding.encoder
+        var output = try encoder.encode(swiftTreatments)
+
+        let sharedDir = FileManager.default.temporaryDirectory
+        var outputURL = sharedDir.appendingPathComponent("swift_treatments.json")
+        try output.write(to: outputURL)
+
+        print("Writing \(outputURL.path)")
+
+        // Set up profile with currentBasal for this time (both Swift and JS autosens do this)
+        var simulationProfile = profile
+        simulationProfile.currentBasal = try Basal.basalLookup(autosensInputs.basalProfile, now: targetClock)
+        simulationProfile.temptargetSet = false
+
+        // Calculate Swift IoB at this time
+        let swiftIob = try IobCalculation.iobTotal(
+            treatments: swiftTreatments,
+            profile: simulationProfile,
+            time: targetClock
+        )
+
+        let openAps = OpenAPSFixed()
+        let jsTreatmentsRaw = try await openAps.iobHistory(
+            pumphistory: autosensInputs.history,
+            profile: try JSONBridge.to(autosensInputs.profile),
+            clock: autosensInputs.clock,
+            autosens: RawJSON.null,
+            zeroTempDuration: RawJSON.null
+        )
+
+        let jsTreatments = try JSONDecoder()
+            .decode([IobJsonTests.IobHistoryResult].self, from: jsTreatmentsRaw.rawJSON.data(using: .utf8)!)
+
+        output = try encoder.encode(jsTreatments)
+        outputURL = sharedDir.appendingPathComponent("js_treatments.json")
+        try output.write(to: outputURL)
+
+        print("Writing \(outputURL.path)")
+
+        print("Swift IoB at \(targetClock):")
+        print("  iob: \(swiftIob.iob)")
+        print("  activity: \(swiftIob.activity)")
+
+        timeZoneForTests.resetTimezone()
     }
 
     @Test("Format autosens inputs for running in JS", .enabled(if: false)) func formatInputs() async throws {
