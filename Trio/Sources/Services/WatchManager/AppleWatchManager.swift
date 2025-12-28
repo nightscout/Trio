@@ -25,6 +25,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     @Injected() private var tempTargetStorage: TempTargetsStorage!
     @Injected() private var bolusCalculationManager: BolusCalculationManager!
     @Injected() private var iobService: IOBService!
+    @Injected() private var notificationsManager: UserNotificationsManager!
 
     private var units: GlucoseUnits = .mgdL
     private var glucoseColorScheme: GlucoseColorScheme = .staticColor
@@ -571,9 +572,16 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 return
             }
 
-            if let bolusAmount = message[WatchMessageKeys.bolus] as? Double,
-               message[WatchMessageKeys.carbs] == nil,
-               message[WatchMessageKeys.date] == nil
+            if let snoozeMinutes = message[WatchMessageKeys.snoozeDuration] as? Int {
+                debug(.watchManager, "📱 Received snooze request from watch: \(snoozeMinutes) minutes")
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    await self.notificationsManager.applySnooze(for: TimeInterval(snoozeMinutes * 60))
+                }
+                return
+            } else if let bolusAmount = message[WatchMessageKeys.bolus] as? Double,
+                      message[WatchMessageKeys.carbs] == nil,
+                      message[WatchMessageKeys.date] == nil
             {
                 debug(.watchManager, "📱 Received bolus request from watch: \(bolusAmount)U")
                 self?.handleBolusRequest(Decimal(bolusAmount))

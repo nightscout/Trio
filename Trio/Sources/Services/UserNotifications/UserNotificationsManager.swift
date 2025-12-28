@@ -11,6 +11,7 @@ import UserNotifications
 protocol UserNotificationsManager {
     func getNotificationSettings(completionHandler: @escaping (UNNotificationSettings) -> Void)
     func requestNotificationPermissions(completion: @escaping (Bool) -> Void)
+    @MainActor func applySnooze(for duration: TimeInterval) async
 }
 
 enum GlucoseSourceKey: String {
@@ -40,6 +41,11 @@ protocol pumpNotificationObserver {
     func pumpRemoveNotification()
 }
 
+// MARK: - SnoozeObserver Protocol
+protocol SnoozeObserver {
+    func snoozeDidChange(_ untilDate: Date)
+}
+
 final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, Injectable {
     enum Identifier: String {
         case glucoseNotification = "Trio.glucoseNotification"
@@ -61,6 +67,9 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     @Injected(as: FetchGlucoseManager.self) private var sourceInfoProvider: SourceInfoProvider!
 
     @Persisted(key: "UserNotificationsManager.snoozeUntilDate") private var snoozeUntilDate: Date = .distantPast
+    // The glucose notification observers below (Core Data saves and the storage publisher) can fire for the same
+    // reading, so we persist the last alert token to avoid enqueueing identical high/low notifications multiple times.
+    @Persisted(key: "UserNotificationsManager.lastGlucoseAlertToken") private var lastGlucoseAlertToken: String = ""
 
     private let notificationCenter = UNUserNotificationCenter.current()
     private var lifetime = Lifetime()
@@ -95,9 +104,46 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         Task {
             await sendGlucoseNotification()
         }
+        configureNotificationCategories()
         registerHandlers()
         registerSubscribers()
         subscribeOnLoop()
+    }
+
+    private func configureNotificationCategories() {
+        notificationCenter.getNotificationCategories { [weak self] existingCategories in
+            guard let self else { return }
+
+            let snoozeActions = NotificationResponseAction.allCases.map { action in
+                UNNotificationAction(
+                    identifier: action.rawValue,
+                    title: self.title(for: action),
+                    options: []
+                )
+            }
+
+            let glucoseCategory = UNNotificationCategory(
+                identifier: NotificationCategoryIdentifier.glucoseAlert.rawValue,
+                actions: snoozeActions,
+                intentIdentifiers: [],
+                options: []
+            )
+
+            var categories = existingCategories
+            categories.update(with: glucoseCategory)
+            self.notificationCenter.setNotificationCategories(categories)
+        }
+    }
+
+    private func title(for action: NotificationResponseAction) -> String {
+        switch action {
+        case .snooze20:
+            return String(localized: "Snooze 20 min", comment: "Snooze glucose alerts for 20 minutes")
+        case .snooze40:
+            return String(localized: "Snooze 40 min", comment: "Snooze glucose alerts for 40 minutes")
+        case .snooze60:
+            return String(localized: "Snooze 1 hr", comment: "Snooze glucose alerts for 60 minutes")
+        }
     }
 
     private func subscribeOnLoop() {
@@ -271,6 +317,10 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 try viewContext.existingObject(with: id) as? GlucoseStored
             }
 
+            if glucoseStorage.alarm == .none {
+                lastGlucoseAlertToken = ""
+            }
+
             guard let lastReading = glucoseObjects.first?.glucose,
                   let secondLastReading = glucoseObjects.dropFirst().first?.glucose,
                   let lastDirection = glucoseObjects.first?.directionEnum?.symbol else { return }
@@ -305,6 +355,10 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 titles.append(String(localized: "(Snoozed)", comment: "(Snoozed)"))
                 notificationAlarm = false
             } else {
+                let token = alertToken(from: glucoseObjects.first)
+                if notificationAlarm, token == lastGlucoseAlertToken {
+                    return
+                }
                 titles.append(body)
                 let content = UNMutableNotificationContent()
                 content.title = titles.joined(separator: " ")
@@ -313,6 +367,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 if notificationAlarm {
                     content.sound = .default
                     content.userInfo[NotificationAction.key] = NotificationAction.snooze.rawValue
+                    content.categoryIdentifier = NotificationCategoryIdentifier.glucoseAlert.rawValue
                 }
 
                 addRequest(
@@ -323,12 +378,27 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                     messageSubtype: .glucose,
                     action: NotificationAction.snooze
                 )
+                if notificationAlarm {
+                    lastGlucoseAlertToken = token
+                }
             }
         } catch {
             debugPrint(
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to send glucose notification with error: \(error)"
             )
         }
+    }
+
+    private func alertToken(from glucose: GlucoseStored?) -> String {
+        if let id = glucose?.id?.uuidString {
+            return id
+        }
+
+        if let date = glucose?.date {
+            return "date-\(date.timeIntervalSince1970)"
+        }
+
+        return UUID().uuidString
     }
 
     private func glucoseText(glucoseValue: Int, delta: Int?, direction: String?) -> String {
@@ -406,6 +476,18 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             } else {
                 warning(.service, "requestNotificationPermissions failed", error: error)
             }
+        }
+    }
+
+    @MainActor func applySnooze(for duration: TimeInterval) async {
+        let untilDate = Date().addingTimeInterval(duration)
+        snoozeUntilDate = untilDate
+        lastGlucoseAlertToken = ""
+        removeGlucoseNotifications()
+
+        // Notify observers that snooze was applied
+        broadcaster.notify(SnoozeObserver.self, on: .main) { (observer: SnoozeObserver) in
+            observer.snoozeDidChange(untilDate)
         }
     }
 
@@ -571,6 +653,12 @@ extension BaseUserNotificationsManager: pumpNotificationObserver {
             self.notificationCenter.removePendingNotificationRequests(withIdentifiers: [identifier.rawValue])
         }
     }
+
+    private func removeGlucoseNotifications() {
+        let identifier = Identifier.glucoseNotification.rawValue
+        notificationCenter.removeDeliveredNotifications(withIdentifiers: [identifier])
+        notificationCenter.removePendingNotificationRequests(withIdentifiers: [identifier])
+    }
 }
 
 extension BaseUserNotificationsManager: DeterminationObserver {
@@ -601,6 +689,14 @@ extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         defer { completionHandler() }
+
+        if let quickAction = NotificationResponseAction(rawValue: response.actionIdentifier) {
+            Task { @MainActor in
+                await self.applySnooze(for: quickAction.duration)
+            }
+            return
+        }
+
         guard let actionRaw = response.notification.request.content.userInfo[NotificationAction.key] as? String,
               let action = NotificationAction(rawValue: actionRaw)
         else { return }
