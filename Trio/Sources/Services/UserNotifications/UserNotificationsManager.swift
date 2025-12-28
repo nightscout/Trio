@@ -703,19 +703,23 @@ extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
               let action = NotificationAction(rawValue: actionRaw)
         else { return }
 
-        switch action {
-        case .snooze:
-            router.mainModalScreen.send(.snooze)
-        case .pumpConfig:
-            let messageCont = MessageContent(
-                content: response.notification.request.content.body,
-                type: MessageType.other,
-                subtype: .pump,
-                useAPN: false,
-                action: .pumpConfig
-            )
-            router.alertMessage.send(messageCont)
-        default: break
+        // Ensure UI operations happen on main thread
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            switch action {
+            case .snooze:
+                self.router.mainModalScreen.send(.snooze)
+            case .pumpConfig:
+                let messageCont = MessageContent(
+                    content: response.notification.request.content.body,
+                    type: MessageType.other,
+                    subtype: .pump,
+                    useAPN: false,
+                    action: .pumpConfig
+                )
+                self.router.alertMessage.send(messageCont)
+            default: break
+            }
         }
     }
 }

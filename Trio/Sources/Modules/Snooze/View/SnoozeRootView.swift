@@ -71,7 +71,8 @@ extension Snooze {
                     let snoozeFor = formatter.string(from: interval)!
                     let untilDate = Date() + interval
 
-                    Task { @MainActor in
+                    Task { @MainActor [weak state] in
+                        guard let state = state else { return }
                         await state.applySnooze(interval)
                         debug(.default, "will snooze for \(snoozeFor) until \(dateFormatter.string(from: untilDate))")
                         snoozeDescription = getSnoozeDescription()
@@ -106,7 +107,15 @@ extension Snooze {
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .navigationBarTitle("Snooze Alerts")
             .navigationBarTitleDisplayMode(.automatic)
-            .navigationBarItems(trailing: Button("Close", action: state.hideModal))
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Close") {
+                        Task { @MainActor in
+                            state.hideModal()
+                        }
+                    }
+                }
+            }
             .onAppear {
                 configureView()
                 snoozeDescription = getSnoozeDescription()
