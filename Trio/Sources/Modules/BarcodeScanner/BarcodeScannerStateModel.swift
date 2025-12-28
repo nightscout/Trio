@@ -19,12 +19,6 @@ extension BarcodeScanner {
         @Published var scannedProducts: [FoodItem] = []
         @Published var isEditingFromList: Bool = false
 
-        // Nutrition label scanning
-        @Published var capturedImage: UIImage?
-        @Published var scannedNutritionData: NutritionData?
-        @Published var isProcessingLabel = false
-        @Published var showNutritionEditor = false
-        @Published var editableNutritionName: String = ""
         @Published var scannedLabelBasisAmount: Double = 100.0
 
         // External control
@@ -35,9 +29,6 @@ extension BarcodeScanner {
         // Editor amount input
         @Published var editingAmount: Double = 0
         @Published var editingIsMl: Bool = false
-
-        // Camera frame for nutrition analysis
-        @Published var lastCameraFrame: UIImage?
 
         // MARK: - Private Properties
 
@@ -225,17 +216,9 @@ extension BarcodeScanner {
             isScanning = true
         }
 
-        /// Clears the scanned nutrition data from the overlay
-        func clearScannedNutrition() {
-            scannedNutritionData = nil
-            capturedImage = nil
-            errorMessage = nil
-            isScanning = true
-        }
-
-        /// Whether to show the editor view (product or nutrition data available)
+        /// Whether to show the editor view (product available)
         var showEditorView: Bool {
-            currentScannedItem != nil || scannedNutritionData != nil
+            currentScannedItem != nil
         }
 
         /// Cancels the current editing session and returns to scanner
@@ -243,20 +226,9 @@ extension BarcodeScanner {
             // Clear all editing state (product was not added to list yet)
             currentScannedItem = nil
             scannedBarcode = nil
-            scannedNutritionData = nil
-            capturedImage = nil
             errorMessage = nil
             editingAmount = 0
             editingIsMl = false
-            isScanning = true
-        }
-
-        /// Clears the captured image and returns to live camera
-        func clearCapturedImage() {
-            capturedImage = nil
-            scannedNutritionData = nil
-            showNutritionEditor = false
-            errorMessage = nil
             isScanning = true
         }
 
