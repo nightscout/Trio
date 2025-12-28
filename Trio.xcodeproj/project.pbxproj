@@ -15,11 +15,10 @@
 		09A169642EE302EB0026711C /* BarcodeScannerProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A1695C2EE302EB0026711C /* BarcodeScannerProvider.swift */; };
 		09A169652EE302EB0026711C /* BarcodeScannerRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169582EE302EB0026711C /* BarcodeScannerRootView.swift */; };
 		09A169682EE3030D0026711C /* OpenBarcodeScannerIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169662EE3030D0026711C /* OpenBarcodeScannerIntent.swift */; };
-		09A169782EE302EB0026711D /* NutritionData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169702EE302EB0026711D /* NutritionData.swift */; };
 		09A169792EE302EB0026711D /* OpenFoodFactsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169712EE302EB0026711D /* OpenFoodFactsModels.swift */; };
-		09A1697A2EE302EB0026711D /* OpenFoodFactsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169722EE302EB0026711D /* OpenFoodFactsClient.swift */; };
 		09A1697B2EE302EB0026711D /* ScannerPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169732EE302EB0026711D /* ScannerPreviewView.swift */; };
 		09A1697C2EE302EB0026711D /* ProductViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169742EE302EB0026711D /* ProductViews.swift */; };
+		09F000722F01D6E800835F6D /* OpenFoodFactsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09F000712F01D6E800835F6D /* OpenFoodFactsClient.swift */; };
 		0D9A5E34A899219C5C4CDFAF /* DataTableStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9455FA2D92E77A6C4AFED8A3 /* DataTableStateModel.swift */; };
 		0F7A65FBD2CD8D6477ED4539 /* GlucoseNotificationSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E625985B47742D498CB1681A /* GlucoseNotificationSettingsProvider.swift */; };
 		110AEDE32C5193D200615CC9 /* BolusIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE02C5193D100615CC9 /* BolusIntent.swift */; };
@@ -857,11 +856,10 @@
 		09A1695B2EE302EB0026711C /* BarcodeScannerDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerDataFlow.swift; sourceTree = "<group>"; };
 		09A1695C2EE302EB0026711C /* BarcodeScannerProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerProvider.swift; sourceTree = "<group>"; };
 		09A169662EE3030D0026711C /* OpenBarcodeScannerIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenBarcodeScannerIntent.swift; sourceTree = "<group>"; };
-		09A169702EE302EB0026711D /* NutritionData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionData.swift; sourceTree = "<group>"; };
 		09A169712EE302EB0026711D /* OpenFoodFactsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenFoodFactsModels.swift; sourceTree = "<group>"; };
-		09A169722EE302EB0026711D /* OpenFoodFactsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenFoodFactsClient.swift; sourceTree = "<group>"; };
 		09A169732EE302EB0026711D /* ScannerPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerPreviewView.swift; sourceTree = "<group>"; };
 		09A169742EE302EB0026711D /* ProductViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductViews.swift; sourceTree = "<group>"; };
+		09F000712F01D6E800835F6D /* OpenFoodFactsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenFoodFactsClient.swift; sourceTree = "<group>"; };
 		110AEDE02C5193D100615CC9 /* BolusIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntent.swift; sourceTree = "<group>"; };
 		110AEDE12C5193D100615CC9 /* BolusIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntentRequest.swift; sourceTree = "<group>"; };
 		110AEDE52C51A0AE00615CC9 /* ShortcutsConfigView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigView.swift; sourceTree = "<group>"; };
@@ -1691,7 +1689,6 @@
 				096F54762EF21D4B00B557C1 /* NutritionEditorView.swift */,
 				09A169732EE302EB0026711D /* ScannerPreviewView.swift */,
 				09A169742EE302EB0026711D /* ProductViews.swift */,
-				09A169722EE302EB0026711D /* OpenFoodFactsClient.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -2467,7 +2464,6 @@
 				DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */,
 				DD9ECB692CA99F6C00AA7C45 /* CommandPayload.swift */,
 				DDD6D4D22CDE90720029439A /* EstimatedA1cDisplayUnit.swift */,
-				09A169702EE302EB0026711D /* NutritionData.swift */,
 				09A169712EE302EB0026711D /* OpenFoodFactsModels.swift */,
 			);
 			path = Models;
@@ -2502,6 +2498,7 @@
 				38FCF3D525E8FDF40078B0D1 /* MD5.swift */,
 				38E98A2C25F52DC400C0CED0 /* NSLocking+Extensions.swift */,
 				38C4D33925E9A1ED00D30B77 /* NSObject+AssociatedValues.swift */,
+				09F000712F01D6E800835F6D /* OpenFoodFactsClient.swift */,
 				3811DE5725C9D4D500A708ED /* ProgressBar.swift */,
 				DD82D4B72DCAB2BA00BAFC77 /* PropertyPersistentFlags.swift */,
 				3811DEE325CA063400A708ED /* PropertyWrappers */,
@@ -4691,9 +4688,7 @@
 				09A169602EE302EB0026711C /* BarcodeScannerDataFlow.swift in Sources */,
 				09A169642EE302EB0026711C /* BarcodeScannerProvider.swift in Sources */,
 				09A169652EE302EB0026711C /* BarcodeScannerRootView.swift in Sources */,
-				09A169782EE302EB0026711D /* NutritionData.swift in Sources */,
 				09A169792EE302EB0026711D /* OpenFoodFactsModels.swift in Sources */,
-				09A1697A2EE302EB0026711D /* OpenFoodFactsClient.swift in Sources */,
 				09A1697B2EE302EB0026711D /* ScannerPreviewView.swift in Sources */,
 				09A1697C2EE302EB0026711D /* ProductViews.swift in Sources */,
 				DD09D47B2C5986D1003FEA5D /* CalendarEventSettingsDataFlow.swift in Sources */,
@@ -4722,6 +4717,7 @@
 				3171D2818C7C72CD1584BB5E /* GlucoseNotificationSettingsStateModel.swift in Sources */,
 				DDE179522C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift in Sources */,
 				DDE179532C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift in Sources */,
+				09F000722F01D6E800835F6D /* OpenFoodFactsClient.swift in Sources */,
 				DDE179542C910127003CDDB7 /* LoopStatRecord+CoreDataClass.swift in Sources */,
 				BDC530FF2D0F6BE300088832 /* ContactImageManager.swift in Sources */,
 				BDC531122D1060FA00088832 /* ContactImageDetailView.swift in Sources */,
