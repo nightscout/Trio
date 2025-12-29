@@ -423,7 +423,7 @@ struct IobHistory {
         let netBasalRate = tempBasalRate - currentRate
         let tempBolusSize: Decimal = netBasalRate < 0 ? -0.05 : 0.05
 
-        let netBasalAmountTmp = (netBasalRate * duration * 10 / 6).rounded()
+        let netBasalAmountTmp = (netBasalRate * duration * 10 / 6).jsRounded()
         let netBasalAmount = netBasalAmountTmp / Decimal(100)
         // FIXME: I think the count should be floor not rounded due to pump implementation artifacts
         let tempBolusCount = Int((netBasalAmount / tempBolusSize).rounded())
