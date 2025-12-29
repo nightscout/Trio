@@ -243,7 +243,6 @@ private extension BarcodeScanner.OpenFoodFactsClient {
             productQuantityUnit = try container.decodeIfPresent(String.self, forKey: .productQuantityUnit)
             servingSize = try container.decodeIfPresent(String.self, forKey: .servingSize)
             servingQuantityUnit = try container.decodeIfPresent(String.self, forKey: .servingQuantityUnit)
-            productQuantity = try container.decodeIfPresent(Double.self, forKey: .productQuantity)
             ingredientsText = try container.decodeIfPresent(String.self, forKey: .ingredientsText)
             imageUrl = try container.decodeIfPresent(String.self, forKey: .imageUrl)
             imageFrontUrl = try container.decodeIfPresent(String.self, forKey: .imageFrontUrl)
@@ -259,6 +258,18 @@ private extension BarcodeScanner.OpenFoodFactsClient {
                 servingQuantity = parsed
             } else {
                 servingQuantity = nil
+            }
+
+
+            // Handle productQuantity (can be Double or String)
+            if let doubleValue = try? container.decodeIfPresent(Double.self, forKey: .productQuantity) {
+                productQuantity = doubleValue
+            } else if let stringValue = try? container.decodeIfPresent(String.self, forKey: .productQuantity),
+                      let parsed = Double(stringValue.replacingOccurrences(of: ",", with: "."))
+            {
+                productQuantity = parsed
+            } else {
+                productQuantity = nil
             }
         }
 
