@@ -105,8 +105,8 @@ enum OrefFunction: String, Codable {
             ]
         case .autosens:
             return [
-                "ratio": 0.011,
-                "newisf": 1.5
+                "ratio": 0.021,
+                "newisf": 3.1
             ]
         case .determineBasal:
             return [
