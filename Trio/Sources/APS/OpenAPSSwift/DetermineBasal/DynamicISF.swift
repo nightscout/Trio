@@ -8,6 +8,10 @@ struct DynamicISFResult {
     let tddRatio: Decimal
     /// The calculated insulin factor (120 - peak time), used in the logarithmic formula.
     let insulinFactor: Decimal
+    /// The ratio before clamping was applied.
+    let uncappedRatio: Decimal
+    /// The limit value if the ratio was clamped, nil otherwise.
+    let limitValue: Decimal?
 }
 
 enum DynamicISF {
@@ -89,10 +93,21 @@ enum DynamicISF {
             newRatio = sensitivity * preferences.adjustmentFactor * tdd * (Decimal.log((bg / insulinFactor) + 1) / 1800)
         }
 
+        let clampedRatio = newRatio.clamp(lowerBound: minLimit, upperBound: maxLimit)
+        let limitValue: Decimal? = if newRatio > maxLimit {
+            maxLimit
+        } else if newRatio < minLimit {
+            minLimit
+        } else {
+            nil
+        }
+
         return DynamicISFResult(
-            ratio: newRatio.clamp(lowerBound: minLimit, upperBound: maxLimit),
+            ratio: clampedRatio,
             tddRatio: clampedTddRatio,
-            insulinFactor: insulinFactor
+            insulinFactor: insulinFactor,
+            uncappedRatio: newRatio,
+            limitValue: limitValue
         )
     }
 }

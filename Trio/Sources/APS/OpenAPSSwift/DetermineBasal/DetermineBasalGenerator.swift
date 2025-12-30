@@ -84,13 +84,11 @@ enum DeterminationGenerator {
         guard let lastTempTarget = iobData.first?.lastTemp else {
             throw DeterminationError.missingIob
         }
-        if !checkCurrentTempBasalRateSafety(
+        if let reason = checkCurrentTempBasalRateSafety(
             currentTemp: currentTemp,
             lastTempTarget: lastTempTarget,
             currentTime: currentTime
         ) {
-            let reason =
-                "Safety check: currentTemp does not match lastTemp in IOB or lastTemp ended long ago; canceling temp basal."
             return Determination(
                 id: UUID(),
                 reason: reason,
@@ -230,7 +228,10 @@ enum DeterminationGenerator {
                         (
                             currentIob *
                                 min(
-                                    profile.profileSensitivity(at: currentTime, trioCustomOrefVaribales: trioCustomOrefVariables),
+                                    // Use same sensitivity source as adjustedSensitivity (matches JS `sensitivity` variable)
+                                    trioCustomOrefVariables.override(
+                                        sensitivity: profile.sens ?? profile.sensitivityFor(time: currentTime)
+                                    ),
                                     adjustedSensitivity
                                 )
                         )
@@ -273,6 +274,47 @@ enum DeterminationGenerator {
             glucoseImpact: currentGlucoseImpact
         )
 
+        // Build isfReason: "Autosens ratio: X, ISF: Y→Z"
+        // Use same sensitivity source as adjustedSensitivity (profile.sens ?? sensitivityFor) with override applied
+        let originalSensitivity = trioCustomOrefVariables.override(
+            sensitivity: profile.sens ?? profile.sensitivityFor(time: currentTime)
+        )
+        let isfReason =
+            "Autosens ratio: \(sensitivityRatio.jsRounded(scale: 2)), ISF: \(originalSensitivity.jsRounded())→\(adjustedSensitivity.jsRounded())"
+
+        // Build targetLog: "X" or "X→Y" if target was adjusted
+        let profileTarget = profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables) ?? 100
+        let targetLog: String
+        if adjustedGlucoseTargets.targetGlucose != profileTarget {
+            targetLog = "\(profileTarget.jsRounded())→\(adjustedGlucoseTargets.targetGlucose.jsRounded())"
+        } else {
+            targetLog = "\(adjustedGlucoseTargets.targetGlucose.jsRounded())"
+        }
+
+        // Build tddReason: ", Dynamic ISF: On, Sigmoid function, AF: X, Basal ratio: Y, SMB Ratio: Z"
+        var tddReason = ""
+        if let dynamicIsfResult = dynamicIsfResult {
+            tddReason = ", Dynamic ISF: On"
+            if preferences.sigmoid {
+                tddReason += ", Sigmoid function"
+            } else {
+                tddReason += ", Logarithmic formula"
+            }
+            if let limitValue = dynamicIsfResult.limitValue {
+                tddReason +=
+                    ", Autosens/Dynamic Limit: \(limitValue) (\(dynamicIsfResult.uncappedRatio.jsRounded(scale: 2)))"
+            }
+            let af = preferences.sigmoid ? preferences.adjustmentFactorSigmoid : preferences.adjustmentFactor
+            tddReason += ", AF: \(af)"
+            if profile.tddAdjBasal {
+                tddReason += ", Basal ratio: \(dynamicIsfResult.tddRatio)"
+            }
+        }
+        // SMB Ratio is added if not default (0.5)
+        if profile.smbDeliveryRatio != 0.5 {
+            tddReason += ", SMB Ratio: \(min(profile.smbDeliveryRatio, 1))"
+        }
+
         let dosingInputs = DosingEngine.prepareDosingInputs(
             profile: profile,
             mealData: mealData,
@@ -284,9 +326,9 @@ enum DeterminationGenerator {
             currentBasal: profile.currentBasal ?? profile.basalFor(time: currentTime),
             overrideFactor: trioCustomOrefVariables.overrideFactor(),
             adjustedSensitivity: adjustedSensitivity,
-            isfReason: "", // Placeholder
-            tddReason: "", // Placeholder
-            targetLog: "" // Placeholder
+            isfReason: isfReason,
+            tddReason: tddReason,
+            targetLog: targetLog
         )
 
         let smbDecision = try DosingEngine.makeSMBDosingDecision(
@@ -305,6 +347,10 @@ enum DeterminationGenerator {
         var reason = dosingInputs.reason
         if let smbReason = smbDecision.reason {
             reason += smbReason
+        }
+        // Add carbs message after smbReason to match JS order
+        if let carbsReq = dosingInputs.carbsRequired {
+            reason += "\(carbsReq.carbs) add'l carbs req w/in \(carbsReq.minutes)m; "
         }
 
         var determination = Determination(
@@ -332,7 +378,7 @@ enum DeterminationGenerator {
             isf: nil,
             timestamp: currentTime,
             tdd: nil,
-            current_target: nil,
+            current_target: adjustedGlucoseTargets.targetGlucose,
             minDelta: nil,
             expectedDelta: expectedDelta,
             minGuardBG: smbDecision.minGuardGlucose ?? forecastResult.minGuardGlucose,
@@ -563,13 +609,12 @@ enum DeterminationGenerator {
         if glucose <= 10 || glucose == 38 || noise >= 3 {
             reason = "CGM is calibrating, in ??? state, or noise is high"
         }
-        // minAgo (BG age) > 12 or < -5 = old/future BG
+        // minAgo (BG age) > 12 or < -5 = old/future BG - can overwrite calibration reason (matches JS)
         if minAgo > 12 || minAgo < -5 {
             reason =
-                "If current system time \(currentTime) is correct, then BG data is too old. The last BG data was read \(minAgo) min ago at \(bgTime)"
-        }
-        // CGM data unchanged (flat)
-        if shortAvgDelta == 0 && longAvgDelta == 0 {
+                "If current system time \(currentTime.jsDateString()) is correct, then BG data is too old. The last BG data was read \(minAgo.jsRounded(scale: 1))m ago at \(bgTime.jsDateString())"
+        } else if shortAvgDelta == 0 && longAvgDelta == 0 {
+            // CGM data unchanged (flat) - only checked if BG is not too old
             if glucoseStatus.lastCalIndex != nil, glucoseStatus.lastCalIndex! < 3 {
                 reason = "CGM was just calibrated"
             } else {
@@ -591,7 +636,7 @@ enum DeterminationGenerator {
         if currentTemp.rate >= basal { // high temp is running
             // Replace high temp with neutral temp at scheduled basal rate for 30min
             let reasonWithAction = reason +
-                ". Replacing high temp basal of \(currentTemp.rate)U/hr with neutral temp of \(basal)U/hr"
+                ". Replacing high temp basal of \(currentTemp.rate) with neutral temp of \(basal)"
             return Determination(
                 id: UUID(),
                 reason: reasonWithAction,
@@ -612,7 +657,7 @@ enum DeterminationGenerator {
                 isf: profile.sens,
                 timestamp: currentTime,
                 tdd: nil,
-                current_target: profile.targetBg,
+                current_target: nil,
                 minDelta: minDelta,
                 expectedDelta: nil,
                 minGuardBG: nil,
@@ -623,7 +668,7 @@ enum DeterminationGenerator {
             )
         } else if currentTemp.rate == 0, currentTemp.duration > 30 {
             // Shorten long zero temp to 30m
-            let reasonWithAction = reason + ". Shortening \(currentTemp.duration)m long zero temp to 30m."
+            let reasonWithAction = reason + ". Shortening \(currentTemp.duration)m long zero temp to 30m. "
             return Determination(
                 id: UUID(),
                 reason: reasonWithAction,
@@ -644,7 +689,7 @@ enum DeterminationGenerator {
                 isf: profile.sens,
                 timestamp: currentTime,
                 tdd: nil,
-                current_target: profile.targetBg,
+                current_target: nil,
                 minDelta: minDelta,
                 expectedDelta: nil,
                 minGuardBG: nil,
@@ -655,7 +700,7 @@ enum DeterminationGenerator {
             )
         } else {
             // Do nothing (temp already safe)
-            let reasonWithAction = reason + ". Temp \(currentTemp.rate) <= current basal \(basal)U/hr; doing nothing."
+            let reasonWithAction = reason + ". Temp \(currentTemp.rate) <= current basal \(basal)U/hr; doing nothing. "
             return Determination(
                 id: UUID(),
                 reason: reasonWithAction,
@@ -668,7 +713,7 @@ enum DeterminationGenerator {
                 iob: nil,
                 cob: nil,
                 predictions: nil,
-                deliverAt: currentTime,
+                deliverAt: nil,
                 carbsReq: nil,
                 temp: currentTemp.temp,
                 bg: nil,
@@ -676,7 +721,7 @@ enum DeterminationGenerator {
                 isf: profile.sens,
                 timestamp: currentTime,
                 tdd: nil,
-                current_target: profile.targetBg,
+                current_target: nil,
                 minDelta: minDelta,
                 expectedDelta: nil,
                 minGuardBG: nil,

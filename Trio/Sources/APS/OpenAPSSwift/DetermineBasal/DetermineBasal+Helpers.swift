@@ -184,32 +184,34 @@ extension DeterminationGenerator {
         return (sensitivity / sensitivityRatio).jsRounded(scale: 1)
     }
 
+    /// Checks if current temp basal matches last temp from IOB data.
+    /// Returns nil if check passes, or the failure reason string if it fails.
     static func checkCurrentTempBasalRateSafety(
         currentTemp: TempBasal,
         lastTempTarget: IobResult.LastTemp?,
         currentTime: Date
-    ) -> Bool {
+    ) -> String? {
         guard let lastTemp = lastTempTarget, let lastTempDate = lastTemp.timestamp,
-              let lastTempDuration = lastTemp.duration else { return true }
+              let lastTempDuration = lastTemp.duration else { return nil }
         // TODO: throw error for malformed IobResult? Can this be malformed?
 
         let lastTempAge = Int((currentTime.timeIntervalSince(lastTempDate) / 60).rounded()) // in minutes
 //        let tempModulus = Int(lastTempAge + currentTemp.duration) % 30 // only used in JS as output; will leave it here for now
 
-        if currentTemp.rate != lastTemp.rate, lastTempAge > 10, currentTemp.duration > 0 {
-            // Rates don’t match and temp is old: cancel temp
-            return false
+        if let lastTempRate = lastTemp.rate, currentTemp.rate != lastTempRate, lastTempAge > 10, currentTemp.duration > 0 {
+            // Rates don't match and temp is old: cancel temp
+            return "Warning: currenttemp rate \(currentTemp.rate) != lastTemp rate \(lastTempRate) from pumphistory; canceling temp"
         }
         if currentTemp.duration > 0 {
-            let lastTempEnded = lastTempAge - Int(lastTempDuration) // TODO: check if this comes in minutes
+            let lastTempEnded = Decimal(lastTempAge) - lastTempDuration
 
             if lastTempEnded > 5, lastTempAge > 10 {
                 // Last temp ended long ago but temp is running: cancel temp
-                return false
+                return "Warning: currenttemp running but lastTemp from pumphistory ended \(lastTempEnded.jsRounded(scale: 2))m ago; canceling temp"
             }
         }
 
-        return true
+        return nil
     }
 
     /// Adjust glucose targets (min, max, target) based on autosens and/or noise.
@@ -315,5 +317,31 @@ extension TrioCustomOrefVariables {
         } else {
             return sensitivity
         }
+    }
+}
+
+extension Date {
+    /// Formats date like JavaScript's Date.toString()
+    /// Example: "Sat Nov 22 2025 14:22:58 GMT-0700 (Mountain Standard Time)"
+    func jsDateString() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE MMM dd yyyy HH:mm:ss"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+
+        let dateString = formatter.string(from: self)
+
+        // Get GMT offset string like "GMT-0700"
+        let seconds = TimeZone.current.secondsFromGMT(for: self)
+        let hours = abs(seconds) / 3600
+        let minutes = (abs(seconds) % 3600) / 60
+        let sign = seconds >= 0 ? "+" : "-"
+        let gmtOffset = String(format: "GMT%@%02d%02d", sign, hours, minutes)
+
+        // Get timezone name like "Mountain Standard Time" or "Mountain Daylight Time"
+        let style: TimeZone.NameStyle = TimeZone.current.isDaylightSavingTime(for: self) ? .daylightSaving : .standard
+        let timezoneName = TimeZone.current.localizedName(for: style, locale: Locale(identifier: "en_US")) ?? TimeZone.current
+            .identifier
+
+        return "\(dateString) \(gmtOffset) (\(timezoneName))"
     }
 }
