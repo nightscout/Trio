@@ -575,6 +575,7 @@
 		DD3A3CE92D29C97800AE478E /* Helper+ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3A3CE82D29C97800AE478E /* Helper+ButtonStyles.swift */; };
 		DD3C47B32DC5608A003DD20D /* newerSuggested.json in Resources */ = {isa = PBXBuildFile; fileRef = DD3C47B22DC5608A003DD20D /* newerSuggested.json */; };
 		DD3C47B52DC57E06003DD20D /* MainMigrationErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3C47B42DC57E06003DD20D /* MainMigrationErrorView.swift */; };
+		DD3D60312F0377350021A33B /* ExportSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3D60302F0377350021A33B /* ExportSetting.swift */; };
 		DD3F1F832D9DC78800DCE7B3 /* UnitSelectionStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F822D9DC78300DCE7B3 /* UnitSelectionStepView.swift */; };
 		DD3F1F852D9DD84000DCE7B3 /* DeliveryLimitsStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F842D9DD83B00DCE7B3 /* DeliveryLimitsStepView.swift */; };
 		DD3F1F892D9E078D00DCE7B3 /* TherapySettingEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F882D9E078300DCE7B3 /* TherapySettingEditorView.swift */; };
@@ -1411,6 +1412,7 @@
 		DD3A3CE82D29C97800AE478E /* Helper+ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Helper+ButtonStyles.swift"; sourceTree = "<group>"; };
 		DD3C47B22DC5608A003DD20D /* newerSuggested.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = newerSuggested.json; sourceTree = "<group>"; };
 		DD3C47B42DC57E06003DD20D /* MainMigrationErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMigrationErrorView.swift; sourceTree = "<group>"; };
+		DD3D60302F0377350021A33B /* ExportSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportSetting.swift; sourceTree = "<group>"; };
 		DD3F1F822D9DC78300DCE7B3 /* UnitSelectionStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitSelectionStepView.swift; sourceTree = "<group>"; };
 		DD3F1F842D9DD83B00DCE7B3 /* DeliveryLimitsStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliveryLimitsStepView.swift; sourceTree = "<group>"; };
 		DD3F1F882D9E078300DCE7B3 /* TherapySettingEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingEditorView.swift; sourceTree = "<group>"; };
@@ -2367,6 +2369,7 @@
 		388E5A5925B6F0250019842D /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				DD3D60302F0377350021A33B /* ExportSetting.swift */,
 				DDFF204F2DB2C11900AB8A96 /* WatchStateSnapshot.swift */,
 				DDEBB05B2D89E9050032305D /* TimeInRangeType.swift */,
 				3B2F77852D7E52ED005ED9FA /* TDD.swift */,
@@ -4512,6 +4515,7 @@
 				CE7CA3512A064973004BE681 /* ApplyTempPresetIntent.swift in Sources */,
 				FA630397F76B582C8D8681A7 /* BasalProfileEditorProvider.swift in Sources */,
 				DD1745172C54389F00211FAC /* FeatureSettingsView.swift in Sources */,
+				DD3D60312F0377350021A33B /* ExportSetting.swift in Sources */,
 				DD9ECB712CA9A0BA00AA7C45 /* RemoteControlConfigProvider.swift in Sources */,
 				63E890B4D951EAA91C071D5C /* BasalProfileEditorStateModel.swift in Sources */,
 				38FEF3FA2737E42000574A46 /* BaseStateModel.swift in Sources */,

@@ -167,7 +167,7 @@ extension Export {
                 }
             }
             .sheet(isPresented: $state.isHelpSheetPresented) {
-                // TODO: implement help sheet 
+                // TODO: implement help sheet
                 NavigationStack {
                     List {
                         Text("Hello World!")

@@ -4,10 +4,6 @@ import LoopKit
 import SwiftUI
 import Swinject
 
-// TODO: 1. Split up this state model into smaller sub-files.
-// TODO: 2. Rework the AI slob for the export.
-// TODO: 3. Ensure that all settings that we want to see exported actually are exported. Watch is missing, some recent LiveActivity stuff is missing, Tidepool is missing, ...
-
 extension Export {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var broadcaster: Broadcaster!
@@ -24,6 +20,8 @@ extension Export {
         private var versionNumber: String = ""
         private var buildNumber: String = ""
         private var branch: String = ""
+
+        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {
             versionNumber = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
@@ -106,18 +104,16 @@ extension Export {
         ) async -> Result<URL, ExportError> {
             debug(.default, "🔄 EXPORT: Starting settings export...")
 
+            await MainActor.run { isExporting = true }
+
+            defer { Task { @MainActor in isExporting = false } }
+
             let categoriesToExport = categories ?? selectedCategories
             let exportFormat = format ?? selectedFormat
             debug(
                 .default,
                 "🔄 EXPORT: Exporting categories: \(categoriesToExport.map(\.rawValue).joined(separator: ", ")) in \(exportFormat.rawValue) format"
             )
-
-            debug(
-                .default,
-                "🔄 EXPORT: CoreData stack status - persistentContainer: \(CoreDataStack.shared.persistentContainer.description)"
-            )
-            debug(.default, "🔄 EXPORT: ViewContext status: \(CoreDataStack.shared.persistentContainer.viewContext.description)")
 
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyyMMdd_HHmmss"
@@ -130,23 +126,6 @@ extension Export {
             }
             let fileURL = documentsDirectory.appendingPathComponent(fileName)
             debug(.default, "Export file path: \(fileURL.path)")
-
-            // Data structure to hold export data
-            struct ExportSetting {
-                let category: String
-                let subcategory: String
-                let name: String
-                let value: String
-                let unit: String
-
-                init(category: String, subcategory: String = "", name: String, value: String, unit: String = "") {
-                    self.category = category
-                    self.subcategory = subcategory
-                    self.name = name
-                    self.value = value
-                    self.unit = unit
-                }
-            }
 
             var exportSettings: [ExportSetting] = []
 
@@ -191,7 +170,11 @@ extension Export {
                 if let pumpManager = provider.deviceManager.pumpManager {
                     addSetting(category: devicesCategory, name: String(localized: "Pump Type"), value: pumpManager.localizedTitle)
                 } else {
-                    addSetting(category: devicesCategory, name: String(localized: "Pump Type"), value: "Not Connected")
+                    addSetting(
+                        category: devicesCategory,
+                        name: String(localized: "Pump Type"),
+                        value: String(localized: "Not Connected")
+                    )
                 }
             }
 
@@ -995,6 +978,8 @@ extension Export {
             if categoriesToExport.contains(.tempTargetPresets) {
                 let presetsCategory = String(localized: "Temp Target Presets")
 
+                var tempTargetPresets: [TempTargetStored] = []
+
                 // Temp Target Presets (from Core Data)
                 debug(.default, "🔄 EXPORT: Fetching temp target presets...")
                 let tempTargetPresetIDs = (try? await tempTargetsStorage.fetchForTempTargetPresets()) ?? []
@@ -1002,38 +987,33 @@ extension Export {
 
                 if !tempTargetPresetIDs.isEmpty {
                     let tempTargetSubcategory = String(localized: "Temp Target Presets")
-                    let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
-                    let presetData = await viewContext.perform {
-                        tempTargetPresetIDs.compactMap { id -> (
-                            name: String,
-                            target: Decimal?,
-                            duration: Decimal?,
-                            halfBasalTarget: Decimal?
-                        )? in
-                        guard let preset = try? viewContext.existingObject(with: id) as? TempTargetStored else {
-                            debug(.default, "Could not retrieve temp target with ID: \(id)")
-                            return nil
+                    do {
+                        let tempTargetObjects = try await viewContext.perform {
+                            try tempTargetPresetIDs.compactMap { id in
+                                try self.viewContext.existingObject(with: id) as? TempTargetStored
+                            }
                         }
-                        return (
-                            name: preset.name ?? "Unknown Temp Target",
-                            target: preset.target?.decimalValue,
-                            duration: preset.duration?.decimalValue,
-                            halfBasalTarget: preset.halfBasalTarget?.decimalValue
+                        tempTargetPresets = tempTargetObjects
+                    } catch {
+                        debugPrint(
+                            "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to extract Temp Targets: \(error)"
                         )
-                        }
                     }
 
-                    debug(.default, "Successfully extracted \(presetData.count) temp target presets")
+                    debug(.default, "Successfully extracted \(tempTargetPresets.count) temp target presets")
 
-                    for preset in presetData {
+                    for preset in tempTargetPresets {
+                        let presetName = preset.name ?? "Unknown Temp Target"
+
                         if let target = preset.target {
-                            let targetValue = trioSettings.units == .mgdL ? target : target.asMmolL
+                            let targetValue = trioSettings.units == .mgdL ? target.description : target.decimalValue
+                                .formattedAsMmolL
                             addSetting(
                                 category: presetsCategory,
                                 subcategory: tempTargetSubcategory,
-                                name: preset.name,
-                                value: String(describing: targetValue),
+                                name: presetName,
+                                value: targetValue,
                                 unit: trioSettings.units.rawValue
                             )
                         }
@@ -1042,19 +1022,20 @@ extension Export {
                             addSetting(
                                 category: presetsCategory,
                                 subcategory: tempTargetSubcategory,
-                                name: "\(preset.name) Duration",
+                                name: "\(presetName) Duration",
                                 value: String(describing: duration),
                                 unit: String(localized: "minutes")
                             )
                         }
 
                         if let halfBasalTarget = preset.halfBasalTarget {
-                            let halfBasalValue = trioSettings.units == .mgdL ? halfBasalTarget : halfBasalTarget.asMmolL
+                            let halfBasalValue = trioSettings.units == .mgdL ? halfBasalTarget.description : halfBasalTarget
+                                .decimalValue.formattedAsMmolL
                             addSetting(
                                 category: presetsCategory,
                                 subcategory: tempTargetSubcategory,
-                                name: "\(preset.name) Half Basal Target",
-                                value: String(describing: halfBasalValue),
+                                name: "\(presetName) Half Basal Target",
+                                value: halfBasalValue,
                                 unit: trioSettings.units.rawValue
                             )
                         }
@@ -1069,117 +1050,57 @@ extension Export {
                 // Override Presets (from Core Data)
                 do {
                     debug(.default, "🔄 EXPORT: Fetching override presets...")
-                    debug(.default, "🔄 EXPORT: OverrideStorage instance: \(overrideStorage)")
 
-                    // Ensure Core Data is fully initialized - wait longer on first run
-                    var retryCount = 0
                     var overridePresetIDs: [NSManagedObjectID] = []
+                    var overridePresets: [OverrideStored] = []
 
-                    while retryCount < 3 {
-                        do {
-                            debug(.default, "🔄 EXPORT: Attempt \(retryCount + 1) to fetch override presets...")
-                            overridePresetIDs = try await overrideStorage.fetchForOverridePresets()
-                            debug(.default, "✅ EXPORT: Successfully fetched override presets on attempt \(retryCount + 1)")
-                            break // Success, exit retry loop
-                        } catch {
-                            debug(.default, "❌ EXPORT: Attempt \(retryCount + 1) failed: \(error.localizedDescription)")
-                            debug(.default, "❌ EXPORT: Full error: \(error)")
-                            retryCount += 1
-                            if retryCount < 3 {
-                                // Wait progressively longer between retries
-                                debug(.default, "🔄 EXPORT: Waiting \(retryCount * 200)ms before retry...")
-                                do {
-                                    try await Task.sleep(nanoseconds: UInt64(retryCount * 200_000_000)) // 0.2s, 0.4s
-                                } catch {
-                                    debug(.default, "⚠️ EXPORT: Sleep interrupted: \(error)")
-                                    // Sleep interrupted, continue
-                                }
-                            }
-                        }
-                    }
+                    overridePresetIDs = try await overrideStorage.fetchForOverridePresets()
 
                     debug(.default, "🔄 EXPORT: Found \(overridePresetIDs.count) override preset IDs")
+
                     if !overridePresetIDs.isEmpty {
                         let overrideSubcategory = String(localized: "Override Presets")
-                        // Convert NSManagedObjectIDs to actual OverrideStored objects and extract their data within the Core Data context
-                        // Add a small delay to ensure Core Data is ready, especially on first app launch
-                        try await Task.sleep(nanoseconds: 100_000_000) // 0.1 second
 
-                        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-                        let presetData = await viewContext.perform {
-                            overridePresetIDs
-                                .compactMap { id -> (
-                                    name: String,
-                                    percentage: Double,
-                                    indefinite: Bool,
-                                    duration: Decimal?,
-                                    target: Decimal?,
-                                    advancedSettings: Bool,
-                                    cr: Bool,
-                                    isf: Bool,
-                                    isfAndCr: Bool,
-                                    smbIsOff: Bool,
-                                    smbIsScheduledOff: Bool,
-                                    start: Decimal?,
-                                    end: Decimal?,
-                                    smbMinutes: Decimal?,
-                                    uamMinutes: Decimal?
-                                )? in
-                                do {
-                                    guard let preset = try viewContext.existingObject(with: id) as? OverrideStored else {
-                                        debug(.default, "Could not retrieve override with ID: \(id)")
-                                        return nil
-                                    }
-                                    return (
-                                        name: preset.name ?? "Unknown Override",
-                                        percentage: preset.percentage,
-                                        indefinite: preset.indefinite,
-                                        duration: preset.duration?.decimalValue,
-                                        target: preset.target?.decimalValue,
-                                        advancedSettings: preset.advancedSettings,
-                                        cr: preset.cr,
-                                        isf: preset.isf,
-                                        isfAndCr: preset.isfAndCr,
-                                        smbIsOff: preset.smbIsOff,
-                                        smbIsScheduledOff: preset.smbIsScheduledOff,
-                                        start: preset.start?.decimalValue,
-                                        end: preset.end?.decimalValue,
-                                        smbMinutes: preset.smbMinutes?.decimalValue,
-                                        uamMinutes: preset.uamMinutes?.decimalValue
-                                    )
-                                } catch {
-                                    debug(.default, "Error accessing override preset: \(error)")
-                                    return nil
+                        do {
+                            let overrideObjects = try await viewContext.perform {
+                                try overridePresetIDs.compactMap { id in
+                                    try self.viewContext.existingObject(with: id) as? OverrideStored
                                 }
-                                }
+                            }
+                            overridePresets = overrideObjects
+                        } catch {
+                            debugPrint(
+                                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to extract Overrides: \(error)"
+                            )
                         }
 
-                        debug(.default, "Successfully extracted \(presetData.count) override presets")
+                        debug(.default, "Successfully extracted \(overridePresets.count) override presets")
 
-                        for preset in presetData {
-                            // Override: \(preset.name)
+                        for preset in overridePresets {
+                            let presetName = preset.name ?? "Unknown Override"
 
                             addSetting(
                                 category: presetsCategory,
                                 subcategory: overrideSubcategory,
-                                name: preset.name,
+                                name: presetName,
                                 value: String(format: "%.0f%%", preset.percentage)
                             )
                             addSetting(
                                 category: presetsCategory,
                                 subcategory: overrideSubcategory,
-                                name: "\(preset.name) Duration",
+                                name: "\(presetName) Duration",
                                 value: preset
                                     .indefinite ? String(localized: "Indefinite") : String(describing: preset.duration ?? 0),
                                 unit: preset.indefinite ? "" : String(localized: "minutes")
                             )
+
                             if let target = preset.target, target != 0 {
-                                let targetValue = trioSettings.units == .mgdL ? target : target.asMmolL
                                 addSetting(
                                     category: presetsCategory,
                                     subcategory: overrideSubcategory,
-                                    name: "\(preset.name) Target",
-                                    value: String(describing: targetValue),
+                                    name: "\(presetName) Target",
+                                    value: trioSettings.units == .mgdL ? target.description : target.decimalValue
+                                        .formattedAsMmolL,
                                     unit: trioSettings.units.rawValue
                                 )
                             }
@@ -1189,14 +1110,14 @@ extension Export {
                                 addSetting(
                                     category: presetsCategory,
                                     subcategory: overrideSubcategory,
-                                    name: "\(preset.name) Advanced Settings",
+                                    name: "\(presetName) Advanced Settings",
                                     value: String(localized: "Enabled")
                                 )
                                 if let smbMinutes = preset.smbMinutes {
                                     addSetting(
                                         category: presetsCategory,
                                         subcategory: overrideSubcategory,
-                                        name: "\(preset.name) SMB Minutes",
+                                        name: "\(presetName) SMB Minutes",
                                         value: String(describing: smbMinutes),
                                         unit: String(localized: "minutes")
                                     )
@@ -1205,7 +1126,7 @@ extension Export {
                                     addSetting(
                                         category: presetsCategory,
                                         subcategory: overrideSubcategory,
-                                        name: "\(preset.name) UAM Minutes",
+                                        name: "\(presetName) UAM Minutes",
                                         value: String(describing: uamMinutes),
                                         unit: String(localized: "minutes")
                                     )
@@ -1217,7 +1138,7 @@ extension Export {
                                 addSetting(
                                     category: presetsCategory,
                                     subcategory: overrideSubcategory,
-                                    name: "\(preset.name) SMB",
+                                    name: "\(presetName) SMB",
                                     value: String(localized: "Disabled")
                                 )
                             }
@@ -1226,14 +1147,14 @@ extension Export {
                                 addSetting(
                                     category: presetsCategory,
                                     subcategory: overrideSubcategory,
-                                    name: "\(preset.name) SMB Scheduled",
+                                    name: "\(presetName) SMB Scheduled",
                                     value: String(localized: "Disabled")
                                 )
                                 if let start = preset.start {
                                     addSetting(
                                         category: presetsCategory,
                                         subcategory: overrideSubcategory,
-                                        name: "\(preset.name) SMB Schedule Start",
+                                        name: "\(presetName) SMB Schedule Start",
                                         value: String(describing: start),
                                         unit: String(localized: "hours")
                                     )
@@ -1242,7 +1163,7 @@ extension Export {
                                     addSetting(
                                         category: presetsCategory,
                                         subcategory: overrideSubcategory,
-                                        name: "\(preset.name) SMB Schedule End",
+                                        name: "\(presetName) SMB Schedule End",
                                         value: String(describing: end),
                                         unit: String(localized: "hours")
                                     )
@@ -1254,28 +1175,28 @@ extension Export {
                                 addSetting(
                                     category: presetsCategory,
                                     subcategory: overrideSubcategory,
-                                    name: "\(preset.name) Affects",
+                                    name: "\(presetName) Affects",
                                     value: String(localized: "ISF and CR")
                                 )
                             } else if preset.isf, preset.cr {
                                 addSetting(
                                     category: presetsCategory,
                                     subcategory: overrideSubcategory,
-                                    name: "\(preset.name) Affects",
+                                    name: "\(presetName) Affects",
                                     value: String(localized: "ISF and CR")
                                 )
                             } else if preset.isf {
                                 addSetting(
                                     category: presetsCategory,
                                     subcategory: overrideSubcategory,
-                                    name: "\(preset.name) Affects",
+                                    name: "\(presetName) Affects",
                                     value: String(localized: "ISF")
                                 )
                             } else if preset.cr {
                                 addSetting(
                                     category: presetsCategory,
                                     subcategory: overrideSubcategory,
-                                    name: "\(preset.name) Affects",
+                                    name: "\(presetName) Affects",
                                     value: String(localized: "CR")
                                 )
                             }
@@ -1293,11 +1214,10 @@ extension Export {
                 // Meal Presets (from Core Data)
                 do {
                     debug(.default, "Fetching meal presets...")
-                    let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
                     let mealPresetData = try await viewContext.perform {
                         let request: NSFetchRequest<MealPresetStored> = MealPresetStored.fetchRequest()
-                        let mealPresets = try viewContext.fetch(request)
+                        let mealPresets = try self.viewContext.fetch(request)
 
                         return mealPresets.map { preset -> (dish: String, carbs: Decimal?, fat: Decimal?, protein: Decimal?) in
                             (
@@ -1358,94 +1278,31 @@ extension Export {
                 case .csv:
                     // Helper function to escape CSV values
                     func csvEscape(_ value: String) -> String {
-                        if value.contains(",") || value.contains("\"") || value.contains("\n") {
+                        if value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r") {
                             return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
                         }
                         return value
                     }
 
-                    var csvContent = "Setting Category,Subcategory,Setting Name,Value,Unit\n"
-                    var lastPresetName: String?
+                    var csvContent = "\u{FEFF}Setting Category,Subcategory,Setting Name,Value,Unit\n"
 
                     for setting in exportSettings {
-                        // Check if this is a preset category and if we're starting a new preset
-                        if setting.category.contains("Presets") {
-                            // Extract the base preset name (without suffixes like " Duration", " Target", etc.)
-                            let settingName = setting.name
-                            let basePresetName: String
-
-                            if settingName.contains(" Duration") {
-                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
-                            } else if settingName.contains(" Target") {
-                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
-                            } else if settingName.contains(" Reason") {
-                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
-                            } else if settingName.contains(" Entered By") {
-                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
-                            } else if settingName.contains(" Carbs") {
-                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
-                            } else if settingName.contains(" Fat") {
-                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
-                            } else if settingName.contains(" Protein") {
-                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
-                            } else if settingName.contains(" Advanced Settings") {
-                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
-                            } else if settingName.contains(" SMB") {
-                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
-                            } else if settingName.contains(" UAM") {
-                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
-                            } else if settingName.contains(" Affects") {
-                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
-                            } else if settingName.contains(" Target Bottom") {
-                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
-                            } else if settingName.contains(" Half Basal Target") {
-                                basePresetName = String(settingName.prefix(while: { $0 != " " }))
-                            } else {
-                                basePresetName = settingName
-                            }
-
-                            lastPresetName = basePresetName
-                        }
-
                         csvContent +=
                             "\(csvEscape(setting.category)),\(csvEscape(setting.subcategory)),\(csvEscape(setting.name)),\(csvEscape(setting.value)),\(csvEscape(setting.unit))\n"
                     }
                     content = csvContent
 
                 case .json:
-                    // Convert to JSON structure
-                    var jsonData: [String: Any] = [:]
-                    var categorizedData: [String: Any] = [:]
+                    let payload = ExportSettingPayload(
+                        exportFormat: exportFormat.rawValue,
+                        exportDate: ISO8601DateFormatter().string(from: Date()),
+                        settings: exportSettings
+                    )
 
-                    for setting in exportSettings {
-                        if categorizedData[setting.category] == nil {
-                            categorizedData[setting.category] = [String: Any]()
-                        }
-
-                        var categoryData = categorizedData[setting.category] as! [String: Any]
-
-                        if !setting.subcategory.isEmpty {
-                            if categoryData[setting.subcategory] == nil {
-                                categoryData[setting.subcategory] = [String: Any]()
-                            }
-                            var subcategoryData = categoryData[setting.subcategory] as! [String: Any]
-                            subcategoryData[setting.name] = setting.unit.isEmpty ? setting
-                                .value : ["value": setting.value, "unit": setting.unit]
-                            categoryData[setting.subcategory] = subcategoryData
-                        } else {
-                            categoryData[setting.name] = setting.unit.isEmpty ? setting
-                                .value : ["value": setting.value, "unit": setting.unit]
-                        }
-
-                        categorizedData[setting.category] = categoryData
-                    }
-
-                    jsonData["exportFormat"] = exportFormat.rawValue
-                    jsonData["exportDate"] = ISO8601DateFormatter().string(from: Date())
-                    jsonData["settings"] = categorizedData
-
-                    let jsonDataEncoded = try JSONSerialization.data(withJSONObject: jsonData, options: .prettyPrinted)
-                    content = String(data: jsonDataEncoded, encoding: .utf8) ?? "{}"
+                    let encoder = JSONEncoder()
+                    encoder.outputFormatting = [.prettyPrinted, .sortedKeys] // sortedKeys is nice for diffs
+                    let data = try encoder.encode(payload)
+                    content = String(decoding: data, as: UTF8.self)
                 }
 
                 debug(
@@ -1467,22 +1324,19 @@ extension Export {
 
                 // Verify file was written successfully
                 let fileExists = fileManager.fileExists(atPath: fileURL.path)
-                let fileSize = try? fileManager.attributesOfItem(atPath: fileURL.path)[.size] as? Int ?? 0
-                debug(.default, "📊 EXPORT: File verification - Exists: \(fileExists), Size: \(fileSize ?? 0) bytes")
+                let fileAttributes = try? fileManager.attributesOfItem(atPath: fileURL.path)
+                let fileSize = (fileAttributes?[.size] as? NSNumber)?.intValue ?? 0
+
+                debug(.default, "📊 EXPORT: File verification - Exists: \(fileExists), Size: \(fileSize) bytes")
 
                 if !fileExists {
                     debug(.default, "❌ EXPORT: CRITICAL - File does not exist after writing!")
                     return .failure(.unknown("File was not created successfully"))
                 }
 
-                if (fileSize ?? 0) == 0 {
+                if fileSize == 0 {
                     debug(.default, "❌ EXPORT: CRITICAL - File exists but has 0 bytes!")
                     return .failure(.unknown("File was created but is empty"))
-                }
-
-                if !fileExists {
-                    debug(.default, "File was not created at expected location: \(fileURL.path)")
-                    return .failure(.unknown("File was not created successfully"))
                 }
 
                 return .success(fileURL)
