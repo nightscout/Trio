@@ -11,11 +11,9 @@ These instructions allow you to build Trio without having access to a Mac.
 >
 > The browser build defaults to automatically updating and building a new version of Trio according to this schedule:
 >
-> * automatically checks for updates weekly on Wednesdays and if updates are found, it will build a new version of the app
-> * automatically builds once a month regardless of whether there are updates on the first of the month
-> * with each scheduled run (weekly or monthly), a successful Build Trio log appears - if the time is very short, it did not need to build - only the long actions (>10 minutes) built a new Trio app
->
-> It also creates an alive branch, if you don't already have one. See [Why do I have an alive branch?](#why-do-i-have-an-alive-branch).
+> * automatically checks for updates weekly and if updates are found, it will build a new version of the app
+>   - even when there are no updates, it builds on the second Sunday of the month
+> * with each scheduled weekly run, a successful build log appears - if the time is very short, it did not need to build - only the longer actions (>10 minutes) built a new app
 >
 > The [**Optional**](#optional) section provides instructions to modify the default behavior if desired.
 
@@ -233,14 +231,6 @@ For more details, please refer to [LoopDocs: Set Up Users](https://loopkit.githu
 
 ## Automatic Build FAQs
 
-### Why do I have an `alive` branch?
-
-If a GitHub repository has no activity (no commits are made) in 60 days, then GitHub disables the ability to use automated actions for that repository. We need to take action more frequently than that or the automated build process won't work.
-
-The `build_trio.yml` file uses a special branch called `alive` and adds a dummy commit to the `alive` branch at regular intervals. This "trick" keeps the Actions enabled so the automated build works.
-
-The branch `alive` is created automatically for you. Do not delete or rename it! Do not modify `alive` yourself; it is not used for building the app.
-
 ## OPTIONAL
 
 What if you don't want to allow automated updates of the repository or automatic builds?
@@ -269,18 +259,18 @@ You can modify the automation by creating and using some variables.
 
 To configure the automated build more granularly involves creating up to two environment variables: `SCHEDULED_BUILD` and/or `SCHEDULED_SYNC`. See [How to configure a variable](#how-to-configure-a-variable).
 
-Note that the weekly and monthly Build Trio actions will continue, but the actions are modified if one or more of these variables is set to false. **A successful Action Log will still appear, even if no automatic activity happens**.
+Note that the weekly build actions will continue, but the actions are modified if one or more of these variables is set to false. **A successful Action Log will still appear, even if no automatic activity happens**.
 
-* If you want to manually decide when to update your repository to the latest commit, but you want the monthly builds and keep-alive to continue: set `SCHEDULED_SYNC` to false and either do not create `SCHEDULED_BUILD` or set it to true
+* If you want to manually decide when to update your repository to the latest commit, but you want the monthly builds to continue: set `SCHEDULED_SYNC` to false and either do not create `SCHEDULED_BUILD` or set it to true
 * If you want to only build when an update has been found: set `SCHEDULED_BUILD` to false and either do not create `SCHEDULED_SYNC` or set it to true
     * **Warning**: if no updates to your default branch are detected within 90 days, your previous TestFlight build may expire requiring a manual build
 
 |`SCHEDULED_SYNC`|`SCHEDULED_BUILD`|Automatic Actions|
 |---|---|---|
-| `true` (or NA) | `true` (or NA) | keep-alive, weekly update check (auto update/build), monthly build with auto update |
-| `true` (or NA) | `false` | keep-alive, weekly update check with auto update, only builds if update detected |
-| `false` | `true` (or NA) | keep-alive, monthly build, no auto update |
-| `false` | `false` | no automatic activity, no keep-alive |
+| `true` (or NA) | `true` (or NA) | weekly update check (auto update/build), monthly build with auto update |
+| `true` (or NA) | `false` | weekly update check with auto update, only builds if update detected |
+| `false` | `true` (or NA) | monthly build, no auto update |
+| `false` | `false` | no automatic activity |
 
 ### How to configure a variable
 
@@ -302,12 +292,12 @@ Note that the weekly and monthly Build Trio actions will continue, but the actio
 Your build will run on the following conditions:
 
 * Default behaviour:
-  * Run weekly, every Wednesday at 08:00 UTC to check for changes; if there are changes, it will update your repository and build
-  * Run monthly, every first of the month at 06:00 UTC, if there are changes, it will update your repository; regardless of changes, it will build
-  * Each time the action runs, it makes a keep-alive commit to the `alive` branch if necessary
-* If you disable any automation (both variables set to `false`), no updates, keep-alive or building happens when Build Trio runs
-* If you disabled just scheduled synchronization (`SCHEDULED_SYNC` set to`false`), it will only run once a month, on the first of the month, no update will happen; keep-alive will run
-* If you disabled just scheduled build (`SCHEDULED_BUILD` set to`false`), it will run once weekly, every Wednesday, to check for changes; if there are changes, it will update and build; keep-alive will run
+  * Run weekly every Sunday
+      - If updates are detected, it will update your repository and build
+      - If it is the second Sunday of the month, it will build even when no changes are detected
+* If you disable any automation (both variables set to `false`), no updates or building happens when Build Trio runs
+* If you disabled just scheduled synchronization (`SCHEDULED_SYNC` set to`false`), it will still build once a month, but no update will happen
+* If you disabled just scheduled build (`SCHEDULED_BUILD` set to`false`), it will run once weekly, to check for changes; if there are changes, it will update and build
 
 ## What if I build using more than one GitHub username
 
