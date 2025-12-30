@@ -154,31 +154,31 @@ extension Export {
             .onAppear(perform: configureView)
             .navigationTitle("Export Settings")
             .navigationBarTitleDisplayMode(.automatic)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(
-                        action: {
-                            state.isHelpSheetPresented.toggle()
-                        },
-                        label: {
-                            Image(systemName: "questionmark.circle")
-                        }
-                    )
-                }
-            }
-            .sheet(isPresented: $state.isHelpSheetPresented) {
-                // TODO: implement help sheet
-                NavigationStack {
-                    List {
-                        Text("Hello World!")
-                    }
-                }
-                .padding()
-                .presentationDetents(
-                    [.fraction(0.9), .large],
-                    selection: $state.helpSheetDetent
-                )
-            }
+//            // TODO: implement help sheet
+//            .toolbar {
+//                ToolbarItem(placement: .topBarTrailing) {
+//                    Button(
+//                        action: {
+//                            state.isHelpSheetPresented.toggle()
+//                        },
+//                        label: {
+//                            Image(systemName: "questionmark.circle")
+//                        }
+//                    )
+//                }
+//            }
+//            .sheet(isPresented: $state.isHelpSheetPresented) {
+//                NavigationStack {
+//                    List {
+//                        Text("Hello World!")
+//                    }
+//                }
+//                .padding()
+//                .presentationDetents(
+//                    [.fraction(0.9), .large],
+//                    selection: $state.helpSheetDetent
+//                )
+//            }
             .sheet(isPresented: $showSettingsExport) {
                 if let fileURL = exportedFileURL {
                     ShareSheet(activityItems: [fileURL])
