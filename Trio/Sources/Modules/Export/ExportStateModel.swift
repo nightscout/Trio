@@ -45,25 +45,8 @@ extension Export {
             case mealPresets = "Meal Presets"
         }
 
-        // Export formats for different file types
-        enum ExportFormat: String, CaseIterable, Identifiable {
-            var id: String { rawValue }
-            case csv
-            case json
-
-            var fileExtension: String {
-                switch self {
-                case .csv:
-                    return "csv"
-                case .json:
-                    return "json"
-                }
-            }
-        }
-
         // Published state for UI binding
         @Published var selectedCategories: Set<ExportCategory> = Set(ExportCategory.allCases)
-        @Published var selectedFormat: ExportFormat = .csv
         @Published var isExporting: Bool = false
 
         enum ExportError: LocalizedError {
@@ -99,8 +82,7 @@ extension Export {
         /// - Parameter format: Export format to use. If nil, uses currently selected format.
         /// - Returns: A Result containing either the file URL on success or an ExportError on failure
         func exportSettings(
-            categories: Set<ExportCategory>? = nil,
-            format: ExportFormat? = nil
+            categories: Set<ExportCategory>? = nil
         ) async -> Result<URL, ExportError> {
             debug(.default, "🔄 EXPORT: Starting settings export...")
 
@@ -109,16 +91,15 @@ extension Export {
             defer { Task { @MainActor in isExporting = false } }
 
             let categoriesToExport = categories ?? selectedCategories
-            let exportFormat = format ?? selectedFormat
             debug(
                 .default,
-                "🔄 EXPORT: Exporting categories: \(categoriesToExport.map(\.rawValue).joined(separator: ", ")) in \(exportFormat.rawValue) format"
+                "🔄 EXPORT: Exporting categories: \(categoriesToExport.map(\.rawValue).joined(separator: ", ")) in .CSV format"
             )
 
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyyMMdd_HHmmss"
             let timestamp = formatter.string(from: Date())
-            let fileName = "TrioSettings_\(timestamp).\(exportFormat.fileExtension)"
+            let fileName = "TrioSettings_\(timestamp).csv"
 
             // Use the Documents directory for better sharing compatibility
             guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
@@ -1273,41 +1254,25 @@ extension Export {
             // Convert data to the selected format and write to file
             do {
                 let content: String
-
-                switch exportFormat {
-                case .csv:
-                    // Helper function to escape CSV values
-                    func csvEscape(_ value: String) -> String {
-                        if value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r") {
-                            return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
-                        }
-                        return value
+                // Helper function to escape CSV values
+                func csvEscape(_ value: String) -> String {
+                    if value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r") {
+                        return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
                     }
-
-                    var csvContent = "\u{FEFF}Setting Category,Subcategory,Setting Name,Value,Unit\n"
-
-                    for setting in exportSettings {
-                        csvContent +=
-                            "\(csvEscape(setting.category)),\(csvEscape(setting.subcategory)),\(csvEscape(setting.name)),\(csvEscape(setting.value)),\(csvEscape(setting.unit))\n"
-                    }
-                    content = csvContent
-
-                case .json:
-                    let payload = ExportSettingPayload(
-                        exportFormat: exportFormat.rawValue,
-                        exportDate: ISO8601DateFormatter().string(from: Date()),
-                        settings: exportSettings
-                    )
-
-                    let encoder = JSONEncoder()
-                    encoder.outputFormatting = [.prettyPrinted, .sortedKeys] // sortedKeys is nice for diffs
-                    let data = try encoder.encode(payload)
-                    content = String(decoding: data, as: UTF8.self)
+                    return value
                 }
+
+                var csvContent = "\u{FEFF}Setting Category,Subcategory,Setting Name,Value,Unit\n"
+
+                for setting in exportSettings {
+                    csvContent +=
+                        "\(csvEscape(setting.category)),\(csvEscape(setting.subcategory)),\(csvEscape(setting.name)),\(csvEscape(setting.value)),\(csvEscape(setting.unit))\n"
+                }
+                content = csvContent
 
                 debug(
                     .default,
-                    "📝 EXPORT: Writing \(exportFormat.rawValue) content (\(content.count) characters) to file: \(fileURL.path)"
+                    "📝 EXPORT: Writing .CSV content (\(content.count) characters) to file: \(fileURL.path)"
                 )
                 debug(.default, "📝 EXPORT: Temporary directory: \(FileManager.default.temporaryDirectory.path)")
                 debug(.default, "📝 EXPORT: File URL: \(fileURL)")
@@ -1348,7 +1313,7 @@ extension Export {
 
         /// Exports settings using the currently selected categories and format
         func exportSelectedSettings() async -> Result<URL, ExportError> {
-            await exportSettings(categories: selectedCategories, format: selectedFormat)
+            await exportSettings(categories: selectedCategories)
         }
 
         /// Toggle all categories on or off

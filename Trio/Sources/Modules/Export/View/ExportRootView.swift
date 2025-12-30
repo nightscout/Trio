@@ -69,19 +69,10 @@ extension Export {
                     header: Text("Export Information"),
                     footer: Text(""),
                     content: {
-                        Picker(
-                            selection: $state.selectedFormat,
-                            label: Text("Format").multilineTextAlignment(.leading)
-                        ) {
-                            ForEach(Export.StateModel.ExportFormat.allCases) { selection in
-                                Text(selection.fileExtension).tag(selection)
-                            }
-                        }
-
                         HStack {
                             Text("File Name")
                             Spacer()
-                            Text("TrioSettings_[timestamp].\(state.selectedFormat.fileExtension)")
+                            Text("TrioSettings_[timestamp].csv")
                                 .foregroundColor(.secondary)
                                 .font(.caption)
                         }
