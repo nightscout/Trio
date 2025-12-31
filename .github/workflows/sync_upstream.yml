@@ -93,29 +93,30 @@ jobs:
           git checkout -b $SYNC_BRANCH upstream/${{ env.UPSTREAM_BRANCH }}
           git push -u origin $SYNC_BRANCH
 
-          # Create PR using GitHub CLI
+          # Create PR using GitHub CLI with heredoc for body
           gh pr create \
             --base ${{ env.TARGET_BRANCH }} \
             --head $SYNC_BRANCH \
-            --title "🔄 Sync upstream Trio changes (conflicts need resolution)" \
-            --body "## Upstream Sync Required
+            --title "Sync upstream Trio changes (conflicts need resolution)" \
+            --body "$(cat <<'PRBODY'
+          ## Upstream Sync Required
 
-This PR contains updates from upstream \`${{ env.UPSTREAM_REPO }}/${{ env.UPSTREAM_BRANCH }}\`.
+          Merge conflicts were detected and need manual resolution.
 
-**Merge conflicts were detected** and need manual resolution.
+          ### Likely conflict locations:
+          - FreeAPS.xcodeproj/project.pbxproj - Re-add ComplicationData.swift references
+          - FreeAPSWatch WatchKit Extension/WatchStateModel.swift - Keep the updateComplicationData() call
 
-### Likely conflict locations:
-- \`FreeAPS.xcodeproj/project.pbxproj\` - Re-add ComplicationData.swift references
-- \`FreeAPSWatch WatchKit Extension/WatchStateModel.swift\` - Keep the \`updateComplicationData()\` call
+          ### Your custom files (should not conflict):
+          - ComplicationData.swift - Smart update manager
+          - ComplicationController.swift - Live glucose complications
 
-### Your custom files (should not conflict):
-- \`ComplicationData.swift\` - Smart update manager
-- \`ComplicationController.swift\` - Live glucose complications
-
-### After resolving conflicts:
-1. Keep all your Watch complication code
-2. Accept upstream changes for everything else
-3. Merge this PR → build will trigger automatically"
+          ### After resolving conflicts:
+          1. Keep all your Watch complication code
+          2. Accept upstream changes for everything else
+          3. Merge this PR to trigger a build
+          PRBODY
+          )"
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
 
