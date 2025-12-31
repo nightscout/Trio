@@ -1,9 +1,9 @@
-name: Sync from Upstream Trio
+name: Sync & Build Complications Branch
 
 on:
-  # Run weekly on Sunday at midnight UTC
+  # Run weekly on Sunday at 2am UTC (gives time for upstream weekend releases)
   schedule:
-    - cron: '0 0 * * 0'
+    - cron: '0 2 * * 0'
 
   # Allow manual trigger
   workflow_dispatch:
@@ -13,6 +13,11 @@ on:
         required: true
         default: 'dev'
         type: string
+      trigger_build:
+        description: 'Trigger TestFlight build after sync'
+        required: false
+        default: true
+        type: boolean
 
 env:
   UPSTREAM_REPO: nightscout/Trio
@@ -23,6 +28,9 @@ env:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    outputs:
+      synced: ${{ steps.merge.outputs.merge_success }}
+      had_changes: ${{ steps.check_changes.outputs.has_changes }}
 
     steps:
       - name: Checkout repository
@@ -30,7 +38,7 @@ jobs:
         with:
           ref: ${{ env.TARGET_BRANCH }}
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
 
       - name: Configure Git
         run: |
@@ -46,21 +54,28 @@ jobs:
         id: check_changes
         run: |
           UPSTREAM_COMMITS=$(git rev-list HEAD..upstream/${{ env.UPSTREAM_BRANCH }} --count)
-          echo "upstream_commits=$UPSTREAM_COMMITS" >> $GITHUB_OUTPUT
-          echo "Found $UPSTREAM_COMMITS new commits from upstream"
+          echo "commit_count=$UPSTREAM_COMMITS" >> $GITHUB_OUTPUT
+
+          if [ "$UPSTREAM_COMMITS" -gt "0" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "📦 Found $UPSTREAM_COMMITS new commits from upstream"
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "✅ Already up to date with upstream"
+          fi
 
       - name: Attempt merge
         id: merge
-        if: steps.check_changes.outputs.upstream_commits != '0'
+        if: steps.check_changes.outputs.has_changes == 'true'
         run: |
           echo "Attempting to merge upstream/${{ env.UPSTREAM_BRANCH }}..."
 
-          if git merge upstream/${{ env.UPSTREAM_BRANCH }} --no-edit; then
+          if git merge upstream/${{ env.UPSTREAM_BRANCH }} -m "Merge upstream ${{ env.UPSTREAM_BRANCH }} into complications branch"; then
             echo "merge_success=true" >> $GITHUB_OUTPUT
-            echo "Merge successful!"
+            echo "✅ Merge successful!"
           else
             echo "merge_success=false" >> $GITHUB_OUTPUT
-            echo "Merge has conflicts"
+            echo "⚠️ Merge has conflicts"
             git merge --abort
           fi
 
@@ -68,13 +83,13 @@ jobs:
         if: steps.merge.outputs.merge_success == 'true'
         run: |
           git push origin ${{ env.TARGET_BRANCH }}
-          echo "Successfully synced with upstream!"
+          echo "✅ Successfully synced with upstream!"
 
       - name: Create PR if conflicts
         if: steps.merge.outputs.merge_success == 'false'
         run: |
           # Create a temporary branch with upstream changes
-          SYNC_BRANCH="sync-upstream-$(date +%Y%m%d)"
+          SYNC_BRANCH="sync-upstream-$(date +%Y%m%d-%H%M)"
           git checkout -b $SYNC_BRANCH upstream/${{ env.UPSTREAM_BRANCH }}
           git push -u origin $SYNC_BRANCH
 
@@ -82,36 +97,64 @@ jobs:
           gh pr create \
             --base ${{ env.TARGET_BRANCH }} \
             --head $SYNC_BRANCH \
-            --title "Sync upstream Trio changes (conflicts need resolution)" \
+            --title "🔄 Sync upstream Trio changes (conflicts need resolution)" \
             --body "## Upstream Sync Required
 
-          This PR contains updates from upstream \`${{ env.UPSTREAM_REPO }}/${{ env.UPSTREAM_BRANCH }}\`.
+This PR contains updates from upstream \`${{ env.UPSTREAM_REPO }}/${{ env.UPSTREAM_BRANCH }}\`.
 
-          **Merge conflicts were detected** and need manual resolution.
+**Merge conflicts were detected** and need manual resolution.
 
-          ### Likely conflict locations:
-          - \`FreeAPS.xcodeproj/project.pbxproj\` - Re-add ComplicationData.swift references
-          - \`FreeAPSWatch WatchKit Extension/WatchStateModel.swift\` - Keep the \`updateComplicationData()\` call
+### Likely conflict locations:
+- \`FreeAPS.xcodeproj/project.pbxproj\` - Re-add ComplicationData.swift references
+- \`FreeAPSWatch WatchKit Extension/WatchStateModel.swift\` - Keep the \`updateComplicationData()\` call
 
-          ### Your custom files (should not conflict):
-          - \`ComplicationData.swift\` - Smart update manager
-          - \`ComplicationController.swift\` - Live glucose complications
+### Your custom files (should not conflict):
+- \`ComplicationData.swift\` - Smart update manager
+- \`ComplicationController.swift\` - Live glucose complications
 
-          ### After resolving conflicts:
-          1. Keep all your Watch complication code
-          2. Accept upstream changes for everything else
-          3. Test the watch complications still work"
+### After resolving conflicts:
+1. Keep all your Watch complication code
+2. Accept upstream changes for everything else
+3. Merge this PR → build will trigger automatically"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Summary
         run: |
-          echo "## Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔄 Sync Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ steps.check_changes.outputs.upstream_commits }}" == "0" ]; then
-            echo "No new changes from upstream." >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check_changes.outputs.has_changes }}" == "false" ]; then
+            echo "✅ Already up to date with upstream - no sync needed." >> $GITHUB_STEP_SUMMARY
           elif [ "${{ steps.merge.outputs.merge_success }}" == "true" ]; then
-            echo "Successfully merged ${{ steps.check_changes.outputs.upstream_commits }} commits from upstream." >> $GITHUB_STEP_SUMMARY
+            echo "✅ Successfully merged ${{ steps.check_changes.outputs.commit_count }} commits from upstream." >> $GITHUB_STEP_SUMMARY
           else
-            echo "Merge conflicts detected. A PR has been created for manual resolution." >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ Merge conflicts detected. A PR has been created for manual resolution." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please resolve conflicts and merge the PR to continue." >> $GITHUB_STEP_SUMMARY
           fi
+
+  # Trigger the existing build workflow after successful sync
+  trigger-build:
+    needs: sync
+    if: |
+      github.event.inputs.trigger_build != 'false' &&
+      (needs.sync.outputs.synced == 'true' || needs.sync.outputs.had_changes == 'false')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Build Workflow
+        run: |
+          echo "🚀 Triggering build workflow for branch: ${{ env.TARGET_BRANCH }}"
+
+          gh workflow run "build_trio.yml" \
+            --repo ${{ github.repository }} \
+            --ref ${{ env.TARGET_BRANCH }}
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Build Triggered" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Build workflow started for \`${{ env.TARGET_BRANCH }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[View build progress](https://github.com/${{ github.repository }}/actions)" >> $GITHUB_STEP_SUMMARY
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
