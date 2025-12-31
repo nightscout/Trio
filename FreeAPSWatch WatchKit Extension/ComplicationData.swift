@@ -76,18 +76,28 @@ struct ComplicationData: Codable {
 
 /// Manages complication updates using a smart algorithm to maximize the ~50 daily budget
 /// Based on Loop's approach: https://github.com/LoopKit/Loop/issues/816
+///
+/// Update Strategy:
+/// 1. If glucose is in safe range (90-120 mg/dL) AND was already in range → NO update (save budget)
+/// 2. If glucose crosses INTO or OUT OF safe range → IMMEDIATE update
+/// 3. If glucose is out of range → use time/change thresholds
 final class ComplicationUpdateManager {
     static let shared = ComplicationUpdateManager()
 
     // MARK: - Configuration
 
-    /// Minimum time between budgeted updates (default: 20 minutes)
-    /// With 50 updates/day, this allows updates every ~29 minutes
-    /// We use 20 min to leave room for significant changes
+    /// Safe glucose range where updates are skipped entirely (mg/dL)
+    private let safeRangeLowMgdl: Double = 90.0
+    private let safeRangeHighMgdl: Double = 120.0
+
+    /// Safe glucose range for mmol/L users (5.0 - 6.7 mmol/L)
+    private let safeRangeLowMmol: Double = 5.0
+    private let safeRangeHighMmol: Double = 6.7
+
+    /// Minimum time between budgeted updates when OUT of safe range (default: 20 minutes)
     private let minimumUpdateInterval: TimeInterval = 20 * 60
 
-    /// Glucose change threshold to trigger immediate update (mg/dL)
-    /// A change of ≥20 mg/dL is considered significant
+    /// Glucose change threshold to trigger immediate update when out of range (mg/dL)
     private let significantGlucoseChange: Double = 20.0
 
     /// Equivalent threshold for mmol/L users (~1.1 mmol/L)
@@ -99,6 +109,7 @@ final class ComplicationUpdateManager {
     private let lastBudgetedGlucoseKey = "complication.lastBudgetedGlucose"
     private let dailyUpdateCountKey = "complication.dailyUpdateCount"
     private let updateCountDateKey = "complication.updateCountDate"
+    private let wasInSafeRangeKey = "complication.wasInSafeRange"
 
     // MARK: - State
 
@@ -110,6 +121,11 @@ final class ComplicationUpdateManager {
     private var lastBudgetedGlucose: Double? {
         get { UserDefaults.standard.object(forKey: lastBudgetedGlucoseKey) as? Double }
         set { UserDefaults.standard.set(newValue, forKey: lastBudgetedGlucoseKey) }
+    }
+
+    private var wasInSafeRange: Bool {
+        get { UserDefaults.standard.bool(forKey: wasInSafeRangeKey) }
+        set { UserDefaults.standard.set(newValue, forKey: wasInSafeRangeKey) }
     }
 
     private var dailyUpdateCount: Int {
@@ -143,6 +159,11 @@ final class ComplicationUpdateManager {
             // Use timeline extension instead (doesn't count against budget)
             ComplicationUpdateHelper.extendAllComplications()
         }
+
+        // Track safe range state for next comparison
+        if let glucose = data.numericGlucose {
+            wasInSafeRange = isInSafeRange(glucose)
+        }
     }
 
     /// Force an immediate update (use sparingly - counts against budget)
@@ -158,39 +179,78 @@ final class ComplicationUpdateManager {
         return "Updates today: \(dailyUpdateCount)/50 (\(remaining) remaining)"
     }
 
+    // MARK: - Safe Range Helpers
+
+    /// Check if glucose value is in the safe range (90-120 mg/dL or 5.0-6.7 mmol/L)
+    private func isInSafeRange(_ glucose: Double) -> Bool {
+        // Detect unit based on value range
+        if glucose < 30 {
+            // mmol/L
+            return glucose >= safeRangeLowMmol && glucose <= safeRangeHighMmol
+        } else {
+            // mg/dL
+            return glucose >= safeRangeLowMgdl && glucose <= safeRangeHighMgdl
+        }
+    }
+
+    /// Check if glucose crossed the safe range boundary
+    private func crossedSafeRangeBoundary(_ currentGlucose: Double) -> Bool {
+        let currentlyInRange = isInSafeRange(currentGlucose)
+        // Crossed if current state differs from previous state
+        return currentlyInRange != wasInSafeRange
+    }
+
     // MARK: - Private Methods
 
     private func shouldUseBudgetedUpdate(for data: ComplicationData) -> Bool {
-        let now = Date()
+        guard let currentGlucose = data.numericGlucose else {
+            // Can't parse glucose, use budgeted update to be safe
+            return dailyUpdateCount < 50
+        }
 
-        // Condition 1: Enough time has passed since last budgeted update
+        let now = Date()
+        let budgetAvailable = dailyUpdateCount < 50
+
+        guard budgetAvailable else { return false }
+
+        // RULE 1: If crossing safe range boundary, always update immediately
+        if crossedSafeRangeBoundary(currentGlucose) {
+            #if DEBUG
+            let direction = isInSafeRange(currentGlucose) ? "INTO" : "OUT OF"
+            print("🎯 Glucose crossed \(direction) safe range → immediate update")
+            #endif
+            return true
+        }
+
+        // RULE 2: If currently in safe range (and was in safe range), skip budgeted update
+        if isInSafeRange(currentGlucose) && wasInSafeRange {
+            #if DEBUG
+            print("😴 Glucose in safe range (90-120) → skipping budgeted update")
+            #endif
+            return false
+        }
+
+        // RULE 3: Out of safe range - use time/change thresholds
+
+        // Time condition: enough time has passed since last budgeted update
         let timeCondition: Bool
         if let lastUpdate = lastBudgetedUpdateTime {
             timeCondition = now.timeIntervalSince(lastUpdate) >= minimumUpdateInterval
         } else {
-            // First update of the session
             timeCondition = true
         }
 
-        // Condition 2: Significant glucose change
+        // Change condition: significant glucose change since last update
         let glucoseCondition: Bool
-        if let currentGlucose = data.numericGlucose,
-           let previousGlucose = lastBudgetedGlucose {
+        if let previousGlucose = lastBudgetedGlucose {
             let change = abs(currentGlucose - previousGlucose)
-            // Use appropriate threshold based on value range
-            // mmol/L values are typically < 30, mg/dL values are typically > 30
             let threshold = currentGlucose < 30 ? significantGlucoseChangeMmol : significantGlucoseChange
             glucoseCondition = change >= threshold
         } else {
-            // No previous glucose to compare
             glucoseCondition = true
         }
 
-        // Condition 3: Budget check - don't exceed daily limit
-        let budgetAvailable = dailyUpdateCount < 50
-
-        // Use budgeted update if: (time OR significant change) AND budget available
-        return (timeCondition || glucoseCondition) && budgetAvailable
+        return timeCondition || glucoseCondition
     }
 
     private func performBudgetedUpdate(with data: ComplicationData) {
