@@ -15,7 +15,7 @@ jobs:
   build:
     name: Build
     needs: check_certs
-    runs-on: macos-15
+    runs-on: macos-14
     permissions:
       contents: write
 
