@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Select Xcode version
-        run: "sudo xcode-select --switch /Applications/Xcode_15.4.app/Contents/Developer"
+        run: "sudo xcode-select --switch /Applications/Xcode_16.1.app/Contents/Developer"
 
       - name: Checkout Repo
         uses: actions/checkout@v4
