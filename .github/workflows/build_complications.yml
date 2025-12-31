@@ -20,8 +20,14 @@ jobs:
       contents: write
 
     steps:
+      - name: List available Xcode versions
+        run: ls -la /Applications/ | grep Xcode
+
       - name: Select Xcode version
-        run: "sudo xcode-select --switch /Applications/Xcode_16.1.app/Contents/Developer"
+        run: |
+          sudo xcode-select --switch /Applications/Xcode_16.app/Contents/Developer
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
 
       - name: Checkout Repo
         uses: actions/checkout@v4
