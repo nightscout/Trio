@@ -184,7 +184,9 @@ class WatchStateModel: NSObject, ObservableObject {
         updateComplicationData()
     }
 
-    /// Save current glucose data for complications and trigger updates
+    /// Save current glucose data for complications and trigger smart updates
+    /// Uses budget-aware algorithm: updates immediately for significant changes,
+    /// otherwise extends timeline to conserve the ~50 daily update budget
     private func updateComplicationData() {
         let iobString: String? = iob.map { String(format: "%.1f", NSDecimalNumber(decimal: $0).doubleValue) }
         let cobString: String? = cob.map { String(format: "%.0f", NSDecimalNumber(decimal: $0).doubleValue) }
@@ -200,8 +202,8 @@ class WatchStateModel: NSObject, ObservableObject {
             eventualBG: eventualBG.isEmpty ? nil : eventualBG
         )
 
-        complicationData.save()
-        ComplicationUpdateHelper.reloadAllComplications()
+        // Use smart update manager to conserve daily budget
+        ComplicationUpdateManager.shared.updateComplications(with: complicationData)
     }
 }
 
