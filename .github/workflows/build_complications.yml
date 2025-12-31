@@ -15,13 +15,19 @@ jobs:
   build:
     name: Build
     needs: check_certs
-    runs-on: macos-14
+    runs-on: macos-15
     permissions:
       contents: write
 
     steps:
+      - name: List available Xcode versions
+        run: ls -la /Applications/ | grep Xcode
+
       - name: Select Xcode version
-        run: "sudo xcode-select --switch /Applications/Xcode_15.4.app/Contents/Developer"
+        run: |
+          sudo xcode-select --switch /Applications/Xcode_16.app/Contents/Developer
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
 
       - name: Checkout Repo
         uses: actions/checkout@v4
