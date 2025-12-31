@@ -19,6 +19,12 @@ on:
         default: true
         type: boolean
 
+# Explicit permissions
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
 env:
   UPSTREAM_REPO: nightscout/Trio
   UPSTREAM_BRANCH: ${{ github.event.inputs.upstream_branch || 'dev' }}
