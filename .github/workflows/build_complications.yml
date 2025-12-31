@@ -23,11 +23,29 @@ jobs:
       - name: List available Xcode versions
         run: ls -la /Applications/ | grep Xcode
 
-      - name: Select Xcode version
+      - name: Select Xcode 16.x
+        id: xcode
         run: |
-          sudo xcode-select --switch /Applications/Xcode_16.app/Contents/Developer
+          XCODE_PATH=$(ls -d /Applications/Xcode_16*.app 2>/dev/null | head -n1 || true)
+          if [ -z "$XCODE_PATH" ]; then
+            echo "No Xcode 16.x found in /Applications. Available:"
+            ls -la /Applications | grep -i xcode || true
+            exit 1
+          fi
+          sudo xcode-select --switch "$XCODE_PATH/Contents/Developer"
+          echo "XCODE_DEV_DIR=$XCODE_PATH/Contents/Developer" >> $GITHUB_OUTPUT
+          echo "Selected Xcode at $XCODE_PATH"
           xcodebuild -version
-          xcrun --sdk iphoneos --show-sdk-version
+          xcodebuild -showsdks
+
+      - name: Install iOS platform if needed
+        run: |
+          if ! xcodebuild -showsdks | grep -q "iphoneos18"; then
+            echo "iOS 18 SDK not found, downloading..."
+            xcodebuild -downloadPlatform iOS
+          else
+            echo "iOS 18 SDK already installed"
+          fi
 
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -57,9 +75,12 @@ jobs:
 
       # Build signed Trio IPA file
       - name: Fastlane Build & Archive
-        run: bundle exec fastlane build_trio
+        run: |
+          XCODE_PATH=$(ls -d /Applications/Xcode_16*.app 2>/dev/null | head -n1 || true)
+          export DEVELOPER_DIR="$XCODE_PATH/Contents/Developer"
+          echo "Using DEVELOPER_DIR=$DEVELOPER_DIR"
+          bundle exec fastlane build_trio
         env:
-          DEVELOPER_DIR: /Applications/Xcode_16.app/Contents/Developer
           MATCH_READONLY: "false"
           TEAMID: ${{ secrets.TEAMID }}
           GH_PAT: ${{ secrets.GH_PAT }}
@@ -70,9 +91,12 @@ jobs:
 
       # Upload to TestFlight
       - name: Fastlane upload to TestFlight
-        run: bundle exec fastlane release
+        run: |
+          XCODE_PATH=$(ls -d /Applications/Xcode_16*.app 2>/dev/null | head -n1 || true)
+          export DEVELOPER_DIR="$XCODE_PATH/Contents/Developer"
+          echo "Using DEVELOPER_DIR=$DEVELOPER_DIR"
+          bundle exec fastlane release
         env:
-          DEVELOPER_DIR: /Applications/Xcode_16.app/Contents/Developer
           TEAMID: ${{ secrets.TEAMID }}
           GH_PAT: ${{ secrets.GH_PAT }}
           FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
