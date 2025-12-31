@@ -38,6 +38,15 @@ jobs:
           xcodebuild -version
           xcodebuild -showsdks
 
+      - name: Install iOS platform if needed
+        run: |
+          if ! xcodebuild -showsdks | grep -q "iphoneos18"; then
+            echo "iOS 18 SDK not found, downloading..."
+            xcodebuild -downloadPlatform iOS
+          else
+            echo "iOS 18 SDK already installed"
+          fi
+
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
