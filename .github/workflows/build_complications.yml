@@ -59,6 +59,7 @@ jobs:
       - name: Fastlane Build & Archive
         run: bundle exec fastlane build_trio
         env:
+          DEVELOPER_DIR: /Applications/Xcode_16.app/Contents/Developer
           MATCH_READONLY: "false"
           TEAMID: ${{ secrets.TEAMID }}
           GH_PAT: ${{ secrets.GH_PAT }}
@@ -71,6 +72,7 @@ jobs:
       - name: Fastlane upload to TestFlight
         run: bundle exec fastlane release
         env:
+          DEVELOPER_DIR: /Applications/Xcode_16.app/Contents/Developer
           TEAMID: ${{ secrets.TEAMID }}
           GH_PAT: ${{ secrets.GH_PAT }}
           FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
