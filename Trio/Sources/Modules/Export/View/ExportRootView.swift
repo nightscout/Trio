@@ -27,9 +27,13 @@ extension Export {
                                 HStack {
                                     Image(systemName: state.allCategoriesSelected ? "checkmark.square.fill" : "square")
                                         .foregroundColor(state.allCategoriesSelected ? .blue : .secondary)
-                                    Text("Select All")
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.primary)
+                                    Text(
+                                        state
+                                            .allCategoriesSelected ? String(localized: "Deselct All") :
+                                            String(localized: "Select All")
+                                    )
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.primary)
                                     Spacer()
                                 }
                             }
@@ -61,20 +65,6 @@ extension Export {
                                 .buttonStyle(PlainButtonStyle())
                             }
                             .padding(.vertical, 2)
-                        }
-                    }
-                ).listRowBackground(Color.chart)
-
-                Section(
-                    header: Text("Export Information"),
-                    footer: Text(""),
-                    content: {
-                        HStack {
-                            Text("File Name")
-                            Spacer()
-                            Text("TrioSettings_[timestamp].csv")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
                         }
                     }
                 ).listRowBackground(Color.chart)

@@ -24,7 +24,7 @@ extension Export {
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {
-            versionNumber = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+            versionNumber = Bundle.main.appDevVersion ?? "Unknown"
             buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
             branch = BuildDetails.shared.branchAndSha
         }
@@ -156,6 +156,21 @@ extension Export {
                         name: String(localized: "Pump Type"),
                         value: String(localized: "Not Connected")
                     )
+
+                    // Get insulin type from pump manager if available, otherwise from preferences
+                    let insulinTypeValue: String
+                    if let pumpManager = provider.deviceManager.pumpManager,
+                       let insulinType = pumpManager.status.insulinType
+                    {
+                        insulinTypeValue = insulinType.title
+                    } else {
+                        insulinTypeValue = preferences.curve.rawValue
+                    }
+                    addSetting(
+                        category: devicesCategory,
+                        name: String(localized: "Insulin Type"),
+                        value: insulinTypeValue
+                    )
                 }
             }
 
@@ -195,21 +210,6 @@ extension Export {
                     value: String(describing: pumpSettings.maxBasal),
                     unit: String(localized: "U/hr", comment: "Insulin unit per hour abbreviation")
                 )
-                // Get insulin type from pump manager if available, otherwise from preferences
-                let insulinTypeValue: String
-                if let pumpManager = provider.deviceManager.pumpManager,
-                   let insulinType = pumpManager.status.insulinType
-                {
-                    insulinTypeValue = insulinType.title
-                } else {
-                    insulinTypeValue = preferences.curve.rawValue
-                }
-                addSetting(
-                    category: therapyCategory,
-                    subcategory: unitsLimitsSubcategory,
-                    name: String(localized: "Insulin Type"),
-                    value: insulinTypeValue
-                )
                 addSetting(
                     category: therapyCategory,
                     subcategory: unitsLimitsSubcategory,
@@ -242,7 +242,7 @@ extension Export {
                         addSetting(
                             category: therapyCategory,
                             subcategory: glucoseTargetsSubcategory,
-                            name: "Target (\(entry.start))",
+                            name: String(localized: "Target (\(entry.start.formattedHourMinuteFromTimeString()))"),
                             value: String(describing: targetValue),
                             unit: trioSettings.units.rawValue
                         )
@@ -255,7 +255,7 @@ extension Export {
                     addSetting(
                         category: therapyCategory,
                         subcategory: basalRatesSubcategory,
-                        name: "Basal Rate (\(entry.start))",
+                        name: String(localized: "Basal Rate (\(entry.start.formattedHourMinuteFromTimeString()))"),
                         value: String(describing: entry.rate),
                         unit: String(localized: "U/hr", comment: "Insulin unit per hour abbreviation")
                     )
@@ -268,7 +268,7 @@ extension Export {
                         addSetting(
                             category: therapyCategory,
                             subcategory: carbRatiosSubcategory,
-                            name: "Carb Ratio (\(entry.start))",
+                            name: String(localized: "Carb Ratio (\(entry.start.formattedHourMinuteFromTimeString()))"),
                             value: String(describing: entry.ratio),
                             unit: String(localized: "g/U")
                         )
@@ -283,7 +283,7 @@ extension Export {
                         addSetting(
                             category: therapyCategory,
                             subcategory: insulinSensitivitiesSubcategory,
-                            name: "ISF (\(entry.start))",
+                            name: String(localized: "ISF (\(entry.start.formattedHourMinuteFromTimeString()))"),
                             value: String(describing: isfValue),
                             unit: trioSettings.units.rawValue
                         )
