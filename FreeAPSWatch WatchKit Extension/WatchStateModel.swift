@@ -1,3 +1,4 @@
+import ClockKit
 import Combine
 import Foundation
 import SwiftUI
@@ -178,6 +179,29 @@ class WatchStateModel: NSObject, ObservableObject {
         confirmBolusFaster = state.confirmBolusFaster ?? false
         isf = state.isf
         override = state.override
+
+        // Update complication data
+        updateComplicationData()
+    }
+
+    /// Save current glucose data for complications and trigger updates
+    private func updateComplicationData() {
+        let iobString: String? = iob.map { String(format: "%.1f", NSDecimalNumber(decimal: $0).doubleValue) }
+        let cobString: String? = cob.map { String(format: "%.0f", NSDecimalNumber(decimal: $0).doubleValue) }
+
+        let complicationData = ComplicationData(
+            glucose: glucose,
+            trend: trend,
+            delta: delta,
+            glucoseDate: glucoseDate,
+            lastLoopDate: lastLoopDate,
+            iob: iobString,
+            cob: cobString,
+            eventualBG: eventualBG.isEmpty ? nil : eventualBG
+        )
+
+        complicationData.save()
+        ComplicationUpdateHelper.reloadAllComplications()
     }
 }
 

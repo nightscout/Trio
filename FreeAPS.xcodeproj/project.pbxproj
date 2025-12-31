@@ -195,6 +195,7 @@
 		38E8752E27554D5700975559 /* NotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8752D27554D5700975559 /* NotificationController.swift */; };
 		38E8753027554D5700975559 /* NotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8752F27554D5700975559 /* NotificationView.swift */; };
 		38E8753227554D5700975559 /* ComplicationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8753127554D5700975559 /* ComplicationController.swift */; };
+		CECD000000000000000CD001 /* ComplicationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = CECD000000000000000CD002 /* ComplicationData.swift */; };
 		38E8753427554D5800975559 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 38E8753327554D5800975559 /* Assets.xcassets */; };
 		38E8753727554D5900975559 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 38E8753627554D5800975559 /* Preview Assets.xcassets */; };
 		38E8753C27554D5900975559 /* FreeAPSWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 38E8751C27554D5500975559 /* FreeAPSWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -717,6 +718,7 @@
 		38E8752D27554D5700975559 /* NotificationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationController.swift; sourceTree = "<group>"; };
 		38E8752F27554D5700975559 /* NotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationView.swift; sourceTree = "<group>"; };
 		38E8753127554D5700975559 /* ComplicationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationController.swift; sourceTree = "<group>"; };
+		CECD000000000000000CD002 /* ComplicationData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationData.swift; sourceTree = "<group>"; };
 		38E8753327554D5800975559 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		38E8753627554D5800975559 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		38E8753827554D5900975559 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -1768,6 +1770,7 @@
 				38E8752D27554D5700975559 /* NotificationController.swift */,
 				38E8752F27554D5700975559 /* NotificationView.swift */,
 				38E8753127554D5700975559 /* ComplicationController.swift */,
+				CECD000000000000000CD002 /* ComplicationData.swift */,
 				38E8753327554D5800975559 /* Assets.xcassets */,
 				38E8753827554D5900975559 /* Info.plist */,
 				38E8753927554D5900975559 /* PushNotificationPayload.apns */,
@@ -2906,6 +2909,7 @@
 				38E8752C27554D5700975559 /* MainView.swift in Sources */,
 				38E8755127555D0500975559 /* DataFlow.swift in Sources */,
 				38E8753227554D5700975559 /* ComplicationController.swift in Sources */,
+				CECD000000000000000CD001 /* ComplicationData.swift in Sources */,
 				38E8752A27554D5700975559 /* FreeAPSApp.swift in Sources */,
 				38E8757B2757B1C300975559 /* TempTargetsView.swift in Sources */,
 				38E8753027554D5700975559 /* NotificationView.swift in Sources */,
