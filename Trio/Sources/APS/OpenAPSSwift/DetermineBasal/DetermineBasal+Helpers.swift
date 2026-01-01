@@ -295,7 +295,7 @@ extension Profile {
     /// Calculates the profile ISF at this point in time and applies any overrides to it
     /// This is `sensitivity` in JS
     func profileSensitivity(at: Date, trioCustomOrefVaribales: TrioCustomOrefVariables) -> Decimal {
-        let sensitivity = sensitivityFor(time: at)
+        let sensitivity = sens ?? sensitivityFor(time: at)
         return trioCustomOrefVaribales.override(sensitivity: sensitivity)
     }
 }

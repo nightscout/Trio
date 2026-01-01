@@ -228,10 +228,8 @@ enum DeterminationGenerator {
                         (
                             currentIob *
                                 min(
-                                    // Use same sensitivity source as adjustedSensitivity (matches JS `sensitivity` variable)
-                                    trioCustomOrefVariables.override(
-                                        sensitivity: profile.sens ?? profile.sensitivityFor(time: currentTime)
-                                    ),
+                                    profile.profileSensitivity(at: currentTime, trioCustomOrefVaribales: trioCustomOrefVariables),
+
                                     adjustedSensitivity
                                 )
                         )
@@ -275,10 +273,7 @@ enum DeterminationGenerator {
         )
 
         // Build isfReason: "Autosens ratio: X, ISF: Y→Z"
-        // Use same sensitivity source as adjustedSensitivity (profile.sens ?? sensitivityFor) with override applied
-        let originalSensitivity = trioCustomOrefVariables.override(
-            sensitivity: profile.sens ?? profile.sensitivityFor(time: currentTime)
-        )
+        let originalSensitivity = profile.profileSensitivity(at: currentTime, trioCustomOrefVaribales: trioCustomOrefVariables)
         let isfReason =
             "Autosens ratio: \(sensitivityRatio.jsRounded(scale: 2)), ISF: \(originalSensitivity.jsRounded())→\(adjustedSensitivity.jsRounded())"
 
