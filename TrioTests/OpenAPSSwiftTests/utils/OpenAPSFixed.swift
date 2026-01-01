@@ -143,6 +143,10 @@ final class OpenAPSFixed {
         }
     }
 
+    static let prepare = "autosens-prepare.js"
+    static let prepare24 = "autosens-prepare-24.js"
+    static let prepare8 = "autosens-prepare-8.js"
+
     func autosenseJavascript(
         glucose: JSON,
         pumpHistory: JSON,
@@ -150,7 +154,8 @@ final class OpenAPSFixed {
         profile: JSON,
         carbs: JSON,
         temptargets: JSON,
-        clock: JSON
+        clock: JSON,
+        prepareFile: String
     ) async -> OrefFunctionResult {
         do {
             let result = try await withCheckedThrowingContinuation { continuation in
@@ -160,7 +165,7 @@ final class OpenAPSFixed {
                     worker.evaluateBatch(scripts: [
                         Script(name: "prepare/log.js"),
                         Script.fromTestingBundle(name: "autosens.js", bundle: testBundle),
-                        Script.fromTestingBundle(name: "autosens-prepare.js", bundle: testBundle)
+                        Script.fromTestingBundle(name: prepareFile, bundle: testBundle)
                     ])
                     let result = worker.call(function: "generate", with: [
                         glucose,

@@ -328,6 +328,8 @@
 		3BCA5F7C2DC7B16400A7EAC7 /* pumphistory-with-external.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */; };
 		3BCE75B32D4B38AE009E9453 /* InsulinSensitivities+Convert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCE75B22D4B38A0009E9453 /* InsulinSensitivities+Convert.swift */; };
 		3BCE75B52D4B391F009E9453 /* Decimal+rounding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */; };
+		3BD433AE2F01CDE600897F7D /* autosens-prepare-24.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BD433AD2F01CDD900897F7D /* autosens-prepare-24.js */; };
+		3BD433B02F01CDF500897F7D /* autosens-prepare-8.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BD433AF2F01CDEC00897F7D /* autosens-prepare-8.js */; };
 		3BD6CE262DC24CFD00FA0472 /* pumphistory-24h-zoned.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BD6CE252DC24CFD00FA0472 /* pumphistory-24h-zoned.json */; };
 		3BD9687C2D8DDD4600899469 /* SlideButton in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687B2D8DDD4600899469 /* SlideButton */; };
 		3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687E2D8DDD8800899469 /* CryptoSwift */; };
@@ -1268,6 +1270,8 @@
 		3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "pumphistory-with-external.json"; sourceTree = "<group>"; };
 		3BCE75B22D4B38A0009E9453 /* InsulinSensitivities+Convert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InsulinSensitivities+Convert.swift"; sourceTree = "<group>"; };
 		3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Decimal+rounding.swift"; sourceTree = "<group>"; };
+		3BD433AD2F01CDD900897F7D /* autosens-prepare-24.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "autosens-prepare-24.js"; sourceTree = "<group>"; };
+		3BD433AF2F01CDEC00897F7D /* autosens-prepare-8.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "autosens-prepare-8.js"; sourceTree = "<group>"; };
 		3BD6CE252DC24CFD00FA0472 /* pumphistory-24h-zoned.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "pumphistory-24h-zoned.json"; sourceTree = "<group>"; };
 		3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorProvider.swift; sourceTree = "<group>"; };
 		3BE2F1E72E030E2F009E2900 /* MealCobTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCobTests.swift; sourceTree = "<group>"; };
@@ -3051,6 +3055,8 @@
 			children = (
 				3B214EE92E29631F00046304 /* determine-basal-prepare.js */,
 				3B16C39B2DF75BCB00C5C801 /* autosens-prepare.js */,
+				3BD433AF2F01CDEC00897F7D /* autosens-prepare-8.js */,
+				3BD433AD2F01CDD900897F7D /* autosens-prepare-24.js */,
 				3BC0AA402DA8B8F7000DF7B7 /* iob-history-prepare.js */,
 				3BF92F212D86DEE9006B545A /* autosens.js */,
 				3BF92F222D86DEE9006B545A /* autotune-core.js */,
@@ -4491,6 +4497,7 @@
 				3BF92F2E2D86DEE9006B545A /* autotune-prep.js in Resources */,
 				3BF92F2F2D86DEE9006B545A /* profile.js in Resources */,
 				3BF92F302D86DEE9006B545A /* determine-basal.js in Resources */,
+				3BD433AE2F01CDE600897F7D /* autosens-prepare-24.js in Resources */,
 				3BF92F312D86DEE9006B545A /* meal.js in Resources */,
 				3BF92F322D86DEE9006B545A /* glucose-get-last.js in Resources */,
 				3BF92F332D86DEE9006B545A /* iob.js in Resources */,
@@ -4505,6 +4512,7 @@
 				3BD6CE262DC24CFD00FA0472 /* pumphistory-24h-zoned.json in Resources */,
 				DDD78A912DC4064800AC63F3 /* carbhistory.json in Resources */,
 				3B997DD32DC02AEF006B6BB2 /* glucose.json in Resources */,
+				3BD433B02F01CDF500897F7D /* autosens-prepare-8.js in Resources */,
 				DDD78AD92DC421B500AC63F3 /* enacted.json in Resources */,
 				3B8B5D402DF52D0E00365ED3 /* deviationsUnsorted.json in Resources */,
 				DD3C47B32DC5608A003DD20D /* newerSuggested.json in Resources */,
