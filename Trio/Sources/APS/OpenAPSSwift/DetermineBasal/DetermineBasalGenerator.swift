@@ -277,11 +277,18 @@ enum DeterminationGenerator {
         let isfReason =
             "Autosens ratio: \(sensitivityRatio.jsRounded(scale: 2)), ISF: \(originalSensitivity.jsRounded())→\(adjustedSensitivity.jsRounded())"
 
-        // Build targetLog: "X" or "X→Y" if target was adjusted
+        // Build targetLog: "X" or "X→Y" or "X→Y→Z" if target was adjusted
         let profileTarget = profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables) ?? 100
+        let overrideTarget = trioCustomOrefVariables.overrideTarget
         let targetLog: String
         if adjustedGlucoseTargets.targetGlucose != profileTarget {
-            targetLog = "\(profileTarget.jsRounded())→\(adjustedGlucoseTargets.targetGlucose.jsRounded())"
+            // Include overrideTarget in the middle if it's set and different from final target
+            if overrideTarget != 0, overrideTarget != 6, overrideTarget != adjustedGlucoseTargets.targetGlucose {
+                targetLog =
+                    "\(profileTarget.jsRounded())→\(overrideTarget.jsRounded())→\(adjustedGlucoseTargets.targetGlucose.jsRounded())"
+            } else {
+                targetLog = "\(profileTarget.jsRounded())→\(adjustedGlucoseTargets.targetGlucose.jsRounded())"
+            }
         } else {
             targetLog = "\(adjustedGlucoseTargets.targetGlucose.jsRounded())"
         }
