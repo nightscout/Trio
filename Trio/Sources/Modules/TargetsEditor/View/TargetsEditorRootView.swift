@@ -6,15 +6,17 @@ extension TargetsEditor {
     struct RootView: BaseView {
         let resolver: Resolver
         @StateObject var state = StateModel()
-        @State private var editMode = EditMode.inactive
+        @State private var refreshUI = UUID()
+        @State private var now = Date()
+        @Namespace private var bottomID
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
-        private var dateFormatter: DateFormatter {
-            let formatter = DateFormatter()
-            formatter.timeZone = TimeZone(secondsFromGMT: 0)
-            formatter.timeStyle = .short
+        private var numberFormatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.maximumFractionDigits = state.units == .mmolL ? 1 : 0
             return formatter
         }
 
@@ -61,144 +63,106 @@ extension TargetsEditor {
         }
 
         var body: some View {
-            Form {
-                Section(header: Text("Schedule")) {
-                    list
-                }.listRowBackground(Color.chart)
+            ScrollViewReader { proxy in
+                VStack(spacing: 0) {
+                    ScrollView {
+                        LazyVStack {
+                            VStack(alignment: .leading, spacing: 0) {
+                                // Chart visualization
+                                if !state.items.isEmpty {
+                                    glucoseTargetChart
+                                        .frame(height: 180)
+                                        .padding()
+                                        .background(Color.chart.opacity(0.65))
+                                        .clipShape(
+                                            .rect(
+                                                topLeadingRadius: 10,
+                                                bottomLeadingRadius: 0,
+                                                bottomTrailingRadius: 0,
+                                                topTrailingRadius: 10
+                                            )
+                                        )
+                                        .padding(.horizontal)
+                                        .padding(.top)
+                                }
 
-                Section {} header: {
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack {
-                            Image(systemName: "note.text.badge.plus").foregroundStyle(.primary)
-                            Text("Add an entry by tapping 'Add Target +' in the top right-hand corner of the screen.")
-                        }
-                        HStack {
-                            Image(systemName: "hand.draw.fill").foregroundStyle(.primary)
-                            Text("Swipe to delete a single entry. Tap on it, to edit its time or rate.")
+                                // Glucose target list
+                                TherapySettingEditorView(
+                                    items: $state.therapyItems,
+                                    unit: state.units == .mgdL ? .mgdL : .mmolL,
+                                    timeOptions: state.timeValues,
+                                    valueOptions: state.rateValues,
+                                    validateOnDelete: state.validate,
+                                    onItemAdded: {
+                                        withAnimation {
+                                            proxy.scrollTo(bottomID, anchor: .bottom)
+                                        }
+                                    }
+                                )
+                                .padding(.horizontal)
+                                .id(bottomID)
+
+                                HStack {
+                                    Image(systemName: "hand.draw.fill")
+                                        .padding(.leading)
+
+                                    Text("Swipe to delete a single entry. Tap on it, to edit its time or value.")
+                                        .padding(.trailing)
+                                }
+                                .font(.subheadline)
+                                .fontWeight(.light)
+                                .foregroundStyle(.secondary)
+                                .padding()
+                            }
                         }
                     }
-                    .textCase(nil)
+
+                    saveButton
                 }
-            }
-            .safeAreaInset(edge: .bottom, spacing: 30) { saveButton }
-            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
-            .onAppear(perform: configureView)
-            .navigationTitle("Glucose Targets")
-            .navigationBarTitleDisplayMode(.automatic)
-            .toolbar(content: {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: { state.add() }) {
-                        HStack {
-                            Text("Add Target")
-                            Image(systemName: "plus")
-                        }
-                    }.disabled(!state.canAdd)
+                .background(appState.trioBackgroundColor(for: colorScheme))
+                .onAppear(perform: configureView)
+                .navigationTitle("Glucose Targets")
+                .navigationBarTitleDisplayMode(.automatic)
+                .onAppear {
+                    state.validate()
+                    state.therapyItems = state.getTherapyItems()
                 }
-            })
-            .environment(\.editMode, $editMode)
-            .onAppear {
-                state.validate()
+                .onChange(of: state.therapyItems) { _, newItems in
+                    state.updateFromTherapyItems(newItems)
+                    refreshUI = UUID()
+                }
             }
         }
 
-        private func pickers(for index: Int) -> some View {
-            Form {
-                if !state.canAdd {
-                    Section {
-                        VStack(alignment: .leading) {
-                            Text(
-                                "Target Glucose covered for 24 hours. You cannot add more rates. Please remove or adjust existing rates to make space."
-                            ).bold()
-                        }
-                    }.listRowBackground(Color.tabBar)
-                }
-
-                Section {
-                    Picker(
-                        selection: $state.items[index].lowIndex,
-                        label: Text("Target ")
-                    ) {
-                        ForEach(0 ..< state.rateValues.count, id: \.self) { i in
-                            Text(state.units == .mgdL ? state.rateValues[i].description : state.rateValues[i].formattedAsMmolL)
-                                .tag(i)
-                        }
-                    }
-                }.listRowBackground(Color.chart)
-
-                Section {
-                    Picker(selection: $state.items[index].timeIndex, label: Text("Time")) {
-                        ForEach(0 ..< state.timeValues.count, id: \.self) { i in
-                            Text(
-                                self.dateFormatter
-                                    .string(from: Date(
-                                        timeIntervalSince1970: state
-                                            .timeValues[i]
-                                    ))
-                            ).tag(i)
-                        }
-                    }
-                }.listRowBackground(Color.chart)
-            }
-            .padding(.top)
-            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
-            .navigationTitle("Set Target")
-            .navigationBarTitleDisplayMode(.automatic)
-        }
-
-        private var list: some View {
-            List {
-                chart.padding(.vertical)
-                ForEach(state.items.indexed(), id: \.1.id) { index, item in
-                    NavigationLink(destination: pickers(for: index)) {
-                        HStack {
-                            Text(
-                                state.units == .mgdL ? state.rateValues[item.lowIndex].description : state
-                                    .rateValues[item.lowIndex].formattedAsMmolL
-                            )
-                            Text("\(state.units.rawValue)").foregroundColor(.secondary)
-                            Spacer()
-                            Text("starts at").foregroundColor(.secondary)
-                            Text(
-                                "\(dateFormatter.string(from: Date(timeIntervalSince1970: state.timeValues[item.timeIndex])))"
-                            )
-                        }
-                    }
-                    .moveDisabled(true)
-                }
-                .onDelete(perform: onDelete)
-            }
-        }
-
-        var now = Date()
-        var chart: some View {
+        // Chart for visualizing glucose targets
+        private var glucoseTargetChart: some View {
             Chart {
-                ForEach(state.items.indexed(), id: \.1.id) { index, item in
-                    let displayValue = state.units == .mgdL ? state.rateValues[item.lowIndex].description : state
-                        .rateValues[item.lowIndex].formattedAsMmolL
-
-                    // Convert from string so we know we use the same math as the rest of Trio.
-                    // However, swift doesn't understand languages that use comma as decimal delminator
-                    let displayValueFloat = Double(displayValue.replacingOccurrences(of: ",", with: "."))
+                ForEach(Array(state.items.enumerated()), id: \.element.id) { index, item in
+                    let rawValue = state.rateValues[item.lowIndex]
+                    let displayValue = state.units == .mgdL ? rawValue : rawValue.asMmolL
 
                     let startDate = Calendar.current
                         .startOfDay(for: now)
                         .addingTimeInterval(state.timeValues[item.timeIndex])
 
-                    let endDate = state.items
-                        .count > index + 1 ?
-                        Calendar.current.startOfDay(for: now)
-                        .addingTimeInterval(state.timeValues[state.items[index + 1].timeIndex])
-                        :
-                        Calendar.current.startOfDay(for: now)
-                        .addingTimeInterval(state.timeValues.last! + 30 * 60)
+                    var offset: TimeInterval {
+                        if state.items.count > index + 1 {
+                            return state.timeValues[state.items[index + 1].timeIndex]
+                        } else {
+                            return state.timeValues.last! + 30 * 60
+                        }
+                    }
 
-                    LineMark(x: .value("End Date", startDate), y: .value("Target", displayValueFloat ?? 0.0))
-                        .lineStyle(.init(lineWidth: 2.5)).foregroundStyle(Color.green.gradient)
+                    let endDate = Calendar.current.startOfDay(for: now).addingTimeInterval(offset)
 
-                    LineMark(x: .value("Start Date", endDate), y: .value("Target", displayValueFloat ?? 0.0))
-                        .lineStyle(.init(lineWidth: 2.5)).foregroundStyle(Color.green.gradient)
+                    LineMark(x: .value("End Date", startDate), y: .value("Ratio", displayValue))
+                        .lineStyle(.init(lineWidth: 2.5)).foregroundStyle(Color.green)
+
+                    LineMark(x: .value("Start Date", endDate), y: .value("Ratio", displayValue))
+                        .lineStyle(.init(lineWidth: 2.5)).foregroundStyle(Color.green)
                 }
             }
+            .id(refreshUI) // Force chart update
             .chartXAxis {
                 AxisMarks(values: .automatic(desiredCount: 6)) { _ in
                     AxisValueLabel(format: .dateTime.hour())
@@ -206,8 +170,7 @@ extension TargetsEditor {
                 }
             }
             .chartXScale(
-                domain: Calendar.current.startOfDay(for: now) ... Calendar
-                    .current.startOfDay(for: now)
+                domain: Calendar.current.startOfDay(for: now) ... Calendar.current.startOfDay(for: now)
                     .addingTimeInterval(60 * 60 * 24)
             )
             .chartYAxis {
@@ -215,12 +178,11 @@ extension TargetsEditor {
                     AxisValueLabel()
                     AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
                 }
-            }.chartYScale(domain: (state.units == .mgdL ? 72 : 4.0) ... (state.units == .mgdL ? 180 : 10))
-        }
-
-        private func onDelete(offsets: IndexSet) {
-            state.items.remove(atOffsets: offsets)
-            state.validate()
+            }
+            .chartYScale(
+                domain: (state.units == .mgdL ? Decimal(72) : Decimal(72).asMmolL) ...
+                    (state.units == .mgdL ? Decimal(180) : Decimal(180).asMmolL)
+            )
         }
     }
 }

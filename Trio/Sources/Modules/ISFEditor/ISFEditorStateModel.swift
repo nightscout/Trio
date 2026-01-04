@@ -19,6 +19,7 @@ extension ISFEditor {
 
         var items: [Item] = []
         var initialItems: [Item] = []
+        var therapyItems: [TherapySettingItem] = []
         var shouldDisplaySaving: Bool = false
 
         let context = CoreDataStack.shared.newTaskContext()
@@ -41,6 +42,25 @@ extension ISFEditor {
         }
 
         private(set) var units: GlucoseUnits = .mgdL
+
+        // Convert items to TherapySettingItem format
+        func getTherapyItems() -> [TherapySettingItem] {
+            items.map { item in
+                TherapySettingItem(
+                    time: timeValues[item.timeIndex],
+                    value: rateValues[item.rateIndex]
+                )
+            }
+        }
+
+        // Update items from TherapySettingItem format
+        func updateFromTherapyItems(_ therapyItems: [TherapySettingItem]) {
+            items = therapyItems.map { therapyItem in
+                let timeIndex = timeValues.firstIndex(where: { abs($0 - therapyItem.time) < 1 }) ?? 0
+                let rateIndex = rateValues.firstIndex(of: therapyItem.value) ?? 0
+                return Item(rateIndex: rateIndex, timeIndex: timeIndex)
+            }
+        }
 
         override func subscribe() {
             units = settingsManager.settings.units

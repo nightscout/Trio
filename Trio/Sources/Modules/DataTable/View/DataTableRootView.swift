@@ -621,7 +621,7 @@ extension DataTable {
                     Image(systemName: "circle.fill").foregroundColor(Color.insulin)
                     Text(bolus.isSMB ? "SMB" : item.type ?? "Bolus")
                     Text(
-                        (Formatter.decimalFormatterWithTwoFractionDigits.string(from: amount) ?? "0") +
+                        (Formatter.decimalFormatterWithThreeFractionDigits.string(from: amount) ?? "0") +
                             String(localized: " U", comment: "Insulin unit")
                     )
                     .foregroundColor(.secondary)
@@ -632,7 +632,7 @@ extension DataTable {
                     Image(systemName: "circle.fill").foregroundColor(Color.insulin.opacity(0.4))
                     Text("Temp Basal")
                     Text(
-                        (Formatter.decimalFormatterWithTwoFractionDigits.string(from: rate) ?? "0") +
+                        (Formatter.decimalFormatterWithThreeFractionDigits.string(from: rate) ?? "0") +
                             String(localized: " U/hr", comment: "Unit insulin per hour")
                     )
                     .foregroundColor(.secondary)
@@ -657,7 +657,7 @@ extension DataTable {
                             alertTitle = String(localized: "Delete Insulin?", comment: "Alert title for deleting insulin")
                             alertMessage = Formatter.dateFormatter
                                 .string(from: item.timestamp ?? Date()) + ", " +
-                                (Formatter.decimalFormatterWithTwoFractionDigits.string(from: item.bolus?.amount ?? 0) ?? "0") +
+                                (Formatter.decimalFormatterWithThreeFractionDigits.string(from: item.bolus?.amount ?? 0) ?? "0") +
                                 String(localized: " U", comment: "Insulin unit")
 
                             if let bolus = item.bolus {

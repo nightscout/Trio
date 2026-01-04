@@ -15,7 +15,7 @@ enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
     }
 }
 
-struct TrioSettings: JSON, Equatable {
+struct TrioSettings: JSON, Equatable, Encodable {
     var units: GlucoseUnits = .mgdL
     var closedLoop: Bool = false
     var isUploadEnabled: Bool = false
@@ -53,6 +53,10 @@ struct TrioSettings: JSON, Equatable {
     var glucoseColorScheme: GlucoseColorScheme = .staticColor
     var xGridLines: Bool = true
     var yGridLines: Bool = true
+    var hideInsulinBadge: Bool = false
+    var allowDilution: Bool = false
+    var insulinConcentration: Decimal = 1
+    var showCobIobChart: Bool = true
     var rulerMarks: Bool = true
     var forecastDisplayType: ForecastDisplayType = .cone
     var maxCarbs: Decimal = 250
@@ -71,10 +75,43 @@ struct TrioSettings: JSON, Equatable {
     var smartStackView: LockScreenView = .simple
     var bolusShortcut: BolusShortcutLimit = .notAllowed
     var timeInRangeType: TimeInRangeType = .timeInTightRange
+
+    /// Selected Garmin watchface (Trio or SwissAlpine)
+    var garminWatchface: GarminWatchface = .trio
+    var garminDatafield: GarminDatafield = .none
+
+    /// Primary attribute choice for Garmin display (COB, ISF, or Sensitivity Ratio)
+    var primaryAttributeChoice: GarminPrimaryAttributeChoice = .cob
+
+    /// Secondary attribute choice for Garmin display (TBR or Eventual BG)
+    var secondaryAttributeChoice: GarminSecondaryAttributeChoice = .tbr
+
+    /// Controls whether watchface data transmission is enabled
+    var isWatchfaceDataEnabled: Bool = false
+
+    /// Computed property that groups all Garmin settings into a single struct
+    var garminSettings: GarminWatchSettings {
+        get {
+            GarminWatchSettings(
+                watchface: garminWatchface,
+                datafield: garminDatafield,
+                primaryAttributeChoice: primaryAttributeChoice,
+                secondaryAttributeChoice: secondaryAttributeChoice,
+                isWatchfaceDataEnabled: isWatchfaceDataEnabled
+            )
+        }
+        set {
+            garminWatchface = newValue.watchface
+            garminDatafield = newValue.datafield
+            primaryAttributeChoice = newValue.primaryAttributeChoice
+            secondaryAttributeChoice = newValue.secondaryAttributeChoice
+            isWatchfaceDataEnabled = newValue.isWatchfaceDataEnabled
+        }
+    }
 }
 
 extension TrioSettings: Decodable {
-    // Needed to decode incomplete JSON
+    /// Custom decoder to handle incomplete JSON and provide default values for missing fields
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         var settings = TrioSettings()
@@ -249,6 +286,22 @@ extension TrioSettings: Decodable {
             settings.yGridLines = yGridLines
         }
 
+        if let showCobIobChart = try? container.decode(Bool.self, forKey: .showCobIobChart) {
+            settings.showCobIobChart = showCobIobChart
+        }
+
+        if let hideInsulinBadge = try? container.decode(Bool.self, forKey: .hideInsulinBadge) {
+            settings.hideInsulinBadge = hideInsulinBadge
+        }
+
+        if let allowDilution = try? container.decode(Bool.self, forKey: .allowDilution) {
+            settings.allowDilution = allowDilution
+        }
+
+        if let insulinConcentration = try? container.decode(Decimal.self, forKey: .insulinConcentration) {
+            settings.insulinConcentration = insulinConcentration
+        }
+
         if let rulerMarks = try? container.decode(Bool.self, forKey: .rulerMarks) {
             settings.rulerMarks = rulerMarks
         }
@@ -303,6 +356,31 @@ extension TrioSettings: Decodable {
 
         if let timeInRangeType = try? container.decode(TimeInRangeType.self, forKey: .timeInRangeType) {
             settings.timeInRangeType = timeInRangeType
+        }
+
+        if let garminWatchface = try? container.decode(GarminWatchface.self, forKey: .garminWatchface) {
+            settings.garminWatchface = garminWatchface
+        }
+
+        if let garminDatafield = try? container.decode(GarminDatafield.self, forKey: .garminDatafield) {
+            settings.garminDatafield = garminDatafield
+        }
+
+        if let primaryAttributeChoice = try? container
+            .decode(GarminPrimaryAttributeChoice.self, forKey: .primaryAttributeChoice)
+        {
+            settings.primaryAttributeChoice = primaryAttributeChoice
+        }
+
+        if let secondaryAttributeChoice = try? container.decode(
+            GarminSecondaryAttributeChoice.self,
+            forKey: .secondaryAttributeChoice
+        ) {
+            settings.secondaryAttributeChoice = secondaryAttributeChoice
+        }
+
+        if let isWatchfaceDataEnabled = try? container.decode(Bool.self, forKey: .isWatchfaceDataEnabled) {
+            settings.isWatchfaceDataEnabled = isWatchfaceDataEnabled
         }
 
         self = settings

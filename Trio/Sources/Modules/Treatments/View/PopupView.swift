@@ -915,7 +915,7 @@ struct PopupView: View {
 
                     // Final insulin recommendation
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(insulinFormatter(state.insulinCalculated))
+                        Text(insulinFormatter(state.insulinCalculated, .down, true))
                             .largeSolutionStyle()
                             .foregroundStyle(state.insulinCalculated > 0 ? Color.accentColor : .primary)
 
@@ -939,19 +939,24 @@ struct PopupView: View {
     /// - Parameters:
     ///   - value: The insulin value to format
     ///   - roundingMode: The rounding mode to apply (default: .down for conservative dosing)
+    ///   - roundedForPump: Use a max of 3 fraction digits when rounding for pump to accomidate for 0.025 U increments if applicable
     /// - Returns: A formatted string with 2 decimal places
-    private func insulinFormatter(_ value: Decimal, _ roundingMode: NSDecimalNumber.RoundingMode = .down) -> String {
+    private func insulinFormatter(
+        _ value: Decimal,
+        _ roundingMode: NSDecimalNumber.RoundingMode = .down,
+        _ roundedForPump: Bool = false
+    ) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 2
+        formatter.maximumFractionDigits = roundedForPump ? 3 : 2
         formatter.locale = Locale.current
 
         // Create a decimal handler with the specified rounding behavior.
-        // Always rounds to 2 decimal places (0.01 U precision).
+        // Rounds to 2 decimal places (0.01 U precision), except when rounding for pump
         let handler = NSDecimalNumberHandler(
             roundingMode: roundingMode,
-            scale: 2,
+            scale: roundedForPump ? 3 : 2,
             raiseOnExactness: false,
             raiseOnOverflow: false,
             raiseOnUnderflow: false,

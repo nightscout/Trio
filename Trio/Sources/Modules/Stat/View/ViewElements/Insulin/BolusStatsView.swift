@@ -329,7 +329,7 @@ private struct BolusSelectionPopover: View {
     private func xOffset() -> CGFloat {
         // If the selected date is outside the visible domain, hide the popover
         guard selectedDate >= domain.start && selectedDate <= domain.end else { return 0 }
-        
+
         let domainDuration = domain.end.timeIntervalSince(domain.start)
         guard domainDuration > 0, chartWidth > 0 else { return 0 }
 

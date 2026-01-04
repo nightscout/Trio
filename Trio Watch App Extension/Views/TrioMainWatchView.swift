@@ -111,22 +111,26 @@ struct TrioMainWatchView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    HStack {
+                    VStack {
                         Image(systemName: "syringe.fill")
                             .foregroundStyle(Color.insulin)
 
                         Text(isWatchStateDated || isSessionUnreachable ? "--" : state.iob ?? "--")
                             .foregroundStyle(isWatchStateDated ? Color.secondary : Color.white)
+                            .frame(alignment: .leading)
+                            .minimumScaleFactor(0.5)
                     }.font(.caption2)
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
-                    HStack {
-                        Text(isWatchStateDated || isSessionUnreachable ? "--" : state.cob ?? "--")
-                            .foregroundStyle(isWatchStateDated || isSessionUnreachable ? Color.secondary : Color.white)
-
+                    VStack {
                         Image(systemName: "fork.knife")
                             .foregroundStyle(Color.orange)
+
+                        Text(isWatchStateDated || isSessionUnreachable ? "--" : state.cob ?? "--")
+                            .foregroundStyle(isWatchStateDated || isSessionUnreachable ? Color.secondary : Color.white)
+                            .frame(alignment: .trailing)
+                            .minimumScaleFactor(0.5)
                     }.font(.caption2)
                 }
 
