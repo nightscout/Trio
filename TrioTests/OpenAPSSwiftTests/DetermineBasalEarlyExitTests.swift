@@ -393,7 +393,7 @@ import Testing
         #expect(
             result?
                 .reason ==
-                "Safety check: currentTemp does not match lastTemp in IOB or lastTemp ended long ago; canceling temp basal."
+                "Warning: currenttemp rate 1.5 != lastTemp rate 1 from pumphistory; canceling temp"
         )
     }
 
@@ -445,8 +445,7 @@ import Testing
         // Note: In swift we use a different reason then JS
         #expect(
             result?
-                .reason ==
-                "Safety check: currentTemp does not match lastTemp in IOB or lastTemp ended long ago; canceling temp basal."
+                .reason == "Warning: currenttemp running but lastTemp from pumphistory ended 10m ago; canceling temp"
         )
     }
 

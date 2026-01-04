@@ -161,12 +161,12 @@ enum DosingEngine {
         tddReason: String,
         targetLog: String // This is a pre-formatted string from the JS
     ) -> DosingInputs {
-        let lastIOBpredBG = forecast.iob.last ?? 0
-        let lastCOBpredBG = forecast.cob?.last
-        let lastUAMpredBG = forecast.uam?.last
+        let lastIOBpredBG = (forecast.iob.last ?? 0).jsRounded()
+        let lastCOBpredBG = forecast.cob?.last?.jsRounded()
+        let lastUAMpredBG = forecast.uam?.last?.jsRounded()
 
         var reason =
-            "\(isfReason), COB: \(mealData.mealCOB), Dev: \(deviation), BGI: \(glucoseImpact), CR: \(forecast.adjustedCarbRatio), Target: \(targetLog), minPredBG \(forecast.minForecastedGlucose), minGuardBG \(forecast.minGuardGlucose), IOBpredBG \(lastIOBpredBG)"
+            "\(isfReason), COB: \(mealData.mealCOB), Dev: \(deviation.jsRounded()), BGI: \(glucoseImpact.jsRounded()), CR: \(forecast.adjustedCarbRatio.jsRounded(scale: 1)), Target: \(targetLog), minPredBG \(forecast.minForecastedGlucose.jsRounded()), minGuardBG \(forecast.minGuardGlucose.jsRounded()), IOBpredBG \(lastIOBpredBG)"
 
         if let lastCOB = lastCOBpredBG {
             reason += ", COBpredBG \(lastCOB)"
@@ -194,7 +194,7 @@ enum DosingEngine {
 
         var carbsRequired: (carbs: Decimal, minutes: Decimal)?
         if carbsRequiredResult.carbs >= profile.carbsReqThreshold, carbsRequiredResult.minutes <= 45 {
-            reason += "\(carbsRequiredResult.carbs) add'l carbs req w/in \(carbsRequiredResult.minutes)m; "
+            // Note: carbs message is added in DetermineBasalGenerator after smbReason to match JS order
             carbsRequired = carbsRequiredResult
         }
 
@@ -297,7 +297,7 @@ enum DosingEngine {
         } else if currentGlucose < threshold || minGuardGlucose < threshold {
             let minGuardGlucoseString = String(describing: convertGlucose(profile: profile, glucose: minGuardGlucose))
             let thresholdString = String(describing: convertGlucose(profile: profile, glucose: threshold))
-            newDetermination.reason += "minGuardBG \(minGuardGlucoseString) < \(thresholdString)"
+            newDetermination.reason += "minGuardBG \(minGuardGlucoseString)<\(thresholdString)"
 
             let glucoseUndershoot = targetGlucose - minGuardGlucose
             if minGuardGlucose < threshold {
@@ -421,9 +421,10 @@ enum DosingEngine {
                     .reason +=
                     ", but Delta \(convertGlucose(profile: profile, glucose: glucoseStatus.delta)) > expectedDelta \(convertGlucose(profile: profile, glucose: expectedDelta))"
             } else {
+                let minDeltaFormatted = String(format: "%.2f", Double(truncating: minDelta.jsRounded(scale: 2) as NSNumber))
                 newDetermination
                     .reason +=
-                    ", but Min. Delta \(minDelta.jsRounded(scale: 2)) > Exp. Delta \(convertGlucose(profile: profile, glucose: expectedDelta))"
+                    ", but Min. Delta \(minDeltaFormatted) > Exp. Delta \(convertGlucose(profile: profile, glucose: expectedDelta))"
             }
 
             let roundedBasal = TempBasalFunctions.roundBasal(profile: profile, basalRate: basal)
@@ -463,8 +464,9 @@ enum DosingEngine {
         let minInsulinRequired = min(insulinRequired, naiveInsulinRequired)
 
         if insulinScheduled < minInsulinRequired - basal * 0.3 {
+            let rateFormatted = String(format: "%.2f", Double(truncating: currentTemp.rate.jsRounded(scale: 2) as NSNumber))
             newDetermination
-                .reason += ", \(currentTemp.duration)m@\(currentTemp.rate.jsRounded(scale: 2)) is a lot less than needed. "
+                .reason += ", \(currentTemp.duration)m@\(rateFormatted) is a lot less than needed. "
             let finalDetermination = try TempBasalFunctions.setTempBasal(
                 rate: rate,
                 duration: 30,
@@ -549,9 +551,10 @@ enum DosingEngine {
                     .reason +=
                     "Eventual BG \(convertGlucose(profile: profile, glucose: eventualGlucose)) > \(convertGlucose(profile: profile, glucose: minGlucose)) but Delta \(convertGlucose(profile: profile, glucose: glucoseStatus.delta)) < Exp. Delta \(convertGlucose(profile: profile, glucose: expectedDelta))"
             } else {
+                let minDeltaFormatted = String(format: "%.2f", Double(truncating: minDelta.jsRounded(scale: 2) as NSNumber))
                 newDetermination
                     .reason +=
-                    "Eventual BG \(convertGlucose(profile: profile, glucose: eventualGlucose)) > \(convertGlucose(profile: profile, glucose: minGlucose)) but Min. Delta \(minDelta.jsRounded(scale: 2)) < Exp. Delta \(convertGlucose(profile: profile, glucose: expectedDelta))"
+                    "Eventual BG \(convertGlucose(profile: profile, glucose: eventualGlucose)) > \(convertGlucose(profile: profile, glucose: minGlucose)) but Min. Delta \(minDeltaFormatted) < Exp. Delta \(convertGlucose(profile: profile, glucose: expectedDelta))"
             }
 
             let roundedBasal = TempBasalFunctions.roundBasal(profile: profile, basalRate: basal)
@@ -825,8 +828,15 @@ enum DosingEngine {
         }
 
         if let lastBolusAge {
-            let nextBolusMinutes = smbInterval - lastBolusAge
-            let nextBolusSeconds = (Int(smbInterval - lastBolusAge) * 60) % 60
+            // BUG: JS rounds minutes independently from seconds, causing double-counting when
+            // minutes rounds up. E.g., 0.6 min = 36 sec, but JS outputs "1m 36s" (96 sec).
+            // Correct logic would be:
+            //   let totalSeconds = Int(((smbInterval - lastBolusAge) * 60).jsRounded())
+            //   let nextBolusMinutes = totalSeconds / 60
+            //   let nextBolusSeconds = totalSeconds % 60
+            // Keeping JS behavior for now to match outputs.
+            let nextBolusMinutes = (smbInterval - lastBolusAge).jsRounded()
+            let nextBolusSeconds = Int(((smbInterval - lastBolusAge) * 60).jsRounded()) % 60
 
             if lastBolusAge > smbInterval {
                 if microBolus > 0 {
@@ -864,14 +874,15 @@ enum DosingEngine {
         let maxSafeBasal = try TempBasalFunctions.getMaxSafeBasalRate(profile: profile)
 
         if rate > maxSafeBasal {
-            newDetermination.reason += "adj. req. rate: \(rate) to maxSafeBasal: \(maxSafeBasal), "
+            newDetermination.reason += "adj. req. rate: \(rate) to maxSafeBasal: \(maxSafeBasal.jsRounded(scale: 2)), "
             rate = TempBasalFunctions.roundBasal(profile: profile, basalRate: maxSafeBasal)
         }
 
         let insulinScheduled = Decimal(currentTemp.duration) * (currentTemp.rate - basal) / 60
         if insulinScheduled >= insulinRequired * 2 {
+            let rateFormatted = String(format: "%.2f", Double(truncating: currentTemp.rate.jsRounded(scale: 2) as NSNumber))
             newDetermination.reason +=
-                "\(currentTemp.duration)m@\(currentTemp.rate.jsRounded(scale: 2)) > 2 * insulinReq. Setting temp basal of \(rate)U/hr. "
+                "\(currentTemp.duration)m@\(rateFormatted) > 2 * insulinReq. Setting temp basal of \(rate)U/hr. "
             let finalDetermination = try TempBasalFunctions.setTempBasal(
                 rate: rate,
                 duration: 30,

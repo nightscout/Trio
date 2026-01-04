@@ -43,24 +43,16 @@ enum OrefFunction: String, Codable {
         case .autosens:
             return Set(["deviationsUnsorted", "debugInfo"])
         case .determineBasal:
-            // FIXME: Adjust as we go
+            // We ignore some properties that aren't used downstream
             return Set([
-                // Final dosing calculation
-                // "units",
-                // "insulinReq",
-                // "rate",
-                // "duration",
-                // Not calculating yet
+                // Not used, ignore
                 "id",
-                "deliverAt",
                 "temp",
                 "reservoir",
                 "ISF",
-                "current_target",
                 "TDD",
                 "minDelta",
                 "received",
-                "reason",
                 // intentionally removed from Swift, but in JS
                 "insulinForManualBolus",
                 "manualBolusErrorString",

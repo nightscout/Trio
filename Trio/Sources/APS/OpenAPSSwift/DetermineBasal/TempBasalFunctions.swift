@@ -89,18 +89,18 @@ enum TempBasalFunctions {
                 if currentTemp.duration > 0 {
                     determination
                         .reason = determination.reason +
-                        "Suggested rate is same as profile rate, a temp basal is active, canceling current temp"
+                        ". Suggested rate is same as profile rate, a temp basal is active, canceling current temp"
                     determination.duration = 0
                     determination.rate = 0
                     return determination
                 } else {
                     determination
                         .reason = determination.reason +
-                        "Suggested rate is same as profile rate, no temp basal is active, doing nothing"
+                        ". Suggested rate is same as profile rate, no temp basal is active, doing nothing"
                     return determination
                 }
             } else {
-                determination.reason = determination.reason + "Setting neutral temp basal of \(profile.currentBasal ?? 0)U/hr"
+                determination.reason = determination.reason + ". Setting neutral temp basal of \(profile.currentBasal ?? 0)U/hr"
                 determination.duration = duration
                 determination.rate = suggestedRate
                 return determination

@@ -298,6 +298,6 @@ import Testing
 
         #expect(requestedTemp.rate == 0.8)
         #expect(requestedTemp.duration == 30)
-        #expect(requestedTemp.reason == "Setting neutral temp basal of 0.8U/hr")
+        #expect(requestedTemp.reason == ". Setting neutral temp basal of 0.8U/hr")
     }
 }
