@@ -111,11 +111,11 @@ extension Treatments {
                         .onChange(of: state.protein) {
                             handleDebouncedInput()
                         }
-                    }
-                    if state.scannedProtein > 0 && !state.settings.settings.barcodeScannerOnlyCarbs {
-                        Text("+ \(Double(truncating: state.scannedProtein as NSNumber), specifier: "%.1f")g")
-                            .font(.caption)
-                            .foregroundStyle(.blue)
+                        if state.scannedProtein > 0 && !state.settings.settings.barcodeScannerOnlyCarbs {
+                            Text("+ \(Double(truncating: state.scannedProtein as NSNumber), specifier: "%.1f")g")
+                                .font(.caption)
+                                .foregroundStyle(.blue)
+                        }
                     }
                 }
 
@@ -138,11 +138,11 @@ extension Treatments {
                         .onChange(of: state.fat) {
                             handleDebouncedInput()
                         }
-                    }
-                    if state.scannedFat > 0 && !state.settings.settings.barcodeScannerOnlyCarbs {
-                        Text("+ \(Double(truncating: state.scannedFat as NSNumber), specifier: "%.1f")g")
-                            .font(.caption)
-                            .foregroundStyle(.blue)
+                        if state.scannedFat > 0 && !state.settings.settings.barcodeScannerOnlyCarbs {
+                            Text("+ \(Double(truncating: state.scannedFat as NSNumber), specifier: "%.1f")g")
+                                .font(.caption)
+                                .foregroundStyle(.blue)
+                        }
                     }
                 }
             }

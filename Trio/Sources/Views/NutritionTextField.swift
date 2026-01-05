@@ -216,11 +216,13 @@ private struct NutritionInputView: UIViewRepresentable {
         ]
         toolbar.sizeToFit()
         textField.inputAccessoryView = toolbar
+        context.coordinator.textField = textField
 
         return textField
     }
 
     func updateUIView(_ uiView: UITextField, context: Context) {
+        context.coordinator.parent = self
         // Clear entering focus flag if we have achieved consistency
         if externalFocus {
             context.coordinator.isEnteringFocus = false
@@ -263,6 +265,7 @@ private struct NutritionInputView: UIViewRepresentable {
 
     class Coordinator: NSObject, UITextFieldDelegate {
         var parent: NutritionInputView
+        weak var textField: UITextField?
         var isEnteringFocus = false
 
         init(_ parent: NutritionInputView) {
@@ -271,8 +274,7 @@ private struct NutritionInputView: UIViewRepresentable {
 
         @objc func clearText() {
             parent.value = 0
-            // We need to notify listeners and update text field
-            // But binding update will trigger updateUIView
+            textField?.text = ""
         }
 
         func textFieldShouldBeginEditing(_: UITextField) -> Bool {
