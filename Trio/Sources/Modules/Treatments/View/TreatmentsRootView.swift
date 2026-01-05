@@ -615,7 +615,7 @@ extension Treatments {
                 }
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
-            .blur(radius: state.showInfo ? 3 : 0)
+            .blur(radius: state.showInfo || state.isAwaitingDeterminationResult ? 3 : 0)
             .navigationTitle("Treatments")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(content: {

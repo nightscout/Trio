@@ -192,58 +192,61 @@ extension BarcodeScanner {
         // MARK: - Scanner View Content
 
         private var scannerViewContent: some View {
-            GeometryReader { geo in
-                ScrollView {
-                    ZStack {
-                        if state.isFetchingProduct {
-                            // Loading state
-                            loadingView
-                                .transition(.opacity)
-                        } else if state.showEditorView {
-                            // Show full editor view when product/nutrition data is available
-                            NutritionEditorView(
-                                state: state,
-                                isEditingFromList: $isEditingFromList,
-                                onDismissList: { state.showListView = true }
-                            )
+            Group {
+                if state.showEditorView {
+                    // Show full editor view when product/nutrition data is available
+                    NutritionEditorView(
+                        state: state,
+                        isEditingFromList: $isEditingFromList,
+                        onDismissList: { state.showListView = true }
+                    )
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
+                } else {
+                    GeometryReader { geo in
+                        ScrollView {
+                            ZStack {
+                                if state.isFetchingProduct {
+                                    // Loading state
+                                    loadingView
+                                        .transition(.opacity)
+                                } else {
+                                    // Scanner view
+                                    fullScreenCameraView
+                                        .transition(.move(edge: .leading).combined(with: .opacity))
+                                }
 
-                            .transition(.move(edge: .trailing).combined(with: .opacity))
-                        } else {
-                            // Scanner view
-                            fullScreenCameraView
-                                .transition(.move(edge: .leading).combined(with: .opacity))
-                        }
+                                // Error overlay (always visible if there's an error)
+                                if let message = state.errorMessage {
+                                    VStack {
+                                        Spacer()
+                                        Label(message, systemImage: "exclamationmark.triangle.fill")
+                                            .font(.footnote)
+                                            .foregroundStyle(.orange)
+                                            .padding(12)
+                                            .background(Color.orange.opacity(0.12))
+                                            .background(.ultraThinMaterial)
+                                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                                            .padding(.horizontal)
+                                            .padding(.bottom, 100)
+                                    }
+                                    .allowsHitTesting(false)
+                                }
 
-                        // Error overlay (always visible if there's an error)
-                        if let message = state.errorMessage, !state.showEditorView {
-                            VStack {
-                                Spacer()
-                                Label(message, systemImage: "exclamationmark.triangle.fill")
-                                    .font(.footnote)
-                                    .foregroundStyle(.orange)
-                                    .padding(12)
-                                    .background(Color.orange.opacity(0.12))
-                                    .background(.ultraThinMaterial)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                                    .padding(.horizontal)
-                                    .padding(.bottom, 100)
+                                // Custom Keyboard Toolbar (Overlay when keyboard is visible in List)
+                                if focusedItemID != nil {
+                                    VStack {
+                                        Spacer()
+                                        customKeyboardToolbar
+                                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                                            .zIndex(100)
+                                    }
+                                }
                             }
-                            .allowsHitTesting(false)
+                            .frame(minHeight: geo.size.height)
                         }
-
-                        // Custom Keyboard Toolbar (Overlay when keyboard is visible in List)
-                        if focusedItemID != nil {
-                            VStack {
-                                Spacer()
-                                customKeyboardToolbar
-                                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                                    .zIndex(100)
-                            }
-                        }
+                        .scrollIndicators(.hidden)
                     }
-                    .frame(minHeight: geo.size.height)
                 }
-                .scrollIndicators(.hidden)
             }
             .onChange(of: focusedItemID) { _, newValue in
                 if newValue != nil {
