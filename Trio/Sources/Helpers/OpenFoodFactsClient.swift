@@ -260,7 +260,6 @@ private extension BarcodeScanner.OpenFoodFactsClient {
                 servingQuantity = nil
             }
 
-
             // Handle productQuantity (can be Double or String)
             if let doubleValue = try? container.decodeIfPresent(Double.self, forKey: .productQuantity) {
                 productQuantity = doubleValue
