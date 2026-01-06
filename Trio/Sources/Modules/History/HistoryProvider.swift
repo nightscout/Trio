@@ -2,8 +2,8 @@ import CoreData
 import Foundation
 import HealthKit
 
-extension DataTable {
-    final class Provider: BaseProvider, DataTableProvider {
+extension History {
+    final class Provider: BaseProvider, HistoryProvider {
         @Injected() var nightscoutManager: NightscoutManager!
         @Injected() var healthkitManager: HealthKitManager!
         @Injected() var tidepoolManager: TidepoolManager!
