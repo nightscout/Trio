@@ -29,7 +29,7 @@ extension SettingsExport {
                                         .foregroundColor(state.allCategoriesSelected ? .blue : .secondary)
                                     Text(
                                         state
-                                            .allCategoriesSelected ? String(localized: "Deselct All") :
+                                            .allCategoriesSelected ? String(localized: "Deselect All") :
                                             String(localized: "Select All")
                                     )
                                     .fontWeight(.bold)
