@@ -150,12 +150,6 @@ extension SettingsExport {
                 // Pump Information
                 if let pumpManager = provider.deviceManager.pumpManager {
                     addSetting(category: devicesCategory, name: String(localized: "Pump Type"), value: pumpManager.localizedTitle)
-                } else {
-                    addSetting(
-                        category: devicesCategory,
-                        name: String(localized: "Pump Type"),
-                        value: String(localized: "Not Connected")
-                    )
 
                     // Get insulin type from pump manager if available, otherwise from preferences
                     let insulinTypeValue: String
@@ -165,11 +159,22 @@ extension SettingsExport {
                         insulinTypeValue = insulinType.title
                     } else {
                         insulinTypeValue = preferences.curve.rawValue
+                        // technically, this gets set only when a pump is onboared
+                        // leaving this here as a backup, because you theoretically could
+                        // have removed your PM instance, but are just within pumps and
+                        // insulin type stays the same.
+                        // however, this theoretically could be a stale type.
                     }
                     addSetting(
                         category: devicesCategory,
                         name: String(localized: "Insulin Type"),
                         value: insulinTypeValue
+                    )
+                } else {
+                    addSetting(
+                        category: devicesCategory,
+                        name: String(localized: "Pump Type"),
+                        value: String(localized: "Not Connected")
                     )
                 }
             }
