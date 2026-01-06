@@ -274,7 +274,7 @@ extension Settings {
                                 localized: "Export Settings",
                                 comment: "Export Settings menu item in Trio Settings Root View"
                             ))
-                                .navigationLink(to: .exportSettings, from: self)
+                                .navigationLink(to: .settingsExport, from: self)
                         }
                     ).listRowBackground(Color.chart)
 

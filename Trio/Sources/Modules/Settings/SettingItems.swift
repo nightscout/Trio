@@ -326,13 +326,7 @@ enum SettingItems {
             path: ["Services", "Nightscout", "Fetch and Remote Control"]
         ),
         SettingItem(title: "Tidepool", view: .serviceSettings, path: ["Services"]),
-        SettingItem(title: "Apple Health", view: .healthkit, path: ["Services"]),
-        SettingItem(
-            title: "Export Settings",
-            view: .exportSettings,
-            searchContents: ["Export", "CSV", "Backup", "Share"],
-            path: ["Services"]
-        )
+        SettingItem(title: "Apple Health", view: .healthkit, path: ["Services"])
     ]
 
     static var allItems: [SettingItem] {

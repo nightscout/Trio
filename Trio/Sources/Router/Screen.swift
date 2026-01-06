@@ -49,7 +49,7 @@ enum Screen: Identifiable, Hashable {
     case algorithmAdvancedSettings
     case unitsAndLimits
     case appDiagnostics
-    case exportSettings
+    case settingsExport
 
     var id: Int { String(reflecting: self).hashValue }
 }
@@ -163,8 +163,8 @@ extension Screen {
             UnitsLimitsSettings.RootView(resolver: resolver)
         case .appDiagnostics:
             AppDiagnostics.RootView(resolver: resolver)
-        case .exportSettings:
-            Export.RootView(resolver: resolver)
+        case .settingsExport:
+            SettingsExport.RootView(resolver: resolver)
         }
     }
 

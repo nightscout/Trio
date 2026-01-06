@@ -4,7 +4,7 @@ import LoopKit
 import SwiftUI
 import Swinject
 
-extension Export {
+extension SettingsExport {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var broadcaster: Broadcaster!
         @Injected() private var fileManager: FileManager!

@@ -1,7 +1,7 @@
 import SwiftUI
 import Swinject
 
-extension Export {
+extension SettingsExport {
     struct RootView: BaseView {
         let resolver: Resolver
         @StateObject var state = StateModel()
@@ -41,7 +41,7 @@ extension Export {
                         }
 
                         // Individual category toggles
-                        ForEach(Export.StateModel.ExportCategory.allCases) { category in
+                        ForEach(SettingsExport.StateModel.ExportCategory.allCases) { category in
                             HStack {
                                 Button(action: {
                                     if state.selectedCategories.contains(category) {
