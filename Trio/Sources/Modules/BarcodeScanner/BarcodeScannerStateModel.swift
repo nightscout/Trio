@@ -9,10 +9,11 @@ extension BarcodeScanner {
     final class StateModel: BaseStateModel<Provider> {
         // MARK: - Properties
 
-        @Published var cameraStatus: AVAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
+        @Published var cameraStatus: AVAuthorizationStatus = AVCaptureDevice.authorizationStatus(
+            for: .video
+        )
         @Published var isScanning = true
         @Published var isKeyboardVisible = false
-        @Published var scannedBarcode: String?
         @Published var currentScannedItem: FoodItem?
         @Published var isFetchingProduct = false
         @Published var errorMessage: String?
@@ -91,7 +92,6 @@ extension BarcodeScanner {
             guard cameraStatus == .authorized else { return }
             if resetResults {
                 currentScannedItem = nil
-                scannedBarcode = nil
                 errorMessage = nil
                 scannedProducts.removeAll()
                 lastScanTime = nil
@@ -106,8 +106,6 @@ extension BarcodeScanner {
                     return
                 }
 
-                guard barcode != scannedBarcode else { return }
-                scannedBarcode = barcode
                 lastScanTime = Date()
                 fetchProduct(for: barcode)
             }
@@ -132,7 +130,8 @@ extension BarcodeScanner {
                     guard !Task.isCancelled else { return }
                     self.currentScannedItem = nil
                     self.isFetchingProduct = false
-                    self.errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                    self.errorMessage =
+                        (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
                 }
             }
         }
@@ -141,12 +140,6 @@ extension BarcodeScanner {
 
         func removeScannedProduct(_ item: FoodItem) {
             scannedProducts.removeAll { $0.id == item.id }
-            // Allow re-scanning if no other product with the same barcode exists
-            if let barcode = item.barcode, !scannedProducts.contains(where: { $0.barcode == barcode }) {
-                if scannedBarcode == barcode {
-                    scannedBarcode = nil
-                }
-            }
         }
 
         func updateScannedProductAmount(_ item: FoodItem, amount: Double, isMlInput: Bool) {
@@ -202,7 +195,8 @@ extension BarcodeScanner {
             // Determine initial amount and unit from serving info
             editingAmount = product.servingQuantity ?? 100
             if let servingUnit = product.servingQuantityUnit?.lowercased() {
-                editingIsMl = servingUnit.contains("ml") || servingUnit == "l" || servingUnit.contains("fl oz")
+                editingIsMl =
+                    servingUnit.contains("ml") || servingUnit == "l" || servingUnit.contains("fl oz")
             } else {
                 editingIsMl = product.defaultPortionIsMl
             }
@@ -211,7 +205,6 @@ extension BarcodeScanner {
         /// Clears the currently displayed product from the overlay
         func clearScannedProduct() {
             currentScannedItem = nil
-            scannedBarcode = nil
             errorMessage = nil
             isScanning = true
         }
@@ -225,7 +218,6 @@ extension BarcodeScanner {
         func cancelEditing() {
             // Clear all editing state (product was not added to list yet)
             currentScannedItem = nil
-            scannedBarcode = nil
             errorMessage = nil
             editingAmount = 0
             editingIsMl = false
