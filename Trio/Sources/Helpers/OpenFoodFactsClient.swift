@@ -6,9 +6,11 @@ extension BarcodeScanner {
     /// Client for fetching product data from OpenFoodFacts API
     struct OpenFoodFactsClient {
         func fetchProduct(barcode: String) async throws -> FoodItem {
-            guard let url =
+            guard
+                let url =
                 URL(
-                    string: "https://world.openfoodfacts.org/api/v2/product/\(barcode).json&fields=code,product_name,image_url,image_front_small_url,nutriments,serving_quantity_unit,serving_quantity,product_quantity,product_quantity_unit"
+                    string:
+                    "https://world.openfoodfacts.org/api/v2/product/\(barcode).json&fields=code,product_name,image_url,image_front_small_url,nutriments,serving_quantity_unit,serving_quantity,product_quantity,product_quantity_unit"
                 )
             else {
                 throw OpenFoodFactsError.invalidResponse
@@ -18,23 +20,30 @@ extension BarcodeScanner {
             request.setValue("application/json", forHTTPHeaderField: "Accept")
 
             let (data, response) = try await URLSession.shared.data(for: request)
-            guard let httpResponse = response as? HTTPURLResponse,
-                  200 ..< 300 ~= httpResponse.statusCode
-            else {
+            guard let httpResponse = response as? HTTPURLResponse else {
                 throw OpenFoodFactsError.invalidResponse
             }
 
             let decoder = JSONDecoder()
             decoder.keyDecodingStrategy = .convertFromSnakeCase
 
+            // Try to decode the response even for 404s, as the API returns useful JSON
             let apiResponse = try decoder.decode(APIResponse.self, from: data)
 
+            // Check if product was found based on status field in JSON
             guard apiResponse.status == 1, let productData = apiResponse.product else {
                 throw OpenFoodFactsError.productNotFound
             }
 
+            // For other HTTP errors (5xx, etc.), throw invalidResponse
+            guard 200 ..< 500 ~= httpResponse.statusCode else {
+                throw OpenFoodFactsError.invalidResponse
+            }
+
             // Decide preferred portion unit for user input
-            let servingUnit = productData.servingQuantityUnit?.lowercased() ?? productData.productQuantityUnit?.lowercased()
+            let servingUnit =
+                productData.servingQuantityUnit?.lowercased()
+                    ?? productData.productQuantityUnit?.lowercased()
             let servingSize = productData.servingQuantity ?? productData.productQuantity
             let isMlQuantityUnit: Bool = {
                 if let unit = servingUnit {
@@ -81,12 +90,14 @@ extension BarcodeScanner {
         ///   - page: Page number for pagination (1-indexed)
         ///   - pageSize: Number of results per page
         /// - Returns: Array of matching FoodItems
-        func searchProducts(query: String, page: Int = 1, pageSize: Int = 24) async throws -> [FoodItem] {
+        func searchProducts(query: String, page: Int = 1, pageSize: Int = 24) async throws -> [FoodItem]
+        {
             guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                 return []
             }
 
-            guard var components = URLComponents(string: "https://world.openfoodfacts.org/cgi/search.pl") else {
+            guard var components = URLComponents(string: "https://world.openfoodfacts.org/cgi/search.pl")
+            else {
                 throw OpenFoodFactsError.invalidResponse
             }
 
@@ -121,8 +132,10 @@ extension BarcodeScanner {
             let searchResponse = try decoder.decode(SearchAPIResponse.self, from: data)
 
             return searchResponse.products.compactMap { productData -> FoodItem? in
-                let servingUnit = productData.servingQuantityUnit?.lowercased() ?? productData.productQuantityUnit?
-                    .lowercased()
+                let servingUnit =
+                    productData.servingQuantityUnit?.lowercased()
+                        ?? productData.productQuantityUnit?
+                        .lowercased()
                 let isMlQuantityUnit: Bool = {
                     if let unit = servingUnit {
                         if unit.contains("ml") || unit.contains("l") || unit.contains("fl oz") {
@@ -177,7 +190,10 @@ extension BarcodeScanner {
             case .invalidResponse:
                 String(localized: "Unable to reach OpenFoodFacts. Please try again.")
             case .productNotFound:
-                String(localized: "No product information was found for this barcode.")
+                String(
+                    localized:
+                    "We couldn’t find this barcode in OpenFoodFacts. Maybe add the product to OpenFoodFacts via the App."
+                )
             }
         }
     }
@@ -252,8 +268,10 @@ private extension BarcodeScanner.OpenFoodFactsClient {
             // servingQuantity can be either a Double or a String in the API response
             if let doubleValue = try? container.decodeIfPresent(Double.self, forKey: .servingQuantity) {
                 servingQuantity = doubleValue
-            } else if let stringValue = try? container.decodeIfPresent(String.self, forKey: .servingQuantity),
-                      let parsed = Double(stringValue.replacingOccurrences(of: ",", with: "."))
+            } else if let stringValue = try? container.decodeIfPresent(
+                String.self, forKey: .servingQuantity
+            ),
+                let parsed = Double(stringValue.replacingOccurrences(of: ",", with: "."))
             {
                 servingQuantity = parsed
             } else {
@@ -263,8 +281,10 @@ private extension BarcodeScanner.OpenFoodFactsClient {
             // Handle productQuantity (can be Double or String)
             if let doubleValue = try? container.decodeIfPresent(Double.self, forKey: .productQuantity) {
                 productQuantity = doubleValue
-            } else if let stringValue = try? container.decodeIfPresent(String.self, forKey: .productQuantity),
-                      let parsed = Double(stringValue.replacingOccurrences(of: ",", with: "."))
+            } else if let stringValue = try? container.decodeIfPresent(
+                String.self, forKey: .productQuantity
+            ),
+                let parsed = Double(stringValue.replacingOccurrences(of: ",", with: "."))
             {
                 productQuantity = parsed
             } else {
@@ -375,7 +395,8 @@ private extension BarcodeScanner.OpenFoodFactsClient {
 
 private extension Optional where Wrapped == String {
     var nonEmpty: String? {
-        guard let trimmed = self?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+        guard let trimmed = self?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty
+        else {
             return nil
         }
         return trimmed

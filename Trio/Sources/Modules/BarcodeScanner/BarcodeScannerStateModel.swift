@@ -35,6 +35,8 @@ extension BarcodeScanner {
 
         private let client = OpenFoodFactsClient()
         private var lastScanTime: Date?
+        private var lastScannedBarcode: String?
+        private var lastScanWasSuccessful: Bool = false
         private let scanCooldownSeconds: TimeInterval = 1.0
 
         // MARK: - Lifecycle
@@ -68,8 +70,10 @@ extension BarcodeScanner {
                         self.isScanning = true
                     } else {
                         self.isScanning = false
-                        self.errorMessage = String(
-                            localized: "Camera permissions were denied. Enable them in Settings to continue."
+                        self.showTemporaryError(
+                            String(
+                                localized: "Camera permissions were denied. Enable them in Settings to continue."
+                            )
                         )
                     }
                 }
@@ -84,7 +88,7 @@ extension BarcodeScanner {
         // MARK: - Barcode Scanning
 
         func reportScannerIssue(_ message: String) {
-            errorMessage = message
+            showTemporaryError(message)
             isScanning = false
         }
 
@@ -95,6 +99,8 @@ extension BarcodeScanner {
                 errorMessage = nil
                 scannedProducts.removeAll()
                 lastScanTime = nil
+                lastScannedBarcode = nil
+                lastScanWasSuccessful = false
             }
             isScanning = true
         }
@@ -106,6 +112,10 @@ extension BarcodeScanner {
                     return
                 }
 
+                // Prevent rescanning the same barcode (valid or invalid)
+                guard barcode != lastScannedBarcode else { return }
+
+                lastScannedBarcode = barcode
                 lastScanTime = Date()
                 fetchProduct(for: barcode)
             }
@@ -125,13 +135,28 @@ extension BarcodeScanner {
                     fetchedProduct.isMlInput = self.editingIsMl
 
                     self.currentScannedItem = fetchedProduct
+                    self.lastScanWasSuccessful = true
                     self.isFetchingProduct = false
                 } catch {
                     guard !Task.isCancelled else { return }
                     self.currentScannedItem = nil
+                    self.lastScanWasSuccessful = false
                     self.isFetchingProduct = false
-                    self.errorMessage =
+                    self.showTemporaryError(
                         (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                    )
+                }
+            }
+        }
+
+        /// Shows a transient error message that auto-clears after a short delay
+        private func showTemporaryError(_ message: String, duration: TimeInterval = 3) {
+            errorMessage = message
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(duration))
+                // Only clear if no new error was set in the meantime
+                if self.errorMessage == message {
+                    self.errorMessage = nil
                 }
             }
         }
@@ -205,6 +230,8 @@ extension BarcodeScanner {
         /// Clears the currently displayed product from the overlay
         func clearScannedProduct() {
             currentScannedItem = nil
+            lastScannedBarcode = nil
+            lastScanWasSuccessful = false
             errorMessage = nil
             isScanning = true
         }
@@ -218,6 +245,8 @@ extension BarcodeScanner {
         func cancelEditing() {
             // Clear all editing state (product was not added to list yet)
             currentScannedItem = nil
+            lastScannedBarcode = nil
+            lastScanWasSuccessful = false
             errorMessage = nil
             editingAmount = 0
             editingIsMl = false
