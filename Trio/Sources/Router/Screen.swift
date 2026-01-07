@@ -19,7 +19,7 @@ enum Screen: Identifiable, Hashable {
     case treatmentView
     case treatmentWithScanner
     case manualTempBasal
-    case dataTable
+    case history
     case cgm
     case healthkit
     case glucoseNotificationSettings
@@ -103,8 +103,8 @@ extension Screen {
             )
         case .manualTempBasal:
             ManualTempBasal.RootView(resolver: resolver)
-        case .dataTable:
-            DataTable.RootView(resolver: resolver)
+        case .history:
+            History.RootView(resolver: resolver)
         case .cgm:
             CGMSettings.RootView(
                 resolver: resolver,

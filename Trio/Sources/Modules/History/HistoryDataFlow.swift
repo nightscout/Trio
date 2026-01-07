@@ -3,7 +3,7 @@ import Foundation
 import HealthKit
 import SwiftUI
 
-enum DataTable {
+enum History {
     enum Config {}
 
     enum TreatmentType: String, CaseIterable {
@@ -227,7 +227,7 @@ enum DataTable {
     }
 
     class Glucose: Identifiable, Hashable, Equatable {
-        static func == (lhs: DataTable.Glucose, rhs: DataTable.Glucose) -> Bool {
+        static func == (lhs: History.Glucose, rhs: History.Glucose) -> Bool {
             lhs.glucose == rhs.glucose
         }
 
@@ -241,7 +241,7 @@ enum DataTable {
     }
 }
 
-protocol DataTableProvider: Provider {
+protocol HistoryProvider: Provider {
     func deleteCarbsFromNightscout(withID id: String)
     func deleteInsulinFromNightscout(withID id: String)
     func deleteManualGlucoseFromNightscout(withID id: String)
