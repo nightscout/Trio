@@ -688,7 +688,8 @@ extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
 
         // Handle quick snooze actions (from notification action buttons)
         if let quickAction = NotificationResponseAction(rawValue: response.actionIdentifier) {
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
                 await self.applySnooze(for: quickAction.duration)
             }
             return

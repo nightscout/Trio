@@ -43,10 +43,24 @@ final class WatchNotificationHandler: NSObject, UNUserNotificationCenterDelegate
 
     /// Sends snooze request to iPhone via WatchConnectivity.
     /// WCSession.transferUserInfo is thread-safe and can be called from any thread.
+    /// Relies on the watch app's WCSession owner (e.g., WatchState) to handle
+    /// session activation and delegate management.
     private func sendSnoozeRequest(for action: NotificationResponseAction) {
         guard WCSession.isSupported() else { return }
 
         let payload: [String: Any] = [WatchMessageKeys.snoozeDuration: action.minutes]
-        WCSession.default.transferUserInfo(payload)
+        let session = WCSession.default
+
+        // Try sendMessage first if session is reachable and activated (faster, immediate delivery)
+        // Fall back to transferUserInfo if not reachable or if sendMessage fails
+        if session.isReachable && session.activationState == .activated {
+            session.sendMessage(payload, replyHandler: nil) { _ in
+                // Fallback to transferUserInfo if sendMessage fails
+                session.transferUserInfo(payload)
+            }
+        } else {
+            // Session not reachable or not activated - use transferUserInfo (queued delivery)
+            session.transferUserInfo(payload)
+        }
     }
 }
