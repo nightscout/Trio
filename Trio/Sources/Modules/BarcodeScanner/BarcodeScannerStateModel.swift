@@ -202,6 +202,12 @@ extension BarcodeScanner {
             item.amount = editingAmount
             item.isMlInput = editingIsMl
 
+            // If "Only Carbs" setting is on, ensure other macros are zeroed out
+            if settingsManager.settings.barcodeScannerOnlyCarbs {
+                item.nutriments.fatPer100g = 0
+                item.nutriments.proteinPer100g = 0
+            }
+
             if let index = scannedProducts.firstIndex(where: { $0.id == item.id }) {
                 scannedProducts[index] = item
             } else {
