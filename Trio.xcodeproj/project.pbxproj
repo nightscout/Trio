@@ -271,7 +271,6 @@
 		3B4BA78F2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7882D8DC0EC0069D5B8 /* TidepoolServiceKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3B4BA7902D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */; };
 		3B4BA7912D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		3B4D17132E1D8A0D007FB180 /* AutosensJsonExtraTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4D17122E1D89FE007FB180 /* AutosensJsonExtraTests.swift */; };
 		3B506FD92E635304000740B9 /* IOBService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B506FD82E635304000740B9 /* IOBService.swift */; };
 		3B56079E2ECD62A800C723C1 /* DeletedGlucoseStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B56079D2ECD62A800C723C1 /* DeletedGlucoseStored+CoreDataClass.swift */; };
 		3B5607A02ECD62AC00C723C1 /* DeletedGlucoseStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B56079F2ECD62AC00C723C1 /* DeletedGlucoseStored+CoreDataProperties.swift */; };
@@ -295,15 +294,8 @@
 		3B5CD2CE2D4AECD500CE213C /* ProfileBasalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2C12D4AECD500CE213C /* ProfileBasalTests.swift */; };
 		3B5F45B62D6A239500F70982 /* DoubleApproximateMatching.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5F45B52D6A239000F70982 /* DoubleApproximateMatching.swift */; };
 		3B8221B22E5882E300585156 /* DetermineBasalEarlyExitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B8221B12E5882D900585156 /* DetermineBasalEarlyExitTests.swift */; };
-		3B8B5D332DF5238000365ED3 /* as-profile.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B8B5D302DF5238000365ED3 /* as-profile.json */; };
-		3B8B5D342DF5238000365ED3 /* as-glucose.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B8B5D2F2DF5238000365ED3 /* as-glucose.json */; };
-		3B8B5D352DF5238000365ED3 /* as-pump.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B8B5D312DF5238000365ED3 /* as-pump.json */; };
-		3B8B5D362DF5238000365ED3 /* as-carbs.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B8B5D2E2DF5238000365ED3 /* as-carbs.json */; };
-		3B8B5D372DF5238000365ED3 /* as-basal.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B8B5D2D2DF5238000365ED3 /* as-basal.json */; };
-		3B8B5D382DF5238000365ED3 /* as-temp-targets.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B8B5D322DF5238000365ED3 /* as-temp-targets.json */; };
 		3B8B5D3C2DF523C000365ED3 /* AutosensJsonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B8B5D3B2DF523B800365ED3 /* AutosensJsonTests.swift */; };
 		3B8B5D3E2DF5240C00365ED3 /* TimeZoneForTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B8B5D3D2DF5240600365ED3 /* TimeZoneForTests.swift */; };
-		3B8B5D402DF52D0E00365ED3 /* deviationsUnsorted.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B8B5D3F2DF52D0700365ED3 /* deviationsUnsorted.json */; };
 		3B997DCB2DC00849006B6BB2 /* JSONImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B997DCA2DC00849006B6BB2 /* JSONImporter.swift */; };
 		3B997DCF2DC00A3A006B6BB2 /* JSONImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */; };
 		3B997DD32DC02AEF006B6BB2 /* glucose.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B997DD12DC02AEF006B6BB2 /* glucose.json */; };
@@ -1214,7 +1206,6 @@
 		3B4BA7692D8DBD690069D5B8 /* RileyLinkKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RileyLinkKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7882D8DC0EC0069D5B8 /* TidepoolServiceKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TidepoolServiceKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TidepoolServiceKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		3B4D17122E1D89FE007FB180 /* AutosensJsonExtraTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutosensJsonExtraTests.swift; sourceTree = "<group>"; };
 		3B506FD82E635304000740B9 /* IOBService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOBService.swift; sourceTree = "<group>"; };
 		3B56079D2ECD62A800C723C1 /* DeletedGlucoseStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DeletedGlucoseStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		3B56079F2ECD62AC00C723C1 /* DeletedGlucoseStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DeletedGlucoseStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -1238,15 +1229,8 @@
 		3B5CD2C62D4AECD500CE213C /* ProfileTargetsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileTargetsTests.swift; sourceTree = "<group>"; };
 		3B5F45B52D6A239000F70982 /* DoubleApproximateMatching.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleApproximateMatching.swift; sourceTree = "<group>"; };
 		3B8221B12E5882D900585156 /* DetermineBasalEarlyExitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalEarlyExitTests.swift; sourceTree = "<group>"; };
-		3B8B5D2D2DF5238000365ED3 /* as-basal.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "as-basal.json"; sourceTree = "<group>"; };
-		3B8B5D2E2DF5238000365ED3 /* as-carbs.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "as-carbs.json"; sourceTree = "<group>"; };
-		3B8B5D2F2DF5238000365ED3 /* as-glucose.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "as-glucose.json"; sourceTree = "<group>"; };
-		3B8B5D302DF5238000365ED3 /* as-profile.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "as-profile.json"; sourceTree = "<group>"; };
-		3B8B5D312DF5238000365ED3 /* as-pump.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "as-pump.json"; sourceTree = "<group>"; };
-		3B8B5D322DF5238000365ED3 /* as-temp-targets.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "as-temp-targets.json"; sourceTree = "<group>"; };
 		3B8B5D3B2DF523B800365ED3 /* AutosensJsonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutosensJsonTests.swift; sourceTree = "<group>"; };
 		3B8B5D3D2DF5240600365ED3 /* TimeZoneForTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeZoneForTests.swift; sourceTree = "<group>"; };
-		3B8B5D3F2DF52D0700365ED3 /* deviationsUnsorted.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = deviationsUnsorted.json; sourceTree = "<group>"; };
 		3B997DCA2DC00849006B6BB2 /* JSONImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONImporter.swift; sourceTree = "<group>"; };
 		3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONImporterTests.swift; sourceTree = "<group>"; };
 		3B997DD12DC02AEF006B6BB2 /* glucose.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = glucose.json; sourceTree = "<group>"; };
@@ -2869,7 +2853,6 @@
 		3B1C5C3C2D68E269004E9273 /* json */ = {
 			isa = PBXGroup;
 			children = (
-				3B8B5D2C2DF5234C00365ED3 /* autosens */,
 				3BF92F392D86F1AA006B545A /* iob-error-log.json */,
 			);
 			path = json;
@@ -2975,7 +2958,6 @@
 				3B1C5C3C2D68E269004E9273 /* json */,
 				3BFA5BF72D989F380072B082 /* mocks */,
 				3B1C5C3F2D68E269004E9273 /* utils */,
-				3B4D17122E1D89FE007FB180 /* AutosensJsonExtraTests.swift */,
 				3B8B5D3B2DF523B800365ED3 /* AutosensJsonTests.swift */,
 				3BBC22622DF5B93900169236 /* AutosensTests.swift */,
 				3BA643E92ED9FAD8007BC31F /* DetermineBasalAggressiveDosingTests.swift */,
@@ -3011,20 +2993,6 @@
 				3BAC92CC2E57859600B853DA /* SetTempBasalTests.swift */,
 			);
 			path = OpenAPSSwiftTests;
-			sourceTree = "<group>";
-		};
-		3B8B5D2C2DF5234C00365ED3 /* autosens */ = {
-			isa = PBXGroup;
-			children = (
-				3B8B5D3F2DF52D0700365ED3 /* deviationsUnsorted.json */,
-				3B8B5D2D2DF5238000365ED3 /* as-basal.json */,
-				3B8B5D2E2DF5238000365ED3 /* as-carbs.json */,
-				3B8B5D2F2DF5238000365ED3 /* as-glucose.json */,
-				3B8B5D302DF5238000365ED3 /* as-profile.json */,
-				3B8B5D312DF5238000365ED3 /* as-pump.json */,
-				3B8B5D322DF5238000365ED3 /* as-temp-targets.json */,
-			);
-			path = autosens;
 			sourceTree = "<group>";
 		};
 		3B997DD22DC02AEF006B6BB2 /* JSONImporterData */ = {
@@ -4518,16 +4486,9 @@
 				3B997DD32DC02AEF006B6BB2 /* glucose.json in Resources */,
 				3BD433B02F01CDF500897F7D /* autosens-prepare-8.js in Resources */,
 				DDD78AD92DC421B500AC63F3 /* enacted.json in Resources */,
-				3B8B5D402DF52D0E00365ED3 /* deviationsUnsorted.json in Resources */,
 				DD3C47B32DC5608A003DD20D /* newerSuggested.json in Resources */,
 				3BCA5F7C2DC7B16400A7EAC7 /* pumphistory-with-external.json in Resources */,
 				3B16C39C2DF75BD500C5C801 /* autosens-prepare.js in Resources */,
-				3B8B5D332DF5238000365ED3 /* as-profile.json in Resources */,
-				3B8B5D342DF5238000365ED3 /* as-glucose.json in Resources */,
-				3B8B5D352DF5238000365ED3 /* as-pump.json in Resources */,
-				3B8B5D362DF5238000365ED3 /* as-carbs.json in Resources */,
-				3B8B5D372DF5238000365ED3 /* as-basal.json in Resources */,
-				3B8B5D382DF5238000365ED3 /* as-temp-targets.json in Resources */,
 				DDD78ADA2DC421B500AC63F3 /* suggested.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -5336,7 +5297,6 @@
 				BD8FC0602D6619DB00B95AED /* CarbsStorageTests.swift in Sources */,
 				DD30BA002E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift in Sources */,
 				BD8FC05E2D6618CE00B95AED /* BolusCalculatorTests.swift in Sources */,
-				3B4D17132E1D8A0D007FB180 /* AutosensJsonExtraTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

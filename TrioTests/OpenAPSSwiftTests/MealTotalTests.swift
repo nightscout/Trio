@@ -101,7 +101,7 @@ import Testing
         )
     }
 
-    @Test("should return nil when no treatments provided") func emptyObjectWhenNoTreatments() async throws {
+    @Test("should return result with zero carbs when treatments is empty array") func emptyObjectWhenNoTreatments() async throws {
         let time = Date.from(isoString: "2016-06-19T13:00:00-04:00")
         let glucoseData = [
             BloodGlucose(
@@ -123,7 +123,18 @@ import Testing
             time: time
         )
 
-        #expect(result == nil)
+        // With empty treatments, JS returns a full result object
+        // with zero carbs/COB and sentinel deviation values
+        #expect(result != nil)
+        #expect(result?.carbs == 0)
+        #expect(result?.mealCOB == 0)
+        #expect(result?.currentDeviation == nil)
+        #expect(result?.maxDeviation == 0)
+        #expect(result?.minDeviation == 999)
+        #expect(result?.slopeFromMaxDeviation == 0)
+        #expect(result?.slopeFromMinDeviation == 999)
+        #expect(result?.allDeviations == [])
+        #expect(result?.lastCarbTime == 0)
     }
 
     @Test("should calculate carbs correctly for treatments within the meal window") func calcCarbsWithinMealWindow() async throws {
