@@ -319,6 +319,7 @@
 		3BAE87702E480BE100FCA8D2 /* ForecastResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAE876F2E480BE100FCA8D2 /* ForecastResults.swift */; };
 		3BBB76AA2E01C70B0040977D /* MealCob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BBB76A92E01C7070040977D /* MealCob.swift */; };
 		3BBC22632DF5B94100169236 /* AutosensTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BBC22622DF5B93900169236 /* AutosensTests.swift */; };
+		3BBE323C2F12AB22005F9665 /* meal-prepare.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BBE323B2F12AB22005F9665 /* meal-prepare.js */; };
 		3BC0AA3B2DA74C87000DF7B7 /* iob-total.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BC0AA3A2DA74C87000DF7B7 /* iob-total.js */; };
 		3BC0AA3E2DA817EC000DF7B7 /* iob-calculate.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BC0AA3C2DA817EC000DF7B7 /* iob-calculate.js */; };
 		3BC0AA3F2DA817EC000DF7B7 /* iob-history.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BC0AA3D2DA817EC000DF7B7 /* iob-history.js */; };
@@ -1261,6 +1262,7 @@
 		3BAE876F2E480BE100FCA8D2 /* ForecastResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastResults.swift; sourceTree = "<group>"; };
 		3BBB76A92E01C7070040977D /* MealCob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCob.swift; sourceTree = "<group>"; };
 		3BBC22622DF5B93900169236 /* AutosensTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutosensTests.swift; sourceTree = "<group>"; };
+		3BBE323B2F12AB22005F9665 /* meal-prepare.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "meal-prepare.js"; sourceTree = "<group>"; };
 		3BC0AA3A2DA74C87000DF7B7 /* iob-total.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "iob-total.js"; sourceTree = "<group>"; };
 		3BC0AA3C2DA817EC000DF7B7 /* iob-calculate.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "iob-calculate.js"; sourceTree = "<group>"; };
 		3BC0AA3D2DA817EC000DF7B7 /* iob-history.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "iob-history.js"; sourceTree = "<group>"; };
@@ -3069,6 +3071,7 @@
 				3BC0AA3D2DA817EC000DF7B7 /* iob-history.js */,
 				3BC0AA3A2DA74C87000DF7B7 /* iob-total.js */,
 				3BF92F292D86DEE9006B545A /* meal.js */,
+				3BBE323B2F12AB22005F9665 /* meal-prepare.js */,
 				3BF92F2A2D86DEE9006B545A /* profile.js */,
 			);
 			path = bundle;
@@ -4495,6 +4498,7 @@
 			files = (
 				3BF92F2D2D86DEE9006B545A /* autosens.js in Resources */,
 				3BF92F2E2D86DEE9006B545A /* autotune-prep.js in Resources */,
+				3BBE323C2F12AB22005F9665 /* meal-prepare.js in Resources */,
 				3BF92F2F2D86DEE9006B545A /* profile.js in Resources */,
 				3BF92F302D86DEE9006B545A /* determine-basal.js in Resources */,
 				3BD433AE2F01CDE600897F7D /* autosens-prepare-24.js in Resources */,

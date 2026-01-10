@@ -146,6 +146,20 @@ import Testing
             print(error.localizedDescription)
         }
 
+        let comparison = JSONCompare.createComparison(
+            function: .meal,
+            swift: mealResultSwift,
+            swiftDuration: 0.1,
+            javascript: mealResultJavascript,
+            javascriptDuration: 0.1,
+            iobInputs: nil,
+            mealInputs: nil,
+            autosensInputs: nil,
+            determineBasalInputs: nil
+        )
+
+        #expect(comparison.resultType == .matching)
+
         timeZoneForTests.resetTimezone()
     }
 }

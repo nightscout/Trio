@@ -124,7 +124,7 @@ final class OpenAPSFixed {
                     worker.evaluateBatch(scripts: [
                         Script(name: "prepare/log.js"),
                         Script.fromTestingBundle(name: "meal.js", bundle: testBundle),
-                        Script(name: "prepare/meal.js")
+                        Script.fromTestingBundle(name: "meal-prepare.js", bundle: testBundle)
                     ])
                     let result = worker.call(function: "generate", with: [
                         pumphistory,

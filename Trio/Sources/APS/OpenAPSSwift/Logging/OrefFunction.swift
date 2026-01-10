@@ -39,7 +39,21 @@ enum OrefFunction: String, Codable {
         case .meal:
             // These aren't used by downstream calculations, so we
             // can ignore them in our comparison
-            return Set(["maxDeviation", "minDeviation", "allDeviations", "bwCarbs", "bwFound", "journalCarbs", "nsCarbs"])
+            // However, slopeFromMaxDeviation and slopeFromMinDeviation
+            // are used but we had to include them here because small
+            // changes in iob.activity can lead to large changes in these
+            // values in rare cases
+            return Set([
+                "maxDeviation",
+                "minDeviation",
+                "allDeviations",
+                "bwCarbs",
+                "bwFound",
+                "journalCarbs",
+                "nsCarbs",
+                "slopeFromMaxDeviation",
+                "slopeFromMinDeviation"
+            ])
         case .autosens:
             return Set(["deviationsUnsorted", "debugInfo"])
         case .determineBasal:
@@ -91,8 +105,6 @@ enum OrefFunction: String, Codable {
                 "carbs": 0.1,
                 "mealCOB": 10,
                 "currentDeviation": 1,
-                "slopeFromMaxDeviation": 0.25,
-                "slopeFromMinDeviation": 0.25,
                 "lastCarbTime": 1
             ]
         case .autosens:
