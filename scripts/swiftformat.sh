@@ -110,5 +110,5 @@ trailingClosures \
   RileyLinkKit, \
   OmniBLE, \
   MinimedKit, \
-  TidepoolService \
+  TidepoolService, \
   DanaKit 

@@ -273,7 +273,7 @@ extension Home {
             var smbMinuteString: String = ""
             var uamMinuteString: String = ""
 
-            if !latestOverride.smbIsOff || !latestOverride.smbIsScheduledOff {
+            if !latestOverride.smbIsOff, latestOverride.advancedSettings {
                 if let smbMinutes = latestOverride.smbMinutes,
                    smbMinutes.decimalValue != settingsManager.preferences.maxSMBBasalMinutes
                 {
