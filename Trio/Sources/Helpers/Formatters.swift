@@ -37,14 +37,6 @@ extension Formatter {
         return formatter
     }()
 
-    static let decimalFormatterWithThreeFractionDigits: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.locale = .current
-        formatter.maximumFractionDigits = 3
-        return formatter
-    }()
-
     static let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.timeStyle = .short
@@ -54,13 +46,6 @@ extension Formatter {
     static let dayFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "d"
-        return formatter
-    }()
-
-    static let timeForLogFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss"
-        formatter.timeZone = TimeZone.current
         return formatter
     }()
 

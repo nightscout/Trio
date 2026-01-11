@@ -2,7 +2,6 @@ import CGMBLEKitUI
 import Combine
 import CoreData
 import Foundation
-import LoopKit
 import LoopKitUI
 import Observation
 import SwiftDate
@@ -41,6 +40,7 @@ extension Home {
         var targetProfiles: [TargetProfile] = []
         var timerDate = Date()
         var closedLoop = false
+        var pumpSuspended = false
         var isLooping = false
         var statusTitle = ""
         var lastLoopDate: Date = .distantPast
@@ -93,7 +93,7 @@ extension Home {
         var fetchedTDDs: [TDD] = []
         var insulinFromPersistence: [PumpEventStored] = []
         var tempBasals: [PumpEventStored] = []
-        var suspendAndResumeEvents: [PumpEventStored] = []
+        var suspensions: [PumpEventStored] = []
         var batteryFromPersistence: [OpenAPS_Battery] = []
         var lastPumpBolus: PumpEventStored?
         var overrides: [OverrideStored] = []
@@ -108,7 +108,6 @@ extension Home {
         var cgmAvailable: Bool = false
         var listOfCGM: [CGMModel] = []
         var cgmCurrent = cgmDefaultModel
-        var pumpInitialSettings = PumpConfig.PumpInitialSettings.default
         var shouldRunDeleteOnSettingsChange = true
 
         var showCarbsRequiredBadge: Bool = true
@@ -557,11 +556,9 @@ extension Home {
         }
 
         private func setupPumpSettings() async {
-            let settings = await provider.pumpSettings()
+            let maxBasal = await provider.pumpSettings().maxBasal
             await MainActor.run {
-                self.maxBasal = settings.maxBasal
-                self.pumpInitialSettings.maxBasalRateUnitsPerHour = Double(settings.maxBasal)
-                self.pumpInitialSettings.maxBolusUnits = Double(settings.maxBolus)
+                self.maxBasal = maxBasal
             }
         }
 
@@ -569,13 +566,6 @@ extension Home {
             let basalProfile = await provider.getBasalProfile()
             await MainActor.run {
                 self.basalProfile = basalProfile
-
-                if let schedule = BasalRateSchedule(
-                    dailyItems: basalProfile
-                        .map { RepeatingScheduleValue(startTime: TimeInterval($0.minutes * 60), value: Double($0.rate)) }
-                ) {
-                    self.pumpInitialSettings.basalSchedule = schedule
-                }
             }
         }
 

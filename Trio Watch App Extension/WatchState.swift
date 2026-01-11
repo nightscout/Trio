@@ -563,8 +563,7 @@ import WatchConnectivity
 
         if let bolusIncrement = message[WatchMessageKeys.bolusIncrement] {
             if let decimalValue = (bolusIncrement as? NSNumber)?.decimalValue {
-                // limit minimum to 0.05 to avoid dealing with 0.025 increments
-                self.bolusIncrement = max(decimalValue, 0.05)
+                self.bolusIncrement = decimalValue
             }
         }
 

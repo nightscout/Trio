@@ -14,7 +14,6 @@ struct BasalProfileStepView: View {
     @State private var refreshUI = UUID() // to update chart when slider value changes
     @State private var therapyItems: [TherapySettingItem] = []
     @State private var now = Date()
-    @Namespace private var bottomID
 
     private var rateFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -30,77 +29,69 @@ struct BasalProfileStepView: View {
     }
 
     var body: some View {
-        ScrollViewReader { proxy in
-            LazyVStack {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Chart visualization
-                    if !state.basalProfileItems.isEmpty {
-                        VStack(alignment: .leading) {
-                            basalProfileChart
-                                .frame(height: 180)
-                                .padding(.horizontal)
-                        }
-                        .padding(.vertical)
-                        .background(Color.chart.opacity(0.65))
-                        .clipShape(
-                            .rect(
-                                topLeadingRadius: 10,
-                                bottomLeadingRadius: 0,
-                                bottomTrailingRadius: 0,
-                                topTrailingRadius: 10
-                            )
+        LazyVStack {
+            VStack(alignment: .leading, spacing: 0) {
+                // Chart visualization
+                if !state.basalProfileItems.isEmpty {
+                    VStack(alignment: .leading) {
+                        basalProfileChart
+                            .frame(height: 180)
+                            .padding(.horizontal)
+                    }
+                    .padding(.vertical)
+                    .background(Color.chart.opacity(0.65))
+                    .clipShape(
+                        .rect(
+                            topLeadingRadius: 10,
+                            bottomLeadingRadius: 0,
+                            bottomTrailingRadius: 0,
+                            topTrailingRadius: 10
                         )
-                    }
-
-                    TherapySettingEditorView(
-                        items: $therapyItems,
-                        unit: .unitPerHour,
-                        timeOptions: state.basalProfileTimeValues,
-                        valueOptions: state.basalProfileRateValues,
-                        validateOnDelete: state.validateBasal,
-                        onItemAdded: {
-                            withAnimation {
-                                proxy.scrollTo(bottomID, anchor: .bottom)
-                            }
-                        }
                     )
+                }
 
-                    Spacer(minLength: 20)
+                TherapySettingEditorView(
+                    items: $therapyItems,
+                    unit: .unitPerHour,
+                    timeOptions: state.basalProfileTimeValues,
+                    valueOptions: state.basalProfileRateValues,
+                    validateOnDelete: state.validateBasal
+                )
 
-                    // Total daily basal calculation
-                    if !state.basalProfileItems.isEmpty {
-                        VStack(alignment: .leading, spacing: 0) {
+                Spacer(minLength: 20)
+
+                // Total daily basal calculation
+                if !state.basalProfileItems.isEmpty {
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack {
+                            Text("Total")
+                                .bold()
+
+                            Spacer()
+
                             HStack {
-                                Text("Total")
-                                    .bold()
-
-                                Spacer()
-
-                                HStack {
-                                    Text(rateFormatter.string(from: calculateTotalDailyBasal() as NSNumber) ?? "0")
-                                    Text("U/day")
-                                        .foregroundStyle(Color.secondary)
-                                }
-                                .id(refreshUI) // Erzwingt die Aktualisierung des Totals
+                                Text(rateFormatter.string(from: calculateTotalDailyBasal() as NSNumber) ?? "0")
+                                Text("U/day")
+                                    .foregroundStyle(Color.secondary)
                             }
+                            .id(refreshUI) // Erzwingt die Aktualisierung des Totals
                         }
-                        .padding()
-                        .background(Color.chart.opacity(0.65))
-                        .cornerRadius(10)
-                        .id(bottomID)
                     }
+                    .padding()
+                    .background(Color.chart.opacity(0.65))
+                    .cornerRadius(10)
                 }
             }
-            .onAppear {
-                if state.basalProfileItems.isEmpty {
-                    state.addInitialBasalRate()
-                }
-                state.validateBasal()
-                therapyItems = state.getBasalTherapyItems()
-            }.onChange(of: therapyItems) { _, newItems in
-                state.updateBasal(from: newItems)
-                refreshUI = UUID()
+        }
+        .onAppear {
+            if state.basalProfileItems.isEmpty {
+                state.addInitialBasalRate()
             }
+            state.validateBasal()
+            therapyItems = state.getBasalTherapyItems()
+        }.onChange(of: therapyItems) { _, newItems in
+            state.updateBasal(from: newItems)
+            refreshUI = UUID()
         }
     }
 

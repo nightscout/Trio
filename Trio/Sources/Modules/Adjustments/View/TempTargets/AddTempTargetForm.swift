@@ -61,7 +61,7 @@ struct AddTempTargetForm: View {
             }
             .onAppear {
                 targetStep = state.units == .mgdL ? 5 : 9
-                state.tempTargetTarget = TempTargetCalculations.normalTarget
+                state.tempTargetTarget = state.normalTarget
             }
             .sheet(isPresented: $state.isHelpSheetPresented) {
                 TempTargetHelpView(state: state, helpSheetDetent: $state.helpSheetDetent)
@@ -101,25 +101,12 @@ struct AddTempTargetForm: View {
                     toggleScrollWheel: toggleScrollWheel
                 )
                 .onChange(of: state.tempTargetTarget) {
-                    // when first setting a custom sensitivity the settings HBT is used and therefore we calculate the sensitivity
-                    if state.halfBasalTarget == state.settingHalfBasalTarget {
-                        state.percentage = TempTargetCalculations.computeAdjustedPercentage(
-                            halfBasalTarget: state.halfBasalTarget,
-                            target: state.tempTargetTarget,
-                            autosensMax: state.autosensMax
-                        )
-                    } else {
-                        // else when changing target value and the already adjusted HBT is used, keep the sensitivity and adjust the HBT instead
-                        state.halfBasalTarget = Decimal(TempTargetCalculations.computeHalfBasalTarget(
-                            target: state.tempTargetTarget,
-                            percentage: state.percentage
-                        ))
-                    }
+                    state.percentage = state.computeAdjustedPercentage()
                 }
             }
             .listRowBackground(Color.chart)
 
-            if state.tempTargetTarget != TempTargetCalculations.normalTarget {
+            if state.tempTargetTarget != state.normalTarget {
                 if state.isAdjustSensEnabled() {
                     Section(
                         footer: state.percentageDescription(state.percentage),
@@ -132,11 +119,7 @@ struct AddTempTargetForm: View {
                                 .onChange(of: tempTargetSensitivityAdjustmentType) { _, newValue in
                                     if newValue == .standard {
                                         state.halfBasalTarget = state.settingHalfBasalTarget
-                                        state.percentage = TempTargetCalculations.computeAdjustedPercentage(
-                                            halfBasalTarget: state.halfBasalTarget,
-                                            target: state.tempTargetTarget,
-                                            autosensMax: state.autosensMax
-                                        )
+                                        state.percentage = state.computeAdjustedPercentage()
                                     }
                                 }
                             }
@@ -158,10 +141,7 @@ struct AddTempTargetForm: View {
                                     Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
                                 } onEditingChanged: { editing in
                                     isUsingSlider = editing
-                                    state.halfBasalTarget = Decimal(TempTargetCalculations.computeHalfBasalTarget(
-                                        target: state.tempTargetTarget,
-                                        percentage: state.percentage
-                                    ))
+                                    state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
                                 }
                                 .listRowSeparator(.hidden, edges: .top)
                             }

@@ -78,6 +78,10 @@ function enable_smb(profile, microBolusAllowed, meal_data, bg, target_bg, high_b
     } else if (meal_data.bwFound === true && profile.A52_risk_enable === false) {
         console.error("SMB disabled due to Bolus Wizard activity in the last 6 hours.");
         return false;
+    // Disable if invalid CGM reading (HIGH)
+    } else if (!!trio_custom_variables.shouldProtectDueToHIGH) {
+        console.error("Invalid CGM (HIGH). SMBs disabled.");
+        return false;
     }
 
     // enable SMB/UAM if always-on (unless previously disabled for high temptarget)
@@ -440,13 +444,13 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         }
     }
 
-    if (bg <= 10 || bg === 38 || noise >= 3 || minAgo > 12 || minAgo < -5) {
+    if (bg <= 10 || bg === 38 || noise >= 3 || minAgo > 12 || minAgo < -5 || ( glucose_status.short_avgdelta === 0 && glucose_status.long_avgdelta === 0 ) ) {
         if (currenttemp.rate >= basal) { // high temp is running
-            rT.reason += ". Replacing high temp basal of "+currenttemp.rate+" with neutral temp of "+basal;
+            rT.reason += ". Canceling high temp basal of " + currenttemp.rate;
             rT.deliverAt = deliverAt;
             rT.temp = 'absolute';
-            rT.duration = 30;
-            rT.rate = basal;
+            rT.duration = 0;
+            rT.rate = 0;
             return rT;
             // don't use setTempBasal(), as it has logic that allows <120% high temps to continue running
             //return tempBasalFunctions.setTempBasal(basal, 30, profile, rT, currenttemp);
@@ -1611,6 +1615,11 @@ var maxDelta_bg_threshold;
         }
 
         var maxSafeBasal = tempBasalFunctions.getMaxSafeBasal(profile);
+
+        // set neutral TBR at current basal rate because glucose is considered as requiring dosing Protect due to HIGH (400 mg/dL)
+        if (!!trio_custom_variables.shouldProtectDueToHIGH) {
+            return tempBasalFunctions.setTempBasal(profile.current_basal, 30, profile, rT, currenttemp);
+        }
 
         if (rate > maxSafeBasal) {
             rT.reason += "adj. req. rate: " + rate + " to maxSafeBasal: " + round(maxSafeBasal,2) + ", ";

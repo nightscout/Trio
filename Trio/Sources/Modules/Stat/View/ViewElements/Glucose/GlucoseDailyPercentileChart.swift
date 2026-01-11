@@ -396,25 +396,26 @@ struct GlucoseDailyPercentileChart: View {
 
     // Calculate an appropriate Y axis domain for the chart
     private func glucoseYScaleDomain() -> ClosedRange<Double> {
-        let padding = units == .mgdL ? 20.0 : 1.0
-        let bottomLimit = 40.0.asUnit(units)
-        let topLimit = 400.0.asUnit(units)
-
+        // Find actual min/max from data
         if visibleDailyStats.isEmpty {
-            return bottomLimit ... topLimit
+            return 0 ... (units == .mgdL ? 250 : 14.0)
         }
 
         var allValues: [Double] = []
         for day in visibleDailyStats where day.minimum > 0 {
+            allValues.append(day.minimum.asUnit(units))
             allValues.append(day.maximum.asUnit(units))
         }
 
         guard !allValues.isEmpty else {
-            return bottomLimit ... topLimit
+            return 0 ... (units == .mgdL ? 250 : 14.0)
         }
 
-        let maxValue = allValues.max() ?? topLimit
+        let minValue = allValues.min() ?? 0
+        let maxValue = allValues.max() ?? (units == .mgdL ? 250 : 14.0)
 
-        return bottomLimit ... max(Double(highLimit.asUnit(units)), maxValue + padding)
+        // Add some padding
+        let padding = units == .mgdL ? 20.0 : 1.0
+        return max(0, minValue - padding) ... maxValue + padding
     }
 }

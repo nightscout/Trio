@@ -48,10 +48,5 @@
   "useCalendar": false,
   "displayCalendarIOBandCOB": false,
   "displayCalendarEmojis": false,
-  "timeInRangeType": "timeInTightRange",
-  "garminWatchface": "trio",
-  "garminDatafield": "none",
-  "primaryAttributeChoice": "cob",
-  "secondaryAttributeChoice": "tbr",
-  "isWatchfaceDataEnabled": true  
+  "timeInRangeType": "timeInTightRange"
 }

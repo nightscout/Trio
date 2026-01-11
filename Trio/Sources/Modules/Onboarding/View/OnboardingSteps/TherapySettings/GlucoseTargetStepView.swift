@@ -15,7 +15,6 @@ struct GlucoseTargetStepView: View {
     @State private var refreshUI = UUID() // to update chart when slider value changes
     @State private var therapyItems: [TherapySettingItem] = []
     @State private var now = Date()
-    @Namespace private var bottomID
 
     // Formatter for glucose values
     private var numberFormatter: NumberFormatter {
@@ -33,53 +32,46 @@ struct GlucoseTargetStepView: View {
     }
 
     var body: some View {
-        ScrollViewReader { proxy in
-            LazyVStack {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Chart visualization
-                    if !state.targetItems.isEmpty {
-                        VStack(alignment: .leading) {
-                            glucoseTargetChart
-                                .frame(height: 180)
-                                .padding(.horizontal)
-                        }
-                        .padding(.vertical)
-                        .background(Color.chart.opacity(0.65))
-                        .clipShape(
-                            .rect(
-                                topLeadingRadius: 10,
-                                bottomLeadingRadius: 0,
-                                bottomTrailingRadius: 0,
-                                topTrailingRadius: 10
-                            )
-                        )
+        LazyVStack {
+            VStack(alignment: .leading, spacing: 0) {
+                // Chart visualization
+                if !state.targetItems.isEmpty {
+                    VStack(alignment: .leading) {
+                        glucoseTargetChart
+                            .frame(height: 180)
+                            .padding(.horizontal)
                     }
+                    .padding(.vertical)
+                    .background(Color.chart.opacity(0.65))
+                    .clipShape(
+                        .rect(
+                            topLeadingRadius: 10,
+                            bottomLeadingRadius: 0,
+                            bottomTrailingRadius: 0,
+                            topTrailingRadius: 10
+                        )
+                    )
+                }
 
-                    // Glucose target list
-                    TherapySettingEditorView(
-                        items: $therapyItems,
-                        unit: state.units == .mgdL ? .mgdL : .mmolL,
-                        timeOptions: state.targetTimeValues,
-                        valueOptions: state.targetRateValues,
-                        validateOnDelete: state.validateTarget,
-                        onItemAdded: {
-                            withAnimation {
-                                proxy.scrollTo(bottomID, anchor: .bottom)
-                            }
-                        }
-                    ).id(bottomID)
-                }
+                // Glucose target list
+                TherapySettingEditorView(
+                    items: $therapyItems,
+                    unit: state.units == .mgdL ? .mgdL : .mmolL,
+                    timeOptions: state.targetTimeValues,
+                    valueOptions: state.targetRateValues,
+                    validateOnDelete: state.validateTarget
+                )
             }
-            .onAppear {
-                if state.targetItems.isEmpty {
-                    state.addInitialTarget()
-                }
-                state.validateTarget()
-                therapyItems = state.getTargetTherapyItems()
-            }.onChange(of: therapyItems) { _, newItems in
-                state.updateTargets(from: newItems)
-                refreshUI = UUID()
+        }
+        .onAppear {
+            if state.targetItems.isEmpty {
+                state.addInitialTarget()
             }
+            state.validateTarget()
+            therapyItems = state.getTargetTherapyItems()
+        }.onChange(of: therapyItems) { _, newItems in
+            state.updateTargets(from: newItems)
+            refreshUI = UUID()
         }
     }
 
