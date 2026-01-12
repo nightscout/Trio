@@ -186,6 +186,10 @@ extension Home {
                 return nil
             }
 
+            guard let settingsManager = state.settingsManager else {
+                return nil
+            }
+
             let percent = latestOverride.percentage
             let percentString = percent == 100 ? "" : "\(percent.formatted(.number)) %"
 
@@ -230,9 +234,29 @@ extension Home {
                 : ""
 
             let smbToggleString = latestOverride.smbIsOff || latestOverride
-                .smbIsScheduledOff ? "SMBs Off\(smbScheduleString)" : ""
+                .smbIsScheduledOff ? String(localized: "SMBs Off\(smbScheduleString)") : ""
 
-            let components = [durationString, percentString, targetString, smbToggleString].filter { !$0.isEmpty }
+            var smbMinuteString: String = ""
+            var uamMinuteString: String = ""
+
+            if !latestOverride.smbIsOff, latestOverride.advancedSettings {
+                if let smbMinutes = latestOverride.smbMinutes,
+                   smbMinutes.decimalValue != settingsManager.preferences.maxSMBBasalMinutes
+                {
+                    smbMinuteString = "SMB\u{00A0}\(smbMinutes)\u{00A0}" +
+                        String(localized: "m", comment: "Abbreviation for Minutes")
+                }
+
+                if let uamMinutes = latestOverride.uamMinutes,
+                   uamMinutes.decimalValue != settingsManager.preferences.maxUAMSMBBasalMinutes
+                {
+                    uamMinuteString = "UAM\u{00A0}\(uamMinutes)\u{00A0}" +
+                        String(localized: "m", comment: "Abbreviation for Minutes")
+                }
+            }
+
+            let components = [durationString, percentString, targetString, smbToggleString, smbMinuteString, uamMinuteString]
+                .filter { !$0.isEmpty }
             return components.isEmpty ? nil : components.joined(separator: ", ")
         }
 
@@ -1039,7 +1063,7 @@ extension Home {
                         .tabItem { Label("Main", systemImage: "chart.xyaxis.line") }
                         .badge(carbsRequiredBadge).tag(0)
 
-                    NavigationStack { DataTable.RootView(resolver: resolver) }
+                    NavigationStack { History.RootView(resolver: resolver) }
                         .tabItem { Label("History", systemImage: historySFSymbol) }.tag(1)
 
                     Spacer()

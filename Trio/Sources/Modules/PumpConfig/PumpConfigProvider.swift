@@ -26,12 +26,12 @@ extension PumpConfig {
                 ?? PumpSettings(insulinActionCurve: 10, maxBolus: 10, maxBasal: 2)
         }
 
-        var alertNotAck: AnyPublisher<Bool, Never> {
-            deviceManager.alertHistoryStorage.alertNotAck.eraseToAnyPublisher()
+        var unacknowledgedAlertsPublisher: AnyPublisher<Bool, Never> {
+            deviceManager.alertHistoryStorage.unacknowledgedAlertsPublisher.eraseToAnyPublisher()
         }
 
-        func initialAlertNotAck() -> Bool {
-            deviceManager.alertHistoryStorage.recentNotAck().isNotEmpty
+        func hasInitialUnacknowledgedAlerts() -> Bool {
+            deviceManager.alertHistoryStorage.unacknowledgedAlertsWithinLast24Hours().isNotEmpty
         }
     }
 }
