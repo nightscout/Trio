@@ -12,15 +12,13 @@ extension BarcodeScanner {
         var supportedTypes: [AVMetadataObject.ObjectType] = [.ean13, .ean8, .upce, .code128, .code39]
         let onDetected: (String) -> Void
         let onFailure: (String) -> Void
-        var onFrameCaptured: ((UIImage) -> Void)?
 
         func makeCoordinator() -> Coordinator {
             Coordinator(
                 isRunning: $isRunning,
                 supportedTypes: supportedTypes,
                 onDetected: onDetected,
-                onFailure: onFailure,
-                onFrameCaptured: onFrameCaptured
+                onFailure: onFailure
             )
         }
 
@@ -44,21 +42,16 @@ extension BarcodeScanner {
 // MARK: - Coordinator
 
 extension BarcodeScanner.ScannerPreviewView {
-    final class Coordinator: NSObject, AVCaptureMetadataOutputObjectsDelegate, AVCaptureVideoDataOutputSampleBufferDelegate {
+    final class Coordinator: NSObject, AVCaptureMetadataOutputObjectsDelegate {
         private var isRunning: Binding<Bool>
         private let supportedTypes: [AVMetadataObject.ObjectType]
         private let onDetected: (String) -> Void
         private let onFailure: (String) -> Void
-        private let onFrameCaptured: ((UIImage) -> Void)?
 
         private let session = AVCaptureSession()
         private let metadataOutput = AVCaptureMetadataOutput()
-        private let videoOutput = AVCaptureVideoDataOutput()
         private var isConfigured = false
-        private let videoQueue = DispatchQueue(label: "video.frame.queue")
         private let sessionQueue = DispatchQueue(label: "camera.session.queue")
-        private var lastFrameTime: Date = .distantPast
-        private let frameInterval: TimeInterval = 0.5
 
         private var currentDevice: AVCaptureDevice?
         private weak var previewView: CameraPreviewView?
@@ -70,13 +63,11 @@ extension BarcodeScanner.ScannerPreviewView {
             supportedTypes: [AVMetadataObject.ObjectType],
             onDetected: @escaping (String) -> Void,
             onFailure: @escaping (String) -> Void,
-            onFrameCaptured: ((UIImage) -> Void)?
         ) {
             self.isRunning = isRunning
             self.supportedTypes = supportedTypes
             self.onDetected = onDetected
             self.onFailure = onFailure
-            self.onFrameCaptured = onFrameCaptured
             super.init()
         }
 
@@ -188,29 +179,6 @@ extension BarcodeScanner.ScannerPreviewView {
             }
 
             onDetected(stringValue)
-        }
-
-        func captureOutput(
-            _: AVCaptureOutput,
-            didOutput sampleBuffer: CMSampleBuffer,
-            from _: AVCaptureConnection
-        ) {
-            let now = Date()
-            guard now.timeIntervalSince(lastFrameTime) >= frameInterval else { return }
-            lastFrameTime = now
-
-            guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-
-            let ciImage = CIImage(cvPixelBuffer: imageBuffer)
-            let context = CIContext()
-            guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return }
-
-            let orientation: UIImage.Orientation = .right
-            let fullImage = UIImage(cgImage: cgImage, scale: 1.0, orientation: orientation)
-
-            DispatchQueue.main.async { [weak self] in
-                self?.onFrameCaptured?(fullImage)
-            }
         }
 
         // MARK: - Missing Helper Methods
