@@ -52,6 +52,7 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
                         hasHighContrast: entry.hasHighContrast,
                         ringWidth: ContactImageEntry.RingWidth(rawValue: Int(entry.ringWidth)) ?? .regular,
                         ringGap: ContactImageEntry.RingGap(rawValue: Int(entry.ringGap)) ?? .small,
+                        colorMode: ContactImageEntry.ColorMode(rawValue: entry.colorMode ?? "Color") ?? .color,
                         fontSize: ContactImageEntry.FontSize(rawValue: Int(entry.fontSize)) ?? .regular,
                         secondaryFontSize: ContactImageEntry.FontSize(rawValue: Int(entry.fontSizeSecondary)) ?? .small,
                         fontWeight: Font.Weight.fromString(entry.fontWeight ?? "regular"),
@@ -88,10 +89,11 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
             newContactImageEntry.hasHighContrast = contactImageEntry.hasHighContrast
             newContactImageEntry.ringWidth = Int16(contactImageEntry.ringWidth.rawValue)
             newContactImageEntry.ringGap = Int16(contactImageEntry.ringGap.rawValue)
+            newContactImageEntry.colorMode = contactImageEntry.colorMode.rawValue
             newContactImageEntry.fontSize = Int16(contactImageEntry.fontSize.rawValue)
             newContactImageEntry.fontSizeSecondary = Int16(contactImageEntry.secondaryFontSize.rawValue)
-            newContactImageEntry.fontWidth = contactImageEntry.fontWeight.asString
-            newContactImageEntry.fontWeight = contactImageEntry.fontWidth.asString
+            newContactImageEntry.fontWidth = contactImageEntry.fontWidth.asString
+            newContactImageEntry.fontWeight = contactImageEntry.fontWeight.asString
 
             do {
                 guard self.backgroundContext.hasChanges else { return }
@@ -128,6 +130,7 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
                     existingEntry.hasHighContrast = contactImageEntry.hasHighContrast
                     existingEntry.ringWidth = Int16(contactImageEntry.ringWidth.rawValue)
                     existingEntry.ringGap = Int16(contactImageEntry.ringGap.rawValue)
+                    existingEntry.colorMode = contactImageEntry.colorMode.rawValue
                     existingEntry.fontSize = Int16(contactImageEntry.fontSize.rawValue)
                     existingEntry.fontSizeSecondary = Int16(contactImageEntry.secondaryFontSize.rawValue)
                     existingEntry.fontWeight = contactImageEntry.fontWeight.asString
