@@ -18,6 +18,13 @@ struct GarminDevice: Codable, Equatable {
         friendlyName = iqDevice.modelName
     }
 
+    /// Creates a GarminDevice with explicit values (useful for simulator testing)
+    init(id: UUID, modelName: String, friendlyName: String) {
+        self.id = id
+        self.modelName = modelName
+        self.friendlyName = friendlyName
+    }
+
     var iqDevice: IQDevice {
         IQDevice(id: id, modelName: modelName, friendlyName: friendlyName)
     }
