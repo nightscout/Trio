@@ -145,7 +145,8 @@ struct InsulinSensitivityStepView: View {
     private var isfChart: some View {
         Chart {
             ForEach(Array(state.isfItems.enumerated()), id: \.element.id) { index, item in
-                let displayValue = state.units == .mgdL ? state.isfRateValues[item.rateIndex] : state.isfRateValues[item.rateIndex].asMmolL
+                let displayValue = state.units == .mgdL ? state.isfRateValues[item.rateIndex] : state
+                    .isfRateValues[item.rateIndex].asMmolL
 
                 let startDate = Calendar.current
                     .startOfDay(for: now)

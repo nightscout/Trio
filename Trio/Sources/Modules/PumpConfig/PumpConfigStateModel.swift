@@ -9,7 +9,7 @@ extension PumpConfig {
         private(set) var setupPumpType: PumpType = .minimed
         @Published var pumpState: PumpDisplayState?
         private(set) var initialSettings: PumpInitialSettings = .default
-        @Published var alertNotAck: Bool = false
+        @Published var hasUnacknowledgedAlert: Bool = false
         @Injected() var bluetoothManager: BluetoothStateManager!
 
         override func subscribe() {
@@ -18,10 +18,10 @@ extension PumpConfig {
                 .assign(to: \.pumpState, on: self)
                 .store(in: &lifetime)
 
-            alertNotAck = provider.initialAlertNotAck()
-            provider.alertNotAck
+            hasUnacknowledgedAlert = provider.hasInitialUnacknowledgedAlerts()
+            provider.unacknowledgedAlertsPublisher
                 .receive(on: DispatchQueue.main)
-                .assign(to: \.alertNotAck, on: self)
+                .assign(to: \.hasUnacknowledgedAlert, on: self)
                 .store(in: &lifetime)
 
             Task {
@@ -49,7 +49,7 @@ extension PumpConfig {
         }
 
         func ack() {
-            provider.deviceManager.alertHistoryStorage.forceNotification()
+            provider.deviceManager.alertHistoryStorage.broadcastAlertUpdates()
         }
     }
 }
