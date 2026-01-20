@@ -82,7 +82,7 @@ platform :ios do
     match(
       type: "appstore",
       git_basic_authorization: Base64.strict_encode64("#{GITHUB_REPOSITORY_OWNER}:#{GH_PAT}"),
-      readonly: false,
+      readonly: true,
       app_identifier: [
         "#{BUNDLE_ID}",
         "#{BUNDLE_ID}.watchkitapp",
