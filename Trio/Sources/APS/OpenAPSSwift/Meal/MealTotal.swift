@@ -101,8 +101,6 @@ enum MealTotal {
         glucose: [BloodGlucose],
         time: Date
     ) throws -> ComputedCarbs? {
-        guard treatments.isNotEmpty else { return nil }
-
         // Re-assign to a var, so it can be sorted
         var _treatments = treatments
         var profile = profile
