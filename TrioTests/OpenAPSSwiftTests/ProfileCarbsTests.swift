@@ -31,7 +31,7 @@ import Testing
                 CarbRatioEntry(start: "00:00:00", offset: 0, ratio: 12)
             ]
         )
-        let ratio = Carbs.carbRatioLookup(carbRatio: exchangeSchedule)
+        let ratio = Carbs.carbRatioLookup(carbRatio: exchangeSchedule, now: Date())
         #expect(ratio == 1) // 12 grams per exchange
     }
 

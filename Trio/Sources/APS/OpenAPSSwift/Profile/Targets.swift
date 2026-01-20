@@ -84,7 +84,7 @@ struct Targets {
         targets: BGTargets,
         tempTargets: [TempTarget],
         profile: Profile,
-        now: Date = Date()
+        now: Date
     ) throws -> (ComputedBGTargets, ComputedBGTargetEntry) {
         var (computedBgTargets, targetIdx) = try lookup(targets: targets, tempTargets: tempTargets, profile: profile, now: now)
         let currentTarget = boundTargetRange(computedBgTargets.targets[targetIdx])

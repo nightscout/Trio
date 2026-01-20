@@ -10,8 +10,11 @@ struct OpenAPSSwift {
         carbRatio: JSON,
         tempTargets: JSON,
         model: JSON,
-        trioSettings: JSON
-    ) -> OrefFunctionResult {
+        trioSettings: JSON,
+        clock: Date
+    ) -> (OrefFunctionResult, MakeProfileInputs?) {
+        var makeProfileInputs: MakeProfileInputs?
+
         do {
             let preferences = try JSONBridge.preferences(from: preferences)
             let pumpSettings = try JSONBridge.pumpSettings(from: pumpSettings)
@@ -23,6 +26,19 @@ struct OpenAPSSwift {
             let model = JSONBridge.model(from: model)
             let trioSettings = try JSONBridge.trioSettings(from: trioSettings)
 
+            makeProfileInputs = MakeProfileInputs(
+                preferences: preferences,
+                pumpSettings: pumpSettings,
+                bgTargets: bgTargets,
+                basalProfile: basalProfile,
+                isf: isf,
+                carbRatios: carbRatio,
+                tempTargets: tempTargets,
+                model: model,
+                trioSettings: trioSettings,
+                clock: clock
+            )
+
             let profile = try ProfileGenerator.generate(
                 pumpSettings: pumpSettings,
                 bgTargets: bgTargets,
@@ -32,12 +48,12 @@ struct OpenAPSSwift {
                 carbRatios: carbRatio,
                 tempTargets: tempTargets,
                 model: model,
-                trioSettings: trioSettings
+                clock: clock
             )
 
-            return try .success(JSONBridge.to(profile))
+            return (try .success(JSONBridge.to(profile)), makeProfileInputs)
         } catch {
-            return .failure(error)
+            return (.failure(error), makeProfileInputs)
         }
     }
 

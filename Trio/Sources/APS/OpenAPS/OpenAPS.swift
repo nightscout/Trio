@@ -570,6 +570,7 @@ final class OpenAPS {
             }
         }
 
+        let clock = Date()
         do {
             let pumpProfile = try await makeProfile(
                 preferences: adjustedPreferences,
@@ -582,7 +583,8 @@ final class OpenAPS {
                 model: model,
                 autotune: RawJSON.null,
                 trioSettings: trioSettings,
-                useSwiftOref: useSwiftOref
+                useSwiftOref: useSwiftOref,
+                clock: clock
             )
 
             let profile = try await makeProfile(
@@ -596,7 +598,8 @@ final class OpenAPS {
                 model: model,
                 autotune: RawJSON.null,
                 trioSettings: trioSettings,
-                useSwiftOref: useSwiftOref
+                useSwiftOref: useSwiftOref,
+                clock: clock
             )
 
             // Save the profiles
@@ -1026,7 +1029,8 @@ final class OpenAPS {
         model: JSON,
         autotune: JSON,
         trioSettings: JSON,
-        useSwiftOref: Bool
+        useSwiftOref: Bool,
+        clock: Date
     ) async throws -> RawJSON {
         let startJavascriptAt = Date()
         let jsResult = await makeProfileJavascript(
@@ -1050,7 +1054,7 @@ final class OpenAPS {
         }
 
         let startSwiftAt = Date()
-        let swiftResult = OpenAPSSwift.makeProfile(
+        let (swiftResult, makeProfileInputs) = OpenAPSSwift.makeProfile(
             preferences: preferences,
             pumpSettings: pumpSettings,
             bgTargets: bgTargets,
@@ -1059,7 +1063,8 @@ final class OpenAPS {
             carbRatio: carbRatio,
             tempTargets: tempTargets,
             model: model,
-            trioSettings: trioSettings
+            trioSettings: trioSettings,
+            clock: clock
         )
         let swiftDuration = Date().timeIntervalSince(startSwiftAt)
 
@@ -1068,7 +1073,8 @@ final class OpenAPS {
             swift: swiftResult,
             swiftDuration: swiftDuration,
             javascript: jsResult,
-            javascriptDuration: javascriptDuration
+            javascriptDuration: javascriptDuration,
+            makeProfileInputs: makeProfileInputs
         )
 
         return try jsResult.returnOrThrow()

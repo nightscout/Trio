@@ -77,7 +77,7 @@ import Testing
             trioSettings: inputs.8
         )
 
-        let profileSwift = OpenAPSSwift.makeProfile(
+        let (profileSwift, _) = OpenAPSSwift.makeProfile(
             preferences: inputs.0,
             pumpSettings: inputs.1,
             bgTargets: inputs.2,
@@ -86,7 +86,8 @@ import Testing
             carbRatio: inputs.5,
             tempTargets: inputs.6,
             model: inputs.7,
-            trioSettings: inputs.8
+            trioSettings: inputs.8,
+            clock: Date()
         )
 
         let comparison = JSONCompare.createComparison(
@@ -98,7 +99,8 @@ import Testing
             iobInputs: nil,
             mealInputs: nil,
             autosensInputs: nil,
-            determineBasalInputs: nil
+            determineBasalInputs: nil,
+            makeProfileInputs: nil
         )
 
         #expect(comparison.resultType == .matching)
@@ -131,7 +133,8 @@ import Testing
             iobInputs: nil,
             mealInputs: nil,
             autosensInputs: nil,
-            determineBasalInputs: nil
+            determineBasalInputs: nil,
+            makeProfileInputs: nil
         )
 
         #expect(comparison.resultType == .matching)
@@ -153,7 +156,8 @@ import Testing
             iobInputs: nil,
             mealInputs: nil,
             autosensInputs: nil,
-            determineBasalInputs: nil
+            determineBasalInputs: nil,
+            makeProfileInputs: nil
         )
 
         #expect(comparison.resultType == .valueDifference)
@@ -177,7 +181,8 @@ import Testing
             iobInputs: nil,
             mealInputs: nil,
             autosensInputs: nil,
-            determineBasalInputs: nil
+            determineBasalInputs: nil,
+            makeProfileInputs: nil
         )
 
         #expect(comparison.resultType == .matchingExceptions)
@@ -198,7 +203,8 @@ import Testing
             iobInputs: nil,
             mealInputs: nil,
             autosensInputs: nil,
-            determineBasalInputs: nil
+            determineBasalInputs: nil,
+            makeProfileInputs: nil
         )
 
         #expect(comparison.resultType == .swiftOnlyException)
@@ -221,7 +227,8 @@ import Testing
             iobInputs: nil,
             mealInputs: nil,
             autosensInputs: nil,
-            determineBasalInputs: nil
+            determineBasalInputs: nil,
+            makeProfileInputs: nil
         )
 
         #expect(comparison.resultType == .jsOnlyException)
@@ -243,7 +250,8 @@ import Testing
             iobInputs: nil,
             mealInputs: nil,
             autosensInputs: nil,
-            determineBasalInputs: nil
+            determineBasalInputs: nil,
+            makeProfileInputs: nil
         )
 
         #expect(comparison.resultType == .comparisonError)
