@@ -19,14 +19,8 @@ struct WatchConfigGarminView: View {
     #if targetEnvironment(simulator)
         /// Adds a mock Garmin device for simulator UI testing
         private func addMockDevice() {
-            // Create a mock IQDevice using a simple class that conforms to the protocol
-            let mockDevice = MockIQDevice(
-                uuid: UUID(),
-                friendlyName: "Mock Garmin Fenix 7",
-                modelName: "fenix7"
-            )
+            let mockDevice = BaseGarminManager.MockIQDevice.createSimulated()
             state.devices.append(mockDevice)
-            // Persist to garmin manager so it survives view reloads
             state.deleteGarminDevice()
         }
     #endif
@@ -87,7 +81,6 @@ struct WatchConfigGarminView: View {
                                 .buttonStyle(.bordered)
                             } else {
                                 Button {
-                                    // Remove all devices
                                     state.devices.removeAll()
                                     state.deleteGarminDevice()
                                 } label: {
@@ -200,29 +193,3 @@ struct WatchConfigGarminView: View {
         }
     }
 }
-
-#if targetEnvironment(simulator)
-    // Mock IQDevice class for simulator testing
-    // Minimal implementation just for UI testing - no actual Garmin functionality
-    class MockIQDevice: IQDevice {
-        private let _uuid: UUID
-        private let _friendlyName: String
-        private let _modelName: String
-
-        override var uuid: UUID { _uuid }
-        override var friendlyName: String { _friendlyName }
-        override var modelName: String { _modelName }
-        var status: IQDeviceStatus { .connected }
-
-        init(uuid: UUID, friendlyName: String, modelName: String) {
-            _uuid = uuid
-            _friendlyName = friendlyName
-            _modelName = modelName
-            super.init()
-        }
-
-        @available(*, unavailable) required init?(coder _: NSCoder) {
-            fatalError("init(coder:) not implemented for mock device")
-        }
-    }
-#endif

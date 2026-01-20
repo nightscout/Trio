@@ -65,14 +65,6 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Enable/disable general Garmin debug logging (connections, sends, etc.)
     private let debugGarminEnabled = true
 
-    /// Enable simulated Garmin device for Xcode Simulator testing
-    /// When true, creates a fake Garmin device so you can test the workflow in Simulator
-    #if targetEnvironment(simulator)
-        private let enableSimulatedDevice = true
-    #else
-        private let enableSimulatedDevice = false
-    #endif
-
     /// Helper method for conditional Garmin debug logging
     private func debugGarmin(_ message: String) {
         guard debugGarminEnabled else { return }
@@ -127,13 +119,6 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
         connectIQ?.initialize(withUrlScheme: "Trio", uiOverrideDelegate: self)
 
         restoreDevices()
-
-        // Add simulated device for Xcode Simulator testing
-        #if targetEnvironment(simulator)
-            if enableSimulatedDevice, devices.isEmpty {
-                addSimulatedDevice()
-            }
-        #endif
 
         subscribeToOpenFromGarminConnect()
         subscribeToWatchState()
@@ -533,14 +518,40 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     // MARK: - Simulator Support
 
     #if targetEnvironment(simulator)
-        /// Creates a simulated Garmin device for testing in Xcode Simulator
-        /// This allows testing the data flow without actual hardware
-        private func addSimulatedDevice() {
-            let simulatedUUID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
-            let simulatedDevice = GarminDevice(id: simulatedUUID, modelName: "Simulator", friendlyName: "Simulated Garmin")
-            persistedDevices = [simulatedDevice]
-            devices = [simulatedDevice.iqDevice]
-            debug(.watchManager, "Garmin: Added simulated device for Simulator testing")
+        /// Mock IQDevice class for simulator testing
+        /// Minimal implementation just for testing - no actual Garmin functionality
+        class MockIQDevice: IQDevice {
+            private let _uuid: UUID
+            private let _friendlyName: String
+            private let _modelName: String
+
+            override var uuid: UUID { _uuid }
+            override var friendlyName: String { _friendlyName }
+            override var modelName: String { _modelName }
+            var status: IQDeviceStatus { .connected }
+
+            init(uuid: UUID, friendlyName: String, modelName: String) {
+                _uuid = uuid
+                _friendlyName = friendlyName
+                _modelName = modelName
+                super.init()
+            }
+
+            @available(*, unavailable) required init?(coder _: NSCoder) {
+                fatalError("init(coder:) not implemented for mock device")
+            }
+
+            /// Shared simulated device UUID for consistency across the app
+            static let simulatedUUID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+
+            /// Creates the standard simulated Enduro 3 device
+            static func createSimulated() -> MockIQDevice {
+                MockIQDevice(
+                    uuid: simulatedUUID,
+                    friendlyName: "Enduro 3 Sim",
+                    modelName: "Enduro 3"
+                )
+            }
         }
     #endif
 
