@@ -319,6 +319,8 @@
 		3BC26E552D7418830066ACD6 /* IobSuspendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC26E542D7418830066ACD6 /* IobSuspendTests.swift */; };
 		3BC4053B2D931620006A03E9 /* IobJsonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC4053A2D931620006A03E9 /* IobJsonTests.swift */; };
 		3BCA5F7C2DC7B16400A7EAC7 /* pumphistory-with-external.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */; };
+		3BCDDD312F219AF900496A94 /* ProfileJsonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCDDD302F219AF300496A94 /* ProfileJsonTests.swift */; };
+		3BCDDD772F21A5F300496A94 /* profile-prepare.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BCDDD762F21A5F300496A94 /* profile-prepare.js */; };
 		3BCE75B32D4B38AE009E9453 /* InsulinSensitivities+Convert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCE75B22D4B38A0009E9453 /* InsulinSensitivities+Convert.swift */; };
 		3BCE75B52D4B391F009E9453 /* Decimal+rounding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */; };
 		3BD433AE2F01CDE600897F7D /* autosens-prepare-24.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BD433AD2F01CDD900897F7D /* autosens-prepare-24.js */; };
@@ -1255,6 +1257,8 @@
 		3BC26E542D7418830066ACD6 /* IobSuspendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobSuspendTests.swift; sourceTree = "<group>"; };
 		3BC4053A2D931620006A03E9 /* IobJsonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobJsonTests.swift; sourceTree = "<group>"; };
 		3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "pumphistory-with-external.json"; sourceTree = "<group>"; };
+		3BCDDD302F219AF300496A94 /* ProfileJsonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileJsonTests.swift; sourceTree = "<group>"; };
+		3BCDDD762F21A5F300496A94 /* profile-prepare.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "profile-prepare.js"; sourceTree = "<group>"; };
 		3BCE75B22D4B38A0009E9453 /* InsulinSensitivities+Convert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InsulinSensitivities+Convert.swift"; sourceTree = "<group>"; };
 		3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Decimal+rounding.swift"; sourceTree = "<group>"; };
 		3BD433AD2F01CDD900897F7D /* autosens-prepare-24.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "autosens-prepare-24.js"; sourceTree = "<group>"; };
@@ -2991,6 +2995,7 @@
 				3B5CD2C12D4AECD500CE213C /* ProfileBasalTests.swift */,
 				3B5CD2C32D4AECD500CE213C /* ProfileCarbsTests.swift */,
 				3B5CD2C42D4AECD500CE213C /* ProfileIsfTests.swift */,
+				3BCDDD302F219AF300496A94 /* ProfileJsonTests.swift */,
 				3B5CD2C52D4AECD500CE213C /* ProfileJavascriptTests.swift */,
 				3B5CD2C62D4AECD500CE213C /* ProfileTargetsTests.swift */,
 				3BAC92CC2E57859600B853DA /* SetTempBasalTests.swift */,
@@ -3044,6 +3049,7 @@
 				3BF92F292D86DEE9006B545A /* meal.js */,
 				3BBE323B2F12AB22005F9665 /* meal-prepare.js */,
 				3BF92F2A2D86DEE9006B545A /* profile.js */,
+				3BCDDD762F21A5F300496A94 /* profile-prepare.js */,
 			);
 			path = bundle;
 			sourceTree = "<group>";
@@ -4487,6 +4493,7 @@
 				3BD6CE262DC24CFD00FA0472 /* pumphistory-24h-zoned.json in Resources */,
 				DDD78A912DC4064800AC63F3 /* carbhistory.json in Resources */,
 				3B997DD32DC02AEF006B6BB2 /* glucose.json in Resources */,
+				3BCDDD772F21A5F300496A94 /* profile-prepare.js in Resources */,
 				3BD433B02F01CDF500897F7D /* autosens-prepare-8.js in Resources */,
 				DDD78AD92DC421B500AC63F3 /* enacted.json in Resources */,
 				DD3C47B32DC5608A003DD20D /* newerSuggested.json in Resources */,
@@ -5278,6 +5285,7 @@
 				3B8B5D3C2DF523C000365ED3 /* AutosensJsonTests.swift in Sources */,
 				3B2A3BC32E2B19F700658FB9 /* DynamicISFTests.swift in Sources */,
 				BD8FC0662D661A0000B95AED /* GlucoseStorageTests.swift in Sources */,
+				3BCDDD312F219AF900496A94 /* ProfileJsonTests.swift in Sources */,
 				BD8FC05B2D6618AF00B95AED /* DeterminationStorageTests.swift in Sources */,
 				3BAAE60C2DE7766C0049589B /* DynamicISFEnableTests.swift in Sources */,
 				3BAC929B2E55FF5300B853DA /* DetermineBasalEnableSmbTests.swift in Sources */,

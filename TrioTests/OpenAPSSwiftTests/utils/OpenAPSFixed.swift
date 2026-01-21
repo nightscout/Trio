@@ -211,6 +211,51 @@ final class OpenAPSFixed {
             return .failure(error)
         }
     }
+
+    func makeProfileJavascript(
+        preferences: JSON,
+        pumpSettings: JSON,
+        bgTargets: JSON,
+        basalProfile: JSON,
+        isf: JSON,
+        carbRatio: JSON,
+        tempTargets: JSON,
+        model: JSON,
+        autotune: JSON,
+        trioSettings: JSON,
+        clock: JSON
+    ) async -> OrefFunctionResult {
+        do {
+            let testBundle = Bundle(for: OpenAPSFixed.self)
+            let result = try await withCheckedThrowingContinuation { continuation in
+                let jsWorker = JavaScriptWorker(poolSize: 1)
+                jsWorker.inCommonContext { worker in
+                    worker.evaluateBatch(scripts: [
+                        Script(name: "prepare/log.js"),
+                        Script.fromTestingBundle(name: "profile.js", bundle: testBundle),
+                        Script.fromTestingBundle(name: "profile-prepare.js", bundle: testBundle)
+                    ])
+                    let result = worker.call(function: "generate", with: [
+                        pumpSettings,
+                        bgTargets,
+                        isf,
+                        basalProfile,
+                        preferences,
+                        carbRatio,
+                        tempTargets,
+                        model,
+                        autotune,
+                        trioSettings,
+                        clock
+                    ])
+                    continuation.resume(returning: result)
+                }
+            }
+            return .success(result)
+        } catch {
+            return .failure(error)
+        }
+    }
 }
 
 extension Script {
