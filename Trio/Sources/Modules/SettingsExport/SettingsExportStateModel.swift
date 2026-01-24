@@ -978,7 +978,6 @@ extension SettingsExport {
                                 return obj
                             }
 
-                            let subcategory = String(localized: "Temp Target Presets")
                             var processedTempTargetPresets: [ExportSetting] = []
                             processedTempTargetPresets.reserveCapacity(fetchedTempTargetPresets.count * 10)
 
@@ -992,8 +991,8 @@ extension SettingsExport {
 
                                     processedTempTargetPresets.append(.init(
                                         category: category,
-                                        subcategory: subcategory,
-                                        name: presetName,
+                                        subcategory: presetName,
+                                        name: "Target",
                                         value: targetValue,
                                         unit: trioSettings.units.rawValue
                                     ))
@@ -1002,8 +1001,8 @@ extension SettingsExport {
                                 if let duration = preset.duration {
                                     processedTempTargetPresets.append(.init(
                                         category: category,
-                                        subcategory: subcategory,
-                                        name: "\(presetName) Duration",
+                                        subcategory: presetName,
+                                        name: "Duration",
                                         value: String(describing: duration),
                                         unit: String(localized: "minutes")
                                     ))
@@ -1016,8 +1015,8 @@ extension SettingsExport {
 
                                     processedTempTargetPresets.append(.init(
                                         category: category,
-                                        subcategory: subcategory,
-                                        name: "\(presetName) Half Basal Target",
+                                        subcategory: presetName,
+                                        name: "Half Basal Target",
                                         value: halfBasalValue,
                                         unit: trioSettings.units.rawValue
                                     ))
@@ -1054,7 +1053,6 @@ extension SettingsExport {
                                 return obj
                             }
 
-                            let subcategory = String(localized: "Override Presets")
                             var processedOverridePresets: [ExportSetting] = []
                             processedOverridePresets.reserveCapacity(fetchedOverridePresets.count * 10)
 
@@ -1063,16 +1061,16 @@ extension SettingsExport {
 
                                 processedOverridePresets.append(.init(
                                     category: category,
-                                    subcategory: subcategory,
-                                    name: presetName,
+                                    subcategory: presetName,
+                                    name: String(localized: "Basal Rate Adjustment"),
                                     value: String(format: "%.0f%%", preset.percentage),
                                     unit: ""
                                 ))
 
                                 processedOverridePresets.append(.init(
                                     category: category,
-                                    subcategory: subcategory,
-                                    name: "\(presetName) Duration",
+                                    subcategory: presetName,
+                                    name: "Duration",
                                     value: preset.indefinite
                                         ? String(localized: "Indefinite")
                                         : String(describing: preset.duration ?? 0),
@@ -1082,8 +1080,8 @@ extension SettingsExport {
                                 if let target = preset.target, target != 0 {
                                     processedOverridePresets.append(.init(
                                         category: category,
-                                        subcategory: subcategory,
-                                        name: "\(presetName) Target",
+                                        subcategory: presetName,
+                                        name: "Target",
                                         value: trioSettings.units == .mgdL
                                             ? target.description
                                             : target.decimalValue.formattedAsMmolL,
@@ -1094,16 +1092,16 @@ extension SettingsExport {
                                 if preset.advancedSettings {
                                     processedOverridePresets.append(.init(
                                         category: category,
-                                        subcategory: subcategory,
-                                        name: "\(presetName) Advanced Settings",
+                                        subcategory: presetName,
+                                        name: "Advanced Settings",
                                         value: String(localized: "Enabled"),
                                         unit: ""
                                     ))
                                     if let smbMinutes = preset.smbMinutes {
                                         processedOverridePresets.append(.init(
                                             category: category,
-                                            subcategory: subcategory,
-                                            name: "\(presetName) SMB Minutes",
+                                            subcategory: presetName,
+                                            name: "SMB Minutes",
                                             value: String(describing: smbMinutes),
                                             unit: String(localized: "minutes")
                                         ))
@@ -1111,8 +1109,8 @@ extension SettingsExport {
                                     if let uamMinutes = preset.uamMinutes {
                                         processedOverridePresets.append(.init(
                                             category: category,
-                                            subcategory: subcategory,
-                                            name: "\(presetName) UAM Minutes",
+                                            subcategory: presetName,
+                                            name: "UAM Minutes",
                                             value: String(describing: uamMinutes),
                                             unit: String(localized: "minutes")
                                         ))
@@ -1122,8 +1120,8 @@ extension SettingsExport {
                                 if preset.smbIsOff {
                                     processedOverridePresets.append(.init(
                                         category: category,
-                                        subcategory: subcategory,
-                                        name: "\(presetName) SMB",
+                                        subcategory: presetName,
+                                        name: "SMB",
                                         value: String(localized: "Disabled"),
                                         unit: ""
                                     ))
@@ -1132,16 +1130,16 @@ extension SettingsExport {
                                 if preset.smbIsScheduledOff {
                                     processedOverridePresets.append(.init(
                                         category: category,
-                                        subcategory: subcategory,
-                                        name: "\(presetName) SMB Scheduled",
+                                        subcategory: presetName,
+                                        name: "SMB Scheduled",
                                         value: String(localized: "Disabled"),
                                         unit: ""
                                     ))
                                     if let start = preset.start {
                                         processedOverridePresets.append(.init(
                                             category: category,
-                                            subcategory: subcategory,
-                                            name: "\(presetName) SMB Schedule Start",
+                                            subcategory: presetName,
+                                            name: "SMB Schedule Start",
                                             value: String(describing: start),
                                             unit: String(localized: "hours")
                                         ))
@@ -1149,8 +1147,8 @@ extension SettingsExport {
                                     if let end = preset.end {
                                         processedOverridePresets.append(.init(
                                             category: category,
-                                            subcategory: subcategory,
-                                            name: "\(presetName) SMB Schedule End",
+                                            subcategory: presetName,
+                                            name: "SMB Schedule End",
                                             value: String(describing: end),
                                             unit: String(localized: "hours")
                                         ))
@@ -1168,8 +1166,8 @@ extension SettingsExport {
                                 if let affects {
                                     processedOverridePresets.append(.init(
                                         category: category,
-                                        subcategory: subcategory,
-                                        name: "\(presetName) Affects",
+                                        subcategory: presetName,
+                                        name: "Affects",
                                         value: affects,
                                         unit: ""
                                     ))
@@ -1212,13 +1210,12 @@ extension SettingsExport {
                     debug(.default, "Found \(mealPresetData.count) meal presets")
 
                     if !mealPresetData.isEmpty {
-                        let mealSubcategory = String(localized: "Meal Presets")
                         for mealPreset in mealPresetData {
                             if let carbs = mealPreset.carbs, carbs > 0 {
                                 addSetting(
                                     category: presetsCategory,
-                                    subcategory: mealSubcategory,
-                                    name: "\(mealPreset.dish) Carbs",
+                                    subcategory: mealPreset.dish,
+                                    name: "Carbs",
                                     value: String(describing: carbs),
                                     unit: String(localized: "g", comment: "Units for carbs")
                                 )
@@ -1227,8 +1224,8 @@ extension SettingsExport {
                             if let fat = mealPreset.fat, fat > 0 {
                                 addSetting(
                                     category: presetsCategory,
-                                    subcategory: mealSubcategory,
-                                    name: "\(mealPreset.dish) Fat",
+                                    subcategory: mealPreset.dish,
+                                    name: "Fat",
                                     value: String(describing: fat),
                                     unit: String(localized: "g", comment: "Units for carbs")
                                 )
@@ -1237,8 +1234,8 @@ extension SettingsExport {
                             if let protein = mealPreset.protein, protein > 0 {
                                 addSetting(
                                     category: presetsCategory,
-                                    subcategory: mealSubcategory,
-                                    name: "\(mealPreset.dish) Protein",
+                                    subcategory: mealPreset.dish,
+                                    name: "Protein",
                                     value: String(describing: protein),
                                     unit: String(localized: "g", comment: "Units for carbs")
                                 )
