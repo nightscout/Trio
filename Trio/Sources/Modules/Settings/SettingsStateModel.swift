@@ -1,5 +1,3 @@
-import CoreData
-import Foundation
 import LoopKit
 import LoopKitUI
 import SwiftUI
@@ -12,8 +10,6 @@ extension Settings {
         @Injected() private var nightscoutManager: NightscoutManager!
         @Injected() var pluginManager: PluginManager!
         @Injected() var fetchCgmManager: FetchGlucoseManager!
-        @Injected() private var storage: FileStorage!
-        @Injected() var overrideStorage: OverrideStorage!
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var closedLoop = false
