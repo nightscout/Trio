@@ -1,7 +1,7 @@
 name: zzz [DO NOT RUN] Automated unit tests
 
 on:
-  workflow_dispatch: # Allow manual running for debugging
+  workflow_dispatch: # FIXME: Allow manual running for debugging
   pull_request:
     branches:
       - dev
@@ -25,6 +25,7 @@ jobs:
   test:
     name: Run Unit Tests
     runs-on: macos-15
+    # FIXME Change back
     if: github.repository_owner == 'kingst'
 
     steps:
@@ -65,7 +66,7 @@ jobs:
           time xcodebuild build-for-testing \
             -workspace Trio.xcworkspace \
             -scheme "Trio Tests" \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.4' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
 
       - name: Check for uncommitted changes
         run: |
