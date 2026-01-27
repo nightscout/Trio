@@ -1,6 +1,7 @@
 name: zzz [DO NOT RUN] Automated unit tests
 
 on:
+  workflow_dispatch: # Allow manual running for debugging
   pull_request:
     branches:
       - dev
