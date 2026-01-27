@@ -1,7 +1,6 @@
 name: zzz [DO NOT RUN] Automated unit tests
 
 on:
-  workflow_dispatch: # FIXME: Allow manual running for debugging
   pull_request:
     branches:
       - dev
@@ -25,8 +24,7 @@ jobs:
   test:
     name: Run Unit Tests
     runs-on: macos-15
-    # FIXME Change back
-    if: github.repository_owner == 'kingst'
+    if: github.repository_owner == 'nightscout'
 
     steps:
       - name: Select Xcode version
