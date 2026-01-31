@@ -40,7 +40,7 @@ import Testing
     }
 
     @Test("should return nil with an empty profile") func handleEmptyProfile() async throws {
-        let rate = try Basal.basalLookup([])
+        let rate = try Basal.basalLookup([], now: Date())
         #expect(rate == nil)
     }
 
@@ -49,7 +49,7 @@ import Testing
             BasalProfileEntry(start: "00:00", minutes: 0, rate: 1.0)
         ]
 
-        let rate = try Basal.basalLookup(basalProfile)
+        let rate = try Basal.basalLookup(basalProfile, now: Date())
         #expect(rate == 1.0)
     }
 
@@ -58,7 +58,7 @@ import Testing
             BasalProfileEntry(start: "00:00", minutes: 0, rate: 0.0)
         ]
 
-        let rate = try Basal.basalLookup(basalProfile)
+        let rate = try Basal.basalLookup(basalProfile, now: Date())
         #expect(rate == nil)
     }
 

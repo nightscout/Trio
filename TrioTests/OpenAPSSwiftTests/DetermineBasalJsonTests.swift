@@ -82,7 +82,8 @@ import Testing
             iobInputs: nil,
             mealInputs: nil,
             autosensInputs: nil,
-            determineBasalInputs: nil
+            determineBasalInputs: nil,
+            makeProfileInputs: nil
         )
 
         if comparison.resultType == .valueDifference {
@@ -173,7 +174,8 @@ import Testing
             iobInputs: nil,
             mealInputs: nil,
             autosensInputs: nil,
-            determineBasalInputs: nil
+            determineBasalInputs: nil,
+            makeProfileInputs: nil
         )
 
         if comparison.resultType == .valueDifference {

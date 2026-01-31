@@ -4,9 +4,9 @@ import Foundation
 struct Isf {
     static func isfLookup(
         isfDataInput: InsulinSensitivities,
-        timestamp: Date? = nil
+        timestamp: Date
     ) throws -> (Decimal, ComputedInsulinSensitivities) {
-        let now = timestamp ?? Date()
+        let now = timestamp
 
         let isfData = isfDataInput.computedInsulinSensitivies()
 

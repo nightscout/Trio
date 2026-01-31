@@ -1,8 +1,8 @@
 import Foundation
 
 struct Basal {
-    static func basalLookup(_ basalProfile: [BasalProfileEntry], now: Date? = nil) throws -> Decimal? {
-        let nowDate = now ?? Date()
+    static func basalLookup(_ basalProfile: [BasalProfileEntry], now: Date) throws -> Decimal? {
+        let nowDate = now
 
         // Original had a sort but it was a no-op if 'i' wasn't present, so we can skip it
         let basalProfileData = basalProfile

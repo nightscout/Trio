@@ -109,6 +109,20 @@ struct DetermineBasalInputs: Codable {
     let clock: Date
 }
 
+/// For tracking inputs to `makeProfile` when there is a mismatch
+struct MakeProfileInputs: Codable {
+    let preferences: Preferences
+    let pumpSettings: PumpSettings
+    let bgTargets: BGTargets
+    let basalProfile: [BasalProfileEntry]
+    let isf: InsulinSensitivities
+    let carbRatios: CarbRatios
+    let tempTargets: [TempTarget]
+    let model: String
+    let trioSettings: TrioSettings
+    let clock: Date
+}
+
 /// Represents a complete comparison between JS and Swift implementations
 struct AlgorithmComparison: Codable {
     let id: UUID
@@ -137,6 +151,7 @@ struct AlgorithmComparison: Codable {
     let mealInput: MealInputs?
     let autosensInput: AutosensInputs?
     let determineBasalInput: DetermineBasalInputs?
+    let makeProfileInput: MakeProfileInputs?
 
     init(
         function: OrefFunction,
@@ -151,6 +166,7 @@ struct AlgorithmComparison: Codable {
         mealInputs: MealInputs? = nil,
         autosensInputs: AutosensInputs? = nil,
         determineBasalInputs: DetermineBasalInputs? = nil,
+        makeProfileInputs: MakeProfileInputs? = nil,
         id: UUID = UUID(),
         createdAt: Date = Date()
     ) {
@@ -168,6 +184,7 @@ struct AlgorithmComparison: Codable {
         mealInput = mealInputs
         autosensInput = autosensInputs
         determineBasalInput = determineBasalInputs
+        makeProfileInput = makeProfileInputs
         timezone = TimeZone.current.identifier
         version = "4"
         #if targetEnvironment(simulator)

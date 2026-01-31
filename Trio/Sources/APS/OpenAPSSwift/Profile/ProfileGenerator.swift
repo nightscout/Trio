@@ -74,7 +74,7 @@ enum ProfileGenerator {
         carbRatios: CarbRatios,
         tempTargets: [TempTarget],
         model: String,
-        trioSettings _: TrioSettings
+        clock: Date
     ) throws -> Profile {
         let model = model.replacingOccurrences(of: "\"", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -97,7 +97,7 @@ enum ProfileGenerator {
             debug(.openAPS, "don't modify insulin peak time")
         }
 
-        return try generate(
+        return try generateProfile(
             pumpSettings: pumpSettings,
             bgTargets: bgTargets,
             basalProfile: basalProfile,
@@ -105,12 +105,13 @@ enum ProfileGenerator {
             preferences: preferences,
             carbRatios: carbRatios,
             tempTargets: tempTargets,
-            model: model
+            model: model,
+            clock: clock
         )
     }
 
     /// Direct port of the OpenAPS profile generate function
-    private static func generate(
+    private static func generateProfile(
         pumpSettings: PumpSettings,
         bgTargets: BGTargets,
         basalProfile: [BasalProfileEntry],
@@ -118,7 +119,8 @@ enum ProfileGenerator {
         preferences: Preferences,
         carbRatios: CarbRatios,
         tempTargets: [TempTarget],
-        model: String
+        model: String,
+        clock: Date
     ) throws -> Profile {
         var profile = Profile() // start with the defaults
 
@@ -138,7 +140,7 @@ enum ProfileGenerator {
         profile.model = model
         profile.skipNeutralTemps = preferences.skipNeutralTemps
 
-        profile.currentBasal = try Basal.basalLookup(basalProfile)
+        profile.currentBasal = try Basal.basalLookup(basalProfile, now: clock)
         profile.basalprofile = basalProfile
 
         let basalProfile = basalProfile
@@ -169,7 +171,8 @@ enum ProfileGenerator {
         }
 
         profile.outUnits = bgTargets.userPreferredUnits
-        let (updatedTargets, range) = try Targets.bgTargetsLookup(targets: bgTargets, tempTargets: tempTargets, profile: profile)
+        let (updatedTargets, range) = try Targets
+            .bgTargetsLookup(targets: bgTargets, tempTargets: tempTargets, profile: profile, now: clock)
         profile.minBg = range.minBg?.rounded()
         profile.maxBg = range.maxBg?.rounded()
         // Note: we're using updatedTargets here because in Javascript the bgTargetsLookup
@@ -195,7 +198,7 @@ enum ProfileGenerator {
         )
 
         profile.temptargetSet = range.temptargetSet
-        let (sens, isfUpdated) = try Isf.isfLookup(isfDataInput: isf)
+        let (sens, isfUpdated) = try Isf.isfLookup(isfDataInput: isf, timestamp: clock)
         profile.sens = sens
         profile.isfProfile = isfUpdated
 
@@ -208,7 +211,7 @@ enum ProfileGenerator {
         }
 
         // Handle carb ratio data
-        guard let currentCarbRatio = Carbs.carbRatioLookup(carbRatio: carbRatios) else {
+        guard let currentCarbRatio = Carbs.carbRatioLookup(carbRatio: carbRatios, now: clock) else {
             throw ProfileError.invalidCarbRatio
         }
         profile.carbRatio = currentCarbRatio

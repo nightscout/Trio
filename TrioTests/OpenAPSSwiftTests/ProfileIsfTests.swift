@@ -56,7 +56,7 @@ import Testing
                 InsulinSensitivityEntry(sensitivity: 100, offset: 30, start: "00:30:00")
             ]
         )
-        let (sensitivity, _) = try Isf.isfLookup(isfDataInput: invalidISF)
+        let (sensitivity, _) = try Isf.isfLookup(isfDataInput: invalidISF, timestamp: Date())
         #expect(sensitivity == -1)
     }
 }
