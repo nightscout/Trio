@@ -48,6 +48,7 @@ enum Screen: Identifiable, Hashable {
     case targetBehavior
     case algorithmAdvancedSettings
     case isfTiersEditor
+    case dataExport
     case unitsAndLimits
     case appDiagnostics
 
@@ -161,6 +162,8 @@ extension Screen {
             AlgorithmAdvancedSettings.RootView(resolver: resolver)
         case .isfTiersEditor:
             ISFTiersEditor.RootView(resolver: resolver)
+        case .dataExport:
+            DataExport.RootView(resolver: resolver)
         case .unitsAndLimits:
             UnitsLimitsSettings.RootView(resolver: resolver)
         case .appDiagnostics:
