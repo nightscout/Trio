@@ -128,7 +128,25 @@ extension BarcodeScanner {
                     .textFieldStyle(.roundedBorder)
                     .focused(focusedItemID, equals: item.id)
                     .toolbar {
-                        // Custom toolbar is handled in RootView via overlay
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Button {
+                                amountText = ""
+                                state.updateScannedProductAmount(item, amount: 0, isMlInput: isMlInput)
+                            } label: {
+                                Image(systemName: "trash")
+                            }
+
+                            Spacer()
+
+                            Button {
+                                focusedItemID.wrappedValue = nil
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "keyboard.chevron.compact.down")
+                                }
+                                .font(.headline)
+                            }
+                        }
                     }
                     .onChange(of: amountText) { _, newValue in
                         if let amount = Double(newValue.replacingOccurrences(of: ",", with: ".")) {
@@ -301,13 +319,26 @@ extension BarcodeScanner {
                 Text("Per 100\(nutriments.basis == .per100ml ? "ml" : "g")")
                     .font(.subheadline.weight(.semibold))
 
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 2), spacing: 12) {
-                    NutrimentTile(title: String(localized: "Energy (kcal)"), value: nutriments.energyKcalPer100g, unit: "kcal")
-                    NutrimentTile(title: String(localized: "Carbs"), value: nutriments.carbohydratesPer100g, unit: "g")
-                    NutrimentTile(title: String(localized: "Sugars"), value: nutriments.sugarsPer100g, unit: "g")
+                LazyVGrid(
+                    columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 2), spacing: 12
+                ) {
+                    NutrimentTile(
+                        title: String(localized: "Energy (kcal)"), value: nutriments.energyKcalPer100g,
+                        unit: "kcal"
+                    )
+                    NutrimentTile(
+                        title: String(localized: "Carbs"), value: nutriments.carbohydratesPer100g, unit: "g"
+                    )
+                    NutrimentTile(
+                        title: String(localized: "Sugars"), value: nutriments.sugarsPer100g, unit: "g"
+                    )
                     NutrimentTile(title: String(localized: "Fat"), value: nutriments.fatPer100g, unit: "g")
-                    NutrimentTile(title: String(localized: "Protein"), value: nutriments.proteinPer100g, unit: "g")
-                    NutrimentTile(title: String(localized: "Fiber"), value: nutriments.fiberPer100g, unit: "g")
+                    NutrimentTile(
+                        title: String(localized: "Protein"), value: nutriments.proteinPer100g, unit: "g"
+                    )
+                    NutrimentTile(
+                        title: String(localized: "Fiber"), value: nutriments.fiberPer100g, unit: "g"
+                    )
                 }
             }
         }

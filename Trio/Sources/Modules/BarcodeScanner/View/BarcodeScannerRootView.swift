@@ -231,16 +231,6 @@ extension BarcodeScanner {
                                     }
                                     .allowsHitTesting(false)
                                 }
-
-                                // Custom Keyboard Toolbar (Overlay when keyboard is visible in List)
-                                if focusedItemID != nil {
-                                    VStack {
-                                        Spacer()
-                                        customKeyboardToolbar
-                                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                                            .zIndex(100)
-                                    }
-                                }
                             }
                             .frame(minHeight: geo.size.height)
                         }
@@ -321,8 +311,11 @@ extension BarcodeScanner {
                         Image(systemName: "camera.fill")
                             .font(.system(size: 50))
                             .foregroundStyle(.secondary)
-                        Label(String(localized: "Enable camera access to start scanning."), systemImage: "lock.shield")
-                            .font(.subheadline)
+                        Label(
+                            String(localized: "Enable camera access to start scanning."),
+                            systemImage: "lock.shield"
+                        )
+                        .font(.subheadline)
                         Button(String(localized: "Open Settings"), action: state.openAppSettings)
                             .buttonStyle(.borderedProminent)
                         Spacer()
@@ -412,12 +405,6 @@ extension BarcodeScanner {
                         }
                         .listStyle(.plain)
                         .scrollContentBackground(.hidden)
-                        .safeAreaInset(edge: .bottom) {
-                            // Show keyboard dismiss button when numpad is visible
-                            if focusedItemID != nil {
-                                customKeyboardToolbar
-                            }
-                        }
                         if !state.scannedProducts.isEmpty {
                             // "Use in bolus calculator" button removed for live sync
                         }
@@ -465,29 +452,6 @@ extension BarcodeScanner {
             }
         }
 
-        private var customKeyboardToolbar: some View {
-            VStack(spacing: 0) {
-                Divider()
-                HStack {
-                    Spacer()
-                    Button {
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "keyboard.chevron.compact.down")
-                            Text("Done")
-                        }
-                        .font(.headline)
-                        .foregroundStyle(Color.accentColor)
-                    }
-                    .buttonStyle(BorderlessButtonStyle())
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 12)
-                .background(Color(uiColor: .secondarySystemBackground))
-            }
-        }
-
         private var listHeader: some View {
             let totalCarbs = state.scannedProducts.reduce(into: 0.0) { result, item in
                 let carbsPer100 = item.nutriments.carbohydratesPer100g ?? 0
@@ -501,9 +465,11 @@ extension BarcodeScanner {
             }
 
             return VStack(alignment: .leading, spacing: 8) {
-                Text("\(state.scannedProducts.count) Item\(state.scannedProducts.count == 1 ? "" : "s") Scanned")
-                    .font(.title2)
-                    .bold()
+                Text(
+                    "\(state.scannedProducts.count) Item\(state.scannedProducts.count == 1 ? "" : "s") Scanned"
+                )
+                .font(.title2)
+                .bold()
 
                 HStack(spacing: 16) {
                     Text("total \(totalCarbs, specifier: "%.1f") g of carbs")
