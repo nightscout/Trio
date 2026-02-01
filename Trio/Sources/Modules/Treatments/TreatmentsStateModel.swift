@@ -103,6 +103,41 @@ extension Treatments {
         var id_: String = ""
         var summary: String = ""
 
+        // MARK: - AI-Assisted Entry Properties
+
+        var isAnalyzingFood = false
+        var aiError: String?
+        var foodItemSelection: FoodItemSelection?
+        var conversationManager: AIConversationManager?
+        /// The captured photo data, kept visible for thumbnail display during and after analysis
+        var capturedImageData: Data? {
+            didSet {
+                if capturedImageData == nil, oldValue != nil {
+                    print("🔍 capturedImageData was SET TO NIL")
+                    Thread.callStackSymbols.prefix(10).forEach { print("  \($0)") }
+                }
+            }
+        }
+
+        /// User-provided description/context for the food photo
+        var foodDescription: String = ""
+        var aiAssistedMetadata: AIAssistedCarbEntryMetadata?
+        private var originalAICarbsQuantity: Double?
+        private var pendingImageData: Data?
+
+        /// Whether we're in AI mode (photo captured or analysis complete)
+        var isInAIMode: Bool {
+            capturedImageData != nil || foodItemSelection != nil || isAnalyzingFood
+        }
+
+        var isAIAvailable: Bool {
+            guard let apiKey = Bundle.main.object(forInfoDictionaryKey: "OpenAIAPIKey") as? String,
+                  !apiKey.isEmpty,
+                  apiKey != "$(OPENAI_API_KEY)"
+            else { return false }
+            return true
+        }
+
         var externalInsulin: Bool = false
         var showInfo: Bool = false
         var glucoseFromPersistence: [GlucoseStored] = []
@@ -657,6 +692,178 @@ extension Treatments {
             } catch {
                 debug(.default, "\(DebuggingIdentifiers.failed) Failed to save carbs: \(error)")
             }
+        }
+
+        // MARK: - AI-Assisted Food Analysis
+
+        /// Analyzes a food image using AI and pre-fills the carb entry form with multi-item support
+        func analyzeFood(imageData: Data, description: String? = nil) async {
+            await MainActor.run {
+                isAnalyzingFood = true
+                aiError = nil
+                foodItemSelection = nil
+                conversationManager = nil
+                capturedImageData = imageData
+                pendingImageData = imageData
+            }
+
+            do {
+                let response = try await OpenAIService.shared.analyzeFood(
+                    imageData: imageData,
+                    userDescription: description
+                )
+
+                await MainActor.run {
+                    let basicResponse = response.asBasicResponse
+                    let selection = FoodItemSelection(response: basicResponse)
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        foodItemSelection = selection
+                    }
+
+                    let manager = AIConversationManager()
+                    manager.initialize(
+                        with: response,
+                        imageData: imageData,
+                        userDescription: description
+                    )
+                    conversationManager = manager
+
+                    updateFormFromSelection()
+                    isAnalyzingFood = false
+                }
+            } catch {
+                await MainActor.run {
+                    aiError = error.localizedDescription
+                    isAnalyzingFood = false
+                }
+            }
+        }
+
+        /// Shared helper: applies a food item selection to the form fields, metadata, and triggers recalculation
+        @MainActor private func applySelection(_ selection: FoodItemSelection, userModified: Bool) {
+            carbs = Decimal(selection.selectedCarbs)
+            note = selection.collapsedSummary
+
+            let itemDescriptions = selection.response.foodItems.map { item in
+                let emoji = item.emoji ?? ""
+                return "\(emoji) \(item.name): \(Int(item.carbs))g"
+            }.joined(separator: ", ")
+
+            aiAssistedMetadata = AIAssistedCarbEntryMetadata(
+                detailedDescription: itemDescriptions,
+                estimatedCarbs: selection.response.totalCarbs,
+                emoji: selection.mainItem?.emoji ?? "",
+                absorptionTime: selection.selectedAbsorptionTime,
+                carbConfidence: selection.response.overallConfidence,
+                absorptionConfidence: selection.response.overallConfidence,
+                emojiConfidence: selection.response.overallConfidence,
+                userModified: userModified,
+                foodItems: selection.response.foodItems,
+                selectedItemIds: Array(selection.selectedItemIds)
+            )
+
+            Task { @MainActor in
+                await updateForecasts()
+                insulinCalculated = await calculateInsulin()
+            }
+        }
+
+        /// Updates form fields based on current food item selection
+        @MainActor func updateFormFromSelection() {
+            guard let selection = foodItemSelection else { return }
+
+            if originalAICarbsQuantity == nil {
+                originalAICarbsQuantity = selection.response.totalCarbs
+            }
+
+            applySelection(selection, userModified: selection.userModifiedSelection)
+        }
+
+        /// Toggle selection of a food item and update form
+        @MainActor func toggleFoodItem(_ itemId: UUID) {
+            guard foodItemSelection != nil else { return }
+            foodItemSelection?.toggleSelection(for: itemId)
+            conversationManager?.toggleSelection(for: itemId)
+            updateFormFromSelection()
+        }
+
+        /// Clears the AI error state
+        func clearAIError() {
+            aiError = nil
+        }
+
+        /// Clears the food item selection (resets AI analysis)
+        func clearFoodItemSelection() {
+            foodItemSelection = nil
+            conversationManager = nil
+            capturedImageData = nil
+            foodDescription = ""
+            originalAICarbsQuantity = nil
+            aiAssistedMetadata = nil
+            pendingImageData = nil
+        }
+
+        /// Edit a food item's description and recalculate its carbs
+        func editFoodItemDescription(_ itemId: UUID, newDescription: String) async {
+            guard let manager = conversationManager else { return }
+
+            // Immediately update the item name in the selection so the UI doesn't revert
+            await MainActor.run {
+                if var selection = foodItemSelection,
+                   let index = selection.response.foodItems.firstIndex(where: { $0.id == itemId })
+                {
+                    let oldItem = selection.response.foodItems[index]
+                    var updatedItems = selection.response.foodItems
+                    updatedItems[index] = AIFoodItem(
+                        id: oldItem.id,
+                        name: newDescription,
+                        carbs: oldItem.carbs,
+                        emoji: oldItem.emoji,
+                        absorptionTime: oldItem.absorptionTime
+                    )
+                    let updatedResponse = AIFoodItemsResponse(
+                        foodItems: updatedItems,
+                        overallConfidence: selection.response.overallConfidence
+                    )
+                    var newSelection = FoodItemSelection(response: updatedResponse)
+                    newSelection.selectedItemIds = selection.selectedItemIds
+                    foodItemSelection = newSelection
+                }
+            }
+
+            await manager.updateItemDescription(itemId: itemId, newDescription: newDescription)
+
+            // Update form with the final carb values from the API
+            await MainActor.run {
+                updateFormFromConversation()
+            }
+        }
+
+        /// Updates form fields from the conversation manager's current state
+        @MainActor func updateFormFromConversation() {
+            guard let manager = conversationManager else { return }
+
+            let response = AIFoodItemsResponse(
+                foodItems: manager.currentItems,
+                overallConfidence: manager.overallConfidence
+            )
+            var selection = FoodItemSelection(response: response)
+            selection.selectedItemIds = manager.selectedItemIds
+            foodItemSelection = selection
+
+            applySelection(selection, userModified: true)
+        }
+
+        /// Accept values from the conversation manager (called when user taps Accept in chat)
+        @MainActor func acceptConversationValues(_ selection: FoodItemSelection) {
+            foodItemSelection = selection
+            conversationManager?.selectedItemIds = selection.selectedItemIds
+            applySelection(selection, userModified: true)
+        }
+
+        /// Get the IDs of items currently being recalculated (for shimmer animation)
+        var pendingItemIds: Set<UUID> {
+            conversationManager?.pendingItemIds ?? []
         }
 
         // MARK: - Presets

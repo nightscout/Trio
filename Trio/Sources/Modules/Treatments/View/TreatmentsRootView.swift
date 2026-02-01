@@ -21,6 +21,8 @@ extension Treatments {
 
         @State private var showPresetSheet = false
         @State private var autofocus: Bool = true
+
+        @State private var showAIChat = false
         @State private var calculatorDetent = PresentationDetent.large
         @State private var pushed: Bool = false
         @State private var debounce: DispatchWorkItem?
@@ -194,6 +196,14 @@ extension Treatments {
                         }.listRowBackground(Color.chart)
 
                         Section {
+                            // AI-assisted carb entry
+                            if state.isAIAvailable {
+                                AIFoodAnalysisView(
+                                    state: state,
+                                    onOpenChat: { showAIChat = true }
+                                )
+                            }
+
                             carbsTextField()
 
                             if state.useFPUconversion {
@@ -414,6 +424,17 @@ extension Treatments {
                 }
             } message: {
                 Text("\(state.determinationFailureMessage)")
+            }
+            .fullScreenCover(isPresented: $showAIChat) {
+                if let manager = state.conversationManager {
+                    AIChatView(
+                        conversationManager: manager,
+                        isPresented: $showAIChat,
+                        onAcceptValues: { selection in
+                            state.acceptConversationValues(selection)
+                        }
+                    )
+                }
             }
         }
 
