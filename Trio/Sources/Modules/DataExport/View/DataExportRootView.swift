@@ -88,24 +88,13 @@ extension DataExport {
     }
 }
 
-/// Shares all CSV files from the export directory via the system share sheet.
+/// Shares the combined export file via the system share sheet.
 private struct DataExportShareSheet: UIViewControllerRepresentable {
     let url: URL
 
     func makeUIViewController(context _: Context) -> UIActivityViewController {
-        var items: [Any] = []
-
-        if let contents = try? FileManager.default.contentsOfDirectory(
-            at: url,
-            includingPropertiesForKeys: nil
-        ) {
-            items = contents.sorted { $0.lastPathComponent < $1.lastPathComponent }
-        } else {
-            items = [url]
-        }
-
         let controller = UIActivityViewController(
-            activityItems: items,
+            activityItems: [url],
             applicationActivities: nil
         )
         return controller

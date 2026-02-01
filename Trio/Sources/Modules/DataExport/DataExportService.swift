@@ -57,28 +57,8 @@ final class DataExportService {
         let determinationsCSV = try await exportDeterminations(start: startDate, end: endDate)
         let tddCSV = try await exportTDD(start: startDate, end: endDate)
 
-        let dir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("TrioExport_\(range.rawValue.replacingOccurrences(of: " ", with: "_"))")
-
-        try? FileManager.default.removeItem(at: dir)
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-
-        let files: [(String, String)] = [
-            ("glucose.csv", glucoseCSV),
-            ("carbs.csv", carbsCSV),
-            ("boluses.csv", bolusCSV),
-            ("temp_basals.csv", basalCSV),
-            ("determinations.csv", determinationsCSV),
-            ("total_daily_dose.csv", tddCSV)
-        ]
-
-        for (name, content) in files {
-            let fileURL = dir.appendingPathComponent(name)
-            try content.write(to: fileURL, atomically: true, encoding: .utf8)
-        }
-
-        // Also write a combined summary
-        let summary = buildSummary(
+        // Build a single combined file with all data sections
+        let combined = buildCombinedExport(
             range: range,
             glucose: glucoseCSV,
             carbs: carbsCSV,
@@ -87,13 +67,13 @@ final class DataExportService {
             determinations: determinationsCSV,
             tdd: tddCSV
         )
-        try summary.write(
-            to: dir.appendingPathComponent("_summary.txt"),
-            atomically: true,
-            encoding: .utf8
-        )
 
-        return dir
+        let fileName = "Trio_Export_\(range.rawValue.replacingOccurrences(of: " ", with: "_")).csv"
+        let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        try? FileManager.default.removeItem(at: fileURL)
+        try combined.write(to: fileURL, atomically: true, encoding: .utf8)
+
+        return fileURL
     }
 
     // MARK: - Glucose
@@ -268,9 +248,9 @@ final class DataExportService {
         return csv
     }
 
-    // MARK: - Summary
+    // MARK: - Combined Export
 
-    private func buildSummary(
+    private func buildCombinedExport(
         range: ExportRange,
         glucose: String,
         carbs: String,
@@ -281,33 +261,39 @@ final class DataExportService {
     ) -> String {
         func lineCount(_ csv: String) -> Int { max(0, csv.components(separatedBy: "\n").count - 2) }
 
-        return """
-        Trio Data Export
-        ================
-        Range: \(range.rawValue)
-        Exported: \(fmt(Date()))
+        var output = ""
 
-        Record Counts:
-        - Glucose readings: \(lineCount(glucose))
-        - Carb entries: \(lineCount(carbs))
-        - Boluses: \(lineCount(bolus))
-        - Temp basals: \(lineCount(basal))
-        - Algorithm determinations: \(lineCount(determinations))
-        - TDD records: \(lineCount(tdd))
+        // Header with metadata
+        output += "# Trio Data Export\n"
+        output += "# Range: \(range.rawValue)\n"
+        output += "# Exported: \(fmt(Date()))\n"
+        output += "# Glucose readings: \(lineCount(glucose))\n"
+        output += "# Carb entries: \(lineCount(carbs))\n"
+        output += "# Boluses: \(lineCount(bolus))\n"
+        output += "# Temp basals: \(lineCount(basal))\n"
+        output += "# Algorithm determinations: \(lineCount(determinations))\n"
+        output += "# TDD records: \(lineCount(tdd))\n"
+        output += "# All dates are ISO 8601 UTC. Glucose in mg/dL. Insulin in Units. Carbs in grams.\n"
+        output += "#\n"
 
-        Files:
-        - glucose.csv: BG readings (date, mg/dL value, trend direction)
-        - carbs.csv: Carb/fat/protein entries
-        - boluses.csv: Insulin bolus doses (includes SMB flag)
-        - temp_basals.csv: Temporary basal rate changes
-        - determinations.csv: Algorithm decisions (IOB, COB, ISF, targets, rates)
-        - total_daily_dose.csv: Daily insulin totals broken down by type
+        output += "\n### GLUCOSE READINGS ###\n"
+        output += glucose
 
-        Notes:
-        - All dates are in ISO 8601 format (UTC)
-        - Glucose values are in mg/dL
-        - Insulin values are in Units
-        - Carbs/fat/protein are in grams
-        """
+        output += "\n### CARB ENTRIES ###\n"
+        output += carbs
+
+        output += "\n### INSULIN BOLUSES ###\n"
+        output += bolus
+
+        output += "\n### TEMP BASAL RATES ###\n"
+        output += basal
+
+        output += "\n### ALGORITHM DETERMINATIONS ###\n"
+        output += determinations
+
+        output += "\n### TOTAL DAILY DOSE ###\n"
+        output += tdd
+
+        return output
     }
 }
