@@ -43,7 +43,7 @@ struct DecimalPickerSettings {
         max: 1.2,
         type: PickerSetting.PickerSettingType.factor
     )
-    var high = PickerSetting(value: 180, step: 1, min: 100, max: 500, type: PickerSetting.PickerSettingType.glucose)
+    var high = PickerSetting(value: 180, step: 1, min: 100, max: 400, type: PickerSetting.PickerSettingType.glucose)
     var low = PickerSetting(value: 70, step: 1, min: 40, max: 100, type: PickerSetting.PickerSettingType.glucose)
     var maxCarbs = PickerSetting(value: 250, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gram)
     var maxFat = PickerSetting(value: 250, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gram)
@@ -51,7 +51,7 @@ struct DecimalPickerSettings {
     var overrideFactor = PickerSetting(value: 0.8, step: 0.05, min: 0.05, max: 1.5, type: PickerSetting.PickerSettingType.factor)
     var fattyMealFactor = PickerSetting(value: 0.7, step: 0.05, min: 0.05, max: 1, type: PickerSetting.PickerSettingType.factor)
     var sweetMealFactor = PickerSetting(value: 1, step: 0.05, min: 0.05, max: 2, type: PickerSetting.PickerSettingType.factor)
-    var maxIOB = PickerSetting(value: 0, step: 1, min: 0, max: 20, type: PickerSetting.PickerSettingType.insulinUnit)
+    var maxIOB = PickerSetting(value: 0, step: 1, min: 0, max: 30, type: PickerSetting.PickerSettingType.insulinUnit)
     var maxDailySafetyMultiplier = PickerSetting(
         value: 3,
         step: 0.1,
@@ -87,8 +87,8 @@ struct DecimalPickerSettings {
         type: PickerSetting.PickerSettingType.factor
     )
     var remainingCarbsCap = PickerSetting(value: 90, step: 5, min: 0, max: 200, type: PickerSetting.PickerSettingType.gram)
-    var maxSMBBasalMinutes = PickerSetting(value: 30, step: 5, min: 30, max: 180, type: PickerSetting.PickerSettingType.minute)
-    var maxUAMSMBBasalMinutes = PickerSetting(value: 30, step: 5, min: 30, max: 180, type: PickerSetting.PickerSettingType.minute)
+    var maxSMBBasalMinutes = PickerSetting(value: 30, step: 5, min: 15, max: 180, type: PickerSetting.PickerSettingType.minute)
+    var maxUAMSMBBasalMinutes = PickerSetting(value: 30, step: 5, min: 15, max: 180, type: PickerSetting.PickerSettingType.minute)
     var smbInterval = PickerSetting(value: 3, step: 1, min: 1, max: 10, type: PickerSetting.PickerSettingType.minute)
     var bolusIncrement = PickerSetting(
         value: 0.1,
@@ -113,7 +113,7 @@ struct DecimalPickerSettings {
         max: 0.4,
         type: PickerSetting.PickerSettingType.factor
     )
-    var adjustmentFactor = PickerSetting(value: 0.8, step: 0.05, min: 0.3, max: 1.5, type: PickerSetting.PickerSettingType.factor)
+    var adjustmentFactor = PickerSetting(value: 0.8, step: 0.05, min: 0.3, max: 3.0, type: PickerSetting.PickerSettingType.factor)
     var adjustmentFactorSigmoid = PickerSetting(
         value: 0.5,
         step: 0.05,

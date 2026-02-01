@@ -456,6 +456,10 @@
 		C29E268A2DADFD2A00F87E75 /* GlucoseDailyPercentileChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = C29E26892DADFD2A00F87E75 /* GlucoseDailyPercentileChart.swift */; };
 		C2A0A42F2CE03131003B98E8 /* ConstantValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A0A42E2CE0312C003B98E8 /* ConstantValues.swift */; };
 		C2A6D1E42DB1581D0036DB66 /* GlucoseStatsSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A6D1E32DB1581D0036DB66 /* GlucoseStatsSetup.swift */; };
+		C2AA6CF62E1A734A00BF6C16 /* SettingsExportRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2AA6CF02E1A734A00BF6C16 /* SettingsExportRootView.swift */; };
+		C2AA6CF72E1A734A00BF6C16 /* SettingsExportProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2AA6CF32E1A734A00BF6C16 /* SettingsExportProvider.swift */; };
+		C2AA6CF82E1A734A00BF6C16 /* SettingsExportDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2AA6CF22E1A734A00BF6C16 /* SettingsExportDataFlow.swift */; };
+		C2AA6CF92E1A734A00BF6C16 /* SettingsExportStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2AA6CF42E1A734A00BF6C16 /* SettingsExportStateModel.swift */; };
 		C967DACD3B1E638F8B43BE06 /* ManualTempBasalStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFCFE0781F9074C2917890E8 /* ManualTempBasalStateModel.swift */; };
 		CA370FC152BC98B3D1832968 /* BasalProfileEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8BCB0C37DEB5EC377B9612 /* BasalProfileEditorRootView.swift */; };
 		CC6C406E2ACDD69E009B8058 /* RawFetchedProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */; };
@@ -571,6 +575,7 @@
 		DD3A3CE92D29C97800AE478E /* Helper+ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3A3CE82D29C97800AE478E /* Helper+ButtonStyles.swift */; };
 		DD3C47B32DC5608A003DD20D /* newerSuggested.json in Resources */ = {isa = PBXBuildFile; fileRef = DD3C47B22DC5608A003DD20D /* newerSuggested.json */; };
 		DD3C47B52DC57E06003DD20D /* MainMigrationErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3C47B42DC57E06003DD20D /* MainMigrationErrorView.swift */; };
+		DD3D60312F0377350021A33B /* ExportSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3D60302F0377350021A33B /* ExportSetting.swift */; };
 		DD3F1F832D9DC78800DCE7B3 /* UnitSelectionStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F822D9DC78300DCE7B3 /* UnitSelectionStepView.swift */; };
 		DD3F1F852D9DD84000DCE7B3 /* DeliveryLimitsStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F842D9DD83B00DCE7B3 /* DeliveryLimitsStepView.swift */; };
 		DD3F1F892D9E078D00DCE7B3 /* TherapySettingEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F882D9E078300DCE7B3 /* TherapySettingEditorView.swift */; };
@@ -1283,6 +1288,10 @@
 		C29E26892DADFD2A00F87E75 /* GlucoseDailyPercentileChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseDailyPercentileChart.swift; sourceTree = "<group>"; };
 		C2A0A42E2CE0312C003B98E8 /* ConstantValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstantValues.swift; sourceTree = "<group>"; };
 		C2A6D1E32DB1581D0036DB66 /* GlucoseStatsSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseStatsSetup.swift; sourceTree = "<group>"; };
+		C2AA6CF02E1A734A00BF6C16 /* SettingsExportRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsExportRootView.swift; sourceTree = "<group>"; };
+		C2AA6CF22E1A734A00BF6C16 /* SettingsExportDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsExportDataFlow.swift; sourceTree = "<group>"; };
+		C2AA6CF32E1A734A00BF6C16 /* SettingsExportProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsExportProvider.swift; sourceTree = "<group>"; };
+		C2AA6CF42E1A734A00BF6C16 /* SettingsExportStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsExportStateModel.swift; sourceTree = "<group>"; };
 		C377490C77661D75E8C50649 /* ManualTempBasalRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualTempBasalRootView.swift; sourceTree = "<group>"; };
 		C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TreatmentsDataFlow.swift; sourceTree = "<group>"; };
 		CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawFetchedProfile.swift; sourceTree = "<group>"; };
@@ -1403,6 +1412,7 @@
 		DD3A3CE82D29C97800AE478E /* Helper+ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Helper+ButtonStyles.swift"; sourceTree = "<group>"; };
 		DD3C47B22DC5608A003DD20D /* newerSuggested.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = newerSuggested.json; sourceTree = "<group>"; };
 		DD3C47B42DC57E06003DD20D /* MainMigrationErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMigrationErrorView.swift; sourceTree = "<group>"; };
+		DD3D60302F0377350021A33B /* ExportSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportSetting.swift; sourceTree = "<group>"; };
 		DD3F1F822D9DC78300DCE7B3 /* UnitSelectionStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitSelectionStepView.swift; sourceTree = "<group>"; };
 		DD3F1F842D9DD83B00DCE7B3 /* DeliveryLimitsStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliveryLimitsStepView.swift; sourceTree = "<group>"; };
 		DD3F1F882D9E078300DCE7B3 /* TherapySettingEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingEditorView.swift; sourceTree = "<group>"; };
@@ -1898,6 +1908,7 @@
 				E592A3762CEEC038009A472C /* ContactImage */,
 				9E56E3626FAD933385101B76 /* History */,
 				195D80B22AF696EE00D25097 /* DynamicSettings */,
+				C2AA6CF52E1A734A00BF6C16 /* SettingsExport */,
 				DD17454C2C55CA0200211FAC /* GeneralSettings */,
 				F66B236E00924A05D6A9F9DF /* GlucoseNotificationSettings */,
 				F90692CD274B99850037068D /* HealthKit */,
@@ -2358,6 +2369,7 @@
 		388E5A5925B6F0250019842D /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				DD3D60302F0377350021A33B /* ExportSetting.swift */,
 				DDFF204F2DB2C11900AB8A96 /* WatchStateSnapshot.swift */,
 				DDEBB05B2D89E9050032305D /* TimeInRangeType.swift */,
 				3B2F77852D7E52ED005ED9FA /* TDD.swift */,
@@ -3054,6 +3066,25 @@
 				BDFF7A922D25F97D0016C40C /* TrioWatchAppExtension.swift */,
 			);
 			path = "Trio Watch App";
+			sourceTree = "<group>";
+		};
+		C2AA6CF12E1A734A00BF6C16 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				C2AA6CF02E1A734A00BF6C16 /* SettingsExportRootView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		C2AA6CF52E1A734A00BF6C16 /* SettingsExport */ = {
+			isa = PBXGroup;
+			children = (
+				C2AA6CF12E1A734A00BF6C16 /* View */,
+				C2AA6CF22E1A734A00BF6C16 /* SettingsExportDataFlow.swift */,
+				C2AA6CF32E1A734A00BF6C16 /* SettingsExportProvider.swift */,
+				C2AA6CF42E1A734A00BF6C16 /* SettingsExportStateModel.swift */,
+			);
+			path = SettingsExport;
 			sourceTree = "<group>";
 		};
 		C2C98283C436DB934D7E7994 /* Treatments */ = {
@@ -4404,6 +4435,10 @@
 				DD6A4E842DBEDD39008C4B26 /* AlgorithmSettingsImportantNotesStepView.swift in Sources */,
 				3811DEB025C9D88300A708ED /* BaseKeychain.swift in Sources */,
 				110AEDE42C5193D200615CC9 /* BolusIntentRequest.swift in Sources */,
+				C2AA6CF62E1A734A00BF6C16 /* SettingsExportRootView.swift in Sources */,
+				C2AA6CF72E1A734A00BF6C16 /* SettingsExportProvider.swift in Sources */,
+				C2AA6CF82E1A734A00BF6C16 /* SettingsExportDataFlow.swift in Sources */,
+				C2AA6CF92E1A734A00BF6C16 /* SettingsExportStateModel.swift in Sources */,
 				3811DE4325C9D4A100A708ED /* SettingsProvider.swift in Sources */,
 				45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */,
 				CE7CA34E2A064973004BE681 /* AppShortcuts.swift in Sources */,
@@ -4480,6 +4515,7 @@
 				CE7CA3512A064973004BE681 /* ApplyTempPresetIntent.swift in Sources */,
 				FA630397F76B582C8D8681A7 /* BasalProfileEditorProvider.swift in Sources */,
 				DD1745172C54389F00211FAC /* FeatureSettingsView.swift in Sources */,
+				DD3D60312F0377350021A33B /* ExportSetting.swift in Sources */,
 				DD9ECB712CA9A0BA00AA7C45 /* RemoteControlConfigProvider.swift in Sources */,
 				63E890B4D951EAA91C071D5C /* BasalProfileEditorStateModel.swift in Sources */,
 				38FEF3FA2737E42000574A46 /* BaseStateModel.swift in Sources */,
