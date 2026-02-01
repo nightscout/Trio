@@ -1,0 +1,30 @@
+{
+    "enabled": false,
+    "tiers": [
+        {
+            "bg_min": 0,
+            "bg_max": 70,
+            "isf_multiplier": 1.2
+        },
+        {
+            "bg_min": 70,
+            "bg_max": 140,
+            "isf_multiplier": 1.0
+        },
+        {
+            "bg_min": 140,
+            "bg_max": 200,
+            "isf_multiplier": 0.9
+        },
+        {
+            "bg_min": 200,
+            "bg_max": 250,
+            "isf_multiplier": 0.8
+        },
+        {
+            "bg_min": 250,
+            "bg_max": 400,
+            "isf_multiplier": 0.7
+        }
+    ]
+}
