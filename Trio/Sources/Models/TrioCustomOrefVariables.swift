@@ -21,6 +21,8 @@ struct TrioCustomOrefVariables: JSON, Equatable {
     var end: Decimal
     var smbMinutes: Decimal
     var uamMinutes: Decimal
+    var isfTiersEnabled: Bool
+    var isfTiers: [InsulinSensitivityTier]
 
     init(
         average_total_data: Decimal,
@@ -43,6 +45,8 @@ struct TrioCustomOrefVariables: JSON, Equatable {
         end: Decimal,
         smbMinutes: Decimal,
         uamMinutes: Decimal,
+        isfTiersEnabled: Bool = false,
+        isfTiers: [InsulinSensitivityTier] = []
     ) {
         self.average_total_data = average_total_data
         self.weightedAverage = weightedAverage
@@ -64,6 +68,8 @@ struct TrioCustomOrefVariables: JSON, Equatable {
         self.end = end
         self.smbMinutes = smbMinutes
         self.uamMinutes = uamMinutes
+        self.isfTiersEnabled = isfTiersEnabled
+        self.isfTiers = isfTiers
     }
 }
 
@@ -89,5 +95,7 @@ extension TrioCustomOrefVariables {
         case end
         case smbMinutes
         case uamMinutes
+        case isfTiersEnabled
+        case isfTiers
     }
 }

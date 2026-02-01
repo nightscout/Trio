@@ -139,6 +139,17 @@ enum SettingItems {
             path: ["Algorithm", "Dynamic Sensitivity"]
         ),
         SettingItem(
+            title: "ISF Tiers",
+            view: .isfTiersEditor,
+            searchContents: [
+                "ISF Sensitivity Tiers",
+                "BG Range ISF",
+                "ISF Multiplier",
+                "Insulin Sensitivity Tiers"
+            ],
+            path: ["Algorithm", "ISF Tiers"]
+        ),
+        SettingItem(
             title: "Target Behavior",
             view: .targetBehavior,
             searchContents: [
