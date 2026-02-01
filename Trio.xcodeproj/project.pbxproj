@@ -727,6 +727,16 @@
 		FE41E4D629463EE20047FD55 /* NightscoutPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE41E4D529463EE20047FD55 /* NightscoutPreferences.swift */; };
 		FE66D16B291F74F8005D6F77 /* Bundle+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */; };
 		FEFFA7A22929FE49007B8193 /* UIDevice+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */; };
+		AA00020000000000000001B1 /* InsulinSensitivityTiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00010000000000000001A1 /* InsulinSensitivityTiers.swift */; };
+		AA00020000000000000002B1 /* ISFTiersEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00010000000000000002A1 /* ISFTiersEditorDataFlow.swift */; };
+		AA00020000000000000003B1 /* ISFTiersEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00010000000000000003A1 /* ISFTiersEditorProvider.swift */; };
+		AA00020000000000000004B1 /* ISFTiersEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00010000000000000004A1 /* ISFTiersEditorStateModel.swift */; };
+		AA00020000000000000005B1 /* ISFTiersEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00010000000000000005A1 /* ISFTiersEditorRootView.swift */; };
+		AA00020000000000000006B1 /* DataExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00010000000000000006A1 /* DataExportService.swift */; };
+		AA00020000000000000007B1 /* DataExportDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00010000000000000007A1 /* DataExportDataFlow.swift */; };
+		AA00020000000000000008B1 /* DataExportProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00010000000000000008A1 /* DataExportProvider.swift */; };
+		AA00020000000000000009B1 /* DataExportStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00010000000000000009A1 /* DataExportStateModel.swift */; };
+		AA0002000000000000000AB1 /* DataExportRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000AA1 /* DataExportRootView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1554,6 +1564,16 @@
 		FE41E4D529463EE20047FD55 /* NightscoutPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutPreferences.swift; sourceTree = "<group>"; };
 		FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+Extensions.swift"; sourceTree = "<group>"; };
 		FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIDevice+Extensions.swift"; sourceTree = "<group>"; };
+		AA00010000000000000001A1 /* InsulinSensitivityTiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsulinSensitivityTiers.swift; sourceTree = "<group>"; };
+		AA00010000000000000002A1 /* ISFTiersEditorDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ISFTiersEditorDataFlow.swift; sourceTree = "<group>"; };
+		AA00010000000000000003A1 /* ISFTiersEditorProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ISFTiersEditorProvider.swift; sourceTree = "<group>"; };
+		AA00010000000000000004A1 /* ISFTiersEditorStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ISFTiersEditorStateModel.swift; sourceTree = "<group>"; };
+		AA00010000000000000005A1 /* ISFTiersEditorRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ISFTiersEditorRootView.swift; sourceTree = "<group>"; };
+		AA00010000000000000006A1 /* DataExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExportService.swift; sourceTree = "<group>"; };
+		AA00010000000000000007A1 /* DataExportDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExportDataFlow.swift; sourceTree = "<group>"; };
+		AA00010000000000000008A1 /* DataExportProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExportProvider.swift; sourceTree = "<group>"; };
+		AA00010000000000000009A1 /* DataExportStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExportStateModel.swift; sourceTree = "<group>"; };
+		AA0001000000000000000AA1 /* DataExportRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExportRootView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -1762,6 +1782,45 @@
 			name = "Recovered References";
 			sourceTree = "<group>";
 		};
+		AA00030000000000000001C1 /* ISFTiersEditor */ = {
+			isa = PBXGroup;
+			children = (
+				AA00010000000000000002A1 /* ISFTiersEditorDataFlow.swift */,
+				AA00010000000000000003A1 /* ISFTiersEditorProvider.swift */,
+				AA00010000000000000004A1 /* ISFTiersEditorStateModel.swift */,
+				AA00030000000000000002C1 /* View */,
+			);
+			path = ISFTiersEditor;
+			sourceTree = "<group>";
+		};
+		AA00030000000000000002C1 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				AA00010000000000000005A1 /* ISFTiersEditorRootView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		AA00030000000000000003C1 /* DataExport */ = {
+			isa = PBXGroup;
+			children = (
+				AA00010000000000000006A1 /* DataExportService.swift */,
+				AA00010000000000000007A1 /* DataExportDataFlow.swift */,
+				AA00010000000000000008A1 /* DataExportProvider.swift */,
+				AA00010000000000000009A1 /* DataExportStateModel.swift */,
+				AA00030000000000000004C1 /* View */,
+			);
+			path = DataExport;
+			sourceTree = "<group>";
+		};
+		AA00030000000000000004C1 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				AA0001000000000000000AA1 /* DataExportRootView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
 		195D80B22AF696EE00D25097 /* DynamicSettings */ = {
 			isa = PBXGroup;
 			children = (
@@ -1895,6 +1954,7 @@
 				0610F7D6D2EC00E3BA1569F0 /* ConfigEditor */,
 				E592A3762CEEC038009A472C /* ContactImage */,
 				9E56E3626FAD933385101B76 /* DataTable */,
+				AA00030000000000000003C1 /* DataExport */,
 				195D80B22AF696EE00D25097 /* DynamicSettings */,
 				DD17454C2C55CA0200211FAC /* GeneralSettings */,
 				F66B236E00924A05D6A9F9DF /* GlucoseNotificationSettings */,
@@ -1902,6 +1962,7 @@
 				3811DE2725C9D49500A708ED /* Home */,
 				19E1F7E629D0828B005C8D20 /* IconConfig */,
 				D8F047E14D567F2B5DBEFD96 /* ISFEditor */,
+				AA00030000000000000001C1 /* ISFTiersEditor */,
 				DDF847DB2C5C28550049BB3B /* LiveActivitySettings */,
 				3811DE1A25C9D48300A708ED /* Main */,
 				5031FE61F63C2A8A8B7674DD /* ManualTempBasal */,
@@ -2380,6 +2441,7 @@
 				E592A36F2CEEC01E009A472C /* ContactTrickEntry.swift */,
 				38AEE73C25F0200C0013F05B /* TrioSettings.swift */,
 				382C133625F13A1E00715CE1 /* InsulinSensitivities.swift */,
+				AA00010000000000000001A1 /* InsulinSensitivityTiers.swift */,
 				38887CCD25F5725200944304 /* IOBEntry.swift */,
 				DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */,
 				385CEA8125F23DFD002D6D5B /* NightscoutStatus.swift */,
@@ -4697,6 +4759,16 @@
 				8194B80890CDD6A3C13B0FEE /* SnoozeStateModel.swift in Sources */,
 				BDA25EE42D260CD500035F34 /* AppleWatchManager.swift in Sources */,
 				0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */,
+				AA00020000000000000001B1 /* InsulinSensitivityTiers.swift in Sources */,
+				AA00020000000000000002B1 /* ISFTiersEditorDataFlow.swift in Sources */,
+				AA00020000000000000003B1 /* ISFTiersEditorProvider.swift in Sources */,
+				AA00020000000000000004B1 /* ISFTiersEditorStateModel.swift in Sources */,
+				AA00020000000000000005B1 /* ISFTiersEditorRootView.swift in Sources */,
+				AA00020000000000000006B1 /* DataExportService.swift in Sources */,
+				AA00020000000000000007B1 /* DataExportDataFlow.swift in Sources */,
+				AA00020000000000000008B1 /* DataExportProvider.swift in Sources */,
+				AA00020000000000000009B1 /* DataExportStateModel.swift in Sources */,
+				AA0002000000000000000AB1 /* DataExportRootView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
