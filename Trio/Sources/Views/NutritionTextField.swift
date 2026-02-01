@@ -43,7 +43,7 @@ public struct NutritionTextField<Field: Hashable>: View {
     public var body: some View {
         let isFocused = focusedField.wrappedValue == field
         ZStack {
-            NutritionInputView(
+            KeyboardToolbarTextField(
                 value: $value,
                 formatter: numberFormatter,
                 configuration: .init(
@@ -128,7 +128,7 @@ public struct AmountTextField<Field: Hashable>: View {
 
         HStack(spacing: 12) {
             HStack(spacing: 4) {
-                NutritionInputView(
+                KeyboardToolbarTextField(
                     value: $amount,
                     formatter: numberFormatter,
                     configuration: .init(
@@ -171,22 +171,50 @@ public struct AmountTextField<Field: Hashable>: View {
 
 // MARK: - Internal UIKit Implementation
 
-private struct NutritionInputView: UIViewRepresentable {
+public struct KeyboardToolbarTextField: UIViewRepresentable {
     @Binding var value: Double
-    let formatter: NumberFormatter
-    let configuration: Configuration
-    let onFocusContext: (Bool) -> Void
-    let externalFocus: Bool
+    public let formatter: NumberFormatter
+    public let configuration: Configuration
+    public let onFocusContext: (Bool) -> Void
+    public let externalFocus: Bool
 
-    struct Configuration {
-        var keyboardType: UIKeyboardType = .decimalPad
-        var textAlignment: NSTextAlignment = .right
-        var placeholder: String = ""
-        var font: UIFont? = nil
-        var textColor: UIColor = .label
+    public struct Configuration {
+        public var keyboardType: UIKeyboardType = .decimalPad
+        public var textAlignment: NSTextAlignment = .right
+        public var placeholder: String = ""
+        public var font: UIFont?
+        public var textColor: UIColor = .label
+
+        public init(
+            keyboardType: UIKeyboardType = .decimalPad,
+            textAlignment: NSTextAlignment = .right,
+            placeholder: String = "",
+            font: UIFont? = nil,
+            textColor: UIColor = .label
+        ) {
+            self.keyboardType = keyboardType
+            self.textAlignment = textAlignment
+            self.placeholder = placeholder
+            self.font = font
+            self.textColor = textColor
+        }
     }
 
-    func makeUIView(context: Context) -> UITextField {
+    public init(
+        value: Binding<Double>,
+        formatter: NumberFormatter,
+        configuration: Configuration = .init(),
+        onFocusContext: @escaping (Bool) -> Void = { _ in },
+        externalFocus: Bool = false
+    ) {
+        _value = value
+        self.formatter = formatter
+        self.configuration = configuration
+        self.onFocusContext = onFocusContext
+        self.externalFocus = externalFocus
+    }
+
+    public func makeUIView(context: Context) -> UITextField {
         let textField = UITextField()
         textField.delegate = context.coordinator
         textField.keyboardType = configuration.keyboardType
@@ -221,7 +249,7 @@ private struct NutritionInputView: UIViewRepresentable {
         return textField
     }
 
-    func updateUIView(_ uiView: UITextField, context: Context) {
+    public func updateUIView(_ uiView: UITextField, context: Context) {
         context.coordinator.parent = self
         // Clear entering focus flag if we have achieved consistency
         if externalFocus {
@@ -259,16 +287,16 @@ private struct NutritionInputView: UIViewRepresentable {
         }
     }
 
-    func makeCoordinator() -> Coordinator {
+    public func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
 
-    class Coordinator: NSObject, UITextFieldDelegate {
-        var parent: NutritionInputView
+    public class Coordinator: NSObject, UITextFieldDelegate {
+        var parent: KeyboardToolbarTextField
         weak var textField: UITextField?
         var isEnteringFocus = false
 
-        init(_ parent: NutritionInputView) {
+        init(_ parent: KeyboardToolbarTextField) {
             self.parent = parent
         }
 
@@ -277,12 +305,12 @@ private struct NutritionInputView: UIViewRepresentable {
             textField?.text = ""
         }
 
-        func textFieldShouldBeginEditing(_: UITextField) -> Bool {
+        public func textFieldShouldBeginEditing(_: UITextField) -> Bool {
             isEnteringFocus = true
             return true
         }
 
-        func textFieldDidBeginEditing(_ textField: UITextField) {
+        public func textFieldDidBeginEditing(_ textField: UITextField) {
             parent.onFocusContext(true)
             // Move cursor to end of document
             DispatchQueue.main.async {
@@ -291,14 +319,14 @@ private struct NutritionInputView: UIViewRepresentable {
             }
         }
 
-        func textFieldDidEndEditing(_ textField: UITextField) {
+        public func textFieldDidEndEditing(_ textField: UITextField) {
             isEnteringFocus = false
             parent.onFocusContext(false)
             // Final format on end editing
             parent.updateTextField(textField)
         }
 
-        func textField(
+        public func textField(
             _ textField: UITextField,
             shouldChangeCharactersIn range: NSRange,
             replacementString string: String

@@ -233,6 +233,19 @@ extension BarcodeScanner {
             }
         }
 
+        func selectQuickPortion(amount: Double, unit: String) {
+            if editingAmount == amount {
+                // Deselect: revert to standard 100 basis
+                editingAmount = 100
+                currentScannedItem?.servingQuantity = nil
+                currentScannedItem?.servingQuantityUnit = nil
+            } else {
+                editingAmount = amount
+                currentScannedItem?.servingQuantity = amount
+                currentScannedItem?.servingQuantityUnit = unit
+            }
+        }
+
         /// Clears the currently displayed product from the overlay
         func clearScannedProduct() {
             currentScannedItem = nil

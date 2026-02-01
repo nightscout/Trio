@@ -86,109 +86,97 @@ extension BarcodeScanner {
                 )
         }
     }
-}
 
-// MARK: - Scanned Product Row
-
-extension BarcodeScanner {
     struct ScannedProductRow: View {
         let item: FoodItem
         var state: StateModel
         var focusedItemID: FocusState<UUID?>.Binding
 
-        @State private var amountText: String = ""
+        @State private var amount: Double = 0
         @State private var isMlInput: Bool = false
         @State private var showQuickSelector: Bool = false
 
+        private var formatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.maximumFractionDigits = 1
+            return formatter
+        }
+
         var body: some View {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .top, spacing: 12) {
+            let isFocused = focusedItemID.wrappedValue == item.id
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .center, spacing: 12) {
                     productImage
 
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text(item.name)
                             .font(.subheadline.weight(.semibold))
                             .lineLimit(2)
+
                         if let brand = item.brand {
                             Text(brand)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
+
+                        HStack(spacing: 8) {
+                            KeyboardToolbarTextField(
+                                value: $amount,
+                                formatter: formatter,
+                                configuration: .init(
+                                    keyboardType: .decimalPad,
+                                    textAlignment: .left,
+                                    placeholder: "0",
+                                    font: .systemFont(ofSize: 17, weight: .bold)
+                                ),
+                                onFocusContext: { isEntering in
+                                    if isEntering {
+                                        focusedItemID.wrappedValue = item.id
+                                    } else if isFocused {
+                                        focusedItemID.wrappedValue = nil
+                                    }
+                                },
+                                externalFocus: isFocused
+                            )
+                            .frame(width: 70)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.secondary.opacity(0.12))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .onChange(of: amount) { _, newValue in
+                                state.updateScannedProductAmount(item, amount: newValue, isMlInput: isMlInput)
+                            }
+
+                            Picker("", selection: $isMlInput) {
+                                Text("g").tag(false)
+                                Text("ml").tag(true)
+                            }
+                            .pickerStyle(.segmented)
+                            .frame(width: 85)
+                            .onChange(of: isMlInput) { _, newValue in
+                                state.updateScannedProductAmount(item, amount: amount, isMlInput: newValue)
+                            }
+                        }
                     }
 
                     Spacer()
                 }
-
-                HStack(spacing: 12) {
-                    TextField(
-                        String(localized: "Amount"),
-                        text: $amountText
-                    )
-                    .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
-                    .focused(focusedItemID, equals: item.id)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Button {
-                                amountText = ""
-                                state.updateScannedProductAmount(item, amount: 0, isMlInput: isMlInput)
-                            } label: {
-                                Image(systemName: "trash")
-                            }
-
-                            Spacer()
-
-                            Button {
-                                focusedItemID.wrappedValue = nil
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "keyboard.chevron.compact.down")
-                                }
-                                .font(.headline)
-                            }
-                        }
-                    }
-                    .onChange(of: amountText) { _, newValue in
-                        if let amount = Double(newValue.replacingOccurrences(of: ",", with: ".")) {
-                            if amount.isFinite {
-                                state.updateScannedProductAmount(item, amount: amount, isMlInput: isMlInput)
-                            }
-                        }
-                    }
-
-                    Picker("", selection: $isMlInput) {
-                        Text("g").tag(false)
-                        Text("ml").tag(true)
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(width: 100)
-                    .onChange(of: isMlInput) { _, newValue in
-                        if let amount = Double(amountText.replacingOccurrences(of: ",", with: ".")) {
-                            state.updateScannedProductAmount(item, amount: amount, isMlInput: newValue)
-                        }
+                .padding()
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                        showQuickSelector.toggle()
                     }
                 }
 
                 if showQuickSelector {
-                    VStack(spacing: 8) {
-                        HStack(spacing: 8) {
-                            firstRowButtons
-                        }
-                        HStack(spacing: 8) {
-                            secondRowButtons
-                        }
-                    }
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    multiplierWheel
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .padding()
             .background(.ultraThinMaterial)
             .clipShape(RoundedRectangle(cornerRadius: 16))
-            .onTapGesture {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    showQuickSelector.toggle()
-                }
-            }
             .onAppear {
                 updateFromItem()
             }
@@ -198,62 +186,69 @@ extension BarcodeScanner {
             .onChange(of: item.isMlInput) { _, _ in
                 updateFromItem()
             }
-            .onChange(of: focusedItemID.wrappedValue) { _, newValue in
-                // Pause scanner and hide scanner view when numpad is opened
-                if newValue == item.id {
-                    // handled in parent now
-                }
-            }
         }
 
         private func updateFromItem() {
-            if item.amount > 0 {
-                if item.amount.truncatingRemainder(dividingBy: 1) == 0 {
-                    amountText = String(format: "%.0f", item.amount)
-                } else {
-                    amountText = String(format: "%.1f", item.amount)
-                }
-            } else {
-                amountText = ""
-            }
+            amount = item.amount
             isMlInput = item.isMlInput
         }
 
         private func updateAmount(_ amount: Double) {
             guard amount.isFinite else { return }
-
-            if amount.truncatingRemainder(dividingBy: 1) == 0 {
-                amountText = String(format: "%.0f", amount)
-            } else {
-                amountText = String(format: "%.1f", amount)
-            }
+            self.amount = amount
             state.updateScannedProductAmount(item, amount: amount, isMlInput: isMlInput)
         }
 
-        @ViewBuilder private var firstRowButtons: some View {
-            ForEach(1 ... 5, id: \.self) { multiplier in
-                Button {
-                    quickSelectMultiplier(multiplier)
-                } label: {
-                    Text("\(multiplier)x")
-                        .font(.caption.weight(.medium))
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-            }
+        private func stepMultiplier(by value: Int) {
+            let base = item.servingQuantity ?? 100
+            let current = base > 0 ? Int(round(item.amount / base)) : 1
+            let next = max(1, current + value)
+            quickSelectMultiplier(next)
         }
 
-        @ViewBuilder private var secondRowButtons: some View {
-            ForEach(6 ... 10, id: \.self) { multiplier in
+        @ViewBuilder private var multiplierWheel: some View {
+            let base = item.servingQuantity ?? 100
+            let current = base > 0 ? Int(round(item.amount / base)) : 1
+
+            HStack(spacing: 12) {
                 Button {
-                    quickSelectMultiplier(multiplier)
+                    stepMultiplier(by: -1)
                 } label: {
-                    Text("\(multiplier)x")
-                        .font(.caption.weight(.medium))
+                    Image(systemName: "minus")
+                        .font(.title2.weight(.bold))
                         .frame(maxWidth: .infinity)
+                        .frame(height: 60)
+                        .background(Color.accentColor.opacity(0.12))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.plain)
+
+                VStack(spacing: 2) {
+                    Text("\(current)x")
+                        .font(.title2.weight(.bold))
+                    Text(current == 1 ? String(localized: "Portion") : String(localized: "Portions"))
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+                }
+                .frame(width: 100, height: 60)
+                .background(Color.accentColor.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+
+                Button {
+                    stepMultiplier(by: 1)
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.title2.weight(.bold))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 60)
+                        .background(Color.accentColor.opacity(0.12))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .buttonStyle(.plain)
             }
+            .padding(.horizontal)
+            .padding(.bottom, 16)
         }
 
         private func quickSelectMultiplier(_ multiplier: Int) {
@@ -262,7 +257,6 @@ extension BarcodeScanner {
             } else {
                 updateAmount(Double(multiplier) * 100)
             }
-            showQuickSelector = false
         }
 
         @ViewBuilder private var productImage: some View {
@@ -306,11 +300,7 @@ extension BarcodeScanner {
                 )
         }
     }
-}
 
-// MARK: - Nutriment Grid
-
-extension BarcodeScanner {
     struct NutrimentGrid: View {
         let nutriments: FoodItem.Nutriments
 

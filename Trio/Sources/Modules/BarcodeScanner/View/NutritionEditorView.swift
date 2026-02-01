@@ -77,7 +77,9 @@ extension BarcodeScanner {
                                     label: String(localized: "Carbohydrates"),
                                     value: Binding(
                                         get: { state.currentScannedItem?.nutriments.carbohydratesPer100g ?? 0 },
-                                        set: { state.updateProductNutriment(keyPath: \.carbohydratesPer100g, value: $0) }
+                                        set: {
+                                            state.updateProductNutriment(keyPath: \.carbohydratesPer100g, value: $0)
+                                        }
                                     ),
                                     unit: "g",
                                     field: .carbs,
@@ -138,7 +140,8 @@ extension BarcodeScanner {
                         }
                     } label: {
                         Label(
-                            state.isEditingFromList ? String(localized: "Update") : String(localized: "Add to List"),
+                            state.isEditingFromList
+                                ? String(localized: "Update") : String(localized: "Add to List"),
                             systemImage: "plus.circle.fill"
                         )
                         .font(.subheadline.weight(.semibold))
@@ -196,10 +199,42 @@ extension BarcodeScanner {
                     focusedField: $focusedField
                 )
 
+                if state.editingIsMl {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            let options: [(String, Double, String)] = [
+                                ("0.25l", 250, "l"),
+                                ("0.33l", 333, "l"),
+                                ("0.5l", 500, "l"),
+                                ("1l", 1000, "l")
+                            ]
+                            ForEach(options, id: \.0) { label, value, unit in
+                                let isSelected = state.editingAmount == value
+                                Button {
+                                    state.selectQuickPortion(amount: value, unit: unit)
+                                } label: {
+                                    Text(label)
+                                        .font(.subheadline.weight(isSelected ? .bold : .medium))
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(
+                                            isSelected ? Color.blue : Color.secondary.opacity(0.15)
+                                        )
+                                        .foregroundColor(isSelected ? .white : .primary)
+                                        .clipShape(Capsule())
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+
                 // Show calculated nutrition based on amount
                 if state.editingAmount > 0 {
                     if let product = state.currentScannedItem {
-                        let carbsTotal = (product.nutriments.carbohydratesPer100g ?? 0) * state.editingAmount / 100
+                        let carbsTotal =
+                            (product.nutriments.carbohydratesPer100g ?? 0) * state.editingAmount / 100
                         let kcalTotal = (product.nutriments.energyKcalPer100g ?? 0) * state.editingAmount / 100
                         nutritionSummary(carbs: carbsTotal, kcal: kcalTotal)
                     }
@@ -229,7 +264,9 @@ extension BarcodeScanner {
 
         private func dismissKeyboard() {
             focusedField = nil
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            UIApplication.shared.sendAction(
+                #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil
+            )
         }
     }
 }

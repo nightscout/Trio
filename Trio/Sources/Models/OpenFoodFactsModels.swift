@@ -51,8 +51,8 @@ extension BarcodeScanner {
 
         /// Preferred unit for user input (true = ml, false = g)
         let defaultPortionIsMl: Bool
-        let servingQuantity: Double?
-        let servingQuantityUnit: String?
+        var servingQuantity: Double?
+        var servingQuantityUnit: String?
 
         var nutriments: Nutriments
 
