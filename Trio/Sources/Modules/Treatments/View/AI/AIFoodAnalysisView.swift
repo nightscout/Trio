@@ -15,11 +15,6 @@ struct AIFoodAnalysisView: View {
 
     var body: some View {
         Group {
-            // swiftformat:disable:next redundantLet
-            let _ =
-                print(
-                    "🔍 AI VIEW: isInAIMode=\(state.isInAIMode) isAnalyzing=\(state.isAnalyzingFood) hasImage=\(state.capturedImageData != nil) hasSelection=\(state.foodItemSelection != nil)"
-                )
             if !state.isInAIMode {
                 // AI button
                 AnimatedRainbowButton(
