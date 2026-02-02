@@ -631,9 +631,9 @@ extension Treatments {
 
         func saveMeal() async {
             do {
-                let totalCarbs = carbs + scannedCarbs
-                let totalFat = fat + scannedFat
-                let totalProtein = protein + scannedProtein
+                let totalCarbs = min(carbs + scannedCarbs, maxCarbs)
+                let totalFat = useFPUconversion ? min(fat + scannedFat, maxFat) : 0
+                let totalProtein = useFPUconversion ? min(protein + scannedProtein, maxProtein) : 0
 
                 guard totalCarbs > 0 || totalFat > 0 || totalProtein > 0 else { return }
 
@@ -645,9 +645,9 @@ extension Treatments {
                     id: id_,
                     createdAt: now,
                     actualDate: date,
-                    carbs: min(totalCarbs, maxCarbs),
-                    fat: min(totalFat, maxFat),
-                    protein: min(totalProtein, maxProtein),
+                    carbs: totalCarbs,
+                    fat: totalFat,
+                    protein: totalProtein,
                     note: note,
                     enteredBy: CarbsEntry.local,
                     isFPU: false,
