@@ -70,12 +70,15 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             .receive(on: DispatchQueue.global(qos: .background))
             .sink { [weak self] _ in
                 guard let self = self else { return }
-                // Skip if no watch is paired or app not installed
-                guard let session = self.session, session.isPaired, session.isReachable,
-                      session.isWatchAppInstalled else { return }
                 Task {
-                    let state = await self.setupWatchState()
-                    await self.sendDataToWatch(state)
+                    // Only send via WatchConnectivity if session is ready
+                    // The Watch App will persist data to its local App Group for the complication
+                    if let session = self.session, session.isPaired, session.isReachable,
+                       session.isWatchAppInstalled
+                    {
+                        let state = await self.setupWatchState()
+                        await self.sendDataToWatch(state)
+                    }
                 }
             }
             .store(in: &subscriptions)

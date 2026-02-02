@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import WatchConnectivity
+import WidgetKit
 
 /// WatchState manages the communication between the Watch app and the iPhone app using WatchConnectivity.
 /// It handles glucose data synchronization and sending treatment requests (bolus, carbs) to the phone.
@@ -573,5 +574,57 @@ import WatchConnectivity
                 self.confirmBolusFaster = booleanValue
             }
         }
+
+        // Persist to App Group for complication access
+        persistToAppGroupForComplication(from: message)
+    }
+
+    // MARK: - Complication Data Persistence
+
+    /// Persists glucose data to Watch-local App Group for complication access.
+    /// This is called after receiving data from the iPhone via WatchConnectivity.
+    /// The complication reads from this same App Group to display glucose data.
+    /// - Parameter message: The WatchState message dictionary containing glucose data
+    private func persistToAppGroupForComplication(from message: [String: Any]) {
+        guard let suiteName = Bundle.main.appGroupSuiteName,
+              let sharedDefaults = UserDefaults(suiteName: suiteName)
+        else {
+            Task {
+                await WatchLogger.shared.log("⌚️ Could not access App Group for complication")
+            }
+            return
+        }
+
+        sharedDefaults.set(currentGlucose, forKey: "currentGlucose")
+        sharedDefaults.set(trend ?? "", forKey: "trend")
+        sharedDefaults.set(delta ?? "--", forKey: "delta")
+        sharedDefaults.set(currentGlucoseColorString, forKey: "currentGlucoseColorString")
+        sharedDefaults.set(iob ?? "", forKey: "iob")
+        sharedDefaults.set(cob ?? "", forKey: "cob")
+        sharedDefaults.set(Date().timeIntervalSince1970, forKey: "date")
+
+        // Store units as string (mg/dL or mmol/L)
+        // The complication will use this to display the correct units
+        if let unitsString = message[WatchMessageKeys.units] as? String {
+            sharedDefaults.set(unitsString, forKey: "units")
+        }
+
+        sharedDefaults.synchronize()
+
+        // Reload complication timeline - this is called FROM the Watch
+        // so it correctly triggers watchOS WidgetKit refresh
+        WidgetCenter.shared.reloadTimelines(ofKind: "TrioWatchComplication")
+
+        Task {
+            await WatchLogger.shared.log("⌚️ Persisted glucose to App Group and triggered complication refresh")
+        }
+    }
+}
+
+// MARK: - Bundle Extension
+
+extension Bundle {
+    var appGroupSuiteName: String? {
+        object(forInfoDictionaryKey: "AppGroupID") as? String
     }
 }
