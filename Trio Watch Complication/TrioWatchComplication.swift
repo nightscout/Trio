@@ -169,31 +169,20 @@ struct TrioAccessoryCircularView: View {
     }
 }
 
-/// Corner Complication - Compact glucose display
+/// Corner Complication - Glucose in corner with trend/delta curving around
 struct TrioAccessoryCornerView: View {
     var entry: TrioWatchComplicationEntry
 
     var body: some View {
-        ZStack {
-            AccessoryWidgetBackground()
-
-            HStack(spacing: 3) {
-                // Glucose value
-                Text(entry.isStale ? "--" : entry.glucoseValue)
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
-                    .foregroundStyle(entry.isStale ? .gray : entry.glucoseColor)
-                    .minimumScaleFactor(0.7)
-
-                // Trend arrow
-                Text(entry.trend)
-                    .font(.system(size: 12))
-                    .foregroundStyle(entry.isStale ? .gray : .primary)
+        // Main content: just the glucose value, large and readable
+        Text(entry.isStale ? "--" : entry.glucoseValue)
+            .font(.system(size: 24, weight: .bold, design: .rounded))
+            .foregroundStyle(entry.isStale ? .gray : entry.glucoseColor)
+            .widgetCurvesContent()
+            .widgetLabel {
+                // Curved label around the corner: trend + delta
+                Text("\(entry.trend) \(entry.delta)")
             }
-        }
-        .widgetLabel {
-            Text(entry.delta)
-                .font(.system(size: 10))
-        }
     }
 }
 
