@@ -19,8 +19,9 @@
 		09A169792EE302EB0026711D /* OpenFoodFactsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169712EE302EB0026711D /* OpenFoodFactsModels.swift */; };
 		09A1697B2EE302EB0026711D /* ScannerPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169732EE302EB0026711D /* ScannerPreviewView.swift */; };
 		09A1697C2EE302EB0026711D /* ProductViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A169742EE302EB0026711D /* ProductViews.swift */; };
+		09D758522F31671B00F9055E /* ProductSearchField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D758512F31671B00F9055E /* ProductSearchField.swift */; };
+		09D758532F31671B00F9055E /* FoodSearchResultRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D758502F31671B00F9055E /* FoodSearchResultRow.swift */; };
 		09F000722F01D6E800835F6D /* OpenFoodFactsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09F000712F01D6E800835F6D /* OpenFoodFactsClient.swift */; };
-		0D9A5E34A899219C5C4CDFAF /* DataTableStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9455FA2D92E77A6C4AFED8A3 /* DataTableStateModel.swift */; };
 		0D9A5E34A899219C5C4CDFAF /* HistoryStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9455FA2D92E77A6C4AFED8A3 /* HistoryStateModel.swift */; };
 		0F7A65FBD2CD8D6477ED4539 /* GlucoseNotificationSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E625985B47742D498CB1681A /* GlucoseNotificationSettingsProvider.swift */; };
 		110AEDE32C5193D200615CC9 /* BolusIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE02C5193D100615CC9 /* BolusIntent.swift */; };
@@ -862,6 +863,8 @@
 		09A169712EE302EB0026711D /* OpenFoodFactsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenFoodFactsModels.swift; sourceTree = "<group>"; };
 		09A169732EE302EB0026711D /* ScannerPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerPreviewView.swift; sourceTree = "<group>"; };
 		09A169742EE302EB0026711D /* ProductViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductViews.swift; sourceTree = "<group>"; };
+		09D758502F31671B00F9055E /* FoodSearchResultRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodSearchResultRow.swift; sourceTree = "<group>"; };
+		09D758512F31671B00F9055E /* ProductSearchField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductSearchField.swift; sourceTree = "<group>"; };
 		09F000712F01D6E800835F6D /* OpenFoodFactsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenFoodFactsClient.swift; sourceTree = "<group>"; };
 		110AEDE02C5193D100615CC9 /* BolusIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntent.swift; sourceTree = "<group>"; };
 		110AEDE12C5193D100615CC9 /* BolusIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntentRequest.swift; sourceTree = "<group>"; };
@@ -1692,6 +1695,8 @@
 				096F54762EF21D4B00B557C1 /* NutritionEditorView.swift */,
 				09A169732EE302EB0026711D /* ScannerPreviewView.swift */,
 				09A169742EE302EB0026711D /* ProductViews.swift */,
+				09D758502F31671B00F9055E /* FoodSearchResultRow.swift */,
+				09D758512F31671B00F9055E /* ProductSearchField.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -4529,6 +4534,8 @@
 				389ECDFE2601061500D86C4F /* View+Snapshot.swift in Sources */,
 				38FEF3FE2738083E00574A46 /* CGMSettingsProvider.swift in Sources */,
 				38E98A3725F5509500C0CED0 /* String+Extensions.swift in Sources */,
+				09D758522F31671B00F9055E /* ProductSearchField.swift in Sources */,
+				09D758532F31671B00F9055E /* FoodSearchResultRow.swift in Sources */,
 				CC76E9512BD4812E008BEB61 /* Forecast+helper.swift in Sources */,
 				DD1745242C55526000211FAC /* SMBSettingsStateModel.swift in Sources */,
 				F90692D1274B99B60037068D /* HealthKitProvider.swift in Sources */,

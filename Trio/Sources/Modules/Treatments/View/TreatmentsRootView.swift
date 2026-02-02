@@ -27,11 +27,6 @@ extension Treatments {
         @State private var debounce: DispatchWorkItem?
 
         // Food search state
-        @State private var searchQuery = ""
-        @State private var searchResults: [BarcodeScanner.FoodItem] = []
-        @State private var isSearching = false
-        @State private var searchError: String?
-        @State private var searchDebounce: DispatchWorkItem?
         @State private var showAllSearchResults = false
         @FocusState private var isSearchFocused: Bool
 
@@ -165,54 +160,22 @@ extension Treatments {
                         .buttonStyle(.plain)
 
                         // Search field
-                        HStack(spacing: 8) {
-                            Image(systemName: "magnifyingglass")
-                                .foregroundStyle(.secondary)
-                            TextField("Search foods...", text: $searchQuery)
-                                .focused($isSearchFocused)
-                                .textFieldStyle(.plain)
-                                .autocorrectionDisabled()
-                                .textInputAutocapitalization(.never)
-                                .submitLabel(.search)
-                                .onSubmit {
-                                    showAllSearchResults = false
-                                    performFoodSearch()
-                                }
-                                .toolbar {
-                                    if isSearchFocused {
-                                        ToolbarItemGroup(placement: .keyboard) {
-                                            Button(action: {
-                                                searchQuery = ""
-                                            }) {
-                                                Image(systemName: "trash")
-                                            }
-                                            Spacer()
-                                            Button(action: {
-                                                isSearchFocused = false
-                                            }) {
-                                                Image(systemName: "keyboard.chevron.compact.down")
-                                            }
-                                        }
-                                    }
-                                }
-                                .onChange(of: searchQuery) { _, _ in
-                                    showAllSearchResults = false
-                                }
-                            if !searchQuery.isEmpty {
-                                Button {
-                                    searchQuery = ""
-                                    searchResults = []
-                                    showAllSearchResults = false
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(.secondary)
-                                }
-                                .buttonStyle(.plain)
+                        BarcodeScanner.ProductSearchField(
+                            searchText: $scannerState.searchQuery,
+                            isFocused: $isSearchFocused,
+                            onSubmit: {
+                                showAllSearchResults = false
+                                scannerState.performFoodSearch()
+                            },
+                            onClear: {
+                                scannerState.searchQuery = ""
+                                scannerState.searchResults = []
+                                showAllSearchResults = false
+                            },
+                            onChange: {
+                                showAllSearchResults = false
                             }
-                        }
-                        .padding(10)
-                        .background(Color.secondary.opacity(0.1))
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        )
 
                         // List button
                         Button {
@@ -237,22 +200,23 @@ extension Treatments {
                     }
 
                     // Search results and Spinner
-                    if isSearching {
+                    if scannerState.isSearching {
                         HStack {
                             Spacer()
                             ProgressView()
                                 .padding(.vertical, 8)
                             Spacer()
                         }
-                    } else if let error = searchError {
+                    } else if let error = scannerState.searchError {
                         Text(error)
                             .font(.caption)
                             .foregroundStyle(.red)
-                    } else if !searchResults.isEmpty {
+                    } else if !scannerState.searchResults.isEmpty {
                         VStack(spacing: 0) {
-                            let displayResults = showAllSearchResults ? searchResults : Array(searchResults.prefix(5))
+                            let displayResults = showAllSearchResults ? scannerState
+                                .searchResults : Array(scannerState.searchResults.prefix(5))
                             ForEach(displayResults) { item in
-                                FoodSearchResultRow(item: item) {
+                                BarcodeScanner.FoodSearchResultRow(item: item) {
                                     addSearchResultToMeal(item)
                                 }
                                 if item.id != displayResults.last?.id {
@@ -260,7 +224,7 @@ extension Treatments {
                                 }
                             }
 
-                            if searchResults.count > 5 {
+                            if scannerState.searchResults.count > 5 {
                                 Button {
                                     withAnimation {
                                         showAllSearchResults.toggle()
@@ -269,7 +233,7 @@ extension Treatments {
                                     HStack {
                                         Text(
                                             showAllSearchResults ? "Show less" :
-                                                "Show \(searchResults.count - 5) more results"
+                                                "Show \(scannerState.searchResults.count - 5) more results"
                                         )
                                         .font(.caption.weight(.medium))
                                         Image(systemName: showAllSearchResults ? "chevron.up" : "chevron.down")
@@ -418,6 +382,7 @@ extension Treatments {
                 }
                 Spacer()
             }
+            .background(Rectangle().fill(Color.chart))
         }
 
         @ViewBuilder var optionsView: some View {
@@ -708,33 +673,6 @@ extension Treatments {
             initialShowList = showList
         }
 
-        /// Performs food search using Open Food Facts API
-        private func performFoodSearch() {
-            searchError = nil
-
-            let query = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !query.isEmpty else {
-                searchResults = []
-                isSearching = false
-                return
-            }
-
-            // Show spinner immediately
-            isSearching = true
-            searchResults = [] // Clear old results so spinner shows
-
-            Task { @MainActor in
-                do {
-                    let client = BarcodeScanner.OpenFoodFactsClient()
-                    self.searchResults = try await client.searchProducts(query: query)
-                } catch {
-                    self.searchError = error.localizedDescription
-                    self.searchResults = []
-                }
-                self.isSearching = false
-            }
-        }
-
         /// Adds a search result to the scanned products and updates calculations
         private func addSearchResultToMeal(_ item: BarcodeScanner.FoodItem) {
             // Add to scanner state's scanned products with default amount
@@ -743,8 +681,8 @@ extension Treatments {
             scannerState.scannedProducts.append(mutableItem)
 
             // Clear search
-            searchQuery = ""
-            searchResults = []
+            scannerState.searchQuery = ""
+            scannerState.searchResults = []
 
             // Sync amounts and recalculate
             syncScannedAmounts()
@@ -987,91 +925,6 @@ extension Treatments {
                 .frame(height: 1)
                 .foregroundColor(.gray.opacity(0.65))
                 .padding(.vertical)
-        }
-    }
-
-    /// A compact row view for displaying food search results
-    struct FoodSearchResultRow: View {
-        let item: BarcodeScanner.FoodItem
-        let onAdd: () -> Void
-
-        var body: some View {
-            Button(action: onAdd) {
-                HStack(spacing: 12) {
-                    // Product image
-                    productImage
-                        .frame(width: 44, height: 44)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                    // Product info
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(item.name)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
-
-                        HStack(spacing: 8) {
-                            if let brand = item.brand {
-                                Text(brand)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                            }
-                            if let carbs = item.nutriments.carbohydratesPer100g {
-                                Text("\(carbs, specifier: "%.1f")g carbs/100g")
-                                    .font(.caption)
-                                    .foregroundStyle(.blue)
-                            }
-                        }
-                    }
-
-                    Spacer()
-
-                    // Add button indicator
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title3)
-                        .foregroundStyle(.blue)
-                }
-                .padding(.vertical, 6)
-            }
-            .buttonStyle(.plain)
-        }
-
-        @ViewBuilder private var productImage: some View {
-            switch item.imageSource {
-            case let .url(url):
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case let .success(image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    case .failure:
-                        imagePlaceholder
-                    default:
-                        ProgressView()
-                            .frame(width: 44, height: 44)
-                    }
-                }
-
-            case let .image(uiImage):
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-
-            case .none:
-                imagePlaceholder
-            }
-        }
-
-        private var imagePlaceholder: some View {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.secondary.opacity(0.2))
-                .overlay(
-                    Image(systemName: "fork.knife")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                )
         }
     }
 }

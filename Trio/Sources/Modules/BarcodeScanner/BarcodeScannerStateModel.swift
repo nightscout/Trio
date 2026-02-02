@@ -31,6 +31,12 @@ extension BarcodeScanner {
         @Published var editingAmount: Double = 0
         @Published var editingIsMl: Bool = false
 
+        // Search State
+        @Published var searchQuery = ""
+        @Published var searchResults: [FoodItem] = []
+        @Published var isSearching = false
+        @Published var searchError: String?
+
         // MARK: - Private Properties
 
         private let client = OpenFoodFactsClient()
@@ -278,6 +284,30 @@ extension BarcodeScanner {
                 onDismiss()
             } else {
                 hideModal()
+            }
+        }
+
+        /// Performs food search using Open Food Facts API
+        func performFoodSearch() {
+            searchError = nil
+            searchResults = []
+
+            let query = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !query.isEmpty else {
+                isSearching = false
+                return
+            }
+
+            isSearching = true
+
+            Task { @MainActor in
+                do {
+                    searchResults = try await client.searchProducts(query: query)
+                } catch {
+                    searchError = error.localizedDescription
+                    searchResults = []
+                }
+                isSearching = false
             }
         }
     }
