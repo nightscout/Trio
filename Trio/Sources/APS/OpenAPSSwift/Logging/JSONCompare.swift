@@ -87,7 +87,8 @@ enum JSONCompare {
         iobInputs: IobInputs? = nil,
         mealInputs: MealInputs? = nil,
         autosensInputs: AutosensInputs? = nil,
-        determineBasalInputs: DetermineBasalInputs? = nil
+        determineBasalInputs: DetermineBasalInputs? = nil,
+        makeProfileInputs: MakeProfileInputs? = nil
     ) {
         let comparison = createComparison(
             function: function,
@@ -98,7 +99,8 @@ enum JSONCompare {
             iobInputs: iobInputs,
             mealInputs: mealInputs,
             autosensInputs: autosensInputs,
-            determineBasalInputs: determineBasalInputs
+            determineBasalInputs: determineBasalInputs,
+            makeProfileInputs: makeProfileInputs
         )
 
         Task {
@@ -119,7 +121,8 @@ enum JSONCompare {
         iobInputs: IobInputs?,
         mealInputs: MealInputs?,
         autosensInputs: AutosensInputs?,
-        determineBasalInputs: DetermineBasalInputs?
+        determineBasalInputs: DetermineBasalInputs?,
+        makeProfileInputs: MakeProfileInputs?
     ) -> AlgorithmComparison {
         switch (swift, javascript) {
         case let (.success(swiftJson), .success(javascriptJson)):
@@ -135,7 +138,8 @@ enum JSONCompare {
                     iobInputs: differences.isEmpty ? nil : iobInputs,
                     mealInputs: differences.isEmpty ? nil : mealInputs,
                     autosensInputs: differences.isEmpty ? nil : autosensInputs,
-                    determineBasalInputs: differences.isEmpty ? nil : determineBasalInputs
+                    determineBasalInputs: differences.isEmpty ? nil : determineBasalInputs,
+                    makeProfileInputs: differences.isEmpty ? nil : makeProfileInputs
                 )
             } catch {
                 return AlgorithmComparison(
@@ -147,7 +151,8 @@ enum JSONCompare {
                     iobInputs: iobInputs,
                     mealInputs: mealInputs,
                     autosensInputs: autosensInputs,
-                    determineBasalInputs: determineBasalInputs
+                    determineBasalInputs: determineBasalInputs,
+                    makeProfileInputs: makeProfileInputs
                 )
             }
 
@@ -168,7 +173,8 @@ enum JSONCompare {
                 iobInputs: iobInputs,
                 mealInputs: mealInputs,
                 autosensInputs: autosensInputs,
-                determineBasalInputs: determineBasalInputs
+                determineBasalInputs: determineBasalInputs,
+                makeProfileInputs: makeProfileInputs
             )
 
         case let (.success, .failure(jsError)):
@@ -180,7 +186,8 @@ enum JSONCompare {
                 iobInputs: iobInputs,
                 mealInputs: mealInputs,
                 autosensInputs: autosensInputs,
-                determineBasalInputs: determineBasalInputs
+                determineBasalInputs: determineBasalInputs,
+                makeProfileInputs: makeProfileInputs
             )
         }
     }

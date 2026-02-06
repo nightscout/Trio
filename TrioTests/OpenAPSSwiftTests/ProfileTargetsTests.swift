@@ -95,7 +95,7 @@ import Testing
                 BGTargetEntry(low: 40, high: 250, start: "00:00:00", offset: 0)
             ]
         )
-        let (_, result) = try Targets.bgTargetsLookup(targets: extremeTargets, tempTargets: [], profile: profile)
+        let (_, result) = try Targets.bgTargetsLookup(targets: extremeTargets, tempTargets: [], profile: profile, now: Date())
         #expect(result.maxBg == 80)
         #expect(result.minBg == 80)
     }

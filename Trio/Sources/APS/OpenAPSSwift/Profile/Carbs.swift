@@ -1,7 +1,7 @@
 import Foundation
 
 struct Carbs {
-    static func carbRatioLookup(carbRatio: CarbRatios, now: Date = Date()) -> Decimal? {
+    static func carbRatioLookup(carbRatio: CarbRatios, now: Date) -> Decimal? {
         // Get last schedule as default
         guard let lastSchedule = carbRatio.schedule.last else { return nil }
         var currentRatio = lastSchedule.ratio

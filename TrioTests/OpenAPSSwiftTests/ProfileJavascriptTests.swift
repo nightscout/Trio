@@ -69,7 +69,7 @@ struct ProfileGeneratorTests {
             carbRatios: inputs.5,
             tempTargets: inputs.6,
             model: inputs.7,
-            trioSettings: inputs.8
+            clock: Date()
         )
 
         #expect(profile.maxIob == 0)
@@ -112,7 +112,7 @@ struct ProfileGeneratorTests {
             carbRatios: inputs.5,
             tempTargets: inputs.6,
             model: inputs.7,
-            trioSettings: inputs.8
+            clock: currentTime
         )
 
         #expect(profile.maxIob == 0)
@@ -156,7 +156,7 @@ struct ProfileGeneratorTests {
             carbRatios: inputs.5,
             tempTargets: inputs.6,
             model: inputs.7,
-            trioSettings: inputs.8
+            clock: currentTime
         )
 
         #expect(profile.maxIob == 0)
@@ -199,7 +199,7 @@ struct ProfileGeneratorTests {
             carbRatios: inputs.5,
             tempTargets: inputs.6,
             model: inputs.7,
-            trioSettings: inputs.8
+            clock: currentTime
         )
 
         #expect(profile.maxIob == 0)
@@ -229,7 +229,7 @@ struct ProfileGeneratorTests {
                 carbRatios: inputs.5,
                 tempTargets: inputs.6,
                 model: inputs.7,
-                trioSettings: inputs.8
+                clock: Date()
             )
         }
     }
@@ -252,7 +252,7 @@ struct ProfileGeneratorTests {
                 carbRatios: inputs.5,
                 tempTargets: inputs.6,
                 model: inputs.7,
-                trioSettings: inputs.8
+                clock: Date()
             )
         }
     }
@@ -270,7 +270,7 @@ struct ProfileGeneratorTests {
             carbRatios: inputs.5,
             tempTargets: inputs.6,
             model: inputs.7,
-            trioSettings: inputs.8
+            clock: Date()
         )
 
         #expect(profile.model == "554")
@@ -309,7 +309,7 @@ struct ProfileGeneratorTests {
             trioSettings: inputs.8
         )
 
-        let swiftResult = OpenAPSSwift.makeProfile(
+        let (swiftResult, makeProfileInputs) = OpenAPSSwift.makeProfile(
             preferences: inputs.4,
             pumpSettings: inputs.0,
             bgTargets: inputs.1,
@@ -318,7 +318,8 @@ struct ProfileGeneratorTests {
             carbRatio: inputs.5,
             tempTargets: tempTargets,
             model: inputs.7,
-            trioSettings: inputs.8
+            trioSettings: inputs.8,
+            clock: now
         )
 
         let comparison = JSONCompare.createComparison(
@@ -330,7 +331,8 @@ struct ProfileGeneratorTests {
             iobInputs: nil,
             mealInputs: nil,
             autosensInputs: nil,
-            determineBasalInputs: nil
+            determineBasalInputs: nil,
+            makeProfileInputs: makeProfileInputs
         )
 
         if comparison.resultType == .valueDifference {
