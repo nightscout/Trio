@@ -457,18 +457,6 @@
         }
       }
     },
-    "NSCalendarsFullAccessUsageDescription" : {
-      "comment" : "Privacy - Calendars Full Access Usage Description",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "To create events with BG reading values, so that they can be viewed on Apple Watch and CarPlay"
-          }
-        }
-      }
-    },
     "NSCalendarsUsageDescription" : {
       "comment" : "Privacy - Calendars Usage Description",
       "extractionState" : "extracted_with_value",
