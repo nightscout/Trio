@@ -159,6 +159,8 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         broadcaster.register(BGTargetsObserver.self, observer: self)
         broadcaster.register(BasalProfileObserver.self, observer: self)
         broadcaster.register(PumpSettingsObserver.self, observer: self)
+        broadcaster.register(CarbRatiosObserver.self, observer: self)
+        broadcaster.register(InsulinSensitivitiesObserver.self, observer: self)
     }
 
     func sourceInfo() -> [String: Any]? {
@@ -178,8 +180,11 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
 
 extension BaseTidepoolManager: ServiceDelegate {
     var hostIdentifier: String {
-        // TODO: shouldn't this rather be `org.nightscout.Trio` ?
-        "com.loopkit.Loop" // To check
+        // TODO: Using "org.nightscout.Trio" would be technically more correct, but Tidepool
+        // doesn't have a mapping for it and would display the device as "unknown".
+        // With "com.loopkit.Loop", Tidepool displays it as "DIY Loop".
+        // The proper fix would be to request Tidepool add a mapping for "org.nightscout.Trio" : Trio.
+        "com.loopkit.Loop"
     }
 
     var hostVersion: String {
@@ -703,7 +708,6 @@ extension BaseTidepoolManager {
         guard let tidepoolService = self.tidepoolService as? TidepoolService,
               settingsManager.settings.uploadPumpSettings
         else {
-            debug(.service, "Pump settings upload disabled by user")
             return
         }
 
@@ -713,16 +717,12 @@ extension BaseTidepoolManager {
 
         // Convert Trio settings to StoredSettings format using adapter
         guard let settings = settingsAdapter.createStoredSettings(cgmDevice: cgmDevice) else {
-            debug(.service, "No settings available to upload")
             return
         }
 
         processQueue.async {
             tidepoolService.uploadSettingsData([settings]) { result in
-                switch result {
-                case .success:
-                    debug(.service, "Success uploading settings to Tidepool")
-                case let .failure(error):
+                if case let .failure(error) = result {
                     debug(.service, "Failed to upload settings to Tidepool: \(error)")
                 }
             }
@@ -769,6 +769,18 @@ extension BaseTidepoolManager: BasalProfileObserver {
 
 extension BaseTidepoolManager: PumpSettingsObserver {
     func pumpSettingsDidChange(_: PumpSettings) {
+        scheduleSettingsUpload()
+    }
+}
+
+extension BaseTidepoolManager: CarbRatiosObserver {
+    func carbRatiosDidChange(_: CarbRatios) {
+        scheduleSettingsUpload()
+    }
+}
+
+extension BaseTidepoolManager: InsulinSensitivitiesObserver {
+    func insulinSensitivitiesDidChange(_: InsulinSensitivities) {
         scheduleSettingsUpload()
     }
 }
