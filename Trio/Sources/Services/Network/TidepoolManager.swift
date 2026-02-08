@@ -37,6 +37,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
 
     /// Pending debounce work item for settings upload; cancelled and rescheduled
     /// each time an observer fires, so rapid changes coalesce into one upload.
+    /// - Important: Only access from `processQueue` to ensure thread safety.
     private var pendingSettingsUpload: DispatchWorkItem?
 
     /// Delay before a debounced settings upload fires.
@@ -161,6 +162,14 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         broadcaster.register(PumpSettingsObserver.self, observer: self)
         broadcaster.register(CarbRatiosObserver.self, observer: self)
         broadcaster.register(InsulinSensitivitiesObserver.self, observer: self)
+        broadcaster.register(TempTargetsObserver.self, observer: self)
+
+        // Trigger settings upload when overrides are activated or deactivated.
+        // Uses CoreData publisher (not NotificationCenter) because
+        // .didUpdateOverrideConfiguration is only posted on cancellation, not activation.
+        coreDataPublisher?.filteredByEntityName("OverrideStored").sink { [weak self] _ in
+            self?.scheduleSettingsUpload()
+        }.store(in: &subscriptions)
     }
 
     func sourceInfo() -> [String: Any]? {
@@ -722,7 +731,10 @@ extension BaseTidepoolManager {
 
         processQueue.async {
             tidepoolService.uploadSettingsData([settings]) { result in
-                if case let .failure(error) = result {
+                switch result {
+                case .success:
+                    debug(.service, "Settings uploaded to Tidepool (syncId: \(settings.syncIdentifier))")
+                case let .failure(error):
                     debug(.service, "Failed to upload settings to Tidepool: \(error)")
                 }
             }
@@ -781,6 +793,12 @@ extension BaseTidepoolManager: CarbRatiosObserver {
 
 extension BaseTidepoolManager: InsulinSensitivitiesObserver {
     func insulinSensitivitiesDidChange(_: InsulinSensitivities) {
+        scheduleSettingsUpload()
+    }
+}
+
+extension BaseTidepoolManager: TempTargetsObserver {
+    func tempTargetsDidUpdate(_: [TempTarget]) {
         scheduleSettingsUpload()
     }
 }

@@ -81,7 +81,7 @@ struct TidepoolStartView: BaseView {
                     .disabled(state.provider.tidepoolManager.getTidepoolServiceUI() == nil)
 
                     Text(
-                        "Uploads your therapy settings (basal schedules, carb ratios, insulin sensitivities, blood glucose targets, and override presets) to Tidepool. This helps your care team see your therapy configuration alongside your data."
+                        "Uploads your therapy settings (basal schedules, carb ratios, insulin sensitivities, and blood glucose targets) to Tidepool. This helps your care team see your therapy configuration alongside your data."
                     )
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -114,7 +114,7 @@ struct TidepoolStartView: BaseView {
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: "Connect to Tidepool",
                 hintText: Text(
-                    "When connected, uploading of carbs, bolus, basal and glucose from Trio to your Tidepool account is enabled.\n\nYou can optionally enable therapy settings upload (basal schedules, carb ratios, insulin sensitivities, blood glucose targets, and override presets) by tapping the Connected to Tidepool button and enabling the \"Include Therapy Settings\" toggle. This helps your care team see your therapy configuration alongside your data.\n\nUse your Tidepool credentials to login. If you dont already have a Tidepool account, you can sign up for one on the login page."
+                    "When connected, uploading of carbs, bolus, basal and glucose from Trio to your Tidepool account is enabled.\n\nYou can optionally enable therapy settings upload (basal schedules, carb ratios, insulin sensitivities, and blood glucose targets) by tapping the Connected to Tidepool button and enabling the \"Include Therapy Settings\" toggle. This helps your care team see your therapy configuration alongside your data.\n\nUse your Tidepool credentials to login. If you dont already have a Tidepool account, you can sign up for one on the login page."
                 ),
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
