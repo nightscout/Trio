@@ -761,6 +761,7 @@
 		BB10000002A0B0C000D0E002 /* GarminFirestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000002A0B0C000D0E002 /* GarminFirestoreService.swift */; };
 		BB10000003A0B0C000D0E003 /* GarminContextSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000003A0B0C000D0E003 /* GarminContextSnapshot.swift */; };
 		BB10000004A0B0C000D0E004 /* SmartSenseModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000004A0B0C000D0E004 /* SmartSenseModels.swift */; };
+		BB10000009A0B0C000D0E009 /* MealDecisionLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000009A0B0C000D0E009 /* MealDecisionLog.swift */; };
 		BB10000005A0B0C000D0E005 /* SmartSenseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000005A0B0C000D0E005 /* SmartSenseManager.swift */; };
 		BB10000006A0B0C000D0E006 /* CronometerMealDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000006A0B0C000D0E006 /* CronometerMealDetector.swift */; };
 		BB10000007A0B0C000D0E007 /* MealDecisionExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000007A0B0C000D0E007 /* MealDecisionExporter.swift */; };
@@ -1626,6 +1627,7 @@
 		AA10000002A0B0C000D0E002 /* GarminFirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminFirestoreService.swift; sourceTree = "<group>"; };
 		AA10000003A0B0C000D0E003 /* GarminContextSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminContextSnapshot.swift; sourceTree = "<group>"; };
 		AA10000004A0B0C000D0E004 /* SmartSenseModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseModels.swift; sourceTree = "<group>"; };
+		AA10000009A0B0C000D0E009 /* MealDecisionLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealDecisionLog.swift; sourceTree = "<group>"; };
 		AA10000005A0B0C000D0E005 /* SmartSenseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseManager.swift; sourceTree = "<group>"; };
 		AA10000006A0B0C000D0E006 /* CronometerMealDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CronometerMealDetector.swift; sourceTree = "<group>"; };
 		AA10000007A0B0C000D0E007 /* MealDecisionExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealDecisionExporter.swift; sourceTree = "<group>"; };
@@ -2531,6 +2533,7 @@
 				DDD6D4D22CDE90720029439A /* EstimatedA1cDisplayUnit.swift */,
 							AA10000003A0B0C000D0E003 /* GarminContextSnapshot.swift */,
 				AA10000004A0B0C000D0E004 /* SmartSenseModels.swift */,
+				AA10000009A0B0C000D0E009 /* MealDecisionLog.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -4967,6 +4970,7 @@
 				BB10000002A0B0C000D0E002 /* GarminFirestoreService.swift in Sources */,
 				BB10000003A0B0C000D0E003 /* GarminContextSnapshot.swift in Sources */,
 				BB10000004A0B0C000D0E004 /* SmartSenseModels.swift in Sources */,
+				BB10000009A0B0C000D0E009 /* MealDecisionLog.swift in Sources */,
 				BB10000005A0B0C000D0E005 /* SmartSenseManager.swift in Sources */,
 				BB10000006A0B0C000D0E006 /* CronometerMealDetector.swift in Sources */,
 				BB10000007A0B0C000D0E007 /* MealDecisionExporter.swift in Sources */,

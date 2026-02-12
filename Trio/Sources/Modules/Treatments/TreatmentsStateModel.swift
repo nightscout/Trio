@@ -720,16 +720,11 @@ extension Treatments {
         }
 
         private func exportMealDecision(meal: DetectedMeal, insulinDelivered: Double) {
-            let now = Date()
-            let delayMinutes = Int(now.timeIntervalSince(meal.detectedAt) / 60)
+            let latestDirection = glucoseFromPersistence.first?.direction
 
-            let ssResult = smartSenseResult
-            let overrideModified = ssResult.map { smartSenseOverride != $0.blendedSuggestion } ?? false
-
-            let decision = MealDecisionExport(
-                mealTimestamp: meal.detectedAt,
-                doseTimestamp: now,
-                delayMinutes: delayMinutes,
+            let snapshot = MealDecisionSnapshot(
+                id: UUID(),
+                doseTimestamp: Date(),
                 selectedMeals: [
                     MealDecisionExport.MealExportEntry(
                         label: meal.label,
@@ -741,36 +736,42 @@ extension Treatments {
                         detectedAt: meal.detectedAt
                     )
                 ],
-                stateAtDose: MealDecisionExport.DoseState(
-                    currentBG: Double(truncating: currentBG as NSDecimalNumber),
-                    bgAtMealDetection: nil,
-                    bgRiseSinceMeal: nil,
-                    iobAtDose: Double(truncating: iob as NSDecimalNumber),
-                    cobAtDose: Double(cob),
-                    estimatedAbsorbed: nil
-                ),
-                smartSense: ssResult ?? SmartSenseResult(
-                    garminFactors: [],
-                    garminComposite: 0,
-                    autosensRatio: 1.0,
-                    autosensContribution: 0,
-                    masterSplit: SmartSenseResult.MasterSplit(garmin: 0, autosens: 1),
-                    blendedSuggestion: 0,
-                    finalRatio: 1.0,
-                    garminDataAvailable: false,
-                    garminDataTime: nil
-                ),
-                userOverride: smartSenseOverride,
-                overrideWasModified: overrideModified,
-                dose: MealDecisionExport.DoseExport(
-                    recommended: Double(truncating: insulinCalculated as NSDecimalNumber),
-                    delivered: insulinDelivered,
-                    preDoseIOB: Double(truncating: iob as NSDecimalNumber),
-                    preDoseCOB: Double(cob)
-                )
+                totalCarbs: Double(truncating: carbs as NSDecimalNumber),
+                totalFat: Double(truncating: fat as NSDecimalNumber),
+                totalProtein: Double(truncating: protein as NSDecimalNumber),
+                currentBG: Double(truncating: currentBG as NSDecimalNumber),
+                deltaBG: Double(truncating: deltaBG as NSDecimalNumber),
+                bgDirection: latestDirection,
+                iob: Double(truncating: iob as NSDecimalNumber),
+                cob: Int(cob),
+                eventualBG: Double(truncating: evBG as NSDecimalNumber),
+                minPredBG: Double(truncating: minPredBG as NSDecimalNumber),
+                sensitivityRatio: smartSenseResult?.finalRatio ?? 1.0,
+                isf: Double(truncating: isf as NSDecimalNumber),
+                carbRatio: Double(truncating: carbRatio as NSDecimalNumber),
+                target: Double(truncating: target as NSDecimalNumber),
+                basalRate: Double(truncating: basal as NSDecimalNumber),
+                maxBolus: Double(truncating: maxBolus as NSDecimalNumber),
+                maxIOB: Double(truncating: maxIOB as NSDecimalNumber),
+                targetDifference: Double(truncating: targetDifference as NSDecimalNumber),
+                targetDifferenceInsulin: Double(truncating: targetDifferenceInsulin as NSDecimalNumber),
+                carbInsulin: Double(truncating: wholeCobInsulin as NSDecimalNumber),
+                iobReduction: Double(truncating: iobInsulinReduction as NSDecimalNumber),
+                trendInsulin: Double(truncating: fifteenMinInsulin as NSDecimalNumber),
+                wholeCalc: Double(truncating: wholeCalc as NSDecimalNumber),
+                factoredInsulin: Double(truncating: factoredInsulin as NSDecimalNumber),
+                recommended: Double(truncating: insulinCalculated as NSDecimalNumber),
+                fattyMealEnabled: useFattyMealCorrectionFactor,
+                superBolusEnabled: useSuperBolus,
+                fraction: Double(truncating: fraction as NSDecimalNumber),
+                userConfirmedDose: insulinDelivered,
+                isExternalInsulin: externalInsulin,
+                note: note.isEmpty ? nil : note,
+                smartSenseResult: smartSenseResult,
+                smartSenseOverride: smartSenseOverride
             )
 
-            MealDecisionExporter.export(decision)
+            MealDecisionExporter.saveSnapshot(snapshot)
         }
 
         func deletePreset() {

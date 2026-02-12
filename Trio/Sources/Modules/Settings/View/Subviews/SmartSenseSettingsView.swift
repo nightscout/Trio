@@ -73,6 +73,10 @@ extension SmartSenseConfig {
             weights[key] = value
             settingsManager.settings.smartSenseSettings.weights = weights
         }
+
+        var currentSmartSenseSettings: SmartSenseSettings {
+            settingsManager.settings.smartSenseSettings
+        }
     }
 }
 
@@ -85,7 +89,9 @@ extension SmartSenseConfig {
 
         @State private var exportFiles: [URL] = []
         @State private var showShareSheet = false
-        @State private var exportCount = 0
+        @State private var snapshotCount = 0
+        @State private var selectedRange: MealDecisionExporter.ExportRange = .sevenDays
+        @State private var isExporting = false
 
         var body: some View {
             Form {
@@ -103,7 +109,7 @@ extension SmartSenseConfig {
             .navigationBarTitleDisplayMode(.automatic)
             .onAppear {
                 configureView()
-                exportCount = MealDecisionExporter.listExports().count
+                snapshotCount = MealDecisionExporter.snapshotCount(for: selectedRange)
             }
             .sheet(isPresented: $showShareSheet) {
                 if !exportFiles.isEmpty {
@@ -241,30 +247,58 @@ extension SmartSenseConfig {
 
         private var exportSection: some View {
             Section(header: Text("Meal Decision Export")) {
+                // Time range picker
+                Picker("Export Range", selection: $selectedRange) {
+                    ForEach(MealDecisionExporter.ExportRange.allCases) { range in
+                        Text(range.label).tag(range)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .onChange(of: selectedRange) { newRange in
+                    snapshotCount = MealDecisionExporter.snapshotCount(for: newRange)
+                }
+
                 HStack {
                     Image(systemName: "doc.text")
                         .foregroundStyle(.blue)
-                    Text("Exported Decisions")
+                    Text("Meal Decisions")
                     Spacer()
-                    Text("\(exportCount)")
+                    Text("\(snapshotCount)")
                         .foregroundStyle(.secondary)
                         .monospacedDigit()
                 }
 
+                // Export button
                 Button {
-                    exportFiles = MealDecisionExporter.listExports()
-                    if !exportFiles.isEmpty {
-                        showShareSheet = true
+                    guard !isExporting else { return }
+                    isExporting = true
+                    Task {
+                        let context = CoreDataStack.shared.newTaskContext()
+                        let settings = state.currentSmartSenseSettings
+                        if let url = await MealDecisionExporter.buildFullExport(
+                            range: selectedRange,
+                            settings: settings,
+                            context: context
+                        ) {
+                            exportFiles = [url]
+                            showShareSheet = true
+                        }
+                        isExporting = false
                     }
                 } label: {
                     HStack {
-                        Image(systemName: "square.and.arrow.up")
-                        Text("Share All Exports")
+                        if isExporting {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                        Text("Export Meal Data")
                     }
                 }
-                .disabled(exportCount == 0)
+                .disabled(snapshotCount == 0 || isExporting)
 
-                Text("Each time you dose a detected Cronometer meal, the decision context (macros, BG, IOB, SmartSense values) is saved as JSON for analysis.")
+                Text("Exports meal decisions with 2h pre-meal + 8h post-meal BG traces, all boluses, temp basals, loop decisions, and SmartSense settings as JSON.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
