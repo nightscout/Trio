@@ -56,8 +56,8 @@ final class BaseSmartSenseManager: SmartSenseManager, Injectable {
     }
 
     init(resolver: Resolver) {
-        injectServices(resolver)
         firestoreService = GarminFirestoreService()
+        injectServices(resolver)
     }
 
     // MARK: - Main Computation
