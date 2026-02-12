@@ -211,6 +211,8 @@
 		3B3B57C92DA07B3400849D16 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3B57C82DA07B3400849D16 /* GoogleService-Info.plist */; };
 		3B4196E02D8C4BC00091DFF7 /* HomeStateModel+CGM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4196DF2D8C4BBB0091DFF7 /* HomeStateModel+CGM.swift */; };
 		3B47C6102DA0A28F00B0E5EF /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 3B47C60F2DA0A28F00B0E5EF /* FirebaseCrashlytics */; };
+		DD20000001A0B0C000D0E001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DD20000002A0B0C000D0E001 /* FirebaseAuth */; };
+		DD20000003A0B0C000D0E001 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = DD20000004A0B0C000D0E001 /* FirebaseFirestore */; };
 		3B4BA76A2D8DBD690069D5B8 /* CGMBLEKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75B2D8DBD690069D5B8 /* CGMBLEKit.framework */; };
 		3B4BA76B2D8DBD690069D5B8 /* CGMBLEKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75B2D8DBD690069D5B8 /* CGMBLEKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3B4BA76C2D8DBD690069D5B8 /* CGMBLEKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75C2D8DBD690069D5B8 /* CGMBLEKitUI.framework */; };
@@ -755,6 +757,16 @@
 		FEFFA7A22929FE49007B8193 /* UIDevice+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */; };
 		HME7A7FED7B34D0D8F5BC383 /* HealthMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = HMF49BBBF5CD4A9BBC14CC1F /* HealthMetrics.swift */; };
 		HS65A6D45B1A4FC1B3A02035 /* HealthMetricsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = HS70616C45944CE888DC2C8D /* HealthMetricsService.swift */; };
+		BB10000001A0B0C000D0E001 /* GarminFirebaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000001A0B0C000D0E001 /* GarminFirebaseConfig.swift */; };
+		BB10000002A0B0C000D0E002 /* GarminFirestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000002A0B0C000D0E002 /* GarminFirestoreService.swift */; };
+		BB10000003A0B0C000D0E003 /* GarminContextSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000003A0B0C000D0E003 /* GarminContextSnapshot.swift */; };
+		BB10000004A0B0C000D0E004 /* SmartSenseModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000004A0B0C000D0E004 /* SmartSenseModels.swift */; };
+		BB10000005A0B0C000D0E005 /* SmartSenseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000005A0B0C000D0E005 /* SmartSenseManager.swift */; };
+		BB10000006A0B0C000D0E006 /* CronometerMealDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000006A0B0C000D0E006 /* CronometerMealDetector.swift */; };
+		BB10000007A0B0C000D0E007 /* MealDecisionExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000007A0B0C000D0E007 /* MealDecisionExporter.swift */; };
+		BB10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift */; };
+		BB10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift */; };
+		BB1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1610,6 +1622,16 @@
 		FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIDevice+Extensions.swift"; sourceTree = "<group>"; };
 		HMF49BBBF5CD4A9BBC14CC1F /* HealthMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetrics.swift; sourceTree = "<group>"; };
 		HS70616C45944CE888DC2C8D /* HealthMetricsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricsService.swift; sourceTree = "<group>"; };
+		AA10000001A0B0C000D0E001 /* GarminFirebaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminFirebaseConfig.swift; sourceTree = "<group>"; };
+		AA10000002A0B0C000D0E002 /* GarminFirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminFirestoreService.swift; sourceTree = "<group>"; };
+		AA10000003A0B0C000D0E003 /* GarminContextSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminContextSnapshot.swift; sourceTree = "<group>"; };
+		AA10000004A0B0C000D0E004 /* SmartSenseModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseModels.swift; sourceTree = "<group>"; };
+		AA10000005A0B0C000D0E005 /* SmartSenseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseManager.swift; sourceTree = "<group>"; };
+		AA10000006A0B0C000D0E006 /* CronometerMealDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CronometerMealDetector.swift; sourceTree = "<group>"; };
+		AA10000007A0B0C000D0E007 /* MealDecisionExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealDecisionExporter.swift; sourceTree = "<group>"; };
+		AA10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseSettingsView.swift; sourceTree = "<group>"; };
+		AA10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminFirestoreStatusView.swift; sourceTree = "<group>"; };
+		AA1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseSummaryView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -1668,6 +1690,8 @@
 				3B4BA7822D8DBD690069D5B8 /* RileyLinkBLEKit.framework in Frameworks */,
 				3B4BA76E2D8DBD690069D5B8 /* DanaKit.framework in Frameworks */,
 				3B47C6102DA0A28F00B0E5EF /* FirebaseCrashlytics in Frameworks */,
+				DD20000001A0B0C000D0E001 /* FirebaseAuth in Frameworks */,
+				DD20000003A0B0C000D0E001 /* FirebaseFirestore in Frameworks */,
 				3B4BA7862D8DBD690069D5B8 /* RileyLinkKitUI.framework in Frameworks */,
 				CEB434FD28B90B7C00B70274 /* SwiftCharts in Frameworks */,
 				CE95BF5F2BA7715800DC3DE3 /* MockKit.framework in Frameworks */,
@@ -2139,6 +2163,10 @@
 				3811DEA525C9D88300A708ED /* UnlockManager */,
 				38E87406274F9AA500975559 /* UserNotifications */,
 				38E8754D275556E100975559 /* WatchManager */,
+							CC10000001A0B0C000D0E001 /* Garmin */,
+				CC10000002A0B0C000D0E002 /* SmartSense */,
+							AA10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift */,
+				AA10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -2503,6 +2531,8 @@
 				DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */,
 				DD9ECB692CA99F6C00AA7C45 /* CommandPayload.swift */,
 				DDD6D4D22CDE90720029439A /* EstimatedA1cDisplayUnit.swift */,
+							AA10000003A0B0C000D0E003 /* GarminContextSnapshot.swift */,
+				AA10000004A0B0C000D0E004 /* SmartSenseModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -3001,6 +3031,7 @@
 				58237D9D2BCF0A6B00A47A79 /* PopupView.swift */,
 				BDB899872C564509006F3298 /* ForecastChart.swift */,
 				DD07CA5A2CE950B9002D45A9 /* MealPreset */,
+							AA1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -3940,6 +3971,25 @@
 			path = View;
 			sourceTree = "<group>";
 		};
+		CC10000001A0B0C000D0E001 /* Garmin */ = {
+			isa = PBXGroup;
+			children = (
+				AA10000001A0B0C000D0E001 /* GarminFirebaseConfig.swift */,
+				AA10000002A0B0C000D0E002 /* GarminFirestoreService.swift */,
+			);
+			path = Garmin;
+			sourceTree = "<group>";
+		};
+		CC10000002A0B0C000D0E002 /* SmartSense */ = {
+			isa = PBXGroup;
+			children = (
+				AA10000005A0B0C000D0E005 /* SmartSenseManager.swift */,
+				AA10000006A0B0C000D0E006 /* CronometerMealDetector.swift */,
+				AA10000007A0B0C000D0E007 /* MealDecisionExporter.swift */,
+			);
+			path = SmartSense;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -3974,6 +4024,8 @@
 				3BD9687B2D8DDD4600899469 /* SlideButton */,
 				3BD9687E2D8DDD8800899469 /* CryptoSwift */,
 				3B47C60F2DA0A28F00B0E5EF /* FirebaseCrashlytics */,
+				DD20000002A0B0C000D0E001 /* FirebaseAuth */,
+				DD20000004A0B0C000D0E001 /* FirebaseFirestore */,
 				DD17A0282E3FE0BD008E1BF0 /* SwiftJWT */,
 				3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */,
 			);
@@ -4911,6 +4963,16 @@
 				B127455A880F4A29CE57DC8A /* TherapyProfileEditorProvider.swift in Sources */,
 				599C7B08152DD755FEAFE2CD /* TherapyProfileEditorStateModel.swift in Sources */,
 				8765F676F6F301C841FECF52 /* TherapyProfileEditorRootView.swift in Sources */,
+							BB10000001A0B0C000D0E001 /* GarminFirebaseConfig.swift in Sources */,
+				BB10000002A0B0C000D0E002 /* GarminFirestoreService.swift in Sources */,
+				BB10000003A0B0C000D0E003 /* GarminContextSnapshot.swift in Sources */,
+				BB10000004A0B0C000D0E004 /* SmartSenseModels.swift in Sources */,
+				BB10000005A0B0C000D0E005 /* SmartSenseManager.swift in Sources */,
+				BB10000006A0B0C000D0E006 /* CronometerMealDetector.swift in Sources */,
+				BB10000007A0B0C000D0E007 /* MealDecisionExporter.swift in Sources */,
+				BB10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift in Sources */,
+				BB10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift in Sources */,
+				BB1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5735,6 +5797,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCrashlytics;
+		};
+		DD20000002A0B0C000D0E001 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		DD20000004A0B0C000D0E001 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
 		};
 		3BD9687B2D8DDD4600899469 /* SlideButton */ = {
 			isa = XCSwiftPackageProductDependency;

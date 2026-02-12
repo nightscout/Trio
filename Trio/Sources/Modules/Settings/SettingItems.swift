@@ -266,6 +266,24 @@ enum SettingItems {
             view: .appDiagnostics,
             searchContents: ["Anonymized Data Sharing"],
             path: ["Features", "App Diagnostics"]
+        ),
+        SettingItem(
+            title: "Smart Sense",
+            view: .smartSenseSettings,
+            searchContents: [
+                "Smart Sense",
+                "Garmin",
+                "Sensitivity",
+                "Garmin Integration",
+                "Body Battery",
+                "Sleep Score",
+                "HRV",
+                "Cronometer",
+                "Meal Detection",
+                "Sensitivity Slider",
+                "Factor Weights"
+            ],
+            path: ["Features", "Smart Sense"]
         )
     ]
 

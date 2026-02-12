@@ -30,6 +30,14 @@ struct FeatureSettingsView: BaseView {
             .listRowBackground(Color.chart)
 
             Section(
+                header: Text("Sensitivity & Meal Intelligence"),
+                content: {
+                    Text("Smart Sense").navigationLink(to: .smartSenseSettings, from: self)
+                }
+            )
+            .listRowBackground(Color.chart)
+
+            Section(
                 header: Text("Trio Personalization"),
                 content: {
                     Text("User Interface").navigationLink(to: .userInterfaceSettings, from: self)
