@@ -335,6 +335,24 @@ jobs:
       - name: Sync clock
         run: sudo sntp -sS time.windows.com
 
+      # Inject Garmin Firebase secrets into config file
+      - name: Inject Garmin Firebase Secrets
+        run: |
+          CONFIG_FILE="Trio/Sources/Services/Garmin/GarminFirebaseConfig.swift"
+          if [ -f "$CONFIG_FILE" ]; then
+            sed -i "" "s|__GARMIN_FIREBASE_API_KEY__|${{ secrets.GARMIN_FIREBASE_API_KEY }}|g" "$CONFIG_FILE"
+            sed -i "" "s|__GARMIN_FIREBASE_PROJECT_ID__|${{ secrets.GARMIN_FIREBASE_PROJECT_ID }}|g" "$CONFIG_FILE"
+            sed -i "" "s|__GARMIN_FIREBASE_GCM_SENDER_ID__|${{ secrets.GARMIN_FIREBASE_GCM_SENDER_ID }}|g" "$CONFIG_FILE"
+            sed -i "" "s|__GARMIN_FIREBASE_GOOGLE_APP_ID__|${{ secrets.GARMIN_FIREBASE_GOOGLE_APP_ID }}|g" "$CONFIG_FILE"
+            sed -i "" "s|__GARMIN_FIREBASE_STORAGE_BUCKET__|${{ secrets.GARMIN_FIREBASE_STORAGE_BUCKET }}|g" "$CONFIG_FILE"
+            sed -i "" "s|__GARMIN_FIREBASE_USER_ID__|${{ secrets.GARMIN_FIREBASE_USER_ID }}|g" "$CONFIG_FILE"
+            sed -i "" "s|__GARMIN_FIREBASE_EMAIL__|${{ secrets.GARMIN_FIREBASE_EMAIL }}|g" "$CONFIG_FILE"
+            sed -i "" "s|__GARMIN_FIREBASE_PASSWORD__|${{ secrets.GARMIN_FIREBASE_PASSWORD }}|g" "$CONFIG_FILE"
+            echo "Garmin Firebase secrets injected successfully"
+          else
+            echo "Garmin Firebase config file not found — skipping secret injection"
+          fi
+
       # Build signed Trio IPA file
       - name: Fastlane Build & Archive
         run: bundle exec fastlane build_trio
