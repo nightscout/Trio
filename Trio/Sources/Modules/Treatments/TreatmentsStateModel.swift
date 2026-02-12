@@ -113,6 +113,7 @@ extension Treatments {
         var smartSenseResult: SmartSenseResult?
         var smartSenseOverride: Double = 0.0
         var detectedMeals: [DetectedMeal] = []
+        var selectedMealID: UUID?
         var smartSenseMaxAdjustment: Double = 0.20
         var glucoseFromPersistence: [GlucoseStored] = []
         var determination: [OrefDetermination] = []
@@ -478,6 +479,12 @@ extension Treatments {
                     await saveMeal()
                 }
 
+                // Mark the selected Cronometer meal as dosed now that the user committed
+                if let mealID = selectedMealID {
+                    cronometerMealDetector.markAsDosed(mealID)
+                    await MainActor.run { selectedMealID = nil }
+                }
+
                 if isInsulinGiven {
                     await handleInsulin(isExternal: externalInsulin)
                 } else {
@@ -706,10 +713,7 @@ extension Treatments {
             carbs = Decimal(meal.carbs)
             fat = Decimal(meal.fat)
             protein = Decimal(meal.protein)
-            // Mark as dosed so the badge shows, but the user can still re-select
-            if !meal.isDosed {
-                cronometerMealDetector.markAsDosed(meal.id)
-            }
+            selectedMealID = meal.id
         }
 
         func deletePreset() {
