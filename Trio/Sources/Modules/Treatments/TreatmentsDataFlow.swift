@@ -1,3 +1,5 @@
+import Foundation
+
 enum Treatments {
     enum Config {}
 }

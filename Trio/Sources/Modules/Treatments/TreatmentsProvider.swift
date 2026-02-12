@@ -1,3 +1,5 @@
+import Foundation
+
 extension Treatments {
     final class Provider: BaseProvider, TreatmentsProvider {
         func getPumpSettings() async -> PumpSettings {
