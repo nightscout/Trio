@@ -9,6 +9,7 @@ class TimeZoneForTests {
         // Set environment variable
         setenv("TZ", identifier, 1)
         tzset() // Make the change take effect
+        CFTimeZoneResetSystem()
 
         // Force update the default TimeZone
         // This is the critical missing piece
@@ -31,6 +32,7 @@ class TimeZoneForTests {
             unsetenv("TZ")
         }
         tzset()
+        CFTimeZoneResetSystem()
 
         // Restore original default TimeZone
         if let originalTimeZone = originalDefaultTimeZone {
