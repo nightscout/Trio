@@ -39,5 +39,10 @@ extension Treatments {
                 ?? Preferences(from: OpenAPS.defaults(for: OpenAPS.Settings.preferences))
                 ?? Preferences(maxIOB: 0, maxCOB: 120)
         }
+
+        func getAutosensRatio() async -> Decimal {
+            let autosens = await storage.retrieveAsync(OpenAPS.Settings.autosense, as: Autosens.self)
+            return autosens?.ratio ?? 1.0
+        }
     }
 }

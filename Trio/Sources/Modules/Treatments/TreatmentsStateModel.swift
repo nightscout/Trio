@@ -19,6 +19,8 @@ extension Treatments {
         @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
         @ObservationIgnored @Injected() var bolusCalculationManager: BolusCalculationManager!
+        @ObservationIgnored @Injected() var smartSenseManager: SmartSenseManager!
+        @ObservationIgnored @Injected() var cronometerMealDetector: CronometerMealDetector!
 
         var lowGlucose: Decimal = 70
         var highGlucose: Decimal = 180
@@ -105,6 +107,13 @@ extension Treatments {
 
         var externalInsulin: Bool = false
         var showInfo: Bool = false
+
+        // SmartSense
+        var smartSenseEnabled: Bool = false
+        var smartSenseResult: SmartSenseResult?
+        var smartSenseOverride: Double = 0.0
+        var detectedMeals: [DetectedMeal] = []
+        var smartSenseMaxAdjustment: Double = 0.20
         var glucoseFromPersistence: [GlucoseStored] = []
         var determination: [OrefDetermination] = []
         var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
@@ -174,6 +183,7 @@ extension Treatments {
 
             unsubscribe()
             bolusProgressCancellable?.cancel()
+            cronometerMealDetector?.stopObserving()
 
             broadcaster?.unregister(DeterminationObserver.self, observer: self)
             broadcaster?.unregister(BolusFailureObserver.self, observer: self)
@@ -197,6 +207,9 @@ extension Treatments {
                         }
                         group.addTask {
                             self.registerObservers()
+                        }
+                        group.addTask {
+                            await self.setupSmartSense()
                         }
 
                         // Wait for all tasks to complete
@@ -302,6 +315,34 @@ extension Treatments {
             useFPUconversion = settingsManager.settings.useFPUconversion
             isSmoothingEnabled = settingsManager.settings.smoothGlucose
             glucoseColorScheme = settingsManager.settings.glucoseColorScheme
+
+            // SmartSense
+            smartSenseEnabled = settings.settings.smartSenseSettings.enabled
+            smartSenseMaxAdjustment = settings.settings.smartSenseSettings.maxAdjustment
+        }
+
+        private func setupSmartSense() async {
+            let ssSettings = settings.settings.smartSenseSettings
+            guard ssSettings.enabled else { return }
+
+            // Start Cronometer meal detection
+            cronometerMealDetector.startObserving()
+
+            // Subscribe to meal updates
+            cronometerMealDetector.mealsPublisher
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] meals in
+                    self?.detectedMeals = meals
+                }
+                .store(in: &subscriptions)
+
+            // Compute initial SmartSense result
+            let autosensRatio = await provider.getAutosensRatio()
+            let result = await smartSenseManager.computeSensitivity(autosensRatio: autosensRatio)
+            await MainActor.run {
+                smartSenseResult = result
+                smartSenseOverride = result.blendedSuggestion
+            }
         }
 
         private func getCurrentSettingValue(for type: SettingType) async {
@@ -660,6 +701,13 @@ extension Treatments {
         }
 
         // MARK: - Presets
+
+        func selectDetectedMeal(_ meal: DetectedMeal) {
+            carbs = Decimal(meal.carbs)
+            fat = Decimal(meal.fat)
+            protein = Decimal(meal.protein)
+            cronometerMealDetector.markAsDosed(meal.id)
+        }
 
         func deletePreset() {
             if selection != nil {

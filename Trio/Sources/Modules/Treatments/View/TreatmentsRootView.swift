@@ -268,6 +268,37 @@ extension Treatments {
                                 .padding(.vertical)
                         }.listRowBackground(Color.chart)
 
+                        // SmartSense sensitivity widget
+                        if state.smartSenseEnabled, let result = state.smartSenseResult {
+                            Section {
+                                SmartSenseSummaryView(
+                                    result: result,
+                                    userOverride: $state.smartSenseOverride,
+                                    maxAdjustment: state.smartSenseMaxAdjustment
+                                )
+                            }
+                            .listRowBackground(Color.chart)
+                            .listRowInsets(EdgeInsets())
+                        }
+
+                        // Detected Cronometer meals
+                        if state.smartSenseEnabled, !state.detectedMeals.filter({ !$0.isDosed }).isEmpty {
+                            Section {
+                                CronometerMealPickerView(
+                                    meals: state.detectedMeals,
+                                    onSelect: { meal in
+                                        state.selectDetectedMeal(meal)
+                                        handleDebouncedInput()
+                                    },
+                                    onDismiss: {
+                                        // User chose to skip — do nothing
+                                    }
+                                )
+                            }
+                            .listRowBackground(Color.chart)
+                            .listRowInsets(EdgeInsets())
+                        }
+
                         Section {
                             carbsTextField()
 

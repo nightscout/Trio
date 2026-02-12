@@ -8,4 +8,5 @@ protocol TreatmentsProvider: Provider {
     func getCarbRatios() async -> CarbRatios
     func getBGTargets() async -> BGTargets
     func getISFValues() async -> InsulinSensitivities
+    func getAutosensRatio() async -> Decimal
 }
