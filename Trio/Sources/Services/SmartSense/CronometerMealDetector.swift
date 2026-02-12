@@ -46,6 +46,9 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
     private var lastProteinTotal: Double = 0
     private var lastFiberTotal: Double = 0
 
+    // Whether a valid prior snapshot exists (false on first install or new day)
+    private var hasPriorSnapshot = false
+
     // Initialization guard — observers don't process until initial reconciliation completes
     private var isInitialized = false
 
@@ -87,8 +90,9 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
             lastFatTotal = defaults.double(forKey: Keys.lastFat)
             lastProteinTotal = defaults.double(forKey: Keys.lastProtein)
             lastFiberTotal = defaults.double(forKey: Keys.lastFiber)
+            hasPriorSnapshot = true
         }
-        // else: new day — cumulative totals stay at 0; reconcileOnStartup() will handle it
+        // else: first install or new day — no prior snapshot, just establish baseline
 
         // Restore today's meals
         if let data = defaults.data(forKey: Keys.meals),
@@ -181,28 +185,38 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
     // MARK: - Startup Reconciliation
 
     /// Compare persisted snapshot to current HealthKit totals.
-    /// If data changed while the app was closed, detect just that delta as a meal.
+    /// On first install or new day (no prior snapshot), just establish the baseline
+    /// without creating a meal — the full day's cumulative total isn't a real meal.
+    /// On subsequent launches with a valid prior snapshot, detect the delta as a meal.
     private func reconcileOnStartup() async {
         let currentCarbs = await queryCumulativeTotal(for: .dietaryCarbohydrates, unit: .gram())
         let currentFat = await queryCumulativeTotal(for: .dietaryFatTotal, unit: .gram())
         let currentProtein = await queryCumulativeTotal(for: .dietaryProtein, unit: .gram())
         let currentFiber = await queryCumulativeTotal(for: .dietaryFiber, unit: .gram())
 
-        let deltaCarbs = currentCarbs - lastCarbsTotal
-        let deltaFat = currentFat - lastFatTotal
-        let deltaProtein = currentProtein - lastProteinTotal
-        let deltaFiber = currentFiber - lastFiberTotal
+        if hasPriorSnapshot {
+            // We have a valid baseline — detect the delta since last snapshot
+            let deltaCarbs = currentCarbs - lastCarbsTotal
+            let deltaFat = currentFat - lastFatTotal
+            let deltaProtein = currentProtein - lastProteinTotal
+            let deltaFiber = currentFiber - lastFiberTotal
 
-        // If meaningful new data appeared while the app was closed, record a meal
-        if deltaCarbs > 1 || deltaFat > 1 || deltaProtein > 1 {
-            appendOrMergeMeal(
-                deltaCarbs: max(0, deltaCarbs),
-                deltaFat: max(0, deltaFat),
-                deltaProtein: max(0, deltaProtein),
-                deltaFiber: max(0, deltaFiber),
-                at: Date()
+            if deltaCarbs > 1 || deltaFat > 1 || deltaProtein > 1 {
+                appendOrMergeMeal(
+                    deltaCarbs: max(0, deltaCarbs),
+                    deltaFat: max(0, deltaFat),
+                    deltaProtein: max(0, deltaProtein),
+                    deltaFiber: max(0, deltaFiber),
+                    at: Date()
+                )
+                persistMeals()
+            }
+        } else {
+            // First install or new day — just establish the baseline, don't create a meal
+            debug(
+                .service,
+                "CronometerMealDetector: no prior snapshot — establishing baseline (C:\(currentCarbs) F:\(currentFat) P:\(currentProtein) Fb:\(currentFiber))"
             )
-            persistMeals()
         }
 
         // Update snapshot to current cumulative totals
@@ -210,6 +224,7 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
         lastFatTotal = currentFat
         lastProteinTotal = currentProtein
         lastFiberTotal = currentFiber
+        hasPriorSnapshot = true
         persistSnapshot()
 
         debug(
