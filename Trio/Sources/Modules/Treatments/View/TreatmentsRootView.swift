@@ -281,8 +281,8 @@ extension Treatments {
                             .listRowInsets(EdgeInsets())
                         }
 
-                        // Detected Cronometer meals
-                        if state.smartSenseEnabled, !state.detectedMeals.filter({ !$0.isDosed }).isEmpty {
+                        // Detected Cronometer meals (last 4 hours)
+                        if state.smartSenseEnabled, !state.detectedMeals.filter({ $0.detectedAt > Date().addingTimeInterval(-4 * 60 * 60) }).isEmpty {
                             Section {
                                 CronometerMealPickerView(
                                     meals: state.detectedMeals,

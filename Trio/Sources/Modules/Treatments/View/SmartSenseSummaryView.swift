@@ -141,11 +141,17 @@ struct SmartSenseSummaryView: View {
 
 // MARK: - Meal Picker View
 
-/// Shows detected Cronometer meals for the user to select.
+/// Shows detected Cronometer meals from the last 4 hours for the user to select.
+/// Dosed meals display a badge but can still be re-selected (e.g. if the bolus was cancelled).
 struct CronometerMealPickerView: View {
     let meals: [DetectedMeal]
     let onSelect: (DetectedMeal) -> Void
     let onDismiss: () -> Void
+
+    private var recentMeals: [DetectedMeal] {
+        let fourHoursAgo = Date().addingTimeInterval(-4 * 60 * 60)
+        return meals.filter { $0.detectedAt > fourHoursAgo }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -159,13 +165,13 @@ struct CronometerMealPickerView: View {
                     .font(.subheadline)
             }
 
-            if meals.isEmpty {
-                Text("No meals detected from Cronometer today.")
+            if recentMeals.isEmpty {
+                Text("No meals detected from Cronometer in the last 4 hours.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.vertical, 8)
             } else {
-                ForEach(meals.filter { !$0.isDosed }) { meal in
+                ForEach(recentMeals) { meal in
                     Button {
                         onSelect(meal)
                     } label: {
@@ -185,8 +191,18 @@ struct CronometerMealPickerView: View {
     private func mealRow(_ meal: DetectedMeal) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(meal.label)
-                    .font(.subheadline.weight(.medium))
+                HStack(spacing: 6) {
+                    Text(meal.label)
+                        .font(.subheadline.weight(.medium))
+                    if meal.isDosed {
+                        Text("Dosed")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(Color.blue))
+                    }
+                }
                 HStack(spacing: 12) {
                     macroTag("C", value: meal.carbs, color: .green)
                     macroTag("F", value: meal.fat, color: .yellow)

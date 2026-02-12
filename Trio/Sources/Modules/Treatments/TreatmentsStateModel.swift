@@ -706,7 +706,10 @@ extension Treatments {
             carbs = Decimal(meal.carbs)
             fat = Decimal(meal.fat)
             protein = Decimal(meal.protein)
-            cronometerMealDetector.markAsDosed(meal.id)
+            // Mark as dosed so the badge shows, but the user can still re-select
+            if !meal.isDosed {
+                cronometerMealDetector.markAsDosed(meal.id)
+            }
         }
 
         func deletePreset() {
