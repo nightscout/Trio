@@ -83,6 +83,10 @@ extension SmartSenseConfig {
         let resolver: Resolver
         @StateObject var state = SmartSenseConfig.StateModel()
 
+        @State private var exportFiles: [URL] = []
+        @State private var showShareSheet = false
+        @State private var exportCount = 0
+
         var body: some View {
             Form {
                 enableSection
@@ -91,12 +95,21 @@ extension SmartSenseConfig {
                     masterSplitSection
                     weightEditorSection
                     overrideSection
+                    exportSection
                 }
             }
             .scrollContentBackground(.hidden)
             .navigationTitle("Smart Sense")
             .navigationBarTitleDisplayMode(.automatic)
-            .onAppear { configureView() }
+            .onAppear {
+                configureView()
+                exportCount = MealDecisionExporter.listExports().count
+            }
+            .sheet(isPresented: $showShareSheet) {
+                if !exportFiles.isEmpty {
+                    ShareSheet(activityItems: exportFiles)
+                }
+            }
         }
 
         // MARK: - Sections
@@ -221,6 +234,37 @@ extension SmartSenseConfig {
                 }
                 Slider(value: $state.overrideDuration, in: 2 ... 10, step: 1)
                 Text("When you adjust the sensitivity slider at dose time, the override persists for this duration so the loop respects your adjustment through meal absorption.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+
+        private var exportSection: some View {
+            Section(header: Text("Meal Decision Export")) {
+                HStack {
+                    Image(systemName: "doc.text")
+                        .foregroundStyle(.blue)
+                    Text("Exported Decisions")
+                    Spacer()
+                    Text("\(exportCount)")
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+
+                Button {
+                    exportFiles = MealDecisionExporter.listExports()
+                    if !exportFiles.isEmpty {
+                        showShareSheet = true
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "square.and.arrow.up")
+                        Text("Share All Exports")
+                    }
+                }
+                .disabled(exportCount == 0)
+
+                Text("Each time you dose a detected Cronometer meal, the decision context (macros, BG, IOB, SmartSense values) is saved as JSON for analysis.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
