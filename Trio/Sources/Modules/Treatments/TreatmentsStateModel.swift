@@ -479,9 +479,12 @@ extension Treatments {
                     await saveMeal()
                 }
 
-                // Mark the selected Cronometer meal as dosed now that the user committed
-                if let mealID = selectedMealID {
+                // Mark the selected Cronometer meal as dosed and export decision
+                if let mealID = selectedMealID,
+                   let meal = detectedMeals.first(where: { $0.id == mealID })
+                {
                     cronometerMealDetector.markAsDosed(mealID)
+                    exportMealDecision(meal: meal, insulinDelivered: Double(truncating: amount as NSDecimalNumber))
                     await MainActor.run { selectedMealID = nil }
                 }
 
@@ -714,6 +717,60 @@ extension Treatments {
             fat = Decimal(meal.fat)
             protein = Decimal(meal.protein)
             selectedMealID = meal.id
+        }
+
+        private func exportMealDecision(meal: DetectedMeal, insulinDelivered: Double) {
+            let now = Date()
+            let delayMinutes = Int(now.timeIntervalSince(meal.detectedAt) / 60)
+
+            let ssResult = smartSenseResult
+            let overrideModified = ssResult.map { smartSenseOverride != $0.blendedSuggestion } ?? false
+
+            let decision = MealDecisionExport(
+                mealTimestamp: meal.detectedAt,
+                doseTimestamp: now,
+                delayMinutes: delayMinutes,
+                selectedMeals: [
+                    MealDecisionExport.MealExportEntry(
+                        label: meal.label,
+                        carbs: meal.carbs,
+                        fat: meal.fat,
+                        protein: meal.protein,
+                        fiber: meal.fiber,
+                        source: meal.source,
+                        detectedAt: meal.detectedAt
+                    )
+                ],
+                stateAtDose: MealDecisionExport.DoseState(
+                    currentBG: Double(truncating: currentBG as NSDecimalNumber),
+                    bgAtMealDetection: nil,
+                    bgRiseSinceMeal: nil,
+                    iobAtDose: Double(truncating: iob as NSDecimalNumber),
+                    cobAtDose: Double(cob),
+                    estimatedAbsorbed: nil
+                ),
+                smartSense: ssResult ?? SmartSenseResult(
+                    garminFactors: [],
+                    garminComposite: 0,
+                    autosensRatio: 1.0,
+                    autosensContribution: 0,
+                    masterSplit: SmartSenseResult.MasterSplit(garmin: 0, autosens: 1),
+                    blendedSuggestion: 0,
+                    finalRatio: 1.0,
+                    garminDataAvailable: false,
+                    garminDataTime: nil
+                ),
+                userOverride: smartSenseOverride,
+                overrideWasModified: overrideModified,
+                dose: MealDecisionExport.DoseExport(
+                    recommended: Double(truncating: insulinCalculated as NSDecimalNumber),
+                    delivered: insulinDelivered,
+                    preDoseIOB: Double(truncating: iob as NSDecimalNumber),
+                    preDoseCOB: Double(cob)
+                )
+            )
+
+            MealDecisionExporter.export(decision)
         }
 
         func deletePreset() {
