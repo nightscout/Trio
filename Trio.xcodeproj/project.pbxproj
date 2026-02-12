@@ -2163,10 +2163,8 @@
 				3811DEA525C9D88300A708ED /* UnlockManager */,
 				38E87406274F9AA500975559 /* UserNotifications */,
 				38E8754D275556E100975559 /* WatchManager */,
-							CC10000001A0B0C000D0E001 /* Garmin */,
+				CC10000001A0B0C000D0E001 /* Garmin */,
 				CC10000002A0B0C000D0E002 /* SmartSense */,
-							AA10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift */,
-				AA10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -3031,7 +3029,7 @@
 				58237D9D2BCF0A6B00A47A79 /* PopupView.swift */,
 				BDB899872C564509006F3298 /* ForecastChart.swift */,
 				DD07CA5A2CE950B9002D45A9 /* MealPreset */,
-							AA1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift */,
+				AA1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -3450,6 +3448,8 @@
 				DD1745182C543B5700211FAC /* NotificationsView.swift */,
 				DD17451C2C543C5F00211FAC /* ServicesView.swift */,
 				DD1745362C55B74200211FAC /* AlgorithmSettings.swift */,
+				AA10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift */,
+				AA10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift */,
 			);
 			path = Subviews;
 			sourceTree = "<group>";
