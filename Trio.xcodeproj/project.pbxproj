@@ -764,6 +764,8 @@
 		BB20000001A0B0C000D0E001 /* MealDecisionLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA20000001A0B0C000D0E001 /* MealDecisionLog.swift */; };
 		BB10000005A0B0C000D0E005 /* SmartSenseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000005A0B0C000D0E005 /* SmartSenseManager.swift */; };
 		BB10000006A0B0C000D0E006 /* CronometerMealDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000006A0B0C000D0E006 /* CronometerMealDetector.swift */; };
+		NH30000001A0B0C000D0E001 /* NutritionHealthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = NH30000002A0B0C000D0E001 /* NutritionHealthService.swift */; };
+		NS30000001A0B0C000D0E001 /* NutritionSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = NS30000002A0B0C000D0E001 /* NutritionSnapshot.swift */; };
 		BB10000007A0B0C000D0E007 /* MealDecisionExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000007A0B0C000D0E007 /* MealDecisionExporter.swift */; };
 		BB10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift */; };
 		BB10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift */; };
@@ -1630,6 +1632,8 @@
 		AA20000001A0B0C000D0E001 /* MealDecisionLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealDecisionLog.swift; sourceTree = "<group>"; };
 		AA10000005A0B0C000D0E005 /* SmartSenseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseManager.swift; sourceTree = "<group>"; };
 		AA10000006A0B0C000D0E006 /* CronometerMealDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CronometerMealDetector.swift; sourceTree = "<group>"; };
+		NH30000002A0B0C000D0E001 /* NutritionHealthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionHealthService.swift; sourceTree = "<group>"; };
+		NS30000002A0B0C000D0E001 /* NutritionSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionSnapshot.swift; sourceTree = "<group>"; };
 		AA10000007A0B0C000D0E007 /* MealDecisionExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealDecisionExporter.swift; sourceTree = "<group>"; };
 		AA10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseSettingsView.swift; sourceTree = "<group>"; };
 		AA10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminFirestoreStatusView.swift; sourceTree = "<group>"; };
@@ -2533,6 +2537,7 @@
 				DDD6D4D22CDE90720029439A /* EstimatedA1cDisplayUnit.swift */,
 							AA10000003A0B0C000D0E003 /* GarminContextSnapshot.swift */,
 				AA10000004A0B0C000D0E004 /* SmartSenseModels.swift */,
+				NS30000002A0B0C000D0E001 /* NutritionSnapshot.swift */,
 				AA20000001A0B0C000D0E001 /* MealDecisionLog.swift */,
 			);
 			path = Models;
@@ -3950,6 +3955,7 @@
 			isa = PBXGroup;
 			children = (
 				HS70616C45944CE888DC2C8D /* HealthMetricsService.swift */,
+				NH30000002A0B0C000D0E001 /* NutritionHealthService.swift */,
 				F90692A9274B7AAE0037068D /* HealthKitManager.swift */,
 			);
 			path = HealthKit;
@@ -4973,6 +4979,8 @@
 				BB20000001A0B0C000D0E001 /* MealDecisionLog.swift in Sources */,
 				BB10000005A0B0C000D0E005 /* SmartSenseManager.swift in Sources */,
 				BB10000006A0B0C000D0E006 /* CronometerMealDetector.swift in Sources */,
+				NH30000001A0B0C000D0E001 /* NutritionHealthService.swift in Sources */,
+				NS30000001A0B0C000D0E001 /* NutritionSnapshot.swift in Sources */,
 				BB10000007A0B0C000D0E007 /* MealDecisionExporter.swift in Sources */,
 				BB10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift in Sources */,
 				BB10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift in Sources */,
