@@ -257,9 +257,6 @@ struct CronometerMealPickerView: View {
                     macroTag("C", value: meal.carbs, color: .green)
                     macroTag("F", value: meal.fat, color: .yellow)
                     macroTag("P", value: meal.protein, color: .red)
-                    if meal.fiber > 0 {
-                        macroTag("Fb", value: meal.fiber, color: .brown)
-                    }
                 }
             }
             Spacer()

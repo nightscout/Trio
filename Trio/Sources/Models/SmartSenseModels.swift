@@ -212,7 +212,6 @@ struct DetectedMeal: Identifiable, Codable, Equatable {
     let carbs: Double
     let fat: Double
     let protein: Double
-    let fiber: Double
     let source: String // e.g. "cronometer"
     var isDosed: Bool
 
@@ -245,7 +244,6 @@ struct MealDecisionExport: Codable {
         let carbs: Double
         let fat: Double
         let protein: Double
-        let fiber: Double
         let source: String
         let detectedAt: Date
     }

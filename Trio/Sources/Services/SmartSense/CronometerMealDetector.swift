@@ -120,8 +120,7 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
         let nutritionTypes: [HKQuantityTypeIdentifier] = [
             .dietaryCarbohydrates,
             .dietaryFatTotal,
-            .dietaryProtein,
-            .dietaryFiber
+            .dietaryProtein
         ]
 
         // Do an initial scan, then start observers
@@ -195,27 +194,25 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
     /// Query all nutrition samples for today and group them into meals.
     /// Samples within 15 minutes of each other are considered the same meal.
     private func rebuildMealsFromSamples() async {
-        // Query all 4 nutrition types for today
+        // Query all 3 macro types for today
         async let carbSamples = querySamples(for: .dietaryCarbohydrates, unit: .gram())
         async let fatSamples = querySamples(for: .dietaryFatTotal, unit: .gram())
         async let proteinSamples = querySamples(for: .dietaryProtein, unit: .gram())
-        async let fiberSamples = querySamples(for: .dietaryFiber, unit: .gram())
 
-        let (carbs, fats, proteins, fibers) = await (carbSamples, fatSamples, proteinSamples, fiberSamples)
+        let (carbs, fats, proteins) = await (carbSamples, fatSamples, proteinSamples)
 
         // Combine all samples into a unified timeline
-        var allEntries: [(date: Date, carbs: Double, fat: Double, protein: Double, fiber: Double)] = []
+        var allEntries: [(date: Date, carbs: Double, fat: Double, protein: Double)] = []
 
-        for s in carbs { allEntries.append((s.date, s.value, 0, 0, 0)) }
-        for s in fats { allEntries.append((s.date, 0, s.value, 0, 0)) }
-        for s in proteins { allEntries.append((s.date, 0, 0, s.value, 0)) }
-        for s in fibers { allEntries.append((s.date, 0, 0, 0, s.value)) }
+        for s in carbs { allEntries.append((s.date, s.value, 0, 0)) }
+        for s in fats { allEntries.append((s.date, 0, s.value, 0)) }
+        for s in proteins { allEntries.append((s.date, 0, 0, s.value)) }
 
         // Sort by date
         allEntries.sort { $0.date < $1.date }
 
         // Group into meals: entries within 15 minutes of each other
-        var mealGroups: [(date: Date, carbs: Double, fat: Double, protein: Double, fiber: Double)] = []
+        var mealGroups: [(date: Date, carbs: Double, fat: Double, protein: Double)] = []
 
         for entry in allEntries {
             if let lastIdx = mealGroups.indices.last,
@@ -225,10 +222,9 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
                 mealGroups[lastIdx].carbs += entry.carbs
                 mealGroups[lastIdx].fat += entry.fat
                 mealGroups[lastIdx].protein += entry.protein
-                mealGroups[lastIdx].fiber += entry.fiber
             } else {
                 // Start a new meal group
-                mealGroups.append((entry.date, entry.carbs, entry.fat, entry.protein, entry.fiber))
+                mealGroups.append((entry.date, entry.carbs, entry.fat, entry.protein))
             }
         }
 
@@ -251,7 +247,6 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
                 carbs: group.carbs,
                 fat: group.fat,
                 protein: group.protein,
-                fiber: group.fiber,
                 source: "cronometer",
                 isDosed: wasDosed || (existingMeal?.isDosed ?? false)
             )

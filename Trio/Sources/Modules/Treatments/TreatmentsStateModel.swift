@@ -731,7 +731,6 @@ extension Treatments {
                         carbs: meal.carbs,
                         fat: meal.fat,
                         protein: meal.protein,
-                        fiber: meal.fiber,
                         source: meal.source,
                         detectedAt: meal.detectedAt
                     )
