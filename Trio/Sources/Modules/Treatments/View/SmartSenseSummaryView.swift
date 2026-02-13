@@ -115,24 +115,73 @@ struct SmartSenseSummaryView: View {
 
     private var breakdownView: some View {
         VStack(alignment: .leading, spacing: 6) {
-            ForEach(result.garminFactors.filter { $0.value != "N/A" && $0.value != "Unavailable" }, id: \.factor) { factor in
-                HStack {
-                    Text(factor.factor)
-                        .font(.caption)
-                        .frame(width: 120, alignment: .leading)
-                    Text(factor.value)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .frame(width: 80, alignment: .leading)
-                    Spacer()
-                    Text(String(format: "%+.1f%%", factor.weightedImpact * 100))
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(
-                            factor.weightedImpact > 0.001 ? .red :
-                                factor.weightedImpact < -0.001 ? .green : .secondary
-                        )
-                        .frame(width: 50, alignment: .trailing)
+            let availableFactors = result.garminFactors.filter { $0.value != "N/A" && $0.value != "Unavailable" }
+
+            if !availableFactors.isEmpty {
+                ForEach(availableFactors, id: \.factor) { factor in
+                    HStack {
+                        Text(factor.factor)
+                            .font(.caption)
+                            .frame(width: 120, alignment: .leading)
+                        Text(factor.value)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 80, alignment: .leading)
+                        Spacer()
+                        Text(String(format: "%+.1f%%", factor.weightedImpact * 100))
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(
+                                factor.weightedImpact > 0.001 ? .red :
+                                    factor.weightedImpact < -0.001 ? .green : .secondary
+                            )
+                            .frame(width: 50, alignment: .trailing)
+                    }
                 }
+            }
+
+            // Always show the autosens contribution
+            HStack {
+                Text("Autosens Ratio")
+                    .font(.caption)
+                    .frame(width: 120, alignment: .leading)
+                Text(String(format: "%.2f", result.autosensRatio))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 80, alignment: .leading)
+                Spacer()
+                Text(String(format: "%+.1f%%", result.autosensContribution * 100))
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(
+                        result.autosensContribution > 0.001 ? .red :
+                            result.autosensContribution < -0.001 ? .green : .secondary
+                    )
+                    .frame(width: 50, alignment: .trailing)
+            }
+
+            // Final ratio
+            HStack {
+                Text("Final Ratio")
+                    .font(.caption.weight(.medium))
+                    .frame(width: 120, alignment: .leading)
+                Text(String(format: "%.2f", result.finalRatio))
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.primary)
+                    .frame(width: 80, alignment: .leading)
+                Spacer()
+                Text(String(format: "%+.1f%%", (result.finalRatio - 1.0) * 100))
+                    .font(.caption.weight(.medium).monospacedDigit())
+                    .foregroundStyle(
+                        result.finalRatio > 1.001 ? .red :
+                            result.finalRatio < 0.999 ? .green : .secondary
+                    )
+                    .frame(width: 50, alignment: .trailing)
+            }
+
+            if !result.garminDataAvailable {
+                Text("Garmin data unavailable — using autosens only")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 2)
             }
         }
         .padding(.top, 4)

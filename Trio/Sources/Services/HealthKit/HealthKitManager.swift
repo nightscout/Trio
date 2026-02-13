@@ -35,11 +35,17 @@ public enum AppleHealthConfig {
     static var writePermissions: Set<HKSampleType> {
         Set([healthBGObject, healthCarbObject, healthFatObject, healthProteinObject, healthInsulinObject].compactMap { $0 }) }
 
+    // Read permissions — nutrition types needed for Cronometer meal detection
+    static var readPermissions: Set<HKObjectType> {
+        Set([healthCarbObject, healthFatObject, healthProteinObject, healthFiberObject].compactMap { $0 })
+    }
+
     // link to object in HealthKit
     static let healthBGObject = HKObjectType.quantityType(forIdentifier: .bloodGlucose)
     static let healthCarbObject = HKObjectType.quantityType(forIdentifier: .dietaryCarbohydrates)
     static let healthFatObject = HKObjectType.quantityType(forIdentifier: .dietaryFatTotal)
     static let healthProteinObject = HKObjectType.quantityType(forIdentifier: .dietaryProtein)
+    static let healthFiberObject = HKObjectType.quantityType(forIdentifier: .dietaryFiber)
     static let healthInsulinObject = HKObjectType.quantityType(forIdentifier: .insulinDelivery)
 
     // MetaDataKey of Trio data in HealthStore
@@ -142,7 +148,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         return try await withCheckedThrowingContinuation { continuation in
             healthKitStore.requestAuthorization(
                 toShare: AppleHealthConfig.writePermissions,
-                read: nil
+                read: AppleHealthConfig.readPermissions
             ) { status, error in
                 if let error = error {
                     continuation.resume(throwing: error)
