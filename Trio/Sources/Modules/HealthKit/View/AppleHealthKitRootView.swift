@@ -42,6 +42,26 @@ extension AppleHealthKit {
                     headerText: String(localized: "Apple Health Integration")
                 )
 
+                Section {
+                    Toggle(isOn: $state.readNutritionFromHealth) {
+                        HStack {
+                            Image(systemName: "fork.knife")
+                                .foregroundColor(.orange)
+                                .frame(width: 24)
+                            VStack(alignment: .leading) {
+                                Text("Read Nutrition from Health")
+                                Text("Detect meals logged in Cronometer or other apps via Apple Health.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Nutrition Meal Detection")
+                } footer: {
+                    Text("When enabled, Trio reads carbs, fat, and protein data written to Apple Health to automatically detect meals.")
+                }
+
                 if !state.needShowInformationTextForSetPermissions {
                     Section {
                         VStack {

@@ -326,16 +326,18 @@ extension Treatments {
             let ssSettings = settings.settings.smartSenseSettings
             guard ssSettings.enabled else { return }
 
-            // Start Cronometer meal detection
-            cronometerMealDetector.startObserving()
+            // Start Cronometer meal detection only if nutrition reading is enabled
+            if settings.settings.readNutritionFromHealth {
+                cronometerMealDetector.startObserving()
 
-            // Subscribe to meal updates
-            cronometerMealDetector.mealsPublisher
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] meals in
-                    self?.detectedMeals = meals
-                }
-                .store(in: &subscriptions)
+                // Subscribe to meal updates
+                cronometerMealDetector.mealsPublisher
+                    .receive(on: DispatchQueue.main)
+                    .sink { [weak self] meals in
+                        self?.detectedMeals = meals
+                    }
+                    .store(in: &subscriptions)
+            }
 
             // Compute initial SmartSense result
             let autosensRatio = await provider.getAutosensRatio()

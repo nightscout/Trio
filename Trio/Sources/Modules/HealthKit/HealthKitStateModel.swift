@@ -8,6 +8,7 @@ extension AppleHealthKit {
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var useAppleHealth = false
+        @Published var readNutritionFromHealth = false
         @Published var needShowInformationTextForSetPermissions = false
 
         // Health Metrics Settings for AI Analysis
@@ -20,6 +21,7 @@ extension AppleHealthKit {
             units = settingsManager.settings.units
 
             useAppleHealth = settingsManager.settings.useAppleHealth
+            readNutritionFromHealth = settingsManager.settings.readNutritionFromHealth
 
             // Load health metrics settings
             enableActivityData = settingsManager.settings.healthMetricsSettings.enableActivityData
@@ -54,6 +56,20 @@ extension AppleHealthKit {
                         }
                     } catch {
                         warning(.service, "Error requesting permission for HealthKitManager", error: error)
+                    }
+                }
+            }
+
+            subscribeSetting(\.readNutritionFromHealth, on: $readNutritionFromHealth) {
+                readNutritionFromHealth = $0
+            } didSet: { [weak self] value in
+                guard let self = self, value else { return }
+                // When enabling nutrition reading, also ensure HK read permissions are requested
+                Task {
+                    do {
+                        _ = try await self.healthKitManager.requestPermission()
+                    } catch {
+                        warning(.service, "Error requesting nutrition read permission", error: error)
                     }
                 }
             }
