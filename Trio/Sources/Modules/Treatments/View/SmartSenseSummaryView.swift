@@ -151,6 +151,7 @@ struct CronometerMealPickerView: View {
     private var recentMeals: [DetectedMeal] {
         let fourHoursAgo = Date().addingTimeInterval(-4 * 60 * 60)
         return meals.filter { $0.detectedAt > fourHoursAgo }
+            .sorted { $0.detectedAt > $1.detectedAt }
     }
 
     var body: some View {

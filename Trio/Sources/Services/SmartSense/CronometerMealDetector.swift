@@ -4,14 +4,13 @@ import HealthKit
 
 /// Detects meals logged in Cronometer (or other nutrition apps) via HealthKit.
 ///
-/// Cronometer writes cumulative daily totals to Apple Health with midnight timestamps.
-/// To detect individual meals we persist the last-known cumulative snapshot so that
-/// app restarts don't produce a false giant meal.  On each HealthKit observer callback
-/// we compute the delta from the persisted snapshot.
+/// Rather than tracking cumulative totals (which suffer from race conditions when
+/// HealthKit fires observers before all macro samples are committed), this detector
+/// queries individual nutrition samples and groups them by timestamp.  Any samples
+/// with timestamps within a 15-minute window are treated as a single meal.
 ///
 /// Observer callbacks (one per nutrition type) are debounced into a single update.
-/// Deltas within a 15-minute window are merged into one meal.
-/// Once a meal is marked as dosed, subsequent deltas start a new meal.
+/// Once a meal is marked as dosed, subsequent entries start a new meal.
 protocol CronometerMealDetector {
     /// Start observing HealthKit for nutrition changes.
     func startObserving()
@@ -40,32 +39,23 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
     private let mealsSubject = CurrentValueSubject<[DetectedMeal], Never>([])
     private let mergeWindowSeconds: TimeInterval = 15 * 60 // 15 minutes
 
-    // Persisted cumulative snapshot for delta computation
-    private var lastCarbsTotal: Double = 0
-    private var lastFatTotal: Double = 0
-    private var lastProteinTotal: Double = 0
-    private var lastFiberTotal: Double = 0
-
-    // Whether a valid prior snapshot exists (false on first install or new day)
-    private var hasPriorSnapshot = false
-
-    // Initialization guard — observers don't process until initial reconciliation completes
-    private var isInitialized = false
-
     // Debounce: batch rapid-fire observer callbacks (one fires per nutrition type)
     private var debounceWorkItem: DispatchWorkItem?
-    private let debounceDelay: TimeInterval = 2.0
+    private let debounceDelay: TimeInterval = 3.0
+
+    // Track the last-processed sample date so we don't re-process old samples
+    private var lastProcessedDate: Date?
+
+    // Map dosed meal timestamps so we can preserve isDosed across rebuilds
+    private var dosedMealTimestamps: Set<TimeInterval> = []
 
     // MARK: - UserDefaults Keys
 
     private enum Keys {
         static let prefix = "CronometerMealDetector."
-        static let lastCarbs = prefix + "lastCarbsTotal"
-        static let lastFat = prefix + "lastFatTotal"
-        static let lastProtein = prefix + "lastProteinTotal"
-        static let lastFiber = prefix + "lastFiberTotal"
-        static let snapshotDay = prefix + "snapshotDay"
         static let meals = prefix + "detectedMeals"
+        static let lastProcessed = prefix + "lastProcessedDate"
+        static let dosedTimestamps = prefix + "dosedTimestamps"
     }
 
     var detectedMeals: [DetectedMeal] { _meals }
@@ -80,42 +70,48 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
 
     private func restorePersistedState() {
         let defaults = UserDefaults.standard
-        let today = Calendar.current.startOfDay(for: Date())
-
-        // Restore snapshot only if it's from today
-        if let savedDay = defaults.object(forKey: Keys.snapshotDay) as? Date,
-           Calendar.current.isDate(savedDay, inSameDayAs: today)
-        {
-            lastCarbsTotal = defaults.double(forKey: Keys.lastCarbs)
-            lastFatTotal = defaults.double(forKey: Keys.lastFat)
-            lastProteinTotal = defaults.double(forKey: Keys.lastProtein)
-            lastFiberTotal = defaults.double(forKey: Keys.lastFiber)
-            hasPriorSnapshot = true
-        }
-        // else: first install or new day — no prior snapshot, just establish baseline
 
         // Restore today's meals
         if let data = defaults.data(forKey: Keys.meals),
            let saved = try? JSONDecoder().decode([DetectedMeal].self, from: data)
         {
             _meals = saved.filter { Calendar.current.isDateInToday($0.detectedAt) }
+            dosedMealTimestamps = Set(
+                _meals.filter(\.isDosed).map { $0.detectedAt.timeIntervalSince1970 }
+            )
         }
-        mealsSubject.send(_meals)
-    }
 
-    private func persistSnapshot() {
-        let defaults = UserDefaults.standard
-        defaults.set(lastCarbsTotal, forKey: Keys.lastCarbs)
-        defaults.set(lastFatTotal, forKey: Keys.lastFat)
-        defaults.set(lastProteinTotal, forKey: Keys.lastProtein)
-        defaults.set(lastFiberTotal, forKey: Keys.lastFiber)
-        defaults.set(Calendar.current.startOfDay(for: Date()), forKey: Keys.snapshotDay)
+        // Restore last processed date
+        if let ts = defaults.object(forKey: Keys.lastProcessed) as? Double, ts > 0 {
+            lastProcessedDate = Date(timeIntervalSince1970: ts)
+            // If it's from a previous day, reset
+            if let date = lastProcessedDate, !Calendar.current.isDateInToday(date) {
+                lastProcessedDate = nil
+            }
+        }
+
+        // Restore dosed timestamps
+        if let arr = defaults.array(forKey: Keys.dosedTimestamps) as? [Double] {
+            dosedMealTimestamps = Set(arr)
+        }
+
+        mealsSubject.send(_meals)
     }
 
     private func persistMeals() {
         if let data = try? JSONEncoder().encode(_meals) {
             UserDefaults.standard.set(data, forKey: Keys.meals)
         }
+    }
+
+    private func persistLastProcessed() {
+        if let date = lastProcessedDate {
+            UserDefaults.standard.set(date.timeIntervalSince1970, forKey: Keys.lastProcessed)
+        }
+    }
+
+    private func persistDosedTimestamps() {
+        UserDefaults.standard.set(Array(dosedMealTimestamps), forKey: Keys.dosedTimestamps)
     }
 
     // MARK: - Observation
@@ -128,12 +124,9 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
             .dietaryFiber
         ]
 
-        // Reconcile persisted state with current HealthKit data FIRST,
-        // then start observers — prevents the race where an observer fires
-        // before the initial snapshot is taken.
+        // Do an initial scan, then start observers
         Task {
-            await reconcileOnStartup()
-            isInitialized = true
+            await rebuildMealsFromSamples()
 
             for typeID in nutritionTypes {
                 guard let sampleType = HKQuantityType.quantityType(forIdentifier: typeID) else { continue }
@@ -144,7 +137,6 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
                         completionHandler()
                         return
                     }
-                    // Debounce — don't process immediately; batch all 4 type callbacks
                     self?.scheduleUpdate()
                     completionHandler()
                 }
@@ -163,197 +155,159 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
         }
         observerQueries.removeAll()
         debounceWorkItem?.cancel()
-        isInitialized = false
         debug(.service, "CronometerMealDetector: stopped observing")
     }
 
     func markAsDosed(_ mealID: UUID) {
         if let idx = _meals.firstIndex(where: { $0.id == mealID }) {
             _meals[idx].isDosed = true
+            dosedMealTimestamps.insert(_meals[idx].detectedAt.timeIntervalSince1970)
             mealsSubject.send(_meals)
             persistMeals()
+            persistDosedTimestamps()
             debug(.service, "CronometerMealDetector: meal \(mealID) marked as dosed")
         }
     }
 
     func clearMeals() {
         _meals.removeAll()
+        dosedMealTimestamps.removeAll()
         mealsSubject.send(_meals)
         persistMeals()
-    }
-
-    // MARK: - Startup Reconciliation
-
-    /// Compare persisted snapshot to current HealthKit totals.
-    /// On first install or new day (no prior snapshot), just establish the baseline
-    /// without creating a meal — the full day's cumulative total isn't a real meal.
-    /// On subsequent launches with a valid prior snapshot, detect the delta as a meal.
-    private func reconcileOnStartup() async {
-        let currentCarbs = await queryCumulativeTotal(for: .dietaryCarbohydrates, unit: .gram())
-        let currentFat = await queryCumulativeTotal(for: .dietaryFatTotal, unit: .gram())
-        let currentProtein = await queryCumulativeTotal(for: .dietaryProtein, unit: .gram())
-        let currentFiber = await queryCumulativeTotal(for: .dietaryFiber, unit: .gram())
-
-        if hasPriorSnapshot {
-            // We have a valid baseline — detect the delta since last snapshot
-            let deltaCarbs = currentCarbs - lastCarbsTotal
-            let deltaFat = currentFat - lastFatTotal
-            let deltaProtein = currentProtein - lastProteinTotal
-            let deltaFiber = currentFiber - lastFiberTotal
-
-            if deltaCarbs > 1 || deltaFat > 1 || deltaProtein > 1 {
-                appendOrMergeMeal(
-                    deltaCarbs: max(0, deltaCarbs),
-                    deltaFat: max(0, deltaFat),
-                    deltaProtein: max(0, deltaProtein),
-                    deltaFiber: max(0, deltaFiber),
-                    at: Date()
-                )
-                persistMeals()
-            }
-        } else {
-            // First install or new day — just establish the baseline, don't create a meal
-            debug(
-                .service,
-                "CronometerMealDetector: no prior snapshot — establishing baseline (C:\(currentCarbs) F:\(currentFat) P:\(currentProtein) Fb:\(currentFiber))"
-            )
-        }
-
-        // Update snapshot to current cumulative totals
-        lastCarbsTotal = currentCarbs
-        lastFatTotal = currentFat
-        lastProteinTotal = currentProtein
-        lastFiberTotal = currentFiber
-        hasPriorSnapshot = true
-        persistSnapshot()
-
-        debug(
-            .service,
-            "CronometerMealDetector: reconciled — C:\(currentCarbs) F:\(currentFat) P:\(currentProtein) Fb:\(currentFiber)"
-        )
+        persistDosedTimestamps()
     }
 
     // MARK: - Debounced Update
 
-    /// Debounce rapid-fire observer callbacks (one per nutrition type) into a single update.
     private func scheduleUpdate() {
         debounceWorkItem?.cancel()
         let work = DispatchWorkItem { [weak self] in
             Task { [weak self] in
-                await self?.handleNutritionUpdate()
+                await self?.rebuildMealsFromSamples()
             }
         }
         debounceWorkItem = work
         DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + debounceDelay, execute: work)
     }
 
-    // MARK: - Delta Computation
+    // MARK: - Sample-Based Meal Detection
 
-    private func handleNutritionUpdate() async {
-        guard isInitialized else { return }
+    /// Query all nutrition samples for today and group them into meals.
+    /// Samples within 15 minutes of each other are considered the same meal.
+    private func rebuildMealsFromSamples() async {
+        // Query all 4 nutrition types for today
+        async let carbSamples = querySamples(for: .dietaryCarbohydrates, unit: .gram())
+        async let fatSamples = querySamples(for: .dietaryFatTotal, unit: .gram())
+        async let proteinSamples = querySamples(for: .dietaryProtein, unit: .gram())
+        async let fiberSamples = querySamples(for: .dietaryFiber, unit: .gram())
 
-        let previous = (lastCarbsTotal, lastFatTotal, lastProteinTotal, lastFiberTotal)
-        await takeSnapshot()
-        let current = (lastCarbsTotal, lastFatTotal, lastProteinTotal, lastFiberTotal)
+        let (carbs, fats, proteins, fibers) = await (carbSamples, fatSamples, proteinSamples, fiberSamples)
 
-        let deltaCarbs = current.0 - previous.0
-        let deltaFat = current.1 - previous.1
-        let deltaProtein = current.2 - previous.2
-        let deltaFiber = current.3 - previous.3
+        // Combine all samples into a unified timeline
+        var allEntries: [(date: Date, carbs: Double, fat: Double, protein: Double, fiber: Double)] = []
 
-        // Always persist the updated snapshot (cumulative totals may change even without a new meal)
-        persistSnapshot()
+        for s in carbs { allEntries.append((s.date, s.value, 0, 0, 0)) }
+        for s in fats { allEntries.append((s.date, 0, s.value, 0, 0)) }
+        for s in proteins { allEntries.append((s.date, 0, 0, s.value, 0)) }
+        for s in fibers { allEntries.append((s.date, 0, 0, 0, s.value)) }
 
-        // Ignore negative deltas (user removed food) and trivial changes
-        guard deltaCarbs > 1 || deltaFat > 1 || deltaProtein > 1 else { return }
+        // Sort by date
+        allEntries.sort { $0.date < $1.date }
 
-        appendOrMergeMeal(
-            deltaCarbs: max(0, deltaCarbs),
-            deltaFat: max(0, deltaFat),
-            deltaProtein: max(0, deltaProtein),
-            deltaFiber: max(0, deltaFiber),
-            at: Date()
-        )
-        persistMeals()
-    }
+        // Group into meals: entries within 15 minutes of each other
+        var mealGroups: [(date: Date, carbs: Double, fat: Double, protein: Double, fiber: Double)] = []
 
-    // MARK: - Meal Creation / Merging
-
-    /// Append a new meal or merge into the most recent undosed meal if within the 15-minute window.
-    private func appendOrMergeMeal(
-        deltaCarbs: Double,
-        deltaFat: Double,
-        deltaProtein: Double,
-        deltaFiber: Double,
-        at timestamp: Date
-    ) {
-        if let lastIdx = _meals.lastIndex(where: { !$0.isDosed }),
-           timestamp.timeIntervalSince(_meals[lastIdx].detectedAt) < mergeWindowSeconds
-        {
-            // Merge into existing undosed meal
-            let meal = _meals[lastIdx]
-            _meals[lastIdx] = DetectedMeal(
-                id: meal.id,
-                detectedAt: meal.detectedAt,
-                carbs: meal.carbs + deltaCarbs,
-                fat: meal.fat + deltaFat,
-                protein: meal.protein + deltaProtein,
-                fiber: meal.fiber + deltaFiber,
-                source: meal.source,
-                isDosed: false
-            )
-            debug(
-                .service,
-                "CronometerMealDetector: merged delta into meal — now \(_meals[lastIdx].carbs)g C"
-            )
-        } else {
-            // New meal
-            let meal = DetectedMeal(
-                id: UUID(),
-                detectedAt: timestamp,
-                carbs: deltaCarbs,
-                fat: deltaFat,
-                protein: deltaProtein,
-                fiber: deltaFiber,
-                source: "cronometer",
-                isDosed: false
-            )
-            _meals.append(meal)
-            debug(
-                .service,
-                "CronometerMealDetector: new meal — \(deltaCarbs)g C, \(deltaFat)g F, \(deltaProtein)g P"
-            )
+        for entry in allEntries {
+            if let lastIdx = mealGroups.indices.last,
+               entry.date.timeIntervalSince(mealGroups[lastIdx].date) < mergeWindowSeconds
+            {
+                // Merge into current meal group
+                mealGroups[lastIdx].carbs += entry.carbs
+                mealGroups[lastIdx].fat += entry.fat
+                mealGroups[lastIdx].protein += entry.protein
+                mealGroups[lastIdx].fiber += entry.fiber
+            } else {
+                // Start a new meal group
+                mealGroups.append((entry.date, entry.carbs, entry.fat, entry.protein, entry.fiber))
+            }
         }
 
-        mealsSubject.send(_meals)
+        // Filter out trivial groups (< 1g carbs AND < 1g fat AND < 1g protein)
+        mealGroups = mealGroups.filter { $0.carbs > 1 || $0.fat > 1 || $0.protein > 1 }
+
+        // Build DetectedMeal list, preserving isDosed state
+        var newMeals: [DetectedMeal] = []
+        for group in mealGroups {
+            let wasDosed = dosedMealTimestamps.contains(group.date.timeIntervalSince1970)
+
+            // Try to find existing meal with matching timestamp to preserve its ID
+            let existingMeal = _meals.first { meal in
+                abs(meal.detectedAt.timeIntervalSince(group.date)) < 1.0
+            }
+
+            let meal = DetectedMeal(
+                id: existingMeal?.id ?? UUID(),
+                detectedAt: group.date,
+                carbs: group.carbs,
+                fat: group.fat,
+                protein: group.protein,
+                fiber: group.fiber,
+                source: "cronometer",
+                isDosed: wasDosed || (existingMeal?.isDosed ?? false)
+            )
+            newMeals.append(meal)
+        }
+
+        let changed = newMeals.count != _meals.count ||
+            zip(newMeals, _meals).contains(where: { $0 != $1 })
+
+        if changed {
+            _meals = newMeals
+            mealsSubject.send(_meals)
+            persistMeals()
+
+            let mealSummary = newMeals.map { "[\(Int($0.carbs))C/\(Int($0.fat))F/\(Int($0.protein))P]" }.joined(separator: " ")
+            debug(.service, "CronometerMealDetector: \(newMeals.count) meals — \(mealSummary)")
+        }
     }
 
-    // MARK: - HealthKit Queries
+    // MARK: - HealthKit Sample Queries
 
-    private func takeSnapshot() async {
-        async let carbs = queryCumulativeTotal(for: .dietaryCarbohydrates, unit: .gram())
-        async let fat = queryCumulativeTotal(for: .dietaryFatTotal, unit: .gram())
-        async let protein = queryCumulativeTotal(for: .dietaryProtein, unit: .gram())
-        async let fiber = queryCumulativeTotal(for: .dietaryFiber, unit: .gram())
-
-        let (c, f, p, fb) = await (carbs, fat, protein, fiber)
-        lastCarbsTotal = c
-        lastFatTotal = f
-        lastProteinTotal = p
-        lastFiberTotal = fb
+    private struct NutritionSample {
+        let date: Date
+        let value: Double
     }
 
-    private func queryCumulativeTotal(for identifier: HKQuantityTypeIdentifier, unit: HKUnit) async -> Double {
-        guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else { return 0 }
+    private func querySamples(
+        for identifier: HKQuantityTypeIdentifier,
+        unit: HKUnit
+    ) async -> [NutritionSample] {
+        guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else { return [] }
 
         return await withCheckedContinuation { continuation in
-            let query = HKStatisticsQuery(
-                quantityType: quantityType,
-                quantitySamplePredicate: todayPredicate(),
-                options: .cumulativeSum
-            ) { _, result, _ in
-                let total = result?.sumQuantity()?.doubleValue(for: unit) ?? 0
-                continuation.resume(returning: total)
+            let query = HKSampleQuery(
+                sampleType: quantityType,
+                predicate: todayPredicate(),
+                limit: HKObjectQueryNoLimit,
+                sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
+            ) { _, samples, error in
+                guard let samples = samples as? [HKQuantitySample], error == nil else {
+                    continuation.resume(returning: [])
+                    return
+                }
+
+                // Filter out samples that Trio itself wrote (avoid double-counting)
+                let externalSamples = samples.filter { sample in
+                    sample.sourceRevision.source.bundleIdentifier != Bundle.main.bundleIdentifier
+                }
+
+                let result = externalSamples.map { sample in
+                    NutritionSample(
+                        date: sample.startDate,
+                        value: sample.quantity.doubleValue(for: unit)
+                    )
+                }
+                continuation.resume(returning: result)
             }
             healthStore.execute(query)
         }

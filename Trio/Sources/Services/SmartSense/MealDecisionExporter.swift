@@ -305,7 +305,7 @@ enum MealDecisionExporter {
 
         let bgValues = postBG.map(\.glucose)
         let peak = postBG.max(by: { $0.glucose < $1.glucose })
-        let nadir = postBG.filter { $0.minutesAfterDose > 0 }.min(by: { $0.glucose < $1.glucose })
+        let nadir = postBG.filter { $0.minutesAfterDose > 15 }.min(by: { $0.glucose < $1.glucose })
 
         let bgAt2h = postBG.first(where: { $0.minutesAfterDose >= 115 && $0.minutesAfterDose <= 125 })?.glucose
         let bgAt4h = postBG.first(where: { $0.minutesAfterDose >= 235 && $0.minutesAfterDose <= 245 })?.glucose
