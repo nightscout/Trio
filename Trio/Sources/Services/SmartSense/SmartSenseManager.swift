@@ -67,8 +67,13 @@ final class BaseSmartSenseManager: SmartSenseManager, Injectable {
 
         // Fetch Garmin data if enabled
         var snapshot: GarminContextSnapshot?
-        if settings.garminEnabled, GarminFirebaseManager.isSignedIn {
-            snapshot = await firestoreService.fetchContext()
+        if settings.garminEnabled {
+            // Ensure Firebase is signed in (no-op if already authenticated)
+            await GarminFirebaseManager.configureAndSignIn()
+
+            if GarminFirebaseManager.isSignedIn {
+                snapshot = await firestoreService.fetchContext()
+            }
         }
 
         let garminAvailable = snapshot != nil
