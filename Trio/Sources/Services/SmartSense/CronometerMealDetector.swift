@@ -94,18 +94,18 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
     // MARK: - Observation
 
     func startObserving() {
-        // Subscribe to snapshot recordings — rebuild meals from individual samples each time
+        // Subscribe to snapshot recordings — rebuild meals from snapshot deltas each time
         nutritionService.snapshotRecorded
             .receive(on: DispatchQueue.global(qos: .utility))
             .sink { [weak self] in
-                self?.rebuildMealsFromSamples()
+                self?.rebuildMealsFromSnapshots()
             }
             .store(in: &cancellables)
 
         // Start the HealthKit observers (triggers initial snapshot too)
         nutritionService.startObserving()
 
-        debug(.service, "CronometerMealDetector: started observing via sample-based detection")
+        debug(.service, "CronometerMealDetector: started observing via snapshot-delta detection")
     }
 
     func stopObserving() {
@@ -133,48 +133,46 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
         persistDosedTimestamps()
     }
 
-    // MARK: - Sample-Based Meal Detection
+    // MARK: - Snapshot-Based Meal Detection
 
-    /// Query individual HealthKit samples and group into meals by timestamp.
-    private func rebuildMealsFromSamples() {
-        Task {
-            let events = await nutritionService.fetchGroupedMeals(
-                mergeWindow: 15 * 60,
-                dosedTimestamps: dosedMealTimestamps
+    /// Infer meals from snapshot deltas and publish updates.
+    private func rebuildMealsFromSnapshots() {
+        let events = nutritionService.snapshotStore.inferredMeals(
+            mergeWindow: 15 * 60,
+            dosedTimestamps: dosedMealTimestamps
+        )
+
+        var newMeals: [DetectedMeal] = []
+        for event in events {
+            let wasDosed = dosedMealTimestamps.contains(event.detectedAt.timeIntervalSince1970)
+
+            // Try to find existing meal with matching timestamp to preserve its ID
+            let existingMeal = _meals.first { meal in
+                abs(meal.detectedAt.timeIntervalSince(event.detectedAt)) < 1.0
+            }
+
+            let meal = DetectedMeal(
+                id: existingMeal?.id ?? UUID(),
+                detectedAt: event.detectedAt,
+                carbs: event.carbsDelta,
+                fat: event.fatDelta,
+                protein: event.proteinDelta,
+                source: "cronometer",
+                isDosed: wasDosed || (existingMeal?.isDosed ?? false)
             )
+            newMeals.append(meal)
+        }
 
-            var newMeals: [DetectedMeal] = []
-            for event in events {
-                let wasDosed = dosedMealTimestamps.contains(event.detectedAt.timeIntervalSince1970)
+        let changed = newMeals.count != _meals.count ||
+            zip(newMeals, _meals).contains(where: { $0 != $1 })
 
-                // Try to find existing meal with matching timestamp to preserve its ID
-                let existingMeal = _meals.first { meal in
-                    abs(meal.detectedAt.timeIntervalSince(event.detectedAt)) < 1.0
-                }
+        if changed {
+            _meals = newMeals
+            mealsSubject.send(_meals)
+            persistMeals()
 
-                let meal = DetectedMeal(
-                    id: existingMeal?.id ?? UUID(),
-                    detectedAt: event.detectedAt,
-                    carbs: event.carbsDelta,
-                    fat: event.fatDelta,
-                    protein: event.proteinDelta,
-                    source: "cronometer",
-                    isDosed: wasDosed || (existingMeal?.isDosed ?? false)
-                )
-                newMeals.append(meal)
-            }
-
-            let changed = newMeals.count != _meals.count ||
-                zip(newMeals, _meals).contains(where: { $0 != $1 })
-
-            if changed {
-                _meals = newMeals
-                mealsSubject.send(_meals)
-                persistMeals()
-
-                let mealSummary = newMeals.map { "[\(Int($0.carbs))C/\(Int($0.fat))F/\(Int($0.protein))P]" }.joined(separator: " ")
-                debug(.service, "CronometerMealDetector: \(newMeals.count) meals — \(mealSummary)")
-            }
+            let mealSummary = newMeals.map { "[\(Int($0.carbs))C/\(Int($0.fat))F/\(Int($0.protein))P]" }.joined(separator: " ")
+            debug(.service, "CronometerMealDetector: \(newMeals.count) meals — \(mealSummary)")
         }
     }
 }
