@@ -987,24 +987,6 @@ extension Home {
                     }
                 }
             )
-        }
-
-        @ViewBuilder func mainView() -> some View {
-            GeometryReader { geo in
-                mainViewElements(geo)
-            }
-            .onChange(of: state.hours) {
-                highlightButtons()
-            }
-            .onAppear {
-                configureView {
-                    highlightButtons()
-                }
-            }
-            .navigationTitle("Home")
-            .navigationBarHidden(true)
-            .ignoresSafeArea(.keyboard)
-            .blur(radius: state.isLoopStatusPresented ? 3 : 0)
             .sheet(isPresented: $state.isLoopStatusPresented) {
                 LoopStatusView(state: state)
             }
@@ -1080,6 +1062,24 @@ extension Home {
                     }
                 }
             }
+        }
+
+        @ViewBuilder func mainView() -> some View {
+            GeometryReader { geo in
+                mainViewElements(geo)
+            }
+            .onChange(of: state.hours) {
+                highlightButtons()
+            }
+            .onAppear {
+                configureView {
+                    highlightButtons()
+                }
+            }
+            .navigationTitle("Home")
+            .navigationBarHidden(true)
+            .ignoresSafeArea(.keyboard)
+            .blur(radius: state.isLoopStatusPresented ? 3 : 0)
         }
 
         @ViewBuilder func tabBar() -> some View {
