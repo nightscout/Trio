@@ -192,191 +192,12 @@ class StoredSettingsTidepoolFormatTests: XCTestCase {
         XCTAssertEqual(isf?.amount ?? 0, 54, accuracy: 1)
     }
 
-    // MARK: - Override Presets (Temp Targets)
-
-    func testTrioWithMultipleOverridePresets() {
-        let presets = [
-            makePreset(name: "Exercise", targetLow: 140, targetHigh: 160, scaleFactor: 0.5, hours: 2),
-            makePreset(name: "Sleep", targetLow: 110, targetHigh: 130, scaleFactor: 1.2, indefinite: true),
-            makePreset(name: "Pre-Meal", targetLow: 80, targetHigh: 90, scaleFactor: 1.0, minutes: 30)
-        ]
-
-        let settings = makeSettings(overridePresets: presets)
-        let datum = settings.datumPumpSettings(for: "test", hostIdentifier: "Trio", hostVersion: "0.6.0")
-
-        XCTAssertEqual(datum.overridePresets?.count, 3)
-        XCTAssertNotNil(datum.overridePresets?["Exercise"])
-        XCTAssertNotNil(datum.overridePresets?["Sleep"])
-        XCTAssertNotNil(datum.overridePresets?["Pre-Meal"])
-    }
-
-    func testOverridePresetDuration() {
-        let preset = makePreset(name: "Exercise", targetLow: 140, targetHigh: 140, scaleFactor: 0.7, hours: 2)
-        let settings = makeSettings(overridePresets: [preset])
-        let datum = settings.datumPumpSettings(for: "test", hostIdentifier: "Trio", hostVersion: "0.6.0")
-
-        // 2 hours = 7,200 seconds
-        XCTAssertEqual(datum.overridePresets?["Exercise"]?.duration, 7200)
-    }
-
-    func testOverridePresetIndefiniteDuration() {
-        let preset = makePreset(name: "Sleep", targetLow: 110, targetHigh: 120, scaleFactor: 1.0, indefinite: true)
-        let settings = makeSettings(overridePresets: [preset])
-        let datum = settings.datumPumpSettings(for: "test", hostIdentifier: "Trio", hostVersion: "0.6.0")
-
-        let sleepPreset = datum.overridePresets?["Sleep"]
-        XCTAssertTrue(sleepPreset?.duration == nil || sleepPreset?.duration == 0)
-    }
-
-    // MARK: - Profile Override Presets (Percentage-Based Scaling)
-
-    func testOverridePresetWithPercentageOnlyNoTarget() {
-        // Profile Override with 80% insulin needs but no glucose target
-        let preset = TemporaryScheduleOverridePreset(
-            id: UUID(),
-            symbol: "E",
-            name: "Exercise",
-            settings: TemporaryScheduleOverrideSettings(
-                targetRange: nil,
-                insulinNeedsScaleFactor: 0.8
-            ),
-            duration: .finite(3600)
-        )
-
-        let settings = makeSettings(overridePresets: [preset])
-        let datum = settings.datumPumpSettings(for: "test", hostIdentifier: "Trio", hostVersion: "0.6.0")
-
-        let exercisePreset = datum.overridePresets?["Exercise"]
-        XCTAssertNotNil(exercisePreset)
-        XCTAssertNil(exercisePreset?.bloodGlucoseTarget, "No target should produce nil bloodGlucoseTarget")
-        XCTAssertEqual(exercisePreset?.basalRateScaleFactor, 0.8, "80% should produce 0.8 basalRateScaleFactor")
-    }
-
-    func testOverridePresetWithPercentageAndTarget() {
-        // Profile Override with 130% insulin needs AND a glucose target
-        let preset = TemporaryScheduleOverridePreset(
-            id: UUID(),
-            symbol: "S",
-            name: "Sick Day",
-            settings: TemporaryScheduleOverrideSettings(
-                unit: mgPerDL,
-                targetRange: DoubleRange(minValue: 120, maxValue: 120),
-                insulinNeedsScaleFactor: 1.3
-            ),
-            duration: .indefinite
-        )
-
-        let settings = makeSettings(overridePresets: [preset])
-        let datum = settings.datumPumpSettings(for: "test", hostIdentifier: "Trio", hostVersion: "0.6.0")
-
-        let sickPreset = datum.overridePresets?["Sick Day"]
-        XCTAssertNotNil(sickPreset)
-        XCTAssertNotNil(sickPreset?.bloodGlucoseTarget, "Should include glucose target")
-        XCTAssertEqual(sickPreset?.basalRateScaleFactor, 1.3, "130% should produce 1.3 basalRateScaleFactor")
-    }
-
-    func testOverridePresetWithNilScaleFactorIsTemporaryTarget() {
-        // Temp Target preset: has glucose target but no insulin scaling
-        let preset = TemporaryScheduleOverridePreset(
-            id: UUID(),
-            symbol: "H",
-            name: "High Target",
-            settings: TemporaryScheduleOverrideSettings(
-                unit: mgPerDL,
-                targetRange: DoubleRange(minValue: 150, maxValue: 150),
-                insulinNeedsScaleFactor: nil
-            ),
-            duration: .finite(7200)
-        )
-
-        let settings = makeSettings(overridePresets: [preset])
-        let datum = settings.datumPumpSettings(for: "test", hostIdentifier: "Trio", hostVersion: "0.6.0")
-
-        let highPreset = datum.overridePresets?["High Target"]
-        XCTAssertNotNil(highPreset)
-        XCTAssertNil(highPreset?.basalRateScaleFactor, "Temp Target should have nil basalRateScaleFactor")
-        XCTAssertNotNil(highPreset?.bloodGlucoseTarget, "Temp Target should have glucose target")
-    }
-
-    func testMixedTempTargetAndProfileOverridePresets() {
-        // Both types should coexist in the same upload
-        let tempTarget = TemporaryScheduleOverridePreset(
-            id: UUID(),
-            symbol: "E",
-            name: "Exercise Target",
-            settings: TemporaryScheduleOverrideSettings(
-                unit: mgPerDL,
-                targetRange: DoubleRange(minValue: 150, maxValue: 150),
-                insulinNeedsScaleFactor: nil
-            ),
-            duration: .finite(3600)
-        )
-
-        let profileOverride = TemporaryScheduleOverridePreset(
-            id: UUID(),
-            symbol: "S",
-            name: "Sick Day",
-            settings: TemporaryScheduleOverrideSettings(
-                targetRange: nil,
-                insulinNeedsScaleFactor: 1.5
-            ),
-            duration: .indefinite
-        )
-
-        let settings = makeSettings(overridePresets: [tempTarget, profileOverride])
-        let datum = settings.datumPumpSettings(for: "test", hostIdentifier: "Trio", hostVersion: "0.6.0")
-
-        XCTAssertEqual(datum.overridePresets?.count, 2)
-
-        let exercise = datum.overridePresets?["Exercise Target"]
-        XCTAssertNil(exercise?.basalRateScaleFactor, "Temp Target should have no scaling")
-        XCTAssertNotNil(exercise?.bloodGlucoseTarget, "Temp Target should have glucose target")
-
-        let sick = datum.overridePresets?["Sick Day"]
-        XCTAssertEqual(sick?.basalRateScaleFactor, 1.5, "Profile Override should have 1.5x scaling")
-        XCTAssertNil(sick?.bloodGlucoseTarget, "This Profile Override has no target")
-    }
-
     // MARK: - Helpers
-
-    private func makePreset(
-        name: String,
-        targetLow: Double,
-        targetHigh: Double,
-        scaleFactor: Double,
-        hours: Double? = nil,
-        minutes: Double? = nil,
-        indefinite: Bool = false
-    ) -> TemporaryScheduleOverridePreset {
-        let duration: TemporaryScheduleOverride.Duration
-        if indefinite {
-            duration = .indefinite
-        } else if let hours = hours {
-            duration = .finite(hours * 3600)
-        } else if let minutes = minutes {
-            duration = .finite(minutes * 60)
-        } else {
-            duration = .finite(3600)
-        }
-
-        return TemporaryScheduleOverridePreset(
-            id: UUID(),
-            symbol: String(name.prefix(1)),
-            name: name,
-            settings: TemporaryScheduleOverrideSettings(
-                unit: mgPerDL,
-                targetRange: DoubleRange(minValue: targetLow, maxValue: targetHigh),
-                insulinNeedsScaleFactor: scaleFactor
-            ),
-            duration: duration
-        )
-    }
 
     private func makeSettings(
         dosingEnabled: Bool = true,
         glucoseTargetRangeSchedule: GlucoseRangeSchedule? = nil,
         insulinSensitivitySchedule: InsulinSensitivitySchedule? = nil,
-        overridePresets: [TemporaryScheduleOverridePreset]? = nil,
         maxBasal: Double? = 5.0,
         maxBolus: Double? = 10.0,
         suspendThreshold: GlucoseThreshold? = nil,
@@ -422,7 +243,7 @@ class StoredSettingsTidepoolFormatTests: XCTestCase {
             glucoseTargetRangeSchedule: glucoseTargetRangeSchedule ?? defaultTarget,
             preMealTargetRange: nil,
             workoutTargetRange: nil,
-            overridePresets: overridePresets,
+            overridePresets: nil,
             scheduleOverride: nil,
             preMealOverride: nil,
             maximumBasalRatePerHour: maxBasal,
@@ -451,14 +272,13 @@ class TrioSettingsAdapterTests: XCTestCase {
     // MARK: - Basal Profile Conversion
 
     func testBasalProfileMinutesToSeconds() {
-        // TrioSettingsAdapter converts entry.minutes * 60 to get seconds from midnight
         let entries: [(minutes: Int, expectedSeconds: TimeInterval)] = [
-            (0, 0), // midnight
-            (210, 12600), // 3:30 AM
-            (360, 21600), // 6:00 AM
-            (720, 43200), // noon
-            (1125, 67500), // 6:45 PM
-            (1439, 86340) // 11:59 PM
+            (0, 0),
+            (210, 12600),
+            (360, 21600),
+            (720, 43200),
+            (1125, 67500),
+            (1439, 86340)
         ]
 
         for (minutes, expected) in entries {
@@ -468,8 +288,6 @@ class TrioSettingsAdapterTests: XCTestCase {
     }
 
     func testBasalProfileWithHHMMSSFormatUsesMinutesField() {
-        // The adapter uses entry.minutes, NOT entry.start string parsing.
-        // This ensures the "HH:MM:SS" format string doesn't cause issues.
         let entries = [
             BasalProfileEntry(start: "00:00:00", minutes: 0, rate: 1.0),
             BasalProfileEntry(start: "06:00:00", minutes: 360, rate: 1.5),
@@ -548,116 +366,9 @@ class TrioSettingsAdapterTests: XCTestCase {
         XCTAssertEqual(Double(truncating: entry.high as NSDecimalNumber), 120)
     }
 
-    // MARK: - Profile Override Percentage Conversion
-
-    func testPercentageToInsulinNeedsScaleFactor() {
-        // Trio stores percentage (115 = 115%), LoopKit uses scaleFactor (1.15)
-        let testCases: [(percentage: Double, expected: Double?)] = [
-            (115, 1.15),
-            (100, nil), // 100% = no change = nil
-            (50, 0.5), // 50% for exercise
-            (150, 1.5), // 150% for illness
-            (80, 0.8)
-        ]
-
-        for (percentage, expected) in testCases {
-            let scaleFactor: Double? = percentage != 100 ? percentage / 100.0 : nil
-            XCTAssertEqual(
-                scaleFactor,
-                expected,
-                "Percentage \(percentage) should produce scaleFactor \(String(describing: expected))"
-            )
-        }
-    }
-
-    // MARK: - Temp Target Duration Conversion
-
-    func testTempTargetDurationMinutesToSeconds() {
-        let durationMinutes: Double = 60
-        let duration: TemporaryScheduleOverride.Duration = .finite(durationMinutes * 60)
-
-        if case let .finite(seconds) = duration {
-            XCTAssertEqual(seconds, 3600)
-        } else {
-            XCTFail("Expected finite duration")
-        }
-    }
-
-    func testTempTargetZeroDurationBecomesIndefinite() {
-        let durationMinutes: Double = 0
-        let duration: TemporaryScheduleOverride.Duration = durationMinutes == 0 ? .indefinite : .finite(durationMinutes * 60)
-
-        if case .indefinite = duration {
-            // Expected
-        } else {
-            XCTFail("Duration 0 should be indefinite")
-        }
-    }
-
-    // MARK: - Override Expiration Logic
-
-    func testFiniteOverrideExpired() {
-        // Override started 2 hours ago with 30-minute duration → expired
-        let startDate = Date().addingTimeInterval(-2 * 3600) // 2 hours ago
-        let durationMinutes: Double = 30
-        let endDate = startDate.addingTimeInterval(durationMinutes * 60)
-
-        XCTAssertTrue(endDate < Date(), "Override with 30min duration started 2h ago should be expired")
-    }
-
-    func testFiniteOverrideStillActive() {
-        // Override started 10 minutes ago with 60-minute duration → still active
-        let startDate = Date().addingTimeInterval(-10 * 60) // 10 minutes ago
-        let durationMinutes: Double = 60
-        let endDate = startDate.addingTimeInterval(durationMinutes * 60)
-
-        XCTAssertTrue(endDate > Date(), "Override with 60min duration started 10min ago should still be active")
-    }
-
-    func testIndefiniteOverrideNeverExpires() {
-        // Indefinite overrides have duration 0 and should never be skipped
-        let startDate = Date().addingTimeInterval(-24 * 3600) // 24 hours ago
-        let indefinite = true
-        let durationMinutes: Double = 0
-
-        // The adapter logic: if !indefinite && duration > 0, check expiration
-        let shouldCheckExpiration = !indefinite && durationMinutes > 0
-        XCTAssertFalse(shouldCheckExpiration, "Indefinite overrides should not be checked for expiration")
-    }
-
-    func testExpiredTempTargetIsSkipped() {
-        // Temp target started 3 hours ago with 1-hour duration → expired
-        let startDate = Date().addingTimeInterval(-3 * 3600)
-        let durationMinutes: Double = 60
-        let endDate = startDate.addingTimeInterval(durationMinutes * 60)
-
-        XCTAssertTrue(endDate < Date(), "Temp target with 60min duration started 3h ago should be expired")
-    }
-
-    // MARK: - Deterministic Preset UUIDs
-
-    func testPresetIdDeterminism() {
-        // Same preset content should always produce the same UUID
-        let id1 = computeTestPresetId(name: "Exercise", target: 150, duration: 60, indefinite: false, scaleFactor: 0.8)
-        let id2 = computeTestPresetId(name: "Exercise", target: 150, duration: 60, indefinite: false, scaleFactor: 0.8)
-        XCTAssertEqual(id1, id2, "Same preset content should produce the same UUID")
-    }
-
-    func testPresetIdChangesWithDifferentContent() {
-        let baseline = computeTestPresetId(name: "Exercise", target: 150, duration: 60, indefinite: false, scaleFactor: 0.8)
-        let changedName = computeTestPresetId(name: "Running", target: 150, duration: 60, indefinite: false, scaleFactor: 0.8)
-        let changedTarget = computeTestPresetId(name: "Exercise", target: 140, duration: 60, indefinite: false, scaleFactor: 0.8)
-        let changedScale = computeTestPresetId(name: "Exercise", target: 150, duration: 60, indefinite: false, scaleFactor: 0.5)
-
-        XCTAssertNotEqual(baseline, changedName, "Different name should produce different ID")
-        XCTAssertNotEqual(baseline, changedTarget, "Different target should produce different ID")
-        XCTAssertNotEqual(baseline, changedScale, "Different scale factor should produce different ID")
-    }
-
     // MARK: - Content-Based Sync Identifier
 
     func testSyncIdentifierDeterminism() {
-        // Same therapy values should always produce the same UUID
         let id1 = computeTestSyncId(maxBasal: "5.0", maxBolus: "10.0", dosingEnabled: true)
         let id2 = computeTestSyncId(maxBasal: "5.0", maxBolus: "10.0", dosingEnabled: true)
         XCTAssertEqual(id1, id2, "Same settings should produce the same sync identifier")
@@ -674,26 +385,6 @@ class TrioSettingsAdapterTests: XCTestCase {
     }
 
     // MARK: - Helpers
-
-    /// Replicates the SHA-256 hash algorithm from TrioSettingsAdapter.deterministicPresetId
-    private func computeTestPresetId(
-        name: String, target: Double?, duration: Double, indefinite: Bool, scaleFactor: Double?
-    ) -> UUID {
-        var hasher = SHA256()
-        hasher.update(data: Data("preset:\(name)".utf8))
-        if let target = target { hasher.update(data: Data("target:\(target)".utf8)) }
-        hasher.update(data: Data("duration:\(duration)".utf8))
-        hasher.update(data: Data("indefinite:\(indefinite)".utf8))
-        if let sf = scaleFactor { hasher.update(data: Data("scale:\(sf)".utf8)) }
-        let digest = hasher.finalize()
-        let bytes = Array(digest.prefix(16))
-        return UUID(uuid: (
-            bytes[0], bytes[1], bytes[2], bytes[3],
-            bytes[4], bytes[5], bytes[6], bytes[7],
-            bytes[8], bytes[9], bytes[10], bytes[11],
-            bytes[12], bytes[13], bytes[14], bytes[15]
-        ))
-    }
 
     /// Replicates the SHA-256 hash algorithm from TrioSettingsAdapter.contentBasedSyncIdentifier
     private func computeTestSyncId(maxBasal: String, maxBolus: String, dosingEnabled: Bool) -> UUID {

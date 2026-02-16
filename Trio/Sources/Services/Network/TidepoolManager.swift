@@ -161,14 +161,6 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         broadcaster.register(PumpSettingsObserver.self, observer: self)
         broadcaster.register(CarbRatiosObserver.self, observer: self)
         broadcaster.register(InsulinSensitivitiesObserver.self, observer: self)
-        broadcaster.register(TempTargetsObserver.self, observer: self)
-
-        // Trigger settings upload when overrides are activated or deactivated.
-        // Uses CoreData publisher (not NotificationCenter) because
-        // .didUpdateOverrideConfiguration is only posted on cancellation, not activation.
-        coreDataPublisher?.filteredByEntityName("OverrideStored").sink { [weak self] _ in
-            self?.scheduleSettingsUpload()
-        }.store(in: &subscriptions)
     }
 
     func sourceInfo() -> [String: Any]? {
@@ -787,12 +779,6 @@ extension BaseTidepoolManager: CarbRatiosObserver {
 
 extension BaseTidepoolManager: InsulinSensitivitiesObserver {
     func insulinSensitivitiesDidChange(_: InsulinSensitivities) {
-        scheduleSettingsUpload()
-    }
-}
-
-extension BaseTidepoolManager: TempTargetsObserver {
-    func tempTargetsDidUpdate(_: [TempTarget]) {
         scheduleSettingsUpload()
     }
 }
