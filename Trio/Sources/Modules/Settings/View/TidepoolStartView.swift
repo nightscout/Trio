@@ -99,7 +99,7 @@ struct TidepoolStartView: BaseView {
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: "Connect to Tidepool",
                 hintText: Text(
-                    "Use your Tidepool credentials to login. If you dont already have a Tidepool account, you can sign up for one on the login page.\n\nWhen connected, Trio uploads your glucose, insulin, and carb data to your Tidepool account. Therapy settings — including basal schedules, carb ratios, insulin sensitivities, and blood glucose targets — are also uploaded so your care team can see your full therapy configuration alongside your data."
+                    "Use your Tidepool credentials to log in. If you don't have a Tidepool account, you can sign up on the login page.\n\nWhen connected, Trio uploads your glucose, carb entries, insulin (bolus and basal), pump settings, and therapy settings to Tidepool.\n\nTherapy settings include basal schedules, carb ratios, insulin sensitivities, and glucose targets."
                 ),
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
