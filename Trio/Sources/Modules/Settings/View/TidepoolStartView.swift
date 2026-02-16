@@ -72,21 +72,6 @@ struct TidepoolStartView: BaseView {
                     }.padding(.vertical)
                 }
             ).listRowBackground(Color.chart)
-
-            if state.serviceUIType != nil {
-                Section {
-                    Toggle(isOn: $state.uploadPumpSettings) {
-                        Text("Include Therapy Settings")
-                    }
-                    .disabled(state.provider.tidepoolManager.getTidepoolServiceUI() == nil)
-
-                    Text(
-                        "Uploads your therapy settings (basal schedules, carb ratios, insulin sensitivities, and blood glucose targets) to Tidepool. This helps your care team see your therapy configuration alongside your data."
-                    )
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                }
-            }
         }
         .sheet(isPresented: $state.setupTidepool) {
             if let serviceUIType = state.serviceUIType,
@@ -114,7 +99,7 @@ struct TidepoolStartView: BaseView {
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: "Connect to Tidepool",
                 hintText: Text(
-                    "When connected, uploading of carbs, bolus, basal and glucose from Trio to your Tidepool account is enabled.\n\nYou can optionally enable therapy settings upload (basal schedules, carb ratios, insulin sensitivities, and blood glucose targets) by tapping the Connected to Tidepool button and enabling the \"Include Therapy Settings\" toggle. This helps your care team see your therapy configuration alongside your data.\n\nUse your Tidepool credentials to login. If you dont already have a Tidepool account, you can sign up for one on the login page."
+                    "Use your Tidepool credentials to login. If you dont already have a Tidepool account, you can sign up for one on the login page.\n\nWhen connected, Trio uploads your glucose, insulin, and carb data to your Tidepool account. Therapy settings — including basal schedules, carb ratios, insulin sensitivities, and blood glucose targets — are also uploaded so your care team can see your full therapy configuration alongside your data."
                 ),
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )

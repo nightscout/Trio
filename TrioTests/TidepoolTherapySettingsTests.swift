@@ -12,35 +12,6 @@ import XCTest
 private let mgPerDL = HKUnit.gramUnit(with: .milli).unitDivided(by: HKUnit.literUnit(with: .deci))
 private let mmolPerL = HKUnit.moleUnit(with: .milli, molarMass: HKUnitMolarMassBloodGlucose).unitDivided(by: .liter())
 
-// MARK: - Upload Toggle Tests
-
-/// Tests for the "Include Therapy Settings" toggle in TrioSettings
-class TidepoolPumpSettingsTests: XCTestCase {
-    func testUploadPumpSettingsToggleDefaultValue() {
-        let settings = TrioSettings()
-        XCTAssertFalse(settings.uploadPumpSettings, "uploadPumpSettings should default to false (opt-in)")
-    }
-
-    func testUploadPumpSettingsTogglePersistence() {
-        var settings = TrioSettings()
-        settings.uploadPumpSettings = true
-
-        let data = try! JSONEncoder().encode(settings)
-        let decoded = try! JSONDecoder().decode(TrioSettings.self, from: data)
-        XCTAssertTrue(decoded.uploadPumpSettings, "uploadPumpSettings should persist as true")
-    }
-
-    func testUploadPumpSettingsToggleDisabledPersistence() {
-        var settings = TrioSettings()
-        settings.uploadPumpSettings = true
-        settings.uploadPumpSettings = false
-
-        let data = try! JSONEncoder().encode(settings)
-        let decoded = try! JSONDecoder().decode(TrioSettings.self, from: data)
-        XCTAssertFalse(decoded.uploadPumpSettings, "uploadPumpSettings should persist false state")
-    }
-}
-
 // MARK: - StoredSettings → Tidepool Datum Tests
 
 /// Tests that verify Trio's StoredSettings correctly converts to Tidepool's pumpSettings datum.

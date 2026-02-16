@@ -47,7 +47,6 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     /// Used to filter `settingsDidChange` so UI-only changes don't trigger uploads.
     private var lastClosedLoop: Bool?
     private var lastUnits: GlucoseUnits?
-    private var lastUploadPumpSettings: Bool?
     private var tidepoolService: RemoteDataService? {
         didSet {
             if let tidepoolService = tidepoolService {
@@ -713,10 +712,7 @@ extension BaseTidepoolManager {
     }
 
     func uploadSettings() async {
-        // Check if upload is enabled via toggle
-        guard let tidepoolService = self.tidepoolService as? TidepoolService,
-              settingsManager.settings.uploadPumpSettings
-        else {
+        guard let tidepoolService = self.tidepoolService as? TidepoolService else {
             return
         }
 
@@ -750,13 +746,11 @@ extension BaseTidepoolManager: SettingsObserver {
         // TrioSettings has ~56 properties, most are UI-only (badges, colors, etc.).
         let closedLoopChanged = lastClosedLoop != settings.closedLoop
         let unitsChanged = lastUnits != settings.units
-        let uploadJustEnabled = settings.uploadPumpSettings && lastUploadPumpSettings == false
 
         lastClosedLoop = settings.closedLoop
         lastUnits = settings.units
-        lastUploadPumpSettings = settings.uploadPumpSettings
 
-        guard closedLoopChanged || unitsChanged || uploadJustEnabled else { return }
+        guard closedLoopChanged || unitsChanged else { return }
         scheduleSettingsUpload()
     }
 }
