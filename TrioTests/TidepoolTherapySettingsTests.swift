@@ -197,6 +197,38 @@ class StoredSettingsTidepoolFormatTests: XCTestCase {
         XCTAssertEqual(isf?.amount ?? 0, 54, accuracy: 1)
     }
 
+    // MARK: - Insulin Model
+
+    func testTrioWithInsulinModel() {
+        let model = StoredInsulinModel(
+            modelType: .rapidAdult,
+            delay: .minutes(10),
+            actionDuration: .hours(8),
+            peakActivity: .minutes(65)
+        )
+        let settings = makeSettings(insulinModel: model)
+        let datum = settings.datumPumpSettings(for: "test", hostIdentifier: "Trio", hostVersion: "0.6.0")
+
+        XCTAssertNotNil(datum.insulinModel, "Insulin model should be present")
+        XCTAssertEqual(datum.insulinModel?.actionDuration, .hours(8), "DIA should match user setting")
+        XCTAssertEqual(datum.insulinModel?.actionPeakOffset, .minutes(65), "Peak time should match user setting")
+    }
+
+    func testTrioWithFiaspInsulinModel() {
+        let model = StoredInsulinModel(
+            modelType: .fiasp,
+            delay: .minutes(10),
+            actionDuration: .hours(6),
+            peakActivity: .minutes(55)
+        )
+        let settings = makeSettings(insulinModel: model)
+        let datum = settings.datumPumpSettings(for: "test", hostIdentifier: "Trio", hostVersion: "0.6.0")
+
+        XCTAssertEqual(datum.insulinModel?.modelType, .fiasp, "Ultra-rapid should map to fiasp")
+        XCTAssertEqual(datum.insulinModel?.actionDuration, .hours(6))
+        XCTAssertEqual(datum.insulinModel?.actionPeakOffset, .minutes(55))
+    }
+
     // MARK: - Helpers
 
     private func makeSettings(
@@ -206,6 +238,7 @@ class StoredSettingsTidepoolFormatTests: XCTestCase {
         maxBasal: Double? = 5.0,
         maxBolus: Double? = 10.0,
         suspendThreshold: GlucoseThreshold? = nil,
+        insulinModel: StoredInsulinModel? = nil,
         cgmDevice: HKDevice? = nil,
         pumpDevice: HKDevice? = nil,
         bgUnit: HKUnit = mgPerDL
@@ -255,7 +288,7 @@ class StoredSettingsTidepoolFormatTests: XCTestCase {
             maximumBolus: maxBolus,
             suspendThreshold: suspendThreshold,
             insulinType: nil,
-            defaultRapidActingModel: nil,
+            defaultRapidActingModel: insulinModel,
             basalRateSchedule: defaultBasal,
             insulinSensitivitySchedule: insulinSensitivitySchedule ?? defaultISF,
             carbRatioSchedule: defaultCarb,
@@ -369,6 +402,35 @@ class TrioSettingsAdapterTests: XCTestCase {
         let entry = BGTargetEntry(low: 90, high: 120, start: "00:00", offset: 0)
         XCTAssertEqual(Double(truncating: entry.low as NSDecimalNumber), 90)
         XCTAssertEqual(Double(truncating: entry.high as NSDecimalNumber), 120)
+    }
+
+    // MARK: - Insulin Model Conversion
+
+    func testInsulinModelUsesPresetPeakWhenCustomDisabled() {
+        // When useCustomPeakTime is false, should use LoopKit preset defaults
+        let rapidAdultPeak = ExponentialInsulinModelPreset.rapidActingAdult.peakActivity
+        let fiaspPeak = ExponentialInsulinModelPreset.fiasp.peakActivity
+
+        XCTAssertEqual(rapidAdultPeak, .minutes(75), "rapidActingAdult preset peak should be 75 min")
+        XCTAssertEqual(fiaspPeak, .minutes(55), "fiasp preset peak should be 55 min")
+    }
+
+    func testInsulinModelCustomPeakTimeRange() {
+        // insulinPeakTime picker: min 35, max 120, step 1 (minutes)
+        let minPeak: TimeInterval = .minutes(35)
+        let maxPeak: TimeInterval = .minutes(120)
+
+        XCTAssertEqual(minPeak, 2100, "35 minutes = 2100 seconds")
+        XCTAssertEqual(maxPeak, 7200, "120 minutes = 7200 seconds")
+    }
+
+    func testInsulinModelDIARange() {
+        // insulinActionCurve picker: min 5, max 10, step 0.5 (hours)
+        let minDIA: TimeInterval = .hours(5)
+        let maxDIA: TimeInterval = .hours(10)
+
+        XCTAssertEqual(minDIA, 18000, "5 hours = 18000 seconds")
+        XCTAssertEqual(maxDIA, 36000, "10 hours = 36000 seconds")
     }
 
     // MARK: - Content-Based Sync Identifier

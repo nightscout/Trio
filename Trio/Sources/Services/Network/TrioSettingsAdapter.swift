@@ -64,7 +64,7 @@ final class TrioSettingsAdapter: Injectable {
             maximumBolus: Double(truncating: pumpSettings.maxBolus as NSDecimalNumber),
             suspendThreshold: suspendThreshold,
             insulinType: apsManager.pumpManager?.status.insulinType,
-            defaultRapidActingModel: convertInsulinModel(preferences: preferences),
+            defaultRapidActingModel: convertInsulinModel(preferences: preferences, pumpSettings: pumpSettings),
             basalRateSchedule: basalRateSchedule,
             insulinSensitivitySchedule: insulinSensitivitySchedule,
             carbRatioSchedule: carbRatioSchedule,
@@ -132,24 +132,38 @@ final class TrioSettingsAdapter: Injectable {
         return schedule.map { GlucoseRangeSchedule(rangeSchedule: $0) }
     }
 
-    private func convertInsulinModel(preferences: Preferences?) -> StoredInsulinModel? {
+    private func convertInsulinModel(preferences: Preferences?, pumpSettings: PumpSettings) -> StoredInsulinModel? {
         guard let curve = preferences?.curve else { return nil }
 
         let modelType: StoredInsulinModel.ModelType
+        let preset: ExponentialInsulinModelPreset
         switch curve {
-        case .rapidActing:
+        case .bilinear,
+             .rapidActing:
             modelType = .rapidAdult
+            preset = .rapidActingAdult
         case .ultraRapid:
-            modelType = .fiasp
-        case .bilinear:
-            modelType = .rapidAdult
+            // Distinguish Fiasp vs Lyumjev using the pump's configured insulin type
+            let isLyumjev = apsManager.pumpManager?.status.insulinType == .lyumjev
+            modelType = isLyumjev ? .lyumjev : .fiasp
+            preset = isLyumjev ? .lyumjev : .fiasp
+        }
+
+        let dia = Double(truncating: pumpSettings.insulinActionCurve as NSDecimalNumber)
+
+        // Use custom peak time if enabled, otherwise fall back to LoopKit preset default
+        let peakActivity: TimeInterval
+        if let prefs = preferences, prefs.useCustomPeakTime {
+            peakActivity = .minutes(Double(truncating: prefs.insulinPeakTime as NSDecimalNumber))
+        } else {
+            peakActivity = preset.peakActivity
         }
 
         return StoredInsulinModel(
             modelType: modelType,
-            delay: .minutes(10),
-            actionDuration: .hours(6),
-            peakActivity: .hours(modelType == .fiasp ? 2.5 : 3)
+            delay: preset.delay,
+            actionDuration: .hours(dia),
+            peakActivity: peakActivity
         )
     }
 
