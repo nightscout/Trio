@@ -3,6 +3,7 @@ import SwiftUI
 extension CarbRatioEditor {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var nightscout: NightscoutManager!
+        @Injected() private var tidepoolManager: TidepoolManager!
         @Injected() private var broadcaster: Broadcaster!
         @Published var items: [Item] = []
         @Published var initialItems: [Item] = []
@@ -104,6 +105,10 @@ extension CarbRatioEditor {
                 } catch {
                     debug(.default, "Failed to upload CRs to Nightscout: \(error)")
                 }
+            }
+
+            Task.detached(priority: .low) {
+                await self.tidepoolManager.uploadSettings()
             }
         }
 

@@ -29,6 +29,5 @@ final class ServiceAssembly: Assembly {
             }
         }
         container.register(IOBService.self) { r in BaseIOBService(resolver: r) }
-        container.register(TrioSettingsAdapter.self) { r in TrioSettingsAdapter(resolver: r) }
     }
 }

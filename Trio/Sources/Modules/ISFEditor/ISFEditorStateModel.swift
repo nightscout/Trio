@@ -16,6 +16,7 @@ extension ISFEditor {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
         @ObservationIgnored @Injected() private var nightscout: NightscoutManager!
+        @ObservationIgnored @Injected() private var tidepoolManager: TidepoolManager!
         @ObservationIgnored @Injected() private var broadcaster: Broadcaster!
 
         var items: [Item] = []
@@ -135,6 +136,10 @@ extension ISFEditor {
                         "\(DebuggingIdentifiers.failed) Faile to upload ISF to Nightscout: \(error)"
                     )
                 }
+            }
+
+            Task.detached(priority: .low) {
+                await self.tidepoolManager.uploadSettings()
             }
         }
 

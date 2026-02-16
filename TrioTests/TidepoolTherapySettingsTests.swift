@@ -304,9 +304,9 @@ class StoredSettingsTidepoolFormatTests: XCTestCase {
 
 // MARK: - Conversion Logic Tests
 
-/// Tests for the conversion math used in TrioSettingsAdapter.
+/// Tests for the conversion math used in BaseTidepoolManager.
 /// These verify the patterns used in the real adapter code.
-class TrioSettingsAdapterTests: XCTestCase {
+class BaseTidepoolManagerTests: XCTestCase {
     // MARK: - Basal Profile Conversion
 
     func testBasalProfileMinutesToSeconds() {
@@ -453,7 +453,7 @@ class TrioSettingsAdapterTests: XCTestCase {
 
     // MARK: - Helpers
 
-    /// Replicates the SHA-256 hash algorithm from TrioSettingsAdapter.contentBasedSyncIdentifier
+    /// Replicates the SHA-256 hash algorithm from BaseTidepoolManager.contentBasedSyncIdentifier
     private func computeTestSyncId(maxBasal: String, maxBolus: String, dosingEnabled: Bool) -> UUID {
         var hasher = SHA256()
         hasher.update(data: Data("0:1.0".utf8)) // basal entry
