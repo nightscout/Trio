@@ -114,15 +114,20 @@ class StoredSettingsTidepoolFormatTests: XCTestCase {
         XCTAssertEqual(datum.bloodGlucoseSafetyLimit, 70, "Suspend threshold value should match")
     }
 
-    func testTrioWithSuspendThresholdMmolL() {
+    func testTrioWithSuspendThresholdMmolLUser() {
+        // threshold_setting is always stored in mg/dL even when user displays mmol/L.
+        // The adapter creates GlucoseThreshold in mg/dL; TidepoolServiceKit converts internally.
         let settings = makeSettings(
-            suspendThreshold: GlucoseThreshold(unit: mmolPerL, value: 3.9),
+            suspendThreshold: GlucoseThreshold(unit: mgPerDL, value: 70.0),
             bgUnit: mmolPerL
         )
         let datum = settings.datumPumpSettings(for: "test", hostIdentifier: "Trio", hostVersion: "0.6.0")
 
-        // Tidepool stores in mg/dL (3.9 mmol/L ≈ 70.2 mg/dL)
-        XCTAssertEqual(datum.bloodGlucoseSafetyLimit ?? 0, 3.9 * 18.0182, accuracy: 0.5)
+        XCTAssertEqual(
+            datum.bloodGlucoseSafetyLimit,
+            70,
+            "Threshold in mg/dL should pass through correctly regardless of display unit"
+        )
     }
 
     // MARK: - Max Basal / Max Bolus

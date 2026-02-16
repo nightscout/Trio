@@ -43,9 +43,11 @@ final class TrioSettingsAdapter: Injectable {
         let pumpDevice = apsManager.pumpManager?.status.device
         let bgUnit: HKUnit = settingsManager.settings.units == .mmolL ? .millimolesPerLiter : .milligramsPerDeciliter
 
+        // threshold_setting is always stored in mg/dL; TidepoolServiceKit calls
+        // convertTo(unit:) internally, so we pass it through in its native unit
         let suspendThreshold: GlucoseThreshold? = preferences.map { prefs in
             let thresholdValue = Double(truncating: prefs.threshold_setting as NSDecimalNumber)
-            return GlucoseThreshold(unit: bgUnit, value: thresholdValue)
+            return GlucoseThreshold(unit: .milligramsPerDeciliter, value: thresholdValue)
         }
 
         return StoredSettings(
@@ -104,6 +106,7 @@ final class TrioSettingsAdapter: Injectable {
     }
 
     private func convertInsulinSensitivities(_ sensitivities: InsulinSensitivities) -> InsulinSensitivitySchedule? {
+        // sensitivities.units comes from the data model itself, not the user's display preference
         let unit: HKUnit = sensitivities.units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
 
         let items = sensitivities.sensitivities.map { entry in
@@ -115,6 +118,7 @@ final class TrioSettingsAdapter: Injectable {
     }
 
     private func convertBGTargets(_ bgTargets: BGTargets) -> GlucoseRangeSchedule? {
+        // bgTargets.units comes from the data model itself, not the user's display preference
         let unit: HKUnit = bgTargets.units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
 
         let items = bgTargets.targets.map { entry in
