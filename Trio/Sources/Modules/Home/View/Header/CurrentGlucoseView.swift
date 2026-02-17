@@ -137,11 +137,14 @@ struct CurrentGlucoseView: View {
             return "--"
         }
 
-        let lastGlucose = glucose.last?.glucose ?? 0
-        let secondLastGlucose = glucose.first?.glucose ?? 0
+        var lastGlucose = Decimal(glucose.last?.glucose ?? 0)
+        var secondLastGlucose = Decimal(glucose.first?.glucose ?? 0)
+        if units == .mmolL {
+            lastGlucose = lastGlucose.asMmolL
+            secondLastGlucose = secondLastGlucose.asMmolL
+        }
         let delta = lastGlucose - secondLastGlucose
-        let deltaAsDecimal = units == .mmolL ? Decimal(delta).asMmolL : Decimal(delta)
-        return deltaFormatter.string(from: deltaAsDecimal as NSNumber) ?? "--"
+        return deltaFormatter.string(from: delta as NSNumber) ?? "--"
     }
 }
 
