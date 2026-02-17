@@ -1,4 +1,5 @@
 import CGMBLEKit
+import EversenseKit
 import Foundation
 import G7SensorKit
 import G7SensorKitUI
@@ -40,6 +41,11 @@ class BasePluginManager: Injectable, PluginManager {
             pluginIdentifier: LibreTransmitterManagerV3.pluginIdentifier,
             localizedTitle: String(localized: "FreeStyle Libre"),
             manager: LibreTransmitterManagerV3.self
+        ),
+        CgmPluginDescription(
+            pluginIdentifier: EversenseCGMManager.pluginIdentifier,
+            localizedTitle: String(localized: "Eversense XL/365"),
+            manager: EversenseCGMManager.self
         )
     ]
 
