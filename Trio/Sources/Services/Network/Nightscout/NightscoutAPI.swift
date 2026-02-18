@@ -167,7 +167,7 @@ extension NightscoutAPI {
         components.path = Config.treatmentsPath
 
         components.queryItems = [
-            URLQueryItem(name: "find[id][$eq]", value: id)
+            URLQueryItem(name: "find[_id][$eq]", value: id)
         ]
 
         var request = URLRequest(url: components.url!)
@@ -193,9 +193,9 @@ extension NightscoutAPI {
         components.scheme = url.scheme
         components.host = url.host
         components.port = url.port
-        components.path = Config.treatmentsPath
+        components.path = Config.uploadEntriesPath
         components.queryItems = [
-            URLQueryItem(name: "find[id][$eq]", value: id)
+            URLQueryItem(name: "find[_id][$eq]", value: id)
         ]
 
         guard let url = components.url else {
@@ -227,7 +227,7 @@ extension NightscoutAPI {
         components.port = url.port
         components.path = Config.treatmentsPath
         components.queryItems = [
-            URLQueryItem(name: "find[id][$eq]", value: id)
+            URLQueryItem(name: "find[_id][$eq]", value: id)
         ]
 
         guard let url = components.url else {
