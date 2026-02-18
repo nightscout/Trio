@@ -25,6 +25,7 @@ extension Treatments {
         @State private var calculatorDetent = PresentationDetent.large
         @State private var pushed: Bool = false
         @State private var debounce: DispatchWorkItem?
+        @State private var showFatProteinOrderBanner = false
 
         // Food search state
         @State private var showAllSearchResults = false
@@ -91,33 +92,6 @@ extension Treatments {
             HStack {
                 VStack {
                     HStack {
-                        Text("Protein")
-                        TextFieldWithToolBar(
-                            text: $state.protein,
-                            placeholder: "0",
-                            keyboardType: .numberPad,
-                            numberFormatter: mealFormatter,
-                            showArrows: true,
-                            previousTextField: { focusedField = previousField(from: .protein) },
-                            nextTextField: { focusedField = nextField(from: .protein) },
-                            unitsText: String(localized: "g", comment: "Units for carbs")
-                        )
-                        .focused($focusedField, equals: .protein)
-                        .onChange(of: state.protein) {
-                            handleDebouncedInput()
-                        }
-                        if state.scannedProtein > 0 && !state.settings.settings.barcodeScannerOnlyCarbs {
-                            Text("+ \(Double(truncating: state.scannedProtein as NSNumber), specifier: "%.1f")g")
-                                .font(.caption)
-                                .foregroundStyle(.blue)
-                        }
-                    }
-                }
-
-                Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
-
-                VStack {
-                    HStack {
                         Text("Fat")
                         TextFieldWithToolBar(
                             text: $state.fat,
@@ -135,6 +109,33 @@ extension Treatments {
                         }
                         if state.scannedFat > 0 && !state.settings.settings.barcodeScannerOnlyCarbs {
                             Text("+ \(Double(truncating: state.scannedFat as NSNumber), specifier: "%.1f")g")
+                                .font(.caption)
+                                .foregroundStyle(.blue)
+                        }
+                    }
+                }
+
+                Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
+
+                VStack {
+                    HStack {
+                        Text("Protein")
+                        TextFieldWithToolBar(
+                            text: $state.protein,
+                            placeholder: "0",
+                            keyboardType: .numberPad,
+                            numberFormatter: mealFormatter,
+                            showArrows: true,
+                            previousTextField: { focusedField = previousField(from: .protein) },
+                            nextTextField: { focusedField = nextField(from: .protein) },
+                            unitsText: String(localized: "g", comment: "Units for carbs")
+                        )
+                        .focused($focusedField, equals: .protein)
+                        .onChange(of: state.protein) {
+                            handleDebouncedInput()
+                        }
+                        if state.scannedProtein > 0 && !state.settings.settings.barcodeScannerOnlyCarbs {
+                            Text("+ \(Double(truncating: state.scannedProtein as NSNumber), specifier: "%.1f")g")
                                 .font(.caption)
                                 .foregroundStyle(.blue)
                         }
@@ -248,7 +249,6 @@ extension Treatments {
                         }
                     }
                 }
-            }
         }
 
         @ViewBuilder private func carbsTextField() -> some View {
@@ -330,9 +330,26 @@ extension Treatments {
                 Divider()
 
                 if state.useFPUconversion {
-                    proteinAndFat()
-                    Divider()
+                proteinAndFat()
+                Divider()
+
+                if showFatProteinOrderBanner {
+                    HStack {
+                        Image(systemName: "arrow.left.arrow.right")
+                        Text("The order of Fat and Protein inputs has changed.").font(.callout)
+                        Spacer()
+                        Button {
+                            PropertyPersistentFlags.shared.hasSeenFatProteinOrderChange = true
+                            withAnimation { showFatProteinOrderBanner = false }
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .listRowBackground(Color.orange.opacity(0.75))
+                    .transition(.opacity)
                 }
+            }
 
                 // Time
                 HStack {
@@ -613,6 +630,9 @@ extension Treatments {
                     // Auto-open scanner if requested
                     if openWithScanner {
                         configureAndShowScanner(showList: false)
+
+                    if PropertyPersistentFlags.shared.hasSeenFatProteinOrderChange != true {
+                        showFatProteinOrderBanner = true
                     }
                 }
             }
