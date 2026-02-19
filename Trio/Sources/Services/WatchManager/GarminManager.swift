@@ -258,6 +258,22 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
             // Perform logic on the fresh context
             return await freshContext.perform {
+                let timeFmt = DateFormatter()
+                timeFmt.dateFormat = "HH:mm:ss"
+
+                // Log fetch results for diagnostics — helps distinguish stale-fetch vs queued-message
+                debug(
+                    .watchManager,
+                    """
+                    📱 Garmin fetch results - \
+                    freshContext: \(freshContext.name ?? freshContext.description), \
+                    glucoseCount: \(glucoseObjects.count), \
+                    latestGlucoseValue: \(glucoseObjects.first.map { "\($0.glucose)" } ?? "none"), \
+                    latestGlucoseDate: \(glucoseObjects.first?.date.map { timeFmt.string(from: $0) } ?? "nil"), \
+                    determinationCount: \(determinationObjects.count)
+                    """
+                )
+
                 var watchState = GarminWatchState()
 
                 /// Pull `glucose`, `trendRaw`, `delta`, `lastLoopDateInterval`, `iob`, `cob`,  `isf`, and `eventualBGRaw` from the latest determination.
@@ -290,6 +306,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
                 // If no glucose data is present, just return partial watch state
                 guard let latestGlucose = glucoseObjects.first else {
+                    watchState.sentAt = timeFmt.string(from: Date())
                     return watchState
                 }
 
@@ -302,11 +319,13 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                     watchState.glucose = "\(latestGlucoseValue)"
                 }
 
-                // Diagnostic: timestamp of the glucose reading for watch debug face
+                // Diagnostic: timestamp of the glucose reading for watch debug face.
+                // Always set a non-nil value so it appears in the JSON (JSONEncoder encodes
+                // nil optionals as null which ConnectIQ may silently drop).
                 if let glucoseTimestamp = latestGlucose.date {
-                    let fmt = DateFormatter()
-                    fmt.dateFormat = "HH:mm:ss"
-                    watchState.glucoseDate = fmt.string(from: glucoseTimestamp)
+                    watchState.glucoseDate = timeFmt.string(from: glucoseTimestamp)
+                } else {
+                    watchState.glucoseDate = "no-date"
                 }
 
                 // Convert direction to a textual trend
@@ -324,12 +343,17 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                     watchState.delta = deltaValue < 0 ? "\(formattedDelta)" : "+\(formattedDelta)"
                 }
 
+                // Diagnostic: when the phone built this payload (distinguishes stale fetch
+                // from ConnectIQ message queuing delay).
+                watchState.sentAt = timeFmt.string(from: Date())
+
                 debug(
                     .watchManager,
                     """
                     📱 Setup GarminWatchState - \
                     glucose: \(watchState.glucose ?? "nil"), \
                     glucoseDate: \(watchState.glucoseDate ?? "nil"), \
+                    sentAt: \(watchState.sentAt ?? "nil"), \
                     trendRaw: \(watchState.trendRaw ?? "nil"), \
                     delta: \(watchState.delta ?? "nil"), \
                     eventualBGRaw: \(watchState.eventualBGRaw ?? "nil"), \

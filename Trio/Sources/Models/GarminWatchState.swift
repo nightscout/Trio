@@ -18,6 +18,8 @@ struct GarminWatchState: Hashable, Equatable, Sendable, Encodable {
     var isf: String?
     /// Diagnostic: timestamp (HH:mm:ss) of the latest glucose reading used to build this state.
     var glucoseDate: String?
+    /// Diagnostic: timestamp (HH:mm:ss) when the phone built this payload.
+    var sentAt: String?
 
     static func == (lhs: GarminWatchState, rhs: GarminWatchState) -> Bool {
         lhs.glucose == rhs.glucose &&
