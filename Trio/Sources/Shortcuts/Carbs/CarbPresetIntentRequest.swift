@@ -1,27 +1,25 @@
 import CoreData
 import Foundation
 
-@available(iOS 16.0,*) final class CarbPresetIntentRequest: BaseIntentsRequest {
+final class CarbPresetIntentRequest: BaseIntentsRequest {
     func addCarbs(
-        _ quantityCarbs: Double,
-        _ quantityFat: Double,
-        _ quantityProtein: Double,
+        _ quantityCarbs: Int,
+        _ quantityFat: Int,
+        _ quantityProtein: Int,
         _ dateAdded: Date,
         _ note: String?,
         _ dateDefinedByUser: Bool
     ) async throws -> String {
-        guard quantityCarbs >= 0.0 || quantityFat >= 0.0 || quantityProtein >= 0.0 else {
-            return "not adding carbs in Trio"
+        guard quantityCarbs >= 0 || quantityFat >= 0 || quantityProtein >= 0 else {
+            return "Amount must be positive."
         }
-
-        let carbs = min(Decimal(quantityCarbs), settingsManager.settings.maxCarbs)
 
         try await carbsStorage.storeCarbs(
             [CarbsEntry(
                 id: UUID().uuidString,
                 createdAt: dateAdded,
                 actualDate: dateAdded,
-                carbs: carbs,
+                carbs: Decimal(quantityCarbs),
                 fat: Decimal(quantityFat),
                 protein: Decimal(quantityProtein),
                 note: (note?.isEmpty ?? true) ? "Via Shortcut" : note!,
@@ -31,12 +29,12 @@ import Foundation
             areFetchedFromRemote: false
         )
         var resultDisplay: String
-        resultDisplay = String(localized: "Added \(String(format: "%.0f", Double(carbs))) g carbs")
-        if quantityFat > 0.0 {
-            resultDisplay = String(localized: "\(resultDisplay) and \(String(format: "%.0f", Double(quantityFat))) g fat")
+        resultDisplay = String(localized: "Added \(quantityCarbs) g carbs")
+        if quantityFat > 0 {
+            resultDisplay = String(localized: "\(resultDisplay) and \(quantityFat) g fat")
         }
-        if quantityProtein > 0.0 {
-            resultDisplay = String(localized: "\(resultDisplay) and \(String(format: "%.0f", Double(quantityProtein))) g protein")
+        if quantityProtein > 0 {
+            resultDisplay = String(localized: "\(resultDisplay) and \(quantityProtein) g protein")
         }
         if dateDefinedByUser {
             let dateFormatter = DateFormatter()

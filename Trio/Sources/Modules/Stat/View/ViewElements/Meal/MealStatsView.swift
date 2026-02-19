@@ -205,14 +205,14 @@ struct MealStatsView: View {
         }
         .chartForegroundStyleScale([
             "Carbs": Color.orange,
-            "Protein": Color.blue,
-            "Fat": Color.purple
+            "Fat": Color.purple,
+            "Protein": Color.blue
         ])
         .chartLegend(position: .bottom, alignment: .leading, spacing: 12) {
             let legendItems: [(String, Color)] = state.useFPUconversion ? [
                 (String(localized: "Carbs"), Color.orange),
-                (String(localized: "Protein"), Color.blue),
-                (String(localized: "Fat"), Color.purple)
+                (String(localized: "Fat"), Color.purple),
+                (String(localized: "Protein"), Color.blue)
             ] : [(String(localized: "Carbs"), Color.orange)]
 
             let columns = [GridItem(.adaptive(minimum: 65), spacing: 4)]
