@@ -101,6 +101,7 @@ extension Home {
         var tempTargetRunStored: [TempTargetRunStored] = []
         var isOverrideCancelled: Bool = false
         var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
+        var cgmHighlight: CgmDisplayState?
         var pumpStatusHighlightMessage: String?
         var pumpStatusBadgeImage: UIImage?
         var pumpStatusBadgeColor: Color?
@@ -378,6 +379,15 @@ extension Home {
                         self.displayPumpStatusBadge()
                         self.setupBatteryArray()
                     }
+                }
+                .store(in: &lifetime)
+
+            fetchGlucoseManager.cgmDisplayState
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] state in
+                    guard let self = self else { return }
+
+                    self.cgmHighlight = state
                 }
                 .store(in: &lifetime)
         }

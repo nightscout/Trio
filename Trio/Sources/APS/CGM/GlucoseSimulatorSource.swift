@@ -22,6 +22,7 @@ import LoopKitUI
 /// This class implements the GlucoseSource protocol and provides simulated glucose readings
 /// using different generator strategies.
 final class GlucoseSimulatorSource: GlucoseSource {
+    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
     var cgmManager: CGMManagerUI?
     var glucoseManager: FetchGlucoseManager?
 

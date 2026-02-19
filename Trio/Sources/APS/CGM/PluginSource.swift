@@ -9,9 +9,22 @@ import LoopKitUI
 final class PluginSource: GlucoseSource {
     private let processQueue = DispatchQueue(label: "CGMPluginSource.processQueue")
     private let glucoseStorage: GlucoseStorage!
+
+    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
     var glucoseManager: FetchGlucoseManager?
 
-    var cgmManager: CGMManagerUI?
+    var cgmManager: CGMManagerUI? {
+        didSet {
+            if let highlight = cgmManager?.cgmStatusHighlight {
+                cgmDisplayState.value = CgmDisplayState(
+                    localizedMessage: highlight.localizedMessage,
+                    status: CgmDisplayStatus.from(highlight.state)
+                )
+            } else {
+                cgmDisplayState.value = nil
+            }
+        }
+    }
 
     var cgmHasValidSensorSession: Bool = false
 
@@ -170,6 +183,15 @@ extension PluginSource: CGMManagerDelegate {
                 cgmGlucosePluginId: fetchGlucoseManager.settingsManager.settings.cgmPluginIdentifier,
                 newManager: cgmManager as? CGMManagerUI
             )
+
+            if let cgmHightlight = self.cgmManager?.cgmStatusHighlight {
+                cgmDisplayState.value = CgmDisplayState(
+                    localizedMessage: cgmHightlight.localizedMessage,
+                    status: CgmDisplayStatus.from(cgmHightlight.state)
+                )
+            } else {
+                cgmDisplayState.value = nil
+            }
         }
     }
 

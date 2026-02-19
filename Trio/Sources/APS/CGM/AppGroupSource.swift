@@ -25,6 +25,7 @@ public extension GlucoseTrend {
 }
 
 struct AppGroupSource: GlucoseSource {
+    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
     var cgmManager: CGMManagerUI?
     var glucoseManager: FetchGlucoseManager?
     let from: String

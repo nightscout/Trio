@@ -14,6 +14,7 @@ protocol FetchGlucoseManager: SourceInfoProvider {
     func newGlucoseFromCgmManager(newGlucose: [BloodGlucose])
     var glucoseSource: GlucoseSource? { get }
     var cgmManager: CGMManagerUI? { get }
+    var cgmDisplayState: CurrentValueSubject<CgmDisplayState?, Never> { get }
     var cgmGlucoseSourceType: CGMType { get set }
     var cgmGlucosePluginId: String { get }
     var settingsManager: SettingsManager! { get }
@@ -141,7 +142,20 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         }
     }
 
-    var glucoseSource: GlucoseSource?
+    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    var glucoseSource: GlucoseSource? {
+        didSet {
+            guard let glucoseSource else {
+                return
+            }
+
+            glucoseSource.cgmDisplayState.receive(on: DispatchQueue.main)
+                .sink { [weak self] state in
+                    self?.cgmDisplayState.value = state
+                }
+                .store(in: &lifetime)
+        }
+    }
 
     func removeCalibrations() {
         calibrationService.removeAllCalibrations()

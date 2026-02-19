@@ -290,6 +290,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     @Persisted(key: "BaseDeviceDataManager.lastFetchGlucoseDate") private var lastFetchGlucoseDate: Date = .distantPast
 
     var glucoseManager: FetchGlucoseManager?
+    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
     var cgmManager: CGMManagerUI?
     var cgmType: CGMType = .enlite
 
