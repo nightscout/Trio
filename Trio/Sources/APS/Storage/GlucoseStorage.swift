@@ -204,8 +204,21 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 return false
             }
         )
-        try context.execute(batchInsert)
-        // Only send update for batch insert since regular save triggers CoreData notifications
+        batchInsert.resultType = .objectIDs
+        let result = try context.execute(batchInsert) as? NSBatchInsertResult
+
+        // NSBatchInsertRequest writes directly to SQLite, bypassing Core Data's
+        // change-propagation mechanism. Merge the inserted object IDs back into
+        // live contexts so the PSC row cache is invalidated and subsequent fetches
+        // (e.g. Garmin/Apple Watch state builders) return fresh data.
+        if let objectIDs = result?.result as? [NSManagedObjectID] {
+            let changes: [AnyHashable: Any] = [NSInsertedObjectsKey: objectIDs]
+            NSManagedObjectContext.mergeChanges(
+                fromRemoteContextSave: changes,
+                into: [CoreDataStack.shared.persistentContainer.viewContext]
+            )
+        }
+
         updateSubject.send()
     }
 
