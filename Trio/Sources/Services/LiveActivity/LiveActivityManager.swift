@@ -27,6 +27,15 @@ import UIKit
     }
 }
 
+/// Snapshot of data published by LiveActivityManager for external consumers (e.g. Garmin).
+/// Built from the same reliable CoreData context that feeds the Live Activity.
+struct LiveActivitySnapshot {
+    let glucose: GlucoseData
+    let previousGlucose: GlucoseData?
+    let determination: DeterminationData?
+    let iob: Decimal?
+}
+
 final class LiveActivityData: ObservableObject {
     /// Determination data used to update live activity state.
     @Published var determination: DeterminationData?
@@ -68,6 +77,11 @@ final class LiveActivityData: ObservableObject {
     private var currentActivity: ActiveActivity?
 
     private var data = LiveActivityData()
+
+    /// Publishes a snapshot of the current glucose/determination/IOB data whenever the
+    /// Live Activity content is pushed. External consumers (e.g. GarminManager) can subscribe
+    /// to receive the same reliable data without doing their own CoreData fetches.
+    let snapshotPublisher = PassthroughSubject<LiveActivitySnapshot, Never>()
 
     /// A Core Data task context.
     let context = CoreDataStack.shared.newTaskContext()
@@ -389,6 +403,16 @@ final class LiveActivityData: ObservableObject {
             debug(.default, "[LiveActivityManager] pushCurrentContent: no determination available")
             return
         }
+
+        // Publish a snapshot for external consumers (e.g. Garmin) BEFORE the async
+        // pushUpdate — this ensures Garmin gets the data even if the Live Activity
+        // push is slow or the activity doesn't exist yet.
+        snapshotPublisher.send(LiveActivitySnapshot(
+            glucose: bg,
+            previousGlucose: prevGlucose,
+            determination: determination,
+            iob: data.iob
+        ))
 
         let content = LiveActivityAttributes.ContentState(
             new: bg,

@@ -5,4 +5,6 @@ struct DeterminationData {
     let tdd: Decimal
     let target: Decimal
     let date: Date?
+    let eventualBG: Int?
+    let insulinSensitivity: Decimal?
 }
