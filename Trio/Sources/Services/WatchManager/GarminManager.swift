@@ -242,7 +242,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             // directly to SQLite and bypasses the normal Core Data change-propagation mechanism.
             // Without this, backgroundContext may return stale glucose objects from its row cache.
             await backgroundContext.perform {
-                self.backgroundContext.refreshAllObjects()
+                self.backgroundContext.reset()
             }
 
             // Get Glucose IDs
