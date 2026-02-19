@@ -190,6 +190,13 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     private func storeGlucoseBatch(_ glucose: [BloodGlucose]) throws {
+        let timeFmt = DateFormatter()
+        timeFmt.dateFormat = "HH:mm:ss"
+        let glucoseSummary = glucose.prefix(3).map { "(\($0.glucose ?? 0) @ \($0.dateString.map { timeFmt.string(from: $0) } ?? "nil"))" }
+        debugPrint(
+            "GlucoseStorage: storeGlucoseBatch called at \(timeFmt.string(from: Date())) " +
+            "with \(glucose.count) readings, latest: \(glucoseSummary.joined(separator: ", "))"
+        )
         var remainingGlucose = glucose
         let batchInsert = NSBatchInsertRequest(
             entity: GlucoseStored.entity(),

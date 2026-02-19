@@ -306,7 +306,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
                 // If no glucose data is present, just return partial watch state
                 guard let latestGlucose = glucoseObjects.first else {
-                    watchState.sentAt = timeFmt.string(from: Date())
+                    watchState.sentAt = "HELLO"
                     return watchState
                 }
 
@@ -345,7 +345,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
                 // Diagnostic: when the phone built this payload (distinguishes stale fetch
                 // from ConnectIQ message queuing delay).
-                watchState.sentAt = timeFmt.string(from: Date())
+                watchState.sentAt = "HELLO"
 
                 debug(
                     .watchManager,
