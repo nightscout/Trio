@@ -99,9 +99,6 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Additional local subscriptions (separate from `cancellables`) for CoreData events.
     private var subscriptions = Set<AnyCancellable>()
 
-    /// Represents the context for background tasks in CoreData.
-    let backgroundContext = CoreDataStack.shared.newTaskContext()
-
     /// Represents the main (view) context for CoreData, typically used on the main thread.
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
@@ -209,18 +206,19 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     }
 
     /// Fetches recent glucose readings from CoreData, up to 288 results.
+    /// - Parameter context: The managed object context to fetch on.
     /// - Returns: An array of `NSManagedObjectID`s for glucose readings.
-    private func fetchGlucose() async throws -> [NSManagedObjectID] {
+    private func fetchGlucose(on context: NSManagedObjectContext) async throws -> [NSManagedObjectID] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.glucose,
             key: "date",
             ascending: false,
             fetchLimit: 288
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [GlucoseStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -237,16 +235,15 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             return GarminWatchState()
         }
         do {
-            // Evict any cached managed objects so subsequent fetches go to the persistent store.
-            // This is critical because GlucoseStorage uses NSBatchInsertRequest, which writes
-            // directly to SQLite and bypasses the normal Core Data change-propagation mechanism.
-            // Without this, backgroundContext may return stale glucose objects from its row cache.
-            await backgroundContext.perform {
-                self.backgroundContext.reset()
-            }
+            // Use a fresh context for every call. A brand-new context has zero row cache,
+            // so it must fetch from the persistent store. This eliminates stale reads caused
+            // by NSBatchInsertRequest writing directly to SQLite and bypassing Core Data's
+            // change-propagation mechanism (the previous backgroundContext.reset() approach
+            // only cleared the context cache, not the PSC row cache).
+            let freshContext = CoreDataStack.shared.newTaskContext()
 
             // Get Glucose IDs
-            let glucoseIds = try await fetchGlucose()
+            let glucoseIds = try await fetchGlucose(on: freshContext)
 
             // Fetch the latest OrefDetermination object if available
             let determinationIds = try await determinationStorage.fetchLastDeterminationObjectID(
@@ -255,12 +252,12 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
             // Turn those IDs into live NSManagedObjects
             let glucoseObjects: [GlucoseStored] = try await CoreDataStack.shared
-                .getNSManagedObject(with: glucoseIds, context: backgroundContext)
+                .getNSManagedObject(with: glucoseIds, context: freshContext)
             let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
-                .getNSManagedObject(with: determinationIds, context: backgroundContext)
+                .getNSManagedObject(with: determinationIds, context: freshContext)
 
-            // Perform logic on the background context
-            return await backgroundContext.perform {
+            // Perform logic on the fresh context
+            return await freshContext.perform {
                 var watchState = GarminWatchState()
 
                 /// Pull `glucose`, `trendRaw`, `delta`, `lastLoopDateInterval`, `iob`, `cob`,  `isf`, and `eventualBGRaw` from the latest determination.
@@ -305,6 +302,13 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                     watchState.glucose = "\(latestGlucoseValue)"
                 }
 
+                // Diagnostic: timestamp of the glucose reading for watch debug face
+                if let glucoseTimestamp = latestGlucose.date {
+                    let fmt = DateFormatter()
+                    fmt.dateFormat = "HH:mm:ss"
+                    watchState.glucoseDate = fmt.string(from: glucoseTimestamp)
+                }
+
                 // Convert direction to a textual trend
                 watchState.trendRaw = latestGlucose.direction ?? "--"
 
@@ -325,6 +329,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                     """
                     📱 Setup GarminWatchState - \
                     glucose: \(watchState.glucose ?? "nil"), \
+                    glucoseDate: \(watchState.glucoseDate ?? "nil"), \
                     trendRaw: \(watchState.trendRaw ?? "nil"), \
                     delta: \(watchState.delta ?? "nil"), \
                     eventualBGRaw: \(watchState.eventualBGRaw ?? "nil"), \
