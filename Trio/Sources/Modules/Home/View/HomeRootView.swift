@@ -1005,6 +1005,24 @@ extension Home {
             .navigationBarHidden(true)
             .ignoresSafeArea(.keyboard)
             .blur(radius: state.isLoopStatusPresented ? 3 : 0)
+            .sheet(isPresented: $state.isLoopStatusPresented) {
+                LoopStatusView(state: state)
+            }
+            .sheet(isPresented: $state.isLegendPresented) {
+                ChartLegendView(state: state)
+            }
+            .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
+                Button("Medtronic") { state.addPump(.minimed) }
+                Button("Omnipod Eros") { state.addPump(.omnipod) }
+                Button("Omnipod DASH") { state.addPump(.omnipodBLE) }
+                Button("Dana(RS/-i)") { state.addPump(.dana) }
+                Button("Pump Simulator") { state.addPump(.simulator) }
+            } message: { Text("Select Pump Model") }
+            .confirmationDialog("CGM Model", isPresented: $showCGMSelection) {
+                cgmSelectionButtons
+            } message: {
+                Text("Select CGM Model")
+            }
         }
 
         @ViewBuilder func tabBar() -> some View {
@@ -1027,21 +1045,6 @@ extension Home {
                     NavigationStack { mainView() }
                         .tabItem { Label("Main", systemImage: "chart.xyaxis.line") }
                         .badge(carbsRequiredBadge).tag(0)
-                        .sheet(isPresented: $state.isLoopStatusPresented) {
-                            LoopStatusView(state: state)
-                        }
-                        .sheet(isPresented: $state.isLegendPresented) {
-                            ChartLegendView(state: state)
-                        }
-                        // PUMP RELATED
-                        .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
-                            Button("Medtronic") { state.addPump(.minimed) }
-                            Button("Omnipod Eros") { state.addPump(.omnipod) }
-                            Button("Omnipod DASH") { state.addPump(.omnipodBLE) }
-                            Button("Dana(RS/-i)") { state.addPump(.dana) }
-                            Button("Medtrum Nano") { state.addPump(.medtrum) }
-                            Button("Pump Simulator") { state.addPump(.simulator) }
-                        } message: { Text("Select Pump Model") }
                         .sheet(isPresented: $state.shouldDisplayPumpSetupSheet) {
                             if let pumpManager = state.provider.apsManager.pumpManager {
                                 PumpConfig.PumpSettingsView(
@@ -1059,12 +1062,6 @@ extension Home {
                                     setupDelegate: state
                                 )
                             }
-                        }
-                        // CGM RELATED
-                        .confirmationDialog("CGM Model", isPresented: $showCGMSelection) {
-                            cgmSelectionButtons
-                        } message: {
-                            Text("Select CGM Model")
                         }
                         .sheet(isPresented: $state.shouldDisplayCGMSetupSheet) {
                             switch state.cgmCurrent.type {
