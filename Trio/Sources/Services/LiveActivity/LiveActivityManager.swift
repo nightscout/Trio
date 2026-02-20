@@ -27,6 +27,15 @@ import UIKit
     }
 }
 
+/// Snapshot of data published by LiveActivityManager for external consumers (e.g. Garmin).
+/// Built from the same reliable CoreData context that feeds the Live Activity.
+struct LiveActivitySnapshot {
+    let glucose: GlucoseData
+    let previousGlucose: GlucoseData?
+    let determination: DeterminationData?
+    let iob: Decimal?
+}
+
 final class LiveActivityData: ObservableObject {
     /// Determination data used to update live activity state.
     @Published var determination: DeterminationData?
@@ -68,6 +77,11 @@ final class LiveActivityData: ObservableObject {
     private var currentActivity: ActiveActivity?
 
     private var data = LiveActivityData()
+
+    /// Publishes a snapshot of the current glucose/determination/IOB data whenever the
+    /// Live Activity content is pushed. External consumers (e.g. GarminManager) can subscribe
+    /// to receive the same reliable data without doing their own CoreData fetches.
+    let snapshotPublisher = PassthroughSubject<LiveActivitySnapshot, Never>()
 
     /// A Core Data task context.
     let context = CoreDataStack.shared.newTaskContext()
@@ -384,6 +398,17 @@ final class LiveActivityData: ObservableObject {
             return
         }
         let prevGlucose = data.glucoseFromPersistence?.dropFirst().first
+
+        // Publish a snapshot for external consumers (e.g. Garmin) as soon as glucose
+        // is available — don't gate on determination, since Garmin can display glucose
+        // without COB/ISF. This ensures the watch gets fresh glucose even if the
+        // determination hasn't loaded yet (e.g. first CGM cycle after launch).
+        snapshotPublisher.send(LiveActivitySnapshot(
+            glucose: bg,
+            previousGlucose: prevGlucose,
+            determination: data.determination,
+            iob: data.iob
+        ))
 
         guard let determination = data.determination else {
             debug(.default, "[LiveActivityManager] pushCurrentContent: no determination available")

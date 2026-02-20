@@ -1,6 +1,5 @@
 import Combine
 import ConnectIQ
-import CoreData
 import Foundation
 import Swinject
 
@@ -47,13 +46,11 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Manages local user settings, such as glucose units (mg/dL or mmol/L).
     @Injected() private var settingsManager: SettingsManager!
 
-    /// Stores, retrieves, and updates glucose data in CoreData.
-    @Injected() private var glucoseStorage: GlucoseStorage!
-
-    /// Stores, retrieves, and updates insulin dose determinations in CoreData.
-    @Injected() private var determinationStorage: DeterminationStorage!
-
     @Injected() private var iobService: IOBService!
+
+    /// LiveActivityManager provides a reliable data snapshot (glucose, determination, IOB)
+    /// that has already been fetched from CoreData via a long-lived, auto-merging context.
+    @Injected() private var liveActivityManager: LiveActivityManager!
 
     /// Persists the user's device list between app launches.
     @Persisted(key: "BaseGarminManager.persistedDevices") private var persistedDevices: [GarminDevice] = []
@@ -90,20 +87,28 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Current glucose units, either mg/dL or mmol/L, read from user settings.
     private var units: GlucoseUnits = .mgdL
 
-    /// Queue for handling Core Data change notifications
+    /// Queue for serializing watch state updates.
     private let queue = DispatchQueue(label: "BaseGarminManager.queue", qos: .utility)
 
-    /// Publishes any changed CoreData objects that match our filters (e.g., OrefDetermination, GlucoseStored).
-    private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
-
-    /// Additional local subscriptions (separate from `cancellables`) for CoreData events.
+    /// Subscriptions for LiveActivity snapshot, periodic refresh, and other Combine pipelines.
     private var subscriptions = Set<AnyCancellable>()
 
-    /// Represents the context for background tasks in CoreData.
-    let backgroundContext = CoreDataStack.shared.newTaskContext()
+    /// Tracks the last time a message was successfully sent to any watch app.
+    /// Used for health monitoring — if sends are failing silently, the periodic refresh
+    /// timer can detect and log the gap.
+    private var lastSuccessfulSend: Date?
 
-    /// Represents the main (view) context for CoreData, typically used on the main thread.
-    let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+    /// Counts consecutive send failures across all watch apps. Reset on any successful send.
+    private var consecutiveSendFailures: Int = 0
+
+    /// Tracks watch apps that have a sendMessage call in-flight (not yet completed).
+    /// If an app's UUID is in this set, new sends to that app are skipped to prevent
+    /// saturating the GCM BLE transfer queue. The next cycle will send fresh data.
+    private var appsWithInFlightSend: Set<UUID> = []
+
+    /// The most recent encoded watch-state JSON data, cached for resending on poll requests
+    /// and periodic refresh without re-fetching from CoreData.
+    private var lastWatchStateData: Data?
 
     // MARK: - Initialization
 
@@ -125,232 +130,132 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
         broadcaster.register(SettingsObserver.self, observer: self)
 
-        coreDataPublisher =
-            changedObjectsOnManagedObjectContextDidSavePublisher()
-                .receive(on: queue)
-                .share()
-                .eraseToAnyPublisher()
-
-        glucoseStorage.updatePublisher
-            .receive(on: DispatchQueue.global(qos: .background))
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                // Skip if no Garmin devices are connected
-                guard !self.devices.isEmpty else { return }
-                Task {
-                    do {
-                        let watchState = try await self.setupGarminWatchState()
-                        let watchStateData = try JSONEncoder().encode(watchState)
-                        self.sendWatchStateData(watchStateData)
-                    } catch {
-                        debug(
-                            .watchManager,
-                            "\(DebuggingIdentifiers.failed) Error updating watch state: \(error)"
-                        )
-                    }
-                }
-            }
-            .store(in: &subscriptions)
-
-        iobService.iobPublisher
-            .receive(on: DispatchQueue.global(qos: .background))
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                Task {
-                    do {
-                        let watchState = try await self.setupGarminWatchState()
-                        let watchStateData = try JSONEncoder().encode(watchState)
-                        self.sendWatchStateData(watchStateData)
-                    } catch {
-                        debug(
-                            .watchManager,
-                            "\(DebuggingIdentifiers.failed) Error updating watch state: \(error)"
-                        )
-                    }
-                }
-            }
-            .store(in: &subscriptions)
-
-        registerHandlers()
+        subscribeToUpdateTriggers()
+        subscribeToPeriodicRefresh()
     }
 
     // MARK: - Internal Setup / Handlers
 
-    /// Sets up handlers for OrefDetermination and GlucoseStored entity changes in CoreData.
-    /// When these change, we re-compute the Garmin watch state and send updates to the watch.
-    private func registerHandlers() {
-        coreDataPublisher?
-            .filteredByEntityName("OrefDetermination")
-            .sink { [weak self] _ in
+    /// Subscribes to LiveActivityManager's snapshot publisher to receive the same reliable
+    /// glucose/determination/IOB data that feeds the Live Activity. This eliminates the
+    /// stale-data problem caused by NSBatchInsertRequest bypassing CoreData's change
+    /// propagation — the Live Activity's long-lived context auto-merges save notifications
+    /// and always has fresh data.
+    private func subscribeToUpdateTriggers() {
+        liveActivityManager.snapshotPublisher
+            .receive(on: queue)
+            .sink { [weak self] snapshot in
                 guard let self = self else { return }
-                // Skip if no Garmin devices are connected
                 guard !self.devices.isEmpty else { return }
-                Task {
-                    do {
-                        let watchState = try await self.setupGarminWatchState()
-                        let watchStateData = try JSONEncoder().encode(watchState)
-                        self.sendWatchStateData(watchStateData)
-                    } catch {
-                        debug(
-                            .watchManager,
-                            "\(DebuggingIdentifiers.failed) failed to update watch state: \(error)"
-                        )
-                    }
-                }
-            }
-            .store(in: &subscriptions)
 
-        // Due to the batch insert, this only observes deletion of Glucose entries
-        coreDataPublisher?
-            .filteredByEntityName("GlucoseStored")
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                // Skip if no Garmin devices are connected
-                guard !self.devices.isEmpty else { return }
-                Task {
-                    do {
-                        let watchState = try await self.setupGarminWatchState()
-                        let watchStateData = try JSONEncoder().encode(watchState)
-                        self.sendWatchStateData(watchStateData)
-                    } catch {
-                        debug(
-                            .watchManager,
-                            "\(DebuggingIdentifiers.failed) failed to update watch state: \(error)"
-                        )
-                    }
-                }
-            }
-            .store(in: &subscriptions)
-    }
-
-    /// Fetches recent glucose readings from CoreData, up to 288 results.
-    /// - Returns: An array of `NSManagedObjectID`s for glucose readings.
-    private func fetchGlucose() async throws -> [NSManagedObjectID] {
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: GlucoseStored.self,
-            onContext: backgroundContext,
-            predicate: NSPredicate.glucose,
-            key: "date",
-            ascending: false,
-            fetchLimit: 288
-        )
-
-        return try await backgroundContext.perform {
-            guard let fetchedResults = results as? [GlucoseStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
-    /// Builds a `GarminWatchState` reflecting the latest glucose, trend, delta, eventual BG, ISF, IOB, and COB.
-    /// - Returns: A `GarminWatchState` containing the most recent device- and therapy-related info.
-    func setupGarminWatchState() async throws -> GarminWatchState {
-        // Skip expensive calculations if no Garmin devices are connected
-        guard !devices.isEmpty else {
-            debug(.watchManager, "⌚️❌ Skipping setupGarminWatchState - No Garmin devices connected")
-            return GarminWatchState()
-        }
-        do {
-            // Get Glucose IDs
-            let glucoseIds = try await fetchGlucose()
-
-            // Fetch the latest OrefDetermination object if available
-            let determinationIds = try await determinationStorage.fetchLastDeterminationObjectID(
-                predicate: NSPredicate.predicateFor30MinAgoForDetermination
-            )
-
-            // Turn those IDs into live NSManagedObjects
-            let glucoseObjects: [GlucoseStored] = try await CoreDataStack.shared
-                .getNSManagedObject(with: glucoseIds, context: backgroundContext)
-            let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
-                .getNSManagedObject(with: determinationIds, context: backgroundContext)
-
-            // Perform logic on the background context
-            return await backgroundContext.perform {
-                var watchState = GarminWatchState()
-
-                /// Pull `glucose`, `trendRaw`, `delta`, `lastLoopDateInterval`, `iob`, `cob`,  `isf`, and `eventualBGRaw` from the latest determination.
-                let iobValue = self.iobService.currentIOB ?? 0
-                watchState.iob = self.iobFormatterWithOneFractionDigit(iobValue)
-
-                if let latestDetermination = determinationObjects.first {
-                    watchState.lastLoopDateInterval = latestDetermination.timestamp.map {
-                        guard $0.timeIntervalSince1970 > 0 else { return 0 }
-                        return UInt64($0.timeIntervalSince1970)
-                    }
-
-                    let cobNumber = NSNumber(value: latestDetermination.cob)
-                    watchState.cob = Formatter.integerFormatter.string(from: cobNumber)
-
-                    let insulinSensitivity = latestDetermination.insulinSensitivity ?? 0
-                    let eventualBG = latestDetermination.eventualBG ?? 0
-
-                    if self.units == .mgdL {
-                        watchState.isf = insulinSensitivity.description
-                        watchState.eventualBGRaw = eventualBG.description
-                    } else {
-                        let parsedIsf = Double(truncating: insulinSensitivity).asMmolL
-                        let parsedEventualBG = Double(truncating: eventualBG).asMmolL
-
-                        watchState.isf = parsedIsf.description
-                        watchState.eventualBGRaw = parsedEventualBG.description
-                    }
-                }
-
-                // If no glucose data is present, just return partial watch state
-                guard let latestGlucose = glucoseObjects.first else {
-                    return watchState
-                }
-
-                // Format the current glucose reading
-                if self.units == .mgdL {
-                    watchState.glucose = "\(latestGlucose.glucose)"
-                } else {
-                    let mgdlValue = Decimal(latestGlucose.glucose)
-                    let latestGlucoseValue = Double(truncating: mgdlValue.asMmolL as NSNumber)
-                    watchState.glucose = "\(latestGlucoseValue)"
-                }
-
-                // Convert direction to a textual trend
-                watchState.trendRaw = latestGlucose.direction ?? "--"
-
-                // Calculate a glucose delta if we have at least two readings
-                if glucoseObjects.count >= 2 {
-                    var deltaValue = Decimal(glucoseObjects[0].glucose - glucoseObjects[1].glucose)
-
-                    if self.units == .mmolL {
-                        deltaValue = Double(truncating: deltaValue as NSNumber).asMmolL
-                    }
-
-                    let formattedDelta = deltaValue.description
-                    watchState.delta = deltaValue < 0 ? "\(formattedDelta)" : "+\(formattedDelta)"
-                }
-
+                let timeFmt = DateFormatter()
+                timeFmt.dateFormat = "HH:mm:ss"
                 debug(
                     .watchManager,
-                    """
-                    📱 Setup GarminWatchState - \
-                    glucose: \(watchState.glucose ?? "nil"), \
-                    trendRaw: \(watchState.trendRaw ?? "nil"), \
-                    delta: \(watchState.delta ?? "nil"), \
-                    eventualBGRaw: \(watchState.eventualBGRaw ?? "nil"), \
-                    isf: \(watchState.isf ?? "nil"), \
-                    cob: \(watchState.cob ?? "nil"), \
-                    iob: \(watchState.iob ?? "nil"), \
-                    lastLoopDateInterval: \(watchState.lastLoopDateInterval?.description ?? "nil")
-                    """
+                    "Garmin: LiveActivity snapshot received - glucose: \(snapshot.glucose.glucose) @ \(timeFmt.string(from: snapshot.glucose.date))"
                 )
 
-                return watchState
+                let watchState = self.buildWatchState(from: snapshot)
+                do {
+                    let watchStateData = try JSONEncoder().encode(watchState)
+                    self.lastWatchStateData = watchStateData
+                    self.sendWatchStateData(watchStateData)
+                } catch {
+                    debug(
+                        .watchManager,
+                        "\(DebuggingIdentifiers.failed) Error encoding watch state: \(error)"
+                    )
+                }
             }
-        } catch {
-            debug(
-                .watchManager,
-                "\(DebuggingIdentifiers.failed) Error setting up Garmin watch state: \(error)"
-            )
-            throw error
+            .store(in: &subscriptions)
+    }
+
+    /// Builds a GarminWatchState from a LiveActivitySnapshot — no CoreData fetch required.
+    /// Uses the same data that the Live Activity displays, which is always fresh.
+    private func buildWatchState(from snapshot: LiveActivitySnapshot) -> GarminWatchState {
+        let timeFmt = DateFormatter()
+        timeFmt.dateFormat = "HH:mm:ss"
+
+        var watchState = GarminWatchState()
+
+        // IOB — use the snapshot value (same source as Live Activity)
+        let iobValue = snapshot.iob ?? iobService.currentIOB ?? 0
+        watchState.iob = iobFormatterWithOneFractionDigit(iobValue)
+
+        // Determination data (COB, last loop date, ISF, eventualBG)
+        if let determination = snapshot.determination {
+            if let date = determination.date {
+                watchState.lastLoopDateInterval = date.timeIntervalSince1970 > 0
+                    ? UInt64(date.timeIntervalSince1970) : 0
+            }
+
+            let cobNumber = NSNumber(value: determination.cob)
+            watchState.cob = Formatter.integerFormatter.string(from: cobNumber)
+
+            let insulinSensitivity = determination.insulinSensitivity ?? 0
+            let eventualBG = determination.eventualBG ?? 0
+
+            if units == .mgdL {
+                watchState.isf = insulinSensitivity == 0 ? nil : insulinSensitivity.description
+                watchState.eventualBGRaw = eventualBG == 0 ? nil : eventualBG.description
+            } else {
+                if insulinSensitivity != 0 {
+                    watchState.isf = Double(truncating: insulinSensitivity as NSNumber).asMmolL.description
+                }
+                if eventualBG != 0 {
+                    watchState.eventualBGRaw = Double(truncating: eventualBG as NSNumber).asMmolL.description
+                }
+            }
         }
+
+        // Glucose
+        let bg = snapshot.glucose
+        if units == .mgdL {
+            watchState.glucose = "\(bg.glucose)"
+        } else {
+            let mgdlValue = Decimal(bg.glucose)
+            watchState.glucose = "\(Double(truncating: mgdlValue.asMmolL as NSNumber))"
+        }
+
+        // Glucose timestamp diagnostic
+        watchState.glucoseDate = timeFmt.string(from: bg.date)
+
+        // Trend
+        watchState.trendRaw = bg.direction?.rawValue ?? "--"
+
+        // Delta
+        if let prev = snapshot.previousGlucose {
+            var deltaValue = Decimal(bg.glucose - prev.glucose)
+            if units == .mmolL {
+                deltaValue = Double(truncating: deltaValue as NSNumber).asMmolL
+            }
+            let formattedDelta = deltaValue.description
+            watchState.delta = deltaValue < 0 ? "\(formattedDelta)" : "+\(formattedDelta)"
+        }
+
+        // Diagnostic: when the phone built this payload
+        watchState.sentAt = timeFmt.string(from: Date())
+        // Diagnostic: delivery path (overridden to "poll" in receivedMessage)
+        watchState.source = "push"
+
+        debug(
+            .watchManager,
+            """
+            📱 Setup GarminWatchState (from LiveActivity snapshot) - \
+            glucose: \(watchState.glucose ?? "nil"), \
+            glucoseDate: \(watchState.glucoseDate ?? "nil"), \
+            sentAt: \(watchState.sentAt ?? "nil"), \
+            trendRaw: \(watchState.trendRaw ?? "nil"), \
+            delta: \(watchState.delta ?? "nil"), \
+            eventualBGRaw: \(watchState.eventualBGRaw ?? "nil"), \
+            isf: \(watchState.isf ?? "nil"), \
+            cob: \(watchState.cob ?? "nil"), \
+            iob: \(watchState.iob ?? "nil"), \
+            lastLoopDateInterval: \(watchState.lastLoopDateInterval?.description ?? "nil")
+            """
+        )
+
+        return watchState
     }
 
     // MARK: - Device & App Registration
@@ -417,14 +322,44 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     }
 
     /// Subscribes to any watch-state dictionaries published via `watchStateSubject`, and throttles them
-    /// so updates aren't sent too frequently. Each update triggers a broadcast to all watch apps.
+    /// to match the ~5-minute CGM reading interval. ConnectIQ watch faces use a one-shot
+    /// registerForPhoneAppMessageEvent model — each delivery requires a full background service
+    /// cycle (wake → process → exit → re-register) taking 10-30 seconds. A 10-second throttle
+    /// produced ~6 messages/minute while the watch could only consume ~2-3/minute, causing an
+    /// unbounded queue and 30+ minute delay. At 300 seconds, one proactive push per CGM cycle
+    /// keeps the queue shallow. The watch's 5-minute poll ("status") bypasses this throttle for
+    /// immediate responses (see receivedMessage(_:from:)).
     private func subscribeToWatchState() {
         watchStateSubject
-            .throttle(for: .seconds(10), scheduler: DispatchQueue.main, latest: true)
+            .throttle(for: .seconds(300), scheduler: DispatchQueue.main, latest: true)
             .sink { [weak self] state in
                 self?.broadcastStateToWatchApps(state)
             }
             .store(in: &cancellables)
+    }
+
+    /// Unconditional 5-minute periodic refresh as a safety net.
+    ///
+    /// If the event-driven Combine pipeline silently dies (e.g., ConnectIQ SDK enters a bad state,
+    /// iOS kills the Garmin Connect Mobile bridge, or a Combine subscription gets garbage collected),
+    /// this timer ensures data still flows to the watch. It fires unconditionally — no reset on
+    /// successful event-driven sends — because simplicity and reliability matter more than avoiding
+    /// a few redundant sends. The output throttle on `watchStateSubject` deduplicates if an
+    /// event-driven update just went through.
+    private func subscribeToPeriodicRefresh() {
+        Timer.publish(every: 5 * 60, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                guard !self.devices.isEmpty else { return }
+                guard let data = self.lastWatchStateData else {
+                    debug(.watchManager, "Garmin: Periodic refresh - no cached state yet, skipping")
+                    return
+                }
+                debug(.watchManager, "Garmin: Periodic refresh - resending last watch state")
+                self.sendWatchStateData(data)
+            }
+            .store(in: &subscriptions)
     }
 
     // MARK: - Parsing & Broadcasting
@@ -501,23 +436,43 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
     // MARK: - Helper: Sending Messages
 
-    /// Sends a message to a given IQApp with optional progress and completion callbacks.
+    /// Sends a message to a given IQApp, gated by in-flight tracking to prevent queue saturation.
+    /// If a previous send to this app hasn't completed yet, the new send is skipped entirely —
+    /// the next loop cycle (5 minutes) will send fresh data, so nothing is lost.
     /// - Parameters:
     ///   - msg: The dictionary to send to the watch app.
     ///   - app: The `IQApp` instance representing the watchface or data field.
     private func sendMessage(_ msg: NSDictionary, to app: IQApp) {
+        let appUUID = app.uuid!
+
+        guard !appsWithInFlightSend.contains(appUUID) else {
+            debug(.watchManager, "Garmin: Skipping send to \(appUUID) — previous send still in-flight")
+            return
+        }
+
+        appsWithInFlightSend.insert(appUUID)
+
         connectIQ?.sendMessage(
             msg,
             to: app,
-            progress: { _, _ in
-                // Optionally track progress here
-            },
-            completion: { result in
+            progress: { _, _ in },
+            completion: { [weak self] result in
+                self?.appsWithInFlightSend.remove(appUUID)
+
                 switch result {
                 case .success:
-                    debug(.watchManager, "Garmin: Successfully sent message to \(app.uuid!)")
+                    self?.lastSuccessfulSend = Date()
+                    self?.consecutiveSendFailures = 0
+                    debug(.watchManager, "Garmin: Successfully sent message to \(appUUID)")
                 default:
-                    debug(.watchManager, "Garmin: Unknown result or failed to send message to \(app.uuid!)")
+                    let failures = (self?.consecutiveSendFailures ?? 0) + 1
+                    self?.consecutiveSendFailures = failures
+                    let lastSendAgo = self?.lastSuccessfulSend.map { "\(Int(-$0.timeIntervalSinceNow))s ago" } ?? "never"
+                    debug(
+                        .watchManager,
+                        "Garmin: Failed to send message to \(appUUID) " +
+                            "(consecutive failures: \(failures), last success: \(lastSendAgo))"
+                    )
                 }
             }
         )
@@ -583,34 +538,38 @@ extension BaseGarminManager: IQUIOverrideDelegate, IQDeviceEventDelegate, IQAppM
     // MARK: - IQAppMessageDelegate
 
     /// Called when a message arrives from a Garmin watch app (watchface or data field).
-    /// If the watch requests a "status" update, we call `setupGarminWatchState()` asynchronously
-    /// and re-send the watch state data.
+    /// If the watch requests a "status" update, we immediately respond with the cached watch state.
     /// - Parameters:
     ///   - message: The message content from the watch app.
     ///   - app: The watch app sending the message.
     func receivedMessage(_ message: Any, from app: IQApp) {
         debug(.watchManager, "Garmin: Received message \(message) from app \(app.uuid!)")
 
-        Task {
-            // Check if the message is literally the string "status"
-            guard
-                let statusString = message as? String,
-                statusString == "status"
-            else {
-                return
-            }
-
-            do {
-                // Fetch the latest watch state (async) and encode it to JSON data
-                let watchState = try await self.setupGarminWatchState()
-                let watchStateData = try JSONEncoder().encode(watchState)
-
-                // Now send that JSON data to the watch
-                sendWatchStateData(watchStateData)
-            } catch {
-                debug(.watchManager, "Garmin: Cannot encode watch state: \(error)")
-            }
+        // Check if the message is literally the string "status"
+        guard
+            let statusString = message as? String,
+            statusString == "status"
+        else {
+            return
         }
+
+        guard let watchStateData = lastWatchStateData else {
+            debug(.watchManager, "Garmin: Poll response - no cached state yet")
+            return
+        }
+
+        // Bypass the throttle for poll responses — the watch is actively waiting
+        // for a reply and its background service may go back to sleep if we delay.
+        guard
+            let jsonObject = try? JSONSerialization.jsonObject(with: watchStateData, options: .mutableContainers),
+            let dict = jsonObject as? NSMutableDictionary
+        else {
+            debug(.watchManager, "Garmin: Invalid JSON for poll response")
+            return
+        }
+        // Override source so the watch can distinguish poll responses from proactive pushes
+        dict["source"] = "poll"
+        broadcastStateToWatchApps(dict)
     }
 }
 
@@ -628,20 +587,13 @@ extension BaseGarminManager: SettingsObserver {
     /// Called whenever TrioSettings changes (e.g., user toggles mg/dL vs. mmol/L).
     /// - Parameter _: The updated TrioSettings instance.
     func settingsDidChange(_: TrioSettings) {
-        // Update local units and re-send watch state
+        // Update local units — the next LiveActivity snapshot will rebuild with the new units
         units = settingsManager.settings.units
 
-        Task {
-            do {
-                let watchState = try await setupGarminWatchState()
-                let watchStateData = try JSONEncoder().encode(watchState)
-                sendWatchStateData(watchStateData)
-            } catch {
-                debug(
-                    .watchManager,
-                    "\(DebuggingIdentifiers.failed) failed to send watch state data: \(error)"
-                )
-            }
+        // Resend cached state if available (it will use the previous units, but the next
+        // LiveActivity snapshot will arrive shortly with the correct units)
+        if let data = lastWatchStateData {
+            sendWatchStateData(data)
         }
     }
 }
