@@ -399,20 +399,21 @@ final class LiveActivityData: ObservableObject {
         }
         let prevGlucose = data.glucoseFromPersistence?.dropFirst().first
 
+        // Publish a snapshot for external consumers (e.g. Garmin) as soon as glucose
+        // is available — don't gate on determination, since Garmin can display glucose
+        // without COB/ISF. This ensures the watch gets fresh glucose even if the
+        // determination hasn't loaded yet (e.g. first CGM cycle after launch).
+        snapshotPublisher.send(LiveActivitySnapshot(
+            glucose: bg,
+            previousGlucose: prevGlucose,
+            determination: data.determination,
+            iob: data.iob
+        ))
+
         guard let determination = data.determination else {
             debug(.default, "[LiveActivityManager] pushCurrentContent: no determination available")
             return
         }
-
-        // Publish a snapshot for external consumers (e.g. Garmin) BEFORE the async
-        // pushUpdate — this ensures Garmin gets the data even if the Live Activity
-        // push is slow or the activity doesn't exist yet.
-        snapshotPublisher.send(LiveActivitySnapshot(
-            glucose: bg,
-            previousGlucose: prevGlucose,
-            determination: determination,
-            iob: data.iob
-        ))
 
         let content = LiveActivityAttributes.ContentState(
             new: bg,

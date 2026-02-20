@@ -272,23 +272,9 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             // do NOT set Health and Tidepool flags to ensure they will NOT be uploaded
             return false // return false to continue
         }
-        batchInsert.resultType = .objectIDs
         await context.perform {
             do {
-                let result = try self.context.execute(batchInsert) as? NSBatchInsertResult
-
-                // NSBatchInsertRequest writes directly to SQLite, bypassing Core Data's
-                // change-propagation mechanism. Merge the inserted object IDs back into
-                // live contexts so the PSC row cache is invalidated and subsequent fetches
-                // return fresh data.
-                if let objectIDs = result?.result as? [NSManagedObjectID] {
-                    let changes: [AnyHashable: Any] = [NSInsertedObjectsKey: objectIDs]
-                    NSManagedObjectContext.mergeChanges(
-                        fromRemoteContextSave: changes,
-                        into: [CoreDataStack.shared.persistentContainer.viewContext]
-                    )
-                }
-
+                try self.context.execute(batchInsert)
                 debugPrint("Carbs Storage: \(DebuggingIdentifiers.succeeded) saved fpus to core data")
 
                 // Notify subscriber in Home State Model to update the FPU Array

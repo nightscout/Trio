@@ -31,7 +31,7 @@ final class ServiceAssembly: Assembly {
         if #available(iOS 16.2, *) {
             container.register(LiveActivityManager.self) { r in
                 LiveActivityManager(resolver: r)
-            }
+            }.inObjectScope(.container)
         }
         container.register(IOBService.self) { r in BaseIOBService(resolver: r) }
     }
