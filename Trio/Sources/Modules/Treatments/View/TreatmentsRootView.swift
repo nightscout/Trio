@@ -24,6 +24,7 @@ extension Treatments {
         @State private var calculatorDetent = PresentationDetent.large
         @State private var pushed: Bool = false
         @State private var debounce: DispatchWorkItem?
+        @State private var showFatProteinOrderBanner = false
 
         private enum Config {
             static let dividerHeight: CGFloat = 2
@@ -85,23 +86,6 @@ extension Treatments {
         @ViewBuilder private func proteinAndFat() -> some View {
             HStack {
                 HStack {
-                    Text("Protein")
-                    TextFieldWithToolBar(
-                        text: $state.protein,
-                        placeholder: "0",
-                        keyboardType: .numberPad,
-                        numberFormatter: mealFormatter,
-                        showArrows: true,
-                        previousTextField: { focusedField = previousField(from: .protein) },
-                        nextTextField: { focusedField = nextField(from: .protein) },
-                        unitsText: String(localized: "g", comment: "Units for carbs")
-                    )
-                    .focused($focusedField, equals: .protein)
-                }
-
-                Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
-
-                HStack {
                     Text("Fat")
                     TextFieldWithToolBar(
                         text: $state.fat,
@@ -114,6 +98,23 @@ extension Treatments {
                         unitsText: String(localized: "g", comment: "Units for carbs")
                     )
                     .focused($focusedField, equals: .fat)
+                }
+
+                Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
+
+                HStack {
+                    Text("Protein")
+                    TextFieldWithToolBar(
+                        text: $state.protein,
+                        placeholder: "0",
+                        keyboardType: .numberPad,
+                        numberFormatter: mealFormatter,
+                        showArrows: true,
+                        previousTextField: { focusedField = previousField(from: .protein) },
+                        nextTextField: { focusedField = nextField(from: .protein) },
+                        unitsText: String(localized: "g", comment: "Units for carbs")
+                    )
+                    .focused($focusedField, equals: .protein)
                 }
             }
         }
@@ -198,6 +199,23 @@ extension Treatments {
 
                             if state.useFPUconversion {
                                 proteinAndFat()
+
+                                if showFatProteinOrderBanner {
+                                    HStack {
+                                        Image(systemName: "arrow.left.arrow.right")
+                                        Text("The order of Fat and Protein inputs has changed.").font(.callout)
+                                        Spacer()
+                                        Button {
+                                            PropertyPersistentFlags.shared.hasSeenFatProteinOrderChange = true
+                                            withAnimation { showFatProteinOrderBanner = false }
+                                        } label: {
+                                            Image(systemName: "xmark.circle.fill")
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                    .listRowBackground(Color.orange.opacity(0.75))
+                                    .transition(.opacity)
+                                }
                             }
 
                             // Time
@@ -390,6 +408,10 @@ extension Treatments {
                     state.isActive = true
                     Task { @MainActor in
                         state.insulinCalculated = await state.calculateInsulin()
+                    }
+
+                    if PropertyPersistentFlags.shared.hasSeenFatProteinOrderChange != true {
+                        showFatProteinOrderBanner = true
                     }
                 }
             }
