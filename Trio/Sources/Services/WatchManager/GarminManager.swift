@@ -230,6 +230,8 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
         // Diagnostic: when the phone built this payload
         watchState.sentAt = timeFmt.string(from: Date())
+        // Diagnostic: delivery path (overridden to "poll" in receivedMessage)
+        watchState.source = "push"
 
         debug(
             .watchManager,
@@ -542,12 +544,14 @@ extension BaseGarminManager: IQUIOverrideDelegate, IQDeviceEventDelegate, IQAppM
         // Bypass the throttle for poll responses — the watch is actively waiting
         // for a reply and its background service may go back to sleep if we delay.
         guard
-            let jsonObject = try? JSONSerialization.jsonObject(with: watchStateData, options: []),
-            let dict = jsonObject as? NSDictionary
+            let jsonObject = try? JSONSerialization.jsonObject(with: watchStateData, options: .mutableContainers),
+            let dict = jsonObject as? NSMutableDictionary
         else {
             debug(.watchManager, "Garmin: Invalid JSON for poll response")
             return
         }
+        // Override source so the watch can distinguish poll responses from proactive pushes
+        dict["source"] = "poll"
         broadcastStateToWatchApps(dict)
     }
 }
