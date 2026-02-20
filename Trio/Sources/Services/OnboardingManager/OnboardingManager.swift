@@ -24,6 +24,7 @@ import Swinject
     /// Marks onboarding as completed and updates the shouldShowOnboarding flag.
     func completeOnboarding() {
         PropertyPersistentFlags.shared.onboardingCompleted = true
+        PropertyPersistentFlags.shared.hasSeenFatProteinOrderChange = true
         shouldShowOnboarding = false
     }
 

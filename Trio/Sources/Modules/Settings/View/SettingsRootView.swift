@@ -267,6 +267,17 @@ extension Settings {
                         }
                     ).listRowBackground(Color.chart)
 
+                    Section(
+                        header: Text("Trio Backup"),
+                        content: {
+                            Text(String(
+                                localized: "Export Settings",
+                                comment: "Export Settings menu item in Trio Settings Root View"
+                            ))
+                                .navigationLink(to: .settingsExport, from: self)
+                        }
+                    ).listRowBackground(Color.chart)
+
                 } else {
                     Section(
                         header: Text("Search Results"),
@@ -293,69 +304,6 @@ extension Settings {
                         }
                     ).listRowBackground(Color.chart)
                 }
-
-                // TODO: remove this more or less entirely; add build-time flag to enable Middleware; add settings export feature
-//                Section {
-//                    Toggle("Developer Options", isOn: $state.debugOptions)
-//                    if state.debugOptions {
-//                        Group {
-//                            HStack {
-//                                Text("NS Upload Profile and Settings")
-//                                Button("Upload") { state.uploadProfileAndSettings(true) }
-//                                    .frame(maxWidth: .infinity, alignment: .trailing)
-//                                    .buttonStyle(.borderedProminent)
-//                            }
-//                            // Commenting this out for now, as not needed and possibly dangerous for users to be able to nuke their pump pairing informations via the debug menu
-//                            // Leaving it in here, as it may be a handy functionality for further testing or developers.
-//                            // See https://github.com/nightscout/Trio/pull/277 for more information
-//                            //
-//                            //                            HStack {
-//                            //                                Text("Delete Stored Pump State Binary Files")
-//                            //                                Button("Delete") { state.resetLoopDocuments() }
-//                            //                                    .frame(maxWidth: .infinity, alignment: .trailing)
-//                            //                                    .buttonStyle(.borderedProminent)
-//                            //                            }
-//                        }
-//                        Group {
-//                            Text("Preferences")
-//                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.preferences), from: self)
-//                            Text("Pump Settings")
-//                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.settings), from: self)
-//                            Text("Autosense")
-//                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.autosense), from: self)
-//                            //                            Text("Pump History")
-//                            //                                .navigationLink(to: .configEditor(file: OpenAPS.Monitor.pumpHistory), from: self)
-//                            Text("Basal profile")
-//                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.basalProfile), from: self)
-//                    Text("Targets ranges")
-//                        .navigationLink(to: .configEditor(file: OpenAPS.Settings.bgTargets), from: self)
-//                            Text("Temp targets")
-//                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.tempTargets), from: self)
-//                        }
-//
-//                        Group {
-//                            Text("Pump profile")
-//                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.pumpProfile), from: self)
-//                            Text("Profile")
-//                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.profile), from: self)
-//                            //                            Text("Carbs")
-//                            //                                .navigationLink(to: .configEditor(file: OpenAPS.Monitor.carbHistory), from: self)
-//                        }
-//
-//                        Group {
-//                            Text("Target presets")
-//                                .navigationLink(to: .configEditor(file: OpenAPS.Trio.tempTargetsPresets), from: self)
-//                            Text("Calibrations")
-//                                .navigationLink(to: .configEditor(file: OpenAPS.Trio.calibrations), from: self)
-//                            Text("Middleware")
-//                                .navigationLink(to: .configEditor(file: OpenAPS.Middleware.determineBasal), from: self)
-//                            //                            Text("Statistics")
-//                            //                                .navigationLink(to: .configEditor(file: OpenAPS.Monitor.statistics), from: self)
-//                            Text("Edit settings json")
-//                                .navigationLink(to: .configEditor(file: OpenAPS.Trio.settings), from: self)
-//                        }
-//                    }
-//                }.listRowBackground(Color.chart)
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .sheet(isPresented: $shouldDisplayHint) {
