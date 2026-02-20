@@ -101,6 +101,11 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Counts consecutive send failures across all watch apps. Reset on any successful send.
     private var consecutiveSendFailures: Int = 0
 
+    /// Tracks watch apps that have a sendMessage call in-flight (not yet completed).
+    /// If an app's UUID is in this set, new sends to that app are skipped to prevent
+    /// saturating the GCM BLE transfer queue. The next cycle will send fresh data.
+    private var appsWithInFlightSend: Set<UUID> = []
+
     /// The most recent encoded watch-state JSON data, cached for resending on poll requests
     /// and periodic refresh without re-fetching from CoreData.
     private var lastWatchStateData: Data?
@@ -431,29 +436,41 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
     // MARK: - Helper: Sending Messages
 
-    /// Sends a message to a given IQApp with optional progress and completion callbacks.
-    /// Tracks success/failure for health monitoring.
+    /// Sends a message to a given IQApp, gated by in-flight tracking to prevent queue saturation.
+    /// If a previous send to this app hasn't completed yet, the new send is skipped entirely —
+    /// the next loop cycle (5 minutes) will send fresh data, so nothing is lost.
     /// - Parameters:
     ///   - msg: The dictionary to send to the watch app.
     ///   - app: The `IQApp` instance representing the watchface or data field.
     private func sendMessage(_ msg: NSDictionary, to app: IQApp) {
+        let appUUID = app.uuid!
+
+        guard !appsWithInFlightSend.contains(appUUID) else {
+            debug(.watchManager, "Garmin: Skipping send to \(appUUID) — previous send still in-flight")
+            return
+        }
+
+        appsWithInFlightSend.insert(appUUID)
+
         connectIQ?.sendMessage(
             msg,
             to: app,
             progress: { _, _ in },
             completion: { [weak self] result in
+                self?.appsWithInFlightSend.remove(appUUID)
+
                 switch result {
                 case .success:
                     self?.lastSuccessfulSend = Date()
                     self?.consecutiveSendFailures = 0
-                    debug(.watchManager, "Garmin: Successfully sent message to \(app.uuid!)")
+                    debug(.watchManager, "Garmin: Successfully sent message to \(appUUID)")
                 default:
                     let failures = (self?.consecutiveSendFailures ?? 0) + 1
                     self?.consecutiveSendFailures = failures
                     let lastSendAgo = self?.lastSuccessfulSend.map { "\(Int(-$0.timeIntervalSinceNow))s ago" } ?? "never"
                     debug(
                         .watchManager,
-                        "Garmin: Failed to send message to \(app.uuid!) " +
+                        "Garmin: Failed to send message to \(appUUID) " +
                             "(consecutive failures: \(failures), last success: \(lastSendAgo))"
                     )
                 }
