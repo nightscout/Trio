@@ -315,10 +315,16 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     }
 
     /// Subscribes to any watch-state dictionaries published via `watchStateSubject`, and throttles them
-    /// so updates aren't sent too frequently. Each update triggers a broadcast to all watch apps.
+    /// to match the ~5-minute CGM reading interval. ConnectIQ watch faces use a one-shot
+    /// registerForPhoneAppMessageEvent model — each delivery requires a full background service
+    /// cycle (wake → process → exit → re-register) taking 10-30 seconds. A 10-second throttle
+    /// produced ~6 messages/minute while the watch could only consume ~2-3/minute, causing an
+    /// unbounded queue and 30+ minute delay. At 300 seconds, one proactive push per CGM cycle
+    /// keeps the queue shallow. The watch's 5-minute poll ("status") bypasses this throttle for
+    /// immediate responses (see receivedMessage(_:from:)).
     private func subscribeToWatchState() {
         watchStateSubject
-            .throttle(for: .seconds(10), scheduler: DispatchQueue.main, latest: true)
+            .throttle(for: .seconds(300), scheduler: DispatchQueue.main, latest: true)
             .sink { [weak self] state in
                 self?.broadcastStateToWatchApps(state)
             }
