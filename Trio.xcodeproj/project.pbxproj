@@ -260,6 +260,8 @@
 		3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687E2D8DDD8800899469 /* CryptoSwift */; };
 		3BF85FE32E427312000D7351 /* IOBService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF85FE12E427312000D7351 /* IOBService.swift */; };
 		3E28F2AB2EB5337F00FB9EEB /* ConnectIQ in Frameworks */ = {isa = PBXBuildFile; productRef = 3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */; };
+		3E84DA402F48D96000033608 /* EversenseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E84DA3F2F48D96000033608 /* EversenseKit.framework */; };
+		3E84DA412F48D96000033608 /* EversenseKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3E84DA3F2F48D96000033608 /* EversenseKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */; };
 		45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */; };
 		491D6FBD2D56741C00C49F67 /* TempTargetStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491D6FBC2D56741C00C49F67 /* TempTargetStored+CoreDataProperties.swift */; };
@@ -800,6 +802,7 @@
 				CE95BF642BA771BE00DC3DE3 /* LoopTestingKit.framework in Embed Frameworks */,
 				CE95BF622BA7715900DC3DE3 /* MockKitUI.framework in Embed Frameworks */,
 				3B4BA78D2D8DC0EC0069D5B8 /* ShareClientUI.framework in Embed Frameworks */,
+				3E84DA412F48D96000033608 /* EversenseKit.framework in Embed Frameworks */,
 				3B4BA7872D8DBD690069D5B8 /* RileyLinkKitUI.framework in Embed Frameworks */,
 				3B4BA78B2D8DC0EC0069D5B8 /* ShareClient.framework in Embed Frameworks */,
 				3B4BA7912D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework in Embed Frameworks */,
@@ -1090,6 +1093,7 @@
 		3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorProvider.swift; sourceTree = "<group>"; };
 		3BF768BD6264FF7D71D66767 /* NightscoutConfigProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NightscoutConfigProvider.swift; sourceTree = "<group>"; };
 		3BF85FE12E427312000D7351 /* IOBService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOBService.swift; sourceTree = "<group>"; };
+		3E84DA3F2F48D96000033608 /* EversenseKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = EversenseKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F60E97100041040446F44E7 /* PumpConfigStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigStateModel.swift; sourceTree = "<group>"; };
 		3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorDataFlow.swift; sourceTree = "<group>"; };
 		42369F66CF91F30624C0B3A6 /* BasalProfileEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorProvider.swift; sourceTree = "<group>"; };
@@ -1598,6 +1602,7 @@
 				B958F1B72BA0711600484851 /* MKRingProgressView in Frameworks */,
 				3B4BA7702D8DBD690069D5B8 /* G7SensorKit.framework in Frameworks */,
 				3B4BA76C2D8DBD690069D5B8 /* CGMBLEKitUI.framework in Frameworks */,
+				3E84DA402F48D96000033608 /* EversenseKit.framework in Frameworks */,
 				CE95BF5B2BA770C300DC3DE3 /* LoopKit.framework in Frameworks */,
 				38B17B6625DD90E0005CAE3D /* SwiftDate in Frameworks */,
 				3833B46D26012030003021B3 /* Algorithms in Frameworks */,
@@ -2191,6 +2196,7 @@
 		3818AA48274C267000843DB3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3E84DA3F2F48D96000033608 /* EversenseKit.framework */,
 				3B4BA7882D8DC0EC0069D5B8 /* TidepoolServiceKit.framework */,
 				3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */,
 				3B4BA75B2D8DBD690069D5B8 /* CGMBLEKit.framework */,
