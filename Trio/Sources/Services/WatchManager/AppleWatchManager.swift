@@ -326,7 +326,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         glucoseLast = glucoseLast.asMmolL
                         glucoseSecondLast = glucoseSecondLast.asMmolL
                     }
-                    
+
                     let deltaValue = glucoseLast - glucoseSecondLast
                     let formattedDelta = Formatter.glucoseFormatter(for: self.units)
                         .string(from: deltaValue as NSNumber) ?? "0"
