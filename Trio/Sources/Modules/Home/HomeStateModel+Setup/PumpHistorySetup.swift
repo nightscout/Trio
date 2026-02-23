@@ -38,6 +38,11 @@ extension Home.StateModel {
     }
 
     @MainActor private func updateInsulinArray(with insulinObjects: [PumpEventStored]) {
+        var insulinObjects = insulinObjects
+        if !showSmb {
+            insulinObjects = insulinObjects.filter({ $0.bolus == nil || $0.bolus?.isSMB != true })
+        }
+
         insulinFromPersistence = insulinObjects
 
         manualTempBasal = apsManager.isManualTempBasal
