@@ -7,6 +7,32 @@ enum MealDecisionExporter {
     private static let snapshotFile = "meal_decision_snapshots.json"
     private static let exportDirectory = "SmartSenseExports"
 
+    // MARK: - Export Source Filter
+
+    enum ExportFilter: String, CaseIterable, Identifiable {
+        case all = "all"
+        case smartSenseOnly = "smart_sense"
+        case manualOnly = "manual"
+
+        var id: String { rawValue }
+
+        var label: String {
+            switch self {
+            case .all: return "All Meals"
+            case .smartSenseOnly: return "Smart Sense"
+            case .manualOnly: return "Manual"
+            }
+        }
+
+        func matches(_ snapshot: MealDecisionSnapshot) -> Bool {
+            switch self {
+            case .all: return true
+            case .smartSenseOnly: return snapshot.mealSource == .smartSense
+            case .manualOnly: return snapshot.mealSource == .manual
+            }
+        }
+    }
+
     // MARK: - Export Time Ranges
 
     enum ExportRange: String, CaseIterable, Identifiable {
@@ -87,10 +113,10 @@ enum MealDecisionExporter {
         }
     }
 
-    /// Count of snapshots within a given range.
-    static func snapshotCount(for range: ExportRange) -> Int {
+    /// Count of snapshots within a given range and source filter.
+    static func snapshotCount(for range: ExportRange, filter: ExportFilter = .all) -> Int {
         let start = range.startDate
-        return loadAllSnapshots().filter { $0.doseTimestamp >= start }.count
+        return loadAllSnapshots().filter { $0.doseTimestamp >= start && filter.matches($0) }.count
     }
 
     // MARK: - Full Export
@@ -98,11 +124,12 @@ enum MealDecisionExporter {
     /// Build a comprehensive export with post-meal traces for each snapshot in the range.
     static func buildFullExport(
         range: ExportRange,
+        filter: ExportFilter = .all,
         settings: SmartSenseSettings,
         context: NSManagedObjectContext
     ) async -> URL? {
         let startDate = range.startDate
-        let snapshots = loadAllSnapshots().filter { $0.doseTimestamp >= startDate }
+        let snapshots = loadAllSnapshots().filter { $0.doseTimestamp >= startDate && filter.matches($0) }
 
         guard !snapshots.isEmpty else {
             debug(.service, "MealDecisionExporter: no snapshots in range \(range.label)")
@@ -127,7 +154,8 @@ enum MealDecisionExporter {
         guard let exportDir = exportDirectoryURL() else { return nil }
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-        let filename = "smartsense_export_\(range.rawValue)_\(formatter.string(from: Date())).json"
+        let filterSuffix = filter == .all ? "" : "_\(filter.rawValue)"
+        let filename = "meal_export_\(range.rawValue)\(filterSuffix)_\(formatter.string(from: Date())).json"
         let fileURL = exportDir.appendingPathComponent(filename)
 
         do {

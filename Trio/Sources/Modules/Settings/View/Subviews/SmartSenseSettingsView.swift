@@ -91,6 +91,7 @@ extension SmartSenseConfig {
         @State private var showShareSheet = false
         @State private var snapshotCount = 0
         @State private var selectedRange: MealDecisionExporter.ExportRange = .sevenDays
+        @State private var selectedFilter: MealDecisionExporter.ExportFilter = .all
         @State private var isExporting = false
 
         var body: some View {
@@ -109,7 +110,7 @@ extension SmartSenseConfig {
             .navigationBarTitleDisplayMode(.automatic)
             .onAppear {
                 configureView()
-                snapshotCount = MealDecisionExporter.snapshotCount(for: selectedRange)
+                snapshotCount = MealDecisionExporter.snapshotCount(for: selectedRange, filter: selectedFilter)
             }
             .sheet(isPresented: $showShareSheet) {
                 if !exportFiles.isEmpty {
@@ -255,7 +256,18 @@ extension SmartSenseConfig {
                 }
                 .pickerStyle(.segmented)
                 .onChange(of: selectedRange) { newRange in
-                    snapshotCount = MealDecisionExporter.snapshotCount(for: newRange)
+                    snapshotCount = MealDecisionExporter.snapshotCount(for: newRange, filter: selectedFilter)
+                }
+
+                // Source filter picker
+                Picker("Meal Source", selection: $selectedFilter) {
+                    ForEach(MealDecisionExporter.ExportFilter.allCases) { filter in
+                        Text(filter.label).tag(filter)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .onChange(of: selectedFilter) { newFilter in
+                    snapshotCount = MealDecisionExporter.snapshotCount(for: selectedRange, filter: newFilter)
                 }
 
                 HStack {
@@ -277,6 +289,7 @@ extension SmartSenseConfig {
                         let settings = state.currentSmartSenseSettings
                         if let url = await MealDecisionExporter.buildFullExport(
                             range: selectedRange,
+                            filter: selectedFilter,
                             settings: settings,
                             context: context
                         ) {
@@ -298,7 +311,7 @@ extension SmartSenseConfig {
                 }
                 .disabled(snapshotCount == 0 || isExporting)
 
-                Text("Exports meal decisions with 2h pre-meal + 8h post-meal BG traces, all boluses, temp basals, loop decisions, and SmartSense settings as JSON.")
+                Text("Exports meal decisions with 2h pre-meal + 8h post-meal BG traces, all boluses, temp basals, loop decisions, and settings as JSON. Filter by Smart Sense (detected) or Manual entries.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

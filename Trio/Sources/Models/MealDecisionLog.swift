@@ -1,12 +1,34 @@
 import Foundation
 
+// MARK: - Meal Entry Source
+
+/// Distinguishes how the meal macros were entered for export filtering.
+enum MealEntrySource: String, Codable, CaseIterable, Identifiable {
+    /// User selected a Cronometer-detected meal (SmartSense flow)
+    case smartSense = "smart_sense"
+    /// User manually typed carbs/fat/protein
+    case manual = "manual"
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .smartSense: return "Smart Sense"
+        case .manual: return "Manual"
+        }
+    }
+}
+
 // MARK: - Dose-Time Snapshot (saved when user taps Add)
 
 struct MealDecisionSnapshot: Codable {
     let id: UUID
     let doseTimestamp: Date
 
-    // Selected Cronometer meal
+    // How the meal was entered
+    let mealSource: MealEntrySource
+
+    // Selected Cronometer meal (empty for manual entries)
     let selectedMeals: [MealDecisionExport.MealExportEntry]
 
     // Combined macros entered for dosing

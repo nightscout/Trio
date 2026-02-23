@@ -481,13 +481,22 @@ extension Treatments {
                     await saveMeal()
                 }
 
-                // Mark the selected Cronometer meal as dosed and export decision
+                // Determine meal source and mark detected meal if applicable
+                var detectedMeal: DetectedMeal?
                 if let mealID = selectedMealID,
                    let meal = detectedMeals.first(where: { $0.id == mealID })
                 {
                     cronometerMealDetector.markAsDosed(mealID)
-                    exportMealDecision(meal: meal, insulinDelivered: Double(truncating: amount as NSDecimalNumber))
+                    detectedMeal = meal
                     await MainActor.run { selectedMealID = nil }
+                }
+
+                // Save a snapshot for ALL dosed meals (detected or manual)
+                if isInsulinGiven, isCarbsPresent || isFatPresent || isProteinPresent {
+                    exportMealDecision(
+                        detectedMeal: detectedMeal,
+                        insulinDelivered: Double(truncating: amount as NSDecimalNumber)
+                    )
                 }
 
                 if isInsulinGiven {
@@ -721,13 +730,13 @@ extension Treatments {
             selectedMealID = meal.id
         }
 
-        private func exportMealDecision(meal: DetectedMeal, insulinDelivered: Double) {
+        private func exportMealDecision(detectedMeal: DetectedMeal?, insulinDelivered: Double) {
             let latestDirection = glucoseFromPersistence.first?.direction
+            let mealSource: MealEntrySource = detectedMeal != nil ? .smartSense : .manual
 
-            let snapshot = MealDecisionSnapshot(
-                id: UUID(),
-                doseTimestamp: Date(),
-                selectedMeals: [
+            let selectedMealEntries: [MealDecisionExport.MealExportEntry]
+            if let meal = detectedMeal {
+                selectedMealEntries = [
                     MealDecisionExport.MealExportEntry(
                         label: meal.label,
                         carbs: meal.carbs,
@@ -736,7 +745,16 @@ extension Treatments {
                         source: meal.source,
                         detectedAt: meal.detectedAt
                     )
-                ],
+                ]
+            } else {
+                selectedMealEntries = []
+            }
+
+            let snapshot = MealDecisionSnapshot(
+                id: UUID(),
+                doseTimestamp: Date(),
+                mealSource: mealSource,
+                selectedMeals: selectedMealEntries,
                 totalCarbs: Double(truncating: carbs as NSDecimalNumber),
                 totalFat: Double(truncating: fat as NSDecimalNumber),
                 totalProtein: Double(truncating: protein as NSDecimalNumber),
