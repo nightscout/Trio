@@ -54,7 +54,7 @@ struct TrioSettings: JSON, Equatable {
     var xGridLines: Bool = true
     var yGridLines: Bool = true
     var rulerMarks: Bool = true
-    var showSmbInChart: Bool = true
+    var showSmbLabelInChart: Bool = true
     var forecastDisplayType: ForecastDisplayType = .cone
     var maxCarbs: Decimal = 250
     var maxFat: Decimal = 250
