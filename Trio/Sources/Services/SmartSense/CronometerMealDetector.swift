@@ -157,6 +157,7 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
                 carbs: event.carbsDelta,
                 fat: event.fatDelta,
                 protein: event.proteinDelta,
+                fiber: event.fiberDelta,
                 source: "cronometer",
                 isDosed: wasDosed || (existingMeal?.isDosed ?? false)
             )
@@ -171,7 +172,7 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
             mealsSubject.send(_meals)
             persistMeals()
 
-            let mealSummary = newMeals.map { "[\(Int($0.carbs))C/\(Int($0.fat))F/\(Int($0.protein))P]" }.joined(separator: " ")
+            let mealSummary = newMeals.map { "[\(Int($0.carbs))C/\(Int($0.fat))F/\(Int($0.protein))P/\(Int($0.fiber))Fb]" }.joined(separator: " ")
             debug(.service, "CronometerMealDetector: \(newMeals.count) meals — \(mealSummary)")
         }
     }

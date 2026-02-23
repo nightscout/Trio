@@ -212,6 +212,7 @@ struct DetectedMeal: Identifiable, Codable, Equatable {
     let carbs: Double
     let fat: Double
     let protein: Double
+    let fiber: Double
     let source: String // e.g. "cronometer"
     var isDosed: Bool
 
@@ -220,6 +221,14 @@ struct DetectedMeal: Identifiable, Codable, Equatable {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return "Meal at \(formatter.string(from: detectedAt))"
+    }
+
+    var estimatedCalories: Int {
+        Int(carbs * 4 + fat * 9 + protein * 4)
+    }
+
+    var minutesAgo: Double {
+        Date().timeIntervalSince(detectedAt) / 60
     }
 }
 

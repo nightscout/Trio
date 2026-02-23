@@ -16,16 +16,21 @@ final class NutritionHealthService {
     private var debounceWorkItem: DispatchWorkItem?
     private let debounceDelay: TimeInterval = 2.0
 
+    /// Bundle identifier prefix for Trio to filter out its own entries.
+    private let trioBundlePrefix = "org.nightscout"
+
     /// Fires after a new snapshot is recorded.
     let snapshotRecorded = PassthroughSubject<Void, Never>()
 
+    /// All four macro types we track from Apple Health.
     private let nutritionTypes: [HKQuantityTypeIdentifier] = [
         .dietaryCarbohydrates,
         .dietaryFatTotal,
-        .dietaryProtein
+        .dietaryProtein,
+        .dietaryFiber
     ]
 
-    init(healthStore: HKHealthStore, snapshotStore: NutritionSnapshotStore = NutritionSnapshotStore()) {
+    init(healthStore: HKHealthStore, snapshotStore: NutritionSnapshotStore = .shared) {
         self.healthStore = healthStore
         self.snapshotStore = snapshotStore
     }
@@ -40,7 +45,7 @@ final class NutritionHealthService {
             for typeID in nutritionTypes {
                 guard let sampleType = HKQuantityType.quantityType(forIdentifier: typeID) else { continue }
 
-                let query = HKObserverQuery(sampleType: sampleType, predicate: todayPredicate()) {
+                let query = HKObserverQuery(sampleType: sampleType, predicate: nil) {
                     [weak self] _, completionHandler, error in
                     guard error == nil else {
                         completionHandler()
@@ -54,7 +59,18 @@ final class NutritionHealthService {
                 observerQueries.append(query)
             }
 
-            debug(.service, "NutritionHealthService: started observing \(nutritionTypes.count) nutrition types")
+            // Enable background delivery for carbs so we detect meals even when backgrounded
+            if let carbType = HKQuantityType.quantityType(forIdentifier: .dietaryCarbohydrates) {
+                healthStore.enableBackgroundDelivery(for: carbType, frequency: .immediate) { success, error in
+                    if success {
+                        debug(.service, "NutritionHealthService: background delivery enabled for carbs")
+                    } else if let error {
+                        debug(.service, "NutritionHealthService: background delivery failed — \(error.localizedDescription)")
+                    }
+                }
+            }
+
+            debug(.service, "NutritionHealthService: started observing \(nutritionTypes.count) nutrition types with background delivery")
         }
     }
 
@@ -87,17 +103,18 @@ final class NutritionHealthService {
         async let carbsTotal = queryCumulativeSum(for: .dietaryCarbohydrates)
         async let fatTotal = queryCumulativeSum(for: .dietaryFatTotal)
         async let proteinTotal = queryCumulativeSum(for: .dietaryProtein)
+        async let fiberTotal = queryCumulativeSum(for: .dietaryFiber)
 
-        let (carbs, fat, protein) = await (carbsTotal, fatTotal, proteinTotal)
+        let (carbs, fat, protein, fiber) = await (carbsTotal, fatTotal, proteinTotal, fiberTotal)
 
         // Only record if there's actually some nutrition data
         guard carbs > 0 || fat > 0 || protein > 0 else { return }
 
         let snapshot = NutritionSnapshot(
-            timestamp: Date(),
             cumulativeCarbs: carbs,
             cumulativeFat: fat,
             cumulativeProtein: protein,
+            cumulativeFiber: fiber,
             forDate: NutritionSnapshotStore.todayString()
         )
 
@@ -106,7 +123,32 @@ final class NutritionHealthService {
 
         debug(
             .service,
-            "NutritionHealthService: snapshot recorded — C:\(String(format: "%.1f", carbs)) F:\(String(format: "%.1f", fat)) P:\(String(format: "%.1f", protein))"
+            "NutritionHealthService: snapshot — C:\(String(format: "%.1f", carbs)) F:\(String(format: "%.1f", fat)) P:\(String(format: "%.1f", protein)) Fb:\(String(format: "%.1f", fiber))"
+        )
+    }
+
+    // MARK: - On-Demand Meal Fetch (Crono Button)
+
+    /// Query current cumulative nutrition totals from Apple Health and return
+    /// the delta since the last snapshot (i.e. the most recently logged food).
+    func fetchLatestMealDelta() async -> InferredMealEvent? {
+        async let carbsTotal = queryCumulativeSum(for: .dietaryCarbohydrates)
+        async let fatTotal = queryCumulativeSum(for: .dietaryFatTotal)
+        async let proteinTotal = queryCumulativeSum(for: .dietaryProtein)
+        async let fiberTotal = queryCumulativeSum(for: .dietaryFiber)
+
+        let (carbs, fat, protein, fiber) = await (carbsTotal, fatTotal, proteinTotal, fiberTotal)
+
+        debug(
+            .service,
+            "NutritionHealthService: fetchLatestMealDelta — C:\(Int(carbs))g F:\(Int(fat))g P:\(Int(protein))g Fb:\(Int(fiber))g"
+        )
+
+        return snapshotStore.recordAndComputeLatestMeal(
+            currentCarbs: carbs,
+            currentFat: fat,
+            currentProtein: protein,
+            currentFiber: fiber
         )
     }
 
@@ -123,12 +165,11 @@ final class NutritionHealthService {
         async let carbSamples = queryIndividualSamples(for: .dietaryCarbohydrates)
         async let fatSamples = queryIndividualSamples(for: .dietaryFatTotal)
         async let proteinSamples = queryIndividualSamples(for: .dietaryProtein)
+        async let fiberSamples = queryIndividualSamples(for: .dietaryFiber)
 
-        let (carbs, fats, proteins) = await (carbSamples, fatSamples, proteinSamples)
+        let (carbs, fats, proteins, fibers) = await (carbSamples, fatSamples, proteinSamples, fiberSamples)
 
         // Merge samples with close timestamps (within 60s) into unified entries.
-        // A single Cronometer log creates separate carb/fat/protein samples with
-        // nearly identical timestamps — this collapses them into one entry.
         var entries: [MacroEntry] = []
         let entryWindow: TimeInterval = 60
 
@@ -156,12 +197,27 @@ final class NutritionHealthService {
             }
         }
 
+        for (date, value) in fibers {
+            if let idx = entries.firstIndex(where: { abs($0.date.timeIntervalSince(date)) < entryWindow }) {
+                entries[idx].fiber += value
+            } else {
+                entries.append(MacroEntry(date: date, fiber: value))
+            }
+        }
+
         entries.sort { $0.date < $1.date }
 
-        // Convert to events, filtering entries with at least 1g of any macro
         let events = entries
             .filter { $0.carbs > 1 || $0.fat > 1 || $0.protein > 1 }
-            .map { InferredMealEvent(detectedAt: $0.date, carbsDelta: $0.carbs, fatDelta: $0.fat, proteinDelta: $0.protein) }
+            .map {
+                InferredMealEvent(
+                    detectedAt: $0.date,
+                    carbsDelta: $0.carbs,
+                    fatDelta: $0.fat,
+                    proteinDelta: $0.protein,
+                    fiberDelta: $0.fiber
+                )
+            }
 
         return groupIntoMeals(events: events, mergeWindow: mergeWindow, dosedTimestamps: dosedTimestamps)
     }
@@ -178,14 +234,14 @@ final class NutritionHealthService {
                 predicate: todayPredicate(),
                 limit: HKObjectQueryNoLimit,
                 sortDescriptors: nil
-            ) { _, samples, error in
+            ) { [trioBundlePrefix] _, samples, error in
                 guard let samples = samples as? [HKQuantitySample], error == nil else {
                     continuation.resume(returning: 0)
                     return
                 }
 
                 let externalSamples = samples.filter { sample in
-                    sample.sourceRevision.source.bundleIdentifier != Bundle.main.bundleIdentifier
+                    !sample.sourceRevision.source.bundleIdentifier.hasPrefix(trioBundlePrefix)
                 }
 
                 let total = externalSamples.reduce(0.0) { sum, sample in
@@ -208,14 +264,14 @@ final class NutritionHealthService {
                 predicate: todayPredicate(),
                 limit: HKObjectQueryNoLimit,
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
-            ) { _, samples, error in
+            ) { [trioBundlePrefix] _, samples, error in
                 guard let samples = samples as? [HKQuantitySample], error == nil else {
                     continuation.resume(returning: [])
                     return
                 }
 
                 let externalSamples = samples.filter { sample in
-                    sample.sourceRevision.source.bundleIdentifier != Bundle.main.bundleIdentifier
+                    !sample.sourceRevision.source.bundleIdentifier.hasPrefix(trioBundlePrefix)
                 }
 
                 let results = externalSamples.map { sample in
@@ -256,10 +312,12 @@ final class NutritionHealthService {
 
                 if withinWindow, !doseBetween {
                     let merged = InferredMealEvent(
+                        id: groups[lastIdx].id,
                         detectedAt: groups[lastIdx].detectedAt,
                         carbsDelta: groups[lastIdx].carbsDelta + event.carbsDelta,
                         fatDelta: groups[lastIdx].fatDelta + event.fatDelta,
-                        proteinDelta: groups[lastIdx].proteinDelta + event.proteinDelta
+                        proteinDelta: groups[lastIdx].proteinDelta + event.proteinDelta,
+                        fiberDelta: groups[lastIdx].fiberDelta + event.fiberDelta
                     )
                     groups[lastIdx] = merged
                     continue
@@ -276,5 +334,6 @@ final class NutritionHealthService {
         var carbs: Double = 0
         var fat: Double = 0
         var protein: Double = 0
+        var fiber: Double = 0
     }
 }
