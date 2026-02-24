@@ -11,6 +11,7 @@ protocol NightscoutManager: GlucoseSource {
     func fetchTempTargets() async -> [TempTarget]
     func deleteCarbs(withID id: String) async
     func deleteInsulin(withID id: String) async
+    func deleteGlucose(withID id: String) async
     func deleteManualGlucose(withID id: String) async
     func uploadDeviceStatus() async throws
     func uploadGlucose() async
@@ -335,6 +336,20 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             debug(
                 .nightscout,
                 "\(DebuggingIdentifiers.failed) Failed to delete Insulin from Nightscout with error: \(error)"
+            )
+        }
+    }
+
+    func deleteGlucose(withID id: String) async {
+        guard let nightscout = nightscoutAPI, isUploadEnabled else { return }
+
+        do {
+            try await nightscout.deleteGlucose(withId: id)
+            debug(.nightscout, "Glucose deleted")
+        } catch {
+            debug(
+                .nightscout,
+                "\(DebuggingIdentifiers.failed) Failed to delete Glucose from Nightscout with error: \(error)"
             )
         }
     }

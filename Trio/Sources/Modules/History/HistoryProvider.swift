@@ -35,6 +35,13 @@ extension History {
             }
         }
 
+        func deleteGlucoseFromNightscout(withID id: String) {
+            Task.detached { [weak self] in
+                guard let self = self else { return }
+                await self.nightscoutManager.deleteGlucose(withID: id)
+            }
+        }
+
         func deleteManualGlucoseFromNightscout(withID id: String) {
             Task.detached { [weak self] in
                 guard let self = self else { return }
