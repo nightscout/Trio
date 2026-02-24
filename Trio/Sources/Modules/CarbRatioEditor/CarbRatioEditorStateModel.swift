@@ -3,6 +3,7 @@ import SwiftUI
 extension CarbRatioEditor {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var nightscout: NightscoutManager!
+        @Injected() private var profileManager: ProfileManager!
         @Published var items: [Item] = []
         @Published var initialItems: [Item] = []
         @Published var therapyItems: [TherapySettingItem] = []
@@ -88,6 +89,7 @@ extension CarbRatioEditor {
             }
             let profile = CarbRatios(units: .grams, schedule: schedule)
             provider.saveProfile(profile)
+            profileManager.syncSettingToActiveProfile(basalProfile: nil, carbRatios: profile, insulinSensitivities: nil, bgTargets: nil)
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
             Task.detached(priority: .low) {
                 do {

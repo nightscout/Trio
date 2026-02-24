@@ -78,6 +78,18 @@ protocol ProfileManager: AnyObject {
     /// - Returns: The profile assigned to that day, or nil if none
     func profileForDay(_ weekday: Weekday) -> TherapyProfile?
 
+    // MARK: - Sync from Therapy Editors
+
+    /// Syncs a therapy setting edited via the standard therapy editors back to the active profile.
+    /// Call this after saving an individual setting file so the active profile stays in sync.
+    /// Only updates the fields that are non-nil; does NOT re-write individual setting files.
+    func syncSettingToActiveProfile(
+        basalProfile: [BasalProfileEntry]?,
+        carbRatios: CarbRatios?,
+        insulinSensitivities: InsulinSensitivities?,
+        bgTargets: BGTargets?
+    )
+
     // MARK: - Notifications
 
     /// Acknowledges and dismisses the pending switch notification.

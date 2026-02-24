@@ -16,6 +16,7 @@ extension ISFEditor {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
         @ObservationIgnored @Injected() private var nightscout: NightscoutManager!
+        @ObservationIgnored @Injected() private var profileManager: ProfileManager!
 
         var items: [Item] = []
         var initialItems: [Item] = []
@@ -116,6 +117,7 @@ extension ISFEditor {
                 sensitivities: sensitivities
             )
             provider.saveProfile(profile)
+            profileManager.syncSettingToActiveProfile(basalProfile: nil, carbRatios: nil, insulinSensitivities: profile, bgTargets: nil)
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
 
             Task.detached(priority: .low) {
