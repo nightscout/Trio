@@ -379,11 +379,7 @@ extension BaseFetchGlucoseManager {
             // Keep only entries with dates
             let cgmValuesNewestFirst: [GlucoseStored] = glucoseStored
                 .filter { !$0.isManual }
-                .compactMap { obj -> GlucoseStored? in
-                    guard obj.date != nil else { return nil }
-                    return obj
-                }
-                .sorted { $0.date! > $1.date! } // newest first (AAPS expectation)
+                .filter { $0.date != nil } // order preserved
 
             guard !cgmValuesNewestFirst.isEmpty else { return }
 

@@ -99,51 +99,51 @@ final class OpenAPS {
 
     // fetch glucose to pass it to the meal function and to determine basal
     func fetchAndProcessGlucose(
-            context: NSManagedObjectContext,
-            shouldSmoothGlucose: Bool,
-            fetchLimit: Int?
-        ) async throws -> String {
-            let results = try CoreDataStack.shared.fetchEntities(
-                ofType: GlucoseStored.self,
-                onContext: context,
-                predicate: NSPredicate.predicateForOneDayAgoInMinutes,
-                key: "date",
-                ascending: false,
-                fetchLimit: fetchLimit,
-                batchSize: 48
-            )
+        context: NSManagedObjectContext,
+        shouldSmoothGlucose: Bool,
+        fetchLimit: Int?
+    ) async throws -> String {
+        let results = try CoreDataStack.shared.fetchEntities(
+            ofType: GlucoseStored.self,
+            onContext: context,
+            predicate: NSPredicate.predicateForOneDayAgoInMinutes,
+            key: "date",
+            ascending: false,
+            fetchLimit: fetchLimit,
+            batchSize: 48
+        )
 
-            return try await context.perform {
-                guard let glucoseResults = results as? [GlucoseStored] else {
-                    throw CoreDataError.fetchError(function: #function, file: #file)
-                }
-
-                let algorithmGlucose = glucoseResults.map { glucose -> AlgorithmGlucose in
-                    let glucoseValue: Int16
-                    if shouldSmoothGlucose, !glucose.isManual, let smoothedGlucose = glucose.smoothedGlucose {
-                        let roundingBehavior = NSDecimalNumberHandler(
-                            roundingMode: .plain,
-                            scale: 0,
-                            raiseOnExactness: false,
-                            raiseOnOverflow: false,
-                            raiseOnUnderflow: false,
-                            raiseOnDivideByZero: false
-                        )
-                        glucoseValue = smoothedGlucose.rounding(accordingToBehavior: roundingBehavior).int16Value
-                    } else {
-                        glucoseValue = glucose.glucose
-                    }
-                    return AlgorithmGlucose(
-                        date: glucose.date,
-                        direction: glucose.direction,
-                        glucose: glucoseValue,
-                        id: glucose.id,
-                        isManual: glucose.isManual
-                    )
-                }
-                return self.jsonConverter.convertToJSON(algorithmGlucose)
+        return try await context.perform {
+            guard let glucoseResults = results as? [GlucoseStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
+
+            let algorithmGlucose = glucoseResults.map { glucose -> AlgorithmGlucose in
+                let glucoseValue: Int16
+                if shouldSmoothGlucose, !glucose.isManual, let smoothedGlucose = glucose.smoothedGlucose {
+                    let roundingBehavior = NSDecimalNumberHandler(
+                        roundingMode: .plain,
+                        scale: 0,
+                        raiseOnExactness: false,
+                        raiseOnOverflow: false,
+                        raiseOnUnderflow: false,
+                        raiseOnDivideByZero: false
+                    )
+                    glucoseValue = smoothedGlucose.rounding(accordingToBehavior: roundingBehavior).int16Value
+                } else {
+                    glucoseValue = glucose.glucose
+                }
+                return AlgorithmGlucose(
+                    date: glucose.date,
+                    direction: glucose.direction,
+                    glucose: glucoseValue,
+                    id: glucose.id,
+                    isManual: glucose.isManual
+                )
+            }
+            return self.jsonConverter.convertToJSON(algorithmGlucose)
         }
+    }
 
     private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil, carbsDate: Date? = nil) async throws -> String {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(

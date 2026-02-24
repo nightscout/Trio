@@ -1,3 +1,5 @@
+import Foundation
+
 /// Helper class so that we can have a plain Swift object to serialize GlucoseStorage
 struct AlgorithmGlucose: Codable {
     var date: Date?
