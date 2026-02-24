@@ -4,7 +4,7 @@
 # initially we probably will not need that capability, but does no harm to keep it
 # define parameters and arrays used by more than one script
 #   These are always capitalized
-#      PROJECTS
+#      TRIO_PROJECTS
 
 # include this file in each script using
 #   source scripts/define_commont_trio.sh
