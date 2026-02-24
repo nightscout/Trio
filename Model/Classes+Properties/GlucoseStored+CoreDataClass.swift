@@ -1,4 +1,15 @@
-import CoreData
-import Foundation
+//
+//  GlucoseStored+CoreDataClass.swift
+//  Trio
+//
+//  Created by Cengiz Deniz on 24.02.26.
+//
+//
 
-@objc(GlucoseStored) public class GlucoseStored: NSManagedObject {}
+import Foundation
+import CoreData
+
+@objc(GlucoseStored)
+public class GlucoseStored: NSManagedObject {
+
+}
