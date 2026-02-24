@@ -102,31 +102,6 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     /**
-     Calculates the duration for processing FPUs (fat and protein units) based on the FPUs and the time cap.
-
-     - The function uses predefined rules to determine the duration based on the number of FPUs.
-     - Ensures that the duration does not exceed the time cap.
-
-     - Parameters:
-       - fpus: The number of FPUs calculated from fat and protein.
-       - timeCap: The maximum allowed duration.
-
-     - Returns: The computed duration in hours.
-     */
-    private func calculateComputedDuration(fpus: Decimal, timeCap: Decimal) -> Decimal {
-        switch fpus {
-        case ..<2:
-            return 3
-        case 2 ..< 3:
-            return 4
-        case 3 ..< 4:
-            return 5
-        default:
-            return timeCap
-        }
-    }
-
-    /**
      Converts fat and protein into delayed carb-equivalent entries (FPU handling).
 
      Behavior:
