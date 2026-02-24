@@ -4,6 +4,7 @@ extension TargetsEditor {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var nightscout: NightscoutManager!
         @Injected() private var broadcaster: Broadcaster!
+        @Injected() private var profileManager: ProfileManager!
 
         @Published var items: [Item] = []
         @Published var initialItems: [Item] = []
@@ -94,6 +95,7 @@ extension TargetsEditor {
             }
             let profile = BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: targets)
             provider.saveProfile(profile)
+            profileManager.syncSettingToActiveProfile(basalProfile: nil, carbRatios: nil, insulinSensitivities: nil, bgTargets: profile)
             initialItems = items.map { Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
 
             DispatchQueue.main.async {

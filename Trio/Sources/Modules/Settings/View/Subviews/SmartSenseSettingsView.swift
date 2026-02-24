@@ -247,73 +247,73 @@ extension SmartSenseConfig {
         }
 
         private var exportSection: some View {
-            Section(header: Text("Meal Decision Export")) {
-                // Time range picker
-                Picker("Export Range", selection: $selectedRange) {
-                    ForEach(MealDecisionExporter.ExportRange.allCases) { range in
-                        Text(range.label).tag(range)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .onChange(of: selectedRange) { newRange in
-                    snapshotCount = MealDecisionExporter.snapshotCount(for: newRange, filter: selectedFilter)
-                }
-
-                // Source filter picker
-                Picker("Meal Source", selection: $selectedFilter) {
-                    ForEach(MealDecisionExporter.ExportFilter.allCases) { filter in
-                        Text(filter.label).tag(filter)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .onChange(of: selectedFilter) { newFilter in
-                    snapshotCount = MealDecisionExporter.snapshotCount(for: selectedRange, filter: newFilter)
-                }
-
-                HStack {
-                    Image(systemName: "doc.text")
-                        .foregroundStyle(.blue)
-                    Text("Meal Decisions")
-                    Spacer()
-                    Text("\(snapshotCount)")
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
-                }
-
-                // Export button
-                Button {
-                    guard !isExporting else { return }
-                    isExporting = true
-                    Task {
-                        let context = CoreDataStack.shared.newTaskContext()
-                        let settings = state.currentSmartSenseSettings
-                        if let url = await MealDecisionExporter.buildFullExport(
-                            range: selectedRange,
-                            filter: selectedFilter,
-                            settings: settings,
-                            context: context
-                        ) {
-                            exportFiles = [url]
-                            showShareSheet = true
+            Group {
+                Section(header: Text("Meal Decision Export")) {
+                    Picker("Export Range", selection: $selectedRange) {
+                        ForEach(MealDecisionExporter.ExportRange.allCases) { range in
+                            Text(range.label).tag(range)
                         }
-                        isExporting = false
                     }
-                } label: {
+                    .onChange(of: selectedRange) { newRange in
+                        snapshotCount = MealDecisionExporter.snapshotCount(for: newRange, filter: selectedFilter)
+                    }
+                }
+
+                Section(header: Text("Meal Source Filter")) {
+                    Picker("Meal Source", selection: $selectedFilter) {
+                        ForEach(MealDecisionExporter.ExportFilter.allCases) { filter in
+                            Text(filter.label).tag(filter)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: selectedFilter) { newFilter in
+                        snapshotCount = MealDecisionExporter.snapshotCount(for: selectedRange, filter: newFilter)
+                    }
+
                     HStack {
-                        if isExporting {
-                            ProgressView()
-                                .controlSize(.small)
-                        } else {
-                            Image(systemName: "square.and.arrow.up")
-                        }
-                        Text("Export Meal Data")
+                        Image(systemName: "doc.text")
+                            .foregroundStyle(.blue)
+                        Text("Meal Decisions")
+                        Spacer()
+                        Text("\(snapshotCount)")
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
                     }
-                }
-                .disabled(snapshotCount == 0 || isExporting)
 
-                Text("Exports meal decisions with 2h pre-meal + 8h post-meal BG traces, all boluses, temp basals, loop decisions, and settings as JSON. Filter by Smart Sense (detected) or Manual entries.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    Button {
+                        guard !isExporting else { return }
+                        isExporting = true
+                        Task {
+                            let context = CoreDataStack.shared.newTaskContext()
+                            let settings = state.currentSmartSenseSettings
+                            if let url = await MealDecisionExporter.buildFullExport(
+                                range: selectedRange,
+                                filter: selectedFilter,
+                                settings: settings,
+                                context: context
+                            ) {
+                                exportFiles = [url]
+                                showShareSheet = true
+                            }
+                            isExporting = false
+                        }
+                    } label: {
+                        HStack {
+                            if isExporting {
+                                ProgressView()
+                                    .controlSize(.small)
+                            } else {
+                                Image(systemName: "square.and.arrow.up")
+                            }
+                            Text("Export Meal Data")
+                        }
+                    }
+                    .disabled(snapshotCount == 0 || isExporting)
+
+                    Text("Exports meal decisions with 2h pre-meal + 8h post-meal BG traces, all boluses, temp basals, loop decisions, and settings as JSON. Filter by Smart Sense (detected) or Manual entries.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
 

@@ -5,6 +5,7 @@ extension BasalProfileEditor {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() private var nightscout: NightscoutManager!
         @ObservationIgnored @Injected() private var broadcaster: Broadcaster!
+        @ObservationIgnored @Injected() private var profileManager: ProfileManager!
 
         var syncInProgress: Bool = false
         var initialItems: [Item] = []
@@ -112,6 +113,7 @@ extension BasalProfileEditor {
                     case .finished:
                         // Successfully saved and synced
                         self.initialItems = self.items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+                        self.profileManager.syncSettingToActiveProfile(basalProfile: profile, carbRatios: nil, insulinSensitivities: nil, bgTargets: nil)
 
                         DispatchQueue.main.async {
                             self.broadcaster.notify(BasalProfileObserver.self, on: .main) {

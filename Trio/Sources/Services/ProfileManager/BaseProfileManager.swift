@@ -251,6 +251,47 @@ final class BaseProfileManager: ProfileManager, Injectable {
         profiles.first { $0.activeDays.contains(weekday) }
     }
 
+    // MARK: - Sync from Therapy Editors
+
+    func syncSettingToActiveProfile(
+        basalProfile: [BasalProfileEntry]? = nil,
+        carbRatios: CarbRatios? = nil,
+        insulinSensitivities: InsulinSensitivities? = nil,
+        bgTargets: BGTargets? = nil
+    ) {
+        guard var profile = activeProfile,
+              let index = profiles.firstIndex(where: { $0.id == profile.id })
+        else { return }
+
+        var changed = false
+
+        if let basal = basalProfile {
+            profile.basalProfile = basal
+            changed = true
+        }
+        if let cr = carbRatios {
+            profile.carbRatios = cr
+            changed = true
+        }
+        if let isf = insulinSensitivities {
+            profile.insulinSensitivities = isf
+            changed = true
+        }
+        if let targets = bgTargets {
+            profile.bgTargets = targets
+            changed = true
+        }
+
+        guard changed else { return }
+
+        profile.touch()
+        profiles[index] = profile
+        activeProfile = profile
+        saveProfiles()
+
+        debug(.service, "ProfileManager: synced therapy setting change to active profile '\(profile.name)'")
+    }
+
     // MARK: - Notifications
 
     func acknowledgeSwitchNotification() {
