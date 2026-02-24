@@ -209,12 +209,27 @@ final class OpenAPS {
             }
 
             // This condition addresses https://github.com/nightscout/Trio/issues/898
+            // More precisely, it addresses issues for new/freshly onboarded users and
+            // the occurence of potential negative IOB.
+            //
             // Within the last 24h of pump history, resumes can appear
             // without a preceding suspend (freshly onboarded user, pump reconnection, …).
             // When a resume occurs inside the DIA window and there is no suspend in the
             // DIA window (or the remaining 24h window), prepend a simulated suspend event
             // 1 second before the resume event. This backstop avoids oref starting from a
             // resume-only state that can drive negative IOB while keeping real history intact.
+            //
+            // This conditional logic DOES NOT cover potential edge cases where
+            // - the potential orphaned resume event just fell out of the considered time range
+            //   (i.e., DIA hours or 24 hours), which subsequently stops the simulated suspend event
+            //   from being injected, albeit it should, whereby potentially creating scenarios in
+            //   Autosense and Meal module runs, where during iteration of events a suspend event
+            //   should be injected.
+            // - the resume event is exactly at the beginning of the considered time range (i.e., DIA
+            //   DIA hours or 24 hours), which leads to the suspend event being injected outside (!) of
+            //   this window, which will lead to it not being considered Autosense or Meal module runs
+            //   which again could lead to potentialy IOB drops &/or negative IOB.
+            // TODO: Address remaining edge cases for potential causes of unwanted negative IOB
             if let pumpSettings = self.storage.retrieve(OpenAPS.Settings.settings, as: PumpSettings.self) {
                 let insulinDurationWindowSeconds = (pumpSettings.insulinActionCurve as NSDecimalNumber).doubleValue * 60 * 60
                 let oneDaySeconds: TimeInterval = 24 * 60 * 60
