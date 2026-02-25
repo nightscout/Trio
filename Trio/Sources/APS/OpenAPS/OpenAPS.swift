@@ -208,67 +208,22 @@ final class OpenAPS {
                 dtos.insert(simulatedBolusDTO, at: 0)
             }
 
-            // This condition addresses https://github.com/nightscout/Trio/issues/898
-            // More precisely, it addresses issues for new/freshly onboarded users and
-            // the occurence of potential negative IOB.
+            // Addresses https://github.com/nightscout/Trio/issues/898
             //
-            // Within the last 24h of pump history, resumes can appear
-            // without a preceding suspend (freshly onboarded user, pump reconnection, …).
-            // When a resume occurs inside the DIA window and there is no suspend in the
-            // DIA window (or the remaining 24h window), prepend a simulated suspend event
-            // 1 second before the resume event. This backstop avoids oref starting from a
-            // resume-only state that can drive negative IOB while keeping real history intact.
+            // On a cold start (new user, fresh onboarding, or pump disconnected > 24h),
+            // the oldest event in pump history can be a resume with no preceding pump
+            // activity. oref interprets this as the end of a suspend that never started,
+            // which drives negative IOB and can cause excessive insulin delivery.
             //
-            // This conditional logic DOES NOT cover potential edge cases where
-            // - the potential orphaned resume event just fell out of the considered time range
-            //   (i.e., DIA hours or 24 hours), which subsequently stops the simulated suspend event
-            //   from being injected, albeit it should, whereby potentially creating scenarios in
-            //   Autosense and Meal module runs, where during iteration of events a suspend event
-            //   should be injected.
-            // - the resume event is exactly at the beginning of the considered time range (i.e., DIA
-            //   DIA hours or 24 hours), which leads to the suspend event being injected outside (!) of
-            //   this window, which will lead to it not being considered Autosense or Meal module runs
-            //   which again could lead to potentialy IOB drops &/or negative IOB.
-            // TODO: Address remaining edge cases for potential causes of unwanted negative IOB
-            if let pumpSettings = self.storage.retrieve(OpenAPS.Settings.settings, as: PumpSettings.self) {
-                let insulinDurationWindowSeconds = (pumpSettings.insulinActionCurve as NSDecimalNumber).doubleValue * 60 * 60
-                let oneDaySeconds: TimeInterval = 24 * 60 * 60
-                let now = Date()
-
-                let datedDTOs = dtos.compactMap { dto -> (PumpEventDTO, Date)? in
-                    guard let timestamp = dto.timestampDate else { return nil }
-                    return (dto, timestamp)
-                }.sorted { $0.1 < $1.1 }
-
-                let recentDTOs = datedDTOs.filter { now.timeIntervalSince($0.1) <= oneDaySeconds }
-                if let resumeIndex = recentDTOs.firstIndex(where: { tuple in
-                    tuple.0.isResume && now.timeIntervalSince(tuple.1) <= insulinDurationWindowSeconds
-                }) {
-                    let resumeDate = recentDTOs[resumeIndex].1
-
-                    let hasSuspendInDIAWindowBeforeResume = recentDTOs[..<resumeIndex].contains { element in
-                        element.0.isSuspend && now.timeIntervalSince(element.1) <= insulinDurationWindowSeconds
-                    }
-
-                    if !hasSuspendInDIAWindowBeforeResume {
-                        let hasSuspendInOlderWindow = recentDTOs.contains { element in
-                            element.0.isSuspend
-                                && now.timeIntervalSince(element.1) > insulinDurationWindowSeconds
-                                && now.timeIntervalSince(element.1) <= oneDaySeconds
-                        }
-
-                        if !hasSuspendInOlderWindow {
-                            let suspendDate = resumeDate.addingTimeInterval(-1)
-                            let suspendDTO = self.createSimulatedSuspendDTO(at: suspendDate)
-
-                            let insertionIndex = dtos.firstIndex { dto in
-                                dto.isResume && dto.timestampDate == resumeDate
-                            } ?? 0
-
-                            dtos.insert(suspendDTO, at: insertionIndex)
-                        }
-                    }
-                }
+            // Detection: if the chronologically oldest DTO is a resume AND there are zero
+            // pump events in the 24h before it, this is a cold-start orphaned resume.
+            // Fix: inject a simulated suspend 1 second before the resume so oref sees a
+            // balanced suspend/resume pair that is effectively a no-op.
+            // Check whether the oldest event is an orphaned resume (cold start detection).
+            if let orphanedResumeDate = self.detectOrphanedResume(pumpHistoryObjectIDs) {
+                let suspendDTO = self.createSimulatedSuspendDTO(at: orphanedResumeDate.addingTimeInterval(-1))
+                // Insert at the end since this is chronologically the oldest event
+                dtos.append(suspendDTO)
             }
 
             // Convert the DTOs to JSON
@@ -347,6 +302,40 @@ final class OpenAPS {
             timestamp: dateFormatted
         )
         return .suspend(suspendDTO)
+    }
+
+    /// Detects a cold-start orphaned resume: returns the resume's date if the chronologically
+    /// oldest event in pump history is a resume AND there are no pump events in the 24h before it.
+    private func detectOrphanedResume(
+        _ pumpHistoryObjectIDs: [NSManagedObjectID]
+    ) -> Date? {
+        // Map object IDs to (type, timestamp) pairs and find the chronologically oldest
+        let events: [(type: String, timestamp: Date)] = pumpHistoryObjectIDs.compactMap { objectID in
+            guard let event = self.context.object(with: objectID) as? PumpEventStored,
+                  let type = event.type,
+                  let timestamp = event.timestamp
+            else { return nil }
+            return (type: type, timestamp: timestamp)
+        }
+
+        guard let oldest = events.min(by: { $0.timestamp < $1.timestamp }) else { return nil }
+
+        // Only proceed if the oldest event is a resume
+        guard oldest.type == PumpEventStored.EventType.pumpResume.rawValue else { return nil }
+
+        // Check whether any pump event exists in the 24h before this resume
+        let lookbackDate = oldest.timestamp.addingTimeInterval(-24 * 60 * 60)
+
+        let request: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "timestamp >= %@ AND timestamp < %@",
+            lookbackDate as NSDate,
+            oldest.timestamp as NSDate
+        )
+        request.fetchLimit = 1
+
+        let count = (try? context.count(for: request)) ?? 0
+        return count == 0 ? oldest.timestamp : nil
     }
 
     func determineBasal(
