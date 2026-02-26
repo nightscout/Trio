@@ -12,6 +12,13 @@ struct LiveActivityBGLabelWatchView: View {
         return formatter
     }
 
+    private var bolusFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 1
+        return formatter
+    }
+
     var body: some View {
         HStack {
             Text(context.state.bg)
@@ -19,6 +26,8 @@ struct LiveActivityBGLabelWatchView: View {
                 .fontWeight(.bold)
                 .foregroundStyle(context.isStale ? .secondary : glucoseColor)
                 .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
 
             if let trendArrow = context.state.direction {
                 Text(trendArrow)
@@ -32,6 +41,20 @@ struct LiveActivityBGLabelWatchView: View {
                 .font(.callout)
                 .foregroundStyle(context.isStale ? .secondary : glucoseColor)
                 .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
+
+            Text(bolusFormatter.string(from: context.state.detailedViewState.iob as NSNumber) ?? "--")
+                .font(.callout)
+                .foregroundStyle(context.isStale ? .secondary : glucoseColor)
+                .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
+
+            Text(String(localized: "U", comment: "Insulin unit"))
+                .font(.callout)
+                .foregroundStyle(context.isStale ? .secondary : glucoseColor)
+                .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
 
             Spacer()
 
@@ -39,6 +62,8 @@ struct LiveActivityBGLabelWatchView: View {
                 .font(.callout)
                 .foregroundStyle(context.isStale ? .red.opacity(0.6) : .primary)
                 .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
         }
     }
 }
