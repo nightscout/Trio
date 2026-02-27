@@ -18,14 +18,10 @@ protocol HealthKitManager {
     func checkWriteToHealthPermissions(objectTypeToHealthStore: HKObjectType) -> Bool
     /// Save blood glucose to Health store
     func uploadGlucose() async
-    /// Save carbs to Health store
-    func uploadCarbs() async
     /// Save Insulin to Health store
     func uploadInsulin() async
     /// Delete glucose with syncID
     func deleteGlucose(syncID: String) async
-    /// delete carbs with syncID
-    func deleteMealData(byID id: String, sampleType: HKSampleType) async
     /// delete insulin with syncID
     func deleteInsulin(syncID: String) async
 }
@@ -33,7 +29,7 @@ protocol HealthKitManager {
 public enum AppleHealthConfig {
     // unwraped HKObjects
     static var writePermissions: Set<HKSampleType> {
-        Set([healthBGObject, healthCarbObject, healthFatObject, healthProteinObject, healthInsulinObject].compactMap { $0 }) }
+        Set([healthBGObject, healthInsulinObject].compactMap { $0 }) }
 
     // Read permissions — nutrition types needed for Cronometer meal detection
     static var readPermissions: Set<HKObjectType> {
@@ -56,7 +52,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     @Injected() private var healthKitStore: HKHealthStore!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
-    @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
     @Injected() private var deviceDataManager: DeviceDataManager!
 
@@ -104,14 +99,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             Task { [weak self] in
                 guard let self = self else { return }
                 await self.uploadInsulin()
-            }
-        }.store(in: &subscriptions)
-
-        coreDataPublisher?.filteredByEntityName("CarbEntryStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task { [weak self] in
-                guard let self = self else { return }
-                await self.uploadCarbs()
             }
         }.store(in: &subscriptions)
 
@@ -222,127 +209,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         await backgroundContext.perform {
             let ids = glucose.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
-
-            do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
-                for result in results {
-                    result.isUploadedToHealth = true
-                }
-
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
-            } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToHealth: \(error.userInfo)"
-                )
-            }
-        }
-    }
-
-    // Carbs Upload
-
-    func uploadCarbs() async {
-        do {
-            let carbs = try await carbsStorage.getCarbsNotYetUploadedToHealth()
-            await uploadCarbs(carbs)
-        } catch {
-            debug(
-                .service,
-                "\(DebuggingIdentifiers.failed) Error fetching carbs for health upload: \(error)"
-            )
-        }
-    }
-
-    func uploadCarbs(_ carbs: [CarbsEntry]) async {
-        guard settingsManager.settings.useAppleHealth,
-              let carbSampleType = AppleHealthConfig.healthCarbObject,
-              let fatSampleType = AppleHealthConfig.healthFatObject,
-              let proteinSampleType = AppleHealthConfig.healthProteinObject,
-              checkWriteToHealthPermissions(objectTypeToHealthStore: carbSampleType),
-              carbs.isNotEmpty
-        else { return }
-
-        do {
-            var samples: [HKQuantitySample] = []
-
-            // Create HealthKit samples for carbs, fat, and protein
-            for allSamples in carbs {
-                guard let id = allSamples.id else { continue }
-                let fpuID = allSamples.fpuID ?? id
-                let startDate = allSamples.actualDate ?? Date()
-
-                // Carbs Sample (only if value is greater than 0)
-                let carbValue = allSamples.carbs
-                if carbValue > 0 {
-                    let carbSample = HKQuantitySample(
-                        type: carbSampleType,
-                        quantity: HKQuantity(unit: .gram(), doubleValue: Double(carbValue)),
-                        start: startDate,
-                        end: startDate,
-                        metadata: [
-                            HKMetadataKeyExternalUUID: id,
-                            HKMetadataKeySyncIdentifier: id,
-                            HKMetadataKeySyncVersion: 1
-                        ]
-                    )
-                    samples.append(carbSample)
-                }
-
-                // Fat Sample (only if value is greater than 0)
-                if let fatValue = allSamples.fat, fatValue > 0 {
-                    let fatSample = HKQuantitySample(
-                        type: fatSampleType,
-                        quantity: HKQuantity(unit: .gram(), doubleValue: Double(fatValue)),
-                        start: startDate,
-                        end: startDate,
-                        metadata: [
-                            HKMetadataKeyExternalUUID: fpuID,
-                            HKMetadataKeySyncIdentifier: fpuID,
-                            HKMetadataKeySyncVersion: 1
-                        ]
-                    )
-                    samples.append(fatSample)
-                }
-
-                // Protein Sample (only if value is greater than 0)
-                if let proteinValue = allSamples.protein, proteinValue > 0 {
-                    let proteinSample = HKQuantitySample(
-                        type: proteinSampleType,
-                        quantity: HKQuantity(unit: .gram(), doubleValue: Double(proteinValue)),
-                        start: startDate,
-                        end: startDate,
-                        metadata: [
-                            HKMetadataKeyExternalUUID: fpuID,
-                            HKMetadataKeySyncIdentifier: fpuID,
-                            HKMetadataKeySyncVersion: 1
-                        ]
-                    )
-                    samples.append(proteinSample)
-                }
-            }
-
-            // Attempt to save the samples to Apple Health
-            guard samples.isNotEmpty else {
-                debug(.service, "No samples available for upload.")
-                return
-            }
-
-            try await healthKitStore.save(samples)
-            debug(.service, "Successfully stored \(samples.count) carb samples in HealthKit.")
-
-            // After successful upload, update the isUploadedToHealth flag in Core Data
-            await updateCarbsAsUploaded(carbs)
-
-        } catch {
-            debug(.service, "Failed to upload carb samples to HealthKit: \(error)")
-        }
-    }
-
-    private func updateCarbsAsUploaded(_ carbs: [CarbsEntry]) async {
-        await backgroundContext.perform {
-            let ids = carbs.map(\.id) as NSArray
-            let fetchRequest: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
@@ -627,23 +493,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             debug(.service, "Successfully deleted glucose sample with syncID: \(syncID)")
         } catch {
             warning(.service, "Failed to delete glucose sample with syncID: \(syncID)", error: error)
-        }
-    }
-
-    func deleteMealData(byID id: String, sampleType: HKSampleType) async {
-        guard settingsManager.settings.useAppleHealth else { return }
-
-        let predicate = HKQuery.predicateForObjects(
-            withMetadataKey: HKMetadataKeySyncIdentifier,
-            operatorType: .equalTo,
-            value: id
-        )
-
-        do {
-            try await deleteObjects(of: sampleType, predicate: predicate)
-            debug(.service, "Successfully deleted \(sampleType) with syncID: \(id)")
-        } catch {
-            warning(.service, "Failed to delete carbs sample with syncID: \(id)", error: error)
         }
     }
 
