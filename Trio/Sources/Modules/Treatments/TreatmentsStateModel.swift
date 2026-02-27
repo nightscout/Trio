@@ -727,6 +727,7 @@ extension Treatments {
             carbs = Decimal(meal.carbs)
             fat = Decimal(meal.fat)
             protein = Decimal(meal.protein)
+            date = meal.detectedAt
             selectedMealID = meal.id
         }
 

@@ -238,7 +238,7 @@ final class NutritionSnapshotStore {
         guard carbDelta > 1 || fatDelta > 1 || proteinDelta > 1 else { return nil }
 
         return InferredMealEvent(
-            detectedAt: Date(),
+            detectedAt: allSnapshots[mealStartIndex].timestamp,
             carbsDelta: max(0, carbDelta),
             fatDelta: max(0, fatDelta),
             proteinDelta: max(0, proteinDelta),
