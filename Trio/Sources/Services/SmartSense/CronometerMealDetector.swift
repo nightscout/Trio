@@ -4,12 +4,12 @@ import HealthKit
 
 /// Detects meals logged in Cronometer (or other nutrition apps) via HealthKit.
 ///
-/// Uses a cumulative-snapshot-delta approach: `NutritionHealthService` records
-/// point-in-time cumulative daily totals whenever HealthKit nutrition data changes.
-/// Meals are inferred by computing deltas between consecutive snapshots.
-/// Snapshot deltas within a 15-minute window are grouped as a single meal.
-/// Dose timestamps create group boundaries — dosing between two deltas forces
-/// them into separate meals even if they're within the merge window.
+/// Uses a sample-based approach: when HealthKit nutrition data changes, individual
+/// samples are queried and grouped by their actual timestamps (not the poll time).
+/// This ensures `detectedAt` reflects when the meal was actually logged, not when
+/// Trio happened to read it. Samples within a 15-minute window are grouped as a
+/// single meal. Dose timestamps create group boundaries — dosing between two
+/// samples forces them into separate meals even if they're within the merge window.
 protocol CronometerMealDetector {
     /// Start observing HealthKit for nutrition changes.
     func startObserving()
@@ -94,18 +94,19 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
     // MARK: - Observation
 
     func startObserving() {
-        // Subscribe to snapshot recordings — rebuild meals from snapshot deltas each time
+        // Subscribe to snapshot recordings — rebuild meals from HealthKit samples each time
         nutritionService.snapshotRecorded
             .receive(on: DispatchQueue.global(qos: .utility))
             .sink { [weak self] in
-                self?.rebuildMealsFromSnapshots()
+                guard let self else { return }
+                Task { await self.rebuildMealsFromSamples() }
             }
             .store(in: &cancellables)
 
         // Start the HealthKit observers (triggers initial snapshot too)
         nutritionService.startObserving()
 
-        debug(.service, "CronometerMealDetector: started observing via snapshot-delta detection")
+        debug(.service, "CronometerMealDetector: started observing via sample-based detection")
     }
 
     func stopObserving() {
@@ -133,11 +134,11 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
         persistDosedTimestamps()
     }
 
-    // MARK: - Snapshot-Based Meal Detection
+    // MARK: - Sample-Based Meal Detection
 
-    /// Infer meals from snapshot deltas and publish updates.
-    private func rebuildMealsFromSnapshots() {
-        let events = nutritionService.snapshotStore.inferredMeals(
+    /// Query individual HealthKit samples and rebuild detected meals using actual sample timestamps.
+    private func rebuildMealsFromSamples() async {
+        let events = await nutritionService.fetchGroupedMeals(
             mergeWindow: 15 * 60,
             dosedTimestamps: dosedMealTimestamps
         )
