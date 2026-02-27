@@ -94,16 +94,15 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
     // MARK: - Observation
 
     func startObserving() {
-        // Subscribe to snapshot recordings — rebuild meals from HealthKit samples each time
-        nutritionService.snapshotRecorded
+        // Subscribe to sample-based meal events (actual HealthKit timestamps)
+        nutritionService.rawMealEventsDetected
             .receive(on: DispatchQueue.global(qos: .utility))
-            .sink { [weak self] in
-                guard let self else { return }
-                Task { await self.rebuildMealsFromSamples() }
+            .sink { [weak self] rawEvents in
+                self?.rebuildMealsFromSampleEvents(rawEvents)
             }
             .store(in: &cancellables)
 
-        // Start the HealthKit observers (triggers initial snapshot too)
+        // Start the HealthKit observers (triggers initial snapshot + meal detection)
         nutritionService.startObserving()
 
         debug(.service, "CronometerMealDetector: started observing via sample-based detection")
@@ -136,9 +135,11 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
 
     // MARK: - Sample-Based Meal Detection
 
-    /// Query individual HealthKit samples and rebuild detected meals using actual sample timestamps.
-    private func rebuildMealsFromSamples() async {
-        let events = await nutritionService.fetchGroupedMeals(
+    /// Rebuild detected meals from raw sample-based events (with actual HealthKit timestamps).
+    private func rebuildMealsFromSampleEvents(_ rawEvents: [InferredMealEvent]) {
+        // Group raw events using dose timestamps as boundaries
+        let events = nutritionService.groupIntoMeals(
+            events: rawEvents,
             mergeWindow: 15 * 60,
             dosedTimestamps: dosedMealTimestamps
         )

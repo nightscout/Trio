@@ -22,6 +22,9 @@ final class NutritionHealthService {
     /// Fires after a new snapshot is recorded.
     let snapshotRecorded = PassthroughSubject<Void, Never>()
 
+    /// Fires with sample-based meal events (using actual HealthKit timestamps) after each snapshot.
+    let rawMealEventsDetected = PassthroughSubject<[InferredMealEvent], Never>()
+
     /// All four macro types we track from Apple Health.
     private let nutritionTypes: [HKQuantityTypeIdentifier] = [
         .dietaryCarbohydrates,
@@ -98,14 +101,22 @@ final class NutritionHealthService {
 
     // MARK: - Snapshot Capture
 
-    /// Query cumulative daily totals for each macro and record a snapshot.
+    /// Query individual HealthKit samples, record a cumulative snapshot, and publish
+    /// sample-based meal events with actual HealthKit timestamps.
     func fetchAndRecordSnapshot() async {
-        async let carbsTotal = queryCumulativeSum(for: .dietaryCarbohydrates)
-        async let fatTotal = queryCumulativeSum(for: .dietaryFatTotal)
-        async let proteinTotal = queryCumulativeSum(for: .dietaryProtein)
-        async let fiberTotal = queryCumulativeSum(for: .dietaryFiber)
+        // Query individual samples — gives us both cumulative totals and actual timestamps
+        async let carbSamples = queryIndividualSamples(for: .dietaryCarbohydrates)
+        async let fatSamples = queryIndividualSamples(for: .dietaryFatTotal)
+        async let proteinSamples = queryIndividualSamples(for: .dietaryProtein)
+        async let fiberSamples = queryIndividualSamples(for: .dietaryFiber)
 
-        let (carbs, fat, protein, fiber) = await (carbsTotal, fatTotal, proteinTotal, fiberTotal)
+        let (carbData, fatData, proteinData, fiberData) = await (carbSamples, fatSamples, proteinSamples, fiberSamples)
+
+        // Compute cumulative totals for the snapshot
+        let carbs = carbData.reduce(0.0) { $0 + $1.1 }
+        let fat = fatData.reduce(0.0) { $0 + $1.1 }
+        let protein = proteinData.reduce(0.0) { $0 + $1.1 }
+        let fiber = fiberData.reduce(0.0) { $0 + $1.1 }
 
         // Only record if there's actually some nutrition data
         guard carbs > 0 || fat > 0 || protein > 0 else { return }
@@ -120,6 +131,10 @@ final class NutritionHealthService {
 
         snapshotStore.record(snapshot)
         snapshotRecorded.send()
+
+        // Build sample-based meal events using actual HealthKit timestamps
+        let mealEvents = buildRawMealEvents(carbs: carbData, fats: fatData, proteins: proteinData, fibers: fiberData)
+        rawMealEventsDetected.send(mealEvents)
 
         debug(
             .service,
@@ -168,57 +183,7 @@ final class NutritionHealthService {
         async let fiberSamples = queryIndividualSamples(for: .dietaryFiber)
 
         let (carbs, fats, proteins, fibers) = await (carbSamples, fatSamples, proteinSamples, fiberSamples)
-
-        // Merge samples with close timestamps (within 60s) into unified entries.
-        var entries: [MacroEntry] = []
-        let entryWindow: TimeInterval = 60
-
-        for (date, value) in carbs {
-            if let idx = entries.firstIndex(where: { abs($0.date.timeIntervalSince(date)) < entryWindow }) {
-                entries[idx].carbs += value
-            } else {
-                entries.append(MacroEntry(date: date, carbs: value))
-            }
-        }
-
-        for (date, value) in fats {
-            if let idx = entries.firstIndex(where: { abs($0.date.timeIntervalSince(date)) < entryWindow }) {
-                entries[idx].fat += value
-            } else {
-                entries.append(MacroEntry(date: date, fat: value))
-            }
-        }
-
-        for (date, value) in proteins {
-            if let idx = entries.firstIndex(where: { abs($0.date.timeIntervalSince(date)) < entryWindow }) {
-                entries[idx].protein += value
-            } else {
-                entries.append(MacroEntry(date: date, protein: value))
-            }
-        }
-
-        for (date, value) in fibers {
-            if let idx = entries.firstIndex(where: { abs($0.date.timeIntervalSince(date)) < entryWindow }) {
-                entries[idx].fiber += value
-            } else {
-                entries.append(MacroEntry(date: date, fiber: value))
-            }
-        }
-
-        entries.sort { $0.date < $1.date }
-
-        let events = entries
-            .filter { $0.carbs > 1 || $0.fat > 1 || $0.protein > 1 }
-            .map {
-                InferredMealEvent(
-                    detectedAt: $0.date,
-                    carbsDelta: $0.carbs,
-                    fatDelta: $0.fat,
-                    proteinDelta: $0.protein,
-                    fiberDelta: $0.fiber
-                )
-            }
-
+        let events = buildRawMealEvents(carbs: carbs, fats: fats, proteins: proteins, fibers: fibers)
         return groupIntoMeals(events: events, mergeWindow: mergeWindow, dosedTimestamps: dosedTimestamps)
     }
 
@@ -289,9 +254,68 @@ final class NutritionHealthService {
         return HKQuery.predicateForSamples(withStart: startOfDay, end: nil, options: .strictStartDate)
     }
 
+    // MARK: - Sample-Based Event Building
+
+    /// Build ungrouped meal events from individual HealthKit samples, preserving actual timestamps.
+    private func buildRawMealEvents(
+        carbs: [(Date, Double)],
+        fats: [(Date, Double)],
+        proteins: [(Date, Double)],
+        fibers: [(Date, Double)]
+    ) -> [InferredMealEvent] {
+        var entries: [MacroEntry] = []
+        let entryWindow: TimeInterval = 60
+
+        for (date, value) in carbs {
+            if let idx = entries.firstIndex(where: { abs($0.date.timeIntervalSince(date)) < entryWindow }) {
+                entries[idx].carbs += value
+            } else {
+                entries.append(MacroEntry(date: date, carbs: value))
+            }
+        }
+
+        for (date, value) in fats {
+            if let idx = entries.firstIndex(where: { abs($0.date.timeIntervalSince(date)) < entryWindow }) {
+                entries[idx].fat += value
+            } else {
+                entries.append(MacroEntry(date: date, fat: value))
+            }
+        }
+
+        for (date, value) in proteins {
+            if let idx = entries.firstIndex(where: { abs($0.date.timeIntervalSince(date)) < entryWindow }) {
+                entries[idx].protein += value
+            } else {
+                entries.append(MacroEntry(date: date, protein: value))
+            }
+        }
+
+        for (date, value) in fibers {
+            if let idx = entries.firstIndex(where: { abs($0.date.timeIntervalSince(date)) < entryWindow }) {
+                entries[idx].fiber += value
+            } else {
+                entries.append(MacroEntry(date: date, fiber: value))
+            }
+        }
+
+        entries.sort { $0.date < $1.date }
+
+        return entries
+            .filter { $0.carbs > 1 || $0.fat > 1 || $0.protein > 1 }
+            .map {
+                InferredMealEvent(
+                    detectedAt: $0.date,
+                    carbsDelta: $0.carbs,
+                    fatDelta: $0.fat,
+                    proteinDelta: $0.protein,
+                    fiberDelta: $0.fiber
+                )
+            }
+    }
+
     // MARK: - Grouping
 
-    private func groupIntoMeals(
+    func groupIntoMeals(
         events: [InferredMealEvent],
         mergeWindow: TimeInterval,
         dosedTimestamps: Set<TimeInterval>
