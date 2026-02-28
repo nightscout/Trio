@@ -101,22 +101,16 @@ final class NutritionHealthService {
 
     // MARK: - Snapshot Capture
 
-    /// Query individual HealthKit samples, record a cumulative snapshot, and publish
-    /// sample-based meal events with actual HealthKit timestamps.
+    /// Query cumulative daily totals, record a snapshot, then query individual samples
+    /// to publish meal events with actual HealthKit timestamps.
     func fetchAndRecordSnapshot() async {
-        // Query individual samples — gives us both cumulative totals and actual timestamps
-        async let carbSamples = queryIndividualSamples(for: .dietaryCarbohydrates)
-        async let fatSamples = queryIndividualSamples(for: .dietaryFatTotal)
-        async let proteinSamples = queryIndividualSamples(for: .dietaryProtein)
-        async let fiberSamples = queryIndividualSamples(for: .dietaryFiber)
+        // Use proven cumulative-sum queries for the snapshot
+        async let carbsTotal = queryCumulativeSum(for: .dietaryCarbohydrates)
+        async let fatTotal = queryCumulativeSum(for: .dietaryFatTotal)
+        async let proteinTotal = queryCumulativeSum(for: .dietaryProtein)
+        async let fiberTotal = queryCumulativeSum(for: .dietaryFiber)
 
-        let (carbData, fatData, proteinData, fiberData) = await (carbSamples, fatSamples, proteinSamples, fiberSamples)
-
-        // Compute cumulative totals for the snapshot
-        let carbs = carbData.reduce(0.0) { $0 + $1.1 }
-        let fat = fatData.reduce(0.0) { $0 + $1.1 }
-        let protein = proteinData.reduce(0.0) { $0 + $1.1 }
-        let fiber = fiberData.reduce(0.0) { $0 + $1.1 }
+        let (carbs, fat, protein, fiber) = await (carbsTotal, fatTotal, proteinTotal, fiberTotal)
 
         // Only record if there's actually some nutrition data
         guard carbs > 0 || fat > 0 || protein > 0 else { return }
@@ -132,14 +126,20 @@ final class NutritionHealthService {
         snapshotStore.record(snapshot)
         snapshotRecorded.send()
 
-        // Build sample-based meal events using actual HealthKit timestamps
-        let mealEvents = buildRawMealEvents(carbs: carbData, fats: fatData, proteins: proteinData, fibers: fiberData)
-        rawMealEventsDetected.send(mealEvents)
-
         debug(
             .service,
             "NutritionHealthService: snapshot — C:\(String(format: "%.1f", carbs)) F:\(String(format: "%.1f", fat)) P:\(String(format: "%.1f", protein)) Fb:\(String(format: "%.1f", fiber))"
         )
+
+        // Now query individual samples for actual timestamps
+        async let carbSamples = queryIndividualSamples(for: .dietaryCarbohydrates)
+        async let fatSamples = queryIndividualSamples(for: .dietaryFatTotal)
+        async let proteinSamples = queryIndividualSamples(for: .dietaryProtein)
+        async let fiberSamples = queryIndividualSamples(for: .dietaryFiber)
+
+        let (carbData, fatData, proteinData, fiberData) = await (carbSamples, fatSamples, proteinSamples, fiberSamples)
+        let mealEvents = buildRawMealEvents(carbs: carbData, fats: fatData, proteins: proteinData, fibers: fiberData)
+        rawMealEventsDetected.send(mealEvents)
     }
 
     // MARK: - On-Demand Meal Fetch (Crono Button)

@@ -94,11 +94,19 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
     // MARK: - Observation
 
     func startObserving() {
-        // Subscribe to sample-based meal events (actual HealthKit timestamps)
+        // Primary: sample-based meal events with actual HealthKit timestamps
         nutritionService.rawMealEventsDetected
             .receive(on: DispatchQueue.global(qos: .utility))
             .sink { [weak self] rawEvents in
                 self?.rebuildMealsFromSampleEvents(rawEvents)
+            }
+            .store(in: &cancellables)
+
+        // Fallback: snapshot-delta detection (fires first, uses poll timestamps)
+        nutritionService.snapshotRecorded
+            .receive(on: DispatchQueue.global(qos: .utility))
+            .sink { [weak self] in
+                self?.rebuildMealsFromSnapshots()
             }
             .store(in: &cancellables)
 
@@ -133,9 +141,22 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
         persistDosedTimestamps()
     }
 
+    // MARK: - Snapshot-Delta Fallback
+
+    /// Infer meals from snapshot deltas (fires first; uses poll timestamps).
+    /// Will be superseded by sample-based events when they arrive.
+    private func rebuildMealsFromSnapshots() {
+        let events = nutritionService.snapshotStore.inferredMeals(
+            mergeWindow: 15 * 60,
+            dosedTimestamps: dosedMealTimestamps
+        )
+        applyMealEvents(events)
+    }
+
     // MARK: - Sample-Based Meal Detection
 
     /// Rebuild detected meals from raw sample-based events (with actual HealthKit timestamps).
+    /// Fires after rebuildMealsFromSnapshots and overwrites with accurate timestamps.
     private func rebuildMealsFromSampleEvents(_ rawEvents: [InferredMealEvent]) {
         // Group raw events using dose timestamps as boundaries
         let events = nutritionService.groupIntoMeals(
@@ -143,7 +164,11 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
             mergeWindow: 15 * 60,
             dosedTimestamps: dosedMealTimestamps
         )
+        applyMealEvents(events)
+    }
 
+    /// Common path: convert InferredMealEvents into DetectedMeals and publish.
+    private func applyMealEvents(_ events: [InferredMealEvent]) {
         var newMeals: [DetectedMeal] = []
         for event in events {
             let wasDosed = dosedMealTimestamps.contains(event.detectedAt.timeIntervalSince1970)
