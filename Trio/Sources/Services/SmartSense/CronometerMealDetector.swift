@@ -4,15 +4,12 @@ import HealthKit
 
 /// Detects meals logged in Cronometer (or other nutrition apps) via HealthKit.
 ///
-/// Uses a cumulative-snapshot-delta approach: `NutritionHealthService` records
-/// point-in-time cumulative daily totals whenever HealthKit nutrition data changes.
-/// Meals are inferred by computing deltas between consecutive snapshots.
-/// Snapshot deltas within a 15-minute window are grouped as a single meal.
-/// Dose timestamps create group boundaries — dosing between two deltas forces
-/// them into separate meals even if they're within the merge window.
+/// `NutritionHealthService` queries individual HealthKit samples, groups them
+/// by their `creationDate` (the "Date Added to Health" timestamp) within a
+/// 15-minute window, and publishes the results as `[DetectedMeal]`.
 ///
-/// Note: Cronometer writes all HealthKit samples with midnight timestamps,
-/// so the only reliable meal time is when Trio detects the cumulative total change.
+/// This detector subscribes to those updates, preserves `isDosed` state across
+/// refreshes, and publishes the final meal list for the UI.
 protocol CronometerMealDetector {
     /// Start observing HealthKit for nutrition changes.
     func startObserving()
@@ -39,8 +36,7 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
     private var _meals: [DetectedMeal] = []
     private let mealsSubject = CurrentValueSubject<[DetectedMeal], Never>([])
 
-    // Map dosed meal timestamps so we can preserve isDosed across rebuilds
-    // and create group boundaries for meal inference
+    /// Timestamps of dosed meals — used to preserve isDosed across refreshes.
     private(set) var dosedMealTimestamps: Set<TimeInterval> = []
 
     private var cancellables = Set<AnyCancellable>()
@@ -97,18 +93,18 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
     // MARK: - Observation
 
     func startObserving() {
-        // Subscribe to snapshot recordings — rebuild meals from snapshot deltas each time
-        nutritionService.snapshotRecorded
+        // Subscribe to meal updates from the nutrition service
+        nutritionService.mealsDetected
             .receive(on: DispatchQueue.global(qos: .utility))
-            .sink { [weak self] in
-                self?.rebuildMealsFromSnapshots()
+            .sink { [weak self] freshMeals in
+                self?.applyFreshMeals(freshMeals)
             }
             .store(in: &cancellables)
 
-        // Start the HealthKit observers (triggers initial snapshot too)
+        // Start the HealthKit observers (triggers initial fetch too)
         nutritionService.startObserving()
 
-        debug(.service, "CronometerMealDetector: started observing via snapshot-delta detection")
+        debug(.service, "CronometerMealDetector: started observing")
     }
 
     func stopObserving() {
@@ -136,35 +132,30 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
         persistDosedTimestamps()
     }
 
-    // MARK: - Snapshot-Based Meal Detection
+    // MARK: - Apply Fresh Meals from HealthKit
 
-    /// Infer meals from snapshot deltas and publish updates.
-    private func rebuildMealsFromSnapshots() {
-        let events = nutritionService.snapshotStore.inferredMeals(
-            mergeWindow: 15 * 60,
-            dosedTimestamps: dosedMealTimestamps
-        )
-
+    /// Merge fresh meals from HealthKit with local dosed state.
+    private func applyFreshMeals(_ freshMeals: [DetectedMeal]) {
         var newMeals: [DetectedMeal] = []
-        for event in events {
-            let wasDosed = dosedMealTimestamps.contains(event.detectedAt.timeIntervalSince1970)
 
-            // Try to find existing meal with matching timestamp to preserve its ID
-            let existingMeal = _meals.first { meal in
-                abs(meal.detectedAt.timeIntervalSince(event.detectedAt)) < 1.0
+        for meal in freshMeals {
+            let wasDosed = dosedMealTimestamps.contains(meal.detectedAt.timeIntervalSince1970)
+
+            // Preserve existing meal ID if timestamps match (within 1 second)
+            let existingMeal = _meals.first { existing in
+                abs(existing.detectedAt.timeIntervalSince(meal.detectedAt)) < 1.0
             }
 
-            let meal = DetectedMeal(
-                id: existingMeal?.id ?? UUID(),
-                detectedAt: event.detectedAt,
-                carbs: event.carbsDelta,
-                fat: event.fatDelta,
-                protein: event.proteinDelta,
-                fiber: event.fiberDelta,
-                source: "cronometer",
+            newMeals.append(DetectedMeal(
+                id: existingMeal?.id ?? meal.id,
+                detectedAt: meal.detectedAt,
+                carbs: meal.carbs,
+                fat: meal.fat,
+                protein: meal.protein,
+                fiber: meal.fiber,
+                source: meal.source,
                 isDosed: wasDosed || (existingMeal?.isDosed ?? false)
-            )
-            newMeals.append(meal)
+            ))
         }
 
         let changed = newMeals.count != _meals.count ||
@@ -175,8 +166,8 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
             mealsSubject.send(_meals)
             persistMeals()
 
-            let mealSummary = newMeals.map { "[\(Int($0.carbs))C/\(Int($0.fat))F/\(Int($0.protein))P/\(Int($0.fiber))Fb]" }.joined(separator: " ")
-            debug(.service, "CronometerMealDetector: \(newMeals.count) meals — \(mealSummary)")
+            let summary = newMeals.map { "[\(Int($0.carbs))C/\(Int($0.fat))F/\(Int($0.protein))P]" }.joined(separator: " ")
+            debug(.service, "CronometerMealDetector: \(newMeals.count) meals — \(summary)")
         }
     }
 }

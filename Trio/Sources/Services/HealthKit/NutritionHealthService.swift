@@ -2,15 +2,17 @@ import Combine
 import Foundation
 import HealthKit
 
-/// Observes HealthKit nutrition types and records cumulative daily snapshots.
+/// Observes HealthKit nutrition types and detects meals directly from samples.
 ///
 /// When the observer fires (new samples written by Cronometer or another app),
-/// this service queries the cumulative sum for each macro type for today, builds
-/// a `NutritionSnapshot`, and records it to the `NutritionSnapshotStore`.
-/// Callbacks are debounced (2 seconds) so all macro types settle before querying.
+/// this service queries all individual nutrition samples for today, groups them
+/// by their `creationDate` (the private "Date Added to Health" field) within
+/// a 15-minute window, and publishes the grouped meals.
+///
+/// This is simpler than the old snapshot-delta approach: no cumulative totals,
+/// no snapshots, no deltas. Just read the samples, group them, done.
 final class NutritionHealthService {
     private let healthStore: HKHealthStore
-    let snapshotStore: NutritionSnapshotStore
 
     private var observerQueries: [HKObserverQuery] = []
     private var debounceWorkItem: DispatchWorkItem?
@@ -19,8 +21,8 @@ final class NutritionHealthService {
     /// Bundle identifier prefix for Trio to filter out its own entries.
     private let trioBundlePrefix = "org.nightscout"
 
-    /// Fires after a new snapshot is recorded.
-    let snapshotRecorded = PassthroughSubject<Void, Never>()
+    /// Fires after meals are refreshed from HealthKit samples.
+    let mealsDetected = PassthroughSubject<[DetectedMeal], Never>()
 
     /// All four macro types we track from Apple Health.
     private let nutritionTypes: [HKQuantityTypeIdentifier] = [
@@ -30,17 +32,18 @@ final class NutritionHealthService {
         .dietaryFiber
     ]
 
-    init(healthStore: HKHealthStore, snapshotStore: NutritionSnapshotStore = .shared) {
+    /// Window for grouping samples into a single meal (15 minutes).
+    private let mealGroupingWindow: TimeInterval = 15 * 60
+
+    init(healthStore: HKHealthStore) {
         self.healthStore = healthStore
-        self.snapshotStore = snapshotStore
     }
 
     // MARK: - Observer Lifecycle
 
     func startObserving() {
-        // Do an initial snapshot, then register observers
         Task {
-            await fetchAndRecordSnapshot()
+            await fetchAndPublishMeals()
 
             for typeID in nutritionTypes {
                 guard let sampleType = HKQuantityType.quantityType(forIdentifier: typeID) else { continue }
@@ -51,7 +54,7 @@ final class NutritionHealthService {
                         completionHandler()
                         return
                     }
-                    self?.scheduleSnapshot()
+                    self?.scheduleFetch()
                     completionHandler()
                 }
 
@@ -70,7 +73,7 @@ final class NutritionHealthService {
                 }
             }
 
-            debug(.service, "NutritionHealthService: started observing \(nutritionTypes.count) nutrition types with background delivery")
+            debug(.service, "NutritionHealthService: started observing \(nutritionTypes.count) nutrition types")
         }
     }
 
@@ -85,108 +88,132 @@ final class NutritionHealthService {
 
     // MARK: - Debounce
 
-    private func scheduleSnapshot() {
+    private func scheduleFetch() {
         debounceWorkItem?.cancel()
         let work = DispatchWorkItem { [weak self] in
             Task { [weak self] in
-                await self?.fetchAndRecordSnapshot()
+                await self?.fetchAndPublishMeals()
             }
         }
         debounceWorkItem = work
         DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + debounceDelay, execute: work)
     }
 
-    // MARK: - Snapshot Capture
+    // MARK: - Meal Detection
 
-    /// Query cumulative daily totals for each macro and record a snapshot.
-    /// Also captures the latest HealthKit sample creation date (private API)
-    /// for accurate meal timestamps — Cronometer sets startDate to midnight.
-    func fetchAndRecordSnapshot() async {
-        async let carbsResult = queryCumulativeSumWithCreationDate(for: .dietaryCarbohydrates)
-        async let fatResult = queryCumulativeSumWithCreationDate(for: .dietaryFatTotal)
-        async let proteinResult = queryCumulativeSumWithCreationDate(for: .dietaryProtein)
-        async let fiberResult = queryCumulativeSumWithCreationDate(for: .dietaryFiber)
+    /// Query all nutrition samples for today, group by creationDate, publish as meals.
+    func fetchAndPublishMeals() async {
+        let meals = await queryAndGroupMeals()
+        mealsDetected.send(meals)
 
-        let (carbsR, fatR, proteinR, fiberR) = await (carbsResult, fatResult, proteinResult, fiberResult)
-
-        let carbs = carbsR.total
-        let fat = fatR.total
-        let protein = proteinR.total
-        let fiber = fiberR.total
-
-        // Only record if there's actually some nutrition data
-        guard carbs > 0 || fat > 0 || protein > 0 else { return }
-
-        // Use the most recent creation date across all macro types
-        let latestCreationDate = [carbsR.latestCreationDate, fatR.latestCreationDate,
-                                  proteinR.latestCreationDate, fiberR.latestCreationDate]
-            .compactMap { $0 }
-            .max()
-
-        let snapshot = NutritionSnapshot(
-            cumulativeCarbs: carbs,
-            cumulativeFat: fat,
-            cumulativeProtein: protein,
-            cumulativeFiber: fiber,
-            forDate: NutritionSnapshotStore.todayString(),
-            latestSampleCreationDate: latestCreationDate
-        )
-
-        snapshotStore.record(snapshot)
-        snapshotRecorded.send()
-
-        debug(
-            .service,
-            "NutritionHealthService: snapshot — C:\(String(format: "%.1f", carbs)) F:\(String(format: "%.1f", fat)) P:\(String(format: "%.1f", protein)) Fb:\(String(format: "%.1f", fiber))"
-        )
+        if !meals.isEmpty {
+            let summary = meals.map { "[\(Int($0.carbs))C/\(Int($0.fat))F/\(Int($0.protein))P]" }.joined(separator: " ")
+            debug(.service, "NutritionHealthService: \(meals.count) meals — \(summary)")
+        }
     }
 
-    // MARK: - On-Demand Meal Fetch (Crono Button)
+    /// Query all individual samples for today and group into meals by creationDate.
+    private func queryAndGroupMeals() async -> [DetectedMeal] {
+        // Query all four macro types in parallel
+        async let carbSamples = queryExternalSamples(for: .dietaryCarbohydrates)
+        async let fatSamples = queryExternalSamples(for: .dietaryFatTotal)
+        async let proteinSamples = queryExternalSamples(for: .dietaryProtein)
+        async let fiberSamples = queryExternalSamples(for: .dietaryFiber)
 
-    /// Query current cumulative nutrition totals from Apple Health and return
-    /// the delta since the last snapshot (i.e. the most recently logged food).
-    func fetchLatestMealDelta() async -> InferredMealEvent? {
-        async let carbsResult = queryCumulativeSumWithCreationDate(for: .dietaryCarbohydrates)
-        async let fatResult = queryCumulativeSumWithCreationDate(for: .dietaryFatTotal)
-        async let proteinResult = queryCumulativeSumWithCreationDate(for: .dietaryProtein)
-        async let fiberResult = queryCumulativeSumWithCreationDate(for: .dietaryFiber)
+        let (carbs, fats, proteins, fibers) = await (carbSamples, fatSamples, proteinSamples, fiberSamples)
 
-        let (carbsR, fatR, proteinR, fiberR) = await (carbsResult, fatResult, proteinResult, fiberResult)
+        // Collect all samples with their creationDate and macro type into a flat list
+        struct TaggedSample {
+            let creationDate: Date
+            let grams: Double
+            enum MacroType { case carbs, fat, protein, fiber }
+            let type: MacroType
+        }
 
-        let latestCreationDate = [carbsR.latestCreationDate, fatR.latestCreationDate,
-                                  proteinR.latestCreationDate, fiberR.latestCreationDate]
-            .compactMap { $0 }
-            .max()
+        var allSamples: [TaggedSample] = []
 
-        debug(
-            .service,
-            "NutritionHealthService: fetchLatestMealDelta — C:\(Int(carbsR.total))g F:\(Int(fatR.total))g P:\(Int(proteinR.total))g Fb:\(Int(fiberR.total))g"
-        )
+        for sample in carbs {
+            let date = (sample.value(forKey: "creationDate") as? Date) ?? sample.endDate
+            allSamples.append(TaggedSample(creationDate: date, grams: sample.quantity.doubleValue(for: .gram()), type: .carbs))
+        }
+        for sample in fats {
+            let date = (sample.value(forKey: "creationDate") as? Date) ?? sample.endDate
+            allSamples.append(TaggedSample(creationDate: date, grams: sample.quantity.doubleValue(for: .gram()), type: .fat))
+        }
+        for sample in proteins {
+            let date = (sample.value(forKey: "creationDate") as? Date) ?? sample.endDate
+            allSamples.append(TaggedSample(creationDate: date, grams: sample.quantity.doubleValue(for: .gram()), type: .protein))
+        }
+        for sample in fibers {
+            let date = (sample.value(forKey: "creationDate") as? Date) ?? sample.endDate
+            allSamples.append(TaggedSample(creationDate: date, grams: sample.quantity.doubleValue(for: .gram()), type: .fiber))
+        }
 
-        return snapshotStore.recordAndComputeLatestMeal(
-            currentCarbs: carbsR.total,
-            currentFat: fatR.total,
-            currentProtein: proteinR.total,
-            currentFiber: fiberR.total,
-            latestSampleCreationDate: latestCreationDate
-        )
+        guard !allSamples.isEmpty else { return [] }
+
+        // Sort all samples by creationDate
+        allSamples.sort { $0.creationDate < $1.creationDate }
+
+        // Group into meals: samples within 15 minutes of the group's first sample
+        struct MealAccumulator {
+            var startDate: Date
+            var latestDate: Date
+            var carbs: Double = 0
+            var fat: Double = 0
+            var protein: Double = 0
+            var fiber: Double = 0
+        }
+
+        var groups: [MealAccumulator] = []
+
+        for sample in allSamples {
+            // Try to add to the last group if within the window
+            if var last = groups.last,
+               sample.creationDate.timeIntervalSince(last.startDate) <= mealGroupingWindow
+            {
+                switch sample.type {
+                case .carbs: last.carbs += sample.grams
+                case .fat: last.fat += sample.grams
+                case .protein: last.protein += sample.grams
+                case .fiber: last.fiber += sample.grams
+                }
+                last.latestDate = max(last.latestDate, sample.creationDate)
+                groups[groups.count - 1] = last
+            } else {
+                // Start a new group
+                var acc = MealAccumulator(startDate: sample.creationDate, latestDate: sample.creationDate)
+                switch sample.type {
+                case .carbs: acc.carbs = sample.grams
+                case .fat: acc.fat = sample.grams
+                case .protein: acc.protein = sample.grams
+                case .fiber: acc.fiber = sample.grams
+                }
+                groups.append(acc)
+            }
+        }
+
+        // Convert groups to DetectedMeal, filtering out trivial entries
+        return groups.compactMap { group in
+            guard group.carbs > 1 || group.fat > 1 || group.protein > 1 else { return nil }
+            return DetectedMeal(
+                id: UUID(),
+                detectedAt: group.startDate,
+                carbs: group.carbs,
+                fat: group.fat,
+                protein: group.protein,
+                fiber: group.fiber,
+                source: "cronometer",
+                isDosed: false
+            )
+        }
     }
 
     // MARK: - HealthKit Queries
 
-    private struct CumulativeResult {
-        let total: Double
-        let latestCreationDate: Date?
-    }
-
-    /// Query the cumulative sum and latest sample creation date for a nutrition type today.
-    /// Uses the private `creationDate` property on HKObject (via KVC) to get the actual
-    /// time data was added to HealthKit — Cronometer sets startDate to midnight.
-    private func queryCumulativeSumWithCreationDate(
-        for identifier: HKQuantityTypeIdentifier
-    ) async -> CumulativeResult {
+    /// Query individual samples for a nutrition type today, excluding Trio's own writes.
+    private func queryExternalSamples(for identifier: HKQuantityTypeIdentifier) async -> [HKQuantitySample] {
         guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else {
-            return CumulativeResult(total: 0, latestCreationDate: nil)
+            return []
         }
 
         return await withCheckedContinuation { continuation in
@@ -197,25 +224,15 @@ final class NutritionHealthService {
                 sortDescriptors: nil
             ) { [trioBundlePrefix] _, samples, error in
                 guard let samples = samples as? [HKQuantitySample], error == nil else {
-                    continuation.resume(returning: CumulativeResult(total: 0, latestCreationDate: nil))
+                    continuation.resume(returning: [])
                     return
                 }
 
-                let externalSamples = samples.filter { sample in
+                let external = samples.filter { sample in
                     !sample.sourceRevision.source.bundleIdentifier.hasPrefix(trioBundlePrefix)
                 }
 
-                let total = externalSamples.reduce(0.0) { sum, sample in
-                    sum + sample.quantity.doubleValue(for: .gram())
-                }
-
-                // Access the private creationDate via KVC — this is the "Date Added to Health"
-                // shown in the Health app, which reflects when the user actually logged the food.
-                let latestCreation = externalSamples
-                    .compactMap { $0.value(forKey: "creationDate") as? Date }
-                    .max()
-
-                continuation.resume(returning: CumulativeResult(total: total, latestCreationDate: latestCreation))
+                continuation.resume(returning: external)
             }
             healthStore.execute(query)
         }
