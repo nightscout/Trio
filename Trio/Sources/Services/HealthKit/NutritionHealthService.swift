@@ -99,23 +99,37 @@ final class NutritionHealthService {
     // MARK: - Snapshot Capture
 
     /// Query cumulative daily totals for each macro and record a snapshot.
+    /// Also captures the latest HealthKit sample creation date (private API)
+    /// for accurate meal timestamps — Cronometer sets startDate to midnight.
     func fetchAndRecordSnapshot() async {
-        async let carbsTotal = queryCumulativeSum(for: .dietaryCarbohydrates)
-        async let fatTotal = queryCumulativeSum(for: .dietaryFatTotal)
-        async let proteinTotal = queryCumulativeSum(for: .dietaryProtein)
-        async let fiberTotal = queryCumulativeSum(for: .dietaryFiber)
+        async let carbsResult = queryCumulativeSumWithCreationDate(for: .dietaryCarbohydrates)
+        async let fatResult = queryCumulativeSumWithCreationDate(for: .dietaryFatTotal)
+        async let proteinResult = queryCumulativeSumWithCreationDate(for: .dietaryProtein)
+        async let fiberResult = queryCumulativeSumWithCreationDate(for: .dietaryFiber)
 
-        let (carbs, fat, protein, fiber) = await (carbsTotal, fatTotal, proteinTotal, fiberTotal)
+        let (carbsR, fatR, proteinR, fiberR) = await (carbsResult, fatResult, proteinResult, fiberResult)
+
+        let carbs = carbsR.total
+        let fat = fatR.total
+        let protein = proteinR.total
+        let fiber = fiberR.total
 
         // Only record if there's actually some nutrition data
         guard carbs > 0 || fat > 0 || protein > 0 else { return }
+
+        // Use the most recent creation date across all macro types
+        let latestCreationDate = [carbsR.latestCreationDate, fatR.latestCreationDate,
+                                  proteinR.latestCreationDate, fiberR.latestCreationDate]
+            .compactMap { $0 }
+            .max()
 
         let snapshot = NutritionSnapshot(
             cumulativeCarbs: carbs,
             cumulativeFat: fat,
             cumulativeProtein: protein,
             cumulativeFiber: fiber,
-            forDate: NutritionSnapshotStore.todayString()
+            forDate: NutritionSnapshotStore.todayString(),
+            latestSampleCreationDate: latestCreationDate
         )
 
         snapshotStore.record(snapshot)
@@ -132,31 +146,48 @@ final class NutritionHealthService {
     /// Query current cumulative nutrition totals from Apple Health and return
     /// the delta since the last snapshot (i.e. the most recently logged food).
     func fetchLatestMealDelta() async -> InferredMealEvent? {
-        async let carbsTotal = queryCumulativeSum(for: .dietaryCarbohydrates)
-        async let fatTotal = queryCumulativeSum(for: .dietaryFatTotal)
-        async let proteinTotal = queryCumulativeSum(for: .dietaryProtein)
-        async let fiberTotal = queryCumulativeSum(for: .dietaryFiber)
+        async let carbsResult = queryCumulativeSumWithCreationDate(for: .dietaryCarbohydrates)
+        async let fatResult = queryCumulativeSumWithCreationDate(for: .dietaryFatTotal)
+        async let proteinResult = queryCumulativeSumWithCreationDate(for: .dietaryProtein)
+        async let fiberResult = queryCumulativeSumWithCreationDate(for: .dietaryFiber)
 
-        let (carbs, fat, protein, fiber) = await (carbsTotal, fatTotal, proteinTotal, fiberTotal)
+        let (carbsR, fatR, proteinR, fiberR) = await (carbsResult, fatResult, proteinResult, fiberResult)
+
+        let latestCreationDate = [carbsR.latestCreationDate, fatR.latestCreationDate,
+                                  proteinR.latestCreationDate, fiberR.latestCreationDate]
+            .compactMap { $0 }
+            .max()
 
         debug(
             .service,
-            "NutritionHealthService: fetchLatestMealDelta — C:\(Int(carbs))g F:\(Int(fat))g P:\(Int(protein))g Fb:\(Int(fiber))g"
+            "NutritionHealthService: fetchLatestMealDelta — C:\(Int(carbsR.total))g F:\(Int(fatR.total))g P:\(Int(proteinR.total))g Fb:\(Int(fiberR.total))g"
         )
 
         return snapshotStore.recordAndComputeLatestMeal(
-            currentCarbs: carbs,
-            currentFat: fat,
-            currentProtein: protein,
-            currentFiber: fiber
+            currentCarbs: carbsR.total,
+            currentFat: fatR.total,
+            currentProtein: proteinR.total,
+            currentFiber: fiberR.total,
+            latestSampleCreationDate: latestCreationDate
         )
     }
 
     // MARK: - HealthKit Queries
 
-    /// Query the cumulative sum for a nutrition type for today, excluding Trio's own writes.
-    private func queryCumulativeSum(for identifier: HKQuantityTypeIdentifier) async -> Double {
-        guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else { return 0 }
+    private struct CumulativeResult {
+        let total: Double
+        let latestCreationDate: Date?
+    }
+
+    /// Query the cumulative sum and latest sample creation date for a nutrition type today.
+    /// Uses the private `creationDate` property on HKObject (via KVC) to get the actual
+    /// time data was added to HealthKit — Cronometer sets startDate to midnight.
+    private func queryCumulativeSumWithCreationDate(
+        for identifier: HKQuantityTypeIdentifier
+    ) async -> CumulativeResult {
+        guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else {
+            return CumulativeResult(total: 0, latestCreationDate: nil)
+        }
 
         return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(
@@ -166,7 +197,7 @@ final class NutritionHealthService {
                 sortDescriptors: nil
             ) { [trioBundlePrefix] _, samples, error in
                 guard let samples = samples as? [HKQuantitySample], error == nil else {
-                    continuation.resume(returning: 0)
+                    continuation.resume(returning: CumulativeResult(total: 0, latestCreationDate: nil))
                     return
                 }
 
@@ -178,7 +209,13 @@ final class NutritionHealthService {
                     sum + sample.quantity.doubleValue(for: .gram())
                 }
 
-                continuation.resume(returning: total)
+                // Access the private creationDate via KVC — this is the "Date Added to Health"
+                // shown in the Health app, which reflects when the user actually logged the food.
+                let latestCreation = externalSamples
+                    .compactMap { $0.value(forKey: "creationDate") as? Date }
+                    .max()
+
+                continuation.resume(returning: CumulativeResult(total: total, latestCreationDate: latestCreation))
             }
             healthStore.execute(query)
         }
