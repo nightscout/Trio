@@ -4,12 +4,16 @@ import HealthKit
 
 /// Detects meals logged in Cronometer (or other nutrition apps) via HealthKit.
 ///
-/// `NutritionHealthService` queries individual HealthKit samples, groups them
-/// by their `creationDate` (the "Date Added to Health" timestamp) within a
-/// 15-minute window, and publishes the results as `[DetectedMeal]`.
+/// `NutritionHealthService` tracks cumulative daily nutrition totals, detects
+/// deltas (= meals), and publishes `[DetectedMeal]` via a `CurrentValueSubject`.
 ///
 /// This detector subscribes to those updates, preserves `isDosed` state across
 /// refreshes, and publishes the final meal list for the UI.
+///
+/// **Lifecycle:** `startObserving()` starts the HealthKit observer (idempotent)
+/// and subscribes to meal updates. `stopObserving()` only cancels the Combine
+/// subscription — the underlying HealthKit observer keeps running so deltas
+/// are captured even when the Treatments view is not visible.
 protocol CronometerMealDetector {
     /// Start observing HealthKit for nutrition changes.
     func startObserving()
@@ -93,7 +97,11 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
     // MARK: - Observation
 
     func startObserving() {
-        // Subscribe to meal updates from the nutrition service
+        // Clear existing subscriptions to avoid duplicates (idempotent)
+        cancellables.removeAll()
+
+        // Subscribe to meal updates from the nutrition service.
+        // CurrentValueSubject delivers the latest meals immediately on subscribe.
         nutritionService.mealsDetected
             .receive(on: DispatchQueue.global(qos: .utility))
             .sink { [weak self] freshMeals in
@@ -101,16 +109,17 @@ final class BaseCronometerMealDetector: CronometerMealDetector {
             }
             .store(in: &cancellables)
 
-        // Start the HealthKit observers (triggers initial fetch too)
+        // Start the HealthKit observers (idempotent — only starts once)
         nutritionService.startObserving()
 
         debug(.service, "CronometerMealDetector: started observing")
     }
 
     func stopObserving() {
-        nutritionService.stopObserving()
+        // Only cancel Combine subscriptions. Do NOT stop the HealthKit observer —
+        // it must keep running to capture deltas while the UI is not visible.
         cancellables.removeAll()
-        debug(.service, "CronometerMealDetector: stopped observing")
+        debug(.service, "CronometerMealDetector: unsubscribed (HK observer still running)")
     }
 
     func markAsDosed(_ mealID: UUID) {

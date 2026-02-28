@@ -10,6 +10,10 @@ import HealthKit
 /// we query the sum, compare to last known totals, and treat the increase as a meal.
 /// Deltas within 15 minutes are merged into a single meal.
 ///
+/// **Lifecycle:** `startObserving()` is idempotent and starts HK observers once.
+/// The observers run for the lifetime of the process — they are never stopped.
+/// This ensures deltas are captured even when the UI navigates away from Treatments.
+///
 /// State (lastKnownTotals + detected meals) is persisted to UserDefaults so we
 /// survive app restarts.
 final class NutritionHealthService {
@@ -19,11 +23,15 @@ final class NutritionHealthService {
     private var debounceWorkItem: DispatchWorkItem?
     private let debounceDelay: TimeInterval = 2.0
 
+    /// Prevents double-starting HK observers.
+    private var isObserving = false
+
     /// Bundle identifier prefix for Trio to filter out its own entries.
     private let trioBundlePrefix = "org.nightscout"
 
-    /// Fires after the meal list is updated.
-    let mealsDetected = PassthroughSubject<[DetectedMeal], Never>()
+    /// Current meal list. Uses CurrentValueSubject so late subscribers (e.g. when
+    /// the Treatments view re-appears) immediately receive the latest meals.
+    let mealsDetected = CurrentValueSubject<[DetectedMeal], Never>([])
 
     /// All four macro types we track from Apple Health.
     private let nutritionTypes: [HKQuantityTypeIdentifier] = [
@@ -110,6 +118,9 @@ final class NutritionHealthService {
             lastDeltaTime = nil
             persistState()
         }
+
+        // Publish restored meals immediately so CurrentValueSubject has them
+        publishCurrentMeals()
     }
 
     private func persistState() {
@@ -134,7 +145,12 @@ final class NutritionHealthService {
 
     // MARK: - Observer Lifecycle
 
+    /// Start HealthKit observers. Idempotent — safe to call multiple times.
+    /// Once started, observers run for the lifetime of the process.
     func startObserving() {
+        guard !isObserving else { return }
+        isObserving = true
+
         Task {
             await fetchAndPublishMeals()
 
@@ -167,15 +183,6 @@ final class NutritionHealthService {
 
             debug(.service, "NutritionHealthService: started observing \(nutritionTypes.count) nutrition types")
         }
-    }
-
-    func stopObserving() {
-        for query in observerQueries {
-            healthStore.stop(query)
-        }
-        observerQueries.removeAll()
-        debounceWorkItem?.cancel()
-        debug(.service, "NutritionHealthService: stopped observing")
     }
 
     // MARK: - Debounce
@@ -253,6 +260,11 @@ final class NutritionHealthService {
         }
 
         // Always publish current meal list
+        publishCurrentMeals()
+    }
+
+    /// Publish the current accumulated meals via the CurrentValueSubject.
+    private func publishCurrentMeals() {
         let meals = accumulatedMeals.map { delta in
             DetectedMeal(
                 id: UUID(),
