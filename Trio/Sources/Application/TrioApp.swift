@@ -85,6 +85,16 @@ extension Notification.Name {
             _ = resolver.resolve(LiveActivityManager.self)!
         }
         _ = resolver.resolve(IOBService.self)!
+
+        // Start nutrition observer at app launch so meal deltas are captured
+        // continuously, not just while the Treatments tab is visible.
+        if let settings = resolver.resolve(SettingsManager.self),
+           settings.settings.readNutritionFromHealth
+        {
+            let detector = resolver.resolve(CronometerMealDetector.self)!
+            detector.startObserving()
+            debug(.service, "TrioApp: started CronometerMealDetector at launch")
+        }
     }
 
     init() {
