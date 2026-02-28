@@ -1,6 +1,5 @@
 import CoreData
 import Foundation
-import HealthKit
 
 extension DataTable {
     final class Provider: BaseProvider, DataTableProvider {
@@ -46,13 +45,6 @@ extension DataTable {
             Task.detached { [weak self] in
                 guard let self = self else { return }
                 await self.healthkitManager.deleteGlucose(syncID: id)
-            }
-        }
-
-        func deleteMealDataFromHealth(byID id: String, sampleType: HKSampleType) {
-            Task.detached { [weak self] in
-                guard let self = self else { return }
-                await self.healthkitManager.deleteMealData(byID: id, sampleType: sampleType)
             }
         }
 

@@ -99,23 +99,37 @@ final class NutritionHealthService {
     // MARK: - Snapshot Capture
 
     /// Query cumulative daily totals for each macro and record a snapshot.
+    /// Also captures the latest HealthKit sample creation date (private API)
+    /// for accurate meal timestamps — Cronometer sets startDate to midnight.
     func fetchAndRecordSnapshot() async {
-        async let carbsTotal = queryCumulativeSum(for: .dietaryCarbohydrates)
-        async let fatTotal = queryCumulativeSum(for: .dietaryFatTotal)
-        async let proteinTotal = queryCumulativeSum(for: .dietaryProtein)
-        async let fiberTotal = queryCumulativeSum(for: .dietaryFiber)
+        async let carbsResult = queryCumulativeSumWithCreationDate(for: .dietaryCarbohydrates)
+        async let fatResult = queryCumulativeSumWithCreationDate(for: .dietaryFatTotal)
+        async let proteinResult = queryCumulativeSumWithCreationDate(for: .dietaryProtein)
+        async let fiberResult = queryCumulativeSumWithCreationDate(for: .dietaryFiber)
 
-        let (carbs, fat, protein, fiber) = await (carbsTotal, fatTotal, proteinTotal, fiberTotal)
+        let (carbsR, fatR, proteinR, fiberR) = await (carbsResult, fatResult, proteinResult, fiberResult)
+
+        let carbs = carbsR.total
+        let fat = fatR.total
+        let protein = proteinR.total
+        let fiber = fiberR.total
 
         // Only record if there's actually some nutrition data
         guard carbs > 0 || fat > 0 || protein > 0 else { return }
+
+        // Use the most recent creation date across all macro types
+        let latestCreationDate = [carbsR.latestCreationDate, fatR.latestCreationDate,
+                                  proteinR.latestCreationDate, fiberR.latestCreationDate]
+            .compactMap { $0 }
+            .max()
 
         let snapshot = NutritionSnapshot(
             cumulativeCarbs: carbs,
             cumulativeFat: fat,
             cumulativeProtein: protein,
             cumulativeFiber: fiber,
-            forDate: NutritionSnapshotStore.todayString()
+            forDate: NutritionSnapshotStore.todayString(),
+            latestSampleCreationDate: latestCreationDate
         )
 
         snapshotStore.record(snapshot)
@@ -132,101 +146,48 @@ final class NutritionHealthService {
     /// Query current cumulative nutrition totals from Apple Health and return
     /// the delta since the last snapshot (i.e. the most recently logged food).
     func fetchLatestMealDelta() async -> InferredMealEvent? {
-        async let carbsTotal = queryCumulativeSum(for: .dietaryCarbohydrates)
-        async let fatTotal = queryCumulativeSum(for: .dietaryFatTotal)
-        async let proteinTotal = queryCumulativeSum(for: .dietaryProtein)
-        async let fiberTotal = queryCumulativeSum(for: .dietaryFiber)
+        async let carbsResult = queryCumulativeSumWithCreationDate(for: .dietaryCarbohydrates)
+        async let fatResult = queryCumulativeSumWithCreationDate(for: .dietaryFatTotal)
+        async let proteinResult = queryCumulativeSumWithCreationDate(for: .dietaryProtein)
+        async let fiberResult = queryCumulativeSumWithCreationDate(for: .dietaryFiber)
 
-        let (carbs, fat, protein, fiber) = await (carbsTotal, fatTotal, proteinTotal, fiberTotal)
+        let (carbsR, fatR, proteinR, fiberR) = await (carbsResult, fatResult, proteinResult, fiberResult)
+
+        let latestCreationDate = [carbsR.latestCreationDate, fatR.latestCreationDate,
+                                  proteinR.latestCreationDate, fiberR.latestCreationDate]
+            .compactMap { $0 }
+            .max()
 
         debug(
             .service,
-            "NutritionHealthService: fetchLatestMealDelta — C:\(Int(carbs))g F:\(Int(fat))g P:\(Int(protein))g Fb:\(Int(fiber))g"
+            "NutritionHealthService: fetchLatestMealDelta — C:\(Int(carbsR.total))g F:\(Int(fatR.total))g P:\(Int(proteinR.total))g Fb:\(Int(fiberR.total))g"
         )
 
         return snapshotStore.recordAndComputeLatestMeal(
-            currentCarbs: carbs,
-            currentFat: fat,
-            currentProtein: protein,
-            currentFiber: fiber
+            currentCarbs: carbsR.total,
+            currentFat: fatR.total,
+            currentProtein: proteinR.total,
+            currentFiber: fiberR.total,
+            latestSampleCreationDate: latestCreationDate
         )
-    }
-
-    // MARK: - Sample-Based Meal Detection
-
-    /// Query individual HealthKit samples for today and group them into meals.
-    ///
-    /// This approach uses actual sample timestamps instead of cumulative-snapshot-deltas,
-    /// so meals are correctly separated even after an app restart.
-    func fetchGroupedMeals(
-        mergeWindow: TimeInterval = 15 * 60,
-        dosedTimestamps: Set<TimeInterval> = []
-    ) async -> [InferredMealEvent] {
-        async let carbSamples = queryIndividualSamples(for: .dietaryCarbohydrates)
-        async let fatSamples = queryIndividualSamples(for: .dietaryFatTotal)
-        async let proteinSamples = queryIndividualSamples(for: .dietaryProtein)
-        async let fiberSamples = queryIndividualSamples(for: .dietaryFiber)
-
-        let (carbs, fats, proteins, fibers) = await (carbSamples, fatSamples, proteinSamples, fiberSamples)
-
-        // Merge samples with close timestamps (within 60s) into unified entries.
-        var entries: [MacroEntry] = []
-        let entryWindow: TimeInterval = 60
-
-        for (date, value) in carbs {
-            if let idx = entries.firstIndex(where: { abs($0.date.timeIntervalSince(date)) < entryWindow }) {
-                entries[idx].carbs += value
-            } else {
-                entries.append(MacroEntry(date: date, carbs: value))
-            }
-        }
-
-        for (date, value) in fats {
-            if let idx = entries.firstIndex(where: { abs($0.date.timeIntervalSince(date)) < entryWindow }) {
-                entries[idx].fat += value
-            } else {
-                entries.append(MacroEntry(date: date, fat: value))
-            }
-        }
-
-        for (date, value) in proteins {
-            if let idx = entries.firstIndex(where: { abs($0.date.timeIntervalSince(date)) < entryWindow }) {
-                entries[idx].protein += value
-            } else {
-                entries.append(MacroEntry(date: date, protein: value))
-            }
-        }
-
-        for (date, value) in fibers {
-            if let idx = entries.firstIndex(where: { abs($0.date.timeIntervalSince(date)) < entryWindow }) {
-                entries[idx].fiber += value
-            } else {
-                entries.append(MacroEntry(date: date, fiber: value))
-            }
-        }
-
-        entries.sort { $0.date < $1.date }
-
-        let events = entries
-            .filter { $0.carbs > 1 || $0.fat > 1 || $0.protein > 1 }
-            .map {
-                InferredMealEvent(
-                    detectedAt: $0.date,
-                    carbsDelta: $0.carbs,
-                    fatDelta: $0.fat,
-                    proteinDelta: $0.protein,
-                    fiberDelta: $0.fiber
-                )
-            }
-
-        return groupIntoMeals(events: events, mergeWindow: mergeWindow, dosedTimestamps: dosedTimestamps)
     }
 
     // MARK: - HealthKit Queries
 
-    /// Query the cumulative sum for a nutrition type for today, excluding Trio's own writes.
-    private func queryCumulativeSum(for identifier: HKQuantityTypeIdentifier) async -> Double {
-        guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else { return 0 }
+    private struct CumulativeResult {
+        let total: Double
+        let latestCreationDate: Date?
+    }
+
+    /// Query the cumulative sum and latest sample creation date for a nutrition type today.
+    /// Uses the private `creationDate` property on HKObject (via KVC) to get the actual
+    /// time data was added to HealthKit — Cronometer sets startDate to midnight.
+    private func queryCumulativeSumWithCreationDate(
+        for identifier: HKQuantityTypeIdentifier
+    ) async -> CumulativeResult {
+        guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else {
+            return CumulativeResult(total: 0, latestCreationDate: nil)
+        }
 
         return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(
@@ -236,7 +197,7 @@ final class NutritionHealthService {
                 sortDescriptors: nil
             ) { [trioBundlePrefix] _, samples, error in
                 guard let samples = samples as? [HKQuantitySample], error == nil else {
-                    continuation.resume(returning: 0)
+                    continuation.resume(returning: CumulativeResult(total: 0, latestCreationDate: nil))
                     return
                 }
 
@@ -248,37 +209,13 @@ final class NutritionHealthService {
                     sum + sample.quantity.doubleValue(for: .gram())
                 }
 
-                continuation.resume(returning: total)
-            }
-            healthStore.execute(query)
-        }
-    }
+                // Access the private creationDate via KVC — this is the "Date Added to Health"
+                // shown in the Health app, which reflects when the user actually logged the food.
+                let latestCreation = externalSamples
+                    .compactMap { $0.value(forKey: "creationDate") as? Date }
+                    .max()
 
-    /// Query individual samples for a nutrition type for today, excluding Trio's own writes.
-    private func queryIndividualSamples(for identifier: HKQuantityTypeIdentifier) async -> [(Date, Double)] {
-        guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else { return [] }
-
-        return await withCheckedContinuation { continuation in
-            let query = HKSampleQuery(
-                sampleType: quantityType,
-                predicate: todayPredicate(),
-                limit: HKObjectQueryNoLimit,
-                sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
-            ) { [trioBundlePrefix] _, samples, error in
-                guard let samples = samples as? [HKQuantitySample], error == nil else {
-                    continuation.resume(returning: [])
-                    return
-                }
-
-                let externalSamples = samples.filter { sample in
-                    !sample.sourceRevision.source.bundleIdentifier.hasPrefix(trioBundlePrefix)
-                }
-
-                let results = externalSamples.map { sample in
-                    (sample.startDate, sample.quantity.doubleValue(for: .gram()))
-                }
-
-                continuation.resume(returning: results)
+                continuation.resume(returning: CumulativeResult(total: total, latestCreationDate: latestCreation))
             }
             healthStore.execute(query)
         }
@@ -287,53 +224,5 @@ final class NutritionHealthService {
     private func todayPredicate() -> NSPredicate {
         let startOfDay = Calendar.current.startOfDay(for: Date())
         return HKQuery.predicateForSamples(withStart: startOfDay, end: nil, options: .strictStartDate)
-    }
-
-    // MARK: - Grouping
-
-    private func groupIntoMeals(
-        events: [InferredMealEvent],
-        mergeWindow: TimeInterval,
-        dosedTimestamps: Set<TimeInterval>
-    ) -> [InferredMealEvent] {
-        guard !events.isEmpty else { return [] }
-
-        var groups: [InferredMealEvent] = []
-
-        for event in events {
-            if let lastIdx = groups.indices.last {
-                let lastDate = groups[lastIdx].detectedAt
-                let withinWindow = event.detectedAt.timeIntervalSince(lastDate) < mergeWindow
-
-                let doseBetween = dosedTimestamps.contains { ts in
-                    ts > lastDate.timeIntervalSince1970 &&
-                        ts < event.detectedAt.timeIntervalSince1970
-                }
-
-                if withinWindow, !doseBetween {
-                    let merged = InferredMealEvent(
-                        id: groups[lastIdx].id,
-                        detectedAt: groups[lastIdx].detectedAt,
-                        carbsDelta: groups[lastIdx].carbsDelta + event.carbsDelta,
-                        fatDelta: groups[lastIdx].fatDelta + event.fatDelta,
-                        proteinDelta: groups[lastIdx].proteinDelta + event.proteinDelta,
-                        fiberDelta: groups[lastIdx].fiberDelta + event.fiberDelta
-                    )
-                    groups[lastIdx] = merged
-                    continue
-                }
-            }
-            groups.append(event)
-        }
-
-        return groups
-    }
-
-    private struct MacroEntry {
-        let date: Date
-        var carbs: Double = 0
-        var fat: Double = 0
-        var protein: Double = 0
-        var fiber: Double = 0
     }
 }

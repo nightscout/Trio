@@ -10,6 +10,9 @@ import HealthKit
 /// Snapshot deltas within a 15-minute window are grouped as a single meal.
 /// Dose timestamps create group boundaries — dosing between two deltas forces
 /// them into separate meals even if they're within the merge window.
+///
+/// Note: Cronometer writes all HealthKit samples with midnight timestamps,
+/// so the only reliable meal time is when Trio detects the cumulative total change.
 protocol CronometerMealDetector {
     /// Start observing HealthKit for nutrition changes.
     func startObserving()

@@ -14,6 +14,11 @@ struct NutritionSnapshot: Codable, Equatable, Identifiable {
     let cumulativeFiber: Double
     /// Calendar day string, e.g. "2026-02-13"
     let forDate: String
+    /// The most recent HealthKit sample creation date at the time of this snapshot.
+    /// Cronometer writes all samples with midnight startDate, but the private
+    /// creationDate reflects when the data was actually synced to HealthKit —
+    /// i.e. when the user logged the food. Falls back to snapshot timestamp.
+    let latestSampleCreationDate: Date?
 
     init(
         id: UUID = UUID(),
@@ -22,7 +27,8 @@ struct NutritionSnapshot: Codable, Equatable, Identifiable {
         cumulativeFat: Double,
         cumulativeProtein: Double,
         cumulativeFiber: Double = 0,
-        forDate: String
+        forDate: String,
+        latestSampleCreationDate: Date? = nil
     ) {
         self.id = id
         self.timestamp = timestamp
@@ -31,6 +37,7 @@ struct NutritionSnapshot: Codable, Equatable, Identifiable {
         self.cumulativeProtein = cumulativeProtein
         self.cumulativeFiber = cumulativeFiber
         self.forDate = forDate
+        self.latestSampleCreationDate = latestSampleCreationDate
     }
 }
 
@@ -178,7 +185,8 @@ final class NutritionSnapshotStore {
         currentCarbs: Double,
         currentFat: Double,
         currentProtein: Double,
-        currentFiber: Double = 0
+        currentFiber: Double = 0,
+        latestSampleCreationDate: Date? = nil
     ) -> InferredMealEvent? {
         let today = Self.todayString()
 
@@ -188,7 +196,8 @@ final class NutritionSnapshotStore {
             cumulativeFat: currentFat,
             cumulativeProtein: currentProtein,
             cumulativeFiber: currentFiber,
-            forDate: today
+            forDate: today,
+            latestSampleCreationDate: latestSampleCreationDate
         )
         record(freshSnapshot)
 
@@ -238,7 +247,7 @@ final class NutritionSnapshotStore {
         guard carbDelta > 1 || fatDelta > 1 || proteinDelta > 1 else { return nil }
 
         return InferredMealEvent(
-            detectedAt: Date(),
+            detectedAt: allSnapshots[mealStartIndex].latestSampleCreationDate ?? allSnapshots[mealStartIndex].timestamp,
             carbsDelta: max(0, carbDelta),
             fatDelta: max(0, fatDelta),
             proteinDelta: max(0, proteinDelta),
@@ -294,7 +303,7 @@ final class NutritionSnapshotStore {
             guard dc > 1 || df > 1 || dp > 1 else { continue }
 
             events.append(InferredMealEvent(
-                detectedAt: current.timestamp,
+                detectedAt: current.latestSampleCreationDate ?? current.timestamp,
                 carbsDelta: max(dc, 0),
                 fatDelta: max(df, 0),
                 proteinDelta: max(dp, 0),

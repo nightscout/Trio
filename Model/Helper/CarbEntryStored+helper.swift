@@ -27,15 +27,6 @@ extension NSPredicate {
         )
     }
 
-    static var carbsNotYetUploadedToHealth: NSPredicate {
-        let date = Date.oneDayAgo
-        return NSPredicate(
-            format: "date >= %@ AND isUploadedToHealth == %@",
-            date as NSDate,
-            false as NSNumber
-        )
-    }
-
     static var carbsNotYetUploadedToTidepool: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(

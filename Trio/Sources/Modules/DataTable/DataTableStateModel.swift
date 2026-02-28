@@ -1,5 +1,4 @@
 import CoreData
-import HealthKit
 import Observation
 import SwiftUI
 
@@ -11,7 +10,6 @@ extension DataTable {
         @ObservationIgnored @Injected() private var storage: FileStorage!
         @ObservationIgnored @Injected() var pumpHistoryStorage: PumpHistoryStorage!
         @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
-        @ObservationIgnored @Injected() var healthKitManager: HealthKitManager!
         @ObservationIgnored @Injected() var carbsStorage: CarbsStorage!
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
@@ -136,7 +134,7 @@ extension DataTable {
             try await apsManager.determineBasalSync()
         }
 
-        /// Deletes carb and FPU entries from all connected services (Nightscout, HealthKit, Tidepool)
+        /// Deletes carb and FPU entries from all connected services (Nightscout, Tidepool)
         /// - Parameters:
         ///   - treatmentObjectID: The Core Data object ID of the entry to delete
         ///   - isFPUDeletion: Flag indicating if this is a FPU deletion that requires special handling
@@ -179,28 +177,11 @@ extension DataTable {
                     if let fpuID = carbEntry.fpuID {
                         // Delete Fat and Protein entries from Nightscout
                         self.provider.deleteCarbsFromNightscout(withID: fpuID.uuidString)
-
-                        // Delete Fat and Protein entries from Apple Health
-                        let healthObjectsToDelete: [HKSampleType?] = [
-                            AppleHealthConfig.healthFatObject,
-                            AppleHealthConfig.healthProteinObject
-                        ]
-
-                        for sampleType in healthObjectsToDelete {
-                            if let validSampleType = sampleType {
-                                self.provider.deleteMealDataFromHealth(byID: fpuID.uuidString, sampleType: validSampleType)
-                            }
-                        }
                     }
 
                     // Delete carb entries if they exist
                     if let id = carbEntry.id, let entryDate = carbEntry.date {
                         self.provider.deleteCarbsFromNightscout(withID: id.uuidString)
-
-                        // Delete carbs from Apple Health
-                        if let sampleType = AppleHealthConfig.healthCarbObject {
-                            self.provider.deleteMealDataFromHealth(byID: id.uuidString, sampleType: sampleType)
-                        }
 
                         self.provider.deleteCarbsFromTidepool(
                             withSyncId: id,
@@ -440,10 +421,9 @@ extension DataTable {
         /// Synchronizes the FPU/ Carb entry with all remote services in parallel
         private func syncWithServices() async {
             async let nightscoutUpload: () = provider.nightscoutManager.uploadCarbs()
-            async let healthKitUpload: () = provider.healthkitManager.uploadCarbs()
             async let tidepoolUpload: () = provider.tidepoolManager.uploadCarbs()
 
-            _ = await [nightscoutUpload, healthKitUpload, tidepoolUpload]
+            _ = await [nightscoutUpload, tidepoolUpload]
         }
 
         // MARK: - Entry Loading
