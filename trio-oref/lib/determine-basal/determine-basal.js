@@ -152,6 +152,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     const cr_ = trio_custom_variables.cr;
     const smbMinutes = trio_custom_variables.smbMinutes;
     const uamMinutes = trio_custom_variables.uamMinutes;
+    const toughMealActive = trio_custom_variables.toughMealActive || false;
+    const toughMealMinutesRemaining = trio_custom_variables.toughMealMinutesRemaining || 0;
     // tdd past 24 hour
     let tdd = trio_custom_variables.currentTDD;
     var logOutPut = "";
@@ -184,12 +186,29 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             if (isf) { sensitivity /= overrideFactor; }
         }
     }
+    // Tough Meal: compute effective autosens_max and log status
+    var effective_autosens_max = profile.autosens_max;
+    // Only activate tough meal adjustments when BG is not dropping fast
+    var toughMealSMBActive = false;
+    if (toughMealActive && toughMealMinutesRemaining > 0) {
+        var bgTrend = glucose_status.delta;
+        var bgDropping = bgTrend < -5; // more than 5 mg/dL drop in 5 minutes
+        if (!bgDropping) {
+            // Raise sensitivity ratio cap from default (1.2) to 1.4
+            effective_autosens_max = Math.max(profile.autosens_max, 1.4);
+            toughMealSMBActive = true;
+            console.log("Tough Meal active (" + round(toughMealMinutesRemaining, 0) + " min remaining). Autosens max raised to " + effective_autosens_max);
+        } else {
+            console.log("Tough Meal active but BG dropping (delta=" + round(bgTrend,1) + "). Reverting to normal limits.");
+        }
+    }
+
     const weightPercentage = profile.weightPercentage;
     const average_total_data = trio_custom_variables.average_total_data;
 
     // In case the autosens.min/max limits are reversed:
-    const minLimitChris = Math.min(profile.autosens_min, profile.autosens_max);
-    const maxLimitChris = Math.max(profile.autosens_min, profile.autosens_max);
+    const minLimitChris = Math.min(profile.autosens_min, effective_autosens_max);
+    const maxLimitChris = Math.max(profile.autosens_min, effective_autosens_max);
 
     // Turn off when autosens.min = autosens.max
     if (maxLimitChris == minLimitChris || maxLimitChris < 1 || minLimitChris > 1) {
@@ -215,9 +234,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // respect autosens_max/min for tdd24h_14d_Ratio, used to adjust basal similarly as autosens
     if (tdd24h_14d_Ratio > 1) {
-        tdd24h_14d_Ratio = Math.min(tdd24h_14d_Ratio, profile.autosens_max);
+        tdd24h_14d_Ratio = Math.min(tdd24h_14d_Ratio, effective_autosens_max);
         tdd24h_14d_Ratio = round(tdd24h_14d_Ratio,2);
-        basal_ratio_log = "Basal adjustment with a 24 hour  to total average (up to 14 days of data) TDD ratio (limited by Autosens max setting). Basal Ratio: " + tdd24h_14d_Ratio + ". Upper limit = Autosens max (" + profile.autosens_max + ")";
+        basal_ratio_log = "Basal adjustment with a 24 hour  to total average (up to 14 days of data) TDD ratio (limited by Autosens max setting). Basal Ratio: " + tdd24h_14d_Ratio + ". Upper limit = Autosens max (" + effective_autosens_max + ")";
     }
     else if (tdd24h_14d_Ratio < 1) {
         tdd24h_14d_Ratio = Math.max(tdd24h_14d_Ratio, profile.autosens_min);
@@ -515,13 +534,13 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // with low TT and lowTTlowersSensitivity we need autosens_max as a value
         // we use multiplication instead of the division to avoid "division by zero error"
         if (c * (c + target_bg-normalTarget) <= 0.0) {
-          sensitivityRatio = profile.autosens_max;
+          sensitivityRatio = effective_autosens_max;
         }
         else {
           sensitivityRatio = c/(c+target_bg-normalTarget);
         }
-        // limit sensitivityRatio to profile.autosens_max (1.2x by default)
-        sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
+        // limit sensitivityRatio to effective autosens_max (1.2x by default, raised during tough meal)
+        sensitivityRatio = Math.min(sensitivityRatio, effective_autosens_max);
         sensitivityRatio = round(sensitivityRatio,2);
         process.stderr.write("Sensitivity ratio set to "+sensitivityRatio+" based on temp target of "+target_bg+"; ");
     }
@@ -541,7 +560,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         if (sensitivityRatio < newRatio) {
             autosens_data.ratio = newRatio * (normalTarget/target_bg);
             //Use autosesns.max limit
-            autosens_data.ratio = Math.min(autosens_data.ratio, profile.autosens_max);
+            autosens_data.ratio = Math.min(autosens_data.ratio, effective_autosens_max);
             sensitivityRatio = round(autosens_data.ratio, 2);
             console.log("Dynamic ratio increased from " + round(newRatio, 2) + " to " + round(autosens_data.ratio,2) + " due to a low temp target (" + target_bg + ").");
         }
@@ -1535,6 +1554,20 @@ var maxDelta_bg_threshold;
                 if( insulinReq > maxBolus ) {
                   console.error("SMB limited by maxSMBBasalMinutes: " + smbMinutesSetting + "m ]: " + maxBolus + "U ( insulinReq: " + insulinReq + "U )");
                 } else { console.error("SMB is not limited by maxSMBBasalMinutes. ( insulinReq: " + insulinReq + "U )"); }
+            }
+            // Tough Meal: progressively raise SMB cap based on current BG
+            if (toughMealSMBActive && BG > 150) {
+                var toughMealMultiplier = 1.0;
+                if (BG > 250) {
+                    toughMealMultiplier = 3.0;
+                } else if (BG > 200) {
+                    toughMealMultiplier = 2.5;
+                } else if (BG > 150) {
+                    toughMealMultiplier = 2.0;
+                }
+                var originalMaxBolus = maxBolus;
+                maxBolus = round(maxBolus * toughMealMultiplier, 1);
+                console.error("Tough Meal: SMB cap raised from " + originalMaxBolus + "U to " + maxBolus + "U (BG=" + BG + ", multiplier=" + toughMealMultiplier + "x)");
             }
             // bolus 1/2 the insulinReq, up to maxBolus, rounding down to nearest bolus increment
             var bolusIncrement = profile.bolus_increment;

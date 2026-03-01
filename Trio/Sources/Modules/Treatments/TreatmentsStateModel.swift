@@ -84,6 +84,9 @@ extension Treatments {
         var useSuperBolus: Bool = false
         var superBolusInsulin: Decimal = 0
 
+        var toughMeals: Bool = false
+        var useToughMeal: Bool = false
+
         var meal: [CarbsEntry]?
         var carbs: Decimal = 0
         var fat: Decimal = 0
@@ -305,6 +308,7 @@ extension Treatments {
             fattyMealFactor = settings.settings.fattyMealFactor
             sweetMeals = settings.settings.sweetMeals
             sweetMealFactor = settings.settings.sweetMealFactor
+            toughMeals = settings.settings.toughMeals
             displayPresets = settings.settings.displayPresets
             confirmBolus = settings.settings.confirmBolus
             forecastDisplayType = settings.settings.forecastDisplayType
@@ -472,6 +476,13 @@ extension Treatments {
                 await MainActor.run {
                     self.addButtonPressed = true
                 }
+
+                // Activate tough meal mode if toggled on
+                if useToughMeal {
+                    settings.settings.toughMealActivationDate = Date()
+                    debug(.bolusState, "Tough Meal mode activated")
+                }
+
                 let isInsulinGiven = amount > 0
                 let isCarbsPresent = carbs > 0
                 let isFatPresent = fat > 0
@@ -783,6 +794,7 @@ extension Treatments {
                 recommended: Double(truncating: insulinCalculated as NSDecimalNumber),
                 fattyMealEnabled: useFattyMealCorrectionFactor,
                 superBolusEnabled: useSuperBolus,
+                toughMealEnabled: useToughMeal,
                 fraction: Double(truncating: fraction as NSDecimalNumber),
                 userConfirmedDose: insulinDelivered,
                 isExternalInsulin: externalInsulin,

@@ -431,6 +431,20 @@ final class OpenAPS {
 
             let glucose = try self.fetchGlucose()
 
+            // Compute tough meal state from persisted settings
+            let trioSettings = self.storage.retrieve(OpenAPS.Trio.settings, as: TrioSettings.self) ?? TrioSettings()
+            var toughMealActive = false
+            var toughMealMinutesRemaining: Decimal = 0
+            if let activationDate = trioSettings.toughMealActivationDate {
+                let durationMinutes = trioSettings.toughMealDuration * 60 // hours to minutes
+                let elapsedMinutes = Decimal(Date().timeIntervalSince(activationDate) / 60.0)
+                let remaining = durationMinutes - elapsedMinutes
+                if remaining > 0 {
+                    toughMealActive = true
+                    toughMealMinutesRemaining = remaining
+                }
+            }
+
             // Prepare Trio's custom oref variables
             let trioCustomOrefVariablesData = TrioCustomOrefVariables(
                 average_total_data: currentTDD > 0 ? averageTDDLastTenDays : 0,
@@ -452,7 +466,9 @@ final class OpenAPS {
                 start: (activeOverrides.first?.start ?? 0) as Decimal,
                 end: (activeOverrides.first?.end ?? 0) as Decimal,
                 smbMinutes: activeOverrides.first?.smbMinutes?.decimalValue ?? maxSMBBasalMinutes,
-                uamMinutes: activeOverrides.first?.uamMinutes?.decimalValue ?? maxUAMBasalMinutes
+                uamMinutes: activeOverrides.first?.uamMinutes?.decimalValue ?? maxUAMBasalMinutes,
+                toughMealActive: toughMealActive,
+                toughMealMinutesRemaining: toughMealMinutesRemaining
             )
 
             // Save and return contents of Trio's custom oref variables
