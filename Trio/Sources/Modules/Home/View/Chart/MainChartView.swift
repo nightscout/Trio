@@ -150,7 +150,7 @@ extension MainChartView {
                     glucoseData: state.glucoseFromPersistence,
                     insulinData: state.insulinFromPersistence,
                     units: state.units,
-                    showSmbLabel: state.showSmbLabel
+                    bolusDisplayThreshold: state.bolusDisplayThreshold
                 )
 
                 CarbView(

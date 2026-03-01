@@ -7,7 +7,7 @@ extension UserInterfaceSettings {
         @Published var xGridLines = false
         @Published var yGridLines: Bool = false
         @Published var rulerMarks: Bool = true
-        @Published var showSmbLabelInChart: Bool = true
+        @Published var bolusDisplayThreshold: BolusDisplayThreshold = .allUnits
         @Published var forecastDisplayType: ForecastDisplayType = .cone
         @Published var showCarbsRequiredBadge: Bool = true
         @Published var carbsRequiredThreshold: Decimal = 0
@@ -24,7 +24,7 @@ extension UserInterfaceSettings {
             subscribeSetting(\.xGridLines, on: $xGridLines) { xGridLines = $0 }
             subscribeSetting(\.yGridLines, on: $yGridLines) { yGridLines = $0 }
             subscribeSetting(\.rulerMarks, on: $rulerMarks) { rulerMarks = $0 }
-            subscribeSetting(\.showSmbLabelInChart, on: $showSmbLabelInChart) { showSmbLabelInChart = $0 }
+            subscribeSetting(\.bolusDisplayThreshold, on: $bolusDisplayThreshold) { bolusDisplayThreshold = $0 }
 
             subscribeSetting(\.forecastDisplayType, on: $forecastDisplayType) { forecastDisplayType = $0 }
 

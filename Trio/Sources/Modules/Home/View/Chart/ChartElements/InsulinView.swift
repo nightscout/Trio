@@ -6,7 +6,7 @@ struct InsulinView: ChartContent {
     let glucoseData: [GlucoseStored]
     let insulinData: [PumpEventStored]
     let units: GlucoseUnits
-    let showSmbLabel: Bool
+    let bolusDisplayThreshold: BolusDisplayThreshold
 
     var body: some ChartContent {
         drawBoluses()
@@ -14,7 +14,6 @@ struct InsulinView: ChartContent {
 
     private func drawBoluses() -> some ChartContent {
         ForEach(insulinData) { insulin in
-            let isSmb = insulin.bolus?.isSMB ?? false
             let amount = insulin.bolus?.amount ?? 0 as NSDecimalNumber
             let bolusDate = insulin.timestamp ?? Date()
 
@@ -34,9 +33,11 @@ struct InsulinView: ChartContent {
                     Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.insulin)
                 }
                 .annotation(position: .top) {
-                    Text(!showSmbLabel && isSmb ? "" : Formatter.bolusFormatter.string(from: amount) ?? "")
-                        .font(.caption2)
-                        .foregroundStyle(Color.primary)
+                    if bolusDisplayThreshold.rawValue >= amount as Decimal {
+                        Text(Formatter.bolusFormatter.string(from: amount) ?? "")
+                            .font(.caption2)
+                            .foregroundStyle(Color.primary)
+                    }
                 }
             }
         }
