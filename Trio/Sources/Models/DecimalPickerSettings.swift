@@ -51,6 +51,7 @@ struct DecimalPickerSettings {
     var overrideFactor = PickerSetting(value: 0.8, step: 0.05, min: 0.05, max: 1.5, type: PickerSetting.PickerSettingType.factor)
     var fattyMealFactor = PickerSetting(value: 0.7, step: 0.05, min: 0.05, max: 1, type: PickerSetting.PickerSettingType.factor)
     var sweetMealFactor = PickerSetting(value: 1, step: 0.05, min: 0.05, max: 2, type: PickerSetting.PickerSettingType.factor)
+    var toughMealDuration = PickerSetting(value: 7, step: 1, min: 4, max: 10, type: PickerSetting.PickerSettingType.hour)
     var maxIOB = PickerSetting(value: 0, step: 1, min: 0, max: 20, type: PickerSetting.PickerSettingType.insulinUnit)
     var maxDailySafetyMultiplier = PickerSetting(
         value: 3,

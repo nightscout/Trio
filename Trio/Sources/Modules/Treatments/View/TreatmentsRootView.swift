@@ -357,7 +357,7 @@ extension Treatments {
                         }.listRowBackground(Color.chart)
 
                         Section {
-                            if state.fattyMeals || state.sweetMeals {
+                            if state.fattyMeals || state.sweetMeals || state.toughMeals {
                                 HStack(spacing: 10) {
                                     if state.fattyMeals {
                                         Toggle(isOn: $state.useFattyMealCorrectionFactor) {
@@ -388,6 +388,13 @@ extension Treatments {
                                                 }
                                             }
                                         }
+                                    }
+                                    if state.toughMeals {
+                                        Toggle(isOn: $state.useToughMeal) {
+                                            Text("Tough Meal")
+                                        }
+                                        .toggleStyle(RadioButtonToggleStyle())
+                                        .font(.footnote)
                                     }
                                 }
                             }

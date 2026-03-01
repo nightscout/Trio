@@ -156,6 +156,41 @@ extension BolusCalculatorConfig {
                 )
 
                 SettingInputSection(
+                    decimalValue: $state.toughMealDuration,
+                    booleanValue: $state.toughMeals,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = String(localized: "Tough Meal")
+                        }
+                    ),
+                    units: state.units,
+                    type: .conditionalDecimal("toughMealDuration"),
+                    label: String(localized: "Enable Tough Meal Option"),
+                    conditionalLabel: String(localized: "Tough Meal Duration (hours)"),
+                    miniHint: String(localized: "Temporarily raise SMB and sensitivity limits for hard-to-manage meals."),
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text("Default Duration: 7 hours").bold()
+                        Text(
+                            "Enabling this setting adds a \"Tough Meal\" option to the bolus calculator. When selected at meal time, the loop will temporarily raise its SMB size cap and sensitivity ratio ceiling for the configured duration."
+                        )
+                        Text(
+                            "This is designed for meals with prolonged, complex absorption profiles — sushi, pizza, pasta with heavy sauces, and similar high-carb meals with significant fat and protein."
+                        )
+                        Text(
+                            "SMB cap is scaled progressively based on current BG: normal below 150, raised incrementally above 150, with maximum increase above 250. The sensitivity ratio ceiling is raised from 1.2 to 1.4 during the active window."
+                        )
+                        Text(
+                            "Safety: Tough Meal mode automatically deactivates after the configured duration. It also reverts to normal limits if BG drops rapidly."
+                        )
+                    }
+                )
+
+                SettingInputSection(
                     decimalValue: $decimalPlaceholder,
                     booleanValue: $state.confirmBolusWhenVeryLowGlucose,
                     shouldDisplayHint: $shouldDisplayHint,

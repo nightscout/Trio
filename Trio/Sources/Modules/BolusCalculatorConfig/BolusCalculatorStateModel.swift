@@ -8,6 +8,8 @@ extension BolusCalculatorConfig {
         @Published var fattyMealFactor: Decimal = 0
         @Published var sweetMeals: Bool = false
         @Published var sweetMealFactor: Decimal = 0
+        @Published var toughMeals: Bool = false
+        @Published var toughMealDuration: Decimal = 7
         @Published var displayPresets: Bool = true
         @Published var confirmBolusWhenVeryLowGlucose: Bool = false
 
@@ -20,6 +22,8 @@ extension BolusCalculatorConfig {
             subscribeSetting(\.fattyMealFactor, on: $fattyMealFactor) { fattyMealFactor = $0 }
             subscribeSetting(\.sweetMeals, on: $sweetMeals) { sweetMeals = $0 }
             subscribeSetting(\.sweetMealFactor, on: $sweetMealFactor) { sweetMealFactor = $0 }
+            subscribeSetting(\.toughMeals, on: $toughMeals) { toughMeals = $0 }
+            subscribeSetting(\.toughMealDuration, on: $toughMealDuration) { toughMealDuration = $0 }
             subscribeSetting(\.confirmBolus, on: $confirmBolusWhenVeryLowGlucose) { confirmBolusWhenVeryLowGlucose = $0 }
         }
     }

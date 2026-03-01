@@ -123,6 +123,8 @@ struct SettingInputSection<VerboseHint: View>: View {
             return pickerSettingsProvider.settings.fattyMealFactor
         case "sweetMealFactor":
             return pickerSettingsProvider.settings.sweetMealFactor
+        case "toughMealDuration":
+            return pickerSettingsProvider.settings.toughMealDuration
         case "maxIOB":
             return pickerSettingsProvider.settings.maxIOB
         case "maxDailySafetyMultiplier":

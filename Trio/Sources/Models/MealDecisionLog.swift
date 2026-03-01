@@ -67,6 +67,7 @@ struct MealDecisionSnapshot: Codable {
     let recommended: Double
     let fattyMealEnabled: Bool
     let superBolusEnabled: Bool
+    let toughMealEnabled: Bool
     let fraction: Double
 
     // Delivery
