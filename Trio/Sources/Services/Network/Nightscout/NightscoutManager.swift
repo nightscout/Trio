@@ -1,6 +1,7 @@
 import Combine
 import CoreData
 import Foundation
+import LoopKit
 import LoopKitUI
 import Swinject
 import UIKit
@@ -45,6 +46,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private var ping: TimeInterval?
 
     let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    let cgmProgressHighlight = CurrentValueSubject<LoopKit.DeviceLifecycleProgress?, Never>(nil)
 
     // Queue where upload pipelines run.
     let uploadPipelineQueue = DispatchQueue(label: "NightscoutManager.uploadPipelines", qos: .utility)

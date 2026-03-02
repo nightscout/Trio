@@ -11,6 +11,7 @@ final class PluginSource: GlucoseSource {
     private let glucoseStorage: GlucoseStorage!
 
     let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    let cgmProgressHighlight = CurrentValueSubject<LoopKit.DeviceLifecycleProgress?, Never>(nil)
     var glucoseManager: FetchGlucoseManager?
 
     var cgmManager: CGMManagerUI? {
@@ -22,6 +23,12 @@ final class PluginSource: GlucoseSource {
                 )
             } else {
                 cgmDisplayState.value = nil
+            }
+
+            if let progress = cgmManager?.cgmLifecycleProgress {
+                cgmProgressHighlight.value = progress
+            } else {
+                cgmProgressHighlight.value = nil
             }
         }
     }
@@ -191,6 +198,12 @@ extension PluginSource: CGMManagerDelegate {
                 )
             } else {
                 cgmDisplayState.value = nil
+            }
+
+            if let progress = self.cgmManager?.cgmLifecycleProgress {
+                cgmProgressHighlight.value = progress
+            } else {
+                cgmProgressHighlight.value = nil
             }
         }
     }

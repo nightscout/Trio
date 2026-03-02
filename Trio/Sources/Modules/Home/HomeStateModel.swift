@@ -102,6 +102,7 @@ extension Home {
         var isOverrideCancelled: Bool = false
         var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         var cgmHighlight: CgmDisplayState?
+        var cgmLifetimeProgress: LoopKit.DeviceLifecycleProgress?
         var pumpStatusHighlightMessage: String?
         var pumpStatusBadgeImage: UIImage?
         var pumpStatusBadgeColor: Color?
@@ -388,6 +389,15 @@ extension Home {
                     guard let self = self else { return }
 
                     self.cgmHighlight = state
+                }
+                .store(in: &lifetime)
+
+            fetchGlucoseManager.cgmProgressHighlight
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] state in
+                    guard let self = self else { return }
+
+                    self.cgmLifetimeProgress = state
                 }
                 .store(in: &lifetime)
         }

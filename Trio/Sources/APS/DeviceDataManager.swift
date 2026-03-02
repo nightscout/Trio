@@ -291,6 +291,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
 
     var glucoseManager: FetchGlucoseManager?
     let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    let cgmProgressHighlight = CurrentValueSubject<LoopKit.DeviceLifecycleProgress?, Never>(nil)
     var cgmManager: CGMManagerUI?
     var cgmType: CGMType = .enlite
 

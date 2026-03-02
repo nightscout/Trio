@@ -15,6 +15,7 @@ protocol FetchGlucoseManager: SourceInfoProvider {
     var glucoseSource: GlucoseSource? { get }
     var cgmManager: CGMManagerUI? { get }
     var cgmDisplayState: CurrentValueSubject<CgmDisplayState?, Never> { get }
+    var cgmProgressHighlight: CurrentValueSubject<LoopKit.DeviceLifecycleProgress?, Never> { get }
     var cgmGlucoseSourceType: CGMType { get set }
     var cgmGlucosePluginId: String { get }
     var settingsManager: SettingsManager! { get }
@@ -143,6 +144,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     }
 
     let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    let cgmProgressHighlight = CurrentValueSubject<LoopKit.DeviceLifecycleProgress?, Never>(nil)
     var glucoseSource: GlucoseSource? {
         didSet {
             guard let glucoseSource else {
@@ -152,6 +154,12 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             glucoseSource.cgmDisplayState.receive(on: DispatchQueue.main)
                 .sink { [weak self] state in
                     self?.cgmDisplayState.value = state
+                }
+                .store(in: &lifetime)
+
+            glucoseSource.cgmProgressHighlight.receive(on: DispatchQueue.main)
+                .sink { [weak self] state in
+                    self?.cgmProgressHighlight.value = state
                 }
                 .store(in: &lifetime)
         }

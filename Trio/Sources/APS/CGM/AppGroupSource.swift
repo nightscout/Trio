@@ -26,6 +26,7 @@ public extension GlucoseTrend {
 
 struct AppGroupSource: GlucoseSource {
     let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    let cgmProgressHighlight = CurrentValueSubject<LoopKit.DeviceLifecycleProgress?, Never>(nil)
     var cgmManager: CGMManagerUI?
     var glucoseManager: FetchGlucoseManager?
     let from: String
