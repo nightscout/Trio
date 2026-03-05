@@ -197,6 +197,8 @@ struct WatchConfigGarminAppConfigView: View {
                 hintLabel: "Choose Garmin Watchface",
                 hintText: Text(
                     "Choose which watchface on your Garmin device you wish to provide data for. You can independently select which datafield to use in the next section.\n\n" +
+                        "• Trio – The original Trio watchface, developed by Ivan Valkou.\n" +
+                        "• Swissalpine – Originally developed for AAPS, adapted to work with Trio.\n\n" +
                         "You must use this configuration setting here BEFORE you switch the watchface on your Garmin device to another watchface.\n\n" +
                         "⚠️ Changing the watchface will automatically disable data transmission and lock that setting for 20 seconds to allow time for you to switch the watchface on your Garmin device."
                 ),
@@ -210,6 +212,8 @@ struct WatchConfigGarminAppConfigView: View {
                 hintLabel: "Choose Garmin Datafield",
                 hintText: Text(
                     "Choose which datafield on your Garmin device you wish to provide data for. The datafield can be used independently from the watchface selection.\n\n" +
+                        "• Trio – The original Trio datafield, developed by Pierre.\n" +
+                        "• Swissalpine – Originally developed for AAPS, adapted to work with Trio.\n\n" +
                         "Select 'None' if you don't want to use a datafield, or want to preserve battery while not exercising."
                 ),
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
@@ -233,7 +237,14 @@ struct WatchConfigGarminAppConfigView: View {
                 shouldDisplayHint: $shouldDisplayHint3,
                 hintLabel: "Choose data support",
                 hintText: Text(
-                    "Choose which data types, along with BG and IOB etc., you want to show on your Garmin device. That data type will be shown both on watchface and datafield."
+                    "Choose which data types, along with BG and IOB etc., you want to show on your Garmin device. That data type will be shown both on watchface and datafield.\n\n" +
+                        "Data Choice 1 options:\n" +
+                        "• COB – Carbs On Board\n" +
+                        "• ISF – Insulin Sensitivity Factor\n" +
+                        "• Sens Ratio – Sensitivity Ratio\n\n" +
+                        "Data Choice 2 options:\n" +
+                        "• TBR – Temp Basal Rate\n" +
+                        "• evBG – Eventual (predicted future) Blood Glucose"
                 ),
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )

@@ -17,9 +17,9 @@ enum GarminPrimaryAttributeChoice: String, JSON, CaseIterable, Identifiable, Cod
         case .cob:
             return String(localized: "COB", comment: "")
         case .isf:
-            return String(localized: "Insulin Sensitivity Factor", comment: "")
+            return String(localized: "ISF", comment: "")
         case .sensRatio:
-            return String(localized: "Sensitivity Ratio", comment: "")
+            return String(localized: "Sens Ratio", comment: "")
         }
     }
 }
@@ -35,9 +35,9 @@ enum GarminSecondaryAttributeChoice: String, JSON, CaseIterable, Identifiable, C
     var displayName: String {
         switch self {
         case .tbr:
-            return String(localized: "TBR (Temp Basal Rate)", comment: "")
+            return String(localized: "TBR", comment: "")
         case .eventualBG:
-            return String(localized: "Eventual BG", comment: "")
+            return String(localized: "evBG", comment: "")
         }
     }
 }
@@ -54,9 +54,9 @@ enum GarminWatchface: String, JSON, CaseIterable, Identifiable, Codable, Hashabl
     var displayName: String {
         switch self {
         case .trio:
-            return String(localized: "Trio original", comment: "")
+            return String(localized: "Trio", comment: "")
         case .swissalpine:
-            return String(localized: "Trio Swissalpine", comment: "")
+            return String(localized: "Swissalpine", comment: "")
         }
     }
 
@@ -87,9 +87,9 @@ enum GarminDatafield: String, JSON, CaseIterable, Identifiable, Codable, Hashabl
     var displayName: String {
         switch self {
         case .trio:
-            return String(localized: "Trio original", comment: "")
+            return String(localized: "Trio", comment: "")
         case .swissalpine:
-            return String(localized: "Trio Swissalpine", comment: "")
+            return String(localized: "Swissalpine", comment: "")
         case .none:
             return String(localized: "None", comment: "")
         }
