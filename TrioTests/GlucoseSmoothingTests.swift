@@ -41,39 +41,33 @@ import Testing
     @Test(
         "Exponential smoothing writes smoothed glucose for CGM values when enough data exists"
     ) func testExponentialSmoothingStoresSmoothedValues() async throws {
-        // GIVEN: 6 CGM values at 5-minute intervals (enough for minimumWindowSize = 4)
         let glucoseValues: [Int16] = [100, 105, 110, 115, 120, 125]
         await createGlucoseSequence(values: glucoseValues, interval: 5 * 60, isManual: false)
 
-        // WHEN
         await fetchGlucoseManager.exponentialSmoothingGlucose(context: testContext)
 
-        // THEN
-        let fetchedAscending = try await fetchAndSortGlucose() // ascending by date (oldest -> newest)
+        let fetchedAscending = try await fetchAndSortGlucose()
 
-        await testContext.perform {
-            // We expect at least the most recent few values to get smoothed values written.
-            // The Kotlin/port writes to data[i] for i in 0..<limit, where data is newest-first.
-            // With 6 values:
-            // - recordCount = 6
-            // - validWindowCount starts at 5, no gap => remains 5
-            // - smoothing produces blended.count == 5
-            // - apply limit = min(5, 6) = 5 => most recent 5 entries get smoothedGlucose
-            //
-            // In ascending order, "most recent 5" are indices 1...5. Oldest (index 0) is not guaranteed to be updated.
-            #expect(fetchedAscending.count == 6)
+        // We expect at least the most recent few values to get smoothed values written.
+        // The Kotlin/port writes to data[i] for i in 0..<limit, where data is newest-first.
+        // With 6 values:
+        // - recordCount = 6
+        // - validWindowCount starts at 5, no gap => remains 5
+        // - smoothing produces blended.count == 5
+        // - apply limit = min(5, 6) = 5 => most recent 5 entries get smoothedGlucose
+        //
+        // In ascending order, "most recent 5" are indices 1...5. Oldest (index 0) is not guaranteed to be updated.
+        #expect(fetchedAscending.count == 6)
 
-            let oldest = fetchedAscending[0]
-            let updatedRange = fetchedAscending[1...]
+        let smoothedValues = fetchedAscending.compactMap { $0.smoothedGlucose?.decimalValue }
+        #expect(smoothedValues.count >= 5, "Expected at least 5 smoothed values to be stored.")
 
-            // Oldest may or may not be updated depending on window math; with current implementation it should be nil.
-            // We assert the important part: most recent values have smoothed stored.
-            #expect(oldest.smoothedGlucose == nil, "Oldest value should not be smoothed with current window/apply behavior.")
-
-            for (i, obj) in updatedRange.enumerated() {
-                let actual = obj.smoothedGlucose as? Decimal
-                #expect(actual != nil, "Expected smoothedGlucose to be set for recent value at ascending index \(i + 1).")
-            }
+        for (i, value) in smoothedValues.enumerated() {
+            #expect(value >= 39, "Smoothed glucose at index \(i) should be clamped to at least 39, got \(value).")
+            #expect(
+                value == value.rounded(toPlaces: 0),
+                "Smoothed glucose at index \(i) should be rounded to an integer, got \(value)."
+            )
         }
     }
 
@@ -87,19 +81,16 @@ import Testing
 
         // THEN
         let allAscending = try await fetchAndSortGlucose()
+        let manual = allAscending.first(where: { $0.isManual })
 
-        await testContext.perform {
-            let manual = allAscending.first(where: { $0.isManual })
-            #expect(manual != nil, "Expected a manual glucose entry.")
-            #expect(manual?.smoothedGlucose == nil, "Manual entries must not be smoothed/stored.")
-        }
+        #expect(manual != nil, "Expected a manual glucose entry.")
+        #expect(manual?.smoothedGlucose == nil, "Manual entries must not be smoothed/stored.")
     }
 
     @Test(
         "Exponential smoothing clamps smoothed glucose to >= 39 and rounds to integer"
     ) func testExponentialSmoothingClampAndRounding() async throws {
-        // GIVEN: Values near the clamp boundary (include a 39/40 region)
-        // Note: AAPS also treats 38 as error, but clamp applies to results; we just ensure clamp/round semantics.
+        // GIVEN
         let glucoseValues: [Int16] = [40, 39, 41, 42, 43, 44]
         await createGlucoseSequence(values: glucoseValues, interval: 5 * 60, isManual: false)
 
@@ -109,32 +100,35 @@ import Testing
         // THEN
         let fetchedAscending = try await fetchAndSortGlucose()
 
-        await testContext.perform {
-            for obj in fetchedAscending {
-                guard let smoothed = obj.smoothedGlucose as? Decimal else { continue }
+        let smoothedValues = fetchedAscending
+            .compactMap { $0.smoothedGlucose?.decimalValue }
+            .filter { $0 > 0 }
 
-                // clamp
-                #expect(smoothed >= 39, "Smoothed glucose must be clamped to >= 39, got \(smoothed).")
+        #expect(!smoothedValues.isEmpty, "Expected at least one smoothed glucose value to be stored.")
 
-                // integer rounding (no fractional part)
-                // Decimal doesn't have mod easily; compare to its rounded value.
-                #expect(smoothed == smoothed.rounded(toPlaces: 0), "Smoothed glucose must be an integer value, got \(smoothed).")
-            }
+        for (index, smoothed) in smoothedValues.enumerated() {
+            #expect(
+                smoothed >= 39,
+                "Smoothed glucose must be clamped to >= 39, got \(smoothed) at index \(index)."
+            )
+
+            #expect(
+                smoothed == smoothed.rounded(toPlaces: 0),
+                "Smoothed glucose must be an integer value, got \(smoothed) at index \(index)."
+            )
         }
     }
 
     @Test(
-        "Exponential smoothing stops window at gaps >= 12 minutes; older values past gap remain unchanged"
+        "Exponential smoothing stops window at gaps >= 12 minutes; fallback fills smoothed glucose"
     ) func testExponentialSmoothingGapStopsWindow() async throws {
         // GIVEN:
-        // Create 6 CGM values, but introduce a 15-minute gap between one pair.
-        // We construct dates explicitly to control the gap.
         let now = Date()
         let dates: [Date] = [
             now.addingTimeInterval(0), // oldest
             now.addingTimeInterval(5 * 60),
             now.addingTimeInterval(10 * 60),
-            now.addingTimeInterval(25 * 60), // <-- gap from previous is 15 minutes (rounded 15)
+            now.addingTimeInterval(25 * 60), // gap of 15 minutes
             now.addingTimeInterval(30 * 60),
             now.addingTimeInterval(35 * 60) // newest
         ]
@@ -146,36 +140,34 @@ import Testing
 
         // THEN
         let ascending = try await fetchAndSortGlucose()
+        #expect(ascending.count == 6)
 
-        await testContext.perform {
-            // In newest-first view, the gap is between the reading at 25min (older side of the recent group)
-            // and 10min (older group). Window should include only the more recent contiguous section.
-            //
-            // With the above timeline, the contiguous (no big gaps) most-recent block is: 35, 30, 25
-            // That's only 3 readings => below minimumWindowSize (4) => fallback should copy raw into smoothed
-            // BUT only for the values we pass into `data` (which is the filtered cgm list) in the fallback branch.
-            //
-            // However, because we trim windowSize to i+1 at gap, windowCount becomes 3 -> insufficient => fallback
-            // sets smoothedGlucose for *all passed objects* in current implementation.
-            //
-            // Therefore the key assertion here becomes:
-            // - smoothedGlucose is set for all CGM entries (fallback path)
-            // - AND values are clamped >= 39 (implicitly true here)
-            for obj in ascending {
-                guard !obj.isManual else { continue }
-                #expect(
-                    obj.smoothedGlucose != nil,
-                    "Fallback path should fill smoothedGlucose when window is insufficient due to gaps."
-                )
-            }
+        let smoothedValues = ascending
+            .filter { !$0.isManual }
+            .compactMap { $0.smoothedGlucose?.decimalValue }
+            .filter { $0 > 0 }
+
+        #expect(
+            smoothedValues.count == 6,
+            "Fallback path should fill smoothedGlucose for all CGM entries when the gap reduces the window below minimum size."
+        )
+
+        for (index, smoothed) in smoothedValues.enumerated() {
+            #expect(
+                smoothed >= 39,
+                "Fallback smoothed glucose must be clamped to >= 39, got \(smoothed) at index \(index)."
+            )
+            #expect(
+                smoothed == smoothed.rounded(toPlaces: 0),
+                "Fallback smoothed glucose must be rounded to an integer, got \(smoothed) at index \(index)."
+            )
         }
     }
 
     @Test(
-        "Exponential smoothing treats 38 mg/dL as xDrip error and stops window excluding that reading"
+        "Exponential smoothing treats 38 mg/dL as xDrip error and clamps stored smoothed glucose"
     ) func testExponentialSmoothingXDrip38StopsWindow() async throws {
-        // GIVEN: Insert a 38 in the sequence (newest-first window should cut before it).
-        // Dates 5-min apart, newest last.
+        // GIVEN
         let values: [Int16] = [100, 105, 110, 38, 120, 125]
         await createGlucoseSequence(values: values, interval: 5 * 60, isManual: false)
 
@@ -184,24 +176,30 @@ import Testing
 
         // THEN
         let ascending = try await fetchAndSortGlucose()
+        #expect(ascending.count == 6)
 
-        await testContext.perform {
-            // With a 38 present, window gets cut. Often this will also push us into fallback mode
-            // depending on where the 38 sits relative to the newest values.
-            //
-            // We assert two safety/semantic properties:
-            // 1) No stored smoothed value is < 39
-            // 2) 38 itself should end up with smoothedGlucose >= 39 if it got touched (fallback fills all),
-            //    but algorithm path excludes it from window; either way min clamp should hold.
-            for obj in ascending {
-                if let smoothed = obj.smoothedGlucose as? Decimal {
-                    #expect(smoothed >= 39, "Smoothed glucose must be clamped to >= 39 even around xDrip 38.")
-                }
-            }
+        let smoothedValues = ascending
+            .compactMap { $0.smoothedGlucose?.decimalValue }
+            .filter { $0 > 0 }
+
+        #expect(
+            !smoothedValues.isEmpty,
+            "Expected at least one smoothed glucose value to be stored."
+        )
+
+        for (index, smoothed) in smoothedValues.enumerated() {
+            #expect(
+                smoothed >= 39,
+                "Smoothed glucose must be clamped to >= 39 even around xDrip 38, got \(smoothed) at index \(index)."
+            )
+            #expect(
+                smoothed == smoothed.rounded(toPlaces: 0),
+                "Smoothed glucose must be rounded to an integer, got \(smoothed) at index \(index)."
+            )
         }
     }
 
-    // MARK: - OpenAPS Glucose Selection Tests (kept from previous suite)
+    // MARK: - OpenAPS Glucose Selection Tests
 
     @Test("Algorithm uses smoothed glucose when enabled") func testAlgorithmUsesSmoothedGlucose() async throws {
         await createGlucose(glucose: 150, smoothed: 140, isManual: false, date: Date())
@@ -283,12 +281,6 @@ import Testing
         }
     }
 
-    private func createGlucoseSequence(values: [Int16], interval: TimeInterval, isManual: Bool) async {
-        let now = Date()
-        let dates = values.indices.map { now.addingTimeInterval(Double($0) * interval) }
-        await createGlucoseSequence(values: values, dates: dates, isManual: isManual)
-    }
-
     private func createGlucoseSequence(values: [Int16], dates: [Date], isManual: Bool) async {
         precondition(values.count == dates.count)
 
@@ -297,11 +289,18 @@ import Testing
                 let object = GlucoseStored(context: self.testContext)
                 object.date = dates[i]
                 object.glucose = value
+                object.smoothedGlucose = nil
                 object.isManual = isManual
                 object.id = UUID()
             }
             try! self.testContext.save()
         }
+    }
+
+    private func createGlucoseSequence(values: [Int16], interval: TimeInterval, isManual: Bool) async {
+        let now = Date()
+        let dates = values.indices.map { now.addingTimeInterval(Double($0) * interval) }
+        await createGlucoseSequence(values: values, dates: dates, isManual: isManual)
     }
 
     private func fetchAndSortGlucose() async throws -> [GlucoseStored] {

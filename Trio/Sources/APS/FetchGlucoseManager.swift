@@ -240,7 +240,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         return Manager.init(rawState: rawState)
     }
 
-    func fetchGlucose() async throws -> [GlucoseStored]? {
+    func fetchGlucose(context: NSManagedObjectContext) async throws -> [GlucoseStored]? {
         try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
@@ -369,22 +369,21 @@ extension BaseFetchGlucoseManager: SettingsObserver {
 extension BaseFetchGlucoseManager {
     /// CoreData-friendly AAPS exponential smoothing + storage.
     /// - Important: Only stores `smoothedGlucose`. UI/alerts should still use `glucose`.
+    ///
     func exponentialSmoothingGlucose(context: NSManagedObjectContext) async {
         let startTime = Date()
 
-        guard let glucoseStored = try? await fetchGlucose() else { return }
+        guard let glucoseStored = try? await fetchGlucose(context: context) else { return }
 
         await context.perform {
-            // Only smooth CGM values; ignore manually entered glucose
-            // Keep only entries with dates
+            // Only smooth CGM values; ignore manually entered glucose.
+            // `fetchGlucose(context:)` already returns newest first, and filtering preserves order.
             let cgmValuesNewestFirst: [GlucoseStored] = glucoseStored
                 .filter { !$0.isManual }
-                .filter { $0.date != nil } // order preserved
+                .filter { $0.date != nil }
 
             guard !cgmValuesNewestFirst.isEmpty else { return }
 
-            // Build a smoothing window size per AAPS rules (gap/xDrip error), then compute smoothed values for
-            // the most recent `limit` entries. Older values are left unchanged (same as the Kotlin behavior).
             self.applyExponentialSmoothingAndStore(
                 newestFirst: cgmValuesNewestFirst,
                 minimumWindowSize: 4,
@@ -400,7 +399,6 @@ extension BaseFetchGlucoseManager {
             do {
                 try context.save()
             } catch {
-                // Replace with your logging system if you have one
                 debugPrint("Failed to save context after smoothing: \(error)")
             }
         }
