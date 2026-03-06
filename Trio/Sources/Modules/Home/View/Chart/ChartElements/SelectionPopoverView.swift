@@ -11,6 +11,7 @@ struct SelectionPopoverView: ChartContent {
     let lowGlucose: Decimal
     let currentGlucoseTarget: Decimal
     let glucoseColorScheme: GlucoseColorScheme
+    let isSmoothingEnabled: Bool
 
     private var glucoseToDisplay: Decimal {
         units == .mgdL ? Decimal(selectedGlucose.glucose) : Decimal(selectedGlucose.glucose).asMmolL
@@ -70,10 +71,19 @@ struct SelectionPopoverView: ChartContent {
             .font(.body).padding(.bottom, 2)
 
             HStack {
-                Text(glucoseToDisplay.description).bold() + Text(" \(units.rawValue)")
+                Text("CGM: ") + Text(glucoseToDisplay.description).bold() + Text(" \(units.rawValue)")
             }
             .foregroundStyle(pointMarkColor)
             .font(.body)
+
+            if isSmoothingEnabled, let smoothedGlucose = selectedGlucose.smoothedGlucose {
+                var smoothedGlucoseToDisplay: Decimal {
+                    units == .mgdL ? smoothedGlucose.decimalValue : smoothedGlucose.decimalValue.asMmolL
+                }
+                HStack {
+                    Text("Smoothed: ") + Text(smoothedGlucoseToDisplay.description) + Text(" \(units.rawValue)")
+                }
+            }
 
             if let selectedIOBValue, let iob = selectedIOBValue.iob {
                 HStack {
