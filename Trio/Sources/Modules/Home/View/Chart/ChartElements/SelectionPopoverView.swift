@@ -34,7 +34,7 @@ struct SelectionPopoverView: ChartContent {
     var body: some ChartContent {
         RuleMark(x: .value("Selection", selectedGlucose.date ?? Date.now, unit: .minute))
             .foregroundStyle(Color.tabBar)
-            .offset(yStart: 70)
+            .offset(yStart: isSmoothingEnabled ? 90 : 70)
             .lineStyle(.init(lineWidth: 2))
             .annotation(
                 position: .top,
@@ -81,8 +81,9 @@ struct SelectionPopoverView: ChartContent {
                     units == .mgdL ? smoothedGlucose.decimalValue : smoothedGlucose.decimalValue.asMmolL
                 }
                 HStack {
-                    Text("Smoothed: ") + Text(smoothedGlucoseToDisplay.description) + Text(" \(units.rawValue)")
-                }
+                    Image(systemName: "sparkles")
+                    Text(smoothedGlucoseToDisplay.description) + Text(" \(units.rawValue)")
+                }.font(.body)
             }
 
             if let selectedIOBValue, let iob = selectedIOBValue.iob {
