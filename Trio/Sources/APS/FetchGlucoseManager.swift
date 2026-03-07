@@ -437,6 +437,7 @@ extension BaseFetchGlucoseManager {
                     break
                 }
 
+                // possible FIXME: we probably do not need this; ported none the less from AAPS
                 if Int(data[i].glucose) == xDripErrorGlucose {
                     validWindowCount = i // exclude this 38 value
                     break
@@ -449,7 +450,6 @@ extension BaseFetchGlucoseManager {
             for obj in data {
                 let raw = Decimal(Int(obj.glucose))
                 obj.smoothedGlucose = max(raw, minimumSmoothedGlucose) as NSDecimalNumber
-                obj.direction = .none
             }
             return
         }
@@ -512,7 +512,6 @@ extension BaseFetchGlucoseManager {
             let clamped = max(rounded, minimumSmoothedGlucose)
 
             data[i].smoothedGlucose = clamped as NSDecimalNumber
-            data[i].direction = .none
         }
     }
 }

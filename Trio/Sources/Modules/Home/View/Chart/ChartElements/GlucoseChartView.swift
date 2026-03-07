@@ -53,7 +53,7 @@ struct GlucoseChartView: ChartContent {
                 }
             }
 
-            if isSmoothingEnabled, let smoothedGlucose = item.smoothedGlucose {
+            if isSmoothingEnabled, let smoothedGlucose = item.smoothedGlucose, smoothedGlucose != 0 {
                 LineMark(
                     x: .value("Time", item.date ?? Date(), unit: .second),
                     y: .value("Value", smoothedGlucose as Decimal),
