@@ -54,9 +54,11 @@ struct GlucoseChartView: ChartContent {
             }
 
             if isSmoothingEnabled, let smoothedGlucose = item.smoothedGlucose, smoothedGlucose != 0 {
+                let smoothedGlucoseForDisplay: Decimal = units == .mgdL ? smoothedGlucose.decimalValue : smoothedGlucose
+                    .decimalValue.asMmolL
                 LineMark(
                     x: .value("Time", item.date ?? Date(), unit: .second),
-                    y: .value("Value", smoothedGlucose as Decimal),
+                    y: .value("Value", smoothedGlucoseForDisplay),
                     series: .value("Type", "Smoothed")
                 )
                 .foregroundStyle(Color.secondary)
