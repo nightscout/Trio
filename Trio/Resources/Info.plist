@@ -71,6 +71,8 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera is used to photograph meals for AI-powered carb estimation</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo Library is used to select meal photos for AI-powered carb estimation</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>

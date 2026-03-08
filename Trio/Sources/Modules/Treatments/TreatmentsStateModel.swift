@@ -731,27 +731,32 @@ extension Treatments.StateModel: DeterminationObserver, BolusFailureObserver {
         case .slow: return
         }
 
-        let content = UNMutableNotificationContent()
-        content.title = "Time to eat"
-        content.body = "Your pre-bolus window is up. Start your meal now."
-        content.sound = .default
+        let center = UNUserNotificationCenter.current()
+        center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
+            guard granted else { return }
 
-        let trigger = UNTimeIntervalNotificationTrigger(
-            timeInterval: TimeInterval(delayMinutes * 60),
-            repeats: false
-        )
+            let content = UNMutableNotificationContent()
+            content.title = "Time to eat"
+            content.body = "Your pre-bolus window is up. Start your meal now."
+            content.sound = .default
 
-        let request = UNNotificationRequest(
-            identifier: "Trio.preBolusTimer",
-            content: content,
-            trigger: trigger
-        )
+            let trigger = UNTimeIntervalNotificationTrigger(
+                timeInterval: TimeInterval(delayMinutes * 60),
+                repeats: false
+            )
 
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error {
-                debug(.bolusState, "Failed to schedule pre-bolus timer: \(error.localizedDescription)")
-            } else {
-                debug(.bolusState, "Pre-bolus timer scheduled for \(delayMinutes) minutes")
+            let request = UNNotificationRequest(
+                identifier: "Trio.preBolusTimer",
+                content: content,
+                trigger: trigger
+            )
+
+            center.add(request) { error in
+                if let error {
+                    debug(.bolusState, "Failed to schedule pre-bolus timer: \(error.localizedDescription)")
+                } else {
+                    debug(.bolusState, "Pre-bolus timer scheduled for \(delayMinutes) minutes")
+                }
             }
         }
     }
