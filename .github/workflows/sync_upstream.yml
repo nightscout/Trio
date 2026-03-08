@@ -61,6 +61,13 @@ jobs:
         if: steps.merge.outputs.success == 'true'
         run: git push origin ${{ env.TARGET_BRANCH }}
 
+      - name: Trigger build
+        if: steps.merge.outputs.success == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          gh workflow run "Build Complications Branch" --ref ${{ env.TARGET_BRANCH }}
+
       - name: Summary
         run: |
           echo "## Sync Result" >> $GITHUB_STEP_SUMMARY
