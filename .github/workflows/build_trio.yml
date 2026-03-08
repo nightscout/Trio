@@ -229,6 +229,23 @@ jobs:
       - name: Sync clock
         run: sudo sntp -sS time.windows.com
 
+      # Generate MealScanDevKeys.swift from secrets
+      - name: Generate MealScan Dev Keys
+        run: |
+          cat > Trio/Sources/Services/MealScan/MealScanDevKeys.swift << SWIFT
+          import Foundation
+
+          enum MealScanDevKeys {
+              static let fatSecretClientId = "${FATSECRET_CLIENT_ID}"
+              static let fatSecretClientSecret = "${FATSECRET_CLIENT_SECRET}"
+              static let claudeApiKey = "${CLAUDE_API_KEY}"
+          }
+          SWIFT
+        env:
+          FATSECRET_CLIENT_ID: ${{ secrets.FATSECRET_CLIENT_ID }}
+          FATSECRET_CLIENT_SECRET: ${{ secrets.FATSECRET_CLIENT_SECRET }}
+          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+
       # Build signed Trio IPA file
       - name: Fastlane Build & Archive
         run: bundle exec fastlane build_trio
