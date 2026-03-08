@@ -100,8 +100,10 @@
     </entity>
     <entity name="MealPresetStored" representedClassName="MealPresetStored" syncable="YES">
         <attribute name="carbs" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="customFoodNote" optional="YES" attributeType="String"/>
         <attribute name="dish" optional="YES" attributeType="String"/>
         <attribute name="fat" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="fatSecretFoodId" optional="YES" attributeType="String"/>
         <attribute name="protein" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
     </entity>
     <entity name="OpenAPS_Battery" representedClassName="OpenAPS_Battery" syncable="YES">

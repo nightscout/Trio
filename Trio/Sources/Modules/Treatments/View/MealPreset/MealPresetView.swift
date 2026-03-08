@@ -17,6 +17,7 @@ struct MealPresetView: View {
     @State private var presetCarbs: Decimal = 0
     @State private var presetFat: Decimal = 0
     @State private var presetProtein: Decimal = 0
+    @State private var customFoodNote: String = ""
 
     @State private var carbs: Decimal = 0
     @State private var fat: Decimal = 0
@@ -88,6 +89,7 @@ struct MealPresetView: View {
                     presetFat: $presetFat,
                     presetProtein: $presetProtein,
                     displayFatAndProtein: $state.useFPUconversion,
+                    customFoodNote: $customFoodNote,
                     onSave: savePreset,
                     onCancel: {
                         showAddNewPresetSheet.toggle()
@@ -274,6 +276,7 @@ struct MealPresetView: View {
         presetCarbs = 0
         presetFat = 0
         presetProtein = 0
+        customFoodNote = ""
     }
 
     private var minusButton: some View {
@@ -340,6 +343,9 @@ struct MealPresetView: View {
             if state.useFPUconversion {
                 preset.fat = presetFat as NSDecimalNumber
                 preset.protein = presetProtein as NSDecimalNumber
+            }
+            if !customFoodNote.isEmpty {
+                preset.customFoodNote = customFoodNote
             }
 
             do {

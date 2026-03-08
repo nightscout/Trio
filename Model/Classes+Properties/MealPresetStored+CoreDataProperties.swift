@@ -7,8 +7,10 @@ public extension MealPresetStored {
     }
 
     @NSManaged var carbs: NSDecimalNumber?
+    @NSManaged var customFoodNote: String?
     @NSManaged var dish: String?
     @NSManaged var fat: NSDecimalNumber?
+    @NSManaged var fatSecretFoodId: String?
     @NSManaged var protein: NSDecimalNumber?
 }
 

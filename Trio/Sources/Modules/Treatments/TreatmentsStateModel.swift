@@ -6,6 +6,7 @@ import LoopKit
 import Observation
 import SwiftUI
 import Swinject
+import UserNotifications
 
 extension Treatments {
     @Observable final class StateModel: BaseStateModel<Provider> {
@@ -87,6 +88,7 @@ extension Treatments {
         var fat: Decimal = 0
         var protein: Decimal = 0
         var note: String = ""
+        var mealSpeed: MealSpeed = .medium
 
         var date = Date()
         let defaultDate = Date()
@@ -712,7 +714,44 @@ extension Treatments.StateModel: DeterminationObserver, BolusFailureObserver {
             debug(.bolusState, "determinationDidUpdate fired")
             self.isAwaitingDeterminationResult = false
             if self.addButtonPressed {
+                self.schedulePreBolusTimerIfNeeded()
                 self.hideModal()
+            }
+        }
+    }
+
+    private func schedulePreBolusTimerIfNeeded() {
+        guard carbs > 0, note == MealScan.photoScanNote else { return }
+
+        let delayMinutes: Int
+        switch mealSpeed {
+        case .fast: delayMinutes = 15
+        case .medium: delayMinutes = 10
+        case .mixed: delayMinutes = 12
+        case .slow: return
+        }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Time to eat"
+        content.body = "Your pre-bolus window is up. Start your meal now."
+        content.sound = .default
+
+        let trigger = UNTimeIntervalNotificationTrigger(
+            timeInterval: TimeInterval(delayMinutes * 60),
+            repeats: false
+        )
+
+        let request = UNNotificationRequest(
+            identifier: "Trio.preBolusTimer",
+            content: content,
+            trigger: trigger
+        )
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error {
+                debug(.bolusState, "Failed to schedule pre-bolus timer: \(error.localizedDescription)")
+            } else {
+                debug(.bolusState, "Pre-bolus timer scheduled for \(delayMinutes) minutes")
             }
         }
     }

@@ -29,5 +29,7 @@ final class ServiceAssembly: Assembly {
             }
         }
         container.register(IOBService.self) { r in BaseIOBService(resolver: r) }
+        container.register(FatSecretService.self) { _ in BaseFatSecretService() }
+        container.register(ClaudeNutritionService.self) { _ in BaseClaudeNutritionService() }
     }
 }

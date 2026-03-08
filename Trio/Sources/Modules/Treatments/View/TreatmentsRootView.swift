@@ -25,6 +25,7 @@ extension Treatments {
         @State private var pushed: Bool = false
         @State private var debounce: DispatchWorkItem?
         @State private var showFatProteinOrderBanner = false
+        @State private var showMealScan = false
 
         private enum Config {
             static let dividerHeight: CGFloat = 2
@@ -122,6 +123,26 @@ extension Treatments {
         @ViewBuilder private func carbsTextField() -> some View {
             HStack {
                 Text("Carbs")
+                Button {
+                    showMealScan = true
+                } label: {
+                    Image(systemName: "camera.fill")
+                        .foregroundStyle(.blue)
+                }
+                .buttonStyle(.borderless)
+                .sheet(isPresented: $showMealScan) {
+                    MealScan.RootView(resolver: resolver, onConfirm: { totals in
+                        state.carbs = totals.carbs
+                        state.fat = totals.fat
+                        state.protein = totals.protein
+                        state.note = MealScan.photoScanNote
+                        state.mealSpeed = totals.speed
+                        if totals.superBolusRecommendation == .yes {
+                            state.useSuperBolus = true
+                        }
+                        handleDebouncedInput()
+                    })
+                }
                 Spacer()
                 TextFieldWithToolBar(
                     text: $state.carbs,
@@ -286,7 +307,7 @@ extension Treatments {
                                             }
                                         }
                                     }
-                                    if state.sweetMeals {
+                                    if state.sweetMeals || state.useSuperBolus {
                                         Toggle(isOn: $state.useSuperBolus) {
                                             Text("Super Bolus")
                                         }

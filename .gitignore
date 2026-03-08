@@ -80,3 +80,6 @@ fastlane/test_output
 fastlane/FastlaneRunner
 
 ConfigOverride.xcconfig
+
+# MealScan dev API keys
+MealScanDevKeys.swift

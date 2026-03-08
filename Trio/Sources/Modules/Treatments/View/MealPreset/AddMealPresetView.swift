@@ -9,6 +9,7 @@ struct AddMealPresetView: View {
     @Binding var presetFat: Decimal
     @Binding var presetProtein: Decimal
     @Binding var displayFatAndProtein: Bool
+    @Binding var customFoodNote: String
     var onSave: () -> Void
     var onCancel: () -> Void
 
@@ -46,6 +47,14 @@ struct AddMealPresetView: View {
                     if displayFatAndProtein {
                         proteinAndFat()
                     }
+                }
+                .listRowBackground(Color.chart)
+
+                Section {
+                    TextField("e.g. no rice, seaweed wraps only", text: $customFoodNote, axis: .vertical)
+                        .lineLimit(2...4)
+                } header: {
+                    Text("Note for AI Meal Advisor (optional)")
                 }
                 .listRowBackground(Color.chart)
 

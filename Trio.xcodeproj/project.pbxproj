@@ -23,6 +23,7 @@
 		118DF76E2C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7682C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift */; };
 		17A9D0899046B45E87834820 /* CarbRatioEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C8D5F457B5AFF763F8CF3DF /* CarbRatioEditorProvider.swift */; };
 		19012CDC291D2CB900FB8210 /* LoopStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19012CDB291D2CB900FB8210 /* LoopStats.swift */; };
+		190D4F8099FAB4E64068F9AE /* MealScanProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39844B328AEDCC84871009CF /* MealScanProvider.swift */; };
 		190EBCC429FF136900BA767D /* UserInterfaceSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190EBCC329FF136900BA767D /* UserInterfaceSettingsDataFlow.swift */; };
 		190EBCC629FF138000BA767D /* UserInterfaceSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190EBCC529FF138000BA767D /* UserInterfaceSettingsProvider.swift */; };
 		190EBCC829FF13AA00BA767D /* UserInterfaceSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190EBCC729FF13AA00BA767D /* UserInterfaceSettingsStateModel.swift */; };
@@ -56,6 +57,8 @@
 		1BBB001DAD60F3B8CEA4B1C7 /* ISFEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505E09DC17A0C3D0AF4B66FE /* ISFEditorStateModel.swift */; };
 		1D845DF2E3324130E1D95E67 /* HistoryProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60744C3E9BB3652895C908CC /* HistoryProvider.swift */; };
 		23888883D4EA091C88480FF2 /* TreatmentsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19984D62EFC0035A9E9644D /* TreatmentsProvider.swift */; };
+		2CF242E390669F8FFE5E29F0 /* MealScanStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC045F59C16F1161CB1E923 /* MealScanStateModel.swift */; };
+		2E82416FB3530BFA1DA6C36B /* FatSecretService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1A4D71BAD336F5928B9712 /* FatSecretService.swift */; };
 		3171D2818C7C72CD1584BB5E /* GlucoseNotificationSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC2C6489D29ECCCAD78E0721 /* GlucoseNotificationSettingsStateModel.swift */; };
 		320D030F724170A637F06D50 /* (null) in Sources */ = {isa = PBXBuildFile; };
 		3811DE0B25C9D32F00A708ED /* BaseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3811DE0725C9D32E00A708ED /* BaseView.swift */; };
@@ -201,6 +204,7 @@
 		38FEF3FC2737E53800574A46 /* MainStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF3FB2737E53800574A46 /* MainStateModel.swift */; };
 		38FEF3FE2738083E00574A46 /* CGMSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF3FD2738083E00574A46 /* CGMSettingsProvider.swift */; };
 		38FEF413273B317A00574A46 /* HKUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF412273B317A00574A46 /* HKUnit.swift */; };
+		39E643FFB76FAED104BF748A /* ClaudeNutritionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 088248DAAE3F9B9660C156A2 /* ClaudeNutritionService.swift */; };
 		3B0B4E6C2DE1439F005C6627 /* LockedResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B0B4E6B2DE1439A005C6627 /* LockedResolver.swift */; };
 		3B2F77862D7E52ED005ED9FA /* TDD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2F77852D7E52ED005ED9FA /* TDD.swift */; };
 		3B2F77882D7E5387005ED9FA /* CurrentTDDSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2F77872D7E5387005ED9FA /* CurrentTDDSetup.swift */; };
@@ -329,6 +333,8 @@
 		715120D22D3C2BB4005D9FB6 /* GlucoseNotificationsOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 715120D12D3C2B84005D9FB6 /* GlucoseNotificationsOption.swift */; };
 		71D44AAB2CA5F5EA0036EE9E /* AlertPermissionsChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71D44AAA2CA5F5EA0036EE9E /* AlertPermissionsChecker.swift */; };
 		72F1BD388F42FCA6C52E4500 /* ConfigEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44080E4709E3AE4B73054563 /* ConfigEditorProvider.swift */; };
+		73D74AFABEE4BD79705E7375 /* MealScanDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B8843A5B79BEBAED1697136 /* MealScanDataFlow.swift */; };
+		74FC4776BB3E86946E34FD6B /* MealChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66F748348FAA45DF89C887DE /* MealChatView.swift */; };
 		7BCFACB97C821041BA43A114 /* ManualTempBasalRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C377490C77661D75E8C50649 /* ManualTempBasalRootView.swift */; };
 		7F7B756BE8543965D9FDF1A2 /* HistoryDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A401509D21F7F35D4E109EDA /* HistoryDataFlow.swift */; };
 		8194B80890CDD6A3C13B0FEE /* SnoozeStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26904AACA8D9C15D229D675 /* SnoozeStateModel.swift */; };
@@ -411,6 +417,7 @@
 		BD8FC0622D6619E600B95AED /* OverrideStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0612D6619E600B95AED /* OverrideStorageTests.swift */; };
 		BD8FC0642D6619EF00B95AED /* TempTargetStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0632D6619EF00B95AED /* TempTargetStorageTests.swift */; };
 		BD8FC0662D661A0000B95AED /* GlucoseStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0652D661A0000B95AED /* GlucoseStorageTests.swift */; };
+		BD9C475B8C373F983E5DAAA2 /* MealScanWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC54D4D9D8B84E99492EB93 /* MealScanWidget.swift */; };
 		BDA25EE42D260CD500035F34 /* AppleWatchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25EE32D260CCF00035F34 /* AppleWatchManager.swift */; };
 		BDA25EE62D260D5E00035F34 /* WatchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25EE52D260D5800035F34 /* WatchState.swift */; };
 		BDA25EFD2D261C0000035F34 /* WatchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25EFC2D261BF200035F34 /* WatchState.swift */; };
@@ -517,8 +524,11 @@
 		CEE9A65C2BBB41C800EB5194 /* CalibrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9A65B2BBB41C800EB5194 /* CalibrationService.swift */; };
 		CEE9A65E2BBC9F6500EB5194 /* CalibrationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */; };
 		CEF1ED6B2D58FB5800FAF41E /* CGMOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF1ED6A2D58FB4600FAF41E /* CGMOptions.swift */; };
+		CF004748AB91DC9B391F4B89 /* CameraCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08114F8784D1B6289FF1764A /* CameraCaptureView.swift */; };
+		D6BE4CAABC7413D3CB9345A9 /* MealScanModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF64F61A012FC68A6EE5921 /* MealScanModels.swift */; };
 		D6D02515BBFBE64FEBE89856 /* HistoryRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 881E04BA5E0A003DE8E0A9C6 /* HistoryRootView.swift */; };
 		D6DEC113821A7F1056C4AA1E /* NightscoutConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2A13DF0EDEEEDC4106AA2A /* NightscoutConfigDataFlow.swift */; };
+		DABD45A0AC0C3F1E0AF3DD9F /* MealScanRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81494DA1A7D009D0F102E222 /* MealScanRootView.swift */; };
 		DBA5254DBB2586C98F61220C /* ISFEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F9F137F126D9F8DEB799F26 /* ISFEditorProvider.swift */; };
 		DD09D47B2C5986D1003FEA5D /* CalendarEventSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD09D47A2C5986D1003FEA5D /* CalendarEventSettingsDataFlow.swift */; };
 		DD09D47D2C5986DA003FEA5D /* CalendarEventSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD09D47C2C5986DA003FEA5D /* CalendarEventSettingsProvider.swift */; };
@@ -720,6 +730,7 @@
 		E592A3792CEEC038009A472C /* ContactImageRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3712CEEC038009A472C /* ContactImageRootView.swift */; };
 		E592A37A2CEEC038009A472C /* ContactImageProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3742CEEC038009A472C /* ContactImageProvider.swift */; };
 		E974172296125A5AE99E634C /* PumpConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AD22C985B79A2F0D2EA3D9D /* PumpConfigRootView.swift */; };
+		F55D4D1DB1E23006C73415CC /* MealScanDevKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B44B12AF615700CB19CD3B /* MealScanDevKeys.swift */; };
 		F5CA3DB1F9DC8B05792BBFAA /* CGMSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B5C0607505A38F256BF99A /* CGMSettingsDataFlow.swift */; };
 		F5F7E6C1B7F098F59EB67EC5 /* TargetsEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA49538D56989D8DA6FCF538 /* TargetsEditorDataFlow.swift */; };
 		F816825E28DB441200054060 /* HeartBeatManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F816825D28DB441200054060 /* HeartBeatManager.swift */; };
@@ -845,6 +856,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		08114F8784D1B6289FF1764A /* CameraCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CameraCaptureView.swift; path = Trio/Sources/Modules/MealScan/View/CameraCaptureView.swift; sourceTree = SOURCE_ROOT; };
+		088248DAAE3F9B9660C156A2 /* ClaudeNutritionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ClaudeNutritionService.swift; path = Trio/Sources/Services/MealScan/ClaudeNutritionService.swift; sourceTree = SOURCE_ROOT; };
+		0B8843A5B79BEBAED1697136 /* MealScanDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealScanDataFlow.swift; path = Trio/Sources/Modules/MealScan/MealScanDataFlow.swift; sourceTree = SOURCE_ROOT; };
 		110AEDE02C5193D100615CC9 /* BolusIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntent.swift; sourceTree = "<group>"; };
 		110AEDE12C5193D100615CC9 /* BolusIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntentRequest.swift; sourceTree = "<group>"; };
 		110AEDE52C51A0AE00615CC9 /* ShortcutsConfigView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigView.swift; sourceTree = "<group>"; };
@@ -888,6 +902,7 @@
 		19F95FF629F10FEE00314DDC /* StatStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatStateModel.swift; sourceTree = "<group>"; };
 		19F95FF929F1102A00314DDC /* StatRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatRootView.swift; sourceTree = "<group>"; };
 		1CAE81192B118804DCD23034 /* SnoozeProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeProvider.swift; sourceTree = "<group>"; };
+		1DC045F59C16F1161CB1E923 /* MealScanStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealScanStateModel.swift; path = Trio/Sources/Modules/MealScan/MealScanStateModel.swift; sourceTree = SOURCE_ROOT; };
 		223EC0494F55A91E3EA69EF4 /* TreatmentsStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TreatmentsStateModel.swift; sourceTree = "<group>"; };
 		22963BD06A9C83959D4914E4 /* GlucoseNotificationSettingsRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlucoseNotificationSettingsRootView.swift; sourceTree = "<group>"; };
 		2AD22C985B79A2F0D2EA3D9D /* PumpConfigRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigRootView.swift; sourceTree = "<group>"; };
@@ -1054,6 +1069,7 @@
 		38FEF3FB2737E53800574A46 /* MainStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainStateModel.swift; sourceTree = "<group>"; };
 		38FEF3FD2738083E00574A46 /* CGMSettingsProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGMSettingsProvider.swift; sourceTree = "<group>"; };
 		38FEF412273B317A00574A46 /* HKUnit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HKUnit.swift; sourceTree = "<group>"; };
+		39844B328AEDCC84871009CF /* MealScanProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealScanProvider.swift; path = Trio/Sources/Modules/MealScan/MealScanProvider.swift; sourceTree = SOURCE_ROOT; };
 		3B0B4E6B2DE1439A005C6627 /* LockedResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockedResolver.swift; sourceTree = "<group>"; };
 		3B2F77852D7E52ED005ED9FA /* TDD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDD.swift; sourceTree = "<group>"; };
 		3B2F77872D7E5387005ED9FA /* CurrentTDDSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentTDDSetup.swift; sourceTree = "<group>"; };
@@ -1094,6 +1110,7 @@
 		3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorDataFlow.swift; sourceTree = "<group>"; };
 		42369F66CF91F30624C0B3A6 /* BasalProfileEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorProvider.swift; sourceTree = "<group>"; };
 		44080E4709E3AE4B73054563 /* ConfigEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorProvider.swift; sourceTree = "<group>"; };
+		45B44B12AF615700CB19CD3B /* MealScanDevKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealScanDevKeys.swift; path = Trio/Sources/Services/MealScan/MealScanDevKeys.swift; sourceTree = SOURCE_ROOT; };
 		491D6FB92D56741C00C49F67 /* TempTargetRunStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetRunStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		491D6FBA2D56741C00C49F67 /* TempTargetRunStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetRunStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		491D6FBB2D56741C00C49F67 /* TempTargetStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetStored+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -1101,6 +1118,7 @@
 		49239B422EEA27AD00469145 /* TempTargetCalculations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetCalculations.swift; sourceTree = "<group>"; };
 		49B9B57E2D5768D2009C6B59 /* AdjustmentStored+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdjustmentStored+Helper.swift"; sourceTree = "<group>"; };
 		4DD795BA46B193644D48138C /* TargetsEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorRootView.swift; sourceTree = "<group>"; };
+		4EC54D4D9D8B84E99492EB93 /* MealScanWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealScanWidget.swift; path = LiveActivity/MealScanWidget.swift; sourceTree = SOURCE_ROOT; };
 		505E09DC17A0C3D0AF4B66FE /* ISFEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorStateModel.swift; sourceTree = "<group>"; };
 		581516A32BCED84A00BF67D7 /* DebuggingIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggingIdentifiers.swift; sourceTree = "<group>"; };
 		581516A82BCEEDF800BF67D7 /* NSPredicates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSPredicates.swift; sourceTree = "<group>"; };
@@ -1143,8 +1161,10 @@
 		60744C3E9BB3652895C908CC /* HistoryProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HistoryProvider.swift; sourceTree = "<group>"; };
 		64AA5E04A2761F6EEA6568E1 /* CarbRatioEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarbRatioEditorStateModel.swift; sourceTree = "<group>"; };
 		65070A322BFDCB83006F213F /* TidepoolStartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TidepoolStartView.swift; sourceTree = "<group>"; };
+		66F748348FAA45DF89C887DE /* MealChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealChatView.swift; path = Trio/Sources/Modules/MealScan/View/MealChatView.swift; sourceTree = SOURCE_ROOT; };
 		67F94DD2853CF42BA4E30616 /* BasalProfileEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorDataFlow.swift; sourceTree = "<group>"; };
 		680C4420C9A345D46D90D06C /* ManualTempBasalProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualTempBasalProvider.swift; sourceTree = "<group>"; };
+		6A1A4D71BAD336F5928B9712 /* FatSecretService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FatSecretService.swift; path = Trio/Sources/Services/MealScan/FatSecretService.swift; sourceTree = SOURCE_ROOT; };
 		6B1A8D012B14D88B00E76752 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
 		6B1A8D172B14D91600E76752 /* LiveActivityExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiveActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		6B1A8D182B14D91600E76752 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
@@ -1158,7 +1178,9 @@
 		715120D12D3C2B84005D9FB6 /* GlucoseNotificationsOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseNotificationsOption.swift; sourceTree = "<group>"; };
 		71D44AAA2CA5F5EA0036EE9E /* AlertPermissionsChecker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlertPermissionsChecker.swift; sourceTree = "<group>"; };
 		79BDA519C9B890FD9A5DFCF3 /* ISFEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorDataFlow.swift; sourceTree = "<group>"; };
+		7CF64F61A012FC68A6EE5921 /* MealScanModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealScanModels.swift; path = Trio/Sources/Models/MealScanModels.swift; sourceTree = SOURCE_ROOT; };
 		7E22146D3DF4853786C78132 /* CarbRatioEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarbRatioEditorDataFlow.swift; sourceTree = "<group>"; };
+		81494DA1A7D009D0F102E222 /* MealScanRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealScanRootView.swift; path = Trio/Sources/Modules/MealScan/View/MealScanRootView.swift; sourceTree = SOURCE_ROOT; };
 		8782B44544F38F2B2D82C38E /* NightscoutConfigRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NightscoutConfigRootView.swift; sourceTree = "<group>"; };
 		881E04BA5E0A003DE8E0A9C6 /* HistoryRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HistoryRootView.swift; sourceTree = "<group>"; };
 		8A9134292D63D9A1007F8874 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
@@ -2329,6 +2351,17 @@
 				BDFF7AA02D25FAA80016C40C /* Trio Watch App Tests */,
 				DD09D6492D2B6253000D82C9 /* Trio Watch Complication */,
 				38FCF3EE25E9028E0078B0D1 /* TrioTests */,
+				7CF64F61A012FC68A6EE5921 /* MealScanModels.swift */,
+				45B44B12AF615700CB19CD3B /* MealScanDevKeys.swift */,
+				6A1A4D71BAD336F5928B9712 /* FatSecretService.swift */,
+				088248DAAE3F9B9660C156A2 /* ClaudeNutritionService.swift */,
+				0B8843A5B79BEBAED1697136 /* MealScanDataFlow.swift */,
+				39844B328AEDCC84871009CF /* MealScanProvider.swift */,
+				1DC045F59C16F1161CB1E923 /* MealScanStateModel.swift */,
+				08114F8784D1B6289FF1764A /* CameraCaptureView.swift */,
+				66F748348FAA45DF89C887DE /* MealChatView.swift */,
+				81494DA1A7D009D0F102E222 /* MealScanRootView.swift */,
+				4EC54D4D9D8B84E99492EB93 /* MealScanWidget.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -4737,6 +4770,16 @@
 				8194B80890CDD6A3C13B0FEE /* SnoozeStateModel.swift in Sources */,
 				BDA25EE42D260CD500035F34 /* AppleWatchManager.swift in Sources */,
 				0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */,
+				D6BE4CAABC7413D3CB9345A9 /* MealScanModels.swift in Sources */,
+				F55D4D1DB1E23006C73415CC /* MealScanDevKeys.swift in Sources */,
+				2E82416FB3530BFA1DA6C36B /* FatSecretService.swift in Sources */,
+				39E643FFB76FAED104BF748A /* ClaudeNutritionService.swift in Sources */,
+				73D74AFABEE4BD79705E7375 /* MealScanDataFlow.swift in Sources */,
+				190D4F8099FAB4E64068F9AE /* MealScanProvider.swift in Sources */,
+				2CF242E390669F8FFE5E29F0 /* MealScanStateModel.swift in Sources */,
+				CF004748AB91DC9B391F4B89 /* CameraCaptureView.swift in Sources */,
+				74FC4776BB3E86946E34FD6B /* MealChatView.swift in Sources */,
+				DABD45A0AC0C3F1E0AF3DD9F /* MealScanRootView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4770,6 +4813,7 @@
 				DDCEBF5B2CC1B76400DF4C36 /* LiveActivity+Helper.swift in Sources */,
 				6B1A8D1E2B14D91600E76752 /* LiveActivityBundle.swift in Sources */,
 				6B1A8D202B14D91600E76752 /* LiveActivity.swift in Sources */,
+				BD9C475B8C373F983E5DAAA2 /* MealScanWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4992,7 +5036,7 @@
 				CODE_SIGN_ENTITLEMENTS = Trio/Resources/Trio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = $APP_BUILD_NUMBER;
+				CURRENT_PROJECT_VERSION = "$APP_BUILD_NUMBER";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPER_TEAM = "$(DEVELOPER_TEAM)";
 				DEVELOPMENT_ASSET_PATHS = "";
@@ -5007,6 +5051,11 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/swift",
+					"$(SRCROOT)/Trio/Sources/Models",
+					"$(SRCROOT)/Trio/Sources/Services/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan/View",
+					"$(SRCROOT)/LiveActivity",
 				);
 				MARKETING_VERSION = "$(APP_VERSION)";
 				OTHER_LDFLAGS = (
@@ -5038,7 +5087,7 @@
 				CODE_SIGN_ENTITLEMENTS = Trio/Resources/Trio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = $APP_BUILD_NUMBER;
+				CURRENT_PROJECT_VERSION = "$APP_BUILD_NUMBER";
 				DEVELOPER_TEAM = "$(DEVELOPER_TEAM)";
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
@@ -5052,6 +5101,11 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/swift",
+					"$(SRCROOT)/Trio/Sources/Models",
+					"$(SRCROOT)/Trio/Sources/Services/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan/View",
+					"$(SRCROOT)/LiveActivity",
 				);
 				MARKETING_VERSION = "$(APP_VERSION)";
 				OTHER_LDFLAGS = (
@@ -5084,6 +5138,13 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/Trio/Sources/Models",
+					"$(SRCROOT)/Trio/Sources/Services/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan/View",
+					"$(SRCROOT)/LiveActivity",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER).TrioTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -5104,6 +5165,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/Trio/Sources/Models",
+					"$(SRCROOT)/Trio/Sources/Services/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan/View",
+					"$(SRCROOT)/LiveActivity",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER).TrioTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5134,6 +5202,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/Trio/Sources/Models",
+					"$(SRCROOT)/Trio/Sources/Services/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan/View",
+					"$(SRCROOT)/LiveActivity",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = "$(APP_VERSION)";
@@ -5169,6 +5244,13 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/Trio/Sources/Models",
+					"$(SRCROOT)/Trio/Sources/Services/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan/View",
+					"$(SRCROOT)/LiveActivity",
+				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = "$(APP_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER).LiveActivity";
@@ -5202,6 +5284,13 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 					"@executable_path/../../../../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/Trio/Sources/Models",
+					"$(SRCROOT)/Trio/Sources/Services/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan/View",
+					"$(SRCROOT)/LiveActivity",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = "$(APP_VERSION)";
@@ -5240,6 +5329,13 @@
 					"@executable_path/../../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/Trio/Sources/Models",
+					"$(SRCROOT)/Trio/Sources/Services/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan/View",
+					"$(SRCROOT)/LiveActivity",
+				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = "$(APP_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER).watchkitapp.TrioWatchComplication";
@@ -5275,6 +5371,13 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/Trio/Sources/Models",
+					"$(SRCROOT)/Trio/Sources/Services/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan/View",
+					"$(SRCROOT)/LiveActivity",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = "$(APP_VERSION)";
@@ -5313,6 +5416,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/Trio/Sources/Models",
+					"$(SRCROOT)/Trio/Sources/Services/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan/View",
+					"$(SRCROOT)/LiveActivity",
+				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = "$(APP_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER).watchkitapp";
@@ -5338,6 +5448,13 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/Trio/Sources/Models",
+					"$(SRCROOT)/Trio/Sources/Services/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan/View",
+					"$(SRCROOT)/LiveActivity",
+				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = "$(APP_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER).TrioWatchAppTests";
@@ -5364,6 +5481,13 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/Trio/Sources/Models",
+					"$(SRCROOT)/Trio/Sources/Services/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan",
+					"$(SRCROOT)/Trio/Sources/Modules/MealScan/View",
+					"$(SRCROOT)/LiveActivity",
+				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = "$(APP_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER).TrioWatchAppTests";
