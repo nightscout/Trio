@@ -1,4 +1,4 @@
-name: Sync Complications Branch from Upstream
+name: Sync Fork from Upstream
 
 on:
   schedule:
@@ -14,7 +14,7 @@ on:
 env:
   UPSTREAM_REPO: nightscout/Trio
   UPSTREAM_BRANCH: ${{ github.event.inputs.upstream_branch || 'dev' }}
-  TARGET_BRANCH: claude/add-watch-complications-Mnd9b
+  TARGET_BRANCH: main
 
 jobs:
   sync:
