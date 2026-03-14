@@ -51,9 +51,10 @@ final class BGResidualCalculator {
     private(set) var history: [ResidualEntry] = []
     private var smoothedResidualRate: Double?
 
-    /// The reference BG at the start of residual tracking (or last reset point)
-    private var referenceBG: Double?
-    private var referenceTimestamp: Date?
+    /// Previous reading state for rolling delta calculation
+    private var previousBG: Double?
+    private var previousIOB: Double?
+    private var previousTimestamp: Date?
 
     init(config: Config = Config()) {
         self.config = config
@@ -82,26 +83,24 @@ final class BGResidualCalculator {
     ) -> ResidualEntry {
         let effectiveISF = max(isf, config.minISF)
 
-        // Expected BG: current BG should be moving toward target based on IOB
-        // The expected BG delta from IOB is: -IOB * ISF (negative because insulin lowers BG)
-        // We track the cumulative expected change from a reference point
+        // Rolling 5-minute delta approach:
+        // The insulin that "disappeared" between readings (previousIOB - currentIOB) is
+        // the insulin that actually acted on BG during this interval.
+        // expectedBG = previousBG - (previousIOB - currentIOB) * ISF
+        // residual = actualBG - expectedBG (positive = unexplained rise, e.g. carbs)
         let expectedBG: Double
-        if let refBG = referenceBG, let refTime = referenceTimestamp {
-            // Expected BG = reference BG - (IOB effect since reference)
-            // Simplified: at any point, IOB * ISF tells us how much BG *will* drop from current active insulin
-            // So expected BG trajectory without carbs = current_BG + IOB_change * ISF
-            // But we want: what would BG be if only insulin were acting?
-            // expectedBG = referenceBG - accumulated_insulin_effect
-            // For the 5-min window approach: expectedBG = previousBG - (insulin_activity * ISF * dt)
-            // Using IOB directly: the expected BG given IOB = last_known_BG_without_carbs - IOB * ISF
-            _ = refTime // used for future time-decay modeling
-            expectedBG = refBG - iob * effectiveISF
+        if let prevBG = previousBG, let prevIOB = previousIOB {
+            let iobConsumed = prevIOB - iob  // insulin that acted this interval
+            expectedBG = prevBG - iobConsumed * effectiveISF
         } else {
-            // First reading: set reference and assume no residual
-            referenceBG = filteredBG
-            referenceTimestamp = timestamp
+            // First reading: no previous data, assume no residual
             expectedBG = filteredBG
         }
+
+        // Update previous state for next iteration
+        previousBG = filteredBG
+        previousIOB = iob
+        previousTimestamp = timestamp
 
         // Calculate residual rate from previous entry
         var residualRate: Double?
@@ -152,16 +151,17 @@ final class BGResidualCalculator {
 
     /// Reset reference point (e.g. after meal is fully absorbed, or when residual returns to ~0)
     func resetReference(bg: Double, at timestamp: Date) {
-        referenceBG = bg
-        referenceTimestamp = timestamp
+        previousBG = bg
+        previousTimestamp = timestamp
         smoothedResidualRate = nil
     }
 
     /// Reset all state
     func reset() {
         history.removeAll()
-        referenceBG = nil
-        referenceTimestamp = nil
+        previousBG = nil
+        previousIOB = nil
+        previousTimestamp = nil
         smoothedResidualRate = nil
     }
 
