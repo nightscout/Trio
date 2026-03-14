@@ -439,9 +439,12 @@ final class OpenAPS {
                 let durationMinutes = trioSettings.toughMealDuration * 60 // hours to minutes
                 let elapsedMinutes = Decimal(Date().timeIntervalSince(activationDate) / 60.0)
                 let remaining = durationMinutes - elapsedMinutes
-                if remaining > 0 {
+                // Hard safety: 6-hour maximum for SMB enhancements regardless of configured duration
+                let maxEnhancementMinutes: Decimal = 360
+                let cappedRemaining = min(remaining, maxEnhancementMinutes - elapsedMinutes)
+                if cappedRemaining > 0 {
                     toughMealActive = true
-                    toughMealMinutesRemaining = remaining
+                    toughMealMinutesRemaining = cappedRemaining
                 }
             }
 
@@ -468,7 +471,12 @@ final class OpenAPS {
                 smbMinutes: activeOverrides.first?.smbMinutes?.decimalValue ?? maxSMBBasalMinutes,
                 uamMinutes: activeOverrides.first?.uamMinutes?.decimalValue ?? maxUAMBasalMinutes,
                 toughMealActive: toughMealActive,
-                toughMealMinutesRemaining: toughMealMinutesRemaining
+                toughMealMinutesRemaining: toughMealMinutesRemaining,
+                toughMealStartingBG: trioSettings.toughMealStartingBG,
+                toughMealIOBAtDose: trioSettings.toughMealIOBAtDose,
+                toughMealFatPlusProtein: trioSettings.toughMealFatPlusProtein,
+                toughMealAutoDetected: trioSettings.toughMealAutoDetected,
+                toughMealGateReason: trioSettings.toughMealGateReason
             )
 
             // Save and return contents of Trio's custom oref variables

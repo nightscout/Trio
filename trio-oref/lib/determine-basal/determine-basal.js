@@ -188,18 +188,33 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
     // Tough Meal: compute effective autosens_max and log status
     var effective_autosens_max = profile.autosens_max;
-    // Only activate tough meal adjustments when BG is not dropping fast
+    // Only activate tough meal adjustments when safety conditions are met
     var toughMealSMBActive = false;
     if (toughMealActive && toughMealMinutesRemaining > 0) {
         var bgTrend = glucose_status.delta;
-        var bgDropping = bgTrend < -5; // more than 5 mg/dL drop in 5 minutes
-        if (!bgDropping) {
+        // Safety: suspend enhancements if BG is dropping (delta < -1 mg/dL/5min, i.e. FortyFiveDown or faster)
+        var bgDropping = bgTrend < -1;
+        // Safety: BG floor — no enhancements below 120 mg/dL
+        var bgBelowFloor = glucose_status.glucose < 120;
+        // Safety: IOB headroom — only enhance when IOB has room (< 75% of maxIOB)
+        var iobHeadroom = iob_data.iob < profile.max_iob * 0.75;
+        // Meal context: COB > 0 or recent bolus (within 4 hours)
+        var lastBolusAgeInit = round(( new Date(systemTime).getTime() - iob_data.lastBolusTime ) / 60000, 1);
+        var hasMealContext = (meal_data.mealCOB > 0) || (lastBolusAgeInit < 240);
+
+        if (bgBelowFloor) {
+            console.log("Tough Meal active but BG below 120 floor (BG=" + glucose_status.glucose + "). All enhancements suspended.");
+        } else if (bgDropping) {
+            console.log("Tough Meal active but BG dropping (delta=" + round(bgTrend,1) + "). Enhancements suspended.");
+        } else if (!iobHeadroom) {
+            console.log("Tough Meal active but IOB at " + round(iob_data.iob,2) + "u (>= 75% of maxIOB " + profile.max_iob + "). Enhancements suspended.");
+        } else if (!hasMealContext) {
+            console.log("Tough Meal active but no meal context (COB=0, last bolus " + round(lastBolusAgeInit,0) + " min ago). Enhancements suspended.");
+        } else {
             // Raise sensitivity ratio cap from default (1.2) to 1.4
             effective_autosens_max = Math.max(profile.autosens_max, 1.4);
             toughMealSMBActive = true;
-            console.log("Tough Meal active (" + round(toughMealMinutesRemaining, 0) + " min remaining). Autosens max raised to " + effective_autosens_max);
-        } else {
-            console.log("Tough Meal active but BG dropping (delta=" + round(bgTrend,1) + "). Reverting to normal limits.");
+            console.log("Tough Meal active (" + round(toughMealMinutesRemaining, 0) + " min remaining). Autosens max raised to " + effective_autosens_max + ". BG=" + glucose_status.glucose + ", IOB=" + round(iob_data.iob,2) + ", COB=" + meal_data.mealCOB);
         }
     }
 
@@ -1556,14 +1571,15 @@ var maxDelta_bg_threshold;
                 } else { console.error("SMB is not limited by maxSMBBasalMinutes. ( insulinReq: " + insulinReq + "U )"); }
             }
             // Tough Meal: progressively raise SMB cap based on current BG
+            // Safety: only when BG > target, not dropping, IOB has headroom, and meal context exists
             if (toughMealSMBActive && BG > 150) {
                 var toughMealMultiplier = 1.0;
                 if (BG > 250) {
-                    toughMealMultiplier = 3.0;
-                } else if (BG > 200) {
                     toughMealMultiplier = 2.5;
-                } else if (BG > 150) {
+                } else if (BG > 200) {
                     toughMealMultiplier = 2.0;
+                } else if (BG > 150) {
+                    toughMealMultiplier = 1.5;
                 }
                 var originalMaxBolus = maxBolus;
                 maxBolus = round(maxBolus * toughMealMultiplier, 1);
@@ -1580,6 +1596,11 @@ var maxDelta_bg_threshold;
                 console.error("SMB Delivery Ratio changed from default 0.5 to " + round(smb_ratio,2))
             }
             var microBolus = Math.min(insulinReq*smb_ratio, maxBolus);
+            // Tough Meal safety: never exceed 75% of calculated insulin requirement
+            if (toughMealSMBActive && microBolus > insulinReq * 0.75) {
+                microBolus = round(insulinReq * 0.75, 2);
+                console.error("Tough Meal: microBolus capped at 75% of insulinReq (" + round(insulinReq,2) + "U) = " + round(microBolus,2) + "U");
+            }
 
             microBolus = Math.floor(microBolus*roundSMBTo)/roundSMBTo;
             // calculate a long enough zero temp to eventually correct back up to target

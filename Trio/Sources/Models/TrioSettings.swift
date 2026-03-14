@@ -69,6 +69,11 @@ struct TrioSettings: JSON, Equatable {
     var toughMeals: Bool = false
     var toughMealDuration: Decimal = 7 // hours
     var toughMealActivationDate: Date? = nil
+    var toughMealStartingBG: Decimal = 0
+    var toughMealIOBAtDose: Decimal = 0
+    var toughMealFatPlusProtein: Decimal = 0
+    var toughMealAutoDetected: Bool = false
+    var toughMealGateReason: String = ""
     var displayPresets: Bool = true
     var confirmBolus: Bool = false
     var useLiveActivity: Bool = false
@@ -187,6 +192,26 @@ extension TrioSettings: Decodable {
 
         if let toughMealActivationDate = try? container.decode(Date.self, forKey: .toughMealActivationDate) {
             settings.toughMealActivationDate = toughMealActivationDate
+        }
+
+        if let toughMealStartingBG = try? container.decode(Decimal.self, forKey: .toughMealStartingBG) {
+            settings.toughMealStartingBG = toughMealStartingBG
+        }
+
+        if let toughMealIOBAtDose = try? container.decode(Decimal.self, forKey: .toughMealIOBAtDose) {
+            settings.toughMealIOBAtDose = toughMealIOBAtDose
+        }
+
+        if let toughMealFatPlusProtein = try? container.decode(Decimal.self, forKey: .toughMealFatPlusProtein) {
+            settings.toughMealFatPlusProtein = toughMealFatPlusProtein
+        }
+
+        if let toughMealAutoDetected = try? container.decode(Bool.self, forKey: .toughMealAutoDetected) {
+            settings.toughMealAutoDetected = toughMealAutoDetected
+        }
+
+        if let toughMealGateReason = try? container.decode(String.self, forKey: .toughMealGateReason) {
+            settings.toughMealGateReason = toughMealGateReason
         }
 
         if let overrideFactor = try? container.decode(Decimal.self, forKey: .overrideFactor) {

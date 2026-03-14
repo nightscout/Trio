@@ -101,6 +101,9 @@ extension Treatments {
                         unitsText: String(localized: "g", comment: "Units for carbs")
                     )
                     .focused($focusedField, equals: .protein)
+                    .onChange(of: state.protein) {
+                        state.evaluateToughMealAutoSuggestion()
+                    }
                 }
 
                 Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
@@ -118,6 +121,9 @@ extension Treatments {
                         unitsText: String(localized: "g", comment: "Units for carbs")
                     )
                     .focused($focusedField, equals: .fat)
+                    .onChange(of: state.fat) {
+                        state.evaluateToughMealAutoSuggestion()
+                    }
                 }
             }
         }
@@ -141,6 +147,7 @@ extension Treatments {
                     .focused($focusedField, equals: .carbs)
                     .onChange(of: state.carbs) {
                         handleDebouncedInput()
+                        state.evaluateToughMealAutoSuggestion()
                     }
                 }
 
@@ -357,6 +364,68 @@ extension Treatments {
                         }.listRowBackground(Color.chart)
 
                         Section {
+                            // Tough Meal auto-suggestion banner
+                            if state.toughMeals, state.toughMealAutoSuggested, !state.useToughMeal {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundStyle(.orange)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("High fat & protein meal detected")
+                                            .font(.footnote.bold())
+                                        Text(
+                                            "This meal has \(NSDecimalNumber(decimal: state.fat + state.protein))g combined fat & protein. Enable Tough Meal for extended coverage?"
+                                        )
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    Button("Enable") {
+                                        state.useToughMeal = true
+                                        state.evaluateToughMealGates()
+                                    }
+                                    .font(.footnote.bold())
+                                    .buttonStyle(.borderedProminent)
+                                    .tint(.orange)
+                                }
+                                .padding(.vertical, 4)
+                            }
+
+                            // Tough Meal high BG warning
+                            if state.toughMealHighBGWarning {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundStyle(.red)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("High Starting BG")
+                                            .font(.footnote.bold())
+                                        Text(
+                                            "BG is \(NSDecimalNumber(decimal: state.currentBG)) mg/dL. Consider a correction first. Tough Meal works best when starting in range."
+                                        )
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                    }
+                                }
+                                .padding(.vertical, 4)
+                            }
+
+                            // Tough Meal high IOB warning
+                            if state.toughMealHighIOBWarning {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "info.circle.fill")
+                                        .foregroundStyle(.yellow)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Active Insulin Present")
+                                            .font(.footnote.bold())
+                                        Text(
+                                            "IOB is \(NSDecimalNumber(decimal: state.iob))u. Enhanced delivery will activate once active insulin decreases."
+                                        )
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                    }
+                                }
+                                .padding(.vertical, 4)
+                            }
+
                             if state.fattyMeals || state.sweetMeals || state.toughMeals {
                                 HStack(spacing: 10) {
                                     if state.fattyMeals {
@@ -395,6 +464,9 @@ extension Treatments {
                                         }
                                         .toggleStyle(RadioButtonToggleStyle())
                                         .font(.footnote)
+                                        .onChange(of: state.useToughMeal) {
+                                            state.evaluateToughMealGates()
+                                        }
                                     }
                                 }
                             }
