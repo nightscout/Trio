@@ -488,10 +488,15 @@ final class BaseAPSManager: APSManager, Injectable {
 
             // Run signal pipeline (Phase 1: compute and log, no dosing changes)
             if let determination = determination, let bg = determination.bg {
+                // Read insulin activity from oref IOB data (captures ALL delivery:
+                // basals, temps, boluses, SMBs, corrections, external insulin)
+                let activity: Double? = storage.retrieve(OpenAPS.Monitor.iob, as: [IOBEntry].self)?
+                    .first.map { Double(truncating: $0.activity as NSNumber) }
+
                 signalPipeline.processGlucose(
                     rawBG: Double(truncating: bg as NSNumber),
                     at: now,
-                    iob: determination.iob.map { Double(truncating: $0 as NSNumber) },
+                    activity: activity,
                     isf: determination.isf.map { Double(truncating: $0 as NSNumber) },
                     cr: determination.carbRatio.map { Double(truncating: $0 as NSNumber) }
                 )

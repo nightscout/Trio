@@ -14,7 +14,7 @@ protocol OrefSignalPipeline {
     func processGlucose(
         rawBG: Double,
         at timestamp: Date,
-        iob: Double?,
+        activity: Double?,
         isf: Double?,
         cr: Double?
     ) -> OrefSignalOutput
@@ -95,19 +95,19 @@ final class BaseOrefSignalPipeline: OrefSignalPipeline, Injectable {
     func processGlucose(
         rawBG: Double,
         at timestamp: Date,
-        iob: Double?,
+        activity: Double?,
         isf: Double?,
         cr: Double?
     ) -> OrefSignalOutput {
         // Step 1: Run through Kalman filter + meal detection
         let signalOutput = signalProcessor.processReading(glucose: rawBG, at: timestamp)
 
-        // Step 2: Calculate residual if IOB data is available
+        // Step 2: Calculate residual if insulin activity data is available
         var residualEntry: BGResidualCalculator.ResidualEntry?
-        if let iob = iob, let isf = isf {
+        if let activity = activity, let isf = isf {
             residualEntry = residualCalculator.update(
                 filteredBG: signalOutput.filter.bg,
-                iob: iob,
+                activity: activity,
                 isf: isf,
                 cr: cr,
                 timestamp: timestamp

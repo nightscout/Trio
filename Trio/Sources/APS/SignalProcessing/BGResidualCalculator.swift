@@ -5,6 +5,11 @@ import Foundation
 ///
 /// Residual(t) = BG_actual(t) - BG_expected(t)
 ///
+/// Uses oref's `activity` field from the IOB calculation, which represents the
+/// instantaneous rate of insulin action derived from complete pump history.
+/// This captures ALL insulin delivery: scheduled basals, temp basals, SMBs,
+/// manual boluses, corrections, and external insulin.
+///
 /// A positive and growing residual indicates carbohydrate absorption (or other
 /// BG-raising factors) that are not explained by the insulin model.
 ///
@@ -32,7 +37,7 @@ final class BGResidualCalculator {
         /// Actual BG from CGM (Kalman-filtered)
         let actualBG: Double
 
-        /// Expected BG from IOB model alone
+        /// Expected BG from insulin activity model alone
         let expectedBG: Double
 
         /// Residual = actual - expected
@@ -51,9 +56,8 @@ final class BGResidualCalculator {
     private(set) var history: [ResidualEntry] = []
     private var smoothedResidualRate: Double?
 
-    /// Previous reading state for rolling delta calculation
+    /// Previous reading state for rolling calculation
     private var previousBG: Double?
-    private var previousIOB: Double?
     private var previousTimestamp: Date?
 
     init(config: Config = Config()) {
@@ -62,36 +66,39 @@ final class BGResidualCalculator {
 
     // MARK: - Public API
 
-    /// Update the residual calculation with a new Kalman-filtered BG reading and current IOB data.
+    /// Update the residual calculation with a new Kalman-filtered BG reading and current insulin activity.
     ///
     /// - Parameters:
     ///   - filteredBG: Kalman-filtered BG (mg/dL)
-    ///   - iob: Current insulin on board (units)
+    ///   - activity: Insulin activity from oref IOB calculation (units/5min). This is the rate at
+    ///     which insulin is acting on BG, derived from complete pump history including all delivery
+    ///     types (basals, temps, boluses, SMBs, external insulin).
     ///   - isf: Current insulin sensitivity factor (mg/dL per unit)
     ///   - cr: Current carb ratio (grams per unit), optional
-    ///   - basalRate: Current basal rate (units/hr)
     ///   - timestamp: Time of reading
     /// - Returns: The residual entry for this reading
     @discardableResult
     func update(
         filteredBG: Double,
-        iob: Double,
+        activity: Double,
         isf: Double,
         cr: Double? = nil,
-        basalRate: Double = 0,
         timestamp: Date
     ) -> ResidualEntry {
         let effectiveISF = max(isf, config.minISF)
 
-        // Rolling 5-minute delta approach:
-        // The insulin that "disappeared" between readings (previousIOB - currentIOB) is
-        // the insulin that actually acted on BG during this interval.
-        // expectedBG = previousBG - (previousIOB - currentIOB) * ISF
+        // Activity-based approach:
+        // oref's `activity` (units/5min) represents the insulin being consumed right now,
+        // derived from ALL pump history (basals, temps, boluses, SMBs, external insulin).
+        // Expected BG change = -activity * ISF (insulin lowers BG)
+        // expectedBG = previousBG - activity * ISF
         // residual = actualBG - expectedBG (positive = unexplained rise, e.g. carbs)
         let expectedBG: Double
-        if let prevBG = previousBG, let prevIOB = previousIOB {
-            let iobConsumed = prevIOB - iob  // insulin that acted this interval
-            expectedBG = prevBG - iobConsumed * effectiveISF
+        if let prevBG = previousBG, let prevTime = previousTimestamp {
+            // Scale activity by actual interval vs the 5-min convention
+            let dtMinutes = timestamp.timeIntervalSince(prevTime) / 60.0
+            let scaledActivity = activity * (dtMinutes / 5.0)
+            expectedBG = prevBG - scaledActivity * effectiveISF
         } else {
             // First reading: no previous data, assume no residual
             expectedBG = filteredBG
@@ -99,7 +106,6 @@ final class BGResidualCalculator {
 
         // Update previous state for next iteration
         previousBG = filteredBG
-        previousIOB = iob
         previousTimestamp = timestamp
 
         // Calculate residual rate from previous entry
@@ -160,7 +166,6 @@ final class BGResidualCalculator {
     func reset() {
         history.removeAll()
         previousBG = nil
-        previousIOB = nil
         previousTimestamp = nil
         smoothedResidualRate = nil
     }
