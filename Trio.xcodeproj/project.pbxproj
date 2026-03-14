@@ -770,6 +770,12 @@
 		BB10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift */; };
 		BB10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift */; };
 		BB1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift */; };
+		SP000001000000000000002 /* AdaptiveKalmanFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000001000000000000001 /* AdaptiveKalmanFilter.swift */; };
+		SP000003000000000000002 /* BGResidualCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000003000000000000001 /* BGResidualCalculator.swift */; };
+		SP000002000000000000002 /* BGSignalProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000002000000000000001 /* BGSignalProcessor.swift */; };
+		SP000004000000000000002 /* GarminZScoreNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000004000000000000001 /* GarminZScoreNormalizer.swift */; };
+		SP000006000000000000002 /* OrefSignalPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000006000000000000001 /* OrefSignalPipeline.swift */; };
+		SP000005000000000000002 /* SignalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000005000000000000001 /* SignalStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1638,6 +1644,12 @@
 		AA10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseSettingsView.swift; sourceTree = "<group>"; };
 		AA10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminFirestoreStatusView.swift; sourceTree = "<group>"; };
 		AA1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseSummaryView.swift; sourceTree = "<group>"; };
+		SP000001000000000000001 /* AdaptiveKalmanFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveKalmanFilter.swift; sourceTree = "<group>"; };
+		SP000003000000000000001 /* BGResidualCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BGResidualCalculator.swift; sourceTree = "<group>"; };
+		SP000002000000000000001 /* BGSignalProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BGSignalProcessor.swift; sourceTree = "<group>"; };
+		SP000004000000000000001 /* GarminZScoreNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminZScoreNormalizer.swift; sourceTree = "<group>"; };
+		SP000006000000000000001 /* OrefSignalPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrefSignalPipeline.swift; sourceTree = "<group>"; };
+		SP000005000000000000001 /* SignalStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -2281,6 +2293,7 @@
 				3856933F270B57A00002C50D /* CGM */,
 				38A504F625DDA0E200C5B9E8 /* Extensions */,
 				388E5A5825B6F0070019842D /* OpenAPS */,
+				SP000000000000000000003 /* SignalProcessing */,
 				38A0362725ECF05300FCBB52 /* Storage */,
 			);
 			path = APS;
@@ -2471,6 +2484,19 @@
 				3821ED4B25DD18BA00BC42AD /* Constants.swift */,
 			);
 			path = OpenAPS;
+			sourceTree = "<group>";
+		};
+		SP000000000000000000003 /* SignalProcessing */ = {
+			isa = PBXGroup;
+			children = (
+				SP000001000000000000001 /* AdaptiveKalmanFilter.swift */,
+				SP000003000000000000001 /* BGResidualCalculator.swift */,
+				SP000002000000000000001 /* BGSignalProcessor.swift */,
+				SP000004000000000000001 /* GarminZScoreNormalizer.swift */,
+				SP000006000000000000001 /* OrefSignalPipeline.swift */,
+				SP000005000000000000001 /* SignalStore.swift */,
+			);
+			path = SignalProcessing;
 			sourceTree = "<group>";
 		};
 		388E5A5925B6F0250019842D /* Models */ = {
@@ -4985,6 +5011,12 @@
 				BB10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift in Sources */,
 				BB10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift in Sources */,
 				BB1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift in Sources */,
+				SP000001000000000000002 /* AdaptiveKalmanFilter.swift in Sources */,
+				SP000003000000000000002 /* BGResidualCalculator.swift in Sources */,
+				SP000002000000000000002 /* BGSignalProcessor.swift in Sources */,
+				SP000004000000000000002 /* GarminZScoreNormalizer.swift in Sources */,
+				SP000006000000000000002 /* OrefSignalPipeline.swift in Sources */,
+				SP000005000000000000002 /* SignalStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -82,6 +82,7 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var tddStorage: TDDStorage!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var profileManager: ProfileManager!
+    @Injected() private var signalPipeline: OrefSignalPipeline!
     @Persisted(key: "lastLoopStartDate") private var lastLoopStartDate: Date = .distantPast
     @Persisted(key: "lastLoopDate") var lastLoopDate: Date = .distantPast {
         didSet {
@@ -371,6 +372,9 @@ final class BaseAPSManager: APSManager, Injectable {
 
         loopStats(loopStatRecord: loopStatRecord)
 
+        // Persist signal pipeline data
+        signalPipeline.save()
+
         if settings.closedLoop {
             await reportEnacted(wasEnacted: error == nil)
         }
@@ -481,6 +485,17 @@ final class BaseAPSManager: APSManager, Injectable {
             try await openAPS.createProfiles()
             let determination = try await openAPS.determineBasal(currentTemp: await currentTemp, clock: now)
             iobFileDidUpdate.send(())
+
+            // Run signal pipeline (Phase 1: compute and log, no dosing changes)
+            if let determination = determination, let bg = determination.bg {
+                signalPipeline.processGlucose(
+                    rawBG: Double(truncating: bg as NSNumber),
+                    at: now,
+                    iob: determination.iob.map { Double(truncating: $0 as NSNumber) },
+                    isf: determination.isf.map { Double(truncating: $0 as NSNumber) },
+                    cr: determination.carbRatio.map { Double(truncating: $0 as NSNumber) }
+                )
+            }
 
             guard isValidGlucoseData else {
                 throw APSError.glucoseError(message: "Glucose validation failed")
