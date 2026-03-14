@@ -36,7 +36,7 @@ final class AdaptiveLearning {
     // MARK: - Learned Coefficients
 
     /// All per-user learned coefficients, persisted to disk
-    struct LearnedCoefficients: Codable {
+    struct LearnedCoefficients: JSON {
         // Carb absorption
         var carbAbsorptionSpeed: CoefficientState = CoefficientState(populationDefault: 0.5)
         // Protein sensitivity (fraction of protein grams that raise BG as carb equivalents)
