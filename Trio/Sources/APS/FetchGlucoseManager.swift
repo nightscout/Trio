@@ -240,18 +240,35 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         return Manager.init(rawState: rawState)
     }
 
-    func fetchGlucose(context: NSManagedObjectContext) async throws -> [GlucoseStored]? {
-        try await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchGlucose(context: NSManagedObjectContext) async throws -> [NSManagedObjectID] {
+        // Compound predicate: time window + non-manual + valid date
+        let timePredicate = NSPredicate.predicateForOneDayAgoInMinutes
+        let manualPredicate = NSPredicate(format: "isManual == NO")
+        let datePredicate = NSPredicate(format: "date != nil")
+
+        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            timePredicate,
+            manualPredicate,
+            datePredicate
+        ])
+
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
             // Predicate must cover at least the full glucose horizon used by downstream algorithm consumers.
             // If autosens / oref / smoothing logic ever starts looking back further (e.g. 36h),
             // this fetch window must be expanded accordingly.
-            predicate: NSPredicate.predicateForOneDayAgoInMinutes,
+            predicate: compoundPredicate,
             key: "date",
-            ascending: true, // fetch newest -> oldest
+            ascending: true, // the first element is the oldest
             fetchLimit: 350
-        ) as? [GlucoseStored]
+        )
+
+        guard let glucoseArray = results as? [GlucoseStored] else {
+            throw CoreDataError.fetchError(function: #function, file: #file)
+        }
+
+        return glucoseArray.map(\.objectID)
     }
 
     private func glucoseStoreAndHeartDecision(syncDate: Date, glucose: [BloodGlucose]) async throws {
@@ -383,42 +400,43 @@ extension BaseFetchGlucoseManager {
     func exponentialSmoothingGlucose(context: NSManagedObjectContext) async {
         let startTime = Date()
 
-        guard let glucoseStored = try? await fetchGlucose(context: context) else { return }
+        do {
+            // get objectIDs
+            let objectIDs = try await fetchGlucose(context: context)
 
-        await context.perform {
-            // Only smooth CGM values; ignore manually entered glucose.
-            // `fetchGlucose(context:)` returns chronological order (oldest -> newest),
-            // which matches the natural order required by the smoothing algorithm.
-            let glucoseReadings: [GlucoseStored] = glucoseStored
-                .filter { !$0.isManual }
-                .filter { $0.date != nil }
+            try await context.perform {
+                // Load managed objects from object IDs
+                // Filtering (isManual, date) already done at DB level in fetchGlucose
+                let glucoseReadings = objectIDs.compactMap {
+                    context.object(with: $0) as? GlucoseStored
+                }
 
-            guard !glucoseReadings.isEmpty else { return }
+                guard !glucoseReadings.isEmpty else { return }
 
-            self.applyExponentialSmoothingAndStore(
-                glucoseReadings: glucoseReadings,
-                minimumWindowSize: 4,
-                maximumAllowedGapMinutes: 12,
-                xDripErrorGlucose: 38,
-                minimumSmoothedGlucose: 39,
-                firstOrderWeight: 0.4,
-                firstOrderAlpha: 0.5,
-                secondOrderAlpha: 0.4,
-                secondOrderBeta: 1.0
-            )
+                // Static method call to avoid self-capture
+                Self.applyExponentialSmoothingAndStore(
+                    glucoseReadings: glucoseReadings,
+                    minimumWindowSize: 4,
+                    maximumAllowedGapMinutes: 12,
+                    xDripErrorGlucose: 38,
+                    minimumSmoothedGlucose: 39,
+                    firstOrderWeight: 0.4,
+                    firstOrderAlpha: 0.5,
+                    secondOrderAlpha: 0.4,
+                    secondOrderBeta: 1.0
+                )
 
-            do {
                 try context.save()
-            } catch {
-                debugPrint("Failed to save context after smoothing: \(error)")
             }
-        }
 
-        let duration = Date().timeIntervalSince(startTime)
-        debugPrint(String(format: "Exponential smoothing duration: %0.04fs", duration))
+            let duration = Date().timeIntervalSince(startTime)
+            debugPrint(String(format: "Exponential smoothing duration: %0.04fs", duration))
+        } catch {
+            debug(.deviceManager, "Failed to smooth glucose: \(error)")
+        }
     }
 
-    private func applyExponentialSmoothingAndStore(
+    private static func applyExponentialSmoothingAndStore(
         glucoseReadings data: [GlucoseStored],
         minimumWindowSize: Int,
         maximumAllowedGapMinutes: Int,

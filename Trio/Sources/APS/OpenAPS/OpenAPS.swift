@@ -103,7 +103,8 @@ final class OpenAPS {
         shouldSmoothGlucose: Bool,
         fetchLimit: Int?
     ) async throws -> String {
-        let results = try CoreDataStack.shared.fetchEntities(
+        // make it async and await it
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForOneDayAgoInMinutes,
@@ -113,22 +114,25 @@ final class OpenAPS {
             batchSize: 48
         )
 
-        return try await context.perform {
+        // mapping within the context closure, JSON conversion outside
+        let algorithmGlucose = try await context.perform {
             guard let glucoseResults = results as? [GlucoseStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
-            let algorithmGlucose = glucoseResults.map { glucose -> AlgorithmGlucose in
+            // extracting handler to only create it 1x
+            let roundingBehavior = NSDecimalNumberHandler(
+                roundingMode: .plain,
+                scale: 0,
+                raiseOnExactness: false,
+                raiseOnOverflow: false,
+                raiseOnUnderflow: false,
+                raiseOnDivideByZero: false
+            )
+
+            return glucoseResults.map { glucose -> AlgorithmGlucose in
                 let glucoseValue: Int16
                 if shouldSmoothGlucose, !glucose.isManual, let smoothedGlucose = glucose.smoothedGlucose {
-                    let roundingBehavior = NSDecimalNumberHandler(
-                        roundingMode: .plain,
-                        scale: 0,
-                        raiseOnExactness: false,
-                        raiseOnOverflow: false,
-                        raiseOnUnderflow: false,
-                        raiseOnDivideByZero: false
-                    )
                     glucoseValue = smoothedGlucose.rounding(accordingToBehavior: roundingBehavior).int16Value
                 } else {
                     glucoseValue = glucose.glucose
@@ -141,8 +145,9 @@ final class OpenAPS {
                     isManual: glucose.isManual
                 )
             }
-            return self.jsonConverter.convertToJSON(algorithmGlucose)
         }
+
+        return jsonConverter.convertToJSON(algorithmGlucose)
     }
 
     private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil, carbsDate: Date? = nil) async throws -> String {

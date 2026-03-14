@@ -113,17 +113,17 @@ extension CGMSettings {
                         units: state.units,
                         type: .boolean,
                         label: String(localized: "Smooth Glucose Value"),
-                        miniHint: String(localized: "Smooth CGM readings using Savitzky-Golay filtering."),
+                        miniHint: String(localized: "Smooth CGM readings using exponential smoothing."),
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             Text(
-                                "This filter looks at small groups of nearby readings and fits them to a simple mathematical curve. This process doesn't change the overall pattern of your glucose data but helps smooth out the \"noise\" or irregular fluctuations that could lead to false highs or lows."
+                                "Applies a dual-stage exponential smoothing algorithm (inspired by AndroidAPS) to reduce noise in CGM readings. The algorithm combines two smoothing approaches: a fast-responding filter for recent trends and a slower filter that considers momentum, then blends them for optimal results."
                             )
                             Text(
-                                "It's designed to keep the important trends in your data while minimizing those small, misleading variations, giving you and Trio a clearer sense of where your blood sugar is really headed. This type of filtering is useful in Trio, as it can help prevent over-corrections based on inaccurate glucose readings. This can help reduce the impact of sudden spikes or dips that might not reflect your true blood glucose levels."
+                                "The smoothing intelligently handles data gaps and excludes sensor error values. It requires at least 4 consecutive readings within a 12-minute window to operate, ensuring reliability. Only CGM readings are smoothed—manual entries remain unchanged."
                             )
                             Text(
-                                "Note: If enabled, the smoothed values you see in Trio may differ from what is shown in your CGM app."
+                                "This helps Trio make more stable dosing decisions by reducing over-reactions to sensor noise or brief fluctuations that don't reflect your true glucose trend. The algorithm preserves important patterns while filtering out unreliable variations."
                             )
                         }
                     )
@@ -181,7 +181,7 @@ extension CGMSettings {
                         hintDetent: $hintDetent,
                         shouldDisplayHint: $shouldDisplayHint,
                         hintLabel: hintLabel ?? "",
-                        hintText: AnyView(
+                        hintText: selectedVerboseHint ?? AnyView(
                             VStack(alignment: .leading, spacing: 10) {
                                 Text(
                                     "Current CGM Models Supported:"
