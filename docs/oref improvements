@@ -1,0 +1,1091 @@
+# Trio Closed-Loop Enhancement: A Comprehensive Algorithm Design Document
+
+**Author:** Collaborative Design Session  
+**Purpose:** To document the current state of oref as used in Trio, the available data streams, and a detailed proposal for a next-generation adaptive closed-loop algorithm.
+
+**Revision history:**
+
+- v1.0 — Initial design document
+- v1.1 — Revised per technical review: adaptive Kalman filter (§9.2), jerk signal hierarchy (§4.5), adaptive EWMA schedule with reset triggers (§8.1), two-phase glycogen depletion model (§6.4), partial meal information framework (§5.6)
+
+-----
+
+## Table of Contents
+
+1. [Background: What Trio and oref Do Today](#1-background-what-trio-and-oref-do-today)
+1. [Limitations of the Current oref Approach](#2-limitations-of-the-current-oref-approach)
+1. [Available Data Streams](#3-available-data-streams)
+1. [The Core Insight: Residual-Based Carb Absorption Inference](#4-the-core-insight-residual-based-carb-absorption-inference)
+1. [Macro-Aware Meal Modeling from Cronometer](#5-macro-aware-meal-modeling-from-cronometer)
+- 5.6 Partial Information Handling: Degrading Gracefully
+1. [Garmin Wearable Data Integration](#6-garmin-wearable-data-integration)
+1. [The Daily State Vector](#7-the-daily-state-vector)
+1. [Per-User Adaptive Learning](#8-per-user-adaptive-learning)
+1. [A Proposed Next-Generation Architecture](#9-a-proposed-next-generation-architecture)
+1. [Live Heart Rate: What It Would Take to Add It](#10-live-heart-rate-what-it-would-take-to-add-it)
+1. [Implementation Roadmap](#11-implementation-roadmap)
+1. [Summary of Expected Gains](#12-summary-of-expected-gains)
+
+-----
+
+## 1. Background: What Trio and oref Do Today
+
+### 1.1 What is Trio?
+
+Trio is an open-source iOS application for automated insulin delivery (AID) in people with Type 1 Diabetes (T1D). It is a fork of iAPS, itself derived from the OpenAPS ecosystem. Trio communicates with a compatible insulin pump (via Bluetooth or RileyLink-based hardware) and a continuous glucose monitor (CGM) to automatically adjust basal insulin delivery and issue small correction boluses — all without requiring constant manual input from the user.
+
+Trio is built around the **oref (open reference) algorithm**, specifically the `oref0` and `oref1` variants originally developed by the OpenAPS community. These algorithms have been refined over many years and represent a significant achievement in open-source medical technology.
+
+### 1.2 The oref Algorithm: Core Design
+
+The oref algorithm is fundamentally a **predictive proportional controller** with a safety envelope. Its primary inputs are:
+
+- **Current blood glucose (BG)** from the CGM, updated every 5 minutes
+- **Insulin on board (IOB):** The calculated amount of active insulin currently in the body, derived from all recent boluses and basal adjustments, decayed over time using a pharmacokinetic model
+- **Carbs on board (COB):** If the user manually enters a meal, oref tracks estimated unabsorbed carbohydrates using a fixed absorption rate
+- **User-configured settings:** Insulin sensitivity factor (ISF), carbohydrate ratio (CR), basal rate profile, target BG range, duration of insulin action (DIA), and maximum IOB limits
+
+### 1.3 The oref Prediction Model
+
+At each 5-minute cycle, oref generates several parallel BG predictions over a 4–6 hour window:
+
+- **IOB curve:** Where will BG go if only current insulin acts, with no more food or insulin?
+- **COB curve:** If the user entered carbs, where will BG go accounting for carb absorption?
+- **Eventual BG (eBG):** The predicted BG once all IOB and COB have resolved
+- **ZT (zero temp) curve:** Where BG goes if basal is suspended entirely right now
+
+These curves drive the dosing decision. The algorithm asks: *given these predictions, what insulin action now will result in BG within target in the future?*
+
+### 1.4 oref1: Super Micro Boluses and UAM
+
+oref1 introduced two major enhancements over oref0:
+
+**Super Micro Boluses (SMBs):** Rather than only adjusting the basal rate (which takes 30–60 minutes to have any effect), SMBs allow the algorithm to deliver small boluses of insulin directly in response to a rising BG or detected meal. SMBs are constrained by safety limits (max SMB size, max IOB cap) to prevent dangerous stacking.
+
+**Unannounced Meals (UAM):** This is oref’s first attempt at detecting meals without user input. UAM watches the BG velocity — if BG is rising faster than the current IOB can explain, it infers that carbs must be absorbing and increases aggressiveness accordingly. It essentially allows SMBs to fire even when no carbs have been entered. UAM is the closest current oref feature to what we are proposing to build, but it is a heuristic rule, not a physiological model.
+
+### 1.5 The Fixed-Parameter Problem
+
+Every key parameter in oref — ISF, CR, basal rate, DIA — is configured once by the user or their endocrinologist and remains static unless manually changed. The algorithm has no mechanism to:
+
+- Learn that your ISF is higher on days after hard exercise
+- Recognize that your dawn phenomenon is worse when you sleep poorly
+- Detect that a high-fat meal will cause a secondary BG rise 4 hours from now
+- Adapt to the fact that your insulin sensitivity changes across the menstrual cycle, seasons, or as your fitness level improves
+
+This is the central limitation that the proposed system addresses.
+
+-----
+
+## 2. Limitations of the Current oref Approach
+
+### 2.1 Reactive, Not Predictive
+
+oref responds to BG that is already moving. By the time a postprandial rise is detected and SMBs begin firing, the BG excursion is already in progress. Insulin has a 15–20 minute onset even with fast-acting analogs (Lyumjev, Fiasp), meaning a reactive response always chases the meal curve rather than anticipating it.
+
+### 2.2 Linear Carb Absorption Assumption
+
+When a user enters carbs, oref absorbs them at a configurable fixed rate (default ~30 g/hr, adjustable). Real meals are not linear. A bowl of oatmeal with butter absorbs very differently from white rice, and both absorb differently from a protein bar. The fat-protein effect, gastric emptying variation, and meal composition all shape the absorption curve in ways the current model cannot represent.
+
+### 2.3 No Macro Awareness
+
+oref sees “60 grams of carbohydrates.” It does not know:
+
+- Whether those carbs are simple or complex
+- Whether they were accompanied by 40g of fat that will slow gastric emptying
+- Whether 30g of protein will trigger hepatic gluconeogenesis 2–4 hours later
+
+This leads to the classic T1D experience: good BG at 2 hours post-meal, high BG at 4–5 hours post-meal. The protein and fat tail is essentially invisible to oref.
+
+### 2.4 No Physiological State Awareness
+
+oref has no knowledge of:
+
+- How much the user slept or sleep quality
+- Whether the user exercised yesterday or today
+- Whether the user is in a state of physiological stress (high cortisol, illness)
+- Whether the user’s body is currently glycogen-depleted from endurance activity
+
+All of these dramatically affect insulin sensitivity, yet the algorithm uses the same ISF and CR regardless.
+
+### 2.5 No Learning Over Time
+
+oref does not improve with use. A user who has been looping for 3 years has the same algorithm quality as one who started last week, assuming identical settings. All the historical data generated — thousands of BG readings, hundreds of meal responses, dozens of exercise sessions — is discarded after it is used for real-time control. It is never fed back to improve the model.
+
+### 2.6 Binary Meal Entry
+
+The current user interaction model is: enter carbs, or don’t. UAM provides a crude fallback for forgetting, but there is no middle ground — no way to communicate meal composition, timing, or confidence. The proposed system fundamentally changes this by using Cronometer macro data to give the algorithm a rich, pre-meal physiological forecast.
+
+-----
+
+## 3. Available Data Streams
+
+The following data streams are available in the enhanced system we are designing:
+
+### 3.1 CGM: Continuous Glucose Monitor
+
+- **Update frequency:** Every 5 minutes
+- **Values available:** Current BG (mg/dL), trend arrow, raw signal
+- **Derived values we can compute:** BG velocity (Δ mg/dL per minute), BG acceleration (Δ velocity per 5-min interval), BG jerk (Δ acceleration — useful for inflection point detection)
+- **Noise characteristics:** CGM readings are noisy, particularly during compression artifacts and sensor warmup. A Kalman filter or exponential smoothing should be applied before using derivatives.
+
+### 3.2 Pump: Insulin Delivery Data
+
+- **IOB:** Continuously calculated from all recent boluses and temp basal adjustments, decayed using the configured DIA pharmacokinetic curve
+- **Bolus history:** Time, amount, and type of every bolus
+- **Basal history:** All temp basal rates set by oref
+- **Extended boluses:** If used for high-fat/protein meals
+- **This stream is already well-utilized by oref and remains unchanged**
+
+### 3.3 Cronometer: Meal Macro Data
+
+- **Integration method:** User logs meal in Cronometer → custom Trio integration reads macros via Cronometer API → one-tap entry into Trio treatments
+- **Data available per meal:** Grams of carbohydrate, fat, protein, fiber; total calories; meal timestamp
+- **What this unlocks:** Full macronutrient-aware absorption curve modeling, fat-protein tail prediction, personalized macro sensitivity learning over time
+
+### 3.4 Garmin: Wearable Health Data
+
+All Garmin data is available via the Garmin Connect API after sync (not real-time during most states). The following data streams are available:
+
+#### Sleep Data (nightly)
+
+- Total sleep duration
+- Sleep stages: light, deep (slow-wave), REM, awake periods
+- Sleep score (composite Garmin metric)
+- Resting heart rate during sleep
+- Overnight SpO2 (if supported by device)
+
+#### HRV (Heart Rate Variability)
+
+- HRV score (Garmin composite)
+- Raw RMSSD values (where available)
+- HRV status vs. 30-day baseline (Garmin categorizes as: poor, low, balanced, good)
+- **This is the single most valuable daily recovery signal for insulin sensitivity estimation**
+
+#### Body Battery
+
+- Current value (0–100, Garmin composite of HRV, stress, sleep, activity)
+- Charge/drain history throughout the day
+- Useful as a secondary validation signal and user-facing explanation layer
+
+#### Resting Heart Rate (daily)
+
+- Daily resting HR measurement
+- Trend vs. 7-day and 30-day baseline
+- Elevated resting HR signals stress, illness, overtraining — all associated with insulin resistance
+
+#### Saved Workouts
+
+- Activity type (run, bike, strength, swim, HIIT, etc.)
+- Start time, duration
+- Average HR, max HR, HR zone distribution (% time in each zone)
+- Distance, pace, power (sport-dependent)
+- Estimated caloric expenditure
+- Training effect score (aerobic and anaerobic)
+- Garmin recovery time estimate
+
+#### Daily Activity Summary
+
+- Step count
+- Active minutes by intensity
+- Floors climbed
+- Stress score (derived from HRV throughout the day)
+- Intensity minutes
+
+#### NOTE: Real-Time HR
+
+Real-time heart rate **is not available** in the current integration. All Garmin data is post-sync. See Section 10 for a detailed discussion of what it would take to add live HR.
+
+-----
+
+## 4. The Core Insight: Residual-Based Carb Absorption Inference
+
+This is the most important algorithmic improvement and the foundation upon which everything else is built.
+
+### 4.1 The Expected vs. Actual BG Framework
+
+At any moment, we can compute what BG *should* be doing based solely on the insulin that is active. Given:
+
+- Current IOB (amount and decay curve)
+- Current ISF (insulin sensitivity factor)
+- Current basal rates
+
+…we can project the **expected BG trajectory** — where BG would go if no carbs were absorbing.
+
+The CGM gives us the **actual BG trajectory**.
+
+The difference between these two curves is the **residual**:
+
+```
+Residual(t) = BG_actual(t) - BG_expected(t)
+```
+
+A positive and growing residual means something is raising BG that is not explained by the insulin model. In practice, this is almost always **carbohydrate absorption** (or occasionally physiological stress, but that tends to be slower-onset and can be partially accounted for using Garmin data).
+
+### 4.2 Estimating Carb Absorption Rate from the Residual
+
+From the residual, we can back-calculate an estimated carbohydrate absorption rate:
+
+```
+Carb Absorption Rate (g/min) = (dResidual/dt) / ISF × CR
+```
+
+Where:
+
+- `dResidual/dt` is the rate of change of the residual (mg/dL per minute)
+- `ISF` is the insulin sensitivity factor (mg/dL per unit)
+- `CR` is the carb ratio (grams per unit)
+
+This gives us a **real-time estimate of how many grams of carbohydrate are currently absorbing per minute**, without the user entering anything.
+
+### 4.3 Bayesian Updating of Absorption Estimate
+
+Rather than using the instantaneous residual naively (which is noisy), we use a **Bayesian framework**:
+
+1. **Prior:** If no meal has been entered, the prior on carb absorption is low but non-zero (UAM scenario). If Cronometer macros have been entered, the prior is a predicted absorption curve based on meal composition.
+1. **Likelihood:** The observed residual rate updates our estimate. The CGM signal provides evidence at each 5-minute interval.
+1. **Posterior:** The updated estimate of total meal carbs absorbing, their rate, and estimated time to completion.
+
+This posterior estimate becomes the **COB input to the dosing decision**, replacing the fixed linear absorption model currently used.
+
+### 4.4 BG Acceleration as an Early Warning Signal
+
+BG velocity (rate of change) is partially used in oref today. **BG acceleration** is largely ignored but carries important information:
+
+- **Positive acceleration (velocity increasing):** Carbs are absorbing faster than insulin is catching up — early meal detection signal
+- **Peak acceleration:** Inflection point — absorption is at maximum rate, BG rise will begin to decelerate soon
+- **Negative acceleration (velocity decreasing):** Absorption is slowing, peak BG approaching
+- **Acceleration returning to zero:** BG plateau — absorption and insulin effect are balancing
+
+By tracking the acceleration profile, the algorithm can estimate where in the meal absorption curve the user currently is, enabling more precise timing of SMBs rather than simply responding to current velocity.
+
+### 4.5 Jerk Detection as a Confirmatory Signal
+
+**Jerk** (the rate of change of acceleration) is an even earlier signal than acceleration alone. When a meal begins absorbing, jerk turns positive before velocity or acceleration become visually significant. However, jerk must be treated carefully: third derivatives of a noisy 5-minute CGM signal, even after Kalman filtering, carry substantial variance. Using jerk as a *primary* meal detection trigger would produce too many false positives and risk premature SMB delivery.
+
+The correct framing is a **signal hierarchy**, where multiple signals must agree before a meal detection event is declared:
+
+```
+Signal Hierarchy for Meal Detection:
+─────────────────────────────────────────────────────
+Primary trigger:    Acceleration positive and sustained (robust, ~10 min
+                    lead over velocity alone; more reliable than jerk)
+
+Confirmatory:       Jerk positive for 2+ consecutive 5-min readings
+                    (requiring persistence over 10 min filters most noise;
+                    a single positive jerk reading is ignored)
+
+Tertiary:           Velocity crossing threshold (current UAM behavior —
+                    retained as fallback when acceleration is ambiguous)
+─────────────────────────────────────────────────────
+```
+
+Requiring positive jerk across two consecutive intervals before it contributes to meal detection is analogous to multi-feature agreement in ECG arrhythmia algorithms — multiple independent signals must confirm the event before action is taken. This design preserves the earlier detection benefit of the jerk signal while eliminating single-reading noise spikes as triggers.
+
+This hierarchy is particularly valuable for fast-absorbing meals (simple carbs, liquid calories) where the traditional velocity-only approach misses the early window for insulin delivery, while avoiding over-triggering on CGM noise artifacts.
+
+-----
+
+## 5. Macro-Aware Meal Modeling from Cronometer
+
+### 5.1 The Macronutrient Absorption Matrix
+
+Each macronutrient affects BG through a different mechanism, on a different timescale, and with different magnitude. A complete meal model must account for all three:
+
+|Macro        |BG Effect                |Onset      |Peak      |Duration|Mechanism                                        |
+|-------------|-------------------------|-----------|----------|--------|-------------------------------------------------|
+|Simple Carbs |Direct, strong, rapid    |10–20 min  |30–60 min |1–2 hrs |Direct intestinal glucose absorption             |
+|Complex Carbs|Direct, moderate, gradual|30–60 min  |60–120 min|2–4 hrs |Slower enzymatic breakdown                       |
+|Fiber        |Blunting effect          |Immediate  |—         |—       |Slows gastric emptying, attenuates carb peak     |
+|Protein      |Indirect, moderate       |90–240 min |2–4 hrs   |3–6 hrs |Hepatic gluconeogenesis                          |
+|Fat          |Indirect, delayed        |120–360 min|3–6 hrs   |4–8 hrs |Slows gastric emptying + indirect gluconeogenesis|
+
+### 5.2 Constructing the Composite Absorption Curve
+
+When Cronometer macros are entered, the algorithm constructs a **predicted BG impact curve** by superimposing the individual macro contributions:
+
+```
+BG_meal_impact(t) = f_carb(carbs, fiber, t) + f_protein(protein, t) + f_fat(fat, t)
+```
+
+Where each function returns the expected incremental BG rise (in mg/dL) contributed by that macro at time `t` minutes post-meal, adjusted by the user’s personal sensitivity coefficients.
+
+This curve becomes the **target for Bayesian updating** — the algorithm knows what it expects to see, and uses CGM data to refine the estimate in real time.
+
+### 5.3 Fat-Protein Tail Modeling
+
+The fat-protein secondary rise is one of the most consistently problematic patterns in T1D management, and one that oref currently handles poorly.
+
+**The mechanism:** Dietary fat slows gastric emptying, which both delays and extends carbohydrate absorption. Simultaneously, dietary protein is converted to glucose via hepatic gluconeogenesis over a 2–5 hour window. Together, these create a secondary BG rise that occurs after the primary carb bolus IOB has largely cleared.
+
+**With Cronometer data, we can:**
+
+1. **Predict the secondary rise timing and magnitude** from the fat and protein content at meal entry time
+1. **Pre-plan a delayed insulin strategy:** Either a small extended bolus, or a pre-programmed increase in basal rate starting ~2 hours post-meal
+1. **Validate the prediction against CGM** and update the individual’s fat-protein sensitivity coefficients
+1. **Issue a proactive SMB** when the secondary rise begins, rather than waiting for the BG to climb before responding
+
+### 5.4 Fiber as a Modifier
+
+Dietary fiber attenuates the glycemic response by slowing gastric emptying and reducing the net absorbable carbohydrate load. A meal with 60g carbs and 15g fiber has a meaningfully lower glycemic impact than 60g carbs with 2g fiber.
+
+The **net effective carbs** used in the absorption model should incorporate fiber:
+
+```
+Effective Carbs = Total Carbs - (Fiber × 0.5)
+```
+
+The 0.5 coefficient is a reasonable population default; it should be a learnable personal parameter.
+
+### 5.5 Per-User Macro Sensitivity Coefficients
+
+Over time, with enough meal logs paired with CGM data, we can learn each user’s personal absorption characteristics:
+
+- **Personal carb absorption speed:** How quickly do your carbs hit? Faster than average? Slower? This affects how early to place the bolus.
+- **Personal protein sensitivity:** Some T1Ds see a 20 mg/dL rise from a high-protein meal; others barely register it. This is highly individual.
+- **Personal fat delay:** How many hours does dietary fat push your BG peak? This varies by GI motility, which is individual.
+- **Time-of-day modifiers:** Does your morning protein response differ from evening? (Yes, for most people — cortisol drives higher morning hepatic glucose output)
+
+These coefficients start at population defaults and are refined with each meal observation using an exponentially weighted moving average, so recent meals are weighted more heavily than older ones.
+
+### 5.6 Partial Information Handling: Degrading Gracefully
+
+A critical design requirement is that the system handles partial meal information correctly. Real user behavior is not binary — people do not always log a full Cronometer entry with all macros, nor do they always forget entirely. The algorithm must handle the full spectrum of information quality, and the **width of the Bayesian prior should directly encode information quality and drive dosing conservatism continuously** — not through special-case logic, but through the natural mathematics of the framework.
+
+|Information Available                                |Prior Width|Model Behavior                                                                                                                                               |
+|-----------------------------------------------------|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|Full Cronometer macros (carb + fat + protein + fiber)|Narrow     |Full composite curve; proactive fat-protein tail planning; tighter SMB sizing from the start                                                                 |
+|Carbs only entered (no fat/protein)                  |Medium     |Carb curve modeled accurately; fat-protein tail treated as uncertain — residual monitoring flag set at 2–3 hrs post-meal to catch secondary rise             |
+|Rough carb estimate (“~60g carbs, lunch”)            |Wide       |Wider credible interval; more conservative SMB sizing; heavier reliance on CGM residual to refine the estimate in real time                                  |
+|No entry at all (UAM scenario)                       |Very wide  |Pure residual-based inference; equivalent to current UAM but enhanced with the acceleration signal hierarchy from Section 4; maximum reliance on CGM feedback|
+
+**The key principle:** wider priors mean the algorithm waits for more CGM evidence before acting aggressively. With full Cronometer data, the algorithm can pre-position insulin. With no data, it must observe and follow. Both are correct behaviors given the available information — the Bayesian framework produces this naturally without requiring separate code paths for each scenario.
+
+**The partial-carbs case deserves special attention.** When a user enters carbs but no fat or protein, the algorithm should not assume the meal is fat-free. Instead, it applies a mild population-prior for fat and protein based on the time of day and meal size (a large lunch is statistically unlikely to have zero fat), while keeping the credible interval wide. This is more realistic than assuming zero and avoids the failure mode of being completely unprepared for the secondary rise.
+
+-----
+
+## 6. Garmin Wearable Data Integration
+
+### 6.1 HRV as the Master Sensitivity Signal
+
+Heart rate variability is the single most actionable daily recovery metric for insulin sensitivity adjustment. The physiological connection is well-established:
+
+- **High HRV** (relative to personal baseline): Parasympathetic dominance, good recovery, lower cortisol → insulin sensitivity is at or above baseline
+- **Low HRV** (relative to personal baseline): Sympathetic dominance, physiological stress → elevated cortisol, catecholamines → hepatic glucose output increases, peripheral glucose uptake decreases → **insulin resistance**
+
+The critical point is that this must be measured against the **individual’s personal baseline**, not population norms. A marathon runner’s normal HRV might be 70ms RMSSD; for a sedentary person, 30ms might be their healthy baseline. What matters is the deviation from personal normal.
+
+**Implementation:** Each morning, calculate the HRV deviation score:
+
+```
+HRV_deviation = (HRV_today - HRV_30day_mean) / HRV_30day_std_dev
+```
+
+This produces a Z-score. Map this to an ISF modifier:
+
+```
+ISF_HRV_modifier = 1.0 - (HRV_deviation × 0.05)
+```
+
+So if today’s HRV is 1 standard deviation below normal (stressed state), the effective ISF is reduced by ~5% (meaning more insulin is needed). If HRV is 2 SDs above normal (excellent recovery), ISF increases by ~10% (more sensitive, less insulin needed).
+
+These coefficients (the 0.05 scaling factor) are initial estimates and should themselves be calibrated through retrospective learning.
+
+### 6.2 Sleep Data as a Morning Baseline Setter
+
+Sleep quality has a profound and well-documented effect on next-day insulin sensitivity:
+
+- **Short sleep duration (< 6 hours):** Significantly increases insulin resistance the following day via elevated ghrelin, cortisol, and inflammatory markers
+- **Poor deep sleep percentage:** Impairs glucose metabolism; growth hormone release (which normally occurs during slow-wave sleep) is disrupted, affecting glucose regulation
+- **Late sleep timing:** Circadian phase shift → glucose metabolism timing shifts, worsening both morning fasting glucose and post-meal excursions
+- **High awake time / fragmented sleep:** Cortisol elevation, similar to sleep deprivation
+
+**Implementation:** A composite Sleep Insulin Resistance Score is calculated each morning from Garmin sleep data:
+
+```
+Sleep_IR_Score = f(duration, deep_sleep_pct, sleep_score, awake_time)
+```
+
+This drives a morning ISF and basal rate modifier that decays throughout the day as the sleep effect wears off (the insulin resistance from a bad night peaks in the morning and largely resolves by evening).
+
+**Practical example:** The user slept 5.5 hours with a poor deep sleep percentage. The algorithm reduces morning ISF by 15%, increases early morning basal rate by 10%, and displays a notification: “Your sleep data suggests higher insulin needs this morning. Targets adjusted.”
+
+### 6.3 Saved Workout Data and the Post-Exercise Sensitivity Window
+
+This is where the Garmin workout integration provides its most clinically significant value.
+
+**The post-exercise insulin sensitivity enhancement** is one of the largest and most predictable non-pharmacological influences on glucose metabolism in T1D, yet it is entirely unaccounted for in standard oref.
+
+**The mechanism varies by exercise type:**
+
+**Aerobic/Endurance exercise (runs, cycling, swimming):**
+
+- During exercise: BG tends to fall (increased glucose uptake by muscle)
+- Immediately post: BG may continue falling as muscle glycogen replenishment draws glucose
+- 2–12 hours post: Significantly enhanced insulin sensitivity as muscle glycogen is restored
+- 12–48 hours post: Elevated sensitivity persists, especially after long/hard efforts (>60 min Zone 2–3)
+- If significant glycogen depletion occurred: Carbohydrates consumed post-workout are preferentially used for glycogen repletion rather than raising BG — the effective carb ratio changes
+
+**Anaerobic/High-intensity exercise (heavy lifting, sprints, HIIT):**
+
+- During exercise: BG often *rises* acutely due to catecholamine and glucagon release
+- Immediately post: BG rise may continue for 30–60 min
+- 2–6 hours post: Sensitivity increases substantially as the stress hormone effect clears
+- The pattern is biphasic: acute resistance followed by delayed sensitivity enhancement
+
+**Implementation:**
+
+When a workout is synced from Garmin, the algorithm:
+
+1. **Classifies the workout type** using the Garmin activity type field
+1. **Estimates intensity** using average HR as a percentage of estimated max HR (220 - age, or learned from actual max HR data)
+1. **Estimates duration and total load** (intensity × duration)
+1. **Selects the appropriate post-exercise sensitivity curve** based on workout type
+1. **Applies a time-decaying ISF modifier** that starts at the workout completion time and decays over the expected sensitivity window
+
+For an endurance run of 45 minutes at 75% max HR:
+
+```
+Post-exercise ISF modifier timeline:
+  0–30 min post:   +0% (acute recovery phase, potential BG drop risk already handled)
+  30 min–4 hrs:    +25 to +35% ISF (enhanced sensitivity)
+  4–12 hrs:        +15 to +25% ISF (decaying)
+  12–24 hrs:       +5 to +15% ISF (residual)
+  24–48 hrs:       +0 to +5% ISF (minimal residual)
+```
+
+For a heavy strength training session (45 min, high intensity):
+
+```
+Post-exercise ISF modifier timeline:
+  0–60 min post:   -10% ISF (acute resistance from catecholamines)
+  60 min–3 hrs:    +10 to +20% ISF (sensitivity enhancement begins)
+  3–12 hrs:        +20 to +30% ISF (peak sensitivity)
+  12–24 hrs:       +10 to +20% ISF (decaying)
+```
+
+These are population-based starting curves. The actual coefficients are calibrated to the individual’s historical data.
+
+### 6.4 Glycogen Depletion Modeling
+
+For users who perform long endurance exercise (>60–90 minutes at moderate-high intensity), muscle glycogen depletion becomes a significant factor. In a depleted state:
+
+- Post-workout carbohydrate intake is preferentially shuttled to muscle glycogen repletion
+- This means those carbs raise BG far less than usual
+- The effective carb ratio may be 1.5–2× higher than normal for 2–6 hours post-workout
+- Failure to account for this leads to over-bolusing post-workout meals and subsequent hypoglycemia
+
+**The estimation problem:** Garmin’s caloric expenditure estimates derived from wrist HR can be 20–40% off from true energy expenditure, depending on exercise type, wrist position, and individual physiology. This error propagates directly into any glycogen depletion estimate based solely on Garmin calories. Treating the Garmin caloric output as a precise input would produce overconfident depletion estimates and potentially unsafe CR modifications.
+
+The solution is a **two-phase estimation architecture** that separates a weak prospective prior from a higher-confidence retrospective calibration:
+
+**Phase 1 — Prospective (weak prior, intentionally conservative):**
+
+Use Garmin caloric estimate as a *weak prior* with wide uncertainty bounds. The initial CR modifier is applied at reduced magnitude until retrospective calibration occurs:
+
+```
+Prospective estimate (Garmin calories only):
+  If estimated glycogen depletion > 30% capacity:
+    CR_modifier_initial = 1.0 + (depletion_pct × 0.4)   ← Half the full effect
+    Uncertainty: HIGH — wide credible interval
+    Duration of modifier: 2–4 hours post-workout
+```
+
+The intentionally reduced coefficient (0.4 vs. the eventual 0.8 target) reflects the uncertainty in the upstream Garmin caloric estimate. The algorithm is cautious until it has its own evidence.
+
+**Phase 2 — Retrospective calibration (CGM-validated, high confidence):**
+
+After a post-workout meal, the algorithm observes the actual CGM response versus the predicted response given the meal’s macro content and current ISF. If BG rose substantially less than predicted, that is strong evidence that glycogen repletion was actively drawing glucose away from circulation:
+
+```
+Retrospective signal:
+  Predicted BG rise (from macros + ISF):    +55 mg/dL
+  Actual BG rise observed:                  +32 mg/dL
+  Unexplained deficit:                      -23 mg/dL → glycogen repletion active
+
+  Implied CR modifier:   1.0 + (23/55) ≈ 1.42×
+  → Update personal glycogen depletion profile for this workout type/intensity
+```
+
+This retrospective signal is far more reliable than the Garmin calorie estimate because it is derived directly from the user’s own glucose response — the ground truth. Over 5–10 similar workouts, the retrospective calibration converges on a reliable personal glycogen depletion profile: “after a 45-min Zone 3 run, your effective carb ratio is approximately 1.4× normal for 3 hours.” Once this personal profile is calibrated, the prospective modifier can be updated to reflect the learned value rather than relying on Garmin calories.
+
+### 6.5 Resting HR as a Secondary Stress Signal
+
+Daily resting HR (measured by Garmin overnight) provides a secondary validation of the HRV signal:
+
+- Elevated resting HR (relative to personal 30-day baseline) correlates with systemic stress, early illness, or overtraining
+- It is less sensitive than HRV but more robust to measurement artifacts
+- The two signals together provide higher confidence than either alone
+
+When both HRV is low AND resting HR is elevated, the insulin resistance signal is high-confidence and should drive a larger ISF reduction.
+
+### 6.6 Body Battery as a User-Facing Explainability Layer
+
+Garmin’s Body Battery is a composite score derived from HRV, stress, sleep, and activity data. While the algorithm should use the raw underlying signals (HRV, sleep stages, resting HR) rather than this derived composite, Body Battery is useful as a **plain-language explanation** in the app UI.
+
+Instead of “Your ISF has been reduced by 12% due to HRV deviation of -1.3 SD and sleep score of 61,” the app can say: “Your Body Battery is low (38). Your insulin needs may be higher today than usual.”
+
+-----
+
+## 7. The Daily State Vector
+
+All of the above data streams feed into a unified **Daily State Vector** — a structured set of values that represents the user’s current physiological state and drives all algorithm parameter modifications.
+
+The state vector is updated at key moments:
+
+- **Morning refresh:** On first CGM reading of the day (after overnight sync of Garmin data)
+- **Post-meal:** When Cronometer data is entered
+- **Post-workout:** When a Garmin workout syncs
+- **Every 5 minutes (partial update):** CGM-derived values (velocity, acceleration, residual)
+
+```
+═══════════════════════════════════════════════════════════════
+DAILY STATE VECTOR  —  Example for a real day
+═══════════════════════════════════════════════════════════════
+
+RECOVERY & STRESS STATE
+  Sleep duration last night:      6.2 hrs          (below 7.5 hr ideal)
+  Deep sleep percentage:          14%              (below 20% normal)
+  Sleep score:                    64/100
+  HRV today:                      48 ms
+  HRV 30-day mean:                58 ms
+  HRV deviation:                  -1.7 SD          (stressed state)
+  Resting HR today:               62 bpm
+  Resting HR 30-day mean:         55 bpm
+  Resting HR deviation:           +7 bpm           (elevated, confirming stress)
+  Body Battery (current):         41/100
+  Confidence in stress signal:    HIGH             (HRV + RHR both confirm)
+
+EXERCISE STATE
+  Last workout:                   Trail run, yesterday 6:30am
+  Workout duration:               52 min
+  Workout average HR:             158 bpm (82% max)
+  Estimated intensity zone:       Zone 3–4
+  Hours since workout completion: 27 hrs
+  Post-exercise sensitivity window: ACTIVE (residual, decaying)
+  Glycogen depletion estimate:    Moderate (35%)
+  Glycogen repletion status:      Likely ~80% restored at 27 hrs
+
+DERIVED ISF/CR MODIFIERS  (today, 8:00 AM)
+  HRV/stress modifier:            -12% ISF         (more insulin resistant)
+  Sleep quality modifier:         -8% ISF          (poor sleep)
+  Post-exercise modifier:         +10% ISF         (residual sensitivity, partially offset)
+  Net ISF modifier today:         -10% ISF         (net: more resistant than baseline)
+  CR modifier today:              -8% CR           (slightly more insulin per carb)
+  Dawn phenomenon risk:           ELEVATED         (poor sleep → higher cortisol)
+
+ACTIVE MEAL STATE  (12:30 PM lunch)
+  Macros entered (Cronometer):    72g carb, 22g fat, 34g protein, 6g fiber
+  Effective carbs (fiber adj):    69g
+  Predicted peak rise:            ~85 min post-meal
+  Predicted secondary rise:       ~240 min (protein/fat tail)
+  Current absorption phase:       Active (42 min elapsed)
+  Residual vs prediction:         +8 mg/dL ahead of curve
+  Absorption confidence:          MODERATE
+  Recommended action:             SMB 0.3u now, reassess in 10 min
+
+CURRENT GLUCOSE STATE  (5-min update)
+  Current BG:                     142 mg/dL
+  Velocity:                       +1.8 mg/dL/min   (rising moderately)
+  Acceleration:                   +0.2 mg/dL/min²  (acceleration positive, still climbing)
+  IOB:                            2.8u
+  COB (Bayesian estimate):        38g remaining
+  Predicted BG at 60 min:         164 mg/dL (without action)
+  Predicted BG at 120 min:        138 mg/dL (with planned SMBs)
+
+═══════════════════════════════════════════════════════════════
+```
+
+-----
+
+## 8. Per-User Adaptive Learning
+
+### 8.1 The Retrospective Learning Loop
+
+After every meal, workout, and overnight period, the algorithm compares its predictions to what actually happened and updates its models. This is the mechanism by which the system improves over time.
+
+**Meal retrospective (completed 4–6 hours after meal entry):**
+
+1. Retrieve the predicted BG curve (constructed at meal entry time)
+1. Compare to the actual CGM readings over that window
+1. Attribute the prediction error to specific parameters:
+- Early error (0–90 min): Likely carb absorption speed or simple carb sensitivity
+- Mid error (90–180 min): Likely ISF or carb absorption duration
+- Late error (180–360 min): Likely protein/fat sensitivity coefficients
+1. Update the relevant coefficients using exponentially weighted moving average (EWMA)
+
+**Adaptive EWMA learning rate:**
+
+A fixed learning rate α is a known limitation of standard EWMA in adaptive systems. Early in the system’s use, coefficients are poorly calibrated and the model needs to converge quickly; a high α is appropriate. Once coefficients have stabilized, a lower α is correct — it resists noise and prevents a single unusual meal from dramatically shifting a well-calibrated parameter. The α schedule reflects this:
+
+```
+EWMA update rule:
+  coefficient_new = α × observed_value + (1 - α) × coefficient_old
+
+Adaptive α schedule (per coefficient, tracked independently):
+  Observations 1–10:    α = 0.25   ← fast convergence from population defaults
+  Observations 11–30:   α = 0.15   ← settling phase
+  Observations 31+:     α = 0.07   ← stable, noise-resistant
+
+Variance tracking (optional, more rigorous):
+  Track coefficient_variance across recent observations.
+  If variance is HIGH (coefficient still moving):  use higher α
+  If variance is LOW (coefficient converged):       use lower α
+  This produces a natural, data-driven schedule without hardcoded thresholds.
+```
+
+**Coefficient reset triggers:**
+
+The learning rate should **partially reset** when a structural change is detected that may have invalidated the previously learned coefficients. Reset events increase α back toward the fast-convergence range temporarily:
+
+```
+Reset triggers (raise α to 0.20 for next 10–15 observations):
+  - New insulin type or formulation
+  - Significant weight change (>5% body weight)
+  - New CGM sensor type
+  - Illness period ending (HRV/RHR returning to baseline after prolonged stress)
+  - Seasonal transition (some users show seasonal ISF variation)
+  - User manually flags "something has changed"
+```
+
+The rationale: old coefficients calibrated under different physiological conditions may actively mislead the model. A temporary return to faster learning allows the system to re-converge without discarding all historical data — the reset is partial, not a full wipe to population defaults.
+
+### 8.2 Outlier Detection and Flagging
+
+Not every meal prediction miss should update the model. Some errors have external causes that shouldn’t become permanent adjustments:
+
+- Unusual meal (restaurant, special occasion) — identified if the macro pattern is very different from historical meals at that time of day
+- Illness — identified if HRV and resting HR signal high stress
+- Hormonal cycle — relevant for some users; potential future feature
+- CGM artifact — identified if BG readings show abrupt discontinuities inconsistent with physiology
+
+When an outlier is detected, the algorithm flags the session for review rather than learning from it. The user can review flagged sessions in a dashboard and mark them as “anomaly — do not learn.”
+
+### 8.3 Time-of-Day Parameter Curves
+
+Rather than a single ISF and CR value, the adaptive system learns **diurnal curves** — how ISF and CR vary throughout a 24-hour period.
+
+Most T1Ds have:
+
+- Higher insulin resistance in the early morning (cortisol dawn phenomenon)
+- Best sensitivity in the late morning
+- Moderate sensitivity in the afternoon
+- Variable evening sensitivity (often worsened if sedentary, better if active)
+
+The system learns these curves from historical data and uses them to select the appropriate ISF/CR for any given time of day, rather than the same flat value 24/7.
+
+### 8.4 Data Requirements for Meaningful Learning
+
+Useful personalization requires sufficient data:
+
+|Parameter                      |Minimum observations for calibration|
+|-------------------------------|------------------------------------|
+|Carb absorption speed          |~10–15 meals                        |
+|ISF time-of-day curve          |~2–3 weeks of closed-loop data      |
+|Protein sensitivity coefficient|~10–15 high-protein meals           |
+|Fat delay coefficient          |~10–15 high-fat meals               |
+|HRV-to-ISF calibration         |~20–30 paired HRV + glucose days    |
+|Post-exercise sensitivity curve|~5–10 workouts of each type         |
+
+Until sufficient data is collected, population defaults are used with wider uncertainty bounds.
+
+-----
+
+## 9. A Proposed Next-Generation Architecture
+
+### 9.1 System Overview
+
+The proposed system replaces the flat oref parameter structure with a multi-layer pipeline:
+
+```
+╔══════════════════════════════════════════════════════════════════╗
+║                    DATA INGESTION LAYER                          ║
+║  CGM (5-min)  │  Pump Events  │  Cronometer  │  Garmin Sync     ║
+╚══════════════════════════════════════════════════════════════════╝
+                              ↓
+╔══════════════════════════════════════════════════════════════════╗
+║                  SIGNAL PROCESSING LAYER                         ║
+║  • Kalman filter on CGM signal                                   ║
+║  • BG velocity, acceleration, jerk calculation                   ║
+║  • IOB pharmacokinetic decay model                               ║
+║  • Garmin metric normalization (Z-scores vs. personal baseline)  ║
+╚══════════════════════════════════════════════════════════════════╝
+                              ↓
+╔══════════════════════════════════════════════════════════════════╗
+║                  STATE ESTIMATION LAYER                          ║
+║  • Expected BG trajectory from IOB alone                         ║
+║  • Residual calculation (actual − expected)                      ║
+║  • Bayesian carb absorption estimator                            ║
+║  • Macro-aware composite absorption curve                        ║
+║  • Post-exercise sensitivity window tracker                      ║
+║  • Daily physiological state vector                              ║
+╚══════════════════════════════════════════════════════════════════╝
+                              ↓
+╔══════════════════════════════════════════════════════════════════╗
+║               PERSONALIZED PARAMETER LAYER                       ║
+║  • Diurnal ISF curve (time-of-day)                               ║
+║  • HRV-adjusted ISF modifier                                     ║
+║  • Sleep-adjusted ISF and basal modifier                         ║
+║  • Post-exercise ISF and CR modifier                             ║
+║  • Net effective ISF, CR, basal for current moment               ║
+╚══════════════════════════════════════════════════════════════════╝
+                              ↓
+╔══════════════════════════════════════════════════════════════════╗
+║                    DECISION LAYER                                ║
+║  • Predicted BG curves (multiple scenarios)                      ║
+║  • SMB sizing and timing                                         ║
+║  • Temp basal calculation                                        ║
+║  • Fat-protein tail bolus planning                               ║
+║  • Safety envelope enforcement                                   ║
+╚══════════════════════════════════════════════════════════════════╝
+                              ↓
+╔══════════════════════════════════════════════════════════════════╗
+║                   LEARNING LAYER                                 ║
+║  • Meal retrospective analysis                                   ║
+║  • Coefficient updating (EWMA)                                   ║
+║  • Outlier detection and flagging                                ║
+║  • Diurnal curve refinement                                      ║
+╚══════════════════════════════════════════════════════════════════╝
+```
+
+### 9.2 Key Algorithmic Components
+
+#### Adaptive Kalman Filter for CGM Signal
+
+The raw CGM signal contains noise that becomes amplified when computing derivatives (velocity, acceleration, jerk). A Kalman filter provides optimal noise reduction while preserving the true signal dynamics.
+
+A standard Kalman filter with fixed process noise covariance has a known limitation when applied to physiological signals: a low process noise setting produces excellent smoothing during stable BG periods but lags badly during fast meal-driven rises, potentially smoothing out the very acceleration signal we are trying to detect. Conversely, high process noise tracks dynamic signals well but amplifies noise into the derivatives during stable periods.
+
+The solution is a **volatility-adaptive Kalman filter** where process noise scales with recent BG dynamics:
+
+```
+Core filter:
+  State variables:    [BG_level, BG_velocity, BG_acceleration]
+  Process model:      BG changes according to current velocity and acceleration
+  Observation model:  CGM_reading = BG_true + Gaussian_noise(σ_cgm)
+  Output:             Smoothed BG, velocity, acceleration + uncertainty estimates
+
+Adaptive process noise:
+  Q_dynamic = Q_base × (1 + k × |velocity_recent|)
+
+  Where:
+    Q_base         = baseline process noise (low; aggressive smoothing at rest)
+    k              = volatility scaling coefficient
+    velocity_recent = exponentially smoothed absolute velocity over last 3 readings
+
+  Effect:
+    BG stable (velocity ≈ 0):     Q ≈ Q_base     → aggressive smoothing, clean derivatives
+    BG rising fast (velocity high): Q >> Q_base   → filter tracks signal, preserves meal dynamics
+```
+
+Both `Q_base` and `k` are themselves learnable parameters — they are added to the retrospective learning loop and calibrated per user based on how well the filter’s smoothed signal predicted future CGM readings. A user with a consistently noisier CGM signal (common with older sensors or compression artifacts) will naturally converge toward a higher `Q_base`.
+
+The Kalman filter also handles CGM gaps (sensor warmup, compression artifacts) gracefully by propagating uncertainty forward in time during the gap, widening the credible interval rather than producing undefined derivatives.
+
+#### Pharmacokinetic IOB Model
+
+The current oref IOB model uses a single exponential or bilinear decay curve parameterized by DIA. A more accurate model uses the **published pharmacokinetic parameters** for specific insulin analogs:
+
+- **Fiasp/NovoRapid:** Faster onset (~8 min), peak ~53 min, tail to 3–4 hrs
+- **Lyumjev:** Similar to Fiasp, ultra-fast onset
+- **Humalog/NovoLog:** Onset ~15 min, peak ~75 min, tail to 4–5 hrs
+
+The specific analog used can be a user configuration, and the IOB decay model can be selected accordingly, improving the accuracy of the expected BG trajectory calculation.
+
+#### Bayesian Carb Absorption Estimator
+
+The carb absorption estimator maintains a probability distribution over the current absorption state:
+
+- **State:** Total meal carbs, current absorption rate, time since meal
+- **Prior:** Constructed from Cronometer macro data (if available) or UAM heuristic (if not)
+- **Update:** Each 5-minute CGM reading updates the posterior via Bayes’ rule
+- **Output:** Posterior mean and credible interval for carbs remaining and absorption rate
+
+The advantage over the current fixed-rate model is that when a meal absorbs faster or slower than predicted, the estimate corrects in real time rather than waiting for the user to manually adjust.
+
+### 9.3 Safety Considerations
+
+The enhanced algorithm operates within the same safety envelope as oref, with additional constraints:
+
+- **Modifier bounds:** No single external modifier (HRV, sleep, exercise) can change ISF by more than ±30% without user confirmation
+- **Aggregate modifier bounds:** The total net modification to ISF is capped at ±40% from configured baseline
+- **Uncertainty-aware dosing:** When the absorption estimate has high uncertainty (wide credible interval), SMB sizes are reduced proportionally — the algorithm is more conservative when it’s less confident
+- **Fallback to oref:** If any component of the new system fails or produces implausible outputs, the decision layer falls back to standard oref behavior
+- **All safety limits inherited from oref:** Max IOB cap, max basal rate, max SMB size, minimum BG threshold for SMBs — all unchanged
+
+-----
+
+## 10. Live Heart Rate: What It Would Take to Add It
+
+This section describes in detail what real-time heart rate integration would require, and why it would be valuable enough to pursue.
+
+### 10.1 Why Real-Time HR Would Add Value
+
+With only saved workout data and daily metrics, the system has a temporal gap problem: it cannot see what is happening *right now* in terms of physical activity. A user who goes for a lunchtime walk, does household tasks, or takes the stairs is generating a physiological response — mild cardiovascular elevation, some glucose uptake — that the system currently cannot see.
+
+More importantly, the system cannot distinguish:
+
+- A user currently in Zone 2 cardio → basal aggressiveness should be reduced, no SMBs
+- A user sitting at a desk → standard algorithm behavior
+- A user doing heavy yard work → may need less insulin, approaching exercise state
+
+Real-time HR would allow continuous zone classification, enabling insulin adjustments during activity, not just after it.
+
+### 10.2 What “Real-Time” Actually Means in This Context
+
+Full real-time HR from Garmin is not exposed via the standard Garmin Connect API, which is pull-based and batch-oriented. Achieving live HR requires one of the following approaches:
+
+-----
+
+### 10.3 Option A: Garmin Connect IQ App (Recommended)
+
+**What this is:** A companion app running directly on the Garmin watch, written in Garmin’s proprietary language (Monkey C), that broadcasts HR data over Bluetooth to the iPhone.
+
+**How it works:**
+
+1. A Connect IQ data field or background service app runs on the watch
+1. The app reads the current HR sensor value at a configurable interval (1–5 seconds)
+1. The app uses the Garmin Connect IQ **Communications API** to send this data via Bluetooth Low Energy to a companion iPhone app
+1. The Trio companion app (or a lightweight intermediary app) receives the HR data and makes it available to Trio via a local API or shared storage
+
+**Technical requirements:**
+
+- **Garmin Connect IQ SDK:** Free, available from Garmin’s developer portal. Uses Monkey C (similar to Java)
+- **Apple companion app:** A simple iOS app that acts as a BLE receiver and exposes HR data to Trio via a local HTTP server or shared UserDefaults/App Group
+- **Alternatively:** Trio itself could implement the BLE communication layer using CoreBluetooth if the Connect IQ app is written to expose the data correctly
+- **Garmin device compatibility:** Most modern Garmin devices support Connect IQ 3.0+ and background service apps. Specific capability depends on the device model.
+
+**Data latency:** Approximately 1–5 seconds from wrist to iPhone, depending on BLE polling interval.
+
+**Limitations:**
+
+- Requires Garmin and iPhone to be within Bluetooth range (~30 feet)
+- Background service apps on Garmin have limited memory and processing time
+- Battery impact on watch: Moderate — continuous BLE transmission does drain battery somewhat faster
+
+**Implementation effort:** Medium. The Connect IQ portion is 100–300 lines of Monkey C. The iOS BLE receiver is 200–400 lines of Swift. This is a well-understood integration pattern; several open-source CGM-adjacent apps have done similar things.
+
+-----
+
+### 10.4 Option B: Apple Health Continuous HR Polling
+
+**What this is:** Apple Watch writes HR data to HealthKit on a continuous basis during active sessions and at intervals during passive use. An app can query HealthKit for the most recent HR reading at any time.
+
+**How it works:**
+
+1. Trio (or a companion app) requests HealthKit authorization for heart rate read access
+1. A background task polls `HKQuantityTypeIdentifier.heartRate` at a configurable interval
+1. The most recent HR reading (typically 1–5 minutes old during passive monitoring, more frequent during activity) is used as the live HR input
+
+**Limitations:**
+
+- Apple Watch writes HR to HealthKit every 1–5 minutes at rest, and more frequently during workouts
+- This is NOT truly real-time — there is a lag of up to 5 minutes
+- During tracked workouts, HR is updated every few seconds but only if a workout session is active in the Workout app
+- The user would need to use the Apple Watch Workout app during exercise to get frequent updates
+
+**For the user’s current setup (Garmin primary, not Apple Watch):** This option is not directly applicable unless they also wear an Apple Watch.
+
+-----
+
+### 10.5 Option C: Garmin Health API (Cloud-Based, Limited)
+
+Garmin offers a **Health API** (formerly GDAPI) for enterprise health and wellness integrations. This API provides access to detailed health data including workout HR streams.
+
+**What it provides:**
+
+- Post-workout HR data streams (full HR recording from workouts, pushed via webhook after sync)
+- Daily summary data
+
+**What it does NOT provide:**
+
+- Real-time streaming HR during a workout
+- Live HR between workouts
+
+**Assessment:** This is already effectively what the current Garmin integration captures. It does not add real-time capability. Useful for more detailed post-workout HR zone analysis than the current summary, but not for live control.
+
+-----
+
+### 10.6 Option D: BLE Direct from Garmin (Advanced)
+
+Some Garmin devices advertise HR data over Bluetooth Low Energy using the standard **Heart Rate Service (HRS) GATT profile** — the same protocol used by chest straps and other BLE HR sensors.
+
+**How it works:**
+
+- The iPhone acts as a BLE Central and connects to the Garmin as a Peripheral
+- The Garmin HR Service UUID (`0x180D`) exposes the Heart Rate Measurement characteristic
+- HR data is delivered via BLE notifications at ~1 Hz
+
+**Critical caveat:** Whether Garmin devices expose the standard HRS depends heavily on the specific device model and firmware version. Many Garmin devices do NOT expose this by default, or they only expose it when connected to compatible Garmin accessories (like Garmin head units). This requires testing on the specific device model.
+
+**If available, this is the cleanest solution** — no Connect IQ development required, pure CoreBluetooth on iOS, standard protocol.
+
+**Implementation effort:** Low IF the Garmin device supports it. Can be verified with a BLE scanner app (e.g., LightBlue) by scanning for nearby BLE devices and looking for the Heart Rate Service UUID.
+
+-----
+
+### 10.7 Recommended Approach for Implementation
+
+Given the setup described (Garmin watch, iPhone running Trio):
+
+**Phase 1 — Quick validation:** Use LightBlue or nRF Connect app to scan for BLE advertisements from the Garmin watch. Check if Heart Rate Service (UUID 0x180D) is visible. If yes, proceed with Option D (direct BLE) — it’s the simplest path.
+
+**Phase 2 — If direct BLE isn’t available:** Build a minimal Connect IQ background service app (Option A). This is a one-time development effort of perhaps 1–2 weeks for someone with mobile development experience. The Garmin developer community has good documentation and examples for this pattern.
+
+**Phase 3 — iOS integration:** Regardless of which option delivers the HR data, the iOS integration is similar:
+
+- Receive HR readings into a lightweight local service
+- Expose current HR and a rolling 5-minute average via a local method accessible to the Trio algorithm
+- Feed into zone classification: Zone 1 (<60% max HR), Zone 2 (60–70%), Zone 3 (70–80%), Zone 4 (80–90%), Zone 5 (>90%)
+
+### 10.8 What Real-Time HR Enables in the Algorithm
+
+Once live HR is available, the following algorithm enhancements become possible:
+
+**During active exercise:**
+
+- Suppress SMBs when HR indicates Zone 3+ (elevated glucose uptake risk)
+- Increase low glucose suspend sensitivity during Zone 2+ activity
+- Begin the post-exercise sensitivity window modeling from the actual end-of-exercise time rather than waiting for the workout to sync
+
+**During mild activity (Zone 1 elevation):**
+
+- Detect sustained low-level activity (elevated HR above resting for >20 min)
+- Apply a modest ISF upward modifier for “incidental exercise” — walking, light housework
+- Reduce meal bolus aggressiveness if HR elevation coincides with meal absorption
+
+**Anaerobic detection:**
+
+- Very high HR (Zone 4–5) triggers a brief insulin resistance flag
+- Suppresses excess SMBs during the acute phase
+- Primes the algorithm for the delayed sensitivity enhancement that follows
+
+**Integration with meal model:**
+
+- If a meal is in progress and HR is in Zone 2+, adjust the absorption prediction — exercise can actually accelerate gastric emptying and glucose uptake simultaneously, changing the meal curve shape
+
+-----
+
+## 11. Implementation Roadmap
+
+The following phases represent a logical development sequence from current state to the full proposed system. Each phase builds on the previous and provides value independently.
+
+### Phase 1: Signal Enhancement (Foundation)
+
+**Goal:** Improve the quality of signals fed into oref without changing the core dosing logic.
+
+- Implement Kalman filter on CGM readings
+- Calculate and log BG velocity, acceleration, jerk (for analysis, not yet used in dosing)
+- Implement BG residual calculation (actual vs. IOB-expected)
+- Normalize Garmin HRV and resting HR to personal Z-scores each morning
+- Log all data to a local time-series store for retrospective analysis
+
+**Value delivered:** Better insight data; foundation for all subsequent phases. No change to dosing behavior yet, so minimal risk.
+
+-----
+
+### Phase 2: Macro-Aware Meal Model
+
+**Goal:** Replace oref’s linear carb absorption with the composite macronutrient model.
+
+- Build the composite absorption curve from Cronometer macro data
+- Implement fiber adjustment to effective carbs
+- Implement Bayesian absorption estimator (replacing fixed linear absorption)
+- Add fat-protein tail prediction and schedule delayed basal/SMB response
+- Log predicted vs. actual curves for validation
+
+**Value delivered:** Significantly improved postprandial control, especially for high-fat and high-protein meals. Addresses the “great at 2 hours, high at 4 hours” problem.
+
+-----
+
+### Phase 3: Daily State Vector and Static Modifiers
+
+**Goal:** Incorporate Garmin recovery and sleep data into daily ISF/CR modifications.
+
+- Build morning state vector calculation from overnight Garmin sync
+- Implement HRV Z-score to ISF modifier mapping
+- Implement sleep quality to ISF and basal modifier mapping
+- Apply daily modifiers to oref parameter inputs
+- Add user-facing explanation in Trio UI (“Your sensitivity is adjusted today because…”)
+
+**Value delivered:** Algorithm adapts to the user’s physiological state day to day. Reduces unexplained BG variability caused by sleep and stress.
+
+-----
+
+### Phase 4: Post-Exercise Sensitivity Modeling
+
+**Goal:** Apply post-exercise ISF and CR modifiers based on saved Garmin workout data.
+
+- Implement workout classification and intensity scoring
+- Build post-exercise sensitivity decay curves by workout type
+- Apply time-decaying ISF modifier from workout completion time
+- Implement glycogen depletion estimation and post-workout CR modifier
+- Add UI indicator for active post-exercise sensitivity window
+
+**Value delivered:** Elimination of the most common post-exercise hypoglycemia cause (over-bolusing for post-workout meals); better overnight BG after exercise days.
+
+-----
+
+### Phase 5: Adaptive Learning
+
+**Goal:** Implement retrospective learning to personalize all coefficients.
+
+- Implement meal retrospective analysis pipeline
+- EWMA coefficient updating for carb absorption speed, protein sensitivity, fat delay
+- Outlier detection and flagging
+- Diurnal ISF/CR curve learning
+- User dashboard for reviewing learning history and flagging anomalies
+
+**Value delivered:** System improves continuously with use. Personalization that no static algorithm can match.
+
+-----
+
+### Phase 6: Live Heart Rate (Optional Enhancement)
+
+**Goal:** Add real-time HR to enable in-activity algorithm adaptation.
+
+- Validate Garmin BLE HR advertisement (or build Connect IQ app)
+- Implement iOS BLE HR receiver
+- Integrate live HR into zone classifier
+- Apply in-activity ISF suppression (Zone 3+ exercise)
+- Apply incidental activity (Zone 1 elevation) mild modifier
+- Enable real-time post-exercise window triggering
+
+**Value delivered:** Algorithm adapts in real time to current physical state, not just historical workout data. Closes the last major temporal gap.
+
+-----
+
+## 12. Summary of Expected Gains
+
+|Area                           |Current oref                                     |Enhanced System                                                                |
+|-------------------------------|-------------------------------------------------|-------------------------------------------------------------------------------|
+|Carb absorption model          |Fixed linear rate                                |Bayesian, macro-aware, dynamically updated                                     |
+|Protein/fat effect             |Not modeled                                      |Predicted from Cronometer; validated by CGM                                    |
+|ISF                            |Static (time-of-day profiles possible but manual)|Dynamically adjusted for HRV, sleep, exercise                                  |
+|Dawn phenomenon                |Addressed by manual basal tuning                 |Automatically modulated by sleep data                                          |
+|Post-exercise dosing           |No awareness                                     |Full sensitivity window modeling by workout type                               |
+|Unannounced meal detection     |UAM heuristic (velocity threshold)               |Acceleration-primary / jerk-confirmatory signal hierarchy + Bayesian estimation|
+|Algorithm improvement over time|None (requires manual setting changes)           |Continuous retrospective learning                                              |
+|User physiological context     |None                                             |Full daily state vector from Garmin                                            |
+|Explainability                 |Minimal                                          |Full state vector surfaced in UI                                               |
+
+The net effect of these improvements, based on what has been observed in academic closed-loop studies that incorporate physiological context and adaptive learning, is a meaningful reduction in:
+
+- Time above range (TAG), particularly the 3–5 hour post-meal window (protein/fat tail)
+- Time below range after exercise
+- Day-to-day BG variability driven by external physiological factors
+
+And a meaningful increase in:
+
+- Time in range (TIR) — the primary metric
+- Algorithm reliability without requiring increased user attention
+- User understanding of *why* the algorithm is making the decisions it is
+
+-----
+
+*This document represents a design proposal based on available data streams, physiological evidence, and established algorithm design patterns. All modifier coefficients are initial estimates intended to be calibrated through individual retrospective learning. No changes to core oref safety constraints are proposed.*
+
+-----
+
+**End of Document**
