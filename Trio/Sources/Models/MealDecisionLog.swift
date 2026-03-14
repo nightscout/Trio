@@ -68,6 +68,9 @@ struct MealDecisionSnapshot: Codable {
     let fattyMealEnabled: Bool
     let superBolusEnabled: Bool
     let toughMealEnabled: Bool
+    let toughMealAutoDetected: Bool
+    let toughMealGateReason: String
+    let fatPlusProteinGrams: Double
     let fraction: Double
 
     // Delivery

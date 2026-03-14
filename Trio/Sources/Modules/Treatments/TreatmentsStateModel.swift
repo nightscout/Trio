@@ -86,6 +86,9 @@ extension Treatments {
 
         var toughMeals: Bool = false
         var useToughMeal: Bool = false
+        var toughMealHighBGWarning: Bool = false
+        var toughMealHighIOBWarning: Bool = false
+        var toughMealAutoSuggested: Bool = false
 
         var meal: [CarbsEntry]?
         var carbs: Decimal = 0
@@ -421,6 +424,27 @@ extension Treatments {
             }
         }
 
+        // MARK: - Tough Meal Auto-Detection and Gating
+
+        /// Check if fat+protein content should auto-suggest tough meal
+        @MainActor func evaluateToughMealAutoSuggestion() {
+            guard toughMeals, !useToughMeal else { return }
+
+            let fatPlusProtein = fat + protein
+            // Auto-suggest when fat+protein > 40g AND carbs > 30g
+            if fatPlusProtein > 40, carbs > 30 {
+                toughMealAutoSuggested = true
+            } else {
+                toughMealAutoSuggested = false
+            }
+        }
+
+        /// Check if current BG or IOB should show a warning when tough meal is toggled on
+        @MainActor func evaluateToughMealGates() {
+            toughMealHighBGWarning = useToughMeal && currentBG > 180
+            toughMealHighIOBWarning = useToughMeal && iob > 1.5
+        }
+
         // MARK: CALCULATIONS FOR THE BOLUS CALCULATOR
 
         /// Calculate insulin recommendation
@@ -480,7 +504,27 @@ extension Treatments {
                 // Activate tough meal mode if toggled on
                 if useToughMeal {
                     settings.settings.toughMealActivationDate = Date()
-                    debug(.bolusState, "Tough Meal mode activated")
+                    settings.settings.toughMealStartingBG = currentBG
+                    settings.settings.toughMealIOBAtDose = iob
+                    let fatPlusProtein = fat + protein
+                    settings.settings.toughMealFatPlusProtein = fatPlusProtein
+                    settings.settings.toughMealAutoDetected = toughMealAutoSuggested
+
+                    // Determine gate reason for tracking
+                    var gateReason = ""
+                    if currentBG > 180 {
+                        gateReason = "high_starting_bg_\(currentBG)"
+                    }
+                    if iob > 1.5 {
+                        gateReason += gateReason.isEmpty ? "" : ","
+                        gateReason += "high_iob_\(iob)"
+                    }
+                    settings.settings.toughMealGateReason = gateReason
+
+                    debug(
+                        .bolusState,
+                        "Tough Meal mode activated. BG=\(currentBG), IOB=\(iob), Fat+Protein=\(fatPlusProtein), autoSuggested=\(toughMealAutoSuggested), gate=\(gateReason)"
+                    )
                 }
 
                 let isInsulinGiven = amount > 0
@@ -795,6 +839,9 @@ extension Treatments {
                 fattyMealEnabled: useFattyMealCorrectionFactor,
                 superBolusEnabled: useSuperBolus,
                 toughMealEnabled: useToughMeal,
+                toughMealAutoDetected: toughMealAutoSuggested,
+                toughMealGateReason: settings.settings.toughMealGateReason,
+                fatPlusProteinGrams: Double(truncating: (fat + protein) as NSDecimalNumber),
                 fraction: Double(truncating: fraction as NSDecimalNumber),
                 userConfirmedDose: insulinDelivered,
                 isExternalInsulin: externalInsulin,

@@ -23,6 +23,11 @@ struct TrioCustomOrefVariables: JSON, Equatable {
     var uamMinutes: Decimal
     var toughMealActive: Bool
     var toughMealMinutesRemaining: Decimal
+    var toughMealStartingBG: Decimal
+    var toughMealIOBAtDose: Decimal
+    var toughMealFatPlusProtein: Decimal
+    var toughMealAutoDetected: Bool
+    var toughMealGateReason: String
 
     init(
         average_total_data: Decimal,
@@ -46,7 +51,12 @@ struct TrioCustomOrefVariables: JSON, Equatable {
         smbMinutes: Decimal,
         uamMinutes: Decimal,
         toughMealActive: Bool = false,
-        toughMealMinutesRemaining: Decimal = 0
+        toughMealMinutesRemaining: Decimal = 0,
+        toughMealStartingBG: Decimal = 0,
+        toughMealIOBAtDose: Decimal = 0,
+        toughMealFatPlusProtein: Decimal = 0,
+        toughMealAutoDetected: Bool = false,
+        toughMealGateReason: String = ""
     ) {
         self.average_total_data = average_total_data
         self.weightedAverage = weightedAverage
@@ -70,6 +80,11 @@ struct TrioCustomOrefVariables: JSON, Equatable {
         self.uamMinutes = uamMinutes
         self.toughMealActive = toughMealActive
         self.toughMealMinutesRemaining = toughMealMinutesRemaining
+        self.toughMealStartingBG = toughMealStartingBG
+        self.toughMealIOBAtDose = toughMealIOBAtDose
+        self.toughMealFatPlusProtein = toughMealFatPlusProtein
+        self.toughMealAutoDetected = toughMealAutoDetected
+        self.toughMealGateReason = toughMealGateReason
     }
 }
 
@@ -97,5 +112,10 @@ extension TrioCustomOrefVariables {
         case uamMinutes
         case toughMealActive
         case toughMealMinutesRemaining
+        case toughMealStartingBG
+        case toughMealIOBAtDose
+        case toughMealFatPlusProtein
+        case toughMealAutoDetected
+        case toughMealGateReason
     }
 }
