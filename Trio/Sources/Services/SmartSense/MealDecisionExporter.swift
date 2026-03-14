@@ -170,7 +170,11 @@ enum MealDecisionExporter {
             rangeDays: range.days,
             settings: settings,
             records: records,
-            dailyZScores: dailyZScores
+            dailyZScores: dailyZScores,
+            macroMealModelEnabled: settings.macroMealModelEnabled,
+            dailyStateVectorEnabled: settings.dailyStateVectorEnabled,
+            exerciseSensitivityEnabled: settings.exerciseSensitivityEnabled,
+            adaptiveLearningEnabled: settings.adaptiveLearningEnabled
         )
 
         // Write to file
@@ -264,7 +268,19 @@ enum MealDecisionExporter {
                 residual: entry.residual,
                 residualRate: entry.residualRate,
                 carbAbsorptionRate: entry.estimatedCarbAbsorptionRate,
-                mealDetection: entry.mealDetectionConfidence
+                mealDetection: entry.mealDetectionConfidence,
+                // Phase 2-5 shadow data
+                bayesianCOB: entry.bayesianCOB,
+                fatProteinTailCOB: entry.fatProteinTailCOB,
+                absorptionPhase: entry.absorptionPhase,
+                predictedAbsorptionRate: entry.predictedAbsorptionRate,
+                dailyISFModifier: entry.dailyISFModifier,
+                dailyCRModifier: entry.dailyCRModifier,
+                exerciseISFModifier: entry.exerciseISFModifier,
+                exerciseCRModifier: entry.exerciseCRModifier,
+                exerciseWindowActive: entry.exerciseWindowActive,
+                learnedCarbSpeed: entry.learnedCarbSpeed,
+                calibrationPercent: entry.calibrationPercent
             )
         }.sorted { $0.minutesAfterDose < $1.minutesAfterDose }
     }
@@ -397,7 +413,12 @@ enum MealDecisionExporter {
                     bgResidual: validSignal?.residual,
                     residualRate: validSignal?.residualRate,
                     carbAbsorptionRate: validSignal?.estimatedCarbAbsorptionRate,
-                    mealDetection: validSignal?.mealDetectionConfidence
+                    mealDetection: validSignal?.mealDetectionConfidence,
+                    bayesianCOB: validSignal?.bayesianCOB,
+                    absorptionPhase: validSignal?.absorptionPhase,
+                    dailyISFModifier: validSignal?.dailyISFModifier,
+                    exerciseISFModifier: validSignal?.exerciseISFModifier,
+                    exerciseWindowActive: validSignal?.exerciseWindowActive
                 )
             }
         }

@@ -18,6 +18,20 @@ struct SmartSenseSettings: JSON, Equatable {
 
     /// Factor weights — must sum to 1.0.
     var weights: SmartSenseWeights = SmartSenseWeights()
+
+    // MARK: - Oref Enhancement Toggles (Phases 2–5)
+
+    /// Phase 2: Macro-Aware Meal Model — Bayesian absorption, fiber adjustment, fat-protein tail
+    var macroMealModelEnabled: Bool = false
+
+    /// Phase 3: Daily State Vector — HRV/sleep/stress ISF modifiers from Z-scores
+    var dailyStateVectorEnabled: Bool = false
+
+    /// Phase 4: Post-Exercise Sensitivity — Time-decaying ISF/CR from Garmin activity
+    var exerciseSensitivityEnabled: Bool = false
+
+    /// Phase 5: Adaptive Learning — EWMA coefficient personalization from meal outcomes
+    var adaptiveLearningEnabled: Bool = false
 }
 
 extension SmartSenseSettings: Decodable {
@@ -30,6 +44,10 @@ extension SmartSenseSettings: Decodable {
         if let v = try? container.decode(Double.self, forKey: .maxAdjustment) { settings.maxAdjustment = v }
         if let v = try? container.decode(Double.self, forKey: .overrideDurationHours) { settings.overrideDurationHours = v }
         if let v = try? container.decode(SmartSenseWeights.self, forKey: .weights) { settings.weights = v }
+        if let v = try? container.decode(Bool.self, forKey: .macroMealModelEnabled) { settings.macroMealModelEnabled = v }
+        if let v = try? container.decode(Bool.self, forKey: .dailyStateVectorEnabled) { settings.dailyStateVectorEnabled = v }
+        if let v = try? container.decode(Bool.self, forKey: .exerciseSensitivityEnabled) { settings.exerciseSensitivityEnabled = v }
+        if let v = try? container.decode(Bool.self, forKey: .adaptiveLearningEnabled) { settings.adaptiveLearningEnabled = v }
         self = settings
     }
 }
