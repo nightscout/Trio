@@ -21,6 +21,7 @@ extension Treatments {
         @ObservationIgnored @Injected() var bolusCalculationManager: BolusCalculationManager!
         @ObservationIgnored @Injected() var smartSenseManager: SmartSenseManager!
         @ObservationIgnored @Injected() var cronometerMealDetector: CronometerMealDetector!
+        @ObservationIgnored @Injected() var signalPipeline: OrefSignalPipeline!
 
         var lowGlucose: Decimal = 70
         var highGlucose: Decimal = 180
@@ -800,7 +801,13 @@ extension Treatments {
                 isExternalInsulin: externalInsulin,
                 note: note.isEmpty ? nil : note,
                 smartSenseResult: smartSenseResult,
-                smartSenseOverride: smartSenseOverride
+                smartSenseOverride: smartSenseOverride,
+                signalSmoothedBG: signalPipeline.latestOutput?.smoothedBG,
+                signalVelocity: signalPipeline.latestOutput?.velocity,
+                signalAcceleration: signalPipeline.latestOutput?.acceleration,
+                signalJerk: signalPipeline.latestOutput?.jerk,
+                signalResidual: signalPipeline.latestOutput?.residual,
+                signalMealDetection: signalPipeline.latestOutput?.mealDetectionConfidence.rawValue
             )
 
             MealDecisionExporter.saveSnapshot(snapshot)

@@ -33,6 +33,9 @@ protocol OrefSignalPipeline {
 
     /// Publisher that emits when a new signal output is available.
     var outputPublisher: AnyPublisher<OrefSignalOutput, Never> { get }
+
+    /// Access to the signal store for export purposes.
+    var store: SignalStore { get }
 }
 
 /// Combined output from the signal pipeline for a single CGM reading.
@@ -66,7 +69,9 @@ final class BaseOrefSignalPipeline: OrefSignalPipeline, Injectable {
     private let signalProcessor: BGSignalProcessor
     private let residualCalculator: BGResidualCalculator
     private let zScoreNormalizer: GarminZScoreNormalizer
-    private var signalStore: SignalStore!
+    private var _signalStore: SignalStore!
+
+    var store: SignalStore { _signalStore }
 
     private let outputSubject = PassthroughSubject<OrefSignalOutput, Never>()
 
@@ -81,7 +86,7 @@ final class BaseOrefSignalPipeline: OrefSignalPipeline, Injectable {
         residualCalculator = BGResidualCalculator()
         zScoreNormalizer = GarminZScoreNormalizer()
         injectServices(resolver)
-        signalStore = SignalStore(storage: storage)
+        _signalStore = SignalStore(storage: storage)
         loadZScoreBaseline()
     }
 
@@ -143,7 +148,7 @@ final class BaseOrefSignalPipeline: OrefSignalPipeline, Injectable {
             jerkConfirmationActive: signalOutput.mealSignal.jerkConfirmation,
             velocitySignalActive: signalOutput.mealSignal.velocitySignal
         )
-        signalStore.logSignal(logEntry)
+        _signalStore.logSignal(logEntry)
 
         latestOutput = output
         outputSubject.send(output)
@@ -182,7 +187,7 @@ final class BaseOrefSignalPipeline: OrefSignalPipeline, Injectable {
             sleepScore: metric.sleepScore,
             sleepDurationMinutes: metric.sleepDurationMinutes
         )
-        signalStore.logDailyZScore(logEntry)
+        _signalStore.logDailyZScore(logEntry)
 
         // Persist the Z-score baseline for survival across app restarts
         saveZScoreBaseline()
@@ -200,7 +205,7 @@ final class BaseOrefSignalPipeline: OrefSignalPipeline, Injectable {
     // MARK: - Lifecycle
 
     func save() {
-        signalStore.save()
+        _signalStore.save()
         saveZScoreBaseline()
     }
 

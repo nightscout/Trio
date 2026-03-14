@@ -78,6 +78,14 @@ struct MealDecisionSnapshot: Codable {
     // SmartSense context
     let smartSenseResult: SmartSenseResult?
     let smartSenseOverride: Double?
+
+    // Signal pipeline state at dose time (Phase 1)
+    let signalSmoothedBG: Double?
+    let signalVelocity: Double?
+    let signalAcceleration: Double?
+    let signalJerk: Double?
+    let signalResidual: Double?
+    let signalMealDetection: String?
 }
 
 // MARK: - Full Export (built at export time with post-meal traces)
@@ -87,6 +95,27 @@ struct MealDecisionFullExport: Codable {
     let rangeDays: Int
     let settings: SmartSenseSettings
     let records: [MealDecisionRecord]
+
+    // Daily Garmin Z-score history for the export range (Phase 1)
+    let dailyZScores: [DailyZScoreExport]?
+}
+
+// MARK: - Daily Z-Score Export
+
+struct DailyZScoreExport: Codable {
+    let date: Date
+    let hrvZScore: Double?
+    let restingHRZScore: Double?
+    let sleepScoreZScore: Double?
+    let sleepDurationZScore: Double?
+    let deepSleepZScore: Double?
+    let bodyBatteryZScore: Double?
+    let stressConfidence: String
+    let baselineSize: Int
+    let hrvRMSSD: Double?
+    let restingHR: Double?
+    let sleepScore: Double?
+    let sleepDurationMinutes: Double?
 }
 
 struct MealDecisionRecord: Codable {
@@ -99,8 +128,27 @@ struct MealDecisionRecord: Codable {
     let tempBasalEvents: [TempBasalPoint]
     let loopDecisions: [LoopDecisionPoint]
 
+    // Signal pipeline trace (from signal log, matched to meal window)
+    let signalTrace: [SignalTracePoint]?
+
     // Summary stats (computed at export)
     let summary: MealOutcomeSummary?
+}
+
+// MARK: - Signal Trace Point (from Phase 1 signal pipeline)
+
+struct SignalTracePoint: Codable {
+    let minutesAfterDose: Double
+    let rawBG: Double
+    let smoothedBG: Double
+    let velocity: Double
+    let acceleration: Double
+    let jerk: Double?
+    let bgUncertainty: Double
+    let residual: Double?
+    let residualRate: Double?
+    let carbAbsorptionRate: Double?
+    let mealDetection: String
 }
 
 // MARK: - Post-Meal Data Points
@@ -134,6 +182,27 @@ struct LoopDecisionPoint: Codable {
     let smbDelivered: Double
     let tempBasalRate: Double?
     let sensitivityRatio: Double
+
+    // Signal pipeline data (Phase 1)
+    let smoothedBG: Double?
+    let bgVelocity: Double?           // mg/dL per minute
+    let bgAcceleration: Double?       // mg/dL per minute²
+    let bgJerk: Double?               // mg/dL per minute³
+    let bgResidual: Double?           // actual - expected (from IOB)
+    let residualRate: Double?         // mg/dL per minute
+    let carbAbsorptionRate: Double?   // g/min estimated from residual
+    let mealDetection: String?        // none/possible/likely/confirmed
+}
+
+// MARK: - Standalone Signal Pipeline Export
+
+struct SignalPipelineExport: Codable {
+    let exportDate: Date
+    let rangeDays: Int
+    let signalCount: Int
+    let zScoreCount: Int
+    let signals: [SignalStore.SignalEntry]
+    let dailyZScores: [SignalStore.DailyZScoreEntry]
 }
 
 // MARK: - Meal Outcome Summary
