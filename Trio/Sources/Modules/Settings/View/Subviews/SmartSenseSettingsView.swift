@@ -17,6 +17,8 @@ extension SmartSenseConfig {
 
 extension SmartSenseConfig {
     final class StateModel: BaseStateModel<Provider> {
+        @Injected() var signalPipeline: OrefSignalPipeline!
+
         @Published var smartSenseEnabled: Bool = false
         @Published var garminEnabled: Bool = false
         @Published var garminSplit: Double = 0.60
@@ -290,7 +292,8 @@ extension SmartSenseConfig {
                                 range: selectedRange,
                                 filter: selectedFilter,
                                 settings: settings,
-                                context: context
+                                context: context,
+                                signalStore: state.signalPipeline.store
                             ) {
                                 exportFiles = [url]
                                 showShareSheet = true
@@ -311,6 +314,38 @@ extension SmartSenseConfig {
                     .disabled(snapshotCount == 0 || isExporting)
 
                     Text("Exports meal decisions with 2h pre-meal + 8h post-meal BG traces, all boluses, temp basals, loop decisions, and settings as JSON. Filter by Smart Sense (detected) or Manual entries.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Section(header: Text("Signal Pipeline Export")) {
+                    Button {
+                        guard !isExporting else { return }
+                        isExporting = true
+                        Task {
+                            if let url = MealDecisionExporter.buildSignalExport(
+                                range: selectedRange,
+                                signalStore: state.signalPipeline.store
+                            ) {
+                                exportFiles = [url]
+                                showShareSheet = true
+                            }
+                            isExporting = false
+                        }
+                    } label: {
+                        HStack {
+                            if isExporting {
+                                ProgressView()
+                                    .controlSize(.small)
+                            } else {
+                                Image(systemName: "waveform.path.ecg")
+                            }
+                            Text("Export Signal Data")
+                        }
+                    }
+                    .disabled(isExporting)
+
+                    Text("Exports the continuous signal pipeline log: Kalman-filtered BG, velocity, acceleration, jerk, residuals, meal detection confidence, and daily Garmin Z-scores as JSON.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

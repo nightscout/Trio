@@ -33,6 +33,7 @@ protocol SmartSenseManager {
 
 final class BaseSmartSenseManager: SmartSenseManager, Injectable {
     @Injected() private var settingsManager: SettingsManager!
+    @Injected() private var signalPipeline: OrefSignalPipeline!
 
     private var _latestResult: SmartSenseResult?
     private var _activeOverride: SmartSenseOverride?
@@ -77,6 +78,11 @@ final class BaseSmartSenseManager: SmartSenseManager, Injectable {
         }
 
         let garminAvailable = snapshot != nil
+
+        // Feed Garmin data into the oref signal pipeline for Z-score normalization
+        if let snapshot = snapshot {
+            signalPipeline.processGarminData(snapshot)
+        }
 
         // Compute Garmin factors
         let factors = computeGarminFactors(from: snapshot, weights: settings.weights, maxAdj: settings.maxAdjustment)

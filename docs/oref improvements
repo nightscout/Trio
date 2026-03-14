@@ -1088,4 +1088,164 @@ And a meaningful increase in:
 
 -----
 
+## 13. Implementation Progress Tracking
+
+This section tracks what has been implemented from the roadmap above, organized by phase.
+
+-----
+
+### Phase 1: Signal Enhancement (Foundation) — COMPLETE
+
+**Status:** Fully implemented and merged. Observation-only — no changes to dosing behavior.
+
+**Branch:** `claude/implement-oref-improvements-NyWQe`
+
+#### What was built:
+
+**1. Adaptive Kalman Filter** (`Trio/Sources/APS/SignalProcessing/AdaptiveKalmanFilter.swift`)
+
+- 3×3 state vector: `[BG, velocity, acceleration]` with full covariance tracking
+- All matrix operations (multiply, add, subtract, transpose, invert) implemented natively in Swift — no external dependencies
+- **Adaptive process noise (Q):** Scales dynamically with `|recent velocity|`, so the filter trusts the model more when BG is stable and trusts new measurements more when BG is changing rapidly
+- **CGM gap handling:** When the interval between readings exceeds 7.5 minutes (normal is ~5 min), the filter widens uncertainty to account for the missing data rather than producing false derivatives
+- **Jerk calculation:** Computed as the discrete difference of consecutive acceleration values, only when readings are close enough in time to be meaningful
+- Measurement noise (R) set to 9.0 (CGM noise variance ≈ 3 mg/dL standard deviation)
+- Outputs `FilterOutput` struct with: `bg`, `velocity`, `acceleration`, `jerk` (optional), `bgUncertainty`, `velocityUncertainty`, `accelerationUncertainty`
+
+**2. BG Signal Processor with Meal Detection** (`Trio/Sources/APS/SignalProcessing/BGSignalProcessor.swift`)
+
+- Wraps the Kalman filter and implements the three-tier meal detection signal hierarchy from §4.5 of this document:
+  - **Primary signal:** Sustained positive acceleration for ≥10 minutes (2+ consecutive readings)
+  - **Confirmatory signal:** 2+ consecutive readings with positive jerk (acceleration is itself increasing)
+  - **Tertiary signal:** Velocity exceeds +2.0 mg/dL/min threshold (analogous to existing UAM detection)
+- Confidence levels: `none` → `possible` (acceleration only) → `likely` (acceleration + velocity or jerk) → `confirmed` (all three signals active)
+- Tracks state across readings: consecutive positive jerk count, sustained acceleration start time
+
+**3. BG Residual Calculator** (`Trio/Sources/APS/SignalProcessing/BGResidualCalculator.swift`)
+
+- Implements the residual formula from §4 of this document: `Residual(t) = BG_actual(t) - BG_expected(t)` where `BG_expected = BG_prev + IOB_effect`
+- IOB effect calculated as: `(IOB_prev - IOB_current) × ISF` (insulin that was active and is now gone should have lowered BG by this amount)
+- **Residual rate:** EMA-smoothed (α = 0.3) rate of change of the residual, in mg/dL per minute
+- **Estimated carb absorption rate:** Derived from residual rate using the formula: `carbAbsorptionRate = (residualRate × CR) / ISF` (converts unexplained BG rise back to grams/minute of carb absorption)
+- Maintains previous state for delta calculations; resets cleanly on sensor change
+
+**4. Garmin Z-Score Normalizer** (`Trio/Sources/APS/SignalProcessing/GarminZScoreNormalizer.swift`)
+
+- Implements the personal Z-score normalization from §6 of this document
+- **30-day rolling baseline** of daily metrics from Garmin Health data
+- Computes Z-scores for 6 metrics: HRV (RMSSD), resting heart rate, sleep score, sleep duration, deep sleep minutes, body battery
+- **Note:** Resting HR Z-score is inverted (higher RHR = negative Z-score = worse) since elevated resting HR indicates stress/illness
+- **Stress signal confidence:** `low` (< 7 days baseline), `moderate` (7–13 days), `high` (14+ days) — prevents the algorithm from acting on unreliable statistics
+- Requires minimum 3 data points before producing any Z-scores
+- Baseline persists across app restarts via `oref_zscore_baseline.json`
+- Types conform to Trio's `JSON` protocol (extends `Codable`) for compatibility with `FileStorage`
+
+**5. Signal Store** (`Trio/Sources/APS/SignalProcessing/SignalStore.swift`)
+
+- Local time-series persistence for all signal pipeline data
+- **SignalEntry** (per CGM reading, every ~5 minutes): smoothed BG, velocity, acceleration, jerk, uncertainties, raw BG, residual, residual rate, carb absorption rate, meal detection confidence, individual signal flags (acceleration/jerk/velocity)
+- **DailyZScoreEntry** (per overnight Garmin sync): all 6 Z-scores, stress confidence, baseline size, raw metric values
+- **Retention:** 7 days for signal entries, 90 days for daily Z-scores (automatic pruning on save)
+- Files: `oref_signal_log.json`, `oref_zscore_log.json`
+- Query methods: `signals(from:to:)` for time-windowed lookups, `recentSignals` and `recentZScores` for full arrays
+
+**6. Signal Pipeline Orchestrator** (`Trio/Sources/APS/SignalProcessing/OrefSignalPipeline.swift`)
+
+- `OrefSignalPipeline` protocol + `BaseOrefSignalPipeline` implementation
+- Registered in Swinject DI container via `APSAssembly`
+- `processGlucose(rawBG:at:iob:isf:cr:)` — runs each CGM reading through: Kalman filter → residual calculator → signal store logging → Combine publisher
+- `processGarminData(_:)` — processes daily Garmin snapshots through Z-score normalizer and logs to store
+- Publishes `OrefSignalOutput` via Combine for any UI consumers
+- Debug logging on every cycle with formatted signal values
+
+#### Integration points:
+
+- **APSManager** (`Trio/Sources/APS/APSManager.swift`): After each `determineBasal()` call, passes the current CGM reading plus IOB/ISF/CR from the determination to `signalPipeline.processGlucose()`. Calls `signalPipeline.save()` in `loopCompleted()`.
+- **SmartSenseManager** (`Trio/Sources/Services/SmartSense/SmartSenseManager.swift`): After fetching the overnight Garmin snapshot, passes it to `signalPipeline.processGarminData()`.
+- **Xcode project** (`Trio.xcodeproj/project.pbxproj`): All 6 SignalProcessing files added as a group under APS.
+
+-----
+
+### Phase 1 Extension: Export Integration — COMPLETE
+
+**Status:** Fully implemented and merged. Signal pipeline data is now included in the existing SmartSense meal decision export system.
+
+#### What was built:
+
+**1. Signal data in meal decision snapshots**
+
+- `MealDecisionSnapshot` now captures the signal pipeline state at dose time: `signalSmoothedBG`, `signalVelocity`, `signalAcceleration`, `signalJerk`, `signalResidual`, `signalMealDetection`
+- `TreatmentsStateModel` injects the `OrefSignalPipeline` and reads `latestOutput` when building each snapshot
+
+**2. Signal data in loop decision points**
+
+- `LoopDecisionPoint` now includes: `smoothedBG`, `bgVelocity`, `bgAcceleration`, `bgJerk`, `bgResidual`, `residualRate`, `carbAbsorptionRate`, `mealDetection`
+- `MealDecisionExporter.fetchLoopDecisions()` time-matches signal entries to each loop decision by finding the closest `SignalStore.SignalEntry` within a 3-minute tolerance window
+
+**3. Signal trace per meal record**
+
+- `MealDecisionRecord` includes a `signalTrace: [SignalTracePoint]?` array covering the full 2h pre-meal to 8h post-meal window
+- Each `SignalTracePoint` contains: minutesAfterDose, rawBG, smoothedBG, velocity, acceleration, jerk, bgUncertainty, residual, residualRate, carbAbsorptionRate, mealDetection
+- Built by querying `SignalStore.signals(from:to:)` for the meal window
+
+**4. Daily Z-scores in full export**
+
+- `MealDecisionFullExport` includes `dailyZScores: [DailyZScoreExport]?` for the export range
+- Each entry includes all 6 Z-scores, stress confidence, baseline size, and raw metric values (HRV RMSSD, resting HR, sleep score, sleep duration)
+
+**5. Standalone signal pipeline export**
+
+- New `MealDecisionExporter.buildSignalExport(range:signalStore:)` method exports the continuous signal log independently of meal snapshots
+- Exports as `SignalPipelineExport`: all `SignalEntry` records and `DailyZScoreEntry` records for the selected range
+- New "Signal Pipeline Export" section in SmartSense settings UI with an "Export Signal Data" button
+
+**6. UI changes** (`SmartSenseSettingsView.swift`)
+
+- `StateModel` now injects `OrefSignalPipeline` to access the signal store
+- Existing "Export Meal Data" button passes `signalStore: state.signalPipeline.store` so meal exports include signal data
+- New "Export Signal Data" button in a dedicated section for exporting the raw signal pipeline log
+
+-----
+
+### Tough Meal Enhancements — COMPLETE (Merged from `claude/tough-meal-implementation-DZrkM`)
+
+**Status:** Implemented and merged into the oref improvements branch. These are data-driven safety guardrails and auto-detection for the existing Tough Meal feature, based on analysis of 14 real meal records.
+
+#### Algorithm safety guardrails (determine-basal.js):
+
+- **BG floor safety:** Tough Meal SMB enhancements suspend when BG < 120 mg/dL
+- **IOB headroom check:** Enhancements suspend when IOB ≥ 75% of maxIOB
+- **Falling BG trend check:** Enhancements suspend when delta < -1 mg/dL per 5 min
+- **Meal context requirement:** Enhancements require COB > 0 or a bolus within the last 4 hours
+- **Adjusted SMB multipliers:** Reduced from 2.0×/2.5×/3.0× to 1.5×/2.0×/2.5× for the three time phases
+- **Enhanced microBolus cap:** Capped at 75% of insulinReq (was uncapped)
+- **Hard time limit:** 6-hour maximum for SMB enhancements regardless of configured duration
+
+#### Auto-detection and gating (Swift):
+
+- **Auto-suggest:** Tough Meal is automatically suggested when fat + protein > 40g and carbs > 30g
+- **Warning banners:** Shown when starting BG > 180 mg/dL or IOB > 1.5u at activation time
+- **Context capture:** Stores starting BG, IOB, and fat+protein grams at activation for analysis
+
+#### Tracking metrics:
+
+- `MealDecisionSnapshot` now includes: `toughMealAutoDetected`, `toughMealGateReason`, `fatPlusProteinGrams` for outcome analysis
+- Context variables passed through `TrioCustomOrefVariables` to the JavaScript algorithm
+
+-----
+
+### Phases Not Yet Started
+
+| Phase | Name | Status |
+|-------|------|--------|
+| Phase 2 | Macro-Aware Meal Model | Not started |
+| Phase 3 | Daily State Vector and Static Modifiers | Not started |
+| Phase 4 | Post-Exercise Sensitivity Modeling | Not started |
+| Phase 5 | Adaptive Learning | Not started |
+| Phase 6 | Live Heart Rate | Not started |
+
+**Note:** Phase 1 is designed to run for at least one week to collect signal data before proceeding. The export system allows reviewing Kalman filter output, residuals, meal detection accuracy, and Z-score stability to validate the signal quality before these signals are used in dosing decisions in later phases.
+
+-----
+
 **End of Document**

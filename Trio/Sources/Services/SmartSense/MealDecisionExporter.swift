@@ -126,7 +126,8 @@ enum MealDecisionExporter {
         range: ExportRange,
         filter: ExportFilter = .all,
         settings: SmartSenseSettings,
-        context: NSManagedObjectContext
+        context: NSManagedObjectContext,
+        signalStore: SignalStore? = nil
     ) async -> URL? {
         let startDate = range.startDate
         let snapshots = loadAllSnapshots().filter { $0.doseTimestamp >= startDate && filter.matches($0) }
@@ -139,15 +140,37 @@ enum MealDecisionExporter {
         // Build records with post-meal traces
         var records: [MealDecisionRecord] = []
         for snapshot in snapshots {
-            let record = await buildRecord(snapshot: snapshot, context: context)
+            let record = await buildRecord(snapshot: snapshot, context: context, signalStore: signalStore)
             records.append(record)
         }
+
+        // Include daily Z-scores for the export range
+        let dailyZScores: [DailyZScoreExport]? = signalStore?.recentZScores
+            .filter { $0.date >= startDate }
+            .map { entry in
+                DailyZScoreExport(
+                    date: entry.date,
+                    hrvZScore: entry.hrvZScore,
+                    restingHRZScore: entry.restingHRZScore,
+                    sleepScoreZScore: entry.sleepScoreZScore,
+                    sleepDurationZScore: entry.sleepDurationZScore,
+                    deepSleepZScore: entry.deepSleepZScore,
+                    bodyBatteryZScore: entry.bodyBatteryZScore,
+                    stressConfidence: entry.stressConfidence,
+                    baselineSize: entry.baselineSize,
+                    hrvRMSSD: entry.hrvRMSSD,
+                    restingHR: entry.restingHR,
+                    sleepScore: entry.sleepScore,
+                    sleepDurationMinutes: entry.sleepDurationMinutes
+                )
+            }
 
         let export = MealDecisionFullExport(
             exportDate: Date(),
             rangeDays: range.days,
             settings: settings,
-            records: records
+            records: records,
+            dailyZScores: dailyZScores
         )
 
         // Write to file
@@ -180,7 +203,8 @@ enum MealDecisionExporter {
     /// Build a single record by querying Core Data for the 2h pre + 8h post window.
     private static func buildRecord(
         snapshot: MealDecisionSnapshot,
-        context: NSManagedObjectContext
+        context: NSManagedObjectContext,
+        signalStore: SignalStore? = nil
     ) async -> MealDecisionRecord {
         let doseTime = snapshot.doseTimestamp
         let preStart = doseTime.addingTimeInterval(-2 * 3600)  // 2h before
@@ -190,9 +214,18 @@ enum MealDecisionExporter {
         async let postBG = fetchBGTrace(from: doseTime, to: postEnd, relativeTo: doseTime, context: context)
         async let boluses = fetchBoluses(from: doseTime, to: postEnd, relativeTo: doseTime, context: context)
         async let tempBasals = fetchTempBasals(from: doseTime, to: postEnd, relativeTo: doseTime, context: context)
-        async let loopDecisions = fetchLoopDecisions(from: doseTime, to: postEnd, relativeTo: doseTime, context: context)
+        async let loopDecisions = fetchLoopDecisions(
+            from: doseTime, to: postEnd, relativeTo: doseTime,
+            context: context, signalStore: signalStore
+        )
 
         let (pre, post, bols, temps, loops) = await (preBG, postBG, boluses, tempBasals, loopDecisions)
+
+        // Build signal trace from signal store for the meal window
+        let signalTrace = buildSignalTrace(
+            from: preStart, to: postEnd, relativeTo: doseTime,
+            signalStore: signalStore
+        )
 
         let summary = computeSummary(snapshot: snapshot, postBG: post, boluses: bols)
 
@@ -203,8 +236,37 @@ enum MealDecisionExporter {
             bolusEvents: bols,
             tempBasalEvents: temps,
             loopDecisions: loops,
+            signalTrace: signalTrace,
             summary: summary
         )
+    }
+
+    // MARK: - Signal Trace Builder
+
+    /// Build signal trace points from the signal store for a given time window.
+    private static func buildSignalTrace(
+        from start: Date, to end: Date, relativeTo doseTime: Date,
+        signalStore: SignalStore?
+    ) -> [SignalTracePoint]? {
+        guard let store = signalStore else { return nil }
+        let entries = store.signals(from: start, to: end)
+        guard !entries.isEmpty else { return nil }
+
+        return entries.map { entry in
+            SignalTracePoint(
+                minutesAfterDose: entry.timestamp.timeIntervalSince(doseTime) / 60,
+                rawBG: entry.rawBG,
+                smoothedBG: entry.smoothedBG,
+                velocity: entry.velocity,
+                acceleration: entry.acceleration,
+                jerk: entry.jerk,
+                bgUncertainty: entry.bgUncertainty,
+                residual: entry.residual,
+                residualRate: entry.residualRate,
+                carbAbsorptionRate: entry.estimatedCarbAbsorptionRate,
+                mealDetection: entry.mealDetectionConfidence
+            )
+        }.sorted { $0.minutesAfterDose < $1.minutesAfterDose }
     }
 
     // MARK: - Core Data Queries
@@ -294,7 +356,8 @@ enum MealDecisionExporter {
 
     private static func fetchLoopDecisions(
         from start: Date, to end: Date, relativeTo doseTime: Date,
-        context: NSManagedObjectContext
+        context: NSManagedObjectContext,
+        signalStore: SignalStore? = nil
     ) async -> [LoopDecisionPoint] {
         await context.perform {
             let request = NSFetchRequest<NSManagedObject>(entityName: "OrefDetermination")
@@ -307,6 +370,16 @@ enum MealDecisionExporter {
             guard let results = try? context.fetch(request) else { return [] }
             return results.compactMap { det -> LoopDecisionPoint? in
                 guard let date = det.value(forKey: "deliverAt") as? Date else { return nil }
+
+                // Find the closest signal entry for this loop decision timestamp
+                let signalEntry = signalStore?.recentSignals.min(by: {
+                    abs($0.timestamp.timeIntervalSince(date)) < abs($1.timestamp.timeIntervalSince(date))
+                })
+                // Only use signal data if it's within 3 minutes of the loop decision
+                let validSignal = signalEntry.flatMap { entry in
+                    abs(entry.timestamp.timeIntervalSince(date)) < 180 ? entry : nil
+                }
+
                 return LoopDecisionPoint(
                     minutesAfterDose: date.timeIntervalSince(doseTime) / 60,
                     glucose: (det.value(forKey: "glucose") as? NSDecimalNumber)?.doubleValue ?? 0,
@@ -316,7 +389,15 @@ enum MealDecisionExporter {
                     insulinReq: (det.value(forKey: "insulinReq") as? NSDecimalNumber)?.doubleValue ?? 0,
                     smbDelivered: (det.value(forKey: "smbToDeliver") as? NSDecimalNumber)?.doubleValue ?? 0,
                     tempBasalRate: (det.value(forKey: "rate") as? NSDecimalNumber)?.doubleValue,
-                    sensitivityRatio: (det.value(forKey: "sensitivityRatio") as? NSDecimalNumber)?.doubleValue ?? 1.0
+                    sensitivityRatio: (det.value(forKey: "sensitivityRatio") as? NSDecimalNumber)?.doubleValue ?? 1.0,
+                    smoothedBG: validSignal?.smoothedBG,
+                    bgVelocity: validSignal?.velocity,
+                    bgAcceleration: validSignal?.acceleration,
+                    bgJerk: validSignal?.jerk,
+                    bgResidual: validSignal?.residual,
+                    residualRate: validSignal?.residualRate,
+                    carbAbsorptionRate: validSignal?.estimatedCarbAbsorptionRate,
+                    mealDetection: validSignal?.mealDetectionConfidence
                 )
             }
         }
@@ -360,6 +441,54 @@ enum MealDecisionExporter {
             timeAbove180Minutes: above180,
             timeBelow70Minutes: below70
         )
+    }
+
+    // MARK: - Standalone Signal Export
+
+    /// Export the full signal pipeline data (Kalman-filtered BG, derivatives, residuals,
+    /// meal detection, and daily Garmin Z-scores) for a given time range.
+    /// This is independent of meal snapshots — it exports the continuous signal log.
+    static func buildSignalExport(range: ExportRange, signalStore: SignalStore) -> URL? {
+        let startDate = range.startDate
+
+        let signals = signalStore.recentSignals.filter { $0.timestamp >= startDate }
+        let zScores = signalStore.recentZScores.filter { $0.date >= startDate }
+
+        guard !signals.isEmpty || !zScores.isEmpty else {
+            debug(.service, "MealDecisionExporter: no signal data in range \(range.label)")
+            return nil
+        }
+
+        let export = SignalPipelineExport(
+            exportDate: Date(),
+            rangeDays: range.days,
+            signalCount: signals.count,
+            zScoreCount: zScores.count,
+            signals: signals.sorted { $0.timestamp < $1.timestamp },
+            dailyZScores: zScores.sorted { $0.date < $1.date }
+        )
+
+        guard let exportDir = exportDirectoryURL() else { return nil }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let filename = "signal_export_\(range.rawValue)_\(formatter.string(from: Date())).json"
+        let fileURL = exportDir.appendingPathComponent(filename)
+
+        do {
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            let data = try encoder.encode(export)
+            try data.write(to: fileURL, options: .atomic)
+            debug(
+                .service,
+                "MealDecisionExporter: signal export \(filename) — \(signals.count) signals, \(zScores.count) Z-scores, \(data.count) bytes"
+            )
+            return fileURL
+        } catch {
+            debug(.service, "MealDecisionExporter: signal export failed — \(error.localizedDescription)")
+            return nil
+        }
     }
 
     // MARK: - File Helpers
