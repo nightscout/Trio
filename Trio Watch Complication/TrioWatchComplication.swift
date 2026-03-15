@@ -4,30 +4,37 @@ import WidgetKit
 // MARK: - Shared Data Storage
 
 struct ComplicationData {
-    static let appGroupID = "group.com.trio.shared"
+    static var appGroupID: String? {
+        Bundle.main.object(forInfoDictionaryKey: "AppGroupID") as? String
+    }
+
+    private static var sharedDefaults: UserDefaults? {
+        guard let groupID = appGroupID else { return nil }
+        return UserDefaults(suiteName: groupID)
+    }
 
     static var glucose: String {
-        UserDefaults(suiteName: appGroupID)?.string(forKey: "complication_glucose") ?? "--"
+        sharedDefaults?.string(forKey: "complication_glucose") ?? "--"
     }
 
     static var trend: String {
-        UserDefaults(suiteName: appGroupID)?.string(forKey: "complication_trend") ?? ""
+        sharedDefaults?.string(forKey: "complication_trend") ?? ""
     }
 
     static var delta: String {
-        UserDefaults(suiteName: appGroupID)?.string(forKey: "complication_delta") ?? ""
+        sharedDefaults?.string(forKey: "complication_delta") ?? ""
     }
 
     static var iob: String {
-        UserDefaults(suiteName: appGroupID)?.string(forKey: "complication_iob") ?? ""
+        sharedDefaults?.string(forKey: "complication_iob") ?? ""
     }
 
     static var cob: String {
-        UserDefaults(suiteName: appGroupID)?.string(forKey: "complication_cob") ?? ""
+        sharedDefaults?.string(forKey: "complication_cob") ?? ""
     }
 
     static var lastUpdate: Date {
-        UserDefaults(suiteName: appGroupID)?.object(forKey: "complication_lastUpdate") as? Date ?? .distantPast
+        sharedDefaults?.object(forKey: "complication_lastUpdate") as? Date ?? .distantPast
     }
 
     static var isStale: Bool {
