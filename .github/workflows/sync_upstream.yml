@@ -46,6 +46,13 @@ jobs:
           COUNT=$(git rev-list HEAD..upstream/${{ env.UPSTREAM_BRANCH }} --count)
           echo "count=$COUNT" >> $GITHUB_OUTPUT
 
+      - name: Backup custom complications
+        if: steps.check.outputs.count != '0'
+        run: |
+          mkdir -p /tmp/complication-backup
+          cp -r "Trio Watch Complication/" /tmp/complication-backup/
+          cp -r "FreeAPSWatch WatchKit Extension/" /tmp/complication-backup/ 2>/dev/null || true
+
       - name: Merge upstream
         if: steps.check.outputs.count != '0'
         id: merge
@@ -55,6 +62,19 @@ jobs:
           else
             echo "success=false" >> $GITHUB_OUTPUT
             git merge --abort
+          fi
+
+      - name: Restore custom complications
+        if: steps.merge.outputs.success == 'true'
+        run: |
+          # Restore our custom complication files (overwrites upstream version)
+          cp -r /tmp/complication-backup/Trio\ Watch\ Complication/* "Trio Watch Complication/"
+          cp -r /tmp/complication-backup/FreeAPSWatch\ WatchKit\ Extension/* "FreeAPSWatch WatchKit Extension/" 2>/dev/null || true
+
+          # Check if there are changes to commit
+          if ! git diff --quiet; then
+            git add "Trio Watch Complication/" "FreeAPSWatch WatchKit Extension/" 2>/dev/null || git add "Trio Watch Complication/"
+            git commit -m "Restore custom ClockKit complications after upstream sync"
           fi
 
       - name: Push changes
