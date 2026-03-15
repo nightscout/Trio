@@ -1,106 +1,235 @@
-import ClockKit
 import SwiftUI
+import WidgetKit
 
-class ComplicationController: NSObject, CLKComplicationDataSource {
-    // MARK: - Complication Configuration
+// MARK: - Shared Data Storage
 
-    func getComplicationDescriptors(handler: @escaping ([CLKComplicationDescriptor]) -> Void) {
-        let descriptors = [
-            CLKComplicationDescriptor(
-                identifier: "complication",
-                displayName: "Trio",
-                supportedFamilies: [
-                    .graphicCorner,
-                    .graphicCircular,
-                    .modularSmall,
-                    .utilitarianSmall,
-                    .circularSmall
-                ]
-            )
-        ]
-
-        // Call the handler with the currently supported complication descriptors
-        handler(descriptors)
+struct ComplicationData {
+    // Read App Group ID from Info.plist (matches main app configuration)
+    static var appGroupID: String? {
+        Bundle.main.object(forInfoDictionaryKey: "AppGroupID") as? String
     }
 
-    func handleSharedComplicationDescriptors(_: [CLKComplicationDescriptor]) {
-        // Do any necessary work to support these newly shared complication descriptors
+    private static var sharedDefaults: UserDefaults? {
+        guard let groupID = appGroupID else { return nil }
+        return UserDefaults(suiteName: groupID)
     }
 
-    // MARK: - Timeline Configuration
-
-    func getTimelineEndDate(for _: CLKComplication, withHandler handler: @escaping (Date?) -> Void) {
-        // Call the handler with the last entry date you can currently provide or nil if you can't support future timelines
-        handler(nil)
+    static var glucose: String {
+        sharedDefaults?.string(forKey: "complication_glucose") ?? "--"
     }
 
-    func getPrivacyBehavior(for _: CLKComplication, withHandler handler: @escaping (CLKComplicationPrivacyBehavior) -> Void) {
-        // Call the handler with your desired behavior when the device is locked
-        handler(.showOnLockScreen)
+    static var trend: String {
+        sharedDefaults?.string(forKey: "complication_trend") ?? ""
     }
 
-    // MARK: - Timeline Population
+    static var delta: String {
+        sharedDefaults?.string(forKey: "complication_delta") ?? ""
+    }
 
-    func getCurrentTimelineEntry(
-        for complication: CLKComplication,
-        withHandler handler: @escaping (CLKComplicationTimelineEntry?) -> Void
-    ) {
-        switch complication.family {
-        case .graphicCorner:
-            guard let image = UIImage(named: "Complication/Graphic Corner") else {
-                handler(nil)
-                return
-            }
-            let template = CLKComplicationTemplateGraphicCornerTextImage(
-                textProvider: CLKTextProvider(format: "%@", "Trio"),
-                imageProvider: CLKFullColorImageProvider(fullColorImage: image)
-            )
-            let timelineEntry = CLKComplicationTimelineEntry(date: Date(), complicationTemplate: template)
-            handler(timelineEntry)
-        case .modularSmall:
-            let template = CLKComplicationTemplateModularSmallRingText(
-                textProvider: CLKTextProvider(format: "%@", "Trio"),
-                fillFraction: 1,
-                ringStyle: .closed
-            )
+    static var iob: String {
+        sharedDefaults?.string(forKey: "complication_iob") ?? ""
+    }
 
-            let timelineEntry = CLKComplicationTimelineEntry(date: Date(), complicationTemplate: template)
-            handler(timelineEntry)
-        case .utilitarianSmall:
-            guard let image = UIImage(named: "Complication/Utilitarian") else {
-                handler(nil)
-                return
-            }
-            let template = CLKComplicationTemplateUtilitarianSmallSquare(
-                imageProvider: CLKImageProvider(onePieceImage: image)
-            )
-            let timelineEntry = CLKComplicationTimelineEntry(date: Date(), complicationTemplate: template)
-            handler(timelineEntry)
-        case .circularSmall:
-            let template =
-                CLKComplicationTemplateCircularSmallSimpleText(textProvider: CLKTextProvider(format: "%@", "Trio"))
-            let timelineEntry = CLKComplicationTimelineEntry(date: Date(), complicationTemplate: template)
-            handler(timelineEntry)
+    static var cob: String {
+        sharedDefaults?.string(forKey: "complication_cob") ?? ""
+    }
+
+    static var lastUpdate: Date {
+        sharedDefaults?.object(forKey: "complication_lastUpdate") as? Date ?? .distantPast
+    }
+
+    static var isStale: Bool {
+        Date().timeIntervalSince(lastUpdate) > 600 // 10 minutes
+    }
+}
+
+// MARK: - Timeline Entry
+
+struct TrioWatchComplicationEntry: TimelineEntry {
+    let date: Date
+    let glucose: String
+    let trend: String
+    let delta: String
+    let iob: String
+    let cob: String
+    let isStale: Bool
+}
+
+// MARK: - Provider
+
+struct TrioWatchComplicationProvider: TimelineProvider {
+    func placeholder(in _: Context) -> TrioWatchComplicationEntry {
+        TrioWatchComplicationEntry(
+            date: Date(),
+            glucose: "120",
+            trend: "→",
+            delta: "+2",
+            iob: "1.5",
+            cob: "20",
+            isStale: false
+        )
+    }
+
+    func getSnapshot(in _: Context, completion: @escaping (TrioWatchComplicationEntry) -> Void) {
+        let entry = TrioWatchComplicationEntry(
+            date: Date(),
+            glucose: ComplicationData.glucose,
+            trend: ComplicationData.trend,
+            delta: ComplicationData.delta,
+            iob: ComplicationData.iob,
+            cob: ComplicationData.cob,
+            isStale: ComplicationData.isStale
+        )
+        completion(entry)
+    }
+
+    func getTimeline(in _: Context, completion: @escaping (Timeline<TrioWatchComplicationEntry>) -> Void) {
+        let entry = TrioWatchComplicationEntry(
+            date: Date(),
+            glucose: ComplicationData.glucose,
+            trend: ComplicationData.trend,
+            delta: ComplicationData.delta,
+            iob: ComplicationData.iob,
+            cob: ComplicationData.cob,
+            isStale: ComplicationData.isStale
+        )
+        // Refresh every 5 minutes
+        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 5, to: Date()) ?? Date()
+        let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
+        completion(timeline)
+    }
+}
+
+// MARK: - Views
+
+struct TrioWatchComplicationEntryView: View {
+    @Environment(\.widgetFamily) private var widgetFamily
+
+    var entry: TrioWatchComplicationEntry
+
+    var body: some View {
+        switch widgetFamily {
+        case .accessoryCircular:
+            TrioAccessoryCircularView(entry: entry)
+        case .accessoryCorner:
+            TrioAccessoryCornerView(entry: entry)
+        case .accessoryRectangular:
+            TrioAccessoryRectangularView(entry: entry)
+        case .accessoryInline:
+            TrioAccessoryInlineView(entry: entry)
         default:
-            handler(nil)
+            Image("ComplicationIcon")
+                .widgetAccentable()
+                .widgetBackground(backgroundView: Color.clear)
         }
     }
+}
 
-    func getTimelineEntries(
-        for _: CLKComplication,
-        after _: Date,
-        limit _: Int,
-        withHandler handler: @escaping ([CLKComplicationTimelineEntry]?) -> Void
-    ) {
-        handler(nil)
+/// Corner Complication - Shows glucose + trend
+struct TrioAccessoryCornerView: View {
+    var entry: TrioWatchComplicationEntry
+
+    var body: some View {
+        Text(entry.glucose)
+            .font(.system(.title2, design: .rounded).weight(.semibold))
+            .foregroundColor(entry.isStale ? .gray : .primary)
+            .widgetCurvesContent()
+            .widgetLabel {
+                Text("\(entry.trend) \(entry.delta)")
+            }
+            .widgetBackground(backgroundView: Color.clear)
     }
+}
 
-    // MARK: - Sample Templates
+/// Circular Complication - Shows glucose with trend
+struct TrioAccessoryCircularView: View {
+    var entry: TrioWatchComplicationEntry
 
-    func getLocalizableSampleTemplate(
-        for _: CLKComplication,
-        withHandler handler: @escaping (CLKComplicationTemplate?) -> Void
-    ) {
-        handler(nil)
+    var body: some View {
+        ZStack {
+            AccessoryWidgetBackground()
+            VStack(spacing: 0) {
+                Text(entry.glucose)
+                    .font(.system(.title3, design: .rounded).weight(.bold))
+                    .minimumScaleFactor(0.6)
+                Text(entry.trend)
+                    .font(.caption2)
+            }
+            .foregroundColor(entry.isStale ? .gray : .primary)
+        }
+        .widgetBackground(backgroundView: Color.clear)
+    }
+}
+
+/// Rectangular Complication - Shows glucose, trend, delta, IOB, COB
+struct TrioAccessoryRectangularView: View {
+    var entry: TrioWatchComplicationEntry
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 4) {
+                    Text(entry.glucose)
+                        .font(.system(.title2, design: .rounded).weight(.bold))
+                    Text(entry.trend)
+                        .font(.title3)
+                    Text(entry.delta)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                HStack(spacing: 8) {
+                    Label(entry.iob, systemImage: "drop.fill")
+                        .font(.caption2)
+                    Label(entry.cob, systemImage: "fork.knife")
+                        .font(.caption2)
+                }
+                .foregroundColor(.secondary)
+            }
+            Spacer()
+        }
+        .foregroundColor(entry.isStale ? .gray : .primary)
+        .widgetBackground(backgroundView: Color.clear)
+    }
+}
+
+/// Inline Complication - Single line glucose + trend
+struct TrioAccessoryInlineView: View {
+    var entry: TrioWatchComplicationEntry
+
+    var body: some View {
+        Text("\(entry.glucose) \(entry.trend) \(entry.delta)")
+            .foregroundColor(entry.isStale ? .gray : .primary)
+    }
+}
+
+// MARK: - Widget Configuration
+
+@main struct TrioWatchComplication: Widget {
+    let kind: String = "TrioWatchComplication"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: TrioWatchComplicationProvider()) { entry in
+            TrioWatchComplicationEntryView(entry: entry)
+        }
+        .configurationDisplayName("Trio")
+        .description("Displays glucose, trend, IOB, and COB")
+        .supportedFamilies([
+            .accessoryCorner,
+            .accessoryCircular,
+            .accessoryRectangular,
+            .accessoryInline
+        ])
+    }
+}
+
+extension View {
+    func widgetBackground(backgroundView: some View) -> some View {
+        if #available(watchOS 10.0, iOSApplicationExtension 17.0, iOS 17.0, *) {
+            return containerBackground(for: .widget) {
+                backgroundView
+            }
+        } else {
+            return background(backgroundView)
+        }
     }
 }

@@ -4,6 +4,7 @@ import Foundation
 import Swinject
 import UIKit
 import WatchConnectivity
+import WidgetKit
 
 /// Protocol defining the base functionality for Watch communication
 protocol WatchManager {
@@ -515,6 +516,31 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             session.transferUserInfo([WatchMessageKeys.watchState: message])
             debug(.watchManager, "📤 Transferred new WatchState snapshot via userInfo")
         }
+
+        // Update watch complications with latest data
+        updateWatchComplication(with: state)
+    }
+
+    /// Updates watch complications by writing data to shared App Group UserDefaults
+    /// and triggering a complication timeline refresh
+    private func updateWatchComplication(with state: WatchState) {
+        guard let groupID = Bundle.main.appGroupSuiteName,
+              let defaults = UserDefaults(suiteName: groupID) else {
+            debug(.watchManager, "⌚️❌ Could not access App Group for complications")
+            return
+        }
+
+        // Write complication data
+        defaults.set(state.currentGlucose ?? "--", forKey: "complication_glucose")
+        defaults.set(state.trend ?? "", forKey: "complication_trend")
+        defaults.set(state.delta ?? "", forKey: "complication_delta")
+        defaults.set(state.iob ?? "", forKey: "complication_iob")
+        defaults.set(state.cob ?? "", forKey: "complication_cob")
+        defaults.set(Date(), forKey: "complication_lastUpdate")
+
+        // Trigger complication refresh
+        WidgetCenter.shared.reloadTimelines(ofKind: "TrioWatchComplication")
+        debug(.watchManager, "⌚️✅ Updated watch complication data")
     }
 
     func sendAcknowledgment(toWatch success: Bool, message: String = "", ackCode: AcknowledgmentCode) {
