@@ -1,106 +1,105 @@
-import ClockKit
 import SwiftUI
+import WidgetKit
 
-class ComplicationController: NSObject, CLKComplicationDataSource {
-    // MARK: - Complication Configuration
+// MARK: - Timeline Entry
 
-    func getComplicationDescriptors(handler: @escaping ([CLKComplicationDescriptor]) -> Void) {
-        let descriptors = [
-            CLKComplicationDescriptor(
-                identifier: "complication",
-                displayName: "Trio",
-                supportedFamilies: [
-                    .graphicCorner,
-                    .graphicCircular,
-                    .modularSmall,
-                    .utilitarianSmall,
-                    .circularSmall
-                ]
-            )
-        ]
+struct TrioWatchComplicationEntry: TimelineEntry {
+    let date: Date
+}
 
-        // Call the handler with the currently supported complication descriptors
-        handler(descriptors)
+// MARK: - Provider
+
+struct TrioWatchComplicationProvider: TimelineProvider {
+    func placeholder(in _: Context) -> TrioWatchComplicationEntry {
+        TrioWatchComplicationEntry(date: Date())
     }
 
-    func handleSharedComplicationDescriptors(_: [CLKComplicationDescriptor]) {
-        // Do any necessary work to support these newly shared complication descriptors
+    func getSnapshot(in _: Context, completion: @escaping (TrioWatchComplicationEntry) -> Void) {
+        let entry = TrioWatchComplicationEntry(date: Date())
+        completion(entry)
     }
 
-    // MARK: - Timeline Configuration
-
-    func getTimelineEndDate(for _: CLKComplication, withHandler handler: @escaping (Date?) -> Void) {
-        // Call the handler with the last entry date you can currently provide or nil if you can't support future timelines
-        handler(nil)
+    func getTimeline(in _: Context, completion: @escaping (Timeline<TrioWatchComplicationEntry>) -> Void) {
+        let entry = TrioWatchComplicationEntry(date: Date())
+        let timeline = Timeline(entries: [entry], policy: .never)
+        completion(timeline)
     }
+}
 
-    func getPrivacyBehavior(for _: CLKComplication, withHandler handler: @escaping (CLKComplicationPrivacyBehavior) -> Void) {
-        // Call the handler with your desired behavior when the device is locked
-        handler(.showOnLockScreen)
-    }
+// MARK: - Views
 
-    // MARK: - Timeline Population
+//// Displayed View Wrapper
+struct TrioWatchComplicationEntryView: View {
+    @Environment(\.widgetFamily) private var widgetFamily
 
-    func getCurrentTimelineEntry(
-        for complication: CLKComplication,
-        withHandler handler: @escaping (CLKComplicationTimelineEntry?) -> Void
-    ) {
-        switch complication.family {
-        case .graphicCorner:
-            guard let image = UIImage(named: "Complication/Graphic Corner") else {
-                handler(nil)
-                return
-            }
-            let template = CLKComplicationTemplateGraphicCornerTextImage(
-                textProvider: CLKTextProvider(format: "%@", "Trio"),
-                imageProvider: CLKFullColorImageProvider(fullColorImage: image)
-            )
-            let timelineEntry = CLKComplicationTimelineEntry(date: Date(), complicationTemplate: template)
-            handler(timelineEntry)
-        case .modularSmall:
-            let template = CLKComplicationTemplateModularSmallRingText(
-                textProvider: CLKTextProvider(format: "%@", "Trio"),
-                fillFraction: 1,
-                ringStyle: .closed
-            )
+    var entry: TrioWatchComplicationEntry
 
-            let timelineEntry = CLKComplicationTimelineEntry(date: Date(), complicationTemplate: template)
-            handler(timelineEntry)
-        case .utilitarianSmall:
-            guard let image = UIImage(named: "Complication/Utilitarian") else {
-                handler(nil)
-                return
-            }
-            let template = CLKComplicationTemplateUtilitarianSmallSquare(
-                imageProvider: CLKImageProvider(onePieceImage: image)
-            )
-            let timelineEntry = CLKComplicationTimelineEntry(date: Date(), complicationTemplate: template)
-            handler(timelineEntry)
-        case .circularSmall:
-            let template =
-                CLKComplicationTemplateCircularSmallSimpleText(textProvider: CLKTextProvider(format: "%@", "Trio"))
-            let timelineEntry = CLKComplicationTimelineEntry(date: Date(), complicationTemplate: template)
-            handler(timelineEntry)
+    var body: some View {
+        switch widgetFamily {
+        case .accessoryCircular:
+            TrioAccessoryCircularView(entry: entry)
+        case .accessoryCorner:
+            TrioAccessoryCornerView(entry: entry)
         default:
-            handler(nil)
+            Image("ComplicationIcon")
+                .widgetAccentable()
+                .widgetBackground(backgroundView: Color.clear)
         }
     }
+}
 
-    func getTimelineEntries(
-        for _: CLKComplication,
-        after _: Date,
-        limit _: Int,
-        withHandler handler: @escaping ([CLKComplicationTimelineEntry]?) -> Void
-    ) {
-        handler(nil)
+/// Corner Complication
+struct TrioAccessoryCornerView: View {
+    var entry: TrioWatchComplicationProvider.Entry
+
+    var body: some View {
+        Text("")
+            .widgetCurvesContent()
+            .widgetLabel {
+                Text("Trio")
+            }
+            .widgetBackground(backgroundView: Color.clear)
     }
+}
 
-    // MARK: - Sample Templates
+/// Circular Complication
+struct TrioAccessoryCircularView: View {
+    var entry: TrioWatchComplicationProvider.Entry
 
-    func getLocalizableSampleTemplate(
-        for _: CLKComplication,
-        withHandler handler: @escaping (CLKComplicationTemplate?) -> Void
-    ) {
-        handler(nil)
+    var body: some View {
+        Image("ComplicationIcon")
+            .resizable()
+            .widgetAccentable()
+            .widgetBackground(backgroundView: Color.clear)
+    }
+}
+
+// MARK: - Widget Configuration
+
+@main struct TrioWatchComplication: Widget {
+    let kind: String = "TrioWatchComplication"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: TrioWatchComplicationProvider()) { entry in
+            TrioWatchComplicationEntryView(entry: entry)
+        }
+        .configurationDisplayName("Trio")
+        .description("Displays Trio app icon as complication")
+        .supportedFamilies([
+            .accessoryCorner,
+            .accessoryCircular
+        ])
+    }
+}
+
+extension View {
+    func widgetBackground(backgroundView: some View) -> some View {
+        if #available(watchOS 10.0, iOSApplicationExtension 17.0, iOS 17.0, *) {
+            return containerBackground(for: .widget) {
+                backgroundView
+            }
+        } else {
+            return background(backgroundView)
+        }
     }
 }

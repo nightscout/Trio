@@ -1,0 +1,37 @@
+{
+  "images" : [
+    {
+      "filename" : "ComplicationIcon.png",
+      "idiom" : "universal"
+    },
+    {
+      "filename" : "ComplicationIcon_40x40.png",
+      "idiom" : "watch",
+      "screen-width" : "<=145"
+    },
+    {
+      "filename" : "ComplicationIcon_44x44.png",
+      "idiom" : "watch",
+      "screen-width" : ">161"
+    },
+    {
+      "filename" : "ComplicationIcon_44x44 1.png",
+      "idiom" : "watch",
+      "screen-width" : ">145"
+    },
+    {
+      "filename" : "ComplicationIcon_48x48.png",
+      "idiom" : "watch",
+      "screen-width" : ">183"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "properties" : {
+    "auto-scaling" : "auto",
+    "preserves-vector-representation" : true,
+    "template-rendering-intent" : "original"
+  }
+}
