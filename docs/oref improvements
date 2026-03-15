@@ -1234,17 +1234,205 @@ This section tracks what has been implemented from the roadmap above, organized 
 
 -----
 
-### Phases Not Yet Started
+### Phase 2: Macro-Aware Meal Model — IMPLEMENTED (Shadow Mode)
+
+**Status:** Implemented behind toggle. Runs in shadow mode (compute + log) by default. Toggle gates whether computed values feed into oref.
+
+**Branch:** `claude/implement-oref-improvements-NyWQe`
+
+#### What was built:
+
+**1. MacroMealModel** (`Trio/Sources/APS/SignalProcessing/MacroMealModel.swift`)
+
+- Implements the composite macronutrient absorption curve from §5 of this document
+- **Fiber adjustment:** `effectiveCarbs = carbs - (fiber × 0.5)` per §5.4
+- **Carb absorption curve:** Trapezoidal profile with fat-adjusted peak timing (fat slows gastric emptying → later peak)
+- **Protein contribution:** Gaussian bell curve modeling hepatic gluconeogenesis, onset ~120min, peak ~210min, duration ~360min
+- **Fat contribution:** Delayed Gaussian, onset ~180min, peak ~360min, duration ~480min
+- **Fat-protein equivalent carbs:** Warsaw/Krakow FPU method: `(fat×9 + protein×4) / 10 × 0.5` as gram equivalents
+- **Bayesian absorption blending:** Observed absorption rate (from residuals) blended with predicted rate, with observation weight ramping from 0% to 70% over the first 30 minutes
+- **Absorption phase classification:** `none` → `primaryCarbs` (0–2h) → `transition` (1.5–3h) → `fatProteinTail` (2–8h) → `completed`
+- **Estimate confidence:** `high` (full macros), `medium` (carbs only), `low` (UAM)
+
+**Shadow mode output (logged every 5 min when meal active):**
+- `bayesianCOB` — What the model would tell oref as COB (vs oref's linear decay)
+- `fatProteinTailCOB` — Fat-protein tail portion of COB (invisible to current oref)
+- `predictedAbsorptionRate` — g/min from the macro composite curve
+- `observedAbsorptionRate` — g/min from residual-based estimation
+- `absorptionPhase` — Current phase classification
+- `effectiveCarbs` — After fiber discount
+- `estimateConfidence` — Information quality level
+
+**Integration:**
+- Called by `OrefSignalPipeline.processGlucose()` every CGM cycle
+- Meal registered via `OrefSignalPipeline.registerMeal()` from treatment flow
+- All output logged to `SignalStore.SignalEntry` for export
+
+-----
+
+### Phase 3: Daily State Vector and Static Modifiers — IMPLEMENTED (Shadow Mode)
+
+**Status:** Implemented behind toggle. Computes ISF/CR modifiers from Z-scores; toggle gates whether they modify oref.
+
+**Branch:** `claude/implement-oref-improvements-NyWQe`
+
+#### What was built:
+
+**1. DailyStateVector** (`Trio/Sources/APS/SignalProcessing/DailyStateVector.swift`)
+
+- Implements the Daily State Vector from §7 of this document
+- **HRV modifier:** Z-score × 0.05 scaling (1 SD below → -5% ISF) per §6.1
+- **Sleep modifier:** Poor sleep (<50 score) → -15% ISF, fair (<65) → -8% ISF, with decay through the day (6%/hour after wake) per §6.2
+- **Body battery modifier:** Low (<30) → up to -10% ISF, scaled by severity
+- **Resting HR modifier:** Elevated (>1.0 Z-score) → ISF reduction; below normal → slight boost
+- **Aggregate modifier capping:** Single modifier ±30%, total net ±40% per §9.3
+- **CR modifier:** Tracks ISF at 80% magnitude
+- **Basal modifier:** From sleep only, at 50% magnitude (dawn phenomenon)
+- **Confidence levels:** `high` (HRV + RHR both confirm), `moderate`, `low`, `none`
+- **Human-readable explanation:** e.g., "Poor sleep (42) → reduced sensitivity; HRV -1.7 SD → lower sensitivity"
+
+**Shadow mode output (logged every Garmin sync):**
+- `dailyISFModifier` — Net ISF modifier (e.g., -0.10 = 10% more resistant)
+- `dailyCRModifier` — Net CR modifier
+- `stateVectorConfidence` — Confidence level
+- Individual modifiers: `hrvModifier`, `sleepModifier`, `bodyBatteryModifier`, `rhrModifier`
+
+**Integration:**
+- Called by `OrefSignalPipeline.processGarminData()` after each Garmin sync
+- Latest output included in every `SignalStore.SignalEntry`
+
+-----
+
+### Phase 4: Post-Exercise Sensitivity Modeling — IMPLEMENTED (Shadow Mode)
+
+**Status:** Implemented behind toggle. Computes post-exercise ISF/CR curves; toggle gates oref feed.
+
+**Branch:** `claude/implement-oref-improvements-NyWQe`
+
+#### What was built:
+
+**1. ExerciseSensitivityModel** (`Trio/Sources/APS/SignalProcessing/ExerciseSensitivityModel.swift`)
+
+- Implements post-exercise sensitivity curves from §6.3 and glycogen depletion from §6.4
+- **Exercise classification:** `aerobic`, `anaerobic`, `mixed`, `light`, `none` — from Garmin vigorous/moderate intensity minutes
+- **Aerobic sensitivity curve:** 0–0.5h: +0%, 0.5–3h: ramp to +25%, 3–24h: decay to 0 (per §6.3)
+- **Anaerobic sensitivity curve:** 0–1h: -10% (acute resistance), 1–4h: transition to +20%, 4–18h: decay (per §6.3)
+- **Mixed exercise:** Average of aerobic and anaerobic curves
+- **Glycogen depletion modeling:** Two-phase per §6.4:
+  - Moderate depletion (>400 cal): CR modifier 1.2× decaying over 12h
+  - Significant depletion (>600 cal): CR modifier 1.4× decaying over 18h
+- **Today's activity modifier:** Mild ISF boost for ongoing activity (>200 cal: +5%, >400 cal: +10%)
+- **Combined modifier capping:** ±30%
+
+**Shadow mode output (logged every Garmin sync):**
+- `exerciseISFModifier` — Net post-exercise ISF modifier
+- `exerciseCRModifier` — Glycogen depletion CR modifier
+- `exerciseWindowActive` — Whether a post-exercise window is active
+- `glycogenState` — `normal`, `moderatelyDepleted`, `significantlyDepleted`
+- Exercise classification for yesterday and today
+
+**Integration:**
+- Called by `OrefSignalPipeline.processGarminData()` after each Garmin sync
+- Uses yesterday's and today's activity data from `GarminContextSnapshot`
+- Latest output included in every `SignalStore.SignalEntry`
+
+-----
+
+### Phase 5: Adaptive Learning — IMPLEMENTED (Shadow Mode)
+
+**Status:** Implemented behind toggle. Learns from meal outcomes; toggle gates coefficient usage.
+
+**Branch:** `claude/implement-oref-improvements-NyWQe`
+
+#### What was built:
+
+**1. AdaptiveLearning** (`Trio/Sources/APS/SignalProcessing/AdaptiveLearning.swift`)
+
+- Implements the retrospective learning loop from §8 of this document
+- **EWMA with adaptive alpha schedule** per §8.1:
+  - Observations 1–10: α = 0.25 (fast convergence from population defaults)
+  - Observations 11–30: α = 0.15 (settling phase)
+  - Observations 31+: α = 0.07 (stable, noise-resistant)
+- **Learnable coefficients:**
+  - `carbAbsorptionSpeed` — How fast carbs absorb (population default: 0.5 g/min)
+  - `proteinSensitivity` — Fraction of protein that raises BG (default: 0.20)
+  - `fatDelay` — Additional delay per gram of fat (default: 3.0 min)
+  - `fiberDiscount` — Fiber adjustment factor (default: 0.5)
+  - `hrvISFScale` — HRV-to-ISF scaling (default: 0.05)
+  - `exercisePeakISF` — Post-exercise sensitivity peak (default: 0.25)
+- **Meal retrospective analysis:**
+  - Error attribution: early (0–90min) → carb speed, mid (90–180min) → ISF, late (180–360min) → protein/fat
+  - Updates coefficients via EWMA based on error attribution
+- **Outlier detection** per §8.2: Flags meals where total error exceeds 2.5× recent variance
+- **Coefficient reset triggers** per §8.1: Partial reset (α → 0.20 for 15 observations) on structural changes
+- **Persistence:** Learned coefficients saved to `oref_learned_coefficients.json`
+- **Calibration tracking:** Overall percentage of coefficients that have sufficient observations
+
+**Shadow mode output (logged every cycle):**
+- All current coefficient values and observation counts
+- Per-coefficient calibration status
+- Overall calibration percentage (0–100%)
+- Current learning rate (alpha)
+- Whether a reset is active
+- Total meals analyzed and outlier count
+
+**Integration:**
+- `AdaptiveLearning.generateOutput()` called every CGM cycle
+- Coefficients persisted via `OrefSignalPipeline.save()`
+- Loaded on init from disk for persistence across restarts
+
+-----
+
+### UI Toggles for All Phases
+
+**Location:** Settings > Smart Sense > "Oref Enhancements" section
+
+Four toggles added to `SmartSenseSettings` (persisted in `TrioSettings`):
+
+| Toggle | Setting Key | Default | Effect When ON |
+|--------|-----------|---------|---------------|
+| Macro-Aware Meal Model | `macroMealModelEnabled` | `false` | Bayesian COB replaces oref's linear COB |
+| Daily State Vector | `dailyStateVectorEnabled` | `false` | HRV/sleep/stress modifiers adjust ISF/CR |
+| Exercise Sensitivity | `exerciseSensitivityEnabled` | `false` | Post-exercise curves modify ISF/CR |
+| Adaptive Learning | `adaptiveLearningEnabled` | `false` | Learned coefficients replace population defaults |
+
+**All phases compute and log in shadow mode regardless of toggle state.** The toggle only gates whether the computed values feed into oref's dosing decisions. This allows reviewing shadow-mode output in exports before enabling.
+
+**UI footer text:** "These features compute and log data in shadow mode at all times. Enabling a toggle allows the computed values to modify oref's dosing decisions. Export signal data to review shadow-mode output before enabling."
+
+-----
+
+### Export Integration for Phases 2–5
+
+All shadow-mode data is included in both export types:
+
+**Signal Pipeline Export** (signal_export_*.json):
+- Every `SignalEntry` now includes Phase 2–5 fields:
+  - `bayesianCOB`, `fatProteinTailCOB`, `absorptionPhase`, `predictedAbsorptionRate`, `estimateConfidence`
+  - `dailyISFModifier`, `dailyCRModifier`, `stateVectorConfidence`
+  - `exerciseISFModifier`, `exerciseCRModifier`, `exerciseWindowActive`
+  - `learnedCarbSpeed`, `learnedProteinSens`, `learnedFatDelay`, `calibrationPercent`
+
+**Meal Decision Export** (meal_export_*.json):
+- `MealDecisionSnapshot` captures Phase 2–5 state at dose time
+- `SignalTracePoint` includes Phase 2–5 shadow data for the full 2h pre + 8h post window
+- `LoopDecisionPoint` includes Phase 2–5 shadow data per loop cycle
+- `MealDecisionFullExport` records which enhancement toggles were enabled at export time
+
+This means every export contains the data needed to compare:
+- What oref actually did (current behavior)
+- What each phase would have done differently (shadow-mode values)
+- Whether enabling the toggle would have improved the outcome
+
+-----
+
+### Phase 6: Live Heart Rate — Not Started
 
 | Phase | Name | Status |
 |-------|------|--------|
-| Phase 2 | Macro-Aware Meal Model | Not started |
-| Phase 3 | Daily State Vector and Static Modifiers | Not started |
-| Phase 4 | Post-Exercise Sensitivity Modeling | Not started |
-| Phase 5 | Adaptive Learning | Not started |
 | Phase 6 | Live Heart Rate | Not started |
 
-**Note:** Phase 1 is designed to run for at least one week to collect signal data before proceeding. The export system allows reviewing Kalman filter output, residuals, meal detection accuracy, and Z-score stability to validate the signal quality before these signals are used in dosing decisions in later phases.
+**Note:** Phase 6 requires hardware integration (BLE or Connect IQ) and is deferred until Phases 2–5 are validated through shadow-mode data collection and export analysis.
 
 -----
 

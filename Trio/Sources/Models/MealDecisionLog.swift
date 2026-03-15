@@ -89,6 +89,29 @@ struct MealDecisionSnapshot: Codable {
     let signalJerk: Double?
     let signalResidual: Double?
     let signalMealDetection: String?
+
+    // Phase 2: Macro meal model state at dose time
+    let bayesianCOBAtDose: Double?
+    let fatProteinTailCOBAtDose: Double?
+    let absorptionPhaseAtDose: String?
+    let effectiveCarbsAtDose: Double?
+
+    // Phase 3: Daily state vector at dose time
+    let dailyISFModifierAtDose: Double?
+    let dailyCRModifierAtDose: Double?
+    let stateVectorExplanation: String?
+
+    // Phase 4: Exercise sensitivity at dose time
+    let exerciseISFModifierAtDose: Double?
+    let exerciseCRModifierAtDose: Double?
+    let exerciseWindowActiveAtDose: Bool?
+    let glycogenStateAtDose: String?
+
+    // Phase 5: Learning state at dose time
+    let learnedCarbSpeedAtDose: Double?
+    let learnedProteinSensAtDose: Double?
+    let learnedFatDelayAtDose: Double?
+    let calibrationPercentAtDose: Int?
 }
 
 // MARK: - Full Export (built at export time with post-meal traces)
@@ -101,6 +124,12 @@ struct MealDecisionFullExport: Codable {
 
     // Daily Garmin Z-score history for the export range (Phase 1)
     let dailyZScores: [DailyZScoreExport]?
+
+    // Oref enhancement toggle states at export time
+    let macroMealModelEnabled: Bool?
+    let dailyStateVectorEnabled: Bool?
+    let exerciseSensitivityEnabled: Bool?
+    let adaptiveLearningEnabled: Bool?
 }
 
 // MARK: - Daily Z-Score Export
@@ -152,6 +181,25 @@ struct SignalTracePoint: Codable {
     let residualRate: Double?
     let carbAbsorptionRate: Double?
     let mealDetection: String
+
+    // Phase 2: Macro meal model shadow data
+    let bayesianCOB: Double?
+    let fatProteinTailCOB: Double?
+    let absorptionPhase: String?
+    let predictedAbsorptionRate: Double?
+
+    // Phase 3: Daily state vector
+    let dailyISFModifier: Double?
+    let dailyCRModifier: Double?
+
+    // Phase 4: Exercise sensitivity
+    let exerciseISFModifier: Double?
+    let exerciseCRModifier: Double?
+    let exerciseWindowActive: Bool?
+
+    // Phase 5: Learned coefficients
+    let learnedCarbSpeed: Double?
+    let calibrationPercent: Int?
 }
 
 // MARK: - Post-Meal Data Points
@@ -195,6 +243,13 @@ struct LoopDecisionPoint: Codable {
     let residualRate: Double?         // mg/dL per minute
     let carbAbsorptionRate: Double?   // g/min estimated from residual
     let mealDetection: String?        // none/possible/likely/confirmed
+
+    // Phase 2-5 shadow data
+    let bayesianCOB: Double?
+    let absorptionPhase: String?
+    let dailyISFModifier: Double?
+    let exerciseISFModifier: Double?
+    let exerciseWindowActive: Bool?
 }
 
 // MARK: - Standalone Signal Pipeline Export

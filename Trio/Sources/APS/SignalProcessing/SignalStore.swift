@@ -45,6 +45,96 @@ final class SignalStore {
         let accelerationSignalActive: Bool
         let jerkConfirmationActive: Bool
         let velocitySignalActive: Bool
+
+        // Phase 2: Macro meal model shadow data
+        let bayesianCOB: Double?
+        let fatProteinTailCOB: Double?
+        let absorptionPhase: String?           // none/primary_carbs/transition/fat_protein_tail/completed
+        let predictedAbsorptionRate: Double?    // g/min from macro curve
+        let estimateConfidence: String?         // high/medium/low/none
+
+        // Phase 3: Daily state vector shadow data
+        let dailyISFModifier: Double?          // Net ISF modifier from Z-scores
+        let dailyCRModifier: Double?
+        let stateVectorConfidence: String?     // high/moderate/low/none
+
+        // Phase 4: Exercise sensitivity shadow data
+        let exerciseISFModifier: Double?       // Post-exercise ISF modifier
+        let exerciseCRModifier: Double?        // Glycogen depletion CR modifier
+        let exerciseWindowActive: Bool
+
+        // Phase 5: Adaptive learning shadow data
+        let learnedCarbSpeed: Double?
+        let learnedProteinSens: Double?
+        let learnedFatDelay: Double?
+        let calibrationPercent: Int?
+
+        /// Initializer with defaults for Phase 2-5 fields (backward compatible)
+        init(
+            timestamp: Date,
+            smoothedBG: Double,
+            velocity: Double,
+            acceleration: Double,
+            jerk: Double?,
+            bgUncertainty: Double,
+            velocityUncertainty: Double,
+            accelerationUncertainty: Double,
+            rawBG: Double,
+            residual: Double?,
+            residualRate: Double?,
+            estimatedCarbAbsorptionRate: Double?,
+            mealDetectionConfidence: String,
+            accelerationSignalActive: Bool,
+            jerkConfirmationActive: Bool,
+            velocitySignalActive: Bool,
+            bayesianCOB: Double? = nil,
+            fatProteinTailCOB: Double? = nil,
+            absorptionPhase: String? = nil,
+            predictedAbsorptionRate: Double? = nil,
+            estimateConfidence: String? = nil,
+            dailyISFModifier: Double? = nil,
+            dailyCRModifier: Double? = nil,
+            stateVectorConfidence: String? = nil,
+            exerciseISFModifier: Double? = nil,
+            exerciseCRModifier: Double? = nil,
+            exerciseWindowActive: Bool = false,
+            learnedCarbSpeed: Double? = nil,
+            learnedProteinSens: Double? = nil,
+            learnedFatDelay: Double? = nil,
+            calibrationPercent: Int? = nil
+        ) {
+            self.timestamp = timestamp
+            self.smoothedBG = smoothedBG
+            self.velocity = velocity
+            self.acceleration = acceleration
+            self.jerk = jerk
+            self.bgUncertainty = bgUncertainty
+            self.velocityUncertainty = velocityUncertainty
+            self.accelerationUncertainty = accelerationUncertainty
+            self.rawBG = rawBG
+            self.residual = residual
+            self.residualRate = residualRate
+            self.estimatedCarbAbsorptionRate = estimatedCarbAbsorptionRate
+            self.mealDetectionConfidence = mealDetectionConfidence
+            self.accelerationSignalActive = accelerationSignalActive
+            self.jerkConfirmationActive = jerkConfirmationActive
+            self.velocitySignalActive = velocitySignalActive
+            self.bayesianCOB = bayesianCOB
+            self.fatProteinTailCOB = fatProteinTailCOB
+            self.absorptionPhase = absorptionPhase
+            self.predictedAbsorptionRate = predictedAbsorptionRate
+            self.estimateConfidence = estimateConfidence
+            self.dailyISFModifier = dailyISFModifier
+            self.dailyCRModifier = dailyCRModifier
+            self.stateVectorConfidence = stateVectorConfidence
+            self.exerciseISFModifier = exerciseISFModifier
+            self.exerciseCRModifier = exerciseCRModifier
+            self.exerciseWindowActive = exerciseWindowActive
+            self.learnedCarbSpeed = learnedCarbSpeed
+            self.learnedProteinSens = learnedProteinSens
+            self.learnedFatDelay = learnedFatDelay
+            self.calibrationPercent = calibrationPercent
+        }
     }
 
     // MARK: - Daily Z-Score Entry (per Garmin sync)

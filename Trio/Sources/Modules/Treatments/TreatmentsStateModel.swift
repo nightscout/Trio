@@ -854,7 +854,22 @@ extension Treatments {
                 signalAcceleration: signalPipeline.latestOutput?.acceleration,
                 signalJerk: signalPipeline.latestOutput?.jerk,
                 signalResidual: signalPipeline.latestOutput?.residual,
-                signalMealDetection: signalPipeline.latestOutput?.mealDetectionConfidence.rawValue
+                signalMealDetection: signalPipeline.latestOutput?.mealDetectionConfidence.rawValue,
+                bayesianCOBAtDose: nil,
+                fatProteinTailCOBAtDose: nil,
+                absorptionPhaseAtDose: nil,
+                effectiveCarbsAtDose: nil,
+                dailyISFModifierAtDose: nil,
+                dailyCRModifierAtDose: nil,
+                stateVectorExplanation: nil,
+                exerciseISFModifierAtDose: nil,
+                exerciseCRModifierAtDose: nil,
+                exerciseWindowActiveAtDose: nil,
+                glycogenStateAtDose: nil,
+                learnedCarbSpeedAtDose: nil,
+                learnedProteinSensAtDose: nil,
+                learnedFatDelayAtDose: nil,
+                calibrationPercentAtDose: nil
             )
 
             MealDecisionExporter.saveSnapshot(snapshot)

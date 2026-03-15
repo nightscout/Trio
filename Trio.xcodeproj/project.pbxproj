@@ -776,6 +776,10 @@
 		SP000004000000000000002 /* GarminZScoreNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000004000000000000001 /* GarminZScoreNormalizer.swift */; };
 		SP000006000000000000002 /* OrefSignalPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000006000000000000001 /* OrefSignalPipeline.swift */; };
 		SP000005000000000000002 /* SignalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000005000000000000001 /* SignalStore.swift */; };
+		SP000007000000000000002 /* MacroMealModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000007000000000000001 /* MacroMealModel.swift */; };
+		SP000008000000000000002 /* DailyStateVector.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000008000000000000001 /* DailyStateVector.swift */; };
+		SP000009000000000000002 /* ExerciseSensitivityModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000009000000000000001 /* ExerciseSensitivityModel.swift */; };
+		SP000010000000000000002 /* AdaptiveLearning.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000010000000000000001 /* AdaptiveLearning.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1650,6 +1654,10 @@
 		SP000004000000000000001 /* GarminZScoreNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminZScoreNormalizer.swift; sourceTree = "<group>"; };
 		SP000006000000000000001 /* OrefSignalPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrefSignalPipeline.swift; sourceTree = "<group>"; };
 		SP000005000000000000001 /* SignalStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalStore.swift; sourceTree = "<group>"; };
+		SP000007000000000000001 /* MacroMealModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroMealModel.swift; sourceTree = "<group>"; };
+		SP000008000000000000001 /* DailyStateVector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyStateVector.swift; sourceTree = "<group>"; };
+		SP000009000000000000001 /* ExerciseSensitivityModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseSensitivityModel.swift; sourceTree = "<group>"; };
+		SP000010000000000000001 /* AdaptiveLearning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveLearning.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -2489,10 +2497,14 @@
 		SP000000000000000000003 /* SignalProcessing */ = {
 			isa = PBXGroup;
 			children = (
+				SP000010000000000000001 /* AdaptiveLearning.swift */,
 				SP000001000000000000001 /* AdaptiveKalmanFilter.swift */,
 				SP000003000000000000001 /* BGResidualCalculator.swift */,
 				SP000002000000000000001 /* BGSignalProcessor.swift */,
+				SP000008000000000000001 /* DailyStateVector.swift */,
+				SP000009000000000000001 /* ExerciseSensitivityModel.swift */,
 				SP000004000000000000001 /* GarminZScoreNormalizer.swift */,
+				SP000007000000000000001 /* MacroMealModel.swift */,
 				SP000006000000000000001 /* OrefSignalPipeline.swift */,
 				SP000005000000000000001 /* SignalStore.swift */,
 			);
@@ -5017,6 +5029,10 @@
 				SP000004000000000000002 /* GarminZScoreNormalizer.swift in Sources */,
 				SP000006000000000000002 /* OrefSignalPipeline.swift in Sources */,
 				SP000005000000000000002 /* SignalStore.swift in Sources */,
+				SP000007000000000000002 /* MacroMealModel.swift in Sources */,
+				SP000008000000000000002 /* DailyStateVector.swift in Sources */,
+				SP000009000000000000002 /* ExerciseSensitivityModel.swift in Sources */,
+				SP000010000000000000002 /* AdaptiveLearning.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

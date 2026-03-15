@@ -26,6 +26,12 @@ extension SmartSenseConfig {
         @Published var overrideDuration: Double = 6.0
         @Published var weights: SmartSenseWeights = SmartSenseWeights()
 
+        // Oref Enhancement Toggles (Phases 2–5)
+        @Published var macroMealModelEnabled: Bool = false
+        @Published var dailyStateVectorEnabled: Bool = false
+        @Published var exerciseSensitivityEnabled: Bool = false
+        @Published var adaptiveLearningEnabled: Bool = false
+
         override func subscribe() {
             let settings = settingsManager.settings.smartSenseSettings
             smartSenseEnabled = settings.enabled
@@ -34,6 +40,42 @@ extension SmartSenseConfig {
             maxAdjustment = settings.maxAdjustment
             overrideDuration = settings.overrideDurationHours
             weights = settings.weights
+            macroMealModelEnabled = settings.macroMealModelEnabled
+            dailyStateVectorEnabled = settings.dailyStateVectorEnabled
+            exerciseSensitivityEnabled = settings.exerciseSensitivityEnabled
+            adaptiveLearningEnabled = settings.adaptiveLearningEnabled
+
+            $macroMealModelEnabled
+                .removeDuplicates()
+                .dropFirst()
+                .sink { [weak self] value in
+                    self?.settingsManager.settings.smartSenseSettings.macroMealModelEnabled = value
+                }
+                .store(in: &lifetime)
+
+            $dailyStateVectorEnabled
+                .removeDuplicates()
+                .dropFirst()
+                .sink { [weak self] value in
+                    self?.settingsManager.settings.smartSenseSettings.dailyStateVectorEnabled = value
+                }
+                .store(in: &lifetime)
+
+            $exerciseSensitivityEnabled
+                .removeDuplicates()
+                .dropFirst()
+                .sink { [weak self] value in
+                    self?.settingsManager.settings.smartSenseSettings.exerciseSensitivityEnabled = value
+                }
+                .store(in: &lifetime)
+
+            $adaptiveLearningEnabled
+                .removeDuplicates()
+                .dropFirst()
+                .sink { [weak self] value in
+                    self?.settingsManager.settings.smartSenseSettings.adaptiveLearningEnabled = value
+                }
+                .store(in: &lifetime)
 
             $smartSenseEnabled
                 .removeDuplicates()
@@ -104,6 +146,7 @@ extension SmartSenseConfig {
                     masterSplitSection
                     weightEditorSection
                     overrideSection
+                    orefEnhancementsSection
                     exportSection
                 }
             }
@@ -245,6 +288,46 @@ extension SmartSenseConfig {
                 Text("When you adjust the sensitivity slider at dose time, the override persists for this duration so the loop respects your adjustment through meal absorption.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+        }
+
+        private var orefEnhancementsSection: some View {
+            Section(header: Text("Oref Enhancements"), footer: Text("These features compute and log data in shadow mode at all times. Enabling a toggle allows the computed values to modify oref's dosing decisions. Export signal data to review shadow-mode output before enabling.")) {
+                Toggle(isOn: $state.macroMealModelEnabled) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Macro-Aware Meal Model")
+                        Text("Bayesian COB from carb/fat/protein/fiber. Replaces linear absorption.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Toggle(isOn: $state.dailyStateVectorEnabled) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Daily State Vector")
+                        Text("ISF/CR modifiers from HRV, sleep quality, body battery, resting HR.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Toggle(isOn: $state.exerciseSensitivityEnabled) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Exercise Sensitivity")
+                        Text("Post-exercise ISF/CR curves and glycogen depletion modeling.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Toggle(isOn: $state.adaptiveLearningEnabled) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Adaptive Learning")
+                        Text("EWMA personalization of absorption speed, protein/fat sensitivity.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         }
 
