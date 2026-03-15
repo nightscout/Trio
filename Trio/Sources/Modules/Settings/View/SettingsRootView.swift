@@ -217,6 +217,8 @@ extension Settings {
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
 
+                            Text("Export Data").navigationLink(to: .dataExport, from: self)
+
                             Button {
                                 if let url = URL(string: "https://github.com/nightscout/Trio/issues/new/choose") {
                                     UIApplication.shared.open(url)

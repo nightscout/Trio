@@ -13,22 +13,29 @@ actor WatchLogger {
     private let session = WCSession.default
     private var timerTask: Task<Void, Never>?
 
+    // Cached DateFormatter for performance
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+        return formatter
+    }()
+
     private init() {
         Task {
             await startFlushTimer()
         }
     }
 
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
-        return formatter
+    deinit {
+        timerTask?.cancel()
     }
 
     private func startFlushTimer() async {
+        timerTask?.cancel()
         timerTask = Task {
-            while true {
+            while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: UInt64(flushInterval * 1_000_000_000))
+                guard !Task.isCancelled else { break }
                 await flushIfNeeded(force: false)
             }
         }
@@ -42,7 +49,7 @@ actor WatchLogger {
         line: Int = #line
     ) async {
         let shortFile = (file as NSString).lastPathComponent
-        let timestamp = dateFormatter.string(from: Date())
+        let timestamp = Self.dateFormatter.string(from: Date())
         let entry = "[\(timestamp)] [\(shortFile):\(line)] \(function) → \(message)"
 
         logs.append(entry)
@@ -61,6 +68,14 @@ actor WatchLogger {
         if shouldFlush {
             await flushToPhone()
         }
+    }
+
+    /// Returns the logs directory URL, or nil if unavailable
+    private func logsDirectoryURL() -> URL? {
+        guard let documentsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return nil
+        }
+        return documentsDir.appendingPathComponent("logs", isDirectory: true)
     }
 
     private func flushToPhone() async {
@@ -89,8 +104,7 @@ actor WatchLogger {
     }
 
     func persistLogsLocally() async {
-        let logDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appendingPathComponent("logs", isDirectory: true)
+        guard let logDir = logsDirectoryURL() else { return }
 
         try? FileManager.default.createDirectory(at: logDir, withIntermediateDirectories: true)
 
@@ -120,8 +134,7 @@ actor WatchLogger {
     }
 
     func flushPersistedLogs() async {
-        let logDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appendingPathComponent("logs", isDirectory: true)
+        guard let logDir = logsDirectoryURL() else { return }
         let logFile = logDir.appendingPathComponent("watch_log.txt")
 
         guard let data = try? Data(contentsOf: logFile),

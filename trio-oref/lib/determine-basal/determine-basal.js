@@ -187,6 +187,26 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     const weightPercentage = profile.weightPercentage;
     const average_total_data = trio_custom_variables.average_total_data;
 
+    // Apply ISF tier adjustment based on current BG range
+    var isfTierLog = "";
+    if (trio_custom_variables.isfTiersEnabled && trio_custom_variables.isfTiers && trio_custom_variables.isfTiers.length > 0) {
+        var currentBG = glucose_status.glucose;
+        var tiers = trio_custom_variables.isfTiers;
+        for (var t = 0; t < tiers.length; t++) {
+            var tier = tiers[t];
+            var bgMin = tier.bg_min !== undefined ? tier.bg_min : tier.bgMin;
+            var bgMax = tier.bg_max !== undefined ? tier.bg_max : tier.bgMax;
+            var multiplier = tier.isf_multiplier !== undefined ? tier.isf_multiplier : tier.isfMultiplier;
+            if (currentBG >= bgMin && currentBG < bgMax && multiplier !== 1) {
+                var preTierSens = sensitivity;
+                sensitivity = sensitivity * multiplier;
+                isfTierLog = "ISF tier: BG " + currentBG + " in [" + bgMin + "-" + bgMax + "], ISF " + round(preTierSens,1) + " * " + multiplier + " = " + round(sensitivity,1) + ". ";
+                console.error(isfTierLog);
+                break;
+            }
+        }
+    }
+
     // In case the autosens.min/max limits are reversed:
     const minLimitChris = Math.min(profile.autosens_min, profile.autosens_max);
     const maxLimitChris = Math.max(profile.autosens_min, profile.autosens_max);

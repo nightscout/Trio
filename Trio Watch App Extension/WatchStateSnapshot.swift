@@ -33,7 +33,12 @@ struct WatchStateSnapshot {
     }
 
     static func loadLatestDateFromDisk() -> Date {
-        let interval = UserDefaults.standard.double(forKey: "WatchStateSnapshot.latest")
+        let key = "WatchStateSnapshot.latest"
+        // Check if key exists to avoid returning 1970 date for first-time users
+        guard UserDefaults.standard.object(forKey: key) != nil else {
+            return Date.distantPast
+        }
+        let interval = UserDefaults.standard.double(forKey: key)
         return Date(timeIntervalSince1970: interval)
     }
 }

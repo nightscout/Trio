@@ -1,10 +1,38 @@
 import Foundation
 import SwiftUI
 import WatchConnectivity
+import WidgetKit
+
+// MARK: - App Group Helper
+
+/// Returns the App Group suite name for sharing data between Watch app and complications
+private func getAppGroupSuiteName() -> String? {
+    guard let bundleId = Bundle.main.bundleIdentifier else { return nil }
+    // Bundle ID format: org.nightscout.TEAMID.trio.watchkitapp (or .watchkitapp.TrioWatchComplication)
+    // App Group format: group.org.nightscout.TEAMID.trio.trio-app-group
+    let components = bundleId.components(separatedBy: ".")
+    // Find the base: org.nightscout.TEAMID.trio
+    if let trioIndex = components.firstIndex(of: "trio"), trioIndex >= 3 {
+        let base = components[0...trioIndex].joined(separator: ".")
+        return "group.\(base).trio-app-group"
+    }
+    return nil
+}
+
+/// Shared UserDefaults for Watch app and complications
+var sharedUserDefaults: UserDefaults? {
+    guard let suiteName = getAppGroupSuiteName() else { return nil }
+    return UserDefaults(suiteName: suiteName)
+}
 
 /// WatchState manages the communication between the Watch app and the iPhone app using WatchConnectivity.
 /// It handles glucose data synchronization and sending treatment requests (bolus, carbs) to the phone.
 @Observable final class WatchState: NSObject, WCSessionDelegate {
+    // MARK: - Shared Instance
+
+    /// Shared instance for background refresh access
+    static let shared = WatchState()
+
     // MARK: - Properties
 
     /// The WatchConnectivity session instance used for communication
@@ -24,6 +52,7 @@ import WatchConnectivity
     var maxYAxisValue: Decimal = 200
     var cob: String? = "--"
     var iob: String? = "--"
+    var tdd: String? = nil  // Total Daily Dose
     var lastLoopTime: String? = "--"
     var overridePresets: [OverridePresetWatch] = []
     var tempTargetPresets: [TempTargetPresetWatch] = []
@@ -167,6 +196,15 @@ import WatchConnectivity
 
                 self.isReachable = session.isReachable
 
+                // Check applicationContext for any pending complication data
+                let context = session.receivedApplicationContext
+                if context["complicationUpdate"] as? Bool == true {
+                    Task {
+                        await WatchLogger.shared.log("⌚️ Found complication data in applicationContext on activation")
+                    }
+                    self.handleComplicationUpdate(context)
+                }
+
                 Task {
                     await WatchLogger.shared.log("⌚️ Watch isReachable after activation: \(session.isReachable)")
                 }
@@ -246,6 +284,15 @@ import WatchConnectivity
     }
 
     func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
+        // Check if this is a high-priority complication update from iPhone
+        if userInfo["complicationUpdate"] as? Bool == true {
+            Task {
+                await WatchLogger.shared.log("⌚️ Received high-priority complication update")
+            }
+            handleComplicationUpdate(userInfo)
+            return
+        }
+
         guard let snapshot = WatchStateSnapshot(from: userInfo) else {
             Task {
                 await WatchLogger.shared.log("⌚️ Invalid snapshot received", force: true)
@@ -269,6 +316,61 @@ import WatchConnectivity
         }
     }
 
+    /// Public method to update complication from applicationContext
+    /// Called during background refresh to check for pending data
+    func updateComplicationFromContext(_ context: [String: Any]) {
+        handleComplicationUpdate(context)
+    }
+
+    /// Handles complication updates from iPhone
+    /// This is called when the iPhone sends data via transferUserInfo
+    private func handleComplicationUpdate(_ userInfo: [String: Any]) {
+        Task {
+            await WatchLogger.shared.log("📥 handleComplicationUpdate called with keys: \(userInfo.keys.joined(separator: ", "))")
+        }
+
+        let glucose = userInfo[WatchMessageKeys.currentGlucose] as? String ?? "--"
+        let trend = userInfo[WatchMessageKeys.trend] as? String ?? ""
+        let delta = userInfo[WatchMessageKeys.delta] as? String ?? "--"
+        let iob = userInfo[WatchMessageKeys.iob] as? String
+        let cob = userInfo[WatchMessageKeys.cob] as? String
+        let tdd = userInfo[WatchMessageKeys.tdd] as? String
+        let colorString = userInfo[WatchMessageKeys.currentGlucoseColorString] as? String ?? "#ffffff"
+        let timestamp = userInfo[WatchMessageKeys.date] as? TimeInterval
+
+        Task {
+            await WatchLogger.shared.log("📥 Parsed: glucose=\(glucose), trend=\(trend), delta=\(delta), tdd=\(tdd ?? "nil"), timestamp=\(timestamp ?? 0)")
+        }
+
+        // Determine if urgent based on color
+        let isUrgent = !isGlucoseColorInRange(colorString)
+
+        // Create and save complication data
+        let complicationData = GlucoseComplicationData(
+            glucose: glucose,
+            trend: trend.isEmpty ? "→" : trend,
+            delta: delta,
+            iob: iob,
+            cob: cob,
+            tdd: tdd,
+            glucoseDate: timestamp.map { Date(timeIntervalSince1970: $0) },
+            lastLoopDate: timestamp.map { Date(timeIntervalSince1970: $0) },
+            isUrgent: isUrgent
+        )
+
+        complicationData.save()
+
+        // Delay before reloading to ensure UserDefaults is synced
+        // This is critical for WidgetKit to read the updated data
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+
+        Task {
+            await WatchLogger.shared.log("📊 Complication updated: \(glucose) \(trend)")
+        }
+    }
+
     func session(_: WCSession, didFinish _: WCSessionUserInfoTransfer, error: (any Error)?) {
         if let error = error {
             Task {
@@ -276,6 +378,18 @@ import WatchConnectivity
                 await WatchLogger.shared.log("⌚️ Saving logs to disk as fallback!")
                 await WatchLogger.shared.persistLogsLocally()
             }
+        }
+    }
+
+    /// Called when applicationContext is received from iPhone
+    /// This is more reliable than transferUserInfo as it persists
+    func session(_: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
+        // Check if this contains complication data
+        if applicationContext["complicationUpdate"] as? Bool == true {
+            Task {
+                await WatchLogger.shared.log("⌚️ Received applicationContext with complication data")
+            }
+            handleComplicationUpdate(applicationContext)
         }
     }
 
@@ -336,16 +450,17 @@ import WatchConnectivity
 
     /// Handles incoming messages that either contain an acknowledgement or fresh watchState data  (<15 min)
     private func processWatchMessage(_ message: [String: Any]) {
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
             // 1) Acknowledgment logic
             if let acknowledged = message[WatchMessageKeys.acknowledged] as? Bool,
                let ackMessage = message[WatchMessageKeys.message] as? String,
                let ackCodeRaw = message[WatchMessageKeys.ackCode] as? String,
                let ackCode = AcknowledgmentCode(rawValue: ackCodeRaw)
             {
-                DispatchQueue.main.async {
-                    self.showSyncingAnimation = false
-                }
+                // Already on main queue, no need for nested dispatch
+                self.showSyncingAnimation = false
 
                 Task {
                     await WatchLogger.shared.log("⌚️ Received acknowledgment: \(ackMessage), success: \(acknowledged)")
@@ -406,7 +521,8 @@ import WatchConnectivity
         finalizeWorkItem?.cancel()
 
         // 4) Create and schedule a new finalization
-        let workItem = DispatchWorkItem { [self] in
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
             Task {
                 await WatchLogger.shared.log("⏳ Debounced update fired")
             }
@@ -485,6 +601,10 @@ import WatchConnectivity
 
         if let cob = message[WatchMessageKeys.cob] as? String {
             self.cob = cob
+        }
+
+        if let tdd = message[WatchMessageKeys.tdd] as? String {
+            self.tdd = tdd
         }
 
         if let lastLoopTime = message[WatchMessageKeys.lastLoopTime] as? String {
@@ -573,5 +693,121 @@ import WatchConnectivity
                 self.confirmBolusFaster = booleanValue
             }
         }
+
+        // Update complications with new glucose data
+        updateComplicationData()
+    }
+
+    // MARK: - Complication Updates
+
+    /// Saves current glucose data to shared storage and triggers complication refresh
+    private func updateComplicationData() {
+        // Get glucose date from the most recent glucose value
+        let glucoseDate = glucoseValues.last?.date
+
+        // Determine if glucose is urgent (out of range) based on color
+        // White (#ffffff) = in range, anything else = urgent
+        let isUrgent = !isGlucoseColorInRange(currentGlucoseColorString)
+
+        // Create complication data
+        let complicationData = GlucoseComplicationData(
+            glucose: currentGlucose,
+            trend: trend ?? "→",
+            delta: delta ?? "--",
+            iob: iob,
+            cob: cob,
+            tdd: tdd,
+            glucoseDate: glucoseDate,
+            lastLoopDate: lastWatchStateUpdate.map { Date(timeIntervalSince1970: $0) },
+            isUrgent: isUrgent
+        )
+
+        // Save to shared UserDefaults
+        complicationData.save()
+
+        // Delay before reloading to ensure UserDefaults is synced
+        // This is critical for WidgetKit to read the updated data
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+
+        Task {
+            await WatchLogger.shared.log("📊 Updated complication data: \(currentGlucose) \(trend ?? "") urgent=\(isUrgent)")
+        }
+    }
+
+    /// Checks if the glucose color indicates "in range"
+    /// iPhone sends white (#ffffff) for in-range, colored for out-of-range
+    private func isGlucoseColorInRange(_ colorString: String) -> Bool {
+        let normalized = colorString.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        // White (#ffffff) means in range, anything else is out of range
+        return normalized == "#ffffff" || normalized == "ffffff"
+    }
+}
+
+// MARK: - Shared Complication Data (must match Trio Watch Complication)
+
+/// Data structure for sharing glucose information with complications
+struct GlucoseComplicationData: Codable {
+    let glucose: String
+    let trend: String
+    let delta: String
+    let iob: String?
+    let cob: String?
+    let tdd: String?  // Total Daily Dose
+    let glucoseDate: Date?
+    let lastLoopDate: Date?
+    let isUrgent: Bool  // true when glucose is out of range (high/low)
+
+    static let key = "complicationData"
+
+    init(glucose: String, trend: String, delta: String, iob: String?, cob: String?, tdd: String? = nil, glucoseDate: Date?, lastLoopDate: Date?, isUrgent: Bool = false) {
+        self.glucose = glucose
+        self.trend = trend
+        self.delta = delta
+        self.iob = iob
+        self.cob = cob
+        self.tdd = tdd
+        self.glucoseDate = glucoseDate
+        self.lastLoopDate = lastLoopDate
+        self.isUrgent = isUrgent
+    }
+
+    /// Saves the data to shared App Group UserDefaults for complication access
+    func save() {
+        if let encoded = try? JSONEncoder().encode(self) {
+            // Use shared App Group UserDefaults so complications can read it
+            let appGroup = getAppGroupSuiteName()
+            if let shared = sharedUserDefaults {
+                shared.set(encoded, forKey: Self.key)
+                shared.set(Date(), forKey: "lastUpdate")
+                shared.synchronize() // Force immediate write for WidgetKit
+                Task {
+                    await WatchLogger.shared.log("💾 Saved complication data to App Group: \(appGroup ?? "nil")")
+                }
+            } else {
+                Task {
+                    await WatchLogger.shared.log("⚠️ sharedUserDefaults is nil! App Group: \(appGroup ?? "nil")")
+                }
+            }
+            // Also save to standard for backwards compatibility
+            UserDefaults.standard.set(encoded, forKey: Self.key)
+            UserDefaults.standard.synchronize()
+        }
+    }
+
+    /// Loads the data from shared App Group UserDefaults
+    static func load() -> GlucoseComplicationData? {
+        // Try shared App Group first
+        if let shared = sharedUserDefaults,
+           let data = shared.data(forKey: key),
+           let decoded = try? JSONDecoder().decode(GlucoseComplicationData.self, from: data) {
+            return decoded
+        }
+        // Fall back to standard UserDefaults
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let decoded = try? JSONDecoder().decode(GlucoseComplicationData.self, from: data)
+        else { return nil }
+        return decoded
     }
 }
