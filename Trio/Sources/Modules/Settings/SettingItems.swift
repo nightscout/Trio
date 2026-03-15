@@ -268,6 +268,20 @@ enum SettingItems {
             path: ["Features", "App Diagnostics"]
         ),
         SettingItem(
+            title: "Physio Testing",
+            view: .physioTesting,
+            searchContents: [
+                "Physio Test",
+                "Absorption Test",
+                "Carb Absorption",
+                "Meal Test",
+                "Absorption Curve",
+                "Pure Carbs",
+                "Mixed Meal"
+            ],
+            path: ["Features", "Physio Testing"]
+        ),
+        SettingItem(
             title: "Smart Sense",
             view: .smartSenseSettings,
             searchContents: [

@@ -136,6 +136,11 @@ extension MainChartView {
                     viewContext: context
                 )
 
+                PhysioTestOverlayView(
+                    activeTests: state.activePhysioTests,
+                    completedTests: state.completedPhysioTests
+                )
+
                 GlucoseChartView(
                     glucoseData: state.glucoseFromPersistence,
                     units: state.units,

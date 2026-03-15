@@ -19,5 +19,6 @@ final class StorageAssembly: Assembly {
         container.register(ProfileManager.self) { r in BaseProfileManager(resolver: r) }
         container.register(Keychain.self) { _ in BaseKeychain() }
         container.register(AlertHistoryStorage.self) { r in BaseAlertHistoryStorage(resolver: r) }
+        container.register(PhysioTestStorage.self) { r in BasePhysioTestStorage(resolver: r) }
     }
 }
