@@ -212,11 +212,13 @@ extension UserInterfaceSettings {
                             Spacer()
                             Button(
                                 action: {
-                                    hintLabel = String(localized: "Glucose Color Scheme")
+                                    hintLabel = String(localized: "Bolus Display Threshold")
                                     selectedVerboseHint =
                                         AnyView(
-                                            VStack(alignment: .leading, spacing: 10) {
-                                                Text("TODO: Helper text")
+                                            VStack(alignment: .leading) {
+                                                Text(
+                                                    "Choose whether to display the amount above every bolus indicator or just for a bigger bolus amount"
+                                                )
                                             }
                                         )
                                     shouldDisplayHint.toggle()

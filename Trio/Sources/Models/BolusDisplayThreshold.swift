@@ -16,7 +16,7 @@ enum BolusDisplayThreshold: Decimal, CaseIterable, Encodable, Identifiable {
         case .pointOneUnit:
             return String(localized: "0.1 U and over")
         case .allUnits:
-            return String(localized: "Show All Labels")
+            return String(localized: "All Labels")
         }
     }
 }

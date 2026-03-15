@@ -677,7 +677,6 @@ extension Home.StateModel:
         displayPumpStatusHighlightMessage()
         displayPumpStatusBadge()
         setupBatteryArray()
-        setupInsulinArray()
         Task {
             await setupCGMSettings()
         }
