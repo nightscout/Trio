@@ -1,0 +1,9 @@
+[
+    {
+      "amount" : 0.88,
+      "timestamp" : "2025-05-04T04:37:43.654Z",
+      "isExternalInsulin" : true,
+      "id" : "98134B68-6B46-4814-96C1-68A745173D03",
+      "_type" : "Bolus"
+    }
+]

@@ -21,19 +21,15 @@ jobs:
   create_certs:
     name: Certificates
     needs: validate
-    runs-on: macos-14
+    runs-on: macos-15
     outputs:
       new_certificate_needed: ${{ steps.set_output.outputs.new_certificate_needed }}
 
     steps:
-      # Uncomment to manually select latest Xcode if needed
-      #- name: Select Latest Xcode
-      #  run: "sudo xcode-select --switch /Applications/Xcode_13.0.app/Contents/Developer"
-      
       # Checks-out the repo
       - name: Checkout Repo
         uses: actions/checkout@v4
-      
+
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables
         run: |
@@ -69,7 +65,8 @@ jobs:
           CERT_STATUS_FILE="${{ github.workspace }}/fastlane/new_certificate_needed.txt"
           ENABLE_NUKE_CERTS="${{ vars.ENABLE_NUKE_CERTS }}"
           FORCE_NUKE_CERTS="${{ vars.FORCE_NUKE_CERTS }}"
-          
+
+
           CERT_STATUS=false
           if [ -f "$CERT_STATUS_FILE" ]; then
             CERT_STATUS=$(cat "$CERT_STATUS_FILE" | tr -d '\n' | tr -d '\r') # Read file content and strip newlines
