@@ -429,15 +429,6 @@ extension BaseFetchGlucoseManager {
                 try context.save()
             }
 
-            // The viewContext has automaticallyMergesChangesFromParent = false and relies
-            // on persistent history tracking, which merges asynchronously. By the time the
-            // coreDataPublisher triggers setupGlucoseArray(). Force a refresh so the next UI
-            // fetch sees the updated smoothed values.
-            let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-            await viewContext.perform {
-                viewContext.refreshAllObjects()
-            }
-
             let duration = Date().timeIntervalSince(startTime)
             debugPrint(String(format: "Exponential smoothing duration: %0.04fs", duration))
         } catch {
