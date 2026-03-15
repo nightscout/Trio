@@ -431,6 +431,12 @@ final class OpenAPS {
 
             let glucose = try self.fetchGlucose()
 
+            // Load ISF tiers settings
+            let isfTiersSettings = self.storage.retrieve(
+                OpenAPS.Settings.insulinSensitivityTiers,
+                as: InsulinSensitivityTiers.self
+            ) ?? InsulinSensitivityTiers(enabled: false, tiers: [])
+
             // Prepare Trio's custom oref variables
             let trioCustomOrefVariablesData = TrioCustomOrefVariables(
                 average_total_data: currentTDD > 0 ? averageTDDLastTenDays : 0,
@@ -452,7 +458,9 @@ final class OpenAPS {
                 start: (activeOverrides.first?.start ?? 0) as Decimal,
                 end: (activeOverrides.first?.end ?? 0) as Decimal,
                 smbMinutes: activeOverrides.first?.smbMinutes?.decimalValue ?? maxSMBBasalMinutes,
-                uamMinutes: activeOverrides.first?.uamMinutes?.decimalValue ?? maxUAMBasalMinutes
+                uamMinutes: activeOverrides.first?.uamMinutes?.decimalValue ?? maxUAMBasalMinutes,
+                isfTiersEnabled: isfTiersSettings.enabled,
+                isfTiers: isfTiersSettings.tiers
             )
 
             // Save and return contents of Trio's custom oref variables

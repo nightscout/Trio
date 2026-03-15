@@ -20,6 +20,14 @@ extension String {
         var hexString = trimmingCharacters(in: .whitespacesAndNewlines)
         hexString = hexString.replacingOccurrences(of: "#", with: "")
 
+        // Validate hex string length (6 chars for RGB)
+        guard hexString.count == 6,
+              hexString.allSatisfy({ $0.isHexDigit })
+        else {
+            // Return white as fallback for invalid color strings
+            return .white
+        }
+
         var rgb: UInt64 = 0
         Scanner(string: hexString).scanHexInt64(&rgb)
 

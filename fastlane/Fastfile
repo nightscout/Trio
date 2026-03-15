@@ -80,16 +80,17 @@ platform :ios do
     )      
     
     match(
-      type: "appstore",
-      git_basic_authorization: Base64.strict_encode64("#{GITHUB_REPOSITORY_OWNER}:#{GH_PAT}"),
-      app_identifier: [
-        "#{BUNDLE_ID}",
-        "#{BUNDLE_ID}.watchkitapp",
-        "#{BUNDLE_ID}.watchkitapp.TrioWatchComplication",
-        "#{BUNDLE_ID}.LiveActivity"
-
-      ]
-    )
+  type: "appstore",
+  git_basic_authorization: Base64.strict_encode64("#{GITHUB_REPOSITORY_OWNER}:#{GH_PAT}"),
+  app_identifier: [
+    "#{BUNDLE_ID}",
+    "#{BUNDLE_ID}.watchkitapp",
+    "#{BUNDLE_ID}.watchkitapp.watchkitextension",
+    "#{BUNDLE_ID}.watchkitapp.TrioWatchComplication",
+    "#{BUNDLE_ID}.LiveActivity"
+  ],
+  readonly: false   # allow Match to create / upload any missing profiles
+)
 
 previous_build_number = latest_testflight_build_number(
   app_identifier: "#{BUNDLE_ID}",
