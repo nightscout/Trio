@@ -66,6 +66,7 @@ jobs:
           ENABLE_NUKE_CERTS="${{ vars.ENABLE_NUKE_CERTS }}"
           FORCE_NUKE_CERTS="${{ vars.FORCE_NUKE_CERTS }}"
 
+
           CERT_STATUS=false
           if [ -f "$CERT_STATUS_FILE" ]; then
             CERT_STATUS=$(cat "$CERT_STATUS_FILE" | tr -d '\n' | tr -d '\r') # Read file content and strip newlines
