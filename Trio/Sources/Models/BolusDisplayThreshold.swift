@@ -10,13 +10,13 @@ enum BolusDisplayThreshold: Decimal, CaseIterable, Encodable, Identifiable {
     var displayName: String {
         switch self {
         case .oneUnit:
-            return String(localized: "1U and over")
+            return String(localized: "1 U and over")
         case .halfUnit:
-            return String(localized: "0.5U and over")
+            return String(localized: "0.5 U and over")
         case .pointOneUnit:
-            return String(localized: "0.1U and over")
+            return String(localized: "0.1 U and over")
         case .allUnits:
-            return String(localized: "Show all labels")
+            return String(localized: "Show All Labels")
         }
     }
 }
