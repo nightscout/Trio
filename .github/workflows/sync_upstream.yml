@@ -46,12 +46,21 @@ jobs:
           COUNT=$(git rev-list HEAD..upstream/${{ env.UPSTREAM_BRANCH }} --count)
           echo "count=$COUNT" >> $GITHUB_OUTPUT
 
-      - name: Backup custom complications
+      - name: Backup custom features
         if: steps.check.outputs.count != '0'
         run: |
-          mkdir -p /tmp/complication-backup
-          cp -r "Trio Watch Complication/" /tmp/complication-backup/
-          cp -r "FreeAPSWatch WatchKit Extension/" /tmp/complication-backup/ 2>/dev/null || true
+          mkdir -p /tmp/custom-backup
+
+          # Backup complications
+          cp -r "Trio Watch Complication/" /tmp/custom-backup/
+          cp -r "FreeAPSWatch WatchKit Extension/" /tmp/custom-backup/ 2>/dev/null || true
+
+          # Backup AI Meal Advisor
+          mkdir -p /tmp/custom-backup/MealScan
+          cp -r "Trio/Sources/Modules/MealScan/" /tmp/custom-backup/MealScan/Modules/ 2>/dev/null || true
+          cp -r "Trio/Sources/Services/MealScan/" /tmp/custom-backup/MealScan/Services/ 2>/dev/null || true
+          cp "Trio/Sources/Models/MealScanModels.swift" /tmp/custom-backup/MealScan/ 2>/dev/null || true
+          cp "LiveActivity/MealScanWidget.swift" /tmp/custom-backup/MealScan/ 2>/dev/null || true
 
       - name: Merge upstream
         if: steps.check.outputs.count != '0'
@@ -64,17 +73,27 @@ jobs:
             git merge --abort
           fi
 
-      - name: Restore custom complications
+      - name: Restore custom features
         if: steps.merge.outputs.success == 'true'
         run: |
-          # Restore our custom complication files (overwrites upstream version)
-          cp -r /tmp/complication-backup/Trio\ Watch\ Complication/* "Trio Watch Complication/"
-          cp -r /tmp/complication-backup/FreeAPSWatch\ WatchKit\ Extension/* "FreeAPSWatch WatchKit Extension/" 2>/dev/null || true
+          # Restore complications
+          cp -r /tmp/custom-backup/Trio\ Watch\ Complication/* "Trio Watch Complication/"
+          cp -r /tmp/custom-backup/FreeAPSWatch\ WatchKit\ Extension/* "FreeAPSWatch WatchKit Extension/" 2>/dev/null || true
+
+          # Restore AI Meal Advisor
+          mkdir -p "Trio/Sources/Modules/MealScan/"
+          mkdir -p "Trio/Sources/Services/MealScan/"
+          cp -r /tmp/custom-backup/MealScan/Modules/* "Trio/Sources/Modules/MealScan/" 2>/dev/null || true
+          cp -r /tmp/custom-backup/MealScan/Services/* "Trio/Sources/Services/MealScan/" 2>/dev/null || true
+          cp /tmp/custom-backup/MealScan/MealScanModels.swift "Trio/Sources/Models/" 2>/dev/null || true
+          cp /tmp/custom-backup/MealScan/MealScanWidget.swift "LiveActivity/" 2>/dev/null || true
 
           # Check if there are changes to commit
           if ! git diff --quiet; then
-            git add "Trio Watch Complication/" "FreeAPSWatch WatchKit Extension/" 2>/dev/null || git add "Trio Watch Complication/"
-            git commit -m "Restore custom ClockKit complications after upstream sync"
+            git add "Trio Watch Complication/" "FreeAPSWatch WatchKit Extension/" \
+                    "Trio/Sources/Modules/MealScan/" "Trio/Sources/Services/MealScan/" \
+                    "Trio/Sources/Models/MealScanModels.swift" "LiveActivity/MealScanWidget.swift" 2>/dev/null || true
+            git commit -m "Restore custom features after upstream sync"
           fi
 
       - name: Push changes
