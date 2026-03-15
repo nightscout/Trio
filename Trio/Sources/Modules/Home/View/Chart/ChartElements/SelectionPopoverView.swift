@@ -89,7 +89,7 @@ struct SelectionPopoverView: ChartContent {
             if let selectedIOBValue, let iob = selectedIOBValue.iob {
                 HStack {
                     Image(systemName: "syringe.fill").frame(width: 15)
-                    Text(Formatter.bolusFormatter.string(from: iob) ?? "")
+                    Text(Formatter.decimalFormatterWithTwoFractionDigits.string(from: iob) ?? "")
                         .bold()
                         + Text(String(localized: " U", comment: "Insulin unit"))
                 }
