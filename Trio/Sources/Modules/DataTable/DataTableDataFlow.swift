@@ -36,6 +36,7 @@ enum DataTable {
         case meals
         case glucose
         case adjustments
+        case tests
 
         var id: String { rawValue }
 
@@ -49,6 +50,8 @@ enum DataTable {
                 return String(localized: "Glucose", comment: "History Mode")
             case .adjustments:
                 return String(localized: "Adjustments", comment: "History Mode")
+            case .tests:
+                return String(localized: "Tests", comment: "History Mode")
             }
         }
     }

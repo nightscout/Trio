@@ -61,6 +61,12 @@ extension DataTable {
             animation: .bouncy
         ) var tempTargetRunStored: FetchedResults<TempTargetRunStored>
 
+        @FetchRequest(
+            entity: PhysioTestStored.entity(),
+            sortDescriptors: [NSSortDescriptor(keyPath: \PhysioTestStored.startDate, ascending: false)],
+            animation: .bouncy
+        ) var physioTestStored: FetchedResults<PhysioTestStored>
+
         private var manualGlucoseFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -96,6 +102,7 @@ extension DataTable {
                         case .glucose: glucoseList
                         case .meals: mealsList
                         case .adjustments: adjustmentsList
+                        case .tests: physioTestsList
                         }
                     }.scrollContentBackground(.hidden)
                         .background(appState.trioBackgroundColor(for: colorScheme))
@@ -461,6 +468,83 @@ extension DataTable {
                 }
             }
             .padding(.vertical, 8)
+        }
+
+        private var physioTestsList: some View {
+            List {
+                HStack {
+                    Text("Physio Test").foregroundStyle(.secondary)
+                    Spacer()
+                }
+                if !physioTestStored.isEmpty {
+                    ForEach(physioTestStored) { test in
+                        let testType = PhysioTesting.TestType(rawValue: test.testType ?? "") ?? .pureCarbs
+                        NavigationLink {
+                            let readings = PhysioGlucoseReadingCoder.decode(test.glucoseReadings)
+                            PhysioTesting.TestResultsView(
+                                metrics: readings.isEmpty ? nil : AbsorptionMetrics.compute(
+                                    readings: readings,
+                                    baselineGlucose: test.baselineGlucose,
+                                    mealTime: test.mealTime ?? test.startDate ?? Date()
+                                ),
+                                testType: testType,
+                                readings: readings
+                            )
+                        } label: {
+                            HStack {
+                                Image(systemName: testType.iconName)
+                                    .foregroundColor(test.isComplete ? .green : .orange)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(testType.displayName)
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                    HStack(spacing: 4) {
+                                        if let start = test.startDate {
+                                            Text(Formatter.dateFormatter.string(from: start))
+                                        }
+                                        if test.isComplete {
+                                            Text("Peak: \(Int(test.peakGlucose))")
+                                        } else if test.endDate == nil {
+                                            Text("Active")
+                                                .foregroundColor(.orange)
+                                        } else {
+                                            Text("Incomplete")
+                                                .foregroundColor(.gray)
+                                        }
+                                    }
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                VStack(alignment: .trailing, spacing: 2) {
+                                    Text("\(Int(test.carbs))g carbs")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    if test.totalAUC > 0 {
+                                        Text("AUC: \(Int(test.totalAUC))")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                    .onDelete { indexSet in
+                        for index in indexSet {
+                            let test = physioTestStored[index]
+                            context.delete(test)
+                        }
+                        try? context.save()
+                    }
+                } else {
+                    ContentUnavailableView(
+                        "No physio tests yet.",
+                        systemImage: "waveform.path.ecg"
+                    )
+                }
+            }
+            .listRowBackground(Color.chart)
         }
 
         private var glucoseList: some View {

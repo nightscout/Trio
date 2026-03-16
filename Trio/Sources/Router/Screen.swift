@@ -54,6 +54,7 @@ enum Screen: Identifiable, Hashable {
     case therapyProfileEditor(profile: TherapyProfile, isNew: Bool)
     case smartSenseSettings
     case garminFirestoreStatus
+    case physioTesting
 
     var id: Int { String(reflecting: self).hashValue }
 }
@@ -177,6 +178,8 @@ extension Screen {
             SmartSenseConfig.RootView(resolver: resolver)
         case .garminFirestoreStatus:
             GarminFirestoreStatusView()
+        case .physioTesting:
+            PhysioTesting.RootView(resolver: resolver)
         }
     }
 

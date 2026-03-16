@@ -57,6 +57,14 @@ extension Home {
             fetchLimit: 1
         )) var latestTempTarget: FetchedResults<TempTargetStored>
 
+        @FetchRequest(fetchRequest: PhysioTestStored.fetch(
+            NSPredicate(format: "isComplete == NO AND startDate != nil"),
+            ascending: false,
+            fetchLimit: 1
+        )) var activePhysioTest: FetchedResults<PhysioTestStored>
+
+        @State var showPhysioTestStopConfirm = false
+
         var bolusProgressFormatter: NumberFormatter {
             let fractionDigits: Int = switch state.settingsManager.preferences.bolusIncrement {
             case 0.1: 1
@@ -178,6 +186,54 @@ extension Home {
                 .padding(.top, 8)
                 .transition(.move(edge: .top).combined(with: .opacity))
             }
+        }
+
+        @ViewBuilder private var physioTestBanner: some View {
+            if let test = activePhysioTest.first {
+                let testType = PhysioTesting.TestType(rawValue: test.testType ?? "") ?? .pureCarbs
+                let elapsed = Int(Date().timeIntervalSince(test.startDate ?? Date()) / 60)
+                PhysioTesting.BannerView(
+                    testType: testType,
+                    phase: .active,
+                    elapsedMinutes: elapsed,
+                    currentGlucose: 0,
+                    baselineGlucose: test.baselineGlucose,
+                    onStop: {
+                        showPhysioTestStopConfirm = true
+                    }
+                )
+                .padding(.horizontal, 16)
+                .padding(.top, 4)
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .confirmationDialog(
+                    "End Physio Test?",
+                    isPresented: $showPhysioTestStopConfirm,
+                    titleVisibility: .visible
+                ) {
+                    Button("End Test (Save Results)", role: .none) {
+                        endPhysioTest(test, cancelled: false)
+                    }
+                    Button("Cancel Test (Discard)", role: .destructive) {
+                        endPhysioTest(test, cancelled: true)
+                    }
+                } message: {
+                    Text("This will resume full automation (SMBs and temp basals).")
+                }
+            }
+        }
+
+        private func endPhysioTest(_ test: PhysioTestStored, cancelled: Bool) {
+            moc.perform {
+                test.endDate = Date()
+                test.isComplete = !cancelled
+                try? moc.save()
+            }
+            // The override will be picked up on next loop cycle
+            // or we can post a notification to trigger cleanup
+            Foundation.NotificationCenter.default.post(
+                name: .didUpdateOverrideConfiguration,
+                object: nil
+            )
         }
 
         @ViewBuilder func pumpTimezoneView(_ badgeImage: UIImage, _ badgeColor: Color) -> some View {
@@ -1006,6 +1062,9 @@ extension Home {
                         }
                         // Why High/Low Banner
                         whyHighLowBanner
+
+                        // Physio Test Banner
+                        physioTestBanner
                     }
                 }
 

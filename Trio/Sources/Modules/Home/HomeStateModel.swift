@@ -100,6 +100,8 @@ extension Home {
         var overrideRunStored: [OverrideRunStored] = []
         var tempTargetStored: [TempTargetStored] = []
         var tempTargetRunStored: [TempTargetRunStored] = []
+        var activePhysioTests: [PhysioTestStored] = []
+        var completedPhysioTests: [PhysioTestStored] = []
         var isOverrideCancelled: Bool = false
         var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         var pumpStatusHighlightMessage: String?
@@ -221,6 +223,9 @@ extension Home {
                         self.setupTempTargetsRunStored()
                     }
                     group.addTask {
+                        self.setupPhysioTests()
+                    }
+                    group.addTask {
                         self.iobService.updateIOB()
                     }
                 }
@@ -306,6 +311,11 @@ extension Home {
             coreDataPublisher?.filteredByEntityName("TempTargetRunStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupTempTargetsRunStored()
+            }.store(in: &subscriptions)
+
+            coreDataPublisher?.filteredByEntityName("PhysioTestStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupPhysioTests()
             }.store(in: &subscriptions)
         }
 

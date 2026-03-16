@@ -21,6 +21,7 @@
 		118DF76B2C5ECBC60067FEB7 /* CancelOverrideIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7652C5ECBC60067FEB7 /* CancelOverrideIntent.swift */; };
 		118DF76D2C5ECBC60067FEB7 /* OverridePresetEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7672C5ECBC60067FEB7 /* OverridePresetEntity.swift */; };
 		118DF76E2C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7682C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift */; };
+		1715FC7D55B4FA64EDEAE3F4 /* NewTestFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B16F1B6C2DA45E30FBE5319B /* NewTestFormView.swift */; };
 		17A9D0899046B45E87834820 /* CarbRatioEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C8D5F457B5AFF763F8CF3DF /* CarbRatioEditorProvider.swift */; };
 		18DDA1C6A9A1D7F2FBB0F8A3 /* ProfileSwitchEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2593404672BB08B4E9D1B22D /* ProfileSwitchEvent.swift */; };
 		19012CDC291D2CB900FB8210 /* LoopStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19012CDB291D2CB900FB8210 /* LoopStats.swift */; };
@@ -56,7 +57,9 @@
 		19F95FFA29F1102A00314DDC /* StatRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19F95FF929F1102A00314DDC /* StatRootView.swift */; };
 		1BBB001DAD60F3B8CEA4B1C7 /* ISFEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505E09DC17A0C3D0AF4B66FE /* ISFEditorStateModel.swift */; };
 		1D845DF2E3324130E1D95E67 /* DataTableProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60744C3E9BB3652895C908CC /* DataTableProvider.swift */; };
+		1FFFCFD7E276EB2D3E887D0D /* PhysioTestStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = E890FA6E01C9DCD20146D3A2 /* PhysioTestStored+CoreDataClass.swift */; };
 		23888883D4EA091C88480FF2 /* TreatmentsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19984D62EFC0035A9E9644D /* TreatmentsProvider.swift */; };
+		27CAFC9BBA2FA4714F973388 /* PhysioGlucoseReading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07B203B26BFC70ACAC534066 /* PhysioGlucoseReading.swift */; };
 		3171D2818C7C72CD1584BB5E /* GlucoseNotificationSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC2C6489D29ECCCAD78E0721 /* GlucoseNotificationSettingsStateModel.swift */; };
 		320D030F724170A637F06D50 /* BuildFile in Sources */ = {isa = PBXBuildFile; };
 		32A17501E640D0B396A04D1E /* TherapyProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18ED8EA2AF12F8301B9CC005 /* TherapyProfile.swift */; };
@@ -206,13 +209,12 @@
 		38FEF3FE2738083E00574A46 /* CGMSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF3FD2738083E00574A46 /* CGMSettingsProvider.swift */; };
 		38FEF413273B317A00574A46 /* HKUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF412273B317A00574A46 /* HKUnit.swift */; };
 		3B0B4E6C2DE1439F005C6627 /* LockedResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B0B4E6B2DE1439A005C6627 /* LockedResolver.swift */; };
+		3B12D8EFD8AC554E0F2D3F54 /* PhysioTestingDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 176F1DB0E439C338A24F0343 /* PhysioTestingDataFlow.swift */; };
 		3B2F77862D7E52ED005ED9FA /* TDD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2F77852D7E52ED005ED9FA /* TDD.swift */; };
 		3B2F77882D7E5387005ED9FA /* CurrentTDDSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2F77872D7E5387005ED9FA /* CurrentTDDSetup.swift */; };
 		3B3B57C92DA07B3400849D16 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3B57C82DA07B3400849D16 /* GoogleService-Info.plist */; };
 		3B4196E02D8C4BC00091DFF7 /* HomeStateModel+CGM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4196DF2D8C4BBB0091DFF7 /* HomeStateModel+CGM.swift */; };
 		3B47C6102DA0A28F00B0E5EF /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 3B47C60F2DA0A28F00B0E5EF /* FirebaseCrashlytics */; };
-		DD20000001A0B0C000D0E001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DD20000002A0B0C000D0E001 /* FirebaseAuth */; };
-		DD20000003A0B0C000D0E001 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = DD20000004A0B0C000D0E001 /* FirebaseFirestore */; };
 		3B4BA76A2D8DBD690069D5B8 /* CGMBLEKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75B2D8DBD690069D5B8 /* CGMBLEKit.framework */; };
 		3B4BA76B2D8DBD690069D5B8 /* CGMBLEKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75B2D8DBD690069D5B8 /* CGMBLEKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3B4BA76C2D8DBD690069D5B8 /* CGMBLEKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75C2D8DBD690069D5B8 /* CGMBLEKitUI.framework */; };
@@ -265,6 +267,7 @@
 		3BD9687C2D8DDD4600899469 /* SlideButton in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687B2D8DDD4600899469 /* SlideButton */; };
 		3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687E2D8DDD8800899469 /* CryptoSwift */; };
 		3BF85FE32E427312000D7351 /* IOBService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF85FE12E427312000D7351 /* IOBService.swift */; };
+		3CB0B389E569F702F5588055 /* PhysioTestingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37C9A5A3B349E45EEEE115B9 /* PhysioTestingProvider.swift */; };
 		3E28F2AB2EB5337F00FB9EEB /* ConnectIQ in Frameworks */ = {isa = PBXBuildFile; productRef = 3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */; };
 		45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */; };
 		45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */; };
@@ -318,6 +321,8 @@
 		642F76A05A4FF530463A9FD0 /* NightscoutConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8782B44544F38F2B2D82C38E /* NightscoutConfigRootView.swift */; };
 		65070A332BFDCB83006F213F /* TidepoolStartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65070A322BFDCB83006F213F /* TidepoolStartView.swift */; };
 		6632A0DC746872439A858B44 /* ISFEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79BDA519C9B890FD9A5DFCF3 /* ISFEditorDataFlow.swift */; };
+		6679421EF76E952D509711A6 /* PhysioTestSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92D56F68E5FFADBE82EFF3BB /* PhysioTestSetup.swift */; };
+		683A4F3184E12047F59D1147 /* PhysioTestStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = B395F90CFEB3B29AC0B7E589 /* PhysioTestStored+CoreDataProperties.swift */; };
 		69A31254F2451C20361D172F /* TreatmentsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 223EC0494F55A91E3EA69EF4 /* TreatmentsStateModel.swift */; };
 		69B9A368029F7EB39F525422 /* CarbRatioEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64AA5E04A2761F6EEA6568E1 /* CarbRatioEditorStateModel.swift */; };
 		6B1A8D192B14D91600E76752 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6B1A8D182B14D91600E76752 /* WidgetKit.framework */; };
@@ -339,6 +344,7 @@
 		7BCFACB97C821041BA43A114 /* ManualTempBasalRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C377490C77661D75E8C50649 /* ManualTempBasalRootView.swift */; };
 		7F7B756BE8543965D9FDF1A2 /* DataTableDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A401509D21F7F35D4E109EDA /* DataTableDataFlow.swift */; };
 		8194B80890CDD6A3C13B0FEE /* SnoozeStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26904AACA8D9C15D229D675 /* SnoozeStateModel.swift */; };
+		8292A007544A100353654B5C /* PhysioTestBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBAFC5ACB612C2306C790B61 /* PhysioTestBannerView.swift */; };
 		86F8F6CB10ECDFD2134A69F6 /* ProfileSwitchBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26FF508B6A5D8FB0D60275A /* ProfileSwitchBannerView.swift */; };
 		8765F676F6F301C841FECF52 /* TherapyProfileEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4901ED795DB4552A4329842A /* TherapyProfileEditorRootView.swift */; };
 		88AB39B23C9552BD6E0C9461 /* ISFEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBB3BAE7494CB771ABAC7B8B /* ISFEditorRootView.swift */; };
@@ -349,6 +355,7 @@
 		9825E5E923F0B8FA80C8C7C7 /* NightscoutConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A48AE3AC813A49A517846A /* NightscoutConfigStateModel.swift */; };
 		98641AF4F92123DA668AB931 /* CarbRatioEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0BDC6993C1087310EDFC428 /* CarbRatioEditorRootView.swift */; };
 		993FC470FFDA65FC95D65B3B /* Weekday.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FEFD9852C2751F2B74D71B3 /* Weekday.swift */; };
+		9E1C71B3DE55D53DCD7A08BB /* PhysioTestingStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDAD8CD6C5D5106A60CD3C98 /* PhysioTestingStateModel.swift */; };
 		A1B1C1D1E1F101010101A1B1 /* AIInsightsConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A1 /* AIInsightsConfigDataFlow.swift */; };
 		A1B1C1D1E1F101010101A1B2 /* AIInsightsConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A2 /* AIInsightsConfigStateModel.swift */; };
 		A1B1C1D1E1F101010101A1B3 /* AIInsightsConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B1C1D1E1F101010101A1A3 /* AIInsightsConfigProvider.swift */; };
@@ -370,6 +377,17 @@
 		B7C465E9472624D8A2BE2A6A /* BuildFile in Sources */ = {isa = PBXBuildFile; };
 		B958F1B72BA0711600484851 /* MKRingProgressView in Frameworks */ = {isa = PBXBuildFile; productRef = B958F1B62BA0711600484851 /* MKRingProgressView */; };
 		BA00D96F7B2FF169A06FB530 /* CGMSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C018D1680307A31C9ED7120 /* CGMSettingsStateModel.swift */; };
+		BB10000001A0B0C000D0E001 /* GarminFirebaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000001A0B0C000D0E001 /* GarminFirebaseConfig.swift */; };
+		BB10000002A0B0C000D0E002 /* GarminFirestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000002A0B0C000D0E002 /* GarminFirestoreService.swift */; };
+		BB10000003A0B0C000D0E003 /* GarminContextSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000003A0B0C000D0E003 /* GarminContextSnapshot.swift */; };
+		BB10000004A0B0C000D0E004 /* SmartSenseModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000004A0B0C000D0E004 /* SmartSenseModels.swift */; };
+		BB10000005A0B0C000D0E005 /* SmartSenseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000005A0B0C000D0E005 /* SmartSenseManager.swift */; };
+		BB10000006A0B0C000D0E006 /* CronometerMealDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000006A0B0C000D0E006 /* CronometerMealDetector.swift */; };
+		BB10000007A0B0C000D0E007 /* MealDecisionExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000007A0B0C000D0E007 /* MealDecisionExporter.swift */; };
+		BB10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift */; };
+		BB10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift */; };
+		BB1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift */; };
+		BB20000001A0B0C000D0E001 /* MealDecisionLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA20000001A0B0C000D0E001 /* MealDecisionLog.swift */; };
 		BD04ECCE2D29952A008C5FEB /* BolusProgressOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD04ECCD2D299522008C5FEB /* BolusProgressOverlay.swift */; };
 		BD0B2EF32C5998E600B3298F /* MealPresetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD0B2EF22C5998E600B3298F /* MealPresetView.swift */; };
 		BD10516D2DA986E1007C6D89 /* PulsingLogoAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD10516C2DA986DC007C6D89 /* PulsingLogoAnimation.swift */; };
@@ -482,8 +500,11 @@
 		C29E268A2DADFD2A00F87E75 /* GlucoseDailyPercentileChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = C29E26892DADFD2A00F87E75 /* GlucoseDailyPercentileChart.swift */; };
 		C2A0A42F2CE03131003B98E8 /* ConstantValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A0A42E2CE0312C003B98E8 /* ConstantValues.swift */; };
 		C2A6D1E42DB1581D0036DB66 /* GlucoseStatsSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A6D1E32DB1581D0036DB66 /* GlucoseStatsSetup.swift */; };
+		C4F3E13497C71FAC29D95DF7 /* TestResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF36A9A7CC49A4F56BDF965 /* TestResultsView.swift */; };
 		C967DACD3B1E638F8B43BE06 /* ManualTempBasalStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFCFE0781F9074C2917890E8 /* ManualTempBasalStateModel.swift */; };
 		CA370FC152BC98B3D1832968 /* BasalProfileEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8BCB0C37DEB5EC377B9612 /* BasalProfileEditorRootView.swift */; };
+		CAFF35768FCCA21E57A5317F /* PhysioTestingRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6FF1C99DF8A3F10D746AF08 /* PhysioTestingRootView.swift */; };
+		CBB0801568491BC78B8E8970 /* PhysioTestOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A531C08BA849E31A1D54B107 /* PhysioTestOverlayView.swift */; };
 		CC6C406E2ACDD69E009B8058 /* RawFetchedProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */; };
 		CC76E9512BD4812E008BEB61 /* Forecast+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC76E9502BD4812E008BEB61 /* Forecast+helper.swift */; };
 		CD78BB94E43B249D60CC1A1B /* GlucoseNotificationSettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22963BD06A9C83959D4914E4 /* GlucoseNotificationSettingsRootView.swift */; };
@@ -539,6 +560,7 @@
 		CEE9A65C2BBB41C800EB5194 /* CalibrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9A65B2BBB41C800EB5194 /* CalibrationService.swift */; };
 		CEE9A65E2BBC9F6500EB5194 /* CalibrationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */; };
 		CEF1ED6B2D58FB5800FAF41E /* CGMOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF1ED6A2D58FB4600FAF41E /* CGMOptions.swift */; };
+		D6758F3FF91D6B5EA448C9D9 /* PhysioTestStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A0A38C54AD40DB5C678E5 /* PhysioTestStorage.swift */; };
 		D6D02515BBFBE64FEBE89856 /* DataTableRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 881E04BA5E0A003DE8E0A9C6 /* DataTableRootView.swift */; };
 		D6DEC113821A7F1056C4AA1E /* NightscoutConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2A13DF0EDEEEDC4106AA2A /* NightscoutConfigDataFlow.swift */; };
 		DBA5254DBB2586C98F61220C /* ISFEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F9F137F126D9F8DEB799F26 /* ISFEditorProvider.swift */; };
@@ -582,6 +604,8 @@
 		DD17A0322E3FEA1F008E1BF0 /* RemoteNotificationResponseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17A0312E3FEA1F008E1BF0 /* RemoteNotificationResponseManager.swift */; };
 		DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */; };
 		DD1E53592D273F26008F32A4 /* LoopStatusHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1E53582D273F20008F32A4 /* LoopStatusHelpView.swift */; };
+		DD20000001A0B0C000D0E001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DD20000002A0B0C000D0E001 /* FirebaseAuth */; };
+		DD20000003A0B0C000D0E001 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = DD20000004A0B0C000D0E001 /* FirebaseFirestore */; };
 		DD21FCB52C6952AD00AF2C25 /* DecimalPickerSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */; };
 		DD246F062D2836AA0027DDE0 /* GlucoseTrendView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD246F052D2836AA0027DDE0 /* GlucoseTrendView.swift */; };
 		DD2CC85C2D25DA1000445446 /* GlucoseTargetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2CC85B2D25D9CE00445446 /* GlucoseTargetsView.swift */; };
@@ -757,25 +781,14 @@
 		FEFFA7A22929FE49007B8193 /* UIDevice+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */; };
 		HME7A7FED7B34D0D8F5BC383 /* HealthMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = HMF49BBBF5CD4A9BBC14CC1F /* HealthMetrics.swift */; };
 		HS65A6D45B1A4FC1B3A02035 /* HealthMetricsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = HS70616C45944CE888DC2C8D /* HealthMetricsService.swift */; };
-		BB10000001A0B0C000D0E001 /* GarminFirebaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000001A0B0C000D0E001 /* GarminFirebaseConfig.swift */; };
-		BB10000002A0B0C000D0E002 /* GarminFirestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000002A0B0C000D0E002 /* GarminFirestoreService.swift */; };
-		BB10000003A0B0C000D0E003 /* GarminContextSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000003A0B0C000D0E003 /* GarminContextSnapshot.swift */; };
-		BB10000004A0B0C000D0E004 /* SmartSenseModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000004A0B0C000D0E004 /* SmartSenseModels.swift */; };
-		BB20000001A0B0C000D0E001 /* MealDecisionLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA20000001A0B0C000D0E001 /* MealDecisionLog.swift */; };
-		BB10000005A0B0C000D0E005 /* SmartSenseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000005A0B0C000D0E005 /* SmartSenseManager.swift */; };
-		BB10000006A0B0C000D0E006 /* CronometerMealDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000006A0B0C000D0E006 /* CronometerMealDetector.swift */; };
 		NH30000001A0B0C000D0E001 /* NutritionHealthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = NH30000002A0B0C000D0E001 /* NutritionHealthService.swift */; };
 		NS30000001A0B0C000D0E001 /* NutritionSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = NS30000002A0B0C000D0E001 /* NutritionSnapshot.swift */; };
-		BB10000007A0B0C000D0E007 /* MealDecisionExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000007A0B0C000D0E007 /* MealDecisionExporter.swift */; };
-		BB10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift */; };
-		BB10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift */; };
-		BB1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift */; };
 		SP000001000000000000002 /* AdaptiveKalmanFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000001000000000000001 /* AdaptiveKalmanFilter.swift */; };
-		SP000003000000000000002 /* BGResidualCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000003000000000000001 /* BGResidualCalculator.swift */; };
 		SP000002000000000000002 /* BGSignalProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000002000000000000001 /* BGSignalProcessor.swift */; };
+		SP000003000000000000002 /* BGResidualCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000003000000000000001 /* BGResidualCalculator.swift */; };
 		SP000004000000000000002 /* GarminZScoreNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000004000000000000001 /* GarminZScoreNormalizer.swift */; };
-		SP000006000000000000002 /* OrefSignalPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000006000000000000001 /* OrefSignalPipeline.swift */; };
 		SP000005000000000000002 /* SignalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000005000000000000001 /* SignalStore.swift */; };
+		SP000006000000000000002 /* OrefSignalPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000006000000000000001 /* OrefSignalPipeline.swift */; };
 		SP000007000000000000002 /* MacroMealModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000007000000000000001 /* MacroMealModel.swift */; };
 		SP000008000000000000002 /* DailyStateVector.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000008000000000000001 /* DailyStateVector.swift */; };
 		SP000009000000000000002 /* ExerciseSensitivityModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SP000009000000000000001 /* ExerciseSensitivityModel.swift */; };
@@ -893,6 +906,7 @@
 
 /* Begin PBXFileReference section */
 		03CADE5D659AFE6D0385E900 /* TherapyProfileEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileEditorProvider.swift; path = TherapyProfileEditorProvider.swift; sourceTree = "<group>"; };
+		07B203B26BFC70ACAC534066 /* PhysioGlucoseReading.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhysioGlucoseReading.swift; sourceTree = "<group>"; };
 		110AEDE02C5193D100615CC9 /* BolusIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntent.swift; sourceTree = "<group>"; };
 		110AEDE12C5193D100615CC9 /* BolusIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntentRequest.swift; sourceTree = "<group>"; };
 		110AEDE52C51A0AE00615CC9 /* ShortcutsConfigView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigView.swift; sourceTree = "<group>"; };
@@ -903,6 +917,7 @@
 		118DF7652C5ECBC60067FEB7 /* CancelOverrideIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CancelOverrideIntent.swift; sourceTree = "<group>"; };
 		118DF7672C5ECBC60067FEB7 /* OverridePresetEntity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OverridePresetEntity.swift; sourceTree = "<group>"; };
 		118DF7682C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OverridePresetsIntentRequest.swift; sourceTree = "<group>"; };
+		176F1DB0E439C338A24F0343 /* PhysioTestingDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhysioTestingDataFlow.swift; sourceTree = "<group>"; };
 		18ED8EA2AF12F8301B9CC005 /* TherapyProfile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfile.swift; path = TherapyProfile.swift; sourceTree = "<group>"; };
 		19012CDB291D2CB900FB8210 /* LoopStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStats.swift; sourceTree = "<group>"; };
 		190EBCC329FF136900BA767D /* UserInterfaceSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInterfaceSettingsDataFlow.swift; sourceTree = "<group>"; };
@@ -946,6 +961,7 @@
 		3260468377DA9DB4DEE9AF6D /* GlucoseNotificationSettingsDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlucoseNotificationSettingsDataFlow.swift; sourceTree = "<group>"; };
 		36A708CDB546692C2230B385 /* SnoozeDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeDataFlow.swift; sourceTree = "<group>"; };
 		36F58DDD71F0E795464FA3F0 /* TargetsEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorStateModel.swift; sourceTree = "<group>"; };
+		37C9A5A3B349E45EEEE115B9 /* PhysioTestingProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhysioTestingProvider.swift; sourceTree = "<group>"; };
 		3811DE0725C9D32E00A708ED /* BaseView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseView.swift; sourceTree = "<group>"; };
 		3811DE0825C9D32F00A708ED /* BaseProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseProvider.swift; sourceTree = "<group>"; };
 		3811DE1525C9D40400A708ED /* Screen.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Screen.swift; sourceTree = "<group>"; };
@@ -1106,6 +1122,7 @@
 		38FEF3FB2737E53800574A46 /* MainStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainStateModel.swift; sourceTree = "<group>"; };
 		38FEF3FD2738083E00574A46 /* CGMSettingsProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGMSettingsProvider.swift; sourceTree = "<group>"; };
 		38FEF412273B317A00574A46 /* HKUnit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HKUnit.swift; sourceTree = "<group>"; };
+		3AF36A9A7CC49A4F56BDF965 /* TestResultsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TestResultsView.swift; sourceTree = "<group>"; };
 		3B0B4E6B2DE1439A005C6627 /* LockedResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockedResolver.swift; sourceTree = "<group>"; };
 		3B2F77852D7E52ED005ED9FA /* TDD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDD.swift; sourceTree = "<group>"; };
 		3B2F77872D7E5387005ED9FA /* CurrentTDDSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentTDDSetup.swift; sourceTree = "<group>"; };
@@ -1220,6 +1237,7 @@
 		8A9134292D63D9A1007F8874 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		8A91342B2D63D9A2007F8874 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorRootView.swift; sourceTree = "<group>"; };
+		92D56F68E5FFADBE82EFF3BB /* PhysioTestSetup.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhysioTestSetup.swift; sourceTree = "<group>"; };
 		9455FA2D92E77A6C4AFED8A3 /* DataTableStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DataTableStateModel.swift; sourceTree = "<group>"; };
 		96653287EDB276A111288305 /* ManualTempBasalDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualTempBasalDataFlow.swift; sourceTree = "<group>"; };
 		9C8D5F457B5AFF763F8CF3DF /* CarbRatioEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarbRatioEditorProvider.swift; sourceTree = "<group>"; };
@@ -1237,9 +1255,24 @@
 		A1B1C1D1E1F101010101A1AA /* ClaudeOTuneModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeOTuneModels.swift; sourceTree = "<group>"; };
 		A1B1C1D1E1F101010101A1AB /* ClaudeOTuneProfileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeOTuneProfileService.swift; sourceTree = "<group>"; };
 		A401509D21F7F35D4E109EDA /* DataTableDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DataTableDataFlow.swift; sourceTree = "<group>"; };
+		A531C08BA849E31A1D54B107 /* PhysioTestOverlayView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhysioTestOverlayView.swift; sourceTree = "<group>"; };
 		A8630D58BDAD6D9C650B9B39 /* PumpConfigProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigProvider.swift; sourceTree = "<group>"; };
+		AA10000001A0B0C000D0E001 /* GarminFirebaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminFirebaseConfig.swift; sourceTree = "<group>"; };
+		AA10000002A0B0C000D0E002 /* GarminFirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminFirestoreService.swift; sourceTree = "<group>"; };
+		AA10000003A0B0C000D0E003 /* GarminContextSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminContextSnapshot.swift; sourceTree = "<group>"; };
+		AA10000004A0B0C000D0E004 /* SmartSenseModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseModels.swift; sourceTree = "<group>"; };
+		AA10000005A0B0C000D0E005 /* SmartSenseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseManager.swift; sourceTree = "<group>"; };
+		AA10000006A0B0C000D0E006 /* CronometerMealDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CronometerMealDetector.swift; sourceTree = "<group>"; };
+		AA10000007A0B0C000D0E007 /* MealDecisionExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealDecisionExporter.swift; sourceTree = "<group>"; };
+		AA10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseSettingsView.swift; sourceTree = "<group>"; };
+		AA10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminFirestoreStatusView.swift; sourceTree = "<group>"; };
+		AA1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseSummaryView.swift; sourceTree = "<group>"; };
+		AA20000001A0B0C000D0E001 /* MealDecisionLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealDecisionLog.swift; sourceTree = "<group>"; };
 		AAFF91130F2FCCC7EBBA11AD /* BasalProfileEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorStateModel.swift; sourceTree = "<group>"; };
+		AE0A0A38C54AD40DB5C678E5 /* PhysioTestStorage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhysioTestStorage.swift; sourceTree = "<group>"; };
 		AF65DA88F972B56090AD6AC3 /* PumpConfigDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigDataFlow.swift; sourceTree = "<group>"; };
+		B16F1B6C2DA45E30FBE5319B /* NewTestFormView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NewTestFormView.swift; sourceTree = "<group>"; };
+		B395F90CFEB3B29AC0B7E589 /* PhysioTestStored+CoreDataProperties.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "PhysioTestStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		B50F1AF1D917100604E5DD84 /* TherapyProfileEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TherapyProfileEditorStateModel.swift; path = TherapyProfileEditorStateModel.swift; sourceTree = "<group>"; };
 		B5822B15939E719628E9FF7C /* SnoozeRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeRootView.swift; sourceTree = "<group>"; };
 		B9B5C0607505A38F256BF99A /* CGMSettingsDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CGMSettingsDataFlow.swift; sourceTree = "<group>"; };
@@ -1358,7 +1391,9 @@
 		C2A0A42E2CE0312C003B98E8 /* ConstantValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstantValues.swift; sourceTree = "<group>"; };
 		C2A6D1E32DB1581D0036DB66 /* GlucoseStatsSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseStatsSetup.swift; sourceTree = "<group>"; };
 		C377490C77661D75E8C50649 /* ManualTempBasalRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualTempBasalRootView.swift; sourceTree = "<group>"; };
+		C6FF1C99DF8A3F10D746AF08 /* PhysioTestingRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhysioTestingRootView.swift; sourceTree = "<group>"; };
 		C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TreatmentsDataFlow.swift; sourceTree = "<group>"; };
+		CBAFC5ACB612C2306C790B61 /* PhysioTestBannerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhysioTestBannerView.swift; sourceTree = "<group>"; };
 		CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawFetchedProfile.swift; sourceTree = "<group>"; };
 		CC76E9502BD4812E008BEB61 /* Forecast+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Forecast+helper.swift"; sourceTree = "<group>"; };
 		CE1856F42ADC4858007E39C7 /* AddCarbPresetIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCarbPresetIntent.swift; sourceTree = "<group>"; };
@@ -1622,6 +1657,7 @@
 		E592A3742CEEC038009A472C /* ContactImageProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageProvider.swift; sourceTree = "<group>"; };
 		E592A3752CEEC038009A472C /* ContactImageStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageStateModel.swift; sourceTree = "<group>"; };
 		E625985B47742D498CB1681A /* GlucoseNotificationSettingsProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlucoseNotificationSettingsProvider.swift; sourceTree = "<group>"; };
+		E890FA6E01C9DCD20146D3A2 /* PhysioTestStored+CoreDataClass.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "PhysioTestStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		F816825D28DB441200054060 /* HeartBeatManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HeartBeatManager.swift; sourceTree = "<group>"; };
 		F816825F28DB441800054060 /* BluetoothTransmitter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BluetoothTransmitter.swift; sourceTree = "<group>"; };
 		F90692A9274B7AAE0037068D /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
@@ -1630,30 +1666,20 @@
 		F90692D2274B9A130037068D /* AppleHealthKitRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleHealthKitRootView.swift; sourceTree = "<group>"; };
 		F90692D5274B9A450037068D /* HealthKitStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitStateModel.swift; sourceTree = "<group>"; };
 		FBB3BAE7494CB771ABAC7B8B /* ISFEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorRootView.swift; sourceTree = "<group>"; };
+		FDAD8CD6C5D5106A60CD3C98 /* PhysioTestingStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhysioTestingStateModel.swift; sourceTree = "<group>"; };
 		FE41E4D529463EE20047FD55 /* NightscoutPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutPreferences.swift; sourceTree = "<group>"; };
 		FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+Extensions.swift"; sourceTree = "<group>"; };
 		FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIDevice+Extensions.swift"; sourceTree = "<group>"; };
 		HMF49BBBF5CD4A9BBC14CC1F /* HealthMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetrics.swift; sourceTree = "<group>"; };
 		HS70616C45944CE888DC2C8D /* HealthMetricsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricsService.swift; sourceTree = "<group>"; };
-		AA10000001A0B0C000D0E001 /* GarminFirebaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminFirebaseConfig.swift; sourceTree = "<group>"; };
-		AA10000002A0B0C000D0E002 /* GarminFirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminFirestoreService.swift; sourceTree = "<group>"; };
-		AA10000003A0B0C000D0E003 /* GarminContextSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminContextSnapshot.swift; sourceTree = "<group>"; };
-		AA10000004A0B0C000D0E004 /* SmartSenseModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseModels.swift; sourceTree = "<group>"; };
-		AA20000001A0B0C000D0E001 /* MealDecisionLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealDecisionLog.swift; sourceTree = "<group>"; };
-		AA10000005A0B0C000D0E005 /* SmartSenseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseManager.swift; sourceTree = "<group>"; };
-		AA10000006A0B0C000D0E006 /* CronometerMealDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CronometerMealDetector.swift; sourceTree = "<group>"; };
 		NH30000002A0B0C000D0E001 /* NutritionHealthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionHealthService.swift; sourceTree = "<group>"; };
 		NS30000002A0B0C000D0E001 /* NutritionSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionSnapshot.swift; sourceTree = "<group>"; };
-		AA10000007A0B0C000D0E007 /* MealDecisionExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealDecisionExporter.swift; sourceTree = "<group>"; };
-		AA10000008A0B0C000D0E008 /* SmartSenseSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseSettingsView.swift; sourceTree = "<group>"; };
-		AA10000009A0B0C000D0E009 /* GarminFirestoreStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminFirestoreStatusView.swift; sourceTree = "<group>"; };
-		AA1000000AA0B0C000D0E00A /* SmartSenseSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartSenseSummaryView.swift; sourceTree = "<group>"; };
 		SP000001000000000000001 /* AdaptiveKalmanFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveKalmanFilter.swift; sourceTree = "<group>"; };
-		SP000003000000000000001 /* BGResidualCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BGResidualCalculator.swift; sourceTree = "<group>"; };
 		SP000002000000000000001 /* BGSignalProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BGSignalProcessor.swift; sourceTree = "<group>"; };
+		SP000003000000000000001 /* BGResidualCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BGResidualCalculator.swift; sourceTree = "<group>"; };
 		SP000004000000000000001 /* GarminZScoreNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminZScoreNormalizer.swift; sourceTree = "<group>"; };
-		SP000006000000000000001 /* OrefSignalPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrefSignalPipeline.swift; sourceTree = "<group>"; };
 		SP000005000000000000001 /* SignalStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalStore.swift; sourceTree = "<group>"; };
+		SP000006000000000000001 /* OrefSignalPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrefSignalPipeline.swift; sourceTree = "<group>"; };
 		SP000007000000000000001 /* MacroMealModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroMealModel.swift; sourceTree = "<group>"; };
 		SP000008000000000000001 /* DailyStateVector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyStateVector.swift; sourceTree = "<group>"; };
 		SP000009000000000000001 /* ExerciseSensitivityModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseSensitivityModel.swift; sourceTree = "<group>"; };
@@ -2057,6 +2083,7 @@
 				C2C98283C436DB934D7E7994 /* Treatments */,
 				190EBCC229FF134900BA767D /* UserInterfaceSettings */,
 				CE94597C29E9E1CD0047C9C6 /* WatchConfig */,
+				7DB8C82A197EA4A2BCB423D6 /* PhysioTesting */,
 			);
 			path = Modules;
 			sourceTree = "<group>";
@@ -2494,23 +2521,6 @@
 			path = OpenAPS;
 			sourceTree = "<group>";
 		};
-		SP000000000000000000003 /* SignalProcessing */ = {
-			isa = PBXGroup;
-			children = (
-				SP000010000000000000001 /* AdaptiveLearning.swift */,
-				SP000001000000000000001 /* AdaptiveKalmanFilter.swift */,
-				SP000003000000000000001 /* BGResidualCalculator.swift */,
-				SP000002000000000000001 /* BGSignalProcessor.swift */,
-				SP000008000000000000001 /* DailyStateVector.swift */,
-				SP000009000000000000001 /* ExerciseSensitivityModel.swift */,
-				SP000004000000000000001 /* GarminZScoreNormalizer.swift */,
-				SP000007000000000000001 /* MacroMealModel.swift */,
-				SP000006000000000000001 /* OrefSignalPipeline.swift */,
-				SP000005000000000000001 /* SignalStore.swift */,
-			);
-			path = SignalProcessing;
-			sourceTree = "<group>";
-		};
 		388E5A5925B6F0250019842D /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -2573,10 +2583,11 @@
 				DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */,
 				DD9ECB692CA99F6C00AA7C45 /* CommandPayload.swift */,
 				DDD6D4D22CDE90720029439A /* EstimatedA1cDisplayUnit.swift */,
-							AA10000003A0B0C000D0E003 /* GarminContextSnapshot.swift */,
+				AA10000003A0B0C000D0E003 /* GarminContextSnapshot.swift */,
 				AA10000004A0B0C000D0E004 /* SmartSenseModels.swift */,
 				NS30000002A0B0C000D0E001 /* NutritionSnapshot.swift */,
 				AA20000001A0B0C000D0E001 /* MealDecisionLog.swift */,
+				07B203B26BFC70ACAC534066 /* PhysioGlucoseReading.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -2638,6 +2649,7 @@
 				BDC2EA442C3043B000E5BBD0 /* OverrideStorage.swift */,
 				5864E8582C42CFAE00294306 /* DeterminationStorage.swift */,
 				BD4D73A12D15A4220052227B /* TDDStorage.swift */,
+				AE0A0A38C54AD40DB5C678E5 /* PhysioTestStorage.swift */,
 			);
 			path = Storage;
 			sourceTree = "<group>";
@@ -2892,6 +2904,7 @@
 				58645BA22CA2D325008AFCE7 /* BatterySetup.swift */,
 				58645BA42CA2D347008AFCE7 /* ForecastSetup.swift */,
 				58645BA62CA2D390008AFCE7 /* ChartAxisSetup.swift */,
+				92D56F68E5FFADBE82EFF3BB /* PhysioTestSetup.swift */,
 			);
 			path = "HomeStateModel+Setup";
 			sourceTree = "<group>";
@@ -2945,6 +2958,18 @@
 			path = LiveActivity;
 			sourceTree = "<group>";
 		};
+		77077716317B3DBA38FDD951 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				C6FF1C99DF8A3F10D746AF08 /* PhysioTestingRootView.swift */,
+				CBAFC5ACB612C2306C790B61 /* PhysioTestBannerView.swift */,
+				3AF36A9A7CC49A4F56BDF965 /* TestResultsView.swift */,
+				B16F1B6C2DA45E30FBE5319B /* NewTestFormView.swift */,
+			);
+			name = View;
+			path = View;
+			sourceTree = "<group>";
+		};
 		7CEB44C225E33EB7F1370454 /* TherapyProfileEditor */ = {
 			isa = PBXGroup;
 			children = (
@@ -2955,6 +2980,18 @@
 			);
 			path = Trio/Sources/Modules/TherapyProfileEditor;
 			sourceTree = SOURCE_ROOT;
+		};
+		7DB8C82A197EA4A2BCB423D6 /* PhysioTesting */ = {
+			isa = PBXGroup;
+			children = (
+				176F1DB0E439C338A24F0343 /* PhysioTestingDataFlow.swift */,
+				37C9A5A3B349E45EEEE115B9 /* PhysioTestingProvider.swift */,
+				FDAD8CD6C5D5106A60CD3C98 /* PhysioTestingStateModel.swift */,
+				77077716317B3DBA38FDD951 /* View */,
+			);
+			name = PhysioTesting;
+			path = PhysioTesting;
+			sourceTree = "<group>";
 		};
 		84BDC840A57C65A1E6F9F780 /* View */ = {
 			isa = PBXGroup;
@@ -3261,6 +3298,7 @@
 				58D08B332C8DF9A700AA37D3 /* CobIobChart.swift */,
 				58D08B372C8DFB6000AA37D3 /* BasalChart.swift */,
 				58D08B392C8DFECD00AA37D3 /* TempTargets.swift */,
+				A531C08BA849E31A1D54B107 /* PhysioTestOverlayView.swift */,
 			);
 			path = ChartElements;
 			sourceTree = "<group>";
@@ -3320,6 +3358,25 @@
 				B9488883C59C31550E0B4CEC /* View */,
 			);
 			path = Treatments;
+			sourceTree = "<group>";
+		};
+		CC10000001A0B0C000D0E001 /* Garmin */ = {
+			isa = PBXGroup;
+			children = (
+				AA10000001A0B0C000D0E001 /* GarminFirebaseConfig.swift */,
+				AA10000002A0B0C000D0E002 /* GarminFirestoreService.swift */,
+			);
+			path = Garmin;
+			sourceTree = "<group>";
+		};
+		CC10000002A0B0C000D0E002 /* SmartSense */ = {
+			isa = PBXGroup;
+			children = (
+				AA10000005A0B0C000D0E005 /* SmartSenseManager.swift */,
+				AA10000006A0B0C000D0E006 /* CronometerMealDetector.swift */,
+				AA10000007A0B0C000D0E007 /* MealDecisionExporter.swift */,
+			);
+			path = SmartSense;
 			sourceTree = "<group>";
 		};
 		CE1856F32ADC4835007E39C7 /* Carbs */ = {
@@ -3844,6 +3901,8 @@
 				491D6FBA2D56741C00C49F67 /* TempTargetRunStored+CoreDataProperties.swift */,
 				491D6FBB2D56741C00C49F67 /* TempTargetStored+CoreDataClass.swift */,
 				491D6FBC2D56741C00C49F67 /* TempTargetStored+CoreDataProperties.swift */,
+				E890FA6E01C9DCD20146D3A2 /* PhysioTestStored+CoreDataClass.swift */,
+				B395F90CFEB3B29AC0B7E589 /* PhysioTestStored+CoreDataProperties.swift */,
 			);
 			path = "Classes+Properties";
 			sourceTree = "<group>";
@@ -4018,23 +4077,21 @@
 			path = View;
 			sourceTree = "<group>";
 		};
-		CC10000001A0B0C000D0E001 /* Garmin */ = {
+		SP000000000000000000003 /* SignalProcessing */ = {
 			isa = PBXGroup;
 			children = (
-				AA10000001A0B0C000D0E001 /* GarminFirebaseConfig.swift */,
-				AA10000002A0B0C000D0E002 /* GarminFirestoreService.swift */,
+				SP000010000000000000001 /* AdaptiveLearning.swift */,
+				SP000001000000000000001 /* AdaptiveKalmanFilter.swift */,
+				SP000003000000000000001 /* BGResidualCalculator.swift */,
+				SP000002000000000000001 /* BGSignalProcessor.swift */,
+				SP000008000000000000001 /* DailyStateVector.swift */,
+				SP000009000000000000001 /* ExerciseSensitivityModel.swift */,
+				SP000004000000000000001 /* GarminZScoreNormalizer.swift */,
+				SP000007000000000000001 /* MacroMealModel.swift */,
+				SP000006000000000000001 /* OrefSignalPipeline.swift */,
+				SP000005000000000000001 /* SignalStore.swift */,
 			);
-			path = Garmin;
-			sourceTree = "<group>";
-		};
-		CC10000002A0B0C000D0E002 /* SmartSense */ = {
-			isa = PBXGroup;
-			children = (
-				AA10000005A0B0C000D0E005 /* SmartSenseManager.swift */,
-				AA10000006A0B0C000D0E006 /* CronometerMealDetector.swift */,
-				AA10000007A0B0C000D0E007 /* MealDecisionExporter.swift */,
-			);
-			path = SmartSense;
+			path = SignalProcessing;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -5010,7 +5067,7 @@
 				B127455A880F4A29CE57DC8A /* TherapyProfileEditorProvider.swift in Sources */,
 				599C7B08152DD755FEAFE2CD /* TherapyProfileEditorStateModel.swift in Sources */,
 				8765F676F6F301C841FECF52 /* TherapyProfileEditorRootView.swift in Sources */,
-							BB10000001A0B0C000D0E001 /* GarminFirebaseConfig.swift in Sources */,
+				BB10000001A0B0C000D0E001 /* GarminFirebaseConfig.swift in Sources */,
 				BB10000002A0B0C000D0E002 /* GarminFirestoreService.swift in Sources */,
 				BB10000003A0B0C000D0E003 /* GarminContextSnapshot.swift in Sources */,
 				BB10000004A0B0C000D0E004 /* SmartSenseModels.swift in Sources */,
@@ -5033,6 +5090,19 @@
 				SP000008000000000000002 /* DailyStateVector.swift in Sources */,
 				SP000009000000000000002 /* ExerciseSensitivityModel.swift in Sources */,
 				SP000010000000000000002 /* AdaptiveLearning.swift in Sources */,
+				1FFFCFD7E276EB2D3E887D0D /* PhysioTestStored+CoreDataClass.swift in Sources */,
+				683A4F3184E12047F59D1147 /* PhysioTestStored+CoreDataProperties.swift in Sources */,
+				3B12D8EFD8AC554E0F2D3F54 /* PhysioTestingDataFlow.swift in Sources */,
+				3CB0B389E569F702F5588055 /* PhysioTestingProvider.swift in Sources */,
+				9E1C71B3DE55D53DCD7A08BB /* PhysioTestingStateModel.swift in Sources */,
+				CAFF35768FCCA21E57A5317F /* PhysioTestingRootView.swift in Sources */,
+				8292A007544A100353654B5C /* PhysioTestBannerView.swift in Sources */,
+				D6758F3FF91D6B5EA448C9D9 /* PhysioTestStorage.swift in Sources */,
+				27CAFC9BBA2FA4714F973388 /* PhysioGlucoseReading.swift in Sources */,
+				CBB0801568491BC78B8E8970 /* PhysioTestOverlayView.swift in Sources */,
+				6679421EF76E952D509711A6 /* PhysioTestSetup.swift in Sources */,
+				C4F3E13497C71FAC29D95DF7 /* TestResultsView.swift in Sources */,
+				1715FC7D55B4FA64EDEAE3F4 /* NewTestFormView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5858,16 +5928,6 @@
 			package = 3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCrashlytics;
 		};
-		DD20000002A0B0C000D0E001 /* FirebaseAuth */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAuth;
-		};
-		DD20000004A0B0C000D0E001 /* FirebaseFirestore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFirestore;
-		};
 		3BD9687B2D8DDD4600899469 /* SlideButton */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 3BD9687A2D8DDD4600899469 /* XCRemoteSwiftPackageReference "SlideButton" */;
@@ -5897,6 +5957,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DD868FD92E381E1C005D3308 /* XCRemoteSwiftPackageReference "Swift-JWT" */;
 			productName = SwiftJWT;
+		};
+		DD20000002A0B0C000D0E001 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		DD20000004A0B0C000D0E001 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
 		};
 /* End XCSwiftPackageProductDependency section */
 
