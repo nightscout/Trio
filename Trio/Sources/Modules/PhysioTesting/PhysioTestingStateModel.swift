@@ -38,7 +38,7 @@ extension PhysioTesting {
         var currentGlucose: Double = 0
         var stabilityRange: (min: Double, max: Double) = (0, 0)
         static let requiredStabilityMinutes = 60
-        static let stabilityThreshold = 3.0 // +/- 3 mg/dL
+        static let stabilityThreshold = 8.0 // +/- 8 mg/dL
 
         // MARK: - Safety
 
