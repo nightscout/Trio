@@ -35,7 +35,11 @@ extension PhysioTesting {
                     TestResultsView(
                         metrics: metrics,
                         testType: state.selectedTestType,
-                        readings: state.capturedReadings
+                        readings: state.capturedReadings,
+                        presentedAsSheet: true,
+                        onApplyProfile: { m in state.applyPhysioProfile(m) },
+                        onRevertToDefaults: { state.revertToDefaults() },
+                        isCustomProfileActive: state.isCustomProfileActive
                     )
                 }
             }
@@ -196,14 +200,18 @@ extension PhysioTesting {
                         if let readings = PhysioGlucoseReadingCoder.decode(test.glucoseReadings) as [PhysioGlucoseReading]?,
                            !readings.isEmpty
                         {
+                            let computedMetrics = AbsorptionMetrics.compute(
+                                readings: readings,
+                                baselineGlucose: test.baselineGlucose,
+                                mealTime: test.mealTime ?? test.startDate ?? Date()
+                            )
                             TestResultsView(
-                                metrics: AbsorptionMetrics.compute(
-                                    readings: readings,
-                                    baselineGlucose: test.baselineGlucose,
-                                    mealTime: test.mealTime ?? test.startDate ?? Date()
-                                ),
+                                metrics: computedMetrics,
                                 testType: TestType(rawValue: test.testType ?? "") ?? .pureCarbs,
-                                readings: readings
+                                readings: readings,
+                                onApplyProfile: { m in state.applyPhysioProfileFromTest(test, metrics: m) },
+                                onRevertToDefaults: { state.revertToDefaults() },
+                                isCustomProfileActive: state.isCustomProfileActive
                             )
                         } else {
                             Text("No data available for this test")

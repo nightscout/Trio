@@ -58,7 +58,7 @@ extension Home {
         )) var latestTempTarget: FetchedResults<TempTargetStored>
 
         @FetchRequest(fetchRequest: PhysioTestStored.fetch(
-            NSPredicate(format: "isComplete == NO AND startDate != nil"),
+            NSPredicate(format: "endDate == nil AND startDate != nil"),
             ascending: false,
             fetchLimit: 1
         )) var activePhysioTest: FetchedResults<PhysioTestStored>
@@ -228,12 +228,41 @@ extension Home {
                 test.isComplete = !cancelled
                 try? moc.save()
             }
-            // The override will be picked up on next loop cycle
-            // or we can post a notification to trigger cleanup
-            Foundation.NotificationCenter.default.post(
-                name: .didUpdateOverrideConfiguration,
-                object: nil
-            )
+
+            // Disable the Physio Test Mode override and resume full automation
+            Task {
+                await disablePhysioTestOverride()
+            }
+        }
+
+        private func disablePhysioTestOverride() async {
+            do {
+                let ids = try await state.overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 1)
+                await moc.perform {
+                    for id in ids {
+                        if let override = try? self.moc.existingObject(with: id) as? OverrideStored,
+                           override.name == "Physio Test Mode"
+                        {
+                            let runEntry = OverrideRunStored(context: self.moc)
+                            runEntry.id = UUID()
+                            runEntry.name = override.name
+                            runEntry.startDate = override.date ?? .distantPast
+                            runEntry.endDate = Date()
+                            runEntry.target = override.target
+                            runEntry.override = override
+                            runEntry.isUploadedToNS = true
+
+                            override.enabled = false
+                        }
+                    }
+                    if self.moc.hasChanges {
+                        try? self.moc.save()
+                    }
+                }
+                try await state.apsManager.determineBasalSync()
+            } catch {
+                debugPrint("Failed to disable physio test override: \(error)")
+            }
         }
 
         @ViewBuilder func pumpTimezoneView(_ badgeImage: UIImage, _ badgeColor: Color) -> some View {

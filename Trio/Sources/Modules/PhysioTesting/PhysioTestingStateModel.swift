@@ -11,6 +11,7 @@ extension PhysioTesting {
         @ObservationIgnored @Injected() var physioTestStorage: PhysioTestStorage!
         @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
         @ObservationIgnored @Injected() var apsManager: APSManager!
+        @ObservationIgnored @Injected() var signalPipeline: OrefSignalPipeline!
 
         // MARK: - Test Configuration
 
@@ -482,6 +483,56 @@ extension PhysioTesting {
                 await physioTestStorage.deleteTest(test.objectID)
                 loadCompletedTests()
             }
+        }
+
+        // MARK: - Custom Absorption Profile
+
+        var isCustomProfileActive: Bool {
+            signalPipeline.adaptiveLearning.coefficients.carbAbsorptionSpeed.observationCount > 0 &&
+                signalPipeline.adaptiveLearning.coefficients.carbAbsorptionSpeed.value !=
+                signalPipeline.adaptiveLearning.coefficients.carbAbsorptionSpeed.populationDefault
+        }
+
+        /// Apply physio test results to the adaptive learning coefficients
+        func applyPhysioProfile(_ metrics: AbsorptionMetrics) {
+            let learning = signalPipeline.adaptiveLearning
+
+            // Derive carb absorption speed from test data:
+            // absorptionDuration is in minutes, convert to g/min using test carbs
+            if metrics.absorptionDuration > 0, carbGrams > 0 {
+                let observedSpeed = carbGrams / metrics.absorptionDuration
+                var coeffs = learning.coefficients
+                coeffs.carbAbsorptionSpeed.value = observedSpeed
+                coeffs.carbAbsorptionSpeed.observationCount = max(coeffs.carbAbsorptionSpeed.observationCount, 5)
+                coeffs.carbAbsorptionSpeed.lastObservedValue = observedSpeed
+                coeffs.lastUpdated = Date()
+                learning.loadCoefficients(coeffs)
+            }
+
+            signalPipeline.save()
+        }
+
+        /// Apply profile from a stored completed test
+        func applyPhysioProfileFromTest(_ test: PhysioTestStored, metrics: AbsorptionMetrics) {
+            let learning = signalPipeline.adaptiveLearning
+
+            if metrics.absorptionDuration > 0, test.carbs > 0 {
+                let observedSpeed = test.carbs / metrics.absorptionDuration
+                var coeffs = learning.coefficients
+                coeffs.carbAbsorptionSpeed.value = observedSpeed
+                coeffs.carbAbsorptionSpeed.observationCount = max(coeffs.carbAbsorptionSpeed.observationCount, 5)
+                coeffs.carbAbsorptionSpeed.lastObservedValue = observedSpeed
+                coeffs.lastUpdated = Date()
+                learning.loadCoefficients(coeffs)
+            }
+
+            signalPipeline.save()
+        }
+
+        /// Revert all adaptive learning coefficients back to population defaults
+        func revertToDefaults() {
+            signalPipeline.adaptiveLearning.reset()
+            signalPipeline.save()
         }
     }
 }
