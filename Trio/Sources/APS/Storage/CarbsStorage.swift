@@ -157,13 +157,16 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
 
         let delayMinutes = trioSettings.delay
             .clamp(to: providerSettings.delay)
+        
+        let spreadInterval = trioSettings.minuteInterval
+            .clamp(to: providerSettings.minuteInterval)
 
         // Constraints
         let maxTotalGrams = 99
         let maxEntries = 3
         let maxPerEntry = 33
         let minPerEntry = 10
-        let spacing: TimeInterval = 30 * 60
+        let spacing: TimeInterval = TimeInterval(spreadInterval * 60)
 
         // kcal -> carb equivalents (kcal/10 * adjustment), rounded down to whole grams
         let kcal = protein * 4 + fat * 9
