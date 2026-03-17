@@ -191,48 +191,6 @@ extension UserInterfaceSettings {
                     }
                 ).listRowBackground(Color.chart)
 
-                Section {
-                    VStack {
-                        Picker(
-                            selection: $state.bolusDisplayThreshold,
-                            label: Text("Bolus Display Threshold")
-                        ) {
-                            ForEach(BolusDisplayThreshold.allCases) { selection in
-                                Text(selection.displayName).tag(selection)
-                            }
-                        }.padding(.top)
-
-                        HStack(alignment: .center) {
-                            Text(
-                                "Choose to hide small bolus amounts. See hint for more details."
-                            )
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .lineLimit(nil)
-                            Spacer()
-                            Button(
-                                action: {
-                                    hintLabel = String(localized: "Bolus Display Threshold")
-                                    selectedVerboseHint =
-                                        AnyView(
-                                            VStack(alignment: .leading) {
-                                                Text(
-                                                    "This setting controls which bolus amount labels are shown on Trio’s main chart. Boluses appear as blue upside-down triangles, with a number showing the amount. Depending on the option you choose, only boluses at or above that amount will show a label. For example, if you choose ‘0.5 U and over’, only boluses of 0.5 U or more will show a label."
-                                                )
-                                            }
-                                        )
-                                    shouldDisplayHint.toggle()
-                                },
-                                label: {
-                                    HStack {
-                                        Image(systemName: "questionmark.circle")
-                                    }
-                                }
-                            ).buttonStyle(BorderlessButtonStyle())
-                        }.padding(.top)
-                    }.padding(.bottom)
-                }.listRowBackground(Color.chart)
-
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
                     booleanValue: $state.rulerMarks,
@@ -404,6 +362,48 @@ extension UserInterfaceSettings {
                                                         "Uses the IOB, COB, UAM, and ZT forecast lines from OpenAPS. This option provides a more detailed view of the algorithm's forecast, but may be more confusing for some users."
                                                     )
                                                 }
+                                            }
+                                        )
+                                    shouldDisplayHint.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle")
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                    }.padding(.bottom)
+                }.listRowBackground(Color.chart)
+
+                Section {
+                    VStack {
+                        Picker(
+                            selection: $state.bolusDisplayThreshold,
+                            label: Text("Bolus Display Threshold")
+                        ) {
+                            ForEach(BolusDisplayThreshold.allCases) { selection in
+                                Text(selection.displayName).tag(selection)
+                            }
+                        }.padding(.top)
+
+                        HStack(alignment: .center) {
+                            Text(
+                                "Choose to hide small bolus amounts. See hint for more details."
+                            )
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
+                            Spacer()
+                            Button(
+                                action: {
+                                    hintLabel = String(localized: "Bolus Display Threshold")
+                                    selectedVerboseHint =
+                                        AnyView(
+                                            VStack(alignment: .leading) {
+                                                Text(
+                                                    "This setting controls which bolus amount labels are shown on Trio’s main chart. Boluses appear as blue upside-down triangles, with a number showing the amount. Depending on the option you choose, only boluses at or above that amount will show a label. For example, if you choose ‘0.5 U and over’, only boluses of 0.5 U or more will show a label."
+                                                )
                                             }
                                         )
                                     shouldDisplayHint.toggle()
