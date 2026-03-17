@@ -217,7 +217,7 @@ extension UserInterfaceSettings {
                                         AnyView(
                                             VStack(alignment: .leading) {
                                                 Text(
-                                                    "Choose whether to display the amount above every bolus indicator or just for a bigger bolus amount"
+                                                    "This setting controls which bolus amount labels are shown on Trio’s main chart. Boluses appear as blue upside-down triangles, with a number showing the amount. Depending on the option you choose, only boluses at or above that amount will show a label. For example, if you choose ‘0.5 U and over’, only boluses of 0.5 U or more will show a label."
                                                 )
                                             }
                                         )
