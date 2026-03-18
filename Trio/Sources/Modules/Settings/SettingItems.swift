@@ -230,6 +230,7 @@ enum SettingItems {
                 "Show Carbs Required Badge",
                 "Carbs Required Threshold",
                 "Forecast Display Type",
+                "Bolus Display Threshold",
                 "Cone",
                 "Lines",
                 "Dark Mode",
