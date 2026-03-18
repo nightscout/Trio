@@ -135,7 +135,7 @@ struct ForecastChart: View {
                     .lineStyle(.init(lineWidth: 2))
                     .annotation(
                         position: .top,
-                        overflowResolution: .init(x: .fit(to: .chart), y: .disabled)
+                        overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
                     ) {
                         selectionPopover
                     }
