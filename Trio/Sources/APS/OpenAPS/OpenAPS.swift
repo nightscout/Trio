@@ -193,14 +193,22 @@ final class OpenAPS {
     private func parsePumpHistory(
         _ pumpHistoryObjectIDs: [NSManagedObjectID],
         simulatedBolusAmount: Decimal? = nil
-    ) async -> String {
+    ) async throws -> String {
         // Return an empty JSON object if the list of object IDs is empty
         guard !pumpHistoryObjectIDs.isEmpty else { return "{}" }
+
+        // Addresses https://github.com/nightscout/Trio/issues/898
+        //
+        // On a cold start (new user, fresh onboarding, or pump disconnected > 24h),
+        // the oldest event in pump history can be a resume with no preceding pump
+        // activity. oref interprets this as the end of a suspend that never started,
+        // which drives negative IOB and can cause excessive insulin delivery.
+        let orphanedResumes = try await fetchOrphanedResumes()
 
         // Execute all operations on the background context
         return await context.perform {
             // Load and map pump events to DTOs
-            var dtos = self.loadAndMapPumpEvents(pumpHistoryObjectIDs)
+            var dtos = self.loadAndMapPumpEvents(pumpHistoryObjectIDs, orphanedResumes: orphanedResumes)
 
             // Optionally add the IOB as a DTO
             if let simulatedBolusAmount = simulatedBolusAmount {
@@ -208,40 +216,28 @@ final class OpenAPS {
                 dtos.insert(simulatedBolusDTO, at: 0)
             }
 
-            // Addresses https://github.com/nightscout/Trio/issues/898
-            //
-            // On a cold start (new user, fresh onboarding, or pump disconnected > 24h),
-            // the oldest event in pump history can be a resume with no preceding pump
-            // activity. oref interprets this as the end of a suspend that never started,
-            // which drives negative IOB and can cause excessive insulin delivery.
-            //
-            // Detection: if the chronologically oldest DTO is a resume AND there are zero
-            // pump events in the 24h before it, this is a cold-start orphaned resume.
-            // Fix: inject a simulated suspend 1 second before the resume so oref sees a
-            // balanced suspend/resume pair that is effectively a no-op.
-            // Check whether the oldest event is an orphaned resume (cold start detection).
-            if let orphanedResumeDate = self.detectOrphanedResume(pumpHistoryObjectIDs) {
-                let suspendDTO = self.createSimulatedSuspendDTO(at: orphanedResumeDate.addingTimeInterval(-1))
-                // Insert at the end since this is chronologically the oldest event
-                dtos.append(suspendDTO)
-            }
-
             // Convert the DTOs to JSON
             return self.jsonConverter.convertToJSON(dtos)
         }
     }
 
-    private func loadAndMapPumpEvents(_ pumpHistoryObjectIDs: [NSManagedObjectID]) -> [PumpEventDTO] {
-        OpenAPS.loadAndMapPumpEvents(pumpHistoryObjectIDs, from: context)
+    private func loadAndMapPumpEvents(
+        _ pumpHistoryObjectIDs: [NSManagedObjectID],
+        orphanedResumes: [NSManagedObjectID]
+    ) -> [PumpEventDTO] {
+        OpenAPS.loadAndMapPumpEvents(pumpHistoryObjectIDs, orphanedResumes: orphanedResumes, from: context)
     }
 
     /// Fetches and parses pump events, expose this as static and not private for testing
     static func loadAndMapPumpEvents(
         _ pumpHistoryObjectIDs: [NSManagedObjectID],
+        orphanedResumes: [NSManagedObjectID],
         from context: NSManagedObjectContext
     ) -> [PumpEventDTO] {
+        let orphanedSet = Set(orphanedResumes)
+        let filteredObjectIds = pumpHistoryObjectIDs.filter { !orphanedSet.contains($0) }
         // Load the pump events from the object IDs
-        let pumpHistory: [PumpEventStored] = pumpHistoryObjectIDs
+        let pumpHistory: [PumpEventStored] = filteredObjectIds
             .compactMap { context.object(with: $0) as? PumpEventStored }
 
         // Create the DTOs
@@ -294,48 +290,54 @@ final class OpenAPS {
         return .bolus(bolusDTO)
     }
 
-    private func createSimulatedSuspendDTO(at date: Date) -> PumpEventDTO {
-        let dateFormatted = PumpEventStored.dateFormatter.string(from: date)
-
-        let suspendDTO = SuspendDTO(
-            id: UUID().uuidString,
-            timestamp: dateFormatted
+    /// Detects a cold-start orphaned resume: returns the resume's object ID if it's an orphaned resume
+    private func fetchOrphanedResumes() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: PumpEventStored.self,
+            onContext: context,
+            predicate: NSPredicate.pumpHistoryLast36h,
+            key: "timestamp",
+            ascending: true,
+            batchSize: 250
         )
-        return .suspend(suspendDTO)
-    }
 
-    /// Detects a cold-start orphaned resume: returns the resume's date if the chronologically
-    /// oldest event in pump history is a resume AND there are no pump events in the 24h before it.
-    private func detectOrphanedResume(
-        _ pumpHistoryObjectIDs: [NSManagedObjectID]
-    ) -> Date? {
-        // Map object IDs to (type, timestamp) pairs and find the chronologically oldest
-        let events: [(type: String, timestamp: Date)] = pumpHistoryObjectIDs.compactMap { objectID in
-            guard let event = self.context.object(with: objectID) as? PumpEventStored,
-                  let type = event.type,
-                  let timestamp = event.timestamp
-            else { return nil }
-            return (type: type, timestamp: timestamp)
+        return try await context.perform {
+            guard let pumpEventResultsFull = results as? [PumpEventStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
+
+            let pumpEventResults = pumpEventResultsFull
+                .filter { $0.type == EventType.pumpSuspend.rawValue || $0.type == EventType.pumpResume.rawValue }
+
+            // we define an orphaned resume as one without a paired suspend within
+            // the most recent 12 hours.
+            // **Important**: we pick 36 hours because the standard pump history
+            // is 24 hours + 12 hours of inspection for resumes.
+            let orphanedResumes = zip(pumpEventResults, pumpEventResults.dropFirst())
+                .compactMap { (prev, curr) -> PumpEventStored? in
+                    guard let prevTimestamp = prev.timestamp, let currTimestamp = curr.timestamp else {
+                        return nil
+                    }
+                    let interval = currTimestamp.timeIntervalSince(prevTimestamp)
+
+                    // check if the current event is an orphaned resume
+                    //  - previous event not a suspend
+                    //  - previous event is a suspend but it's more than 12 hours ago
+                    if curr.type == EventType.pumpResume.rawValue,
+                       prev.type != EventType.pumpSuspend.rawValue || interval > TimeInterval(hours: 12)
+                    {
+                        return curr
+                    }
+                    return nil
+                }
+            // check the first event to see if it's an orphaned resume
+            let firstResumeOrphaned = pumpEventResults.first.flatMap({ event -> [PumpEventStored]? in
+                guard event.type == EventType.pumpResume.rawValue else { return nil }
+                return [event]
+            }) ?? []
+
+            return (firstResumeOrphaned + orphanedResumes).map(\.objectID)
         }
-
-        guard let oldest = events.min(by: { $0.timestamp < $1.timestamp }) else { return nil }
-
-        // Only proceed if the oldest event is a resume
-        guard oldest.type == PumpEventStored.EventType.pumpResume.rawValue else { return nil }
-
-        // Check whether any pump event exists in the 24h before this resume
-        let lookbackDate = oldest.timestamp.addingTimeInterval(-24 * 60 * 60)
-
-        let request: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
-        request.predicate = NSPredicate(
-            format: "timestamp >= %@ AND timestamp < %@",
-            lookbackDate as NSDate,
-            oldest.timestamp as NSDate
-        )
-        request.fetchLimit = 1
-
-        let count = (try? context.count(for: request)) ?? 0
-        return count == 0 ? oldest.timestamp : nil
     }
 
     func determineBasal(

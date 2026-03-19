@@ -84,6 +84,11 @@ extension NSPredicate {
         return NSPredicate(format: "timestamp >= %@", date as NSDate)
     }
 
+    static var pumpHistoryLast36h: NSPredicate {
+        let date = Date() - TimeInterval(hours: 36)
+        return NSPredicate(format: "timestamp >= %@", date as NSDate)
+    }
+
     static var pumpHistoryLast24h: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(format: "timestamp >= %@", date as NSDate)
@@ -211,35 +216,6 @@ enum PumpEventDTO: Encodable {
             try rewind.encode(to: encoder)
         case let .prime(prime):
             try prime.encode(to: encoder)
-        }
-    }
-
-    var isResume: Bool {
-        if case .resume = self { return true }
-        return false
-    }
-
-    var isSuspend: Bool {
-        if case .suspend = self { return true }
-        return false
-    }
-
-    var timestampDate: Date? {
-        switch self {
-        case let .bolus(dto):
-            return PumpEventStored.dateFormatter.date(from: dto.timestamp)
-        case let .tempBasal(dto):
-            return PumpEventStored.dateFormatter.date(from: dto.timestamp)
-        case let .tempBasalDuration(dto):
-            return PumpEventStored.dateFormatter.date(from: dto.timestamp)
-        case let .suspend(dto):
-            return PumpEventStored.dateFormatter.date(from: dto.timestamp)
-        case let .resume(dto):
-            return PumpEventStored.dateFormatter.date(from: dto.timestamp)
-        case let .rewind(dto):
-            return PumpEventStored.dateFormatter.date(from: dto.timestamp)
-        case let .prime(dto):
-            return PumpEventStored.dateFormatter.date(from: dto.timestamp)
         }
     }
 }
