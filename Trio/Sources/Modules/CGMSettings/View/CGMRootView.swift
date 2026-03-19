@@ -116,14 +116,33 @@ extension CGMSettings {
                         miniHint: String(localized: "Smooth CGM readings using exponential smoothing."),
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
+
                             Text(
-                                "Applies a dual-stage exponential smoothing algorithm (inspired by AndroidAPS) to reduce noise in CGM readings. The algorithm combines two smoothing approaches: a fast-responding filter for recent trends and a slower filter that considers momentum, then blends them for optimal results."
+                                "This feature smooths your CGM readings to reduce noise and make them easier to read. It is based on a method used in AndroidAPS (AAPS). It uses two approaches: one that reacts quickly to recent changes, and one that looks at longer trends. These are combined to give a balanced result."
                             )
+
                             Text(
-                                "The smoothing intelligently handles data gaps and excludes sensor error values. It requires at least 4 consecutive readings within a 12-minute window to operate, ensuring reliability. Only CGM readings are smoothed—manual entries remain unchanged."
+                                "Trio will always display values based on your actual (raw) CGM readings. Smoothing does not change your real values or alerts."
                             )
+
+                            Text("When this feature is enabled:")
+
+                            VStack(alignment: .leading) {
+                                Text(
+                                    "• The main chart and treatment chart show a light gray trend line for the smoothed values. The glucose dots always show your original CGM readings."
+                                )
+
+                                Text("• In Trio history, you will see the smoothed value next to the original reading.")
+
+                                Text("• When you long-press a chart, the pop-up will show both the original and smoothed values.")
+                            }
+
                             Text(
-                                "This helps Trio make more stable dosing decisions by reducing over-reactions to sensor noise or brief fluctuations that don't reflect your true glucose trend. The algorithm preserves important patterns while filtering out unreliable variations."
+                                "It can handle small gaps in data and ignores sensor error values. It needs at least 4 readings within 12 minutes to work properly. Only CGM readings are smoothed—manual entries are not changed."
+                            )
+
+                            Text(
+                                "This helps Trio make more stable dosing decisions by avoiding over-reactions to small or short-term changes. Important trends are kept, while unreliable fluctuations are filtered out."
                             )
                         }
                     )
