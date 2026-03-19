@@ -84,8 +84,8 @@ extension NSPredicate {
         return NSPredicate(format: "timestamp >= %@", date as NSDate)
     }
 
-    static var pumpHistoryLast36h: NSPredicate {
-        let date = Date() - TimeInterval(hours: 36)
+    static var pumpHistoryLast48h: NSPredicate {
+        let date = Date() - TimeInterval(hours: 48)
         return NSPredicate(format: "timestamp >= %@", date as NSDate)
     }
 

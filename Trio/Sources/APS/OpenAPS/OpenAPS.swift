@@ -295,7 +295,7 @@ final class OpenAPS {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
-            predicate: NSPredicate.pumpHistoryLast36h,
+            predicate: NSPredicate.pumpHistoryLast48h,
             key: "timestamp",
             ascending: true,
             batchSize: 250
@@ -310,9 +310,9 @@ final class OpenAPS {
                 .filter { $0.type == EventType.pumpSuspend.rawValue || $0.type == EventType.pumpResume.rawValue }
 
             // we define an orphaned resume as one without a paired suspend within
-            // the most recent 12 hours.
-            // **Important**: we pick 36 hours because the standard pump history
-            // is 24 hours + 12 hours of inspection for resumes.
+            // the most recent 24 hours.
+            // **Important**: we pick 48 hours because the standard pump history
+            // is 24 hours + 24 hours of inspection for resumes.
             let orphanedResumes = zip(pumpEventResults, pumpEventResults.dropFirst())
                 .compactMap { (prev, curr) -> PumpEventStored? in
                     guard let prevTimestamp = prev.timestamp, let currTimestamp = curr.timestamp else {
@@ -322,9 +322,9 @@ final class OpenAPS {
 
                     // check if the current event is an orphaned resume
                     //  - previous event not a suspend
-                    //  - previous event is a suspend but it's more than 12 hours ago
+                    //  - previous event is a suspend but it's more than 24 hours ago
                     if curr.type == EventType.pumpResume.rawValue,
-                       prev.type != EventType.pumpSuspend.rawValue || interval > TimeInterval(hours: 12)
+                       prev.type != EventType.pumpSuspend.rawValue || interval > TimeInterval(hours: 24)
                     {
                         return curr
                     }
