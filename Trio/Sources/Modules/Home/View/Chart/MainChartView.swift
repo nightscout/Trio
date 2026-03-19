@@ -182,7 +182,8 @@ extension MainChartView {
                         highGlucose: highGlucose,
                         lowGlucose: lowGlucose,
                         currentGlucoseTarget: currentGlucoseTarget,
-                        glucoseColorScheme: glucoseColorScheme
+                        glucoseColorScheme: glucoseColorScheme,
+                        isSmoothingEnabled: state.settingsManager.settings.smoothGlucose
                     )
                 }
             }
