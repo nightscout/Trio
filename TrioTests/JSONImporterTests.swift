@@ -92,7 +92,7 @@ class BundleReference {}
         ) as? [PumpEventStored] ?? []
 
         let objectIds = allReadings.map(\.objectID)
-        let parsedHistory = OpenAPS.loadAndMapPumpEvents(objectIds, from: context)
+        let parsedHistory = OpenAPS.loadAndMapPumpEvents(objectIds, orphanedResumes: [], from: context)
 
         var bolusTotal = 0.0
         var bolusCount = 0
@@ -172,7 +172,7 @@ class BundleReference {}
         ) as? [PumpEventStored] ?? []
 
         let objectIds = allReadings.map(\.objectID)
-        let parsedHistory = OpenAPS.loadAndMapPumpEvents(objectIds, from: context)
+        let parsedHistory = OpenAPS.loadAndMapPumpEvents(objectIds, orphanedResumes: [], from: context)
 
         #expect(parsedHistory.count == 1)
 

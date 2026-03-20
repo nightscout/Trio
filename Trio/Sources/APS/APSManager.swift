@@ -405,7 +405,10 @@ final class BaseAPSManager: APSManager, Injectable {
         guard let autosense = await storage.retrieveAsync(OpenAPS.Settings.autosense, as: Autosens.self),
               (autosense.timestamp ?? .distantPast).addingTimeInterval(30.minutes.timeInterval) > Date()
         else {
-            let result = try await openAPS.autosense(useSwiftOref: settings.useSwiftOref)
+            let result = try await openAPS.autosense(
+                shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
+                useSwiftOref: settings.useSwiftOref
+            )
             return result != nil
         }
 
@@ -478,10 +481,10 @@ final class BaseAPSManager: APSManager, Injectable {
             try await openAPS.createProfiles(useSwiftOref: settings.useSwiftOref)
             let determination = try await openAPS.determineBasal(
                 currentTemp: await currentTemp,
-                clock: now,
-                useSwiftOref: settings.useSwiftOref
+                shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
+                useSwiftOref: settings.useSwiftOref,
+                clock: now
             )
-
             iobFileDidUpdate.send(())
 
             guard isValidGlucoseData else {
@@ -525,8 +528,9 @@ final class BaseAPSManager: APSManager, Injectable {
             let temp = try await fetchCurrentTempBasal(date: Date.now)
             return try await openAPS.determineBasal(
                 currentTemp: temp,
-                clock: Date(),
+                shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
                 useSwiftOref: settings.useSwiftOref,
+                clock: Date(),
                 simulatedCarbsAmount: simulatedCarbsAmount,
                 simulatedBolusAmount: simulatedBolusAmount,
                 simulatedCarbsDate: simulatedCarbsDate,
