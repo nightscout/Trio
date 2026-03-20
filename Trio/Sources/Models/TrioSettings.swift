@@ -40,7 +40,7 @@ struct TrioSettings: JSON, Equatable {
     var highGlucose: Decimal = 270
     var carbsRequiredThreshold: Decimal = 10
     var showCarbsRequiredBadge: Bool = true
-    var useFPUconversion: Bool = true
+    var useFPUconversion: Bool = false
     var individualAdjustmentFactor: Decimal = 0.5
     var minuteInterval: Decimal = 30
     var delay: Decimal = 60
