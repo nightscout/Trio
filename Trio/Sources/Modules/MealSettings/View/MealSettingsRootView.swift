@@ -295,35 +295,6 @@ extension MealSettings {
                     )
 
                     SettingInputSection(
-                        decimalValue: $state.timeCap,
-                        booleanValue: $booleanPlaceholder,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        selectedVerboseHint: Binding(
-                            get: { selectedVerboseHint },
-                            set: {
-                                selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = String(localized: "Maximum Duration")
-                            }
-                        ),
-                        units: state.units,
-                        type: .decimal("timeCap"),
-                        label: String(localized: "Maximum Duration"),
-                        miniHint: String(localized: "Set the maximum timeframe to extend FPUs."),
-                        verboseHint:
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Default: 8 hours").bold()
-                            Text(
-                                "This sets the maximum length of time that Fat and Protein Carb Equivalents (FPUs) will be extended over from a single Fat and/or Protein bolus calcultor entry."
-                            )
-                            Text(
-                                "It is one factor used in combination with the Fat and Protein Delay, Spread Interval, and Fat and Protein Factor to create the FPU entries."
-                            )
-                            Text("Increasing this setting may result in more FPU entries with smaller carb values.")
-                            Text("Decreasing this setting may result in fewer FPU entries with larger carb values.")
-                        }
-                    )
-
-                    SettingInputSection(
                         decimalValue: $state.minuteInterval,
                         booleanValue: $booleanPlaceholder,
                         shouldDisplayHint: $shouldDisplayHint,

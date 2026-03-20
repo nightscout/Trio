@@ -704,13 +704,6 @@ extension SettingsExport {
                 addSetting(
                     category: featuresCategory,
                     subcategory: mealSettingsSubcategory,
-                    name: String(localized: "Maximum Duration"),
-                    value: String(describing: trioSettings.timeCap),
-                    unit: String(localized: "hours")
-                )
-                addSetting(
-                    category: featuresCategory,
-                    subcategory: mealSettingsSubcategory,
                     name: String(localized: "Spread Interval"),
                     value: String(describing: trioSettings.minuteInterval),
                     unit: String(localized: "minutes")
