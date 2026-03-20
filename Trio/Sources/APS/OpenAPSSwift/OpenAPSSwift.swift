@@ -74,8 +74,6 @@ struct OpenAPSSwift {
     ) -> (OrefFunctionResult, DetermineBasalInputs?) {
         var determineBasalInputs: DetermineBasalInputs?
 
-        print(reservoir)
-
         do {
             let glucose = try JSONBridge.glucose(from: glucose)
             let currentTemp = try JSONBridge.currentTemp(from: currentTemp)
