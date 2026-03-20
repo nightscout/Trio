@@ -404,19 +404,20 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Use Swift Oref", comment: "Use Swift Oref"),
-                    miniHint: "Enables new algorithm version and helps verify it works correctly by allowing anonymous data uploads.",
+                    miniHint: String(
+                        localized: "EXPERIMENTAL FEATURE! Enables new, fully Swift-based algorithm version.",
+                        comment: "Use Swift Oref mini hint"
+                    ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
+                        Text("This feature is EXPERIMENTAL and not yet cleared for general use.").bold().foregroundStyle(.orange)
                         Text(
-                            "We're building a faster and more maintainable Swift version of the Oref algorithm to improve Trio for everyone."
+                            "We're building a faster and more maintainable Swift version of the algorithm (Oref) that runs in Trio. It's faster, more accurate and improves Trio for everyone."
                         )
-                        Text("When enabled:")
-                        BulletPoint("App logs anonymous calculation data to verify accuracy")
-                        BulletPoint("Data is stored securely on UC Davis servers in Google Cloud")
-                        BulletPoint("Only development team has access")
-                        BulletPoint("All data will be deleted after verification")
-                        BulletPoint("No personal information is collected")
+                        Text(
+                            "When enabled, Trio will no longer use the old JavaScript-based algorithm that runs virtualized on your phone. Instead, it will use a fully Swift-based algorithm."
+                        )
 
                         Text(
                             "You can disable this feature anytime."
