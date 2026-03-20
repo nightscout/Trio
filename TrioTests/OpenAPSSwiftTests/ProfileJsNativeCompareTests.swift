@@ -77,7 +77,7 @@ import Testing
             trioSettings: inputs.8
         )
 
-        let (profileSwift, _) = OpenAPSSwift.makeProfile(
+        let profileSwift = OpenAPSSwift.makeProfile(
             preferences: inputs.0,
             pumpSettings: inputs.1,
             bgTargets: inputs.2,

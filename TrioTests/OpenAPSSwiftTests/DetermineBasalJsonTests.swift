@@ -41,7 +41,7 @@ import Testing
 
     func checkFixedJsAgainstSwift(determineBasalInput: DetermineBasalInputs) async throws {
         let openAps = OpenAPSFixed()
-        let (determineBasalResultSwift, _) = OpenAPSSwift.determineBasal(
+        let determineBasalResultSwift = OpenAPSSwift.determineBasal(
             glucose: determineBasalInput.glucose,
             currentTemp: determineBasalInput.currentTemp,
             iob: try JSONBridge.to(determineBasalInput.iob),
@@ -117,7 +117,7 @@ import Testing
 
         timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
 
-        let (determineBasalResultSwift, _) = OpenAPSSwift.determineBasal(
+        let determineBasalResultSwift = OpenAPSSwift.determineBasal(
             glucose: determineBasalInput.glucose,
             currentTemp: determineBasalInput.currentTemp,
             iob: try JSONBridge.to(determineBasalInput.iob),

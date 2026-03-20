@@ -77,41 +77,6 @@ struct ValueDifference: Codable {
 }
 
 enum JSONCompare {
-    static let log = try? JsSwiftOrefComparisonLogger()
-    static func logDifferences(
-        function: OrefFunction,
-        swift: OrefFunctionResult,
-        swiftDuration: TimeInterval,
-        javascript: OrefFunctionResult,
-        javascriptDuration: TimeInterval,
-        iobInputs: IobInputs? = nil,
-        mealInputs: MealInputs? = nil,
-        autosensInputs: AutosensInputs? = nil,
-        determineBasalInputs: DetermineBasalInputs? = nil,
-        makeProfileInputs: MakeProfileInputs? = nil
-    ) {
-        let comparison = createComparison(
-            function: function,
-            swift: swift,
-            swiftDuration: swiftDuration,
-            javascript: javascript,
-            javascriptDuration: javascriptDuration,
-            iobInputs: iobInputs,
-            mealInputs: mealInputs,
-            autosensInputs: autosensInputs,
-            determineBasalInputs: determineBasalInputs,
-            makeProfileInputs: makeProfileInputs
-        )
-
-        Task {
-            do {
-                try await log?.logComparison(comparison: comparison)
-            } catch {
-                warning(.openAPS, "logComparison exception: \(error)", error: error)
-            }
-        }
-    }
-
     static func createComparison(
         function: OrefFunction,
         swift: OrefFunctionResult,

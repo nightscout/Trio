@@ -51,7 +51,7 @@ import Testing
 
     func checkFixedJsAgainstSwift(mealInputs: MealInputs) async throws {
         let openAps = OpenAPSFixed()
-        let (mealResultSwift, _) = OpenAPSSwift.meal(
+        let mealResultSwift = OpenAPSSwift.meal(
             pumphistory: mealInputs.pumpHistory,
             profile: try JSONBridge.to(mealInputs.profile),
             basalProfile: mealInputs.basalProfile,
@@ -113,7 +113,7 @@ import Testing
 
         timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
 
-        let (mealResultSwift, _) = OpenAPSSwift.meal(
+        let mealResultSwift = OpenAPSSwift.meal(
             pumphistory: mealInputs.pumpHistory,
             profile: try JSONBridge.to(mealInputs.profile),
             basalProfile: mealInputs.basalProfile,

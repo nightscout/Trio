@@ -40,7 +40,7 @@ import Testing
 
     func checkFixedJsAgainstSwift(profileInputs: MakeProfileInputs) async throws {
         let openAps = OpenAPSFixed()
-        let (profileResultSwift, _) = OpenAPSSwift.makeProfile(
+        let profileResultSwift = OpenAPSSwift.makeProfile(
             preferences: profileInputs.preferences,
             pumpSettings: profileInputs.pumpSettings,
             bgTargets: profileInputs.bgTargets,

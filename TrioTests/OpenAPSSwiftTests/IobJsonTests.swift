@@ -90,7 +90,7 @@ import Testing
 
     func checkFixedJsAgainstSwift(iobInputs: IobInputs) async throws {
         let openAps = OpenAPSFixed()
-        let (iobResultSwift, _) = OpenAPSSwift.iob(
+        let iobResultSwift = OpenAPSSwift.iob(
             pumphistory: iobInputs.history,
             profile: try JSONBridge.to(iobInputs.profile),
             clock: iobInputs.clock,
@@ -151,7 +151,7 @@ import Testing
 
     func checkBundleJsAgainstSwift(iobInputs: IobInputs) async throws {
         let openAps = OpenAPS(storage: BaseFileStorage(), tddStorage: MockTDDStorage())
-        let (iobResultSwift, _) = OpenAPSSwift.iob(
+        let iobResultSwift = OpenAPSSwift.iob(
             pumphistory: iobInputs.history,
             profile: try JSONBridge.to(iobInputs.profile),
             clock: iobInputs.clock,

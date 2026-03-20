@@ -718,7 +718,7 @@ final class OpenAPS {
         }
 
         if useSwiftOref {
-            let (swiftResult, _) = OpenAPSSwift
+            let swiftResult = OpenAPSSwift
                 .iob(pumphistory: pumphistory, profile: profile, clock: clock, autosens: autosens)
             return try swiftResult.returnOrThrow()
         } else {
@@ -761,7 +761,7 @@ final class OpenAPS {
         useSwiftOref: Bool
     ) async throws -> RawJSON {
         if useSwiftOref {
-            let (swiftResult, _) = OpenAPSSwift
+            let swiftResult = OpenAPSSwift
                 .meal(
                     pumphistory: pumphistory,
                     profile: profile,
@@ -827,7 +827,7 @@ final class OpenAPS {
         useSwiftOref: Bool
     ) async throws -> RawJSON {
         if useSwiftOref {
-            let (swiftResult, _) = OpenAPSSwift
+            let swiftResult = OpenAPSSwift
                 .autosense(
                     glucose: glucose,
                     pumpHistory: pumpHistory,
@@ -902,7 +902,7 @@ final class OpenAPS {
         let clock = Date()
 
         if useSwiftOref {
-            let (swiftResult, determineBasalInputs) = OpenAPSSwift.determineBasal(
+            let swiftResult = OpenAPSSwift.determineBasal(
                 glucose: glucose,
                 currentTemp: currentTemp,
                 iob: iob,
@@ -1058,7 +1058,7 @@ final class OpenAPS {
         clock: Date
     ) async throws -> RawJSON {
         if useSwiftOref {
-            let (swiftResult, makeProfileInputs) = OpenAPSSwift.makeProfile(
+            let swiftResult = OpenAPSSwift.makeProfile(
                 preferences: preferences,
                 pumpSettings: pumpSettings,
                 bgTargets: bgTargets,

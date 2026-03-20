@@ -7,7 +7,7 @@ import Testing
 
     func checkFixedJsAgainstSwift(autosensInputs: AutosensInputs) async throws {
         let openAps = OpenAPSFixed()
-        let (autosensResultSwift, _) = OpenAPSSwift.autosense(
+        let autosensResultSwift = OpenAPSSwift.autosense(
             glucose: autosensInputs.glucose,
             pumpHistory: autosensInputs.history,
             basalProfile: autosensInputs.basalProfile,
@@ -260,7 +260,7 @@ import Testing
         timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
 
         let openAps = OpenAPSFixed()
-        let (autosensResultSwift, _) = OpenAPSSwift.autosense(
+        let autosensResultSwift = OpenAPSSwift.autosense(
             glucose: autosensInputs.glucose,
             pumpHistory: autosensInputs.history,
             basalProfile: autosensInputs.basalProfile,
