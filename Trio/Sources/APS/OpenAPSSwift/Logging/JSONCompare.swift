@@ -1,8 +1,5 @@
 import Foundation
 
-/// After the port from Javascript to Swift is complete, we should remove the logging module:
-/// https://github.com/nightscout/Trio-dev/issues/293
-
 enum JSONValue: Codable, Equatable {
     case string(String)
     case number(Double)
