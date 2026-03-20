@@ -177,11 +177,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
 
 extension BaseTidepoolManager: ServiceDelegate {
     var hostIdentifier: String {
-        // TODO: Using "org.nightscout.Trio" would be technically more correct, but Tidepool
-        // doesn't have a mapping for it and would display the device as "unknown".
-        // With "com.loopkit.Loop", Tidepool displays it as "DIY Loop".
-        // The proper fix would be to request Tidepool add a mapping for "org.nightscout.Trio" : Trio.
-        "com.loopkit.Loop"
+        "org.nightscout.Trio"
     }
 
     var hostVersion: String {
