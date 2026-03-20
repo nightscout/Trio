@@ -12,8 +12,8 @@ struct IobTotal: Codable {
 
 enum IobCalculation {
     struct IobCalculationResult {
-        let activityContrib: Decimal
-        let iobContrib: Decimal
+        let activityContrib: Double
+        let iobContrib: Double
     }
 
     /// logic to look up insulinPeakTime, taking into account `useCustomPeakTime`
@@ -65,7 +65,19 @@ enum IobCalculation {
         let iobContrib = insulin *
             (1 - S * (1 - a) * ((pow(minsAgo, 2) / (tau * end * (1 - a)) - minsAgo / tau - 1) * exp(-minsAgo / tau) + 1))
 
-        return IobCalculationResult(activityContrib: Decimal(activityContrib), iobContrib: Decimal(iobContrib))
+        guard activityContrib.isFinite, iobContrib.isFinite else {
+            return IobCalculationResult(activityContrib: 0, iobContrib: 0)
+        }
+
+        return IobCalculationResult(activityContrib: activityContrib, iobContrib: iobContrib)
+    }
+
+    /// Round a Double using the same logic as Decimal.jsRounded(scale:):
+    /// floor(value * 10^scale + 0.5) / 10^scale
+    private static func jsRound(_ value: Double, scale: Int) -> Decimal {
+        guard value.isFinite else { return 0 }
+        let multiplier = pow(10.0, Double(scale))
+        return Decimal((value * multiplier + 0.5).rounded(.down) / multiplier)
     }
 
     static func iobTotal(treatments: [ComputedPumpHistoryEvent], profile: Profile, time now: Date) throws -> IobTotal {
@@ -73,12 +85,12 @@ enum IobCalculation {
             throw IobError.diaNotSet
         }
 
-        var iob = Decimal(0)
-        var basaliob = Decimal(0)
-        var bolusiob = Decimal(0)
-        var netbasalinsulin = Decimal(0)
-        var bolusinsulin = Decimal(0)
-        var activity = Decimal(0)
+        var iob = 0.0
+        var basaliob = 0.0
+        var bolusiob = 0.0
+        var netbasalinsulin = 0.0
+        var bolusinsulin = 0.0
+        var activity = 0.0
 
         if dia < 5 {
             dia = 5
@@ -88,7 +100,7 @@ enum IobCalculation {
         let treatments = treatments.filter({ $0.timestamp <= now && $0.timestamp > diaAgo })
         for treatment in treatments {
             guard let tIOB = try iobCalc(treatment: treatment, time: now, dia: dia, profile: profile),
-                  let insulin = treatment.insulin
+                  let insulin = treatment.insulin.map({ Double($0) })
             else {
                 continue
             }
@@ -107,12 +119,12 @@ enum IobCalculation {
         }
 
         return IobTotal(
-            iob: iob.jsRounded(scale: 3),
-            activity: activity.jsRounded(scale: 4),
-            basaliob: basaliob.jsRounded(scale: 3),
-            bolusiob: bolusiob.jsRounded(scale: 3),
-            netbasalinsulin: netbasalinsulin.jsRounded(scale: 3),
-            bolusinsulin: bolusinsulin.jsRounded(scale: 3),
+            iob: jsRound(iob, scale: 3),
+            activity: jsRound(activity, scale: 4),
+            basaliob: jsRound(basaliob, scale: 3),
+            bolusiob: jsRound(bolusiob, scale: 3),
+            netbasalinsulin: jsRound(netbasalinsulin, scale: 3),
+            bolusinsulin: jsRound(bolusinsulin, scale: 3),
             time: now
         )
     }

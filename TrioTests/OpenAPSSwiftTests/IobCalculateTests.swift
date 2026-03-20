@@ -55,8 +55,8 @@ import Testing
         )
 
         #expect(result != nil)
-        #expect(result!.activityContrib.isWithin(0.0001, of: 0.0115))
-        #expect(result!.iobContrib.isWithin(0.0001, of: 1.8085))
+        #expect(result!.activityContrib.isApproximatelyEqual(to: 0.0115, epsilon: 0.0001))
+        #expect(result!.iobContrib.isApproximatelyEqual(to: 1.8085, epsilon: 0.0001))
     }
 
     @Test("should calculate IOB with custom peak time for rapid-acting insulin") func calculateCustomPeakRapidActing() async throws {
@@ -78,8 +78,8 @@ import Testing
         )
 
         #expect(result != nil)
-        #expect(result!.activityContrib.isWithin(0.0001, of: 0.0079))
-        #expect(result!.iobContrib.isWithin(0.0001, of: 1.8763))
+        #expect(result!.activityContrib.isApproximatelyEqual(to: 0.0079, epsilon: 0.0001))
+        #expect(result!.iobContrib.isApproximatelyEqual(to: 1.8763, epsilon: 0.0001))
     }
 
     @Test("should handle peak time limits for rapid-acting insulin") func handlePeakTimeLimitsRapidActing() async throws {
@@ -131,8 +131,8 @@ import Testing
         )
 
         #expect(result != nil)
-        #expect(result!.activityContrib.isWithin(0.0001, of: 0.01569))
-        #expect(result!.iobContrib.isWithin(0.0001, of: 1.7202))
+        #expect(result!.activityContrib.isApproximatelyEqual(to: 0.01569, epsilon: 0.0001))
+        #expect(result!.iobContrib.isApproximatelyEqual(to: 1.7202, epsilon: 0.0001))
     }
 
     @Test("should handle peak time limits for ultra-rapid insulin") func handlePeakTimeLimitsUltraRapid() async throws {
