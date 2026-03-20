@@ -33,6 +33,7 @@
   "xGridLines" : true,
   "yGridLines" : true,
   "rulerMarks" : true,
+  "bolusDisplayThreshold": 0.01,
   "forecastDisplayType": "cone",
   "maxCarbs": 250,
   "maxFat": 250,
