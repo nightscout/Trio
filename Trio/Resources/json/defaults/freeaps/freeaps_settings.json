@@ -21,7 +21,6 @@
   "showCarbsRequiredBadge" : true,
   "useFPUconversion" : true,
   "individualAdjustmentFactor" : 0.5,
-  "timeCap" : 8,
   "minuteInterval" : 30,
   "delay" : 60,
   "useAppleHealth" : false,

@@ -469,10 +469,11 @@ extension History {
         private var glucoseList: some View {
             List {
                 HStack {
-                    Text("Values").foregroundStyle(.secondary)
+                    Text("Values")
                     Spacer()
-                    Text("Time").foregroundStyle(.secondary)
-                }
+                    Text("Time")
+                }.foregroundStyle(.secondary)
+
                 if !glucoseStored.isEmpty {
                     ForEach(glucoseStored) { glucose in
                         HStack {
@@ -483,6 +484,23 @@ extension History {
                                 Image(systemName: "drop.fill").symbolRenderingMode(.monochrome).foregroundStyle(.red)
                             } else {
                                 Text("\(glucose.directionEnum?.symbol ?? "--")")
+                            }
+
+                            if state.settingsManager.settings.smoothGlucose, !glucose.isManual,
+                               let smoothedGlucose = glucose.smoothedGlucose, smoothedGlucose != 0
+                            {
+                                let smoothedGlucoseForDisplay = state.units == .mgdL ? smoothedGlucose
+                                    .description : smoothedGlucose.decimalValue
+                                    .formattedAsMmolL
+
+                                (
+                                    Text("(") +
+                                        Text(Image(systemName: "sparkles")) +
+                                        Text(" ") +
+                                        Text("\(smoothedGlucoseForDisplay)") +
+                                        Text(")")
+                                ).foregroundStyle(.secondary)
+                                    .padding(.leading, 10)
                             }
 
                             Spacer()

@@ -11,9 +11,10 @@ public extension GlucoseStored {
     @NSManaged var glucose: Int16
     @NSManaged var id: UUID?
     @NSManaged var isManual: Bool
-    @NSManaged var isUploadedToNS: Bool
     @NSManaged var isUploadedToHealth: Bool
+    @NSManaged var isUploadedToNS: Bool
     @NSManaged var isUploadedToTidepool: Bool
+    @NSManaged var smoothedGlucose: NSDecimalNumber?
 }
 
 extension GlucoseStored: Identifiable {}

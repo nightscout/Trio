@@ -98,7 +98,12 @@ final class OpenAPS {
     }
 
     // fetch glucose to pass it to the meal function and to determine basal
-    private func fetchAndProcessGlucose(fetchLimit: Int?) async throws -> String {
+    func fetchAndProcessGlucose(
+        context: NSManagedObjectContext,
+        shouldSmoothGlucose: Bool,
+        fetchLimit: Int?
+    ) async throws -> String {
+        // make it async and await it
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
@@ -109,14 +114,40 @@ final class OpenAPS {
             batchSize: 48
         )
 
-        return try await context.perform {
+        // mapping within the context closure, JSON conversion outside
+        let algorithmGlucose = try await context.perform {
             guard let glucoseResults = results as? [GlucoseStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
-            // convert to JSON
-            return self.jsonConverter.convertToJSON(glucoseResults)
+            // extracting handler to only create it 1x
+            let roundingBehavior = NSDecimalNumberHandler(
+                roundingMode: .plain,
+                scale: 0,
+                raiseOnExactness: false,
+                raiseOnOverflow: false,
+                raiseOnUnderflow: false,
+                raiseOnDivideByZero: false
+            )
+
+            return glucoseResults.map { glucose -> AlgorithmGlucose in
+                let glucoseValue: Int16
+                if shouldSmoothGlucose, !glucose.isManual, let smoothedGlucose = glucose.smoothedGlucose {
+                    glucoseValue = smoothedGlucose.rounding(accordingToBehavior: roundingBehavior).int16Value
+                } else {
+                    glucoseValue = glucose.glucose
+                }
+                return AlgorithmGlucose(
+                    date: glucose.date,
+                    direction: glucose.direction,
+                    glucose: glucoseValue,
+                    id: glucose.id,
+                    isManual: glucose.isManual
+                )
+            }
         }
+
+        return jsonConverter.convertToJSON(algorithmGlucose)
     }
 
     private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil, carbsDate: Date? = nil) async throws -> String {
@@ -193,14 +224,22 @@ final class OpenAPS {
     private func parsePumpHistory(
         _ pumpHistoryObjectIDs: [NSManagedObjectID],
         simulatedBolusAmount: Decimal? = nil
-    ) async -> String {
+    ) async throws -> String {
         // Return an empty JSON object if the list of object IDs is empty
         guard !pumpHistoryObjectIDs.isEmpty else { return "{}" }
+
+        // Addresses https://github.com/nightscout/Trio/issues/898
+        //
+        // On a cold start (new user, fresh onboarding, or pump disconnected > 24h),
+        // the oldest event in pump history can be a resume with no preceding pump
+        // activity. oref interprets this as the end of a suspend that never started,
+        // which drives negative IOB and can cause excessive insulin delivery.
+        let orphanedResumes = try await fetchOrphanedResumes()
 
         // Execute all operations on the background context
         return await context.perform {
             // Load and map pump events to DTOs
-            var dtos = self.loadAndMapPumpEvents(pumpHistoryObjectIDs)
+            var dtos = self.loadAndMapPumpEvents(pumpHistoryObjectIDs, orphanedResumes: orphanedResumes)
 
             // Optionally add the IOB as a DTO
             if let simulatedBolusAmount = simulatedBolusAmount {
@@ -213,17 +252,23 @@ final class OpenAPS {
         }
     }
 
-    private func loadAndMapPumpEvents(_ pumpHistoryObjectIDs: [NSManagedObjectID]) -> [PumpEventDTO] {
-        OpenAPS.loadAndMapPumpEvents(pumpHistoryObjectIDs, from: context)
+    private func loadAndMapPumpEvents(
+        _ pumpHistoryObjectIDs: [NSManagedObjectID],
+        orphanedResumes: [NSManagedObjectID]
+    ) -> [PumpEventDTO] {
+        OpenAPS.loadAndMapPumpEvents(pumpHistoryObjectIDs, orphanedResumes: orphanedResumes, from: context)
     }
 
     /// Fetches and parses pump events, expose this as static and not private for testing
     static func loadAndMapPumpEvents(
         _ pumpHistoryObjectIDs: [NSManagedObjectID],
+        orphanedResumes: [NSManagedObjectID],
         from context: NSManagedObjectContext
     ) -> [PumpEventDTO] {
+        let orphanedSet = Set(orphanedResumes)
+        let filteredObjectIds = pumpHistoryObjectIDs.filter { !orphanedSet.contains($0) }
         // Load the pump events from the object IDs
-        let pumpHistory: [PumpEventStored] = pumpHistoryObjectIDs
+        let pumpHistory: [PumpEventStored] = filteredObjectIds
             .compactMap { context.object(with: $0) as? PumpEventStored }
 
         // Create the DTOs
@@ -276,8 +321,59 @@ final class OpenAPS {
         return .bolus(bolusDTO)
     }
 
+    /// Detects a cold-start orphaned resume: returns the resume's object ID if it's an orphaned resume
+    private func fetchOrphanedResumes() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: PumpEventStored.self,
+            onContext: context,
+            predicate: NSPredicate.pumpHistoryLast48h,
+            key: "timestamp",
+            ascending: true,
+            batchSize: 250
+        )
+
+        return try await context.perform {
+            guard let pumpEventResultsFull = results as? [PumpEventStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
+
+            let pumpEventResults = pumpEventResultsFull
+                .filter { $0.type == EventType.pumpSuspend.rawValue || $0.type == EventType.pumpResume.rawValue }
+
+            // we define an orphaned resume as one without a paired suspend within
+            // the most recent 24 hours.
+            // **Important**: we pick 48 hours because the standard pump history
+            // is 24 hours + 24 hours of inspection for resumes.
+            let orphanedResumes = zip(pumpEventResults, pumpEventResults.dropFirst())
+                .compactMap { (prev, curr) -> PumpEventStored? in
+                    guard let prevTimestamp = prev.timestamp, let currTimestamp = curr.timestamp else {
+                        return nil
+                    }
+                    let interval = currTimestamp.timeIntervalSince(prevTimestamp)
+
+                    // check if the current event is an orphaned resume
+                    //  - previous event not a suspend
+                    //  - previous event is a suspend but it's more than 24 hours ago
+                    if curr.type == EventType.pumpResume.rawValue,
+                       prev.type != EventType.pumpSuspend.rawValue || interval > TimeInterval(hours: 24)
+                    {
+                        return curr
+                    }
+                    return nil
+                }
+            // check the first event to see if it's an orphaned resume
+            let firstResumeOrphaned = pumpEventResults.first.flatMap({ event -> [PumpEventStored]? in
+                guard event.type == EventType.pumpResume.rawValue else { return nil }
+                return [event]
+            }) ?? []
+
+            return (firstResumeOrphaned + orphanedResumes).map(\.objectID)
+        }
+    }
+
     func determineBasal(
         currentTemp: TempBasal,
+        shouldSmoothGlucose: Bool,
         clock: Date = Date(),
         simulatedCarbsAmount: Decimal? = nil,
         simulatedBolusAmount: Decimal? = nil,
@@ -292,7 +388,7 @@ final class OpenAPS {
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
         async let carbs = fetchAndProcessCarbs(additionalCarbs: simulatedCarbsAmount ?? 0, carbsDate: simulatedCarbsDate)
-        async let glucose = fetchAndProcessGlucose(fetchLimit: 72)
+        async let glucose = fetchAndProcessGlucose(context: context, shouldSmoothGlucose: shouldSmoothGlucose, fetchLimit: 72)
         async let prepareTrioCustomOrefVariables = prepareTrioCustomOrefVariables()
         async let profileAsync = loadFileFromStorageAsync(name: Settings.profile)
         async let basalAsync = loadFileFromStorageAsync(name: Settings.basalProfile)
@@ -461,13 +557,13 @@ final class OpenAPS {
         }
     }
 
-    func autosense() async throws -> Autosens? {
+    func autosense(shouldSmoothGlucose: Bool) async throws -> Autosens? {
         debug(.openAPS, "Start autosens")
 
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
         async let carbs = fetchAndProcessCarbs()
-        async let glucose = fetchAndProcessGlucose(fetchLimit: nil)
+        async let glucose = fetchAndProcessGlucose(context: context, shouldSmoothGlucose: shouldSmoothGlucose, fetchLimit: nil)
         async let getProfile = loadFileFromStorageAsync(name: Settings.profile)
         async let getBasalProfile = loadFileFromStorageAsync(name: Settings.basalProfile)
         async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
