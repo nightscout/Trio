@@ -81,39 +81,6 @@ extension MealSettings {
                             if state.useFPUconversion {
                                 VStack {
                                     HStack {
-                                        Text("Max Protein")
-
-                                        Spacer()
-
-                                        Group {
-                                            Text(state.maxProtein.description)
-                                                .foregroundColor(!displayPickerMaxProtein ? .primary : .accentColor)
-
-                                            Text(" g").foregroundColor(.secondary)
-                                        }
-                                    }
-                                    .onTapGesture {
-                                        displayPickerMaxProtein.toggle()
-                                    }
-                                }
-                                .padding(.top)
-
-                                if displayPickerMaxProtein {
-                                    let setting = PickerSettingsProvider.shared.settings.maxProtein
-                                    Picker(selection: $state.maxProtein, label: Text("")) {
-                                        ForEach(
-                                            PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
-                                            id: \.self
-                                        ) { value in
-                                            Text("\(value.description)").tag(value)
-                                        }
-                                    }
-                                    .pickerStyle(WheelPickerStyle())
-                                    .frame(maxWidth: .infinity)
-                                }
-
-                                VStack {
-                                    HStack {
                                         Text("Max Fat")
 
                                         Spacer()
@@ -134,6 +101,39 @@ extension MealSettings {
                                 if displayPickerMaxFat {
                                     let setting = PickerSettingsProvider.shared.settings.maxFat
                                     Picker(selection: $state.maxFat, label: Text("")) {
+                                        ForEach(
+                                            PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
+                                            id: \.self
+                                        ) { value in
+                                            Text("\(value.description)").tag(value)
+                                        }
+                                    }
+                                    .pickerStyle(WheelPickerStyle())
+                                    .frame(maxWidth: .infinity)
+                                }
+
+                                VStack {
+                                    HStack {
+                                        Text("Max Protein")
+
+                                        Spacer()
+
+                                        Group {
+                                            Text(state.maxProtein.description)
+                                                .foregroundColor(!displayPickerMaxProtein ? .primary : .accentColor)
+
+                                            Text(" g").foregroundColor(.secondary)
+                                        }
+                                    }
+                                    .onTapGesture {
+                                        displayPickerMaxProtein.toggle()
+                                    }
+                                }
+                                .padding(.top)
+
+                                if displayPickerMaxProtein {
+                                    let setting = PickerSettingsProvider.shared.settings.maxProtein
+                                    Picker(selection: $state.maxProtein, label: Text("")) {
                                         ForEach(
                                             PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
                                             id: \.self
@@ -291,35 +291,6 @@ extension MealSettings {
                             Text(
                                 "This delay accounts for the slower absorption of fat and protein, as calculated by the Warsaw Method, ensuring insulin delivery is properly timed to manage glucose spikes caused by high-fat, high-protein meals."
                             )
-                        }
-                    )
-
-                    SettingInputSection(
-                        decimalValue: $state.timeCap,
-                        booleanValue: $booleanPlaceholder,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        selectedVerboseHint: Binding(
-                            get: { selectedVerboseHint },
-                            set: {
-                                selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = String(localized: "Maximum Duration")
-                            }
-                        ),
-                        units: state.units,
-                        type: .decimal("timeCap"),
-                        label: String(localized: "Maximum Duration"),
-                        miniHint: String(localized: "Set the maximum timeframe to extend FPUs."),
-                        verboseHint:
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Default: 8 hours").bold()
-                            Text(
-                                "This sets the maximum length of time that Fat and Protein Carb Equivalents (FPUs) will be extended over from a single Fat and/or Protein bolus calcultor entry."
-                            )
-                            Text(
-                                "It is one factor used in combination with the Fat and Protein Delay, Spread Interval, and Fat and Protein Factor to create the FPU entries."
-                            )
-                            Text("Increasing this setting may result in more FPU entries with smaller carb values.")
-                            Text("Decreasing this setting may result in fewer FPU entries with larger carb values.")
                         }
                     )
 

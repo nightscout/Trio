@@ -2,7 +2,7 @@ import Combine
 import CoreData
 import Foundation
 
-@available(iOS 16.0,*) final class BolusIntentRequest: BaseIntentsRequest {
+final class BolusIntentRequest: BaseIntentsRequest {
     func bolus(_ bolusAmount: Double) async throws -> String {
         var bolusQuantity: Decimal = 0
         switch settingsManager.settings.bolusShortcut {

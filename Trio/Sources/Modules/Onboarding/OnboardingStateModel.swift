@@ -44,7 +44,7 @@ extension Onboarding {
 
         // MARK: - Determine Initial Build State
 
-        /// Determines whether the app is in a fresh install state for Trio v0.3.0.
+        /// Determines whether the app is in a fresh install state for Trio (new vs. returning/updating user).
         ///
         /// This check is based on the assumption that a truly clean install will only contain
         /// the `logs/` directory and the `preferences.json` file in the app's Documents directory.
@@ -717,7 +717,6 @@ extension Onboarding {
                     .clamp(to: providedSettings.carbsRequiredThreshold)
                 settingsCopy.individualAdjustmentFactor = settingsCopy.individualAdjustmentFactor
                     .clamp(to: providedSettings.individualAdjustmentFactor)
-                settingsCopy.timeCap = settingsCopy.timeCap.clamp(to: providedSettings.timeCap)
                 settingsCopy.minuteInterval = settingsCopy.minuteInterval.clamp(to: providedSettings.minuteInterval)
                 settingsCopy.delay = settingsCopy.delay.clamp(to: providedSettings.delay)
                 settingsCopy.high = settingsCopy.high.clamp(to: providedSettings.high)
