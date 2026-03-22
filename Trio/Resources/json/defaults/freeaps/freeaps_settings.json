@@ -19,7 +19,7 @@
   "highGlucose" : 270,
   "carbsRequiredThreshold" : 10,
   "showCarbsRequiredBadge" : true,
-  "useFPUconversion" : true,
+  "useFPUconversion" : false,
   "individualAdjustmentFactor" : 0.5,
   "minuteInterval" : 30,
   "delay" : 60,
