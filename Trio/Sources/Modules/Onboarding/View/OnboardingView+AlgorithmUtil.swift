@@ -121,8 +121,8 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
         case .maxSMBMinutes: return String(localized: "Max SMB Basal Minutes", comment: "Max SMB Basal Minutes")
         case .maxUAMMinutes: return String(localized: "Max UAM Basal Minutes", comment: "Max UAM Basal Minutes")
         case .maxDeltaGlucoseThreshold: return String(
-                localized: "Max. Allowed Glucose Rise for SMB",
-                comment: "Max. Allowed Glucose Rise for SMB, formerly Max Delta-BG Threshold"
+                localized: "Max Allowed Glucose Rise for SMB",
+                comment: "Max Allowed Glucose Rise for SMB, formerly Max Delta-BG Threshold"
             )
         case .highTempTargetRaisesSensitivity: return String(
                 localized: "High Temp Target Raises Sensitivity",
