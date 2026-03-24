@@ -396,7 +396,7 @@ extension SettingsExport {
                 addSetting(
                     category: algorithmCategory,
                     subcategory: smbSubcategory,
-                    name: String(localized: "Max. Allowed Glucose Rise for SMB"),
+                    name: String(localized: "Max Allowed Glucose Rise for SMB"),
                     value: String(format: "%.0f", (preferences.maxDeltaBGthreshold as NSDecimalNumber).doubleValue * 100),
                     unit: "%"
                 )
@@ -700,13 +700,6 @@ extension SettingsExport {
                     name: String(localized: "Fat and Protein Delay"),
                     value: String(describing: trioSettings.delay),
                     unit: String(localized: "minutes")
-                )
-                addSetting(
-                    category: featuresCategory,
-                    subcategory: mealSettingsSubcategory,
-                    name: String(localized: "Maximum Duration"),
-                    value: String(describing: trioSettings.timeCap),
-                    unit: String(localized: "hours")
                 )
                 addSetting(
                     category: featuresCategory,
