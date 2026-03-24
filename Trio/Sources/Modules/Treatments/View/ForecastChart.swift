@@ -135,7 +135,7 @@ struct ForecastChart: View {
                     .lineStyle(.init(lineWidth: 2))
                     .annotation(
                         position: .top,
-                        overflowResolution: .init(x: .fit(to: .chart), y: .disabled)
+                        overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
                     ) {
                         selectionPopover
                     }
@@ -221,12 +221,22 @@ struct ForecastChart: View {
                     glucoseColorScheme: state.glucoseColorScheme
                 )
                 HStack {
-                    Text(state.units == .mgdL ? Decimal(sgv).description : Decimal(sgv).formattedAsMmolL)
+                    Text("CGM: ") + Text(state.units == .mgdL ? Decimal(sgv).description : Decimal(sgv).formattedAsMmolL)
                         .bold()
                         + Text(" \(state.units.rawValue)")
                 }.foregroundStyle(
                     Color(glucoseColor)
                 ).font(.footnote)
+
+                if state.isSmoothingEnabled, let smoothedGlucose = selectedGlucose?.smoothedGlucose {
+                    let smoothedGlucoseToDisplay: Decimal = state.units == .mgdL
+                        ? smoothedGlucose.decimalValue
+                        : smoothedGlucose.decimalValue.asMmolL
+                    HStack {
+                        Image(systemName: "sparkles")
+                        Text(smoothedGlucoseToDisplay.description) + Text(" \(state.units.rawValue)")
+                    }.font(.footnote)
+                }
             }
             .padding(7)
             .background {
@@ -259,24 +269,36 @@ struct ForecastChart: View {
                 glucoseColorScheme: state.glucoseColorScheme
             )
 
-            if !state.isSmoothingEnabled {
-                PointMark(
-                    x: .value("Time", item.date ?? Date(), unit: .second),
-                    y: .value("Value", glucoseToDisplay)
-                )
-                .foregroundStyle(pointMarkColor)
-                .symbolSize(18)
-            } else {
-                PointMark(
-                    x: .value("Time", item.date ?? Date(), unit: .second),
-                    y: .value("Value", glucoseToDisplay)
-                )
-                .symbol {
-                    Image(systemName: "record.circle.fill")
-                        .font(.system(size: 6))
+            PointMark(
+                x: .value("Time", item.date ?? Date(), unit: .second),
+                y: .value("Value", glucoseToDisplay)
+            )
+            .foregroundStyle(pointMarkColor)
+            .symbol {
+                if item.isManual {
+                    Image(systemName: "drop.fill")
+                        .font(.caption2)
+                        .symbolRenderingMode(.monochrome)
+                        .bold()
+                        .foregroundStyle(.red)
+                } else {
+                    Image(systemName: "circle.fill")
+                        .font(.system(size: 4))
                         .bold()
                         .foregroundStyle(pointMarkColor)
                 }
+            }
+
+            if state.isSmoothingEnabled, let smoothedGlucose = item.smoothedGlucose, smoothedGlucose != 0 {
+                let smoothedGlucoseForDisplay: Decimal = state.units == .mgdL
+                    ? smoothedGlucose.decimalValue
+                    : smoothedGlucose.decimalValue.asMmolL
+                LineMark(
+                    x: .value("Time", item.date ?? Date(), unit: .second),
+                    y: .value("Value", smoothedGlucoseForDisplay),
+                    series: .value("Type", "Smoothed")
+                )
+                .foregroundStyle(Color.secondary)
             }
         }
     }
