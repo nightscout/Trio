@@ -11,7 +11,7 @@ jobs:
       pull-requests: write
     if: github.repository_owner == 'nightscout'
     steps:
-      - uses: actions/stale@v9.0.0
+      - uses: actions/stale@v10
         with:
           days-before-issue-stale: 30
           days-before-issue-close: 14
@@ -32,7 +32,7 @@ jobs:
       pull-requests: write
     if: github.repository_owner == 'nightscout'
     steps:
-      - uses: actions/stale@v9.0.0
+      - uses: actions/stale@v10
         with:
           days-before-issue-stale: 30
           days-before-issue-close: 30
