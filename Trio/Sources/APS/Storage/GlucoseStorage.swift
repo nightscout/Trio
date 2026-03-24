@@ -412,7 +412,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
             return fetchedResults.map { result in
                 BloodGlucose(
-                    _id: result.id?.uuidString ?? UUID().uuidString,
+                    id: result.id?.uuidString ?? UUID().uuidString,
                     sgv: Int(result.glucose),
                     direction: BloodGlucose.Direction(from: result.direction ?? ""),
                     date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
@@ -501,7 +501,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
             return fetchedResults.map { result in
                 BloodGlucose(
-                    _id: result.id?.uuidString ?? UUID().uuidString,
+                    id: result.id?.uuidString ?? UUID().uuidString,
                     sgv: Int(result.glucose),
                     direction: BloodGlucose.Direction(from: result.direction ?? ""),
                     date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
@@ -533,7 +533,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
             return fetchedResults.map { result in
                 BloodGlucose(
-                    _id: result.id?.uuidString ?? UUID().uuidString,
+                    id: result.id?.uuidString ?? UUID().uuidString,
                     sgv: Int(result.glucose),
                     direction: BloodGlucose.Direction(from: result.direction ?? ""),
                     date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
@@ -565,7 +565,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
             return fetchedResults.map { result in
                 BloodGlucose(
-                    _id: result.id?.uuidString ?? UUID().uuidString,
+                    id: result.id?.uuidString ?? UUID().uuidString,
                     sgv: Int(result.glucose),
                     direction: BloodGlucose.Direction(from: result.direction ?? ""),
                     date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
@@ -598,7 +598,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
             return fetchedResults.map { result in
                 BloodGlucose(
-                    _id: result.id?.uuidString ?? UUID().uuidString,
+                    id: result.id?.uuidString ?? UUID().uuidString,
                     sgv: Int(result.glucose),
                     direction: BloodGlucose.Direction(from: result.direction ?? ""),
                     date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,

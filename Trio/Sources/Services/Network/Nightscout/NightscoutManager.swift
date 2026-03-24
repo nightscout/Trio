@@ -11,8 +11,8 @@ protocol NightscoutManager: GlucoseSource {
     func fetchTempTargets() async -> [TempTarget]
     func deleteCarbs(withID id: String) async
     func deleteInsulin(withID id: String) async
-    func deleteGlucose(withID id: String) async
-    func deleteManualGlucose(withID id: String) async
+    func deleteGlucose(withID id: String, withDate date: Date) async
+    func deleteManualGlucose(withID id: String, withDate date: Date) async
     func uploadDeviceStatus() async throws
     func uploadGlucose() async
     func uploadCarbs() async
@@ -340,11 +340,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    func deleteGlucose(withID id: String) async {
+    func deleteGlucose(withID id: String, withDate date: Date) async {
         guard let nightscout = nightscoutAPI, isUploadEnabled else { return }
 
         do {
-            try await nightscout.deleteGlucose(withId: id)
+            try await nightscout.deleteGlucose(withId: id, withDate: date)
             debug(.nightscout, "Glucose deleted")
         } catch {
             debug(
@@ -354,11 +354,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    func deleteManualGlucose(withID id: String) async {
+    func deleteManualGlucose(withID id: String, withDate date: Date) async {
         guard let nightscout = nightscoutAPI, isUploadEnabled else { return }
 
         do {
-            try await nightscout.deleteManualGlucose(withId: id)
+            try await nightscout.deleteManualGlucose(withId: id, withDate: date)
         } catch {
             debug(
                 .nightscout,
