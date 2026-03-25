@@ -38,9 +38,7 @@ extension Snooze {
 
 extension Snooze.StateModel: SnoozeObserver {
     func snoozeDidChange(_ untilDate: Date) {
-        Task { @MainActor in
-            snoozeUntilDate = untilDate
-            alarm = glucoseStorage.alarm
-        }
+        snoozeUntilDate = untilDate
+        alarm = glucoseStorage.alarm
     }
 }

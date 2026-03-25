@@ -471,7 +471,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     }
 
     @MainActor func applySnooze(for duration: TimeInterval) async {
-        let untilDate = Date().addingTimeInterval(duration)
+        let untilDate = duration > 0 ? Date().addingTimeInterval(duration) : .distantPast
         snoozeUntilDate = untilDate
         lastGlucoseAlertToken = ""
         // removeGlucoseNotifications() is safe to call here since we're @MainActor
