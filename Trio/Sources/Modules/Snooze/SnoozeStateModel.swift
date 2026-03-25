@@ -27,16 +27,6 @@ extension Snooze {
                 .contains(duration)
         }
 
-        // Add handleSnoozeResponse inside the class
-        func handleSnoozeResponse(_ duration: TimeInterval) {
-            guard validateSnoozeDuration(duration) else { return }
-
-            Task { @MainActor in
-                snoozeUntilDate = Date().addingTimeInterval(duration)
-                alarm = glucoseStorage.alarm
-            }
-        }
-
         @MainActor func applySnooze(_ duration: TimeInterval) async {
             // Allow any duration chosen in the Snooze UI, while keeping validation for quick actions elsewhere.
             snoozeUntilDate = duration > 0 ? Date().addingTimeInterval(duration) : .distantPast

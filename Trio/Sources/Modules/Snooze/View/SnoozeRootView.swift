@@ -36,7 +36,7 @@ extension Snooze {
         }
 
         private func formatInterval(_ interval: TimeInterval) -> String {
-            formatter.string(from: interval)!
+            formatter.string(from: interval) ?? ""
         }
 
         func getSnoozeDescription() -> String {
@@ -68,7 +68,7 @@ extension Snooze {
             VStack(alignment: .leading) {
                 Button {
                     let interval = pickerTimes[selectedInterval]
-                    let snoozeFor = formatter.string(from: interval)!
+                    let snoozeFor = formatInterval(interval)
                     let untilDate = Date() + interval
 
                     Task { @MainActor [weak state] in
