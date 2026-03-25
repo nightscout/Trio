@@ -203,7 +203,7 @@ extension MealSettings {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 6 hours").bold()
                         Text(
-                            "Carb entries will be fully decayed by the number of hours specified as Max Meal Absorption Time. Meals that are high in fat and/or protein can have long lasting effects on BG levels. To allow such late meal effects to be considered by the carb decay model, a longer Max Meal Absorption Time than the default 6 hours can be set."
+                            "Carb entries will be fully decayed by the number of hours specified as Max Meal Absorption Time. Meals that are high in fat and/or protein can have long lasting effects on glucose levels. To allow such late meal effects to be considered by the carb decay model, a longer Max Meal Absorption Time than the default 6 hours can be set."
                         )
                         Text(
                             "If carb entries decay too slowly, it is possible to set a lower than default setting. But this should typically be adressed by tuning ISF and CR settings instead, which in combination determines the rate of carb decay."
@@ -258,7 +258,6 @@ extension MealSettings {
                                     "You can personalize the conversion calculation by adjusting the following settings that will appear when this option is enabled:"
                                 )
                                 Text("• Fat and Protein Delay")
-                                Text("• Maximum Duration")
                                 Text("• Spread Interval")
                                 Text("• Fat and Protein Percentage")
                             }
@@ -315,9 +314,9 @@ extension MealSettings {
                             Text(
                                 "This determines how many minutes will be between individual Fat-Protein Unit Carb Equivalent (FPU) entries from a single Fat and/or Protein bolus calculator entry."
                             )
-                            Text("The shorter the interval, the smoother the correlating dosing result.")
-                            Text("Increasing this setting may result in fewer FPU entries with larger carb values.")
-                            Text("Decreasing this setting may result in more FPU entries with smaller carb values.")
+                            Text(
+                                "Entries are capped at 33 grams each, with up to three entries, for a max total of 99 grams."
+                            )
                         }
                     )
 
