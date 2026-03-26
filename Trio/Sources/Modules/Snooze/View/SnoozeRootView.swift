@@ -15,10 +15,10 @@ extension Snooze {
 
         private var pickerTimes: [TimeInterval] {
             [
-                TimeInterval(minutes: 20),   // 20 minutes
-                TimeInterval(hours: 1),      // 1 hour
-                TimeInterval(hours: 3),      // 3 hours
-                TimeInterval(hours: 6)       // 6 hours
+                TimeInterval(minutes: 20), // 20 minutes
+                TimeInterval(hours: 1), // 1 hour
+                TimeInterval(hours: 3), // 3 hours
+                TimeInterval(hours: 6) // 6 hours
             ]
         }
 

@@ -53,7 +53,7 @@ final class WatchNotificationHandler: NSObject, UNUserNotificationCenterDelegate
 
         // Try sendMessage first if session is reachable and activated (faster, immediate delivery)
         // Fall back to transferUserInfo if not reachable or if sendMessage fails
-        if session.isReachable && session.activationState == .activated {
+        if session.isReachable, session.activationState == .activated {
             session.sendMessage(payload, replyHandler: nil) { _ in
                 // Fallback to transferUserInfo if sendMessage fails
                 session.transferUserInfo(payload)
