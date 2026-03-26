@@ -14,7 +14,7 @@ extension Treatments {
         }
 
         enum MealBolusType {
-            case normalBolus
+            case standardBolus
             case reducedBolus
             case superBolus
         }
@@ -197,7 +197,7 @@ extension Treatments {
                 get: {
                     state.useFattyMealCorrectionFactor ? .reducedBolus
                         : state.useSuperBolus ? .superBolus
-                        : .normalBolus
+                        : .standardBolus
                 },
                 set: { newValue in
                     state.useFattyMealCorrectionFactor = (newValue == .reducedBolus)
@@ -298,7 +298,7 @@ extension Treatments {
                                     if state.fattyMeals {
                                         Text("Reduced").tag(MealBolusType.reducedBolus)
                                     }
-                                    Text("Normal").tag(MealBolusType.normalBolus)
+                                    Text("Standard").tag(MealBolusType.standardBolus)
                                     if state.sweetMeals {
                                         Text("Super Bolus").tag(MealBolusType.superBolus)
                                     }
