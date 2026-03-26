@@ -13,19 +13,7 @@ extension WatchConfig {
         /// Garmin watch settings containing all watch-related configuration
         @Published var garminSettings = GarminWatchSettings()
 
-        /// Indicates if the enable/disable toggle is locked during cooldown period
-        @Published var isWatchfaceDataCooldownActive: Bool = false
-
-        /// Remaining seconds in the cooldown period
-        @Published var watchfaceSwitchCooldownSeconds: Int = 0
-
         private(set) var preferences = Preferences()
-
-        /// Timer for managing the 20-second cooldown after watchface changes
-        private var watchfaceSwitchTimer: Timer?
-
-        /// The timestamp when the current cooldown period will end
-        private var watchfaceSwitchCooldownEndTime: Date?
 
         override func subscribe() {
             preferences = provider.preferences
@@ -52,42 +40,14 @@ extension WatchConfig {
         }
 
         /// Handles watchface selection changes by automatically disabling data transmission
-        /// and starting a 20-second cooldown period to allow the user to switch watchfaces
-        /// on their Garmin device without data conflicts
+        /// to allow the user to switch watchfaces on their Garmin device without data conflicts
         func handleWatchfaceChange() {
             garminSettings.isWatchfaceDataEnabled = false
-            startCooldownTimer()
         }
 
-        /// Starts a 20-second countdown timer that locks the enable/disable toggle and updates
-        /// the remaining seconds display every second until the cooldown period expires
-        private func startCooldownTimer() {
-            watchfaceSwitchTimer?.invalidate()
-
-            watchfaceSwitchCooldownEndTime = Date().addingTimeInterval(20)
-            isWatchfaceDataCooldownActive = true
-            watchfaceSwitchCooldownSeconds = 20
-
-            watchfaceSwitchTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-                guard let self = self else { return }
-
-                if let endTime = self.watchfaceSwitchCooldownEndTime {
-                    let remaining = Int(endTime.timeIntervalSinceNow)
-                    if remaining <= 0 {
-                        self.isWatchfaceDataCooldownActive = false
-                        self.watchfaceSwitchCooldownSeconds = 0
-                        self.watchfaceSwitchTimer?.invalidate()
-                        self.watchfaceSwitchTimer = nil
-                        self.watchfaceSwitchCooldownEndTime = nil
-                    } else {
-                        self.watchfaceSwitchCooldownSeconds = remaining
-                    }
-                }
-            }
-        }
-
-        deinit {
-            watchfaceSwitchTimer?.invalidate()
+        /// Resumes data transmission after user confirms they have switched watchface on their device
+        func resumeDataTransmission() {
+            garminSettings.isWatchfaceDataEnabled = true
         }
     }
 }

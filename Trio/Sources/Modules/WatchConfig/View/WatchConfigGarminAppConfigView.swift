@@ -8,6 +8,7 @@ struct WatchConfigGarminAppConfigView: View {
     @State private var shouldDisplayHint3: Bool = false
     @State private var shouldDisplayHint4: Bool = false
     @State var hintDetent = PresentationDetent.large
+    @State private var showWatchfaceSwitchConfirmDialog: Bool = false
 
     @Environment(\.colorScheme) var colorScheme
     @Environment(AppState.self) var appState
@@ -29,8 +30,11 @@ struct WatchConfigGarminAppConfigView: View {
                             }
                         }
                         .padding(.top)
-                        .onChange(of: state.garminSettings.watchface) { _ in
-                            state.handleWatchfaceChange()
+                        .onChange(of: state.garminSettings.watchface) { oldValue, newValue in
+                            if oldValue != newValue {
+                                state.handleWatchfaceChange()
+                                showWatchfaceSwitchConfirmDialog = true
+                            }
                         }
 
                         HStack(alignment: .center) {
@@ -60,22 +64,6 @@ struct WatchConfigGarminAppConfigView: View {
                             get: { !state.garminSettings.isWatchfaceDataEnabled },
                             set: { state.garminSettings.isWatchfaceDataEnabled = !$0 }
                         ))
-                            .disabled(state.isWatchfaceDataCooldownActive)
-
-                        // Display cooldown warning when toggle is locked
-                        if state.isWatchfaceDataCooldownActive {
-                            HStack {
-                                Text(
-                                    "Please wait \(state.watchfaceSwitchCooldownSeconds) seconds!\n\n" +
-                                        "After the lockout you can re-enable watchface data transmission, but you need to change to the new watchface on your Garmin watch before that - e.g. now!"
-                                )
-                                .font(.footnote)
-                                .foregroundColor(.orange)
-                                .multilineTextAlignment(.leading)
-                                .lineLimit(nil)
-                                Spacer()
-                            }
-                        }
 
                         HStack(alignment: .center) {
                             Text(
@@ -200,7 +188,7 @@ struct WatchConfigGarminAppConfigView: View {
                         "• Trio – The original Trio watchface, developed by Ivan Valkou.\n" +
                         "• Swissalpine – Originally developed for AAPS, adapted to work with Trio.\n\n" +
                         "You must use this configuration setting here BEFORE you switch the watchface on your Garmin device to another watchface.\n\n" +
-                        "⚠️ Changing the watchface will automatically disable data transmission and lock that setting for 20 seconds to allow time for you to switch the watchface on your Garmin device."
+                        "⚠️ Changing the watchface will automatically disable data transmission. You will be prompted to resume data transmission after you have changed the watchface on your Garmin device."
                 ),
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
@@ -226,7 +214,7 @@ struct WatchConfigGarminAppConfigView: View {
                 hintLabel: "Disable watchface data transmission",
                 hintText: Text(
                     "Important: If you want to use a different watchface on your Garmin device that has no data requirement from this app, disable data transmission to the Garmin watchface app! Otherwise you will not be able to get current data once you re-enable the supported watchface that shows Trio data and you will have to re-install it on your Garmin device.\n\n" +
-                        "Note: When switching between supported watchfaces, data transmission is automatically disabled for 20 seconds. You would manually need to re-enable it."
+                        "Note: When switching between supported watchfaces, data transmission is automatically disabled. You will be prompted to resume data transmission after you have changed the watchface on your Garmin device."
                 ),
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
@@ -247,6 +235,15 @@ struct WatchConfigGarminAppConfigView: View {
                         "• evBG – Eventual (predicted future) Blood Glucose"
                 ),
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
+            )
+        }
+        .confirmationDialog("Watchface Changed", isPresented: $showWatchfaceSwitchConfirmDialog) {
+            Button("Resume Data Transmission") {
+                state.resumeDataTransmission()
+            }
+        } message: {
+            Text(
+                "Data transmission has been disabled. Now select the new watchface on your Garmin device and resume data transmission once done."
             )
         }
     }
