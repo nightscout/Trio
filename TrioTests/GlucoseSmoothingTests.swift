@@ -120,46 +120,64 @@ import Testing
     }
 
     @Test(
-        "Exponential smoothing stops window at gaps >= 12 minutes; fallback fills smoothed glucose"
-    ) func testExponentialSmoothingGapStopsWindow() async throws {
-        // GIVEN:
+        "Exponential smoothing stops at gaps >= 12 minutes and only updates the most recent window"
+    )  func testExponentialSmoothingGapStopsWindow() async throws {
         let now = Date()
-        let dates: [Date] = [
-            now.addingTimeInterval(0), // oldest
-            now.addingTimeInterval(5 * 60),
-            now.addingTimeInterval(10 * 60),
-            now.addingTimeInterval(25 * 60), // gap of 15 minutes
-            now.addingTimeInterval(30 * 60),
-            now.addingTimeInterval(35 * 60) // newest
-        ]
-        let values: [Int16] = [100, 105, 110, 115, 120, 125]
+
+        var dates: [Date] = []
+        var values: [Int16] = []
+
+        // Older contiguous block (should remain untouched)
+        for i in 0 ..< 10 {
+            dates.append(now.addingTimeInterval(Double(i) * 5 * 60))
+            values.append(Int16(100 + i * 5))
+        }
+
+        // GAP (15 minutes)
+        let gapStart = now.addingTimeInterval(Double(10) * 5 * 60 + 15 * 60)
+
+        // Recent block (too small -> fallback applies only here)
+        for i in 0 ..< 3 {
+            dates.append(gapStart.addingTimeInterval(Double(i) * 5 * 60))
+            values.append(Int16(200 + i * 5))
+        }
+
         await createGlucoseSequence(values: values, dates: dates, isManual: false)
 
-        // WHEN
         await fetchGlucoseManager.exponentialSmoothingGlucose(context: testContext)
 
-        // THEN
         let ascending = try await fetchAndSortGlucose()
-        #expect(ascending.count == 6)
+        #expect(ascending.count == values.count)
 
-        let smoothedValues = ascending
-            .filter { !$0.isManual }
-            .compactMap { $0.smoothedGlucose?.decimalValue }
-            .filter { $0 > 0 }
+        // Split into:
+        // - older block (before gap)
+        // - recent block (after gap)
+        let olderBlock = ascending.prefix(10)
+        let recentBlock = ascending.suffix(3)
 
-        #expect(
-            smoothedValues.count == 6,
-            "Fallback path should fill smoothedGlucose for all CGM entries when the gap reduces the window below minimum size."
-        )
+        // --- ASSERT 1: Older values should NOT be overwritten ---
+        for (index, obj) in olderBlock.enumerated() {
+            #expect(
+                obj.smoothedGlucose == nil,
+                "Older value at index \(index) should remain untouched (no fallback overwrite)."
+            )
+        }
 
-        for (index, smoothed) in smoothedValues.enumerated() {
+        // --- ASSERT 2: Recent values should be filled by fallback ---
+        for (index, obj) in recentBlock.enumerated() {
+            guard let smoothed = obj.smoothedGlucose?.decimalValue else {
+                #expect(false, "Recent value at index \(index) should have smoothedGlucose set.")
+                continue
+            }
+
             #expect(
                 smoothed >= 39,
-                "Fallback smoothed glucose must be clamped to >= 39, got \(smoothed) at index \(index)."
+                "Fallback smoothed glucose must be clamped to >= 39, got \(smoothed)."
             )
+
             #expect(
                 smoothed == smoothed.rounded(toPlaces: 0),
-                "Fallback smoothed glucose must be rounded to an integer, got \(smoothed) at index \(index)."
+                "Fallback smoothed glucose must be rounded to integer, got \(smoothed)."
             )
         }
     }
