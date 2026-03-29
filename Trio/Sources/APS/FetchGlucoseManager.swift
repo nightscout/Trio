@@ -365,7 +365,7 @@ extension BaseFetchGlucoseManager: SettingsObserver {
 extension BaseFetchGlucoseManager {
     func fetchGlucose(context: NSManagedObjectContext) async throws -> [NSManagedObjectID] {
         // Compound predicate: time window + non-manual + valid date
-        let timePredicate = NSPredicate.predicateForFourHoursAgo
+        let timePredicate = NSPredicate.predicateForOneDayAgoInMinutes
         let manualPredicate = NSPredicate(format: "isManual == NO")
         let datePredicate = NSPredicate(format: "date != nil")
 
