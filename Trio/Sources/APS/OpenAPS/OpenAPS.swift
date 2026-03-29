@@ -132,7 +132,7 @@ final class OpenAPS {
 
             return glucoseResults.map { glucose -> AlgorithmGlucose in
                 let glucoseValue: Int16
-                if shouldSmoothGlucose, !glucose.isManual, let smoothedGlucose = glucose.smoothedGlucose {
+                if shouldSmoothGlucose, !glucose.isManual, let smoothedGlucose = glucose.smoothedGlucose, smoothedGlucose != 0 {
                     glucoseValue = smoothedGlucose.rounding(accordingToBehavior: roundingBehavior).int16Value
                 } else {
                     glucoseValue = glucose.glucose

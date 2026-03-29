@@ -3,7 +3,7 @@ import SwiftUI
 extension MealSettings {
     final class StateModel: BaseStateModel<Provider> {
         @Published var units: GlucoseUnits = .mgdL
-        @Published var useFPUconversion: Bool = true
+        @Published var useFPUconversion: Bool = false
         @Published var maxCarbs: Decimal = 250
         @Published var maxFat: Decimal = 250
         @Published var maxProtein: Decimal = 250
