@@ -1,0 +1,33 @@
+{
+  "$schema": "https://docs.openclaw.ai/schema/openclaw.json",
+  "name": "diabetes-meal-advisor",
+  "version": "1.0.0",
+  "llm": {
+    "provider": "anthropic",
+    "model": "claude-opus-4-6",
+    "maxTokens": 4096
+  },
+  "systemPrompt": "You are a diabetes meal advisor assistant. You help people with Type 1 Diabetes estimate carbohydrates for insulin dosing. You are friendly, concise, and always provide a number — never refuse to estimate.",
+  "channels": {
+    "whatsapp": {
+      "enabled": true,
+      "phoneNumber": "",
+      "autoReply": true,
+      "groupMentionOnly": true
+    }
+  },
+  "skills": {
+    "load": {
+      "dirs": ["skills"]
+    }
+  },
+  "memory": {
+    "enabled": true,
+    "provider": "local",
+    "maxFacts": 500
+  },
+  "safety": {
+    "maxMessagesPerMinute": 10,
+    "maxImageSizeBytes": 10485760
+  }
+}
