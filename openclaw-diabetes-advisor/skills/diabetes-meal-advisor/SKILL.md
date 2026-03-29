@@ -35,6 +35,9 @@ Read these files at the start of every session:
 skills/diabetes-meal-advisor/references/profile.json
 skills/diabetes-meal-advisor/references/sy_food_database.json
 skills/diabetes-meal-advisor/references/glycemic_index.md
+skills/diabetes-meal-advisor/references/exercise.md
+skills/diabetes-meal-advisor/references/hypo_treatment.md
+skills/diabetes-meal-advisor/references/sick_day.md
 ```
 
 **profile.json** — The user's pump settings:
@@ -45,7 +48,7 @@ skills/diabetes-meal-advisor/references/glycemic_index.md
 - FPU settings, override presets, temp target presets
 - Personal notes (dietary preferences, cultural context)
 
-**sy_food_database.json** — Comprehensive nutrition database for Syrian Jewish cuisine with validated carb counts, confidence ratings, GI values, absorption speeds, and clarification triggers for each dish. **This is your primary lookup for SY foods.** Use the carb values from this database, not general knowledge.
+**sy_food_database.json** — Comprehensive nutrition database for Syrian Jewish cuisine with validated carb counts, confidence ratings, GI values, absorption speeds, and clarification triggers for each dish. **This is your primary lookup for SY foods.** Use the carb values from this database, not general knowledge. ⚠️ All homemade SY dishes carry **±30% variability** from preparation differences. Always recommend weighing portions and calibrating against CGM data.
 
 **glycemic_index.md** — GI hierarchy for SY foods with pre-bolus timing recommendations by BG range.
 
@@ -133,27 +136,34 @@ When the user sends a food photo:
 ### 2. BOLUS CALCULATION
 **Required before giving a number:** BG, IOB, and carbs. If any are missing, ask.
 
-**Meal bolus:** `dose = net_carbs / current_ICR`
+**The formula (mirrors how pump bolus calculators work):**
 
-**Correction bolus (requires BG):**
-1. Look up current ISF from the time-based schedule
-2. If ISF tiers are enabled, multiply by the tier multiplier for the current BG
-3. `correction = (current_BG - target_midpoint) / effective_ISF`
-4. If correction is negative (BG below target), subtract from meal bolus but never go below 0
+```
+Total = Glucose_Calc + COB_Calc - IOB_Calc + Delta_Calc
 
-**IOB adjustment (requires IOB):**
-- If IOB is significant, subtract from correction component
-- `adjusted_correction = max(0, correction - existing_IOB_correction_portion)`
-- Flag if total suggested + existing IOB would exceed max_iob
+Glucose_Calc = (Current_BG - Target_BG) / ISF
+COB_Calc     = Net_Carbs / ICR
+IOB_Calc     = IOB  (subtracted from TOTAL, not just correction)
+Delta_Calc   = BG_change_last_15min / ISF  (trend adjustment)
+```
 
-**Trend adjustment:**
-- ↑↑ (rising fast): consider adding 10-20% to bolus
-- ↑ or ↗ (rising): bolus as calculated, pre-bolus longer
-- → (flat): bolus as calculated
-- ↘ (falling slowly): consider reducing by 10%
-- ↓ or ↓↓ (falling fast): reduce by 20% or delay bolus, warn about low risk
+**CRITICAL: IOB is subtracted from the TOTAL bolus, not just the correction.**
+This includes IOB from SMBs, manual boluses, and temp basal adjustments.
+Negative IOB (from basal suspension) adds insulin to the recommendation.
 
-**Total bolus:** `meal_bolus + adjusted_correction (± trend adjustment)`
+**If the user is on an AID system (Trio, Loop, OpenAPS):** The system may recommend only ~70% of the calculated bolus upfront, expecting SMBs to deliver the rest as BG rises. Ask the user if they use a recommended percentage.
+
+**Trend adjustment (Pettus & Edelman method):**
+Adjust the effective BG before calculating correction:
+- ↑↑ (>3 mg/dL/min): add +100 mg/dL to BG for calc
+- ↑ (2-3 mg/dL/min): add +50 mg/dL
+- ↗ (1-2 mg/dL/min): add +25 mg/dL
+- → (<1 mg/dL/min): no adjustment
+- ↘: subtract 25 mg/dL
+- ↓: subtract 50 mg/dL
+- ↓↓: subtract 100 mg/dL
+
+⚠️ **Only apply trend adjustments for boluses ≥3 hours after meals.** Within 2 hours of eating, trend arrows reflect meal absorption, not a true BG trajectory.
 
 **Always state:**
 - Which carb ratio you used and why (time of day)
@@ -168,29 +178,53 @@ When the user sends a food photo:
 1. Look up current ISF + tier multiplier
 2. Look up current BG target
 3. `correction = (BG - target_midpoint) / effective_ISF`
-4. Subtract IOB that's still working as correction
-5. Factor in trend — if already dropping, correction may not be needed
-6. If correction is small (<0.5u) and trend is flat/dropping, suggest letting SMBs handle it
+4. Subtract ALL IOB from the total (not just correction-attributed IOB)
+5. Apply trend adjustment using Pettus/Edelman method (only if >3h since last meal)
+6. If correction is small (<0.5u) and trend is flat/dropping, suggest waiting — the AID system's SMBs may handle it
 
 ### 4. EXERCISE ADVICE
 **Required:** BG, IOB, type/duration of exercise. Ask for missing.
-- If BG < 120 with IOB > 1u: warn, suggest carbs before starting
-- If BG < 100: suggest eating 15-30g carbs before exercise
-- If BG > 250: warn about exercising with high BG (check ketones first)
-- Suggest the Exercise override preset (50% basal, target 140, SMBs off)
-- Recommend pre-exercise temp target if they haven't started yet
-- If they have active IOB, calculate estimated BG drop during exercise
-- Remind about post-exercise sensitivity increase (up to 24h)
+**Full reference data in `references/exercise.md`** (Riddell 2017 consensus).
+
+**Pre-exercise safety checks:**
+- BG < 90: eat 10-20g carbs, delay until BG rises
+- BG < 120 with IOB > 1u: warn, suggest carbs before starting
+- BG > 270 with unexplained high: check ketones first — do NOT exercise
+- Blood ketones ≥1.5: exercise CONTRAINDICATED until resolved
+- Severe hypo in last 24h: contraindication
+
+**Type-specific guidance (ask what kind of exercise!):**
+- **Aerobic** (run, bike, swim): BG drops ~40 mg/dL per 30 min. Reduce basal 50-80%, target 140.
+- **Anaerobic** (weights, sprints): BG may RISE acutely. No basal reduction needed. Watch for delayed drop.
+- **HIIT/Mixed**: More stable. Resistance before aerobic reduces hypo risk.
+- Meal bolus reductions if eating within 90 min: moderate exercise = -50% for 30min, -75% for 60min.
+
+**⚠️ POST-EXERCISE NOCTURNAL HYPO WARNING:**
+After afternoon exercise, nocturnal hypo occurs in up to 48% of cases (DirecNet).
+Recommend: bedtime snack (0.4g carbs/kg) without full insulin, ~20% basal reduction overnight.
+**NEVER aggressively correct a post-exercise high — overcorrection can cause severe overnight lows.**
 
 ### 5. HYPO MANAGEMENT
 **NO INTAKE REQUIRED — ACT IMMEDIATELY.**
-When the user reports low BG or symptoms (shaky, sweaty, dizzy, confused):
-- **BG < 70:** "Treat now — 15g fast carbs (juice, glucose tabs, candy). Recheck in 15 min."
-- **BG < 55:** "URGENT — 20g+ fast carbs immediately. If you can't swallow safely, glucagon."
-- Suggest Hypo Treatment temp target (120-130, 30 min)
-- If they mention IOB, estimate further drop: `remaining_drop = IOB * ISF`
-- Calculate glucose needed: `grams_needed ≈ (target - current_BG) / 4` (rough: 1g glucose ≈ raises BG 4 mg/dL)
-- THEN ask follow-ups: "What happened? Did you bolus too much? Miss a meal? Exercise?"
+**Full reference in `references/hypo_treatment.md`.**
+
+**Severity-graded response:**
+- **Level 1 (55-70 mg/dL):** "15g fast-acting carbs NOW. Glucose tabs are fastest. Recheck in 15 min."
+- **Level 2 (<54 mg/dL):** "20-30g fast-acting carbs NOW. This is urgent."
+- **Level 3 (<40 or can't self-treat):** "GLUCAGON. Baqsimi nasal or Gvoke pen. Call 911 if no glucagon available."
+
+**Best fast-acting carbs (ranked by speed):**
+Glucose tabs > glucose gel > regular soda > juice (grape fastest) > honey.
+⚠️ Chocolate, candy bars, milk are TOO SLOW — fat delays absorption.
+
+**Weight-based glucose calculation** (read user's weight from profile):
+`grams_needed = (target_BG - current_BG) / rise_per_gram`
+(See weight table in hypo_treatment.md — ranges from 3-10 mg/dL per gram by body weight)
+
+**If they have IOB**, estimate further drop: `remaining_drop = IOB * ISF`
+Factor this into grams needed.
+
+**After treatment:** ask what happened — over-bolus? missed meal? exercise? Help prevent recurrence.
 
 ### 6. HIGH BG / STUBBORN HIGHS
 **Required:** BG, IOB, when last bolused, recent food. Ask for missing.
@@ -204,12 +238,21 @@ When the user reports low BG or symptoms (shaky, sweaty, dizzy, confused):
   - If > 300: strongly recommend manual injection + ketone check + call endo if ketones present
 
 ### 7. SICK DAY MANAGEMENT
-When the user is sick:
-- Recommend Sick Day override (130% basal, target 120)
-- Emphasize hydration and ketone monitoring
-- Expect increased insulin resistance
-- Watch for nausea/vomiting — risk of DKA if can't keep food down
-- Suggest checking BG and ketones every 2-3 hours
+**Full protocols in `references/sick_day.md`.**
+
+**NEVER stop basal insulin even if not eating.** This is the #1 sick day rule.
+
+**Ketone-based escalation:**
+- <0.6 mmol/L: normal, keep monitoring
+- 0.6-1.4: extra fluids, check insulin delivery, supplemental 10% of TDD
+- 1.5-2.9: give 15-20% of TDD, aggressive hydration, **contact healthcare team or ER**
+- ≥3.0: **SEEK EMERGENCY CARE IMMEDIATELY — DKA likely**
+
+**GI illness (vomiting):** uniquely dangerous — euglycemic DKA possible at normal BG. If can't keep fluids down >4h, go to ER. Mini-dose glucagon can prevent hypos when unable to eat (150µg for adults).
+
+**Fever/infection:** typically increases insulin needs 10-50%. Consider 10-20% basal increase.
+
+**AID systems help** but can't monitor ketones — remind user to check manually. Prompt site change if BG unexpectedly high.
 
 ### 8. SETTINGS DISCUSSION
 When the user asks about their settings, ratios, or wants advice on adjustments:
@@ -379,29 +422,39 @@ Anticipate multi-course structure:
 - **HIGH FAT modifier**: delays all absorption
 - **MIXED**: multiple speed categories present
 
-## SUPER BOLUS RECOMMENDATION
+## SUPER BOLUS — USE WITH CAUTION
 
-Sugar as % of total carbs: (sugar / carbs) x 100
-- **YES** — sugar >= 25%, OR speed FAST, OR high-GI items present
-- **CONSIDER** — sugar 15-24%, OR MIXED with a FAST component
-- **NO** — pure SLOW/MEDIUM, sugar < 15%
+⚠️ **CONTRAINDICATED with AID systems (Trio, Loop, OpenAPS, Control-IQ, 780G).**
+When a user zeros basal for a super bolus, the AID detects rising BG and fights the zero-temp by issuing SMBs — directly counterproductive. AID systems already automate a version of this concept through SMBs. Dana Lewis (OpenAPS creator): "SMBs are miniature versions of the super bolus technique."
 
-When recommending super bolus, calculate it:
+**Only recommend super bolus if the user is on manual pump mode or MDI.**
+
+If on manual mode, the technique (John Walsh, "Pumping Insulin"):
+- Borrow 1-3 hours of basal, add to meal bolus, set temp basal to zero
 - Extra insulin = ~1 hour of current basal rate
-- "Your basal right now is X.X U/hr — adding that to the meal bolus gives X.Xu total, then suspend basal for 1 hour"
+- Net insulin unchanged — just front-loaded for fast-spiking meals
+- ⚠️ Breaks IOB tracking — subsequent dose calculations unreliable for hours
 
-## FPU CALCULATION
+**Contraindications (even on manual mode):** high existing IOB, planned exercise within 2-4h, declining BG trend, or use of pramlintide.
+
+**Sugar % thresholds for flagging speed (these are heuristic, not evidence-based):**
+- Sugar ≥25% of total carbs OR meal is HIGH GI: flag as fast-spiking
+- Sugar 15-24% OR MIXED speeds: flag as moderate spike risk
+- These inform pre-bolus timing, not super bolus recommendation for AID users
+
+## FPU CALCULATION (Warsaw Method — Pańkowska et al. 2010)
 
 **Formula:** FPU = (fat_g x 9 + protein_g x 4) / 100
+One FPU = 100 kcal from fat+protein ≈ 10g carb equivalent for dosing.
 
-**Duration (Warsaw Method):**
-- 1 FPU -> 3h | 2 FPU -> 4h | 3 FPU -> 5h | 4+ FPU -> timeCap from settings
+**Duration:** 1 FPU → 3h | 2 FPU → 4h | 3 FPU → 5h | ≥4 FPU → 8h
 
 **With user's settings:**
-- Adjustment factor: read from profile (default 0.5)
-- Delay: read from profile (default 60 min)
-- Carb equivalents = (kcal / 10) * adjustment_factor
-- These get entered as future carbs in Trio, which delivers insulin via SMBs
+- Adjustment factor: read from profile (default 0.5 = half dose)
+- Delay: read from profile (default 60 min before FPU dosing starts)
+- Carb equivalents = (kcal / 10) × adjustment_factor
+
+⚠️ **The 0.5 default exists for safety.** The original full-dose algorithm caused hypoglycemia in 50% of patients (Pańkowska 2022). Most AID systems' own SMBs already partially cover fat/protein rises, so full FPU dosing on top causes stacking. Increase by 0.1 increments only if fat/protein spikes persist.
 
 ## RESPONSE FORMAT — MEAL ANALYSIS
 

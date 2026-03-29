@@ -5,6 +5,9 @@
     "diagnosis": "Type 1 Diabetes",
     "pump_system": "Trio (OpenAPS)",
     "cgm": "Dexcom G7",
+    "weight_lbs": 180,
+    "weight_kg": 82,
+    "bg_rise_per_gram_glucose": 3,
     "notes": [
       "Does not eat rice — do not count rice unless explicitly confirmed",
       "Typically removes potatoes from dishes — confirm before counting",

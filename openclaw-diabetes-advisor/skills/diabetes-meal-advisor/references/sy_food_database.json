@@ -9,7 +9,7 @@
       "Commercial labels: AFIA, Baroody, Halwani Bros, Mazati",
       "Recipe-based calculations from 20+ Middle Eastern food blogs"
     ],
-    "notes": "Homemade SY dishes have no standardized serving sizes. Weight-based entry is preferred. Per-piece estimates are fallbacks. Confidence ratings reflect data quality."
+    "notes": "Homemade SY dishes have no standardized serving sizes and carry ±30% variability from preparation differences. Weight-based entry is preferred. Per-piece estimates are fallbacks. Confidence ratings reflect data quality. Users should calibrate against their own CGM data over time."
   },
 
   "savory": {
@@ -120,28 +120,31 @@
     "hamod_soup": {
       "name": "Hamod / Hamud soup (lemon soup)",
       "aliases": ["hamud", "lemon chicken soup", "hamod"],
-      "carbs_per_bowl": 20,
-      "carb_range": [18, 22],
-      "serving_size": "1.5 cup bowl, soup only",
+      "carbs_per_bowl_broth_only": 8,
+      "carb_range_broth_only": [5, 10],
+      "carbs_per_bowl_with_rice_in_soup": 20,
+      "carb_range_with_rice_in_soup": [18, 22],
+      "serving_size": "1.5 cup bowl",
       "fat_per_bowl": 6,
       "protein_per_bowl": 12,
       "calories_per_bowl": 180,
-      "carb_source": "Rice in soup (~13-18g), celery and lemon (2-4g)",
-      "key_variable": "CRITICAL: served alone vs over rice",
+      "carb_source": "Rice in soup (~13-18g if present), celery and lemon (2-4g). Rice must be counted SEPARATELY.",
+      "key_variable": "CRITICAL: broth only vs rice in soup vs served over rice bed. Three very different carb counts.",
       "gi": 68,
       "speed": "MEDIUM",
       "confidence": "LOW-MODERATE",
-      "warning": "No USDA entry exists. Recipe analysis only.",
-      "sources": ["Simply Lebanese chicken lemon rice soup (22g)", "Feel Good Foodie (22g)"],
+      "warning": "No USDA entry exists. Recipe analysis only. Research confirmed broth-only is just 5-10g.",
+      "sources": ["Simply Lebanese chicken lemon rice soup (22g)", "Feel Good Foodie (22g)", "Research validation 2026: broth-only 5-10g"],
       "clarification_required": true,
       "clarification_needed": [
-        "Are you eating the soup alone, or over a bed of rice?",
+        "Is there rice IN the soup, or is it just broth with meat/veggies?",
+        "Are you eating it over a separate bed of rice?",
         "If over rice: add 30-45g for the extra 1/2-2/3 cup cooked rice"
       ],
       "carbs_with_rice_bed": {
         "carbs": 55,
         "carb_range": [48, 67],
-        "note": "Soup (20g) + 1/2-2/3 cup rice bed (30-45g)"
+        "note": "Soup with rice (20g) + 1/2-2/3 cup rice bed (30-45g)"
       }
     },
 
@@ -244,6 +247,51 @@
       "speed": "SLOW",
       "confidence": "MODERATE",
       "clarification_needed": ["How much?"]
+    },
+
+    "cheese_bourekas": {
+      "name": "Cheese bourekas / boyos",
+      "aliases": ["bourekas", "boyos", "cheese pastry"],
+      "carbs_per_piece": 22,
+      "carb_range": [18, 25],
+      "piece_weight_g": 90,
+      "fat_per_piece": 12,
+      "protein_per_piece": 7,
+      "calories_per_piece": 225,
+      "carb_source": "Phyllo or puff pastry — cheese adds minimal carbs",
+      "gi": 55,
+      "speed": "MEDIUM",
+      "confidence": "MODERATE",
+      "sources": ["Ta'amti brand: 15g/piece", "Recipe-based: 18-25g"],
+      "clarification_needed": ["How many pieces?", "Phyllo (lower) or puff pastry (higher)?"]
+    },
+
+    "lahmeh_b_ajeen": {
+      "name": "Lahmeh b'ajeen (thick meat pies)",
+      "aliases": ["meat pies", "thick lahmacun"],
+      "carbs_per_piece": 37,
+      "carb_range": [30, 45],
+      "piece_weight_g": 175,
+      "carb_source": "Thicker dough than lachmagine — add 5-10g to lachmagine estimates",
+      "gi": 55,
+      "speed": "MEDIUM",
+      "confidence": "LOW",
+      "warning": "Estimated from components only. Much larger than SY lachmagine.",
+      "clarification_needed": ["How many?", "Small or large?"]
+    },
+
+    "string_cheese_rolls": {
+      "name": "String cheese rolls (jibneh rolls, phyllo)",
+      "aliases": ["jibneh rolls", "cheese rolls", "phyllo cheese rolls"],
+      "carbs_per_roll": 11,
+      "carb_range": [8, 15],
+      "roll_weight_g": 50,
+      "carb_source": "2-3 phyllo sheets (6-10g) + cheese (0-1g)",
+      "gi": 55,
+      "speed": "MEDIUM",
+      "confidence": "LOW",
+      "warning": "Estimated from components only.",
+      "clarification_needed": ["How many rolls?"]
     },
 
     "itch": {
