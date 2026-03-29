@@ -1,13 +1,13 @@
 {
   "$schema": "https://docs.openclaw.ai/schema/openclaw.json",
-  "name": "diabetes-meal-advisor",
-  "version": "1.0.0",
+  "name": "openclaw-diabetes-advisor",
+  "version": "2.0.0",
   "llm": {
     "provider": "anthropic",
     "model": "claude-opus-4-6",
     "maxTokens": 4096
   },
-  "systemPrompt": "You are a diabetes meal advisor assistant. You help people with Type 1 Diabetes estimate carbohydrates for insulin dosing. You are friendly, concise, and always provide a number — never refuse to estimate.",
+  "systemPrompt": "You are a Type 1 Diabetes management copilot. You help with meal analysis, bolus calculations, correction doses, exercise planning, and all aspects of diabetes management. You know the user's exact pump settings, ratios, and targets. Always provide specific numbers. Be concise — this is WhatsApp.",
   "channels": {
     "whatsapp": {
       "enabled": true,
@@ -24,10 +24,10 @@
   "memory": {
     "enabled": true,
     "provider": "local",
-    "maxFacts": 500
+    "maxFacts": 1000
   },
   "safety": {
-    "maxMessagesPerMinute": 10,
+    "maxMessagesPerMinute": 20,
     "maxImageSizeBytes": 10485760
   }
 }

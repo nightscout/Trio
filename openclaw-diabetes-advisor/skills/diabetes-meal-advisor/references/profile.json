@@ -1,0 +1,167 @@
+{
+  "user": {
+    "name": "Edward",
+    "community": "Syrian Jewish (SY), Brooklyn",
+    "diagnosis": "Type 1 Diabetes",
+    "pump_system": "Trio (OpenAPS)",
+    "cgm": "Dexcom G7",
+    "notes": [
+      "Does not eat rice — do not count rice unless explicitly confirmed",
+      "Typically removes potatoes from dishes — confirm before counting",
+      "Main carb sources: mazza shells (bulgur, dough), challah/bread, sauces on meat, desserts"
+    ]
+  },
+
+  "insulin": {
+    "type": "Rapid-acting (Humalog/NovoRapid)",
+    "dia_hours": 6,
+    "peak_minutes": 75,
+    "curve": "rapid-acting"
+  },
+
+  "carb_ratios": {
+    "unit": "grams",
+    "schedule": [
+      { "time": "00:00", "ratio": 7, "note": "overnight — more insulin resistant" },
+      { "time": "06:00", "ratio": 5, "note": "breakfast — dawn phenomenon, most resistant" },
+      { "time": "11:00", "ratio": 7, "note": "lunch" },
+      { "time": "17:00", "ratio": 8, "note": "dinner — most sensitive" },
+      { "time": "21:00", "ratio": 7, "note": "evening snack" }
+    ]
+  },
+
+  "isf": {
+    "unit": "mg/dL",
+    "schedule": [
+      { "time": "00:00", "sensitivity": 35, "note": "overnight" },
+      { "time": "06:00", "sensitivity": 25, "note": "morning — most resistant" },
+      { "time": "11:00", "sensitivity": 35, "note": "midday" },
+      { "time": "17:00", "sensitivity": 40, "note": "evening — most sensitive" },
+      { "time": "21:00", "sensitivity": 35, "note": "late evening" }
+    ]
+  },
+
+  "isf_tiers": {
+    "enabled": true,
+    "tiers": [
+      { "bg_min": 0, "bg_max": 70, "multiplier": 1.2, "note": "hypo protection — less aggressive" },
+      { "bg_min": 70, "bg_max": 140, "multiplier": 1.0, "note": "in range — normal ISF" },
+      { "bg_min": 140, "bg_max": 200, "multiplier": 0.9, "note": "mildly high — slightly more aggressive" },
+      { "bg_min": 200, "bg_max": 250, "multiplier": 0.8, "note": "high — more aggressive" },
+      { "bg_min": 250, "bg_max": 400, "multiplier": 0.7, "note": "very high — most aggressive" }
+    ]
+  },
+
+  "basal_rates": {
+    "unit": "U/hr",
+    "schedule": [
+      { "time": "00:00", "rate": 0.8 },
+      { "time": "03:00", "rate": 1.0, "note": "dawn phenomenon ramp" },
+      { "time": "06:00", "rate": 1.2, "note": "peak morning resistance" },
+      { "time": "09:00", "rate": 0.9 },
+      { "time": "12:00", "rate": 0.8 },
+      { "time": "18:00", "rate": 0.7, "note": "most sensitive period" },
+      { "time": "21:00", "rate": 0.8 }
+    ],
+    "total_daily": 21.0
+  },
+
+  "bg_targets": {
+    "unit": "mg/dL",
+    "schedule": [
+      { "time": "00:00", "low": 100, "high": 110 },
+      { "time": "06:00", "low": 95, "high": 105, "note": "tighter morning target" },
+      { "time": "21:00", "low": 105, "high": 115, "note": "slightly higher overnight" }
+    ]
+  },
+
+  "safety_limits": {
+    "max_iob": 10,
+    "max_bolus": 10,
+    "max_basal": 4.0,
+    "max_cob": 120,
+    "max_daily_safety_multiplier": 3,
+    "current_basal_safety_multiplier": 4
+  },
+
+  "smb_settings": {
+    "enabled_with_cob": true,
+    "enabled_always": false,
+    "enabled_after_carbs": true,
+    "enabled_with_temptarget": true,
+    "enabled_high_bg": true,
+    "high_bg_target": 110,
+    "max_smb_basal_minutes": 30,
+    "max_uam_smb_basal_minutes": 30,
+    "smb_delivery_ratio": 0.5,
+    "smb_interval": 3
+  },
+
+  "fpu_settings": {
+    "enabled": true,
+    "individual_adjustment_factor": 0.5,
+    "delay_minutes": 60,
+    "max_duration_hours": 8,
+    "minute_interval": 30
+  },
+
+  "meal_settings": {
+    "fatty_meals_enabled": true,
+    "fatty_meal_factor": 0.7,
+    "sweet_meals_enabled": true,
+    "sweet_meal_factor": 1.0,
+    "max_meal_absorption_hours": 6
+  },
+
+  "glucose_alerts": {
+    "low": 70,
+    "high": 180,
+    "urgent_low": 55,
+    "urgent_high": 250,
+    "unit": "mg/dL"
+  },
+
+  "overrides": {
+    "presets": [
+      {
+        "name": "Exercise",
+        "percentage": 50,
+        "target": 140,
+        "duration_minutes": 120,
+        "smb_off": true,
+        "note": "Half basal, higher target, no SMBs during exercise"
+      },
+      {
+        "name": "Shabbat Meal",
+        "percentage": 120,
+        "duration_minutes": 240,
+        "note": "Multi-course meal, extended absorption, 20% more basal"
+      },
+      {
+        "name": "Sick Day",
+        "percentage": 130,
+        "target": 120,
+        "duration_minutes": 0,
+        "note": "Indefinite — increased resistance when ill"
+      },
+      {
+        "name": "Sleep",
+        "percentage": 90,
+        "target": 110,
+        "duration_minutes": 480,
+        "note": "Slightly less basal overnight, tighter target"
+      }
+    ]
+  },
+
+  "temp_targets": {
+    "presets": [
+      { "name": "Pre-Exercise", "target_low": 130, "target_high": 140, "duration_minutes": 60 },
+      { "name": "Post-Exercise", "target_low": 120, "target_high": 130, "duration_minutes": 120 },
+      { "name": "Eating Soon", "target_low": 80, "target_high": 80, "duration_minutes": 60 },
+      { "name": "Hypo Treatment", "target_low": 120, "target_high": 130, "duration_minutes": 30 }
+    ]
+  },
+
+  "_instructions": "Edit this file with your actual pump settings from Trio. The assistant reads this to give personalized dosing advice. All ratios and rates should match what is configured in your Trio app."
+}
