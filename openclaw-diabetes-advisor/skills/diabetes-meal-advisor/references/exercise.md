@@ -71,4 +71,4 @@ Contraindications from Riddell + ISPAD:
 - Blood ketones ≥1.5 mmol/L or large urine ketones — exercise contraindicated until resolved
 - BG >270 mg/dL with unexplained hyperglycemia — check ketones first
 - Severe hypoglycemia within previous 24 hours
-- BG <90 mg/dL — ingest 10-20g glucose and delay until BG rises
+- BG <90 mg/dL — calculate carbs needed to reach ~130 using user's weight-based rise_per_gram, ingest, delay until BG rises

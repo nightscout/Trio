@@ -186,7 +186,7 @@ Adjust the effective BG before calculating correction:
 **Full reference data in `references/exercise.md`** (Riddell 2017 consensus).
 
 **Pre-exercise safety checks:**
-- BG < 90: eat 10-20g carbs, delay until BG rises
+- BG < 90: calculate carbs needed to reach 130 using their rise_per_gram, eat, delay until BG rises
 - BG < 120 with IOB > 1u: warn, suggest carbs before starting
 - BG > 270 with unexplained high: check ketones first — do NOT exercise
 - Blood ketones ≥1.5: exercise CONTRAINDICATED until resolved
@@ -205,23 +205,34 @@ Recommend: bedtime snack (0.4g carbs/kg) without full insulin, ~20% basal reduct
 
 ### 5. HYPO MANAGEMENT
 **NO INTAKE REQUIRED — ACT IMMEDIATELY.**
-**Full reference in `references/hypo_treatment.md`.**
+**Reference data in `references/hypo_treatment.md`.**
 
-**Severity-graded response:**
-- **Level 1 (55-70 mg/dL):** "15g fast-acting carbs NOW. Glucose tabs are fastest. Recheck in 15 min."
-- **Level 2 (<54 mg/dL):** "20-30g fast-acting carbs NOW. This is urgent."
-- **Level 3 (<40 or can't self-treat):** "GLUCAGON. Baqsimi nasal or Gvoke pen. Call 911 if no glucagon available."
+**⚠️ NEVER give a generic "eat 15g" recommendation. Always calculate from the user's settings.**
 
-**Best fast-acting carbs (ranked by speed):**
+**Step 1: Calculate how much glucose they actually need.**
+```
+remaining_drop = IOB * current_ISF  (if IOB known)
+effective_low = current_BG - remaining_drop  (how low they're actually heading)
+bg_deficit = target_BG - effective_low
+rise_per_gram = read from profile (weight-based, see hypo_treatment.md)
+grams_needed = bg_deficit / rise_per_gram
+```
+
+If you don't have IOB, use BG deficit alone but warn: "If you have IOB, you'll need more — tell me your IOB."
+
+**Step 2: Give the specific number.**
+- "You need approximately **Xg** of fast-acting carbs to reach target."
+- Never just say "15g" — that's a population average that's wrong for most individuals.
+- If the calculation gives <10g, still recommend a minimum of 10g (safety floor).
+- If >40g, recommend treating in stages: take 20-25g now, recheck in 15 min, treat again if needed.
+
+**Step 3: Tell them WHAT to eat (ranked by speed):**
 Glucose tabs > glucose gel > regular soda > juice (grape fastest) > honey.
 ⚠️ Chocolate, candy bars, milk are TOO SLOW — fat delays absorption.
 
-**Weight-based glucose calculation** (read user's weight from profile):
-`grams_needed = (target_BG - current_BG) / rise_per_gram`
-(See weight table in hypo_treatment.md — ranges from 3-10 mg/dL per gram by body weight)
-
-**If they have IOB**, estimate further drop: `remaining_drop = IOB * ISF`
-Factor this into grams needed.
+**Severity escalation (regardless of calculation):**
+- BG <54: this is urgent — treat immediately, don't wait for IOB info
+- BG <40 or can't self-treat: **GLUCAGON** (Baqsimi nasal, Gvoke pen). Call 911 if unavailable.
 
 **After treatment:** ask what happened — over-bolus? missed meal? exercise? Help prevent recurrence.
 

@@ -3,21 +3,40 @@
 Sources: ADA, ISPAD 2022, Scheiner (DiaTribe), REVERSIBLE Trial 2024,
 Carlson et al. 2017 (Emergency Medicine Journal)
 
-## Severity-Graded Treatment Protocol
+## CRITICAL: Always Calculate, Never Use Generic Amounts
 
-| Level | BG Range | Treatment |
-|-------|----------|-----------|
-| Level 1 | 55-70 mg/dL | 15g fast-acting carbs, recheck in 15 min |
-| Level 2 | <54 mg/dL | 20-30g fast-acting carbs, recheck in 15 min |
-| Level 3 | <40 or unable to self-treat | GLUCAGON — no oral treatment if consciousness impaired |
+The "15-15 rule" (15g carbs, recheck in 15 min) is a population average from
+the 1980s. It is WRONG for most individuals:
 
-Note: REVERSIBLE Trial (2024, Diabetes Care) found only 45% of Level 1 episodes
-resolved within 15 min in pump users on hybrid closed-loop. The 15-15 rule is a
-starting point, not a guarantee.
+- A person with ICR 1:5 and ISF 25: 15g raises BG by 75 mg/dL — massive overshoot
+- A person with ICR 1:15 and ISF 100: 15g raises BG by only 25 mg/dL — may undertreat
+
+**The copilot must ALWAYS calculate from the user's actual settings.**
+
+## Personalized Treatment Formula
+
+```
+Step 1: Estimate where BG is heading
+  remaining_drop = IOB × current_ISF
+  effective_low = current_BG - remaining_drop
+
+Step 2: Calculate the deficit
+  bg_deficit = target_BG - effective_low
+
+Step 3: Calculate grams needed (weight-based rise per gram)
+  grams_needed = bg_deficit / rise_per_gram
+
+Step 4: Apply safety bounds
+  minimum = 10g (safety floor — never recommend less)
+  if grams_needed > 40g: treat in stages (20-25g, recheck, repeat)
+```
+
+If IOB is unknown, calculate from BG deficit alone but flag that IOB could
+make it worse and ask for their IOB.
 
 ## Weight-Based BG Rise per Gram of Glucose
 
-The "1g = 4 mg/dL" rule is a rough average. Actual rise depends on body weight:
+The rise per gram is stored in the user's profile. If not set, use this table:
 
 | Body Weight | BG rise per 1g glucose |
 |-------------|----------------------|
@@ -29,11 +48,21 @@ The "1g = 4 mg/dL" rule is a rough average. Actual rise depends on body weight:
 
 Source: Gary Scheiner, DiaTribe
 
-**Treatment formula:**
-grams_needed = (Target_BG - Current_BG) / rise_per_gram
-
 Active IOB, recent exercise, and rate of decline all modulate actual response.
 When in doubt, treat with MORE rather than less — undertreating a low is dangerous.
+
+## Severity Escalation
+
+Even though treatment grams should be personalized, urgency escalates by level:
+
+| Level | BG Range | Urgency |
+|-------|----------|---------|
+| Level 1 | 55-70 mg/dL | Calculate and treat. Recheck in 15 min. |
+| Level 2 | <54 mg/dL | URGENT — treat immediately. Err on the high side of your calculation. |
+| Level 3 | <40 or unable to self-treat | GLUCAGON — no oral treatment if consciousness impaired. |
+
+Note: REVERSIBLE Trial (2024, Diabetes Care) found only 45% of Level 1 episodes
+resolved within 15 min in pump users on hybrid closed-loop.
 
 ## Fast-Acting Carb Ranking (fastest to slowest)
 
