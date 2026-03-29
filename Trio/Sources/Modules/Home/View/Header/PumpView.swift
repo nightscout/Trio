@@ -1,4 +1,5 @@
 import CoreData
+import MedtrumKit
 import SwiftUI
 
 struct PumpView: View {
@@ -100,26 +101,24 @@ struct PumpView: View {
                 }
 
                 if let date = expiresAtDate {
-                    PatchTimer(date, isExpiration: true)
+                    PatchTimer(date, expiryMode: ExpiryMode.default)
                 }
 
                 if let date = activatedAtDate {
-                    PatchTimer(date, isExpiration: false)
+                    PatchTimer(date, expiryMode: ExpiryMode.extended)
                 }
             }
         }
     }
 
-    @ViewBuilder private func PatchTimer(_ date: Date, isExpiration: Bool) -> some View {
+    @ViewBuilder private func PatchTimer(_ date: Date, expiryMode: ExpiryMode) -> some View {
         HStack {
             Image(systemName: hourglassIcon)
                 .font(.callout)
                 .foregroundStyle(timerColor, timerColorSecondary)
                 .symbolRenderingMode(.palette)
 
-            let remainingTimeString = isExpiration ?
-                remainingTimeString(time: date.timeIntervalSince(timerDate)) :
-                activeTimeString(time: timerDate.timeIntervalSince(date))
+            let remainingTimeString = remainingTimeString(time: date.timeIntervalSince(timerDate))
 
             Text(remainingTimeString)
                 .font(date.timeIntervalSince(timerDate) > 0 ? .callout : .subheadline)
@@ -135,7 +134,7 @@ struct PumpView: View {
                 )
         }
         // aligns the stopwatch icon exactly with the first pixel of the reservoir icon
-        .padding(.leading, date.timeIntervalSince(timerDate) > 0 || !isExpiration ? 12 : 0)
+        .padding(.leading, date.timeIntervalSince(timerDate) > 0 || expiryMode == ExpiryMode.extended ? 12 : 0)
     }
 
     private func remainingTimeString(time: TimeInterval) -> String {
