@@ -1,7 +1,6 @@
 # Sick Day Management for T1D
 
-Sources: ADA, ISPAD 2022, JDRF/Breakthrough T1D, CDC, NHS, IDF,
-Dana Lewis (OpenAPS), Know Diabetes
+Sources: ADA, ISPAD 2022, JDRF/Breakthrough T1D, CDC, NHS, IDF, Know Diabetes
 
 ## Cardinal Rule
 
@@ -61,16 +60,15 @@ Key interventions:
   - Ketones 1.5-3.0: give 15-20% of TDD
 - Insulin needs normalize within 24-48 hours after fever breaks — taper gradually
 
-## AID Systems During Illness
+## Automated Pump Systems During Illness
 
-Generally beneficial — adjust insulin every 5 min in response to changing BG.
-Dana Lewis documented OpenAPS maintaining 85-160 mg/dL through 5+ days of
-norovirus without eating for 24+ hours.
+Closed-loop / AID systems are generally beneficial during illness — they adjust
+insulin delivery frequently in response to changing BG.
 
 However:
 - CGM accuracy may degrade (dehydration, fever affect sensor readings)
 - Require fingerstick confirmation when readings seem off
-- No AID system monitors ketones — must be done manually
+- No pump system monitors ketones — this must be done manually
 - CHANGE INFUSION SETS if BG unexpectedly high — site failure during illness
   is a leading cause of DKA in pump users
 

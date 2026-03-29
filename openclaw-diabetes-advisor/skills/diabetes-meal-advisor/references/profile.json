@@ -3,7 +3,7 @@
     "name": "Edward",
     "community": "Syrian Jewish (SY), Brooklyn",
     "diagnosis": "Type 1 Diabetes",
-    "pump_system": "Trio (OpenAPS)",
+    "pump_system": "",
     "cgm": "Dexcom G7",
     "weight_lbs": 180,
     "weight_kg": 82,
@@ -87,17 +87,11 @@
     "current_basal_safety_multiplier": 4
   },
 
-  "smb_settings": {
-    "enabled_with_cob": true,
-    "enabled_always": false,
-    "enabled_after_carbs": true,
-    "enabled_with_temptarget": true,
-    "enabled_high_bg": true,
-    "high_bg_target": 110,
-    "max_smb_basal_minutes": 30,
-    "max_uam_smb_basal_minutes": 30,
-    "smb_delivery_ratio": 0.5,
-    "smb_interval": 3
+  "automation": {
+    "uses_aid_system": false,
+    "aid_system_name": "",
+    "recommended_bolus_percentage": 100,
+    "notes": "Set uses_aid_system to true if on a closed-loop system (e.g., Trio, Loop, Control-IQ, 780G, CamAPS). Set recommended_bolus_percentage to the % your system suggests (e.g., 70 for Trio). Set to 100 for manual pump or MDI."
   },
 
   "fpu_settings": {
@@ -131,8 +125,7 @@
         "percentage": 50,
         "target": 140,
         "duration_minutes": 120,
-        "smb_off": true,
-        "note": "Half basal, higher target, no SMBs during exercise"
+        "note": "Half basal, higher target during exercise"
       },
       {
         "name": "Shabbat Meal",
@@ -166,5 +159,5 @@
     ]
   },
 
-  "_instructions": "Edit this file with your actual pump settings from Trio. The assistant reads this to give personalized dosing advice. All ratios and rates should match what is configured in your Trio app."
+  "_instructions": "Edit this file with your actual pump settings. The assistant reads this to give personalized dosing advice. All ratios and rates should match what is configured in your pump or what your endo prescribed. Works with any insulin pump or MDI regimen."
 }

@@ -7,7 +7,7 @@ description: >
   diabetes management topic. Analyzes meal photos with FatSecret + vision.
   Calculates bolus doses using the user's actual pump ratios, ISF, and targets.
   Advises on corrections, exercise, overrides, hypo treatment, and situational
-  insulin strategy. Knows the user's full Trio/OpenAPS configuration.
+  insulin strategy. Knows the user's full pump configuration.
 version: 3.0.0
 metadata:
   openclaw:
@@ -62,7 +62,7 @@ skills/diabetes-meal-advisor/references/sick_day.md
 
 **For ANY bolus recommendation (meal or correction), you MUST know:**
 1. **Current BG** — "What's your BG right now?" (or "What does Dexcom say?")
-2. **Current IOB** — "How much insulin on board?" (check Trio app)
+2. **Current IOB** — "How much insulin on board?" (check your pump/app)
 3. **Trend arrow** — "Which way is it heading?" (↑ ↗ → ↘ ↓)
 
 **For meal bolusing, also ask:**
@@ -148,10 +148,9 @@ Delta_Calc   = BG_change_last_15min / ISF  (trend adjustment)
 ```
 
 **CRITICAL: IOB is subtracted from the TOTAL bolus, not just the correction.**
-This includes IOB from SMBs, manual boluses, and temp basal adjustments.
-Negative IOB (from basal suspension) adds insulin to the recommendation.
+This includes IOB from all sources: manual boluses, automated micro-boluses, and temp basal adjustments. Negative IOB (from basal suspension) adds insulin to the recommendation.
 
-**If the user is on an AID system (Trio, Loop, OpenAPS):** The system may recommend only ~70% of the calculated bolus upfront, expecting SMBs to deliver the rest as BG rises. Ask the user if they use a recommended percentage.
+**If the user is on an automated insulin delivery (AID) system:** The system may recommend only ~70% of the calculated bolus upfront, expecting automated corrections to deliver the rest as BG rises. Ask the user if their system uses a recommended bolus percentage.
 
 **Trend adjustment (Pettus & Edelman method):**
 Adjust the effective BG before calculating correction:
@@ -180,7 +179,7 @@ Adjust the effective BG before calculating correction:
 3. `correction = (BG - target_midpoint) / effective_ISF`
 4. Subtract ALL IOB from the total (not just correction-attributed IOB)
 5. Apply trend adjustment using Pettus/Edelman method (only if >3h since last meal)
-6. If correction is small (<0.5u) and trend is flat/dropping, suggest waiting — the AID system's SMBs may handle it
+6. If correction is small (<0.5u) and trend is flat/dropping, suggest waiting — an AID system's automated corrections may handle it, or it may resolve on its own
 
 ### 4. EXERCISE ADVICE
 **Required:** BG, IOB, type/duration of exercise. Ask for missing.
@@ -252,7 +251,7 @@ Factor this into grams needed.
 
 **Fever/infection:** typically increases insulin needs 10-50%. Consider 10-20% basal increase.
 
-**AID systems help** but can't monitor ketones — remind user to check manually. Prompt site change if BG unexpectedly high.
+**Automated pump systems help** but can't monitor ketones — remind user to check manually. Prompt site change if BG unexpectedly high.
 
 ### 8. SETTINGS DISCUSSION
 When the user asks about their settings, ratios, or wants advice on adjustments:
@@ -424,12 +423,11 @@ Anticipate multi-course structure:
 
 ## SUPER BOLUS — USE WITH CAUTION
 
-⚠️ **CONTRAINDICATED with AID systems (Trio, Loop, OpenAPS, Control-IQ, 780G).**
-When a user zeros basal for a super bolus, the AID detects rising BG and fights the zero-temp by issuing SMBs — directly counterproductive. AID systems already automate a version of this concept through SMBs. Dana Lewis (OpenAPS creator): "SMBs are miniature versions of the super bolus technique."
+⚠️ **CONTRAINDICATED with automated insulin delivery (AID) systems** — any closed-loop pump (e.g., systems that auto-adjust basal or deliver automatic corrections). When a user zeros basal for a super bolus, the AID detects rising BG and fights the zero-temp by issuing automatic corrections — directly counterproductive. AID systems already automate a version of front-loading.
 
-**Only recommend super bolus if the user is on manual pump mode or MDI.**
+**Ask the user if they're on an AID/closed-loop system. If yes, do NOT recommend super bolus.** Only recommend for manual pump mode or MDI (multiple daily injections).
 
-If on manual mode, the technique (John Walsh, "Pumping Insulin"):
+If on manual mode or MDI pump, the technique (John Walsh, "Pumping Insulin"):
 - Borrow 1-3 hours of basal, add to meal bolus, set temp basal to zero
 - Extra insulin = ~1 hour of current basal rate
 - Net insulin unchanged — just front-loaded for fast-spiking meals
@@ -440,7 +438,7 @@ If on manual mode, the technique (John Walsh, "Pumping Insulin"):
 **Sugar % thresholds for flagging speed (these are heuristic, not evidence-based):**
 - Sugar ≥25% of total carbs OR meal is HIGH GI: flag as fast-spiking
 - Sugar 15-24% OR MIXED speeds: flag as moderate spike risk
-- These inform pre-bolus timing, not super bolus recommendation for AID users
+- These inform pre-bolus timing advice regardless of pump type
 
 ## FPU CALCULATION (Warsaw Method — Pańkowska et al. 2010)
 
@@ -454,7 +452,7 @@ One FPU = 100 kcal from fat+protein ≈ 10g carb equivalent for dosing.
 - Delay: read from profile (default 60 min before FPU dosing starts)
 - Carb equivalents = (kcal / 10) × adjustment_factor
 
-⚠️ **The 0.5 default exists for safety.** The original full-dose algorithm caused hypoglycemia in 50% of patients (Pańkowska 2022). Most AID systems' own SMBs already partially cover fat/protein rises, so full FPU dosing on top causes stacking. Increase by 0.1 increments only if fat/protein spikes persist.
+⚠️ **The 0.5 default exists for safety.** The original full-dose algorithm caused hypoglycemia in 50% of patients (Pańkowska 2022). If on an automated pump system, its own corrections already partially cover fat/protein rises, so full FPU dosing on top causes stacking. Increase by 0.1 increments only if fat/protein spikes persist.
 
 ## RESPONSE FORMAT — MEAL ANALYSIS
 
