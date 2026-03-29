@@ -1,0 +1,626 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "last_updated": "2026-03-29",
+    "sources": [
+      "USDA FoodData Central",
+      "Frontiers in Nutrition tDNA-ME (PMC9235861, 2022)",
+      "Texas Children's Hospital ME Food Exchange List (2016)",
+      "Commercial labels: AFIA, Baroody, Halwani Bros, Mazati",
+      "Recipe-based calculations from 20+ Middle Eastern food blogs"
+    ],
+    "notes": "Homemade SY dishes have no standardized serving sizes. Weight-based entry is preferred. Per-piece estimates are fallbacks. Confidence ratings reflect data quality."
+  },
+
+  "savory": {
+    "kibbeh_fried": {
+      "name": "Kibbeh (torpedo, fried)",
+      "aliases": ["kibbe", "kubbeh", "kubba"],
+      "carbs_per_piece": 16,
+      "carb_range": [13, 19],
+      "piece_weight_g": [55, 70],
+      "fat_per_piece": 8,
+      "protein_per_piece": 7,
+      "calories_per_piece": 165,
+      "carb_source": "Bulgur wheat shell, some recipes add flour",
+      "key_variable": "Piece size — AFIA brand 64g = 13g carbs, large homemade 85g = 18-19g",
+      "gi": 48,
+      "speed": "SLOW",
+      "confidence": "HIGH",
+      "usda_ref": "AFIA Traditional Kibbeh branded entry",
+      "clarification_needed": ["How many pieces?", "Standard size or small/large?"]
+    },
+
+    "kibbeh_baked": {
+      "name": "Kibbeh bil sanieh (baked tray)",
+      "aliases": ["kibbeh in pan", "baked kibbeh"],
+      "carbs_per_slice": 24,
+      "carb_range": [19, 33],
+      "slice_weight_g": [120, 150],
+      "fat_per_slice": 12,
+      "protein_per_slice": 15,
+      "calories_per_slice": 265,
+      "carb_source": "Bulgur layer (more than fried), some flour",
+      "key_variable": "Slice size — portions larger than individual torpedoes",
+      "gi": 48,
+      "speed": "SLOW",
+      "confidence": "MODERATE",
+      "sources": ["Feel Good Foodie (26g)", "Simply Lebanese (23g)"],
+      "clarification_needed": ["How big was the slice?", "Thick or thin cut?"]
+    },
+
+    "kibbeh_nayeh": {
+      "name": "Kibbeh nayeh (raw)",
+      "aliases": ["raw kibbeh", "kibbe niye"],
+      "carbs_per_100g": 10,
+      "carb_range": [8, 12],
+      "fat_per_100g": 6,
+      "protein_per_100g": 14,
+      "calories_per_100g": 150,
+      "carb_source": "Fine bulgur (less than cooked versions)",
+      "gi": 46,
+      "speed": "SLOW",
+      "confidence": "MODERATE",
+      "clarification_needed": ["How much did you eat? Estimate in handfuls or compared to plate."]
+    },
+
+    "sambousak_meat": {
+      "name": "Sambousak (meat, fried)",
+      "aliases": ["sambusak", "samosa", "meat pastry"],
+      "carbs_per_piece": 19,
+      "carb_range": [18, 21],
+      "piece_weight_g": [55, 65],
+      "fat_per_piece": 10,
+      "protein_per_piece": 6,
+      "calories_per_piece": 190,
+      "carb_source": "Flour dough wrapper — meat filling adds negligible carbs",
+      "key_variable": "Dough thickness and piece size. Commercial (Mazati) smaller = 14g",
+      "gi": 55,
+      "speed": "MEDIUM",
+      "confidence": "HIGH",
+      "clarification_needed": ["How many pieces?", "Homemade or store-bought?"]
+    },
+
+    "sambousak_cheese": {
+      "name": "Sambousak (cheese, baked)",
+      "aliases": ["cheese sambusak", "cheese pastry"],
+      "carbs_per_piece": 15,
+      "carb_range": [14, 17],
+      "piece_weight_g": [35, 45],
+      "fat_per_piece": 7,
+      "protein_per_piece": 5,
+      "calories_per_piece": 145,
+      "carb_source": "Flour dough — cheese replaces some dough volume in some recipes",
+      "key_variable": "If same dough as meat version, difference is minimal",
+      "gi": 55,
+      "speed": "MEDIUM",
+      "confidence": "HIGH",
+      "clarification_needed": ["How many pieces?", "Baked or fried?"]
+    },
+
+    "lachmagine": {
+      "name": "Lachmagine (Syrian meat pies, 3-4 inch)",
+      "aliases": ["lahm bi ajeen", "meat pies", "mini lahmacun"],
+      "carbs_per_piece": 13,
+      "carb_range": [11, 15],
+      "piece_weight_g": [30, 40],
+      "fat_per_piece": 3,
+      "protein_per_piece": 5,
+      "calories_per_piece": 100,
+      "carb_source": "Flour/yeast dough. Meat topping adds only 1-2g from tomato/onion. Tamarind topping adds 2-3g.",
+      "key_variable": "Size — SY mini (3-4 inch) vs Turkish lahmacun (10-12 inch = 55-71g carbs!)",
+      "gi": 55,
+      "speed": "MEDIUM",
+      "confidence": "LOW-MODERATE",
+      "warning": "No source provides nutrition specifically for SY-community lachmagine. Estimates from comparable Lebanese sfeeha.",
+      "sources": ["Alphafoodie (~11.5g/small pie)", "Cookin' with Mima (11g/piece)"],
+      "clarification_needed": ["How many pieces?", "Small SY-style or large?"]
+    },
+
+    "hamod_soup": {
+      "name": "Hamod / Hamud soup (lemon soup)",
+      "aliases": ["hamud", "lemon chicken soup", "hamod"],
+      "carbs_per_bowl": 20,
+      "carb_range": [18, 22],
+      "serving_size": "1.5 cup bowl, soup only",
+      "fat_per_bowl": 6,
+      "protein_per_bowl": 12,
+      "calories_per_bowl": 180,
+      "carb_source": "Rice in soup (~13-18g), celery and lemon (2-4g)",
+      "key_variable": "CRITICAL: served alone vs over rice",
+      "gi": 68,
+      "speed": "MEDIUM",
+      "confidence": "LOW-MODERATE",
+      "warning": "No USDA entry exists. Recipe analysis only.",
+      "sources": ["Simply Lebanese chicken lemon rice soup (22g)", "Feel Good Foodie (22g)"],
+      "clarification_required": true,
+      "clarification_needed": [
+        "Are you eating the soup alone, or over a bed of rice?",
+        "If over rice: add 30-45g for the extra 1/2-2/3 cup cooked rice"
+      ],
+      "carbs_with_rice_bed": {
+        "carbs": 55,
+        "carb_range": [48, 67],
+        "note": "Soup (20g) + 1/2-2/3 cup rice bed (30-45g)"
+      }
+    },
+
+    "mechshi_grape_leaves": {
+      "name": "Mechshi / Yebra (stuffed grape leaves)",
+      "aliases": ["warak enab", "stuffed grape leaves", "dolma", "yebra"],
+      "carbs_per_roll": 3.5,
+      "carb_range": [2.3, 5],
+      "roll_weight_g": 21,
+      "fat_per_roll": 2,
+      "protein_per_roll": 1.5,
+      "calories_per_roll": 38,
+      "carb_source": "Rice filling. Vegetarian versions trend higher (4-5g/roll)",
+      "key_variable": "Meat vs vegetarian filling. Typical serving = 5-8 rolls",
+      "gi": 55,
+      "speed": "MEDIUM",
+      "confidence": "HIGH",
+      "usda_ref": "FoodData Central #783120",
+      "clarification_needed": ["How many rolls?", "Meat-filled or vegetarian?"],
+      "typical_serving": {
+        "rolls": [5, 8],
+        "carbs": [12, 28]
+      }
+    },
+
+    "mechshi_zucchini": {
+      "name": "Kousa mahshi (stuffed zucchini)",
+      "aliases": ["stuffed zucchini", "kousa mehshi"],
+      "carbs_per_piece": 21,
+      "carb_range": [19, 24],
+      "fat_per_piece": 8,
+      "protein_per_piece": 10,
+      "calories_per_piece": 200,
+      "carb_source": "Rice filling (~15-18g) + tomato sauce (3-5g) + zucchini (2-3g)",
+      "gi": 60,
+      "speed": "MEDIUM",
+      "confidence": "MODERATE",
+      "sources": ["Feel Good Foodie (22g)", "The Matbakh (19g)"],
+      "clarification_needed": ["How many pieces?"]
+    },
+
+    "shish_barak": {
+      "name": "Shish barak (dumplings in yogurt)",
+      "aliases": ["shushbarak", "yogurt dumplings"],
+      "carbs_per_serving": 40,
+      "carb_range": [35, 44],
+      "serving_size": "6-8 dumplings + yogurt sauce",
+      "fat_per_serving": 12,
+      "protein_per_serving": 18,
+      "calories_per_serving": 340,
+      "carb_source": "Flour dough wrappers",
+      "gi": 55,
+      "speed": "MEDIUM",
+      "confidence": "LOW-MODERATE",
+      "clarification_needed": ["How many dumplings?", "Served over rice? Add 30-45g"]
+    },
+
+    "ful_medames": {
+      "name": "Ful medames (fava beans)",
+      "aliases": ["ful", "foul", "fava beans"],
+      "carbs_per_cup": 32,
+      "carb_range": [28, 35],
+      "fat_per_cup": 6,
+      "protein_per_cup": 14,
+      "calories_per_cup": 240,
+      "carb_source": "Fava beans",
+      "gi": 40,
+      "speed": "SLOW",
+      "confidence": "MODERATE",
+      "clarification_needed": ["How much? Cup estimate?", "Eaten with bread? Add bread carbs separately"]
+    },
+
+    "fattoush": {
+      "name": "Fattoush",
+      "aliases": ["fatteh", "fattoush salad"],
+      "carbs_per_cup": 15,
+      "carb_range": [8, 20],
+      "fat_per_cup": 8,
+      "protein_per_cup": 3,
+      "calories_per_cup": 145,
+      "carb_source": "Pita chips (highly variable amount)",
+      "key_variable": "Amount of fried pita — can range from a few chips to heavily loaded",
+      "gi": 55,
+      "speed": "MEDIUM",
+      "confidence": "MODERATE",
+      "clarification_required": true,
+      "clarification_needed": ["Light on pita chips or heavy?"]
+    },
+
+    "tabouleh": {
+      "name": "Tabouleh",
+      "aliases": ["tabbouleh", "tabouli"],
+      "carbs_per_half_cup": 12,
+      "carb_range": [8, 17],
+      "fat_per_half_cup": 4,
+      "protein_per_half_cup": 2,
+      "calories_per_half_cup": 90,
+      "carb_source": "Bulgur wheat",
+      "gi": 48,
+      "speed": "SLOW",
+      "confidence": "MODERATE",
+      "clarification_needed": ["How much?"]
+    },
+
+    "itch": {
+      "name": "Itch / Eech (bulgur salad)",
+      "aliases": ["eech", "bulgur salad"],
+      "carbs_per_cup": 28,
+      "carb_range": [25, 32],
+      "fat_per_cup": 6,
+      "protein_per_cup": 5,
+      "calories_per_cup": 185,
+      "carb_source": "Bulgur wheat (more than tabouleh — less parsley ratio)",
+      "gi": 48,
+      "speed": "SLOW",
+      "confidence": "MODERATE"
+    }
+  },
+
+  "breads_and_starches": {
+    "challah": {
+      "name": "Challah",
+      "carbs_per_slice": 25,
+      "carb_range": [22, 30],
+      "carbs_per_100g": 47.8,
+      "slice_weight_g": [42, 57],
+      "fat_per_slice": 4,
+      "protein_per_slice": 5,
+      "calories_per_slice": 155,
+      "carb_source": "Enriched white flour (~70%), sugar/honey (~15%)",
+      "key_variable": "Slice thickness — doubles the carb count. Weigh for accuracy.",
+      "gi": 75,
+      "speed": "FAST",
+      "confidence": "HIGH",
+      "usda_ref": "USDA egg challah bread",
+      "clarification_needed": ["How thick was the slice?", "Thin, medium, or thick?"]
+    },
+
+    "syrian_flatbread": {
+      "name": "Syrian flatbread (khubz)",
+      "aliases": ["pita", "khubz"],
+      "carbs_per_piece": 32,
+      "carb_range": [28, 36],
+      "gi": 68,
+      "speed": "FAST",
+      "confidence": "MODERATE",
+      "clarification_needed": ["Full piece or half?"]
+    },
+
+    "kaak_bread_ring": {
+      "name": "Ka'ak (large sesame bread ring)",
+      "aliases": ["kaak", "ka'ak b'susum"],
+      "carbs_per_ring": 55,
+      "carb_range": [45, 70],
+      "ring_weight_g": 100,
+      "carb_source": "Flour — comparable to a bagel",
+      "gi": 72,
+      "speed": "FAST",
+      "confidence": "MODERATE",
+      "warning": "Do NOT confuse with ka'ak cookies (small, ~10g carbs)"
+    },
+
+    "riz": {
+      "name": "Riz (white rice with vermicelli)",
+      "aliases": ["rice", "riz b'shaariyeh", "rice with noodles"],
+      "carbs_per_cup": 45,
+      "carb_range": [43, 48],
+      "fat_per_cup": 3,
+      "protein_per_cup": 5,
+      "calories_per_cup": 225,
+      "carb_source": "White rice + wheat vermicelli",
+      "gi": 75,
+      "speed": "FAST",
+      "confidence": "HIGH",
+      "app_alert": "Riz is the single largest daily carb driver in SY meals — accompanies nearly every dinner",
+      "clarification_needed": ["How much rice? Half cup, full cup, or more?"]
+    }
+  },
+
+  "dips_and_sides": {
+    "hummus": {
+      "name": "Hummus",
+      "carbs_per_2tbsp": 4,
+      "carb_range": [3, 5],
+      "fat_per_2tbsp": 3,
+      "protein_per_2tbsp": 2,
+      "calories_per_2tbsp": 50,
+      "carbs_per_oz": 8,
+      "carb_source": "Chickpeas",
+      "gi": 6,
+      "speed": "SLOW",
+      "confidence": "HIGH",
+      "note": "In standard 2-tbsp mezze portions, negligible for bolusing. Only significant in large servings."
+    },
+
+    "baba_ghanoush": {
+      "name": "Baba ghanoush",
+      "carbs_per_2tbsp": 4,
+      "carb_range": [3, 5],
+      "fat_per_2tbsp": 3,
+      "protein_per_2tbsp": 1,
+      "calories_per_2tbsp": 45,
+      "carb_source": "Eggplant, tahini",
+      "gi": 15,
+      "speed": "SLOW",
+      "confidence": "HIGH"
+    },
+
+    "tahini": {
+      "name": "Tahini",
+      "carbs_per_tbsp": 3,
+      "carb_range": [2, 4],
+      "fat_per_tbsp": 8,
+      "protein_per_tbsp": 3,
+      "calories_per_tbsp": 90,
+      "note": "Often overlooked, has some carbs. High fat delays absorption of other foods.",
+      "confidence": "HIGH"
+    },
+
+    "halloumi": {
+      "name": "Halloumi / Jibne mashwi (grilled cheese)",
+      "carbs_per_80g": 1,
+      "carb_range": [0, 3],
+      "note": "Essentially carb-free for bolusing purposes",
+      "confidence": "HIGH"
+    }
+  },
+
+  "sweets_and_desserts": {
+    "adjwe": {
+      "name": "Adjwe (date-filled semolina cookies)",
+      "aliases": ["date cookies", "SY ma'amoul"],
+      "carbs_per_piece": 17,
+      "carb_range": [15, 20],
+      "piece_weight_g": [25, 30],
+      "fat_per_piece": 4,
+      "protein_per_piece": 2,
+      "calories_per_piece": 110,
+      "carb_source": "Semolina + dates (75% sugar)",
+      "key_variable": "Size — SY adjwe smaller than standard bakery ma'amoul (22-25g carbs for 40g cookie)",
+      "gi": 60,
+      "speed": "MEDIUM",
+      "confidence": "LOW-MODERATE",
+      "warning": "No nutritional analysis exists for SY adjwe specifically. Scaled from standard ma'amoul.",
+      "sources": ["Baroody ma'amoul (23g/40g cookie)", "Halwani Bros (22g/40g cookie)"],
+      "clarification_needed": ["How many?", "Small SY-style or larger bakery size?"]
+    },
+
+    "maamoul_nut": {
+      "name": "Ma'amoul (nut-filled)",
+      "aliases": ["walnut ma'amoul", "pistachio ma'amoul"],
+      "carbs_per_piece": 20,
+      "carb_range": [18, 22],
+      "piece_weight_g": [35, 45],
+      "carb_source": "Semolina dough + nuts (15-20% carbs replace dates' 75% sugar)",
+      "gi": 55,
+      "speed": "MEDIUM",
+      "confidence": "MODERATE"
+    },
+
+    "baklawa": {
+      "name": "Baklawa / Baklava",
+      "carbs_per_piece_small": 15,
+      "carbs_per_piece_standard": 21,
+      "carbs_per_piece_large": 30,
+      "carb_range": [14, 30],
+      "carbs_per_100g": 37.8,
+      "piece_weights": {
+        "small": [35, 40],
+        "standard_diamond": [50, 60],
+        "large_usda": [75, 80]
+      },
+      "fat_per_standard_piece": 12,
+      "protein_per_standard_piece": 4,
+      "calories_per_standard_piece": 210,
+      "carb_source": "Phyllo dough (~55%), sugar/honey syrup (~35%), nuts (~10%)",
+      "gi": 65,
+      "speed": "FAST",
+      "confidence": "HIGH",
+      "usda_ref": "USDA baklava, 37.8g carbs/100g",
+      "note": "SY rose water syrup version has comparable carbs to honey-syrup version",
+      "clarification_needed": ["How many pieces?", "Small diamond or large square?"]
+    },
+
+    "knafeh": {
+      "name": "Knafeh / Kunafa",
+      "aliases": ["kunafe", "kanafeh"],
+      "carbs_per_slice": 32,
+      "carb_range": [28, 35],
+      "slice_weight_g": 100,
+      "fat_per_slice": 15,
+      "protein_per_slice": 8,
+      "calories_per_slice": 295,
+      "carb_source": "Semolina or phyllo base + sugar syrup + cheese",
+      "gi": 62,
+      "speed": "FAST",
+      "confidence": "MODERATE"
+    },
+
+    "basbousa": {
+      "name": "Basbousa / Namoura (semolina cake)",
+      "aliases": ["namoura", "hareesa", "revani"],
+      "carbs_per_piece": 46,
+      "carb_range": [42, 50],
+      "fat_per_piece": 10,
+      "protein_per_piece": 4,
+      "calories_per_piece": 290,
+      "carb_source": "Semolina + sugar syrup = DOUBLE sugar load",
+      "gi": 66,
+      "speed": "FAST",
+      "confidence": "MODERATE",
+      "app_alert": "Deceptively high-carb. One piece can equal an entire meal's carb allowance."
+    },
+
+    "atayef": {
+      "name": "Atayef / Ataif (stuffed pancakes, fried + syrup)",
+      "aliases": ["qatayef", "katayef"],
+      "carbs_per_piece": 30,
+      "carb_range": [28, 32],
+      "fat_per_piece": 8,
+      "protein_per_piece": 4,
+      "calories_per_piece": 210,
+      "carb_source": "Batter + sugar syrup",
+      "key_variable": "Unfilled pancake only = ~6g. Fried with syrup = 28-32g.",
+      "gi": 70,
+      "speed": "FAST",
+      "confidence": "MODERATE",
+      "clarification_required": true,
+      "clarification_needed": ["Fried with syrup or plain?"]
+    },
+
+    "sahlab": {
+      "name": "Sahlab (hot milk pudding drink)",
+      "aliases": ["salep", "sachlav"],
+      "carbs_per_cup": 60,
+      "carb_range": [55, 65],
+      "fat_per_cup": 8,
+      "protein_per_cup": 8,
+      "calories_per_cup": 345,
+      "carb_source": "Cornstarch + sugar + milk",
+      "gi": 75,
+      "speed": "FAST",
+      "confidence": "MODERATE",
+      "app_alert": "Deceptively high-carb dessert drink. 55-65g carbs per cup — equivalent to a full meal."
+    },
+
+    "graybeh": {
+      "name": "Graybeh (butter cookies)",
+      "aliases": ["ghraybeh", "shortbread cookies"],
+      "carbs_per_cookie": 11,
+      "carb_range": [7, 14],
+      "cookie_weight_g": 20,
+      "fat_per_cookie": 5,
+      "protein_per_cookie": 1,
+      "calories_per_cookie": 95,
+      "carb_source": "Flour + powdered sugar",
+      "gi": 65,
+      "speed": "FAST",
+      "confidence": "MODERATE-HIGH"
+    },
+
+    "kaak_cookie": {
+      "name": "Ka'ak (small sweet cookie)",
+      "carbs_per_cookie": 10,
+      "carb_range": [8, 12],
+      "cookie_weight_g": 20,
+      "carb_source": "Flour, sugar",
+      "gi": 65,
+      "speed": "FAST",
+      "confidence": "LOW-MODERATE",
+      "warning": "Do NOT confuse with ka'ak bread rings (large, 45-70g carbs)"
+    },
+
+    "dates": {
+      "name": "Dates",
+      "carbs_each": 18,
+      "carb_range": [15, 20],
+      "gi": 42,
+      "speed": "FAST",
+      "confidence": "HIGH",
+      "note": "Despite medium GI, high sugar content causes fast spike. Always ask exact count.",
+      "clarification_needed": ["How many dates?"]
+    },
+
+    "figs": {
+      "name": "Figs",
+      "carbs_each_fresh": 10,
+      "carbs_each_dried": 13,
+      "carb_range_fresh": [8, 12],
+      "carb_range_dried": [11, 16],
+      "gi_fresh": 35,
+      "gi_dried": 61,
+      "speed": "MEDIUM",
+      "confidence": "HIGH",
+      "clarification_needed": ["How many?", "Fresh or dried?"]
+    },
+
+    "riz_b_haleeb": {
+      "name": "Riz b'haleeb (rice pudding)",
+      "aliases": ["rice pudding"],
+      "carbs_per_cup": 50,
+      "carb_range": [45, 55],
+      "carb_source": "Rice + sugar + milk",
+      "gi": 72,
+      "speed": "FAST",
+      "confidence": "MODERATE"
+    }
+  },
+
+  "condiments_and_sauces": {
+    "tamarind_paste": {
+      "name": "Tamarind paste / Oot",
+      "aliases": ["oot", "tamarind sauce"],
+      "carbs_per_tbsp": 9,
+      "note": "SY signature ingredient. Appears on lachmagine, mechshi, roast meats. Always ask about tamarind sauces.",
+      "confidence": "HIGH"
+    },
+    "pomegranate_molasses": {
+      "name": "Pomegranate molasses",
+      "carbs_per_tbsp": 9,
+      "carb_range": [8, 10],
+      "confidence": "HIGH"
+    },
+    "date_syrup": {
+      "name": "Silan (date syrup)",
+      "carbs_per_tbsp": 15,
+      "confidence": "HIGH"
+    },
+    "honey": {
+      "name": "Honey",
+      "carbs_per_tbsp": 17,
+      "gi": 87,
+      "confidence": "HIGH"
+    },
+    "apricot_jam": {
+      "name": "Apricot jam / preserves",
+      "carbs_per_tbsp": 13,
+      "confidence": "HIGH"
+    }
+  },
+
+  "high_carb_alerts": [
+    {
+      "item": "Riz (rice with vermicelli)",
+      "carbs": "43-48g per cup",
+      "reason": "Single largest daily carb driver in SY meals. Accompanies nearly every dinner."
+    },
+    {
+      "item": "Sahlab",
+      "carbs": "55-65g per cup",
+      "reason": "Deceptively high-carb dessert drink. Equivalent to a full meal."
+    },
+    {
+      "item": "Basbousa / Namoura",
+      "carbs": "42-50g per piece",
+      "reason": "Double sugar load (semolina + syrup). One piece = one meal's carb allowance."
+    },
+    {
+      "item": "Ka'ak bread ring",
+      "carbs": "45-70g per ring",
+      "reason": "Comparable to a large bagel. Often not perceived as high-carb."
+    }
+  ],
+
+  "nearly_free_foods": [
+    {
+      "item": "Halloumi / Jibne mashwi",
+      "carbs": "0-3g per serving",
+      "note": "Essentially carb-free for bolusing"
+    },
+    {
+      "item": "Hummus (2 tbsp)",
+      "carbs": "3-4g",
+      "note": "Negligible in standard mezze portions"
+    },
+    {
+      "item": "Baba ghanoush (2 tbsp)",
+      "carbs": "3-5g",
+      "note": "Negligible in standard mezze portions"
+    }
+  ]
+}
