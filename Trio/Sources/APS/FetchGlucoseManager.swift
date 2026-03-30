@@ -240,37 +240,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         return Manager.init(rawState: rawState)
     }
 
-    func fetchGlucose(context: NSManagedObjectContext) async throws -> [NSManagedObjectID] {
-        // Compound predicate: time window + non-manual + valid date
-        let timePredicate = NSPredicate.predicateForOneDayAgoInMinutes
-        let manualPredicate = NSPredicate(format: "isManual == NO")
-        let datePredicate = NSPredicate(format: "date != nil")
-
-        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-            timePredicate,
-            manualPredicate,
-            datePredicate
-        ])
-
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: GlucoseStored.self,
-            onContext: context,
-            // Predicate must cover at least the full glucose horizon used by downstream algorithm consumers.
-            // If autosens / oref / smoothing logic ever starts looking back further (e.g. 36h),
-            // this fetch window must be expanded accordingly.
-            predicate: compoundPredicate,
-            key: "date",
-            ascending: true, // the first element is the oldest
-            fetchLimit: 350
-        )
-
-        guard let glucoseArray = results as? [GlucoseStored] else {
-            throw CoreDataError.fetchError(function: #function, file: #file)
-        }
-
-        return glucoseArray.map(\.objectID)
-    }
-
     private func glucoseStoreAndHeartDecision(syncDate: Date, glucose: [BloodGlucose]) async throws {
         // calibration add if required only for sensor
         let newGlucose = overcalibrate(entries: glucose)
@@ -394,6 +363,37 @@ extension BaseFetchGlucoseManager: SettingsObserver {
 }
 
 extension BaseFetchGlucoseManager {
+    func fetchGlucose(context: NSManagedObjectContext) async throws -> [NSManagedObjectID] {
+        // Compound predicate: time window + non-manual + valid date
+        let timePredicate = NSPredicate.predicateForOneDayAgoInMinutes
+        let manualPredicate = NSPredicate(format: "isManual == NO")
+        let datePredicate = NSPredicate(format: "date != nil")
+
+        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            timePredicate,
+            manualPredicate,
+            datePredicate
+        ])
+
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: context,
+            // Predicate must cover at least the full glucose horizon used by downstream algorithm consumers.
+            // If autosens / oref / smoothing logic ever starts looking back further (e.g. 36h),
+            // this fetch window must be expanded accordingly.
+            predicate: compoundPredicate,
+            key: "date",
+            ascending: true, // the first element is the oldest
+            fetchLimit: 350
+        )
+
+        guard let glucoseArray = results as? [GlucoseStored] else {
+            throw CoreDataError.fetchError(function: #function, file: #file)
+        }
+
+        return glucoseArray.map(\.objectID)
+    }
+
     /// CoreData-friendly AAPS exponential smoothing + storage.
     /// - Important: Only stores `smoothedGlucose`. UI/alerts should still use `glucose`.
     ///
@@ -474,12 +474,17 @@ extension BaseFetchGlucoseManager {
             }
         }
 
-        // If insufficient valid readings: copy raw into smoothed (clamped) for all passed entries.
+        // Not enough recent contiguous readings to smooth (e.g. after CGM gap).
+        // IMPORTANT: Only apply fallback to the recent window, not all data.
+        // Otherwise a recent gap would overwrite historical smoothed values.
         guard validWindowCount >= minimumWindowSize else {
-            for object in data {
+            let recentWindow = data.suffix(validWindowCount)
+
+            for object in recentWindow {
                 let raw = Decimal(Int(object.glucose))
                 object.smoothedGlucose = max(raw, minimumSmoothedGlucose) as NSDecimalNumber
             }
+
             return
         }
 
