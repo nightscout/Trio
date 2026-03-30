@@ -224,8 +224,8 @@ struct TotalDailyDoseChart: View {
                             AxisGridLine()
                         }
                     case .total:
-                        // Only show every other month
-                        if day == 1 && Calendar.current.component(.month, from: date) % 2 == 1 {
+                        // Show start of every month
+                        if day == 1 {
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
                                 .font(.footnote)
                             AxisGridLine()

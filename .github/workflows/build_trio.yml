@@ -90,7 +90,7 @@ jobs:
         if: |
           steps.workflow-permission.outputs.has_permission == 'true' &&
           (vars.SCHEDULED_BUILD != 'false' || vars.SCHEDULED_SYNC != 'false')
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: ${{ secrets.GH_PAT }}
 
@@ -100,7 +100,7 @@ jobs:
           steps.workflow-permission.outputs.has_permission == 'true' &&
           vars.SCHEDULED_SYNC != 'false' && github.repository_owner != 'nightscout'
         id: sync
-        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.2
         with:
           target_sync_branch: ${{ env.TARGET_BRANCH }}
           shallow_since: 6 months ago
@@ -178,7 +178,7 @@ jobs:
         run: "sudo xcode-select --switch /Applications/Xcode_26.2.app/Contents/Developer"
       
       - name: Checkout Repo for building
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: ${{ secrets.GH_PAT }}
           submodules: recursive
@@ -258,7 +258,7 @@ jobs:
       # Upload Build artifacts
       - name: Upload build log, IPA and Symbol artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build-artifacts
           path: |

@@ -464,6 +464,9 @@
 		C2AA6CF72E1A734A00BF6C16 /* SettingsExportProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2AA6CF32E1A734A00BF6C16 /* SettingsExportProvider.swift */; };
 		C2AA6CF82E1A734A00BF6C16 /* SettingsExportDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2AA6CF22E1A734A00BF6C16 /* SettingsExportDataFlow.swift */; };
 		C2AA6CF92E1A734A00BF6C16 /* SettingsExportStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2AA6CF42E1A734A00BF6C16 /* SettingsExportStateModel.swift */; };
+		C2BA6B972F758E7500348E6A /* WatchNotificationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2BA6B962F758E7500348E6A /* WatchNotificationHandler.swift */; };
+		C2BA6B992F758E7600348E6A /* NotificationIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2BA6B982F758E7600348E6A /* NotificationIdentifiers.swift */; };
+		C2BA6B9A2F7593C300348E6A /* NotificationIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2BA6B982F758E7600348E6A /* NotificationIdentifiers.swift */; };
 		C967DACD3B1E638F8B43BE06 /* ManualTempBasalStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFCFE0781F9074C2917890E8 /* ManualTempBasalStateModel.swift */; };
 		CA370FC152BC98B3D1832968 /* BasalProfileEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8BCB0C37DEB5EC377B9612 /* BasalProfileEditorRootView.swift */; };
 		CC6C406E2ACDD69E009B8058 /* RawFetchedProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */; };
@@ -1300,6 +1303,8 @@
 		C2AA6CF22E1A734A00BF6C16 /* SettingsExportDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsExportDataFlow.swift; sourceTree = "<group>"; };
 		C2AA6CF32E1A734A00BF6C16 /* SettingsExportProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsExportProvider.swift; sourceTree = "<group>"; };
 		C2AA6CF42E1A734A00BF6C16 /* SettingsExportStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsExportStateModel.swift; sourceTree = "<group>"; };
+		C2BA6B962F758E7500348E6A /* WatchNotificationHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchNotificationHandler.swift; sourceTree = "<group>"; };
+		C2BA6B982F758E7600348E6A /* NotificationIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationIdentifiers.swift; sourceTree = "<group>"; };
 		C377490C77661D75E8C50649 /* ManualTempBasalRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualTempBasalRootView.swift; sourceTree = "<group>"; };
 		C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TreatmentsDataFlow.swift; sourceTree = "<group>"; };
 		CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawFetchedProfile.swift; sourceTree = "<group>"; };
@@ -2436,6 +2441,24 @@
 				BD432CA02D2F4E3300D1EB79 /* WatchMessageKeys.swift */,
 				BDA25EFC2D261BF200035F34 /* WatchState.swift */,
 				DDFF204F2DB2C11900AB8A96 /* WatchStateSnapshot.swift */,
+				CE82E02628E869DF00473A9C /* AlertEntry.swift */,
+				19B0EF2028F6D66200069496 /* Statistics.swift */,
+				19012CDB291D2CB900FB8210 /* LoopStats.swift */,
+				FE41E4D529463EE20047FD55 /* NightscoutPreferences.swift */,
+				191F62672AD6B05A004D7911 /* NightscoutSettings.swift */,
+				1967DFBD29D052C200759F30 /* Icons.swift */,
+				19D4E4EA29FC6A9F00351451 /* Charts.swift */,
+				19A910352A24D6D700C8951B /* DateFilter.swift */,
+				193F6CDC2A512C8F001240FD /* Loops.swift */,
+				CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */,
+				BDF530D72B40F8AC002CAF43 /* LockScreenView.swift */,
+				583684072BD195A700070A60 /* Determination.swift */,
+				BDC2EA462C3045AD00E5BBD0 /* Override.swift */,
+				DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */,
+				DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */,
+				DD9ECB692CA99F6C00AA7C45 /* CommandPayload.swift */,
+				DDD6D4D22CDE90720029439A /* EstimatedA1cDisplayUnit.swift */,
+				C2BA6B982F758E7600348E6A /* NotificationIdentifiers.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -3388,6 +3411,7 @@
 				DD09D5C62D29EB26000D82C9 /* Helper+Enums.swift */,
 				DD3A3CE82D29C97800AE478E /* Helper+ButtonStyles.swift */,
 				DD3A3CE62D29C93F00AE478E /* Helper+Extensions.swift */,
+				C2BA6B962F758E7500348E6A /* WatchNotificationHandler.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -4511,6 +4535,7 @@
 				53F2382465BF74DB1A967C8B /* PumpConfigProvider.swift in Sources */,
 				5D16287A969E64D18CE40E44 /* PumpConfigStateModel.swift in Sources */,
 				DDF6902C2DA028D3008BF16C /* DiagnosticsStepView.swift in Sources */,
+				C2BA6B992F758E7600348E6A /* NotificationIdentifiers.swift in Sources */,
 				19D466AA29AA3099004D5F33 /* MealSettingsRootView.swift in Sources */,
 				CEF1ED6B2D58FB5800FAF41E /* CGMOptions.swift in Sources */,
 				E974172296125A5AE99E634C /* PumpConfigRootView.swift in Sources */,
@@ -4816,6 +4841,7 @@
 				BDA25F202D26D5FE00035F34 /* CarbsInputView.swift in Sources */,
 				BDA25F1C2D26BD0700035F34 /* TrendShape.swift in Sources */,
 				BDFF7A892D25F97D0016C40C /* TrioWatchApp.swift in Sources */,
+				C2BA6B972F758E7500348E6A /* WatchNotificationHandler.swift in Sources */,
 				DD09D5C72D29EB2F000D82C9 /* Helper+Enums.swift in Sources */,
 				BD54A9742D281AEF00F9C1EE /* TempTargetPresetWatch.swift in Sources */,
 				BD54A95C2D2808A300F9C1EE /* OverridePresetWatch.swift in Sources */,
@@ -4826,6 +4852,7 @@
 				DD3A3CE72D29C93F00AE478E /* Helper+Extensions.swift in Sources */,
 				DD246F062D2836AA0027DDE0 /* GlucoseTrendView.swift in Sources */,
 				BD432CA22D2F4E4000D1EB79 /* WatchMessageKeys.swift in Sources */,
+				C2BA6B9A2F7593C300348E6A /* NotificationIdentifiers.swift in Sources */,
 				DD8262CB2D289297009F6F62 /* BolusConfirmationView.swift in Sources */,
 				BD54A9712D281A8100F9C1EE /* TempTargetPresetsView.swift in Sources */,
 				DD3A3CE92D29C97800AE478E /* Helper+ButtonStyles.swift in Sources */,

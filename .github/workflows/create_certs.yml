@@ -28,7 +28,7 @@ jobs:
     steps:
       # Checks-out the repo
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables
@@ -97,7 +97,7 @@ jobs:
           run: echo "new_certificate_needed=${{ needs.create_certs.outputs.new_certificate_needed }}"
 
         - name: Checkout repository
-          uses: actions/checkout@v4
+          uses: actions/checkout@v5
 
         - name: Install dependencies
           run: bundle install
