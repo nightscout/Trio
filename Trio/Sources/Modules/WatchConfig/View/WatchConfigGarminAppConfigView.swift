@@ -56,7 +56,9 @@ struct WatchConfigGarminAppConfigView: View {
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
-                        Spacer()
+                    }.padding(.bottom)
+
+                    VStack {
                         // Inverted binding: "Disable" toggle controls "isEnabled" boolean
                         // When toggle is ON → data transmission is DISABLED (isEnabled = false)
                         // When toggle is OFF → data transmission is ENABLED (isEnabled = true)
@@ -84,7 +86,7 @@ struct WatchConfigGarminAppConfigView: View {
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
-                    }.padding(.vertical)
+                    }.padding(.bottom)
                 }
             ).listRowBackground(Color.chart)
 
@@ -123,7 +125,7 @@ struct WatchConfigGarminAppConfigView: View {
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
-                    }.padding(.vertical)
+                    }.padding(.bottom)
                 }
             ).listRowBackground(Color.chart)
 
@@ -141,6 +143,28 @@ struct WatchConfigGarminAppConfigView: View {
                                 Text(selection.displayName).tag(selection)
                             }
                         }.padding(.top)
+                        HStack(alignment: .center) {
+                            Text(
+                                "Choose between displayed data types on Garmin device."
+                            )
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
+                            Spacer()
+                            Button(
+                                action: {
+                                    shouldDisplayHint3.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle")
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                    }.padding(.bottom)
+
+                    VStack {
                         Picker(
                             selection: $state.garminSettings.secondaryAttributeChoice,
                             label: Text("Data Choice 2").multilineTextAlignment(.leading)
@@ -168,7 +192,7 @@ struct WatchConfigGarminAppConfigView: View {
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
-                    }.padding(.vertical)
+                    }.padding(.bottom)
                 }
             ).listRowBackground(Color.chart)
         }
