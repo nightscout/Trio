@@ -291,13 +291,16 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func determineBolusEventType(for event: PumpEventStored) -> PumpEventStored.EventType {
-        if event.bolus!.isSMB {
+        guard let bolus = event.bolus else {
+            return event.type.flatMap({ PumpEventStored.EventType(rawValue: $0) }) ?? .bolus
+        }
+        if bolus.isSMB {
             return .smb
         }
-        if event.bolus!.isExternal {
+        if bolus.isExternal {
             return .isExternal
         }
-        return PumpEventStored.EventType(rawValue: event.type!) ?? PumpEventStored.EventType.bolus
+        return event.type.flatMap({ PumpEventStored.EventType(rawValue: $0) }) ?? .bolus
     }
 
     func getPumpHistoryNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {

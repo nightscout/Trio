@@ -25,6 +25,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     @Injected() private var tempTargetStorage: TempTargetsStorage!
     @Injected() private var bolusCalculationManager: BolusCalculationManager!
     @Injected() private var iobService: IOBService!
+    @Injected() private var notificationsManager: UserNotificationsManager!
 
     private var units: GlucoseUnits = .mgdL
     private var glucoseColorScheme: GlucoseColorScheme = .staticColor
@@ -553,16 +554,18 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     }
 
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
-        DispatchQueue.main.async { [weak self] in
-            if let logs = message["watchLogs"] as? String {
-                SimpleLogReporter.appendToWatchLog(logs)
-            }
+        // Handle logs first - doesn't need self, so it can run even during teardown
+        if let logs = message["watchLogs"] as? String {
+            SimpleLogReporter.appendToWatchLog(logs)
+        }
+
+        Task { @MainActor [weak self] in
+            guard let self else { return }
 
             if let requestWatchUpdate = message[WatchMessageKeys.requestWatchUpdate] as? String,
                requestWatchUpdate == WatchMessageKeys.watchState
             {
                 debug(.watchManager, "📱 Watch requested watch state data update.")
-                guard let self = self else { return }
                 // Skip if no watch is paired or app not installed
                 guard let session = self.session, session.isPaired, session.isReachable,
                       session.isWatchAppInstalled else { return }
@@ -573,19 +576,23 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 return
             }
 
-            if let bolusAmount = message[WatchMessageKeys.bolus] as? Double,
-               message[WatchMessageKeys.carbs] == nil,
-               message[WatchMessageKeys.date] == nil
+            if let snoozeMinutes = message[WatchMessageKeys.snoozeDuration] as? Int {
+                debug(.watchManager, "📱 Received snooze request from watch: \(snoozeMinutes) minutes")
+                await self.notificationsManager.applySnooze(for: TimeInterval(snoozeMinutes * 60))
+                return
+            } else if let bolusAmount = message[WatchMessageKeys.bolus] as? Double,
+                      message[WatchMessageKeys.carbs] == nil,
+                      message[WatchMessageKeys.date] == nil
             {
                 debug(.watchManager, "📱 Received bolus request from watch: \(bolusAmount)U")
-                self?.handleBolusRequest(Decimal(bolusAmount))
+                self.handleBolusRequest(Decimal(bolusAmount))
             } else if let carbsAmount = message[WatchMessageKeys.carbs] as? Int,
                       let timestamp = message[WatchMessageKeys.date] as? TimeInterval,
                       message[WatchMessageKeys.bolus] == nil
             {
                 let date = Date(timeIntervalSince1970: timestamp)
                 debug(.watchManager, "📱 Received carbs request from watch: \(carbsAmount)g at \(date)")
-                self?.handleCarbsRequest(carbsAmount, date)
+                self.handleCarbsRequest(carbsAmount, date)
             } else if let bolusAmount = message[WatchMessageKeys.bolus] as? Double,
                       let carbsAmount = message[WatchMessageKeys.carbs] as? Int,
                       let timestamp = message[WatchMessageKeys.date] as? TimeInterval
@@ -595,11 +602,11 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     .watchManager,
                     "📱 Received meal bolus combo request from watch: \(bolusAmount)U, \(carbsAmount)g at \(date)"
                 )
-                self?.handleCombinedRequest(bolusAmount: Decimal(bolusAmount), carbsAmount: Decimal(carbsAmount), date: date)
+                self.handleCombinedRequest(bolusAmount: Decimal(bolusAmount), carbsAmount: Decimal(carbsAmount), date: date)
             } else {
                 debug(.watchManager, "📱 Invalid or incomplete data received from watch. Received:  \(message)")
                 // Acknowledge failure
-                self?.sendAcknowledgment(
+                self.sendAcknowledgment(
                     toWatch: false,
                     message: "Error! Invalid or incomplete data received from watch.",
                     ackCode: .genericFailure
@@ -608,22 +615,22 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
             if message[WatchMessageKeys.cancelOverride] as? Bool == true {
                 debug(.watchManager, "📱 Received cancel override request from watch")
-                self?.handleCancelOverride()
+                self.handleCancelOverride()
             }
 
             if let presetName = message[WatchMessageKeys.activateOverride] as? String {
                 debug(.watchManager, "📱 Received activate override request from watch for preset: \(presetName)")
-                self?.handleActivateOverride(presetName)
+                self.handleActivateOverride(presetName)
             }
 
             if let presetName = message[WatchMessageKeys.activateTempTarget] as? String {
                 debug(.watchManager, "📱 Received activate temp target request from watch for preset: \(presetName)")
-                self?.handleActivateTempTarget(presetName)
+                self.handleActivateTempTarget(presetName)
             }
 
             if message[WatchMessageKeys.cancelTempTarget] as? Bool == true {
                 debug(.watchManager, "📱 Received cancel temp target request from watch")
-                self?.handleCancelTempTarget()
+                self.handleCancelTempTarget()
             }
 
             if message[WatchMessageKeys.requestBolusRecommendation] as? Bool == true {
@@ -683,6 +690,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
         if let logs = userInfo["watchLogs"] as? String {
             SimpleLogReporter.appendToWatchLog(logs)
+        }
+
+        if let snoozeMinutes = userInfo[WatchMessageKeys.snoozeDuration] as? Int {
+            debug(.watchManager, "📱 Received snooze userInfo from watch: \(snoozeMinutes) minutes")
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.notificationsManager.applySnooze(for: TimeInterval(snoozeMinutes * 60))
+            }
         }
     }
 

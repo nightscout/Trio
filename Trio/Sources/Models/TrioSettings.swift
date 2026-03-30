@@ -40,9 +40,8 @@ struct TrioSettings: JSON, Equatable {
     var highGlucose: Decimal = 270
     var carbsRequiredThreshold: Decimal = 10
     var showCarbsRequiredBadge: Bool = true
-    var useFPUconversion: Bool = true
+    var useFPUconversion: Bool = false
     var individualAdjustmentFactor: Decimal = 0.5
-    var timeCap: Decimal = 8
     var minuteInterval: Decimal = 30
     var delay: Decimal = 60
     var useAppleHealth: Bool = false
@@ -169,10 +168,6 @@ extension TrioSettings: Decodable {
             settings.overrideFactor = overrideFactor
         }
 
-        if let timeCap = try? container.decode(Decimal.self, forKey: .timeCap) {
-            settings.timeCap = timeCap
-        }
-
         if let minuteInterval = try? container.decode(Decimal.self, forKey: .minuteInterval) {
             settings.minuteInterval = minuteInterval
         }
@@ -253,6 +248,10 @@ extension TrioSettings: Decodable {
 
         if let rulerMarks = try? container.decode(Bool.self, forKey: .rulerMarks) {
             settings.rulerMarks = rulerMarks
+        }
+
+        if let bolusDisplayThreshold = try? container.decode(BolusDisplayThreshold.self, forKey: .bolusDisplayThreshold) {
+            settings.bolusDisplayThreshold = bolusDisplayThreshold
         }
 
         if let forecastDisplayType = try? container.decode(ForecastDisplayType.self, forKey: .forecastDisplayType) {

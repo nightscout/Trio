@@ -717,7 +717,6 @@ extension Onboarding {
                     .clamp(to: providedSettings.carbsRequiredThreshold)
                 settingsCopy.individualAdjustmentFactor = settingsCopy.individualAdjustmentFactor
                     .clamp(to: providedSettings.individualAdjustmentFactor)
-                settingsCopy.timeCap = settingsCopy.timeCap.clamp(to: providedSettings.timeCap)
                 settingsCopy.minuteInterval = settingsCopy.minuteInterval.clamp(to: providedSettings.minuteInterval)
                 settingsCopy.delay = settingsCopy.delay.clamp(to: providedSettings.delay)
                 settingsCopy.high = settingsCopy.high.clamp(to: providedSettings.high)

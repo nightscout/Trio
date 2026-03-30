@@ -1,6 +1,6 @@
 import Foundation
 
-enum BolusDisplayThreshold: Decimal, CaseIterable, Encodable, Identifiable {
+enum BolusDisplayThreshold: Decimal, JSON, CaseIterable, Identifiable, Codable, Hashable {
     public var id: Decimal { rawValue }
     case oneUnit = 1
     case halfUnit = 0.5
