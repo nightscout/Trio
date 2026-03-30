@@ -16,7 +16,7 @@ COPY openclaw.json .
 COPY skills/ skills/
 
 # OpenClaw stores session data in ~/.openclaw
-VOLUME ["/root/.openclaw"]
+# Mount a Railway volume at /root/.openclaw via the dashboard
 
 # Gateway default port
 EXPOSE 18789
