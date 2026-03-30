@@ -161,23 +161,6 @@ struct PumpView: View {
         return "\(minutes)" + String(localized: "m", comment: "abbreviation for minutes")
     }
 
-    private func activeTimeString(time: TimeInterval) -> String {
-        var time = time
-        let days = Int(time / 1.days.timeInterval)
-        time -= days.days.timeInterval
-        let hours = Int(time / 1.hours.timeInterval)
-        time -= hours.hours.timeInterval
-        let minutes = Int(time / 1.minutes.timeInterval)
-
-        if days >= 1 {
-            return "\(days)" + String(localized: "d", comment: "abbreviation for days") + " \(hours)" +
-                String(localized: "h", comment: "abbreviation for hours")
-        }
-
-        return "\(hours)" + String(localized: "h", comment: "abbreviation for hours") + "\(minutes)" +
-            String(localized: "m", comment: "abbreviation for minutes")
-    }
-
     private var batteryColor: Color {
         guard let battery = battery.first else {
             return .gray
