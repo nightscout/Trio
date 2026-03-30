@@ -11,6 +11,7 @@ import UserNotifications
 protocol UserNotificationsManager {
     func getNotificationSettings(completionHandler: @escaping (UNNotificationSettings) -> Void)
     func requestNotificationPermissions(completion: @escaping (Bool) -> Void)
+    @MainActor func applySnooze(for duration: TimeInterval) async
 }
 
 enum GlucoseSourceKey: String {
@@ -40,6 +41,12 @@ protocol pumpNotificationObserver {
     func pumpRemoveNotification()
 }
 
+// MARK: - SnoozeObserver Protocol
+
+protocol SnoozeObserver {
+    @MainActor func snoozeDidChange(_ untilDate: Date)
+}
+
 final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, Injectable {
     enum Identifier: String {
         case glucoseNotification = "Trio.glucoseNotification"
@@ -61,6 +68,9 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     @Injected(as: FetchGlucoseManager.self) private var sourceInfoProvider: SourceInfoProvider!
 
     @Persisted(key: "UserNotificationsManager.snoozeUntilDate") private var snoozeUntilDate: Date = .distantPast
+    // The glucose notification observers below (Core Data saves and the storage publisher) can fire for the same
+    // reading, so we persist the last alert token to avoid enqueueing identical high/low notifications multiple times.
+    @Persisted(key: "UserNotificationsManager.lastGlucoseAlertToken") private var lastGlucoseAlertToken: String = ""
 
     private let notificationCenter = UNUserNotificationCenter.current()
     private var lifetime = Lifetime()
@@ -95,9 +105,26 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         Task {
             await sendGlucoseNotification()
         }
+        configureNotificationCategories()
         registerHandlers()
         registerSubscribers()
         subscribeOnLoop()
+    }
+
+    private func configureNotificationCategories() {
+        notificationCenter.getNotificationCategories { [weak self] existingCategories in
+            guard let self else { return }
+
+            let glucoseCategory = NotificationCategoryFactory.createGlucoseCategory()
+
+            var categories = existingCategories
+            categories.update(with: glucoseCategory)
+            // UNUserNotificationCenter methods should be called on main thread
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.notificationCenter.setNotificationCategories(categories)
+            }
+        }
     }
 
     private func subscribeOnLoop() {
@@ -271,6 +298,10 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 try viewContext.existingObject(with: id) as? GlucoseStored
             }
 
+            if glucoseStorage.alarm == .none {
+                lastGlucoseAlertToken = ""
+            }
+
             guard let lastReading = glucoseObjects.first?.glucose,
                   let secondLastReading = glucoseObjects.dropFirst().first?.glucose,
                   let lastDirection = glucoseObjects.first?.directionEnum?.symbol else { return }
@@ -305,6 +336,15 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 titles.append(String(localized: "(Snoozed)", comment: "(Snoozed)"))
                 notificationAlarm = false
             } else {
+                let token = alertToken(from: glucoseObjects.first)
+
+                if token == "unknown" {
+                    warning(.service, "Missing glucose token fields; skipping notification to avoid re-alerting")
+                    return
+                }
+                if notificationAlarm, token == lastGlucoseAlertToken {
+                    return
+                }
                 titles.append(body)
                 let content = UNMutableNotificationContent()
                 content.title = titles.joined(separator: " ")
@@ -313,6 +353,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 if notificationAlarm {
                     content.sound = .default
                     content.userInfo[NotificationAction.key] = NotificationAction.snooze.rawValue
+                    content.categoryIdentifier = NotificationCategoryIdentifier.trioAlert.rawValue
                 }
 
                 addRequest(
@@ -323,12 +364,32 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                     messageSubtype: .glucose,
                     action: NotificationAction.snooze
                 )
+                if notificationAlarm {
+                    lastGlucoseAlertToken = token
+                }
             }
         } catch {
             debugPrint(
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to send glucose notification with error: \(error)"
             )
         }
+    }
+
+    private func alertToken(from glucose: GlucoseStored?) -> String {
+        if let id = glucose?.id?.uuidString { return id }
+
+        if let date = glucose?.date {
+            let roundedMinute = Int((date.timeIntervalSince1970 / 60).rounded())
+            return "date-\(roundedMinute)"
+        }
+
+        // Stable fallback for Core Data objects:
+        if let glucose, !glucose.objectID.isTemporaryID {
+            return "objectID-\(glucose.objectID.uriRepresentation().absoluteString)"
+        }
+
+        // Stable “unknown” fallback: prevents repeated alarms when identifiers are missing
+        return "unknown"
     }
 
     private func glucoseText(glucoseValue: Int, delta: Int?, direction: String?) -> String {
@@ -406,6 +467,19 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             } else {
                 warning(.service, "requestNotificationPermissions failed", error: error)
             }
+        }
+    }
+
+    @MainActor func applySnooze(for duration: TimeInterval) async {
+        let untilDate = duration > 0 ? Date().addingTimeInterval(duration) : .distantPast
+        snoozeUntilDate = untilDate
+        lastGlucoseAlertToken = ""
+        // removeGlucoseNotifications() is safe to call here since we're @MainActor
+        removeGlucoseNotifications()
+
+        // Notify observers that snooze was applied
+        broadcaster.notify(SnoozeObserver.self, on: .main) { (observer: SnoozeObserver) in
+            observer.snoozeDidChange(untilDate)
         }
     }
 
@@ -571,6 +645,14 @@ extension BaseUserNotificationsManager: pumpNotificationObserver {
             self.notificationCenter.removePendingNotificationRequests(withIdentifiers: [identifier.rawValue])
         }
     }
+
+    /// Removes all glucose notifications (delivered and pending).
+    /// Must be called from the main thread. Safe to call from @MainActor contexts.
+    @MainActor private func removeGlucoseNotifications() {
+        let identifier = Identifier.glucoseNotification.rawValue
+        notificationCenter.removeDeliveredNotifications(withIdentifiers: [identifier])
+        notificationCenter.removePendingNotificationRequests(withIdentifiers: [identifier])
+    }
 }
 
 extension BaseUserNotificationsManager: DeterminationObserver {
@@ -595,29 +677,46 @@ extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
         completionHandler([.banner, .badge, .sound, .list])
     }
 
+    /// UNUserNotificationCenterDelegate method called when user interacts with a notification.
+    /// This can be called off the main thread, so we ensure all work happens on @MainActor.
     func userNotificationCenter(
         _: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         defer { completionHandler() }
+
+        // Handle quick snooze actions (from notification action buttons)
+        if let quickAction = NotificationResponseAction(rawValue: response.actionIdentifier) {
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.applySnooze(for: quickAction.duration)
+            }
+            return
+        }
+
+        // Handle other notification actions (e.g., tapping notification body)
         guard let actionRaw = response.notification.request.content.userInfo[NotificationAction.key] as? String,
               let action = NotificationAction(rawValue: actionRaw)
         else { return }
 
-        switch action {
-        case .snooze:
-            router.mainModalScreen.send(.snooze)
-        case .pumpConfig:
-            let messageCont = MessageContent(
-                content: response.notification.request.content.body,
-                type: MessageType.other,
-                subtype: .pump,
-                useAPN: false,
-                action: .pumpConfig
-            )
-            router.alertMessage.send(messageCont)
-        default: break
+        // Ensure UI operations happen on main thread using Task for consistency
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            switch action {
+            case .snooze:
+                self.router.mainModalScreen.send(.snooze)
+            case .pumpConfig:
+                let messageCont = MessageContent(
+                    content: response.notification.request.content.body,
+                    type: MessageType.other,
+                    subtype: .pump,
+                    useAPN: false,
+                    action: .pumpConfig
+                )
+                self.router.alertMessage.send(messageCont)
+            default: break
+            }
         }
     }
 }
