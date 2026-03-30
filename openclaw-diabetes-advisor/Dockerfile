@@ -22,4 +22,4 @@ COPY skills/ skills/
 EXPOSE 18789
 
 # Start the gateway
-CMD ["openclaw", "gateway", "run"]
+CMD ["openclaw", "gateway", "run", "--allow-unconfigured"]
