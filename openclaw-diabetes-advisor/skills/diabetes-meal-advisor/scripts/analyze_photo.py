@@ -128,13 +128,34 @@ def call_recognition_api(token, base64_image, eaten_food_ids=None):
 
     try:
         with urlopen(req, timeout=30) as resp:
-            return json.loads(resp.read())
+            raw = json.loads(resp.read())
+            # FatSecret may return errors in the response body with HTTP 200
+            if "error" in raw:
+                err = raw["error"]
+                code = str(err.get("code", ""))
+                msg = err.get("message", "")
+                if code == "14":
+                    return {
+                        "error": "missing_scope",
+                        "message": f"FatSecret API key lacks Image Recognition access. "
+                        f"Enable it at https://platform.fatsecret.com — requires Premier plan. Detail: {msg}",
+                    }
+                return {"error": "api_error", "code": code, "message": msg}
+            return raw
     except HTTPError as e:
         error_body = e.read().decode() if e.fp else ""
         try:
             error_data = json.loads(error_body)
-            if error_data.get("error", {}).get("code") == 211:
+            err = error_data.get("error", {})
+            code = str(err.get("code", ""))
+            if code == "211":
                 return {"error": "nutrition_label", "message": "Detected a nutrition label instead of food. Photograph the actual food."}
+            if code == "14":
+                return {
+                    "error": "missing_scope",
+                    "message": "FatSecret API key lacks Image Recognition access. "
+                    "Enable it at https://platform.fatsecret.com — requires Premier plan.",
+                }
         except (json.JSONDecodeError, AttributeError):
             pass
         return {"error": "api_error", "status_code": e.code, "message": error_body}
