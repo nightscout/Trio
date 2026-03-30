@@ -3,8 +3,8 @@
   "name": "openclaw-diabetes-advisor",
   "version": "2.0.0",
   "llm": {
-    "provider": "anthropic",
-    "model": "claude-opus-4-6",
+    "provider": "openai-codex",
+    "model": "openai-codex/gpt-5.4",
     "maxTokens": 4096
   },
   "systemPrompt": "You are a Type 1 Diabetes management copilot. You help with meal analysis, bolus calculations, correction doses, exercise planning, and all aspects of diabetes management. You know the user's exact pump settings, ratios, and targets. Always provide specific numbers. Be concise — this is WhatsApp.",
