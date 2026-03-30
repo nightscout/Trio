@@ -125,17 +125,18 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                     }
                     pumpExpiresAtDate.send(endTime)
                 }
-                if let medtrum = pumpManager as? MedtrumPumpManager {
-                    if medtrum.state.expirationTimer == 1 {
-                        pumpActivatedAtDate.send(nil)
-                        guard let endTime = medtrum.state.patchExpiresAt else {
-                            pumpExpiresAtDate.send(nil)
-                            return
-                        }
-                        pumpExpiresAtDate.send(endTime)
-                    } else {
-                        pumpActivatedAtDate.send(medtrum.state.patchActivatedAt)
+                if let medtrumPump = pumpManager as? MedtrumPumpManager {
+                    guard let endTime = medtrumPump.state.patchExpiresAt else {
                         pumpExpiresAtDate.send(nil)
+                        return
+                    }
+                    pumpExpiresAtDate.send(endTime)
+
+                    switch medtrumPump.state.expiryMode {
+                    case .default:
+                        pumpActivatedAtDate.send(nil)
+                    case .extended:
+                        pumpActivatedAtDate.send(medtrumPump.state.patchActivatedAt)
                     }
                 }
                 if let simulatorPump = pumpManager as? MockPumpManager {
@@ -533,16 +534,17 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
                 $0.pumpReservoirDidChange(Decimal(medtrumPump.state.reservoir))
             }
 
-            if medtrumPump.state.expirationTimer == 1 {
-                pumpActivatedAtDate.send(nil)
-                guard let endTime = medtrumPump.state.patchExpiresAt else {
-                    pumpExpiresAtDate.send(nil)
-                    return
-                }
-                pumpExpiresAtDate.send(endTime)
-            } else {
-                pumpActivatedAtDate.send(medtrumPump.state.patchActivatedAt)
+            guard let endTime = medtrumPump.state.patchExpiresAt else {
                 pumpExpiresAtDate.send(nil)
+                return
+            }
+            pumpExpiresAtDate.send(endTime)
+
+            switch medtrumPump.state.expiryMode {
+            case .default:
+                pumpActivatedAtDate.send(nil)
+            case .extended:
+                pumpActivatedAtDate.send(medtrumPump.state.patchActivatedAt)
             }
         }
 
