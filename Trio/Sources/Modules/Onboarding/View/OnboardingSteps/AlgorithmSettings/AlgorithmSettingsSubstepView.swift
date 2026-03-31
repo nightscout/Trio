@@ -21,7 +21,8 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
         case .dana,
              .minimed:
             return false
-        case .omnipodDash,
+        case .medtrum,
+             .omnipodDash,
              .omnipodEros:
             return true
         }

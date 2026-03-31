@@ -166,7 +166,7 @@ enum DosingEngine {
         let lastUAMpredBG = forecast.uam?.last?.jsRounded()
 
         var reason =
-        "\(isfReason), COB: \(mealData.mealCOB.jsRounded()), Dev: \(deviation.jsRounded()), BGI: \(glucoseImpact.jsRounded()), CR: \(forecast.adjustedCarbRatio.jsRounded(scale: 1)), Target: \(targetLog), minPredBG \(forecast.minForecastedGlucose.jsRounded()), minGuardBG \(forecast.minGuardGlucose.jsRounded()), IOBpredBG \(lastIOBpredBG)"
+            "\(isfReason), COB: \(mealData.mealCOB.jsRounded()), Dev: \(deviation.jsRounded()), BGI: \(glucoseImpact.jsRounded()), CR: \(forecast.adjustedCarbRatio.jsRounded(scale: 1)), Target: \(targetLog), minPredBG \(forecast.minForecastedGlucose.jsRounded()), minGuardBG \(forecast.minGuardGlucose.jsRounded()), IOBpredBG \(lastIOBpredBG)"
 
         if let lastCOB = lastCOBpredBG {
             reason += ", COBpredBG \(lastCOB)"
