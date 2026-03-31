@@ -8,7 +8,7 @@ struct WatchConfigGarminAppConfigView: View {
     @State private var shouldDisplayHint3: Bool = false
     @State private var shouldDisplayHint4: Bool = false
     @State var hintDetent = PresentationDetent.large
-    @State private var showWatchfaceSwitchConfirmDialog: Bool = false
+    @State private var shouldShowWatchfaceSwitchConfirmDialog: Bool = false
 
     @Environment(\.colorScheme) var colorScheme
     @Environment(AppState.self) var appState
@@ -33,7 +33,7 @@ struct WatchConfigGarminAppConfigView: View {
                         .onChange(of: state.garminSettings.watchface) { oldValue, newValue in
                             if oldValue != newValue {
                                 state.handleWatchfaceChange()
-                                showWatchfaceSwitchConfirmDialog = true
+                                shouldShowWatchfaceSwitchConfirmDialog = true
                             }
                         }
 
@@ -249,19 +249,19 @@ struct WatchConfigGarminAppConfigView: View {
                 shouldDisplayHint: $shouldDisplayHint3,
                 hintLabel: "Choose data support",
                 hintText: Text(
-                    "Choose which data types, along with BG and IOB etc., you want to show on your Garmin device. That data type will be shown both on watchface and datafield.\n\n" +
+                    "Choose which data types, along with Blood Glucose and IOB etc., you want to show on your Garmin device. That data type will be shown both on watchface and datafield.\n\n" +
                         "Data Choice 1 options:\n" +
                         "• COB – Carbs On Board\n" +
                         "• ISF – Insulin Sensitivity Factor\n" +
                         "• Sens Ratio – Sensitivity Ratio\n\n" +
                         "Data Choice 2 options:\n" +
-                        "• TBR – Temp Basal Rate\n" +
-                        "• evBG – Eventual (predicted future) Blood Glucose"
+                        "• Temp Basal Rate\n" +
+                        "• Eventual Glucose"
                 ),
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
         }
-        .confirmationDialog("Watchface Changed", isPresented: $showWatchfaceSwitchConfirmDialog) {
+        .confirmationDialog("Watchface Changed", isPresented: $shouldShowWatchfaceSwitchConfirmDialog) {
             Button("Resume Data Transmission") {
                 state.resumeDataTransmission()
             }
