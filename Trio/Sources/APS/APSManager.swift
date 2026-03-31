@@ -197,7 +197,7 @@ final class BaseAPSManager: APSManager, Injectable {
             .store(in: &lifetime)
 
         deviceDataManager.suspended
-            .receive(on: DispatchQueue.main)
+            .receive(on: processQueue)
             .sink { suspended in
                 self.isSuspended = suspended
             }
