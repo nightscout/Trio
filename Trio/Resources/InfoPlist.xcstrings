@@ -464,7 +464,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "To create events with glucose values, so that they can be viewed on Apple Watch and CarPlay"
+            "value" : "To create events with glucose values, so they can be viewed on Apple Watch and CarPlay"
           }
         }
       }
