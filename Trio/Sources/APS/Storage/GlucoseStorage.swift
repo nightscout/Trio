@@ -81,7 +81,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             let withoutDeletedGlucose = self.filterGlucoseValues(
                 glucose,
                 fetchRequest: DeletedGlucoseStored.fetchRequest(),
-                timeBuffer: 1
+                timeBuffer: 1,
+                additionalPredicate: NSPredicate(format: "isManual == %@", false as NSNumber)
             )
 
             // check for a 3.5 minute difference between existing values
@@ -134,18 +135,28 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     private func filterGlucoseValues(
         _ glucose: [BloodGlucose],
         fetchRequest: NSFetchRequest<NSFetchRequestResult>,
-        timeBuffer: TimeInterval
+        timeBuffer: TimeInterval,
+        additionalPredicate: NSPredicate? = nil
     ) -> [BloodGlucose] {
         let datesToCheck = glucose.map(\.dateString).sorted()
+
         guard let firstDate = datesToCheck.first.map({ $0.addingTimeInterval(-timeBuffer) }),
               let lastDate = datesToCheck.last.map({ $0.addingTimeInterval(timeBuffer) })
         else {
             return glucose
         }
-        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+
+        var predicates: [NSPredicate] = [
             NSPredicate(format: "date >= %@", firstDate as NSDate),
             NSPredicate(format: "date <= %@", lastDate as NSDate)
-        ])
+        ]
+
+        if let additionalPredicate {
+            predicates.append(additionalPredicate)
+        }
+
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+
         fetchRequest.propertiesToFetch = ["date"]
         fetchRequest.resultType = .dictionaryResultType
 
