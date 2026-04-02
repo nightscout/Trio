@@ -177,6 +177,7 @@ extension MainChartView {
         let startOfDay = Calendar.current.startOfDay(for: beginDate)
         let profile = state.basalProfile
         var basalPoints: [BasalProfile] = []
+        var lastEntryBeforeRange: (amount: Double, date: Date)?
 
         // Iterate over the next three days, multiplying the time intervals
         for dayOffset in 0 ..< 3 {
@@ -185,8 +186,12 @@ extension MainChartView {
                 let basalTime = startOfDay.addingTimeInterval(entry.minutes.minutes.timeInterval + dayTimeOffset)
                 let basalTimeInterval = basalTime.timeIntervalSince1970
 
-                // Only append points within the timeBegin and timeEnd range
-                if basalTimeInterval >= timeBegin, basalTimeInterval < timeEnd {
+                if basalTimeInterval < timeBegin {
+                    // Track the last profile entry before the visible range
+                    if lastEntryBeforeRange == nil || basalTime > lastEntryBeforeRange!.date {
+                        lastEntryBeforeRange = (amount: Double(entry.rate), date: basalTime)
+                    }
+                } else if basalTimeInterval < timeEnd {
                     basalPoints.append(BasalProfile(
                         amount: Double(entry.rate),
                         isOverwritten: false,
@@ -194,6 +199,15 @@ extension MainChartView {
                     ))
                 }
             }
+        }
+
+        // Include the active profile entry at timeBegin so the line starts at the chart's left edge
+        if let lastBefore = lastEntryBeforeRange {
+            basalPoints.append(BasalProfile(
+                amount: lastBefore.amount,
+                isOverwritten: false,
+                startDate: beginDate
+            ))
         }
 
         return basalPoints
