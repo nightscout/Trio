@@ -8,16 +8,22 @@ struct SettingItem: Identifiable {
     let view: Screen
     let searchContents: [String]?
     let path: [String]?
+    /// Maps a `searchContents` string to the exact label used in `SettingInputSection`
+    /// when the two differ (e.g. `"Max IOB"` → `"Maximum Insulin on Board (IOB)"`).
+    /// Entries whose searchContents string already matches the label don't need an entry here.
+    let scrollTargetLabels: [String: String]?
 
     init(
         title: String,
         view: Screen,
         searchContents: [String]? = nil,
+        scrollTargetLabels: [String: String]? = nil,
         path: [String]? = nil
     ) {
         self.title = title
         self.view = view
         self.searchContents = searchContents
+        self.scrollTargetLabels = scrollTargetLabels
         self.path = path
     }
 }
@@ -26,6 +32,11 @@ struct FilteredSettingItem: Identifiable {
     let id = UUID()
     let settingItem: SettingItem
     let matchedContent: String
+    /// The label string used as the scroll/highlight target in the destination view.
+    /// Falls back to `matchedContent` when no explicit mapping exists.
+    var scrollLabel: String {
+        settingItem.scrollTargetLabels?[matchedContent] ?? matchedContent
+    }
 }
 
 enum SettingItems {
