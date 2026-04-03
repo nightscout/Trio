@@ -121,7 +121,7 @@ import Testing
 
     @Test(
         "Exponential smoothing stops at gaps >= 12 minutes and only updates the most recent window"
-    )  func testExponentialSmoothingGapStopsWindow() async throws {
+    ) func testExponentialSmoothingGapStopsWindow() async throws {
         let now = Date()
 
         var dates: [Date] = []
