@@ -13,6 +13,7 @@ struct ContactImageEntry: Hashable, Equatable, Sendable {
     var hasHighContrast: Bool = true
     var ringWidth: RingWidth = .regular
     var ringGap: RingGap = .small
+    var colorMode: ColorMode = .color
     var fontSize: FontSize = .regular
     var secondaryFontSize: FontSize = .small
     var fontWeight: Font.Weight = .medium
@@ -31,6 +32,7 @@ struct ContactImageEntry: Hashable, Equatable, Sendable {
             lhs.hasHighContrast == rhs.hasHighContrast &&
             lhs.ringWidth == rhs.ringWidth &&
             lhs.ringGap == rhs.ringGap &&
+            lhs.colorMode == rhs.colorMode &&
             lhs.fontSize == rhs.fontSize &&
             lhs.secondaryFontSize == rhs.secondaryFontSize &&
             lhs.fontWeight == rhs.fontWeight &&
@@ -55,6 +57,21 @@ struct ContactImageEntry: Hashable, Equatable, Sendable {
     // Initialize `fontWidth` from a String
     static func fontWidth(from string: String) -> Font.Width {
         Font.Width.fromString(string)
+    }
+
+    enum ColorMode: String, JSON, CaseIterable, Identifiable, Codable {
+        var id: String { rawValue }
+        case color
+        case monochrome
+
+        var displayName: String {
+            switch self {
+            case .color:
+                return String(localized: "Color", comment: "")
+            case .monochrome:
+                return String(localized: "Monochrome", comment: "")
+            }
+        }
     }
 
     enum FontSize: Int, Codable, Sendable, CaseIterable {

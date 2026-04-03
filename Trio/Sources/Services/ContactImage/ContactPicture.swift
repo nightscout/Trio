@@ -289,7 +289,7 @@ struct ContactPicture: View {
                 fontSize: fontSize,
                 fontWeight: fontWeight,
                 fontWidth: fontWidth,
-                color: textColor
+                color: contact.colorMode == .color ? textColor : .white
             )
         }
     }
@@ -634,6 +634,7 @@ struct ContactPicture_Previews: PreviewProvider {
     struct Preview: View {
         @State var rangeIndicator: Bool = true
         @State var hasHighContrast: Bool = true
+        @State var colorMode: ContactImageEntry.ColorMode = .color
         @State var fontSize: ContactImageEntry.FontSize = .small
         @State var fontWeight: UIFont.Weight = .bold
         @State var fontName: String? = "AmericanTypewriter"
@@ -645,6 +646,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         primary: .glucose,
                         top: .delta,
                         bottom: .trend,
+                        colorMode: .color,
                         fontSize: fontSize,
                         fontWeight: .medium
                     )
@@ -683,6 +685,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         primary: .glucose,
                         top: .ring,
                         bottom: .trend,
+                        colorMode: .color,
                         fontSize: fontSize,
                         fontWeight: .medium
                     )
@@ -702,6 +705,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         primary: .glucose,
                         top: .none,
                         bottom: .trend,
+                        colorMode: .color,
                         fontSize: fontSize,
                         fontWeight: .medium
                     )
@@ -720,6 +724,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         primary: .glucose,
                         top: .none,
                         bottom: .eventualBG,
+                        colorMode: .color,
                         fontSize: fontSize,
                         fontWeight: .medium
                     )
@@ -738,6 +743,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         primary: .lastLoopDate,
                         top: .none,
                         bottom: .none,
+                        colorMode: .color,
                         fontSize: fontSize,
                         fontWeight: .medium
                     )
@@ -756,6 +762,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         primary: .glucose,
                         top: .none,
                         bottom: .none,
+                        colorMode: .color,
                         fontSize: fontSize,
                         fontWeight: .medium
                     )
@@ -775,6 +782,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         layout: .split,
                         top: .iob,
                         bottom: .cob,
+                        colorMode: .color,
                         fontSize: fontSize,
                         fontWeight: .medium
                     )

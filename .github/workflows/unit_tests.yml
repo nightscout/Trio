@@ -23,22 +23,22 @@ on:
 jobs:
   test:
     name: Run Unit Tests
-    runs-on: macos-15
+    runs-on: macos-26
     if: github.repository_owner == 'nightscout'
 
     steps:
       - name: Select Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_16.3.app/Contents/Developer
+        run: sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: recursive
 
       - name: Restore cache
         id: cache-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             /Users/runner/Library/Developer/Xcode/DerivedData
@@ -55,13 +55,16 @@ jobs:
           echo "📂 Contents of .build:"
           ls -lah .build || echo ".build directory not found"
 
+      - name: List available simulators
+        run: xcrun simctl list devices available
+
       - name: Build for testing
         run: |
           set -o pipefail && \
           time xcodebuild build-for-testing \
             -workspace Trio.xcworkspace \
             -scheme "Trio Tests" \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.4' \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.2' \
 
       - name: Check for uncommitted changes
         run: |
@@ -91,7 +94,7 @@ jobs:
           
       - name: Save cache
         if: steps.cache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             /Users/runner/Library/Developer/Xcode/DerivedData
@@ -104,7 +107,7 @@ jobs:
           time xcodebuild test-without-building \
             -workspace Trio.xcworkspace \
             -scheme "Trio Tests" \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.4' \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.2' \
             $([ "$ENABLE_PARALLEL_TESTING" = "true" ] && echo "-parallel-testing-enabled YES") \
             2>&1 | tee xcodebuild.log
 

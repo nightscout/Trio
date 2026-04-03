@@ -249,18 +249,6 @@ extension NumberFormatter {
     }()
 }
 
-extension BloodGlucose: SavitzkyGolaySmoothable {
-    var value: Double {
-        get {
-            Double(glucose ?? 0)
-        }
-        set {
-            glucose = Int(newValue)
-            sgv = Int(newValue)
-        }
-    }
-}
-
 extension BloodGlucose {
     func convertStoredGlucoseSample(isManualGlucose: Bool) -> StoredGlucoseSample {
         StoredGlucoseSample(

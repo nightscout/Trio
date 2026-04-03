@@ -3,7 +3,7 @@ import Foundation
 import Intents
 import Swinject
 
-@available(iOS 16.0,*) struct BolusIntent: AppIntent {
+struct BolusIntent: AppIntent {
     // Title of the action in the Shortcuts app
     static var title = LocalizedStringResource("Enact Bolus")
 
