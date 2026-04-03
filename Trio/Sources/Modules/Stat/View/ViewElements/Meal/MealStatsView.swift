@@ -205,14 +205,14 @@ struct MealStatsView: View {
         }
         .chartForegroundStyleScale([
             "Carbs": Color.orange,
-            "Protein": Color.blue,
-            "Fat": Color.purple
+            "Fat": Color.purple,
+            "Protein": Color.blue
         ])
         .chartLegend(position: .bottom, alignment: .leading, spacing: 12) {
             let legendItems: [(String, Color)] = state.useFPUconversion ? [
                 (String(localized: "Carbs"), Color.orange),
-                (String(localized: "Protein"), Color.blue),
-                (String(localized: "Fat"), Color.purple)
+                (String(localized: "Fat"), Color.purple),
+                (String(localized: "Protein"), Color.blue)
             ] : [(String(localized: "Carbs"), Color.orange)]
 
             let columns = [GridItem(.adaptive(minimum: 65), spacing: 4)]
@@ -254,9 +254,9 @@ struct MealStatsView: View {
                             AxisGridLine()
                         }
                     case .total:
-                        // Only show every other month
+                        // Show start of every month
                         let day = Calendar.current.component(.day, from: date)
-                        if day == 1 && Calendar.current.component(.month, from: date) % 2 == 1 {
+                        if day == 1 {
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
                                 .font(.footnote)
                             AxisGridLine()

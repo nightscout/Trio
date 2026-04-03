@@ -113,17 +113,36 @@ extension CGMSettings {
                         units: state.units,
                         type: .boolean,
                         label: String(localized: "Smooth Glucose Value"),
-                        miniHint: String(localized: "Smooth CGM readings using Savitzky-Golay filtering."),
+                        miniHint: String(localized: "Smooth CGM readings using exponential smoothing."),
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
+
                             Text(
-                                "This filter looks at small groups of nearby readings and fits them to a simple mathematical curve. This process doesn't change the overall pattern of your glucose data but helps smooth out the \"noise\" or irregular fluctuations that could lead to false highs or lows."
+                                "This feature smooths your CGM readings to reduce noise and make them easier to read. It is based on a method used in AndroidAPS (AAPS). It uses two approaches: one that reacts quickly to recent changes, and one that looks at longer trends. These are combined to give a balanced result."
                             )
+
                             Text(
-                                "It's designed to keep the important trends in your data while minimizing those small, misleading variations, giving you and Trio a clearer sense of where your blood sugar is really headed. This type of filtering is useful in Trio, as it can help prevent over-corrections based on inaccurate glucose readings. This can help reduce the impact of sudden spikes or dips that might not reflect your true blood glucose levels."
+                                "Trio will always display values based on your actual (raw) CGM readings. Smoothing does not change your real values or alerts."
                             )
+
+                            Text("When this feature is enabled:")
+
+                            VStack(alignment: .leading) {
+                                Text(
+                                    "• The main chart and treatment chart show a light gray trend line for the smoothed values. The glucose dots always show your original CGM readings."
+                                )
+
+                                Text("• In Trio history, you will see the smoothed value next to the original reading.")
+
+                                Text("• When you long-press a chart, the pop-up will show both the original and smoothed values.")
+                            }
+
                             Text(
-                                "Note: If enabled, the smoothed values you see in Trio may differ from what is shown in your CGM app."
+                                "It can handle small gaps in data and ignores sensor error values. It needs at least 4 readings within 12 minutes to work properly. Only CGM readings are smoothed—manual entries are not changed."
+                            )
+
+                            Text(
+                                "This helps Trio make more stable dosing decisions by avoiding over-reactions to small or short-term changes. Important trends are kept, while unreliable fluctuations are filtered out."
                             )
                         }
                     )
@@ -181,7 +200,7 @@ extension CGMSettings {
                         hintDetent: $hintDetent,
                         shouldDisplayHint: $shouldDisplayHint,
                         hintLabel: hintLabel ?? "",
-                        hintText: AnyView(
+                        hintText: selectedVerboseHint ?? AnyView(
                             VStack(alignment: .leading, spacing: 10) {
                                 Text(
                                     "Current CGM Models Supported:"

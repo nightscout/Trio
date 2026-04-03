@@ -12,7 +12,7 @@ struct CarbEntryEditorView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(AppState.self) var appState
 
-    var state: DataTable.StateModel
+    var state: History.StateModel
     let carbEntry: CarbEntryStored
 
     /*
@@ -28,7 +28,7 @@ struct CarbEntryEditorView: View {
     @State private var isFPU: Bool
     @State private var editedDate: Date
 
-    init(state: DataTable.StateModel, carbEntry: CarbEntryStored) {
+    init(state: History.StateModel, carbEntry: CarbEntryStored) {
         self.state = state
         self.carbEntry = carbEntry
         _editedCarbs = State(initialValue: 0) // gets updated in the task block
@@ -145,9 +145,9 @@ struct CarbEntryEditorView: View {
 
                     if state.settingsManager.settings.useFPUconversion {
                         HStack {
-                            Text("Protein")
+                            Text("Fat")
                             TextFieldWithToolBar(
-                                text: $editedProtein,
+                                text: $editedFat,
                                 placeholder: "0",
                                 keyboardType: .numberPad,
                                 numberFormatter: mealFormatter,
@@ -156,9 +156,9 @@ struct CarbEntryEditorView: View {
                         }
 
                         HStack {
-                            Text("Fat")
+                            Text("Protein")
                             TextFieldWithToolBar(
-                                text: $editedFat,
+                                text: $editedProtein,
                                 placeholder: "0",
                                 keyboardType: .numberPad,
                                 numberFormatter: mealFormatter,

@@ -153,6 +153,7 @@ extension Home {
                 reservoir: state.reservoir,
                 name: state.pumpName,
                 expiresAtDate: state.pumpExpiresAtDate,
+                activatedAtDate: state.pumpActivatedAtDate,
                 timerDate: state.timerDate,
                 pumpStatusHighlightMessage: state.pumpStatusHighlightMessage,
                 battery: state.batteryFromPersistence
@@ -220,11 +221,15 @@ extension Home {
                 return nil
             }
 
+            guard let settingsManager = state.settingsManager else {
+                return nil
+            }
+
             let percent = latestOverride.percentage
             let percentString = percent == 100 ? "" : "\(percent.formatted(.number)) %"
 
             let unit = state.units
-            var target = (latestOverride.target ?? 100) as Decimal
+            var target = (latestOverride.target ?? 0) as Decimal
             target = unit == .mmolL ? target.asMmolL : target
 
             var targetString = target == 0 ? "" : (fetchedTargetFormatter.string(from: target as NSNumber) ?? "") + " " + unit
@@ -264,9 +269,29 @@ extension Home {
                 : ""
 
             let smbToggleString = latestOverride.smbIsOff || latestOverride
-                .smbIsScheduledOff ? "SMBs Off\(smbScheduleString)" : ""
+                .smbIsScheduledOff ? String(localized: "SMBs Off\(smbScheduleString)") : ""
 
-            let components = [durationString, percentString, targetString, smbToggleString].filter { !$0.isEmpty }
+            var smbMinuteString: String = ""
+            var uamMinuteString: String = ""
+
+            if !latestOverride.smbIsOff, latestOverride.advancedSettings {
+                if let smbMinutes = latestOverride.smbMinutes,
+                   smbMinutes.decimalValue != settingsManager.preferences.maxSMBBasalMinutes
+                {
+                    smbMinuteString = "SMB\u{00A0}\(smbMinutes)\u{00A0}" +
+                        String(localized: "m", comment: "Abbreviation for Minutes")
+                }
+
+                if let uamMinutes = latestOverride.uamMinutes,
+                   uamMinutes.decimalValue != settingsManager.preferences.maxUAMSMBBasalMinutes
+                {
+                    uamMinuteString = "UAM\u{00A0}\(uamMinutes)\u{00A0}" +
+                        String(localized: "m", comment: "Abbreviation for Minutes")
+                }
+            }
+
+            let components = [durationString, percentString, targetString, smbToggleString, smbMinuteString, uamMinuteString]
+                .filter { !$0.isEmpty }
             return components.isEmpty ? nil : components.joined(separator: ", ")
         }
 
@@ -979,7 +1004,6 @@ extension Home {
             }
             .navigationTitle("Home")
             .navigationBarHidden(true)
-            .ignoresSafeArea(.keyboard)
             .blur(radius: state.isLoopStatusPresented ? 3 : 0)
             .sheet(isPresented: $state.isLoopStatusPresented) {
                 LoopStatusView(state: state)
@@ -994,6 +1018,7 @@ extension Home {
                 Button("Omnipod DASH") { state.addPump(.omnipodBLE) }
                 Button("Dana(RS/-i)") { state.addPump(.dana) }
                 Button("Tandem Mobi") { state.addPump(.tandem) }
+                Button("Medtrum Nano") { state.addPump(.medtrum) }
                 Button("Pump Simulator") { state.addPump(.simulator) }
             } message: { Text("Select Pump Model") }
             .sheet(isPresented: $state.shouldDisplayPumpSetupSheet) {
@@ -1080,7 +1105,7 @@ extension Home {
                         .tabItem { Label("Main", systemImage: "chart.xyaxis.line") }
                         .badge(carbsRequiredBadge).tag(0)
 
-                    NavigationStack { DataTable.RootView(resolver: resolver) }
+                    NavigationStack { History.RootView(resolver: resolver) }
                         .tabItem { Label("History", systemImage: historySFSymbol) }.tag(1)
 
                     Spacer()

@@ -3,7 +3,7 @@ import Foundation
 import Intents
 import Swinject
 
-@available(iOS 16.0,*) struct AddCarbPresetIntent: AppIntent {
+struct AddCarbPresetIntent: AppIntent {
     // Title of the action in the Shortcuts app
     static var title: LocalizedStringResource = "Add carbs"
 
@@ -14,25 +14,25 @@ import Swinject
         title: "Quantity Carbs",
         description: "Quantity of carbs in g",
         controlStyle: .field,
-        inclusiveRange: (lowerBound: 0, upperBound: 200),
-        requestValueDialog: IntentDialog(stringLiteral: String(localized: "How many grams of carbs did you eat?"))
-    ) var carbQuantity: Double?
+        inclusiveRange: (lowerBound: 0, upperBound: 300),
+        requestValueDialog: IntentDialog(stringLiteral: String(localized: "How many grams of carbs?"))
+    ) var carbQuantity: Int?
 
     @Parameter(
         title: "Quantity Fat",
         description: "Quantity of fat in g",
-        default: 0.0,
-        inclusiveRange: (0, 200),
-        requestValueDialog: IntentDialog(stringLiteral: String(localized: "How many grams of fat did you eat?"))
-    ) var fatQuantity: Double
+        default: 0,
+        inclusiveRange: (0, 300),
+        requestValueDialog: IntentDialog(stringLiteral: String(localized: "How many grams of fat?"))
+    ) var fatQuantity: Int
 
     @Parameter(
         title: "Quantity Protein",
         description: "Quantity of Protein in g",
-        default: 0.0,
-        inclusiveRange: (0, 200),
-        requestValueDialog: IntentDialog(stringLiteral: String(localized: "How many grams of protein did you eat?"))
-    ) var proteinQuantity: Double
+        default: 0,
+        inclusiveRange: (0, 300),
+        requestValueDialog: IntentDialog(stringLiteral: String(localized: "How many grams of protein?"))
+    ) var proteinQuantity: Int
 
     @Parameter(
         title: "Date",
@@ -46,7 +46,7 @@ import Swinject
     ) var note: String?
 
     @Parameter(
-        title: "Confirm Before logging",
+        title: "Confirm Before Logging",
         description: "If toggled, you will need to confirm before logging",
         default: true
     ) var confirmBeforeApplying: Bool
@@ -71,11 +71,44 @@ import Swinject
 
     @MainActor func perform() async throws -> some ProvidesDialog {
         do {
-            let quantityCarbs: Double
+            let quantityCarbs: Int
             if let cq = carbQuantity {
                 quantityCarbs = cq
             } else {
                 quantityCarbs = try await $carbQuantity.requestValue("How many grams of carbs?")
+            }
+
+            let request = CarbPresetIntentRequest()
+            let maxCarbs = Int(truncating: request.settingsManager.settings.maxCarbs as NSDecimalNumber)
+            let maxFat = Int(truncating: request.settingsManager.settings.maxFat as NSDecimalNumber)
+            let maxProtein = Int(truncating: request.settingsManager.settings.maxProtein as NSDecimalNumber)
+
+            guard quantityCarbs <= maxCarbs else {
+                return .result(
+                    dialog: IntentDialog(
+                        stringLiteral: String(
+                            localized: "Logging Failed: Max Carbs = \(maxCarbs) g"
+                        )
+                    )
+                )
+            }
+            guard proteinQuantity <= maxProtein else {
+                return .result(
+                    dialog: IntentDialog(
+                        stringLiteral: String(
+                            localized: "Logging Failed: Max Protein = \(maxProtein) g"
+                        )
+                    )
+                )
+            }
+            guard fatQuantity <= maxFat else {
+                return .result(
+                    dialog: IntentDialog(
+                        stringLiteral: String(
+                            localized: "Logging Failed: Max Fat = \(maxFat) g"
+                        )
+                    )
+                )
             }
 
             let dateCarbsAdded: Date
@@ -88,16 +121,25 @@ import Swinject
                 dateDefinedByUser = false
             }
 
-            let quantityCarbsName = quantityCarbs.toString()
             if confirmBeforeApplying {
+                var confirmationMessage: String
+                confirmationMessage = String(localized: "Add \(quantityCarbs) g carbs")
+                if fatQuantity > 0 {
+                    confirmationMessage = String(localized: "\(confirmationMessage) and \(fatQuantity) g fat")
+                }
+                if proteinQuantity > 0 {
+                    confirmationMessage = String(localized: "\(confirmationMessage) and \(proteinQuantity) g protein")
+                }
+                confirmationMessage = String(localized: "\(confirmationMessage)?")
+
                 try await requestConfirmation(
                     result: .result(
-                        dialog: IntentDialog(stringLiteral: String(localized: "Add \(quantityCarbsName) grams of carbs?"))
+                        dialog: IntentDialog(stringLiteral: confirmationMessage)
                     )
                 )
             }
 
-            let finalQuantityCarbsDisplay = try await CarbPresetIntentRequest().addCarbs(
+            let finalQuantityCarbsDisplay = try await request.addCarbs(
                 quantityCarbs,
                 fatQuantity,
                 proteinQuantity,

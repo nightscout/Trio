@@ -44,3 +44,7 @@
 [submodule "TandemKit"]
 	path = TandemKit
 	url = git@github.com:jwoglom/tandemkit
+[submodule "MedtrumKit"]
+	path = MedtrumKit
+	branch = dev
+	url = https://github.com/loopandlearn/MedtrumKit

@@ -1,6 +1,7 @@
 import DanaKit
 import LoopKit
 import LoopKitUI
+import MedtrumKit
 import MinimedKit
 import MinimedKitUI
 import MockKit
@@ -71,6 +72,15 @@ extension PumpConfig {
                 )
             case .tandem:
                 setupViewController = TandemPumpManager.setupViewController(
+                    initialSettings: initialSettings,
+                    bluetoothProvider: bluetoothManager,
+                    colorPalette: .default,
+                    allowDebugFeatures: true,
+                    prefersToSkipUserInteraction: false,
+                    allowedInsulinTypes: [.apidra, .humalog, .novolog, .fiasp, .lyumjev]
+                )
+            case .medtrum:
+                setupViewController = MedtrumPumpManager.setupViewController(
                     initialSettings: initialSettings,
                     bluetoothProvider: bluetoothManager,
                     colorPalette: .default,

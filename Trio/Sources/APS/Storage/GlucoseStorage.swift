@@ -15,7 +15,7 @@ protocol GlucoseStorage {
     func isGlucoseDataFresh(_ glucoseDate: Date?) -> Bool
     func syncDate() -> Date
     func filterTooFrequentGlucose(_ glucose: [BloodGlucose], at: Date) -> [BloodGlucose]
-    func lastGlucoseDate() -> Date
+    func lastGlucoseDate() -> Date?
     func isGlucoseFresh() -> Bool
     func getGlucoseNotYetUploadedToNightscout() async throws -> [BloodGlucose]
     func getCGMStateNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
@@ -343,27 +343,27 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         return fetchedDate
     }
 
-    func lastGlucoseDate() -> Date {
-        let fr = GlucoseStored.fetchRequest()
-        fr.predicate = NSPredicate.predicateForOneDayAgo
-        fr.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: false)]
-        fr.fetchLimit = 1
+    func lastGlucoseDate() -> Date? {
+        let fetchRequest = GlucoseStored.fetchRequest()
+        fetchRequest.predicate = NSPredicate.predicateForOneDayAgo
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: false)]
+        fetchRequest.fetchLimit = 1
 
         var date: Date?
         context.performAndWait {
             do {
-                let results = try self.context.fetch(fr)
+                let results = try self.context.fetch(fetchRequest)
                 date = results.first?.date
             } catch let error as NSError {
                 debug(.storage, "Fetch error: \(DebuggingIdentifiers.failed) \(error), \(error.userInfo)")
             }
         }
 
-        return date ?? .distantPast
+        return date
     }
 
     func isGlucoseFresh() -> Bool {
-        Date().timeIntervalSince(lastGlucoseDate()) <= Config.filterTime
+        Date().timeIntervalSince(lastGlucoseDate() ?? .distantPast) <= Config.filterTime
     }
 
     func filterTooFrequentGlucose(_ glucose: [BloodGlucose], at date: Date) -> [BloodGlucose] {

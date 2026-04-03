@@ -23,4 +23,7 @@ final class PropertyPersistentFlags {
     @PersistedProperty(key: "diagnosticsSharing") var diagnosticsSharingEnabled: Bool?
 
     @PersistedProperty(key: "lastCleanupDate") var lastCleanupDate: Date?
+
+    // TODO: This flag can be deleted in March 2027. Check the commit for other places to cleanup.
+    @PersistedProperty(key: "hasSeenFatProteinOrderChange") var hasSeenFatProteinOrderChange: Bool?
 }

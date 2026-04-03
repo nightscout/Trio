@@ -2,7 +2,7 @@ import CoreData
 import SwiftUI
 import Swinject
 
-extension DataTable {
+extension History {
     struct RootView: BaseView {
         let resolver: Resolver
 
@@ -201,12 +201,15 @@ extension DataTable {
                         HStack(spacing: 20) {
                             Image(
                                 systemName: selectedTreatmentTypes.count == TreatmentType.allCases.count
-                                    ? "checkmark.circle.fill" : "circle"
+                                    ? "checkmark.square.fill" : "square"
                             )
                             .frame(width: 20)
                             .foregroundColor(Color.accentColor)
-                            Text(selectedTreatmentTypes.count == TreatmentType.allCases.count ? "Deselect All" : "Select All")
-                                .foregroundColor(Color.primary)
+                            Text(
+                                selectedTreatmentTypes.count == TreatmentType.allCases
+                                    .count ? String(localized: "Deselect All") : String(localized: "Select All")
+                            )
+                            .foregroundColor(Color.primary)
                         }.padding(4)
                     }
                     .buttonStyle(.borderless)
@@ -220,7 +223,7 @@ extension DataTable {
                             HStack(spacing: 20) {
                                 Image(
                                     systemName: selectedTreatmentTypes
-                                        .contains(treatmentType) ? "checkmark.circle.fill" : "circle"
+                                        .contains(treatmentType) ? "checkmark.square.fill" : "square"
                                 )
                                 .frame(width: 20)
                                 .foregroundColor(Color.accentColor)
@@ -252,7 +255,7 @@ extension DataTable {
                 },
                 label: {
                     HStack {
-                        Text(showFutureEntries ? "Hide Future" : "Show Future")
+                        Text(showFutureEntries ? String(localized: "Hide Future") : String(localized: "Show Future"))
                             .foregroundColor(Color.accentColor)
                         Image(systemName: showFutureEntries ? "eye.slash" : "eye")
                             .foregroundColor(Color.accentColor)
@@ -308,7 +311,7 @@ extension DataTable {
                     }
                 } else {
                     ContentUnavailableView(
-                        "No data.",
+                        String(localized: "No data."),
                         systemImage: "syringe"
                     )
                 }
@@ -328,7 +331,7 @@ extension DataTable {
                     }
                 } else {
                     ContentUnavailableView(
-                        "No data.",
+                        String(localized: "No data."),
                         systemImage: "fork.knife"
                     )
                 }
@@ -347,7 +350,7 @@ extension DataTable {
                     }
                 } else {
                     ContentUnavailableView(
-                        "No data.",
+                        String(localized: "No data."),
                         systemImage: "clock.arrow.2.circlepath"
                     )
                 }
@@ -466,10 +469,11 @@ extension DataTable {
         private var glucoseList: some View {
             List {
                 HStack {
-                    Text("Values").foregroundStyle(.secondary)
+                    Text("Values")
                     Spacer()
-                    Text("Time").foregroundStyle(.secondary)
-                }
+                    Text("Time")
+                }.foregroundStyle(.secondary)
+
                 if !glucoseStored.isEmpty {
                     ForEach(glucoseStored) { glucose in
                         HStack {
@@ -480,6 +484,23 @@ extension DataTable {
                                 Image(systemName: "drop.fill").symbolRenderingMode(.monochrome).foregroundStyle(.red)
                             } else {
                                 Text("\(glucose.directionEnum?.symbol ?? "--")")
+                            }
+
+                            if state.settingsManager.settings.smoothGlucose, !glucose.isManual,
+                               let smoothedGlucose = glucose.smoothedGlucose, smoothedGlucose != 0
+                            {
+                                let smoothedGlucoseForDisplay = state.units == .mgdL ? smoothedGlucose
+                                    .description : smoothedGlucose.decimalValue
+                                    .formattedAsMmolL
+
+                                (
+                                    Text("(") +
+                                        Text(Image(systemName: "sparkles")) +
+                                        Text(" ") +
+                                        Text("\(smoothedGlucoseForDisplay)") +
+                                        Text(")")
+                                ).foregroundStyle(.secondary)
+                                    .padding(.leading, 10)
                             }
 
                             Spacer()
@@ -523,7 +544,7 @@ extension DataTable {
                     }
                 } else {
                     ContentUnavailableView(
-                        "No data.",
+                        String(localized: "No data."),
                         systemImage: "drop.fill"
                     )
                 }
@@ -608,7 +629,7 @@ extension DataTable {
         private var filterEntriesButton: some View {
             Button(action: { showFutureEntries.toggle() }, label: {
                 HStack {
-                    Text(showFutureEntries ? "Hide Future" : "Show Future")
+                    Text(showFutureEntries ? String(localized: "Hide Future") : String(localized: "Show Future"))
                         .foregroundColor(Color.secondary)
                     Image(systemName: showFutureEntries ? "calendar.badge.minus" : "calendar.badge.plus")
                 }.frame(maxWidth: .infinity, alignment: .trailing)
