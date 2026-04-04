@@ -29,13 +29,8 @@ private struct SettingsHighlightScrollModifier: ViewModifier {
 
     private func scrollToHighlight(proxy: ScrollViewProxy) {
         guard let target = searchHighlight.highlightedSetting else { return }
-        Task { @MainActor in
-            // Give the view time to finish initial layout
-            try? await Task.sleep(nanoseconds: 400_000_000)
+        DispatchQueue.main.asyncAfter(deadline: .now().advanced(by: .milliseconds(500))) {
             withAnimation { proxy.scrollTo(target, anchor: .center) }
-            // Wait for scroll animation + newly-visible section's onAppear to fire
-            try? await Task.sleep(nanoseconds: 500_000_000)
-            searchHighlight.highlightedSetting = nil
         }
     }
 }
@@ -62,9 +57,9 @@ private struct SettingsSearchHighlightAnimationModifier: ViewModifier {
     }
 
     private func startHighlightAnimation() {
+        searchHighlight.highlightedSetting = nil
         highlightOpacity = 0.6
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
+        DispatchQueue.main.asyncAfter(deadline: .now().advanced(by: .milliseconds(1000))) {
             highlightOpacity = 0.0
         }
     }
