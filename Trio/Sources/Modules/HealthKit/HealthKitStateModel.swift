@@ -7,12 +7,14 @@ extension AppleHealthKit {
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var useAppleHealth = false
+        @Published var importMealsFromAppleHealth = false
         @Published var needShowInformationTextForSetPermissions = false
 
         override func subscribe() {
             units = settingsManager.settings.units
 
             useAppleHealth = settingsManager.settings.useAppleHealth
+            importMealsFromAppleHealth = settingsManager.settings.importMealsFromAppleHealth
 
             needShowInformationTextForSetPermissions = healthKitManager.hasGrantedFullWritePermissions
 
@@ -44,6 +46,21 @@ extension AppleHealthKit {
                     }
                 }
             }
+
+            subscribeSetting(\.importMealsFromAppleHealth, on: $importMealsFromAppleHealth) {
+                importMealsFromAppleHealth = $0
+            } didSet: { [weak self] value in
+                guard let self = self, value else { return }
+                // Trigger an immediate import when the user enables the setting
+                Task {
+                    await self.healthKitManager.importMealsFromHealth(since: self.syncDate())
+                }
+            }
+        }
+
+        /// Look-back window for the initial import: last 24 hours.
+        private func syncDate() -> Date {
+            Date().addingTimeInterval(-24 * 60 * 60)
         }
     }
 }

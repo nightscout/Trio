@@ -414,6 +414,9 @@
 		BD8FC0622D6619E600B95AED /* OverrideStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0612D6619E600B95AED /* OverrideStorageTests.swift */; };
 		BD8FC0642D6619EF00B95AED /* TempTargetStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0632D6619EF00B95AED /* TempTargetStorageTests.swift */; };
 		BD8FC0662D661A0000B95AED /* GlucoseStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0652D661A0000B95AED /* GlucoseStorageTests.swift */; };
+		7041C74511D5453FB1635D8C /* HealthKitImportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA7A5F7AD6E84B05BE5D6867 /* HealthKitImportTests.swift */; };
+		60B6F0796D04476896FDACFD /* HealthKitImportCarbsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30B9E126AB9F4D5B8A82FCC4 /* HealthKitImportCarbsTests.swift */; };
+		5245B5E516C147A08DF1E233 /* HealthKitMealImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55209FED999648F59AA354B4 /* HealthKitMealImporter.swift */; };
 		BDA25EE42D260CD500035F34 /* AppleWatchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25EE32D260CCF00035F34 /* AppleWatchManager.swift */; };
 		BDA25EE62D260D5E00035F34 /* WatchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25EE52D260D5800035F34 /* WatchState.swift */; };
 		BDA25EFD2D261C0000035F34 /* WatchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25EFC2D261BF200035F34 /* WatchState.swift */; };
@@ -1577,6 +1580,9 @@
 		F90692D0274B99B60037068D /* HealthKitProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitProvider.swift; sourceTree = "<group>"; };
 		F90692D2274B9A130037068D /* AppleHealthKitRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleHealthKitRootView.swift; sourceTree = "<group>"; };
 		F90692D5274B9A450037068D /* HealthKitStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitStateModel.swift; sourceTree = "<group>"; };
+		55209FED999648F59AA354B4 /* HealthKitMealImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitMealImporter.swift; sourceTree = "<group>"; };
+		DA7A5F7AD6E84B05BE5D6867 /* HealthKitImportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitImportTests.swift; sourceTree = "<group>"; };
+		30B9E126AB9F4D5B8A82FCC4 /* HealthKitImportCarbsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitImportCarbsTests.swift; sourceTree = "<group>"; };
 		FBB3BAE7494CB771ABAC7B8B /* ISFEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorRootView.swift; sourceTree = "<group>"; };
 		FE41E4D529463EE20047FD55 /* NightscoutPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutPreferences.swift; sourceTree = "<group>"; };
 		FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+Extensions.swift"; sourceTree = "<group>"; };
@@ -2640,6 +2646,7 @@
 				3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */,
 				CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */,
 				BD8FC0532D66186000B95AED /* TestError.swift */,
+				DA7A5F7AD6E84B05BE5D6867 /* HealthKitImportTests.swift */,
 			);
 			path = TrioTests;
 			sourceTree = "<group>";
@@ -2994,6 +3001,7 @@
 				BD8FC0612D6619E600B95AED /* OverrideStorageTests.swift */,
 				BD8FC0632D6619EF00B95AED /* TempTargetStorageTests.swift */,
 				BD8FC0652D661A0000B95AED /* GlucoseStorageTests.swift */,
+				30B9E126AB9F4D5B8A82FCC4 /* HealthKitImportCarbsTests.swift */,
 			);
 			path = CoreDataTests;
 			sourceTree = "<group>";
@@ -3789,6 +3797,7 @@
 			isa = PBXGroup;
 			children = (
 				F90692A9274B7AAE0037068D /* HealthKitManager.swift */,
+				55209FED999648F59AA354B4 /* HealthKitMealImporter.swift */,
 			);
 			path = HealthKit;
 			sourceTree = "<group>";
@@ -4559,6 +4568,7 @@
 				385CEA8225F23DFD002D6D5B /* NightscoutStatus.swift in Sources */,
 				DD17453C2C55BFAD00211FAC /* AlgorithmAdvancedSettingsProvider.swift in Sources */,
 				F90692AA274B7AAE0037068D /* HealthKitManager.swift in Sources */,
+				5245B5E516C147A08DF1E233 /* HealthKitMealImporter.swift in Sources */,
 				38887CCE25F5725200944304 /* IOBEntry.swift in Sources */,
 				38E98A2425F52C9300C0CED0 /* Logger.swift in Sources */,
 				DD1E53592D273F26008F32A4 /* LoopStatusHelpView.swift in Sources */,
@@ -4793,6 +4803,8 @@
 				38FCF3F925E902C20078B0D1 /* FileStorageTests.swift in Sources */,
 				BD8FC0602D6619DB00B95AED /* CarbsStorageTests.swift in Sources */,
 				BD8FC05E2D6618CE00B95AED /* BolusCalculatorTests.swift in Sources */,
+				7041C74511D5453FB1635D8C /* HealthKitImportTests.swift in Sources */,
+				60B6F0796D04476896FDACFD /* HealthKitImportCarbsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

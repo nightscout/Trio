@@ -11,6 +11,10 @@ protocol CarbsObserver {
 protocol CarbsStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
     func storeCarbs(_ carbs: [CarbsEntry], areFetchedFromRemote: Bool) async throws
+    /// Stores entries that were imported from Apple Health.
+    /// Entries are deduplicated by timestamp (same as remote entries) and are immediately
+    /// marked as `isUploadedToHealth = true` so they are never re-uploaded back to HealthKit.
+    func storeCarbsImportedFromHealth(_ carbs: [CarbsEntry]) async throws
     func deleteCarbsEntryStored(_ treatmentObjectID: NSManagedObjectID) async
     func syncDate() -> Date
     func getCarbsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
@@ -38,6 +42,15 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     init(resolver: Resolver, context: NSManagedObjectContext? = nil) {
         self.context = context ?? CoreDataStack.shared.newTaskContext()
         injectServices(resolver)
+    }
+
+    func storeCarbsImportedFromHealth(_ entries: [CarbsEntry]) async throws {
+        // Deduplicate against existing entries (same date-based check used for remote entries)
+        let filtered = try await filterRemoteEntries(entries: entries)
+        guard !filtered.isEmpty else { return }
+
+        await saveCarbsToCoreDataFromHealth(entries: filtered)
+        await saveCarbEquivalents(entries: filtered, areFetchedFromRemote: false)
     }
 
     func storeCarbs(_ entries: [CarbsEntry], areFetchedFromRemote: Bool) async throws {
@@ -294,6 +307,37 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             newItem.isUploadedToTidepool = false
 
             if entry.fat != nil, entry.protein != nil, let fpuId = entry.fpuID {
+                newItem.fpuID = UUID(uuidString: fpuId)
+            }
+
+            do {
+                guard self.context.hasChanges else { return }
+                try self.context.save()
+            } catch {
+                print(error.localizedDescription)
+            }
+        }
+    }
+
+    /// Same as ``saveCarbsToCoreData`` but sets `isUploadedToHealth = true` immediately so
+    /// Health-imported entries are never re-queued for upload back to HealthKit.
+    private func saveCarbsToCoreDataFromHealth(entries: [CarbsEntry]) async {
+        guard let entry = entries.last else { return }
+
+        await context.perform {
+            let newItem = CarbEntryStored(context: self.context)
+            newItem.date = entry.actualDate ?? entry.createdAt
+            newItem.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
+            newItem.fat = Double(truncating: NSDecimalNumber(decimal: entry.fat ?? 0))
+            newItem.protein = Double(truncating: NSDecimalNumber(decimal: entry.protein ?? 0))
+            newItem.note = entry.note
+            newItem.id = UUID()
+            newItem.isFPU = false
+            newItem.isUploadedToNS = false
+            newItem.isUploadedToHealth = true // pre-flagged — do not re-upload to HealthKit
+            newItem.isUploadedToTidepool = false
+
+            if let fpuId = entry.fpuID {
                 newItem.fpuID = UUID(uuidString: fpuId)
             }
 

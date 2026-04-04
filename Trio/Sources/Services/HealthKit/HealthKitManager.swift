@@ -28,12 +28,21 @@ protocol HealthKitManager {
     func deleteMealData(byID id: String, sampleType: HKSampleType) async
     /// delete insulin with syncID
     func deleteInsulin(syncID: String) async
+    /// Import carbs, fat and protein logged by other apps from HealthKit.
+    /// Samples written by Trio itself are excluded to avoid import loops.
+    func importMealsFromHealth(since date: Date) async
 }
 
 public enum AppleHealthConfig {
-    // unwraped HKObjects
+    // unwrapped HKObjects
     static var writePermissions: Set<HKSampleType> {
-        Set([healthBGObject, healthCarbObject, healthFatObject, healthProteinObject, healthInsulinObject].compactMap { $0 }) }
+        Set([healthBGObject, healthCarbObject, healthFatObject, healthProteinObject, healthInsulinObject].compactMap { $0 })
+    }
+
+    /// Read permissions requested for importing meals logged by other apps.
+    static var readPermissions: Set<HKSampleType> {
+        Set([healthCarbObject, healthFatObject, healthProteinObject].compactMap { $0 })
+    }
 
     // link to object in HealthKit
     static let healthBGObject = HKObjectType.quantityType(forIdentifier: .bloodGlucose)
@@ -142,7 +151,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         return try await withCheckedThrowingContinuation { continuation in
             healthKitStore.requestAuthorization(
                 toShare: AppleHealthConfig.writePermissions,
-                read: nil
+                read: AppleHealthConfig.readPermissions
             ) { status, error in
                 if let error = error {
                     continuation.resume(throwing: error)
@@ -600,6 +609,76 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToHealth: \(error.userInfo)"
                 )
             }
+        }
+    }
+
+    // Meal Import from Health
+
+    func importMealsFromHealth(since date: Date) async {
+        guard settingsManager.settings.useAppleHealth,
+              settingsManager.settings.importMealsFromAppleHealth,
+              let carbType = AppleHealthConfig.healthCarbObject,
+              let fatType = AppleHealthConfig.healthFatObject,
+              let proteinType = AppleHealthConfig.healthProteinObject
+        else { return }
+
+        do {
+            let dateRange = HKQuery.predicateForSamples(withStart: date, end: nil, options: .strictStartDate)
+
+            // Exclude samples that Trio itself wrote to avoid import loops.
+            // Apple HealthKit does not allow reading the exact bundle ID of other sources
+            // without an entitlement, but HKSource.default() always refers to the currently
+            // running app — i.e. Trio. Using a compound NOT predicate filters those out.
+            let notFromTrio = NSCompoundPredicate(
+                notPredicateWithSubpredicate: HKQuery.predicateForObjects(from: HKSource.default())
+            )
+            let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [dateRange, notFromTrio])
+
+            async let carbSamples = fetchQuantitySamples(of: carbType, predicate: predicate)
+            async let fatSamples = fetchQuantitySamples(of: fatType, predicate: predicate)
+            async let proteinSamples = fetchQuantitySamples(of: proteinType, predicate: predicate)
+
+            let (carbs, fat, protein) = try await (carbSamples, fatSamples, proteinSamples)
+
+            guard !carbs.isEmpty || !fat.isEmpty || !protein.isEmpty else {
+                debug(.service, "HealthKit import: no external dietary samples found since \(date)")
+                return
+            }
+
+            let entries = HealthKitMealImporter.buildCarbEntries(
+                carbSamples: carbs,
+                fatSamples: fat,
+                proteinSamples: protein
+            )
+
+            guard !entries.isEmpty else { return }
+
+            try await carbsStorage.storeCarbsImportedFromHealth(entries)
+            debug(.service, "HealthKit import: stored \(entries.count) meal entries from Apple Health")
+
+        } catch {
+            debug(.service, "\(DebuggingIdentifiers.failed) HealthKit import failed: \(error)")
+        }
+    }
+
+    private func fetchQuantitySamples(
+        of type: HKQuantityType,
+        predicate: NSPredicate
+    ) async throws -> [HKQuantitySample] {
+        try await withCheckedThrowingContinuation { continuation in
+            let query = HKSampleQuery(
+                sampleType: type,
+                predicate: predicate,
+                limit: HKObjectQueryNoLimit,
+                sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
+            ) { _, samples, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume(returning: (samples as? [HKQuantitySample]) ?? [])
+                }
+            }
+            healthKitStore.execute(query)
         }
     }
 

@@ -42,6 +42,43 @@ extension AppleHealthKit {
                     headerText: String(localized: "Apple Health Integration")
                 )
 
+                if state.useAppleHealth {
+                    SettingInputSection(
+                        decimalValue: $decimalPlaceholder,
+                        booleanValue: $state.importMealsFromAppleHealth,
+                        shouldDisplayHint: $shouldDisplayHint,
+                        selectedVerboseHint: Binding(
+                            get: { selectedVerboseHint },
+                            set: {
+                                selectedVerboseHint = $0.map { AnyView($0) }
+                                hintLabel = String(localized: "Import Meals from Apple Health")
+                            }
+                        ),
+                        units: state.units,
+                        type: .boolean,
+                        label: String(localized: "Import Meals from Apple Health"),
+                        miniHint: String(
+                            localized: "Import carbs, fat, and protein logged by other apps into Trio."
+                        ),
+                        verboseHint:
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Default: OFF").bold()
+                            Text(
+                                "When enabled, Trio imports carbohydrate, fat, and protein entries " +
+                                    "recorded by other apps (such as MyFitnessPal or Cronometer) from Apple Health."
+                            )
+                            Text(
+                                "Samples written by Trio itself are excluded to prevent duplicates."
+                            )
+                            Text(
+                                "Note: Imported fat and protein will trigger Trio's Fat-Protein-Unit (FPU) " +
+                                    "calculations if FPU conversion is enabled."
+                            ).bold()
+                        },
+                        headerText: String(localized: "Meal Import")
+                    )
+                }
+
                 if !state.needShowInformationTextForSetPermissions {
                     Section {
                         VStack {
