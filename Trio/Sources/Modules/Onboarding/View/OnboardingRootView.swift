@@ -296,6 +296,7 @@ struct OnboardingStepContent: View {
     @Binding var currentTargetBehaviorSubstep: TargetBehaviorSubstep
     @Bindable var state: Onboarding.StateModel
     var navigationDirection: OnboardingNavigationDirection
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
 
     var body: some View {
         ScrollViewReader { scrollProxy in
@@ -378,9 +379,13 @@ struct OnboardingStepContent: View {
                             }
                         }
                         .transition(
-                            navigationDirection == .forward
-                                ? .asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading))
-                                : .asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing))
+                            reduceMotion
+                                ? .opacity
+                                : (
+                                    navigationDirection == .forward
+                                        ? .asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading))
+                                        : .asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing))
+                                )
                         )
                         .padding(.horizontal)
                         .id(currentStep.id)
@@ -464,13 +469,14 @@ struct OnboardingNavigationButtons: View {
     @Bindable var state: Onboarding.StateModel
     var shouldDisableNextButton: Bool
     var navigationDirectionChanged: (OnboardingNavigationDirection) -> Void
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
 
     var body: some View {
         HStack {
             if currentStep != .welcome {
                 Button(action: {
                     navigationDirectionChanged(.backward)
-                    withAnimation {
+                    withAnimation(reduceMotion ? .easeInOut(duration: 0.25) : .default) {
                         handleBackNavigation()
                     }
                 }) {
@@ -487,7 +493,7 @@ struct OnboardingNavigationButtons: View {
 
             Button(action: {
                 navigationDirectionChanged(.forward)
-                withAnimation {
+                withAnimation(reduceMotion ? .easeInOut(duration: 0.25) : .default) {
                     handleNextNavigation()
                 }
             }) {
