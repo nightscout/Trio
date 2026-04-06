@@ -418,6 +418,12 @@
 		BD8FC0642D6619EF00B95AED /* TempTargetStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0632D6619EF00B95AED /* TempTargetStorageTests.swift */; };
 		BD8FC0662D661A0000B95AED /* GlucoseStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0652D661A0000B95AED /* GlucoseStorageTests.swift */; };
 		BDA25EE42D260CD500035F34 /* AppleWatchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25EE32D260CCF00035F34 /* AppleWatchManager.swift */; };
+		A1B201042E260CD5F030002 /* PebbleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B201042E260CD5F030001 /* PebbleManager.swift */; };
+		A1B201042E260CD5F030004 /* PebbleLocalAPIServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B201042E260CD5F030003 /* PebbleLocalAPIServer.swift */; };
+		A1B201042E260CD5F030006 /* PebbleDataBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B201042E260CD5F030005 /* PebbleDataBridge.swift */; };
+		A1B201042E260CD5F030008 /* PebbleCommandManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B201042E260CD5F030007 /* PebbleCommandManager.swift */; };
+		A1B201042E260CD5F03000A /* PebbleCommandConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B201042E260CD5F030009 /* PebbleCommandConfirmationView.swift */; };
+		A1B201042E260CD5F03000C /* WatchConfigPebbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B201042E260CD5F03000B /* WatchConfigPebbleView.swift */; };
 		BDA25EE62D260D5E00035F34 /* WatchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25EE52D260D5800035F34 /* WatchState.swift */; };
 		BDA25EFD2D261C0000035F34 /* WatchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25EFC2D261BF200035F34 /* WatchState.swift */; };
 		BDA25F1C2D26BD0700035F34 /* TrendShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25F1B2D26BD0300035F34 /* TrendShape.swift */; };
@@ -1254,6 +1260,12 @@
 		BD8FC0632D6619EF00B95AED /* TempTargetStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetStorageTests.swift; sourceTree = "<group>"; };
 		BD8FC0652D661A0000B95AED /* GlucoseStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseStorageTests.swift; sourceTree = "<group>"; };
 		BDA25EE32D260CCF00035F34 /* AppleWatchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleWatchManager.swift; sourceTree = "<group>"; };
+		A1B201042E260CD5F030001 /* PebbleManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PebbleManager.swift; sourceTree = "<group>"; };
+		A1B201042E260CD5F030003 /* PebbleLocalAPIServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PebbleLocalAPIServer.swift; sourceTree = "<group>"; };
+		A1B201042E260CD5F030005 /* PebbleDataBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PebbleDataBridge.swift; sourceTree = "<group>"; };
+		A1B201042E260CD5F030007 /* PebbleCommandManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PebbleCommandManager.swift; sourceTree = "<group>"; };
+		A1B201042E260CD5F030009 /* PebbleCommandConfirmationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PebbleCommandConfirmationView.swift; sourceTree = "<group>"; };
+		A1B201042E260CD5F03000B /* WatchConfigPebbleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigPebbleView.swift; sourceTree = "<group>"; };
 		BDA25EE52D260D5800035F34 /* WatchState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchState.swift; sourceTree = "<group>"; };
 		BDA25EFC2D261BF200035F34 /* WatchState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchState.swift; sourceTree = "<group>"; };
 		BDA25F1B2D26BD0300035F34 /* TrendShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendShape.swift; sourceTree = "<group>"; };
@@ -2082,6 +2094,7 @@
 				3811DE9825C9D88300A708ED /* Storage */,
 				3811DEA525C9D88300A708ED /* UnlockManager */,
 				38E87406274F9AA500975559 /* UserNotifications */,
+				A1B201042E260CD5F03000D /* PebbleManager */,
 				38E8754D275556E100975559 /* WatchManager */,
 			);
 			path = Services;
@@ -2604,6 +2617,18 @@
 				38E87407274F9AD000975559 /* UserNotificationsManager.swift */,
 			);
 			path = UserNotifications;
+			sourceTree = "<group>";
+		};
+		A1B201042E260CD5F03000D /* PebbleManager */ = {
+			isa = PBXGroup;
+			children = (
+				A1B201042E260CD5F030001 /* PebbleManager.swift */,
+				A1B201042E260CD5F030003 /* PebbleLocalAPIServer.swift */,
+				A1B201042E260CD5F030005 /* PebbleDataBridge.swift */,
+				A1B201042E260CD5F030007 /* PebbleCommandManager.swift */,
+				A1B201042E260CD5F030009 /* PebbleCommandConfirmationView.swift */,
+			);
+			path = PebbleManager;
 			sourceTree = "<group>";
 		};
 		38E8754D275556E100975559 /* WatchManager */ = {
@@ -3202,6 +3227,7 @@
 				CE94598629E9E4110047C9C6 /* WatchConfigRootView.swift */,
 				DDF847E72C5DABA30049BB3B /* WatchConfigAppleWatchView.swift */,
 				DDF847E92C5DABAC0049BB3B /* WatchConfigGarminView.swift */,
+				A1B201042E260CD5F03000B /* WatchConfigPebbleView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -4791,6 +4817,12 @@
 				DDF847DD2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift in Sources */,
 				8194B80890CDD6A3C13B0FEE /* SnoozeStateModel.swift in Sources */,
 				BDA25EE42D260CD500035F34 /* AppleWatchManager.swift in Sources */,
+				A1B201042E260CD5F030002 /* PebbleManager.swift in Sources */,
+				A1B201042E260CD5F030004 /* PebbleLocalAPIServer.swift in Sources */,
+				A1B201042E260CD5F030006 /* PebbleDataBridge.swift in Sources */,
+				A1B201042E260CD5F030008 /* PebbleCommandManager.swift in Sources */,
+				A1B201042E260CD5F03000A /* PebbleCommandConfirmationView.swift in Sources */,
+				A1B201042E260CD5F03000C /* WatchConfigPebbleView.swift in Sources */,
 				0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
