@@ -45,3 +45,6 @@
 	path = MedtrumKit
 	branch = dev
 	url = https://github.com/loopandlearn/MedtrumKit
+[submodule "EversenseKit"]
+	path = EversenseKit
+	url = https://github.com/loopandlearn/EversenseKit
