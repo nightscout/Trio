@@ -117,7 +117,8 @@ private struct WatchConfigPebbleEnabledSections: View {
                 }
 
                 if let safariURL = URL(string: "http://127.0.0.1:\(state.pebblePort)/") {
-                    Link(destination: safariURL) {
+                    // SwiftUI.Link — project `Link` in ViewModifiers.swift is a ViewModifier for Screen navigation.
+                    SwiftUI.Link(destination: safariURL) {
                         Label("Open API page in Safari", systemImage: "safari")
                     }
                 }
