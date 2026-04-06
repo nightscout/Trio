@@ -133,6 +133,8 @@ final class PebbleLocalAPIServer {
     private func routeRequest(method: String, path: String, body: String?) -> (Int, String, String) {
         if method == "GET" {
             switch path {
+            case "/":
+                return (200, "text/html; charset=utf-8", Self.browserLandingHTML())
             case "/api/cgm": return (200, "application/json", dataBridge.cgmJSON())
             case "/api/loop": return (200, "application/json", dataBridge.loopJSON())
             case "/api/pump": return (200, "application/json", dataBridge.pumpJSON())
@@ -154,6 +156,28 @@ final class PebbleLocalAPIServer {
         }
 
         return (405, "application/json", "{\"error\":\"method not allowed\"}")
+    }
+
+    /// Minimal HTML so Safari on the same iPhone can confirm the server and follow links to JSON endpoints.
+    private static func browserLandingHTML() -> String {
+        """
+        <!DOCTYPE html>
+        <html lang="en"><head><meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Trio Pebble API</title></head>
+        <body style="font-family: system-ui; padding: 1rem; max-width: 36rem;">
+        <h1>Trio Pebble API</h1>
+        <p>Local server is running on this iPhone.</p>
+        <ul>
+        <li><a href="/health"><code>/health</code></a> — JSON status</li>
+        <li><a href="/api/cgm"><code>/api/cgm</code></a> — CGM JSON</li>
+        <li><a href="/api/loop"><code>/api/loop</code></a> — loop JSON</li>
+        <li><a href="/api/pump"><code>/api/pump</code></a> — pump JSON</li>
+        <li><a href="/api/all"><code>/api/all</code></a> — combined JSON</li>
+        </ul>
+        <p style="color:#666;font-size:0.9rem;">Use Safari <em>on this device</em>; another computer’s browser cannot reach <code>127.0.0.1</code> here.</p>
+        </body></html>
+        """
     }
 
     private func handleBolusRequest(_ body: String?) -> (Int, String, String) {
