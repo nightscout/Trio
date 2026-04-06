@@ -11,7 +11,7 @@ struct WatchConfigPebbleView: View {
 
     var body: some View {
         List {
-            Section(header: Text("Pebble Integration")) {
+            Section {
                 Toggle("Enable Pebble", isOn: $state.pebbleEnabled)
 
                 if state.pebbleEnabled {
@@ -43,10 +43,13 @@ struct WatchConfigPebbleView: View {
                             .foregroundColor(state.pebbleRunning ? .green : .secondary)
                     }
                 }
-            }.listRowBackground(Color.chart)
+            } header: {
+                Text("Pebble Integration")
+            }
+            .listRowBackground(Color.chart)
 
             if state.pebbleEnabled {
-                Section(header: Text("Connection test")) {
+                Section {
                     Button {
                         Task { await state.runPebbleConnectionTest() }
                     } label: {
@@ -78,15 +81,21 @@ struct WatchConfigPebbleView: View {
                     )
                     .font(.caption)
                     .foregroundColor(.secondary)
-                }.listRowBackground(Color.chart)
+                } header: {
+                    Text("Connection test")
+                }
+                .listRowBackground(Color.chart)
 
-                Section(header: Text("Pending Commands")) {
+                Section {
                     NavigationLink("View Pending Requests") {
                         PebbleCommandConfirmationView(commandManager: state.pebbleCommandManager)
                     }
-                }.listRowBackground(Color.chart)
+                } header: {
+                    Text("Pending Commands")
+                }
+                .listRowBackground(Color.chart)
 
-                Section(header: Text("How It Works")) {
+                Section {
                     VStack(alignment: .leading, spacing: 8) {
                         Label("Runs a local HTTP server on this device", systemImage: "network")
                         Label("PebbleKit JS in the Rebble app polls for data", systemImage: "arrow.triangle.2.circlepath")
@@ -100,7 +109,10 @@ struct WatchConfigPebbleView: View {
                     }
                     .font(.footnote)
                     .foregroundColor(.secondary)
-                }.listRowBackground(Color.chart)
+                } header: {
+                    Text("How It Works")
+                }
+                .listRowBackground(Color.chart)
             }
         }
         .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
