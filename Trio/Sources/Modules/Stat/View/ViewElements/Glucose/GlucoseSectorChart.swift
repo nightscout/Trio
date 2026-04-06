@@ -343,7 +343,7 @@ struct GlucoseSectorChart: View {
                         formatPercentage(Decimal(low) / total * 100)
                     ),
                     (
-                        String(localized: "Very Low (<\(Decimal(54).formatted(for: units))"),
+                        String(localized: "Very Low (<\(Decimal(54).formatted(for: units)))"),
                         formatPercentage(Decimal(veryLow) / total * 100)
                     ),
                     (String(localized: "Average"), average.formatted(for: units)),

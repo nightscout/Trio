@@ -19,9 +19,8 @@
   "highGlucose" : 270,
   "carbsRequiredThreshold" : 10,
   "showCarbsRequiredBadge" : true,
-  "useFPUconversion" : true,
+  "useFPUconversion" : false,
   "individualAdjustmentFactor" : 0.5,
-  "timeCap" : 8,
   "minuteInterval" : 30,
   "delay" : 60,
   "useAppleHealth" : false,
@@ -34,6 +33,7 @@
   "xGridLines" : true,
   "yGridLines" : true,
   "rulerMarks" : true,
+  "bolusDisplayThreshold": 0.01,
   "forecastDisplayType": "cone",
   "maxCarbs": 250,
   "maxFat": 250,
@@ -48,5 +48,10 @@
   "useCalendar": false,
   "displayCalendarIOBandCOB": false,
   "displayCalendarEmojis": false,
-  "timeInRangeType": "timeInTightRange"
+  "timeInRangeType": "timeInTightRange",
+  "garminWatchface": "trio",
+  "garminDatafield": "none",
+  "primaryAttributeChoice": "cob",
+  "secondaryAttributeChoice": "tbr",
+  "isWatchfaceDataEnabled": true  
 }

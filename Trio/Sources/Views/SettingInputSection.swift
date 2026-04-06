@@ -99,8 +99,6 @@ struct SettingInputSection<VerboseHint: View>: View {
             return pickerSettingsProvider.settings.individualAdjustmentFactor
         case "delay":
             return pickerSettingsProvider.settings.delay
-        case "timeCap":
-            return pickerSettingsProvider.settings.timeCap
         case "minuteInterval":
             return pickerSettingsProvider.settings.minuteInterval
         case "high":

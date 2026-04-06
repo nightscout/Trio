@@ -143,7 +143,8 @@ extension ISFEditor {
         private var isfChart: some View {
             Chart {
                 ForEach(Array(state.items.enumerated()), id: \.element.id) { index, item in
-                    let displayValue = state.rateValues[item.rateIndex]
+                    let displayValue = state.units == .mgdL ? state.rateValues[item.rateIndex] : state.rateValues[item.rateIndex]
+                        .asMmolL
 
                     let startDate = Calendar.current
                         .startOfDay(for: now)
