@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 #if canImport(Darwin)
 import Darwin
@@ -22,6 +23,19 @@ final class PebbleLocalAPIServer {
     }
 
     deinit { stop() }
+
+    /// Briefly extends process lifetime so Rebble can finish HTTP while Trio is in the background.
+    private static func beginShortBackgroundTask() {
+        DispatchQueue.main.async {
+            let taskID = UIApplication.shared.beginBackgroundTask(withName: "PebbleLocalHTTP") {}
+            guard taskID != .invalid else { return }
+            DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 25) {
+                DispatchQueue.main.async {
+                    UIApplication.shared.endBackgroundTask(taskID)
+                }
+            }
+        }
+    }
 
     func start() {
         guard !isRunning else { return }
@@ -88,6 +102,9 @@ final class PebbleLocalAPIServer {
                 if isRunning { debug(.service, "Pebble: accept failed") }
                 continue
             }
+
+            // Give Trio a short background window so Rebble can complete HTTP while Trio is not foreground.
+            Self.beginShortBackgroundTask()
 
             DispatchQueue.global(qos: .background).async { [weak self] in
                 self?.handleRequest(clientSocket)
