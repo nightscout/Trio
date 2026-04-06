@@ -31,5 +31,5 @@ def build(ctx):
 
     ctx.set_group('bundle')
     ctx.pbl_bundle(binaries=binaries,
-                   js=ctx.path.ant_glob(['src/js/**/*.js', 'src/js/**/*.json']),
-                   js_entry_file='src/js/pebble-js-app.js')
+                   js=ctx.path.ant_glob(['src/pkjs/**/*.js']),
+                   js_entry_file='src/pkjs/index.js')

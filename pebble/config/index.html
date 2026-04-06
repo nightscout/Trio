@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trio Pebble Settings</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; padding: 16px; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; color: #00e676; }
+  .subtitle { font-size: 12px; color: #666; margin-bottom: 20px; }
+  h2 { font-size: 16px; font-weight: 600; margin: 20px 0 10px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+  .card { background: #1a1a1a; border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid #2a2a2a; }
+  label { display: block; font-size: 14px; margin-bottom: 6px; color: #ccc; }
+  select, input[type=text], input[type=number], input[type=password] {
+    width: 100%; padding: 10px 12px; border: 1px solid #333; border-radius: 8px;
+    background: #111; color: #fff; font-size: 14px; margin-bottom: 12px;
+    -webkit-appearance: none;
+  }
+  select { background: #111 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%23666'/%3E%3C/svg%3E") no-repeat right 12px center; padding-right: 32px; }
+  .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
+  .toggle-row label { margin: 0; flex: 1; }
+  .toggle { position: relative; width: 48px; height: 28px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle .slider { position: absolute; inset: 0; background: #333; border-radius: 14px; cursor: pointer; transition: 0.3s; }
+  .toggle .slider:before { content: ''; position: absolute; width: 22px; height: 22px; left: 3px; bottom: 3px; background: #777; border-radius: 50%; transition: 0.3s; }
+  .toggle input:checked + .slider { background: #00c853; }
+  .toggle input:checked + .slider:before { transform: translateX(20px); background: #fff; }
+  .row { display: flex; gap: 12px; }
+  .row > * { flex: 1; }
+  .threshold-preview { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-size: 12px; color: #888; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .dot.red { background: #f44336; } .dot.orange { background: #ff9800; } .dot.green { background: #4caf50; }
+  .data-source-note { font-size: 11px; color: #555; margin-top: -8px; margin-bottom: 12px; }
+  .btn { display: block; width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 20px; text-align: center; }
+  .btn-save { background: #00c853; color: #000; }
+  .btn-save:active { background: #00a044; }
+  .divider { height: 1px; background: #222; margin: 16px 0; }
+  .version { text-align: center; font-size: 11px; color: #444; margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<h1>Trio Pebble</h1>
+<p class="subtitle">Premium CGM Watchface Configuration</p>
+
+<h2>Watchface</h2>
+<div class="card">
+  <label>Face Layout</label>
+  <select id="faceType">
+    <option value="0">Classic - Glucose + Graph + Data</option>
+    <option value="1">Graph Focus - Full-screen Graph</option>
+    <option value="2">Compact - T1000-style</option>
+    <option value="3">Dashboard - Information Dense</option>
+    <option value="4">Minimal - Elegant &amp; Subtle</option>
+  </select>
+  <label>Color Scheme</label>
+  <select id="colorScheme">
+    <option value="0">Dark</option>
+    <option value="1">Light</option>
+    <option value="2">High Contrast</option>
+  </select>
+</div>
+
+<h2>Data Source</h2>
+<div class="card">
+  <label>Source</label>
+  <select id="dataSource" onchange="toggleSourceFields()">
+    <option value="0">Trio (Local HTTP)</option>
+    <option value="1">Dexcom Share (Direct)</option>
+    <option value="2">Nightscout</option>
+  </select>
+
+  <div id="trioFields">
+    <label>Trio API Host</label>
+    <input type="text" id="trioHost" placeholder="http://127.0.0.1:8080">
+    <p class="data-source-note">Enable Pebble integration in Trio &gt; Watch &gt; Pebble settings</p>
+  </div>
+
+  <div id="dexcomFields" style="display:none">
+    <label>Dexcom Username</label>
+    <input type="text" id="dexcomUsername" placeholder="your-username">
+    <label>Dexcom Password</label>
+    <input type="password" id="dexcomPassword" placeholder="your-password">
+    <label>Dexcom Server</label>
+    <select id="dexcomServer">
+      <option value="us">United States</option>
+      <option value="ous">Outside US</option>
+    </select>
+    <p class="data-source-note">Dexcom Share must be enabled in the Dexcom app. Commands (bolus/carbs) are not available with Dexcom source.</p>
+  </div>
+
+  <div id="nightscoutFields" style="display:none">
+    <label>Nightscout URL</label>
+    <input type="text" id="nightscoutUrl" placeholder="https://your-site.herokuapp.com">
+    <label>API Token (optional)</label>
+    <input type="text" id="nightscoutToken" placeholder="your-api-secret-token">
+    <p class="data-source-note">Commands (bolus/carbs) are not available with Nightscout source.</p>
+  </div>
+</div>
+
+<h2>Glucose Thresholds</h2>
+<div class="card">
+  <div class="row">
+    <div>
+      <label>High (mg/dL)</label>
+      <input type="number" id="highThreshold" min="120" max="300" step="5">
+    </div>
+    <div>
+      <label>Low (mg/dL)</label>
+      <input type="number" id="lowThreshold" min="50" max="100" step="5">
+    </div>
+    <div>
+      <label>Urgent Low</label>
+      <input type="number" id="urgentLow" min="40" max="70" step="5">
+    </div>
+  </div>
+  <div class="threshold-preview">
+    <span class="dot red"></span> &le; Low
+    <span class="dot green"></span> In Range
+    <span class="dot orange"></span> &ge; High
+    <span class="dot red"></span> &ge; High+60
+  </div>
+</div>
+
+<h2>Alerts</h2>
+<div class="card">
+  <div class="toggle-row">
+    <label>High Glucose Alert</label>
+    <div class="toggle"><input type="checkbox" id="alertHighEnabled"><span class="slider"></span></div>
+  </div>
+  <div class="toggle-row">
+    <label>Low Glucose Alert</label>
+    <div class="toggle"><input type="checkbox" id="alertLowEnabled"><span class="slider"></span></div>
+  </div>
+  <p class="data-source-note" style="margin-top:8px">Urgent low alerts (&le; urgent threshold) are always active.</p>
+
+  <label style="margin-top:12px">Snooze Duration (minutes)</label>
+  <select id="alertSnoozeMin">
+    <option value="5">5 minutes</option>
+    <option value="10">10 minutes</option>
+    <option value="15">15 minutes</option>
+    <option value="20">20 minutes</option>
+    <option value="30">30 minutes</option>
+    <option value="60">1 hour</option>
+  </select>
+</div>
+
+<h2>Complications</h2>
+<div class="card">
+  <div class="toggle-row">
+    <label>Weather</label>
+    <div class="toggle"><input type="checkbox" id="weatherEnabled"><span class="slider"></span></div>
+  </div>
+  <label>Temperature Units</label>
+  <select id="weatherUnits">
+    <option value="f">Fahrenheit</option>
+    <option value="c">Celsius</option>
+  </select>
+  <p class="data-source-note">Steps and heart rate are read from Pebble Health (if available).</p>
+</div>
+
+<button class="btn btn-save" onclick="saveAndReturn()">Save Settings</button>
+
+<div class="version">Trio Pebble v2.0 &middot; MinimusClawdius</div>
+
+<script>
+function getSettings() {
+    try {
+        var hash = window.location.hash.substring(1);
+        return JSON.parse(decodeURIComponent(hash));
+    } catch (e) { return {}; }
+}
+
+function populateForm() {
+    var s = getSettings();
+    setValue('faceType', s.faceType);
+    setValue('colorScheme', s.colorScheme);
+    setValue('dataSource', s.dataSource);
+    setValue('trioHost', s.trioHost);
+    setValue('nightscoutUrl', s.nightscoutUrl);
+    setValue('nightscoutToken', s.nightscoutToken);
+    setValue('dexcomUsername', s.dexcomUsername);
+    setValue('dexcomPassword', s.dexcomPassword);
+    setValue('dexcomServer', s.dexcomServer);
+    setValue('highThreshold', s.highThreshold);
+    setValue('lowThreshold', s.lowThreshold);
+    setValue('urgentLow', s.urgentLow);
+    setChecked('alertHighEnabled', s.alertHighEnabled);
+    setChecked('alertLowEnabled', s.alertLowEnabled);
+    setValue('alertSnoozeMin', s.alertSnoozeMin);
+    setChecked('weatherEnabled', s.weatherEnabled);
+    setValue('weatherUnits', s.weatherUnits);
+    toggleSourceFields();
+}
+
+function saveAndReturn() {
+    var result = {
+        faceType: intVal('faceType'),
+        colorScheme: intVal('colorScheme'),
+        dataSource: intVal('dataSource'),
+        trioHost: strVal('trioHost'),
+        nightscoutUrl: strVal('nightscoutUrl'),
+        nightscoutToken: strVal('nightscoutToken'),
+        dexcomUsername: strVal('dexcomUsername'),
+        dexcomPassword: strVal('dexcomPassword'),
+        dexcomServer: strVal('dexcomServer'),
+        highThreshold: intVal('highThreshold'),
+        lowThreshold: intVal('lowThreshold'),
+        urgentLow: intVal('urgentLow'),
+        alertHighEnabled: boolVal('alertHighEnabled'),
+        alertLowEnabled: boolVal('alertLowEnabled'),
+        alertSnoozeMin: intVal('alertSnoozeMin'),
+        weatherEnabled: boolVal('weatherEnabled'),
+        weatherUnits: strVal('weatherUnits')
+    };
+    var encoded = encodeURIComponent(JSON.stringify(result));
+    window.location.href = 'pebblejs://close#' + encoded;
+}
+
+function toggleSourceFields() {
+    var src = intVal('dataSource');
+    document.getElementById('trioFields').style.display = src === 0 ? '' : 'none';
+    document.getElementById('dexcomFields').style.display = src === 1 ? '' : 'none';
+    document.getElementById('nightscoutFields').style.display = src === 2 ? '' : 'none';
+}
+
+function setValue(id, val) { var el = document.getElementById(id); if (el && val !== undefined) el.value = val; }
+function setChecked(id, val) { var el = document.getElementById(id); if (el) el.checked = !!val; }
+function intVal(id) { return parseInt(document.getElementById(id).value, 10) || 0; }
+function strVal(id) { return document.getElementById(id).value || ''; }
+function boolVal(id) { return document.getElementById(id).checked; }
+
+populateForm();
+</script>
+</body>
+</html>

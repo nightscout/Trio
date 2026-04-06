@@ -1,7 +1,7 @@
 {
   "name": "trio-pebble",
-  "version": "1.0.0",
-  "description": "Trio diabetes management companion watchface for Pebble smartwatches",
+  "version": "2.0.0",
+  "description": "Premium CGM watchface for Pebble - Trio, Dexcom Share, Nightscout",
   "author": "MinimusClawdius",
   "license": "MIT",
   "pebble": {
@@ -32,7 +32,27 @@
       "KEY_LOOP_STATUS": 12,
       "KEY_UNITS": 13,
       "KEY_PUMP_STATUS": 14,
-      "KEY_RESERVOIR": 15
+      "KEY_RESERVOIR": 15,
+      "KEY_CONFIG_FACE_TYPE": 16,
+      "KEY_CONFIG_DATA_SOURCE": 17,
+      "KEY_CONFIG_HIGH_THRESHOLD": 18,
+      "KEY_CONFIG_LOW_THRESHOLD": 19,
+      "KEY_CONFIG_ALERT_HIGH_ENABLED": 20,
+      "KEY_CONFIG_ALERT_LOW_ENABLED": 21,
+      "KEY_CONFIG_ALERT_URGENT_LOW": 22,
+      "KEY_CONFIG_ALERT_SNOOZE_MIN": 23,
+      "KEY_CONFIG_COLOR_SCHEME": 24,
+      "KEY_BATTERY_PHONE": 25,
+      "KEY_WEATHER_TEMP": 26,
+      "KEY_WEATHER_ICON": 27,
+      "KEY_STEPS": 28,
+      "KEY_HEART_RATE": 29,
+      "KEY_PREDICTIONS_DATA": 30,
+      "KEY_PREDICTIONS_COUNT": 31,
+      "KEY_PUMP_BATTERY": 32,
+      "KEY_SENSOR_AGE": 33,
+      "KEY_CONFIG_CHANGED": 34,
+      "KEY_TAP_ACTION": 35
     },
     "capabilities": ["configurable"]
   }
