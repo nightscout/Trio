@@ -16,6 +16,7 @@ extension WatchConfig {
                     content: {
                         NavigationLink("Apple Watch", destination: WatchConfigAppleWatchView(resolver: resolver, state: state))
                         NavigationLink("Garmin", destination: WatchConfigGarminView(state: state))
+                        NavigationLink("Pebble", destination: WatchConfigPebbleView(state: state))
                     }
                 ).listRowBackground(Color.chart)
             }

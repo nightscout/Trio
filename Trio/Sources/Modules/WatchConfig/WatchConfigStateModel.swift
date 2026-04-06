@@ -5,6 +5,7 @@ import SwiftUI
 extension WatchConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var garmin: GarminManager!
+        @Injected() private var pebble: PebbleManager!
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var devices: [IQDevice] = []
@@ -12,6 +13,15 @@ extension WatchConfig {
 
         /// Garmin watch settings containing all watch-related configuration
         @Published var garminSettings = GarminWatchSettings()
+
+        // Pebble state
+        @Published var pebbleEnabled = false
+        @Published var pebbleRunning = false
+        @Published var pebblePort: UInt16 = 8080
+
+        var pebbleCommandManager: PebbleCommandManager {
+            (pebble as? BasePebbleManager)?.getCommandManager() ?? PebbleCommandManager()
+        }
 
         private(set) var preferences = Preferences()
 
@@ -24,6 +34,21 @@ extension WatchConfig {
             subscribeSetting(\.confirmBolusFaster, on: $confirmBolusFaster) { confirmBolusFaster = $0 }
 
             devices = garmin.devices
+
+            // Pebble state
+            pebbleEnabled = pebble.isEnabled
+            pebbleRunning = pebble.isRunning
+            if let basePebble = pebble as? BasePebbleManager {
+                pebblePort = basePebble.getCurrentPort()
+            }
+
+            $pebbleEnabled
+                .dropFirst()
+                .sink { [weak self] enabled in
+                    self?.pebble.isEnabled = enabled
+                    self?.pebbleRunning = self?.pebble.isRunning ?? false
+                }
+                .store(in: &lifetime)
         }
 
         /// Prompts the user to select Garmin devices and updates the device list
