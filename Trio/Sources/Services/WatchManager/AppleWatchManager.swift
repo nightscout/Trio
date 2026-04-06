@@ -26,6 +26,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     @Injected() private var bolusCalculationManager: BolusCalculationManager!
     @Injected() private var iobService: IOBService!
     @Injected() private var notificationsManager: UserNotificationsManager!
+    @Injected() private var pebble: PebbleManager!
 
     private var units: GlucoseUnits = .mgdL
     private var glucoseColorScheme: GlucoseColorScheme = .staticColor
@@ -93,6 +94,46 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             .store(in: &subscriptions)
 
         registerHandlers()
+        configurePebbleCommands()
+    }
+
+    private func configurePebbleCommands() {
+        guard let basePebble = pebble as? BasePebbleManager else { return }
+        let cmdMgr = basePebble.getCommandManager()
+        cmdMgr.maxBolus = settingsManager.pumpSettings.maxBolus
+        cmdMgr.maxCarbs = settingsManager.settings.maxCarbs
+
+        cmdMgr.executeBolus = { [weak self] amount in
+            guard let self = self else { return }
+            Task {
+                await self.apsManager.enactBolus(amount: amount, isSMB: false) { _, _ in }
+            }
+        }
+
+        cmdMgr.executeCarbs = { [weak self] grams, _ in
+            guard let self = self else { return }
+            let context = CoreDataStack.shared.newTaskContext()
+            Task {
+                await context.perform {
+                    let carbEntry = CarbEntryStored(context: context)
+                    carbEntry.id = UUID()
+                    carbEntry.carbs = grams
+                    carbEntry.date = Date()
+                    carbEntry.note = "Via Pebble"
+                    carbEntry.isFPU = false
+                    carbEntry.isUploadedToNS = false
+                    carbEntry.isUploadedToHealth = false
+                    carbEntry.isUploadedToTidepool = false
+                    do {
+                        guard context.hasChanges else { return }
+                        try context.save()
+                        debug(.service, "Pebble: saved carb entry \(grams)g")
+                    } catch {
+                        debug(.service, "Pebble: error saving carbs: \(error)")
+                    }
+                }
+            }
+        }
     }
 
     private func registerHandlers() {
@@ -476,6 +517,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     /// Sends the state of type WatchState to the connected Watch
     /// - Parameter state: Current WatchState containing glucose data to be sent
     @MainActor func sendDataToWatch(_ state: WatchState) async {
+        pebble.sendState(state)
+
         guard let session = session else { return }
 
         guard session.isPaired else {

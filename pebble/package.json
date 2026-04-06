@@ -1,0 +1,39 @@
+{
+  "name": "trio-pebble",
+  "version": "1.0.0",
+  "description": "Trio diabetes management companion watchface for Pebble smartwatches",
+  "author": "MinimusClawdius",
+  "license": "MIT",
+  "pebble": {
+    "displayName": "Trio Pebble",
+    "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": ["aplite", "basalt", "chalk", "diorite", "emery"],
+    "watchapp": {
+      "watchface": true
+    },
+    "resources": {
+      "media": []
+    },
+    "messageKeys": {
+      "KEY_GLUCOSE": 0,
+      "KEY_TREND": 1,
+      "KEY_DELTA": 2,
+      "KEY_IOB": 3,
+      "KEY_COB": 4,
+      "KEY_LAST_LOOP": 5,
+      "KEY_GLUCOSE_STALE": 6,
+      "KEY_CMD_TYPE": 7,
+      "KEY_CMD_AMOUNT": 8,
+      "KEY_CMD_STATUS": 9,
+      "KEY_GRAPH_DATA": 10,
+      "KEY_GRAPH_COUNT": 11,
+      "KEY_LOOP_STATUS": 12,
+      "KEY_UNITS": 13,
+      "KEY_PUMP_STATUS": 14,
+      "KEY_RESERVOIR": 15
+    },
+    "capabilities": ["configurable"]
+  }
+}

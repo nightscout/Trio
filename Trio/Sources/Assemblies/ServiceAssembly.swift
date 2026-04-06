@@ -21,6 +21,7 @@ final class ServiceAssembly: Assembly {
         container.register(WatchManager.self) { r in BaseWatchManager(resolver: r) }
         container.register(BolusCalculationManager.self) { r in BaseBolusCalculationManager(resolver: r) }
         container.register(GarminManager.self) { r in BaseGarminManager(resolver: r) }
+        container.register(PebbleManager.self) { r in BasePebbleManager(resolver: r) }
         container.register(ContactImageManager.self) { r in BaseContactImageManager(resolver: r) }
         container.register(AlertPermissionsChecker.self) { r in AlertPermissionsChecker(resolver: r) }
         if #available(iOS 16.2, *) {

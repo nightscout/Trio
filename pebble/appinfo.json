@@ -1,0 +1,17 @@
+{
+  "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "shortName": "Trio",
+  "longName": "Trio Pebble",
+  "companyName": "MinimusClawdius",
+  "versionLabel": "1.0.0",
+  "sdkVersion": "3",
+  "targetPlatforms": ["aplite", "basalt", "chalk", "diorite", "emery"],
+  "watchapp": {
+    "watchface": true
+  },
+  "enableMultiJS": true,
+  "resources": {
+    "media": []
+  },
+  "capabilities": ["configurable"]
+}
