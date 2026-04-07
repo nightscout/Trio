@@ -457,22 +457,22 @@
         }
       }
     },
+    "NSCalendarsFullAccessUsageDescription" : {
+      "comment" : "Privacy - Calendars Full Access Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "To create events with glucose values, so they can be viewed on Apple Watch and CarPlay"
+          }
+        }
+      }
+    },
     "NSCalendarsUsageDescription" : {
       "comment" : "Privacy - Calendars Usage Description",
       "extractionState" : "extracted_with_value",
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calendar is used to create a new glucose events."
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calendar is used to create a new glucose events."
-          }
-        },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
@@ -488,37 +488,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Calendar is used to create a new glucose events."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calendar is used to create a new glucose events."
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calendar is used to create a new glucose events."
+            "value" : "Calendar is used to create new glucose events."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Le calendrier est utilisé pour créer un nouvel événement de glycémie."
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calendar is used to create a new glucose events."
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calendar is used to create a new glucose events."
           }
         },
         "it" : {
@@ -537,24 +513,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Agenda wordt gebruikt om nieuwe glucose gebeurtenissen aan te maken."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calendar is used to create a new glucose events."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calendar is used to create a new glucose events."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calendar is used to create a new glucose events."
           }
         },
         "ru" : {
@@ -616,18 +574,6 @@
       "comment" : "Privacy - Face ID Usage Description",
       "extractionState" : "extracted_with_value",
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For authorized acces to bolus"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For authorized acces to bolus"
-          }
-        },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
@@ -643,37 +589,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "For authorized acces to bolus"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For authorized acces to bolus"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For authorized acces to bolus"
+            "value" : "For authorized access to bolus"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pour les accès autorisés au bolus"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For authorized acces to bolus"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For authorized acces to bolus"
           }
         },
         "it" : {
@@ -692,24 +614,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Voor geautoriseerde toegang tot bolus"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For authorized acces to bolus"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For authorized acces to bolus"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For authorized acces to bolus"
           }
         },
         "ru" : {
