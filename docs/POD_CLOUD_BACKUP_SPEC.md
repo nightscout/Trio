@@ -139,65 +139,70 @@ The primary strategy is to serialize the entire `OmniBLEPumpManagerState.rawValu
 |---|---|---|---|
 | `ltk` | `Data` | `"ltk"` (hex string) | Master secret; required to establish any new session |
 | `address` | `UInt32` | `"address"` | Pod address for BLE targeting and re-discovery matching |
-| `bleIdentifier` | `String?` | `"bleIdentifier"` | Stored but replaced during re-discovery on new device |
+| `bleIdentifier` | `String` | `"bleIdentifier"` | Stored but replaced during re-discovery on new device |
 | `activatedAt` | `Date?` | `"activatedAt"` | Pod start time; needed for expiry calculation |
 | `expiresAt` | `Date?` | `"expiresAt"` | Pod expiry; used for Firestore TTL and UI |
+| `setupUnitsDelivered` | `Double?` | `"setupUnitsDelivered"` | Units delivered during pod setup (prime + cannula) |
 | `lotNo` | `UInt32` | `"lotNo"` | Lot number; used for re-discovery advertisement matching |
 | `lotSeq` | `UInt32` | `"lotSeq"` | Lot sequence number; additional re-discovery matching criterion |
-| `productId` | `UInt8` | `"productId"` | Pod product type |
+| `productId` | `UInt8` | _(not serialized)_ | Pod product type — **read** from `"productId"` during deserialization but **never written** to rawValue; defaults to `dashProductId` on restore |
 | `insulinType` | `InsulinType` | `"insulinType"` | Needed for correct dose calculations |
-| `suspendState` | `SuspendState` | `"suspendState"` | Is the pod currently suspended? |
-| `lastInsulinMeasurements` | `PodInsulinMeasurements?` | `"lastInsulinMeasurements"` | Contains `reservoirLevel: Double?` — last known reservoir reading |
-| `unfinalizedBolus` | `UnfinalizedDose?` | `"unfinalizedBolus"` | In-flight bolus not yet confirmed |
+| `suspendState` | `SuspendState` | `"suspendState"` | Is the pod currently suspended? Contains nested `Date` |
+| `lastInsulinMeasurements` | `PodInsulinMeasurements?` | `"lastInsulinMeasurements"` | Contains `reservoirLevel: Double?` — last known reservoir reading. Contains nested `Date` (`validTime`) |
+| `unfinalizedBolus` | `UnfinalizedDose?` | `"unfinalizedBolus"` | In-flight bolus not yet confirmed. Contains nested `Date` (`startTime`) |
 | `unfinalizedTempBasal` | `UnfinalizedDose?` | `"unfinalizedTempBasal"` | In-flight temp basal not yet confirmed |
 | `unfinalizedSuspend` | `UnfinalizedDose?` | `"unfinalizedSuspend"` | In-flight suspend not yet confirmed |
 | `unfinalizedResume` | `UnfinalizedDose?` | `"unfinalizedResume"` | In-flight resume not yet confirmed |
 | `finalizedDoses` | `[UnfinalizedDose]` | `"finalizedDoses"` | Completed doses pending upload |
-| `configuredAlerts` | `[AlertSlot: PodAlert]` | `"configuredAlerts"` | Alerts currently configured on pod |
-| `activeAlertSlots` | `AlertSet` | `"activeAlertSlots"` | Currently firing alerts |
-| `setupProgress` | `SetupProgress` | `"setupProgress"` | Is the pod fully activated? |
-| `firmwareVersion` | `FirmwareVersion` | `"firmwareVersion"` | Pod firmware; protocol compatibility |
-| `bleFirmwareVersion` | `FirmwareVersion` | `"bleFirmwareVersion"` | BLE chip firmware version |
+| `configuredAlerts` | `[AlertSlot: PodAlert]` | `"configuredAlerts"` | Alerts currently configured on pod (keys serialized as String of slot rawValue) |
+| `activeAlertSlots` | `AlertSet` | `"alerts"` | Currently firing alerts |
+| `setupProgress` | `SetupProgress` | `"setupProgress"` | Is the pod fully activated? (stored as Int rawValue) |
+| `primeFinishTime` | `Date?` | `"primeFinishTime"` | When pod priming finished |
+| `firmwareVersion` | `String` | `"firmwareVersion"` | Pod firmware; protocol compatibility |
+| `bleFirmwareVersion` | `String` | `"bleFirmwareVersion"` | BLE chip firmware version |
 | `podTime` | `TimeInterval` | `"podTime"` | Time elapsed on pod clock |
 | `podTimeUpdated` | `Date?` | `"podTimeUpdated"` | When pod time was last read |
 | `activeTime` | `TimeInterval?` | `"activeTime"` | Total active time |
-| `fault` | `DetailedStatus?` | `"fault"` | Pod fault state if any |
-| `unacknowledgedCommand` | `PendingCommand?` | `"unacknowledgedCommand"` | Command awaiting acknowledgment |
+| `fault` | `DetailedStatus?` | `"fault"` | Pod fault state if any. **Note: `DetailedStatus.RawValue` is `Data` (binary blob), not `[String: Any]`** |
+| `unacknowledgedCommand` | `PendingCommand?` | `"unacknowledgedCommand"` | Command awaiting acknowledgment. Contains nested `Date` |
 | `messageTransportState` | `MessageTransportState` | `"messageTransportState"` | Full session counter state (see below) |
 
 **Fields on `MessageTransportState`** (nested in `PodState.rawValue["messageTransportState"]`):
 
 | Property Name | Type | rawValue Key | Why It's Needed |
 |---|---|---|---|
-| `eapSeq` | `Int` | `"eapSeq"` | EAP sequence number; must be current to negotiate session |
+| `eapSeq` | `Int` | `"eapSeq"` | EAP sequence number; must be current to negotiate session (defaults to 1 if missing) |
 | `msgSeq` | `Int` | `"msgSeq"` | Message packet sequence number |
 | `nonceSeq` | `Int` | `"nonceSeq"` | Nonce counter; must not repeat |
 | `messageNumber` | `Int` | `"messageNumber"` | Omnipod command sequence |
-| `ck` | `Data` | `"ck"` | Current session cipher key (ephemeral) |
-| `noncePrefix` | `Data` | `"noncePrefix"` | Current nonce prefix (ephemeral) |
+| `ck` | `Data?` | `"ck"` | Current session cipher key (ephemeral); serialized as hex string, `""` if nil |
+| `noncePrefix` | `Data?` | `"noncePrefix"` | Current nonce prefix (ephemeral); serialized as hex string, `""` if nil |
 
 **Additional top-level fields on `OmniBLEPumpManagerState`** (`OmniBLE/OmniBLE/PumpManager/OmniBLEPumpManagerState.swift`):
 
-| Field | Notes |
-|---|---|
-| `basalSchedule` | Moved off `PodState` in state version 2; lives here |
-| `insulinType` | Top-level copy; also on PodState |
-| `isOnboarded` | Pump onboarding state |
-| `timeZone` | Timezone for scheduled dosing |
-| `unstoredDoses` | Doses pending upload to HealthKit/Nightscout |
-| `silencePod` | User preference |
-| `confirmationBeeps` | User preference |
-| `controllerId` / `podId` | Controller and pod identity |
-| `scheduledExpirationReminderOffset` | Alert timing preference |
-| `defaultExpirationReminderOffset` | Alert timing preference |
-| `lowReservoirReminderValue` | Alert threshold |
-| `podAttachmentConfirmed` | Setup state |
-| `activeAlerts` / `alertsWithPendingAcknowledgment` | Alert tracking |
-| `acknowledgedTimeOffsetAlert` | Alert state |
-| `lastPumpDataReportDate` | Last successful data report |
-| `previousPodState` | Previous pod for dose continuity |
-| `initialConfigurationCompleted` | Setup state |
-| `maximumTempBasalRate` | Safety limit |
+| Field | Type | rawValue Key | Notes |
+|---|---|---|---|
+| `podState` | `PodState?` | `"podState"` | The active pod state (nested dict). **Key absent when nil** (not NSNull). |
+| `basalSchedule` | `BasalSchedule` | `"basalSchedule"` | Moved off `PodState` in state version 2; lives here |
+| `insulinType` | `InsulinType?` | `"insulinType"` | Optional top-level copy; also on PodState |
+| `isOnboarded` | `Bool` | `"isOnboarded"` | Pump onboarding state |
+| `timeZone` | `TimeZone` | `"timeZone"` | Serialized as `secondsFromGMT()` Int |
+| `unstoredDoses` | `[UnfinalizedDose]` | `"unstoredDoses"` | Doses pending upload; contains nested `Date` values |
+| `silencePod` | `Bool` | `"silencePod"` | User preference |
+| `confirmationBeeps` | `BeepPreference` | `"confirmationBeeps"` | User preference (stored as rawValue Int) |
+| `controllerId` | `UInt32` | `"controllerId"` | Controller identity |
+| `podId` | `UInt32` | `"podId"` | Pod identity |
+| `scheduledExpirationReminderOffset` | `TimeInterval?` | `"scheduledExpirationReminderOffset"` | Alert timing preference |
+| `defaultExpirationReminderOffset` | `TimeInterval` | `"defaultExpirationReminderOffset"` | Alert timing preference |
+| `lowReservoirReminderValue` | `Double` | `"lowReservoirReminderValue"` | Alert threshold |
+| `podAttachmentConfirmed` | `Bool` | `"podAttachmentConfirmed"` | Setup state |
+| `activeAlerts` | `Set<PumpManagerAlert>` | `"activeAlerts"` | Alert tracking (serialized as array of rawValues) |
+| `alertsWithPendingAcknowledgment` | `Set<PumpManagerAlert>` | `"alertsWithPendingAcknowledgment"` | Alerts pending ack |
+| `acknowledgedTimeOffsetAlert` | `Bool` | `"acknowledgedTimeOffsetAlert"` | Alert state |
+| `lastPumpDataReportDate` | `Date?` | `"lastPumpDataReportDate"` | Last successful data report. **Contains raw `Date`** |
+| `previousPodState` | `PodState?` | `"previousPodState"` | Previous pod for dose continuity |
+| `initialConfigurationCompleted` | `Bool` | `"initialConfigurationCompleted"` | Setup state |
+| `maximumTempBasalRate` | `Double` | `"maximumTempBasalRate"` | Safety limit |
 
 All of the above are captured by serializing `OmniBLEPumpManagerState.rawValue`. No manual field extraction is needed.
 
