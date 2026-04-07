@@ -298,6 +298,18 @@ struct OnboardingStepContent: View {
     var navigationDirection: OnboardingNavigationDirection
     @Environment(\.accessibilityReduceMotion) var reduceMotion
 
+    private var transition: AnyTransition {
+        if reduceMotion {
+            return .opacity
+        }
+        switch navigationDirection {
+        case .forward:
+            return .asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading))
+        case .backward:
+            return .asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing))
+        }
+    }
+
     var body: some View {
         ScrollViewReader { scrollProxy in
             ScrollView(.vertical, showsIndicators: true) {
@@ -378,15 +390,7 @@ struct OnboardingStepContent: View {
                                 CompletedStepView(isOnboardingCompleted: true, currentChapter: nil)
                             }
                         }
-                        .transition(
-                            reduceMotion
-                                ? .opacity
-                                : (
-                                    navigationDirection == .forward
-                                        ? .asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading))
-                                        : .asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing))
-                                )
-                        )
+                        .transition(transition)
                         .padding(.horizontal)
                         .id(currentStep.id)
                     }
