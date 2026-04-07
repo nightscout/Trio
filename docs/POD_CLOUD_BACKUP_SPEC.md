@@ -208,9 +208,9 @@ All of the above are captured by serializing `OmniBLEPumpManagerState.rawValue`.
 
 ### 5.2 Therapy Settings Payload
 
-Therapy settings are stored as **JSON files** via `BaseFileStorage` (file-based, not Core Data). The central type is `TherapyProfile` containing basal profile, insulin sensitivities, carb ratios, and BG targets. Pump settings are in `PumpSettings`. Settings are managed by `ProfileManager`.
+Therapy settings are stored as **JSON files** via `BaseFileStorage` (file-based via the Disk library to the app's Documents directory, not Core Data or UserDefaults). The central type is `TherapyProfile` containing basal profile, insulin sensitivities, carb ratios, and BG targets. Pump settings are in `PumpSettings` (contains `maxBolus`, `maxBasal`, `insulinActionCurve`). Settings are managed by `BaseProfileManager` (conforming to `ProfileManager` protocol).
 
-File paths follow the pattern `settings/basal_profile.json`, `settings/insulin_sensitivities.json`, etc.
+File paths follow the pattern `settings/basal_profile.json`, `settings/insulin_sensitivities.json`, etc. Path constants are defined in `Trio/Sources/APS/OpenAPS/Constants.swift`.
 
 This payload is synced on settings changes. It is not safety-critical in the same way as pod state but is operationally important — manually re-entering all settings on a new device in an emergency is error-prone.
 
@@ -222,7 +222,9 @@ This payload is synced on settings changes. It is not safety-critical in the sam
 | BG targets | `TherapyProfile.bgTargets` | `settings/bg_targets.json` |
 | Pump settings | `PumpSettings` | `settings/settings.json` |
 | Max bolus / max basal | `PumpSettings` | `settings/settings.json` |
-| Dynamic ISF / SMB / algorithm | `FreeAPSSettings` | `settings/preferences.json` |
+| Dynamic ISF / SMB / algorithm | `Preferences` | `preferences.json` |
+
+**Note:** The `Preferences` type (not `FreeAPSSettings` — that type does not exist) is stored at the root path `preferences.json`, not under `settings/`. The constant is `OpenAPS.Settings.preferences` (`Constants.swift:30`).
 
 ---
 
@@ -323,6 +325,30 @@ Three documents per user, under their Firebase Auth UID.
 ```
 
 The `encryptedPayload` decrypts to the JSON-encoded `OmniBLEPumpManagerState.rawValue` dictionary.
+
+**JSON Serialization Warning:** `OmniBLEPumpManagerState.rawValue` is **not directly JSON-serializable** via `JSONSerialization.data(withJSONObject:)`. A conversion pass is required before encoding. Fields requiring conversion:
+
+| Field Path | Type in rawValue | Required Conversion |
+|---|---|---|
+| `podState.activatedAt` | `Date` | `Date` → `TimeInterval` (timeIntervalSinceReferenceDate) or ISO8601 string |
+| `podState.expiresAt` | `Date` | Same |
+| `podState.podTimeUpdated` | `Date` | Same |
+| `podState.primeFinishTime` | `Date` | Same |
+| `podState.suspendState.date` | `Date` | Same (nested in SuspendState rawValue dict) |
+| `podState.lastInsulinMeasurements.validTime` | `Date` | Same (nested in PodInsulinMeasurements rawValue) |
+| `podState.unfinalizedBolus.startTime` | `Date` | Same (nested in UnfinalizedDose rawValue) |
+| `podState.unfinalizedTempBasal.startTime` | `Date` | Same |
+| `podState.unfinalizedSuspend.startTime` | `Date` | Same |
+| `podState.unfinalizedResume.startTime` | `Date` | Same |
+| `podState.finalizedDoses[].startTime` | `Date` | Same (each element) |
+| `podState.unacknowledgedCommand.date` | `Date` | Same (nested in PendingCommand rawValue) |
+| `podState.fault` | `Data` (binary blob) | `Data` → hex string or base64. **`DetailedStatus.RawValue` is `Data`, not `[String: Any]`** |
+| `lastPumpDataReportDate` | `Date` | Same |
+| `unstoredDoses[].startTime` | `Date` | Same (each element) |
+| `previousPodState.*` | various | Same conversions as podState |
+| `address`, `lotNo`, `lotSeq`, `controllerId`, `podId` | `UInt32` | May need explicit `Int` cast for safe `NSNumber` bridging |
+
+**Implementation approach:** Write a recursive dictionary walker that converts all `Date` values to `TimeInterval` (via `timeIntervalSinceReferenceDate`) and all `Data` values to hex strings before passing to `JSONSerialization`. On restore, apply the inverse conversion before passing to `init(rawValue:)`. This is the single most important Phase 1 unit test.
 
 ### 8.2 Settings Document
 
