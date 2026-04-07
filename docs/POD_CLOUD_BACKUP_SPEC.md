@@ -5,7 +5,8 @@
 **Author:** Zack Goettsche  
 **Status:** Draft — Pre-Implementation  
 **Date:** April 2026  
-**Validated Against:** OmniBLE @ d8375ebf242e0d0e02ace7a03d9e1632557de38e (loopandlearn/OmniBLE, branch trio)
+**Validated Against:** OmniBLE @ d8375ebf242e0d0e02ace7a03d9e1632557de38e (loopandlearn/OmniBLE, branch trio)  
+**Last Validation Pass:** April 7, 2026 — all claims verified against source code with file/line citations
 
 ---
 
@@ -82,9 +83,9 @@ This means a compromised LTK is equivalent to **physical access to someone's ins
 
 The Omnipod Dash does **not** use iOS CoreBluetooth bonding or iOS-managed BLE security. Instead, all cryptographic binding is done at the application layer:
 
-1. **Initial pairing:** X25519 Diffie-Hellman key exchange via `LTKExchanger.swift` using CryptoKit `Curve25519.KeyAgreement`. The result is the LTK — a 16-byte `Data` value stored in `PodState.ltk: Data`.
-2. **Per-session key derivation:** Each communication session derives ephemeral keys (`ck`, `noncePrefix`) from the LTK using the Milenage algorithm via `SessionEstablisher.swift`.
-3. **Message encryption:** All BLE messages are encrypted with AES-CCM using the per-session keys.
+1. **Initial pairing:** X25519 Diffie-Hellman key exchange via `LTKExchanger.swift`, which delegates to `X25519KeyGenerator.swift` (the file that actually imports CryptoKit and calls `Curve25519.KeyAgreement`). The result is the LTK — a 16-byte `Data` value stored in `PodState.ltk: Data`.
+2. **Per-session key derivation:** Each communication session derives ephemeral keys (`ck`, `noncePrefix`) from the LTK using the Milenage algorithm (implemented in `Milenage.swift`, invoked by `SessionEstablisher.swift`).
+3. **Message encryption:** All BLE messages are encrypted with AES-CCM (via CryptoSwift, not CryptoKit) using the per-session keys.
 
 Because the binding is entirely in software state (not iOS Secure Enclave hardware), it is fully portable — it can be serialized, stored, and restored on a different device.
 
@@ -92,13 +93,17 @@ Because the binding is entirely in software state (not iOS Secure Enclave hardwa
 
 CoreBluetooth assigns each peripheral a UUID that is unique per iOS device. The same physical Omnipod Dash pod gets a **different UUID on every iPhone**. This means `PodState.bleIdentifier` cannot be transferred directly — it is meaningless on the new device.
 
-The solution is BLE re-discovery: on the new device, scan for nearby Dash pods and match by pod address (from the backup). Critically, the pod address (`podId`), `lotNo`, and lot sequence number are **encoded in the BLE advertisement data itself** (parsed from the service UUID array in `PodAdvertisement.swift`) — no preliminary connection or handshake is needed before matching. Once the correct peripheral is found, update `bleIdentifier` and proceed with session establishment.
+The solution is BLE re-discovery: on the new device, scan for nearby Dash pods and match by pod address (from the backup). Critically, the pod address (`podId`), `lotNo`, and lot sequence number (`sequenceNo` in `PodAdvertisement`, corresponding to `lotSeq` in `PodState`) are **encoded in the BLE advertisement data itself** (parsed from the service UUID array in `PodAdvertisement.swift`) — no preliminary connection or handshake is needed before matching. Once the correct peripheral is found, update `bleIdentifier` and proceed with session establishment.
+
+**Note:** `PodAdvertisement.lotNo` is `UInt64` while `PodState.lotNo` is `UInt32`. The re-discovery matching code must account for this type difference (truncation or widening comparison).
 
 ### 4.3 PodState Serialization
 
-`PodState` already conforms to `RawRepresentable` with a `[String: Any]` dictionary. `MessageTransportState` has its own `RawRepresentable` conformance and is nested inside `PodState.rawValue` under the key `"messageTransportState"`. `OmniBLEPumpManagerState` wraps `PodState?` (note: optional) and is also fully serializable.
+`PodState` already conforms to `RawRepresentable` with a `[String: Any]` dictionary. `MessageTransportState` has its own `RawRepresentable` conformance and is nested inside `PodState.rawValue` under the key `"messageTransportState"`. `OmniBLEPumpManagerState` wraps `PodState?` (note: optional, nested under key `"podState"` in the rawValue dictionary) and is also fully serializable.
 
 The backup feature reuses this serialization pathway — the same `rawValue` dictionary that gets written to disk locally also gets encrypted and uploaded to Firestore.
+
+**Critical caveat:** The `rawValue` dictionaries are **not directly JSON-serializable** via `JSONSerialization`. They contain Swift `Date` objects (stored raw, not as TimeInterval or ISO8601 strings) and one `Data` object (`DetailedStatus.rawValue` for the `fault` field is `Data`, not `[String: Any]`). A conversion pass is required before JSON encoding — see Section 8 for the full list of fields needing conversion.
 
 ### 4.4 Session Re-Establishment
 
@@ -111,6 +116,10 @@ private func establishSession(ltk: Data, eapSeq: Int, msgSeq: Int = 1) throws ->
 Only the LTK (`Data`) and the current EAP sequence number are required to negotiate fresh session keys with the pod. `msgSeq` defaults to 1. The new device can establish its own session using the transferred LTK without any coordination with the old device — as long as the old device is not simultaneously active (see Section 10).
 
 Note: `establishSession` is `private` — session re-establishment on the new device must go through the same internal `PodComms` pathway used during normal operation, not called directly from the backup restoration code.
+
+The public entry point is `PodComms.runSession(withName:_:)` (`PodComms.swift:423`). This method checks peripheral connectivity, then internally triggers `completeConfiguration(for:)` (`PodComms.swift:502`) which calls `establishNewSession()` when `needsSessionEstablishment` is true. `establishNewSession()` has built-in retry logic: if the pod returns a resynchronization response (EAP SQN mismatch), it increments `eapSeq` and retries once before failing.
+
+There is **no** `OmniBLEPumpManager.connect()` method. Recovery code should restore `PodState` (with updated `bleIdentifier`), then let `PodComms` handle connection and session establishment automatically through its normal `runSession` / `completeConfiguration` flow.
 
 ---
 
