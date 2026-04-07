@@ -348,7 +348,7 @@ The `encryptedPayload` decrypts to the JSON-encoded `OmniBLEPumpManagerState.raw
 | `previousPodState.*` | various | Same conversions as podState |
 | `address`, `lotNo`, `lotSeq`, `controllerId`, `podId` | `UInt32` | May need explicit `Int` cast for safe `NSNumber` bridging |
 
-**Implementation approach:** Write a recursive dictionary walker that converts all `Date` values to `TimeInterval` (via `timeIntervalSinceReferenceDate`) and all `Data` values to hex strings before passing to `JSONSerialization`. On restore, apply the inverse conversion before passing to `init(rawValue:)`. This is the single most important Phase 1 unit test.
+**Implementation approach:** Write a recursive dictionary walker that converts all `Date` values to `TimeInterval` (via `timeIntervalSinceReferenceDate`) and all `Data` values to hex strings before passing to `JSONSerialization`. On restore, apply the inverse conversion before passing to `init(rawValue:)`. This is the single most important Phase 1 unit test. The reverse conversion on restore requires a hardcoded lookup of all known Date-valued rawValue keys (listed in the table above). A bare TimeInterval number in JSON is indistinguishable from any other Double without this lookup — failing to implement this means Date fields will be silently restored as Double, causing init(rawValue:) to skip them and use nil or default values instead.
 
 ### 8.2 Settings Document
 
