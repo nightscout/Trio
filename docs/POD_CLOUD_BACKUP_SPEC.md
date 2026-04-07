@@ -397,6 +397,10 @@ Pod state sync is triggered after **every successful pod command**:
 - After alert acknowledgment
 - Immediately after pod pairing (first sync, includes initial LTK)
 
+**Implementation hook:** The single best hook point is `OmniBLEPumpManager.podComms(_:didChange:)` (`OmniBLEPumpManager.swift:2518`). This `PodCommsDelegate` method fires every time `PodState` changes inside `PodComms`, which happens after every state-changing pod command. Adding the sync trigger here avoids modifying each individual command method.
+
+Alternatively, sync hooks could be placed in each of the ~20 individual command methods in `OmniBLEPumpManager`: `pairAndPrime`, `insertCannula`, `getPodStatus`, `acknowledgePodAlerts`, `setBasalSchedule`, `deactivatePod`, `suspendDelivery`, `resumeDelivery`, `enactBolus`, `cancelBolus`, `runTemporaryBasalProgram`, `updateExpirationReminder`, `updateLowReservoirReminder`, `setConfirmationBeeps`, `setSilencePod`, `setTime`, `playTestBeeps`, `readPulseLog`. But the delegate approach is cleaner.
+
 ### 9.2 Offline Handling
 
 1. After each successful pod command, attempt Firestore write
@@ -470,8 +474,8 @@ In a non-emergency planned switch:
     → Therapy settings JSON files written to local storage via FileStorage
     → App acquires device lock in Firestore
 9.  App scans for nearby Dash pod via BLE
-    → BluetoothManager.discoverPods() / startScanning() reused
-    → Match by podId, lotNo, lotSeq from advertisement data
+    → BluetoothManager.discoverPods(completion:) reused (startScanning is private)
+    → Match by podId, lotNo, sequenceNo (= PodState.lotSeq) from advertisement data
     → No connection needed before matching
 10. bleIdentifier updated to new device's CoreBluetooth UUID for matched peripheral
 11. Session established via PodComms using recovered ltk + eapSeq + msgSeq
@@ -500,12 +504,12 @@ In a non-emergency planned switch:
 
 ### 12.2 The Solution
 
-1. Start CoreBluetooth scan using `BluetoothManager.startScanning()` (reuse existing code)
+1. Start CoreBluetooth scan using `BluetoothManager.discoverPods(completion:)` (the public API; `startScanning()` is private)
 2. For each discovered peripheral, parse `PodAdvertisement` from advertisement data
-3. The advertisement encodes `podId` (pod address), `lotNo`, and `lotSeq` in the service UUID array — readable **without connecting**
-4. Compare against `PodState.address`, `PodState.lotNo`, `PodState.lotSeq` from backup
+3. The advertisement encodes `podId` (pod address), `lotNo` (`UInt64`), and `sequenceNo` (`UInt32`, maps to `PodState.lotSeq`) in the service UUID array — readable **without connecting**
+4. Compare against `PodState.address`, `PodState.lotNo` (note: `UInt32` vs advertisement's `UInt64`), `PodState.lotSeq` from backup
 5. On match: update `bleIdentifier` to new device's UUID for that peripheral
-6. Proceed with `PodComms` session establishment using recovered `ltk`, `eapSeq`, `msgSeq`
+6. Proceed with `PodComms` session establishment using recovered `ltk`, `eapSeq`, `msgSeq` — session is established automatically via `PodComms.completeConfiguration(for:)` on connect
 
 **BLE Service UUID:** `00004024-0000-1000-8000-00805f9b34fb`
 
@@ -645,7 +649,7 @@ This follows the multi-app Firebase pattern already established in the codebase.
 - [ ] Implement Firestore read + decrypt on new device
 - [ ] Reconstruct `OmniBLEPumpManagerState` from decrypted payload
 - [ ] Write therapy settings JSON files to local storage via `FileStorage`
-- [ ] Implement BLE re-discovery using `BluetoothManager.startScanning()` + `PodAdvertisement` matching on `podId` / `lotNo` / `lotSeq`
+- [ ] Implement BLE re-discovery using `BluetoothManager.discoverPods(completion:)` + `PodAdvertisement` matching on `podId` / `lotNo` / `sequenceNo` (= `PodState.lotSeq`)
 - [ ] Update `bleIdentifier` after re-discovery
 - [ ] Session establishment via `PodComms` using recovered `ltk`, `eapSeq`, `msgSeq`
 - [ ] Handle all failure cases from Section 11.2
@@ -671,16 +675,70 @@ This follows the multi-app Firebase pattern already established in the codebase.
 
 | # | Question / Risk | Severity | Resolution |
 |---|---|---|---|
-| 1 | What happens if `eapSeq` / `msgSeq` is stale at recovery — old phone sent commands after last backup? | High | Pod rejects session with out-of-sequence error. Need to characterize the pod's tolerance window for counter skew. Session retry with incremented counters may recover. Must test on real hardware. |
-| 2 | `establishSession` is `private` — how does recovery code invoke it? | High | Recovery must trigger session establishment through the same `PodComms` internal pathway used during normal pairing/reconnection. Identify the correct public entry point (likely through `OmniBLEPumpManager.connect()` or equivalent). |
+| 1 | What happens if `eapSeq` / `msgSeq` is stale at recovery — old phone sent commands after last backup? | High | Pod returns `SessionNegotiationResynchronization` for EAP SQN mismatch. `establishNewSession()` (`PodComms.swift:279`) already handles this: it retries once with an incremented `eapSeq`. If second attempt also returns resync, it throws `PodCommsError.diagnosticMessage`. Must test on real hardware to characterize tolerance window. |
+| 2 | `establishSession` is `private` — how does recovery code invoke it? | High | Recovery triggers session establishment through `PodComms.runSession(withName:_:)` (`PodComms.swift:423`), which internally calls `completeConfiguration(for:)` → `establishNewSession()` when `needsSessionEstablishment` is true. There is no `OmniBLEPumpManager.connect()` method. The flow is: restore `PodState` → update `bleIdentifier` → `BluetoothManager.connectToDevice(uuidString:)` auto-connects → `completeConfiguration` establishes session. |
 | 3 | PBKDF2 at 600k iterations: is it fast enough on older iPhones for good UX? | Medium | Benchmark on iPhone 11 (oldest likely device). Expect ~1–2 seconds. If unacceptable, reduce iterations with documented tradeoff, or move derivation to background thread with loading indicator. |
 | 4 | Firebase free tier: 20k Firestore writes/day. Will sync stay within limits? | Low | ~50–100 writes/day typical. 20k/day gives 200x headroom. Throttle to max 1 write per 30 seconds if needed. |
 | 5 | User loses passphrase — no recovery path by design. | High | Cannot be worked around — we cannot store the passphrase. Document clearly and prominently. Encourage password manager storage. Provide a passphrase rotation flow so users can change it proactively. |
 | 6 | User loses Firebase email/password credentials. | Medium | Standard Firebase password reset via email. MFA recovery codes must be saved. Document in setup flow. |
 | 7 | Two physical phones online simultaneously attempt to sync conflicting state. | High | Device lock (Section 10) prevents this. Last-write-wins acceptable only if lock is correctly enforced. |
 | 8 | Pod firmware update changes advertisement format, breaking re-discovery. | Low | `PodAdvertisement.swift` parsing is the single point to update. Abstract re-discovery matching behind an interface for easy future updates. |
-| 9 | `OmniBLEPumpManagerState.podState` is optional (`PodState?`). Recovery with nil podState. | Medium | If `podState` is nil in the backup, there is no pod to recover. Detect this in the preview step (Step 7 of recovery flow) and inform the user no active pod backup exists. |
+| 9 | `OmniBLEPumpManagerState.podState` is optional (`PodState?`). Recovery with nil podState. | Medium | If `podState` is nil in the backup, there is no pod to recover. When nil, the `"podState"` key is **absent** from `rawValue` (not present with null value). Detect this in the preview step (Step 7 of recovery flow) and inform the user no active pod backup exists. |
 
 ---
 
-*This document is a pre-implementation specification. It describes intent and design, not completed code. All implementation decisions are subject to revision as development proceeds. Validated against OmniBLE commit d8375ebf, November 2025.*
+---
+
+## Appendix A — Validation Findings (April 7, 2026)
+
+This section documents findings from the code-level validation pass that do not fit cleanly into the spec sections above but are important for implementation.
+
+### A.1 iOS Minimum Version
+
+The Trio app targets **iOS 17.0** (`IPHONEOS_DEPLOYMENT_TARGET = 17.0` in `project.pbxproj`). All CryptoKit APIs needed for this feature (AES.GCM, PBKDF2 via CommonCrypto) are available on iOS 17+.
+
+### A.2 Existing Keychain Infrastructure
+
+Trio has a fully implemented Keychain abstraction at `Trio/Sources/Services/Storage/Keychain/`:
+- `Keychain.swift` — protocol with `getValue`, `setValue`, `removeObject`, `getData`, `setData`
+- `BaseKeychain.swift` — implementation using Security.framework (`SecItemAdd`, `SecItemUpdate`, `SecItemCopyMatching`, `SecItemDelete`)
+- `KeychainItemAccessibility.swift` — accessibility level enum
+
+Default accessibility is `kSecAttrAccessibleAfterFirstUnlock` with `synchronizable = true` (iCloud Keychain sync). The Keychain is injected via Swinject DI (`@Injected() var keychain: Keychain!`).
+
+**Existing usage:** Nightscout URL and API secret, Claude/Anthropic API key for AI Insights. Follow this pattern for storing Firebase credentials and device UUID.
+
+**Note:** For the pod backup passphrase-derived key, consider using `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly` (not synced to iCloud) since the passphrase should be device-local.
+
+### A.3 No Existing Transfer/Restore Functionality
+
+No pod state transfer, export, import, or restore functionality exists anywhere in the OmniBLE or Trio codebase. The pod backup feature is entirely new.
+
+### A.4 Firebase SDK Versions
+
+Firebase iOS SDK version **11.11.0** (revision `d1f7c7e8`, per `Package.resolved`). Linked products: `FirebaseCrashlytics`, `FirebaseAuth`, `FirebaseFirestore`. `FirebaseCore` is a transitive dependency.
+
+### A.5 PodAdvertisement Field Name Mapping
+
+The re-discovery code must map between `PodAdvertisement` and `PodState` field names:
+
+| PodAdvertisement field | PodAdvertisement type | PodState field | PodState type |
+|---|---|---|---|
+| `podId` | `UInt32` | `address` | `UInt32` |
+| `lotNo` | `UInt64` | `lotNo` | `UInt32` |
+| `sequenceNo` | `UInt32` | `lotSeq` | `UInt32` |
+
+Note the `lotNo` type mismatch (`UInt64` vs `UInt32`) and the `sequenceNo` → `lotSeq` name difference.
+
+### A.6 OmniBLEPumpManagerState.init(rawValue:) Capabilities
+
+The `init?(rawValue:)` initializer (`OmniBLEPumpManagerState.swift:120-244`) is fully functional and handles:
+- Version migration (v1 → v2, moving `basalSchedule` from `podState` to top level)
+- Backward-compatible defaults for all fields added post-v1
+- Full recursive reconstruction including nested `PodState`, `MessageTransportState`, alerts, doses
+
+**Not persisted** (transient, reset to defaults on reconstruction): `suspendEngageState`, `bolusEngageState`, `tempBasalEngageState`, `lastStatusChange`.
+
+---
+
+*This document is a pre-implementation specification. It describes intent and design, not completed code. All implementation decisions are subject to revision as development proceeds. Validated against OmniBLE commit d8375ebf. Last validation pass: April 7, 2026.*
