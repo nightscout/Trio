@@ -1,6 +1,6 @@
 import SwiftUI
 
-@Observable final class SettingsSearchHighlight {
+@MainActor @Observable final class SettingsSearchHighlight {
     var highlightedSetting: String?
 }
 
@@ -16,21 +16,12 @@ private struct SettingsHighlightScrollModifier: ViewModifier {
     func body(content: Content) -> some View {
         ScrollViewReader { proxy in
             content
-                .onAppear {
-                    scrollToHighlight(proxy: proxy)
+                .task(id: searchHighlight.highlightedSetting) {
+                    guard let target = searchHighlight.highlightedSetting else { return }
+                    try? await Task.sleep(for: .milliseconds(500))
+                    guard !Task.isCancelled else { return }
+                    withAnimation { proxy.scrollTo(target, anchor: .center) }
                 }
-                .onChange(of: searchHighlight.highlightedSetting) { _, newValue in
-                    if newValue != nil {
-                        scrollToHighlight(proxy: proxy)
-                    }
-                }
-        }
-    }
-
-    private func scrollToHighlight(proxy: ScrollViewProxy) {
-        guard let target = searchHighlight.highlightedSetting else { return }
-        DispatchQueue.main.asyncAfter(deadline: .now().advanced(by: .milliseconds(500))) {
-            withAnimation { proxy.scrollTo(target, anchor: .center) }
         }
     }
 }
@@ -57,9 +48,11 @@ private struct SettingsSearchHighlightAnimationModifier: ViewModifier {
     }
 
     private func startHighlightAnimation() {
-        searchHighlight.highlightedSetting = nil
-        highlightOpacity = 0.6
-        DispatchQueue.main.asyncAfter(deadline: .now().advanced(by: .milliseconds(1000))) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(500))
+            highlightOpacity = 0.6
+            try? await Task.sleep(for: .milliseconds(800))
+            searchHighlight.highlightedSetting = nil
             highlightOpacity = 0.0
         }
     }
