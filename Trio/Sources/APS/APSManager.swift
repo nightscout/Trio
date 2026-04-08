@@ -135,7 +135,6 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    let viewContext = CoreDataStack.shared.persistentContainer.viewContext
     let privateContext = CoreDataStack.shared.newTaskContext()
 
     private var openAPS: OpenAPS!
@@ -304,7 +303,7 @@ final class BaseAPSManager: APSManager, Injectable {
             )
 
             defer {
-                if let bgTask = Optional(bgTask), bgTask != .invalid {
+                if bgTask != .invalid {
                     Task { await UIApplication.shared.endBackgroundTask(bgTask) }
                 }
             }
@@ -377,7 +376,7 @@ final class BaseAPSManager: APSManager, Injectable {
             lastError.send(nil)
         }
 
-        loopStats(loopStatRecord: loopStatRecord)
+        await loopStats(loopStatRecord: loopStatRecord)
 
         if settings.closedLoop {
             await reportEnacted(wasEnacted: error == nil)
@@ -823,31 +822,31 @@ final class BaseAPSManager: APSManager, Injectable {
         return Double(sorted[length / 2])
     }
 
+    /// Calculates Time in Range statistics.
+    /// Must be called from within a `privateContext.perform` block (e.g. from `glucoseForStats()`).
     private func tir(_ glucose: [GlucoseStored]) -> (TIR: Double, hypos: Double, hypers: Double, normal_: Double) {
-        privateContext.perform {
-            let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
-            let totalReadings = justGlucoseArray.count
-            let highLimit = settingsManager.settings.high
-            let lowLimit = settingsManager.settings.low
-            let hyperArray = glucose.filter({ $0.glucose >= Int(highLimit) })
-            let hyperReadings = hyperArray.compactMap({ each in each.glucose as Int16 }).count
-            let hyperPercentage = Double(hyperReadings) / Double(totalReadings) * 100
-            let hypoArray = glucose.filter({ $0.glucose <= Int(lowLimit) })
-            let hypoReadings = hypoArray.compactMap({ each in each.glucose as Int16 }).count
-            let hypoPercentage = Double(hypoReadings) / Double(totalReadings) * 100
-            // Euglyccemic range
-            let normalArray = glucose.filter({ $0.glucose >= 70 && $0.glucose <= 140 })
-            let normalReadings = normalArray.compactMap({ each in each.glucose as Int16 }).count
-            let normalPercentage = Double(normalReadings) / Double(totalReadings) * 100
-            // TIR
-            let tir = 100 - (hypoPercentage + hyperPercentage)
-            return (
-                roundDouble(tir, 1),
-                roundDouble(hypoPercentage, 1),
-                roundDouble(hyperPercentage, 1),
-                roundDouble(normalPercentage, 1)
-            )
-        }
+        let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
+        let totalReadings = justGlucoseArray.count
+        let highLimit = settingsManager.settings.high
+        let lowLimit = settingsManager.settings.low
+        let hyperArray = glucose.filter({ $0.glucose >= Int(highLimit) })
+        let hyperReadings = hyperArray.compactMap({ each in each.glucose as Int16 }).count
+        let hyperPercentage = Double(hyperReadings) / Double(totalReadings) * 100
+        let hypoArray = glucose.filter({ $0.glucose <= Int(lowLimit) })
+        let hypoReadings = hypoArray.compactMap({ each in each.glucose as Int16 }).count
+        let hypoPercentage = Double(hypoReadings) / Double(totalReadings) * 100
+        // Euglycemic range
+        let normalArray = glucose.filter({ $0.glucose >= 70 && $0.glucose <= 140 })
+        let normalReadings = normalArray.compactMap({ each in each.glucose as Int16 }).count
+        let normalPercentage = Double(normalReadings) / Double(totalReadings) * 100
+        // TIR
+        let tir = 100 - (hypoPercentage + hyperPercentage)
+        return (
+            roundDouble(tir, 1),
+            roundDouble(hypoPercentage, 1),
+            roundDouble(hyperPercentage, 1),
+            roundDouble(normalPercentage, 1)
+        )
     }
 
     private func glucoseStats(_ fetchedGlucose: [GlucoseStored])
@@ -1180,8 +1179,9 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    private func loopStats(loopStatRecord: LoopStats) {
-        privateContext.perform {
+    private func loopStats(loopStatRecord: LoopStats) async {
+        await privateContext.perform { [weak self] in
+            guard let self else { return }
             let nLS = LoopStatRecord(context: self.privateContext)
             nLS.start = loopStatRecord.start
             nLS.end = loopStatRecord.end ?? Date()
@@ -1292,7 +1292,8 @@ extension BaseAPSManager: PumpManagerStatusObserver {
     func pumpManager(_: PumpManager, didUpdate status: PumpManagerStatus, oldStatus _: PumpManagerStatus) {
         let percent = Int((status.pumpBatteryChargeRemaining ?? 1) * 100)
 
-        privateContext.perform {
+        privateContext.perform { [weak self] in
+            guard let self else { return }
             /// only update the last item with the current battery infos instead of saving a new one each time
             let fetchRequest: NSFetchRequest<OpenAPS_Battery> = OpenAPS_Battery.fetchRequest()
             fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
