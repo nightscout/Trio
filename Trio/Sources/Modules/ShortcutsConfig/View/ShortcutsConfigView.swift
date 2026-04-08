@@ -80,6 +80,7 @@ extension ShortcutsConfig {
             .onAppear(perform: configureView)
             .navigationTitle("Shortcuts")
             .navigationBarTitleDisplayMode(.automatic)
+            .settingsHighlightScroll()
         }
     }
 }
