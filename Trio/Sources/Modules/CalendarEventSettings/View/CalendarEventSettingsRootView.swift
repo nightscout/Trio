@@ -147,6 +147,7 @@ extension CalendarEventSettings {
             .onAppear(perform: configureView)
             .navigationTitle("Calendar Events")
             .navigationBarTitleDisplayMode(.automatic)
+            .settingsHighlightScroll()
         }
     }
 }

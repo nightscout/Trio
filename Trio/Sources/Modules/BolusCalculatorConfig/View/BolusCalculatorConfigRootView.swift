@@ -200,6 +200,7 @@ extension BolusCalculatorConfig {
             .onAppear(perform: configureView)
             .navigationBarTitle("Bolus Calculator")
             .navigationBarTitleDisplayMode(.automatic)
+            .settingsHighlightScroll()
         }
     }
 }
