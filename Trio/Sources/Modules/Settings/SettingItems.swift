@@ -221,10 +221,12 @@ enum SettingItems {
                 "Very Low Glucose Warning"
             ],
             scrollTargetLabels: [
+                "Reduced Bolus Percentage": "Enable Reduced Bolus Option",
                 "Enable Reduced Bolus Factor": "Enable Reduced Bolus Option",
-                "Reduced Bolus Factor": "Reduced Bolus Percentage",
+                "Reduced Bolus Factor": "Enable Reduced Bolus Option",
+                "Super Bolus Percentage": "Enable Super Bolus Option",
                 "Enable Super Bolus": "Enable Super Bolus Option",
-                "Super Bolus Factor": "Super Bolus Percentage"
+                "Super Bolus Factor": "Enable Super Bolus Option"
             ],
             path: ["Features", "Bolus Calculator"]
         ),
