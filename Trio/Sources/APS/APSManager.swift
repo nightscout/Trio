@@ -240,14 +240,14 @@ final class BaseAPSManager: APSManager, Injectable {
             .store(in: &lifetime)
 
         deviceDataManager.scheduledBasal
-            .receive(on: processQueue)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] scheduledBasal in
                 self?.isScheduledBasal = scheduledBasal
             }
             .store(in: &lifetime)
 
         deviceDataManager.suspended
-            .receive(on: processQueue)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] suspended in
                 self?.isSuspended = suspended
             }
@@ -255,6 +255,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
         // manage a manual Temp Basal from PumpManager - force loop() after manual temp basal is cancelled or finishes
         deviceDataManager.manualTempBasal
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] manualBasal in
                 if manualBasal {
                     self?.isManualTempBasal = true
