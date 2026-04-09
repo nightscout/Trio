@@ -297,7 +297,8 @@ enum SettingItems {
                 "Time in Normoglycemia (TING)": "Time in Range Type",
                 "Dark Scheme": "Appearance",
                 "Light Scheme": "Appearance",
-                "X-Axis Interval Step": "Show X-Axis Grid Lines"
+                "X-Axis Interval Step": "Show X-Axis Grid Lines",
+                "Carbs Required Threshold": "Show Carbs Required Badge"
             ],
             path: ["Features", "User Interface"]
         ),
