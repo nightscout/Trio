@@ -212,9 +212,19 @@ enum SettingItems {
                 "Recommended Bolus Percentage",
                 "Enable Reduced Bolus Option",
                 "Reduced Bolus Percentage",
+                "Enable Reduced Bolus Factor",
+                "Reduced Bolus Factor",
                 "Enable Super Bolus Option",
                 "Super Bolus Percentage",
+                "Enable Super Bolus",
+                "Super Bolus Factor",
                 "Very Low Glucose Warning"
+            ],
+            scrollTargetLabels: [
+                "Enable Reduced Bolus Factor": "Enable Reduced Bolus Option",
+                "Reduced Bolus Factor": "Reduced Bolus Percentage",
+                "Enable Super Bolus": "Enable Super Bolus Option",
+                "Super Bolus Factor": "Super Bolus Percentage"
             ],
             path: ["Features", "Bolus Calculator"]
         ),
@@ -265,10 +275,13 @@ enum SettingItems {
                 "Appearance",
                 "Dark Mode",
                 "Light Mode",
+                "Dark Scheme",
+                "Light Scheme",
                 "Glucose Color Scheme",
                 "Time in Range Type",
                 "Time in Tight Range (TITR)",
-                "Time in Normoglycemia (TING)"
+                "Time in Normoglycemia (TING)",
+                "X-Axis Interval Step"
             ],
             scrollTargetLabels: [
                 "Show Y-Axis Grid Lines": "Show X-Axis Grid Lines",
@@ -278,7 +291,10 @@ enum SettingItems {
                 "Dark Mode": "Appearance",
                 "Light Mode": "Appearance",
                 "Time in Tight Range (TITR)": "Time in Range Type",
-                "Time in Normoglycemia (TING)": "Time in Range Type"
+                "Time in Normoglycemia (TING)": "Time in Range Type",
+                "Dark Scheme": "Appearance",
+                "Light Scheme": "Appearance",
+                "X-Axis Interval Step": "Show X-Axis Grid Lines"
             ],
             path: ["Features", "User Interface"]
         ),
