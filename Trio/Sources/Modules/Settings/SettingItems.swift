@@ -142,7 +142,8 @@ enum SettingItems {
             scrollTargetLabels: [
                 "Enable SMB With Temporary Target": "Enable SMB With Temptarget",
                 "Allow SMB With High Temporary Target": "Allow SMB With High Temptarget",
-                "Max UAM SMB Basal Minutes": "Max UAM Basal Minutes"
+                "Max UAM SMB Basal Minutes": "Max UAM Basal Minutes",
+                "High Glucose Target": "Enable SMB With High Glucose"
             ],
             path: ["Algorithm", "Super Micro Bolus (SMB)"]
         ),
