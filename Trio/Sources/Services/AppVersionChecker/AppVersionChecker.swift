@@ -3,7 +3,7 @@ import UIKit
 // AppVersionChecker is a singleton responsible for checking the app's version status.
 // It fetches version data from remote sources (GitHub), caches the results, and notifies the user
 // if an update is available or if the current version is blacklisted.
-final class AppVersionChecker {
+@MainActor final class AppVersionChecker {
     // Shared singleton instance.
     static let shared = AppVersionChecker()
 
@@ -81,7 +81,7 @@ final class AppVersionChecker {
     //
     // - Parameter viewController: The UIViewController on which to present any alerts.
     func checkAndNotifyVersionStatus(in viewController: UIViewController) {
-        Task { @MainActor in
+        Task {
             let (latestVersion, isNewer, isBlacklisted) = await checkForNewVersion()
             let now = Date()
 
@@ -488,10 +488,8 @@ final class AppVersionChecker {
     // - title: The title text for the alert.
     // - message: The body message of the alert.
     private func showAlert(on viewController: UIViewController, title: String, message: String) {
-        DispatchQueue.main.async {
-            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            viewController.present(alert, animated: true)
-        }
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        viewController.present(alert, animated: true)
     }
 }

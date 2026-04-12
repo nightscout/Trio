@@ -132,8 +132,14 @@ final class OpenAPS {
 
             return glucoseResults.map { glucose -> AlgorithmGlucose in
                 let glucoseValue: Int16
-                if shouldSmoothGlucose, !glucose.isManual, let smoothedGlucose = glucose.smoothedGlucose, smoothedGlucose != 0 {
-                    glucoseValue = smoothedGlucose.rounding(accordingToBehavior: roundingBehavior).int16Value
+                if shouldSmoothGlucose {
+                    if !glucose.isManual, let smoothedGlucose = glucose.smoothedGlucose, smoothedGlucose != 0 {
+                        glucoseValue = smoothedGlucose.rounding(accordingToBehavior: roundingBehavior).int16Value
+                    } else {
+                        // use the raw value = finger prick, so manual readings are always included for algorithm decision making
+                        // cf. https://github.com/nightscout/Trio/issues/1054
+                        glucoseValue = glucose.glucose
+                    }
                 } else {
                     glucoseValue = glucose.glucose
                 }
