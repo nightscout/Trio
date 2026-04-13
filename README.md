@@ -1,4 +1,4 @@
-# Trio
+# Trio &nbsp;&nbsp;&nbsp;[![Discord](https://img.shields.io/discord/1020905149037813862?label=Discord&logo=discord&logoColor=white&color=5865F2)](https://discord.triodocs.org)
 
 ## Introduction
 
