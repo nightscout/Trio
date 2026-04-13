@@ -2,13 +2,35 @@
 
 ## Introduction
 
-Trio - an automated insulin delivery system for iOS based on the OpenAPS algorithm with [adaptations for Trio](https://github.com/nightscout/trio-oref).
+Trio is an open source automated insulin delivery (OS-AID) system for iOS based on the OpenAPS algorithm, with [adaptations for Trio](https://github.com/nightscout/trio-oref).
 
-The project started as Ivan Valkou's [FreeAPS X](https://github.com/ivalkou/freeaps) implementation of the [OpenAPS algorithm](https://github.com/openaps/oref0) for iPhone, and was later forked and rebranded as iAPS. The project has since seen substantial contributions from many developers, leading to a range of new features and enhancements.
+Trio builds on years of work from the #WeAreNotWaiting diabetes community. Trio emerged from that broader body of work and is now developed as its own independent open-source project with the backing and support of the Nightscout Foundation. Since then, it has seen substantial contributions from many developers, resulting in a wide range of new features and enhancements.
 
-Following the release of iAPS version 3.0.0, due to differing views on development, open source, and peer review, there was a significant shift in the project's direction. This led to the separation from the [Artificial-Pancreas/iAPS](https://github.com/Artificial-Pancreas/iAPS) repository, and the birth of [Trio](https://github.com/nightscout/Trio.git) as a distinct entity. This transition marks a new phase for the project, symbolizing both its evolution and the dynamic nature of collaborative development.
+Its roots trace back to Ivan Valkou’s [FreeAPS X](https://github.com/ivalkou/freeaps), an iPhone implementation of the [OpenAPS algorithm](https://github.com/openaps/oref0), as well as subsequent community development (later known as iAPS), the [LoopKit](https://github.com/LoopKit) set of tools for building AID systems on iOS, and a broad set of open source pump and CGM drivers developed by the wider OS-AID contributor community.
 
-Trio continues to leverage a variety of frameworks from the DIY looping community and remains at the forefront of DIY diabetes management solutions, constantly evolving with valuable contributions from its community.
+Trio is developed in active collaboration with the wider open source AID ecosystem across both iOS and Android. The project is committed not only to building Trio itself, but also to enabling collaboration across communities, platforms, and contributor groups in support of stronger and more accessible OS-AID solutions.
+
+In parallel, Trio contributors are actively involved in collaboration with researchers and healthcare professionals to help push the boundaries of what open source AID can achieve.
+
+Trio continues to evolve through contributions from developers, testers, documentation writers, translators, and community members across the open source diabetes ecosystem.
+
+### Mission
+
+Trio aims to make open source automated insulin delivery safer and more accessible for people with diabetes who are willing to learn, including those supported by experienced users and healthcare professionals, while continuing to support the experienced users and contributors who help build and improve it.
+
+### Target Audience
+
+Today, Trio primarily serves:
+- people with diabetes (PwD) who are experienced users and want a highly configurable system they can fine-tune
+- PwD who already have good control and want a system that requires less day-to-day intervention
+- PwD coming from commercial systems who discover open source AID through community support, advocacy, and social channels
+- PwD who are learning Trio with support from experienced users or healthcare professionals
+
+### Direction
+
+Over time, Trio aims to work safely for **any** person with diabetes who is willing to learn, while continuing to bring along the experienced users, "super users", and contributors who help shape and improve the project and the OS-AID ecosystem as a whole.
+
+---
 
 ## To download this repo:
 
@@ -45,6 +67,8 @@ Then launch Xcode and build the Trio app:
 xed .
 ```
 
+---
+
 ## To build directly in GitHub, without using Xcode:
 
 **Instructions**:
@@ -57,6 +81,8 @@ xed .
 Instructions in **greater detail**, but **not Trio-specific**:
 
 - https://loopkit.github.io/loopdocs/gh-actions/gh-overview/
+
+---
 
 ## Please understand that Trio is:
 
@@ -76,6 +102,8 @@ Instructions in **greater detail**, but **not Trio-specific**:
 - [Trio Facebook Group](https://facebook.triodocs.org/)
 - [Loop and Learn Facebook Group](https://m.facebook.com/groups/LOOPandLEARN/)
 - [Looped Facebook Group](https://m.facebook.com/groups/TheLoopedGroup/)
+
+---
 
 ## Contribute
 
@@ -98,8 +126,8 @@ If your preferred language is missing or you'd like to improve the translation, 
 
 ### Develop
 
-Do you speak JS or Swift? Do you have UI/UX skills? Do you know how to optimize API calls or improve data storage? Do you have experience with testing and release management?
-Trio is a collaborative project. We always welcome fellow enthusiasts who can contribute with new code, UI/UX improvements, code reviews, testing and release management.
+Can you code in Swift? Do you have UI/UX skills? Do you know how to optimize API calls or improve data storage? Do you have experience with testing and release management?
+Trio is a collaborative project. We always welcome fellow enthusiasts who can contribute with new code, improvements, or help with testing.
 If you want to contribute to the development of Trio, please reach out on Discord or Facebook.
 
 For questions or contributions, please join our [Discord server](https://discord.triodocs.org).
