@@ -91,43 +91,14 @@ Instructions in **greater detail**, but **not Trio-specific**:
 
 ## Documentation
 
-- [Discord Trio - Server ](https://discord.triodocs.org/)
 - [Trio documentation](https://triodocs.org/)
 - [OpenAPS documentation](https://openaps.readthedocs.io/en/latest/)
 - [Crowdin](https://crowdin.triodocs.org/) is the collaborative platform we are using to manage the **translation** and localization of the Trio App.
-<!--   TODO: Add status graphic for the Crowdin Project -->
 
 ## Support
 
 - [Trio Facebook Group](https://facebook.triodocs.org/)
 - [Loop and Learn Facebook Group](https://m.facebook.com/groups/LOOPandLEARN/)
 - [Looped Facebook Group](https://m.facebook.com/groups/TheLoopedGroup/)
-
----
-
-## Contribute
-
-If you would like to give something back to the Trio community, there are several ways to contribute:
-
-- **Help others**: assist users by answering questions and guiding them in support communities.
-- Improve the **documentation**: update or expand TrioDocs to help users build and use Trio.
-- Improve the **app**: contribute **code**, features, or fixes to the Trio iOS app.
-
-### Pay it forward
-
-When you have successfully built Trio and managed to get it working well for your diabetes management, it's time to pay it forward.
-You can start by **responding to questions** in the **Facebook or Discord** support groups, **helping others** make the best out of Trio.
-
-### Translate
-
-Trio is translated into several languages to make sure it's easy to understand and use all over the world.
-Translation is done using [Crowdin](https://crowdin.triodocs.org/), and does not require any programming skills.
-If your preferred language is missing or you'd like to improve the translation, please sign up as a translator on [Crowdin](https://crowdin.com/project/trio).
-
-### Develop
-
-Can you code in Swift? Do you have UI/UX skills? Do you know how to optimize API calls or improve data storage? Do you have experience with testing and release management?
-Trio is a collaborative project. We always welcome fellow enthusiasts who can contribute with new code, improvements, or help with testing.
-If you want to contribute to the development of Trio, please reach out on Discord or Facebook.
 
 For questions or contributions, please join our [Discord server](https://discord.triodocs.org).
