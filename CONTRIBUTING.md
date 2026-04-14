@@ -10,11 +10,11 @@ Whether you are helping other users, improving documentation, translating the ap
 
 There are many ways to support the Trio community:
 
-- **Help others** by answering questions and guiding users in support communities
-- Improve the **documentation** by updating or expanding TrioDocs
-- Improve the **app** by contributing code, fixes, features, tests, reviews, or release support
-- Help with **translation and localization** through Crowdin
-- Support **testing and feedback** by validating changes and reporting issues clearly
+- **Help others** by answering questions and guiding users in support communities.
+- Improve the **documentation** by updating or expanding TrioDocs.
+- Improve the **app** by contributing code, fixes, features, or tests.
+- Help with **translation and localization** through Crowdin.
+- Support **testing and feedback** by validating changes and reporting issues clearly.
 
 ### Pay it forward
 
@@ -28,9 +28,9 @@ If your preferred language is missing, or you would like to improve an existing 
 
 ### Develop
 
-Do you work with Swift or JavaScript? UI/UX? Testing? Release workflows? API optimization? Data storage?
+Do you work with Swift? UI/UX? Testing? API optimization? Data storage?
 
-Trio is a collaborative project, and contributions of all kinds are welcome. Whether you are writing code, improving the user experience, reviewing pull requests, testing builds, helping with release management, or contributing in other ways, your help matters.
+Trio is a collaborative project, and contributions of all kinds are welcome. Whether you are writing code, improving the user experience, testing builds, helping with documentation, or contributing in other ways, your help matters.
 
 ## General principles
 
