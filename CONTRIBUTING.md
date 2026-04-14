@@ -18,7 +18,7 @@ There are many ways to support the Trio community:
 
 ### Pay it forward
 
-If Trio has helped you manage your diabetes successfully, consider paying it forward by helping others. Answering questions in Discord or Facebook groups can make a real difference for someone getting started.
+If Trio has helped you manage your diabetes successfully, consider paying it forward by helping others. Answering questions in [Discord](https://discord.triodocs.org) or [Facebook](https://facebook.triodocs.org) groups can make a real difference for someone getting started.
 
 ### Translate
 
@@ -56,6 +56,7 @@ Trio is a collaborative project, and contributions of all kinds are welcome. Whe
 - Add new user-facing strings in the appropriate localization mechanism used by the app.
 - Provide English source strings only unless the contribution is specifically about translations.
 - Translation and localization for other languages should go through [Crowdin](https://crowdin.triodocs.org/).
+- Translations from shared pump managers, CGM managers and services are handled by the [Loop lokalise project](https://loopkit.github.io/loopdocs/faqs/app-translation/#code-translation).
 
 ### Documentation
 
@@ -68,10 +69,10 @@ Trio is a collaborative project, and contributions of all kinds are welcome. Whe
 ### Getting started
 
 1. Fork the [Trio repository](https://github.com/nightscout/Trio) on GitHub.
-2. Create a separate branch for each feature, or fix.
-3. Branch from the most recent appropriate development branch.
-4. Commit your changes to your fork.
-5. When ready, open a pull request against the main repository.
+1. Create a separate branch for each feature, or fix with an [appropriate name](#branch-names).
+1. Branch from the most recent appropriate development branch (typically `dev`).
+1. Commit your changes to your fork.
+1. When ready, open a pull request against the upstream repository (`nightscout/Trio`).
 
 ### Before opening a pull request
 
@@ -119,10 +120,10 @@ Please remember that Trio is maintained by contributors with limited time. Revie
 
 To help keep reviews efficient:
 
-- keep the scope narrow
-- explain your reasoning clearly
-- respond to review comments directly
-- avoid force-pushing large unexplained rewrites during active review unless necessary
+- Keep the scope narrow.
+- Explain your reasoning clearly.
+- Respond to review comments directly.
+- Avoid force-pushing large unexplained rewrites during active review unless necessary.
 
 ## Final note
 

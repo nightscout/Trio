@@ -78,9 +78,9 @@ xed .
 - For **`dev`** branch:
   https://github.com/nightscout/Trio/blob/dev/fastlane/testflight.md
 
-Instructions in **greater detail**, but **not Trio-specific**:
+Instructions in **greater detail**:
 
-- https://loopkit.github.io/loopdocs/gh-actions/gh-overview/
+- http://triodocs.org/install/build/browser/browser-build-overview/
 
 ---
 
@@ -94,6 +94,7 @@ Instructions in **greater detail**, but **not Trio-specific**:
 - [Trio documentation](https://triodocs.org/)
 - [OpenAPS documentation](https://openaps.readthedocs.io/en/latest/)
 - [Crowdin](https://crowdin.triodocs.org/) is the collaborative platform we are using to manage the **translation** and localization of the Trio App.
+- [Loop lokalise](https://loopkit.github.io/loopdocs/faqs/app-translation/#code-translation) is the collaborative platform used to manage the translations and localizations from shared pump managers, CGM managers, and services.
 
 ## Support
 
