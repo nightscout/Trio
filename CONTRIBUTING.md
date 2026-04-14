@@ -124,6 +124,9 @@ To help keep reviews efficient:
 - Explain your reasoning clearly.
 - Respond to review comments directly.
 - Avoid force-pushing large unexplained rewrites during active review unless necessary.
+- AI-assisted work is welcome for limited, well-understood tasks, but contributions should remain author-driven and must be code you fully understand, and can explain.
+
+We do not accept pull requests that are largely AI-generated or submitted without careful engineering judgment, testing, and alignment with Trio’s existing patterns.
 
 ## Final note
 
