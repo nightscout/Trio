@@ -48,6 +48,7 @@ extension Home {
         var reservoir: Decimal?
         var pumpName = ""
         var pumpExpiresAtDate: Date?
+        var pumpActivatedAtDate: Date?
         var highTTraisesSens: Bool = false
         var lowTTlowersSens: Bool = false
         var isExerciseModeActive: Bool = false
@@ -343,6 +344,11 @@ extension Home {
             apsManager.pumpExpiresAtDate
                 .receive(on: DispatchQueue.main)
                 .weakAssign(to: \.pumpExpiresAtDate, on: self)
+                .store(in: &lifetime)
+
+            apsManager.pumpActivatedAtDate
+                .receive(on: DispatchQueue.main)
+                .weakAssign(to: \.pumpActivatedAtDate, on: self)
                 .store(in: &lifetime)
 
             apsManager.lastError
