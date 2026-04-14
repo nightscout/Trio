@@ -90,6 +90,8 @@ Trio is a collaborative project, and contributions of all kinds are welcome. Whe
 - Link the relevant issue when applicable.
 - Mention any areas that need particular review attention.
 - Be open to feedback and follow-up changes during review.
+- Use AI tools, if at all, as a support for small, well-understood tasks rather than to generate large parts of a contribution
+- Do not submit AI-heavy or "vibe-coded" pull requests; we welcome thoughtful use of tooling, but contributions need to be intentionally designed.
 
 ## Naming conventions
 
