@@ -5,6 +5,11 @@ extension Double {
     init(_ decimal: Decimal) {
         self.init(truncating: decimal as NSNumber)
     }
+
+    func roundedDouble(toPlaces places: Int) -> Double {
+        let divisor = pow(10.0, Double(places))
+        return (self * divisor).rounded() / divisor
+    }
 }
 
 extension Int {
