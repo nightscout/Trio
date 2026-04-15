@@ -320,11 +320,12 @@ extension BaseTidepoolManager {
                                     .processTempBasalEvent(event, existingTempBasalEntries: existingTempBasalEntries)
                             )
                     case .bolus:
+                        guard let amount = event.amount else { return result }
                         let bolusDoseEntry = DoseEntry(
                             type: .bolus,
                             startDate: event.timestamp,
                             endDate: event.timestamp,
-                            value: Double(event.amount!),
+                            value: Double(amount),
                             unit: .units,
                             deliveredUnits: nil,
                             syncIdentifier: event.id,
