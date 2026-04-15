@@ -1,8 +1,10 @@
 
 var getTime = require('../medtronic-clock');
 
-function carbRatioLookup (inputs, profile) {
-    var now = new Date();
+function carbRatioLookup (inputs, profile, now) {
+    if (typeof(now) === 'undefined') {
+        now = new Date();
+    }
     var carbratio_data = inputs.carbratio;
     if (typeof(carbratio_data) !== "undefined" && typeof(carbratio_data.schedule) !== "undefined") {
         var carbRatio;
@@ -13,14 +15,15 @@ function carbRatioLookup (inputs, profile) {
             for (var i = 0; i < carbratio_data.schedule.length - 1; i++) {
                 if ((now >= getTime(carbratio_data.schedule[i].offset)) && (now < getTime(carbratio_data.schedule[i + 1].offset))) {
                     carbRatio = carbratio_data.schedule[i];
-                    // disallow impossibly high/low carbRatios due to bad decoding
-                    if (carbRatio < 3 || carbRatio > 150) {
-                        console.error("Error: carbRatio of " + carbRatio + " out of bounds.");
-                        return;
-                    }
                     break;
                 }
             }
+            // disallow impossibly high/low carbRatios due to bad decoding
+            if (carbRatio.ratio < 1 || carbRatio.ratio > 150) {
+                console.error("Error: carbRatio of " + carbRatio.ratio + " out of bounds.");
+                return;
+            }
+
             if (carbratio_data.units === "exchanges") {
                 carbRatio.ratio = 12 / carbRatio.ratio
             }
