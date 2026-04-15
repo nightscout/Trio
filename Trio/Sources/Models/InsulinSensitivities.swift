@@ -1,5 +1,9 @@
 import Foundation
 
+protocol InsulinSensitivitiesObserver {
+    func insulinSensitivitiesDidChange(_ sensitivities: InsulinSensitivities)
+}
+
 struct InsulinSensitivities: JSON {
     var units: GlucoseUnits
     var userPreferredUnits: GlucoseUnits

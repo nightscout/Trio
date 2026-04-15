@@ -7,6 +7,7 @@ extension AlgorithmAdvancedSettings {
         @Injected() var settings: SettingsManager!
         @Injected() var storage: FileStorage!
         @Injected() var nightscout: NightscoutManager!
+        @Injected() private var tidepoolManager: TidepoolManager!
 
         var units: GlucoseUnits = .mgdL
 
@@ -77,6 +78,10 @@ extension AlgorithmAdvancedSettings {
                                     "\(DebuggingIdentifiers.failed) failed to upload DIA to Nightscout: \(error)"
                                 )
                             }
+                        }
+
+                        Task.detached(priority: .low) {
+                            await self.tidepoolManager.uploadSettings()
                         }
                     } receiveValue: {}
                     .store(in: &lifetime)
