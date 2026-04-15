@@ -126,7 +126,10 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                     pumpExpiresAtDate.send(endTime)
                 }
                 if let medtrumPump = pumpManager as? MedtrumPumpManager {
-                    guard let endTime = medtrumPump.state.patchExpiresAt else {
+                    // Medtrum's state.patchExpiresAt is actually lifespan + grace
+                    // keeping this in line with omnipod, we will use just the lifetime
+                    // i.e., state.patchGracePeriodFrom
+                    guard let endTime = medtrumPump.state.patchGracePeriodFrom else {
                         pumpExpiresAtDate.send(nil)
                         return
                     }
@@ -534,7 +537,10 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
                 $0.pumpReservoirDidChange(Decimal(medtrumPump.state.reservoir))
             }
 
-            guard let endTime = medtrumPump.state.patchExpiresAt else {
+            // Medtrum's state.patchExpiresAt is actually lifespan + grace
+            // keeping this in line with omnipod, we will use just the lifetime
+            // i.e., state.patchGracePeriodFrom
+            guard let endTime = medtrumPump.state.patchGracePeriodFrom else {
                 pumpExpiresAtDate.send(nil)
                 return
             }
