@@ -38,7 +38,7 @@ You can either use the Build Script or you can run each command manually.
 
 ### Build Script:
 
-If you copy, paste, and run the following script in Terminal, it will guide you through downloading and installing Trio. More information about the script can be found [here](https://triodocs.org/install/build/mac/overview/).
+If you copy, paste, and run the following script in Terminal, it will guide you through downloading and installing Trio. More information about the script can be found [here](https://triodocs.org/install/build/mac/build/).
 
 ```
 /bin/bash -c "$(curl -fsSL \
@@ -80,7 +80,7 @@ xed .
 
 Instructions in **greater detail**:
 
-- http://triodocs.org/install/build/browser/browser-build-overview/
+- https://triodocs.org/install/build/browser/browser-build-overview/
 
 ---
 

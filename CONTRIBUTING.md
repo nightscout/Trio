@@ -69,7 +69,7 @@ Trio is a collaborative project, and contributions of all kinds are welcome. Whe
 ### Getting started
 
 1. Fork the [Trio repository](https://github.com/nightscout/Trio) on GitHub.
-1. Create a separate branch for each feature, or fix with an [appropriate name](#branch-names).
+1. Create a separate branch for each feature or fix with an [appropriate name](#branch-names).
 1. Branch from the most recent appropriate development branch (typically `dev`).
 1. Commit your changes to your fork.
 1. When ready, open a pull request against the upstream repository (`nightscout/Trio`).
