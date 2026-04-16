@@ -28,8 +28,14 @@ extension Treatments {
         @State private var showFatProteinOrderBanner = false
 
         // Food search state
+        @State private var treatmentSearchQuery = ""
+        @State private var treatmentSearchResults: [BarcodeScanner.FoodItem] = []
+        @State private var isTreatmentSearching = false
+        @State private var treatmentSearchError: String?
         @State private var showAllSearchResults = false
         @FocusState private var isSearchFocused: Bool
+
+        private let foodSearchClient = BarcodeScanner.OpenFoodFactsClient()
 
         private enum Config {
             static let dividerHeight: CGFloat = 2
@@ -162,15 +168,16 @@ extension Treatments {
 
                         // Search field
                         BarcodeScanner.ProductSearchField(
-                            searchText: $scannerState.searchQuery,
+                            searchText: $treatmentSearchQuery,
                             isFocused: $isSearchFocused,
                             onSubmit: {
                                 showAllSearchResults = false
-                                scannerState.performFoodSearch()
+                                performTreatmentFoodSearch()
                             },
                             onClear: {
-                                scannerState.searchQuery = ""
-                                scannerState.searchResults = []
+                                treatmentSearchQuery = ""
+                                treatmentSearchResults = []
+                                treatmentSearchError = nil
                                 showAllSearchResults = false
                             },
                             onChange: {
@@ -201,21 +208,21 @@ extension Treatments {
                     }
 
                     // Search results and Spinner
-                    if scannerState.isSearching {
+                    if isTreatmentSearching {
                         HStack {
                             Spacer()
                             ProgressView()
                                 .padding(.vertical, 8)
                             Spacer()
                         }
-                    } else if let error = scannerState.searchError {
+                    } else if let error = treatmentSearchError {
                         Text(error)
                             .font(.caption)
                             .foregroundStyle(.red)
-                    } else if !scannerState.searchResults.isEmpty {
+                    } else if !treatmentSearchResults.isEmpty {
                         VStack(spacing: 0) {
-                            let displayResults = showAllSearchResults ? scannerState
-                                .searchResults : Array(scannerState.searchResults.prefix(5))
+                            let displayResults = showAllSearchResults ? treatmentSearchResults :
+                                Array(treatmentSearchResults.prefix(5))
                             ForEach(displayResults) { item in
                                 BarcodeScanner.FoodSearchResultRow(item: item) {
                                     addSearchResultToMeal(item)
@@ -225,7 +232,7 @@ extension Treatments {
                                 }
                             }
 
-                            if scannerState.searchResults.count > 5 {
+                            if treatmentSearchResults.count > 5 {
                                 Button {
                                     withAnimation {
                                         showAllSearchResults.toggle()
@@ -234,7 +241,7 @@ extension Treatments {
                                     HStack {
                                         Text(
                                             showAllSearchResults ? "Show less" :
-                                                "Show \(scannerState.searchResults.count - 5) more results"
+                                                "Show \(treatmentSearchResults.count - 5) more results"
                                         )
                                         .font(.caption.weight(.medium))
                                         Image(systemName: showAllSearchResults ? "chevron.up" : "chevron.down")
@@ -703,12 +710,36 @@ extension Treatments {
             scannerState.scannedProducts.append(mutableItem)
 
             // Clear search
-            scannerState.searchQuery = ""
-            scannerState.searchResults = []
+            treatmentSearchQuery = ""
+            treatmentSearchResults = []
+            treatmentSearchError = nil
 
             // Sync amounts and recalculate
             syncScannedAmounts()
             isSearchFocused = false
+        }
+
+        private func performTreatmentFoodSearch() {
+            treatmentSearchError = nil
+            treatmentSearchResults = []
+
+            let query = treatmentSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !query.isEmpty else {
+                isTreatmentSearching = false
+                return
+            }
+
+            isTreatmentSearching = true
+
+            Task { @MainActor in
+                do {
+                    treatmentSearchResults = try await foodSearchClient.searchProducts(query: query)
+                } catch {
+                    treatmentSearchError = error.localizedDescription
+                    treatmentSearchResults = []
+                }
+                isTreatmentSearching = false
+            }
         }
 
         private func syncScannedAmounts() {

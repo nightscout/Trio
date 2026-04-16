@@ -47,41 +47,33 @@ extension BarcodeScanner {
         }
 
         var body: some View {
-            ZStack {
-                if state.showListView {
-                    listViewContent
-                        .transition(.move(edge: .trailing).combined(with: .opacity))
-                } else {
-                    scannerViewContent
-                        .transition(.move(edge: .leading).combined(with: .opacity))
+            VStack(spacing: 0) {
+                if !state.showEditorView {
+                    Picker("", selection: Binding(
+                        get: { state.showListView },
+                        set: { state.showListView = $0 }
+                    )) {
+                        Text(String(localized: "Scanner")).tag(false)
+                        Text(String(localized: "Meal")).tag(true)
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                }
+
+                ZStack {
+                    if state.showListView {
+                        listViewContent
+                            .transition(.move(edge: .trailing).combined(with: .opacity))
+                    } else {
+                        scannerViewContent
+                            .transition(.move(edge: .leading).combined(with: .opacity))
+                    }
                 }
             }
-            .simultaneousGesture(
-                DragGesture()
-                    .onEnded { value in
-                        if abs(value.translation.width) > abs(value.translation.height) {
-                            // Horizontal Swipe - Switch Views
-                            // In List View, require Edge Swipe (from left) to avoid conflict with row actions
-                            let isEdgeSwipe = value.startLocation.x < 50
-                            // Higher threshold to distinguish from accidental diagonal drags
-                            let threshold: CGFloat = 80
-
-                            if value.translation.width > threshold {
-                                // Swipe Right (Back to Scanner)
-                                // Only allow if (Scanner Mode) OR (List Mode AND Edge Swipe)
-                                if !state.showListView || isEdgeSwipe {
-                                    state.showListView = false
-                                }
-                            } else if value.translation.width < -threshold {
-                                // Swipe Left (Go to List)
-                                state.showListView = true
-                            }
-                        }
-                    }
-            )
             .animation(.easeInOut(duration: 0.3), value: state.showListView)
             .background(appState.trioBackgroundColor(for: colorScheme).ignoresSafeArea())
-            .navigationTitle(String(localized: state.showListView ? "Scanned Items" : "Barcode Scanner"))
+            .navigationTitle(String(localized: "Barcode Scanner"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(content: {
                 ToolbarItem(placement: .topBarLeading) {
@@ -107,43 +99,6 @@ extension BarcodeScanner {
                             label: {
                                 Text(String(localized: "Close"))
                                     .fixedSize(horizontal: true, vertical: false)
-                            }
-                        )
-                        .buttonStyle(BorderlessButtonStyle())
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    // Hide the item list button while editing nutrition details
-                    if state.showListView {
-                        Button(
-                            action: {
-                                state.showListView = false
-                            },
-                            label: {
-                                Image(systemName: "barcode.viewfinder")
-                                    .font(.body)
-                            }
-                        )
-                    } else if !state.showEditorView {
-                        Button(
-                            action: {
-                                state.showListView = true
-                            },
-                            label: {
-                                HStack {
-                                    ZStack(alignment: .topTrailing) {
-                                        Image(systemName: "list.bullet")
-                                            .font(.body)
-                                        if !state.scannedProducts.isEmpty {
-                                            Text("\(state.scannedProducts.count)")
-                                                .font(.caption2.weight(.bold))
-                                                .foregroundStyle(.white)
-                                                .padding(4)
-                                                .background(Circle().fill(Color.red))
-                                                .offset(x: 8, y: -8)
-                                        }
-                                    }
-                                }
                             }
                         )
                         .buttonStyle(BorderlessButtonStyle())
@@ -362,147 +317,138 @@ extension BarcodeScanner {
         // MARK: - List View Content
 
         private var listViewContent: some View {
-            ZStack(alignment: .leading) {
-                List {
-                    // Search Section
-                    Section {
-                        BarcodeScanner.ProductSearchField(
-                            searchText: $state.searchQuery,
-                            isFocused: $isSearchFocused,
-                            onSubmit: {
-                                showAllSearchResults = false
-                                state.performFoodSearch()
-                            },
-                            onClear: {
-                                state.searchQuery = ""
-                                state.searchResults = []
-                                showAllSearchResults = false
-                            },
-                            onChange: {
-                                showAllSearchResults = false
-                            }
-                        )
-                        .padding(.horizontal)
-                        .listRowInsets(EdgeInsets(top: 10, leading: 0, bottom: 10, trailing: 0))
+            List {
+                // Search Section
+                Section {
+                    BarcodeScanner.ProductSearchField(
+                        searchText: $state.searchQuery,
+                        isFocused: $isSearchFocused,
+                        onSubmit: {
+                            showAllSearchResults = false
+                            state.performFoodSearch()
+                        },
+                        onClear: {
+                            state.searchQuery = ""
+                            state.searchResults = []
+                            showAllSearchResults = false
+                        },
+                        onChange: {
+                            showAllSearchResults = false
+                        }
+                    )
+                    .padding(.horizontal)
+                    .listRowInsets(EdgeInsets(top: 10, leading: 0, bottom: 10, trailing: 0))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+
+                    if state.isSearching {
+                        HStack {
+                            Spacer()
+                            ProgressView()
+                                .padding(.vertical, 8)
+                            Spacer()
+                        }
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
-
-                        if state.isSearching {
-                            HStack {
-                                Spacer()
-                                ProgressView()
-                                    .padding(.vertical, 8)
-                                Spacer()
+                    } else if let error = state.searchError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                    } else if !state.searchResults.isEmpty {
+                        let displayResults =
+                            showAllSearchResults ? state.searchResults : Array(state.searchResults.prefix(5))
+                        ForEach(displayResults) { item in
+                            BarcodeScanner.FoodSearchResultRow(item: item) {
+                                withAnimation {
+                                    var mutableItem = item
+                                    mutableItem.amount = item.servingQuantity ?? 100
+                                    state.scannedProducts.append(mutableItem)
+                                    state.searchQuery = ""
+                                    state.searchResults = []
+                                    isSearchFocused = false
+                                }
                             }
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
-                        } else if let error = state.searchError {
-                            Text(error)
-                                .font(.caption)
-                                .foregroundStyle(.red)
-                                .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
-                        } else if !state.searchResults.isEmpty {
-                            let displayResults =
-                                showAllSearchResults ? state.searchResults : Array(state.searchResults.prefix(5))
-                            ForEach(displayResults) { item in
-                                BarcodeScanner.FoodSearchResultRow(item: item) {
-                                    withAnimation {
-                                        var mutableItem = item
-                                        mutableItem.amount = item.servingQuantity ?? 100
-                                        state.scannedProducts.append(mutableItem)
-                                        state.searchQuery = ""
-                                        state.searchResults = []
-                                        isSearchFocused = false
-                                    }
-                                }
-                                .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
-                                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-                            }
-
-                            if state.searchResults.count > 5 {
-                                Button {
-                                    withAnimation {
-                                        showAllSearchResults.toggle()
-                                    }
-                                } label: {
-                                    HStack {
-                                        Text(
-                                            showAllSearchResults
-                                                ? "Show less" : "Show \(state.searchResults.count - 5) more results"
-                                        )
-                                        .font(.caption.weight(.medium))
-                                        Image(systemName: showAllSearchResults ? "chevron.up" : "chevron.down")
-                                            .font(.caption)
-                                    }
-                                    .foregroundStyle(.blue)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 8)
-                                }
-                                .buttonStyle(.plain)
-                                .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
-                            }
+                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                         }
-                    }
 
-                    if state.scannedProducts.isEmpty, state.searchResults.isEmpty, !state.isSearching {
-                        emptyListView
+                        if state.searchResults.count > 5 {
+                            Button {
+                                withAnimation {
+                                    showAllSearchResults.toggle()
+                                }
+                            } label: {
+                                HStack {
+                                    Text(
+                                        showAllSearchResults
+                                            ? "Show less" : "Show \(state.searchResults.count - 5) more results"
+                                    )
+                                    .font(.caption.weight(.medium))
+                                    Image(systemName: showAllSearchResults ? "chevron.up" : "chevron.down")
+                                        .font(.caption)
+                                }
+                                .foregroundStyle(.blue)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                            }
+                            .buttonStyle(.plain)
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets())
-                    }
-
-                    if !state.scannedProducts.isEmpty {
-                        Section {
-                            listHeader
-                                .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
-                                .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
-                        }
-
-                        Section {
-                            ForEach(state.scannedProducts) { item in
-                                ScannedProductRow(item: item, state: state, focusedItemID: $focusedItemID)
-                                    .listRowBackground(Color.clear)
-                                    .listRowSeparator(.hidden)
-                                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                        Button(role: .destructive) {
-                                            withAnimation {
-                                                state.removeScannedProduct(item)
-                                            }
-                                        } label: {
-                                            Label("Delete", systemImage: "trash")
-                                        }
-                                        .tint(.red)
-                                    }
-                                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                                        Button {
-                                            state.editScannedProduct(item)
-                                            isEditingFromList = true
-                                            state.isEditingFromList = true
-                                            showEditorCard = true
-                                        } label: {
-                                            Label("Edit", systemImage: "pencil")
-                                        }
-                                        .tint(.blue)
-                                    }
-                            }
                         }
                     }
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
 
-                // Edge Swipe Overlay: Invisible touch zone on the left edge
-                // Captures swipes to go back to scanner, preventing conflict with list row swipes
-                Color.clear
-                    .contentShape(Rectangle())
-                    .frame(width: 30)
-                    .frame(maxHeight: .infinity)
+                if state.scannedProducts.isEmpty, state.searchResults.isEmpty, !state.isSearching {
+                    emptyListView
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets())
+                }
+
+                if !state.scannedProducts.isEmpty {
+                    Section {
+                        listHeader
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
+                    }
+
+                    Section {
+                        ForEach(state.scannedProducts) { item in
+                            ScannedProductRow(item: item, state: state, focusedItemID: $focusedItemID)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        withAnimation {
+                                            state.removeScannedProduct(item)
+                                        }
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                    .tint(.red)
+                                }
+                                .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                                    Button {
+                                        state.editScannedProduct(item)
+                                        isEditingFromList = true
+                                        state.isEditingFromList = true
+                                        showEditorCard = true
+                                    } label: {
+                                        Label("Edit", systemImage: "pencil")
+                                    }
+                                    .tint(.blue)
+                                }
+                        }
+                    }
+                }
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
         }
 
         private var emptyListView: some View {

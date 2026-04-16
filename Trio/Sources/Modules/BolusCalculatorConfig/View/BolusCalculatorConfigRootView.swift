@@ -201,18 +201,18 @@ extension BolusCalculatorConfig {
                     type: .boolean,
                     label: String(localized: "Enable Barcode Scanner"),
                     miniHint: String(
-                        localized: "Scan Qr-Codes to enter carbs"
+                        localized: "Scan QR codes to enter carbs."
                     ),
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "Enables you to scann barcodes and get nutritional data direcltly in the app."
+                            "Enables barcode scanning to import nutritional data directly in the app."
                         )
                         Text(
-                            "To add more then one food item scan again and optionally edit or remove specific info of the item in the listview."
+                            "To add more than one food item, scan again. You can edit or remove each item in the list view."
                         )
                         Text(
-                            "Note: Nutritional data can be slightly inaccurate as producers might change the recipes over time of specific products. It's recomended to check the nutrional data on first scan. Also if wrong data is seen maybe supporting the openfoodfacs project via correcting the nutritional data in thier app is a option."
+                            "Nutritional data may be slightly inaccurate if manufacturers change product recipes over time. Please verify values on first scan. If you find incorrect data, edit it and submit the correction to the Open Food Facts database in their app to help improve data quality for everyone."
                         )
                     }
                 )
@@ -225,22 +225,22 @@ extension BolusCalculatorConfig {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Only allow Carbs from Barcode Scanner")
+                            hintLabel = String(localized: "Only Allow Carbs from Barcode Scanner")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: String(localized: "Only allow Carbs from Barcode Scanner"),
+                    label: String(localized: "Only Allow Carbs from Barcode Scanner"),
                     miniHint: String(
-                        localized: "Do not allow logging of FTUs"
+                        localized: "Do not allow logging of FTUs."
                     ),
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "For users who only want to log carbs via the barcode scanner and not FTUs (Fats, Proteins, and Fibers)."
+                            "For users who only want to log carbs via the barcode scanner and not FTUs (fats, proteins, and fibers)."
                         )
                         Text(
-                            "Note: Enable this if FTUs are causing issues for you."
+                            "If \"Only Allow Carbs from Barcode Scanner\" is enabled, logging FTUs (fats, proteins, and fibers) is disabled."
                         )
                     }
                 )
