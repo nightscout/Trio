@@ -11,6 +11,7 @@ struct PulsingLogoAnimation: View {
     @State private var opacity = 0.0
     @State private var rotation = 0.0
     @State private var isPulsing = false
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
 
     var body: some View {
         Image("trioCircledNoBackground")
@@ -22,6 +23,14 @@ struct PulsingLogoAnimation: View {
             .rotationEffect(.degrees(rotation))
             .scaleEffect(isPulsing ? 1.1 : 1.0)
             .onAppear {
+                if reduceMotion {
+                    scale = 1.0
+                    withAnimation(.easeInOut(duration: 1.0)) {
+                        opacity = 1.0
+                    }
+                    return
+                }
+
                 withAnimation(.easeInOut(duration: 1.0)) {
                     scale = 1.0
                     opacity = 1.0

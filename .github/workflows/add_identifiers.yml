@@ -12,11 +12,11 @@ jobs:
   identifiers:
     name: Add Identifiers
     needs: validate
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       # Checks-out the repo
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables
