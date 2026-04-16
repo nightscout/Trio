@@ -211,21 +211,15 @@ enum SettingItems {
             searchContents: [
                 "Display Meal Presets",
                 "Recommended Bolus Percentage",
-                "Enable Reduced Bolus Option",
-                "Reduced Bolus Percentage",
                 "Enable Reduced Bolus Factor",
                 "Reduced Bolus Factor",
-                "Enable Super Bolus Option",
-                "Super Bolus Percentage",
                 "Enable Super Bolus",
                 "Super Bolus Factor",
                 "Very Low Glucose Warning"
             ],
             scrollTargetLabels: [
-                "Reduced Bolus Percentage": "Enable Reduced Bolus Option",
                 "Enable Reduced Bolus Factor": "Enable Reduced Bolus Option",
                 "Reduced Bolus Factor": "Enable Reduced Bolus Option",
-                "Super Bolus Percentage": "Enable Super Bolus Option",
                 "Enable Super Bolus": "Enable Super Bolus Option",
                 "Super Bolus Factor": "Enable Super Bolus Option"
             ],
@@ -244,6 +238,14 @@ enum SettingItems {
                 "Spread Interval",
                 "Fat and Protein Percentage",
                 "FPU"
+            ],
+            scrollTargetLabels: [
+                "Max Fat": "Enable Fat and Protein Entries",
+                "Max Protein": "Enable Fat and Protein Entries",
+                "Fat and Protein Delay": "Enable Fat and Protein Entries",
+                "Spread Interval": "Enable Fat and Protein Entries",
+                "Fat and Protein Percentage": "Enable Fat and Protein Entries",
+                "FPU": "Enable Fat and Protein Entries"
             ],
             path: ["Features", "Meal Settings"]
         ),
@@ -331,6 +333,10 @@ enum SettingItems {
                 "Add Glucose Source to Alarm",
                 "Low Glucose Alarm Limit",
                 "High Glucose Alarm Limit"
+            ],
+            scrollTargetLabels: [
+                "Low Glucose Alarm Limit": "Glucose Notifications",
+                "High Glucose Alarm Limit": "Glucose Notifications"
             ],
             path: ["Notifications", "Trio Notifications"] // Glucose
         ),
