@@ -367,7 +367,7 @@ extension TrioSettings: Decodable {
         if let barcodeScannerOnlyCarbs = try? container.decode(Bool.self, forKey: .barcodeScannerOnlyCarbs) {
             settings.barcodeScannerOnlyCarbs = barcodeScannerOnlyCarbs
         }
-        
+
         if let garminWatchface = try? container.decode(GarminWatchface.self, forKey: .garminWatchface) {
             settings.garminWatchface = garminWatchface
         }

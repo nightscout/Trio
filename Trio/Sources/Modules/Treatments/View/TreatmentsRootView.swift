@@ -249,6 +249,7 @@ extension Treatments {
                         }
                     }
                 }
+            }
         }
 
         @ViewBuilder private func carbsTextField() -> some View {
@@ -330,26 +331,26 @@ extension Treatments {
                 Divider()
 
                 if state.useFPUconversion {
-                proteinAndFat()
-                Divider()
+                    proteinAndFat()
+                    Divider()
 
-                if showFatProteinOrderBanner {
-                    HStack {
-                        Image(systemName: "arrow.left.arrow.right")
-                        Text("The order of Fat and Protein inputs has changed.").font(.callout)
-                        Spacer()
-                        Button {
-                            PropertyPersistentFlags.shared.hasSeenFatProteinOrderChange = true
-                            withAnimation { showFatProteinOrderBanner = false }
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
+                    if showFatProteinOrderBanner {
+                        HStack {
+                            Image(systemName: "arrow.left.arrow.right")
+                            Text("The order of Fat and Protein inputs has changed.").font(.callout)
+                            Spacer()
+                            Button {
+                                PropertyPersistentFlags.shared.hasSeenFatProteinOrderChange = true
+                                withAnimation { showFatProteinOrderBanner = false }
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
+                        .listRowBackground(Color.orange.opacity(0.75))
+                        .transition(.opacity)
                     }
-                    .listRowBackground(Color.orange.opacity(0.75))
-                    .transition(.opacity)
                 }
-            }
 
                 // Time
                 HStack {
@@ -630,6 +631,7 @@ extension Treatments {
                     // Auto-open scanner if requested
                     if openWithScanner {
                         configureAndShowScanner(showList: false)
+                    }
 
                     if PropertyPersistentFlags.shared.hasSeenFatProteinOrderChange != true {
                         showFatProteinOrderBanner = true
