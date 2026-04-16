@@ -11,6 +11,8 @@ protocol GlucoseSource: SourceInfoProvider {
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never>
     var glucoseManager: FetchGlucoseManager? { get set }
     var cgmManager: CGMManagerUI? { get set }
+    var cgmProgressHighlight: CurrentValueSubject<LoopKit.DeviceLifecycleProgress?, Never> { get }
+    var cgmDisplayState: CurrentValueSubject<CgmDisplayState?, Never> { get }
 }
 
 extension GlucoseSource {

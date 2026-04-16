@@ -112,6 +112,25 @@ extension Home {
             )
         }
 
+        @ViewBuilder func cgmHighlightView(_ message: String, _ displayState: CgmDisplayStatus) -> some View {
+            HStack {
+                Text(message)
+                    .bold()
+                    .font(.system(size: 14))
+                    .foregroundStyle(displayState.color)
+            }
+            .onTapGesture {
+                state.shouldDisplayCGMSetupSheet.toggle()
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.vertical, 5)
+            .padding(.horizontal, 10)
+            .overlay(
+                Capsule()
+                    .stroke(displayState.color.opacity(0.4), lineWidth: 2)
+            )
+        }
+
         var cgmSelectionButtons: some View {
             ForEach(cgmOptions, id: \.name) { option in
                 if let cgm = state.listOfCGM.first(where: option.predicate) {
@@ -132,7 +151,8 @@ extension Home {
                 cgmAvailable: state.cgmAvailable,
                 currentGlucoseTarget: state.currentGlucoseTarget,
                 glucoseColorScheme: state.glucoseColorScheme,
-                glucose: state.latestTwoGlucoseValues
+                glucose: state.latestTwoGlucoseValues,
+                progressHightlight: state.cgmLifetimeProgress
             ).scaleEffect(0.9)
                 .onTapGesture {
                     if !state.cgmAvailable {
@@ -934,9 +954,11 @@ extension Home {
                 .safeAreaInset(edge: .top, spacing: 0) {
                     if notificationsDisabled {
                         alertSafetyNotificationsView(geo: geo)
-                    }
-                    if let badgeImage = state.pumpStatusBadgeImage, let badgeColor = state.pumpStatusBadgeColor {
+                    } else if let badgeImage = state.pumpStatusBadgeImage, let badgeColor = state.pumpStatusBadgeColor {
                         pumpTimezoneView(badgeImage, badgeColor)
+                            .padding(.horizontal, 20)
+                    } else if let cgmAlert = state.cgmHighlight {
+                        cgmHighlightView(cgmAlert.localizedMessage, cgmAlert.status)
                             .padding(.horizontal, 20)
                     }
                 }
