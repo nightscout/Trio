@@ -28,9 +28,10 @@ struct TDDResult {
 final class BaseTDDStorage: TDDStorage, Injectable {
     @Injected() private var storage: FileStorage!
 
-    private let privateContext = CoreDataStack.shared.newTaskContext()
+    private let makeContext: () -> NSManagedObjectContext
 
-    init(resolver: Resolver) {
+    init(resolver: Resolver, contextProvider: (() -> NSManagedObjectContext)? = nil) {
+        makeContext = contextProvider ?? { CoreDataStack.shared.newTaskContext() }
         injectServices(resolver)
     }
 
@@ -144,8 +145,10 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     /// Stores the Total Daily Dose (TDD) result in Core Data
     /// - Parameter tddResult: The TDD result to store, containing total insulin, bolus, temp basal, scheduled basal and weighted average
     func storeTDD(_ tddResult: TDDResult) async {
-        await privateContext.perform {
-            let tddStored = TDDStored(context: self.privateContext)
+        let context = makeContext()
+        context.name = "storeTDD"
+        await context.perform {
+            let tddStored = TDDStored(context: context)
             tddStored.id = UUID()
             tddStored.date = Date()
             tddStored.total = NSDecimalNumber(decimal: tddResult.total)
@@ -155,8 +158,8 @@ final class BaseTDDStorage: TDDStorage, Injectable {
             tddStored.weightedAverage = tddResult.weightedAverage.map { NSDecimalNumber(decimal: $0) }
 
             do {
-                guard self.privateContext.hasChanges else { return }
-                try self.privateContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch {
                 debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to save TDD: \(error)")
             }
@@ -570,14 +573,17 @@ final class BaseTDDStorage: TDDStorage, Injectable {
 
         let predicate = NSPredicate(format: "date >= %@", tenDaysAgo as NSDate)
 
+        let context = makeContext()
+        context.name = "calculateWeightedAverage"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TDDStored.self,
-            onContext: privateContext,
+            onContext: context,
             predicate: predicate,
             key: "date",
             ascending: false
         )
-        return await privateContext.perform { () -> Decimal? in
+        return await context.perform { () -> Decimal? in
             guard let results = results as? [TDDStored], !results.isEmpty else { return 0 }
 
             // Calculate recent (2h) average
@@ -616,7 +622,9 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     /// - Returns: `true` if sufficient TDD data is available, otherwise `false`.
     /// - Throws: An error if the Core Data count operation fails.
     func hasSufficientTDD() async throws -> Bool {
-        try await BaseTDDStorage.hasSufficientTDD(context: privateContext)
+        let context = makeContext()
+        context.name = "hasSufficientTDD"
+        return try await BaseTDDStorage.hasSufficientTDD(context: context)
     }
 
     /// internal function with context exposed to enable testing

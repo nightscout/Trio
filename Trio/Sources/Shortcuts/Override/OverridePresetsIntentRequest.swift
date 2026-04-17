@@ -18,14 +18,17 @@ import UIKit
      - Throws: An error if fetching fails or Core Data operations fail.
      */
     func fetchAndProcessOverrides() async throws -> [OverridePreset] {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchAndProcessOverrides"
+
         do {
             // Fetch all Override Presets via OverrideStorage
             let allOverridePresetsIDs = try await overrideStorage.fetchForOverridePresets()
 
             // Since we are fetching on a different background Thread we need to unpack the NSManagedObjectID on the correct Thread first
-            return try await coredataContext.perform {
+            return try await context.perform {
                 let overrideObjects = try allOverridePresetsIDs.compactMap { id in
-                    try self.coredataContext.existingObject(with: id) as? OverrideStored
+                    try context.existingObject(with: id) as? OverrideStored
                 }
 
                 return overrideObjects.map { object in
@@ -51,12 +54,15 @@ import UIKit
      - Throws: `overridePresetsError.noTempOverrideFound` if no presets are found.
      */
     func fetchIDs(_ uuid: [OverridePreset.ID]) async throws -> [OverridePreset] {
-        try await coredataContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchIDs"
+
+        return try await context.perform {
             let fetchRequest: NSFetchRequest<OverrideStored> = OverrideStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", uuid)
 
             do {
-                let result = try self.coredataContext.fetch(fetchRequest)
+                let result = try context.fetch(fetchRequest)
 
                 if result.isEmpty {
                     debug(
@@ -87,12 +93,15 @@ import UIKit
      - Throws: `overridePresetsError.noTempOverrideFound` if the preset is not found.
      */
     private func fetchOverrideID(_ preset: OverridePreset) async throws -> NSManagedObjectID {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchOverrideID"
+
         let fetchRequest: NSFetchRequest<OverrideStored> = OverrideStored.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", preset.id)
         fetchRequest.fetchLimit = 1
 
-        return try await coredataContext.perform {
-            guard let objectID = try self.coredataContext.fetch(fetchRequest).first?.objectID else {
+        return try await context.perform {
+            guard let objectID = try context.fetch(fetchRequest).first?.objectID else {
                 debug(
                     .default,
                     "\(DebuggingIdentifiers.failed) No override found for preset: \(preset.name)"

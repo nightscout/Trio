@@ -1,3 +1,4 @@
+import CoreData
 import Foundation
 
 // Fetch Data for Glucose and Determination from Core Data and map them to the Structs in order to pass them thread safe to the glucoseDidUpdate/ pushUpdate function
@@ -5,6 +6,8 @@ import Foundation
 @available(iOS 16.2, *)
 extension LiveActivityManager {
     func fetchAndMapGlucose() async throws -> [GlucoseData] {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchAndMapGlucose"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
@@ -27,6 +30,8 @@ extension LiveActivityManager {
 
     // TODO: extract logic or at least rename function appropiately
     func fetchAndMapDetermination() async throws -> DeterminationData? {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchAndMapDetermination"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: context,
@@ -68,6 +73,8 @@ extension LiveActivityManager {
     }
 
     func fetchAndMapOverride() async throws -> OverrideData? {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchAndMapOverride"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
             onContext: context,

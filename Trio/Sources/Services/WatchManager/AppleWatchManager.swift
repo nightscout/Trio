@@ -41,7 +41,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     typealias PumpEvent = PumpEventStored.EventType
 
-    let backgroundContext = CoreDataStack.shared.newTaskContext()
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
     init(resolver: Resolver) {
@@ -184,6 +183,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             return WatchState(date: Date())
         }
         do {
+            let context = CoreDataStack.shared.newTaskContext()
+            context.name = "setupWatchState"
+
             // Get NSManagedObjectIDs
             let glucoseIds = try await fetchGlucose()
             let determinationIds = try await determinationStorage.fetchLastDeterminationObjectID(
@@ -194,15 +196,15 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
             // Get NSManagedObjects
             let glucoseObjects: [GlucoseStored] = try await CoreDataStack.shared
-                .getNSManagedObject(with: glucoseIds, context: backgroundContext)
+                .getNSManagedObject(with: glucoseIds, context: context)
             let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
-                .getNSManagedObject(with: determinationIds, context: backgroundContext)
+                .getNSManagedObject(with: determinationIds, context: context)
             let overridePresetObjects: [OverrideStored] = try await CoreDataStack.shared
-                .getNSManagedObject(with: overridePresetIds, context: backgroundContext)
+                .getNSManagedObject(with: overridePresetIds, context: context)
             let tempTargetPresetObjects: [TempTargetStored] = try await CoreDataStack.shared
-                .getNSManagedObject(with: tempTargetPresetIds, context: backgroundContext)
+                .getNSManagedObject(with: tempTargetPresetIds, context: context)
 
-            return await backgroundContext.perform {
+            return await context.perform {
                 var watchState = WatchState(date: Date())
 
                 // Set lastLoopDate
@@ -374,16 +376,18 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     /// Fetches recent glucose readings from CoreData
     /// - Returns: Array of NSManagedObjectIDs for glucose readings
     private func fetchGlucose() async throws -> [NSManagedObjectID] {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchGlucose"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.glucose,
             key: "date",
             ascending: false,
             fetchLimit: 288
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [GlucoseStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -395,16 +399,18 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     /// Fetches last pump event that is a non-external bolus from CoreData
     /// - Returns: NSManagedObjectIDs for last bolus
     func fetchLastBolus() async throws -> NSManagedObjectID? {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchLastBolus"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.lastPumpBolus,
             key: "timestamp",
             ascending: false,
             fetchLimit: 1
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [PumpEventStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -642,13 +648,15 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     guard let self = self else { return }
 
                     do {
+                        let context = CoreDataStack.shared.newTaskContext()
+                        context.name = "requestBolusRecommendation"
                         // Fetch determination data
                         let determinationIds = try await determinationStorage.fetchLastDeterminationObjectID(
                             predicate: NSPredicate.predicateFor30MinAgoForDetermination
                         )
                         let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared.getNSManagedObject(
                             with: determinationIds,
-                            context: backgroundContext
+                            context: context
                         )
 
                         await MainActor.run {
