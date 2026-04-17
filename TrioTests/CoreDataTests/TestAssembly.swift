@@ -18,27 +18,27 @@ class TestAssembly: Assembly {
 
         // Override DeterminationStorage registration for tests
         container.register(DeterminationStorage.self) { r in
-            BaseDeterminationStorage(resolver: r, context: self.testContext)
+            BaseDeterminationStorage(resolver: r, contextProvider: { self.testContext })
         }.inObjectScope(.container)
 
         // Override CarbsStorage registration for tests
         container.register(CarbsStorage.self) { r in
-            BaseCarbsStorage(resolver: r, context: self.testContext)
+            BaseCarbsStorage(resolver: r, contextProvider: { self.testContext })
         }.inObjectScope(.container)
 
         // Override GlucoseStorage registration for tests
         container.register(GlucoseStorage.self) { r in
-            BaseGlucoseStorage(resolver: r, context: self.testContext)
+            BaseGlucoseStorage(resolver: r, contextProvider: { self.testContext })
         }.inObjectScope(.container)
 
         // Override TempTargetStorage registration for tests
         container.register(TempTargetsStorage.self) { r in
-            BaseTempTargetsStorage(resolver: r, context: self.testContext)
+            BaseTempTargetsStorage(resolver: r, contextProvider: { self.testContext })
         }.inObjectScope(.container)
 
         // Override OverrideStorage registration for tests
         container.register(OverrideStorage.self) { r in
-            BaseOverrideStorage(resolver: r, context: self.testContext)
+            BaseOverrideStorage(resolver: r, contextProvider: { self.testContext })
         }.inObjectScope(.container)
     }
 }
