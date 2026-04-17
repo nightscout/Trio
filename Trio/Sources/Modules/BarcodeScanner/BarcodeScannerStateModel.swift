@@ -201,7 +201,7 @@ extension BarcodeScanner {
         func editScannedProduct(_ item: FoodItem) {
             // Set as current item for editing
             currentScannedItem = item
-            originalScannedNutriments = nil
+            originalScannedNutriments = item.nutriments
             correctionUploadMessage = nil
             correctionUploadSucceeded = false
 
