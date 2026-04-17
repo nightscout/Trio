@@ -5,6 +5,61 @@ import Foundation
 extension BarcodeScanner {
     /// Client for fetching product data from OpenFoodFacts API
     struct OpenFoodFactsClient {
+        private static let authStore = OpenFoodFactsAuthStore()
+
+        func setCredentials(username: String, password: String) async {
+            await Self.authStore.setCredentials(username: username, password: password)
+        }
+
+        func hasValidSessionCookie() async -> Bool {
+            await Self.authStore.hasValidSessionCookie()
+        }
+
+        @discardableResult  func login() async throws -> Bool {
+            guard let credentials = await Self.authStore.credentialsIfAvailable else {
+                return false
+            }
+
+            let loginURL = URL(string: "https://world.openfoodfacts.org/cgi/session.pl")!
+            var request = URLRequest(url: loginURL)
+            request.httpMethod = "POST"
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            request
+                .httpBody =
+                "user_id=\(credentials.username.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? credentials.username)&password=\(credentials.password.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? credentials.password)"
+                    .data(using: .utf8)
+
+            let (_, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse,
+                  200 ..< 300 ~= httpResponse.statusCode
+            else {
+                return false
+            }
+
+            let responseHeaders = Dictionary(uniqueKeysWithValues: httpResponse.allHeaderFields.map {
+                (String(describing: $0.key), String(describing: $0.value))
+            })
+
+            let cookies = HTTPCookie.cookies(withResponseHeaderFields: responseHeaders, for: loginURL)
+            if let sessionCookie = cookies.first(where: { $0.name.localizedCaseInsensitiveContains("session") })
+                ?? cookies.first
+            {
+                HTTPCookieStorage.shared.setCookie(sessionCookie)
+                await Self.authStore.storeSessionCookie(sessionCookie)
+                return true
+            }
+
+            if let storedCookie = HTTPCookieStorage.shared.cookies?.first(where: {
+                $0.domain.contains("openfoodfacts.org") && $0.name.localizedCaseInsensitiveContains("session")
+            }) {
+                await Self.authStore.storeSessionCookie(storedCookie)
+                return true
+            }
+
+            return false
+        }
+
         func fetchProduct(barcode: String) async throws -> FoodItem {
             guard
                 let url =
@@ -18,8 +73,9 @@ extension BarcodeScanner {
 
             var request = URLRequest(url: url)
             request.setValue("application/json", forHTTPHeaderField: "Accept")
+            request = try await applySessionCookie(to: request)
 
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await performRequestWithReauthentication(request)
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw OpenFoodFactsError.invalidResponse
             }
@@ -118,8 +174,9 @@ extension BarcodeScanner {
             request.setValue("application/json", forHTTPHeaderField: "Accept")
             request.setValue("Trio-iOS/1.0", forHTTPHeaderField: "User-Agent")
             request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData // No cache
+            request = try await applySessionCookie(to: request)
 
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await performRequestWithReauthentication(request)
             guard let httpResponse = response as? HTTPURLResponse,
                   200 ..< 300 ~= httpResponse.statusCode
             else {
@@ -174,6 +231,52 @@ extension BarcodeScanner {
                     )
                 )
             }
+        }
+
+        private func applySessionCookie(to request: URLRequest) async throws -> URLRequest {
+            var authorizedRequest = request
+
+            if let cookieHeader = await Self.authStore.validSessionCookieHeader() {
+                authorizedRequest.setValue(cookieHeader, forHTTPHeaderField: "Cookie")
+                return authorizedRequest
+            }
+
+            if await Self.authStore.hasCredentials {
+                _ = try await login()
+                if let cookieHeader = await Self.authStore.validSessionCookieHeader() {
+                    authorizedRequest.setValue(cookieHeader, forHTTPHeaderField: "Cookie")
+                }
+            }
+
+            return authorizedRequest
+        }
+
+        private func performRequestWithReauthentication(_ request: URLRequest) async throws -> (Data, URLResponse) {
+            let firstAttempt = try await URLSession.shared.data(for: request)
+
+            guard let firstResponse = firstAttempt.1 as? HTTPURLResponse else {
+                throw OpenFoodFactsError.invalidResponse
+            }
+
+            let shouldReauthenticate = firstResponse.statusCode == 401
+                || firstResponse.statusCode == 403
+                || firstResponse.statusCode == 503
+
+            guard shouldReauthenticate else {
+                return firstAttempt
+            }
+
+            guard await Self.authStore.hasCredentials else {
+                return firstAttempt
+            }
+
+            let loginSucceeded = try await login()
+            guard loginSucceeded else {
+                return firstAttempt
+            }
+
+            let retryRequest = try await applySessionCookie(to: request)
+            return try await URLSession.shared.data(for: retryRequest)
         }
     }
 }
@@ -400,5 +503,96 @@ private extension Optional where Wrapped == String {
             return nil
         }
         return trimmed
+    }
+}
+
+private actor OpenFoodFactsAuthStore {
+    private let defaults = UserDefaults.standard
+    private let usernameKey = "openFoodFactsUsername"
+    private let passwordKey = "openFoodFactsPassword"
+    private let cookieNameKey = "openFoodFactsSessionCookieName"
+    private let cookieValueKey = "openFoodFactsSessionCookieValue"
+    private let cookieExpiryKey = "openFoodFactsSessionCookieExpiry"
+
+    private(set) var credentialsIfAvailable: Credentials?
+    private var sessionCookie: SessionCookie?
+
+    init() {
+        let username = defaults.string(forKey: usernameKey) ?? ""
+        let password = defaults.string(forKey: passwordKey) ?? ""
+        if !username.isEmpty, !password.isEmpty {
+            credentialsIfAvailable = Credentials(username: username, password: password)
+        }
+
+        if let cookieName = defaults.string(forKey: cookieNameKey),
+           let cookieValue = defaults.string(forKey: cookieValueKey)
+        {
+            let cookieExpiry = defaults.object(forKey: cookieExpiryKey) as? Date
+            sessionCookie = SessionCookie(name: cookieName, value: cookieValue, expiresAt: cookieExpiry)
+        }
+    }
+
+    var hasCredentials: Bool {
+        credentialsIfAvailable != nil
+    }
+
+    func setCredentials(username: String, password: String) {
+        let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedUsername.isEmpty || password.isEmpty {
+            credentialsIfAvailable = nil
+            defaults.removeObject(forKey: usernameKey)
+            defaults.removeObject(forKey: passwordKey)
+            return
+        }
+
+        let credentials = Credentials(username: trimmedUsername, password: password)
+        credentialsIfAvailable = credentials
+        defaults.set(credentials.username, forKey: usernameKey)
+        defaults.set(credentials.password, forKey: passwordKey)
+    }
+
+    func storeSessionCookie(_ cookie: HTTPCookie) {
+        let storedCookie = SessionCookie(name: cookie.name, value: cookie.value, expiresAt: cookie.expiresDate)
+        sessionCookie = storedCookie
+        defaults.set(storedCookie.name, forKey: cookieNameKey)
+        defaults.set(storedCookie.value, forKey: cookieValueKey)
+        if let expiresAt = storedCookie.expiresAt {
+            defaults.set(expiresAt, forKey: cookieExpiryKey)
+        } else {
+            defaults.removeObject(forKey: cookieExpiryKey)
+        }
+    }
+
+    func hasValidSessionCookie(referenceDate: Date = Date()) -> Bool {
+        validSessionCookieHeader(referenceDate: referenceDate) != nil
+    }
+
+    func validSessionCookieHeader(referenceDate: Date = Date()) -> String? {
+        guard let sessionCookie else {
+            return nil
+        }
+
+        if let expiresAt = sessionCookie.expiresAt, expiresAt <= referenceDate {
+            self.sessionCookie = nil
+            defaults.removeObject(forKey: cookieNameKey)
+            defaults.removeObject(forKey: cookieValueKey)
+            defaults.removeObject(forKey: cookieExpiryKey)
+            return nil
+        }
+
+        return "\(sessionCookie.name)=\(sessionCookie.value)"
+    }
+}
+
+private extension OpenFoodFactsAuthStore {
+    struct Credentials {
+        let username: String
+        let password: String
+    }
+
+    struct SessionCookie {
+        let name: String
+        let value: String
+        let expiresAt: Date?
     }
 }

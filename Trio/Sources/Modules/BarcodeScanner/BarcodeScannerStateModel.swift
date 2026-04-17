@@ -48,6 +48,13 @@ extension BarcodeScanner {
         // MARK: - Lifecycle
 
         func handleAppear() {
+            Task {
+                await client.setCredentials(
+                    username: settingsManager.settings.openFoodFactsUsername,
+                    password: settingsManager.settings.openFoodFactsPassword
+                )
+            }
+
             refreshCameraStatus()
 
             switch cameraStatus {

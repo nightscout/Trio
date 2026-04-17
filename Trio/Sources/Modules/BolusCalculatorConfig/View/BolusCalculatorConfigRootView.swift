@@ -244,6 +244,46 @@ extension BolusCalculatorConfig {
                         )
                     }
                 )
+
+                Section(header: Text("OpenFoodFacts Login")) {
+                    TextField("Username", text: $state.openFoodFactsUsername)
+                        .disableAutocorrection(true)
+                        .autocapitalization(.none)
+                        .textInputAutocapitalization(.never)
+
+                    SecureField("Password", text: $state.openFoodFactsPassword)
+                        .disableAutocorrection(true)
+                        .autocapitalization(.none)
+                        .textInputAutocapitalization(.never)
+
+                    Button {
+                        state.loginToOpenFoodFacts()
+                    } label: {
+                        Label(
+                            state.isOpenFoodFactsLoginSuccessful ? "Login successful" : "Login",
+                            systemImage: state.isOpenFoodFactsLoginSuccessful
+                                ? "checkmark.circle"
+                                : "person.crop.circle.badge.checkmark"
+                        )
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(state.isOpenFoodFactsLoginSuccessful ? .green : .purple)
+                    .disabled(state.isOpenFoodFactsLoginInProgress)
+                    .padding(.top, 5)
+
+                    if state.isOpenFoodFactsLoginInProgress {
+                        ProgressView()
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+
+                    if let error = state.openFoodFactsLoginError, !error.isEmpty {
+                        Text(error)
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                    }
+                }
+                .listRowBackground(Color.chart)
             }
             .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
