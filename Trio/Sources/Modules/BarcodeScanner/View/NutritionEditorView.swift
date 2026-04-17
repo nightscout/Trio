@@ -127,6 +127,41 @@ extension BarcodeScanner {
 
                 // Action buttons at bottom
                 VStack(spacing: 12) {
+                    if state.hasNutrimentsDivergedFromOriginal,
+                       state.hasOpenFoodFactsCredentialsConfigured
+                    {
+                        if state.isOpenFoodFactsLoggedIn {
+                            Button {
+                                dismissKeyboard()
+                                state.uploadNutritionCorrectionToOpenFoodFacts()
+                            } label: {
+                                HStack(spacing: 8) {
+                                    if state.isUploadingCorrection {
+                                        ProgressView()
+                                            .controlSize(.small)
+                                            .tint(.white)
+                                    } else {
+                                        Image(systemName: "square.and.arrow.up")
+                                    }
+
+                                    Text(String(localized: "Update OpenFoodFactsDB"))
+                                }
+                                .font(.subheadline.weight(.semibold))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.insulin)
+                            .disabled(!state.canUploadCorrectionToOpenFoodFacts)
+                        }
+
+                        if let message = state.correctionUploadMessage, !message.isEmpty {
+                            Text(message)
+                                .font(.footnote)
+                                .foregroundStyle(state.correctionUploadSucceeded ? .green : .red)
+                        }
+                    }
+
                     // Add & Continue button
                     Button {
                         dismissKeyboard()

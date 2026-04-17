@@ -233,6 +233,158 @@ extension BarcodeScanner {
             }
         }
 
+        func uploadNutritionCorrection(for item: FoodItem, comparedTo original: FoodItem.Nutriments?) async throws {
+            guard let barcode = item.barcode?.trimmingCharacters(in: .whitespacesAndNewlines), !barcode.isEmpty
+            else {
+                throw OpenFoodFactsError.uploadFailed(nil)
+            }
+
+            guard let credentials = await Self.authStore.credentialsIfAvailable else {
+                throw OpenFoodFactsError.uploadFailed(nil)
+            }
+
+            let writeURL = URL(string: "https://world.openfoodfacts.org/cgi/product_jqm2.pl")!
+            var params: [String: String] = [
+                "code": barcode,
+                "user_id": credentials.username,
+                "password": credentials.password,
+                "action": "process",
+                "nutrition_data": "on",
+                "nutrition_data_per": item.nutriments.basis == .per100ml ? "100ml" : "100g",
+                "comment": "Nutrition values corrected in Trio"
+            ]
+
+            let changedNutriments = changedNutrimentParameters(current: item.nutriments, original: original)
+            guard !changedNutriments.isEmpty else {
+                throw OpenFoodFactsError.uploadFailed(String(localized: "No nutrition changes to upload."))
+            }
+            params.merge(changedNutriments) { _, new in new }
+
+            debug(
+                .service,
+                "OpenFoodFacts correction upload changed keys for code=\(barcode): \(changedNutriments.keys.sorted())"
+            )
+
+            var request = URLRequest(url: writeURL)
+            request.httpMethod = "POST"
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            request.httpBody = formEncodedBody(params)
+            request = try await applySessionCookie(to: request)
+
+            let (data, response) = try await performRequestWithReauthentication(request)
+            guard let httpResponse = response as? HTTPURLResponse,
+                  200 ..< 300 ~= httpResponse.statusCode
+            else {
+                if let httpResponse = response as? HTTPURLResponse {
+                    let body = String(data: data, encoding: .utf8) ?? "<non-utf8-body>"
+                    debug(
+                        .service,
+                        "OpenFoodFacts correction upload failed for code=\(barcode), status=\(httpResponse.statusCode), response=\(body)"
+                    )
+                }
+                throw OpenFoodFactsError.invalidResponse
+            }
+
+            let rawResponse = String(data: data, encoding: .utf8) ?? "<non-utf8-body>"
+            debug(
+                .service,
+                "OpenFoodFacts correction upload response for code=\(barcode), status=\(httpResponse.statusCode), response=\(rawResponse)"
+            )
+
+            if let writeResponse = try? JSONDecoder().decode(WriteAPIResponse.self, from: data) {
+                debug(
+                    .service,
+                    "OpenFoodFacts parsed correction response for code=\(barcode): status=\(String(describing: writeResponse.status)), statusVerbose=\(String(describing: writeResponse.statusVerbose)), resultId=\(String(describing: writeResponse.result?.id))"
+                )
+                if let status = writeResponse.status, status != 1 {
+                    throw OpenFoodFactsError.uploadFailed(writeResponse.statusVerbose)
+                }
+                if let result = writeResponse.result, result.id == "product_not_saved" {
+                    throw OpenFoodFactsError.uploadFailed(writeResponse.statusVerbose)
+                }
+            }
+
+            debug(.service, "OpenFoodFacts correction upload succeeded for code=\(barcode)")
+        }
+
+        private func formattedNutriment(_ value: Double?) -> String {
+            guard let value else { return "0" }
+            return String(format: "%.3f", value)
+        }
+
+        private func changedNutrimentParameters(
+            current: FoodItem.Nutriments,
+            original: FoodItem.Nutriments?,
+            tolerance: Double = 0.0001
+        ) -> [String: String] {
+            var params: [String: String] = [:]
+
+            func didChange(_ currentValue: Double?, _ originalValue: Double?) -> Bool {
+                switch (currentValue, originalValue) {
+                case (nil, nil):
+                    return false
+                case let (c?, o?):
+                    return abs(c - o) > tolerance
+                default:
+                    return true
+                }
+            }
+
+            func addNutriment(_ key: String, unit: String, currentValue: Double?, originalValue: Double?) {
+                guard didChange(currentValue, originalValue) else { return }
+
+                // Send explicit 0 only when user changed the value to 0.
+                params["nutriment_\(key)"] = formattedNutriment(currentValue)
+                params["nutriment_\(key)_unit"] = unit
+            }
+
+            addNutriment(
+                "carbohydrates",
+                unit: "g",
+                currentValue: current.carbohydratesPer100g,
+                originalValue: original?.carbohydratesPer100g
+            )
+            addNutriment(
+                "fat",
+                unit: "g",
+                currentValue: current.fatPer100g,
+                originalValue: original?.fatPer100g
+            )
+            addNutriment(
+                "proteins",
+                unit: "g",
+                currentValue: current.proteinPer100g,
+                originalValue: original?.proteinPer100g
+            )
+            addNutriment(
+                "sugars",
+                unit: "g",
+                currentValue: current.sugarsPer100g,
+                originalValue: original?.sugarsPer100g
+            )
+            addNutriment(
+                "fiber",
+                unit: "g",
+                currentValue: current.fiberPer100g,
+                originalValue: original?.fiberPer100g
+            )
+            addNutriment(
+                "energy-kcal",
+                unit: "kcal",
+                currentValue: current.energyKcalPer100g,
+                originalValue: original?.energyKcalPer100g
+            )
+
+            return params
+        }
+
+        private func formEncodedBody(_ params: [String: String]) -> Data? {
+            var components = URLComponents()
+            components.queryItems = params.map { URLQueryItem(name: $0.key, value: $0.value) }
+            return components.percentEncodedQuery?.data(using: .utf8)
+        }
+
         private func applySessionCookie(to request: URLRequest) async throws -> URLRequest {
             var authorizedRequest = request
 
@@ -287,6 +439,7 @@ extension BarcodeScanner {
     enum OpenFoodFactsError: LocalizedError {
         case invalidResponse
         case productNotFound
+        case uploadFailed(String?)
 
         var errorDescription: String? {
             switch self {
@@ -297,6 +450,8 @@ extension BarcodeScanner {
                     localized:
                     "We couldn’t find this barcode in OpenFoodFacts. Maybe add the product to OpenFoodFacts via the App."
                 )
+            case let .uploadFailed(reason):
+                reason?.nonEmpty ?? String(localized: "Upload to OpenFoodFacts failed. Please try again.")
             }
         }
     }
@@ -318,6 +473,28 @@ private extension BarcodeScanner.OpenFoodFactsClient {
         let page: Int
         let pageSize: Int
         let products: [ProductData]
+    }
+
+    struct WriteAPIResponse: Decodable {
+        struct WriteResult: Decodable {
+            let id: String?
+            let lcName: String?
+
+            enum CodingKeys: String, CodingKey {
+                case id
+                case lcName = "lc_name"
+            }
+        }
+
+        let status: Int?
+        let statusVerbose: String?
+        let result: WriteResult?
+
+        enum CodingKeys: String, CodingKey {
+            case status
+            case statusVerbose = "status_verbose"
+            case result
+        }
     }
 
     struct ProductData: Decodable {
@@ -542,6 +719,14 @@ private actor OpenFoodFactsAuthStore {
             credentialsIfAvailable = nil
             defaults.removeObject(forKey: usernameKey)
             defaults.removeObject(forKey: passwordKey)
+            sessionCookie = nil
+            defaults.removeObject(forKey: cookieNameKey)
+            defaults.removeObject(forKey: cookieValueKey)
+            defaults.removeObject(forKey: cookieExpiryKey)
+
+            HTTPCookieStorage.shared.cookies?
+                .filter { $0.domain.contains("openfoodfacts.org") }
+                .forEach { HTTPCookieStorage.shared.deleteCookie($0) }
             return
         }
 

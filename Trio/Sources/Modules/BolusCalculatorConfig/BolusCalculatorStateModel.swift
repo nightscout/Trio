@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 extension BolusCalculatorConfig {
@@ -69,6 +70,24 @@ extension BolusCalculatorConfig {
             subscribeSetting(\.openFoodFactsPassword, on: $openFoodFactsPassword) {
                 openFoodFactsPassword = $0
             }
+
+            Publishers.CombineLatest($openFoodFactsUsername, $openFoodFactsPassword)
+                .sink { [weak self] username, password in
+                    guard let self else { return }
+                    let hasCredentials = !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        && !password.isEmpty
+
+                    Task { @MainActor in
+                        await self.openFoodFactsClient.setCredentials(username: username, password: password)
+
+                        if !hasCredentials {
+                            self.isOpenFoodFactsLoginSuccessful = false
+                            self.isOpenFoodFactsLoginInProgress = false
+                            self.openFoodFactsLoginError = nil
+                        }
+                    }
+                }
+                .store(in: &lifetime)
 
             Task { @MainActor in
                 await self.openFoodFactsClient.setCredentials(

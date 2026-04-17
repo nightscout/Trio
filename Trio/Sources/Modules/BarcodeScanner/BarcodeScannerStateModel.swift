@@ -15,10 +15,15 @@ extension BarcodeScanner {
         @Published var isScanning = true
         @Published var isKeyboardVisible = false
         @Published var currentScannedItem: FoodItem?
+        @Published private(set) var originalScannedNutriments: FoodItem.Nutriments?
         @Published var isFetchingProduct = false
         @Published var errorMessage: String?
         @Published var scannedProducts: [FoodItem] = []
         @Published var isEditingFromList: Bool = false
+        @Published var isOpenFoodFactsLoggedIn = false
+        @Published var isUploadingCorrection = false
+        @Published var correctionUploadMessage: String?
+        @Published var correctionUploadSucceeded = false
 
         @Published var scannedLabelBasisAmount: Double = 100.0
 
@@ -45,14 +50,17 @@ extension BarcodeScanner {
         private var lastScanWasSuccessful: Bool = false
         private let scanCooldownSeconds: TimeInterval = 1.0
 
+        var hasOpenFoodFactsCredentialsConfigured: Bool {
+            let username = settingsManager.settings.openFoodFactsUsername
+            let password = settingsManager.settings.openFoodFactsPassword
+            return !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !password.isEmpty
+        }
+
         // MARK: - Lifecycle
 
         func handleAppear() {
             Task {
-                await client.setCredentials(
-                    username: settingsManager.settings.openFoodFactsUsername,
-                    password: settingsManager.settings.openFoodFactsPassword
-                )
+                await self.refreshOpenFoodFactsAuthStatus()
             }
 
             refreshCameraStatus()
@@ -148,6 +156,9 @@ extension BarcodeScanner {
                     fetchedProduct.isMlInput = self.editingIsMl
 
                     self.currentScannedItem = fetchedProduct
+                    self.originalScannedNutriments = fetchedProduct.nutriments
+                    self.correctionUploadMessage = nil
+                    self.correctionUploadSucceeded = false
                     self.lastScanWasSuccessful = true
                     self.isFetchingProduct = false
                 } catch {
@@ -190,6 +201,9 @@ extension BarcodeScanner {
         func editScannedProduct(_ item: FoodItem) {
             // Set as current item for editing
             currentScannedItem = item
+            originalScannedNutriments = nil
+            correctionUploadMessage = nil
+            correctionUploadSucceeded = false
 
             // Set up editing state
             editingAmount = item.amount
@@ -205,6 +219,64 @@ extension BarcodeScanner {
             value: Double?
         ) {
             currentScannedItem?.nutriments[keyPath: keyPath] = value
+            correctionUploadMessage = nil
+            correctionUploadSucceeded = false
+        }
+
+        var hasNutrimentsDivergedFromOriginal: Bool {
+            guard let current = currentScannedItem?.nutriments,
+                  let original = originalScannedNutriments
+            else {
+                return false
+            }
+
+            return !areNutrimentsEqual(current, original)
+        }
+
+        var canUploadCorrectionToOpenFoodFacts: Bool {
+            guard isOpenFoodFactsLoggedIn,
+                  hasOpenFoodFactsCredentialsConfigured,
+                  !isUploadingCorrection,
+                  hasNutrimentsDivergedFromOriginal,
+                  let barcode = currentScannedItem?.barcode?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !barcode.isEmpty
+            else {
+                return false
+            }
+            return true
+        }
+
+        func uploadNutritionCorrectionToOpenFoodFacts() {
+            guard canUploadCorrectionToOpenFoodFacts,
+                  let item = currentScannedItem,
+                  let originalNutriments = originalScannedNutriments
+            else { return }
+
+            isUploadingCorrection = true
+            correctionUploadMessage = nil
+            correctionUploadSucceeded = false
+
+            Task { @MainActor in
+                defer { self.isUploadingCorrection = false }
+
+                do {
+                    try await client.uploadNutritionCorrection(for: item, comparedTo: originalNutriments)
+                    self.originalScannedNutriments = item.nutriments
+                    self.correctionUploadSucceeded = true
+                    self.correctionUploadMessage = String(localized: "Uploaded to OpenFoodFactsDB.")
+                    debug(
+                        .service,
+                        "OpenFoodFacts correction marked as uploaded in UI for code=\(item.barcode ?? "<nil>")"
+                    )
+                } catch {
+                    self.correctionUploadSucceeded = false
+                    self.correctionUploadMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                    debug(
+                        .service,
+                        "OpenFoodFacts correction upload failed in UI flow for code=\(item.barcode ?? "<nil>"): \(error)"
+                    )
+                }
+            }
         }
 
         /// Adds the currently displayed product (with edited nutriments) to the list
@@ -262,9 +334,12 @@ extension BarcodeScanner {
         /// Clears the currently displayed product from the overlay
         func clearScannedProduct() {
             currentScannedItem = nil
+            originalScannedNutriments = nil
             lastScannedBarcode = nil
             lastScanWasSuccessful = false
             errorMessage = nil
+            correctionUploadMessage = nil
+            correctionUploadSucceeded = false
             isScanning = true
         }
 
@@ -277,9 +352,12 @@ extension BarcodeScanner {
         func cancelEditing() {
             // Clear all editing state (product was not added to list yet)
             currentScannedItem = nil
+            originalScannedNutriments = nil
             lastScannedBarcode = nil
             lastScanWasSuccessful = false
             errorMessage = nil
+            correctionUploadMessage = nil
+            correctionUploadSucceeded = false
             editingAmount = 0
             editingIsMl = false
             isScanning = true
@@ -315,6 +393,58 @@ extension BarcodeScanner {
                     searchResults = []
                 }
                 isSearching = false
+            }
+        }
+
+        private func areNutrimentsEqual(
+            _ lhs: FoodItem.Nutriments,
+            _ rhs: FoodItem.Nutriments,
+            tolerance: Double = 0.0001
+        ) -> Bool {
+            guard lhs.basis == rhs.basis else { return false }
+
+            func areEqual(_ a: Double?, _ b: Double?) -> Bool {
+                switch (a, b) {
+                case (nil, nil): return true
+                case let (x?, y?): return abs(x - y) <= tolerance
+                default: return false
+                }
+            }
+
+            return areEqual(lhs.energyKcalPer100g, rhs.energyKcalPer100g)
+                && areEqual(lhs.carbohydratesPer100g, rhs.carbohydratesPer100g)
+                && areEqual(lhs.sugarsPer100g, rhs.sugarsPer100g)
+                && areEqual(lhs.fatPer100g, rhs.fatPer100g)
+                && areEqual(lhs.proteinPer100g, rhs.proteinPer100g)
+                && areEqual(lhs.fiberPer100g, rhs.fiberPer100g)
+        }
+
+        private func refreshOpenFoodFactsAuthStatus() async {
+            let username = settingsManager.settings.openFoodFactsUsername
+            let password = settingsManager.settings.openFoodFactsPassword
+            let hasCredentials = !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !password.isEmpty
+
+            await client.setCredentials(username: username, password: password)
+
+            guard hasCredentials else {
+                await MainActor.run {
+                    self.isOpenFoodFactsLoggedIn = false
+                    self.isUploadingCorrection = false
+                    self.correctionUploadMessage = nil
+                    self.correctionUploadSucceeded = false
+                }
+                return
+            }
+
+            let alreadyAuthenticated = await client.hasValidSessionCookie()
+            if alreadyAuthenticated {
+                await MainActor.run { self.isOpenFoodFactsLoggedIn = true }
+                return
+            }
+
+            let didLogin = (try? await client.login()) ?? false
+            await MainActor.run {
+                self.isOpenFoodFactsLoggedIn = didLogin
             }
         }
     }
