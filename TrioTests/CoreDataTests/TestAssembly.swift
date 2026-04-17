@@ -13,7 +13,7 @@ class TestAssembly: Assembly {
     func assemble(container: Container) {
         // Override PumpHistoryStorage registration for tests
         container.register(PumpHistoryStorage.self) { r in
-            BasePumpHistoryStorage(resolver: r, context: self.testContext)
+            BasePumpHistoryStorage(resolver: r, contextProvider: { self.testContext })
         }.inObjectScope(.container)
 
         // Override DeterminationStorage registration for tests
