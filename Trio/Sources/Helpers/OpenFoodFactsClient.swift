@@ -15,7 +15,7 @@ extension BarcodeScanner {
             await Self.authStore.hasValidSessionCookie()
         }
 
-        @discardableResult  func login() async throws -> Bool {
+        @discardableResult func login() async throws -> Bool {
             guard let credentials = await Self.authStore.credentialsIfAvailable else {
                 return false
             }

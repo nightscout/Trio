@@ -186,102 +186,119 @@ extension BolusCalculatorConfig {
                     }
                 )
 
-                SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.barcodeScannerEnabled,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Enable Barcode Scanner")
+                Section(header: Text("Barcode Scanner")) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Toggle(isOn: $state.barcodeScannerEnabled) {
+                            Text(String(localized: "Enable Barcode Scanner"))
                         }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: String(localized: "Enable Barcode Scanner"),
-                    miniHint: String(
-                        localized: "Scan QR codes to enter carbs."
-                    ),
-                    verboseHint: VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: OFF").bold()
-                        Text(
-                            "Enables barcode scanning to import nutritional data directly in the app."
-                        )
-                        Text(
-                            "To add more than one food item, scan again. You can edit or remove each item in the list view."
-                        )
-                        Text(
-                            "Nutritional data may be slightly inaccurate if manufacturers change product recipes over time. Please verify values on first scan. If you find incorrect data, edit it and submit the correction to the Open Food Facts database in their app to help improve data quality for everyone."
-                        )
-                    }
-                )
 
-                SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.barcodeScannerOnlyCarbs,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Only Allow Carbs from Barcode Scanner")
+                        HStack(alignment: .center) {
+                            Text(String(localized: "Scan QR codes to enter carbs."))
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Button {
+                                hintLabel = String(localized: "Enable Barcode Scanner")
+                                selectedVerboseHint = AnyView(
+                                    VStack(alignment: .leading, spacing: 10) {
+                                        Text("Default: OFF").bold()
+                                        Text(
+                                            "Enables barcode scanning to import nutritional data directly in the app."
+                                        )
+                                        Text(
+                                            "To add more than one food item, scan again. You can edit or remove each item in the list view."
+                                        )
+                                        Text(
+                                            "Nutritional data may be slightly inaccurate if manufacturers change product recipes over time. Please verify values on first scan. If you find incorrect data, edit it and submit the correction to the Open Food Facts database in their app to help improve data quality for everyone."
+                                        )
+                                    }
+                                )
+                                shouldDisplayHint = true
+                            } label: {
+                                Image(systemName: "questionmark.circle")
+                            }
+                            .buttonStyle(BorderlessButtonStyle())
                         }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: String(localized: "Only Allow Carbs from Barcode Scanner"),
-                    miniHint: String(
-                        localized: "Do not allow logging of FTUs."
-                    ),
-                    verboseHint: VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: OFF").bold()
-                        Text(
-                            "For users who only want to log carbs via the barcode scanner and not FTUs (fats, proteins, and fibers)."
-                        )
-                        Text(
-                            "If \"Only Allow Carbs from Barcode Scanner\" is enabled, logging FTUs (fats, proteins, and fibers) is disabled."
-                        )
+
+                        if state.barcodeScannerEnabled {
+                            Divider()
+
+                            Toggle(isOn: $state.barcodeScannerOnlyCarbs) {
+                                Text(String(localized: "Only Allow Carbs from Barcode Scanner"))
+                            }
+
+                            HStack(alignment: .center) {
+                                Text(String(localized: "Do not allow logging of FTUs."))
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                                Button {
+                                    hintLabel = String(localized: "Only Allow Carbs from Barcode Scanner")
+                                    selectedVerboseHint = AnyView(
+                                        VStack(alignment: .leading, spacing: 10) {
+                                            Text("Default: OFF").bold()
+                                            Text(
+                                                "For users who only want to log carbs via the barcode scanner and not FTUs (fats, proteins, and fibers)."
+                                            )
+                                            Text(
+                                                "If \"Only Allow Carbs from Barcode Scanner\" is enabled, logging FTUs (fats, proteins, and fibers) is disabled."
+                                            )
+                                        }
+                                    )
+                                    shouldDisplayHint = true
+                                } label: {
+                                    Image(systemName: "questionmark.circle")
+                                }
+                                .buttonStyle(BorderlessButtonStyle())
+                            }
+
+                            Divider()
+
+                            Text(String(localized: "OpenFoodFacts Login"))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            TextField("Username", text: $state.openFoodFactsUsername)
+                                .disableAutocorrection(true)
+                                .autocapitalization(.none)
+                                .textInputAutocapitalization(.never)
+
+                            Divider()
+
+                            SecureField("Password", text: $state.openFoodFactsPassword)
+                                .disableAutocorrection(true)
+                                .autocapitalization(.none)
+                                .textInputAutocapitalization(.never)
+
+                            Button {
+                                state.loginToOpenFoodFacts()
+                            } label: {
+                                Label(
+                                    state.isOpenFoodFactsLoginSuccessful ? "Login successful" : "Login",
+                                    systemImage: state.isOpenFoodFactsLoginSuccessful
+                                        ? "checkmark.circle"
+                                        : "person.crop.circle.badge.checkmark"
+                                )
+                                .frame(maxWidth: .infinity, alignment: .center)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(state.isOpenFoodFactsLoginSuccessful ? .green : .purple)
+                            .disabled(state.isOpenFoodFactsLoginInProgress)
+                            .padding(.top, 5)
+
+                            if state.isOpenFoodFactsLoginInProgress {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                            }
+
+                            if let error = state.openFoodFactsLoginError, !error.isEmpty {
+                                Text(error)
+                                    .font(.footnote)
+                                    .foregroundStyle(.red)
+                            }
+                        }
                     }
-                )
-
-                Section(header: Text("OpenFoodFacts Login")) {
-                    TextField("Username", text: $state.openFoodFactsUsername)
-                        .disableAutocorrection(true)
-                        .autocapitalization(.none)
-                        .textInputAutocapitalization(.never)
-
-                    SecureField("Password", text: $state.openFoodFactsPassword)
-                        .disableAutocorrection(true)
-                        .autocapitalization(.none)
-                        .textInputAutocapitalization(.never)
-
-                    Button {
-                        state.loginToOpenFoodFacts()
-                    } label: {
-                        Label(
-                            state.isOpenFoodFactsLoginSuccessful ? "Login successful" : "Login",
-                            systemImage: state.isOpenFoodFactsLoginSuccessful
-                                ? "checkmark.circle"
-                                : "person.crop.circle.badge.checkmark"
-                        )
-                        .frame(maxWidth: .infinity, alignment: .center)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(state.isOpenFoodFactsLoginSuccessful ? .green : .purple)
-                    .disabled(state.isOpenFoodFactsLoginInProgress)
-                    .padding(.top, 5)
-
-                    if state.isOpenFoodFactsLoginInProgress {
-                        ProgressView()
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    }
-
-                    if let error = state.openFoodFactsLoginError, !error.isEmpty {
-                        Text(error)
-                            .font(.footnote)
-                            .foregroundStyle(.red)
-                    }
+                    .padding(.vertical, 4)
                 }
                 .listRowBackground(Color.chart)
             }
