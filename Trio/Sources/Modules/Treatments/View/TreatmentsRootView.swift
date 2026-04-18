@@ -667,7 +667,10 @@ extension Treatments {
             } message: {
                 Text("\(state.determinationFailureMessage)")
             }
-            .sheet(isPresented: $showBarcodeScanner) {
+            .sheet(isPresented: $showBarcodeScanner, onDismiss: {
+                scannerState.cancelEditing()
+                scannerState.isEditingFromList = false
+            }) {
                 NavigationStack {
                     BarcodeScanner.RootView(
                         resolver: resolver,

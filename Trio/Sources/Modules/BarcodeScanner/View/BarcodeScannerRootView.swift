@@ -244,7 +244,8 @@ extension BarcodeScanner {
                         )
                         .padding(.horizontal)
                         .padding(.top, 8)
-                        .padding(.bottom, 120)
+                        .padding(.bottom, 8)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                         // Action buttons at bottom
                         VStack {
@@ -287,23 +288,24 @@ extension BarcodeScanner {
 
         private var cameraActionButtons: some View {
             HStack(spacing: 12) {
-                Button {
-                    if state.isScanning {
-                        state.isScanning = false
-                    } else {
-                        state.scanAgain(resetResults: false)
-                    }
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: state.isScanning ? "pause.fill" : "barcode.viewfinder")
-                        Text(state.isScanning ? "Pause" : "Scan")
-                    }
-                    .font(.subheadline.weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(state.isScanning ? .orange : .insulin)
+                // Pause/Scan button intentionally disabled.
+                // Button {
+                //     if state.isScanning {
+                //         state.isScanning = false
+                //     } else {
+                //         state.scanAgain(resetResults: false)
+                //     }
+                // } label: {
+                //     HStack(spacing: 6) {
+                //         Image(systemName: state.isScanning ? "pause.fill" : "barcode.viewfinder")
+                //         Text(state.isScanning ? "Pause" : "Scan")
+                //     }
+                //     .font(.subheadline.weight(.semibold))
+                //     .frame(maxWidth: .infinity)
+                //     .padding(.vertical, 12)
+                // }
+                // .buttonStyle(.borderedProminent)
+                // .tint(state.isScanning ? .orange : .insulin)
 
                 if !state.scannedProducts.isEmpty {
                     // "Calculator" button removed as per request for live updates
@@ -457,7 +459,7 @@ extension BarcodeScanner {
                 Image(systemName: "barcode.viewfinder")
                     .font(.system(size: 60))
                     .foregroundStyle(.secondary)
-                Text(String(localized: "No items scanned yet"))
+                Text(String(localized: "No items yet"))
                     .font(.title3.weight(.medium))
                 Text(String(localized: "Scan barcodes or search to add items."))
                     .font(.subheadline)
@@ -498,7 +500,7 @@ extension BarcodeScanner {
 
             return VStack(alignment: .leading, spacing: 8) {
                 Text(
-                    "\(state.scannedProducts.count) Item\(state.scannedProducts.count == 1 ? "" : "s") Scanned"
+                    "\(state.scannedProducts.count) Item\(state.scannedProducts.count == 1 ? "" : "s")"
                 )
                 .font(.title2)
                 .bold()

@@ -8,6 +8,7 @@ extension BarcodeScanner {
         @FocusState private var focusedField: RootView.NutritionField?
         @Binding var isEditingFromList: Bool
         var onDismissList: () -> Void
+        @State private var keyboardIsVisible = false
 
         @Environment(AppState.self) var appState
         @Environment(\.colorScheme) var colorScheme
@@ -125,95 +126,113 @@ extension BarcodeScanner {
                 .scrollDismissesKeyboard(.interactively)
                 .scrollIndicators(.hidden)
 
-                // Action buttons at bottom
-                VStack(spacing: 12) {
-                    if state.hasNutrimentsDivergedFromOriginal,
-                       state.hasOpenFoodFactsCredentialsConfigured
-                    {
-                        if state.isOpenFoodFactsLoggedIn {
-                            Button {
-                                dismissKeyboard()
-                                state.uploadNutritionCorrectionToOpenFoodFacts()
-                            } label: {
-                                HStack(spacing: 8) {
-                                    if state.isUploadingCorrection {
-                                        ProgressView()
-                                            .controlSize(.small)
-                                            .tint(.white)
-                                    } else {
-                                        Image(systemName: "square.and.arrow.up")
+                if !keyboardIsVisible {
+                    // Action buttons at bottom
+                    VStack(spacing: 12) {
+                        if state.hasNutrimentsDivergedFromOriginal,
+                           state.hasOpenFoodFactsCredentialsConfigured
+                        {
+                            if state.isOpenFoodFactsLoggedIn {
+                                Menu {
+                                    Button {
+                                        dismissKeyboard()
+                                        state.uploadNutritionCorrectionToOpenFoodFacts()
+                                    } label: {
+                                        Text(String(localized: "tap to confirm")) // Extra confirmation step to prevent accidental uploads when editing
                                     }
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        if state.isUploadingCorrection {
+                                            ProgressView()
+                                                .controlSize(.small)
+                                        } else {
+                                            Image(systemName: "square.and.arrow.up")
+                                        }
 
-                                    Text(String(localized: "Update OpenFoodFactsDB"))
+                                        Text(String(localized: "Update OpenFoodFactsDB"))
+                                    }
+                                    .font(.subheadline.weight(.semibold))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
                                 }
-                                .font(.subheadline.weight(.semibold))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
+                                .buttonStyle(.bordered)
+                                .tint(Color(red: 128.0 / 255.0, green: 140.0 / 255.0, blue: 235.0 / 255.0))
+                                .disabled(!state.canUploadCorrectionToOpenFoodFacts)
                             }
-                            .buttonStyle(.borderedProminent)
-                            .tint(.insulin)
-                            .disabled(!state.canUploadCorrectionToOpenFoodFacts)
+
+                            if let message = state.correctionUploadMessage, !message.isEmpty {
+                                Text(message)
+                                    .font(.footnote)
+                                    .foregroundStyle(state.correctionUploadSucceeded ? .green : .red)
+                            }
                         }
 
-                        if let message = state.correctionUploadMessage, !message.isEmpty {
-                            Text(message)
-                                .font(.footnote)
-                                .foregroundStyle(state.correctionUploadSucceeded ? .green : .red)
-                        }
-                    }
+                        // Add & Continue button
+                        Button {
+                            dismissKeyboard()
+                            if state.currentScannedItem != nil {
+                                state.addProductToList()
+                            }
 
-                    // Add & Continue button
-                    Button {
-                        dismissKeyboard()
-                        if state.currentScannedItem != nil {
-                            state.addProductToList()
-                        }
-
-                        if isEditingFromList {
-                            isEditingFromList = false
-                            onDismissList()
-                        }
-                    } label: {
-                        Label(
-                            state.isEditingFromList
-                                ? String(localized: "Update") : String(localized: "Add to List"),
-                            systemImage: "plus.circle.fill"
-                        )
-                        .font(.subheadline.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.insulin)
-
-                    Button {
-                        dismissKeyboard()
-                        state.cancelEditing()
-
-                        if isEditingFromList {
-                            isEditingFromList = false
-                            onDismissList()
-                        }
-                    } label: {
-                        Text("Cancel")
-                            .font(.subheadline.weight(.medium))
+                            if isEditingFromList {
+                                isEditingFromList = false
+                                onDismissList()
+                            }
+                        } label: {
+                            Label(
+                                state.isEditingFromList
+                                    ? String(localized: "Update") : String(localized: "Add to List"),
+                                systemImage: "plus.circle.fill"
+                            )
+                            .font(.subheadline.weight(.semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.insulin)
+
+                        Button {
+                            dismissKeyboard()
+                            state.cancelEditing()
+
+                            if isEditingFromList {
+                                isEditingFromList = false
+                                onDismissList()
+                            }
+                        } label: {
+                            Text("Cancel")
+                                .font(.subheadline.weight(.medium))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                        }
+                        .buttonStyle(.bordered)
                     }
-                    .buttonStyle(.bordered)
+                    .padding(.horizontal)
+                    .padding(.bottom, 16)
+                    .padding(.top, 8)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                .padding(.horizontal)
-                .padding(.bottom, 16)
-                .padding(.top, 8)
             }
             .background(appState.trioBackgroundColor(for: colorScheme).ignoresSafeArea())
+            .animation(.easeInOut(duration: 0.2), value: keyboardIsVisible)
+            .onReceive(Foundation.NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+                keyboardIsVisible = true
+                state.isKeyboardVisible = true
+                state.isScanning = false
+            }
+            .onReceive(Foundation.NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+                keyboardIsVisible = false
+                state.isKeyboardVisible = false
+            }
             .onChange(of: focusedField) { _, newValue in
                 // Pause scanner and hide scanner view when numpad is opened
                 if newValue != nil {
                     state.isScanning = false
                     state.isKeyboardVisible = true
+                    keyboardIsVisible = true
                 } else {
                     state.isKeyboardVisible = false
+                    keyboardIsVisible = false
                 }
             }
         }
