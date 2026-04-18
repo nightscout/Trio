@@ -50,6 +50,18 @@ extension BolusCalculatorConfig {
             }
         }
 
+        func disconnectAndRemoveOpenFoodFacts() {
+            openFoodFactsUsername = ""
+            openFoodFactsPassword = ""
+            isOpenFoodFactsLoginSuccessful = false
+            isOpenFoodFactsLoginInProgress = false
+            openFoodFactsLoginError = nil
+
+            Task { @MainActor in
+                await openFoodFactsClient.setCredentials(username: "", password: "")
+            }
+        }
+
         override func subscribe() {
             units = settingsManager.settings.units
 

@@ -209,6 +209,9 @@ extension BolusCalculatorConfig {
                                             "To add more than one food item, scan again. You can edit or remove each item in the list view."
                                         )
                                         Text(
+                                            "Optional: Add your OpenFoodFacts login in the sub-options below to reduce rate limits for anonymous requests and to upload corrections for wrong nutritional values directly to the OpenFoodFacts database."
+                                        )
+                                        Text(
                                             "Nutritional data may be slightly inaccurate if manufacturers change product recipes over time. Please verify values on first scan. If you find incorrect data, edit it and submit the correction to the Open Food Facts database in their app to help improve data quality for everyone."
                                         )
                                     }
@@ -224,7 +227,7 @@ extension BolusCalculatorConfig {
                             Divider()
 
                             Toggle(isOn: $state.barcodeScannerOnlyCarbs) {
-                                Text(String(localized: "Only Allow Carbs from Barcode Scanner"))
+                                Text(String(localized: "Only Allow Carbs"))
                             }
 
                             HStack(alignment: .center) {
@@ -254,37 +257,72 @@ extension BolusCalculatorConfig {
 
                             Divider()
 
-                            Text(String(localized: "OpenFoodFacts Login"))
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-
-                            TextField("Username", text: $state.openFoodFactsUsername)
-                                .disableAutocorrection(true)
-                                .autocapitalization(.none)
-                                .textInputAutocapitalization(.never)
-
-                            Divider()
-
-                            SecureField("Password", text: $state.openFoodFactsPassword)
-                                .disableAutocorrection(true)
-                                .autocapitalization(.none)
-                                .textInputAutocapitalization(.never)
-
-                            Button {
-                                state.loginToOpenFoodFacts()
-                            } label: {
-                                Label(
-                                    state.isOpenFoodFactsLoginSuccessful ? "Login successful" : "Login",
-                                    systemImage: state.isOpenFoodFactsLoginSuccessful
-                                        ? "checkmark.circle"
-                                        : "person.crop.circle.badge.checkmark"
-                                )
-                                .frame(maxWidth: .infinity, alignment: .center)
+                            HStack(alignment: .center) {
+                                Text(String(localized: "OpenFoodFacts Login"))
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                                Button {
+                                    hintLabel = String(localized: "OpenFoodFacts Login")
+                                    selectedVerboseHint = AnyView(
+                                        VStack(alignment: .leading, spacing: 10) {
+                                            Text(
+                                                "Logging in to OpenFoodFacts helps avoid stricter rate limits that apply to anonymous users."
+                                            )
+                                            Text(
+                                                "It also enables you to submit corrected nutrition values from edited scanned items back to the OpenFoodFacts database, helping improve data quality for everyone."
+                                            )
+                                        }
+                                    )
+                                    shouldDisplayHint = true
+                                } label: {
+                                    Image(systemName: "questionmark.circle")
+                                }
+                                .buttonStyle(BorderlessButtonStyle())
                             }
-                            .buttonStyle(.bordered)
-                            .tint(state.isOpenFoodFactsLoginSuccessful ? .green : .purple)
-                            .disabled(state.isOpenFoodFactsLoginInProgress)
-                            .padding(.top, 5)
+
+                            if !state.isOpenFoodFactsLoginSuccessful {
+                                TextField("Username", text: $state.openFoodFactsUsername)
+                                    .disableAutocorrection(true)
+                                    .autocapitalization(.none)
+                                    .textInputAutocapitalization(.never)
+
+                                Divider()
+                                    .padding(.vertical, 0.5)
+
+                                SecureField("Password", text: $state.openFoodFactsPassword)
+                                    .disableAutocorrection(true)
+                                    .autocapitalization(.none)
+                                    .textInputAutocapitalization(.never)
+
+                                Divider()
+                                    .padding(.vertical, 0.5)
+                            }
+
+                            if state.isOpenFoodFactsLoginSuccessful {
+                                Button(role: .destructive) {
+                                    state.disconnectAndRemoveOpenFoodFacts()
+                                } label: {
+                                    Text("Disconnect and Remove")
+                                        .font(.title3)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .buttonStyle(.bordered)
+                                .tint(Color.loopRed)
+                                .disabled(state.isOpenFoodFactsLoginInProgress)
+                                .padding(.top, 5)
+                            } else {
+                                Button {
+                                    state.loginToOpenFoodFacts()
+                                } label: {
+                                    Text("Login")
+                                        .font(.title3)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .buttonStyle(.bordered)
+                                .disabled(state.isOpenFoodFactsLoginInProgress)
+                                .padding(.top, 5)
+                            }
 
                             if state.isOpenFoodFactsLoginInProgress {
                                 ProgressView()
