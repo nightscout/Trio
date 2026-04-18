@@ -249,6 +249,8 @@ extension GlucoseNotificationSettings {
                         }
                     )
                 }
+
+                criticalAlarmSection
             }
             .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
@@ -383,6 +385,145 @@ extension GlucoseNotificationSettings {
                     }.padding(.top)
                 }.padding(.bottom)
             }.listRowBackground(Color.chart)
+        }
+
+        var criticalAlarmSection: some View {
+            Section {
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.useAlarmSoundForPumpAlerts,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = String(
+                                localized: "Alarm Sound for Pump Errors",
+                                comment: "Critical alarm setting hint label"
+                            )
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: String(
+                        localized: "Alarm Sound for Pump Errors",
+                        comment: "Critical alarm toggle label"
+                    ),
+                    miniHint: String(
+                        localized: "Play a loud alarm for critical pump faults and prolonged loop failures.",
+                        comment: "Critical alarm toggle mini hint"
+                    ),
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text(
+                            "When enabled, pump faults (such as occlusions or pod failures) and prolonged loop failures will trigger a loud alarm sound that plays through the speaker even when your phone is on silent."
+                        )
+                        Text(
+                            "The alarm repeats until you snooze or acknowledge it. Acknowledging dismisses the alarm until the next new fault occurs."
+                        )
+                    },
+                    headerText: String(
+                        localized: "Critical Alarm Sound",
+                        comment: "Critical alarm section header"
+                    )
+                )
+
+                if state.useAlarmSoundForPumpAlerts {
+                    SettingInputSection(
+                        decimalValue: $decimalPlaceholder,
+                        booleanValue: $state.alarmVolumeOverride,
+                        shouldDisplayHint: $shouldDisplayHint,
+                        selectedVerboseHint: Binding(
+                            get: { selectedVerboseHint },
+                            set: {
+                                selectedVerboseHint = $0.map { AnyView($0) }
+                                hintLabel = String(
+                                    localized: "Override Volume",
+                                    comment: "Volume override setting hint label"
+                                )
+                            }
+                        ),
+                        units: state.units,
+                        type: .boolean,
+                        label: String(
+                            localized: "Override Volume",
+                            comment: "Volume override toggle label"
+                        ),
+                        miniHint: String(
+                            localized: "Temporarily raise system volume when alarm plays.",
+                            comment: "Volume override toggle mini hint"
+                        ),
+                        verboseHint:
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Default: OFF").bold()
+                            Text(
+                                "When enabled, the system volume will be temporarily raised to the level set below when the alarm sounds. The original volume is restored when the alarm is dismissed."
+                            )
+                        }
+                    )
+
+                    if state.alarmVolumeOverride {
+                        VStack {
+                            HStack {
+                                Text("Alarm Volume")
+                                Spacer()
+                                Text("\(Int(truncating: (state.alarmVolume * 100) as NSNumber))%")
+                                    .foregroundColor(.secondary)
+                            }
+                            Slider(
+                                value: Binding(
+                                    get: { Double(truncating: state.alarmVolume as NSNumber) },
+                                    set: { state.alarmVolume = Decimal($0) }
+                                ),
+                                in: 0.1 ... 1.0,
+                                step: 0.1
+                            )
+                        }
+                        .padding(.vertical, 4)
+                    }
+
+                    HStack {
+                        Text(
+                            String(
+                                localized: "Loop Failure Delay",
+                                comment: "Label for loop failure alarm delay setting"
+                            )
+                        )
+                        Spacer()
+                        Stepper(
+                            value: Binding(
+                                get: { Double(truncating: state.loopFailureAlarmDelay as NSNumber) },
+                                set: { state.loopFailureAlarmDelay = Decimal($0) }
+                            ),
+                            in: 10 ... 120,
+                            step: 5
+                        ) {
+                            Text(
+                                "\(Int(truncating: state.loopFailureAlarmDelay as NSNumber)) min"
+                            )
+                            .foregroundColor(.secondary)
+                        }
+                    }
+
+                    Button {
+                        AlarmSound.shared.playTest(
+                            overrideVolume: state.alarmVolumeOverride,
+                            volume: Float(truncating: state.alarmVolume as NSNumber)
+                        )
+                    } label: {
+                        HStack {
+                            Image(systemName: "speaker.wave.3.fill")
+                            Text(
+                                String(
+                                    localized: "Test Alarm Sound",
+                                    comment: "Button to play a test of the alarm sound"
+                                )
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

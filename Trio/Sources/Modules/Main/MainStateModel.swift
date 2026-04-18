@@ -93,6 +93,12 @@ extension Main {
                 setupButton(message: message, view: view)
                 view.buttonTapHandler = { _ in
                     SwiftMessages.hide()
+                    // Stop alarm sound if playing (user is engaging with the pump issue)
+                    Task { @MainActor in
+                        if AlarmSound.shared.isPlaying {
+                            AlarmSound.shared.stop()
+                        }
+                    }
                     self.setupPumpConfig()
                 }
             default: // break

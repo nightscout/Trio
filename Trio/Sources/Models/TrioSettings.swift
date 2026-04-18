@@ -38,6 +38,10 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var addSourceInfoToGlucoseNotifications: Bool = false
     var lowGlucose: Decimal = 72
     var highGlucose: Decimal = 270
+    var useAlarmSoundForPumpAlerts: Bool = false
+    var alarmVolumeOverride: Bool = false
+    var alarmVolume: Decimal = 0.8
+    var loopFailureAlarmDelay: Decimal = 20 // minutes
     var carbsRequiredThreshold: Decimal = 10
     var showCarbsRequiredBadge: Bool = true
     var useFPUconversion: Bool = false
@@ -248,6 +252,22 @@ extension TrioSettings: Decodable {
 
         if let highGlucose = try? container.decode(Decimal.self, forKey: .highGlucose) {
             settings.highGlucose = highGlucose
+        }
+
+        if let useAlarmSoundForPumpAlerts = try? container.decode(Bool.self, forKey: .useAlarmSoundForPumpAlerts) {
+            settings.useAlarmSoundForPumpAlerts = useAlarmSoundForPumpAlerts
+        }
+
+        if let alarmVolumeOverride = try? container.decode(Bool.self, forKey: .alarmVolumeOverride) {
+            settings.alarmVolumeOverride = alarmVolumeOverride
+        }
+
+        if let alarmVolume = try? container.decode(Decimal.self, forKey: .alarmVolume) {
+            settings.alarmVolume = alarmVolume
+        }
+
+        if let loopFailureAlarmDelay = try? container.decode(Decimal.self, forKey: .loopFailureAlarmDelay) {
+            settings.loopFailureAlarmDelay = loopFailureAlarmDelay
         }
 
         if let carbsRequiredThreshold = try? container.decode(Decimal.self, forKey: .carbsRequiredThreshold) {

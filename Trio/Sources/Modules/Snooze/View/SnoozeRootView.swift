@@ -6,6 +6,7 @@ extension Snooze {
     struct RootView: BaseView {
         let resolver: Resolver
         @State var state = StateModel()
+        @ObservedObject private var alarmSound = AlarmSound.shared
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
@@ -96,12 +97,42 @@ extension Snooze {
             }
         }
 
+        private var acknowledgeButton: some View {
+            Button(role: .destructive) {
+                AlarmSound.shared.acknowledge()
+                state.hideModal()
+            } label: {
+                Label(
+                    String(localized: "Acknowledge Alarm", comment: "Acknowledge and dismiss the alarm"),
+                    systemImage: "bell.slash.fill"
+                )
+                .frame(maxWidth: .infinity)
+                .padding()
+            }
+        }
+
         var body: some View {
             Form {
                 Section {
                     Text(snoozeDescription).lineLimit(nil)
                     snoozePicker
                     snoozeButton
+                }
+
+                if alarmSound.isAlarmActive {
+                    Section {
+                        Text(
+                            String(
+                                localized: "An alarm is active. Acknowledge to dismiss until the next fault occurs.",
+                                comment: "Alarm acknowledge description"
+                            )
+                        )
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                        acknowledgeButton
+                    } header: {
+                        Text("Active Alarm")
+                    }
                 }
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))

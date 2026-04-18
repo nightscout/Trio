@@ -64,6 +64,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var apsManager: APSManager!
     @Injected() private var router: Router!
+    @Injected() private var fetchGlucoseManager: FetchGlucoseManager!
 
     @Injected(as: FetchGlucoseManager.self) private var sourceInfoProvider: SourceInfoProvider!
 
@@ -116,9 +117,11 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             guard let self else { return }
 
             let glucoseCategory = NotificationCategoryFactory.createGlucoseCategory()
+            let pumpAlarmCategory = NotificationCategoryFactory.createPumpAlarmCategory()
 
             var categories = existingCategories
             categories.update(with: glucoseCategory)
+            categories.update(with: pumpAlarmCategory)
             // UNUserNotificationCenter methods should be called on main thread
             Task { @MainActor [weak self] in
                 guard let self else { return }
@@ -131,6 +134,10 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         apsManager.lastLoopDateSubject
             .sink { [weak self] date in
                 self?.scheduleMissingLoopNotifiactions(date: date)
+                // Loop completed successfully — reset loop failure acknowledge state
+                DispatchQueue.main.async {
+                    AlarmSound.shared.loopDidResume()
+                }
             }
             .store(in: &lifetime)
     }
@@ -146,6 +153,14 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     }
 
     private func registerSubscribers() {
+        // Fires every minute from the glucose fetch timer, regardless of new glucose.
+        fetchGlucoseManager.timerHeartbeat
+            .receive(on: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                self?.checkLoopFailureAlarm()
+            }
+            .store(in: &subscriptions)
+
         glucoseStorage.updatePublisher
             .receive(on: DispatchQueue.global(qos: .background))
             .sink { [weak self] _ in
@@ -155,6 +170,74 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 }
             }
             .store(in: &subscriptions)
+    }
+
+    /// Check if the loop has been failing long enough to trigger an alarm sound.
+    private func checkLoopFailureAlarm() {
+        let settings = settingsManager.settings
+        guard settings.useAlarmSoundForPumpAlerts else { return }
+
+        let delayMinutes = Double(truncating: settings.loopFailureAlarmDelay as NSNumber)
+        let lastLoopDate = apsManager.lastLoopDate
+        let minutesSinceLastLoop = Date().timeIntervalSince(lastLoopDate) / 60
+        let staleThresholdMinutes: Double = 60
+
+        // Skip alarm when the user has intentionally broken the loop.
+        if !settings.closedLoop {
+            debug(.service, "[LoopFailureAlarm] skip — open loop mode")
+            return
+        }
+        if apsManager.isManualTempBasal {
+            debug(.service, "[LoopFailureAlarm] skip — manual temp basal active")
+            return
+        }
+        if apsManager.isSuspended {
+            debug(.service, "[LoopFailureAlarm] skip — pump suspended")
+            return
+        }
+
+        guard minutesSinceLastLoop >= delayMinutes else { return }
+
+        // If it's been more than 60 minutes, the loop was likely never active or the app was dormant.
+        guard minutesSinceLastLoop <= staleThresholdMinutes else {
+            debug(
+                .service,
+                "[LoopFailureAlarm] skip — minutesSinceLastLoop=\(String(format: "%.0f", minutesSinceLastLoop)) " +
+                    "exceeds stale threshold (\(Int(staleThresholdMinutes)) min)"
+            )
+            return
+        }
+
+        debug(
+            .service,
+            "[LoopFailureAlarm] firing — minutesSinceLastLoop=\(String(format: "%.0f", minutesSinceLastLoop)), " +
+                "threshold=\(String(format: "%.0f", delayMinutes)) min"
+        )
+
+        DispatchQueue.main.async {
+            AlarmSound.shared.play(
+                reason: .loopFailure,
+                overrideVolume: settings.alarmVolumeOverride,
+                volume: Float(truncating: settings.alarmVolume as NSNumber)
+            )
+        }
+
+        // Send a notification with snooze/acknowledge actions so the user can dismiss from the lock screen
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "Loop Failure Alarm", comment: "Loop failure alarm notification title")
+        content.body = String(
+            format: String(localized: "Last loop was more than %d min ago", comment: "Last loop was more than %d min ago"),
+            Int(delayMinutes)
+        )
+        content.sound = .default
+        content.categoryIdentifier = NotificationCategoryIdentifier.trioPumpAlarm.rawValue
+        addRequest(
+            identifier: .noLoopSecondNotification,
+            content: content,
+            deleteOld: true,
+            messageType: .error,
+            messageSubtype: .pump
+        )
     }
 
     private func addAppBadge(glucose: Int?) {
@@ -477,6 +560,11 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         // removeGlucoseNotifications() is safe to call here since we're @MainActor
         removeGlucoseNotifications()
 
+        // Also snooze the alarm sound if it's playing
+        if AlarmSound.shared.isPlaying {
+            AlarmSound.shared.snooze(for: duration)
+        }
+
         // Notify observers that snooze was applied
         broadcaster.notify(SnoozeObserver.self, on: .main) { (observer: SnoozeObserver) in
             observer.snoozeDidChange(untilDate)
@@ -617,8 +705,10 @@ extension BaseUserNotificationsManager: pumpNotificationObserver {
         let content = UNMutableNotificationContent()
         let alertUp = alert.alertIdentifier.uppercased()
         let typeMessage: MessageType
-        if alertUp.contains("FAULT") || alertUp.contains("ERROR") {
+        let isFaultOrError = alertUp.contains("FAULT") || alertUp.contains("ERROR")
+        if isFaultOrError {
             content.userInfo[NotificationAction.key] = NotificationAction.pumpConfig.rawValue
+            content.categoryIdentifier = NotificationCategoryIdentifier.trioPumpAlarm.rawValue
             typeMessage = .error
         } else {
             typeMessage = .warning
@@ -636,6 +726,18 @@ extension BaseUserNotificationsManager: pumpNotificationObserver {
             messageSubtype: .pump,
             action: .pumpConfig
         )
+
+        // Play alarm sound for critical pump faults/errors
+        if isFaultOrError, settingsManager.settings.useAlarmSoundForPumpAlerts {
+            let settings = settingsManager.settings
+            DispatchQueue.main.async {
+                AlarmSound.shared.play(
+                    reason: .pumpFault(alertIdentifier: alert.alertIdentifier),
+                    overrideVolume: settings.alarmVolumeOverride,
+                    volume: Float(truncating: settings.alarmVolume as NSNumber)
+                )
+            }
+        }
     }
 
     func pumpRemoveNotification() {
@@ -686,11 +788,17 @@ extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
     ) {
         defer { completionHandler() }
 
-        // Handle quick snooze actions (from notification action buttons)
+        // Handle quick snooze/acknowledge actions (from notification action buttons)
         if let quickAction = NotificationResponseAction(rawValue: response.actionIdentifier) {
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                await self.applySnooze(for: quickAction.duration)
+            if quickAction == .acknowledge {
+                DispatchQueue.main.async {
+                    AlarmSound.shared.acknowledge()
+                }
+            } else {
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    await self.applySnooze(for: quickAction.duration)
+                }
             }
             return
         }

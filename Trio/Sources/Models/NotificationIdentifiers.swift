@@ -3,6 +3,7 @@ import UserNotifications
 
 enum NotificationCategoryIdentifier: String {
     case trioAlert = "Trio.alert"
+    case trioPumpAlarm = "Trio.pumpAlarm"
 }
 
 enum NotificationResponseAction: String, CaseIterable {
@@ -10,6 +11,11 @@ enum NotificationResponseAction: String, CaseIterable {
     case snooze1hr = "Trio.snooze1hr"
     case snooze3hr = "Trio.snooze3hr"
     case snooze6hr = "Trio.snooze6hr"
+    case acknowledge = "Trio.acknowledge"
+
+    var isSnooze: Bool {
+        self != .acknowledge
+    }
 
     var duration: TimeInterval {
         TimeInterval(minutes) * 60
@@ -25,6 +31,8 @@ enum NotificationResponseAction: String, CaseIterable {
             return 180
         case .snooze6hr:
             return 360
+        case .acknowledge:
+            return 0
         }
     }
 
@@ -38,6 +46,8 @@ enum NotificationResponseAction: String, CaseIterable {
             return String(localized: "3 hours", comment: "Snooze glucose alerts for 3 hours")
         case .snooze6hr:
             return String(localized: "6 hours", comment: "Snooze glucose alerts for 6 hours")
+        case .acknowledge:
+            return String(localized: "Acknowledge", comment: "Acknowledge and dismiss alarm until next fault")
         }
     }
 }
@@ -46,7 +56,7 @@ enum NotificationResponseAction: String, CaseIterable {
 
 enum NotificationCategoryFactory {
     static func createGlucoseCategory() -> UNNotificationCategory {
-        let snoozeActions = NotificationResponseAction.allCases.map { action in
+        let snoozeActions = NotificationResponseAction.allCases.filter(\.isSnooze).map { action in
             UNNotificationAction(
                 identifier: action.rawValue,
                 title: action.localizedTitle,
@@ -57,6 +67,23 @@ enum NotificationCategoryFactory {
         return UNNotificationCategory(
             identifier: NotificationCategoryIdentifier.trioAlert.rawValue,
             actions: snoozeActions,
+            intentIdentifiers: [],
+            options: []
+        )
+    }
+
+    static func createPumpAlarmCategory() -> UNNotificationCategory {
+        let actions = NotificationResponseAction.allCases.map { action in
+            UNNotificationAction(
+                identifier: action.rawValue,
+                title: action.localizedTitle,
+                options: []
+            )
+        }
+
+        return UNNotificationCategory(
+            identifier: NotificationCategoryIdentifier.trioPumpAlarm.rawValue,
+            actions: actions,
             intentIdentifiers: [],
             options: []
         )
