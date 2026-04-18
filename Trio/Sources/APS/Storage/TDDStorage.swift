@@ -567,47 +567,65 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     /// - Returns: A weighted average of TDD as Decimal, or nil if insufficient data
     /// - Note: The weight percentage can be configured in preferences. Default is 0.65 (65% recent, 35% historical)
     private func calculateWeightedAverage() async throws -> Decimal? {
-        // Fetch data from Core Data
         let tenDaysAgo = Date().addingTimeInterval(-10.days.timeInterval)
         let twoHoursAgo = Date().addingTimeInterval(-2.hours.timeInterval)
-
-        let predicate = NSPredicate(format: "date >= %@", tenDaysAgo as NSDate)
 
         let context = makeContext()
         context.name = "calculateWeightedAverage"
 
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: TDDStored.self,
-            onContext: context,
-            predicate: predicate,
-            key: "date",
-            ascending: false
-        )
-        return await context.perform { () -> Decimal? in
-            guard let results = results as? [TDDStored], !results.isEmpty else { return 0 }
+        return try await context.perform { () -> Decimal? in
+            let recent = try Self.aggregateTDD(from: twoHoursAgo, in: context)
+            let historical = try Self.aggregateTDD(from: tenDaysAgo, in: context)
 
-            // Calculate recent (2h) average
-            let recentResults = results.filter { $0.date?.timeIntervalSince(twoHoursAgo) ?? 0 > 0 }
-            let recentTotal = recentResults.compactMap { $0.total?.decimalValue }.reduce(0, +)
-            let recentCount = max(Decimal(recentResults.count), 1)
-            let averageTDDLastTwoHours = recentTotal / recentCount
+            // Extract into locals so SwiftFormat's isEmpty rule doesn't
+            // mis-rewrite the tuple member access into `!tuple.isEmpty`
+            let historicalCount = historical.count
+            let recentCount = recent.count
+            guard historicalCount > 0 else { return 0 }
 
-            // Calculate 10-day average
-            let totalTDD = results.compactMap { $0.total?.decimalValue }.reduce(0, +)
-            let totalCount = max(Decimal(results.count), 1)
-            let averageTDDLastTenDays = totalTDD / totalCount
+            let averageTDDLastTwoHours = recent.total / max(Decimal(recentCount), 1)
+            let averageTDDLastTenDays = historical.total / Decimal(historicalCount)
 
             // Get weight percentage from preferences (default 0.65 if not set)
             let userPreferences = self.storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
             let weightPercentage = userPreferences?.weightPercentage ?? Decimal(0.65) // why is this 1 as default in trio-oref??
 
-            // Calculate weighted average using the formula:
             // weightedTDD = (weightPercentage × recent_average) + ((1 - weightPercentage) × historical_average)
             let weightedTDD = weightPercentage * averageTDDLastTwoHours +
                 (1 - weightPercentage) * averageTDDLastTenDays
 
             return weightedTDD.truncated(toPlaces: 3)
         }
+    }
+
+    /// Runs a SUM(total) + COUNT aggregate on TDDStored for records with date >= `from`,
+    /// avoiding materializing hundreds of rows just to add them up.
+    private static func aggregateTDD(
+        from: Date,
+        in context: NSManagedObjectContext
+    ) throws -> (total: Decimal, count: Int) {
+        let request = NSFetchRequest<NSDictionary>(entityName: "TDDStored")
+        request.resultType = .dictionaryResultType
+        request.predicate = NSPredicate(format: "date >= %@ AND total != nil", from as NSDate)
+
+        let sumExp = NSExpressionDescription()
+        sumExp.name = "sumTotal"
+        sumExp.expression = NSExpression(forFunction: "sum:", arguments: [NSExpression(forKeyPath: "total")])
+        sumExp.expressionResultType = .decimalAttributeType
+
+        let countExp = NSExpressionDescription()
+        countExp.name = "countTotal"
+        countExp.expression = NSExpression(forFunction: "count:", arguments: [NSExpression(forKeyPath: "total")])
+        countExp.expressionResultType = .integer64AttributeType
+
+        request.propertiesToFetch = [sumExp, countExp]
+
+        guard let row = try context.fetch(request).first else {
+            return (0, 0)
+        }
+        let sum = (row["sumTotal"] as? NSDecimalNumber)?.decimalValue ?? 0
+        let count = (row["countTotal"] as? NSNumber)?.intValue ?? 0
+        return (sum, count)
     }
 
     /// Checks if there is enough Total Daily Dose (TDD) data collected over the past 7 days.

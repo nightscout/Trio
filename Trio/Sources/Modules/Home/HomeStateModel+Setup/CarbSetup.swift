@@ -6,6 +6,18 @@ extension Home.StateModel {
         Task {
             do {
                 let ids = try await self.fetchCarbs()
+
+                // Prefetch into viewContext with one IN-query so the subsequent
+                // per-ID materialization avoids N+1 Z_PK selects.
+                if !ids.isEmpty {
+                    await viewContext.perform {
+                        let prefetchRequest = NSFetchRequest<CarbEntryStored>(entityName: "CarbEntryStored")
+                        prefetchRequest.predicate = NSPredicate(format: "SELF IN %@", ids)
+                        prefetchRequest.returnsObjectsAsFaults = false
+                        _ = try? self.viewContext.fetch(prefetchRequest)
+                    }
+                }
+
                 let carbObjects: [CarbEntryStored] = try await CoreDataStack.shared
                     .getNSManagedObject(with: ids, context: viewContext)
                 await updateCarbsArray(with: carbObjects)
@@ -45,6 +57,18 @@ extension Home.StateModel {
         Task {
             do {
                 let ids = try await self.fetchFPUs()
+
+                // Prefetch into viewContext with one IN-query so the subsequent
+                // per-ID materialization avoids N+1 Z_PK selects.
+                if !ids.isEmpty {
+                    await viewContext.perform {
+                        let prefetchRequest = NSFetchRequest<CarbEntryStored>(entityName: "CarbEntryStored")
+                        prefetchRequest.predicate = NSPredicate(format: "SELF IN %@", ids)
+                        prefetchRequest.returnsObjectsAsFaults = false
+                        _ = try? self.viewContext.fetch(prefetchRequest)
+                    }
+                }
+
                 let fpuObjects: [CarbEntryStored] = try await CoreDataStack.shared
                     .getNSManagedObject(with: ids, context: viewContext)
                 await updateFPUsArray(with: fpuObjects)
