@@ -266,7 +266,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             predicate: NSPredicate.pumpHistoryLast24h,
             key: "timestamp",
             ascending: false,
-            fetchLimit: 288
+            fetchLimit: 288,
+            relationshipKeyPathsForPrefetching: ["bolus", "tempBasal"]
         )
 
         return await context.perform {
@@ -317,7 +318,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToNightscout,
             key: "timestamp",
-            ascending: false
+            ascending: false,
+            relationshipKeyPathsForPrefetching: ["bolus", "tempBasal"]
         )
 
         return try await context.perform { [self] in
@@ -480,7 +482,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToHealth,
             key: "timestamp",
-            ascending: false
+            ascending: false,
+            relationshipKeyPathsForPrefetching: ["bolus", "tempBasal"]
         )
 
         return try await context.perform {
@@ -526,7 +529,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToTidepool,
             key: "timestamp",
-            ascending: false
+            ascending: false,
+            relationshipKeyPathsForPrefetching: ["bolus", "tempBasal"]
         )
 
         return try await context.perform {

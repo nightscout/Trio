@@ -30,6 +30,15 @@ extension Home.StateModel {
         with IDs: [NSManagedObjectID],
         keyPath: ReferenceWritableKeyPath<Home.StateModel, [OrefDetermination]>
     ) async throws {
+        // Prefetch the determinations into viewContext with one IN-query so the
+        // subsequent per-ID materialization avoids N+1 faults.
+        if !IDs.isEmpty {
+            let prefetchRequest = NSFetchRequest<OrefDetermination>(entityName: "OrefDetermination")
+            prefetchRequest.predicate = NSPredicate(format: "SELF IN %@", IDs)
+            prefetchRequest.returnsObjectsAsFaults = false
+            _ = try? viewContext.fetch(prefetchRequest)
+        }
+
         // Fetch the objects off the main thread
         let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
             .getNSManagedObject(with: IDs, context: viewContext)

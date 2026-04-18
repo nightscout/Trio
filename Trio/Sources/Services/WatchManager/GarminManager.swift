@@ -487,7 +487,8 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             predicate: compoundPredicate,
             key: "timestamp",
             ascending: false,
-            fetchLimit: 1
+            fetchLimit: 1,
+            relationshipKeyPathsForPrefetching: ["tempBasal"]
         )
 
         return try await context.perform {

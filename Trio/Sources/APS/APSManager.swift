@@ -677,7 +677,8 @@ final class BaseAPSManager: APSManager, Injectable {
             predicate: NSPredicate.recentPumpHistory,
             key: "timestamp",
             ascending: false,
-            fetchLimit: 1
+            fetchLimit: 1,
+            relationshipKeyPathsForPrefetching: ["tempBasal"]
         )
 
         let fetchedTempBasal = await context.perform {

@@ -407,7 +407,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             predicate: NSPredicate.lastPumpBolus,
             key: "timestamp",
             ascending: false,
-            fetchLimit: 1
+            fetchLimit: 1,
+            relationshipKeyPathsForPrefetching: ["bolus"]
         )
 
         return try await context.perform {

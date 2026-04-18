@@ -223,7 +223,8 @@ final class OpenAPS {
             predicate: NSPredicate.pumpHistoryLast1440Minutes,
             key: "timestamp",
             ascending: false,
-            batchSize: 50
+            batchSize: 50,
+            relationshipKeyPathsForPrefetching: ["bolus", "tempBasal"]
         )
 
         return try await context.perform {
