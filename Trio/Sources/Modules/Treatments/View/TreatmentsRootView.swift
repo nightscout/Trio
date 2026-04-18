@@ -32,10 +32,13 @@ extension Treatments {
         @State private var treatmentSearchResults: [BarcodeScanner.FoodItem] = []
         @State private var isTreatmentSearching = false
         @State private var treatmentSearchError: String?
-        @State private var showAllSearchResults = false
+        @State private var treatmentSearchHasMoreResults = false
+        @State private var isLoadingMoreTreatmentSearchResults = false
+        @State private var currentTreatmentSearchPage = 1
         @FocusState private var isSearchFocused: Bool
 
         private let foodSearchClient = BarcodeScanner.OpenFoodFactsClient()
+        private let treatmentSearchPageSize = 4
 
         private enum Config {
             static let dividerHeight: CGFloat = 2
@@ -171,17 +174,22 @@ extension Treatments {
                             searchText: $treatmentSearchQuery,
                             isFocused: $isSearchFocused,
                             onSubmit: {
-                                showAllSearchResults = false
                                 performTreatmentFoodSearch()
                             },
                             onClear: {
                                 treatmentSearchQuery = ""
                                 treatmentSearchResults = []
                                 treatmentSearchError = nil
-                                showAllSearchResults = false
+                                treatmentSearchHasMoreResults = false
+                                isLoadingMoreTreatmentSearchResults = false
+                                currentTreatmentSearchPage = 1
                             },
                             onChange: {
-                                showAllSearchResults = false
+                                treatmentSearchResults = []
+                                treatmentSearchError = nil
+                                treatmentSearchHasMoreResults = false
+                                isLoadingMoreTreatmentSearchResults = false
+                                currentTreatmentSearchPage = 1
                             }
                         )
 
@@ -221,37 +229,36 @@ extension Treatments {
                             .foregroundStyle(.red)
                     } else if !treatmentSearchResults.isEmpty {
                         VStack(spacing: 0) {
-                            let displayResults = showAllSearchResults ? treatmentSearchResults :
-                                Array(treatmentSearchResults.prefix(5))
-                            ForEach(displayResults) { item in
+                            ForEach(treatmentSearchResults) { item in
                                 BarcodeScanner.FoodSearchResultRow(item: item) {
                                     addSearchResultToMeal(item)
                                 }
-                                if item.id != displayResults.last?.id {
+                                if item.id != treatmentSearchResults.last?.id {
                                     Divider().opacity(0.3)
                                 }
                             }
 
-                            if treatmentSearchResults.count > 5 {
+                            if treatmentSearchHasMoreResults {
                                 Button {
-                                    withAnimation {
-                                        showAllSearchResults.toggle()
-                                    }
+                                    loadMoreTreatmentSearchResults()
                                 } label: {
                                     HStack {
-                                        Text(
-                                            showAllSearchResults ? "Show less" :
-                                                "Show \(treatmentSearchResults.count - 5) more results"
-                                        )
-                                        .font(.caption.weight(.medium))
-                                        Image(systemName: showAllSearchResults ? "chevron.up" : "chevron.down")
-                                            .font(.caption)
+                                        if isLoadingMoreTreatmentSearchResults {
+                                            ProgressView()
+                                                .scaleEffect(0.9)
+                                        } else {
+                                            Text("Show 4 more results")
+                                                .font(.caption.weight(.medium))
+                                            Image(systemName: "chevron.down")
+                                                .font(.caption)
+                                        }
                                     }
                                     .foregroundStyle(.blue)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 8)
                                 }
                                 .buttonStyle(.plain)
+                                .disabled(isLoadingMoreTreatmentSearchResults)
                             }
                         }
                     }
@@ -716,6 +723,9 @@ extension Treatments {
             treatmentSearchQuery = ""
             treatmentSearchResults = []
             treatmentSearchError = nil
+            treatmentSearchHasMoreResults = false
+            isLoadingMoreTreatmentSearchResults = false
+            currentTreatmentSearchPage = 1
 
             // Sync amounts and recalculate
             syncScannedAmounts()
@@ -725,6 +735,9 @@ extension Treatments {
         private func performTreatmentFoodSearch() {
             treatmentSearchError = nil
             treatmentSearchResults = []
+            treatmentSearchHasMoreResults = false
+            currentTreatmentSearchPage = 1
+            isLoadingMoreTreatmentSearchResults = false
 
             let query = treatmentSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !query.isEmpty else {
@@ -736,12 +749,62 @@ extension Treatments {
 
             Task { @MainActor in
                 do {
-                    treatmentSearchResults = try await foodSearchClient.searchProducts(query: query)
+                    let firstPageResults = try await foodSearchClient.searchProducts(
+                        query: query,
+                        page: 1,
+                        pageSize: treatmentSearchPageSize
+                    )
+                    treatmentSearchResults = firstPageResults
+                    treatmentSearchHasMoreResults = firstPageResults.count == treatmentSearchPageSize
                 } catch {
                     treatmentSearchError = error.localizedDescription
                     treatmentSearchResults = []
+                    treatmentSearchHasMoreResults = false
                 }
                 isTreatmentSearching = false
+            }
+        }
+
+        private func loadMoreTreatmentSearchResults() {
+            guard !isTreatmentSearching,
+                  !isLoadingMoreTreatmentSearchResults,
+                  treatmentSearchHasMoreResults
+            else {
+                return
+            }
+
+            let query = treatmentSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !query.isEmpty else {
+                treatmentSearchHasMoreResults = false
+                return
+            }
+
+            isLoadingMoreTreatmentSearchResults = true
+            treatmentSearchError = nil
+
+            let nextPage = currentTreatmentSearchPage + 1
+
+            Task { @MainActor in
+                defer { isLoadingMoreTreatmentSearchResults = false }
+
+                do {
+                    let nextPageResults = try await foodSearchClient.searchProducts(
+                        query: query,
+                        page: nextPage,
+                        pageSize: treatmentSearchPageSize
+                    )
+
+                    if nextPageResults.isEmpty {
+                        treatmentSearchHasMoreResults = false
+                        return
+                    }
+
+                    treatmentSearchResults.append(contentsOf: nextPageResults)
+                    currentTreatmentSearchPage = nextPage
+                    treatmentSearchHasMoreResults = nextPageResults.count == treatmentSearchPageSize
+                } catch {
+                    treatmentSearchError = error.localizedDescription
+                }
             }
         }
 

@@ -14,7 +14,6 @@ extension BarcodeScanner {
         @State private var showEditorCard = false
         @FocusState private var focusedItemID: UUID?
         @FocusState private var isSearchFocused: Bool
-        @State private var showAllSearchResults = false
 
         init(
             resolver: Resolver,
@@ -326,16 +325,16 @@ extension BarcodeScanner {
                         searchText: $state.searchQuery,
                         isFocused: $isSearchFocused,
                         onSubmit: {
-                            showAllSearchResults = false
                             state.performFoodSearch()
                         },
                         onClear: {
                             state.searchQuery = ""
                             state.searchResults = []
-                            showAllSearchResults = false
                         },
                         onChange: {
-                            showAllSearchResults = false
+                            state.searchResults = []
+                            state.searchError = nil
+                            state.hasMoreSearchResults = false
                         }
                     )
                     .padding(.horizontal)
@@ -359,9 +358,7 @@ extension BarcodeScanner {
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
                     } else if !state.searchResults.isEmpty {
-                        let displayResults =
-                            showAllSearchResults ? state.searchResults : Array(state.searchResults.prefix(5))
-                        ForEach(displayResults) { item in
+                        ForEach(state.searchResults) { item in
                             BarcodeScanner.FoodSearchResultRow(item: item) {
                                 withAnimation {
                                     var mutableItem = item
@@ -377,26 +374,27 @@ extension BarcodeScanner {
                             .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                         }
 
-                        if state.searchResults.count > 5 {
+                        if state.hasMoreSearchResults {
                             Button {
-                                withAnimation {
-                                    showAllSearchResults.toggle()
-                                }
+                                state.loadMoreSearchResults()
                             } label: {
                                 HStack {
-                                    Text(
-                                        showAllSearchResults
-                                            ? "Show less" : "Show \(state.searchResults.count - 5) more results"
-                                    )
-                                    .font(.caption.weight(.medium))
-                                    Image(systemName: showAllSearchResults ? "chevron.up" : "chevron.down")
-                                        .font(.caption)
+                                    if state.isLoadingMoreSearchResults {
+                                        ProgressView()
+                                            .scaleEffect(0.9)
+                                    } else {
+                                        Text("Show 4 more results")
+                                            .font(.caption.weight(.medium))
+                                        Image(systemName: "chevron.down")
+                                            .font(.caption)
+                                    }
                                 }
                                 .foregroundStyle(.blue)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 8)
                             }
                             .buttonStyle(.plain)
+                            .disabled(state.isLoadingMoreSearchResults)
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
                         }

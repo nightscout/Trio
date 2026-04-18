@@ -41,6 +41,8 @@ extension BarcodeScanner {
         @Published var searchResults: [FoodItem] = []
         @Published var isSearching = false
         @Published var searchError: String?
+        @Published var hasMoreSearchResults = false
+        @Published var isLoadingMoreSearchResults = false
 
         // MARK: - Private Properties
 
@@ -49,6 +51,8 @@ extension BarcodeScanner {
         private var lastScannedBarcode: String?
         private var lastScanWasSuccessful: Bool = false
         private let scanCooldownSeconds: TimeInterval = 1.0
+        private let searchPageSize = 4
+        private var currentSearchPage = 1
 
         var hasOpenFoodFactsCredentialsConfigured: Bool {
             let username = settingsManager.settings.openFoodFactsUsername
@@ -376,23 +380,77 @@ extension BarcodeScanner {
         func performFoodSearch() {
             searchError = nil
             searchResults = []
+            hasMoreSearchResults = false
+            currentSearchPage = 1
 
             let query = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !query.isEmpty else {
                 isSearching = false
+                isLoadingMoreSearchResults = false
                 return
             }
 
             isSearching = true
+            isLoadingMoreSearchResults = false
 
             Task { @MainActor in
                 do {
-                    searchResults = try await client.searchProducts(query: query)
+                    let firstPageResults = try await client.searchProducts(
+                        query: query,
+                        page: 1,
+                        pageSize: searchPageSize
+                    )
+                    searchResults = firstPageResults
+                    hasMoreSearchResults = firstPageResults.count == searchPageSize
                 } catch {
                     searchError = error.localizedDescription
                     searchResults = []
+                    hasMoreSearchResults = false
                 }
                 isSearching = false
+            }
+        }
+
+        func loadMoreSearchResults() {
+            guard !isSearching,
+                  !isLoadingMoreSearchResults,
+                  hasMoreSearchResults
+            else {
+                return
+            }
+
+            let query = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !query.isEmpty else {
+                hasMoreSearchResults = false
+                return
+            }
+
+            isLoadingMoreSearchResults = true
+            searchError = nil
+
+            let nextPage = currentSearchPage + 1
+
+            Task { @MainActor in
+                defer { isLoadingMoreSearchResults = false }
+
+                do {
+                    let nextPageResults = try await client.searchProducts(
+                        query: query,
+                        page: nextPage,
+                        pageSize: searchPageSize
+                    )
+
+                    if nextPageResults.isEmpty {
+                        hasMoreSearchResults = false
+                        return
+                    }
+
+                    searchResults.append(contentsOf: nextPageResults)
+                    currentSearchPage = nextPage
+                    hasMoreSearchResults = nextPageResults.count == searchPageSize
+                } catch {
+                    searchError = error.localizedDescription
+                }
             }
         }
 
