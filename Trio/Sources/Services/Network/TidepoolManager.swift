@@ -467,7 +467,7 @@ extension BaseTidepoolManager {
 
         // Caller (uploadDose) already executes within context.perform, so we run directly here
         guard let duration = event.duration, let amount = event.amount,
-              let currentBasalRate = self.getCurrentBasalRate()
+              let currentBasalRate = getCurrentBasalRate()
         else {
             return insulinDoseEvents
         }
@@ -504,7 +504,7 @@ extension BaseTidepoolManager {
                             unit: .units,
                             deliveredUnits: adjustedDeliveredUnits,
                             syncIdentifier: predecessorEntrySyncIdentifier,
-                            insulinType: self.apsManager.pumpManager?.status.insulinType ?? nil,
+                            insulinType: apsManager.pumpManager?.status.insulinType ?? nil,
                             automatic: true,
                             manuallyEntered: false,
                             isMutable: false
@@ -529,7 +529,7 @@ extension BaseTidepoolManager {
                     unit: .internationalUnitsPerHour,
                     doubleValue: Double(currentBasalRate.rate)
                 ),
-                insulinType: self.apsManager.pumpManager?.status.insulinType ?? nil,
+                insulinType: apsManager.pumpManager?.status.insulinType ?? nil,
                 automatic: true,
                 manuallyEntered: false,
                 isMutable: false

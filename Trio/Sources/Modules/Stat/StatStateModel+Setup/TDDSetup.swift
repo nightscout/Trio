@@ -43,7 +43,12 @@ extension Stat.StateModel {
         let tddResults = try await fetchTDDStoredRecords(on: tddTaskContext)
 
         // Fetch data for hourly statistics (BolusStored and TempBasalStored for day view)
-        let (bolusResults, tempBasalResults, suspendEvents, resumeEvents) = try await fetchHourlyInsulinRecords(on: tddTaskContext)
+        let (
+            bolusResults,
+            tempBasalResults,
+            suspendEvents,
+            resumeEvents
+        ) = try await fetchHourlyInsulinRecords(on: tddTaskContext)
 
         // MARK: - Process Data on Background Context
 
@@ -99,7 +104,9 @@ extension Stat.StateModel {
     /// Fetches BolusStored and TempBasalStored records from CoreData for hourly statistics
     /// - Returns: A tuple containing the results of both fetch requests
     /// - Note: Fetches records from the last 20 days for detailed hourly view
-    private func fetchHourlyInsulinRecords(on tddTaskContext: NSManagedObjectContext) async throws -> (bolus: Any, tempBasal: Any, suspendEvents: Any, resumeEvents: Any) {
+    private func fetchHourlyInsulinRecords(on tddTaskContext: NSManagedObjectContext) async throws
+        -> (bolus: Any, tempBasal: Any, suspendEvents: Any, resumeEvents: Any)
+    {
         // Calculate date range for hourly statistics (last 20 days)
         let now = Date()
         let twentyDaysAgo = Calendar.current.date(byAdding: .day, value: -20, to: now) ?? now

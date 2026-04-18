@@ -442,16 +442,26 @@ final class BaseAPSManager: APSManager, Injectable {
 
         try await calculateAndStoreTDD()
 
-        // Fetch glucose asynchronously
-        let glucose = try await fetchGlucose(predicate: NSPredicate.predicateForOneHourAgo, fetchLimit: 6)
-
         var invalidGlucoseError: String?
 
-        // Perform the context-related checks and actions
+        // Fetch glucose and run validation on the same context to avoid cross-context property access.
         let validationContext = CoreDataStack.shared.newTaskContext()
         validationContext.name = "determineBasal.validation"
+
         let isValidGlucoseData = await validationContext.perform { [weak self] in
             guard let self else { return false }
+
+            let glucose: [GlucoseStored]
+            do {
+                glucose = try self.fetchGlucose(
+                    on: validationContext,
+                    predicate: NSPredicate.predicateForOneHourAgo,
+                    fetchLimit: 6
+                )
+            } catch {
+                debug(.apsManager, "Failed to fetch glucose for validation: \(error)")
+                return false
+            }
 
             guard glucose.count > 2 else {
                 debug(.apsManager, "Not enough glucose data")
@@ -833,33 +843,30 @@ final class BaseAPSManager: APSManager, Injectable {
         return Double(sorted[length / 2])
     }
 
+    /// Must be called from within a `perform`/`performAndWait` block on the context that owns `glucose`.
     private func tir(_ glucose: [GlucoseStored]) -> (TIR: Double, hypos: Double, hypers: Double, normal_: Double) {
-        let context = CoreDataStack.shared.newTaskContext()
-        context.name = "tir"
-        return context.perform {
-            let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
-            let totalReadings = justGlucoseArray.count
-            let highLimit = settingsManager.settings.high
-            let lowLimit = settingsManager.settings.low
-            let hyperArray = glucose.filter({ $0.glucose >= Int(highLimit) })
-            let hyperReadings = hyperArray.compactMap({ each in each.glucose as Int16 }).count
-            let hyperPercentage = Double(hyperReadings) / Double(totalReadings) * 100
-            let hypoArray = glucose.filter({ $0.glucose <= Int(lowLimit) })
-            let hypoReadings = hypoArray.compactMap({ each in each.glucose as Int16 }).count
-            let hypoPercentage = Double(hypoReadings) / Double(totalReadings) * 100
-            // Euglyccemic range
-            let normalArray = glucose.filter({ $0.glucose >= 70 && $0.glucose <= 140 })
-            let normalReadings = normalArray.compactMap({ each in each.glucose as Int16 }).count
-            let normalPercentage = Double(normalReadings) / Double(totalReadings) * 100
-            // TIR
-            let tir = 100 - (hypoPercentage + hyperPercentage)
-            return (
-                roundDouble(tir, 1),
-                roundDouble(hypoPercentage, 1),
-                roundDouble(hyperPercentage, 1),
-                roundDouble(normalPercentage, 1)
-            )
-        }
+        let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
+        let totalReadings = justGlucoseArray.count
+        let highLimit = settingsManager.settings.high
+        let lowLimit = settingsManager.settings.low
+        let hyperArray = glucose.filter({ $0.glucose >= Int(highLimit) })
+        let hyperReadings = hyperArray.compactMap({ each in each.glucose as Int16 }).count
+        let hyperPercentage = Double(hyperReadings) / Double(totalReadings) * 100
+        let hypoArray = glucose.filter({ $0.glucose <= Int(lowLimit) })
+        let hypoReadings = hypoArray.compactMap({ each in each.glucose as Int16 }).count
+        let hypoPercentage = Double(hypoReadings) / Double(totalReadings) * 100
+        // Euglyccemic range
+        let normalArray = glucose.filter({ $0.glucose >= 70 && $0.glucose <= 140 })
+        let normalReadings = normalArray.compactMap({ each in each.glucose as Int16 }).count
+        let normalPercentage = Double(normalReadings) / Double(totalReadings) * 100
+        // TIR
+        let tir = 100 - (hypoPercentage + hyperPercentage)
+        return (
+            roundDouble(tir, 1),
+            roundDouble(hypoPercentage, 1),
+            roundDouble(hyperPercentage, 1),
+            roundDouble(normalPercentage, 1)
+        )
     }
 
     private func glucoseStats(_ fetchedGlucose: [GlucoseStored])
@@ -954,11 +961,14 @@ final class BaseAPSManager: APSManager, Injectable {
         return output
     }
 
-    // fetch glucose for time interval
-    func fetchGlucose(predicate: NSPredicate, fetchLimit: Int? = nil, batchSize: Int? = nil) async throws -> [GlucoseStored] {
-        let context = CoreDataStack.shared.newTaskContext()
-        context.name = "fetchGlucose"
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+    /// Synchronously fetches glucose on the given context. Must be called from within a `perform`/`performAndWait` block of that context
+    func fetchGlucose(
+        on context: NSManagedObjectContext,
+        predicate: NSPredicate,
+        fetchLimit: Int? = nil,
+        batchSize: Int? = nil
+    ) throws -> [GlucoseStored] {
+        let results = try CoreDataStack.shared.fetchEntities(
             ofType: GlucoseStored.self,
             onContext: context,
             predicate: predicate,
@@ -967,14 +977,10 @@ final class BaseAPSManager: APSManager, Injectable {
             fetchLimit: fetchLimit,
             batchSize: batchSize
         )
-
-        return try await context.perform {
-            guard let glucoseResults = results as? [GlucoseStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            return glucoseResults
+        guard let glucoseResults = results as? [GlucoseStored] else {
+            throw CoreDataError.fetchError(function: #function, file: #file)
         }
+        return glucoseResults
     }
 
     private func lastLoopForStats() async -> Date? {
@@ -1058,28 +1064,36 @@ final class BaseAPSManager: APSManager, Injectable {
         hbs: Durations,
         variance: Variance
     )? {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "glucoseForStats"
         do {
-            // Get the Glucose Values
-            let glucose24h = try await fetchGlucose(predicate: NSPredicate.predicateForOneDayAgo, fetchLimit: 288, batchSize: 50)
-            let glucoseOneWeek = try await fetchGlucose(
-                predicate: NSPredicate.predicateForOneWeek,
-                fetchLimit: 288 * 7,
-                batchSize: 250
-            )
-            let glucoseOneMonth = try await fetchGlucose(
-                predicate: NSPredicate.predicateForOneMonth,
-                fetchLimit: 288 * 7 * 30,
-                batchSize: 500
-            )
-            let glucoseThreeMonths = try await fetchGlucose(
-                predicate: NSPredicate.predicateForThreeMonths,
-                fetchLimit: 288 * 7 * 30 * 3,
-                batchSize: 1000
-            )
+            return try await context.perform {
+                // Fetch all windows on the same context so subsequent property access is safe.
+                let glucose24h = try self.fetchGlucose(
+                    on: context,
+                    predicate: NSPredicate.predicateForOneDayAgo,
+                    fetchLimit: 288,
+                    batchSize: 50
+                )
+                let glucoseOneWeek = try self.fetchGlucose(
+                    on: context,
+                    predicate: NSPredicate.predicateForOneWeek,
+                    fetchLimit: 288 * 7,
+                    batchSize: 250
+                )
+                let glucoseOneMonth = try self.fetchGlucose(
+                    on: context,
+                    predicate: NSPredicate.predicateForOneMonth,
+                    fetchLimit: 288 * 7 * 30,
+                    batchSize: 500
+                )
+                let glucoseThreeMonths = try self.fetchGlucose(
+                    on: context,
+                    predicate: NSPredicate.predicateForThreeMonths,
+                    fetchLimit: 288 * 7 * 30 * 3,
+                    batchSize: 1000
+                )
 
-            let context = CoreDataStack.shared.newTaskContext()
-            context.name = "glucoseForStats"
-            return await context.perform {
                 let units = self.settingsManager.settings.units
 
                 // First date
