@@ -53,6 +53,8 @@ extension BolusCalculatorConfig {
         func disconnectAndRemoveOpenFoodFacts() {
             openFoodFactsUsername = ""
             openFoodFactsPassword = ""
+            settingsManager.settings.openFoodFactsUsername = ""
+            settingsManager.settings.openFoodFactsPassword = ""
             isOpenFoodFactsLoginSuccessful = false
             isOpenFoodFactsLoginInProgress = false
             openFoodFactsLoginError = nil

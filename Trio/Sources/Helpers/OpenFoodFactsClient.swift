@@ -719,15 +719,16 @@ private actor OpenFoodFactsAuthStore {
             credentialsIfAvailable = nil
             defaults.removeObject(forKey: usernameKey)
             defaults.removeObject(forKey: passwordKey)
-            sessionCookie = nil
-            defaults.removeObject(forKey: cookieNameKey)
-            defaults.removeObject(forKey: cookieValueKey)
-            defaults.removeObject(forKey: cookieExpiryKey)
-
-            HTTPCookieStorage.shared.cookies?
-                .filter { $0.domain.contains("openfoodfacts.org") }
-                .forEach { HTTPCookieStorage.shared.deleteCookie($0) }
+            clearStoredSessionCookie()
+            clearOpenFoodFactsCookiesFromStorage()
             return
+        }
+
+        if let existingCredentials = credentialsIfAvailable,
+           existingCredentials.username != trimmedUsername || existingCredentials.password != password
+        {
+            clearStoredSessionCookie()
+            clearOpenFoodFactsCookiesFromStorage()
         }
 
         let credentials = Credentials(username: trimmedUsername, password: password)
@@ -758,14 +759,28 @@ private actor OpenFoodFactsAuthStore {
         }
 
         if let expiresAt = sessionCookie.expiresAt, expiresAt <= referenceDate {
-            self.sessionCookie = nil
-            defaults.removeObject(forKey: cookieNameKey)
-            defaults.removeObject(forKey: cookieValueKey)
-            defaults.removeObject(forKey: cookieExpiryKey)
+            clearStoredSessionCookie()
             return nil
         }
 
         return "\(sessionCookie.name)=\(sessionCookie.value)"
+    }
+
+    private func clearStoredSessionCookie() {
+        sessionCookie = nil
+        defaults.removeObject(forKey: cookieNameKey)
+        defaults.removeObject(forKey: cookieValueKey)
+        defaults.removeObject(forKey: cookieExpiryKey)
+    }
+
+    private func clearOpenFoodFactsCookiesFromStorage() {
+        guard let cookies = HTTPCookieStorage.shared.cookies else {
+            return
+        }
+
+        for cookie in cookies where cookie.domain.localizedCaseInsensitiveContains("openfoodfacts.org") {
+            HTTPCookieStorage.shared.deleteCookie(cookie)
+        }
     }
 }
 
