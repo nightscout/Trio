@@ -16,6 +16,9 @@ extension Home.StateModel {
     }
 
     private func fetchCarbs() async throws -> [NSManagedObjectID] {
+        let carbsFetchContext = CoreDataStack.shared.newTaskContext()
+        carbsFetchContext.name = "HomeStateModel.fetchCarbs"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: carbsFetchContext,
@@ -52,6 +55,9 @@ extension Home.StateModel {
     }
 
     private func fetchFPUs() async throws -> [NSManagedObjectID] {
+        let fpuFetchContext = CoreDataStack.shared.newTaskContext()
+        fpuFetchContext.name = "HomeStateModel.fetchFPUs"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: fpuFetchContext,

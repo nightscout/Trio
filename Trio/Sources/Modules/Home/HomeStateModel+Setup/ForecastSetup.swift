@@ -15,6 +15,9 @@ extension Home.StateModel {
                 return []
             }
 
+            let taskContext = CoreDataStack.shared.newTaskContext()
+            taskContext.name = "HomeStateModel.preprocessForecastData"
+
             // Fetch complete forecast hierarchy with prefetched values
             return try await determinationStorage.fetchForecastHierarchy(
                 for: determination.objectID,

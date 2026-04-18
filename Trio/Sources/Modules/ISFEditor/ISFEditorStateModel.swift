@@ -22,8 +22,6 @@ extension ISFEditor {
         var therapyItems: [TherapySettingItem] = []
         var shouldDisplaySaving: Bool = false
 
-        let context = CoreDataStack.shared.newTaskContext()
-
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
         var rateValues: [Decimal] {

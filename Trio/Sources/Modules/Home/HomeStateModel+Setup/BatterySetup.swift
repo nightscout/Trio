@@ -19,6 +19,9 @@ extension Home.StateModel {
     }
 
     private func fetchBattery() async throws -> [NSManagedObjectID] {
+        let batteryFetchContext = CoreDataStack.shared.newTaskContext()
+        batteryFetchContext.name = "HomeStateModel.fetchBattery"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OpenAPS_Battery.self,
             onContext: batteryFetchContext,

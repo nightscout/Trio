@@ -40,6 +40,9 @@ extension Home.StateModel {
 
     // Custom fetch to more efficiently filter only for cob and iob
     private func fetchCobAndIob() async throws -> [NSManagedObjectID] {
+        let determinationFetchContext = CoreDataStack.shared.newTaskContext()
+        determinationFetchContext.name = "HomeStateModel.fetchCobAndIob"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: determinationFetchContext,
@@ -56,8 +59,8 @@ extension Home.StateModel {
             }
 
             // Update Chart Scales
-            self.yAxisChartDataCobChart(determinations: fetchedResults)
-            self.yAxisChartDataIobChart(determinations: fetchedResults)
+            self.yAxisChartDataCobChart(determinations: fetchedResults, on: determinationFetchContext)
+            self.yAxisChartDataIobChart(determinations: fetchedResults, on: determinationFetchContext)
             return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
         }
     }

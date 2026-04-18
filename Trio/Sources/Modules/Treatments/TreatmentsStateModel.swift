@@ -122,8 +122,6 @@ extension Treatments {
         let now = Date.now
 
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-        let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
-        let determinationFetchContext = CoreDataStack.shared.newTaskContext()
 
         var isActive: Bool = false
 
@@ -778,6 +776,9 @@ extension Treatments.StateModel {
     }
 
     private func fetchGlucose() async throws -> [NSManagedObjectID] {
+        let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
+        glucoseFetchContext.name = "TreatmentsStateModel.fetchGlucose"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: glucoseFetchContext,
@@ -847,6 +848,9 @@ extension Treatments.StateModel {
 
     private func mapForecastsForChart() async -> Determination? {
         do {
+            let determinationFetchContext = CoreDataStack.shared.newTaskContext()
+            determinationFetchContext.name = "TreatmentsStateModel.mapForecastsForChart"
+
             let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
                 .getNSManagedObject(with: determinationObjectIDs, context: determinationFetchContext)
 

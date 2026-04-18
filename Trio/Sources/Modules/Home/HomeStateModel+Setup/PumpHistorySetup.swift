@@ -19,6 +19,9 @@ extension Home.StateModel {
     }
 
     private func fetchInsulin() async throws -> [NSManagedObjectID] {
+        let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
+        pumpHistoryFetchContext.name = "HomeStateModel.fetchInsulin"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: pumpHistoryFetchContext,
@@ -65,6 +68,9 @@ extension Home.StateModel {
     }
 
     func fetchLastBolus() async throws -> NSManagedObjectID? {
+        let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
+        pumpHistoryFetchContext.name = "HomeStateModel.fetchLastBolus"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: pumpHistoryFetchContext,
