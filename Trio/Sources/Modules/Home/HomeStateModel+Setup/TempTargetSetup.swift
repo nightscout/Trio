@@ -19,6 +19,9 @@ extension Home.StateModel {
     }
 
     private func fetchTempTargets() async throws -> [NSManagedObjectID] {
+        let tempTargetFetchContext = CoreDataStack.shared.newTaskContext()
+        tempTargetFetchContext.name = "HomeStateModel.fetchTempTargets"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: tempTargetFetchContext,
@@ -57,6 +60,9 @@ extension Home.StateModel {
     }
 
     private func fetchTempTargetRunStored() async throws -> [NSManagedObjectID] {
+        let tempTargetFetchContext = CoreDataStack.shared.newTaskContext()
+        tempTargetFetchContext.name = "HomeStateModel.fetchTempTargetRunStored"
+
         let predicate = NSPredicate(format: "startDate >= %@", Date.oneDayAgo as NSDate)
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetRunStored.self,

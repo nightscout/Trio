@@ -31,10 +31,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         updateSubject.eraseToAnyPublisher()
     }
 
-    private let context: NSManagedObjectContext
+    private let makeContext: () -> NSManagedObjectContext
 
-    init(resolver: Resolver, context: NSManagedObjectContext? = nil) {
-        self.context = context ?? CoreDataStack.shared.newTaskContext()
+    init(resolver: Resolver, contextProvider: (() -> NSManagedObjectContext)? = nil) {
+        makeContext = contextProvider ?? { CoreDataStack.shared.newTaskContext() }
         injectServices(resolver)
     }
 
@@ -47,11 +47,13 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func storePumpEvents(_ events: [NewPumpEvent]) async throws {
+        let context = makeContext()
+        context.name = "storePumpEvents"
         try await context.perform {
             for event in events {
                 let existingEvents: [PumpEventStored] = try CoreDataStack.shared.fetchEntities(
                     ofType: PumpEventStored.self,
-                    onContext: self.context,
+                    onContext: context,
                     predicate: NSPredicate.duplicates(event.date),
                     key: "timestamp",
                     ascending: false,
@@ -88,7 +90,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         continue
                     }
 
-                    let newPumpEvent = PumpEventStored(context: self.context)
+                    let newPumpEvent = PumpEventStored(context: context)
                     newPumpEvent.id = UUID().uuidString
                     // restrict entry to now or past
                     newPumpEvent.timestamp = event.date > Date() ? Date() : event.date
@@ -97,7 +99,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     newPumpEvent.isUploadedToHealth = false
                     newPumpEvent.isUploadedToTidepool = false
 
-                    let newBolusEntry = BolusStored(context: self.context)
+                    let newBolusEntry = BolusStored(context: context)
                     newBolusEntry.pumpEvent = newPumpEvent
                     newBolusEntry.amount = NSDecimalNumber(decimal: amount)
                     newBolusEntry.isExternal = dose.manuallyEntered
@@ -120,7 +122,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     let isCancel = delivered != nil
                     guard !isCancel else { continue }
 
-                    let newPumpEvent = PumpEventStored(context: self.context)
+                    let newPumpEvent = PumpEventStored(context: context)
                     newPumpEvent.id = UUID().uuidString
                     newPumpEvent.timestamp = date
                     newPumpEvent.type = PumpEvent.tempBasal.rawValue
@@ -128,7 +130,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     newPumpEvent.isUploadedToHealth = false
                     newPumpEvent.isUploadedToTidepool = false
 
-                    let newTempBasal = TempBasalStored(context: self.context)
+                    let newTempBasal = TempBasalStored(context: context)
                     newTempBasal.pumpEvent = newPumpEvent
                     newTempBasal.duration = Int16(round(minutes))
                     newTempBasal.rate = rate as NSDecimalNumber
@@ -140,7 +142,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         debug(.coreData, "Duplicate event found with timestamp: \(event.date)")
                         continue
                     }
-                    let newPumpEvent = PumpEventStored(context: self.context)
+                    let newPumpEvent = PumpEventStored(context: context)
                     newPumpEvent.id = UUID().uuidString
                     newPumpEvent.timestamp = event.date
                     newPumpEvent.type = PumpEvent.pumpSuspend.rawValue
@@ -154,7 +156,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         debug(.coreData, "Duplicate event found with timestamp: \(event.date)")
                         continue
                     }
-                    let newPumpEvent = PumpEventStored(context: self.context)
+                    let newPumpEvent = PumpEventStored(context: context)
                     newPumpEvent.id = UUID().uuidString
                     newPumpEvent.timestamp = event.date
                     newPumpEvent.type = PumpEvent.pumpResume.rawValue
@@ -168,7 +170,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         debug(.coreData, "Duplicate event found with timestamp: \(event.date)")
                         continue
                     }
-                    let newPumpEvent = PumpEventStored(context: self.context)
+                    let newPumpEvent = PumpEventStored(context: context)
                     newPumpEvent.id = UUID().uuidString
                     newPumpEvent.timestamp = event.date
                     newPumpEvent.type = PumpEvent.rewind.rawValue
@@ -182,7 +184,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         debug(.coreData, "Duplicate event found with timestamp: \(event.date)")
                         continue
                     }
-                    let newPumpEvent = PumpEventStored(context: self.context)
+                    let newPumpEvent = PumpEventStored(context: context)
                     newPumpEvent.id = UUID().uuidString
                     newPumpEvent.timestamp = event.date
                     newPumpEvent.type = PumpEvent.prime.rawValue
@@ -196,7 +198,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         debug(.coreData, "Duplicate event found with timestamp: \(event.date)")
                         continue
                     }
-                    let newPumpEvent = PumpEventStored(context: self.context)
+                    let newPumpEvent = PumpEventStored(context: context)
                     newPumpEvent.id = UUID().uuidString
                     newPumpEvent.timestamp = event.date
                     newPumpEvent.type = PumpEvent.pumpAlarm.rawValue
@@ -211,8 +213,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             }
 
             do {
-                guard self.context.hasChanges else { return }
-                try self.context.save()
+                guard context.hasChanges else { return }
+                try context.save()
 
                 self.updateSubject.send(())
                 debug(.coreData, "\(DebuggingIdentifiers.succeeded) stored pump events in Core Data")
@@ -224,9 +226,11 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async {
+        let context = makeContext()
+        context.name = "storeExternalInsulinEvent"
         await context.perform {
             // create pump event
-            let newPumpEvent = PumpEventStored(context: self.context)
+            let newPumpEvent = PumpEventStored(context: context)
             newPumpEvent.id = UUID().uuidString
             // restrict entry to now or past
             newPumpEvent.timestamp = timestamp > Date() ? Date() : timestamp
@@ -236,15 +240,15 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             newPumpEvent.isUploadedToTidepool = false
 
             // create bolus entry and specify relationship to pump event
-            let newBolusEntry = BolusStored(context: self.context)
+            let newBolusEntry = BolusStored(context: context)
             newBolusEntry.pumpEvent = newPumpEvent
             newBolusEntry.amount = amount as NSDecimalNumber
             newBolusEntry.isExternal = true // we are creating an external dose
             newBolusEntry.isSMB = false // the dose is manually administered
 
             do {
-                guard self.context.hasChanges else { return }
-                try self.context.save()
+                guard context.hasChanges else { return }
+                try context.save()
                 debug(.coreData, "External insulin saved")
                 self.updateSubject.send(())
             } catch {
@@ -254,13 +258,16 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func getPumpHistory() async throws -> [PumpHistoryEvent] {
+        let context = makeContext()
+        context.name = "getPumpHistory"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.pumpHistoryLast24h,
             key: "timestamp",
             ascending: false,
-            fetchLimit: 288
+            fetchLimit: 288,
+            relationshipKeyPathsForPrefetching: ["bolus", "tempBasal"]
         )
 
         return await context.perform {
@@ -304,12 +311,15 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func getPumpHistoryNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
+        let context = makeContext()
+        context.name = "getPumpHistoryNotYetUploadedToNightscout"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToNightscout,
             key: "timestamp",
-            ascending: false
+            ascending: false,
+            relationshipKeyPathsForPrefetching: ["bolus", "tempBasal"]
         )
 
         return try await context.perform { [self] in
@@ -465,12 +475,15 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func getPumpHistoryNotYetUploadedToHealth() async throws -> [PumpHistoryEvent] {
+        let context = makeContext()
+        context.name = "getPumpHistoryNotYetUploadedToHealth"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToHealth,
             key: "timestamp",
-            ascending: false
+            ascending: false,
+            relationshipKeyPathsForPrefetching: ["bolus", "tempBasal"]
         )
 
         return try await context.perform {
@@ -509,12 +522,15 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func getPumpHistoryNotYetUploadedToTidepool() async throws -> [PumpHistoryEvent] {
+        let context = makeContext()
+        context.name = "getPumpHistoryNotYetUploadedToTidepool"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToTidepool,
             key: "timestamp",
-            ascending: false
+            ascending: false,
+            relationshipKeyPathsForPrefetching: ["bolus", "tempBasal"]
         )
 
         return try await context.perform {

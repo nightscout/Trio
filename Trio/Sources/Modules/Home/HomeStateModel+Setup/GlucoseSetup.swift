@@ -19,6 +19,9 @@ extension Home.StateModel {
     }
 
     private func fetchGlucose() async throws -> [NSManagedObjectID] {
+        let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
+        glucoseFetchContext.name = "HomeStateModel.fetchGlucose"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: glucoseFetchContext,
@@ -35,7 +38,7 @@ extension Home.StateModel {
 
             // Update Main Chart Y Axis Values
             // Perform everything on "context" to be thread safe
-            self.yAxisChartData(glucoseValues: fetchedResults)
+            self.yAxisChartData(glucoseValues: fetchedResults, on: glucoseFetchContext)
 
             return fetchedResults.map(\.objectID)
         }

@@ -6,6 +6,19 @@ extension Home.StateModel {
         Task {
             do {
                 let ids = try await self.fetchInsulin()
+
+                // Prefetch events and their bolus/tempBasal relationships into viewContext
+                // with one IN-query so the subsequent per-ID materialization avoids N+1 faults.
+                if !ids.isEmpty {
+                    await viewContext.perform {
+                        let prefetchRequest = NSFetchRequest<PumpEventStored>(entityName: "PumpEventStored")
+                        prefetchRequest.predicate = NSPredicate(format: "SELF IN %@", ids)
+                        prefetchRequest.relationshipKeyPathsForPrefetching = ["bolus", "tempBasal"]
+                        prefetchRequest.returnsObjectsAsFaults = false
+                        _ = try? self.viewContext.fetch(prefetchRequest)
+                    }
+                }
+
                 let insulinObjects: [PumpEventStored] = try await CoreDataStack.shared
                     .getNSManagedObject(with: ids, context: viewContext)
                 await updateInsulinArray(with: insulinObjects)
@@ -19,6 +32,9 @@ extension Home.StateModel {
     }
 
     private func fetchInsulin() async throws -> [NSManagedObjectID] {
+        let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
+        pumpHistoryFetchContext.name = "HomeStateModel.fetchInsulin"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: pumpHistoryFetchContext,
@@ -65,6 +81,9 @@ extension Home.StateModel {
     }
 
     func fetchLastBolus() async throws -> NSManagedObjectID? {
+        let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
+        pumpHistoryFetchContext.name = "HomeStateModel.fetchLastBolus"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: pumpHistoryFetchContext,

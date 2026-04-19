@@ -48,6 +48,9 @@ extension Stat.StateModel {
     /// 3. Calculates total macronutrients for each time period
     /// 4. Returns the processed statistics as (hourly: [MealStats], daily: [MealStats])
     private func fetchMealStats() async throws -> (hourly: [MealStats], daily: [MealStats]) {
+        let mealTaskContext = CoreDataStack.shared.newTaskContext()
+        mealTaskContext.name = "StatStateModel.fetchMealStats"
+
         // Fetch CarbEntryStored entries from Core Data
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
@@ -116,6 +119,9 @@ extension Stat.StateModel {
     ///
     /// This only needs to be called once during subscribe.
     private func calculateAndCacheDailyAverages() async {
+        let mealTaskContext = CoreDataStack.shared.newTaskContext()
+        mealTaskContext.name = "StatStateModel.calculateAndCacheDailyAverages"
+
         let calendar = Calendar.current
 
         // Calculate averages in context

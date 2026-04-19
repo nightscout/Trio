@@ -19,6 +19,9 @@ extension Home.StateModel {
     }
 
     private func fetchOverrides() async throws -> [NSManagedObjectID] {
+        let overrideFetchContext = CoreDataStack.shared.newTaskContext()
+        overrideFetchContext.name = "HomeStateModel.fetchOverrides"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
             onContext: overrideFetchContext,
@@ -56,6 +59,9 @@ extension Home.StateModel {
     }
 
     private func fetchOverrideRunStored() async throws -> [NSManagedObjectID] {
+        let overrideFetchContext = CoreDataStack.shared.newTaskContext()
+        overrideFetchContext.name = "HomeStateModel.fetchOverrideRunStored"
+
         let predicate = NSPredicate(format: "startDate >= %@", Date.oneDayAgo as NSDate)
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideRunStored.self,
