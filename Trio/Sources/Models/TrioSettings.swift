@@ -75,6 +75,10 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var smartStackView: LockScreenView = .simple
     var bolusShortcut: BolusShortcutLimit = .notAllowed
     var timeInRangeType: TimeInRangeType = .timeInTightRange
+    var barcodeScannerEnabled: Bool = false
+    var barcodeScannerOnlyCarbs: Bool = false
+    var openFoodFactsUsername: String = ""
+    var openFoodFactsPassword: String = ""
 
     /// Selected Garmin watchface (Trio or SwissAlpine)
     var garminWatchface: GarminWatchface = .trio
@@ -356,6 +360,22 @@ extension TrioSettings: Decodable {
 
         if let timeInRangeType = try? container.decode(TimeInRangeType.self, forKey: .timeInRangeType) {
             settings.timeInRangeType = timeInRangeType
+        }
+
+        if let barcodeScannerEnabled = try? container.decode(Bool.self, forKey: .barcodeScannerEnabled) {
+            settings.barcodeScannerEnabled = barcodeScannerEnabled
+        }
+
+        if let barcodeScannerOnlyCarbs = try? container.decode(Bool.self, forKey: .barcodeScannerOnlyCarbs) {
+            settings.barcodeScannerOnlyCarbs = barcodeScannerOnlyCarbs
+        }
+
+        if let openFoodFactsUsername = try? container.decode(String.self, forKey: .openFoodFactsUsername) {
+            settings.openFoodFactsUsername = openFoodFactsUsername
+        }
+
+        if let openFoodFactsPassword = try? container.decode(String.self, forKey: .openFoodFactsPassword) {
+            settings.openFoodFactsPassword = openFoodFactsPassword
         }
 
         if let garminWatchface = try? container.decode(GarminWatchface.self, forKey: .garminWatchface) {
