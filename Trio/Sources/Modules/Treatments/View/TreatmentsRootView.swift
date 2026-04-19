@@ -83,6 +83,16 @@ extension Treatments {
             } else { return 0 }
         }
 
+        private let scannedDeltaOverlayWidth: CGFloat = 52
+
+        @ViewBuilder  private func scannedNutrientDeltaText(value: Decimal) -> some View {
+            Text("+ \(Double(truncating: value as NSNumber), specifier: "%.1f")g")
+                .font(.caption)
+                .foregroundStyle(.blue)
+                .monospacedDigit()
+                .lineLimit(1)
+        }
+
         /// Handles macro input (carb, fat, protein) in a debounced fashion.
         func handleDebouncedInput() {
             debounce?.cancel()
@@ -116,10 +126,16 @@ extension Treatments {
                         .onChange(of: state.fat) {
                             handleDebouncedInput()
                         }
-                        if state.scannedFat > 0 && !state.settings.settings.barcodeScannerOnlyCarbs {
-                            Text("+ \(Double(truncating: state.scannedFat as NSNumber), specifier: "%.1f")g")
-                                .font(.caption)
-                                .foregroundStyle(.blue)
+                        .padding(
+                            .trailing,
+                            state.scannedFat > 0 && !state.settings.settings.barcodeScannerOnlyCarbs
+                                ? scannedDeltaOverlayWidth : 0
+                        )
+                        .overlay(alignment: .trailing) {
+                            if state.scannedFat > 0, !state.settings.settings.barcodeScannerOnlyCarbs {
+                                scannedNutrientDeltaText(value: state.scannedFat)
+                                    .allowsHitTesting(false)
+                            }
                         }
                     }
                 }
@@ -129,6 +145,7 @@ extension Treatments {
                 VStack {
                     HStack {
                         Text("Protein")
+                            .fixedSize(horizontal: true, vertical: false)
                         TextFieldWithToolBar(
                             text: $state.protein,
                             placeholder: "0",
@@ -143,10 +160,16 @@ extension Treatments {
                         .onChange(of: state.protein) {
                             handleDebouncedInput()
                         }
-                        if state.scannedProtein > 0 && !state.settings.settings.barcodeScannerOnlyCarbs {
-                            Text("+ \(Double(truncating: state.scannedProtein as NSNumber), specifier: "%.1f")g")
-                                .font(.caption)
-                                .foregroundStyle(.blue)
+                        .padding(
+                            .trailing,
+                            state.scannedProtein > 0 && !state.settings.settings.barcodeScannerOnlyCarbs
+                                ? scannedDeltaOverlayWidth : 0
+                        )
+                        .overlay(alignment: .trailing) {
+                            if state.scannedProtein > 0, !state.settings.settings.barcodeScannerOnlyCarbs {
+                                scannedNutrientDeltaText(value: state.scannedProtein)
+                                    .allowsHitTesting(false)
+                            }
                         }
                     }
                 }
@@ -284,10 +307,12 @@ extension Treatments {
                 .onChange(of: state.carbs) {
                     handleDebouncedInput()
                 }
-                if state.scannedCarbs > 0 {
-                    Text("+ \(Double(truncating: state.scannedCarbs as NSNumber), specifier: "%.1f")g")
-                        .font(.caption)
-                        .foregroundStyle(.blue)
+                .padding(.trailing, state.scannedCarbs > 0 ? scannedDeltaOverlayWidth : 0)
+                .overlay(alignment: .trailing) {
+                    if state.scannedCarbs > 0 {
+                        scannedNutrientDeltaText(value: state.scannedCarbs)
+                            .allowsHitTesting(false)
+                    }
                 }
             }
         }
