@@ -13,6 +13,11 @@ extension GlucoseNotificationSettings {
         @Published var notificationsCarb = true
         @Published var notificationsAlgorithm = true
 
+        @Published var useLoopFailureAlarmSound = false
+        @Published var alarmVolumeOverride = false
+        @Published var alarmVolume: Decimal = 0.8
+        @Published var loopFailureAlarmDelay: Decimal = 20
+
         var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
@@ -23,6 +28,21 @@ extension GlucoseNotificationSettings {
             subscribeSetting(\.notificationsCgm, on: $notificationsCgm) { notificationsCgm = $0 }
             subscribeSetting(\.notificationsCarb, on: $notificationsCarb) { notificationsCarb = $0 }
             subscribeSetting(\.notificationsAlgorithm, on: $notificationsAlgorithm) { notificationsAlgorithm = $0 }
+
+            subscribeSetting(\.useLoopFailureAlarmSound, on: $useLoopFailureAlarmSound) {
+                useLoopFailureAlarmSound = $0
+            }
+            subscribeSetting(\.alarmVolumeOverride, on: $alarmVolumeOverride) { alarmVolumeOverride = $0 }
+            subscribeSetting(\.alarmVolume, on: $alarmVolume, initial: {
+                alarmVolume = $0
+            }, map: {
+                max(min($0, 1.0), 0.0)
+            })
+            subscribeSetting(\.loopFailureAlarmDelay, on: $loopFailureAlarmDelay, initial: {
+                loopFailureAlarmDelay = $0
+            }, map: {
+                max(min($0, 120), 10)
+            })
 
             subscribeSetting(\.glucoseBadge, on: $glucoseBadge) { glucoseBadge = $0 }
             subscribeSetting(\.glucoseNotificationsOption, on: $glucoseNotificationsOption) { glucoseNotificationsOption = $0 }

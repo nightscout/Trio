@@ -1152,6 +1152,9 @@ extension Home {
                     CustomProgressView(text: String(localized: "Updating IOB...", comment: "Progress text when updating IOB"))
                 }
             }
+            .overlay(alignment: .top) {
+                AlarmBannerView()
+            }
         }
     }
 }

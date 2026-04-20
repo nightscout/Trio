@@ -272,7 +272,12 @@ enum SettingItems {
                 "Glucose Notifications",
                 "Add Glucose Source to Alarm",
                 "Low Glucose Alarm Limit",
-                "High Glucose Alarm Limit"
+                "High Glucose Alarm Limit",
+                "Loop Failure Alarm Sound",
+                "Loop Failure Alarm",
+                "Override Volume",
+                "Alarm Volume",
+                "Loop Failure Delay"
             ],
             path: ["Notifications", "Trio Notifications"] // Glucose
         ),
