@@ -20,7 +20,7 @@ struct AlarmBannerView: View {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundColor(.white)
-                    Text(alarmTitle)
+                    Text(String(localized: "Loop Failure Alarm Active", comment: "Loop failure alarm banner title"))
                         .font(.subheadline.bold())
                         .foregroundColor(.white)
                     Spacer()
@@ -85,17 +85,6 @@ struct AlarmBannerView: View {
             .padding(.top, 4)
             .transition(.move(edge: .top).combined(with: .opacity))
             .animation(.easeInOut, value: alarmSound.isAlarmActive)
-        }
-    }
-
-    private var alarmTitle: String {
-        switch alarmSound.currentAlarmReason {
-        case .pumpFault:
-            String(localized: "Pump Alarm Active", comment: "Pump alarm banner title")
-        case .loopFailure:
-            String(localized: "Loop Failure Alarm Active", comment: "Loop failure alarm banner title")
-        case nil:
-            String(localized: "Alarm Active", comment: "Generic alarm banner title")
         }
     }
 }

@@ -3,7 +3,7 @@ import UserNotifications
 
 enum NotificationCategoryIdentifier: String {
     case trioAlert = "Trio.alert"
-    case trioPumpAlarm = "Trio.pumpAlarm"
+    case trioLoopFailureAlarm = "Trio.loopFailureAlarm"
 }
 
 enum NotificationResponseAction: String, CaseIterable {
@@ -47,7 +47,7 @@ enum NotificationResponseAction: String, CaseIterable {
         case .snooze6hr:
             return String(localized: "6 hours", comment: "Snooze glucose alerts for 6 hours")
         case .acknowledge:
-            return String(localized: "Acknowledge", comment: "Acknowledge and dismiss alarm until next fault")
+            return String(localized: "Acknowledge", comment: "Acknowledge and dismiss alarm until the loop resumes")
         }
     }
 }
@@ -72,7 +72,7 @@ enum NotificationCategoryFactory {
         )
     }
 
-    static func createPumpAlarmCategory() -> UNNotificationCategory {
+    static func createLoopFailureAlarmCategory() -> UNNotificationCategory {
         let actions = NotificationResponseAction.allCases.map { action in
             UNNotificationAction(
                 identifier: action.rawValue,
@@ -82,7 +82,7 @@ enum NotificationCategoryFactory {
         }
 
         return UNNotificationCategory(
-            identifier: NotificationCategoryIdentifier.trioPumpAlarm.rawValue,
+            identifier: NotificationCategoryIdentifier.trioLoopFailureAlarm.rawValue,
             actions: actions,
             intentIdentifiers: [],
             options: []

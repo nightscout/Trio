@@ -13,7 +13,7 @@ extension GlucoseNotificationSettings {
         @Published var notificationsCarb = true
         @Published var notificationsAlgorithm = true
 
-        @Published var useAlarmSoundForPumpAlerts = false
+        @Published var useLoopFailureAlarmSound = false
         @Published var alarmVolumeOverride = false
         @Published var alarmVolume: Decimal = 0.8
         @Published var loopFailureAlarmDelay: Decimal = 20
@@ -29,8 +29,8 @@ extension GlucoseNotificationSettings {
             subscribeSetting(\.notificationsCarb, on: $notificationsCarb) { notificationsCarb = $0 }
             subscribeSetting(\.notificationsAlgorithm, on: $notificationsAlgorithm) { notificationsAlgorithm = $0 }
 
-            subscribeSetting(\.useAlarmSoundForPumpAlerts, on: $useAlarmSoundForPumpAlerts) {
-                useAlarmSoundForPumpAlerts = $0
+            subscribeSetting(\.useLoopFailureAlarmSound, on: $useLoopFailureAlarmSound) {
+                useLoopFailureAlarmSound = $0
             }
             subscribeSetting(\.alarmVolumeOverride, on: $alarmVolumeOverride) { alarmVolumeOverride = $0 }
             subscribeSetting(\.alarmVolume, on: $alarmVolume, initial: {

@@ -273,8 +273,8 @@ enum SettingItems {
                 "Add Glucose Source to Alarm",
                 "Low Glucose Alarm Limit",
                 "High Glucose Alarm Limit",
-                "Alarm Sound for Pump Errors",
-                "Critical Alarm Sound",
+                "Loop Failure Alarm Sound",
+                "Loop Failure Alarm",
                 "Override Volume",
                 "Alarm Volume",
                 "Loop Failure Delay"

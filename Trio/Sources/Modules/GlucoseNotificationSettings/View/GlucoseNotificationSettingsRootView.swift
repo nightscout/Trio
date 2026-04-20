@@ -250,7 +250,7 @@ extension GlucoseNotificationSettings {
                     )
                 }
 
-                criticalAlarmSection
+                loopFailureAlarmSection
             }
             .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
@@ -387,49 +387,49 @@ extension GlucoseNotificationSettings {
             }.listRowBackground(Color.chart)
         }
 
-        var criticalAlarmSection: some View {
+        var loopFailureAlarmSection: some View {
             Section {
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.useAlarmSoundForPumpAlerts,
+                    booleanValue: $state.useLoopFailureAlarmSound,
                     shouldDisplayHint: $shouldDisplayHint,
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = String(
-                                localized: "Alarm Sound for Pump Errors",
-                                comment: "Critical alarm setting hint label"
+                                localized: "Loop Failure Alarm Sound",
+                                comment: "Loop failure alarm setting hint label"
                             )
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: String(
-                        localized: "Alarm Sound for Pump Errors",
-                        comment: "Critical alarm toggle label"
+                        localized: "Loop Failure Alarm Sound",
+                        comment: "Loop failure alarm toggle label"
                     ),
                     miniHint: String(
-                        localized: "Play a loud alarm for critical pump faults and prolonged loop failures.",
-                        comment: "Critical alarm toggle mini hint"
+                        localized: "Play a loud alarm when the loop has not completed for the configured delay.",
+                        comment: "Loop failure alarm toggle mini hint"
                     ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "When enabled, pump faults (such as occlusions or pod failures) and prolonged loop failures will trigger a loud alarm sound that plays through the speaker even when your phone is on silent."
+                            "When enabled, a prolonged loop failure will trigger a loud alarm sound that plays through the speaker even when your phone is on silent."
                         )
                         Text(
-                            "The alarm repeats until you snooze or acknowledge it. Acknowledging dismisses the alarm until the next new fault occurs."
+                            "The alarm repeats until you snooze or acknowledge it. Acknowledging dismisses the alarm until the loop resumes."
                         )
                     },
                     headerText: String(
-                        localized: "Critical Alarm Sound",
-                        comment: "Critical alarm section header"
+                        localized: "Loop Failure Alarm",
+                        comment: "Loop failure alarm section header"
                     )
                 )
 
-                if state.useAlarmSoundForPumpAlerts {
+                if state.useLoopFailureAlarmSound {
                     SettingInputSection(
                         decimalValue: $decimalPlaceholder,
                         booleanValue: $state.alarmVolumeOverride,

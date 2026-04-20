@@ -3,7 +3,7 @@ import Foundation
 import MediaPlayer
 import UIKit
 
-/// Manages alarm sound playback for critical pump alerts.
+/// Manages alarm sound playback for prolonged loop failure.
 ///
 /// Uses `AVAudioSession.Category.playback` to bypass the mute switch and
 /// `MPVolumeView` to optionally override the system volume.
@@ -11,13 +11,6 @@ import UIKit
 @MainActor
 final class AlarmSound: NSObject, ObservableObject {
     static let shared = AlarmSound()
-
-    // MARK: - Alarm Reason
-
-    enum AlarmReason: Equatable {
-        case pumpFault(alertIdentifier: String)
-        case loopFailure
-    }
 
     // MARK: - Public State
 
@@ -27,12 +20,9 @@ final class AlarmSound: NSObject, ObservableObject {
         audioPlayer?.isPlaying == true
     }
 
-    private(set) var currentAlarmReason: AlarmReason?
-
     // MARK: - Persisted State
 
     @Persisted(key: "AlarmSound.snoozedUntil") var snoozedUntil: Date = .distantPast
-    @Persisted(key: "AlarmSound.acknowledgedPumpAlertId") private var acknowledgedPumpAlertId: String = ""
     @Persisted(key: "AlarmSound.loopFailureAcknowledged") private var loopFailureAcknowledged: Bool = false
 
     // MARK: - Private
@@ -47,16 +37,13 @@ final class AlarmSound: NSObject, ObservableObject {
 
     // MARK: - Playback
 
-    /// Start the alarm sound.
+    /// Start the loop-failure alarm sound.
     /// - Parameters:
-    ///   - reason: Why the alarm is firing (pump fault or loop failure).
     ///   - overrideVolume: Whether to temporarily raise the system volume.
     ///   - volume: The target system volume (0.0-1.0) when overriding.
-    func play(reason: AlarmReason, overrideVolume: Bool = false, volume: Float = 0.8) {
+    func play(overrideVolume: Bool = false, volume: Float = 0.8) {
         guard !isPlaying else { return }
-        guard shouldFire(for: reason) else { return }
-
-        currentAlarmReason = reason
+        guard shouldFire() else { return }
 
         guard let soundURL = Bundle.main.url(forResource: defaultSoundName, withExtension: "caf") else {
             debug(.service, "AlarmSound: sound file \(defaultSoundName).caf not found in bundle")
@@ -90,7 +77,7 @@ final class AlarmSound: NSObject, ObservableObject {
             }
 
             isAlarmActive = true
-            debug(.service, "AlarmSound: alarm started for \(reason)")
+            debug(.service, "AlarmSound: loop-failure alarm started")
         } catch {
             debug(.service, "AlarmSound: failed to play - \(error)")
         }
@@ -100,7 +87,6 @@ final class AlarmSound: NSObject, ObservableObject {
     func stop() {
         audioPlayer?.stop()
         audioPlayer = nil
-        currentAlarmReason = nil
         isAlarmActive = false
         restoreSystemOutputVolume()
     }
@@ -146,23 +132,19 @@ final class AlarmSound: NSObject, ObservableObject {
         debug(.service, "AlarmSound: snoozed for \(duration)s")
     }
 
-    /// Acknowledge the current alarm. Won't re-fire for the same fault; a new/different fault will still trigger.
+    /// Acknowledge the alarm. Won't re-fire until `loopDidResume()` clears the flag.
     func acknowledge() {
-        switch currentAlarmReason {
-        case let .pumpFault(alertIdentifier):
-            acknowledgedPumpAlertId = alertIdentifier
-            debug(.service, "AlarmSound: acknowledged pump fault \(alertIdentifier)")
-        case .loopFailure:
-            loopFailureAcknowledged = true
-            debug(.service, "AlarmSound: acknowledged loop failure")
-        case nil:
-            break
-        }
+        loopFailureAcknowledged = true
+        debug(.service, "AlarmSound: acknowledged loop failure")
         stop()
     }
 
-    /// Called when the loop successfully completes. Resets loop failure acknowledge state.
+    /// Called when the loop successfully completes. Stops any active alarm and resets the acknowledge state.
     func loopDidResume() {
+        if isPlaying {
+            debug(.service, "AlarmSound: loop resumed, stopping active alarm")
+            stop()
+        }
         if loopFailureAcknowledged {
             loopFailureAcknowledged = false
             debug(.service, "AlarmSound: loop resumed, reset loop failure acknowledge")
@@ -171,16 +153,11 @@ final class AlarmSound: NSObject, ObservableObject {
 
     // MARK: - Guard Check
 
-    /// Returns true if the alarm should fire for the given reason (not snoozed, not acknowledged).
-    func shouldFire(for reason: AlarmReason) -> Bool {
+    /// Returns true if the alarm should fire (not playing, not snoozed, not acknowledged).
+    func shouldFire() -> Bool {
         if isPlaying { return false }
         if snoozedUntil > Date() { return false }
-        switch reason {
-        case let .pumpFault(alertIdentifier):
-            return alertIdentifier != acknowledgedPumpAlertId
-        case .loopFailure:
-            return !loopFailureAcknowledged
-        }
+        return !loopFailureAcknowledged
     }
 
     // MARK: - Volume

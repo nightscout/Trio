@@ -117,11 +117,11 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             guard let self else { return }
 
             let glucoseCategory = NotificationCategoryFactory.createGlucoseCategory()
-            let pumpAlarmCategory = NotificationCategoryFactory.createPumpAlarmCategory()
+            let loopFailureAlarmCategory = NotificationCategoryFactory.createLoopFailureAlarmCategory()
 
             var categories = existingCategories
             categories.update(with: glucoseCategory)
-            categories.update(with: pumpAlarmCategory)
+            categories.update(with: loopFailureAlarmCategory)
             // UNUserNotificationCenter methods should be called on main thread
             Task { @MainActor [weak self] in
                 guard let self else { return }
@@ -175,7 +175,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     /// Check if the loop has been failing long enough to trigger an alarm sound.
     private func checkLoopFailureAlarm() {
         let settings = settingsManager.settings
-        guard settings.useAlarmSoundForPumpAlerts else { return }
+        guard settings.useLoopFailureAlarmSound else { return }
 
         let delayMinutes = Double(truncating: settings.loopFailureAlarmDelay as NSNumber)
         let lastLoopDate = apsManager.lastLoopDate
@@ -208,36 +208,42 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             return
         }
 
-        debug(
-            .service,
-            "[LoopFailureAlarm] firing — minutesSinceLastLoop=\(String(format: "%.0f", minutesSinceLastLoop)), " +
-                "threshold=\(String(format: "%.0f", delayMinutes)) min"
-        )
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            // Suppress both the sound and the lock-screen notification when snoozed or acknowledged.
+            guard AlarmSound.shared.shouldFire() else { return }
 
-        DispatchQueue.main.async {
+            debug(
+                .service,
+                "[LoopFailureAlarm] firing — minutesSinceLastLoop=\(String(format: "%.0f", minutesSinceLastLoop)), " +
+                    "threshold=\(String(format: "%.0f", delayMinutes)) min"
+            )
+
             AlarmSound.shared.play(
-                reason: .loopFailure,
                 overrideVolume: settings.alarmVolumeOverride,
                 volume: Float(truncating: settings.alarmVolume as NSNumber)
             )
-        }
 
-        // Send a notification with snooze/acknowledge actions so the user can dismiss from the lock screen
-        let content = UNMutableNotificationContent()
-        content.title = String(localized: "Loop Failure Alarm", comment: "Loop failure alarm notification title")
-        content.body = String(
-            format: String(localized: "Last loop was more than %d min ago", comment: "Last loop was more than %d min ago"),
-            Int(delayMinutes)
-        )
-        content.sound = .default
-        content.categoryIdentifier = NotificationCategoryIdentifier.trioPumpAlarm.rawValue
-        addRequest(
-            identifier: .noLoopSecondNotification,
-            content: content,
-            deleteOld: true,
-            messageType: .error,
-            messageSubtype: .pump
-        )
+            // In-app banner covers the foreground case; only post a lock-screen notification
+            // when the app isn't active (so the lock screen and Apple Watch get the alert).
+            guard UIApplication.shared.applicationState != .active else { return }
+
+            let content = UNMutableNotificationContent()
+            content.title = String(localized: "Loop Failure Alarm", comment: "Loop failure alarm notification title")
+            content.body = String(
+                format: String(localized: "Last loop was more than %d min ago", comment: "Last loop was more than %d min ago"),
+                Int(delayMinutes)
+            )
+            content.sound = .default
+            content.categoryIdentifier = NotificationCategoryIdentifier.trioLoopFailureAlarm.rawValue
+            self.addRequest(
+                identifier: .noLoopSecondNotification,
+                content: content,
+                deleteOld: true,
+                messageType: .error,
+                messageSubtype: .pump
+            )
+        }
     }
 
     private func addAppBadge(glucose: Int?) {
@@ -560,11 +566,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         // removeGlucoseNotifications() is safe to call here since we're @MainActor
         removeGlucoseNotifications()
 
-        // Also snooze the alarm sound if it's playing
-        if AlarmSound.shared.isPlaying {
-            AlarmSound.shared.snooze(for: duration)
-        }
-
         // Notify observers that snooze was applied
         broadcaster.notify(SnoozeObserver.self, on: .main) { (observer: SnoozeObserver) in
             observer.snoozeDidChange(untilDate)
@@ -705,10 +706,8 @@ extension BaseUserNotificationsManager: pumpNotificationObserver {
         let content = UNMutableNotificationContent()
         let alertUp = alert.alertIdentifier.uppercased()
         let typeMessage: MessageType
-        let isFaultOrError = alertUp.contains("FAULT") || alertUp.contains("ERROR")
-        if isFaultOrError {
+        if alertUp.contains("FAULT") || alertUp.contains("ERROR") {
             content.userInfo[NotificationAction.key] = NotificationAction.pumpConfig.rawValue
-            content.categoryIdentifier = NotificationCategoryIdentifier.trioPumpAlarm.rawValue
             typeMessage = .error
         } else {
             typeMessage = .warning
@@ -726,18 +725,6 @@ extension BaseUserNotificationsManager: pumpNotificationObserver {
             messageSubtype: .pump,
             action: .pumpConfig
         )
-
-        // Play alarm sound for critical pump faults/errors
-        if isFaultOrError, settingsManager.settings.useAlarmSoundForPumpAlerts {
-            let settings = settingsManager.settings
-            DispatchQueue.main.async {
-                AlarmSound.shared.play(
-                    reason: .pumpFault(alertIdentifier: alert.alertIdentifier),
-                    overrideVolume: settings.alarmVolumeOverride,
-                    volume: Float(truncating: settings.alarmVolume as NSNumber)
-                )
-            }
-        }
     }
 
     func pumpRemoveNotification() {
@@ -790,9 +777,16 @@ extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
 
         // Handle quick snooze/acknowledge actions (from notification action buttons)
         if let quickAction = NotificationResponseAction(rawValue: response.actionIdentifier) {
+            let categoryId = response.notification.request.content.categoryIdentifier
+            let isLoopFailureAlarm = categoryId == NotificationCategoryIdentifier.trioLoopFailureAlarm.rawValue
+
             if quickAction == .acknowledge {
                 DispatchQueue.main.async {
                     AlarmSound.shared.acknowledge()
+                }
+            } else if isLoopFailureAlarm {
+                DispatchQueue.main.async {
+                    AlarmSound.shared.snooze(for: quickAction.duration)
                 }
             } else {
                 Task { @MainActor [weak self] in
