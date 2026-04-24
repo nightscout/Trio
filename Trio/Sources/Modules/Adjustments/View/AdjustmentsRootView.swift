@@ -23,6 +23,7 @@ extension Adjustments {
         @State var isEditingTT = false
         @State var showCancelOverrideConfirmDialog = false
         @State var showCancelTempTargetConfirmDialog = false
+        @State var pendingPresetActivation: PendingPresetActivation?
 
         private var shouldDisplayStickyOverrideStopButton: Bool {
             state.isOverrideEnabled && state.activeOverrideName.isNotEmpty
@@ -171,6 +172,23 @@ extension Adjustments {
                 } message: {
                     Text("Stop the Temp Target \"\(state.currentActiveTempTarget?.name ?? "")\"?")
                 }
+                .confirmationDialog(
+                    "Activate Preset",
+                    isPresented: presetActivationConfirmationBinding
+                ) {
+                    Button("Activate") {
+                        if let activation = pendingPresetActivation {
+                            activatePreset(activation)
+                        }
+                    }
+
+                    Button("Cancel", role: .cancel) {
+                        state.shouldDisplayPresetActivateConfirmDialog = false
+                        pendingPresetActivation = nil
+                    }
+                } message: {
+                    Text("Are you sure you want to activate preset \"\(pendingPresetActivation?.name ?? "")\"?")
+                }
             }).background(appState.trioBackgroundColor(for: colorScheme))
         }
 
@@ -287,6 +305,83 @@ extension Adjustments {
                 return "\(minutes)m \(seconds)s"
             } else {
                 return "<1m"
+            }
+        }
+    }
+}
+
+// MARK: Preset Activation Handling
+
+extension Adjustments.RootView: View {
+    enum PendingPresetActivation {
+        case override(objectID: NSManagedObjectID, presetID: String?, name: String)
+        case tempTarget(objectID: NSManagedObjectID, presetID: String?, name: String)
+
+        var name: String {
+            switch self {
+            case let .override(_, _, name),
+                 let .tempTarget(_, _, name):
+                return name
+            }
+        }
+    }
+
+    private var presetActivationConfirmationBinding: Binding<Bool> {
+        Binding(
+            get: {
+                state.requireAdjustmentsConfirmation &&
+                    state.shouldDisplayPresetActivateConfirmDialog &&
+                    pendingPresetActivation != nil
+            },
+            set: { isPresented in
+                if !isPresented {
+                    state.shouldDisplayPresetActivateConfirmDialog = false
+                    pendingPresetActivation = nil
+                }
+            }
+        )
+    }
+
+    func requestPresetActivation(_ activation: PendingPresetActivation) {
+        if state.requireAdjustmentsConfirmation {
+            pendingPresetActivation = activation
+            state.shouldDisplayPresetActivateConfirmDialog = true
+        } else {
+            activatePreset(activation)
+        }
+    }
+
+    func activatePreset(_ activation: PendingPresetActivation) {
+        Task {
+            switch activation {
+            case let .override(objectID, presetID, _):
+                await state.enactOverridePreset(withID: objectID)
+
+                await MainActor.run {
+                    state.hideModal()
+                    selectedOverridePresetID = presetID
+                    showOverrideCheckmark = true
+                    state.shouldDisplayPresetActivateConfirmDialog = false
+                    pendingPresetActivation = nil
+                }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    showOverrideCheckmark = false
+                }
+
+            case let .tempTarget(objectID, presetID, _):
+                await state.enactTempTargetPreset(withID: objectID)
+
+                await MainActor.run {
+                    selectedTempTargetPresetID = presetID
+                    showTempTargetCheckmark = true
+                    state.shouldDisplayPresetActivateConfirmDialog = false
+                    pendingPresetActivation = nil
+                }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    showTempTargetCheckmark = false
+                }
             }
         }
     }
