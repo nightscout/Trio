@@ -582,10 +582,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         } catch {
             debug(.nightscout, String(describing: error))
         }
-
-        Task.detached {
-            await self.uploadPodAge()
-        }
     }
 
     private func updateOrefDeterminationAsUploaded(_ determination: [Determination]) async {
@@ -607,33 +603,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
                 )
             }
-        }
-    }
-
-    func uploadPodAge() async {
-        let uploadedPodAge = storage.retrieve(OpenAPS.Nightscout.uploadedPodAge, as: [NightscoutTreatment].self) ?? []
-        if let podAge = storage.retrieve(OpenAPS.Monitor.podAge, as: Date.self),
-           uploadedPodAge.last?.createdAt == nil || podAge != uploadedPodAge.last!.createdAt!
-        {
-            let siteTreatment = NightscoutTreatment(
-                duration: nil,
-                rawDuration: nil,
-                rawRate: nil,
-                absolute: nil,
-                rate: nil,
-                eventType: .nsSiteChange,
-                createdAt: podAge,
-                enteredBy: NightscoutTreatment.local,
-                bolus: nil,
-                insulin: nil,
-                notes: nil,
-                carbs: nil,
-                fat: nil,
-                protein: nil,
-                targetTop: nil,
-                targetBottom: nil
-            )
-            await uploadNonCoreDataTreatments([siteTreatment])
         }
     }
 
