@@ -19,7 +19,6 @@ protocol GlucoseStorage {
     func isGlucoseFresh() -> Bool
     func getGlucoseNotYetUploadedToNightscout() async throws -> [BloodGlucose]
     func getCGMStateNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
-    func getManualGlucoseNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func getGlucoseNotYetUploadedToHealth() async throws -> [BloodGlucose]
     func getManualGlucoseNotYetUploadedToHealth() async throws -> [BloodGlucose]
     func getGlucoseNotYetUploadedToTidepool() async throws -> [StoredGlucoseSample]
@@ -411,64 +410,28 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             }
 
             return fetchedResults.map { result in
-                BloodGlucose(
-                    id: result.id?.uuidString ?? UUID().uuidString,
-                    sgv: Int(result.glucose),
-                    direction: BloodGlucose.Direction(from: result.direction ?? ""),
-                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
-                    dateString: result.date ?? Date(),
-                    unfiltered: Decimal(result.glucose),
-                    filtered: Decimal(result.glucose),
-                    noise: nil,
-                    glucose: Int(result.glucose),
-                    type: "sgv"
-                )
-            }
-        }
-    }
-
-    // Fetch manual glucose that is not uploaded to Nightscout yet
-    /// - Returns: Array of NightscoutTreatment to ensure the correct format for the NS Upload
-    func getManualGlucoseNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: GlucoseStored.self,
-            onContext: context,
-            predicate: NSPredicate.manualGlucoseNotYetUploadedToNightscout,
-            key: "date",
-            ascending: false
-        )
-
-        return try await context.perform {
-            guard let fetchedResults = results as? [GlucoseStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            return fetchedResults.map { result in
-                NightscoutTreatment(
-                    duration: nil,
-                    rawDuration: nil,
-                    rawRate: nil,
-                    absolute: nil,
-                    rate: nil,
-                    eventType: .capillaryGlucose,
-                    createdAt: result.date,
-                    enteredBy: CarbsEntry.local,
-                    bolus: nil,
-                    insulin: nil,
-                    notes: "Trio User",
-                    carbs: nil,
-                    fat: nil,
-                    protein: nil,
-                    foodType: nil,
-                    targetTop: nil,
-                    targetBottom: nil,
-                    glucoseType: "Manual",
-                    glucose: self.settingsManager.settings
-                        .units == .mgdL ? (self.glucoseFormatter.string(from: Int(result.glucose) as NSNumber) ?? "")
-                        : (self.glucoseFormatter.string(from: Decimal(result.glucose).asMmolL as NSNumber) ?? ""),
-                    units: self.settingsManager.settings.units == .mmolL ? "mmol" : "mg/dl",
-                    id: result.id?.uuidString
-                )
+                if result.isManual {
+                    BloodGlucose(
+                        id: result.id?.uuidString ?? UUID().uuidString,
+                        mbg: Int(result.glucose),
+                        date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                        dateString: result.date ?? Date(),
+                        type: "mbg"
+                    )
+                } else {
+                    BloodGlucose(
+                        id: result.id?.uuidString ?? UUID().uuidString,
+                        sgv: Int(result.glucose),
+                        direction: BloodGlucose.Direction(from: result.direction ?? ""),
+                        date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                        dateString: result.date ?? Date(),
+                        unfiltered: Decimal(result.glucose),
+                        filtered: Decimal(result.glucose),
+                        noise: nil,
+                        glucose: Int(result.glucose),
+                        type: "sgv"
+                    )
+                }
             }
         }
     }

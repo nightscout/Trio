@@ -245,7 +245,6 @@ protocol HistoryProvider: Provider {
     func deleteCarbsFromNightscout(withID id: String)
     func deleteInsulinFromNightscout(withID id: String)
     func deleteGlucoseFromNightscout(withID id: String, withDate date: Date)
-    func deleteManualGlucoseFromNightscout(withID id: String, withDate date: Date)
     func deleteGlucoseFromHealth(withSyncID id: String)
     func deleteMealDataFromHealth(byID id: String, sampleType: HKSampleType)
     func deleteInsulinFromHealth(withSyncID id: String)

@@ -188,14 +188,21 @@ extension NightscoutAPI {
         return
     }
 
-    func deleteGlucose(withId _: String, withDate date: Date) async throws {
+    func deleteGlucose(withId id: String, withDate date: Date) async throws {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
         components.port = url.port
         components.path = Config.uploadEntriesPath
         components.queryItems = [
-            URLQueryItem(name: "find[dateString][$eq]", value: Formatter.iso8601withFractionalSeconds.string(from: date))
+            URLQueryItem(
+                name: "find[$or][0][id][$eq]",
+                value: id
+            ),
+            URLQueryItem(
+                name: "find[$or][1][dateString][$eq]",
+                value: Formatter.iso8601withFractionalSeconds.string(from: date)
+            )
         ]
 
         guard let url = components.url else {
@@ -216,38 +223,6 @@ extension NightscoutAPI {
         guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
             throw URLError(.badServerResponse)
         }
-    }
-
-    func deleteManualGlucose(withId id: String, withDate date: Date) async throws {
-        var components = URLComponents()
-        components.scheme = url.scheme
-        components.host = url.host
-        components.port = url.port
-        components.path = Config.uploadEntriesPath
-        components.queryItems = [
-            URLQueryItem(name: "find[dateString][$eq]", value: Formatter.iso8601withFractionalSeconds.string(from: date))
-        ]
-
-        guard let url = components.url else {
-            throw URLError(.badURL)
-        }
-
-        var request = URLRequest(url: url)
-        request.allowsConstrainedNetworkAccess = false
-        request.timeoutInterval = Config.timeout
-        request.httpMethod = "DELETE"
-
-        if let secret = secret {
-            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
-        }
-
-        let (_, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
-            throw URLError(.badServerResponse)
-        }
-
-        debugPrint("Delete successful for ID \(id) at \(date)")
     }
 
     func deleteInsulin(withId id: String) async throws {
