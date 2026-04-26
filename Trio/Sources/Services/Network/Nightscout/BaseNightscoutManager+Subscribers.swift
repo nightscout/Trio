@@ -73,7 +73,6 @@ extension BaseNightscoutManager {
             .filteredByEntityName("GlucoseStored")
             .sink { [weak self] _ in
                 self?.requestUpload(.glucose)
-                self?.requestUpload(.manualGlucose)
             }
             .store(in: &subscriptions)
     }

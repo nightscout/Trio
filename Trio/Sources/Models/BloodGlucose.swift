@@ -60,8 +60,10 @@ struct BloodGlucose: JSON, Identifiable, Hashable, Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case _id
+        case legacyId = "_id"
+        case id
         case sgv
+        case mbg
         case direction
         case date
         case dateString
@@ -77,13 +79,26 @@ struct BloodGlucose: JSON, Identifiable, Hashable, Codable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        _id = try container.decode(String.self, forKey: ._id)
+
+        let legacyId = try container.decodeIfPresent(String.self, forKey: .legacyId)
+        let explicitId = try container.decodeIfPresent(String.self, forKey: .id)
+
+        self.legacyId = legacyId
+        id = explicitId ?? legacyId ?? UUID().uuidString
 
         sgv = try? container.decodeIfPresent(Int.self, forKey: .sgv)
         if sgv == nil {
             // The nightscout API might return a double instead of an int, or the key might be missing
             if let doubleValue = try? container.decodeIfPresent(Double.self, forKey: .sgv) {
                 sgv = Int(doubleValue)
+            }
+            // If both attempts fail, sgv remains nil
+        }
+        mbg = try? container.decodeIfPresent(Int.self, forKey: .mbg)
+        if mbg == nil {
+            // The nightscout API might return a double instead of an int, or the key might be missing
+            if let doubleValue = try? container.decodeIfPresent(Double.self, forKey: .mbg) {
+                mbg = Int(doubleValue)
             }
             // If both attempts fail, sgv remains nil
         }
@@ -102,8 +117,10 @@ struct BloodGlucose: JSON, Identifiable, Hashable, Codable {
     }
 
     init(
-        _id: String = UUID().uuidString,
+        id: String = UUID().uuidString,
+        legacyId: String? = nil,
         sgv: Int? = nil,
+        mbg: Int? = nil,
         direction: Direction? = nil,
         date: Decimal,
         dateString: Date,
@@ -116,8 +133,10 @@ struct BloodGlucose: JSON, Identifiable, Hashable, Codable {
         sessionStartDate: Date? = nil,
         transmitterID: String? = nil
     ) {
-        self._id = _id
+        self.id = id
+        self.legacyId = legacyId
         self.sgv = sgv
+        self.mbg = mbg
         self.direction = direction
         self.date = date
         self.dateString = dateString
@@ -131,12 +150,10 @@ struct BloodGlucose: JSON, Identifiable, Hashable, Codable {
         self.transmitterID = transmitterID
     }
 
-    var _id: String?
-    var id: String {
-        _id ?? UUID().uuidString
-    }
-
+    let legacyId: String?
+    var id: String
     var sgv: Int?
+    var mbg: Int?
     var direction: Direction?
     let date: Decimal
     let dateString: Date
