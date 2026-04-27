@@ -183,11 +183,13 @@ extension Adjustments {
                     }
 
                     Button("Cancel", role: .cancel) {
-                        state.shouldDisplayPresetActivateConfirmDialog = false
+                        state.shouldDisplayPresetStartConfirmDialog = false
                         pendingPresetActivation = nil
                     }
                 } message: {
-                    Text("Are you sure you want to activate preset \"\(pendingPresetActivation?.name ?? "")\"?")
+                    if let activation = pendingPresetActivation {
+                        Text(activation.confirmationMessage)
+                    }
                 }
             }).background(appState.trioBackgroundColor(for: colorScheme))
         }
@@ -324,18 +326,31 @@ extension Adjustments.RootView: View {
                 return name
             }
         }
+
+        var adjustmentType: String {
+            switch self {
+            case .override:
+                return String(localized: "Override")
+            case .tempTarget:
+                return String(localized: "Temp Target")
+            }
+        }
+
+        var confirmationMessage: String {
+            String(localized: "Start the \(adjustmentType) \"\(name)\"?", comment: "Confirmation message for starting a preset")
+        }
     }
 
     private var presetActivationConfirmationBinding: Binding<Bool> {
         Binding(
             get: {
                 state.requireAdjustmentsConfirmation &&
-                    state.shouldDisplayPresetActivateConfirmDialog &&
+                    state.shouldDisplayPresetStartConfirmDialog &&
                     pendingPresetActivation != nil
             },
             set: { isPresented in
                 if !isPresented {
-                    state.shouldDisplayPresetActivateConfirmDialog = false
+                    state.shouldDisplayPresetStartConfirmDialog = false
                     pendingPresetActivation = nil
                 }
             }
@@ -345,7 +360,7 @@ extension Adjustments.RootView: View {
     func requestPresetActivation(_ activation: PendingPresetActivation) {
         if state.requireAdjustmentsConfirmation {
             pendingPresetActivation = activation
-            state.shouldDisplayPresetActivateConfirmDialog = true
+            state.shouldDisplayPresetStartConfirmDialog = true
         } else {
             activatePreset(activation)
         }
@@ -361,7 +376,7 @@ extension Adjustments.RootView: View {
                     state.hideModal()
                     selectedOverridePresetID = presetID
                     showOverrideCheckmark = true
-                    state.shouldDisplayPresetActivateConfirmDialog = false
+                    state.shouldDisplayPresetStartConfirmDialog = false
                     pendingPresetActivation = nil
                 }
 
@@ -375,7 +390,7 @@ extension Adjustments.RootView: View {
                 await MainActor.run {
                     selectedTempTargetPresetID = presetID
                     showTempTargetCheckmark = true
-                    state.shouldDisplayPresetActivateConfirmDialog = false
+                    state.shouldDisplayPresetStartConfirmDialog = false
                     pendingPresetActivation = nil
                 }
 

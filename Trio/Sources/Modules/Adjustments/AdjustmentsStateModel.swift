@@ -14,7 +14,7 @@ extension Adjustments {
         @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
 
         var requireAdjustmentsConfirmation: Bool = false
-        var shouldDisplayPresetActivateConfirmDialog: Bool = false
+        var shouldDisplayPresetStartConfirmDialog: Bool = false
 
         // MARK: - Override and Temp Target Properties
 
