@@ -76,7 +76,7 @@ extension DynamicSettings {
                                 Spacer()
                                 Button(
                                     action: {
-                                        hintLabel = String(localized: "Time in Range Chart Style")
+                                        hintLabel = String(localized: "Dynamic Insulin Sensitivity")
                                         selectedVerboseHint =
                                             AnyView(
                                                 VStack(alignment: .leading, spacing: 10) {
