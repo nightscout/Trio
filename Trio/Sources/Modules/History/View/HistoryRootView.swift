@@ -511,7 +511,7 @@ extension History {
                             Button(
                                 "Delete",
                                 systemImage: "trash.fill",
-                                role: .none,
+                                role: .destructive,
                                 action: {
                                     alertGlucoseToDelete = glucose
 
@@ -692,7 +692,7 @@ extension History {
                     Button(
                         "Delete",
                         systemImage: "trash.fill",
-                        role: .none,
+                        role: .destructive,
                         action: {
                             alertTreatmentToDelete = item
                             alertTitle = String(localized: "Delete Insulin?", comment: "Alert title for deleting insulin")
@@ -798,7 +798,7 @@ extension History {
                 Button(
                     "Delete",
                     systemImage: "trash.fill",
-                    role: .none,
+                    role: .destructive,
                     action: {
                         alertCarbEntryToDelete = meal
 
@@ -843,7 +843,7 @@ extension History {
                 Button(
                     "Delete",
                     systemImage: "trash.fill",
-                    role: .none,
+                    role: .destructive,
                     action: {
                         alertCarbEntryToDelete = meal
 

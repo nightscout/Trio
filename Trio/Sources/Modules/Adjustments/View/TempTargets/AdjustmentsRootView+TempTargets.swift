@@ -79,7 +79,7 @@ extension Adjustments.RootView {
 
     private func actionButtonsForTempTargets(for tempTarget: TempTargetStored) -> some View {
         Group {
-            Button {
+            Button(role: .destructive) {
                 Task {
                     selectedTempTarget = tempTarget
                     isConfirmDeletePresented = true

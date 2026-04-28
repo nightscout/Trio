@@ -93,7 +93,7 @@ extension Adjustments.RootView {
 
     func actionButtonsForOverrides(for preset: OverrideStored) -> some View {
         Group {
-            Button(role: .none) {
+            Button(role: .destructive) {
                 selectedOverride = preset
                 isConfirmDeletePresented = true
             } label: {
