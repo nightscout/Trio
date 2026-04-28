@@ -958,7 +958,6 @@ extension BaseTidepoolManager {
     }
 }
 
-
 // Service extension for rawValue
 extension Service {
     typealias RawValue = [String: Any]
