@@ -5,6 +5,6 @@
 	<key>TidepoolServiceClientId</key>
 	<string>nightscout-trio</string>
 	<key>TidepoolServiceRedirectURL</key>
-	<string> org.nightscout.trio.tidepoolkit.auth://redirect</string>
+	<string>org.nightscout.trio.tidepoolkit.auth://redirect</string>
 </dict>
 </plist>
