@@ -843,7 +843,7 @@ extension History {
                 Button(
                     "Delete",
                     systemImage: "trash.fill",
-                    role: .destructive,
+                    role: .none,
                     action: {
                         alertCarbEntryToDelete = meal
 
