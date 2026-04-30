@@ -100,6 +100,12 @@ enum SettingItems {
                 "Minimum Safety Threshold",
                 "Delivery Limits"
             ],
+            scrollTargetLabels: [
+                "Max IOB": "Maximum Insulin on Board (IOB)",
+                "Max Bolus": "Maximum Bolus",
+                "Max Basal": "Maximum Basal Rate",
+                "Max COB": "Maximum Carbs on Board (COB)"
+            ],
             path: ["Therapy Settings", "Units and Limits"]
         ),
         SettingItem(title: "Basal Rates", view: .basalProfileEditor, path: ["Therapy Settings"]),
@@ -133,6 +139,12 @@ enum SettingItems {
                 "Max UAM SMB Basal Minutes",
                 "Max Allowed Glucose Rise for SMB"
             ],
+            scrollTargetLabels: [
+                "Enable SMB With Temporary Target": "Enable SMB With Temptarget",
+                "Allow SMB With High Temporary Target": "Allow SMB With High Temptarget",
+                "Max UAM SMB Basal Minutes": "Max UAM Basal Minutes",
+                "High Glucose Target": "Enable SMB With High Glucose"
+            ],
             path: ["Algorithm", "Super Micro Bolus (SMB)"]
         ),
         SettingItem(
@@ -159,6 +171,10 @@ enum SettingItems {
                 "Resistance Lowers Target",
                 "Half Basal Exercise Target"
             ],
+            scrollTargetLabels: [
+                "High Temptarget Raises Sensitivity": "High Temp Target Raises Sensitivity",
+                "Low Temptarget Lowers Sensitivity": "Low Temp Target Lowers Sensitivity"
+            ],
             path: ["Algorithm", "Target Behavior"]
         ),
         SettingItem(
@@ -179,6 +195,11 @@ enum SettingItems {
                 "Remaining Carbs Cap",
                 "Noisy CGM Target Multiplier"
             ],
+            scrollTargetLabels: [
+                "Min 5m Carbimpact": "Min 5m Carb Impact",
+                "Remaining Carbs Fraction": "Remaining Carbs Percentage",
+                "Noisy CGM Target Multiplier": "Noisy CGM Target Increase"
+            ],
             path: ["Algorithm", "Additionals"]
         )
     ]
@@ -196,6 +217,12 @@ enum SettingItems {
                 "Super Bolus Factor",
                 "Very Low Glucose Warning"
             ],
+            scrollTargetLabels: [
+                "Enable Reduced Bolus Factor": "Enable Reduced Bolus Option",
+                "Reduced Bolus Factor": "Enable Reduced Bolus Option",
+                "Enable Super Bolus": "Enable Super Bolus Option",
+                "Super Bolus Factor": "Enable Super Bolus Option"
+            ],
             path: ["Features", "Bolus Calculator"]
         ),
         SettingItem(
@@ -211,6 +238,14 @@ enum SettingItems {
                 "Spread Interval",
                 "Fat and Protein Percentage",
                 "FPU"
+            ],
+            scrollTargetLabels: [
+                "Max Fat": "Enable Fat and Protein Entries",
+                "Max Protein": "Enable Fat and Protein Entries",
+                "Fat and Protein Delay": "Enable Fat and Protein Entries",
+                "Spread Interval": "Enable Fat and Protein Entries",
+                "Fat and Protein Percentage": "Enable Fat and Protein Entries",
+                "FPU": "Enable Fat and Protein Entries"
             ],
             path: ["Features", "Meal Settings"]
         ),
@@ -235,7 +270,6 @@ enum SettingItems {
                 "Show Low and High Thresholds",
                 "Low Threshold",
                 "High Threshold",
-                "X-Axis Interval Step",
                 "eA1c/GMI Display Unit",
                 "Show Carbs Required Badge",
                 "Carbs Required Threshold",
@@ -243,15 +277,30 @@ enum SettingItems {
                 "Bolus Display Threshold",
                 "Cone",
                 "Lines",
+                "Appearance",
                 "Dark Mode",
                 "Light Mode",
-                "Appearance",
                 "Dark Scheme",
                 "Light Scheme",
                 "Glucose Color Scheme",
                 "Time in Range Type",
                 "Time in Tight Range (TITR)",
-                "Time in Normoglycemia (TING)"
+                "Time in Normoglycemia (TING)",
+                "X-Axis Interval Step"
+            ],
+            scrollTargetLabels: [
+                "Show Y-Axis Grid Lines": "Show X-Axis Grid Lines",
+                "High Threshold": "Low Threshold",
+                "Cone": "Forecast Display Type",
+                "Lines": "Forecast Display Type",
+                "Dark Mode": "Appearance",
+                "Light Mode": "Appearance",
+                "Time in Tight Range (TITR)": "Time in Range Type",
+                "Time in Normoglycemia (TING)": "Time in Range Type",
+                "Dark Scheme": "Appearance",
+                "Light Scheme": "Appearance",
+                "X-Axis Interval Step": "Show X-Axis Grid Lines",
+                "Carbs Required Threshold": "Show Carbs Required Badge"
             ],
             path: ["Features", "User Interface"]
         ),
@@ -284,6 +333,10 @@ enum SettingItems {
                 "Add Glucose Source to Alarm",
                 "Low Glucose Alarm Limit",
                 "High Glucose Alarm Limit"
+            ],
+            scrollTargetLabels: [
+                "Low Glucose Alarm Limit": "Glucose Notifications",
+                "High Glucose Alarm Limit": "Glucose Notifications"
             ],
             path: ["Notifications", "Trio Notifications"] // Glucose
         ),

@@ -96,7 +96,7 @@ extension UserInterfaceSettings {
                             }.padding(.top)
                         }.padding(.bottom)
                     }
-                ).listRowBackground(Color.chart)
+                ).settingsSearchTarget(label: String(localized: "Appearance"))
 
                 Section {
                     VStack {
@@ -154,7 +154,7 @@ extension UserInterfaceSettings {
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
                     }.padding(.bottom)
-                }.listRowBackground(Color.chart)
+                }.settingsSearchTarget(label: String(localized: "Glucose Color Scheme"))
 
                 Section(
                     header: Text("Home View Settings"),
@@ -189,7 +189,7 @@ extension UserInterfaceSettings {
                             }.padding(.top)
                         }.padding(.vertical)
                     }
-                ).listRowBackground(Color.chart)
+                ).settingsSearchTarget(label: String(localized: "Show X-Axis Grid Lines"))
 
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
@@ -319,7 +319,7 @@ extension UserInterfaceSettings {
                                 ).buttonStyle(BorderlessButtonStyle())
                             }.padding(.top)
                         }.padding(.bottom)
-                    }.listRowBackground(Color.chart)
+                    }.settingsSearchTarget(label: String(localized: "Low Threshold"))
                 }
 
                 Section {
@@ -374,7 +374,7 @@ extension UserInterfaceSettings {
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
                     }.padding(.bottom)
-                }.listRowBackground(Color.chart)
+                }.settingsSearchTarget(label: String(localized: "Forecast Display Type"))
 
                 Section {
                     VStack {
@@ -416,7 +416,7 @@ extension UserInterfaceSettings {
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
                     }.padding(.bottom)
-                }.listRowBackground(Color.chart)
+                }.settingsSearchTarget(label: String(localized: "Bolus Display Threshold"))
 
                 Section(
                     header: Text("Trio Statistics"),
@@ -459,7 +459,7 @@ extension UserInterfaceSettings {
                             }.padding(.top)
                         }.padding(.bottom)
                     }
-                ).listRowBackground(Color.chart)
+                ).settingsSearchTarget(label: String(localized: "eA1c/GMI Display Unit"))
 
                 Section {
                     VStack(alignment: .leading) {
@@ -538,7 +538,7 @@ extension UserInterfaceSettings {
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
                     }.padding(.bottom)
-                }.listRowBackground(Color.chart)
+                }.settingsSearchTarget(label: String(localized: "Time in Range Type"))
 
                 SettingInputSection(
                     decimalValue: $state.carbsRequiredThreshold,
@@ -577,6 +577,7 @@ extension UserInterfaceSettings {
             .onAppear(perform: configureView)
             .navigationBarTitle("User Interface")
             .navigationBarTitleDisplayMode(.automatic)
+            .settingsHighlightScroll()
         }
     }
 }
