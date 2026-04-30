@@ -21,7 +21,7 @@ extension Adjustments.RootView {
             ForEach(state.scheduledTempTargets) { tempTarget in
                 tempTargetView(for: tempTarget)
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        swipeActionsForTempTargets(for: tempTarget)
+                        actionButtonsForTempTargets(for: tempTarget)
                     }
             }
             .listRowBackground(Color.chart)
@@ -36,8 +36,11 @@ extension Adjustments.RootView {
                 tempTargetView(for: preset, showCheckmark: showTempTargetCheckmark) {
                     enactTempTargetPreset(preset)
                 }
+                .contextMenu {
+                    actionButtonsForTempTargets(for: preset)
+                }
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    swipeActionsForTempTargets(for: preset)
+                    actionButtonsForTempTargets(for: preset)
                 }
             }
             .onMove(perform: state.reorderTempTargets)
@@ -74,9 +77,9 @@ extension Adjustments.RootView {
         }
     }
 
-    private func swipeActionsForTempTargets(for tempTarget: TempTargetStored) -> some View {
+    private func actionButtonsForTempTargets(for tempTarget: TempTargetStored) -> some View {
         Group {
-            Button {
+            Button(role: .destructive) {
                 Task {
                     selectedTempTarget = tempTarget
                     isConfirmDeletePresented = true
