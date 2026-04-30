@@ -6,6 +6,18 @@ extension Home.StateModel {
         Task {
             do {
                 let ids = try await self.fetchCarbs()
+
+                // Prefetch into viewContext with one IN-query so the subsequent
+                // per-ID materialization avoids N+1 Z_PK selects.
+                if !ids.isEmpty {
+                    await viewContext.perform {
+                        let prefetchRequest = NSFetchRequest<CarbEntryStored>(entityName: "CarbEntryStored")
+                        prefetchRequest.predicate = NSPredicate(format: "SELF IN %@", ids)
+                        prefetchRequest.returnsObjectsAsFaults = false
+                        _ = try? self.viewContext.fetch(prefetchRequest)
+                    }
+                }
+
                 let carbObjects: [CarbEntryStored] = try await CoreDataStack.shared
                     .getNSManagedObject(with: ids, context: viewContext)
                 await updateCarbsArray(with: carbObjects)
@@ -16,6 +28,9 @@ extension Home.StateModel {
     }
 
     private func fetchCarbs() async throws -> [NSManagedObjectID] {
+        let carbsFetchContext = CoreDataStack.shared.newTaskContext()
+        carbsFetchContext.name = "HomeStateModel.fetchCarbs"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: carbsFetchContext,
@@ -42,6 +57,18 @@ extension Home.StateModel {
         Task {
             do {
                 let ids = try await self.fetchFPUs()
+
+                // Prefetch into viewContext with one IN-query so the subsequent
+                // per-ID materialization avoids N+1 Z_PK selects.
+                if !ids.isEmpty {
+                    await viewContext.perform {
+                        let prefetchRequest = NSFetchRequest<CarbEntryStored>(entityName: "CarbEntryStored")
+                        prefetchRequest.predicate = NSPredicate(format: "SELF IN %@", ids)
+                        prefetchRequest.returnsObjectsAsFaults = false
+                        _ = try? self.viewContext.fetch(prefetchRequest)
+                    }
+                }
+
                 let fpuObjects: [CarbEntryStored] = try await CoreDataStack.shared
                     .getNSManagedObject(with: ids, context: viewContext)
                 await updateFPUsArray(with: fpuObjects)
@@ -52,6 +79,9 @@ extension Home.StateModel {
     }
 
     private func fetchFPUs() async throws -> [NSManagedObjectID] {
+        let fpuFetchContext = CoreDataStack.shared.newTaskContext()
+        fpuFetchContext.name = "HomeStateModel.fetchFPUs"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: fpuFetchContext,

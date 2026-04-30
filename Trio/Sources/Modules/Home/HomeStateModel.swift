@@ -128,16 +128,6 @@ extension Home {
         var minValueIobChart: Decimal = 0
         var maxValueIobChart: Decimal = 5
 
-        let taskContext = CoreDataStack.shared.newTaskContext()
-        let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
-        let carbsFetchContext = CoreDataStack.shared.newTaskContext()
-        let fpuFetchContext = CoreDataStack.shared.newTaskContext()
-        let determinationFetchContext = CoreDataStack.shared.newTaskContext()
-        let tddFetchContext = CoreDataStack.shared.newTaskContext()
-        let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
-        let overrideFetchContext = CoreDataStack.shared.newTaskContext()
-        let tempTargetFetchContext = CoreDataStack.shared.newTaskContext()
-        let batteryFetchContext = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         // Queue for handling Core Data change notifications

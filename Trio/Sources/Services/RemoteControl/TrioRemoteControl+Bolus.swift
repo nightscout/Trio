@@ -81,13 +81,15 @@ extension TrioRemoteControl {
     }
 
     private func fetchTotalRecentBolusAmount(since date: Date) async throws -> Decimal {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchTotalRecentBolusAmount"
         let predicate = NSPredicate(
             format: "type == %@ AND timestamp > %@",
             PumpEventStored.EventType.bolus.rawValue,
             date as NSDate
         )
         let results: Any = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: PumpEventStored.self, onContext: pumpHistoryFetchContext, predicate: predicate, key: "timestamp",
+            ofType: PumpEventStored.self, onContext: context, predicate: predicate, key: "timestamp",
             ascending: true, fetchLimit: nil, propertiesToFetch: ["bolus.amount"]
         )
         guard let bolusDictionaries = results as? [[String: Any]] else {

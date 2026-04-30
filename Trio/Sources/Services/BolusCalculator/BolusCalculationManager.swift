@@ -21,9 +21,6 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     @Injected() private var fileStorage: FileStorage!
     @Injected() private var determinationStorage: DeterminationStorage!
 
-    let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
-    let determinationFetchContext = CoreDataStack.shared.newTaskContext()
-
     init(resolver: Resolver) {
         injectServices(resolver)
     }
@@ -191,16 +188,18 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     /// Fetches recent glucose readings from CoreData
     /// - Returns: Array of NSManagedObjectIDs for glucose readings
     private func fetchGlucose() async throws -> [NSManagedObjectID] {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchGlucose"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: glucoseFetchContext,
+            onContext: context,
             predicate: NSPredicate.glucose,
             key: "date",
             ascending: false,
             fetchLimit: 288
         )
 
-        return try await glucoseFetchContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [GlucoseStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -313,6 +312,8 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             let maxCOB = preferences.maxCOB
 
             // Fetch glucose data
+            let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
+            glucoseFetchContext.name = "handleBolusCalculation.glucose"
             let glucoseIds = try await fetchGlucose()
             let glucoseObjects: [GlucoseStored] = try await CoreDataStack.shared.getNSManagedObject(
                 with: glucoseIds,
@@ -323,6 +324,8 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             }
 
             // Fetch determination data
+            let determinationFetchContext = CoreDataStack.shared.newTaskContext()
+            determinationFetchContext.name = "handleBolusCalculation.determination"
             let determinationIds = try await determinationStorage.fetchLastDeterminationObjectID(
                 predicate: NSPredicate.predicateFor30MinAgoForDetermination
             )

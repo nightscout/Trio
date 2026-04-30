@@ -39,8 +39,6 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         }
     }
 
-    private var backgroundContext = CoreDataStack.shared.newTaskContext()
-
     // Queue for handling Core Data change notifications
     private let queue = DispatchQueue(label: "BaseTidepoolManager.queue", qos: .background)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
@@ -221,19 +219,21 @@ extension BaseTidepoolManager {
     }
 
     private func updateCarbsAsUploaded(_ carbs: [CarbsEntry]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateCarbsAsUploaded"
+        await context.perform {
             let ids = carbs.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToTidepool = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToTidepool: \(error.userInfo)"
@@ -291,10 +291,12 @@ extension BaseTidepoolManager {
         guard !events.isEmpty, let tidepoolService = self.tidepoolService else { return }
 
         do {
+            let context = CoreDataStack.shared.newTaskContext()
+            context.name = "uploadDose"
             // Fetch all temp basal entries from Core Data for the last 24 hours
             let results = try await CoreDataStack.shared.fetchEntitiesAsync(
                 ofType: PumpEventStored.self,
-                onContext: backgroundContext,
+                onContext: context,
                 predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
                     NSPredicate.pumpHistoryLast24h,
                     NSPredicate(format: "tempBasal != nil")
@@ -305,7 +307,7 @@ extension BaseTidepoolManager {
             )
 
             // Ensure that the processing happens within the background context for thread safety
-            try await backgroundContext.perform {
+            try await context.perform {
                 guard let existingTempBasalEntries = results as? [PumpEventStored] else {
                     throw CoreDataError.fetchError(function: #function, file: #file)
                 }
@@ -407,19 +409,21 @@ extension BaseTidepoolManager {
     }
 
     private func updateInsulinAsUploaded(_ insulin: [PumpHistoryEvent]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateInsulinAsUploaded"
+        await context.perform {
             let ids = insulin.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToTidepool = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToTidepool: \(error.userInfo)"
@@ -461,79 +465,77 @@ extension BaseTidepoolManager {
     ) -> [DoseEntry] {
         var insulinDoseEvents: [DoseEntry] = []
 
-        backgroundContext.performAndWait {
-            // Loop through the pump history events within the background context
-            guard let duration = event.duration, let amount = event.amount,
-                  let currentBasalRate = self.getCurrentBasalRate()
-            else {
-                return
-            }
-            let value = (Decimal(duration) / 60.0) * amount
+        // Caller (uploadDose) already executes within context.perform, so we run directly here
+        guard let duration = event.duration, let amount = event.amount,
+              let currentBasalRate = getCurrentBasalRate()
+        else {
+            return insulinDoseEvents
+        }
+        let value = (Decimal(duration) / 60.0) * amount
 
-            // Find the corresponding temp basal entry in existingTempBasalEntries
-            if let matchingEntryIndex = existingTempBasalEntries.firstIndex(where: { $0.timestamp == event.timestamp }) {
-                // Check for a predecessor (the entry before the matching entry)
-                let predecessorIndex = matchingEntryIndex - 1
-                if predecessorIndex >= 0 {
-                    let predecessorEntry = existingTempBasalEntries[predecessorIndex]
-                    if let predecessorTimestamp = predecessorEntry.timestamp,
-                       let predecessorEntrySyncIdentifier = predecessorEntry.id
-                    {
-                        let predecessorEndDate = predecessorTimestamp
-                            .addingTimeInterval(TimeInterval(
-                                Int(predecessorEntry.tempBasal?.duration ?? 0) *
-                                    60
-                            )) // parse duration to minutes
+        // Find the corresponding temp basal entry in existingTempBasalEntries
+        if let matchingEntryIndex = existingTempBasalEntries.firstIndex(where: { $0.timestamp == event.timestamp }) {
+            // Check for a predecessor (the entry before the matching entry)
+            let predecessorIndex = matchingEntryIndex - 1
+            if predecessorIndex >= 0 {
+                let predecessorEntry = existingTempBasalEntries[predecessorIndex]
+                if let predecessorTimestamp = predecessorEntry.timestamp,
+                   let predecessorEntrySyncIdentifier = predecessorEntry.id
+                {
+                    let predecessorEndDate = predecessorTimestamp
+                        .addingTimeInterval(TimeInterval(
+                            Int(predecessorEntry.tempBasal?.duration ?? 0) *
+                                60
+                        )) // parse duration to minutes
 
-                        // If the predecessor's end date is later than the current event's start date, adjust it
-                        if predecessorEndDate > event.timestamp {
-                            let adjustedEndDate = event.timestamp
-                            let adjustedDuration = adjustedEndDate.timeIntervalSince(predecessorTimestamp)
-                            let adjustedDeliveredUnits = (adjustedDuration / 3600) *
-                                Double(truncating: predecessorEntry.tempBasal?.rate ?? 0)
+                    // If the predecessor's end date is later than the current event's start date, adjust it
+                    if predecessorEndDate > event.timestamp {
+                        let adjustedEndDate = event.timestamp
+                        let adjustedDuration = adjustedEndDate.timeIntervalSince(predecessorTimestamp)
+                        let adjustedDeliveredUnits = (adjustedDuration / 3600) *
+                            Double(truncating: predecessorEntry.tempBasal?.rate ?? 0)
 
-                            // Create updated predecessor dose entry
-                            let updatedPredecessorEntry = DoseEntry(
-                                type: .tempBasal,
-                                startDate: predecessorTimestamp,
-                                endDate: adjustedEndDate,
-                                value: adjustedDeliveredUnits,
-                                unit: .units,
-                                deliveredUnits: adjustedDeliveredUnits,
-                                syncIdentifier: predecessorEntrySyncIdentifier,
-                                insulinType: self.apsManager.pumpManager?.status.insulinType ?? nil,
-                                automatic: true,
-                                manuallyEntered: false,
-                                isMutable: false
-                            )
-                            // Add the updated predecessor entry to the result
-                            insulinDoseEvents.append(updatedPredecessorEntry)
-                        }
+                        // Create updated predecessor dose entry
+                        let updatedPredecessorEntry = DoseEntry(
+                            type: .tempBasal,
+                            startDate: predecessorTimestamp,
+                            endDate: adjustedEndDate,
+                            value: adjustedDeliveredUnits,
+                            unit: .units,
+                            deliveredUnits: adjustedDeliveredUnits,
+                            syncIdentifier: predecessorEntrySyncIdentifier,
+                            insulinType: apsManager.pumpManager?.status.insulinType ?? nil,
+                            automatic: true,
+                            manuallyEntered: false,
+                            isMutable: false
+                        )
+                        // Add the updated predecessor entry to the result
+                        insulinDoseEvents.append(updatedPredecessorEntry)
                     }
                 }
-
-                // Create a new dose entry for the current event
-                let currentEndDate = event.timestamp.addingTimeInterval(TimeInterval(minutes: Double(duration)))
-                let newDoseEntry = DoseEntry(
-                    type: .tempBasal,
-                    startDate: event.timestamp,
-                    endDate: currentEndDate,
-                    value: Double(value),
-                    unit: .units,
-                    deliveredUnits: Double(value),
-                    syncIdentifier: event.id,
-                    scheduledBasalRate: HKQuantity(
-                        unit: .internationalUnitsPerHour,
-                        doubleValue: Double(currentBasalRate.rate)
-                    ),
-                    insulinType: self.apsManager.pumpManager?.status.insulinType ?? nil,
-                    automatic: true,
-                    manuallyEntered: false,
-                    isMutable: false
-                )
-                // Add the new event entry to the result
-                insulinDoseEvents.append(newDoseEntry)
             }
+
+            // Create a new dose entry for the current event
+            let currentEndDate = event.timestamp.addingTimeInterval(TimeInterval(minutes: Double(duration)))
+            let newDoseEntry = DoseEntry(
+                type: .tempBasal,
+                startDate: event.timestamp,
+                endDate: currentEndDate,
+                value: Double(value),
+                unit: .units,
+                deliveredUnits: Double(value),
+                syncIdentifier: event.id,
+                scheduledBasalRate: HKQuantity(
+                    unit: .internationalUnitsPerHour,
+                    doubleValue: Double(currentBasalRate.rate)
+                ),
+                insulinType: apsManager.pumpManager?.status.insulinType ?? nil,
+                automatic: true,
+                manuallyEntered: false,
+                isMutable: false
+            )
+            // Add the new event entry to the result
+            insulinDoseEvents.append(newDoseEntry)
         }
 
         return insulinDoseEvents
@@ -626,19 +628,21 @@ extension BaseTidepoolManager {
     }
 
     private func updateGlucoseAsUploaded(_ glucose: [StoredGlucoseSample]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateGlucoseAsUploaded"
+        await context.perform {
             let ids = glucose.map(\.syncIdentifier) as NSArray
             let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToTidepool = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToTidepool: \(error.userInfo)"

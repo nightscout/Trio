@@ -32,6 +32,9 @@ extension Home.StateModel {
     }
 
     private func fetchTDDIDs() async throws -> [NSManagedObjectID] {
+        let tddFetchContext = CoreDataStack.shared.newTaskContext()
+        tddFetchContext.name = "HomeStateModel.fetchTDDIDs"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TDDStored.self,
             onContext: tddFetchContext,

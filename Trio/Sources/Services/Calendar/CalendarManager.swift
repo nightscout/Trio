@@ -77,7 +77,6 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         registerSubscribers()
     }
 
-    let backgroundContext = CoreDataStack.shared.newTaskContext()
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
     private func setupCurrentCalendar() {
@@ -177,9 +176,11 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     }
 
     private func getLastDetermination() async throws -> NSManagedObjectID? {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "getLastDetermination"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.predicateFor30MinAgoForDetermination,
             key: "timestamp",
             ascending: false,
@@ -187,7 +188,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             propertiesToFetch: ["timestamp", "cob", "iob", "objectID"]
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [[String: Any]] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -197,16 +198,18 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     }
 
     private func fetchGlucose() async throws -> [NSManagedObjectID] {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchGlucose"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.predicateFor30MinAgo,
             key: "date",
             ascending: false,
             propertiesToFetch: ["objectID", "glucose"]
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [[String: Any]] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }

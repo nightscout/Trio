@@ -47,9 +47,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     // Queue where upload pipelines run.
     let uploadPipelineQueue = DispatchQueue(label: "NightscoutManager.uploadPipelines", qos: .utility)
 
-    // Background Core Data context for fetches used by upload tasks.
-    var backgroundContext = CoreDataStack.shared.newTaskContext()
-
     /// Throttle window (seconds) per upload pipeline. Any requests inside this window
     /// coalesce into a single upload run for that pipeline.
     let uploadPipelineInterval: [NightscoutUploadPipeline: TimeInterval] = [
@@ -353,9 +350,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func fetchBattery() async -> Battery {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchBattery"
+        return await context.perform {
             do {
-                let results = try self.backgroundContext.fetch(OpenAPS_Battery.fetch(NSPredicate.predicateFor30MinAgo))
+                let results = try context.fetch(OpenAPS_Battery.fetch(NSPredicate.predicateFor30MinAgo))
                 if let last = results.first {
                     let percent: Int? = Int(last.percent)
                     let voltage: Decimal? = last.voltage as Decimal?
@@ -411,16 +410,18 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             return
         }
 
+        let tddContext = CoreDataStack.shared.newTaskContext()
+        tddContext.name = "uploadDeviceStatus.tdd"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TDDStored.self,
-            onContext: backgroundContext,
+            onContext: tddContext,
             predicate: NSPredicate.predicateFor30MinAgo,
             key: "date",
             ascending: false,
             fetchLimit: 1
         )
 
-        let tdd: Decimal? = await backgroundContext.perform {
+        let tdd: Decimal? = await tddContext.perform {
             (results as? [TDDStored])?.first?.total as? Decimal
         }
 
@@ -585,19 +586,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updateOrefDeterminationAsUploaded(_ determination: [Determination]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateOrefDeterminationAsUploaded"
+        await context.perform {
             let ids = determination.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<OrefDetermination> = OrefDetermination.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
@@ -851,19 +854,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updateGlucoseAsUploaded(_ glucose: [BloodGlucose]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateGlucoseAsUploaded"
+        await context.perform {
             let ids = glucose.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
@@ -907,19 +912,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updatePumpEventStoredsAsUploaded(_ treatments: [NightscoutTreatment]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updatePumpEventStoredsAsUploaded"
+        await context.perform {
             let ids = treatments.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
@@ -948,19 +955,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updateManualGlucoseAsUploaded(_ treatments: [NightscoutTreatment]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateManualGlucoseAsUploaded"
+        await context.perform {
             let ids = treatments.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
@@ -989,19 +998,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updateCarbsAsUploaded(_ treatments: [NightscoutTreatment]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateCarbsAsUploaded"
+        await context.perform {
             let ids = treatments.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
@@ -1048,19 +1059,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updateOverridesAsUploaded(_ overrides: [NightscoutExercise]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateOverridesAsUploaded"
+        await context.perform {
             let ids = overrides.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<OverrideStored> = OverrideStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
@@ -1106,19 +1119,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updateOverrideRunsAsUploaded(_ overrideRuns: [NightscoutExercise]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateOverrideRunsAsUploaded"
+        await context.perform {
             let ids = overrideRuns.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<OverrideRunStored> = OverrideRunStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
@@ -1147,19 +1162,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updateTempTargetsAsUploaded(_ tempTargets: [NightscoutTreatment]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateTempTargetsAsUploaded"
+        await context.perform {
             let ids = tempTargets.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<TempTargetStored> = TempTargetStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS for TempTargetStored: \(error.userInfo)"
@@ -1188,19 +1205,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updateTempTargetRunsAsUploaded(_ tempTargetRuns: [NightscoutTreatment]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateTempTargetRunsAsUploaded"
+        await context.perform {
             let ids = tempTargetRuns.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<TempTargetRunStored> = TempTargetRunStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS for TempTargetRunStored: \(error.userInfo)"

@@ -1,13 +1,14 @@
+import CoreData
 import Foundation
 
 extension Home.StateModel {
-    func yAxisChartData(glucoseValues: [GlucoseStored]) {
+    func yAxisChartData(glucoseValues: [GlucoseStored], on context: NSManagedObjectContext) {
         // Capture the forecast values from `preprocessedData` on the main thread
         Task { @MainActor in
             let forecastValues = self.preprocessedData.map { Decimal($0.forecastValue.value) }
 
             // Perform the glucose processing on the background context
-            glucoseFetchContext.perform {
+            context.perform {
                 let glucoseMapped = glucoseValues.map { Decimal($0.glucose) }
 
                 // Calculate min and max values for glucose and forecast
@@ -53,8 +54,8 @@ extension Home.StateModel {
         maxYAxisValue = maxValue
     }
 
-    func yAxisChartDataCobChart(determinations: [[String: Any]]) {
-        determinationFetchContext.perform {
+    func yAxisChartDataCobChart(determinations: [[String: Any]], on context: NSManagedObjectContext) {
+        context.perform {
             // Map the COB values from the dictionary results
             let cobMapped = determinations.compactMap { entry in
                 // First cast to Int16, then convert to Decimal
@@ -84,8 +85,8 @@ extension Home.StateModel {
         maxValueCobChart = maxValue
     }
 
-    func yAxisChartDataIobChart(determinations: [[String: Any]]) {
-        determinationFetchContext.perform {
+    func yAxisChartDataIobChart(determinations: [[String: Any]], on context: NSManagedObjectContext) {
+        context.perform {
             // Map the IOB values from the fetched dictionaries
             let iobMapped = determinations.compactMap { ($0["iob"] as? NSDecimalNumber)?.decimalValue }
             let minIob = iobMapped.min()

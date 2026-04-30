@@ -30,6 +30,15 @@ extension Home.StateModel {
         with IDs: [NSManagedObjectID],
         keyPath: ReferenceWritableKeyPath<Home.StateModel, [OrefDetermination]>
     ) async throws {
+        // Prefetch the determinations into viewContext with one IN-query so the
+        // subsequent per-ID materialization avoids N+1 faults.
+        if !IDs.isEmpty {
+            let prefetchRequest = NSFetchRequest<OrefDetermination>(entityName: "OrefDetermination")
+            prefetchRequest.predicate = NSPredicate(format: "SELF IN %@", IDs)
+            prefetchRequest.returnsObjectsAsFaults = false
+            _ = try? viewContext.fetch(prefetchRequest)
+        }
+
         // Fetch the objects off the main thread
         let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
             .getNSManagedObject(with: IDs, context: viewContext)
@@ -40,6 +49,9 @@ extension Home.StateModel {
 
     // Custom fetch to more efficiently filter only for cob and iob
     private func fetchCobAndIob() async throws -> [NSManagedObjectID] {
+        let determinationFetchContext = CoreDataStack.shared.newTaskContext()
+        determinationFetchContext.name = "HomeStateModel.fetchCobAndIob"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: determinationFetchContext,
@@ -56,8 +68,8 @@ extension Home.StateModel {
             }
 
             // Update Chart Scales
-            self.yAxisChartDataCobChart(determinations: fetchedResults)
-            self.yAxisChartDataIobChart(determinations: fetchedResults)
+            self.yAxisChartDataCobChart(determinations: fetchedResults, on: determinationFetchContext)
+            self.yAxisChartDataIobChart(determinations: fetchedResults, on: determinationFetchContext)
             return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
         }
     }
