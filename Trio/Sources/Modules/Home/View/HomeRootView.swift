@@ -773,27 +773,6 @@ extension Home {
             }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
         }
 
-        @ViewBuilder func bolusProgressBar(_ progress: Decimal) -> some View {
-            GeometryReader { geo in
-                RoundedRectangle(cornerRadius: 15)
-                    .frame(height: 6)
-                    .foregroundColor(.clear)
-                    .background(
-                        LinearGradient(colors: [
-                            Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
-                            Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569),
-                            Color(red: 0.4862745098, green: 0.5450980392, blue: 0.9529411765),
-                            Color(red: 0.3411764706, green: 0.6666666667, blue: 0.9254901961),
-                            Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
-                        ], startPoint: .leading, endPoint: .trailing)
-                            .mask(alignment: .leading) {
-                                RoundedRectangle(cornerRadius: 15)
-                                    .frame(width: geo.size.width * CGFloat(progress))
-                            }
-                    )
-            }
-        }
-
         @ViewBuilder func bolusView(geo: GeometryProxy, _ progress: Decimal) -> some View {
             /// ensure that state.lastPumpBolus has a value, i.e. there is a last bolus done by the pump and not an external bolus
             /// - TRUE:  show the pump bolus
@@ -849,14 +828,14 @@ extension Home {
                         }
                     }.padding(.horizontal, 10)
                         .padding(.trailing, 8)
-
-                }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
-                    .overlay(alignment: .bottom) {
-                        // Use a geo-based offset here to position progress bar independent of device size
-                        let offset = geo.size.height * 0.0725
-                        bolusProgressBar(progress).padding(.horizontal, 18)
-                            .offset(y: offset)
-                    }.clipShape(RoundedRectangle(cornerRadius: 15))
+                }
+                .padding(.horizontal, 10)
+                .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
+                .overlay(alignment: .bottom) {
+                    BolusProgressBar(progress: progress)
+                        .padding(.horizontal, 18)
+                        .padding(.bottom, 9)
+                }.clipShape(RoundedRectangle(cornerRadius: 15))
             }
         }
 

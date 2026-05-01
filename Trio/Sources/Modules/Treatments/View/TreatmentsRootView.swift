@@ -42,6 +42,23 @@ extension Treatments {
             return formatter
         }
 
+        private var bolusProgressFormatter: NumberFormatter {
+            let fractionDigits: Int = switch state.settingsManager.preferences.bolusIncrement {
+            case 0.1: 1
+            case 0.025: 3
+            default: 2
+            }
+
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.minimum = 0
+            formatter.maximumFractionDigits = fractionDigits
+            formatter.minimumFractionDigits = fractionDigits
+            formatter.allowsFloats = true
+            formatter.roundingIncrement = Double(state.settingsManager.preferences.bolusIncrement) as NSNumber
+            return formatter
+        }
+
         private var mealFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -475,6 +492,9 @@ extension Treatments {
         }
 
         var treatmentButton: some View {
+            let shouldDisplayBolusProgress = state.isBolusInProgress && state.amount > 0 &&
+                !state.externalInsulin && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
+
             var treatmentButtonBackground = Color(.systemBlue)
             if limitExceeded {
                 treatmentButtonBackground = Color(.systemRed)
@@ -483,41 +503,43 @@ extension Treatments {
             }
 
             return Section {
-                Button {
-                    if bolusWarning.shouldConfirm {
-                        showConfirmDialogForBolusing = true
-                    } else {
-                        state.invokeTreatmentsTask()
-                    }
-                } label: {
-                    HStack {
-                        if state.isBolusInProgress && state.amount > 0 &&
-                            !state.externalInsulin && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
-                        {
-                            ProgressView()
+                if shouldDisplayBolusProgress {
+                    bolusInProgressView
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                } else {
+                    Button {
+                        if bolusWarning.shouldConfirm {
+                            showConfirmDialogForBolusing = true
+                        } else {
+                            state.invokeTreatmentsTask()
                         }
-                        taskButtonLabel
+                    } label: {
+                        HStack {
+                            taskButtonLabel
+                        }
+                        .font(.headline)
+                        .foregroundStyle(Color.white)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .frame(height: 35)
                     }
-                    .font(.headline)
-                    .foregroundStyle(Color.white)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .frame(height: 35)
-                }
-                .disabled(disableTaskButton)
-                .listRowBackground(treatmentButtonBackground)
-                .shadow(radius: 3)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .confirmationDialog(
-                    bolusWarning.warningMessage + " Bolus \(state.amount.description) U?",
-                    isPresented: $showConfirmDialogForBolusing,
-                    titleVisibility: .visible
-                ) {
-                    Button("Cancel", role: .cancel) {}
-                    Button(
-                        bolusWarning.warningMessage.isEmpty ? "Enact Bolus" : "Ignore Warning and Enact Bolus",
-                        role: bolusWarning.warningMessage.isEmpty ? nil : .destructive
+                    .disabled(disableTaskButton)
+                    .listRowBackground(treatmentButtonBackground)
+                    .shadow(radius: 3)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .confirmationDialog(
+                        bolusWarning.warningMessage + " Bolus \(state.amount.description) U?",
+                        isPresented: $showConfirmDialogForBolusing,
+                        titleVisibility: .visible
                     ) {
-                        state.invokeTreatmentsTask()
+                        Button("Cancel", role: .cancel) {}
+                        Button(
+                            bolusWarning.warningMessage
+                                .isEmpty ? String(localized: "Enact Bolus") : String(localized: "Ignore Warning and Enact Bolus"),
+                            role: bolusWarning.warningMessage.isEmpty ? nil : .destructive
+                        ) {
+                            state.invokeTreatmentsTask()
+                        }
                     }
                 }
             } header: {
@@ -530,6 +552,75 @@ extension Treatments {
                         .padding(.top, -22)
                 }
             }
+        }
+
+        /// Card-style in-progress visualizer matching Home's `bolusView` look:
+        /// insulin-tinted background, cross.vial.fill icon, "Bolusing" + "X of Y U" text,
+        /// xmark.app cancel, gradient progress bar overlaid at the bottom.
+        @ViewBuilder private var bolusInProgressView: some View {
+            let progress = state.bolusProgress ?? 0
+            let bolusTotal = state.lastPumpBolus?.bolus?.amount as Decimal?
+            let bolusFraction = (bolusTotal ?? 0) * progress
+            let bolusString: String = {
+                guard let bolusTotal = bolusTotal else { return String(localized: "Bolus In Progress...") }
+                return (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
+                    + String(localized: " of ", comment: "Bolus string partial message: 'x U of y U' in home view")
+                    + (Formatter.decimalFormatterWithThreeFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
+                    + String(localized: " U", comment: "Insulin unit")
+            }()
+
+            ZStack {
+                // background card
+                RoundedRectangle(cornerRadius: 15)
+                    .fill(
+                        colorScheme == .dark
+                            ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745)
+                            : Color.insulin.opacity(0.2)
+                    )
+                    .frame(height: 56)
+                    .shadow(
+                        color: colorScheme == .dark
+                            ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706)
+                            : Color.black.opacity(0.33),
+                        radius: 3
+                    )
+
+                // bolus content
+                HStack {
+                    Image(systemName: "cross.vial.fill")
+                        .font(.system(size: 25))
+
+                    Spacer()
+
+                    VStack {
+                        Text("Bolusing")
+                            .font(.subheadline)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(bolusString)
+                            .font(.caption)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(.leading, 5)
+
+                    Spacer()
+
+                    Button { state.cancelBolus() } label: {
+                        Image(systemName: "xmark.app")
+                            .font(.system(size: 25))
+                    }.tint(Color.tabBar)
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel("Cancel bolus")
+                }
+                .padding(.horizontal, 10)
+                .padding(.trailing, 8)
+            }
+            .padding(.horizontal, 10)
+            .overlay(alignment: .bottom) {
+                BolusProgressBar(progress: progress)
+                    .padding(.horizontal, 18)
+                    .padding(.bottom, 1)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 15))
         }
 
         private var taskButtonLabel: some View {
@@ -550,9 +641,8 @@ extension Treatments {
             let hasFatOrProtein = state.fat > 0 || state.protein > 0
             let bolusString = state.externalInsulin ? String(localized: "External Insulin") : String(localized: "Enact Bolus")
 
-            if state.isBolusInProgress && hasInsulin && !state.externalInsulin && (!hasCarbs || !hasFatOrProtein) {
-                return Text("Bolus In Progress...")
-            }
+            // Note: when a pump bolus is in progress, the row is rendered by `bolusInProgressView`
+            // (Home-style card), so this label's in-progress branch is intentionally absent.
 
             switch (hasInsulin, hasCarbs, hasFatOrProtein) {
             case (true, true, true):
@@ -562,7 +652,7 @@ extension Treatments {
             case (true, false, true):
                 return Text("Log FPU and \(bolusString)")
             case (true, false, false):
-                return Text(state.externalInsulin ? "Log External Insulin" : "Enact Bolus")
+                return Text(state.externalInsulin ? String(localized: "Log External Insulin") : String(localized: "Enact Bolus"))
             case (false, true, true):
                 return Text("Log Meal")
             case (false, true, false):
