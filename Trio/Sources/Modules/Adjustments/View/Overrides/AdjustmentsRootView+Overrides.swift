@@ -19,8 +19,11 @@ extension Adjustments.RootView {
                 overridesView(for: preset, showCheckMark: showOverrideCheckmark) {
                     enactOverridePreset(preset)
                 }
+                .contextMenu {
+                    actionButtonsForOverrides(for: preset)
+                }
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    swipeActionsForOverrides(for: preset)
+                    actionButtonsForOverrides(for: preset)
                 }
             }
             .onMove(perform: state.reorderOverride)
@@ -88,9 +91,9 @@ extension Adjustments.RootView {
         }
     }
 
-    func swipeActionsForOverrides(for preset: OverrideStored) -> some View {
+    func actionButtonsForOverrides(for preset: OverrideStored) -> some View {
         Group {
-            Button(role: .none) {
+            Button(role: .destructive) {
                 selectedOverride = preset
                 isConfirmDeletePresented = true
             } label: {

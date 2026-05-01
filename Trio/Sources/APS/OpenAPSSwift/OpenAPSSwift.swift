@@ -12,9 +12,7 @@ struct OpenAPSSwift {
         model: JSON,
         trioSettings: JSON,
         clock: Date
-    ) -> (OrefFunctionResult, MakeProfileInputs?) {
-        var makeProfileInputs: MakeProfileInputs?
-
+    ) -> (OrefFunctionResult) {
         do {
             let preferences = try JSONBridge.preferences(from: preferences)
             let pumpSettings = try JSONBridge.pumpSettings(from: pumpSettings)
@@ -25,19 +23,6 @@ struct OpenAPSSwift {
             let tempTargets = try JSONBridge.tempTargets(from: tempTargets)
             let model = JSONBridge.model(from: model)
             let trioSettings = try JSONBridge.trioSettings(from: trioSettings)
-
-            makeProfileInputs = MakeProfileInputs(
-                preferences: preferences,
-                pumpSettings: pumpSettings,
-                bgTargets: bgTargets,
-                basalProfile: basalProfile,
-                isf: isf,
-                carbRatios: carbRatio,
-                tempTargets: tempTargets,
-                model: model,
-                trioSettings: trioSettings,
-                clock: clock
-            )
 
             let profile = try ProfileGenerator.generate(
                 pumpSettings: pumpSettings,
@@ -51,9 +36,9 @@ struct OpenAPSSwift {
                 clock: clock
             )
 
-            return (try .success(JSONBridge.to(profile)), makeProfileInputs)
+            return (try .success(JSONBridge.to(profile)))
         } catch {
-            return (.failure(error), makeProfileInputs)
+            return (.failure(error))
         }
     }
 
@@ -71,11 +56,7 @@ struct OpenAPSSwift {
         basalProfile: JSON,
         trioCustomOrefVariables: JSON,
         clock: Date
-    ) -> (OrefFunctionResult, DetermineBasalInputs?) {
-        var determineBasalInputs: DetermineBasalInputs?
-
-        print(reservoir)
-
+    ) -> (OrefFunctionResult) {
         do {
             let glucose = try JSONBridge.glucose(from: glucose)
             let currentTemp = try JSONBridge.currentTemp(from: currentTemp)
@@ -90,24 +71,8 @@ struct OpenAPSSwift {
             let basalProfile = try JSONBridge.basalProfile(from: basalProfile)
             let trioCustomOrefVariables = try JSONBridge.trioCustomOrefVariables(from: trioCustomOrefVariables)
 
-            determineBasalInputs = DetermineBasalInputs(
-                glucose: glucose,
-                currentTemp: currentTemp,
-                iob: iob,
-                profile: profile,
-                autosens: autosens,
-                meal: meal,
-                microBolusAllowed: microBolusAllowed,
-                reservoir: reservoir,
-                pumpHistory: pumpHistory,
-                preferences: preferences,
-                basalProfile: basalProfile,
-                trioCustomOrefVariables: trioCustomOrefVariables,
-                clock: clock
-            )
-
             guard let mealData = meal, let autosensData = autosens else {
-                return (.failure(DeterminationError.missingInputs), determineBasalInputs)
+                return .failure(DeterminationError.missingInputs)
             }
 
             let rawDetermination = try DeterminationGenerator.generate(
@@ -124,19 +89,19 @@ struct OpenAPSSwift {
                 currentTime: clock
             )
 
-            return (try .success(JSONBridge.to(rawDetermination)), determineBasalInputs)
+            return try .success(JSONBridge.to(rawDetermination))
 
         } catch let determinationError as DeterminationError {
             // if we get a determination error we want to return it as a JSON
             // object that is { "error": "some error" }
             do {
                 let response = try JSONBridge.to(DeterminationErrorResponse(error: determinationError.localizedDescription))
-                return (.success(response), determineBasalInputs)
+                return .success(response)
             } catch {
-                return (.failure(determinationError), determineBasalInputs)
+                return .failure(determinationError)
             }
         } catch {
-            return (.failure(error), determineBasalInputs)
+            return .failure(error)
         }
     }
 
@@ -147,9 +112,7 @@ struct OpenAPSSwift {
         clock: JSON,
         carbs: JSON,
         glucose: JSON
-    ) -> (OrefFunctionResult, MealInputs?) {
-        var mealInputs: MealInputs?
-
+    ) -> (OrefFunctionResult) {
         do {
             let pumpHistory = try JSONBridge.pumpHistory(from: pumphistory)
             let profile = try JSONBridge.profile(from: profile)
@@ -157,15 +120,6 @@ struct OpenAPSSwift {
             let clock = try JSONBridge.clock(from: clock)
             let carbs = try JSONBridge.carbs(from: carbs)
             let glucose = try JSONBridge.glucose(from: glucose)
-
-            mealInputs = MealInputs(
-                pumpHistory: pumpHistory,
-                profile: profile,
-                basalProfile: basalProfile,
-                clock: clock,
-                carbs: carbs,
-                glucose: glucose
-            )
 
             let mealResult = try MealGenerator.generate(
                 pumpHistory: pumpHistory,
@@ -176,22 +130,18 @@ struct OpenAPSSwift {
                 glucoseHistory: glucose
             )
 
-            return try (.success(JSONBridge.to(mealResult)), mealInputs)
+            return try .success(JSONBridge.to(mealResult))
         } catch {
-            return (.failure(error), mealInputs)
+            return .failure(error)
         }
     }
 
-    static func iob(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) -> (OrefFunctionResult, IobInputs?) {
-        var iobInputs: IobInputs?
-
+    static func iob(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) -> (OrefFunctionResult) {
         do {
             let pumpHistory = try JSONBridge.pumpHistory(from: pumphistory)
             let profile = try JSONBridge.profile(from: profile)
             let clock = try JSONBridge.clock(from: clock)
             let autosens = try JSONBridge.autosens(from: autosens)
-
-            iobInputs = IobInputs(history: pumpHistory, profile: profile, clock: clock, autosens: autosens)
 
             let iobResult = try IobGenerator.generate(
                 history: pumpHistory,
@@ -200,9 +150,9 @@ struct OpenAPSSwift {
                 autosens: autosens
             )
 
-            return try (.success(JSONBridge.to(iobResult)), iobInputs)
+            return try .success(JSONBridge.to(iobResult))
         } catch {
-            return (.failure(error), iobInputs)
+            return .failure(error)
         }
     }
 
@@ -215,9 +165,7 @@ struct OpenAPSSwift {
         tempTargets: JSON,
         clock: JSON,
         includeDeviationsForTesting: Bool = false
-    ) -> (OrefFunctionResult, AutosensInputs?) {
-        var autosensInputs: AutosensInputs?
-
+    ) -> (OrefFunctionResult) {
         do {
             let glucose = try JSONBridge.glucose(from: glucose)
             let pumpHistory = try JSONBridge.pumpHistory(from: pumpHistory)
@@ -226,16 +174,6 @@ struct OpenAPSSwift {
             let carbs = try JSONBridge.carbs(from: carbs)
             let tempTargets = try JSONBridge.tempTargets(from: tempTargets)
             let clock = try JSONBridge.clock(from: clock)
-
-            autosensInputs = AutosensInputs(
-                glucose: glucose,
-                history: pumpHistory,
-                basalProfile: basalProfile,
-                profile: profile,
-                carbs: carbs,
-                tempTargets: tempTargets,
-                clock: clock
-            )
 
             // this logic is from prepare/autosens.js
             let ratio8h = try AutosensGenerator.generate(
@@ -264,9 +202,9 @@ struct OpenAPSSwift {
 
             let lowestRatio = ratio8h.ratio < ratio24h.ratio ? ratio8h : ratio24h
 
-            return try (.success(JSONBridge.to(lowestRatio)), autosensInputs)
+            return try .success(JSONBridge.to(lowestRatio))
         } catch {
-            return (.failure(error), autosensInputs)
+            return .failure(error)
         }
     }
 }

@@ -365,7 +365,7 @@ enum DeterminationGenerator {
             rate: nil,
             duration: nil,
             iob: iobData.first?.iob,
-            cob: mealData.mealCOB,
+            cob: mealData.mealCOB.jsRounded(),
             predictions: Predictions(
                 iob: forecastResult.iob.map { Int($0.jsRounded()) },
                 zt: forecastResult.zt.map { Int($0.jsRounded()) },

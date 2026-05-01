@@ -723,31 +723,14 @@ final class OpenAPS {
             pumphistory = pumpHistoryArray.removingDuplicateSuspendResumeEvents().rawJSON
         }
 
-        let startJavascriptAt = Date()
-        let jsResult = await iobJavascript(pumphistory: pumphistory, profile: profile, clock: clock, autosens: autosens)
-        let javascriptDuration = Date().timeIntervalSince(startJavascriptAt)
-
-        // Important: we want to make sure that this flag ensures that none
-        // of the native code runs
-        guard useSwiftOref else {
+        if useSwiftOref {
+            let swiftResult = OpenAPSSwift
+                .iob(pumphistory: pumphistory, profile: profile, clock: clock, autosens: autosens)
+            return try swiftResult.returnOrThrow()
+        } else {
+            let jsResult = await iobJavascript(pumphistory: pumphistory, profile: profile, clock: clock, autosens: autosens)
             return try jsResult.returnOrThrow()
         }
-
-        let startSwiftAt = Date()
-        let (swiftResult, iobInputs) = OpenAPSSwift
-            .iob(pumphistory: pumphistory, profile: profile, clock: clock, autosens: autosens)
-        let swiftDuration = Date().timeIntervalSince(startSwiftAt)
-
-        JSONCompare.logDifferences(
-            function: .iob,
-            swift: swiftResult,
-            swiftDuration: swiftDuration,
-            javascript: jsResult,
-            javascriptDuration: javascriptDuration,
-            iobInputs: iobInputs
-        )
-
-        return try jsResult.returnOrThrow()
     }
 
     func iobJavascript(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) async -> OrefFunctionResult {
@@ -783,26 +766,19 @@ final class OpenAPS {
         glucose: JSON,
         useSwiftOref: Bool
     ) async throws -> RawJSON {
-        let startJavascriptAt = Date()
-        let jsResult = await mealJavascript(
-            pumphistory: pumphistory,
-            profile: profile,
-            basalProfile: basalProfile,
-            clock: clock,
-            carbs: carbs,
-            glucose: glucose
-        )
-        let javascriptDuration = Date().timeIntervalSince(startJavascriptAt)
-
-        // Important: we want to make sure that this flag ensures that none
-        // of the native code runs
-        guard useSwiftOref else {
-            return try jsResult.returnOrThrow()
-        }
-
-        let startSwiftAt = Date()
-        let (swiftResult, mealInputs) = OpenAPSSwift
-            .meal(
+        if useSwiftOref {
+            let swiftResult = OpenAPSSwift
+                .meal(
+                    pumphistory: pumphistory,
+                    profile: profile,
+                    basalProfile: basalProfile,
+                    clock: clock,
+                    carbs: carbs,
+                    glucose: glucose
+                )
+            return try swiftResult.returnOrThrow()
+        } else {
+            let jsResult = await mealJavascript(
                 pumphistory: pumphistory,
                 profile: profile,
                 basalProfile: basalProfile,
@@ -810,18 +786,8 @@ final class OpenAPS {
                 carbs: carbs,
                 glucose: glucose
             )
-        let swiftDuration = Date().timeIntervalSince(startSwiftAt)
-
-        JSONCompare.logDifferences(
-            function: .meal,
-            swift: swiftResult,
-            swiftDuration: swiftDuration,
-            javascript: jsResult,
-            javascriptDuration: javascriptDuration,
-            mealInputs: mealInputs
-        )
-
-        return try jsResult.returnOrThrow()
+            return try jsResult.returnOrThrow()
+        }
     }
 
     private func mealJavascript(
@@ -866,46 +832,29 @@ final class OpenAPS {
         temptargets: JSON,
         useSwiftOref: Bool
     ) async throws -> RawJSON {
-        let startJavascriptAt = Date()
-        let jsResult = await autosenseJavascript(
-            glucose: glucose,
-            pumpHistory: pumpHistory,
-            basalprofile: basalprofile,
-            profile: profile,
-            carbs: carbs,
-            temptargets: temptargets
-        )
-        let javascriptDuration = Date().timeIntervalSince(startJavascriptAt)
-
-        // Important: we want to make sure that this flag ensures that none
-        // of the native code runs
-        guard useSwiftOref else {
-            return try jsResult.returnOrThrow()
-        }
-
-        let startSwiftAt = Date()
-        let (swiftResult, autosensInputs) = OpenAPSSwift
-            .autosense(
+        if useSwiftOref {
+            let swiftResult = OpenAPSSwift
+                .autosense(
+                    glucose: glucose,
+                    pumpHistory: pumpHistory,
+                    basalProfile: basalprofile,
+                    profile: profile,
+                    carbs: carbs,
+                    tempTargets: temptargets,
+                    clock: Date()
+                )
+            return try swiftResult.returnOrThrow()
+        } else {
+            let jsResult = await autosenseJavascript(
                 glucose: glucose,
                 pumpHistory: pumpHistory,
-                basalProfile: basalprofile,
+                basalprofile: basalprofile,
                 profile: profile,
                 carbs: carbs,
-                tempTargets: temptargets,
-                clock: Date()
+                temptargets: temptargets
             )
-        let swiftDuration = Date().timeIntervalSince(startSwiftAt)
-
-        JSONCompare.logDifferences(
-            function: .autosens,
-            swift: swiftResult,
-            swiftDuration: swiftDuration,
-            javascript: jsResult,
-            javascriptDuration: javascriptDuration,
-            autosensInputs: autosensInputs
-        )
-
-        return try jsResult.returnOrThrow()
+            return try jsResult.returnOrThrow()
+        }
     }
 
     private func autosenseJavascript(
@@ -957,58 +906,42 @@ final class OpenAPS {
         useSwiftOref: Bool
     ) async throws -> RawJSON {
         let clock = Date()
-        let startJavascriptAt = Date()
-        let jsResult = await determineBasalJavascript(
-            glucose: glucose,
-            currentTemp: currentTemp,
-            iob: iob,
-            profile: profile,
-            autosens: autosens,
-            meal: meal,
-            microBolusAllowed: microBolusAllowed,
-            reservoir: reservoir,
-            pumpHistory: pumpHistory,
-            preferences: preferences,
-            basalProfile: basalProfile,
-            trioCustomOrefVariables: trioCustomOrefVariables,
-            clock: clock
-        )
-        let javascriptDuration = Date().timeIntervalSince(startJavascriptAt)
 
-        // Important: we want to make sure that this flag ensures that none
-        // of the native code runs
-        guard useSwiftOref else {
+        if useSwiftOref {
+            let swiftResult = OpenAPSSwift.determineBasal(
+                glucose: glucose,
+                currentTemp: currentTemp,
+                iob: iob,
+                profile: profile,
+                autosens: autosens,
+                meal: meal,
+                microBolusAllowed: microBolusAllowed,
+                reservoir: reservoir,
+                pumpHistory: pumpHistory,
+                preferences: preferences,
+                basalProfile: basalProfile,
+                trioCustomOrefVariables: trioCustomOrefVariables,
+                clock: clock
+            )
+            return try swiftResult.returnOrThrow()
+        } else {
+            let jsResult = await determineBasalJavascript(
+                glucose: glucose,
+                currentTemp: currentTemp,
+                iob: iob,
+                profile: profile,
+                autosens: autosens,
+                meal: meal,
+                microBolusAllowed: microBolusAllowed,
+                reservoir: reservoir,
+                pumpHistory: pumpHistory,
+                preferences: preferences,
+                basalProfile: basalProfile,
+                trioCustomOrefVariables: trioCustomOrefVariables,
+                clock: clock
+            )
             return try jsResult.returnOrThrow()
         }
-
-        let startSwiftAt = Date()
-        let (swiftResult, determineBasalInputs) = OpenAPSSwift.determineBasal(
-            glucose: glucose,
-            currentTemp: currentTemp,
-            iob: iob,
-            profile: profile,
-            autosens: autosens,
-            meal: meal,
-            microBolusAllowed: microBolusAllowed,
-            reservoir: reservoir,
-            pumpHistory: pumpHistory,
-            preferences: preferences,
-            basalProfile: basalProfile,
-            trioCustomOrefVariables: trioCustomOrefVariables,
-            clock: clock
-        )
-        let swiftDuration = Date().timeIntervalSince(startSwiftAt)
-
-        JSONCompare.logDifferences(
-            function: .determineBasal,
-            swift: swiftResult,
-            swiftDuration: swiftDuration,
-            javascript: jsResult,
-            javascriptDuration: javascriptDuration,
-            determineBasalInputs: determineBasalInputs
-        )
-
-        return try jsResult.returnOrThrow()
     }
 
     private func determineBasalJavascript(
@@ -1036,10 +969,6 @@ final class OpenAPS {
                         Script(name: Bundle.getLastGlucose),
                         Script(name: Bundle.determineBasal)
                     ])
-
-                    if let middleware = self.middlewareScript(name: OpenAPS.Middleware.determineBasal) {
-                        worker.evaluate(script: middleware)
-                    }
 
                     let result = worker.call(function: Function.generate, with: [
                         iob,
@@ -1134,52 +1063,35 @@ final class OpenAPS {
         useSwiftOref: Bool,
         clock: Date
     ) async throws -> RawJSON {
-        let startJavascriptAt = Date()
-        let jsResult = await makeProfileJavascript(
-            preferences: preferences,
-            pumpSettings: pumpSettings,
-            bgTargets: bgTargets,
-            basalProfile: basalProfile,
-            isf: isf,
-            carbRatio: carbRatio,
-            tempTargets: tempTargets,
-            model: model,
-            autotune: autotune,
-            trioSettings: trioSettings
-        )
-        let javascriptDuration = Date().timeIntervalSince(startJavascriptAt)
-
-        // Important: we want to make sure that this flag ensures that none
-        // of the native code runs
-        guard useSwiftOref else {
+        if useSwiftOref {
+            let swiftResult = OpenAPSSwift.makeProfile(
+                preferences: preferences,
+                pumpSettings: pumpSettings,
+                bgTargets: bgTargets,
+                basalProfile: basalProfile,
+                isf: isf,
+                carbRatio: carbRatio,
+                tempTargets: tempTargets,
+                model: model,
+                trioSettings: trioSettings,
+                clock: clock
+            )
+            return try swiftResult.returnOrThrow()
+        } else {
+            let jsResult = await makeProfileJavascript(
+                preferences: preferences,
+                pumpSettings: pumpSettings,
+                bgTargets: bgTargets,
+                basalProfile: basalProfile,
+                isf: isf,
+                carbRatio: carbRatio,
+                tempTargets: tempTargets,
+                model: model,
+                autotune: autotune,
+                trioSettings: trioSettings
+            )
             return try jsResult.returnOrThrow()
         }
-
-        let startSwiftAt = Date()
-        let (swiftResult, makeProfileInputs) = OpenAPSSwift.makeProfile(
-            preferences: preferences,
-            pumpSettings: pumpSettings,
-            bgTargets: bgTargets,
-            basalProfile: basalProfile,
-            isf: isf,
-            carbRatio: carbRatio,
-            tempTargets: tempTargets,
-            model: model,
-            trioSettings: trioSettings,
-            clock: clock
-        )
-        let swiftDuration = Date().timeIntervalSince(startSwiftAt)
-
-        JSONCompare.logDifferences(
-            function: .makeProfile,
-            swift: swiftResult,
-            swiftDuration: swiftDuration,
-            javascript: jsResult,
-            javascriptDuration: javascriptDuration,
-            makeProfileInputs: makeProfileInputs
-        )
-
-        return try jsResult.returnOrThrow()
     }
 
     private func loadJSON(name: String) -> String {
@@ -1197,23 +1109,6 @@ final class OpenAPS {
                 continuation.resume(returning: result)
             }
         }
-    }
-
-    private func middlewareScript(name: String) -> Script? {
-        if let body = storage.retrieveRaw(name) {
-            return Script(name: name, body: body)
-        }
-
-        if let url = Foundation.Bundle.main.url(forResource: "javascript/\(name)", withExtension: "") {
-            do {
-                let body = try String(contentsOf: url)
-                return Script(name: name, body: body)
-            } catch {
-                debug(.openAPS, "Failed to load script \(name): \(error)")
-            }
-        }
-
-        return nil
     }
 
     static func defaults(for file: String) -> RawJSON {
