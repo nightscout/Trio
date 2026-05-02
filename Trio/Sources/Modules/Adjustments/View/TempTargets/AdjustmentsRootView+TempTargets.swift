@@ -34,7 +34,7 @@ extension Adjustments.RootView {
         Section {
             ForEach(state.tempTargetPresets) { preset in
                 tempTargetView(for: preset, showCheckmark: showTempTargetCheckmark) {
-                    enactTempTargetPreset(preset)
+                    requestTempTargetPresetActivation(preset)
                 }
                 .contextMenu {
                     actionButtonsForTempTargets(for: preset)
@@ -64,17 +64,14 @@ extension Adjustments.RootView {
         }
     }
 
-    private func enactTempTargetPreset(_ preset: TempTargetStored) {
-        Task {
-            let objectID = preset.objectID
-            await state.enactTempTargetPreset(withID: objectID)
-            selectedTempTargetPresetID = preset.id?.uuidString
-            showTempTargetCheckmark = true
+    private func requestTempTargetPresetActivation(_ preset: TempTargetStored) {
+        let activation = PendingPresetActivation.tempTarget(
+            objectID: preset.objectID,
+            presetID: preset.id?.uuidString,
+            name: preset.name ?? ""
+        )
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                showTempTargetCheckmark = false
-            }
-        }
+        requestPresetActivation(activation)
     }
 
     private func actionButtonsForTempTargets(for tempTarget: TempTargetStored) -> some View {
