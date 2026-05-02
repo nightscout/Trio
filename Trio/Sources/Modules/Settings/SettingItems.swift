@@ -240,7 +240,8 @@ enum SettingItems {
                 "Glucose Color Scheme",
                 "Time in Range Type",
                 "Time in Tight Range (TITR)",
-                "Time in Normoglycemia (TING)"
+                "Time in Normoglycemia (TING)",
+                "Require Adjustments Confirmation"
             ],
             path: ["Features", "User Interface"]
         ),
