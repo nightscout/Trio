@@ -236,7 +236,7 @@ extension PluginSource: CGMManagerDelegate {
 
                 let value = Int(quantity.doubleValue(for: .milligramsPerDeciliter))
                 return BloodGlucose(
-                    _id: UUID().uuidString,
+                    id: UUID().uuidString,
                     sgv: value,
                     direction: .init(trendType: newGlucoseSample.trend),
                     date: Decimal(Int(newGlucoseSample.date.timeIntervalSince1970 * 1000)),

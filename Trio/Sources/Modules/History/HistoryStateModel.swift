@@ -73,8 +73,8 @@ extension History {
                     }
 
                     // Delete from Nightscout
-                    if let id = glucoseToDelete.id?.uuidString {
-                        self.provider.deleteManualGlucoseFromNightscout(withID: id)
+                    if let id = glucoseToDelete.id?.uuidString, let date = glucoseToDelete.date {
+                        self.provider.deleteGlucoseFromNightscout(withID: id, withDate: date)
                     }
 
                     // Delete from Apple Health
