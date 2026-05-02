@@ -64,6 +64,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var apsManager: APSManager!
     @Injected() private var router: Router!
+    @Injected() private var fetchGlucoseManager: FetchGlucoseManager!
 
     @Injected(as: FetchGlucoseManager.self) private var sourceInfoProvider: SourceInfoProvider!
 
@@ -116,9 +117,11 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             guard let self else { return }
 
             let glucoseCategory = NotificationCategoryFactory.createGlucoseCategory()
+            let loopFailureAlarmCategory = NotificationCategoryFactory.createLoopFailureAlarmCategory()
 
             var categories = existingCategories
             categories.update(with: glucoseCategory)
+            categories.update(with: loopFailureAlarmCategory)
             // UNUserNotificationCenter methods should be called on main thread
             Task { @MainActor [weak self] in
                 guard let self else { return }
@@ -131,6 +134,10 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         apsManager.lastLoopDateSubject
             .sink { [weak self] date in
                 self?.scheduleMissingLoopNotifiactions(date: date)
+                // Loop completed successfully — reset loop failure acknowledge state
+                DispatchQueue.main.async {
+                    AlarmSound.shared.loopDidResume()
+                }
             }
             .store(in: &lifetime)
     }
@@ -146,6 +153,14 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     }
 
     private func registerSubscribers() {
+        // Fires every minute from the glucose fetch timer, regardless of new glucose.
+        fetchGlucoseManager.timerHeartbeat
+            .receive(on: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                self?.checkLoopFailureAlarm()
+            }
+            .store(in: &subscriptions)
+
         glucoseStorage.updatePublisher
             .receive(on: DispatchQueue.global(qos: .background))
             .sink { [weak self] _ in
@@ -155,6 +170,80 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 }
             }
             .store(in: &subscriptions)
+    }
+
+    /// Check if the loop has been failing long enough to trigger an alarm sound.
+    private func checkLoopFailureAlarm() {
+        let settings = settingsManager.settings
+        guard settings.useLoopFailureAlarmSound else { return }
+
+        let delayMinutes = Double(truncating: settings.loopFailureAlarmDelay as NSNumber)
+        let lastLoopDate = apsManager.lastLoopDate
+        let minutesSinceLastLoop = Date().timeIntervalSince(lastLoopDate) / 60
+        let staleThresholdMinutes: Double = 60
+
+        // Skip alarm when the user has intentionally broken the loop.
+        if !settings.closedLoop {
+            debug(.service, "[LoopFailureAlarm] skip — open loop mode")
+            return
+        }
+        if apsManager.isManualTempBasal {
+            debug(.service, "[LoopFailureAlarm] skip — manual temp basal active")
+            return
+        }
+        if apsManager.isSuspended {
+            debug(.service, "[LoopFailureAlarm] skip — pump suspended")
+            return
+        }
+
+        guard minutesSinceLastLoop >= delayMinutes else { return }
+
+        // If it's been more than 60 minutes, the loop was likely never active or the app was dormant.
+        guard minutesSinceLastLoop <= staleThresholdMinutes else {
+            debug(
+                .service,
+                "[LoopFailureAlarm] skip — minutesSinceLastLoop=\(String(format: "%.0f", minutesSinceLastLoop)) " +
+                    "exceeds stale threshold (\(Int(staleThresholdMinutes)) min)"
+            )
+            return
+        }
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            // Suppress both the sound and the lock-screen notification when snoozed or acknowledged.
+            guard AlarmSound.shared.shouldFire() else { return }
+
+            debug(
+                .service,
+                "[LoopFailureAlarm] firing — minutesSinceLastLoop=\(String(format: "%.0f", minutesSinceLastLoop)), " +
+                    "threshold=\(String(format: "%.0f", delayMinutes)) min"
+            )
+
+            AlarmSound.shared.play(
+                overrideVolume: settings.alarmVolumeOverride,
+                volume: Float(truncating: settings.alarmVolume as NSNumber)
+            )
+
+            // In-app banner covers the foreground case; only post a lock-screen notification
+            // when the app isn't active (so the lock screen and Apple Watch get the alert).
+            guard UIApplication.shared.applicationState != .active else { return }
+
+            let content = UNMutableNotificationContent()
+            content.title = String(localized: "Loop Failure Alarm", comment: "Loop failure alarm notification title")
+            content.body = String(
+                format: String(localized: "Last loop was more than %d min ago", comment: "Last loop was more than %d min ago"),
+                Int(delayMinutes)
+            )
+            content.sound = .default
+            content.categoryIdentifier = NotificationCategoryIdentifier.trioLoopFailureAlarm.rawValue
+            self.addRequest(
+                identifier: .noLoopSecondNotification,
+                content: content,
+                deleteOld: true,
+                messageType: .error,
+                messageSubtype: .pump
+            )
+        }
     }
 
     private func addAppBadge(glucose: Int?) {
@@ -686,11 +775,24 @@ extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
     ) {
         defer { completionHandler() }
 
-        // Handle quick snooze actions (from notification action buttons)
+        // Handle quick snooze/acknowledge actions (from notification action buttons)
         if let quickAction = NotificationResponseAction(rawValue: response.actionIdentifier) {
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                await self.applySnooze(for: quickAction.duration)
+            let categoryId = response.notification.request.content.categoryIdentifier
+            let isLoopFailureAlarm = categoryId == NotificationCategoryIdentifier.trioLoopFailureAlarm.rawValue
+
+            if quickAction == .acknowledge {
+                DispatchQueue.main.async {
+                    AlarmSound.shared.acknowledge()
+                }
+            } else if isLoopFailureAlarm {
+                DispatchQueue.main.async {
+                    AlarmSound.shared.snooze(for: quickAction.duration)
+                }
+            } else {
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    await self.applySnooze(for: quickAction.duration)
+                }
             }
             return
         }

@@ -19,6 +19,8 @@ protocol FetchGlucoseManager: SourceInfoProvider {
     var cgmGlucosePluginId: String { get }
     var settingsManager: SettingsManager! { get }
     var shouldSyncToRemoteService: Bool { get }
+    /// Fires every minute from the glucose fetch timer, regardless of whether new glucose was received.
+    var timerHeartbeat: AnyPublisher<Void, Never> { get }
 }
 
 extension FetchGlucoseManager {
@@ -43,6 +45,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
     private var lifetime = Lifetime()
     private let timer = DispatchTimer(timeInterval: 1.minutes.timeInterval)
+    private let timerHeartbeatSubject = PassthroughSubject<Void, Never>()
+    var timerHeartbeat: AnyPublisher<Void, Never> { timerHeartbeatSubject.eraseToAnyPublisher() }
     var cgmGlucoseSourceType: CGMType = .none
     var cgmGlucosePluginId: String = ""
     var cgmManager: CGMManagerUI? {
@@ -90,6 +94,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             .receive(on: processQueue)
             .flatMap { [self] _ -> AnyPublisher<[BloodGlucose], Never> in
                 debug(.nightscout, "FetchGlucoseManager timer heartbeat")
+                self.timerHeartbeatSubject.send()
                 if let glucoseSource = self.glucoseSource {
                     return glucoseSource.fetch(self.timer).eraseToAnyPublisher()
                 } else {
