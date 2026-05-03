@@ -17,10 +17,13 @@ extension Adjustments.RootView {
         Section {
             ForEach(state.overridePresets) { preset in
                 overridesView(for: preset, showCheckMark: showOverrideCheckmark) {
-                    enactOverridePreset(preset)
+                    requestOverridePresetActivation(preset)
+                }
+                .contextMenu {
+                    actionButtonsForOverrides(for: preset)
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    swipeActionsForOverrides(for: preset)
+                    actionButtonsForOverrides(for: preset)
                 }
             }
             .onMove(perform: state.reorderOverride)
@@ -73,24 +76,19 @@ extension Adjustments.RootView {
         }
     }
 
-    func enactOverridePreset(_ preset: OverrideStored) {
-        Task {
-            let objectID = preset.objectID
-            await state.enactOverridePreset(withID: objectID)
-            state.hideModal()
-            selectedOverridePresetID = preset.id
-            showOverrideCheckmark = true
+    private func requestOverridePresetActivation(_ preset: OverrideStored) {
+        let activation = PendingPresetActivation.override(
+            objectID: preset.objectID,
+            presetID: preset.id,
+            name: preset.name ?? ""
+        )
 
-            // Deactivate checkmark after 3 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                showOverrideCheckmark = false
-            }
-        }
+        requestPresetActivation(activation)
     }
 
-    func swipeActionsForOverrides(for preset: OverrideStored) -> some View {
+    func actionButtonsForOverrides(for preset: OverrideStored) -> some View {
         Group {
-            Button(role: .none) {
+            Button(role: .destructive) {
                 selectedOverride = preset
                 isConfirmDeletePresented = true
             } label: {

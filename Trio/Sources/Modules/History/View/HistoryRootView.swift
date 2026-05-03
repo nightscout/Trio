@@ -506,7 +506,27 @@ extension History {
                             Spacer()
 
                             Text(Formatter.dateFormatter.string(from: glucose.date ?? Date()))
-                        }.swipeActions {
+                        }
+                        .contextMenu {
+                            Button(
+                                "Delete",
+                                systemImage: "trash.fill",
+                                role: .destructive,
+                                action: {
+                                    alertGlucoseToDelete = glucose
+
+                                    let glucoseToDisplay = state.units == .mgdL ? glucose.glucose
+                                        .description : Int(glucose.glucose).formattedAsMmolL
+                                    alertTitle = String(localized: "Delete Glucose?", comment: "Alert title for deleting glucose")
+                                    alertMessage = Formatter.dateFormatter
+                                        .string(from: glucose.date ?? Date()) + ", " + glucoseToDisplay + " " + state.units
+                                        .rawValue
+
+                                    isRemoveHistoryItemAlertPresented = true
+                                }
+                            ).tint(.red)
+                        }
+                        .swipeActions {
                             Button(
                                 "Delete",
                                 systemImage: "trash.fill",
@@ -667,6 +687,34 @@ extension History {
                 Spacer()
                 Text(Formatter.dateFormatter.string(from: item.timestamp ?? Date())).moveDisabled(true)
             }
+            .contextMenu {
+                if item.bolus != nil {
+                    Button(
+                        "Delete",
+                        systemImage: "trash.fill",
+                        role: .destructive,
+                        action: {
+                            alertTreatmentToDelete = item
+                            alertTitle = String(localized: "Delete Insulin?", comment: "Alert title for deleting insulin")
+                            alertMessage = Formatter.dateFormatter
+                                .string(from: item.timestamp ?? Date()) + ", " +
+                                (Formatter.decimalFormatterWithThreeFractionDigits.string(from: item.bolus?.amount ?? 0) ?? "0") +
+                                String(localized: " U", comment: "Insulin unit")
+
+                            if let bolus = item.bolus {
+                                // Add text snippet, so that alert message is more descriptive for SMBs
+                                alertMessage += bolus.isSMB ? String(
+                                    localized: " SMB",
+                                    comment: "Super Micro Bolus indicator in delete alert"
+                                )
+                                    : ""
+                            }
+
+                            isRemoveHistoryItemAlertPresented = true
+                        }
+                    ).tint(.red)
+                }
+            }
             .swipeActions {
                 if item.bolus != nil {
                     Button(
@@ -745,6 +793,51 @@ extension History {
                         Spacer()
                     }.padding(.top, 5).foregroundColor(.secondary)
                 }
+            }
+            .contextMenu {
+                Button(
+                    "Delete",
+                    systemImage: "trash.fill",
+                    role: .destructive,
+                    action: {
+                        alertCarbEntryToDelete = meal
+
+                        // meal is carb-only
+                        if meal.fpuID == nil {
+                            alertTitle = String(localized: "Delete Carbs?", comment: "Alert title for deleting carbs")
+                            alertMessage = Formatter.dateFormatter
+                                .string(from: meal.date ?? Date()) + ", " +
+                                (Formatter.decimalFormatterWithTwoFractionDigits.string(for: meal.carbs) ?? "0") +
+                                String(localized: " g", comment: "gram of carbs")
+                        }
+                        // meal is complex-meal or fpu-only
+                        else {
+                            alertTitle = meal.isFPU ? String(
+                                localized: "Delete Carbs Equivalents?",
+                                comment: "Alert title for deleting carb equivalents"
+                            )
+                                : String(localized: "Delete Carbs?", comment: "Alert title for deleting carbs")
+                            alertMessage = String(
+                                localized: "All FPUs and the carbs of the meal will be deleted.",
+                                comment: "Alert message for meal deletion"
+                            )
+                        }
+
+                        isRemoveHistoryItemAlertPresented = true
+                    }
+                ).tint(.red)
+
+                Button(
+                    "Edit",
+                    systemImage: "pencil",
+                    role: .none,
+                    action: {
+                        state.carbEntryToEdit = meal
+                        state.showCarbEntryEditor = true
+                    }
+                )
+                .tint(!state.settingsManager.settings.useFPUconversion && meal.isFPU ? Color(.systemGray4) : Color.blue)
+                .disabled(!state.settingsManager.settings.useFPUconversion && meal.isFPU)
             }
             .swipeActions {
                 Button(

@@ -96,6 +96,18 @@ struct TherapySettingEditorView: View {
                                 .transition(.slide)
                             }
                         }
+                        .contextMenu {
+                            if let index = items.firstIndex(where: { $0.id == item.id }), items.count > 1 {
+                                Button(role: .destructive) {
+                                    items.remove(at: index)
+                                    selectedItemID = nil
+                                    validateTherapySettingItems()
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                                .tint(.red)
+                            }
+                        }
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             if let index = items.firstIndex(where: { $0.id == item.id }), items.count > 1 {
                                 Button(role: .destructive) {
