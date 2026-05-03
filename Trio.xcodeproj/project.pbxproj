@@ -203,6 +203,7 @@
 		38E98A3725F5509500C0CED0 /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E98A3625F5509500C0CED0 /* String+Extensions.swift */; };
 		38EA05DA261F6E7C0064E39B /* SimpleLogReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38EA05D9261F6E7C0064E39B /* SimpleLogReporter.swift */; };
 		38EA0600262091870064E39B /* BolusProgressViewStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38EA05FF262091870064E39B /* BolusProgressViewStyle.swift */; };
+		DDB0BBA02026050100000001 /* BolusProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB0BBA02026050100000002 /* BolusProgressBar.swift */; };
 		38F37828261260DC009DB701 /* Color+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38F37827261260DC009DB701 /* Color+Extensions.swift */; };
 		38F3B2EF25ED8E2A005C48AA /* TempTargetsStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38F3B2EE25ED8E2A005C48AA /* TempTargetsStorage.swift */; };
 		38FCF3D625E8FDF40078B0D1 /* MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FCF3D525E8FDF40078B0D1 /* MD5.swift */; };
@@ -756,6 +757,19 @@
 		FE41E4D629463EE20047FD55 /* NightscoutPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE41E4D529463EE20047FD55 /* NightscoutPreferences.swift */; };
 		FE66D16B291F74F8005D6F77 /* Bundle+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */; };
 		FEFFA7A22929FE49007B8193 /* UIDevice+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */; };
+		BD175EBE0000100000000001 /* HistoryDataFlow+Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD175EFE0000100000000001 /* HistoryDataFlow+Models.swift */; };
+		BD175EBE0000100000000002 /* HistoryDeletionTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD175EFE0000100000000002 /* HistoryDeletionTarget.swift */; };
+		BD175EBE0000100000000003 /* HistoryStateModel+Glucose.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD175EFE0000100000000003 /* HistoryStateModel+Glucose.swift */; };
+		BD175EBE0000100000000004 /* HistoryStateModel+Carbs.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD175EFE0000100000000004 /* HistoryStateModel+Carbs.swift */; };
+		BD175EBE0000100000000005 /* HistoryStateModel+Insulin.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD175EFE0000100000000005 /* HistoryStateModel+Insulin.swift */; };
+		BD175EBE0000100000000006 /* HistoryStateModel+CarbEditing.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD175EFE0000100000000006 /* HistoryStateModel+CarbEditing.swift */; };
+		BD175EBE0000100000000007 /* HistoryRootView+Treatments.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD175EFE0000100000000007 /* HistoryRootView+Treatments.swift */; };
+		BD175EBE0000100000000008 /* HistoryRootView+Meals.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD175EFE0000100000000008 /* HistoryRootView+Meals.swift */; };
+		BD175EBE0000100000000009 /* HistoryRootView+Glucose.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD175EFE0000100000000009 /* HistoryRootView+Glucose.swift */; };
+		BD175EBE000010000000000A /* HistoryRootView+Adjustments.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD175EFE000010000000000A /* HistoryRootView+Adjustments.swift */; };
+		BD175EBE000010000000000B /* HistoryRootView+Filters.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD175EFE000010000000000B /* HistoryRootView+Filters.swift */; };
+		BD175EBE000010000000000C /* HistoryRootView+AddGlucose.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD175EFE000010000000000C /* HistoryRootView+AddGlucose.swift */; };
+		BD175EBE000010000000000D /* HistoryRootView+Confirmations.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD175EFE000010000000000D /* HistoryRootView+Confirmations.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1076,6 +1090,7 @@
 		38E98A3625F5509500C0CED0 /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
 		38EA05D9261F6E7C0064E39B /* SimpleLogReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleLogReporter.swift; sourceTree = "<group>"; };
 		38EA05FF262091870064E39B /* BolusProgressViewStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusProgressViewStyle.swift; sourceTree = "<group>"; };
+		DDB0BBA02026050100000002 /* BolusProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusProgressBar.swift; sourceTree = "<group>"; };
 		38F37827261260DC009DB701 /* Color+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extensions.swift"; sourceTree = "<group>"; };
 		38F3783A2613555C009DB701 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		38F3B2EE25ED8E2A005C48AA /* TempTargetsStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetsStorage.swift; sourceTree = "<group>"; };
@@ -1610,6 +1625,19 @@
 		FE41E4D529463EE20047FD55 /* NightscoutPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutPreferences.swift; sourceTree = "<group>"; };
 		FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+Extensions.swift"; sourceTree = "<group>"; };
 		FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIDevice+Extensions.swift"; sourceTree = "<group>"; };
+		BD175EFE0000100000000001 /* HistoryDataFlow+Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HistoryDataFlow+Models.swift"; sourceTree = "<group>"; };
+		BD175EFE0000100000000002 /* HistoryDeletionTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDeletionTarget.swift; sourceTree = "<group>"; };
+		BD175EFE0000100000000003 /* HistoryStateModel+Glucose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HistoryStateModel+Glucose.swift"; sourceTree = "<group>"; };
+		BD175EFE0000100000000004 /* HistoryStateModel+Carbs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HistoryStateModel+Carbs.swift"; sourceTree = "<group>"; };
+		BD175EFE0000100000000005 /* HistoryStateModel+Insulin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HistoryStateModel+Insulin.swift"; sourceTree = "<group>"; };
+		BD175EFE0000100000000006 /* HistoryStateModel+CarbEditing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HistoryStateModel+CarbEditing.swift"; sourceTree = "<group>"; };
+		BD175EFE0000100000000007 /* HistoryRootView+Treatments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HistoryRootView+Treatments.swift"; sourceTree = "<group>"; };
+		BD175EFE0000100000000008 /* HistoryRootView+Meals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HistoryRootView+Meals.swift"; sourceTree = "<group>"; };
+		BD175EFE0000100000000009 /* HistoryRootView+Glucose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HistoryRootView+Glucose.swift"; sourceTree = "<group>"; };
+		BD175EFE000010000000000A /* HistoryRootView+Adjustments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HistoryRootView+Adjustments.swift"; sourceTree = "<group>"; };
+		BD175EFE000010000000000B /* HistoryRootView+Filters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HistoryRootView+Filters.swift"; sourceTree = "<group>"; };
+		BD175EFE000010000000000C /* HistoryRootView+AddGlucose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HistoryRootView+AddGlucose.swift"; sourceTree = "<group>"; };
+		BD175EFE000010000000000D /* HistoryRootView+Confirmations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HistoryRootView+Confirmations.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -1773,6 +1801,13 @@
 			children = (
 				BDA7593D2D37CFC000E649A4 /* CarbEntryEditorView.swift */,
 				881E04BA5E0A003DE8E0A9C6 /* HistoryRootView.swift */,
+				BD175EFE0000100000000007 /* HistoryRootView+Treatments.swift */,
+				BD175EFE0000100000000008 /* HistoryRootView+Meals.swift */,
+				BD175EFE0000100000000009 /* HistoryRootView+Glucose.swift */,
+				BD175EFE000010000000000A /* HistoryRootView+Adjustments.swift */,
+				BD175EFE000010000000000B /* HistoryRootView+Filters.swift */,
+				BD175EFE000010000000000C /* HistoryRootView+AddGlucose.swift */,
+				BD175EFE000010000000000D /* HistoryRootView+Confirmations.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -2381,6 +2416,7 @@
 				383420D825FFEB3F002D46C1 /* Popup.swift */,
 				389ECDFD2601061500D86C4F /* View+Snapshot.swift */,
 				38EA05FF262091870064E39B /* BolusProgressViewStyle.swift */,
+				DDB0BBA02026050100000002 /* BolusProgressBar.swift */,
 				38DF1785276A73D400B3528F /* TagCloudView.swift */,
 				DD88C8E12C50420800F2D558 /* DefinitionRow.swift */,
 				DD1745282C55642100211FAC /* SettingInputSection.swift */,
@@ -2911,11 +2947,25 @@
 			isa = PBXGroup;
 			children = (
 				A401509D21F7F35D4E109EDA /* HistoryDataFlow.swift */,
+				BD175EFE0000100000000001 /* HistoryDataFlow+Models.swift */,
+				BD175EFE0000100000000002 /* HistoryDeletionTarget.swift */,
 				60744C3E9BB3652895C908CC /* HistoryProvider.swift */,
 				9455FA2D92E77A6C4AFED8A3 /* HistoryStateModel.swift */,
+				BD175EC00000100000000001 /* HistoryStateModel+Deletion */,
 				0EE66DD474AFFD4FD787D5B9 /* View */,
 			);
 			path = History;
+			sourceTree = "<group>";
+		};
+		BD175EC00000100000000001 /* HistoryStateModel+Deletion */ = {
+			isa = PBXGroup;
+			children = (
+				BD175EFE0000100000000003 /* HistoryStateModel+Glucose.swift */,
+				BD175EFE0000100000000004 /* HistoryStateModel+Carbs.swift */,
+				BD175EFE0000100000000005 /* HistoryStateModel+Insulin.swift */,
+				BD175EFE0000100000000006 /* HistoryStateModel+CarbEditing.swift */,
+			);
+			path = "HistoryStateModel+Deletion";
 			sourceTree = "<group>";
 		};
 		A42F1FEDFFD0DDE00AAD54D3 /* BasalProfileEditor */ = {
@@ -4621,6 +4671,7 @@
 				582DF9792C8CE1E5001F516D /* MainChartHelper.swift in Sources */,
 				E06B911A275B5EEA003C04B6 /* Array+Extension.swift in Sources */,
 				38EA0600262091870064E39B /* BolusProgressViewStyle.swift in Sources */,
+				DDB0BBA02026050100000001 /* BolusProgressBar.swift in Sources */,
 				389ECDFE2601061500D86C4F /* View+Snapshot.swift in Sources */,
 				38FEF3FE2738083E00574A46 /* CGMSettingsProvider.swift in Sources */,
 				38E98A3725F5509500C0CED0 /* String+Extensions.swift in Sources */,
@@ -4868,6 +4919,19 @@
 				8194B80890CDD6A3C13B0FEE /* SnoozeStateModel.swift in Sources */,
 				BDA25EE42D260CD500035F34 /* AppleWatchManager.swift in Sources */,
 				0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */,
+				BD175EBE0000100000000001 /* HistoryDataFlow+Models.swift in Sources */,
+				BD175EBE0000100000000002 /* HistoryDeletionTarget.swift in Sources */,
+				BD175EBE0000100000000003 /* HistoryStateModel+Glucose.swift in Sources */,
+				BD175EBE0000100000000004 /* HistoryStateModel+Carbs.swift in Sources */,
+				BD175EBE0000100000000005 /* HistoryStateModel+Insulin.swift in Sources */,
+				BD175EBE0000100000000006 /* HistoryStateModel+CarbEditing.swift in Sources */,
+				BD175EBE0000100000000007 /* HistoryRootView+Treatments.swift in Sources */,
+				BD175EBE0000100000000008 /* HistoryRootView+Meals.swift in Sources */,
+				BD175EBE0000100000000009 /* HistoryRootView+Glucose.swift in Sources */,
+				BD175EBE000010000000000A /* HistoryRootView+Adjustments.swift in Sources */,
+				BD175EBE000010000000000B /* HistoryRootView+Filters.swift in Sources */,
+				BD175EBE000010000000000C /* HistoryRootView+AddGlucose.swift in Sources */,
+				BD175EBE000010000000000D /* HistoryRootView+Confirmations.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

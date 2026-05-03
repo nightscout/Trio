@@ -561,6 +561,29 @@ extension UserInterfaceSettings {
                     ),
                     headerText: String(localized: "Carbs Required Badge")
                 )
+
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.requireAdjustmentsConfirmation,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = String(localized: "Require Adjustments Confirmation")
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: String(localized: "Require Adjustments Confirmation"),
+                    miniHint: String(
+                        localized: "If enabled, a confirmation dialog will be shown when activating adjustment presets."
+                    ),
+                    verboseHint: Text(
+                        "Turning this on will show a confirmation dialog when you activate an Override or Temporary Target preset. This is for users who would like avoid accidentally activating a preset by mistake."
+                    ),
+                    headerText: String(localized: "Adjustments")
+                )
             }
             .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
