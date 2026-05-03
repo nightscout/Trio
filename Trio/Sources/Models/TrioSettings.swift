@@ -378,7 +378,7 @@ extension TrioSettings: Decodable {
         if let openFoodFactsPassword = try? container.decode(String.self, forKey: .openFoodFactsPassword) {
             settings.openFoodFactsPassword = openFoodFactsPassword
         }
-        
+
         if let requireAdjustmentsConfirmation = try? container.decode(Bool.self, forKey: .requireAdjustmentsConfirmation) {
             settings.requireAdjustmentsConfirmation = requireAdjustmentsConfirmation
         }

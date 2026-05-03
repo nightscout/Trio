@@ -422,26 +422,11 @@ extension BarcodeScanner {
                                 .listRowBackground(Color.clear)
                                 .listRowSeparator(.hidden)
                                 .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                    Button(role: .destructive) {
-                                        withAnimation {
-                                            state.removeScannedProduct(item)
-                                        }
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
-                                    .tint(.red)
+                                .contextMenu {
+                                    actionButtonsForScannedProduct(for: item)
                                 }
-                                .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                                    Button {
-                                        state.editScannedProduct(item)
-                                        isEditingFromList = true
-                                        state.isEditingFromList = true
-                                        showEditorCard = true
-                                    } label: {
-                                        Label("Edit", systemImage: "pencil")
-                                    }
-                                    .tint(.blue)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    actionButtonsForScannedProduct(for: item)
                                 }
                         }
                     }
@@ -449,6 +434,29 @@ extension BarcodeScanner {
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
+        }
+
+        private func actionButtonsForScannedProduct(for product: BarcodeScanner.FoodItem) -> some View {
+            Group {
+                Button(role: .destructive) {
+                    withAnimation {
+                        state.removeScannedProduct(product)
+                    }
+                } label: {
+                    Label("Delete", systemImage: "trash.fill")
+                }
+                .tint(.red)
+
+                Button {
+                    state.editScannedProduct(product)
+                    isEditingFromList = true
+                    state.isEditingFromList = true
+                    showEditorCard = true
+                } label: {
+                    Label("Edit", systemImage: "pencil")
+                }
+                .tint(.blue)
+            }
         }
 
         private var emptyListView: some View {
