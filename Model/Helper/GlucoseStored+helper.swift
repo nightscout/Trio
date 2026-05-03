@@ -93,16 +93,6 @@ extension NSPredicate {
         return NSPredicate(format: "date >= %@ AND isUploadedToTidepool == %@", date as NSDate, false as NSNumber)
     }
 
-    static var manualGlucoseNotYetUploadedToNightscout: NSPredicate {
-        let date = Date.oneDayAgo
-        return NSPredicate(
-            format: "date >= %@ AND isUploadedToNS == %@ AND isManual == %@",
-            date as NSDate,
-            false as NSNumber,
-            true as NSNumber
-        )
-    }
-
     static var manualGlucoseNotYetUploadedToHealth: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(
@@ -121,42 +111,6 @@ extension NSPredicate {
             false as NSNumber,
             true as NSNumber
         )
-    }
-}
-
-extension GlucoseStored: Encodable {
-    enum CodingKeys: String, CodingKey {
-        case date
-        case dateString
-        case sgv
-        case glucose
-        case direction
-        case id
-        case type
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-
-        let dateFormatter = ISO8601DateFormatter()
-        dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-
-        try container.encode(dateFormatter.string(from: date ?? Date()), forKey: .dateString)
-
-        let dateAsUnixTimestamp = String(format: "%.0f", (date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000)
-        try container.encode(dateAsUnixTimestamp, forKey: .date)
-
-        try container.encode(direction, forKey: .direction)
-        try container.encode(id, forKey: .id)
-
-        // TODO: Handle the type of the glucose entry conditionally not hardcoded
-        try container.encode("sgv", forKey: .type)
-
-        if isManual {
-            try container.encode(glucose, forKey: .glucose)
-        } else {
-            try container.encode(glucose, forKey: .sgv)
-        }
     }
 }
 
