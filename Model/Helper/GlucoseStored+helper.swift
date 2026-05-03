@@ -93,16 +93,6 @@ extension NSPredicate {
         return NSPredicate(format: "date >= %@ AND isUploadedToTidepool == %@", date as NSDate, false as NSNumber)
     }
 
-    static var manualGlucoseNotYetUploadedToNightscout: NSPredicate {
-        let date = Date.oneDayAgo
-        return NSPredicate(
-            format: "date >= %@ AND isUploadedToNS == %@ AND isManual == %@",
-            date as NSDate,
-            false as NSNumber,
-            true as NSNumber
-        )
-    }
-
     static var manualGlucoseNotYetUploadedToHealth: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(
