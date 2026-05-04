@@ -76,7 +76,9 @@
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>To create events with glucose values, so they can be viewed on Apple Watch and CarPlay</string>
 	<key>NSCalendarsUsageDescription</key>
-	<string>Calendar is used to create new glucose events.</string>
+	<string>Calendar is used to create a new glucose events.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera is used to scan food barcodes for nutritional information</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Contact is used to create a Apple Watch complication</string>
 	<key>NSFaceIDUsageDescription</key>

@@ -16,6 +16,7 @@ extension Treatments {
         @FocusState private var focusedField: FocusedField?
 
         let resolver: Resolver
+        var openWithScanner: Bool = false
 
         @State var state = StateModel()
 
@@ -25,6 +26,19 @@ extension Treatments {
         @State private var pushed: Bool = false
         @State private var debounce: DispatchWorkItem?
         @State private var showFatProteinOrderBanner = false
+
+        // Food search state
+        @State private var treatmentSearchQuery = ""
+        @State private var treatmentSearchResults: [BarcodeScanner.FoodItem] = []
+        @State private var isTreatmentSearching = false
+        @State private var treatmentSearchError: String?
+        @State private var treatmentSearchHasMoreResults = false
+        @State private var isLoadingMoreTreatmentSearchResults = false
+        @State private var currentTreatmentSearchPage = 1
+        @FocusState private var isSearchFocused: Bool
+
+        private let foodSearchClient = BarcodeScanner.OpenFoodFactsClient()
+        private let treatmentSearchPageSize = 4
 
         private enum Config {
             static let dividerHeight: CGFloat = 2
@@ -86,6 +100,16 @@ extension Treatments {
             } else { return 0 }
         }
 
+        private let scannedDeltaOverlayWidth: CGFloat = 52
+
+        @ViewBuilder private func scannedNutrientDeltaText(value: Decimal) -> some View {
+            Text("+ \(Double(truncating: value as NSNumber), specifier: "%.1f")g")
+                .font(.caption)
+                .foregroundStyle(.blue)
+                .monospacedDigit()
+                .lineLimit(1)
+        }
+
         /// Handles macro input (carb, fat, protein) in a debounced fashion.
         func handleDebouncedInput() {
             debounce?.cancel()
@@ -102,36 +126,182 @@ extension Treatments {
 
         @ViewBuilder private func proteinAndFat() -> some View {
             HStack {
-                HStack {
-                    Text("Fat")
-                    TextFieldWithToolBar(
-                        text: $state.fat,
-                        placeholder: "0",
-                        keyboardType: .numberPad,
-                        numberFormatter: mealFormatter,
-                        showArrows: true,
-                        previousTextField: { focusedField = previousField(from: .fat) },
-                        nextTextField: { focusedField = nextField(from: .fat) },
-                        unitsText: String(localized: "g", comment: "Units for carbs")
-                    )
-                    .focused($focusedField, equals: .fat)
+                VStack {
+                    HStack {
+                        Text("Fat")
+                        TextFieldWithToolBar(
+                            text: $state.fat,
+                            placeholder: "0",
+                            keyboardType: .numberPad,
+                            numberFormatter: mealFormatter,
+                            showArrows: true,
+                            previousTextField: { focusedField = previousField(from: .fat) },
+                            nextTextField: { focusedField = nextField(from: .fat) },
+                            unitsText: String(localized: "g", comment: "Units for carbs")
+                        )
+                        .focused($focusedField, equals: .fat)
+                        .onChange(of: state.fat) {
+                            handleDebouncedInput()
+                        }
+                        .padding(
+                            .trailing,
+                            state.scannedFat > 0 && !state.settings.settings.barcodeScannerOnlyCarbs
+                                ? scannedDeltaOverlayWidth : 0
+                        )
+                        .overlay(alignment: .trailing) {
+                            if state.scannedFat > 0, !state.settings.settings.barcodeScannerOnlyCarbs {
+                                scannedNutrientDeltaText(value: state.scannedFat)
+                                    .allowsHitTesting(false)
+                            }
+                        }
+                    }
                 }
 
                 Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
 
-                HStack {
-                    Text("Protein")
-                    TextFieldWithToolBar(
-                        text: $state.protein,
-                        placeholder: "0",
-                        keyboardType: .numberPad,
-                        numberFormatter: mealFormatter,
-                        showArrows: true,
-                        previousTextField: { focusedField = previousField(from: .protein) },
-                        nextTextField: { focusedField = nextField(from: .protein) },
-                        unitsText: String(localized: "g", comment: "Units for carbs")
-                    )
-                    .focused($focusedField, equals: .protein)
+                VStack {
+                    HStack {
+                        Text("Protein")
+                            .fixedSize(horizontal: true, vertical: false)
+                        TextFieldWithToolBar(
+                            text: $state.protein,
+                            placeholder: "0",
+                            keyboardType: .numberPad,
+                            numberFormatter: mealFormatter,
+                            showArrows: true,
+                            previousTextField: { focusedField = previousField(from: .protein) },
+                            nextTextField: { focusedField = nextField(from: .protein) },
+                            unitsText: String(localized: "g", comment: "Units for carbs")
+                        )
+                        .focused($focusedField, equals: .protein)
+                        .onChange(of: state.protein) {
+                            handleDebouncedInput()
+                        }
+                        .padding(
+                            .trailing,
+                            state.scannedProtein > 0 && !state.settings.settings.barcodeScannerOnlyCarbs
+                                ? scannedDeltaOverlayWidth : 0
+                        )
+                        .overlay(alignment: .trailing) {
+                            if state.scannedProtein > 0, !state.settings.settings.barcodeScannerOnlyCarbs {
+                                scannedNutrientDeltaText(value: state.scannedProtein)
+                                    .allowsHitTesting(false)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        @ViewBuilder var foodSearch: some View {
+            // Food Search & Quick Actions
+            if state.settings != nil && state.settings.settings.barcodeScannerEnabled {
+                // Combined search bar with action buttons
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 8) {
+                        // Scanner button
+                        Button {
+                            configureAndShowScanner(showList: false)
+                        } label: {
+                            Image(systemName: "barcode.viewfinder")
+                                .font(.title2)
+                                .foregroundStyle(.blue)
+                        }
+                        .buttonStyle(.plain)
+
+                        // Search field
+                        BarcodeScanner.ProductSearchField(
+                            searchText: $treatmentSearchQuery,
+                            isFocused: $isSearchFocused,
+                            onSubmit: {
+                                performTreatmentFoodSearch()
+                            },
+                            onClear: {
+                                treatmentSearchQuery = ""
+                                treatmentSearchResults = []
+                                treatmentSearchError = nil
+                                treatmentSearchHasMoreResults = false
+                                isLoadingMoreTreatmentSearchResults = false
+                                currentTreatmentSearchPage = 1
+                            },
+                            onChange: {
+                                treatmentSearchResults = []
+                                treatmentSearchError = nil
+                                treatmentSearchHasMoreResults = false
+                                isLoadingMoreTreatmentSearchResults = false
+                                currentTreatmentSearchPage = 1
+                            }
+                        )
+
+                        // List button
+                        Button {
+                            configureAndShowScanner(showList: true)
+                        } label: {
+                            ZStack(alignment: .topTrailing) {
+                                Image(systemName: "list.bullet")
+                                    .font(.title2)
+                                    .foregroundStyle(.blue)
+
+                                if !scannerState.scannedProducts.isEmpty {
+                                    Text("\(scannerState.scannedProducts.count)")
+                                        .font(.caption2.weight(.bold))
+                                        .foregroundStyle(.white)
+                                        .padding(4)
+                                        .background(Circle().fill(Color.red))
+                                        .offset(x: 8, y: -8)
+                                }
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    // Search results and Spinner
+                    if isTreatmentSearching {
+                        HStack {
+                            Spacer()
+                            ProgressView()
+                                .padding(.vertical, 8)
+                            Spacer()
+                        }
+                    } else if let error = treatmentSearchError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    } else if !treatmentSearchResults.isEmpty {
+                        VStack(spacing: 0) {
+                            ForEach(treatmentSearchResults) { item in
+                                BarcodeScanner.FoodSearchResultRow(item: item) {
+                                    addSearchResultToMeal(item)
+                                }
+                                if item.id != treatmentSearchResults.last?.id {
+                                    Divider().opacity(0.3)
+                                }
+                            }
+
+                            if treatmentSearchHasMoreResults {
+                                Button {
+                                    loadMoreTreatmentSearchResults()
+                                } label: {
+                                    HStack {
+                                        if isLoadingMoreTreatmentSearchResults {
+                                            ProgressView()
+                                                .scaleEffect(0.9)
+                                        } else {
+                                            Text("Show 4 more results")
+                                                .font(.caption.weight(.medium))
+                                            Image(systemName: "chevron.down")
+                                                .font(.caption)
+                                        }
+                                    }
+                                    .foregroundStyle(.blue)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                                }
+                                .buttonStyle(.plain)
+                                .disabled(isLoadingMoreTreatmentSearchResults)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -153,6 +323,13 @@ extension Treatments {
                 .focused($focusedField, equals: .carbs)
                 .onChange(of: state.carbs) {
                     handleDebouncedInput()
+                }
+                .padding(.trailing, state.scannedCarbs > 0 ? scannedDeltaOverlayWidth : 0)
+                .overlay(alignment: .trailing) {
+                    if state.scannedCarbs > 0 {
+                        scannedNutrientDeltaText(value: state.scannedCarbs)
+                            .allowsHitTesting(false)
+                    }
                 }
             }
         }
@@ -202,201 +379,234 @@ extension Treatments {
             }
         }
 
+        @ViewBuilder var inputsView: some View {
+            VStack {
+                Spacer()
+                carbsTextField()
+
+                Divider()
+
+                if state.useFPUconversion {
+                    proteinAndFat()
+                    Divider()
+
+                    if showFatProteinOrderBanner {
+                        HStack {
+                            Image(systemName: "arrow.left.arrow.right")
+                            Text("The order of Fat and Protein inputs has changed.").font(.callout)
+                            Spacer()
+                            Button {
+                                PropertyPersistentFlags.shared.hasSeenFatProteinOrderChange = true
+                                withAnimation { showFatProteinOrderBanner = false }
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .listRowBackground(Color.orange.opacity(0.75))
+                        .transition(.opacity)
+                    }
+                }
+
+                // Time
+                HStack {
+                    Image(systemName: "clock")
+
+                    Spacer()
+                    if !pushed {
+                        Button {
+                            pushed = true
+                        } label: { Text("Now") }.buttonStyle(.borderless).foregroundColor(.secondary)
+                            .padding(.trailing, 5)
+                    } else {
+                        Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
+                        label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
+
+                        DatePicker(
+                            "Time",
+                            selection: $state.date,
+                            displayedComponents: [.hourAndMinute]
+                        ).controlSize(.mini)
+                            .labelsHidden()
+                            .onChange(of: state.date) { _, _ in
+                                // Trigger simulation when date changes to update forecasts for backdated carbs
+                                Task {
+                                    // `updateForecasts()` does update the `simulatedDetermination` of type `Determination?` var on the main thread, so I can use this to pass its cob value into the bolus calc manager
+                                    await state.updateForecasts()
+                                    state.insulinCalculated = await state.calculateInsulin()
+                                }
+                            }
+                        Button {
+                            state.date = state.date.addingTimeInterval(15.minutes.timeInterval)
+                        }
+                        label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
+                    }
+                }
+
+                Divider()
+
+                // Notes
+                HStack {
+                    Image(systemName: "square.and.pencil")
+                    TextFieldWithToolBarString(
+                        text: $state.note,
+                        placeholder: String(localized: "Note..."),
+                        maxLength: 25
+                    )
+                }
+                Spacer()
+            }
+            .background(Rectangle().fill(Color.chart))
+        }
+
+        @ViewBuilder var optionsView: some View {
+            VStack {
+                if state.fattyMeals || state.sweetMeals {
+                    Spacer()
+                    HStack(spacing: 10) {
+                        if state.fattyMeals {
+                            Toggle(isOn: $state.useFattyMealCorrectionFactor) {
+                                Text("Reduced Bolus")
+                            }
+                            .toggleStyle(RadioButtonToggleStyle())
+                            .font(.footnote)
+                            .onChange(of: state.useFattyMealCorrectionFactor) {
+                                Task {
+                                    state.insulinCalculated = await state.calculateInsulin()
+                                    if state.useFattyMealCorrectionFactor {
+                                        state.useSuperBolus = false
+                                    }
+                                }
+                            }
+                        }
+                        if state.sweetMeals {
+                            Toggle(isOn: $state.useSuperBolus) {
+                                Text("Super Bolus")
+                            }
+                            .toggleStyle(RadioButtonToggleStyle())
+                            .font(.footnote)
+                            .onChange(of: state.useSuperBolus) {
+                                Task {
+                                    state.insulinCalculated = await state.calculateInsulin()
+                                    if state.useSuperBolus {
+                                        state.useFattyMealCorrectionFactor = false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Divider()
+                }
+
+                Spacer()
+
+                HStack {
+                    HStack {
+                        Text("Recommendation")
+                        Button(action: {
+                            state.showInfo.toggle()
+                        }, label: {
+                            Image(systemName: "info.circle")
+                        })
+                            .foregroundStyle(.blue)
+                            .buttonStyle(PlainButtonStyle())
+                    }
+                    Spacer()
+                    Button {
+                        state.amount = state.insulinCalculated
+                    } label: {
+                        HStack {
+                            Text(
+                                formatter
+                                    .string(from: Double(state.insulinCalculated) as NSNumber) ?? ""
+                            )
+
+                            Text(
+                                String(
+                                    localized:
+                                    " U",
+                                    comment: "Unit in number of units delivered (keep the space character!)"
+                                )
+                            ).foregroundColor(.secondary)
+                        }
+                    }
+                    .disabled(state.insulinCalculated == 0 || state.amount == state.insulinCalculated)
+                    .buttonStyle(.bordered).padding(.trailing, -10)
+                }
+
+                Divider()
+                Spacer()
+
+                HStack {
+                    Text("Bolus")
+                    Spacer()
+                    TextFieldWithToolBar(
+                        text: $state.amount,
+                        placeholder: "0",
+                        textColor: colorScheme == .dark ? .white : .blue,
+                        maxLength: 5,
+                        numberFormatter: formatter,
+                        showArrows: true,
+                        previousTextField: { focusedField = previousField(from: .bolus) },
+                        nextTextField: { focusedField = nextField(from: .bolus) },
+                        unitsText: String(localized: "U", comment: "Units for bolus amount")
+                    ).focused($focusedField, equals: .bolus)
+                        .onChange(of: state.amount) {
+                            Task {
+                                await state.updateForecasts()
+                            }
+                        }
+                }
+
+                Divider()
+                Spacer()
+
+                HStack {
+                    Text("External Insulin")
+                    Spacer()
+                    Toggle("", isOn: $state.externalInsulin).toggleStyle(CheckboxToggleStyle())
+                }
+
+                Spacer()
+            }
+        }
+
+        @ViewBuilder func listView() -> some View {
+            List {
+                Section {
+                    foodSearch
+                }.listRowBackground(Color.chart)
+
+                Section {
+                    ForecastChart(state: state)
+                        .padding(.vertical)
+                }.listRowBackground(Color.chart)
+
+                Section {
+                    inputsView
+                }.listRowBackground(Color.chart)
+
+                Section {
+                    optionsView
+                }.listRowBackground(Color.chart)
+
+                treatmentButton
+            }
+            .listStyle(.insetGrouped)
+            .listSectionSpacing(sectionSpacing)
+            .contentMargins(.top, 0, for: .scrollContent)
+        }
+
         var body: some View {
             ZStack(alignment: .center) {
-                VStack {
-                    List {
-                        Section {
-                            ForecastChart(state: state)
-                                .padding(.vertical)
-                        }.listRowBackground(Color.chart)
-
-                        Section {
-                            carbsTextField()
-
-                            if state.useFPUconversion {
-                                proteinAndFat()
-
-                                if showFatProteinOrderBanner {
-                                    HStack {
-                                        Image(systemName: "arrow.left.arrow.right")
-                                        Text("The order of Fat and Protein inputs has changed.").font(.callout)
-                                        Spacer()
-                                        Button {
-                                            PropertyPersistentFlags.shared.hasSeenFatProteinOrderChange = true
-                                            withAnimation { showFatProteinOrderBanner = false }
-                                        } label: {
-                                            Image(systemName: "xmark.circle.fill")
-                                        }
-                                        .buttonStyle(.plain)
-                                    }
-                                    .listRowBackground(Color.orange.opacity(0.75))
-                                    .transition(.opacity)
-                                }
-                            }
-
-                            // Time
-                            HStack {
-                                // Semi-hacky workaround to make sure the List renders the horizontal divider properly between the `Time` and `Note` rows within the Section
-                                HStack {
-                                    Text("")
-                                    Image(systemName: "clock").padding(.leading, -7)
-                                }
-
-                                Spacer()
-                                if !pushed {
-                                    Button {
-                                        pushed = true
-                                    } label: { Text("Now") }.buttonStyle(.borderless).foregroundColor(.secondary)
-                                        .padding(.trailing, 5)
-                                } else {
-                                    Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
-                                    label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
-
-                                    DatePicker(
-                                        "Time",
-                                        selection: $state.date,
-                                        displayedComponents: [.hourAndMinute]
-                                    ).controlSize(.mini)
-                                        .labelsHidden()
-                                        .onChange(of: state.date) { _, _ in
-                                            // Trigger simulation when date changes to update forecasts for backdated carbs
-                                            Task {
-                                                // `updateForecasts()` does update the `simulatedDetermination` of type `Determination?` var on the main thread, so I can use this to pass its cob value into the bolus calc manager
-                                                await state.updateForecasts()
-                                                state.insulinCalculated = await state.calculateInsulin()
-                                            }
-                                        }
-                                    Button {
-                                        state.date = state.date.addingTimeInterval(15.minutes.timeInterval)
-                                    }
-                                    label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
-                                }
-                            }
-
-                            // Notes
-                            HStack {
-                                Image(systemName: "square.and.pencil")
-                                TextFieldWithToolBarString(
-                                    text: $state.note,
-                                    placeholder: String(localized: "Note..."),
-                                    maxLength: 25
-                                )
-                            }
-                        }.listRowBackground(Color.chart)
-
-                        Section {
-                            if state.fattyMeals || state.sweetMeals {
-                                HStack(spacing: 10) {
-                                    if state.fattyMeals {
-                                        Toggle(isOn: $state.useFattyMealCorrectionFactor) {
-                                            Text("Reduced Bolus")
-                                        }
-                                        .toggleStyle(RadioButtonToggleStyle())
-                                        .font(.footnote)
-                                        .onChange(of: state.useFattyMealCorrectionFactor) {
-                                            Task {
-                                                state.insulinCalculated = await state.calculateInsulin()
-                                                if state.useFattyMealCorrectionFactor {
-                                                    state.useSuperBolus = false
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if state.sweetMeals {
-                                        Toggle(isOn: $state.useSuperBolus) {
-                                            Text("Super Bolus")
-                                        }
-                                        .toggleStyle(RadioButtonToggleStyle())
-                                        .font(.footnote)
-                                        .onChange(of: state.useSuperBolus) {
-                                            Task {
-                                                state.insulinCalculated = await state.calculateInsulin()
-                                                if state.useSuperBolus {
-                                                    state.useFattyMealCorrectionFactor = false
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            HStack {
-                                HStack {
-                                    Text("Recommendation")
-                                    Button(action: {
-                                        state.showInfo.toggle()
-                                    }, label: {
-                                        Image(systemName: "info.circle")
-                                    })
-                                        .foregroundStyle(.blue)
-                                        .buttonStyle(PlainButtonStyle())
-                                }
-                                Spacer()
-                                Button {
-                                    state.amount = state.insulinCalculated
-                                } label: {
-                                    HStack {
-                                        Text(
-                                            formatter
-                                                .string(from: Double(state.insulinCalculated) as NSNumber) ?? ""
-                                        )
-
-                                        Text(
-                                            String(
-                                                localized:
-                                                " U",
-                                                comment: "Unit in number of units delivered (keep the space character!)"
-                                            )
-                                        ).foregroundColor(.secondary)
-                                    }
-                                }
-                                .disabled(state.insulinCalculated == 0 || state.amount == state.insulinCalculated)
-                                .buttonStyle(.bordered).padding(.trailing, -10)
-                            }
-
-                            HStack {
-                                Text("Bolus")
-                                Spacer()
-                                TextFieldWithToolBar(
-                                    text: $state.amount,
-                                    placeholder: "0",
-                                    textColor: colorScheme == .dark ? .white : .blue,
-                                    maxLength: 5,
-                                    numberFormatter: formatter,
-                                    showArrows: true,
-                                    previousTextField: { focusedField = previousField(from: .bolus) },
-                                    nextTextField: { focusedField = nextField(from: .bolus) },
-                                    unitsText: String(localized: "U", comment: "Units for bolus amount")
-                                ).focused($focusedField, equals: .bolus)
-                                    .onChange(of: state.amount) {
-                                        Task {
-                                            await state.updateForecasts()
-                                        }
-                                    }
-                            }
-
-                            HStack {
-                                Text("External Insulin")
-                                Spacer()
-                                Toggle("", isOn: $state.externalInsulin).toggleStyle(CheckboxToggleStyle())
-                            }
-                        }.listRowBackground(Color.chart)
-
-                        treatmentButton
-                    }
-                    .listSectionSpacing(sectionSpacing)
-                }
-                .blur(radius: state.isAwaitingDeterminationResult ? 5 : 0)
+                listView()
 
                 if state.isAwaitingDeterminationResult {
                     CustomProgressView(text: progressText.displayName)
                 }
             }
-            .padding(.top)
-            .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
-            .blur(radius: state.showInfo ? 3 : 0)
+            .blur(radius: state.showInfo || state.isAwaitingDeterminationResult ? 3 : 0)
             .navigationTitle("Treatments")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(content: {
@@ -426,6 +636,10 @@ extension Treatments {
                     Task { @MainActor in
                         state.insulinCalculated = await state.calculateInsulin()
                     }
+                    // Auto-open scanner if requested
+                    if openWithScanner {
+                        configureAndShowScanner(showList: false)
+                    }
 
                     if PropertyPersistentFlags.shared.hasSeenFatProteinOrderChange != true {
                         showFatProteinOrderBanner = true
@@ -454,6 +668,175 @@ extension Treatments {
             } message: {
                 Text("\(state.determinationFailureMessage)")
             }
+            .sheet(isPresented: $showBarcodeScanner, onDismiss: {
+                scannerState.cancelEditing()
+                scannerState.isEditingFromList = false
+            }) {
+                NavigationStack {
+                    BarcodeScanner.RootView(
+                        resolver: resolver,
+                        state: scannerState,
+                        showListInitially: initialShowList,
+                        onAddTreatments: { carbs, fat, protein, note in
+                            // Directly merge scanned amounts into Treatments state
+                            Task { @MainActor in
+                                state.addScannedAmounts(carbs: carbs, fat: fat, protein: protein, note: note)
+                                // Force forecasts update and recalc insulin
+                                await state.updateForecasts(force: true)
+                                state.insulinCalculated = await state.calculateInsulin()
+                            }
+                        },
+                        onDismiss: { showBarcodeScanner = false }
+                    )
+                    .environment(appState)
+                }
+                .onChange(of: scannerState.scannedProducts) {
+                    syncScannedAmounts()
+                }
+            }
+        }
+
+        @StateObject private var scannerState = BarcodeScanner.StateModel()
+        @State private var showBarcodeScanner = false
+        @State private var initialShowList = false
+
+        func configureAndShowScanner(showList: Bool) {
+            scannerState.showListView = showList
+            showBarcodeScanner = true
+            initialShowList = showList
+        }
+
+        /// Adds a search result to the scanned products and updates calculations
+        private func addSearchResultToMeal(_ item: BarcodeScanner.FoodItem) {
+            // Add to scanner state's scanned products with default amount
+            var mutableItem = item
+            mutableItem.amount = item.servingQuantity ?? 100 // Default to serving or 100g
+            scannerState.scannedProducts.append(mutableItem)
+
+            // Clear search
+            treatmentSearchQuery = ""
+            treatmentSearchResults = []
+            treatmentSearchError = nil
+            treatmentSearchHasMoreResults = false
+            isLoadingMoreTreatmentSearchResults = false
+            currentTreatmentSearchPage = 1
+
+            // Sync amounts and recalculate
+            syncScannedAmounts()
+            isSearchFocused = false
+        }
+
+        private func performTreatmentFoodSearch() {
+            treatmentSearchError = nil
+            treatmentSearchResults = []
+            treatmentSearchHasMoreResults = false
+            currentTreatmentSearchPage = 1
+            isLoadingMoreTreatmentSearchResults = false
+
+            let query = treatmentSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !query.isEmpty else {
+                isTreatmentSearching = false
+                return
+            }
+
+            isTreatmentSearching = true
+
+            Task { @MainActor in
+                do {
+                    let firstPageResults = try await foodSearchClient.searchProducts(
+                        query: query,
+                        page: 1,
+                        pageSize: treatmentSearchPageSize
+                    )
+                    treatmentSearchResults = firstPageResults
+                    treatmentSearchHasMoreResults = firstPageResults.count == treatmentSearchPageSize
+                } catch {
+                    treatmentSearchError = error.localizedDescription
+                    treatmentSearchResults = []
+                    treatmentSearchHasMoreResults = false
+                }
+                isTreatmentSearching = false
+            }
+        }
+
+        private func loadMoreTreatmentSearchResults() {
+            guard !isTreatmentSearching,
+                  !isLoadingMoreTreatmentSearchResults,
+                  treatmentSearchHasMoreResults
+            else {
+                return
+            }
+
+            let query = treatmentSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !query.isEmpty else {
+                treatmentSearchHasMoreResults = false
+                return
+            }
+
+            isLoadingMoreTreatmentSearchResults = true
+            treatmentSearchError = nil
+
+            let nextPage = currentTreatmentSearchPage + 1
+
+            Task { @MainActor in
+                defer { isLoadingMoreTreatmentSearchResults = false }
+
+                do {
+                    let nextPageResults = try await foodSearchClient.searchProducts(
+                        query: query,
+                        page: nextPage,
+                        pageSize: treatmentSearchPageSize
+                    )
+
+                    if nextPageResults.isEmpty {
+                        treatmentSearchHasMoreResults = false
+                        return
+                    }
+
+                    treatmentSearchResults.append(contentsOf: nextPageResults)
+                    currentTreatmentSearchPage = nextPage
+                    treatmentSearchHasMoreResults = nextPageResults.count == treatmentSearchPageSize
+                } catch {
+                    treatmentSearchError = error.localizedDescription
+                }
+            }
+        }
+
+        private func syncScannedAmounts() {
+            let totalCarbs = scannerState.scannedProducts.reduce(into: 0.0) { result, item in
+                let carbsPer100 = item.nutriments.carbohydratesPer100g ?? 0
+                let amount = item.amount.isFinite ? item.amount : 0
+                result += (carbsPer100 * amount) / 100.0
+            }
+            let totalProtein = scannerState.scannedProducts.reduce(into: 0.0) { result, item in
+                let protPer100 = item.nutriments.proteinPer100g ?? 0
+                let amount = item.amount.isFinite ? item.amount : 0
+                result += (protPer100 * amount) / 100.0
+            }
+            let totalFat = scannerState.scannedProducts.reduce(into: 0.0) { result, item in
+                let fatPer100 = item.nutriments.fatPer100g ?? 0
+                let amount = item.amount.isFinite ? item.amount : 0
+                result += (fatPer100 * amount) / 100.0
+            }
+
+            state.scannedCarbs = Decimal(totalCarbs)
+            state.scannedProtein = Decimal(totalProtein)
+            state.scannedFat = Decimal(totalFat)
+
+            // Trigger a recalculation immediately (sheet may make view inactive, so do it directly)
+            Task { @MainActor in
+                // Update forecasts and insulin immediately (force update even if view not active)
+                debug(
+                    .bolusState,
+                    "syncScannedAmounts: carbs=\(state.carbs) scannedCarbs=\(state.scannedCarbs) totalCarbs=\(state.carbs + state.scannedCarbs)"
+                )
+                await state.updateForecasts(force: true)
+                state.insulinCalculated = await state.calculateInsulin()
+                debug(.bolusState, "syncScannedAmounts: insulinCalculated=\(state.insulinCalculated)")
+            }
+
+            // Also keep the debounced update for smoother UI updates
+            handleDebouncedInput()
         }
 
         var progressText: ProgressText {
@@ -637,8 +1020,8 @@ extension Treatments {
             }
 
             let hasInsulin = state.amount > 0
-            let hasCarbs = state.carbs > 0
-            let hasFatOrProtein = state.fat > 0 || state.protein > 0
+            let hasCarbs = state.carbs > 0 || state.scannedCarbs > 0
+            let hasFatOrProtein = state.fat > 0 || state.scannedFat > 0 || state.protein > 0 || state.scannedProtein > 0
             let bolusString = state.externalInsulin ? String(localized: "External Insulin") : String(localized: "Enact Bolus")
 
             // Note: when a pump bolus is in progress, the row is rendered by `bolusInProgressView`
@@ -673,15 +1056,15 @@ extension Treatments {
         }
 
         private var carbLimitExceeded: Bool {
-            state.carbs > state.maxCarbs
+            (state.carbs + state.scannedCarbs) > state.maxCarbs
         }
 
         private var fatLimitExceeded: Bool {
-            state.fat > state.maxFat
+            (state.fat + state.scannedFat) > state.maxFat
         }
 
         private var proteinLimitExceeded: Bool {
-            state.protein > state.maxProtein
+            (state.protein + state.scannedProtein) > state.maxProtein
         }
 
         private var limitExceeded: Bool {
@@ -691,7 +1074,12 @@ extension Treatments {
         private var disableTaskButton: Bool {
             (
                 state.isBolusInProgress && state
-                    .amount > 0 && !state.externalInsulin && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
+                    .amount > 0 && !state
+                    .externalInsulin &&
+                    (
+                        state.carbs == 0 && state.scannedCarbs == 0 || state.fat == 0 && state.scannedFat == 0 || state
+                            .protein == 0 && state.scannedProtein == 0
+                    )
             ) || state
                 .addButtonPressed || limitExceeded
         }
