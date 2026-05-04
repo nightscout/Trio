@@ -3,6 +3,8 @@
 <plist version="1.0">
 <dict>
 	<key>TidepoolServiceClientId</key>
-	<string>diy-loop</string>
+	<string>nightscout-trio</string>
+	<key>TidepoolServiceRedirectURL</key>
+	<string>org.nightscout.trio.tidepoolkit.auth://redirect</string>
 </dict>
 </plist>

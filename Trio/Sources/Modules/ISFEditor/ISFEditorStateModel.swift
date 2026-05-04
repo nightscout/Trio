@@ -16,6 +16,8 @@ extension ISFEditor {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
         @ObservationIgnored @Injected() private var nightscout: NightscoutManager!
+        @ObservationIgnored @Injected() private var tidepoolManager: TidepoolManager!
+        @ObservationIgnored @Injected() private var broadcaster: Broadcaster!
 
         var items: [Item] = []
         var initialItems: [Item] = []
@@ -118,6 +120,12 @@ extension ISFEditor {
             provider.saveProfile(profile)
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
 
+            DispatchQueue.main.async {
+                self.broadcaster.notify(InsulinSensitivitiesObserver.self, on: .main) {
+                    $0.insulinSensitivitiesDidChange(profile)
+                }
+            }
+
             Task.detached(priority: .low) {
                 do {
                     debug(.nightscout, "Attempting to upload ISF to Nightscout")
@@ -128,6 +136,10 @@ extension ISFEditor {
                         "\(DebuggingIdentifiers.failed) Faile to upload ISF to Nightscout: \(error)"
                     )
                 }
+            }
+
+            Task.detached(priority: .low) {
+                await self.tidepoolManager.uploadSettings()
             }
         }
 

@@ -1,5 +1,9 @@
 import Foundation
 
+protocol CarbRatiosObserver {
+    func carbRatiosDidChange(_ carbRatios: CarbRatios)
+}
+
 struct CarbRatios: JSON {
     let units: CarbUnit
     let schedule: [CarbRatioEntry]
