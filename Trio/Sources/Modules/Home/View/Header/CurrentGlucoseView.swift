@@ -1,4 +1,5 @@
 import CoreData
+import LoopKit
 import SwiftUI
 
 struct CurrentGlucoseView: View {
@@ -11,6 +12,7 @@ struct CurrentGlucoseView: View {
     var currentGlucoseTarget: Decimal
     let glucoseColorScheme: GlucoseColorScheme
     let glucose: [GlucoseStored] // This contains the last two glucose values, no matter if its manual or a cgm reading
+    let progressHightlight: LoopKit.DeviceLifecycleProgress?
     @State private var rotationDegrees: Double = 0.0
     @State private var angularGradient = AngularGradient(colors: [
         Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
@@ -20,6 +22,7 @@ struct CurrentGlucoseView: View {
         Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902),
         Color(red: 0.7215686275, green: 0.3411764706, blue: 1)
     ], center: .center, startAngle: .degrees(270), endAngle: .degrees(-90))
+    @State private var showProgress = false
 
     @Environment(\.colorScheme) var colorScheme
 
@@ -80,17 +83,31 @@ struct CurrentGlucoseView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    HStack {
-                        let minutesAgoString = TimeAgoFormatter.minutesAgo(from: glucose.last?.date)
-                        Group {
-                            Text(minutesAgoString)
-                            Text(delta)
+                    if let progress = progressHightlight, showProgress {
+                        SwiftUI.ProgressView(value: progress.percentComplete)
+                            .frame(width: 75)
+                            .scaleEffect(x: 1, y: 2, anchor: .bottom)
+                            .tint(.orange)
+                            .padding(.top, -10)
+                            .transition(.opacity)
+                    } else {
+                        HStack {
+                            let minutesAgoString = TimeAgoFormatter.minutesAgo(from: glucose.last?.date)
+                            Group {
+                                Text(minutesAgoString)
+                                Text(delta)
+                            }
+                            .font(.callout).fontWeight(.bold)
+                            .foregroundStyle(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
                         }
-                        .font(.callout).fontWeight(.bold)
-                        .foregroundStyle(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
+                        .frame(alignment: .top)
+                        .transition(.opacity)
                     }
-                    .frame(alignment: .top)
                 }
+            }
+            .animation(.easeInOut(duration: 0.6), value: showProgress)
+            .onAppear {
+                startLoop()
             }
             .onChange(of: glucose.last?.directionEnum) {
                 withAnimation {
@@ -145,6 +162,14 @@ struct CurrentGlucoseView: View {
         }
         let delta = lastGlucose - secondLastGlucose
         return deltaFormatter.string(from: delta as NSNumber) ?? "--"
+    }
+
+    private func startLoop() {
+        Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { _ in
+            withAnimation {
+                showProgress.toggle()
+            }
+        }
     }
 }
 

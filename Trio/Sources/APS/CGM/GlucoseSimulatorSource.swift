@@ -14,7 +14,13 @@
 
 import Combine
 import Foundation
+import LoopKit
 import LoopKitUI
+
+struct SimProgress: LoopKit.DeviceLifecycleProgress {
+    var percentComplete: Double
+    var progressState: LoopKit.DeviceLifecycleProgressState
+}
 
 // MARK: - Glucose simulator
 
@@ -22,6 +28,8 @@ import LoopKitUI
 /// This class implements the GlucoseSource protocol and provides simulated glucose readings
 /// using different generator strategies.
 final class GlucoseSimulatorSource: GlucoseSource {
+    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    let cgmProgressHighlight = CurrentValueSubject<LoopKit.DeviceLifecycleProgress?, Never>(nil)
     var cgmManager: CGMManagerUI?
     var glucoseManager: FetchGlucoseManager?
 
@@ -49,6 +57,11 @@ final class GlucoseSimulatorSource: GlucoseSource {
             }
             lastFetchDate = lastDate
         }
+
+        cgmProgressHighlight.value = SimProgress(
+            percentComplete: 0.85,
+            progressState: .warning
+        )
     }
 
     /// The glucose generator used to create simulated values
@@ -71,6 +84,11 @@ final class GlucoseSimulatorSource: GlucoseSource {
     /// - Parameter timer: Optional dispatch timer (not used in this implementation)
     /// - Returns: A publisher that emits an array of BloodGlucose objects
     func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
+        cgmProgressHighlight.value = SimProgress(
+            percentComplete: 0.85,
+            progressState: .warning
+        )
+
         guard canGenerateNewValues else {
             return Just([]).eraseToAnyPublisher()
         }
