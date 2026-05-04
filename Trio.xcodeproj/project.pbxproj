@@ -260,6 +260,7 @@
 		3BD9687C2D8DDD4600899469 /* SlideButton in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687B2D8DDD4600899469 /* SlideButton */; };
 		3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687E2D8DDD8800899469 /* CryptoSwift */; };
 		3BF85FE32E427312000D7351 /* IOBService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF85FE12E427312000D7351 /* IOBService.swift */; };
+		B015AFE32E500000000D7351 /* BolusSafetyValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B015AFE12E500000000D7351 /* BolusSafetyValidator.swift */; };
 		3E28F2AB2EB5337F00FB9EEB /* ConnectIQ in Frameworks */ = {isa = PBXBuildFile; productRef = 3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */; };
 		3E54EF2C2E476DA40006F54D /* MedtrumKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E54EF2B2E476DA40006F54D /* MedtrumKit.framework */; };
 		3E54EF2D2E476DA40006F54D /* MedtrumKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3E54EF2B2E476DA40006F54D /* MedtrumKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -414,6 +415,7 @@
 		BD8FC0592D66189700B95AED /* TestAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0582D66189700B95AED /* TestAssembly.swift */; };
 		BD8FC05B2D6618AF00B95AED /* DeterminationStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC05A2D6618AF00B95AED /* DeterminationStorageTests.swift */; };
 		BD8FC05E2D6618CE00B95AED /* BolusCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC05D2D6618CE00B95AED /* BolusCalculatorTests.swift */; };
+		B015AFE52E500000000D7351 /* BolusSafetyValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B015AFE42E500000000D7351 /* BolusSafetyValidatorTests.swift */; };
 		BD8FC0602D6619DB00B95AED /* CarbsStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC05F2D6619DB00B95AED /* CarbsStorageTests.swift */; };
 		BD8FC0622D6619E600B95AED /* OverrideStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0612D6619E600B95AED /* OverrideStorageTests.swift */; };
 		BD8FC0642D6619EF00B95AED /* TempTargetStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0632D6619EF00B95AED /* TempTargetStorageTests.swift */; };
@@ -1115,6 +1117,7 @@
 		3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorProvider.swift; sourceTree = "<group>"; };
 		3BF768BD6264FF7D71D66767 /* NightscoutConfigProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NightscoutConfigProvider.swift; sourceTree = "<group>"; };
 		3BF85FE12E427312000D7351 /* IOBService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOBService.swift; sourceTree = "<group>"; };
+		B015AFE12E500000000D7351 /* BolusSafetyValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusSafetyValidator.swift; sourceTree = "<group>"; };
 		3E54EF2B2E476DA40006F54D /* MedtrumKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MedtrumKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3E62C7812F54CC1600433237 /* BolusDisplayThreshold.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusDisplayThreshold.swift; sourceTree = "<group>"; };
 		3F60E97100041040446F44E7 /* PumpConfigStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigStateModel.swift; sourceTree = "<group>"; };
@@ -1264,6 +1267,7 @@
 		BD8FC0582D66189700B95AED /* TestAssembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestAssembly.swift; sourceTree = "<group>"; };
 		BD8FC05A2D6618AF00B95AED /* DeterminationStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterminationStorageTests.swift; sourceTree = "<group>"; };
 		BD8FC05D2D6618CE00B95AED /* BolusCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorTests.swift; sourceTree = "<group>"; };
+		B015AFE42E500000000D7351 /* BolusSafetyValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusSafetyValidatorTests.swift; sourceTree = "<group>"; };
 		BD8FC05F2D6619DB00B95AED /* CarbsStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbsStorageTests.swift; sourceTree = "<group>"; };
 		BD8FC0612D6619E600B95AED /* OverrideStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideStorageTests.swift; sourceTree = "<group>"; };
 		BD8FC0632D6619EF00B95AED /* TempTargetStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetStorageTests.swift; sourceTree = "<group>"; };
@@ -2104,6 +2108,7 @@
 				DDA9AC072D67291600E6F1A9 /* AppVersionChecker */,
 				CEB434E128B8F9BC00B70274 /* Bluetooth */,
 				BD7DB88C2D2C49FF003D3155 /* BolusCalculator */,
+				B015AFE22E500000000D7351 /* BolusSafety */,
 				3862CC2C2743F9DC00BF832C /* Calendar */,
 				E592A37E2CEEC046009A472C /* ContactImage */,
 				F90692A8274B7A980037068D /* HealthKit */,
@@ -2688,6 +2693,7 @@
 				DDC6CA6C2DD90A2A0060EE25 /* LocalizationTests.swift */,
 				3B997DD22DC02AEF006B6BB2 /* JSONImporterData */,
 				BD8FC05C2D6618BE00B95AED /* BolusCalculatorTests */,
+				B015AFE62E500000000D7351 /* BolusSafetyTests */,
 				BD8FC0552D66187700B95AED /* CoreDataTests */,
 				38FCF3F125E9028E0078B0D1 /* Info.plist */,
 				CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */,
@@ -2720,6 +2726,14 @@
 				3BF85FE12E427312000D7351 /* IOBService.swift */,
 			);
 			path = IOB;
+			sourceTree = "<group>";
+		};
+		B015AFE22E500000000D7351 /* BolusSafety */ = {
+			isa = PBXGroup;
+			children = (
+				B015AFE12E500000000D7351 /* BolusSafetyValidator.swift */,
+			);
+			path = BolusSafety;
 			sourceTree = "<group>";
 		};
 		4E8C7B59F8065047ECE20965 /* View */ = {
@@ -3074,6 +3088,14 @@
 				BD8FC05D2D6618CE00B95AED /* BolusCalculatorTests.swift */,
 			);
 			path = BolusCalculatorTests;
+			sourceTree = "<group>";
+		};
+		B015AFE62E500000000D7351 /* BolusSafetyTests */ = {
+			isa = PBXGroup;
+			children = (
+				B015AFE42E500000000D7351 /* BolusSafetyValidatorTests.swift */,
+			);
+			path = BolusSafetyTests;
 			sourceTree = "<group>";
 		};
 		BDA25F1A2D26BCE800035F34 /* Views */ = {
@@ -4502,6 +4524,7 @@
 				3811DEEA25CA063400A708ED /* SyncAccess.swift in Sources */,
 				190EBCC829FF13AA00BA767D /* UserInterfaceSettingsStateModel.swift in Sources */,
 				3BF85FE32E427312000D7351 /* IOBService.swift in Sources */,
+				B015AFE32E500000000D7351 /* BolusSafetyValidator.swift in Sources */,
 				DDF847EA2C5DABAC0049BB3B /* WatchConfigGarminView.swift in Sources */,
 				38BF021F25E7F0DE00579895 /* DeviceDataManager.swift in Sources */,
 				BD4E1A7A2D3681B700D21626 /* GlucoseTargetSetup.swift in Sources */,
@@ -4880,6 +4903,7 @@
 				38FCF3F925E902C20078B0D1 /* FileStorageTests.swift in Sources */,
 				BD8FC0602D6619DB00B95AED /* CarbsStorageTests.swift in Sources */,
 				BD8FC05E2D6618CE00B95AED /* BolusCalculatorTests.swift in Sources */,
+				B015AFE52E500000000D7351 /* BolusSafetyValidatorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
