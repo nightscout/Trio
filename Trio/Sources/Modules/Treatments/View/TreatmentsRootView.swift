@@ -13,6 +13,12 @@ extension Treatments {
             case bolus
         }
 
+        enum MealBolusType {
+            case standardBolus
+            case reducedBolus
+            case superBolus
+        }
+
         @FocusState private var focusedField: FocusedField?
 
         let resolver: Resolver
@@ -202,6 +208,24 @@ extension Treatments {
             }
         }
 
+        /// Computed binding for meal bolus type selection
+        private var mealBolusSelection: Binding<MealBolusType> {
+            Binding(
+                get: {
+                    state.useFattyMealCorrectionFactor ? .reducedBolus
+                        : state.useSuperBolus ? .superBolus
+                        : .standardBolus
+                },
+                set: { newValue in
+                    state.useFattyMealCorrectionFactor = (newValue == .reducedBolus)
+                    state.useSuperBolus = (newValue == .superBolus)
+                    Task {
+                        state.insulinCalculated = await state.calculateInsulin()
+                    }
+                }
+            )
+        }
+
         var body: some View {
             ZStack(alignment: .center) {
                 VStack {
@@ -287,38 +311,16 @@ extension Treatments {
 
                         Section {
                             if state.fattyMeals || state.sweetMeals {
-                                HStack(spacing: 10) {
+                                Picker("", selection: mealBolusSelection) {
                                     if state.fattyMeals {
-                                        Toggle(isOn: $state.useFattyMealCorrectionFactor) {
-                                            Text("Reduced Bolus")
-                                        }
-                                        .toggleStyle(RadioButtonToggleStyle())
-                                        .font(.footnote)
-                                        .onChange(of: state.useFattyMealCorrectionFactor) {
-                                            Task {
-                                                state.insulinCalculated = await state.calculateInsulin()
-                                                if state.useFattyMealCorrectionFactor {
-                                                    state.useSuperBolus = false
-                                                }
-                                            }
-                                        }
+                                        Text("Reduced").tag(MealBolusType.reducedBolus)
                                     }
+                                    Text("Standard").tag(MealBolusType.standardBolus)
                                     if state.sweetMeals {
-                                        Toggle(isOn: $state.useSuperBolus) {
-                                            Text("Super Bolus")
-                                        }
-                                        .toggleStyle(RadioButtonToggleStyle())
-                                        .font(.footnote)
-                                        .onChange(of: state.useSuperBolus) {
-                                            Task {
-                                                state.insulinCalculated = await state.calculateInsulin()
-                                                if state.useSuperBolus {
-                                                    state.useFattyMealCorrectionFactor = false
-                                                }
-                                            }
-                                        }
+                                        Text("Super Bolus").tag(MealBolusType.superBolus)
                                     }
                                 }
+                                .pickerStyle(.segmented)
                             }
 
                             HStack {
