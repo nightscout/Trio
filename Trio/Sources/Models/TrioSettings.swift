@@ -75,6 +75,7 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var smartStackView: LockScreenView = .simple
     var bolusShortcut: BolusShortcutLimit = .notAllowed
     var timeInRangeType: TimeInRangeType = .timeInTightRange
+    var requireAdjustmentsConfirmation: Bool = false
     var useSwiftOref: Bool = false
 
     /// Selected Garmin watchface (Trio or SwissAlpine)
@@ -359,6 +360,10 @@ extension TrioSettings: Decodable {
             settings.timeInRangeType = timeInRangeType
         }
 
+        if let requireAdjustmentsConfirmation = try? container.decode(Bool.self, forKey: .requireAdjustmentsConfirmation) {
+            settings.requireAdjustmentsConfirmation = requireAdjustmentsConfirmation
+        }
+      
         if let useSwiftOref = try? container.decode(Bool.self, forKey: .useSwiftOref) {
             settings.useSwiftOref = useSwiftOref
         }

@@ -188,14 +188,21 @@ extension NightscoutAPI {
         return
     }
 
-    func deleteManualGlucose(withId id: String) async throws {
+    func deleteGlucose(withId id: String, withDate date: Date) async throws {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
         components.port = url.port
-        components.path = Config.treatmentsPath
+        components.path = Config.uploadEntriesPath
         components.queryItems = [
-            URLQueryItem(name: "find[id][$eq]", value: id)
+            URLQueryItem(
+                name: "find[$or][0][id][$eq]",
+                value: id
+            ),
+            URLQueryItem(
+                name: "find[$or][1][dateString][$eq]",
+                value: Formatter.iso8601withFractionalSeconds.string(from: date)
+            )
         ]
 
         guard let url = components.url else {
@@ -216,8 +223,6 @@ extension NightscoutAPI {
         guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
             throw URLError(.badServerResponse)
         }
-
-        debugPrint("Delete successful for ID \(id)")
     }
 
     func deleteInsulin(withId id: String) async throws {

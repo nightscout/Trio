@@ -809,6 +809,13 @@ extension SettingsExport {
                     name: String(localized: "Time in Range Type"),
                     value: trioSettings.timeInRangeType.rawValue
                 )
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
+                    name: String(localized: "Require Adjustments Confirmation"),
+                    value: trioSettings
+                        .requireAdjustmentsConfirmation ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
 
                 // Appearance setting from UserDefaults
                 let colorSchemePreference = UserDefaults.standard.string(forKey: "colorSchemePreference") ?? "systemDefault"
