@@ -357,7 +357,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                         let results = glucose.enumerated().map { index, sample -> BloodGlucose in
                             let value = Int(sample.quantity.doubleValue(for: .milligramsPerDeciliter))
                             return BloodGlucose(
-                                _id: sample.syncIdentifier,
+                                id: sample.syncIdentifier,
                                 sgv: value,
                                 direction: directions[index],
                                 date: Decimal(Int(sample.date.timeIntervalSince1970 * 1000)),

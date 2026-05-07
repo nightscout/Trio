@@ -68,7 +68,7 @@ struct AlgorithmGlucose: Codable {
 
         try container.encode(dateFormatter.string(from: date ?? Date()), forKey: .dateString)
 
-        let dateAsUnixTimestamp = String(format: "%.0f", (date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000)
+        let dateAsUnixTimestamp = Int64((date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000)
         try container.encode(dateAsUnixTimestamp, forKey: .date)
 
         try container.encode(direction, forKey: .direction)
