@@ -53,8 +53,6 @@ extension BolusCalculatorConfig {
         func disconnectAndRemoveOpenFoodFacts() {
             openFoodFactsUsername = ""
             openFoodFactsPassword = ""
-            settingsManager.settings.openFoodFactsUsername = ""
-            settingsManager.settings.openFoodFactsPassword = ""
             isOpenFoodFactsLoginSuccessful = false
             isOpenFoodFactsLoginInProgress = false
             openFoodFactsLoginError = nil
@@ -67,6 +65,15 @@ extension BolusCalculatorConfig {
         override func subscribe() {
             units = settingsManager.settings.units
 
+            // Load OpenFoodFacts credentials synchronously from keychain
+            let keychain = BaseKeychain()
+            if let username = keychain.getValue(String.self, forKey: "openFoodFactsUsername"),
+               let password = keychain.getValue(String.self, forKey: "openFoodFactsPassword")
+            {
+                openFoodFactsUsername = username
+                openFoodFactsPassword = password
+            }
+
             subscribeSetting(\.overrideFactor, on: $overrideFactor) { overrideFactor = $0 }
             subscribeSetting(\.fattyMeals, on: $fattyMeals) { fattyMeals = $0 }
             subscribeSetting(\.displayPresets, on: $displayPresets) { displayPresets = $0 }
@@ -78,12 +85,6 @@ extension BolusCalculatorConfig {
                 barcodeScannerEnabled = $0 }
             subscribeSetting(\.barcodeScannerOnlyCarbs, on: $barcodeScannerOnlyCarbs) {
                 barcodeScannerOnlyCarbs = $0 }
-            subscribeSetting(\.openFoodFactsUsername, on: $openFoodFactsUsername) {
-                openFoodFactsUsername = $0
-            }
-            subscribeSetting(\.openFoodFactsPassword, on: $openFoodFactsPassword) {
-                openFoodFactsPassword = $0
-            }
 
             Publishers.CombineLatest($openFoodFactsUsername, $openFoodFactsPassword)
                 .sink { [weak self] username, password in
@@ -104,10 +105,6 @@ extension BolusCalculatorConfig {
                 .store(in: &lifetime)
 
             Task { @MainActor in
-                await self.openFoodFactsClient.setCredentials(
-                    username: self.openFoodFactsUsername,
-                    password: self.openFoodFactsPassword
-                )
                 self.isOpenFoodFactsLoginSuccessful = await self.openFoodFactsClient.hasValidSessionCookie()
             }
         }

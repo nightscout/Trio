@@ -24,6 +24,7 @@ extension BarcodeScanner {
         @Published var isUploadingCorrection = false
         @Published var correctionUploadMessage: String?
         @Published var correctionUploadSucceeded = false
+        @Published var hasOpenFoodFactsCredentialsConfigured = false
 
         @Published var scannedLabelBasisAmount: Double = 100.0
 
@@ -53,12 +54,6 @@ extension BarcodeScanner {
         private let scanCooldownSeconds: TimeInterval = 1.0
         private let searchPageSize = 4
         private var currentSearchPage = 1
-
-        var hasOpenFoodFactsCredentialsConfigured: Bool {
-            let username = settingsManager.settings.openFoodFactsUsername
-            let password = settingsManager.settings.openFoodFactsPassword
-            return !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !password.isEmpty
-        }
 
         // MARK: - Lifecycle
 
@@ -478,11 +473,11 @@ extension BarcodeScanner {
         }
 
         private func refreshOpenFoodFactsAuthStatus() async {
-            let username = settingsManager.settings.openFoodFactsUsername
-            let password = settingsManager.settings.openFoodFactsPassword
-            let hasCredentials = !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !password.isEmpty
+            let hasCredentials = await client.hasStoredCredentials()
 
-            await client.setCredentials(username: username, password: password)
+            await MainActor.run {
+                self.hasOpenFoodFactsCredentialsConfigured = hasCredentials
+            }
 
             guard hasCredentials else {
                 await MainActor.run {

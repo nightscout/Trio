@@ -11,6 +11,16 @@ extension BarcodeScanner {
             await Self.authStore.setCredentials(username: username, password: password)
         }
 
+        func storedCredentials() async -> (username: String, password: String)? {
+            await Self.authStore.storedCredentials().map {
+                (username: $0.username, password: $0.password)
+            }
+        }
+
+        func hasStoredCredentials() async -> Bool {
+            await Self.authStore.hasStoredCredentials()
+        }
+
         func hasValidSessionCookie() async -> Bool {
             await Self.authStore.hasValidSessionCookie()
         }
@@ -696,7 +706,7 @@ private extension Optional where Wrapped == String {
 }
 
 private actor OpenFoodFactsAuthStore {
-    private let defaults = UserDefaults.standard
+    private let keychain = BaseKeychain()
     private let usernameKey = "openFoodFactsUsername"
     private let passwordKey = "openFoodFactsPassword"
     private let cookieNameKey = "openFoodFactsSessionCookieName"
@@ -707,16 +717,14 @@ private actor OpenFoodFactsAuthStore {
     private var sessionCookie: SessionCookie?
 
     init() {
-        let username = defaults.string(forKey: usernameKey) ?? ""
-        let password = defaults.string(forKey: passwordKey) ?? ""
-        if !username.isEmpty, !password.isEmpty {
-            credentialsIfAvailable = Credentials(username: username, password: password)
+        if let credentials = storedCredentialsFromKeychain() {
+            credentialsIfAvailable = credentials
         }
 
-        if let cookieName = defaults.string(forKey: cookieNameKey),
-           let cookieValue = defaults.string(forKey: cookieValueKey)
+        if let cookieName = keychainValue(forKey: cookieNameKey),
+           let cookieValue = keychainValue(forKey: cookieValueKey)
         {
-            let cookieExpiry = defaults.object(forKey: cookieExpiryKey) as? Date
+            let cookieExpiry = storedCookieExpiry()
             sessionCookie = SessionCookie(name: cookieName, value: cookieValue, expiresAt: cookieExpiry)
         }
     }
@@ -725,12 +733,19 @@ private actor OpenFoodFactsAuthStore {
         credentialsIfAvailable != nil
     }
 
+    func storedCredentials() -> Credentials? {
+        credentialsIfAvailable
+    }
+
+    func hasStoredCredentials() -> Bool {
+        credentialsIfAvailable != nil
+    }
+
     func setCredentials(username: String, password: String) {
         let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmedUsername.isEmpty || password.isEmpty {
             credentialsIfAvailable = nil
-            defaults.removeObject(forKey: usernameKey)
-            defaults.removeObject(forKey: passwordKey)
+            removeKeychainCredentials()
             clearStoredSessionCookie()
             clearOpenFoodFactsCookiesFromStorage()
             return
@@ -745,19 +760,18 @@ private actor OpenFoodFactsAuthStore {
 
         let credentials = Credentials(username: trimmedUsername, password: password)
         credentialsIfAvailable = credentials
-        defaults.set(credentials.username, forKey: usernameKey)
-        defaults.set(credentials.password, forKey: passwordKey)
+        storeCredentialsInKeychain(credentials)
     }
 
     func storeSessionCookie(_ cookie: HTTPCookie) {
         let storedCookie = SessionCookie(name: cookie.name, value: cookie.value, expiresAt: cookie.expiresDate)
         sessionCookie = storedCookie
-        defaults.set(storedCookie.name, forKey: cookieNameKey)
-        defaults.set(storedCookie.value, forKey: cookieValueKey)
+        _ = keychain.setValue(storedCookie.name, forKey: cookieNameKey)
+        _ = keychain.setValue(storedCookie.value, forKey: cookieValueKey)
         if let expiresAt = storedCookie.expiresAt {
-            defaults.set(expiresAt, forKey: cookieExpiryKey)
+            storeCookieExpiry(expiresAt)
         } else {
-            defaults.removeObject(forKey: cookieExpiryKey)
+            _ = keychain.removeObject(forKey: cookieExpiryKey)
         }
     }
 
@@ -778,11 +792,51 @@ private actor OpenFoodFactsAuthStore {
         return "\(sessionCookie.name)=\(sessionCookie.value)"
     }
 
+    private func storedCredentialsFromKeychain() -> Credentials? {
+        guard let username = keychainValue(forKey: usernameKey),
+              let password = keychainValue(forKey: passwordKey),
+              !username.isEmpty,
+              !password.isEmpty
+        else {
+            return nil
+        }
+
+        return Credentials(username: username, password: password)
+    }
+
+    private func keychainValue(forKey key: String) -> String? {
+        keychain.getValue(String.self, forKey: key)
+    }
+
+    private func storeCredentialsInKeychain(_ credentials: Credentials) {
+        _ = keychain.setValue(credentials.username, forKey: usernameKey)
+        _ = keychain.setValue(credentials.password, forKey: passwordKey)
+    }
+
+    private func removeKeychainCredentials() {
+        _ = keychain.removeObject(forKey: usernameKey)
+        _ = keychain.removeObject(forKey: passwordKey)
+    }
+
     private func clearStoredSessionCookie() {
         sessionCookie = nil
-        defaults.removeObject(forKey: cookieNameKey)
-        defaults.removeObject(forKey: cookieValueKey)
-        defaults.removeObject(forKey: cookieExpiryKey)
+        _ = keychain.removeObject(forKey: cookieNameKey)
+        _ = keychain.removeObject(forKey: cookieValueKey)
+        _ = keychain.removeObject(forKey: cookieExpiryKey)
+    }
+
+    private func storeCookieExpiry(_ date: Date) {
+        let timestamp = date.timeIntervalSince1970
+        _ = keychain.setValue(String(timestamp), forKey: cookieExpiryKey)
+    }
+
+    private func storedCookieExpiry() -> Date? {
+        guard let timestampString = keychainValue(forKey: cookieExpiryKey),
+              let timestamp = TimeInterval(timestampString)
+        else {
+            return nil
+        }
+        return Date(timeIntervalSince1970: timestamp)
     }
 
     private func clearOpenFoodFactsCookiesFromStorage() {
