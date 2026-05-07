@@ -77,6 +77,8 @@ struct TagCloudView: View {
                 return .orange
             case textTag where textTag.contains("Smoothing: On"):
                 return .gray
+            case textTag where textTag.contains("Swift Oref"): // FIXME: remove this before feat/dev-oref-swift is merged to dev
+                return .pink
             default:
                 return .insulin
             }
