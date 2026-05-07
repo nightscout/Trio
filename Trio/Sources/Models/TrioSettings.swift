@@ -359,11 +359,11 @@ extension TrioSettings: Decodable {
         if let timeInRangeType = try? container.decode(TimeInRangeType.self, forKey: .timeInRangeType) {
             settings.timeInRangeType = timeInRangeType
         }
-
+        
         if let requireAdjustmentsConfirmation = try? container.decode(Bool.self, forKey: .requireAdjustmentsConfirmation) {
             settings.requireAdjustmentsConfirmation = requireAdjustmentsConfirmation
         }
-
+        
         if let useSwiftOref = try? container.decode(Bool.self, forKey: .useSwiftOref) {
             settings.useSwiftOref = useSwiftOref
         }
