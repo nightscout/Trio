@@ -139,6 +139,11 @@ extension BarcodeScanner {
                                 },
                                 externalFocus: isFocused
                             )
+                            .frame(width: 70)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.secondary.opacity(0.12))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                             .onChange(of: amount) { _, newValue in
                                 state.updateScannedProductAmount(item, amount: newValue, isMlInput: isMlInput)
                             }
