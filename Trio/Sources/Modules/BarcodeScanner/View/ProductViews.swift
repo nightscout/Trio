@@ -139,11 +139,6 @@ extension BarcodeScanner {
                                 },
                                 externalFocus: isFocused
                             )
-                            .frame(width: 70)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.secondary.opacity(0.12))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
                             .onChange(of: amount) { _, newValue in
                                 state.updateScannedProductAmount(item, amount: newValue, isMlInput: isMlInput)
                             }
@@ -162,7 +157,6 @@ extension BarcodeScanner {
 
                     Spacer()
                 }
-                .padding()
                 .contentShape(Rectangle())
                 .onTapGesture {
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
@@ -175,8 +169,6 @@ extension BarcodeScanner {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .background(Color.chart)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
             .onAppear {
                 updateFromItem()
             }

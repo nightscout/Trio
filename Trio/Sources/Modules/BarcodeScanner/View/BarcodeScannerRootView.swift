@@ -229,10 +229,10 @@ extension BarcodeScanner {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                         // Action buttons at bottom
-                        VStack {
-                            Spacer()
-                            cameraActionButtons
-                        }
+                        // VStack {
+                        //    Spacer()
+                        //    cameraActionButtons
+                        // }
                     }
 
                 case .notDetermined:
@@ -319,8 +319,7 @@ extension BarcodeScanner {
                             state.hasMoreSearchResults = false
                         }
                     )
-                    .padding(.horizontal)
-                    .listRowInsets(EdgeInsets(top: 10, leading: 0, bottom: 10, trailing: 0))
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 10, trailing: 0))
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
 
@@ -331,12 +330,14 @@ extension BarcodeScanner {
                                 .padding(.vertical, 8)
                             Spacer()
                         }
+                        .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                     } else if let error = state.searchError {
                         Text(error)
                             .font(.caption)
                             .foregroundStyle(.red)
+                            .listRowInsets(EdgeInsets())
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
                     } else if !state.searchResults.isEmpty {
@@ -351,9 +352,9 @@ extension BarcodeScanner {
                                     isSearchFocused = false
                                 }
                             }
+                            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                         }
 
                         if state.hasMoreSearchResults {
@@ -377,6 +378,7 @@ extension BarcodeScanner {
                             }
                             .buttonStyle(.plain)
                             .disabled(state.isLoadingMoreSearchResults)
+                            .listRowInsets(EdgeInsets())
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
                         }
@@ -395,27 +397,29 @@ extension BarcodeScanner {
                         listHeader
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
+                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 20, trailing: 0))
                     }
 
                     Section {
                         ForEach(state.scannedProducts) { item in
                             ScannedProductRow(item: item, state: state, focusedItemID: $focusedItemID)
-                                .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
-                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                                .listRowInsets(EdgeInsets())
                                 .contextMenu {
                                     actionButtonsForScannedProduct(for: item)
                                 }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     actionButtonsForScannedProduct(for: item)
                                 }
+                                .padding(15)
                         }
                     }
+                    .listRowBackground(Color.chart)
                 }
             }
-            .listStyle(.plain)
+            .listStyle(.insetGrouped)
+            .listSectionSpacing(0)
             .scrollContentBackground(.hidden)
+            .padding(.top, -15)
         }
 
         private func actionButtonsForScannedProduct(for product: BarcodeScanner.FoodItem) -> some View {
