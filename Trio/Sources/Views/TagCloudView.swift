@@ -59,7 +59,8 @@ struct TagCloudView: View {
             switch textTag {
             case textTag where textTag.contains("SMB Delivery Ratio:"):
                 return .uam
-            case textTag where textTag.contains("Bolus"):
+            case textTag where textTag.contains("Bolus"),
+                 textTag where textTag.contains("Swift Oref"): // FIXME: remove this before feat/dev-oref-swift is merged to dev
                 return .green
             case textTag where textTag.contains("TDD:"),
                  textTag where textTag.contains("tdd_factor"),
@@ -77,8 +78,6 @@ struct TagCloudView: View {
                 return .orange
             case textTag where textTag.contains("Smoothing: On"):
                 return .gray
-            case textTag where textTag.contains("Swift Oref"): // FIXME: remove this before feat/dev-oref-swift is merged to dev
-                return .pink
             default:
                 return .insulin
             }
