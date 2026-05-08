@@ -120,57 +120,54 @@ extension BarcodeScanner {
                                 .foregroundStyle(.secondary)
                         }
 
-                        HStack(spacing: 8) {
-                            KeyboardToolbarTextField(
-                                value: $amount,
-                                formatter: formatter,
-                                configuration: .init(
-                                    keyboardType: .decimalPad,
-                                    textAlignment: .left,
-                                    placeholder: "0",
-                                    font: .systemFont(ofSize: 17, weight: .bold)
-                                ),
-                                onFocusContext: { isEntering in
-                                    if isEntering {
-                                        focusedItemID.wrappedValue = item.id
-                                    } else if isFocused {
-                                        focusedItemID.wrappedValue = nil
-                                    }
-                                },
-                                externalFocus: isFocused
-                            )
-                            .frame(width: 70)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.secondary.opacity(0.12))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                            .onChange(of: amount) { _, newValue in
-                                state.updateScannedProductAmount(item, amount: newValue, isMlInput: isMlInput)
-                            }
-
-                            Picker("", selection: $isMlInput) {
-                                Text("g").tag(false)
-                                Text("ml").tag(true)
-                            }
-                            .pickerStyle(.segmented)
-                            .frame(width: 85)
-                            .onChange(of: isMlInput) { _, newValue in
-                                state.updateScannedProductAmount(item, amount: amount, isMlInput: newValue)
-                            }
+                        KeyboardToolbarTextField(
+                            value: $amount,
+                            formatter: formatter,
+                            configuration: .init(
+                                keyboardType: .decimalPad,
+                                textAlignment: .left,
+                                placeholder: "0",
+                                font: .systemFont(ofSize: 17, weight: .bold)
+                            ),
+                            onFocusContext: { isEntering in
+                                if isEntering {
+                                    focusedItemID.wrappedValue = item.id
+                                } else if isFocused {
+                                    focusedItemID.wrappedValue = nil
+                                }
+                            },
+                            externalFocus: isFocused
+                        )
+                        .frame(width: 70)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.secondary.opacity(0.12))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .onChange(of: amount) { _, newValue in
+                            state.updateScannedProductAmount(item, amount: newValue, isMlInput: isMlInput)
                         }
                     }
 
                     Spacer()
+
+                    Picker("", selection: $isMlInput) {
+                        Text("g").tag(false)
+                        Text("ml").tag(true)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 85)
+                    .onChange(of: isMlInput) { _, newValue in
+                        state.updateScannedProductAmount(item, amount: amount, isMlInput: newValue)
+                    }
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
-                        showQuickSelector.toggle()
-                    }
+                    showQuickSelector.toggle()
                 }
 
                 if showQuickSelector {
                     multiplierWheel
+                        .padding(.top, 8)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -245,7 +242,6 @@ extension BarcodeScanner {
                 .buttonStyle(.plain)
             }
             .padding(.horizontal)
-            .padding(.bottom, 16)
         }
 
         private func quickSelectMultiplier(_ multiplier: Int) {

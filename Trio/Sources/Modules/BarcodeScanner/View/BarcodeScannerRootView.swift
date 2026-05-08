@@ -46,7 +46,7 @@ extension BarcodeScanner {
         }
 
         var body: some View {
-            VStack(spacing: 0) {
+            VStack {
                 if !state.showEditorView {
                     Picker("", selection: Binding(
                         get: { state.showListView },
@@ -57,7 +57,6 @@ extension BarcodeScanner {
                     }
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
-                    .padding(.top, 8)
                 }
 
                 ZStack {
@@ -320,8 +319,6 @@ extension BarcodeScanner {
                         }
                     )
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 10, trailing: 0))
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
 
                     if state.isSearching {
                         HStack {
@@ -353,8 +350,6 @@ extension BarcodeScanner {
                                 }
                             }
                             .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
                         }
 
                         if state.hasMoreSearchResults {
@@ -378,28 +373,22 @@ extension BarcodeScanner {
                             }
                             .buttonStyle(.plain)
                             .disabled(state.isLoadingMoreSearchResults)
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
                         }
                     }
-                }
 
-                if state.scannedProducts.isEmpty, state.searchResults.isEmpty, !state.isSearching {
-                    emptyListView
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets())
-                }
-
-                if !state.scannedProducts.isEmpty {
-                    Section {
-                        listHeader
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 20, trailing: 0))
+                    if state.scannedProducts.isEmpty, state.searchResults.isEmpty, !state.isSearching {
+                        emptyListView
                     }
 
+                    if !state.scannedProducts.isEmpty {
+                        listHeader
+                            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 0, trailing: 0))
+                    }
+                }
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+
+                if !state.scannedProducts.isEmpty {
                     Section {
                         ForEach(state.scannedProducts) { item in
                             ScannedProductRow(item: item, state: state, focusedItemID: $focusedItemID)
@@ -416,10 +405,10 @@ extension BarcodeScanner {
                     .listRowBackground(Color.chart)
                 }
             }
-            .listStyle(.insetGrouped)
-            .listSectionSpacing(0)
             .scrollContentBackground(.hidden)
-            .padding(.top, -15)
+            .listStyle(.insetGrouped)
+            .listSectionSpacing(8)
+            .contentMargins(.top, 4)
         }
 
         private func actionButtonsForScannedProduct(for product: BarcodeScanner.FoodItem) -> some View {
