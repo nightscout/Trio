@@ -669,6 +669,7 @@ extension Treatments {
                 Text("\(state.determinationFailureMessage)")
             }
             .sheet(isPresented: $showBarcodeScanner, onDismiss: {
+                scannerState.isTorchOn = false
                 scannerState.cancelEditing()
                 scannerState.isEditingFromList = false
             }) {

@@ -1,5 +1,21 @@
+import CodeScanner
 import SwiftUI
 import Swinject
+
+private func localizedScanFailureMessage(for error: ScanError) -> String {
+    switch error {
+    case .badInput:
+        return String(localized: "The camera could not be accessed.")
+    case .badOutput:
+        return String(localized: "This device can't read barcodes with the camera.")
+    case .permissionDenied:
+        return String(
+            localized: "Camera permissions were denied. Enable them in Settings to continue."
+        )
+    case let .initError(underlying):
+        return (underlying as? LocalizedError)?.errorDescription ?? underlying.localizedDescription
+    }
+}
 
 // MARK: - Root View
 
@@ -12,6 +28,7 @@ extension BarcodeScanner {
         @ObservedObject var state: StateModel
         @State private var isEditingFromList = false
         @State private var showEditorCard = false
+
         @FocusState private var focusedItemID: UUID?
         @FocusState private var isSearchFocused: Bool
 
@@ -45,6 +62,27 @@ extension BarcodeScanner {
             case fiber
         }
 
+        private var torchToggleButton: some View {
+            Button {
+                state.isTorchOn.toggle()
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: state.isTorchOn ? "flashlight.on.fill" : "flashlight.off.fill")
+                        .font(.title2)
+                    Text(String(localized: "Flash"))
+                        .font(.headline)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 18)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.blue)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 8)
+            .safeAreaPadding(.bottom, 8)
+            .accessibilityLabel(String(localized: "Flash"))
+        }
+
         var body: some View {
             VStack {
                 if !state.showEditorView {
@@ -69,7 +107,6 @@ extension BarcodeScanner {
                     }
                 }
             }
-            .animation(.easeInOut(duration: 0.3), value: state.showListView)
             .background(appState.trioBackgroundColor(for: colorScheme).ignoresSafeArea())
             .navigationTitle(String(localized: "Barcode Scanner"))
             .navigationBarTitleDisplayMode(.inline)
@@ -124,6 +161,18 @@ extension BarcodeScanner {
                 state.handleAppear()
                 state.showListView = showListInitially
             }
+            .onDisappear {
+                state.isTorchOn = false
+            }
+            .onChange(of: state.showListView) { _, isMeal in
+                if isMeal { state.isTorchOn = false }
+            }
+            .onChange(of: state.showEditorView) { _, showsEditor in
+                if showsEditor { state.isTorchOn = false }
+            }
+            .onChange(of: state.isFetchingProduct) { _, fetching in
+                if fetching { state.isTorchOn = false }
+            }
         }
 
         // MARK: - Scanner View Content
@@ -164,7 +213,6 @@ extension BarcodeScanner {
                                             .background(.ultraThinMaterial)
                                             .clipShape(RoundedRectangle(cornerRadius: 12))
                                             .padding(.horizontal)
-                                            .padding(.bottom, 100)
                                     }
                                     .allowsHitTesting(false)
                                 }
@@ -208,24 +256,34 @@ extension BarcodeScanner {
             ZStack {
                 switch state.cameraStatus {
                 case .authorized:
-                    ZStack {
-                        ScannerPreviewView(
-                            isRunning: Binding(
-                                get: { state.isScanning },
-                                set: { state.isScanning = $0 }
-                            ),
-                            onDetected: { state.didDetect(barcode: $0) },
-                            onFailure: state.reportScannerIssue
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                .strokeBorder(.white.opacity(0.3), lineWidth: 1)
-                        )
-                        .padding(.horizontal)
-                        .padding(.top, 8)
-                        .padding(.bottom, 8)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ZStack(alignment: .bottom) {
+                        VStack {
+                            CodeScannerView(
+                                codeTypes: [.ean13, .ean8, .upce, .code128, .code39],
+                                requiresPhotoOutput: false,
+                                isTorchOn: state.isTorchOn,
+                                isPaused: !state.isScanning,
+                                completion: { result in
+                                    switch result {
+                                    case let .success(scan):
+                                        state.didDetect(barcode: scan.string)
+                                    case let .failure(error):
+                                        state.reportScannerIssue(localizedScanFailureMessage(for: error))
+                                    }
+                                }
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .strokeBorder(.white.opacity(0.3), lineWidth: 1)
+                            )
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .id(state.codeScannerViewID)
+
+                            torchToggleButton
+                        }
                     }
 
                 case .notDetermined:
