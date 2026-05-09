@@ -226,12 +226,6 @@ extension BarcodeScanner {
                         .padding(.top, 8)
                         .padding(.bottom, 8)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                        // Action buttons at bottom
-                        // VStack {
-                        //    Spacer()
-                        //    cameraActionButtons
-                        // }
                     }
 
                 case .notDetermined:
@@ -264,44 +258,12 @@ extension BarcodeScanner {
             }
         }
 
-        // MARK: - Camera Action Buttons
-
-        private var cameraActionButtons: some View {
-            HStack(spacing: 12) {
-                // Pause/Scan button intentionally disabled.
-                // Button {
-                //     if state.isScanning {
-                //         state.isScanning = false
-                //     } else {
-                //         state.scanAgain(resetResults: false)
-                //     }
-                // } label: {
-                //     HStack(spacing: 6) {
-                //         Image(systemName: state.isScanning ? "pause.fill" : "barcode.viewfinder")
-                //         Text(state.isScanning ? "Pause" : "Scan")
-                //     }
-                //     .font(.subheadline.weight(.semibold))
-                //     .frame(maxWidth: .infinity)
-                //     .padding(.vertical, 12)
-                // }
-                // .buttonStyle(.borderedProminent)
-                // .tint(state.isScanning ? .orange : .insulin)
-
-                if !state.scannedProducts.isEmpty {
-                    // "Calculator" button removed as per request for live updates
-                }
-            }
-            .padding(.horizontal)
-            .padding(.top, 12)
-            .padding(.bottom, 16)
-        }
-
         // MARK: - List View Content
 
         private var listViewContent: some View {
             List {
-                // Search Section
                 Section {
+                    // Search Bar
                     BarcodeScanner.ProductSearchField(
                         searchText: $state.searchQuery,
                         isFocused: $isSearchFocused,
@@ -320,6 +282,7 @@ extension BarcodeScanner {
                     )
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 10, trailing: 0))
 
+                    // Search Results progress spinner and error display
                     if state.isSearching {
                         HStack {
                             Spacer()
@@ -352,6 +315,7 @@ extension BarcodeScanner {
                             .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                         }
 
+                        // Show "Show more results" button if there are more results
                         if state.hasMoreSearchResults {
                             Button {
                                 state.loadMoreSearchResults()
@@ -376,18 +340,21 @@ extension BarcodeScanner {
                         }
                     }
 
-                    if state.scannedProducts.isEmpty, state.searchResults.isEmpty, !state.isSearching {
-                        emptyListView
-                    }
-
+                    // Info about how much you scanned and total carbs
                     if !state.scannedProducts.isEmpty {
                         listHeader
                             .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 0, trailing: 0))
+                    }
+
+                    if state.scannedProducts.isEmpty, state.searchResults.isEmpty, !state.isSearching {
+                        emptyListView
                     }
                 }
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
 
+                // Scanned products
+                // Seperate Section for better grouping and styling
                 if !state.scannedProducts.isEmpty {
                     Section {
                         ForEach(state.scannedProducts) { item in
@@ -468,18 +435,7 @@ extension BarcodeScanner {
         }
 
         private var listHeader: some View {
-            let totalCarbs = state.scannedProducts.reduce(into: 0.0) { result, item in
-                let carbsPer100 = item.nutriments.carbohydratesPer100g ?? 0
-                let amount = item.amount.isFinite ? item.amount : 0
-                result += (carbsPer100 * amount) / 100.0
-            }
-            let totalCalories = state.scannedProducts.reduce(into: 0.0) { result, item in
-                let kcalPer100 = item.nutriments.energyKcalPer100g ?? 0
-                let amount = item.amount.isFinite ? item.amount : 0
-                result += (kcalPer100 * amount) / 100.0
-            }
-
-            return VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text(
                     "\(state.scannedProducts.count) Item\(state.scannedProducts.count == 1 ? "" : "s")"
                 )
@@ -487,13 +443,11 @@ extension BarcodeScanner {
                 .bold()
 
                 HStack(spacing: 16) {
-                    Text("total \(totalCarbs, specifier: "%.1f") g of carbs")
+                    Text("total \(state.scannedCarbs, specifier: "%.1f") g of carbs")
                         .foregroundStyle(.blue)
                 }
                 .font(.subheadline)
             }
         }
-
-        // MARK: - Helper Functions
     }
 }

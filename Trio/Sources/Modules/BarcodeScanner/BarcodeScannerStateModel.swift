@@ -20,6 +20,15 @@ extension BarcodeScanner {
         @Published var errorMessage: String?
         @Published var scannedProducts: [FoodItem] = []
         @Published var isEditingFromList: Bool = false
+
+        var scannedCarbs: Double {
+            scannedProducts.reduce(into: 0.0) { result, item in
+                let carbsPer100 = item.nutriments.carbohydratesPer100g ?? 0
+                let amount = item.amount.isFinite ? item.amount : 0
+                result += (carbsPer100 * amount) / 100.0
+            }
+        }
+
         @Published var isOpenFoodFactsLoggedIn = false
         @Published var isUploadingCorrection = false
         @Published var correctionUploadMessage: String?
