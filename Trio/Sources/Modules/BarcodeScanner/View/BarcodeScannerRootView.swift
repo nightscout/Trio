@@ -73,7 +73,7 @@ extension BarcodeScanner {
                         .font(.headline)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 18)
+                .padding(.vertical, 12)
             }
             .buttonStyle(.borderedProminent)
             .tint(.blue)
@@ -253,65 +253,65 @@ extension BarcodeScanner {
         // MARK: - Full Screen Camera View
 
         private var fullScreenCameraView: some View {
-            ZStack {
-                switch state.cameraStatus {
-                case .authorized:
-                    ZStack(alignment: .bottom) {
-                        VStack {
-                            CodeScannerView(
-                                codeTypes: [.ean13, .ean8, .upce, .code128, .code39],
-                                requiresPhotoOutput: false,
-                                isTorchOn: state.isTorchOn,
-                                isPaused: !state.isScanning,
-                                completion: { result in
-                                    switch result {
-                                    case let .success(scan):
-                                        state.didDetect(barcode: scan.string)
-                                    case let .failure(error):
-                                        state.reportScannerIssue(localizedScanFailureMessage(for: error))
-                                    }
+            VStack {
+                ZStack {
+                    switch state.cameraStatus {
+                    case .authorized:
+                        CodeScannerView(
+                            codeTypes: [.ean13, .ean8, .upce, .code128, .code39],
+                            requiresPhotoOutput: false,
+                            isTorchOn: state.isTorchOn,
+                            isPaused: !state.isScanning,
+                            completion: { result in
+                                switch result {
+                                case let .success(scan):
+                                    state.didDetect(barcode: scan.string)
+                                case let .failure(error):
+                                    state.reportScannerIssue(localizedScanFailureMessage(for: error))
                                 }
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                    .strokeBorder(.white.opacity(0.3), lineWidth: 1)
-                            )
-                            .padding(.horizontal)
-                            .padding(.top, 8)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .id(state.codeScannerViewID)
-
-                            torchToggleButton
-                        }
-                    }
-
-                case .notDetermined:
-                    VStack {
-                        Spacer()
-                        ProgressView(String(localized: "Requesting camera access…"))
-                        Spacer()
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.black)
-
-                default:
-                    VStack(spacing: 16) {
-                        Spacer()
-                        Image(systemName: "camera.fill")
-                            .font(.system(size: 50))
-                            .foregroundStyle(.secondary)
-                        Label(
-                            String(localized: "Enable camera access to start scanning."),
-                            systemImage: "lock.shield"
+                            }
                         )
-                        .font(.subheadline)
-                        Button(String(localized: "Open Settings"), action: state.openAppSettings)
-                            .buttonStyle(.borderedProminent)
-                        Spacer()
+                        .id(state.codeScannerViewID)
+
+                    case .notDetermined:
+                        VStack {
+                            Spacer()
+                            ProgressView(String(localized: "Requesting camera access…"))
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.black)
+
+                    default:
+                        VStack(spacing: 16) {
+                            Spacer()
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 50))
+                                .foregroundStyle(.secondary)
+                            Label(
+                                String(localized: "Enable camera access to start scanning."),
+                                systemImage: "lock.shield"
+                            )
+                            .font(.subheadline)
+                            Button(String(localized: "Open Settings"), action: state.openAppSettings)
+                                .buttonStyle(.borderedProminent)
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.black.opacity(0.9))
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.black.opacity(0.9))
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .strokeBorder(.white.opacity(0.3), lineWidth: 1)
+                )
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                if state.cameraStatus == .authorized {
+                    torchToggleButton
                 }
             }
         }

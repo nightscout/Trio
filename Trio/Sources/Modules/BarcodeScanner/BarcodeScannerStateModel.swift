@@ -87,7 +87,7 @@ extension BarcodeScanner {
                 isScanning = true
             default:
                 isScanning = false
-                errorMessage = String(localized: "Camera access is required to scan barcodes.")
+                showTemporaryError(String(localized: "Camera access is required to scan barcodes."))
             }
         }
 
