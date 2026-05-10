@@ -82,7 +82,7 @@ struct AppShortcuts: AppShortcutsProvider {
                 "Scan food with \(.applicationName)",
                 "\(.applicationName) food scanner"
             ],
-            shortTitle: "Barcode AI Scanner",
+            shortTitle: "Open Barcode Scanner",
             systemImageName: "barcode.viewfinder"
         )
     }
