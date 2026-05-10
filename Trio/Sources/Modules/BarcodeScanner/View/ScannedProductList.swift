@@ -209,4 +209,111 @@ extension BarcodeScanner {
                 )
         }
     }
+
+    struct ScannedProductsListBody: View {
+        @ObservedObject var state: StateModel
+        var focusedItemID: FocusState<UUID?>.Binding
+        var onEdit: (FoodItem) -> Void
+
+        var body: some View {
+            Section {
+                if !state.scannedProducts.isEmpty {
+                    listHeader
+                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 0, trailing: 0))
+                }
+
+                if state.scannedProducts.isEmpty, state.searchResults.isEmpty, !state.isSearching {
+                    emptyListView
+                }
+            }
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+
+            if !state.scannedProducts.isEmpty {
+                Section {
+                    ForEach(state.scannedProducts) { item in
+                        ScannedProductRow(item: item, state: state, focusedItemID: focusedItemID)
+                            .listRowInsets(EdgeInsets())
+                            .contextMenu {
+                                actionButtonsForScannedProduct(for: item)
+                            }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                actionButtonsForScannedProduct(for: item)
+                            }
+                            .padding(15)
+                    }
+                }
+                .listRowBackground(Color.chart)
+            }
+        }
+
+        private func actionButtonsForScannedProduct(for product: FoodItem) -> some View {
+            Group {
+                Button(role: .destructive) {
+                    withAnimation {
+                        state.removeScannedProduct(product)
+                    }
+                } label: {
+                    Label(String(localized: "Delete"), systemImage: "trash.fill")
+                }
+                .tint(.red)
+
+                Button {
+                    onEdit(product)
+                } label: {
+                    Label(String(localized: "Edit"), systemImage: "pencil")
+                }
+                .tint(.blue)
+            }
+        }
+
+        private var emptyListView: some View {
+            VStack(spacing: 20) {
+                Spacer()
+                Image(systemName: "barcode.viewfinder")
+                    .font(.system(size: 60))
+                    .foregroundStyle(.secondary)
+                Text(String(localized: "No items yet"))
+                    .font(.title3.weight(.medium))
+                Text(String(localized: "Scan barcodes or search to add items."))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                Button {
+                    state.showListView = false
+                } label: {
+                    HStack {
+                        Image(systemName: "barcode.viewfinder")
+                        Text(String(localized: "Start Scanning"))
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.horizontal)
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.top, 8)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 60)
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+        }
+
+        private var listHeader: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(
+                    "\(state.scannedProducts.count) Item\(state.scannedProducts.count == 1 ? "" : "s")"
+                )
+                .font(.title2)
+                .bold()
+
+                HStack(spacing: 16) {
+                    Text("total \(state.scannedCarbs, specifier: "%.1f") g of carbs")
+                        .foregroundStyle(.blue)
+                }
+                .font(.subheadline)
+            }
+        }
+    }
 }

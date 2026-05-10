@@ -13,7 +13,6 @@ extension BarcodeScanner {
             for: .video
         )
         @Published var isScanning = true
-        @Published var isKeyboardVisible = false
         @Published var currentScannedItem: FoodItem?
         @Published private(set) var originalScannedNutriments: FoodItem.Nutriments?
         @Published var isFetchingProduct = false
@@ -35,12 +34,9 @@ extension BarcodeScanner {
         @Published var correctionUploadSucceeded = false
         @Published var hasOpenFoodFactsCredentialsConfigured = false
 
-        @Published var scannedLabelBasisAmount: Double = 100.0
-
         // External control
         @Published var showListView = false
         @Published var isTorchOn = false
-        var onAddTreatments: ((Decimal, Decimal, Decimal, String) -> Void)?
         var onDismiss: (() -> Void)?
 
         // Editor amount input
@@ -55,15 +51,11 @@ extension BarcodeScanner {
         @Published var hasMoreSearchResults = false
         @Published var isLoadingMoreSearchResults = false
 
-        /// Recreates `CodeScannerView` so scanning works again after `.once` mode finishes.
-        @Published var codeScannerViewID = UUID()
-
         // MARK: - Private Properties
 
         private let client = OpenFoodFactsClient()
         private var lastScanTime: Date?
         private var lastScannedBarcode: String?
-        private var lastScanWasSuccessful: Bool = false
         private let scanCooldownSeconds: TimeInterval = 1.0
         /// Pause before turning the scanner back on after a failed product lookup (avoids instant re-read).
         private let scanResumeDelayAfterFailedLookup: TimeInterval = 1.0
@@ -83,7 +75,6 @@ extension BarcodeScanner {
             case .notDetermined:
                 requestCameraAccess()
             case .authorized:
-                resetCodeScannerSession()
                 isScanning = true
             default:
                 isScanning = false
@@ -103,7 +94,6 @@ extension BarcodeScanner {
                     self.refreshCameraStatus()
                     if granted {
                         self.errorMessage = nil
-                        self.resetCodeScannerSession()
                         self.isScanning = true
                     } else {
                         self.isScanning = false
@@ -127,20 +117,6 @@ extension BarcodeScanner {
         func reportScannerIssue(_ message: String) {
             showTemporaryError(message)
             isScanning = false
-        }
-
-        func scanAgain(resetResults: Bool = false) {
-            guard cameraStatus == .authorized else { return }
-            if resetResults {
-                currentScannedItem = nil
-                errorMessage = nil
-                scannedProducts.removeAll()
-                lastScanTime = nil
-                lastScannedBarcode = nil
-                lastScanWasSuccessful = false
-            }
-            resetCodeScannerSession()
-            isScanning = true
         }
 
         func didDetect(barcode: String) {
@@ -176,12 +152,10 @@ extension BarcodeScanner {
                     self.originalScannedNutriments = fetchedProduct.nutriments
                     self.correctionUploadMessage = nil
                     self.correctionUploadSucceeded = false
-                    self.lastScanWasSuccessful = true
                     self.isFetchingProduct = false
                 } catch {
                     guard !Task.isCancelled else { return }
                     self.currentScannedItem = nil
-                    self.lastScanWasSuccessful = false
                     self.isFetchingProduct = false
                     self.showTemporaryError(
                         (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
@@ -193,11 +167,10 @@ extension BarcodeScanner {
             }
         }
 
-        /// After Open Food Facts fails, allow another scan (including the same barcode) and recreate `CodeScannerView` (`.once` stops until reset).
+        /// After Open Food Facts fails, allow another scan (including the same barcode).
         private func resumeScanningAfterFailedProductLookup() {
             lastScannedBarcode = nil
             lastScanTime = nil
-            resetCodeScannerSession()
             isScanning = true
         }
 
@@ -364,11 +337,9 @@ extension BarcodeScanner {
             currentScannedItem = nil
             originalScannedNutriments = nil
             lastScannedBarcode = nil
-            lastScanWasSuccessful = false
             errorMessage = nil
             correctionUploadMessage = nil
             correctionUploadSucceeded = false
-            resetCodeScannerSession()
             isScanning = true
         }
 
@@ -382,18 +353,12 @@ extension BarcodeScanner {
             currentScannedItem = nil
             originalScannedNutriments = nil
             lastScannedBarcode = nil
-            lastScanWasSuccessful = false
             errorMessage = nil
             correctionUploadMessage = nil
             correctionUploadSucceeded = false
             editingAmount = 0
             editingIsMl = false
-            resetCodeScannerSession()
             isScanning = true
-        }
-
-        private func resetCodeScannerSession() {
-            codeScannerViewID = UUID()
         }
 
         /// Performs the dismissal of the barcode scanner module

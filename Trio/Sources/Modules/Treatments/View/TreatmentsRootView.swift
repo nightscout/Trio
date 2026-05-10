@@ -197,9 +197,39 @@ extension Treatments {
             // Food Search & Quick Actions
             if state.settings != nil && state.settings.settings.barcodeScannerEnabled {
                 // Combined search bar with action buttons
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 8) {
-                        // Scanner button
+                BarcodeScanner.FoodSearchWidget(
+                    searchText: $treatmentSearchQuery,
+                    isFocused: $isSearchFocused,
+                    isSearching: isTreatmentSearching,
+                    searchError: treatmentSearchError,
+                    searchResults: treatmentSearchResults,
+                    hasMoreSearchResults: treatmentSearchHasMoreResults,
+                    isLoadingMoreSearchResults: isLoadingMoreTreatmentSearchResults,
+                    onSubmit: {
+                        performTreatmentFoodSearch()
+                    },
+                    onClear: {
+                        treatmentSearchQuery = ""
+                        treatmentSearchResults = []
+                        treatmentSearchError = nil
+                        treatmentSearchHasMoreResults = false
+                        isLoadingMoreTreatmentSearchResults = false
+                        currentTreatmentSearchPage = 1
+                    },
+                    onChange: {
+                        treatmentSearchResults = []
+                        treatmentSearchError = nil
+                        treatmentSearchHasMoreResults = false
+                        isLoadingMoreTreatmentSearchResults = false
+                        currentTreatmentSearchPage = 1
+                    },
+                    onItemAdd: { item in
+                        addSearchResultToMeal(item)
+                    },
+                    onLoadMore: {
+                        loadMoreTreatmentSearchResults()
+                    },
+                    leadingSearchContent: {
                         Button {
                             configureAndShowScanner(showList: false)
                         } label: {
@@ -208,32 +238,8 @@ extension Treatments {
                                 .foregroundStyle(.blue)
                         }
                         .buttonStyle(.plain)
-
-                        // Search field
-                        BarcodeScanner.ProductSearchField(
-                            searchText: $treatmentSearchQuery,
-                            isFocused: $isSearchFocused,
-                            onSubmit: {
-                                performTreatmentFoodSearch()
-                            },
-                            onClear: {
-                                treatmentSearchQuery = ""
-                                treatmentSearchResults = []
-                                treatmentSearchError = nil
-                                treatmentSearchHasMoreResults = false
-                                isLoadingMoreTreatmentSearchResults = false
-                                currentTreatmentSearchPage = 1
-                            },
-                            onChange: {
-                                treatmentSearchResults = []
-                                treatmentSearchError = nil
-                                treatmentSearchHasMoreResults = false
-                                isLoadingMoreTreatmentSearchResults = false
-                                currentTreatmentSearchPage = 1
-                            }
-                        )
-
-                        // List button
+                    },
+                    trailingSearchContent: {
                         Button {
                             configureAndShowScanner(showList: true)
                         } label: {
@@ -254,55 +260,7 @@ extension Treatments {
                         }
                         .buttonStyle(.plain)
                     }
-
-                    // Search results and Spinner
-                    if isTreatmentSearching {
-                        HStack {
-                            Spacer()
-                            ProgressView()
-                                .padding(.vertical, 8)
-                            Spacer()
-                        }
-                    } else if let error = treatmentSearchError {
-                        Text(error)
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                    } else if !treatmentSearchResults.isEmpty {
-                        VStack(spacing: 0) {
-                            ForEach(treatmentSearchResults) { item in
-                                BarcodeScanner.FoodSearchResultRow(item: item) {
-                                    addSearchResultToMeal(item)
-                                }
-                                if item.id != treatmentSearchResults.last?.id {
-                                    Divider().opacity(0.3)
-                                }
-                            }
-
-                            if treatmentSearchHasMoreResults {
-                                Button {
-                                    loadMoreTreatmentSearchResults()
-                                } label: {
-                                    HStack {
-                                        if isLoadingMoreTreatmentSearchResults {
-                                            ProgressView()
-                                                .scaleEffect(0.9)
-                                        } else {
-                                            Text("Show 4 more results")
-                                                .font(.caption.weight(.medium))
-                                            Image(systemName: "chevron.down")
-                                                .font(.caption)
-                                        }
-                                    }
-                                    .foregroundStyle(.blue)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 8)
-                                }
-                                .buttonStyle(.plain)
-                                .disabled(isLoadingMoreTreatmentSearchResults)
-                            }
-                        }
-                    }
-                }
+                )
             }
         }
 
@@ -678,15 +636,6 @@ extension Treatments {
                         resolver: resolver,
                         state: scannerState,
                         showListInitially: initialShowList,
-                        onAddTreatments: { carbs, fat, protein, note in
-                            // Directly merge scanned amounts into Treatments state
-                            Task { @MainActor in
-                                state.addScannedAmounts(carbs: carbs, fat: fat, protein: protein, note: note)
-                                // Force forecasts update and recalc insulin
-                                await state.updateForecasts(force: true)
-                                state.insulinCalculated = await state.calculateInsulin()
-                            }
-                        },
                         onDismiss: { showBarcodeScanner = false }
                     )
                     .environment(appState)

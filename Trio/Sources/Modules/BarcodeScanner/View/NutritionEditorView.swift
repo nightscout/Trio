@@ -217,21 +217,17 @@ extension BarcodeScanner {
             .animation(.easeInOut(duration: 0.2), value: keyboardIsVisible)
             .onReceive(Foundation.NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
                 keyboardIsVisible = true
-                state.isKeyboardVisible = true
                 state.isScanning = false
             }
             .onReceive(Foundation.NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
                 keyboardIsVisible = false
-                state.isKeyboardVisible = false
             }
             .onChange(of: focusedField) { _, newValue in
                 // Pause scanner and hide scanner view when numpad is opened
                 if newValue != nil {
                     state.isScanning = false
-                    state.isKeyboardVisible = true
                     keyboardIsVisible = true
                 } else {
-                    state.isKeyboardVisible = false
                     keyboardIsVisible = false
                 }
             }
