@@ -82,7 +82,7 @@ extension BarcodeScanner {
                 }
 
                 if showQuickSelector {
-                    multiplierWheel
+                    multiplierSelector
                         .padding(.top, 8)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
@@ -103,26 +103,30 @@ extension BarcodeScanner {
             isMlInput = item.isMlInput
         }
 
-        private func updateAmount(_ amount: Double) {
+        private func currentPortionCount() -> Int {
+            let base = item.servingQuantity ?? 100
+            return base > 0 ? Int(round(item.amount / base)) : 1
+        }
+
+        private func adjustPortionMultiplier(by delta: Int) {
+            let next = max(1, currentPortionCount() + delta)
+            let base = item.servingQuantity ?? 100
+            let newAmount = Double(next) * (base > 0 ? base : 100)
+            updateScannedAmount(newAmount)
+        }
+
+        private func updateScannedAmount(_ amount: Double) {
             guard amount.isFinite else { return }
             self.amount = amount
             state.updateScannedProductAmount(item, amount: amount, isMlInput: isMlInput)
         }
 
-        private func stepMultiplier(by value: Int) {
-            let base = item.servingQuantity ?? 100
-            let current = base > 0 ? Int(round(item.amount / base)) : 1
-            let next = max(1, current + value)
-            quickSelectMultiplier(next)
-        }
-
-        @ViewBuilder private var multiplierWheel: some View {
-            let base = item.servingQuantity ?? 100
-            let current = base > 0 ? Int(round(item.amount / base)) : 1
+        @ViewBuilder private var multiplierSelector: some View {
+            let current = currentPortionCount()
 
             HStack(spacing: 12) {
                 Button {
-                    stepMultiplier(by: -1)
+                    adjustPortionMultiplier(by: -1)
                 } label: {
                     Image(systemName: "minus")
                         .font(.title2.weight(.bold))
@@ -146,7 +150,7 @@ extension BarcodeScanner {
                 .clipShape(RoundedRectangle(cornerRadius: 16))
 
                 Button {
-                    stepMultiplier(by: 1)
+                    adjustPortionMultiplier(by: 1)
                 } label: {
                     Image(systemName: "plus")
                         .font(.title2.weight(.bold))
@@ -158,14 +162,6 @@ extension BarcodeScanner {
                 .buttonStyle(.plain)
             }
             .padding(.horizontal)
-        }
-
-        private func quickSelectMultiplier(_ multiplier: Int) {
-            if let servingQuantity = item.servingQuantity, servingQuantity > 0 {
-                updateAmount(servingQuantity * Double(multiplier))
-            } else {
-                updateAmount(Double(multiplier) * 100)
-            }
         }
 
         @ViewBuilder private var productImage: some View {

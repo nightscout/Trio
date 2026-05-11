@@ -21,11 +21,7 @@ extension BarcodeScanner {
         @Published var isEditingFromList: Bool = false
 
         var scannedCarbs: Double {
-            scannedProducts.reduce(into: 0.0) { result, item in
-                let carbsPer100 = item.nutriments.carbohydratesPer100g ?? 0
-                let amount = item.amount.isFinite ? item.amount : 0
-                result += (carbsPer100 * amount) / 100.0
-            }
+            scannedProducts.totalCarbohydrates
         }
 
         @Published var isOpenFoodFactsLoggedIn = false
@@ -53,7 +49,7 @@ extension BarcodeScanner {
 
         // MARK: - Private Properties
 
-        private let client = OpenFoodFactsClient()
+        private let productService: any ProductService
         private var lastScanTime: Date?
         private var lastScannedBarcode: String?
         private let scanCooldownSeconds: TimeInterval = 1.0
@@ -63,6 +59,11 @@ extension BarcodeScanner {
         private var currentSearchPage = 1
 
         // MARK: - Lifecycle
+
+        init(productService: any ProductService = OpenFoodFactsClient()) {
+            self.productService = productService
+            super.init()
+        }
 
         func handleAppear() {
             Task {
@@ -141,7 +142,7 @@ extension BarcodeScanner {
 
             Task { @MainActor in
                 do {
-                    var fetchedProduct = try await client.fetchProduct(barcode: barcode)
+                    var fetchedProduct = try await productService.fetchProduct(barcode: barcode)
                     self.setupEditingAmount(for: fetchedProduct)
 
                     // Pre-fill amount in the item for display, though editingAmount controls input
@@ -261,7 +262,7 @@ extension BarcodeScanner {
                 defer { self.isUploadingCorrection = false }
 
                 do {
-                    try await client.uploadNutritionCorrection(for: item, comparedTo: originalNutriments)
+                    try await productService.uploadNutritionCorrection(for: item, comparedTo: originalNutriments)
                     self.originalScannedNutriments = item.nutriments
                     self.correctionUploadSucceeded = true
                     self.correctionUploadMessage = String(localized: "Uploaded to OpenFoodFactsDB.")
@@ -389,7 +390,7 @@ extension BarcodeScanner {
 
             Task { @MainActor in
                 do {
-                    let firstPageResults = try await client.searchProducts(
+                    let firstPageResults = try await productService.searchProducts(
                         query: query,
                         page: 1,
                         pageSize: searchPageSize
@@ -428,7 +429,7 @@ extension BarcodeScanner {
                 defer { isLoadingMoreSearchResults = false }
 
                 do {
-                    let nextPageResults = try await client.searchProducts(
+                    let nextPageResults = try await productService.searchProducts(
                         query: query,
                         page: nextPage,
                         pageSize: searchPageSize
@@ -472,7 +473,7 @@ extension BarcodeScanner {
         }
 
         private func refreshOpenFoodFactsAuthStatus() async {
-            let hasCredentials = await client.hasStoredCredentials()
+            let hasCredentials = await productService.hasStoredCredentials()
 
             await MainActor.run {
                 self.hasOpenFoodFactsCredentialsConfigured = hasCredentials
@@ -488,13 +489,13 @@ extension BarcodeScanner {
                 return
             }
 
-            let alreadyAuthenticated = await client.hasValidSessionCookie()
+            let alreadyAuthenticated = await productService.hasValidSessionCookie()
             if alreadyAuthenticated {
                 await MainActor.run { self.isOpenFoodFactsLoggedIn = true }
                 return
             }
 
-            let didLogin = (try? await client.login()) ?? false
+            let didLogin = (try? await productService.login()) ?? false
             await MainActor.run {
                 self.isOpenFoodFactsLoggedIn = didLogin
             }

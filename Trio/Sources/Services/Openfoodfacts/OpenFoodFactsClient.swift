@@ -3,8 +3,25 @@ import Foundation
 // MARK: - OpenFoodFacts API Client
 
 extension BarcodeScanner {
+    protocol ProductSearching {
+        func searchProducts(query: String, page: Int, pageSize: Int) async throws -> [FoodItem]
+    }
+
+    protocol ProductFetching {
+        func fetchProduct(barcode: String) async throws -> FoodItem
+    }
+
+    protocol NutritionCorrectionUploading {
+        func hasStoredCredentials() async -> Bool
+        func hasValidSessionCookie() async -> Bool
+        func login() async throws -> Bool
+        func uploadNutritionCorrection(for item: FoodItem, comparedTo original: FoodItem.Nutriments?) async throws
+    }
+
+    protocol ProductService: ProductFetching, ProductSearching, NutritionCorrectionUploading {}
+
     /// Client for fetching product data from OpenFoodFacts API
-    struct OpenFoodFactsClient {
+    struct OpenFoodFactsClient: ProductService {
         private static let authStore = OpenFoodFactsAuthStore()
 
         func setCredentials(username: String, password: String) async {
@@ -185,8 +202,6 @@ extension BarcodeScanner {
                     .nonEmpty ?? String(localized: "Unknown product"),
                 brand: productData.primaryBrand,
                 quantity: productData.quantity,
-                servingSize: productData.servingSize,
-                ingredients: productData.ingredientsText,
                 imageSource: imageSource,
                 defaultPortionIsMl: productData.defaultPortionIsMl,
                 servingQuantity: productData.servingQuantity,
@@ -420,28 +435,18 @@ extension BarcodeScanner {
 private extension BarcodeScanner.OpenFoodFactsClient {
     struct APIResponse: Decodable {
         let status: Int
-        let statusVerbose: String
         let code: String
         let product: ProductData?
     }
 
     /// Response structure for search API endpoint
     struct SearchAPIResponse: Decodable {
-        let count: Int
-        let page: Int
-        let pageSize: Int
         let products: [ProductData]
     }
 
     struct WriteAPIResponse: Decodable {
         struct WriteResult: Decodable {
             let id: String?
-            let lcName: String?
-
-            enum CodingKeys: String, CodingKey {
-                case id
-                case lcName = "lc_name"
-            }
         }
 
         let status: Int?
@@ -461,11 +466,8 @@ private extension BarcodeScanner.OpenFoodFactsClient {
         let brands: String?
         let quantity: String?
         let productQuantityUnit: String?
-        let servingSize: String?
         let servingQuantity: Double?
         let servingQuantityUnit: String?
-        let productQuantity: Double?
-        let ingredientsText: String?
         let imageUrl: String?
         let imageFrontUrl: String?
         let imageFrontThumbUrl: String?
@@ -477,11 +479,8 @@ private extension BarcodeScanner.OpenFoodFactsClient {
             case brands
             case quantity
             case productQuantityUnit
-            case servingSize
             case servingQuantity
-            case productQuantity
             case servingQuantityUnit
-            case ingredientsText
             case imageUrl
             case imageFrontUrl
             case imageFrontThumbUrl
@@ -495,16 +494,13 @@ private extension BarcodeScanner.OpenFoodFactsClient {
             brands = try container.decodeIfPresent(String.self, forKey: .brands)
             quantity = try container.decodeIfPresent(String.self, forKey: .quantity)
             productQuantityUnit = try container.decodeIfPresent(String.self, forKey: .productQuantityUnit)
-            servingSize = try container.decodeIfPresent(String.self, forKey: .servingSize)
             servingQuantityUnit = try container.decodeIfPresent(String.self, forKey: .servingQuantityUnit)
-            ingredientsText = try container.decodeIfPresent(String.self, forKey: .ingredientsText)
             imageUrl = try container.decodeIfPresent(String.self, forKey: .imageUrl)
             imageFrontUrl = try container.decodeIfPresent(String.self, forKey: .imageFrontUrl)
             imageFrontThumbUrl = try container.decodeIfPresent(String.self, forKey: .imageFrontThumbUrl)
             nutriments = try container.decodeIfPresent(NutrimentsData.self, forKey: .nutriments)
 
             servingQuantity = try container.decodeFlexibleDoubleIfPresent(forKey: .servingQuantity)
-            productQuantity = try container.decodeFlexibleDoubleIfPresent(forKey: .productQuantity)
         }
 
         var primaryBrand: String? {

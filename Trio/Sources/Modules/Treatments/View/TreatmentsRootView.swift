@@ -37,7 +37,7 @@ extension Treatments {
         @State private var currentTreatmentSearchPage = 1
         @FocusState private var isSearchFocused: Bool
 
-        private let foodSearchClient = BarcodeScanner.OpenFoodFactsClient()
+        private let foodSearchClient: any BarcodeScanner.ProductSearching = BarcodeScanner.OpenFoodFactsClient()
         private let treatmentSearchPageSize = 4
 
         private enum Config {
@@ -210,18 +210,10 @@ extension Treatments {
                     },
                     onClear: {
                         treatmentSearchQuery = ""
-                        treatmentSearchResults = []
-                        treatmentSearchError = nil
-                        treatmentSearchHasMoreResults = false
-                        isLoadingMoreTreatmentSearchResults = false
-                        currentTreatmentSearchPage = 1
+                        resetTreatmentSearch()
                     },
                     onChange: {
-                        treatmentSearchResults = []
-                        treatmentSearchError = nil
-                        treatmentSearchHasMoreResults = false
-                        isLoadingMoreTreatmentSearchResults = false
-                        currentTreatmentSearchPage = 1
+                        resetTreatmentSearch()
                     },
                     onItemAdd: { item in
                         addSearchResultToMeal(item)
@@ -665,11 +657,7 @@ extension Treatments {
 
             // Clear search
             treatmentSearchQuery = ""
-            treatmentSearchResults = []
-            treatmentSearchError = nil
-            treatmentSearchHasMoreResults = false
-            isLoadingMoreTreatmentSearchResults = false
-            currentTreatmentSearchPage = 1
+            resetTreatmentSearch()
 
             // Sync amounts and recalculate
             syncScannedAmounts()
@@ -677,11 +665,7 @@ extension Treatments {
         }
 
         private func performTreatmentFoodSearch() {
-            treatmentSearchError = nil
-            treatmentSearchResults = []
-            treatmentSearchHasMoreResults = false
-            currentTreatmentSearchPage = 1
-            isLoadingMoreTreatmentSearchResults = false
+            resetTreatmentSearch()
 
             let query = treatmentSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !query.isEmpty else {
@@ -707,6 +691,14 @@ extension Treatments {
                 }
                 isTreatmentSearching = false
             }
+        }
+
+        private func resetTreatmentSearch() {
+            treatmentSearchResults = []
+            treatmentSearchError = nil
+            treatmentSearchHasMoreResults = false
+            isLoadingMoreTreatmentSearchResults = false
+            currentTreatmentSearchPage = 1
         }
 
         private func loadMoreTreatmentSearchResults() {
@@ -753,25 +745,9 @@ extension Treatments {
         }
 
         private func syncScannedAmounts() {
-            let totalCarbs = scannerState.scannedProducts.reduce(into: 0.0) { result, item in
-                let carbsPer100 = item.nutriments.carbohydratesPer100g ?? 0
-                let amount = item.amount.isFinite ? item.amount : 0
-                result += (carbsPer100 * amount) / 100.0
-            }
-            let totalProtein = scannerState.scannedProducts.reduce(into: 0.0) { result, item in
-                let protPer100 = item.nutriments.proteinPer100g ?? 0
-                let amount = item.amount.isFinite ? item.amount : 0
-                result += (protPer100 * amount) / 100.0
-            }
-            let totalFat = scannerState.scannedProducts.reduce(into: 0.0) { result, item in
-                let fatPer100 = item.nutriments.fatPer100g ?? 0
-                let amount = item.amount.isFinite ? item.amount : 0
-                result += (fatPer100 * amount) / 100.0
-            }
-
-            state.scannedCarbs = Decimal(totalCarbs)
-            state.scannedProtein = Decimal(totalProtein)
-            state.scannedFat = Decimal(totalFat)
+            state.scannedCarbs = Decimal(scannerState.scannedProducts.totalCarbohydrates)
+            state.scannedProtein = Decimal(scannerState.scannedProducts.totalProtein)
+            state.scannedFat = Decimal(scannerState.scannedProducts.totalFat)
 
             // Trigger a recalculation immediately (sheet may make view inactive, so do it directly)
             Task { @MainActor in

@@ -4,6 +4,13 @@ import UIKit
 
 // MARK: - Food Item Model
 
+protocol MealNutritionItem {
+    var name: String { get }
+    var amount: Double { get }
+    var isMlInput: Bool { get }
+    var nutriments: FoodItem.Nutriments { get }
+}
+
 struct FoodItem: Identifiable, Equatable {
     // MARK: - Subtypes
 
@@ -44,8 +51,6 @@ struct FoodItem: Identifiable, Equatable {
     let name: String
     let brand: String?
     let quantity: String?
-    let servingSize: String?
-    let ingredients: String?
 
     /// Preferred unit for user input (true = ml, false = g)
     let defaultPortionIsMl: Bool
@@ -57,7 +62,6 @@ struct FoodItem: Identifiable, Equatable {
     // User-editable state
     var amount: Double
     var isMlInput: Bool
-    var isManualEntry: Bool
     var imageSource: ImageSource
 
     // MARK: - Initialization
@@ -68,24 +72,19 @@ struct FoodItem: Identifiable, Equatable {
         name: String,
         brand: String? = nil,
         quantity: String? = nil,
-        servingSize: String? = nil,
-        ingredients: String? = nil,
         imageSource: ImageSource = .none,
         defaultPortionIsMl: Bool = false,
         servingQuantity: Double? = nil,
         servingQuantityUnit: String? = nil,
         nutriments: Nutriments,
         amount: Double = 0,
-        isMlInput: Bool = false,
-        isManualEntry: Bool = false
+        isMlInput: Bool = false
     ) {
         self.id = id
         self.barcode = barcode
         self.name = name
         self.brand = brand
         self.quantity = quantity
-        self.servingSize = servingSize
-        self.ingredients = ingredients
         self.imageSource = imageSource
         self.defaultPortionIsMl = defaultPortionIsMl
         self.servingQuantity = servingQuantity
@@ -93,6 +92,28 @@ struct FoodItem: Identifiable, Equatable {
         self.nutriments = nutriments
         self.amount = amount
         self.isMlInput = isMlInput
-        self.isManualEntry = isManualEntry
+    }
+}
+
+extension FoodItem: MealNutritionItem {}
+
+extension Sequence where Element: MealNutritionItem {
+    var totalCarbohydrates: Double {
+        total(\.carbohydratesPer100g)
+    }
+
+    var totalFat: Double {
+        total(\.fatPer100g)
+    }
+
+    var totalProtein: Double {
+        total(\.proteinPer100g)
+    }
+
+    private func total(_ keyPath: KeyPath<FoodItem.Nutriments, Double?>) -> Double {
+        reduce(into: 0.0) { result, item in
+            let amount = item.amount.isFinite ? item.amount : 0
+            result += ((item.nutriments[keyPath: keyPath] ?? 0) * amount) / 100.0
+        }
     }
 }
