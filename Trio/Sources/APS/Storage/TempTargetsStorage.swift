@@ -136,6 +136,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             newTempTarget.name = tempTarget.name
             newTempTarget.target = NSDecimalNumber(decimal: tempTarget.targetTop ?? 0)
             newTempTarget.isPreset = tempTarget.isPreset ?? false
+            newTempTarget.enteredBy = tempTarget.enteredBy
 
             // Nullify half basal target to ensure the latest HBT is used via OpenAPS Manager when sending TT data to oref
             newTempTarget.halfBasalTarget = nil
@@ -293,7 +294,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
                     rate: nil,
                     eventType: .nsTempTarget,
                     createdAt: tempTarget.date ?? Date(),
-                    enteredBy: TempTarget.local,
+                    enteredBy: tempTarget.enteredBy ?? TempTarget.local,
                     bolus: nil,
                     insulin: nil,
                     notes: tempTarget.name ?? TempTarget.custom,
@@ -336,7 +337,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
                     rate: nil,
                     eventType: .nsTempTarget,
                     createdAt: (tempTargetRun.startDate ?? tempTargetRun.tempTarget?.date) ?? Date(),
-                    enteredBy: TempTarget.local,
+                    enteredBy: tempTargetRun.tempTarget?.enteredBy ?? TempTarget.local,
                     bolus: nil,
                     insulin: nil,
                     notes: tempTargetRun.tempTarget?.name ?? TempTarget.custom,
