@@ -29,7 +29,7 @@ extension Treatments {
 
         // Food search state
         @State private var treatmentSearchQuery = ""
-        @State private var treatmentSearchResults: [BarcodeScanner.FoodItem] = []
+        @State private var treatmentSearchResults: [FoodItem] = []
         @State private var isTreatmentSearching = false
         @State private var treatmentSearchError: String?
         @State private var treatmentSearchHasMoreResults = false
@@ -657,7 +657,7 @@ extension Treatments {
         }
 
         /// Adds a search result to the scanned products and updates calculations
-        private func addSearchResultToMeal(_ item: BarcodeScanner.FoodItem) {
+        private func addSearchResultToMeal(_ item: FoodItem) {
             // Add to scanner state's scanned products with default amount
             var mutableItem = item
             mutableItem.amount = item.servingQuantity ?? 100 // Default to serving or 100g

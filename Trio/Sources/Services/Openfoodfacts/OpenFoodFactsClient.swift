@@ -531,7 +531,7 @@ private extension BarcodeScanner.OpenFoodFactsClient {
     }
 
     struct NutrimentsData: Decodable {
-        let basis: BarcodeScanner.FoodItem.Nutriments.Basis
+        let basis: FoodItem.Nutriments.Basis
         let energyKcal100g: Double?
         let carbohydrates100g: Double?
         let sugars100g: Double?

@@ -7,13 +7,13 @@ extension BarcodeScanner {
         var isFocused: FocusState<Bool>.Binding
         var isSearching: Bool
         var searchError: String?
-        var searchResults: [BarcodeScanner.FoodItem]
+        var searchResults: [FoodItem]
         var hasMoreSearchResults: Bool
         var isLoadingMoreSearchResults: Bool
         var onSubmit: () -> Void
         var onClear: () -> Void
         var onChange: () -> Void
-        var onItemAdd: (BarcodeScanner.FoodItem) -> Void
+        var onItemAdd: (FoodItem) -> Void
         var onLoadMore: () -> Void
 
         @ViewBuilder let leadingSearchContent: Leading
@@ -86,13 +86,13 @@ extension BarcodeScanner.FoodSearchWidget where Leading == EmptyView, Trailing =
         isFocused: FocusState<Bool>.Binding,
         isSearching: Bool,
         searchError: String?,
-        searchResults: [BarcodeScanner.FoodItem],
+        searchResults: [FoodItem],
         hasMoreSearchResults: Bool,
         isLoadingMoreSearchResults: Bool,
         onSubmit: @escaping () -> Void,
         onClear: @escaping () -> Void,
         onChange: @escaping () -> Void,
-        onItemAdd: @escaping (BarcodeScanner.FoodItem) -> Void,
+        onItemAdd: @escaping (FoodItem) -> Void,
         onLoadMore: @escaping () -> Void
     ) {
         _searchText = searchText
@@ -169,7 +169,7 @@ extension BarcodeScanner {
 
     /// A compact row view for displaying food search results
     struct FoodSearchResultRow: View {
-        let item: BarcodeScanner.FoodItem
+        let item: FoodItem
         let onAdd: () -> Void
 
         var body: some View {
