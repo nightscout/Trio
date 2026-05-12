@@ -123,7 +123,13 @@ enum FileProtectionFixer {
             "onboardingCompleted.plist",
             "diagnosticsSharing.plist",
             "lastCleanupDate.plist",
-            "hasSeenFatProteinOrderChange.plist"
+            "hasSeenFatProteinOrderChange.plist",
+            "telemetryEnabled.plist",
+            "telemetryConsentDecisionMade.plist",
+            "telemetryLastSentAt.plist",
+            "telemetryLastSentSha.plist",
+            "telemetryColdLaunchTimes.plist",
+            "telemetryInstallId.plist"
         ]
 
         let fileManager = FileManager.default
