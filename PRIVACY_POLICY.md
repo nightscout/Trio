@@ -45,6 +45,15 @@ app launch after the update. You can change your choice at any time
 in Settings → App Diagnostics, and you can inspect the exact JSON
 that would be sent under "What's sent" on that same screen.
 
+Telemetry requests are authenticated with Apple App Attest. This
+means Apple cryptographically vouches for the fact that the request
+came from a genuine, unmodified copy of Trio running on a real
+Apple device. App Attest does not transmit any personal data,
+device identifiers, or location information; it produces a one-way
+attestation that the server validates with Apple. Devices that do
+not support App Attest (e.g. the iOS Simulator) silently skip
+sending telemetry.
+
 The diagnostics-sharing selection offers three options:
 
 - **Enable Full Sharing** — crash reports AND anonymous usage telemetry.

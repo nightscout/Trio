@@ -129,7 +129,9 @@ enum FileProtectionFixer {
             "telemetryLastSentAt.plist",
             "telemetryLastSentSha.plist",
             "telemetryColdLaunchTimes.plist",
-            "telemetryInstallId.plist"
+            "telemetryInstallId.plist",
+            "telemetryAttestForbidden.plist",
+            "telemetryDebugServerURL.plist"
         ]
 
         let fileManager = FileManager.default

@@ -18,16 +18,29 @@ final class TelemetryClient: Injectable {
 
     // MARK: Endpoint configuration
 
-    // TODO: Replace with the production telemetry endpoint
-    // and bearer token. While these placeholders remain, `send()` no-ops at
-    // debug-log level — consent, persistence, scheduling, and the UI work
-    // unchanged for testing against any mock server.
-    private static let endpoint: URL? = nil
-    private static let writeToken = ""
+    // TODO: Replace with the production `trio-telemetry` base URL once the
+    // server PR (nightscout/trio-telemetry#3) is deployed. Auth happens via
+    // Apple App Attest — see `TelemetryAttestor` — so there is no static
+    // bearer token. While this constant is nil, `send()` no-ops cleanly.
+    private static let productionBaseURL: URL? = nil
+
+    /// Effective base URL: respects the debug override in
+    /// `PropertyPersistentFlags.telemetryDebugServerURL`, then falls back to
+    /// `productionBaseURL`. Used by both the registration and `/checkin` paths.
+    private static var baseURL: URL? {
+        if let override = PropertyPersistentFlags.shared.telemetryDebugServerURL?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+            !override.isEmpty,
+            let url = URL(string: override)
+        {
+            return url
+        }
+        return productionBaseURL
+    }
 
     private static let weeklyInterval: TimeInterval = 7 * 24 * 60 * 60
     private static let dailyInterval: TimeInterval = 24 * 60 * 60
-    private static let retryAfterFailureInterval: TimeInterval = 60
+    private static let maxPayloadBytes = 4096
 
     // MARK: Injected services
 
@@ -213,25 +226,73 @@ final class TelemetryClient: Injectable {
 
     // MARK: - Send
 
-    /// Build payload, POST it, update last-sent state on 2xx. Fire-and-forget;
-    /// errors are logged at debug level only and never surfaced to the UI.
+    /// Build payload, attest it via App Attest, POST it, update last-sent state
+    /// on 2xx. Fire-and-forget; errors are logged at debug level only.
+    ///
+    /// Flow:
+    /// 1. Skip if `TelemetryAttestor.isSupported == false` (simulator, older
+    ///    devices). This is the primary opt-out for unsupported hardware —
+    ///    sending without attestation would just bounce off the server.
+    /// 2. Skip if the install has been flagged forbidden by a previous 403.
+    /// 3. Register if needed (idempotent; first launch + once on retry after
+    ///    transient failures).
+    /// 4. Serialize the payload. Reject if > 4096 bytes (server-enforced cap).
+    /// 5. Ask the attestor for an assertion over `SHA256(payload || challenge)`.
+    /// 6. POST `/checkin` with the three App Attest headers.
+    ///
+    /// Backoff: failures don't update `telemetryLastSentAt`, so the next
+    /// scheduler tick / cold launch retries naturally. The 24h cadence is the
+    /// natural backoff floor; no per-attempt exponential timer is added.
     func send() async {
-        guard let endpoint = Self.endpoint else {
-            debug(.telemetry, "skip send: endpoint not configured (TODO)") // FIXME: adjust debug statement once backend is set up
+        guard let baseURL = Self.baseURL else {
+            debug(.telemetry, "skip send: server URL not configured")
             return
         }
+
+        let attestor = TelemetryAttestor.shared
+        guard attestor.isSupported else {
+            debug(.telemetry, "skip send: App Attest unsupported (simulator or older device)")
+            return
+        }
+        guard !attestor.isForbidden else {
+            debug(.telemetry, "skip send: app_id previously rejected (403)")
+            return
+        }
+
+        do {
+            try await attestor.registerIfNeeded(baseURL: baseURL)
+        } catch TelemetryAttestor.AttestError.forbidden {
+            // Already logged + sticky-flagged in registerIfNeeded.
+            return
+        } catch {
+            debug(.telemetry, "register failed: \(error) — will retry next cycle")
+            return
+        }
+
         let payload = buildPayload()
         guard let body = try? JSONSerialization.data(withJSONObject: payload, options: []) else {
             debug(.telemetry, "skip send: payload not JSON-serializable")
             return
         }
+        guard body.count <= Self.maxPayloadBytes else {
+            debug(.telemetry, "skip send: payload exceeds \(Self.maxPayloadBytes) bytes (\(body.count))")
+            return
+        }
 
-        var request = URLRequest(url: endpoint)
+        let assertion: (assertion: String, keyID: String, challenge: String)
+        do {
+            assertion = try await attestor.assertion(forPayload: body, baseURL: baseURL)
+        } catch {
+            debug(.telemetry, "assertion failed: \(error)")
+            return
+        }
+
+        var request = URLRequest(url: baseURL.appendingPathComponent("checkin"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if !Self.writeToken.isEmpty {
-            request.setValue("Bearer \(Self.writeToken)", forHTTPHeaderField: "Authorization")
-        }
+        request.setValue(assertion.keyID, forHTTPHeaderField: "X-AppAttest-KeyId")
+        request.setValue(assertion.assertion, forHTTPHeaderField: "X-AppAttest-Assertion")
+        request.setValue(assertion.challenge, forHTTPHeaderField: "X-Challenge")
         request.httpBody = body
         request.timeoutInterval = 15
 
