@@ -43,4 +43,13 @@ final class PropertyPersistentFlags {
     // Stable per-install UUID. IDFV resets when the user removes all Trio-team apps;
     // this survives independently and is wiped only by deleting Trio itself.
     @PersistedProperty(key: "telemetryInstallId") var telemetryInstallId: String?
+
+    // App Attest "give up" signal — set on a 403 from /api/attest/register, meaning
+    // the server has rejected this app_id and there's no point retrying.
+    @PersistedProperty(key: "telemetryAttestForbidden") var telemetryAttestForbidden: Bool?
+
+    // Debug override for the telemetry server base URL. Empty/unset → use the
+    // production constant in TelemetryClient. Surfaced as a hidden field in
+    // App Diagnostics for local testing against a dev server.
+    @PersistedProperty(key: "telemetryDebugServerURL") var telemetryDebugServerURL: String?
 }
