@@ -26,4 +26,21 @@ final class PropertyPersistentFlags {
 
     // TODO: This flag can be deleted in March 2027. Check the commit for other places to cleanup.
     @PersistedProperty(key: "hasSeenFatProteinOrderChange") var hasSeenFatProteinOrderChange: Bool?
+
+    // MARK: - Telemetry
+
+    //
+    // See Trio/Sources/Services/Telemetry/TelemetryClient.swift.
+    // `telemetryEnabled` gates the anonymous-usage POST. `diagnosticsSharingEnabled`
+    // remains the Crashlytics gate. Both flags `nil` means the user has not yet
+    // chosen — used to surface the one-time migration sheet to existing users.
+    @PersistedProperty(key: "telemetryEnabled") var telemetryEnabled: Bool?
+    @PersistedProperty(key: "telemetryConsentDecisionMade") var telemetryConsentDecisionMade: Bool?
+    @PersistedProperty(key: "telemetryLastSentAt") var telemetryLastSentAt: Date?
+    @PersistedProperty(key: "telemetryLastSentSha") var telemetryLastSentSha: String?
+    // Sliding 7-day window of cold-launch timestamps; count is sent as `coldLaunches7d`.
+    @PersistedProperty(key: "telemetryColdLaunchTimes") var telemetryColdLaunchTimes: [Date]?
+    // Stable per-install UUID. IDFV resets when the user removes all Trio-team apps;
+    // this survives independently and is wiped only by deleting Trio itself.
+    @PersistedProperty(key: "telemetryInstallId") var telemetryInstallId: String?
 }
