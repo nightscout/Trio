@@ -16,7 +16,7 @@ import Swinject
 /// register endpoint) are sticky — recorded in PropertyPersistentFlags so
 /// subsequent cycles don't retry indefinitely.
 ///
-/// Wire protocol matches `nightscout/trio-telemetry` (branch `app-attest`):
+/// Wire protocol matches `nightscout/trio-telemetry`:
 ///   1. POST /api/auth/ios/challenge       → { "challenge": "<base64url>" }
 ///   2. POST /api/attest/register          (once per install)
 ///   3. /checkin                           (per ping, headers below)

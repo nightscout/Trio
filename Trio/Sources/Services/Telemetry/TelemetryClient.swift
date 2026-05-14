@@ -18,11 +18,7 @@ final class TelemetryClient: Injectable {
 
     // MARK: Endpoint configuration
 
-    // TODO: Replace with the production `trio-telemetry` base URL once the
-    // server PR (nightscout/trio-telemetry#3) is deployed. Auth happens via
-    // Apple App Attest — see `TelemetryAttestor` — so there is no static
-    // bearer token. While this constant is nil, `send()` no-ops cleanly.
-    private static let productionBaseURL: URL? = nil
+    private static let productionBaseURL: URL? = URL(string: "https://telemetry.triodocs.org/checkin")
 
     /// Effective base URL: respects the debug override in
     /// `PropertyPersistentFlags.telemetryDebugServerURL`, then falls back to
