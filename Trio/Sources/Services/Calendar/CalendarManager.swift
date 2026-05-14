@@ -65,7 +65,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         setupCurrentCalendar()
 
         coreDataPublisher =
-            changedObjectsOnManagedObjectContextDidSavePublisher()
+            CoreDataStack.shared.entityChangePublisher
                 .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()

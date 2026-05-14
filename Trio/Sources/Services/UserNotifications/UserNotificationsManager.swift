@@ -91,7 +91,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         injectServices(resolver)
 
         coreDataPublisher =
-            changedObjectsOnManagedObjectContextDidSavePublisher()
+            CoreDataStack.shared.entityChangePublisher
                 .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()

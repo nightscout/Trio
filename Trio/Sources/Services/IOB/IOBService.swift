@@ -38,7 +38,7 @@ final class BaseIOBService: IOBService, Injectable {
     init(resolver: Resolver) {
         injectServices(resolver)
         coreDataPublisher =
-            changedObjectsOnManagedObjectContextDidSavePublisher()
+            CoreDataStack.shared.entityChangePublisher
                 .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()

@@ -55,7 +55,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
         injectServices(resolver)
         units = settingsManager.settings.units
         coreDataPublisher =
-            changedObjectsOnManagedObjectContextDidSavePublisher()
+            CoreDataStack.shared.entityChangePublisher
                 .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()

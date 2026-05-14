@@ -1,3 +1,4 @@
+import Combine
 import CoreData
 import Foundation
 import OSLog
@@ -13,6 +14,15 @@ class CoreDataStack: ObservableObject {
 
     private let maxRetries = 3
     private let initializationCoordinator = CoreDataInitializationCoordinator()
+
+    /// Emits the set of changed object IDs from each batch of persistent history transactions.
+    /// Sourced from persistent history, so — unlike `NSManagedObjectContextDidSave` — it also
+    /// covers `NSBatchInsertRequest`/`NSBatchDeleteRequest` and cross-process changes. App-side
+    /// observers subscribe via `entityChangePublisher` and filter with `filteredByEntityName(_:)`.
+    private let entityChangeSubject = PassthroughSubject<Set<NSManagedObjectID>, Never>()
+    var entityChangePublisher: AnyPublisher<Set<NSManagedObjectID>, Never> {
+        entityChangeSubject.eraseToAnyPublisher()
+    }
 
     private init(inMemory: Bool = false) {
         self.inMemory = inMemory
@@ -143,6 +153,13 @@ class CoreDataStack: ObservableObject {
                 viewContext.mergeChanges(fromContextDidSave: transaction.objectIDNotification())
                 self.lastToken = transaction.token
             }
+        }
+
+        // Notify app-side observers (services) about which objects changed. This history-sourced
+        // change feed replaces the hand-rolled changedObjectsOnManagedObjectContextDidSavePublisher.
+        let changedObjectIDs = Set(history.flatMap { $0.changes ?? [] }.map(\.changedObjectID))
+        if !changedObjectIDs.isEmpty {
+            entityChangeSubject.send(changedObjectIDs)
         }
     }
 

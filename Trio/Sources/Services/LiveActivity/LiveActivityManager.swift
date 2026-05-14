@@ -79,7 +79,7 @@ final class LiveActivityData: ObservableObject {
     /// - Parameter resolver: The dependency injection resolver.
     init(resolver: Resolver) {
         coreDataPublisher =
-            changedObjectsOnManagedObjectContextDidSavePublisher()
+            CoreDataStack.shared.entityChangePublisher
                 .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()

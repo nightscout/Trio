@@ -193,7 +193,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
         broadcaster.register(SettingsObserver.self, observer: self)
 
         coreDataPublisher =
-            changedObjectsOnManagedObjectContextDidSavePublisher()
+            CoreDataStack.shared.entityChangePublisher
                 .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
