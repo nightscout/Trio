@@ -2,54 +2,23 @@ import CoreData
 import Foundation
 
 extension Home.StateModel {
-    func setupTDDArray() {
-        Task {
-            do {
-                // Get the NSManagedObjectIDs
-                let tddObjectIds = try await fetchTDDIDs()
-
-                // Get the NSManagedObjects and map them to TDD on the Main Thread
-                try await updateTDDArray(with: tddObjectIds, keyPath: \.fetchedTDDs)
-            } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch TDDs: \(error)")
+    @MainActor func setupTDDController() {
+        tddControllerDelegate.onContentChange = { [weak self] in
+            Task { @MainActor in
+                self?.updateTDDFromController()
             }
+        }
+
+        do {
+            try tddController.performFetch()
+            updateTDDFromController()
+        } catch {
+            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform TDD fetch: \(error)")
         }
     }
 
-    @MainActor private func updateTDDArray(
-        with IDs: [NSManagedObjectID],
-        keyPath: ReferenceWritableKeyPath<Home.StateModel, [TDD]>
-    ) async throws {
-        let tddObjects: [TDD] = try await CoreDataStack.shared
-            .getNSManagedObject(with: IDs, context: viewContext)
-            .compactMap { managedObject in
-                // Safely extract date and total as optional
-                let timestamp = managedObject.value(forKey: "date") as? Date
-                let totalDailyDose = (managedObject.value(forKey: "total") as? NSNumber)?.decimalValue
-                return TDD(totalDailyDose: totalDailyDose, timestamp: timestamp)
-            }
-        self[keyPath: keyPath] = tddObjects
-    }
-
-    private func fetchTDDIDs() async throws -> [NSManagedObjectID] {
-        let tddFetchContext = CoreDataStack.shared.newTaskContext()
-        tddFetchContext.name = "HomeStateModel.fetchTDDIDs"
-
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: TDDStored.self,
-            onContext: tddFetchContext,
-            predicate: NSPredicate.predicateForOneDayAgo,
-            key: "date",
-            ascending: false,
-            fetchLimit: 1,
-            propertiesToFetch: ["total", "date", "objectID"]
-        )
-
-        return await tddFetchContext.perform {
-            guard let fetchedResults = results as? [[String: Any]] else {
-                return []
-            }
-            return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
-        }
+    @MainActor private func updateTDDFromController() {
+        guard let objects = tddController.fetchedObjects else { return }
+        fetchedTDDs = objects.map { TDD(totalDailyDose: $0.total?.decimalValue, timestamp: $0.date) }
     }
 }
