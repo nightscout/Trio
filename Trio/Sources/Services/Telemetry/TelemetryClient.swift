@@ -18,7 +18,7 @@ final class TelemetryClient: Injectable {
 
     // MARK: Endpoint configuration
 
-    private static let productionBaseURL: URL? = URL(string: "https://telemetry.triodocs.org/checkin")
+    private static let productionBaseURL: URL? = URL(string: "https://telemetry.triodocs.org")
 
     /// Effective base URL: respects the debug override in
     /// `PropertyPersistentFlags.telemetryDebugServerURL`, then falls back to
