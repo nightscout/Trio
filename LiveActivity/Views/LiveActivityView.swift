@@ -63,17 +63,28 @@ struct LiveActivityView: View {
                     .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
                     .frame(height: 80)
                     .overlay(alignment: .topTrailing) {
-                        if context.state.detailedViewState.isOverrideActive {
-                            HStack {
-                                Text("\(context.state.detailedViewState.overrideName)")
+                        HStack(spacing: 4) {
+                            if context.state.detailedViewState.isOverrideActive {
+                                Text(context.state.detailedViewState.overrideName)
                                     .font(.footnote)
                                     .fontWeight(.bold)
                                     .foregroundStyle(.white)
+                                    .padding(6)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(Color.purple.opacity(colorScheme == .dark ? 0.6 : 0.8))
+                                    }
                             }
-                            .padding(6)
-                            .background {
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(Color.purple.opacity(colorScheme == .dark ? 0.6 : 0.8))
+                            if context.state.detailedViewState.isTempTargetActive {
+                                Text(context.state.detailedViewState.tempTargetName)
+                                    .font(.footnote)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.white)
+                                    .padding(6)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(Color("LoopGreen").opacity(colorScheme == .dark ? 0.6 : 0.8))
+                                    }
                             }
                         }
                     }

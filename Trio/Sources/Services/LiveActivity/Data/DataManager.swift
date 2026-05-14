@@ -67,6 +67,34 @@ extension LiveActivityManager {
         }
     }
 
+    func fetchAndMapTempTarget() async throws -> TempTargetData? {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TempTargetStored.self,
+            onContext: context,
+            predicate: NSPredicate.predicateForOneDayAgo,
+            key: "date",
+            ascending: false,
+            fetchLimit: 1,
+            propertiesToFetch: ["enabled", "name", "target", "date", "duration"]
+        )
+
+        return try await context.perform {
+            guard let tempTargetResults = results as? [[String: Any]] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
+
+            return tempTargetResults.first.map {
+                TempTargetData(
+                    isActive: $0["enabled"] as? Bool ?? false,
+                    tempTargetName: $0["name"] as? String ?? "Temp Target",
+                    date: $0["date"] as? Date ?? Date(),
+                    duration: $0["duration"] as? Decimal ?? 0,
+                    target: $0["target"] as? Decimal ?? 0
+                )
+            }
+        }
+    }
+
     func fetchAndMapOverride() async throws -> OverrideData? {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,

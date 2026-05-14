@@ -33,12 +33,13 @@ struct LiveActivityChartView: View {
         let target = isMgdL ? state.target : state.target.asMmolL
 
         let isOverrideActive = additionalState.isOverrideActive == true
+        let isTempTargetActive = additionalState.isTempTargetActive == true
 
         let calendar = Calendar.current
         let now = Date()
 
         let startDate = calendar.date(byAdding: .hour, value: isWatchOS ? -3 : -6, to: now) ?? now
-        let endDate = isOverrideActive ? (calendar.date(byAdding: .hour, value: 2, to: now) ?? now) :
+        let endDate = (isOverrideActive || isTempTargetActive) ? (calendar.date(byAdding: .hour, value: 2, to: now) ?? now) :
             (calendar.date(byAdding: .minute, value: isWatchOS ? 5 : 0, to: now) ?? now)
 
         // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
@@ -77,6 +78,10 @@ struct LiveActivityChartView: View {
 
             if isOverrideActive {
                 drawActiveOverrides()
+            }
+
+            if isTempTargetActive {
+                drawActiveTempTarget()
             }
 
             drawChart(yAxisRuleMarkMin: yAxisRuleMarkMin, yAxisRuleMarkMax: yAxisRuleMarkMax)
@@ -122,6 +127,24 @@ struct LiveActivityChartView: View {
             y: .value("Value", target)
         )
         .foregroundStyle(Color.purple.opacity(0.6))
+        .lineStyle(.init(lineWidth: 8))
+    }
+
+    private func drawActiveTempTarget() -> some ChartContent {
+        let start: Date = context.state.detailedViewState.tempTargetDate
+
+        let duration = context.state.detailedViewState.tempTargetDuration
+        let durationAsTimeInterval = TimeInterval((duration as NSDecimalNumber).doubleValue * 60) // return seconds
+
+        let end: Date = start.addingTimeInterval(durationAsTimeInterval)
+        let target = context.state.detailedViewState.tempTargetTarget
+
+        return RuleMark(
+            xStart: .value("Start", start, unit: .second),
+            xEnd: .value("End", end, unit: .second),
+            y: .value("Value", target)
+        )
+        .foregroundStyle(Color("LoopGreen").opacity(0.6))
         .lineStyle(.init(lineWidth: 8))
     }
 
