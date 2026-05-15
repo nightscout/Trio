@@ -214,9 +214,11 @@ jobs:
 
           # Trio workspace patches
           # -applies any patches located in the Trio/patches/ directory
-          if $(ls ./patches/* &> /dev/null); then
-          git apply ./patches/* --allow-empty -v --whitespace=fix
-          fi
+          for patch in ./patches/*.patch; do
+            [ -e "$patch" ] || continue
+            [ "$(basename "$patch")" = "medtrum-fill-indicator.patch" ] && continue
+            git apply "$patch" --allow-empty -v --whitespace=fix
+          done
 
           # Download and apply Trio patches from GitHub:
           # Template for customizing Trio code (as opposed to submodule code)
@@ -238,6 +240,9 @@ jobs:
           # Several patches may be added per submodule.
           # Adding comments (#) is strongly recommended to easily tell the individual patches apart.
 
+          # MedtrumKit: show fill reservoir level before priming and require at least 70U.
+          git apply ./patches/medtrum-fill-indicator.patch --directory=MedtrumKit --allow-empty -v --whitespace=fix
+
       # Optional: silence the startup warning shown on builds made from a branch other
       # than main. Off unless you deliberately set the repository variable
       # DEV_BRANCH_WARNING_DISABLED to true (Settings > Secrets and variables > Actions
@@ -251,7 +256,6 @@ jobs:
           # any tracked file.
           echo 'SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) DEV_BRANCH_WARNING_DISABLED' >> ConfigOverride.xcconfig
           echo "::warning::Development branch warning disabled for this build."
-
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables
         run: |
