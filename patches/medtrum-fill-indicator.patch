@@ -1,0 +1,241 @@
+diff --git a/MedtrumKit/PumpManager/MedtrumPumpManager.swift b/MedtrumKit/PumpManager/MedtrumPumpManager.swift
+index fb1fef3..a7ca2fe 100644
+--- a/MedtrumKit/PumpManager/MedtrumPumpManager.swift
++++ b/MedtrumKit/PumpManager/MedtrumPumpManager.swift
+@@ -665,6 +665,32 @@ public extension MedtrumPumpManager {
+         }
+     }
+ 
++    func preparePatchForFilling(_ completion: @escaping (MedtrumPrimePatchResult) -> Void) {
++        log.info("Prepare patch for filling...")
++
++        if state.pumpSN.isEmpty {
++            log.warning("No pump base known yet...")
++            completion(.failure(error: .noKnownPumpBase))
++            return
++        }
++
++        if state.sessionToken.isEmpty {
++            log.debug("Refreshing session token...")
++            state.sessionToken = Crypto.genSessionToken()
++            notifyStateDidChange()
++        }
++
++        bluetooth.ensureConnected { error in
++            if let error = error {
++                self.log.error("Failed to connect to pump: \(error)")
++                completion(.failure(error: .connectionFailure(reason: error.errorDescription ?? "EMPTY")))
++                return
++            }
++
++            completion(.success)
++        }
++    }
++
+     func activatePatch(_ completion: @escaping (MedtrumActivatePatchResult) -> Void) {
+         log.info("Activate patch pump...")
+ 
+diff --git a/MedtrumKitUI/ViewModels/Onboarding/PatchPrimingViewModel.swift b/MedtrumKitUI/ViewModels/Onboarding/PatchPrimingViewModel.swift
+index a416fec..cc892a4 100644
+--- a/MedtrumKitUI/ViewModels/Onboarding/PatchPrimingViewModel.swift
++++ b/MedtrumKitUI/ViewModels/Onboarding/PatchPrimingViewModel.swift
+@@ -1,17 +1,42 @@
+ import LoopKit
++import Foundation
+ 
+ class PatchPrimingViewModel: ObservableObject {
+     private let processQueue = DispatchQueue(label: "com.nightscout.medtrumkit.primingView")
+ 
+     @Published var isPriming = false
++    @Published var isPreparingFill = false
+     @Published var primeProgress: Double = 0
+     @Published var primingError = ""
+     @Published var is300u = false
++    @Published var reservoirLevel: Double = 0
++    @Published var reservoirCapacity: Double = 200
+ 
+     private let nextStep: () -> Void
+     let previousStep: () -> Void
+     private let done: () -> Void
+     private let pumpManager: MedtrumPumpManager?
++
++    var reservoirProgress: Double {
++        guard reservoirCapacity > 0 else {
++            return 0
++        }
++
++        return min(max(reservoirLevel / reservoirCapacity, 0), 1)
++    }
++
++    var hasMinimumFill: Bool {
++        reservoirLevel >= 70
++    }
++
++    var canStartPrime: Bool {
++        !isPreparingFill && !isPriming && hasMinimumFill
++    }
++
++    var canRetryFillConnection: Bool {
++        !isPreparingFill && !isPriming && !hasMinimumFill
++    }
++
+     init(
+         _ pumpManager: MedtrumPumpManager?,
+         _ nextStep: @escaping () -> Void,
+@@ -28,6 +53,8 @@ class PatchPrimingViewModel: ObservableObject {
+         }
+ 
+         is300u = pumpManager.state.pumpName.contains("300U")
++        reservoirCapacity = pumpManager.pumpReservoirCapacity
++        reservoirLevel = pumpManager.state.reservoir
+         pumpManager.addStatusObserver(self, queue: processQueue)
+     }
+ 
+@@ -35,6 +62,31 @@ class PatchPrimingViewModel: ObservableObject {
+         pumpManager?.removeStatusObserver(self)
+     }
+ 
++    func prepareForFilling() {
++        #if targetEnvironment(simulator)
++            reservoirLevel = pumpManager?.pumpReservoirCapacity ?? 200
++        #else
++            guard let pumpManager = self.pumpManager,
++                  !isPreparingFill,
++                  pumpManager.state.pumpState.rawValue < PatchState.priming.rawValue
++            else {
++                return
++            }
++
++            isPreparingFill = true
++            primingError = ""
++            pumpManager.preparePatchForFilling { result in
++                DispatchQueue.main.async {
++                    self.isPreparingFill = false
++
++                    if case let .failure(error) = result {
++                        self.primingError = error.description
++                    }
++                }
++            }
++        #endif
++    }
++
+     func startPrime() {
+         #if targetEnvironment(simulator)
+             pumpManager?.state.sessionToken = Crypto.genSessionToken()
+@@ -47,6 +99,11 @@ class PatchPrimingViewModel: ObservableObject {
+                 return
+             }
+ 
++            guard hasMinimumFill else {
++                primingError = String(localized: "Fill the patch with at least 70U before priming.", comment: "Error shown when reservoir has too little insulin before priming")
++                return
++            }
++
+             isPriming = true
+             primingError = ""
+             pumpManager.primePatch { result in
+@@ -88,6 +145,8 @@ extension PatchPrimingViewModel: PumpManagerStatusObserver {
+ 
+             DispatchQueue.main.async {
+                 self.primeProgress = Double(pumpManager.state.primeProgress) / 240
++                self.reservoirLevel = pumpManager.state.reservoir
++                self.reservoirCapacity = pumpManager.pumpReservoirCapacity
+ 
+                 if pumpManager.state.pumpState.rawValue > PatchState.priming.rawValue,
+                    pumpManager.state.pumpState.rawValue < PatchState.active.rawValue
+diff --git a/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift b/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
+index a07835a..2dbd3fe 100644
+--- a/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
++++ b/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
+@@ -51,6 +51,49 @@ struct PatchPrimingView: View {
+                     }
+                 }
+ 
++                Section {
++                    VStack(spacing: 12) {
++                        ReservoirView(
++                            reservoirLevel: viewModel.reservoirLevel,
++                            fillColor: viewModel.hasMinimumFill ? .green : .yellow,
++                            maxReservoirLevel: viewModel.reservoirCapacity
++                        )
++                        .frame(height: 120)
++
++                        Text(
++                            String(
++                                format: String(
++                                    localized: "Reservoir: %.2fU / %.0fU",
++                                    comment: "Reservoir fill level during Medtrum patch filling"
++                                ),
++                                viewModel.reservoirLevel,
++                                viewModel.reservoirCapacity
++                            )
++                        )
++                        .foregroundStyle(.primary)
++
++                        ProgressView(progress: viewModel.reservoirProgress)
++                            .padding(.horizontal)
++
++                        if viewModel.isPreparingFill {
++                            HStack(spacing: 8) {
++                                ActivityIndicator()
++                                Text("Connecting to patch...", comment: "Status while connecting to Medtrum patch before filling")
++                                    .foregroundStyle(.secondary)
++                            }
++                        } else if viewModel.hasMinimumFill {
++                            Text("Minimum fill reached. You can start priming.", comment: "Status when Medtrum patch has enough insulin to prime")
++                                .multilineTextAlignment(.center)
++                                .foregroundStyle(.green)
++                        } else {
++                            Text("Fill at least 70U before priming.", comment: "Status when Medtrum patch needs more insulin before priming")
++                                .multilineTextAlignment(.center)
++                                .foregroundStyle(.red)
++                        }
++                    }
++                    .frame(maxWidth: .infinity)
++                }
++
+                 Section {
+                     supportImage("half_press_needle_button")
+                     HStack(alignment: .top) {
+@@ -83,17 +126,25 @@ struct PatchPrimingView: View {
+                 Text("Go back to pump base", comment: "label for go to pump base patch")
+             }
+             .buttonStyle(ActionButtonStyle(.secondary))
+-            .disabled(viewModel.isPriming)
++            .disabled(viewModel.isPriming || viewModel.isPreparingFill)
+             .padding(.horizontal)
+ 
+-            Button(action: { viewModel.startPrime() }) {
+-                if viewModel.isPriming {
+-                    ActivityIndicator()
++            Button(action: {
++                if viewModel.canStartPrime {
++                    viewModel.startPrime()
+                 } else {
++                    viewModel.prepareForFilling()
++                }
++            }) {
++                if viewModel.isPriming || viewModel.isPreparingFill {
++                    ActivityIndicator()
++                } else if viewModel.canStartPrime {
+                     Text("Start priming", comment: "label for prime start action")
++                } else {
++                    Text("Retry connection", comment: "label for retrying Medtrum patch fill connection")
+                 }
+             }
+-            .disabled(viewModel.isPriming)
++            .disabled(!viewModel.canStartPrime && !viewModel.canRetryFillConnection)
+             .buttonStyle(ActionButtonStyle())
+             .padding([.bottom, .horizontal])
+         }
+@@ -101,6 +152,9 @@ struct PatchPrimingView: View {
+         .edgesIgnoringSafeArea(.bottom)
+         .navigationBarBackButtonHidden(viewModel.isPriming)
+         .navigationTitle(String(localized: "Patch Priming", comment: "Priming header"))
++        .onAppear {
++            viewModel.prepareForFilling()
++        }
+     }
+ 
+     @ViewBuilder func supportImage(_ imageName: String) -> some View {
