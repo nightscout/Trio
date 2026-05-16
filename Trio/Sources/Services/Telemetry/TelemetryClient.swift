@@ -18,21 +18,7 @@ final class TelemetryClient: Injectable {
 
     // MARK: Endpoint configuration
 
-    private static let productionBaseURL: URL? = URL(string: "https://telemetry.triodocs.org")
-
-    /// Effective base URL: respects the debug override in
-    /// `PropertyPersistentFlags.telemetryDebugServerURL`, then falls back to
-    /// `productionBaseURL`. Used by both the registration and `/checkin` paths.
-    private static var baseURL: URL? {
-        if let override = PropertyPersistentFlags.shared.telemetryDebugServerURL?
-            .trimmingCharacters(in: .whitespacesAndNewlines),
-            !override.isEmpty,
-            let url = URL(string: override)
-        {
-            return url
-        }
-        return productionBaseURL
-    }
+    private static let baseURL: URL? = URL(string: "https://telemetry.triodocs.org")
 
     private static let weeklyInterval: TimeInterval = 7 * 24 * 60 * 60
     private static let dailyInterval: TimeInterval = 24 * 60 * 60
