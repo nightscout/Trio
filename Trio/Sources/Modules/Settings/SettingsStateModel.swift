@@ -31,7 +31,6 @@ extension Settings {
 
             subscribeSetting(\.debugOptions, on: $debugOptions) { debugOptions = $0 }
             subscribeSetting(\.closedLoop, on: $closedLoop) { closedLoop = $0 }
-
             broadcaster.register(SettingsObserver.self, observer: self)
 
             buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
