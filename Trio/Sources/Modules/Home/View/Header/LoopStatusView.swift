@@ -288,6 +288,11 @@ struct LoopStatusView: View {
             tags.append("Smoothing: On")
         }
 
+        // FIXME: remove this before feat/dev-oref-swift is merged to dev
+        if state.settingsManager.settings.useSwiftOref {
+            tags.append("Swift Oref")
+        }
+
         if let currentTDD = state.fetchedTDDs.first?.totalDailyDose, currentTDD != 0 {
             tags.append("TDD: \(currentTDD)")
         }

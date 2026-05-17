@@ -237,4 +237,46 @@ import Testing
         #expect(storedEntries?.first?.glucose == 100, "Normal glucose value should match")
         #expect(storage.alarm == nil, "Should not trigger any alarm")
     }
+
+    /* Commenting out while we don't have getGlucoseStatus defined
+     @Test("getGlucoseStatus returns correct deltas for 0/5/15/30m readings") func testGetGlucoseStatusFourPoints() async throws {
+         let now = Date()
+         // Prepare 4 readings: at 0, 5, 15, and 30 minutes ago
+         let specs: [(offset: TimeInterval, value: Int)] = [
+             (0, 100), // now
+             (5 * 60, 110), // 5m ago
+             (15 * 60, 120), // 15m ago
+             (30 * 60, 130) // 30m ago
+         ]
+
+         // Insert them into CoreData so that our fetch predicate picks them up
+         for (offset, value) in specs {
+             await testContext.perform {
+                 let glucoseToStore = GlucoseStored(context: testContext)
+                 glucoseToStore.id = UUID()
+                 glucoseToStore.date = now.addingTimeInterval(-offset)
+                 glucoseToStore.glucose = Int16(value)
+             }
+         }
+         try testContext.save()
+
+         // Call the method under test
+         let status = try await storage.getGlucoseStatus()
+         #expect(status != nil, "Expected non‐nil status")
+
+         // “Now” glucose is the 0m reading
+         #expect(status!.glucose == 100)
+
+         // lastDelta: only the 5m point: (100–110)/5*5 = –10
+         #expect(status!.delta == -10)
+
+         // shortAvgDelta: average of 5m and 15m windows:
+         //   5m window:   (100–110)/5*5   = –10
+         //   15m window: (100–120)/15*5 ≈ –6.6667 → –6.67
+         //   avg ≈ (–10 + –6.67)/2 = –8.333… → rounded to –8.33
+         #expect(status!.shortAvgDelta == -8.33)
+
+         // longAvgDelta: only the 30m window: (100–130)/30*5 = –5
+         #expect(status!.longAvgDelta == -5)
+     }*/
 }
