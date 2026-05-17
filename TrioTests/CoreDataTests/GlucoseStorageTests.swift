@@ -127,6 +127,59 @@ import Testing
         #expect(notUploadedEntries[0].glucose == 160, "Glucose value should match")
     }
 
+    @Test("Sub-39 glucose is clamped to 39 on storeGlucose") func testStoreGlucoseClampsBelowMinimum() async throws {
+        // Given a CGM reading below the 39 mg/dL floor (e.g. LibreTransmitter delivering 23)
+        let testGlucose = [
+            BloodGlucose(direction: BloodGlucose.Direction.flat, date: 123, dateString: Date(), glucose: 23)
+        ]
+
+        // When
+        try await storage.storeGlucose(testGlucose)
+
+        // Then the stored row should be clamped to 39, not 23
+        let clampedEntries = try await coreDataStack.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: testContext,
+            predicate: NSPredicate(format: "glucose == 39"),
+            key: "date",
+            ascending: false
+        ) as? [GlucoseStored]
+
+        #expect(clampedEntries?.count == 1, "Sub-39 glucose should be clamped and stored as 39")
+
+        let rawEntries = try await coreDataStack.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: testContext,
+            predicate: NSPredicate(format: "glucose == 23"),
+            key: "date",
+            ascending: false
+        ) as? [GlucoseStored]
+
+        #expect(rawEntries?.isEmpty == true, "Raw sub-39 value must not be persisted")
+    }
+
+    @Test("Sub-39 glucose is clamped to 39 on backfillGlucose") func testBackfillGlucoseClampsBelowMinimum() async throws {
+        // Given a backfilled CGM reading below the 39 mg/dL floor
+        let backfillDate = Date().addingTimeInterval(-30 * 60)
+        let testGlucose = [
+            BloodGlucose(direction: BloodGlucose.Direction.flat, date: 456, dateString: backfillDate, glucose: 28)
+        ]
+
+        // When
+        try await storage.backfillGlucose(testGlucose)
+
+        // Then the backfilled row should be clamped to 39
+        let clampedEntries = try await coreDataStack.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: testContext,
+            predicate: NSPredicate(format: "glucose == 39"),
+            key: "date",
+            ascending: false
+        ) as? [GlucoseStored]
+
+        #expect(clampedEntries?.count == 1, "Sub-39 backfilled glucose should be clamped and stored as 39")
+    }
+
     @Test(
         "Test glucose alarms",
         .enabled(if: false, "Flaky test, disabled while investigating")
