@@ -2,81 +2,51 @@ import CoreData
 import Foundation
 
 extension Home.StateModel {
-    func setupTempTargetsStored() {
-        Task {
-            do {
-                let ids = try await self.fetchTempTargets()
-                let tempTargetObjects: [TempTargetStored] = try await CoreDataStack.shared
-                    .getNSManagedObject(with: ids, context: viewContext)
-                await updateTempTargetsArray(with: tempTargetObjects)
-            } catch {
-                debug(
-                    .default,
-                    "\(DebuggingIdentifiers.failed) Error setting up tempTargetStored: \(error)"
-                )
+    // MARK: - Temp Targets
+
+    @MainActor func setupTempTargetController() {
+        tempTargetControllerDelegate.onContentChange = { [weak self] in
+            Task { @MainActor in
+                self?.updateTempTargetsFromController()
             }
+        }
+
+        do {
+            try tempTargetController.performFetch()
+            updateTempTargetsFromController()
+        } catch {
+            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform temp target fetch: \(error)")
         }
     }
 
-    private func fetchTempTargets() async throws -> [NSManagedObjectID] {
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: TempTargetStored.self,
-            onContext: tempTargetFetchContext,
-            predicate: NSPredicate.tempTargetsForMainChart,
-            key: "date",
-            ascending: false
-        )
-
-        return try await tempTargetFetchContext.perform {
-            guard let fetchedResults = results as? [TempTargetStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
-    @MainActor private func updateTempTargetsArray(with objects: [TempTargetStored]) {
+    @MainActor private func updateTempTargetsFromController() {
+        guard let objects = tempTargetController.fetchedObjects else { return }
         tempTargetStored = objects
     }
 
-    // Setup expired TempTargets
-    func setupTempTargetsRunStored() {
-        Task {
-            do {
-                let ids = try await self.fetchTempTargetRunStored()
-                let tempTargetRunObjects: [TempTargetRunStored] = try await CoreDataStack.shared
-                    .getNSManagedObject(with: ids, context: viewContext)
-                await updateTempTargetRunStoredArray(with: tempTargetRunObjects)
-            } catch {
-                debug(
-                    .default,
-                    "\(DebuggingIdentifiers.failed) Error setting up temp targetsRunStored: \(error)"
-                )
+    // MARK: - Temp Target Runs
+
+    @MainActor func setupTempTargetRunController() {
+        tempTargetRunControllerDelegate.onContentChange = { [weak self] in
+            Task { @MainActor in
+                self?.updateTempTargetRunsFromController()
             }
+        }
+
+        do {
+            try tempTargetRunController.performFetch()
+            updateTempTargetRunsFromController()
+        } catch {
+            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform temp target run fetch: \(error)")
         }
     }
 
-    private func fetchTempTargetRunStored() async throws -> [NSManagedObjectID] {
-        let predicate = NSPredicate(format: "startDate >= %@", Date.oneDayAgo as NSDate)
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: TempTargetRunStored.self,
-            onContext: tempTargetFetchContext,
-            predicate: predicate,
-            key: "startDate",
-            ascending: false
-        )
-
-        return try await tempTargetFetchContext.perform {
-            guard let fetchedResults = results as? [TempTargetRunStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
-    @MainActor private func updateTempTargetRunStoredArray(with objects: [TempTargetRunStored]) {
+    @MainActor private func updateTempTargetRunsFromController() {
+        guard let objects = tempTargetRunController.fetchedObjects else { return }
         tempTargetRunStored = objects
     }
+
+    // MARK: - Temp Target Actions
 
     @MainActor func cancelTempTarget(withID id: NSManagedObjectID) async {
         do {

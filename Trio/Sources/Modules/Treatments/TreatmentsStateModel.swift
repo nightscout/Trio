@@ -122,9 +122,6 @@ extension Treatments {
         let now = Date.now
 
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-        let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
-        let determinationFetchContext = CoreDataStack.shared.newTaskContext()
-        let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
 
         var isActive: Bool = false
 
@@ -787,6 +784,9 @@ extension Treatments.StateModel {
     }
 
     private func fetchGlucose() async throws -> [NSManagedObjectID] {
+        let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
+        glucoseFetchContext.name = "TreatmentsStateModel.fetchGlucose"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: glucoseFetchContext,
@@ -855,53 +855,62 @@ extension Treatments.StateModel {
     }
 
     private func mapForecastsForChart() async -> Determination? {
-        do {
-            let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
-                .getNSManagedObject(with: determinationObjectIDs, context: determinationFetchContext)
+        guard let determinationID = await MainActor.run(body: { determinationObjectIDs.first }) else {
+            return nil
+        }
 
-            let determination = await determinationFetchContext.perform {
-                let determinationObject = determinationObjects.first
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "TreatmentsStateModel.mapForecastsForChart"
 
-                let forecastsSet = determinationObject?.forecasts ?? []
-                let predictions = Predictions(
-                    iob: forecastsSet.extractValues(for: "iob"),
-                    zt: forecastsSet.extractValues(for: "zt"),
-                    cob: forecastsSet.extractValues(for: "cob"),
-                    uam: forecastsSet.extractValues(for: "uam")
+        return await context.perform {
+            let request = NSFetchRequest<Forecast>(entityName: "Forecast")
+            request.predicate = NSPredicate(format: "orefDetermination = %@", determinationID)
+            request.relationshipKeyPathsForPrefetching = ["forecastValues"]
+
+            let forecasts: [Forecast]
+            do {
+                forecasts = try context.fetch(request)
+            } catch {
+                debug(
+                    .default,
+                    "\(DebuggingIdentifiers.failed) Error mapping forecasts for chart: \(error)"
                 )
-
-                return Determination(
-                    id: UUID(),
-                    reason: "",
-                    units: 0,
-                    insulinReq: 0,
-                    sensitivityRatio: 0,
-                    rate: 0,
-                    duration: 0,
-                    iob: 0,
-                    cob: 0,
-                    predictions: predictions.isEmpty ? nil : predictions,
-                    carbsReq: 0,
-                    temp: nil,
-                    reservoir: 0,
-                    insulinForManualBolus: 0,
-                    manualBolusErrorString: 0,
-                    carbRatio: 0,
-                    received: false
-                )
-            }
-
-            guard !determinationObjects.isEmpty else {
                 return nil
             }
 
-            return determination
-        } catch {
-            debug(
-                .default,
-                "\(DebuggingIdentifiers.failed) Error mapping forecasts for chart: \(error)"
+            func values(for type: String) -> [Int]? {
+                let result = forecasts.first { $0.type == type }?
+                    .forecastValuesArray
+                    .map { Int($0.value) }
+                return (result?.isEmpty ?? true) ? nil : result
+            }
+
+            let predictions = Predictions(
+                iob: values(for: "iob"),
+                zt: values(for: "zt"),
+                cob: values(for: "cob"),
+                uam: values(for: "uam")
             )
-            return nil
+
+            return Determination(
+                id: UUID(),
+                reason: "",
+                units: 0,
+                insulinReq: 0,
+                sensitivityRatio: 0,
+                rate: 0,
+                duration: 0,
+                iob: 0,
+                cob: 0,
+                predictions: predictions.isEmpty ? nil : predictions,
+                carbsReq: 0,
+                temp: nil,
+                reservoir: 0,
+                insulinForManualBolus: 0,
+                manualBolusErrorString: 0,
+                carbRatio: 0,
+                received: false
+            )
         }
     }
 
@@ -993,16 +1002,6 @@ extension Treatments.StateModel {
     }
 }
 
-private extension Set where Element == Forecast {
-    func extractValues(for type: String) -> [Int]? {
-        let values = first { $0.type == type }?
-            .forecastValues?
-            .sorted { $0.index < $1.index }
-            .compactMap { Int($0.value) }
-        return values?.isEmpty ?? true ? nil : values
-    }
-}
-
 private extension Predictions {
     var isEmpty: Bool {
         iob == nil && zt == nil && cob == nil && uam == nil
@@ -1027,16 +1026,19 @@ extension Treatments.StateModel {
     }
 
     private func fetchLastBolus() async throws -> NSManagedObjectID? {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchLastBolus"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
-            onContext: pumpHistoryFetchContext,
+            onContext: context,
             predicate: NSPredicate.lastPumpBolus,
             key: "timestamp",
             ascending: false,
             fetchLimit: 1
         )
 
-        return try await pumpHistoryFetchContext.perform {
+        return try await context.perform {
             guard let fetched = results as? [PumpEventStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }

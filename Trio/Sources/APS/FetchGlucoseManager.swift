@@ -56,8 +56,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
     private lazy var simulatorSource = GlucoseSimulatorSource()
 
-    private let context = CoreDataStack.shared.newTaskContext()
-
     /// Enforce mutual exclusion on calls to glucoseStoreAndHeartDecision
     private let glucoseStoreAndHeartLock = DispatchSemaphore(value: 1)
 
@@ -278,7 +276,9 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         try await glucoseStorage.storeGlucose(filtered)
 
         if settingsManager.settings.smoothGlucose {
-            await exponentialSmoothingGlucose(context: context)
+            let smoothingContext = CoreDataStack.shared.newTaskContext()
+            smoothingContext.name = "exponentialSmoothingGlucose"
+            await exponentialSmoothingGlucose(context: smoothingContext)
         }
 
         deviceDataManager.heartbeat(date: Date())
@@ -355,7 +355,9 @@ extension BaseFetchGlucoseManager: SettingsObserver {
 
             self.glucoseStoreAndHeartLock.wait()
             Task {
-                await self.exponentialSmoothingGlucose(context: self.context)
+                let context = CoreDataStack.shared.newTaskContext()
+                context.name = "exponentialSmoothingGlucose"
+                await self.exponentialSmoothingGlucose(context: context)
                 self.glucoseStoreAndHeartLock.signal()
             }
         }

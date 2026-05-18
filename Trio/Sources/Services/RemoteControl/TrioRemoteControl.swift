@@ -14,11 +14,9 @@ class TrioRemoteControl: Injectable {
 
     private let timeWindow: TimeInterval = 600
 
-    internal let pumpHistoryFetchContext: NSManagedObjectContext
     internal let viewContext: NSManagedObjectContext
 
     private init() {
-        pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
         viewContext = CoreDataStack.shared.persistentContainer.viewContext
         injectServices(TrioApp.resolver)
     }

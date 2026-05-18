@@ -103,8 +103,6 @@ class CoreDataStack: ObservableObject {
         /// - Tag: newBackgroundContext
         let taskContext = persistentContainer.newBackgroundContext()
 
-        /// ensure that the background contexts stay in sync with the main context
-        taskContext.automaticallyMergesChangesFromParent = true
         taskContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         taskContext.undoManager = nil
         return taskContext
@@ -445,9 +443,6 @@ extension CoreDataStack {
             request.resultType = .managedObjectResultType
         }
 
-        context.name = "fetchContext"
-        context.transactionAuthor = "fetchEntities"
-
         /// we need to ensure that the fetch immediately returns a value as long as the whole app does not use the async await pattern, otherwise we could perform this asynchronously with backgroundContext.perform and not block the thread
         return try context.performAndWait {
             do {
@@ -498,9 +493,6 @@ extension CoreDataStack {
         if let prefetchKeyPaths = relationshipKeyPathsForPrefetching {
             request.relationshipKeyPathsForPrefetching = prefetchKeyPaths
         }
-
-        context.name = "fetchContext"
-        context.transactionAuthor = "fetchEntities"
 
         return try await context.perform {
             do {

@@ -69,9 +69,6 @@ final class LiveActivityData: ObservableObject {
 
     private var data = LiveActivityData()
 
-    /// A Core Data task context.
-    let context = CoreDataStack.shared.newTaskContext()
-
     /// A dispatch queue for handling Core Data change notifications.
     private let queue = DispatchQueue(label: "LiveActivityBridge.queue", qos: .userInitiated)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?

@@ -55,8 +55,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
     @Injected() private var deviceDataManager: DeviceDataManager!
 
-    private var backgroundContext = CoreDataStack.shared.newTaskContext()
-
     // Queue for handling Core Data change notifications
     private let queue = DispatchQueue(label: "BaseHealthKitManager.queue", qos: .background)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
@@ -214,19 +212,21 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     }
 
     private func updateGlucoseAsUploaded(_ glucose: [BloodGlucose]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateGlucoseAsUploaded"
+        await context.perform {
             let ids = glucose.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToHealth = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToHealth: \(error.userInfo)"
@@ -335,19 +335,21 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     }
 
     private func updateCarbsAsUploaded(_ carbs: [CarbsEntry]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateCarbsAsUploaded"
+        await context.perform {
             let ids = carbs.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToHealth = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToHealth: \(error.userInfo)"
@@ -377,9 +379,11 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
               insulinEvents.isNotEmpty else { return }
 
         do {
+            let context = CoreDataStack.shared.newTaskContext()
+            context.name = "uploadInsulin"
             let fetchedInsulinEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
                 ofType: PumpEventStored.self,
-                onContext: backgroundContext,
+                onContext: context,
                 predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
                     NSPredicate.pumpHistoryLast24h,
                     NSPredicate(format: "tempBasal != nil")
@@ -391,7 +395,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
             var insulinSamples: [HKQuantitySample] = []
 
-            try await backgroundContext.perform {
+            try await context.perform {
                 guard let existingTempBasalEntries = fetchedInsulinEntries as? [PumpEventStored] else {
                     throw CoreDataError.fetchError(function: #function, file: #file)
                 }
@@ -582,19 +586,21 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     }
 
     private func updateInsulinAsUploaded(_ insulin: [PumpHistoryEvent]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateInsulinAsUploaded"
+        await context.perform {
             let ids = insulin.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToHealth = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToHealth: \(error.userInfo)"

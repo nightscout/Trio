@@ -34,7 +34,6 @@ final class BaseIOBService: IOBService, Injectable {
     private var subscriptions = Set<AnyCancellable>()
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private let queue = DispatchQueue(label: "BaseIOBService.queue", qos: .background)
-    private let context = CoreDataStack.shared.newTaskContext()
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -64,6 +63,8 @@ final class BaseIOBService: IOBService, Injectable {
     private func fetchLatestDeterminationIOB() -> (iob: Decimal?, date: Date?) {
         var iob: Decimal?
         var date: Date?
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchLatestDeterminationIOB"
         context.performAndWait {
             let request = OrefDetermination.fetchRequest() as NSFetchRequest<OrefDetermination>
             request.sortDescriptors = [NSSortDescriptor(key: "deliverAt", ascending: false)]

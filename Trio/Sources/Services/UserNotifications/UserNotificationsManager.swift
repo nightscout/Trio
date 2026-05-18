@@ -76,7 +76,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private var lifetime = Lifetime()
 
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-    private let backgroundContext = CoreDataStack.shared.newTaskContext()
 
     // Queue for handling Core Data change notifications
     private let queue = DispatchQueue(label: "BaseUserNotificationsManager.queue", qos: .userInitiated)
@@ -272,16 +271,18 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     }
 
     private func fetchGlucoseIDs() async throws -> [NSManagedObjectID] {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchGlucoseIDs"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.predicateFor20MinAgo,
             key: "date",
             ascending: false,
             fetchLimit: 3
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [GlucoseStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
