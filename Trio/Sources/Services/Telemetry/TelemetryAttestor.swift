@@ -225,12 +225,15 @@ final class TelemetryAttestor: Injectable {
 
         // The mobileprovision file is a CMS-signed envelope around a plist.
         // Pull the plist substring between the XML prolog and `</plist>`.
-        guard let ascii = String(data: raw, encoding: .ascii),
-              let start = ascii.range(of: "<?xml"),
-              let end = ascii.range(of: "</plist>")
+        // ISO Latin-1 maps every byte 0x00–0xFF 1:1, so the conversion never
+        // fails on the binary CMS bytes surrounding the plist — `.ascii` would
+        // return nil here.
+        guard let scanned = String(data: raw, encoding: .isoLatin1),
+              let start = scanned.range(of: "<?xml"),
+              let end = scanned.range(of: "</plist>")
         else { return nil }
 
-        let plistString = String(ascii[start.lowerBound ..< end.upperBound])
+        let plistString = String(scanned[start.lowerBound ..< end.upperBound])
         guard let plistData = plistString.data(using: .utf8),
               let plist = try? PropertyListSerialization
               .propertyList(from: plistData, options: [], format: nil) as? [String: Any],
