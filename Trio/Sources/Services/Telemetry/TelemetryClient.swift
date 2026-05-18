@@ -298,11 +298,19 @@ final class TelemetryClient: Injectable {
                 debug(.telemetry, "send: non-HTTP response")
                 return
             }
-            if (200 ..< 300).contains(http.statusCode) {
+            switch http.statusCode {
+            case 200 ..< 300:
                 PropertyPersistentFlags.shared.telemetryLastSentAt = Date()
                 PropertyPersistentFlags.shared.telemetryLastSentSha = BuildDetails.shared.trioCommitSHA
                 debug(.telemetry, "send ok status=\(http.statusCode)")
-            } else {
+            case 401:
+                // Server doesn't recognize our registration (e.g. its registry
+                // was wiped). Drop the local keyID + registered flag so the
+                // next cycle generates a fresh key and re-attests — `attestKey`
+                // can't be re-run on the existing keyID (one-shot per Apple).
+                attestor.invalidateRegistration()
+                debug(.telemetry, "send 401: stale registration, will re-register next cycle")
+            default:
                 debug(.telemetry, "send non-2xx status=\(http.statusCode)")
             }
         } catch {

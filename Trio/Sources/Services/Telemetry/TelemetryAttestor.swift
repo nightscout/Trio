@@ -85,6 +85,24 @@ final class TelemetryAttestor: Injectable {
         do {
             attestationCBOR = try await service.attestKey(keyID, clientDataHash: clientDataHash)
         } catch {
+            // `attestKey` is one-shot per key per device, but only on success.
+            // Branch on the DCError code so logs distinguish the recoverable
+            // cases from real failures:
+            //   .invalidKey         — keyID is permanently burnt; drop it.
+            //   .serverUnavailable  — Apple's App Attest backend is down or
+            //                         throttling. Key is still valid; the
+            //                         next cycle retries with the same keyID.
+            if let dcError = error as? DCError {
+                switch dcError.code {
+                case .invalidKey:
+                    keychain.removeObject(forKey: Self.keyIDStorageKey)
+                    debug(.telemetry, "attestKey invalidKey: discarded dead keyID; will regenerate next cycle")
+                case .serverUnavailable:
+                    debug(.telemetry, "attestKey serverUnavailable: Apple App Attest backend transient — will retry next cycle")
+                default:
+                    break
+                }
+            }
             debug(.telemetry, "attestKey failed: \(error.localizedDescription)")
             throw AttestError.attestationFailed(error)
         }
@@ -128,6 +146,18 @@ final class TelemetryAttestor: Injectable {
         default:
             throw AttestError.serverError(http.statusCode)
         }
+    }
+
+    /// Clears the local App Attest state so the next `registerIfNeeded`
+    /// generates a fresh key and re-runs the handshake from scratch. Both the
+    /// keyID and the "registered" flag are dropped: `attestKey` may be called
+    /// at most once per key per device, so reusing the old keyID would throw
+    /// `DCError.invalidKey`. Use when `/checkin` returns 401 (server lost our
+    /// registration).
+    func invalidateRegistration() {
+        injectIfNeeded()
+        keychain.removeObject(forKey: Self.keyIDStorageKey)
+        keychain.removeObject(forKey: Self.registeredStorageKey)
     }
 
     // MARK: - Per-ping assertion
