@@ -34,6 +34,60 @@ The following information may be sent to Crashlytics when Trio crashes:
 - Device model and OS version (example: "iPhone 14 Pro running iOS 17.4.1")
 - A generated unique identifier (a random code like "A7B2C9D3" that doesn't identify you personally)
 
+### Anonymous Usage Telemetry (Opt-In by default, with ability to Opt-Out)
+
+Trio can periodically send a small anonymous usage report to a
+self-hosted telemetry endpoint operated by the Trio team. No
+third-party analytics service is involved. You are asked about this
+choice during onboarding (alongside crash reporting); existing users
+upgrading from a pre-telemetry build are prompted once on the first
+app launch after the update. You can change your choice at any time
+in Settings → App Diagnostics, and you can inspect the exact JSON
+that would be sent under "What's sent" on that same screen.
+
+Telemetry requests are authenticated with Apple App Attest. This
+means Apple cryptographically vouches for the fact that the request
+came from a genuine, unmodified copy of Trio running on a real
+Apple device. App Attest does not transmit any personal data,
+device identifiers, or location information; it produces a one-way
+attestation that the server validates with Apple. Devices that do
+not support App Attest (e.g. the iOS Simulator) silently skip
+sending telemetry.
+
+The diagnostics-sharing selection offers three options:
+
+- **Enable Full Sharing** — crash reports AND anonymous usage telemetry.
+- **Crash Reports Only** — crash reports, no usage telemetry.
+- **Disable Sharing** — neither.
+
+The following information is included in the telemetry payload:
+
+- App version, build date, branch, and commit SHA
+- Whether the build is a TestFlight or App Store / sideload build
+- An Apple-supplied per-vendor identifier (IDFV) and a per-install UUID
+- Device hardware identifier (e.g. "iPhone15,2"), platform, and iOS version
+- The paired pump model (when a pump is configured)
+- The paired CGM type and model (when a CGM is configured)
+- Whether Nightscout, Tidepool, and Apple Health are configured (yes/no — no URLs, tokens, or credentials)
+- A small set of preference flags: units (mg/dL or mmol/L), closed-loop
+  on/off, Live Activity enabled, calendar integration enabled
+- A rolling 7-day count of how often the app was cold-launched
+- The commit SHAs of pinned submodules (e.g. LoopKit, OmniBLE)
+
+The payload sends once every 24 hours while the app is running, plus
+once after a new build is installed. Sending failures simply retry on
+the next launch or scheduler tick — there is no continued retry.
+
+### What Telemetry Does NOT Include
+
+- Glucose readings, insulin doses, carb entries, or any therapy data
+- Therapy settings (basal rates, ISF, carb ratio, glucose targets, max bolus, max basal)
+- Your Nightscout URL or API token
+- Your Tidepool email, password, or session token
+- Remote-command secrets or APNS keys
+- Time zone or location
+- App logs — log sharing remains a separate, user-initiated flow under Settings
+
 ### Debug Symbols (dSYMs)
 
 When we build the Trio app, we create special files called debug
@@ -77,11 +131,18 @@ and handle any data responsibly.
 
 ## Opting Out and Data Retention
 
-You can opt out of crash reporting at any time through the Trio
-settings. If you opt out:
+You can opt out of crash reporting and/or anonymous usage telemetry
+at any time through Settings → App Diagnostics in Trio. The three
+options ("Enable Full Sharing", "Crash Reports Only", "Disable
+Sharing") apply to both data streams. If you opt out of crash
+reporting:
 
 - No new crash data will be collected or sent to us
 - Previously collected crash data will still be retained for approximately 90 days
+
+If you opt out of anonymous usage telemetry, no new telemetry data
+will be collected or sent. Previously sent telemetry rows are retained
+on the Trio team's telemetry endpoint per its own retention policy.
 
 To avoid sending dSYMs to Crashlytics, you can delete the Trio target
 Build Phase script, titled "Copy dSYMs to Crashlytics".

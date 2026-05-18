@@ -7,7 +7,7 @@ struct DiagnosticsStepView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("If you prefer not to share this anonymized data, you can opt-out of data sharing.")
+            Text("Help us improve Trio. Pick how much you'd like to share — or opt out entirely.")
                 .font(.headline)
                 .padding(.horizontal)
                 .multilineTextAlignment(.leading)
@@ -16,13 +16,19 @@ struct DiagnosticsStepView: View {
                 Button(action: {
                     state.updateDiagnosticsOption(to: option)
                 }) {
-                    HStack {
+                    HStack(alignment: .top, spacing: 12) {
                         Image(systemName: state.diagnosticsSharingOption == option ? "largecircle.fill.circle" : "circle")
                             .foregroundColor(state.diagnosticsSharingOption == option ? .accentColor : .secondary)
                             .imageScale(.large)
 
-                        Text(option.displayName)
-                            .foregroundColor(.primary)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(option.displayName)
+                                .foregroundColor(.primary)
+                                .bold()
+                            Text(option.caption)
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                        }
 
                         Spacer()
                     }
@@ -32,6 +38,14 @@ struct DiagnosticsStepView: View {
                 }
                 .buttonStyle(.plain)
             }
+
+            NavigationLink {
+                TelemetryPreviewView()
+            } label: {
+                Label("See exactly what's sent", systemImage: "doc.text.magnifyingglass")
+                    .font(.footnote)
+            }
+            .padding(.horizontal)
 
             Toggle(isOn: $state.hasAcceptedPrivacyPolicy) {
                 HStack {
@@ -59,28 +73,25 @@ struct DiagnosticsStepView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     BulletPoint(
                         String(
-                            localized: "App diagnostic insights help us enhance app stability, ensure safety for all users, and enable us to quickly identify and resolve critical issues."
+                            localized: "App diagnostic insights — based on crash reports only — help us enhance app stability, ensure safety for all users, and quickly identify and resolve critical issues."
                         )
                     )
                     BulletPoint(
                         String(
-                            localized: "Trio collects the app's state on crash, device, iOS and general system info, and a stack trace."
+                            localized: "Crash reports include the app's state on crash, device, iOS info, and a stack trace. They are sent to Google Firebase Crashlytics, maintained by the Trio team."
                         )
                     )
                     BulletPoint(
                         String(
-                            localized: "Trio does not collect any health related data, e.g. glucose readings, insulin rates or doses, meal data, setting values, or similar."
+                            localized: "Anonymous usage statistics include the app version, your device and iOS version, your paired pump and CGM, and whether Nightscout, Tidepool, and Apple Health are configured (yes/no). No URLs, tokens, or credentials are included."
                         )
                     )
                     BulletPoint(
                         String(
-                            localized: "Trio does not track any usage metrics or any other personal data about users other than the used iPhone model and iOS version."
+                            localized: "Trio never collects glucose readings, insulin rates or doses, meal data, therapy setting values, or any other health information."
                         )
                     )
                 }
-                Text(
-                    "Diagnostics are sent to a Google Firebase Crashlytics project, which is securely maintained and accessed only by the Trio team."
-                )
             }
             .multilineTextAlignment(.leading)
             .padding(.horizontal)
