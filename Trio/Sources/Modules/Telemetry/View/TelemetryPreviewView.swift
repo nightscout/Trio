@@ -4,6 +4,8 @@ import SwiftUI
 /// Linked to from Settings → App Diagnostics and from the migration sheet.
 struct TelemetryPreviewView: View {
     @State private var jsonText: String = ""
+    @State private var showResetConfirm: Bool = false
+    @State private var resetStatus: String?
 
     var body: some View {
         ScrollView {
@@ -29,12 +31,41 @@ struct TelemetryPreviewView: View {
                     Label("Copy JSON", systemImage: "doc.on.doc")
                 }
                 .buttonStyle(.bordered)
+
+                Button(role: .destructive) {
+                    showResetConfirm = true
+                } label: {
+                    Label("Reset App Attest state", systemImage: "arrow.counterclockwise.circle")
+                }
+                .buttonStyle(.bordered)
+
+                if let resetStatus {
+                    Text(resetStatus)
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                }
             }
             .padding()
         }
         .navigationTitle("What's sent")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { jsonText = Self.renderPayload() }
+        .confirmationDialog(
+            "Reset App Attest state?",
+            isPresented: $showResetConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Reset and retry send", role: .destructive) {
+                TelemetryAttestor.shared.resetAttestState()
+                resetStatus = "Reset done — attempting a fresh send. Check logs for status."
+                Task { await TelemetryClient.shared.maybeSend() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(
+                "Clears the local App Attest key, registered flag, and forbidden flag. The next telemetry send will re-attest from scratch. Use only if telemetry is stuck."
+            )
+        }
     }
 
     private static func renderPayload() -> String {

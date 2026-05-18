@@ -81,6 +81,17 @@ final class TelemetryAttestor: Injectable {
         let challengeBytes = Data(challenge.utf8)
         let clientDataHash = Data(SHA256.hash(data: challengeBytes))
 
+        // Diagnostics for `attestKey` failures. We log shape, not values:
+        // keyID prefix only (the keyID is per-install and shouldn't end up in
+        // shareable logs in full). If any of these look off, the failure is
+        // ours; if they look right and Apple still rejects, the failure is
+        // server-side at Apple.
+        let keyIDPrefix = String(keyID.prefix(8))
+        debug(
+            .telemetry,
+            "attestKey input: isSupported=\(service.isSupported) keyID.count=\(keyID.count) keyID.prefix=\(keyIDPrefix) hash.count=\(clientDataHash.count) challenge.count=\(challenge.count) bundle=\(Bundle.main.bundleIdentifier ?? "nil")"
+        )
+
         let attestationCBOR: Data
         do {
             attestationCBOR = try await service.attestKey(keyID, clientDataHash: clientDataHash)
@@ -89,14 +100,22 @@ final class TelemetryAttestor: Injectable {
             // Branch on the DCError code so logs distinguish the recoverable
             // cases from real failures:
             //   .invalidKey         — keyID is permanently burnt; drop it.
+            //   .invalidInput       — Apple rejected an argument as malformed.
+            //                         In practice we see this when the keyID
+            //                         is stale (e.g. survived an uninstall via
+            //                         Keychain) and no longer matches Apple's
+            //                         expected identity for this install. Drop
+            //                         the keyID — same recovery as invalidKey.
             //   .serverUnavailable  — Apple's App Attest backend is down or
             //                         throttling. Key is still valid; the
             //                         next cycle retries with the same keyID.
             if let dcError = error as? DCError {
                 switch dcError.code {
-                case .invalidKey:
+                case .invalidInput,
+                     .invalidKey:
                     keychain.removeObject(forKey: Self.keyIDStorageKey)
-                    debug(.telemetry, "attestKey invalidKey: discarded dead keyID; will regenerate next cycle")
+                    let reason = dcError.code == .invalidKey ? "invalidKey" : "invalidInput"
+                    debug(.telemetry, "attestKey \(reason): discarded keyID; will regenerate next cycle")
                 case .serverUnavailable:
                     debug(.telemetry, "attestKey serverUnavailable: Apple App Attest backend transient — will retry next cycle")
                 default:
@@ -158,6 +177,19 @@ final class TelemetryAttestor: Injectable {
         injectIfNeeded()
         keychain.removeObject(forKey: Self.keyIDStorageKey)
         keychain.removeObject(forKey: Self.registeredStorageKey)
+    }
+
+    /// Full local-state reset for stuck installs. In addition to what
+    /// `invalidateRegistration` clears, this also drops the sticky
+    /// `telemetryAttestForbidden` flag — so a tester who got 403'd and wants
+    /// to retry can do so without reinstalling. Exposed through a button in
+    /// the telemetry inspector. Does not touch consent or installId.
+    func resetAttestState() {
+        injectIfNeeded()
+        keychain.removeObject(forKey: Self.keyIDStorageKey)
+        keychain.removeObject(forKey: Self.registeredStorageKey)
+        PropertyPersistentFlags.shared.telemetryAttestForbidden = false
+        debug(.telemetry, "reset App Attest state: keyID, registered flag, and forbidden flag cleared")
     }
 
     // MARK: - Per-ping assertion
