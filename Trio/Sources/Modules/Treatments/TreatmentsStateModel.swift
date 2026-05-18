@@ -884,8 +884,6 @@ extension Treatments.StateModel {
                     carbsReq: 0,
                     temp: nil,
                     reservoir: 0,
-                    insulinForManualBolus: 0,
-                    manualBolusErrorString: 0,
                     carbRatio: 0,
                     received: false
                 )

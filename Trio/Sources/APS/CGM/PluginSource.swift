@@ -180,7 +180,6 @@ extension PluginSource: CGMManagerDelegate {
 
     func cgmManager(_: CGMManager, didUpdate status: CGMManagerStatus) {
         debug(.deviceManager, "CGM Manager did update state to \(status)")
-
         processQueue.async { [weak self] in
             guard let self = self else { return }
 
