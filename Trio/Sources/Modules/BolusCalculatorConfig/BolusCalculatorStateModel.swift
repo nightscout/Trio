@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 extension BolusCalculatorConfig {
@@ -10,9 +11,68 @@ extension BolusCalculatorConfig {
         @Published var sweetMealFactor: Decimal = 0
         @Published var displayPresets: Bool = true
         @Published var confirmBolusWhenVeryLowGlucose: Bool = false
+        @Published var barcodeScannerEnabled: Bool = false
+        @Published var barcodeScannerOnlyCarbs: Bool = false
+        @Published var openFoodFactsUsername: String = ""
+        @Published var openFoodFactsPassword: String = ""
+        @Published var isOpenFoodFactsLoginSuccessful: Bool = false
+        @Published var isOpenFoodFactsLoginInProgress: Bool = false
+        @Published var openFoodFactsLoginError: String?
+
+        private let openFoodFactsClient = BarcodeScanner.OpenFoodFactsClient()
+
+        func loginToOpenFoodFacts() {
+            let trimmedUsername = openFoodFactsUsername.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmedUsername.isEmpty, !openFoodFactsPassword.isEmpty else {
+                isOpenFoodFactsLoginSuccessful = false
+                openFoodFactsLoginError = String(localized: "Please enter username and password.")
+                return
+            }
+
+            isOpenFoodFactsLoginInProgress = true
+            openFoodFactsLoginError = nil
+
+            Task { @MainActor in
+                await openFoodFactsClient.setCredentials(username: trimmedUsername, password: openFoodFactsPassword)
+
+                do {
+                    let loginSuccessful = try await openFoodFactsClient.login()
+                    isOpenFoodFactsLoginSuccessful = loginSuccessful
+                    if !loginSuccessful {
+                        openFoodFactsLoginError = String(localized: "Login failed. Check username/password.")
+                    }
+                } catch {
+                    isOpenFoodFactsLoginSuccessful = false
+                    openFoodFactsLoginError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                }
+
+                isOpenFoodFactsLoginInProgress = false
+            }
+        }
+
+        func disconnectAndRemoveOpenFoodFacts() {
+            openFoodFactsUsername = ""
+            openFoodFactsPassword = ""
+            isOpenFoodFactsLoginSuccessful = false
+            isOpenFoodFactsLoginInProgress = false
+            openFoodFactsLoginError = nil
+
+            Task { @MainActor in
+                await openFoodFactsClient.setCredentials(username: "", password: "")
+            }
+        }
 
         override func subscribe() {
             units = settingsManager.settings.units
+
+            // Load OpenFoodFacts credentials synchronously from keychain
+            let keychain = BaseKeychain()
+            if let username = keychain.getValue(String.self, forKey: "openFoodFactsUsername"),
+               let password = keychain.getValue(String.self, forKey: "openFoodFactsPassword")
+            {
+                openFoodFactsUsername = username
+                openFoodFactsPassword = password
+            }
 
             subscribeSetting(\.overrideFactor, on: $overrideFactor) { overrideFactor = $0 }
             subscribeSetting(\.fattyMeals, on: $fattyMeals) { fattyMeals = $0 }
@@ -21,6 +81,32 @@ extension BolusCalculatorConfig {
             subscribeSetting(\.sweetMeals, on: $sweetMeals) { sweetMeals = $0 }
             subscribeSetting(\.sweetMealFactor, on: $sweetMealFactor) { sweetMealFactor = $0 }
             subscribeSetting(\.confirmBolus, on: $confirmBolusWhenVeryLowGlucose) { confirmBolusWhenVeryLowGlucose = $0 }
+            subscribeSetting(\.barcodeScannerEnabled, on: $barcodeScannerEnabled) {
+                barcodeScannerEnabled = $0 }
+            subscribeSetting(\.barcodeScannerOnlyCarbs, on: $barcodeScannerOnlyCarbs) {
+                barcodeScannerOnlyCarbs = $0 }
+
+            Publishers.CombineLatest($openFoodFactsUsername, $openFoodFactsPassword)
+                .sink { [weak self] username, password in
+                    guard let self else { return }
+                    let hasCredentials = !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        && !password.isEmpty
+
+                    Task { @MainActor in
+                        await self.openFoodFactsClient.setCredentials(username: username, password: password)
+
+                        if !hasCredentials {
+                            self.isOpenFoodFactsLoginSuccessful = false
+                            self.isOpenFoodFactsLoginInProgress = false
+                            self.openFoodFactsLoginError = nil
+                        }
+                    }
+                }
+                .store(in: &lifetime)
+
+            Task { @MainActor in
+                self.isOpenFoodFactsLoginSuccessful = await self.openFoodFactsClient.hasValidSessionCookie()
+            }
         }
     }
 }

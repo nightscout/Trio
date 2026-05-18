@@ -1,5 +1,5 @@
 {
-  "originHash" : "598841ae6fe892058ca678f5672f34299df2d62843330367c207648003263ccd",
+  "originHash" : "837e721f97273f5fb63b06a5545ec86d9d3e851ed9110d418ee26dc17598435e",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -44,6 +44,15 @@
       "state" : {
         "revision" : "f40325520344a966523b214394aa350132a6af68",
         "version" : "1.0.203"
+      }
+    },
+    {
+      "identity" : "codescanner",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/twostraws/CodeScanner.git",
+      "state" : {
+        "revision" : "5e886430238944c7200fc9e10dbf2d9550dba865",
+        "version" : "2.5.2"
       }
     },
     {

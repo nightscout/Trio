@@ -8,6 +8,7 @@ extension Notification.Name {
     static let initializationCompleted = Notification.Name("initializationCompleted")
     static let initializationError = Notification.Name("initializationError")
     static let onboardingCompleted = Notification.Name("onboardingCompleted")
+    static let openBarcode = Notification.Name("openBarcode")
 }
 
 @main struct TrioApp: App {

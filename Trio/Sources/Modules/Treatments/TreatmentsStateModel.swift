@@ -100,6 +100,12 @@ extension Treatments {
         var maxFat: Decimal = 0
         var maxProtein: Decimal = 0
 
+        // Scanned amounts for blue labels
+        var scannedCarbs: Decimal = 0
+        var scannedFat: Decimal = 0
+        var scannedProtein: Decimal = 0
+        var barcodeScannerOnlyCarbs: Bool = false
+
         var id_: String = ""
         var summary: String = ""
 
@@ -306,6 +312,7 @@ extension Treatments {
             useFPUconversion = settingsManager.settings.useFPUconversion
             isSmoothingEnabled = settingsManager.settings.smoothGlucose
             glucoseColorScheme = settingsManager.settings.glucoseColorScheme
+            barcodeScannerOnlyCarbs = settings.settings.barcodeScannerOnlyCarbs
         }
 
         private func getCurrentSettingValue(for type: SettingType) async {
@@ -345,7 +352,9 @@ extension Treatments {
                 let entryEndTime: Date
                 if index < entries.count - 1 {
                     if let nextEntryTime = TherapySettingsUtil.parseTime(entries[index + 1].start) {
-                        let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
+                        let nextEntryComponents = calendar.dateComponents(
+                            [.hour, .minute, .second], from: nextEntryTime
+                        )
                         entryEndTime = calendar.date(
                             bySettingHour: nextEntryComponents.hour!,
                             minute: nextEntryComponents.minute!,
@@ -398,8 +407,10 @@ extension Treatments {
             // Check if this is a backdated entry by comparing with the default date using a tolerance
             let isBackdated = abs(date.timeIntervalSince(defaultDate)) > 1.0
 
+            let combinedCarbs = carbs + scannedCarbs
+
             let result = await bolusCalculationManager.handleBolusCalculation(
-                carbs: carbs,
+                carbs: combinedCarbs,
                 useFattyMealCorrection: useFattyMealCorrectionFactor,
                 useSuperBolus: useSuperBolus,
                 lastLoopDate: apsManager.lastLoopDate,
@@ -433,9 +444,9 @@ extension Treatments {
                     self.addButtonPressed = true
                 }
                 let isInsulinGiven = amount > 0
-                let isCarbsPresent = carbs > 0
-                let isFatPresent = fat > 0
-                let isProteinPresent = protein > 0
+                let isCarbsPresent = carbs > 0 || scannedCarbs > 0
+                let isFatPresent = fat > 0 || scannedFat > 0
+                let isProteinPresent = protein > 0 || scannedProtein > 0
 
                 if isCarbsPresent || isFatPresent || isProteinPresent {
                     await saveMeal()
@@ -530,7 +541,8 @@ extension Treatments {
 
             case .passcodeNotSet:
                 return String(
-                    localized: "Authentication requires a device passcode. Please set one in iOS Settings > Face ID & Passcode."
+                    localized:
+                    "Authentication requires a device passcode. Please set one in iOS Settings > Face ID & Passcode."
                 )
 
             case .biometryNotAvailable:
@@ -546,13 +558,15 @@ extension Treatments {
             case .biometryLockout,
                  .touchIDLockout:
                 return String(
-                    localized: "Biometric authentication is locked due to multiple failed attempts. Please unlock your device using your passcode."
+                    localized:
+                    "Biometric authentication is locked due to multiple failed attempts. Please unlock your device using your passcode."
                 )
 
             case .biometryDisconnected,
                  .biometryNotPaired:
                 return String(
-                    localized: "Biometric accessory is missing or not connected. Please reconnect it and try again."
+                    localized:
+                    "Biometric accessory is missing or not connected. Please reconnect it and try again."
                 )
 
             default:
@@ -628,27 +642,30 @@ extension Treatments {
 
         func saveMeal() async {
             do {
-                guard carbs > 0 || fat > 0 || protein > 0 else { return }
+                let totalCarbs = min(carbs + scannedCarbs, maxCarbs)
+                let totalFat = barcodeScannerOnlyCarbs ? 0 : min(fat + scannedFat, maxFat)
+                let totalProtein = barcodeScannerOnlyCarbs ? 0 : min(protein + scannedProtein, maxProtein)
+
+                guard totalCarbs > 0 || totalFat > 0 || totalProtein > 0 else { return }
 
                 await MainActor.run {
-                    self.carbs = min(self.carbs, self.maxCarbs)
-                    self.fat = min(self.fat, self.maxFat)
-                    self.protein = min(self.protein, self.maxProtein)
                     self.id_ = UUID().uuidString
                 }
 
-                let carbsToStore = [CarbsEntry(
-                    id: id_,
-                    createdAt: now,
-                    actualDate: date,
-                    carbs: carbs,
-                    fat: fat,
-                    protein: protein,
-                    note: note,
-                    enteredBy: CarbsEntry.local,
-                    isFPU: false,
-                    fpuID: fat > 0 || protein > 0 ? UUID().uuidString : nil
-                )]
+                let carbsToStore = [
+                    CarbsEntry(
+                        id: id_,
+                        createdAt: now,
+                        actualDate: date,
+                        carbs: totalCarbs,
+                        fat: totalFat,
+                        protein: totalProtein,
+                        note: note,
+                        enteredBy: CarbsEntry.local,
+                        isFPU: false,
+                        fpuID: totalFat > 0 || totalProtein > 0 ? UUID().uuidString : nil
+                    )
+                ]
                 try await carbsStorage.storeCarbs(carbsToStore, areFetchedFromRemote: false)
 
                 // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
@@ -701,6 +718,35 @@ extension Treatments {
 
         func addToSummation() {
             summation.append(selection?.dish ?? "")
+        }
+
+        func addScannedAmounts(carbs: Decimal, fat: Decimal, protein: Decimal, note: String) {
+            Task { @MainActor in
+                debug(
+                    .bolusState,
+                    "addScannedAmounts called with carbs=\(carbs) fat=\(fat) protein=\(protein) note=\(note)"
+                )
+                self.carbs += carbs
+                self.fat += fat
+                self.protein += protein
+
+                scannedCarbs += carbs
+                scannedFat += fat
+                scannedProtein += protein
+
+                debug(
+                    .bolusState,
+                    "new totals: carbs=\(self.carbs) scannedCarbs=\(scannedCarbs) fat=\(self.fat) protein=\(self.protein)"
+                )
+
+                if !note.isEmpty {
+                    if self.note.isEmpty {
+                        self.note = note
+                    } else {
+                        self.note += ", " + note
+                    }
+                }
+            }
         }
     }
 }
@@ -820,7 +866,9 @@ extension Treatments.StateModel {
 
         // Calculate delta using newest and oldest readings within 20-minute window
         let delta: Decimal
-        if let newestInWindow = recentObjects.first?.glucose, let oldestInWindow = recentObjects.last?.glucose {
+        if let newestInWindow = recentObjects.first?.glucose,
+           let oldestInWindow = recentObjects.last?.glucose
+        {
             // Newest is at index 0, oldest is at the last index
             delta = Decimal(newestInWindow) - Decimal(oldestInWindow)
         } else {
@@ -916,22 +964,26 @@ extension Treatments.StateModel {
             minPredBG = (mostRecentDetermination.minPredBGFromReason ?? 0) as Decimal
             lastLoopDate = apsManager.lastLoopDate as Date?
             insulin = (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal
-            target = (mostRecentDetermination.currentTarget ?? currentBGTarget as NSDecimalNumber) as Decimal
+            target =
+                (mostRecentDetermination.currentTarget ?? currentBGTarget as NSDecimalNumber) as Decimal
             isf = (mostRecentDetermination.insulinSensitivity ?? currentISF as NSDecimalNumber) as Decimal
             cob = mostRecentDetermination.cob as Int16
             iob = (mostRecentDetermination.iob ?? 0) as Decimal
             basal = (mostRecentDetermination.tempBasal ?? 0) as Decimal
-            carbRatio = (mostRecentDetermination.carbRatio ?? currentCarbRatio as NSDecimalNumber) as Decimal
+            carbRatio =
+                (mostRecentDetermination.carbRatio ?? currentCarbRatio as NSDecimalNumber) as Decimal
             insulinCalculated = await calculateInsulin()
         }
     }
 }
 
 extension Treatments.StateModel {
-    @MainActor func updateForecasts(with forecastData: Determination? = nil) async {
-        guard isActive else {
+    @MainActor func updateForecasts(with forecastData: Determination? = nil, force: Bool = false)
+    async
+    {
+        guard isActive || force else {
+            debug(.bolusState, "updateForecasts not fired")
             return
-                debug(.bolusState, "updateForecasts not fired")
         }
 
         debug(.bolusState, "updateForecasts fired")
@@ -942,7 +994,7 @@ extension Treatments.StateModel {
             simulatedDetermination = await Task { [self] in
                 debug(.bolusState, "calling simulateDetermineBasal to get forecast data")
                 return await apsManager.simulateDetermineBasal(
-                    simulatedCarbsAmount: carbs,
+                    simulatedCarbsAmount: carbs + scannedCarbs,
                     simulatedBolusAmount: amount,
                     simulatedCarbsDate: date
                 )

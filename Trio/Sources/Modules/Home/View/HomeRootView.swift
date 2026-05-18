@@ -1106,7 +1106,8 @@ extension Home {
 
                 Button(
                     action: {
-                        state.showModal(for: .treatmentView) },
+                        state.showModal(for: .treatmentView)
+                    },
                     label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 40))
