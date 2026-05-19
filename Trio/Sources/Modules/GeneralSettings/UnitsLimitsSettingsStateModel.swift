@@ -5,6 +5,7 @@ extension UnitsLimitsSettings {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var settings: SettingsManager!
         @Injected() var storage: FileStorage!
+        @Injected() private var tidepoolManager: TidepoolManager!
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var unitsIndex = 0 // index 0 is mg/dl
@@ -56,6 +57,10 @@ extension UnitsLimitsSettings {
                         let settings = self.provider.settings()
                         self.maxBasal = settings.maxBasal
                         self.maxBolus = settings.maxBolus
+
+                        Task.detached(priority: .low) {
+                            await self.tidepoolManager.uploadSettings()
+                        }
                     } receiveValue: {}
                     .store(in: &lifetime)
             }

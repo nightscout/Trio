@@ -16,6 +16,8 @@ struct LogoBurstSplash<Content: View>: View {
     @State private var viewOpacity: Double = 1.0
     @State private var splashScale: CGFloat = 1.0
 
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
+
     init(isActive: Binding<Bool>, @ViewBuilder content: () -> Content) {
         _isActive = isActive
         self.content = content()
@@ -58,32 +60,39 @@ struct LogoBurstSplash<Content: View>: View {
                             .scaleEffect(isPulsing ? 1.1 : logoScale)
                             .opacity(logoOpacity)
                             .rotationEffect(.degrees(logoRotation))
-                            .animation(.easeInOut(duration: 1.0), value: logoScale)
+                            .animation(reduceMotion ? nil : .easeInOut(duration: 1.0), value: logoScale)
                             .animation(.easeInOut(duration: 1.0), value: logoOpacity)
-                            .animation(.linear(duration: 2.0), value: logoRotation)
+                            .animation(reduceMotion ? nil : .linear(duration: 2.0), value: logoRotation)
                             .animation(
-                                .easeInOut(duration: 0.8).repeatForever(autoreverses: true),
+                                reduceMotion ? nil : .easeInOut(duration: 0.8).repeatForever(autoreverses: true),
                                 value: isPulsing
                             )
                     }
                     .scaleEffect(splashScale)
                     .opacity(viewOpacity)
                     .onAppear {
-                        shapes = BurstShape.createBurst(count: 250, in: geo.frame(in: .local))
-
-                        withAnimation {
-                            isPulsing = true
-                            logoOpacity = 1
+                        if reduceMotion {
+                            withAnimation(.easeInOut(duration: 1.0)) {
+                                logoOpacity = 1
+                            }
                             logoScale = 1
-                            logoRotation = 360
-                        }
+                        } else {
+                            shapes = BurstShape.createBurst(count: 250, in: geo.frame(in: .local))
 
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                            isPulsing = false
-                        }
+                            withAnimation(.easeInOut(duration: 1.0)) {
+                                isPulsing = true
+                                logoOpacity = 1
+                                logoScale = 1
+                                logoRotation = 360
+                            }
 
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                            exploded = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                isPulsing = false
+                            }
+
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                exploded = true
+                            }
                         }
 
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
@@ -96,7 +105,7 @@ struct LogoBurstSplash<Content: View>: View {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
                             withAnimation(.easeIn(duration: 0.6)) {
                                 viewOpacity = 0
-                                splashScale = 0.1
+                                if !reduceMotion { splashScale = 0.1 }
                             }
                         }
 

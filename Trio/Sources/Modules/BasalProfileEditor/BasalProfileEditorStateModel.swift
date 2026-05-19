@@ -4,6 +4,7 @@ import SwiftUI
 extension BasalProfileEditor {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() private var nightscout: NightscoutManager!
+        @ObservationIgnored @Injected() private var tidepoolManager: TidepoolManager!
         @ObservationIgnored @Injected() private var broadcaster: Broadcaster!
 
         var syncInProgress: Bool = false
@@ -126,6 +127,10 @@ extension BasalProfileEditor {
                             } catch {
                                 debug(.default, "Failed to upload basal rates to Nightscout: \(error)")
                             }
+                        }
+
+                        Task.detached(priority: .low) {
+                            await self.tidepoolManager.uploadSettings()
                         }
                     case .failure:
                         // Handle the error, show error message

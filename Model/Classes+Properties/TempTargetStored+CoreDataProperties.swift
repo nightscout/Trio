@@ -17,6 +17,7 @@ public extension TempTargetStored {
     @NSManaged var orderPosition: Int16
     @NSManaged var target: NSDecimalNumber?
     @NSManaged var tempTargetRun: TempTargetRunStored?
+    @NSManaged var enteredBy: String?
 }
 
 extension TempTargetStored: Identifiable {}

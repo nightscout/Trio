@@ -124,6 +124,7 @@ extension Treatments {
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
         let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
         let determinationFetchContext = CoreDataStack.shared.newTaskContext()
+        let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
 
         var isActive: Bool = false
 
@@ -137,8 +138,9 @@ extension Treatments {
 
         typealias PumpEvent = PumpEventStored.EventType
 
-        var isBolusInProgress: Bool = false
-        private var bolusProgressCancellable: AnyCancellable?
+        var bolusProgress: Decimal?
+        var isBolusInProgress: Bool { bolusProgress != nil }
+        var lastPumpBolus: PumpEventStored?
 
         func unsubscribe() {
             subscriptions.forEach { $0.cancel() }
@@ -173,7 +175,7 @@ extension Treatments {
             hasCleanedUp = true
 
             unsubscribe()
-            bolusProgressCancellable?.cancel()
+            lifetime = Lifetime()
 
             broadcaster?.unregister(DeterminationObserver.self, observer: self)
             broadcaster?.unregister(BolusFailureObserver.self, observer: self)
@@ -198,6 +200,9 @@ extension Treatments {
                         group.addTask {
                             self.registerObservers()
                         }
+                        group.addTask {
+                            self.setupLastBolus()
+                        }
 
                         // Wait for all tasks to complete
                         try await group.waitForAll()
@@ -208,22 +213,21 @@ extension Treatments {
             }
         }
 
-        /// Observes changes to the `bolusProgress` published by the `apsManager` to update the `isBolusInProgress` property in real time.
-        ///
-        /// - Important:
-        ///   - `apsManager.bolusProgress` is a `CurrentValueSubject<Decimal?, Never>`.
-        ///   - When a bolus starts, this subject emits `0` (or a fraction like `0.1, 0.5, etc.`).
-        ///   - When the bolus finishes, the subject is typically set to `nil`.
-        ///   - This treats ANY non-nil value as "bolus in progress."
-        ///
+        /// Mirrors `apsManager.bolusProgress` (a `CurrentValueSubject<Decimal?, Never>`) directly into the
+        /// state model so the View can read both the progress fraction (0.0–1.0) and a derived in-progress
+        /// flag. Stored in `lifetime` to match the Home module's pattern (HomeStateModel.registerObservers).
         private func subscribeToBolusProgress() {
-            bolusProgressCancellable = apsManager.bolusProgress
+            apsManager.bolusProgress
                 .receive(on: DispatchQueue.main)
-                .sink { [weak self] progressValue in
-                    guard let self = self else { return }
-                    // If progressValue is non-nil, a bolus is in progress.
-                    self.isBolusInProgress = (progressValue != nil)
-                }
+                .weakAssign(to: \.bolusProgress, on: self)
+                .store(in: &lifetime)
+        }
+
+        func cancelBolus() {
+            Task {
+                await apsManager.cancelBolus(nil)
+                try? await apsManager.determineBasalSync()
+            }
         }
 
         // MARK: - Basal
@@ -744,6 +748,11 @@ extension Treatments.StateModel {
             guard let self = self else { return }
             self.setupGlucoseArray()
         }.store(in: &subscriptions)
+
+        // Refresh `lastPumpBolus` whenever a new pump event lands (mirrors HomeStateModel)
+        coreDataPublisher?.filteredByEntityName("PumpEventStored").sink { [weak self] _ in
+            self?.setupLastBolus()
+        }.store(in: &subscriptions)
     }
 
     private func registerSubscribers() {
@@ -997,5 +1006,49 @@ private extension Set where Element == Forecast {
 private extension Predictions {
     var isEmpty: Bool {
         iob == nil && zt == nil && cob == nil && uam == nil
+    }
+}
+
+// MARK: - Last Pump Bolus
+
+extension Treatments.StateModel {
+    /// Mirrors `HomeStateModel.setupLastBolus` so the in-progress visualizer can show the
+    /// running pump-bolus's amount as the denominator (not the user's pending entry).
+    /// Filters out external boluses via `NSPredicate.lastPumpBolus`.
+    func setupLastBolus() {
+        Task {
+            do {
+                guard let id = try await fetchLastBolus() else { return }
+                await updateLastBolus(with: id)
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) Error setting up last bolus: \(error)")
+            }
+        }
+    }
+
+    private func fetchLastBolus() async throws -> NSManagedObjectID? {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: PumpEventStored.self,
+            onContext: pumpHistoryFetchContext,
+            predicate: NSPredicate.lastPumpBolus,
+            key: "timestamp",
+            ascending: false,
+            fetchLimit: 1
+        )
+
+        return try await pumpHistoryFetchContext.perform {
+            guard let fetched = results as? [PumpEventStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
+            return fetched.map(\.objectID).first
+        }
+    }
+
+    @MainActor private func updateLastBolus(with id: NSManagedObjectID) {
+        do {
+            lastPumpBolus = try viewContext.existingObject(with: id) as? PumpEventStored
+        } catch {
+            debug(.default, "\(DebuggingIdentifiers.failed) updateLastBolus: \(error)")
+        }
     }
 }
