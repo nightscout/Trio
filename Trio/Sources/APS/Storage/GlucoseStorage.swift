@@ -23,6 +23,7 @@ protocol GlucoseStorage {
     func getManualGlucoseNotYetUploadedToHealth() async throws -> [BloodGlucose]
     func getGlucoseNotYetUploadedToTidepool() async throws -> [StoredGlucoseSample]
     func getManualGlucoseNotYetUploadedToTidepool() async throws -> [StoredGlucoseSample]
+//    func getGlucoseStatus() async throws -> GlucoseStatus? // FIXME: prepared for later use
     var alarm: GlucoseAlarm? { get }
     func deleteGlucose(_ treatmentObjectID: NSManagedObjectID) async
 }
@@ -574,6 +575,128 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             }.map { $0.convertStoredGlucoseSample(isManualGlucose: true) }
         }
     }
+
+    // FIXME: use this after we know oref-swift is good
+//    /// Fetches the most recent glucose readings from Core Data, filters and smooths them,
+//    /// and computes rolling delta statistics (last, short-term, and long-term).
+//    ///
+//    /// Mirrors JavaScript oref `glucose-get-last.js` logic.
+//    ///
+//    /// - Returns: A `GlucoseStatus` containing:
+//    ///   - `glucose`: the most recent glucose value (mg/dL),
+//    ///   - `delta`: the 5-minute delta (mg/dL per 5m),
+//    ///   - `shortAvgDelta`: the average delta over ~5–15 minutes,
+//    ///   - `longAvgDelta`: the average delta over ~20–40 minutes,
+//    ///   - `noise`: the CGM noise level (if any),
+//    ///   - `date`: the timestamp of the “now” reading,
+//    ///   - `lastCalIndex`: index of the last calibration record (always `nil` here),
+//    ///   - `device`: the source device string.
+//    ///
+//    /// - Throws: Any `CoreDataError` or other error encountered during fetch or context work.
+//    /// - Returns: `nil` if no valid glucose readings are found in the past day.
+//    public func getGlucoseStatus() async throws -> GlucoseStatus? {
+//        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+//            ofType: GlucoseStored.self,
+//            onContext: context,
+//            predicate: NSPredicate(
+//                format: "date >= %@ AND isManual == %@",
+//                Date.oneDayAgoInMinutes as NSDate,
+//                false as NSNumber
+//            ),
+//            key: "date",
+//            ascending: false
+//        )
+//
+//        guard let stored = results as? [GlucoseStored], !stored.isEmpty else {
+//            return nil
+//        }
+//
+//        let validReadings: [BloodGlucose] = await context.perform {
+//            stored.compactMap { entry in
+//                BloodGlucose(
+//                    _id: entry.id?.uuidString ?? UUID().uuidString,
+//                    sgv: Int(entry.glucose),
+//                    direction: BloodGlucose.Direction(from: entry.direction ?? ""),
+//                    date: Decimal(entry.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+//                    dateString: entry.date ?? Date(),
+//                    unfiltered: Decimal(entry.glucose),
+//                    filtered: Decimal(entry.glucose),
+//                    noise: nil,
+//                    glucose: Int(entry.glucose),
+//                    type: "sgv"
+//                )
+//            }
+//        }
+//
+//        guard !validReadings.isEmpty else {
+//            return nil
+//        }
+//
+//        // Sort descending (newest first)
+//        let sorted = validReadings.sorted { $0.date > $1.date }
+//
+//        let mostRecentGlucose = sorted[0]
+//        var mostRecentGlucoseReading: Int = mostRecentGlucose.glucose!
+//        var mostRecentGlucoseDate: Date = mostRecentGlucose.dateString
+//
+//        var lastDeltas: [Decimal] = []
+//        var shortDeltas: [Decimal] = []
+//        var longDeltas: [Decimal] = []
+//
+//        // Walk older entries to compute deltas
+//        for entry in sorted.dropFirst() {
+//            // JS oref has logic here around skipping calibration readings.
+//            // We never calibration record (never happens here, since type=="sgv")
+//            // so we omit this check
+//
+//            // only use readings >38 mg/dL (to skip code values, <39)
+//            guard let glucose = entry.glucose, glucose > 38 else { continue }
+//
+//            let minutesAgo = mostRecentGlucoseDate.timeIntervalSince(entry.dateString) / 60
+//            guard minutesAgo != 0 else { continue }
+//            // compute mg/dL per 5 m as a Decimal:
+//            let change = Decimal(mostRecentGlucoseReading - glucose)
+//            let avgDelta = (change / Decimal(minutesAgo)) * Decimal(5)
+//
+//            // very-recent (<2.5 m) smooths "now"
+//            if minutesAgo > -2, minutesAgo <= 2.5 {
+//                mostRecentGlucoseReading = (mostRecentGlucoseReading + glucose) / 2
+//                mostRecentGlucoseDate = Date(
+//                    timeIntervalSince1970: (
+//                        mostRecentGlucoseDate.timeIntervalSince1970 + entry.dateString
+//                            .timeIntervalSince1970
+//                    ) / 2
+//                )
+//            }
+//            // short window (~5–15 m)
+//            else if minutesAgo > 2.5, minutesAgo <= 17.5 {
+//                shortDeltas.append(avgDelta)
+//                if minutesAgo < 7.5 {
+//                    lastDeltas.append(avgDelta)
+//                }
+//            }
+//            // long window (~20–40 m)
+//            else if minutesAgo > 17.5, minutesAgo < 42.5 {
+//                longDeltas.append(avgDelta)
+//            }
+//        }
+//
+//        // compute means (or zero)
+//        let lastDelta: Decimal = lastDeltas.mean
+//        let shortAvg: Decimal = shortDeltas.mean
+//        let longAvg: Decimal = longDeltas.mean
+//
+//        return GlucoseStatus(
+//            delta: lastDelta.rounded(toPlaces: 2),
+//            glucose: Decimal(mostRecentGlucoseReading),
+//            noise: Int(sorted[0].noise ?? 0),
+//            shortAvgDelta: shortAvg.rounded(toPlaces: 2),
+//            longAvgDelta: longAvg.rounded(toPlaces: 2),
+//            date: mostRecentGlucoseDate,
+//            lastCalIndex: nil,
+//            device: settingsManager.settings.cgm.rawValue
+//        )
+//    }
 
     func deleteGlucose(_ treatmentObjectID: NSManagedObjectID) async {
         // Use injected context if available, otherwise create new task context

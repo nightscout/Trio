@@ -156,7 +156,7 @@ final class BaseAPSManager: APSManager, Injectable {
             if wasParsed {
                 Task {
                     do {
-                        try await openAPS.createProfiles()
+                        try await openAPS.createProfiles(useSwiftOref: settings.useSwiftOref)
                     } catch {
                         debug(
                             .apsManager,
@@ -410,7 +410,10 @@ final class BaseAPSManager: APSManager, Injectable {
         guard let autosense = await storage.retrieveAsync(OpenAPS.Settings.autosense, as: Autosens.self),
               (autosense.timestamp ?? .distantPast).addingTimeInterval(30.minutes.timeInterval) > Date()
         else {
-            let result = try await openAPS.autosense(shouldSmoothGlucose: settingsManager.settings.smoothGlucose)
+            let result = try await openAPS.autosense(
+                shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
+                useSwiftOref: settings.useSwiftOref
+            )
             return result != nil
         }
 
@@ -480,10 +483,11 @@ final class BaseAPSManager: APSManager, Injectable {
             async let autosenseResult = autosense()
 
             _ = try await autosenseResult
-            try await openAPS.createProfiles()
+            try await openAPS.createProfiles(useSwiftOref: settings.useSwiftOref)
             let determination = try await openAPS.determineBasal(
                 currentTemp: await currentTemp,
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
+                useSwiftOref: settings.useSwiftOref,
                 clock: now
             )
             iobFileDidUpdate.send(())
@@ -530,6 +534,7 @@ final class BaseAPSManager: APSManager, Injectable {
             return try await openAPS.determineBasal(
                 currentTemp: temp,
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
+                useSwiftOref: settings.useSwiftOref,
                 clock: Date(),
                 simulatedCarbsAmount: simulatedCarbsAmount,
                 simulatedBolusAmount: simulatedBolusAmount,
