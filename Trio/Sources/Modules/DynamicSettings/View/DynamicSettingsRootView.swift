@@ -19,7 +19,13 @@ extension DynamicSettings {
         private var shouldDisplayHintBinding: Binding<Bool> {
             Binding(
                 get: { hintPayload != nil },
-                set: { newValue in if !newValue { hintPayload = nil } }
+                set: { newValue in
+                    if !newValue {
+                        hintPayload = nil
+                    } else if hintPayload == nil {
+                        hintPayload = HintPayload(label: "", content: AnyView(EmptyView()))
+                    }
+                }
             )
         }
 
