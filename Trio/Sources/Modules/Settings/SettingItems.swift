@@ -286,7 +286,8 @@ enum SettingItems {
                 "Time in Range Type",
                 "Time in Tight Range (TITR)",
                 "Time in Normoglycemia (TING)",
-                "X-Axis Interval Step"
+                "X-Axis Interval Step",
+                "Require Adjustments Confirmation"
             ],
             scrollTargetLabels: [
                 "Show Y-Axis Grid Lines": "Show X-Axis Grid Lines",

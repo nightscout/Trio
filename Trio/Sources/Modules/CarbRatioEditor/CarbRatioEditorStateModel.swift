@@ -3,6 +3,8 @@ import SwiftUI
 extension CarbRatioEditor {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var nightscout: NightscoutManager!
+        @Injected() private var tidepoolManager: TidepoolManager!
+        @Injected() private var broadcaster: Broadcaster!
         @Published var items: [Item] = []
         @Published var initialItems: [Item] = []
         @Published var therapyItems: [TherapySettingItem] = []
@@ -89,6 +91,13 @@ extension CarbRatioEditor {
             let profile = CarbRatios(units: .grams, schedule: schedule)
             provider.saveProfile(profile)
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+
+            DispatchQueue.main.async {
+                self.broadcaster.notify(CarbRatiosObserver.self, on: .main) {
+                    $0.carbRatiosDidChange(profile)
+                }
+            }
+
             Task.detached(priority: .low) {
                 do {
                     debug(.nightscout, "Attempting to upload CRs to Nightscout")
@@ -96,6 +105,10 @@ extension CarbRatioEditor {
                 } catch {
                     debug(.default, "Failed to upload CRs to Nightscout: \(error)")
                 }
+            }
+
+            Task.detached(priority: .low) {
+                await self.tidepoolManager.uploadSettings()
             }
         }
 

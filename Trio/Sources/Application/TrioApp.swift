@@ -40,6 +40,11 @@ extension Notification.Name {
     @State private var showOnboardingCompletedSplash = false
     @State private var showMigrationError: Bool = false
 
+    // Telemetry: one-shot guard so the consent migration sheet is presented
+    // at most once per process even if scene activates repeatedly.
+    @State private var showTelemetryMigrationSheet = false
+    @State private var hasCheckedTelemetryMigration = false
+
     // Dependencies Assembler
     // contain all dependencies Assemblies
     // TODO: Remove static key after update "Use Dependencies" logic
@@ -340,6 +345,10 @@ extension Notification.Name {
                     self.showOnboardingCompletedSplash = true
                 }
             }
+            .sheet(isPresented: $showTelemetryMigrationSheet) {
+                TelemetryMigrationSheetView()
+                    .interactiveDismissDisabled(true)
+            }
         }
         .onChange(of: scenePhase) { _, newScenePhase in
             debug(.default, "APPLICATION PHASE: \(newScenePhase)")
@@ -358,7 +367,28 @@ extension Notification.Name {
                 if initState.complete {
                     performCleanupIfNecessary()
                 }
+                presentTelemetryMigrationSheetIfNeeded()
             }
+        }
+    }
+
+    /// Presents the one-time telemetry consent sheet for users who completed
+    /// onboarding before telemetry existed. The condition (`onboardingCompleted
+    /// == true` and no telemetry decision yet) is checked once per process —
+    /// the in-app dismiss handler sets `telemetryConsentDecisionMade`, so a
+    /// re-foreground after the user picks will no longer match.
+    private func presentTelemetryMigrationSheetIfNeeded() {
+        guard !hasCheckedTelemetryMigration else { return }
+        hasCheckedTelemetryMigration = true
+
+        let onboarded = PropertyPersistentFlags.shared.onboardingCompleted == true
+        let telemetryDecided = PropertyPersistentFlags.shared.telemetryConsentDecisionMade == true
+        guard onboarded, !telemetryDecided else { return }
+
+        // Defer one runloop so SwiftUI has finished settling on whatever root
+        // view was just shown (loading screen, splash, main view).
+        DispatchQueue.main.async {
+            showTelemetryMigrationSheet = true
         }
     }
 
