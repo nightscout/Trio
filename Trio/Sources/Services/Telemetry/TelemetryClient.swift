@@ -1,4 +1,5 @@
 import Foundation
+import HealthKit
 import LoopKit
 import Swinject
 import UIKit
@@ -197,9 +198,25 @@ final class TelemetryClient: Injectable {
 
         payload["tidepoolPaired"] = tidepoolManager?.getTidepoolServiceUI() != nil
 
-        let useHealth = settings?.useAppleHealth ?? false
-        let healthAuthorized = healthKitManager?.hasGrantedFullWritePermissions ?? false
-        payload["appleHealthEnabled"] = useHealth && healthAuthorized
+        // Apple Health: report `enabled = true` as soon as *any* per-type write
+        // permission is granted, with the full per-type breakdown in
+        // `appleHealthWrites`.
+        let appleHealthSampleTypes: [(name: String, type: HKObjectType?)] = [
+            ("glucose", AppleHealthConfig.healthBGObject),
+            ("insulin", AppleHealthConfig.healthInsulinObject),
+            ("carbs", AppleHealthConfig.healthCarbObject),
+            ("fat", AppleHealthConfig.healthFatObject),
+            ("protein", AppleHealthConfig.healthProteinObject)
+        ]
+        var writePermissions: [String: Bool] = [:]
+        for (name, type) in appleHealthSampleTypes {
+            let granted = type.flatMap { healthKitManager?.checkWriteToHealthPermissions(objectTypeToHealthStore: $0) } ?? false
+            writePermissions[name] = granted
+        }
+        payload["appleHealthEnabled"] = writePermissions.values.contains(true)
+        if !writePermissions.isEmpty {
+            payload["appleHealthWrites"] = writePermissions
+        }
 
         if let settings = settings {
             payload["closedLoop"] = settings.closedLoop
