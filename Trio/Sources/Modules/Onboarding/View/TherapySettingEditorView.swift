@@ -7,7 +7,7 @@ struct TherapySettingEditorView: View {
     var valueOptions: [Decimal]
     var validateOnDelete: (() -> Void)?
     var onItemAdded: (() -> Void)?
-    
+
     private let basalFormatter: NumberFormatter = {
         let numberFormatter = NumberFormatter()
         numberFormatter.maximumFractionDigits = 3
