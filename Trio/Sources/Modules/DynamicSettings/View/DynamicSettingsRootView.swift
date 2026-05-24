@@ -165,7 +165,7 @@ extension DynamicSettings {
                             }.padding(.top)
                         }.padding(.bottom)
                     }
-                ).listRowBackground(Color.chart)
+                ).settingsSearchTarget(label: String(localized: "Dynamic ISF"))
 
                 if state.dynamicSensitivityType != .disabled {
                     if state.dynamicSensitivityType == .logarithmic {
@@ -283,6 +283,7 @@ extension DynamicSettings {
             .onAppear(perform: configureView)
             .navigationBarTitle("Dynamic Settings")
             .navigationBarTitleDisplayMode(.automatic)
+            .settingsHighlightScroll()
         }
     }
 }
