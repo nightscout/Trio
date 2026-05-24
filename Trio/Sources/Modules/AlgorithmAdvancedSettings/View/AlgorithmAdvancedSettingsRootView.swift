@@ -440,6 +440,7 @@ extension AlgorithmAdvancedSettings {
             .onAppear(perform: configureView)
             .navigationTitle("Additionals")
             .navigationBarTitleDisplayMode(.automatic)
+            .settingsHighlightScroll()
             .onDisappear {
                 state.saveIfChanged()
             }

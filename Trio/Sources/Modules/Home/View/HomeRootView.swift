@@ -22,6 +22,7 @@ extension Home {
         @State var state = StateModel()
 
         @State var settingsPath = NavigationPath()
+        @State var settingsSearchHighlight = SettingsSearchHighlight()
         @State var isStatusPopupPresented = false
         @State var showCancelAlert = false
         @State var showCancelConfirmDialog = false
@@ -1097,6 +1098,7 @@ extension Home {
 
                     NavigationStack(path: self.$settingsPath) {
                         Settings.RootView(resolver: resolver) }
+                        .environment(settingsSearchHighlight)
                         .tabItem { Label(
                             "Settings",
                             systemImage: "gear"
