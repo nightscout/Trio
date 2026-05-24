@@ -101,6 +101,7 @@ extension RemoteControlConfig {
             .onAppear(perform: configureView)
             .navigationTitle("Remote Control")
             .navigationBarTitleDisplayMode(.automatic)
+            .settingsHighlightScroll()
         }
     }
 }

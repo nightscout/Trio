@@ -9,7 +9,6 @@ public enum NightscoutUploadPipeline: String, CaseIterable {
     case overrides
     case tempTargets
     case glucose
-    case manualGlucose
     case deviceStatus
 }
 

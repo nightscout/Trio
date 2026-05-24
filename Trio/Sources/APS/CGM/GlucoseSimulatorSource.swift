@@ -217,7 +217,7 @@ class OscillatingGenerator: BloodGlucoseGenerator {
 
             // Create BloodGlucose with the correct constructor
             let bloodGlucose = BloodGlucose(
-                _id: UUID().uuidString,
+                id: UUID().uuidString,
                 sgv: glucose,
                 direction: direction,
                 date: Decimal(Int(currentDate.timeIntervalSince1970) * 1000),
