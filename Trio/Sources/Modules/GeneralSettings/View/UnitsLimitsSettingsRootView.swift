@@ -227,6 +227,7 @@ extension UnitsLimitsSettings {
             .onDisappear {
                 state.saveIfChanged()
             }
+            .settingsHighlightScroll()
         }
     }
 }

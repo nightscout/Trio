@@ -10,15 +10,13 @@ class TrioRemoteControl: Injectable {
     @Injected() internal var nightscoutManager: NightscoutManager!
     @Injected() internal var overrideStorage: OverrideStorage!
     @Injected() internal var settings: SettingsManager!
-    @Injected() internal var iobService: IOBService!
+    @Injected() internal var bolusSafetyValidator: BolusSafetyValidator!
 
     private let timeWindow: TimeInterval = 600
 
-    internal let pumpHistoryFetchContext: NSManagedObjectContext
     internal let viewContext: NSManagedObjectContext
 
     private init() {
-        pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
         viewContext = CoreDataStack.shared.persistentContainer.viewContext
         injectServices(TrioApp.resolver)
     }

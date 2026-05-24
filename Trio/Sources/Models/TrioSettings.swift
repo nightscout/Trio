@@ -3,14 +3,14 @@ import Foundation
 enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
     var id: String { rawValue }
     case notAllowed
-    case limitBolusMax
+    case limitWithSafetyChecks
 
     var displayName: String {
         switch self {
         case .notAllowed:
             return String(localized: "Not allowed")
-        case .limitBolusMax:
-            return String(localized: "Max bolus")
+        case .limitWithSafetyChecks:
+            return String(localized: "Limit with Safety Checks")
         }
     }
 }
