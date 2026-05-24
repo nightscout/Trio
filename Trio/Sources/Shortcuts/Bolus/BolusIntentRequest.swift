@@ -11,7 +11,7 @@ final class BolusIntentRequest: BaseIntentsRequest {
                 "Bolusing via Shortcuts is disabled in Trio settings."
             )
 
-        case .limitBolusMax:
+        case .limitWithSafetyChecks:
             let requestedAmount = Decimal(bolusAmount)
             let validation = try await bolusSafetyValidator.validate(bolusAmount: requestedAmount)
 
