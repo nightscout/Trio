@@ -381,9 +381,11 @@ extension BaseFetchGlucoseManager {
             // Predicate must cover at least the full glucose horizon used by downstream algorithm consumers.
             // If autosens / oref / smoothing logic ever starts looking back further (e.g. 36h),
             // this fetch window must be expanded accordingly.
+            // Fetch descending (newest first) so the limit always keeps the most recent 350 readings.
+            // Reversed before return so callers receive oldest-first (chronological) order.
             predicate: compoundPredicate,
             key: "date",
-            ascending: true, // the first element is the oldest
+            ascending: false,
             fetchLimit: 350
         )
 
@@ -391,7 +393,7 @@ extension BaseFetchGlucoseManager {
             throw CoreDataError.fetchError(function: #function, file: #file)
         }
 
-        return glucoseArray.map(\.objectID)
+        return Array(glucoseArray.map(\.objectID).reversed())
     }
 
     /// CoreData-friendly AAPS exponential smoothing + storage.

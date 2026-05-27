@@ -19,7 +19,13 @@ extension DynamicSettings {
         private var shouldDisplayHintBinding: Binding<Bool> {
             Binding(
                 get: { hintPayload != nil },
-                set: { newValue in if !newValue { hintPayload = nil } }
+                set: { newValue in
+                    if !newValue {
+                        hintPayload = nil
+                    } else if hintPayload == nil {
+                        hintPayload = HintPayload(label: "", content: AnyView(EmptyView()))
+                    }
+                }
             )
         }
 
@@ -159,7 +165,7 @@ extension DynamicSettings {
                             }.padding(.top)
                         }.padding(.bottom)
                     }
-                ).listRowBackground(Color.chart)
+                ).settingsSearchTarget(label: String(localized: "Dynamic ISF"))
 
                 if state.dynamicSensitivityType != .disabled {
                     if state.dynamicSensitivityType == .logarithmic {
@@ -277,6 +283,7 @@ extension DynamicSettings {
             .onAppear(perform: configureView)
             .navigationBarTitle("Dynamic Settings")
             .navigationBarTitleDisplayMode(.automatic)
+            .settingsHighlightScroll()
         }
     }
 }
