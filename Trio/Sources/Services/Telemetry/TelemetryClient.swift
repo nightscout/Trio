@@ -181,6 +181,8 @@ final class TelemetryClient: Injectable {
         payload["device"] = Self.hardwareIdentifier()
         payload["platform"] = Self.detectPlatform()
         payload["osVersion"] = UIDevice.current.systemVersion
+        payload["locale"] = Locale.current.identifier
+        payload["timeZone"] = TimeZone.current.identifier
 
         // Pump model — omitted entirely when no pump is paired.
         if let pump = apsManager?.pumpManager {
