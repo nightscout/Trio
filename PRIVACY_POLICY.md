@@ -72,7 +72,7 @@ The following information is included in the telemetry payload:
 - A small set of preference flags: units (mg/dL or mmol/L), closed-loop
   on/off, Live Activity enabled, calendar integration enabled
 - A rolling 7-day count of how often the app was cold-launched
-- The commit SHAs of pinned submodules (e.g. LoopKit, OmniBLE)
+- The commit SHAs of pinned submodules (e.g. LoopKit, OmnipodKit)
 
 The payload sends once every 24 hours while the app is running, plus
 once after a new build is installed. Sending failures simply retry on

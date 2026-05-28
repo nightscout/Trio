@@ -6,8 +6,7 @@ import LoopKit
 import MedtrumKit
 import MinimedKit
 import Observation
-import OmniBLE
-import OmniKit
+import OmnipodKit
 import SwiftUI
 
 /// Model that holds the data collected during onboarding.
@@ -127,10 +126,8 @@ extension Onboarding {
 
                 let defaultOption: PumpOptionForOnboardingUnits
                 if let pumpManager = apsManager?.pumpManager {
-                    if pumpManager is OmniBLEPumpManager {
-                        defaultOption = .omnipodDash
-                    } else if pumpManager is OmnipodPumpManager {
-                        defaultOption = .omnipodEros
+                    if pumpManager is OmniPumpManager {
+                        defaultOption = .omnipod
                     } else if pumpManager is MedtrumPumpManager {
                         defaultOption = .medtrum
                     } else if pumpManager is DanaKitPumpManager {
@@ -138,10 +135,10 @@ extension Onboarding {
                     } else if pumpManager is MinimedPumpManager {
                         defaultOption = .minimed
                     } else {
-                        defaultOption = .omnipodDash
+                        defaultOption = .omnipod
                     }
                 } else {
-                    defaultOption = .omnipodDash
+                    defaultOption = .omnipod
                 }
 
                 // cache it so picker can stay in sync
@@ -174,10 +171,14 @@ extension Onboarding {
                 return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 3, type: .insulinUnitPerHour)
             case .minimed:
                 return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 35, type: .insulinUnitPerHour)
-            case .omnipodDash:
-                return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 30, type: .insulinUnitPerHour)
-            case .omnipodEros:
-                return PickerSetting(value: 0.1, step: 0.05, min: 0.05, max: 30, type: .insulinUnitPerHour)
+            case .omnipod:
+                return PickerSetting(
+                    value: 0.1,
+                    step: 0.05,
+                    min: 0,
+                    max: 30,
+                    type: .insulinUnitPerHour
+                ) // FIXME: we need to be able to differentiate Eros here due to not allowing 0 basal rates
             case .medtrum:
                 return PickerSetting(value: 0.1, step: 0.05, min: 0.05, max: 30, type: .insulinUnitPerHour)
             case .none:

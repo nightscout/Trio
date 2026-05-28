@@ -608,8 +608,7 @@ struct OnboardingNavigationButtons: View {
                      .minimed:
                     currentAutosensSubstep = .rewindResetsAutosens
                 case .medtrum,
-                     .omnipodDash,
-                     .omnipodEros:
+                     .omnipod:
                     currentAutosensSubstep = .autosensMax
                 }
             }

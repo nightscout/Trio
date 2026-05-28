@@ -258,7 +258,7 @@ final class TelemetryClient: Injectable {
 
         payload["coldLaunches7d"] = (PropertyPersistentFlags.shared.telemetryColdLaunchTimes ?? []).count
 
-        // Submodule SHAs — small, useful for tracking which LoopKit / OmniBLE /
+        // Submodule SHAs — small, useful for tracking which LoopKit / OmnipodKit /
         // etc. revision the user is on. Branch is dropped to keep payload size small.
         let submoduleShas = bd.submodules.mapValues { $0.commitSHA }
         if !submoduleShas.isEmpty {

@@ -132,20 +132,6 @@
                ReferencedContainer = "container:LoopKit/LoopKit.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "NO"
-            buildForRunning = "NO"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "84752E8A26ED0FFE009FD801"
-               BuildableName = "OmniBLETests.xctest"
-               BlueprintName = "OmniBLETests"
-               ReferencedContainer = "container:OmniBLE/OmniBLE.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -192,16 +178,6 @@
                BuildableName = "MinimedKitTests.xctest"
                BlueprintName = "MinimedKitTests"
                ReferencedContainer = "container:MinimedKit/MinimedKit.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "C12ED9C929C7DBA900435701"
-               BuildableName = "OmniKitTests.xctest"
-               BlueprintName = "OmniKitTests"
-               ReferencedContainer = "container:OmniKit/OmniKit.xcodeproj">
             </BuildableReference>
          </TestableReference>
          <TestableReference
