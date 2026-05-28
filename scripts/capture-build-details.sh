@@ -16,7 +16,7 @@ fi
 echo "Gathering build details..."
 
 # Capture the current date
-plutil -replace com-trio-build-date -string "$(date -u '+%a %b %e %H:%M:%S UTC %Y')" "${info_plist_path}"
+plutil -replace com-trio-build-date -string "$(LC_ALL=C date -u '+%a %b %e %H:%M:%S UTC %Y')" "${info_plist_path}"
 
 # --- Root repo details ---
 # Retrieve current branch (or tag) and commit SHA.
