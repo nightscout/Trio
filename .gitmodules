@@ -34,3 +34,6 @@
 [submodule "MedtrumKit"]
 	path = MedtrumKit
 	url = https://github.com/loopandlearn/MedtrumKit
+[submodule "OmnipodKit"]
+	path = OmnipodKit
+	url = https://github.com/loopandlearn/OmnipodKit
