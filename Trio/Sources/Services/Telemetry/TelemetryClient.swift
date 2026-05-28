@@ -39,6 +39,14 @@ final class TelemetryClient: Injectable {
     private static let dailyInterval: TimeInterval = 24 * 60 * 60
     private static let maxPayloadBytes = 4096
 
+    private static let buildDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone(identifier: "UTC")
+        return f
+    }()
+
     // MARK: Injected services
 
     @Injected() private var apsManager: APSManager!
@@ -157,10 +165,10 @@ final class TelemetryClient: Injectable {
         payload["commitSha"] = bd.trioCommitSHA
         payload["branch"] = bd.trioBranch
 
-        // Date-only prefix of the build-date string. Keeps the field a
-        // low-resolution build identifier, not a precise timestamp.
-        if let raw = bd.buildDateString, raw.count >= 10 {
-            payload["buildDate"] = String(raw.prefix(10))
+        // Date-only (yyyy-MM-dd, UTC) build identifier, parsed from the
+        // "Tue May 26 12:34:56 UTC 2025" form added in BuildDetails.plist.
+        if let date = bd.buildDate() {
+            payload["buildDate"] = Self.buildDateFormatter.string(from: date)
         }
 
         payload["isTestFlight"] = bd.isTestFlightBuild()
