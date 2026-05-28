@@ -73,6 +73,11 @@ The following information is included in the telemetry payload:
   on/off, Live Activity enabled, calendar integration enabled
 - A rolling 7-day count of how often the app was cold-launched
 - The commit SHAs of pinned submodules (e.g. LoopKit, OmnipodKit)
+- The device's system locale (e.g. "en_US") — used to help Trio
+  developers understand which languages to prioritize for translation
+- The device's time zone identifier (e.g. "America/New_York") — used
+  to help Trio developers understand which regions of the world Trio
+  is being used in
 
 The payload sends once every 24 hours while the app is running, plus
 once after a new build is installed. Sending failures simply retry on
@@ -85,7 +90,7 @@ the next launch or scheduler tick — there is no continued retry.
 - Your Nightscout URL or API token
 - Your Tidepool email, password, or session token
 - Remote-command secrets or APNS keys
-- Time zone or location
+- GPS coordinates or any precise location data
 - App logs — log sharing remains a separate, user-initiated flow under Settings
 
 ### Debug Symbols (dSYMs)
@@ -177,4 +182,4 @@ trio.diy.diabetes@gmail.com.
 
 ## Last Updated
 
-May 14, 2025
+May 28, 2026
