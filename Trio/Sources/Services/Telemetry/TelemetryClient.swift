@@ -21,6 +21,10 @@ final class TelemetryClient: Injectable {
 
     private static let productionBaseURL: URL? = URL(string: "https://telemetry.triodocs.org")
 
+    // MARK: if you fork Trio and keep telemetry enabled, please change the name here
+    // so that we can distinguish forks from mainline Trio builds in our telemetry.
+    private static let telemetryAppName: String = "Trio"
+
     /// Effective base URL: respects the debug override in
     /// `PropertyPersistentFlags.telemetryDebugServerURL`, then falls back to
     /// `productionBaseURL`. Used by both the registration and `/checkin` paths.
@@ -38,6 +42,14 @@ final class TelemetryClient: Injectable {
     private static let weeklyInterval: TimeInterval = 7 * 24 * 60 * 60
     private static let dailyInterval: TimeInterval = 24 * 60 * 60
     private static let maxPayloadBytes = 4096
+
+    private static let buildDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone(identifier: "UTC")
+        return f
+    }()
 
     // MARK: Injected services
 
@@ -150,6 +162,7 @@ final class TelemetryClient: Injectable {
         var payload: [String: Any] = [:]
 
         if let v = info["CFBundleShortVersionString"] as? String { payload["appVersion"] = v }
+        payload["appName"] = telemetryAppName
         // appDevVersion is Trio's 4-component dev counter (e.g. "0.7.0.14") —
         // the most precise build identifier we have. Always emit, even when
         // the Info.plist key is missing, so dashboards can rely on the field.
@@ -157,10 +170,10 @@ final class TelemetryClient: Injectable {
         payload["commitSha"] = bd.trioCommitSHA
         payload["branch"] = bd.trioBranch
 
-        // Date-only prefix of the build-date string. Keeps the field a
-        // low-resolution build identifier, not a precise timestamp.
-        if let raw = bd.buildDateString, raw.count >= 10 {
-            payload["buildDate"] = String(raw.prefix(10))
+        // Date-only (yyyy-MM-dd, UTC) build identifier, parsed from the
+        // "Tue May 26 12:34:56 UTC 2025" form added in BuildDetails.plist.
+        if let date = bd.buildDate() {
+            payload["buildDate"] = Self.buildDateFormatter.string(from: date)
         }
 
         payload["isTestFlight"] = bd.isTestFlightBuild()
@@ -173,6 +186,8 @@ final class TelemetryClient: Injectable {
         payload["device"] = Self.hardwareIdentifier()
         payload["platform"] = Self.detectPlatform()
         payload["osVersion"] = UIDevice.current.systemVersion
+        payload["locale"] = Locale.current.identifier
+        payload["timeZone"] = TimeZone.current.identifier
 
         // Pump model — omitted entirely when no pump is paired.
         if let pump = apsManager?.pumpManager {
