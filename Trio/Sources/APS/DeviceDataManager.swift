@@ -302,6 +302,10 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
         self.recommendsLoop.send()
     }
 
+    public func pumpManagerTypeByIdentifier(_ identifier: String) -> PumpManagerUI.Type? {
+        staticPumpManagersByIdentifier[identifier]
+    }
+
     private func pumpManagerFromRawValue(_ rawValue: [String: Any]) -> PumpManagerUI? {
         guard let rawState = rawValue["state"] as? PumpManager.RawStateValue,
               let Manager = pumpManagerTypeFromRawValue(rawValue)
@@ -317,7 +321,18 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
             return nil
         }
 
-        return staticPumpManagersByIdentifier[managerIdentifier]
+        if let pumpManager = pumpManagerTypeByIdentifier(managerIdentifier) {
+            return pumpManager
+        }
+
+        /// The pumpManager was not found for managerIdentifier. If this was for an "Omnipod" (OmniKit) or
+        /// "Omnipod-DASH" (OmniBLE), have the universal "Omni" pumpManager (OmnipodKit) handle instead.
+        let OmniStr = "Omni"
+        if managerIdentifier.hasPrefix(OmniStr) {
+            return pumpManagerTypeByIdentifier(OmniStr)
+        }
+
+        return nil
     }
 
     // MARK: - GlucoseSource
