@@ -21,6 +21,10 @@ final class TelemetryClient: Injectable {
 
     private static let productionBaseURL: URL? = URL(string: "https://telemetry.triodocs.org")
 
+    // MARK: if you fork Trio and keep telemetry enabled, please change the name here
+    // so that we can distinguish forks from mainline Trio builds in our telemetry.
+    private static let telemetryAppName: String = "Trio"
+
     /// Effective base URL: respects the debug override in
     /// `PropertyPersistentFlags.telemetryDebugServerURL`, then falls back to
     /// `productionBaseURL`. Used by both the registration and `/checkin` paths.
@@ -158,12 +162,7 @@ final class TelemetryClient: Injectable {
         var payload: [String: Any] = [:]
 
         if let v = info["CFBundleShortVersionString"] as? String { payload["appVersion"] = v }
-        // Display name from Info.plist ($(APP_DISPLAY_NAME) in Config.xcconfig,
-        // default "Trio"). Forks typically rebrand by changing that one line,
-        // so this lets dashboards distinguish upstream Trio from forks.
-        let displayName = (info["CFBundleDisplayName"] as? String)
-            ?? (info["CFBundleName"] as? String)
-        payload["appDisplayName"] = displayName ?? "unknown"
+        payload["appName"] = telemetryAppName
         // appDevVersion is Trio's 4-component dev counter (e.g. "0.7.0.14") —
         // the most precise build identifier we have. Always emit, even when
         // the Info.plist key is missing, so dashboards can rely on the field.
