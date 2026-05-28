@@ -162,7 +162,7 @@ final class TelemetryClient: Injectable {
         var payload: [String: Any] = [:]
 
         if let v = info["CFBundleShortVersionString"] as? String { payload["appVersion"] = v }
-        payload["appName"] = telemetryAppName
+        payload["appName"] = TelemetryClient.telemetryAppName
         // appDevVersion is Trio's 4-component dev counter (e.g. "0.7.0.14") —
         // the most precise build identifier we have. Always emit, even when
         // the Info.plist key is missing, so dashboards can rely on the field.
