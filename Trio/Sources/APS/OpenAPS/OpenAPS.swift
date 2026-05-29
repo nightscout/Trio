@@ -99,13 +99,20 @@ final class OpenAPS {
     func fetchAndProcessGlucose(
         context: NSManagedObjectContext,
         shouldSmoothGlucose: Bool,
-        fetchLimit: Int?
+        fetchLimit: Int?,
+        fetchHours: Decimal = 24
     ) async throws -> String {
-        // make it async and await it
+        // Time window from `fetchHours` hours ago up to now. determineBasal feeds
+        // `maxMealAbsorptionTime + 0.5h` (just enough glucose to cover the longest
+        // tracked meal absorption plus a small lead-in); Autosens uses the default
+        // 24h because its sensitivity algorithm needs that full window.
+        let cutoff = Date().addingTimeInterval(-(Double(truncating: fetchHours as NSNumber) * 3600))
+        let timePredicate = NSPredicate(format: "date >= %@", cutoff as NSDate)
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
-            predicate: NSPredicate.predicateForOneDayAgoInMinutes,
+            predicate: timePredicate,
             key: "date",
             ascending: false,
             fetchLimit: fetchLimit,
@@ -395,11 +402,12 @@ final class OpenAPS {
         async let carbs = fetchAndProcessCarbs(additionalCarbs: simulatedCarbsAmount ?? 0, carbsDate: simulatedCarbsDate)
 
         var preferences = await storage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
-        let glucoseFetchLimit = Int((preferences.maxMealAbsorptionTime * 12).rounded(scale: 0, roundingMode: .up))
+        let glucoseFetchHours = preferences.maxMealAbsorptionTime * 12 + 0.5 // MMAT + half hour buffer
         async let glucose = fetchAndProcessGlucose(
             context: context,
             shouldSmoothGlucose: shouldSmoothGlucose,
-            fetchLimit: glucoseFetchLimit
+            fetchLimit: nil,
+            fetchHours: glucoseFetchHours
         )
 
         async let prepareTrioCustomOrefVariables = prepareTrioCustomOrefVariables()
