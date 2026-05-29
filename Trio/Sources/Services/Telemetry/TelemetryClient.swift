@@ -22,6 +22,7 @@ final class TelemetryClient: Injectable {
     private static let productionBaseURL: URL? = URL(string: "https://telemetry.triodocs.org")
 
     // MARK: if you fork Trio and keep telemetry enabled, please change the name here
+
     // so that we can distinguish forks from mainline Trio builds in our telemetry.
     private static let telemetryAppName: String = "Trio"
 
@@ -116,6 +117,12 @@ final class TelemetryClient: Injectable {
     /// Arms (or re-arms) the 24h send timer. Idempotent. Bails out without
     /// scheduling if the user hasn't decided on consent yet or has opted out
     /// — there's nothing for the timer to do.
+    ///
+    /// Best-effort fallback only. GCD timers don't advance while the app is
+    /// suspended, so on iOS this effectively means "fires only if the app
+    /// stays foregrounded for 24h." The reliable cadence driver is
+    /// `checkAndSendIfOverdue()` called on every foreground transition and
+    /// cold launch.
     func scheduleRecurring() {
         guard PropertyPersistentFlags.shared.telemetryConsentDecisionMade == true,
               PropertyPersistentFlags.shared.telemetryEnabled == true
@@ -134,6 +141,31 @@ final class TelemetryClient: Injectable {
             t.resume()
             timer = t
         }
+    }
+
+    /// If consent is set and we haven't successfully sent within the last 24h
+    /// (or have never sent), fire a send. Called on foreground transitions
+    /// and from the cold-launch path so daily cadence is kept.
+    ///
+    /// Mirrors the pattern used by LoopFollow's `TaskScheduler.checkTasksNow()`:
+    /// wall-clock comparison against `telemetryLastSentAt`, fire-and-forget
+    /// if overdue. Safe to call repeatedly — if a send already fired within
+    /// the window, this is a no-op.
+    func checkAndSendIfOverdue() {
+        guard PropertyPersistentFlags.shared.telemetryConsentDecisionMade == true,
+              PropertyPersistentFlags.shared.telemetryEnabled == true
+        else {
+            return
+        }
+
+        let lastSent = PropertyPersistentFlags.shared.telemetryLastSentAt
+        let overdue: Bool = {
+            guard let lastSent else { return true }
+            return Date().timeIntervalSince(lastSent) >= Self.dailyInterval
+        }()
+        guard overdue else { return }
+
+        Task.detached { await self.maybeSend() }
     }
 
     /// Single entry point for all sends (scheduler tick, consent-yes, startup
