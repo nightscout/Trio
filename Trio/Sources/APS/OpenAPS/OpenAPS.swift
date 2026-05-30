@@ -99,13 +99,20 @@ final class OpenAPS {
     func fetchAndProcessGlucose(
         context: NSManagedObjectContext,
         shouldSmoothGlucose: Bool,
-        fetchLimit: Int?
+        fetchLimit: Int?,
+        fetchHours: Decimal = 24
     ) async throws -> String {
-        // make it async and await it
+        // Time window from `fetchHours` hours ago up to now. determineBasal feeds
+        // `maxMealAbsorptionTime + 0.5h` (just enough glucose to cover the longest
+        // tracked meal absorption plus a small lead-in); Autosens uses the default
+        // 24h because its sensitivity algorithm needs that full window.
+        let cutoff = Date().addingTimeInterval(-(Double(truncating: fetchHours as NSNumber) * 3600))
+        let timePredicate = NSPredicate(format: "date >= %@", cutoff as NSDate)
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
-            predicate: NSPredicate.predicateForOneDayAgoInMinutes,
+            predicate: timePredicate,
             key: "date",
             ascending: false,
             fetchLimit: fetchLimit,
@@ -393,13 +400,21 @@ final class OpenAPS {
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
         async let carbs = fetchAndProcessCarbs(additionalCarbs: simulatedCarbsAmount ?? 0, carbsDate: simulatedCarbsDate)
-        async let glucose = fetchAndProcessGlucose(context: context, shouldSmoothGlucose: shouldSmoothGlucose, fetchLimit: 72)
+
+        var preferences = await storage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
+        let glucoseFetchHours = preferences.maxMealAbsorptionTime + 0.5 // MMAT + half hour buffer
+        async let glucose = fetchAndProcessGlucose(
+            context: context,
+            shouldSmoothGlucose: shouldSmoothGlucose,
+            fetchLimit: nil,
+            fetchHours: glucoseFetchHours
+        )
+
         async let prepareTrioCustomOrefVariables = prepareTrioCustomOrefVariables()
         async let profileAsync = loadFileFromStorageAsync(name: Settings.profile)
         async let basalAsync = loadFileFromStorageAsync(name: Settings.basalProfile)
         async let autosenseAsync = loadFileFromStorageAsync(name: Settings.autosense)
         async let reservoirAsync = loadFileFromStorageAsync(name: Monitor.reservoir)
-        async let preferencesAsync = storage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
         async let hasSufficientTddForDynamic = tddStorage.hasSufficientTDD()
 
         // Await the results of asynchronous tasks
@@ -449,8 +464,6 @@ final class OpenAPS {
         if !simulation {
             storage.save(iob, as: Monitor.iob)
         }
-
-        var preferences = await preferencesAsync
 
         if !hasSufficientTdd, preferences.useNewFormula || (preferences.useNewFormula && preferences.sigmoid) {
             debug(.openAPS, "Insufficient TDD for dynamic formula; disabling for determine basal run.")
