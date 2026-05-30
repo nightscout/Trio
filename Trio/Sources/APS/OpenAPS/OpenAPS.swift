@@ -402,7 +402,7 @@ final class OpenAPS {
         async let carbs = fetchAndProcessCarbs(additionalCarbs: simulatedCarbsAmount ?? 0, carbsDate: simulatedCarbsDate)
 
         var preferences = await storage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
-        let glucoseFetchHours = preferences.maxMealAbsorptionTime * 12 + 0.5 // MMAT + half hour buffer
+        let glucoseFetchHours = preferences.maxMealAbsorptionTime + 0.5 // MMAT + half hour buffer
         async let glucose = fetchAndProcessGlucose(
             context: context,
             shouldSmoothGlucose: shouldSmoothGlucose,
