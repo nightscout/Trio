@@ -383,17 +383,26 @@ enum LiveActivityItem: String, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .currentGlucoseLarge:
-            return "Glucose and Trend, no Delta"
+            return String(
+                localized: "Glucose and Trend, no Delta",
+                comment: "Live Activity widget icon label for Glucose and Trend, no Delta"
+            )
         case .currentGlucose:
-            return "Glucose, Trend, Delta"
+            return String(
+                localized: "Glucose, Trend, Delta",
+                comment: "Live Activity widget icon label for Glucose, Trend, Delta"
+            )
         case .iob:
-            return "Insulin on Board (IOB)"
+            return String(
+                localized: "Insulin on Board (IOB)",
+                comment: "Live Activity widget icon label for Insulin on Board (IOB)"
+            )
         case .cob:
-            return "Carbs on Board (IOB)"
+            return String(localized: "Carbs on Board (COB)", comment: "Live Activity widget icon label for Carbs on Board (COB)")
         case .updatedLabel:
-            return "Last Updated"
+            return String(localized: "Last Updated", comment: "Live Activity widget icon label for Last Updated")
         case .totalDailyDose:
-            return "Total Daily Dose"
+            return String(localized: "Total Daily Dose", comment: "Live Activity widget icon label for Total Daily Dose")
         }
     }
 }
