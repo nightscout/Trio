@@ -180,7 +180,12 @@ enum GlucoseUnits: String, JSON, Equatable, CaseIterable, Identifiable {
     case mgdL = "mg/dL"
     case mmolL = "mmol/L"
 
-    static let exchangeRate: Decimal = 0.0555
+    /// mg/dL ↔ mmol/L conversion factor. Glucose has a molar mass of
+    /// 180.156 g/mol, so 1 mmol/L = 18.0182 mg/dL; the reciprocal
+    /// 1 / 18.0182 ≈ 0.055495 is the correct mg/dL → mmol/L multiplier.
+    /// (Earlier code used 0.0555 — a 3-sig-fig approximation that drifted
+    /// noticeably on round-trip conversions, e.g. ISF imports from NS.)
+    static let exchangeRate: Decimal = 0.055495
 
     var id: String { rawValue }
 }

@@ -15,7 +15,14 @@ struct ChartsView: View {
     @State var headline: Color = .secondary
 
     private var conversionFactor: Decimal {
-        units == .mmolL ? 0.0555 : 1
+        units == .mmolL ? GlucoseUnits.exchangeRate : 1
+    }
+
+    /// Converts a mmol/L clinical threshold to the equivalent Int16 mg/dL bucket
+    /// used by `GlucoseStored.glucose`. Routes through the canonical `Double.asMgdL`
+    /// helper so the conversion stays consistent with the rest of the app.
+    private func thresholdMgdL(_ mmol: Double) -> Int16 {
+        Int16(truncating: mmol.asMgdL as NSDecimalNumber)
     }
 
     var body: some View {
@@ -208,9 +215,9 @@ struct ChartsView: View {
         VStack(alignment: .leading, spacing: 15) {
             let mapGlucose = glucose.compactMap({ each in each.glucose })
             if !mapGlucose.isEmpty {
-                let mapGlucoseAcuteLow = mapGlucose.filter({ $0 < Int16(3.3 / 0.0555) })
-                let mapGlucoseHigh = mapGlucose.filter({ $0 > Int16(11 / 0.0555) })
-                let mapGlucoseNormal = mapGlucose.filter({ $0 > Int16(3.8 / 0.0555) && $0 < Int16(7.9 / 0.0555) })
+                let mapGlucoseAcuteLow = mapGlucose.filter({ $0 < thresholdMgdL(3.3) })
+                let mapGlucoseHigh = mapGlucose.filter({ $0 > thresholdMgdL(11) })
+                let mapGlucoseNormal = mapGlucose.filter({ $0 > thresholdMgdL(3.8) && $0 < thresholdMgdL(7.9) })
                 HStack {
                     let value = 100.0 * Double(mapGlucoseHigh.count) / Double(mapGlucose.count)
                     Text(units == .mmolL ? ">  11  " : ">  198 ")
@@ -246,9 +253,9 @@ struct ChartsView: View {
         HStack {
             let mapGlucose = glucose.compactMap({ each in each.glucose })
             if !mapGlucose.isEmpty {
-                let mapGlucoseLow = mapGlucose.filter({ $0 < Int16(3.3 / 0.0555) })
-                let mapGlucoseNormal = mapGlucose.filter({ $0 > Int16(3.8 / 0.0555) && $0 < Int16(7.9 / 0.0555) })
-                let mapGlucoseAcuteHigh = mapGlucose.filter({ $0 > Int16(11 / 0.0555) })
+                let mapGlucoseLow = mapGlucose.filter({ $0 < thresholdMgdL(3.3) })
+                let mapGlucoseNormal = mapGlucose.filter({ $0 > thresholdMgdL(3.8) && $0 < thresholdMgdL(7.9) })
+                let mapGlucoseAcuteHigh = mapGlucose.filter({ $0 > thresholdMgdL(11) })
                 Spacer()
                 HStack {
                     let value = 100.0 * Double(mapGlucoseLow.count) / Double(mapGlucose.count)

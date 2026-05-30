@@ -894,7 +894,7 @@ final class BaseAPSManager: APSManager, Injectable {
             sd = sqrt(sumOfSquares / Double(countReadings))
             cv = sd / Double(glucoseAverage) * 100
         }
-        let conversionFactor = 0.0555
+        let conversionFactor = Double(truncating: GlucoseUnits.exchangeRate as NSDecimalNumber)
         let units = settingsManager.settings.units
 
         var output: (ifcc: Double, ngsp: Double, average: Double, median: Double, sd: Double, cv: Double, readings: Double)
