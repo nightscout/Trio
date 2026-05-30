@@ -62,7 +62,7 @@ struct LiveActivityView: View {
                 LiveActivityChartView(context: context, additionalState: context.state.detailedViewState)
                     .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
                     .frame(height: 80)
-                    .overlay(alignment: .topTrailing) {
+                    .overlay(alignment: .topLeading) {
                         HStack(spacing: 4) {
                             if context.state.detailedViewState.isOverrideActive {
                                 Text(context.state.detailedViewState.overrideName)

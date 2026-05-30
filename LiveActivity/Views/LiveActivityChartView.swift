@@ -39,8 +39,7 @@ struct LiveActivityChartView: View {
         let now = Date()
 
         let startDate = calendar.date(byAdding: .hour, value: isWatchOS ? -3 : -6, to: now) ?? now
-        let endDate = (isOverrideActive || isTempTargetActive) ? (calendar.date(byAdding: .hour, value: 2, to: now) ?? now) :
-            (calendar.date(byAdding: .minute, value: isWatchOS ? 5 : 0, to: now) ?? now)
+        let endDate = calendar.date(byAdding: .minute, value: isWatchOS ? 5 : 0, to: now) ?? now
 
         // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
         let hardCodedLow = isMgdL ? Decimal(55) : 55.asMmolL
