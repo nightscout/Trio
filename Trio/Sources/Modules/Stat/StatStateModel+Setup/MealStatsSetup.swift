@@ -156,9 +156,16 @@ extension Stat.StateModel {
     ///   - endDate: The end date of the range to calculate averages for
     /// - Returns: A tuple containing the average carbs, fat and protein values for the date range
     func calculateAveragesForDateRange(from startDate: Date, to endDate: Date) -> (carbs: Double, fat: Double, protein: Double) {
-        // Filter cached values to only include those within the date range
-        let relevantStats = dailyAveragesCache.filter { date, _ in
-            date >= startDate && date <= endDate
+        // Cache keys are `startOfDay` dates, so a strict `date >= startDate`
+        // wrongly excludes today's bucket when `startDate` is even a few
+        // seconds past midnight (e.g. the `.day` initial scroll position is
+        // `startOfDay(today) + 1s`, leaving `today 00:00:00` just outside the
+        // range). Compare against the day *window* — a day belongs in the
+        // range if any moment of it overlaps the range. Fixes #1181.
+        let dayLength: TimeInterval = 86_400
+        let relevantStats = dailyAveragesCache.filter { dayStart, _ in
+            let dayEnd = dayStart.addingTimeInterval(dayLength)
+            return dayStart < endDate && dayEnd > startDate
         }
 
         // Return zeros if no data exists for the range
