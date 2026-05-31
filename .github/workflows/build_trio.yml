@@ -259,14 +259,15 @@ jobs:
       - name: Fastlane upload to TestFlight
         run: |
           max_attempts=3
+          retry_delay=60
           for attempt in $(seq 1 "$max_attempts"); do
             if bundle exec fastlane release; then
               exit 0
             fi
 
             if [ "$attempt" -lt "$max_attempts" ]; then
-              echo "TestFlight upload failed (attempt $attempt/$max_attempts). Retrying in 60 seconds..."
-              sleep 60
+              echo "TestFlight upload failed (attempt $attempt/$max_attempts). Retrying in ${retry_delay} seconds..."
+              sleep "$retry_delay"
             fi
           done
 
