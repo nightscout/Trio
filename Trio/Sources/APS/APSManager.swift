@@ -102,18 +102,24 @@ private actor LoopGuard {
 private actor BolusProgressState {
     private var reporter: DoseProgressReporter?
     private weak var observer: (any DoseProgressObserver)?
+    private var generation: UInt64 = 0
 
     func setReporter(_ newReporter: DoseProgressReporter?, observer: any DoseProgressObserver) {
+        generation &+= 1
         reporter?.removeObserver(observer)
         reporter = newReporter
         reporter?.addObserver(observer)
         self.observer = observer
     }
 
-    func clear() {
+    func clear() -> UInt64 {
+        generation &+= 1
         if let observer { reporter?.removeObserver(observer) }
         reporter = nil
+        return generation
     }
+
+    func isCurrent(_ token: UInt64) -> Bool { token == generation }
 }
 
 final class BaseAPSManager: APSManager, Injectable {
@@ -231,10 +237,16 @@ final class BaseAPSManager: APSManager, Injectable {
         deviceDataManager.bolusTrigger
             .receive(on: processQueue)
             .sink { [weak self] bolusing in
-                if bolusing {
-                    self?.createBolusReporter()
-                } else {
-                    self?.clearBolusReporter()
+                // Funnel both transitions through a single Task so create/clear can't
+                // reorder against each other at the actor (unstructured Tasks enter
+                // the actor in scheduler order, not FIFO).
+                Task { [weak self] in
+                    guard let self else { return }
+                    if bolusing {
+                        await self.createBolusReporter()
+                    } else {
+                        await self.clearBolusReporter()
+                    }
                 }
             }
             .store(in: &lifetime)
@@ -1204,16 +1216,18 @@ final class BaseAPSManager: APSManager, Injectable {
         lastError.send(error)
     }
 
-    private func createBolusReporter() {
+    private func createBolusReporter() async {
         let reporter = pumpManager?.createBolusProgressReporter(reportingOn: processQueue)
-        Task { await bolusProgressState.setReporter(reporter, observer: self) }
+        await bolusProgressState.setReporter(reporter, observer: self)
     }
 
-    private func clearBolusReporter() {
-        Task { [weak self] in
-            await self?.bolusProgressState.clear()
-            try? await Task.sleep(for: .milliseconds(500))
-            self?.bolusProgress.send(nil)
+    private func clearBolusReporter() async {
+        let token = await bolusProgressState.clear()
+        try? await Task.sleep(for: .milliseconds(500))
+        // Generation token guards against a new bolus starting during the 500 ms grace:
+        // if `setReporter` ran in between, our stale `send(nil)` would clobber its initial `send(0)`.
+        if await bolusProgressState.isCurrent(token) {
+            bolusProgress.send(nil)
         }
     }
 }
