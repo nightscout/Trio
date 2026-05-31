@@ -1,4 +1,5 @@
 import Foundation
+import HealthKit
 import LoopKit
 import Swinject
 import UIKit
@@ -20,6 +21,11 @@ final class TelemetryClient: Injectable {
 
     private static let productionBaseURL: URL? = URL(string: "https://telemetry.triodocs.org")
 
+    // MARK: if you fork Trio and keep telemetry enabled, please change the name here
+
+    // so that we can distinguish forks from mainline Trio builds in our telemetry.
+    private static let telemetryAppName: String = "Trio"
+
     /// Effective base URL: respects the debug override in
     /// `PropertyPersistentFlags.telemetryDebugServerURL`, then falls back to
     /// `productionBaseURL`. Used by both the registration and `/checkin` paths.
@@ -37,6 +43,14 @@ final class TelemetryClient: Injectable {
     private static let weeklyInterval: TimeInterval = 7 * 24 * 60 * 60
     private static let dailyInterval: TimeInterval = 24 * 60 * 60
     private static let maxPayloadBytes = 4096
+
+    private static let buildDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone(identifier: "UTC")
+        return f
+    }()
 
     // MARK: Injected services
 
@@ -103,6 +117,12 @@ final class TelemetryClient: Injectable {
     /// Arms (or re-arms) the 24h send timer. Idempotent. Bails out without
     /// scheduling if the user hasn't decided on consent yet or has opted out
     /// — there's nothing for the timer to do.
+    ///
+    /// Best-effort fallback only. GCD timers don't advance while the app is
+    /// suspended, so on iOS this effectively means "fires only if the app
+    /// stays foregrounded for 24h." The reliable cadence driver is
+    /// `checkAndSendIfOverdue()` called on every foreground transition and
+    /// cold launch.
     func scheduleRecurring() {
         guard PropertyPersistentFlags.shared.telemetryConsentDecisionMade == true,
               PropertyPersistentFlags.shared.telemetryEnabled == true
@@ -121,6 +141,31 @@ final class TelemetryClient: Injectable {
             t.resume()
             timer = t
         }
+    }
+
+    /// If consent is set and we haven't successfully sent within the last 24h
+    /// (or have never sent), fire a send. Called on foreground transitions
+    /// and from the cold-launch path so daily cadence is kept.
+    ///
+    /// Mirrors the pattern used by LoopFollow's `TaskScheduler.checkTasksNow()`:
+    /// wall-clock comparison against `telemetryLastSentAt`, fire-and-forget
+    /// if overdue. Safe to call repeatedly — if a send already fired within
+    /// the window, this is a no-op.
+    func checkAndSendIfOverdue() {
+        guard PropertyPersistentFlags.shared.telemetryConsentDecisionMade == true,
+              PropertyPersistentFlags.shared.telemetryEnabled == true
+        else {
+            return
+        }
+
+        let lastSent = PropertyPersistentFlags.shared.telemetryLastSentAt
+        let overdue: Bool = {
+            guard let lastSent else { return true }
+            return Date().timeIntervalSince(lastSent) >= Self.dailyInterval
+        }()
+        guard overdue else { return }
+
+        Task.detached { await self.maybeSend() }
     }
 
     /// Single entry point for all sends (scheduler tick, consent-yes, startup
@@ -149,6 +194,7 @@ final class TelemetryClient: Injectable {
         var payload: [String: Any] = [:]
 
         if let v = info["CFBundleShortVersionString"] as? String { payload["appVersion"] = v }
+        payload["appName"] = TelemetryClient.telemetryAppName
         // appDevVersion is Trio's 4-component dev counter (e.g. "0.7.0.14") —
         // the most precise build identifier we have. Always emit, even when
         // the Info.plist key is missing, so dashboards can rely on the field.
@@ -156,10 +202,10 @@ final class TelemetryClient: Injectable {
         payload["commitSha"] = bd.trioCommitSHA
         payload["branch"] = bd.trioBranch
 
-        // Date-only prefix of the build-date string. Keeps the field a
-        // low-resolution build identifier, not a precise timestamp.
-        if let raw = bd.buildDateString, raw.count >= 10 {
-            payload["buildDate"] = String(raw.prefix(10))
+        // Date-only (yyyy-MM-dd, UTC) build identifier, parsed from the
+        // "Tue May 26 12:34:56 UTC 2025" form added in BuildDetails.plist.
+        if let date = bd.buildDate() {
+            payload["buildDate"] = Self.buildDateFormatter.string(from: date)
         }
 
         payload["isTestFlight"] = bd.isTestFlightBuild()
@@ -172,6 +218,8 @@ final class TelemetryClient: Injectable {
         payload["device"] = Self.hardwareIdentifier()
         payload["platform"] = Self.detectPlatform()
         payload["osVersion"] = UIDevice.current.systemVersion
+        payload["locale"] = Locale.current.identifier
+        payload["timeZone"] = TimeZone.current.identifier
 
         // Pump model — omitted entirely when no pump is paired.
         if let pump = apsManager?.pumpManager {
@@ -197,9 +245,25 @@ final class TelemetryClient: Injectable {
 
         payload["tidepoolPaired"] = tidepoolManager?.getTidepoolServiceUI() != nil
 
-        let useHealth = settings?.useAppleHealth ?? false
-        let healthAuthorized = healthKitManager?.hasGrantedFullWritePermissions ?? false
-        payload["appleHealthEnabled"] = useHealth && healthAuthorized
+        // Apple Health: report `enabled = true` as soon as *any* per-type write
+        // permission is granted, with the full per-type breakdown in
+        // `appleHealthWrites`.
+        let appleHealthSampleTypes: [(name: String, type: HKObjectType?)] = [
+            ("glucose", AppleHealthConfig.healthBGObject),
+            ("insulin", AppleHealthConfig.healthInsulinObject),
+            ("carbs", AppleHealthConfig.healthCarbObject),
+            ("fat", AppleHealthConfig.healthFatObject),
+            ("protein", AppleHealthConfig.healthProteinObject)
+        ]
+        var writePermissions: [String: Bool] = [:]
+        for (name, type) in appleHealthSampleTypes {
+            let granted = type.flatMap { healthKitManager?.checkWriteToHealthPermissions(objectTypeToHealthStore: $0) } ?? false
+            writePermissions[name] = granted
+        }
+        payload["appleHealthEnabled"] = writePermissions.values.contains(true)
+        if !writePermissions.isEmpty {
+            payload["appleHealthWrites"] = writePermissions
+        }
 
         if let settings = settings {
             payload["closedLoop"] = settings.closedLoop
