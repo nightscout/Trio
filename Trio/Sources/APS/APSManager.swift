@@ -315,12 +315,6 @@ final class BaseAPSManager: APSManager, Injectable {
                 interval: interval
             )
 
-            defer {
-                if bgTask != .invalid {
-                    Task { await UIApplication.shared.endBackgroundTask(bgTask) }
-                }
-            }
-
             do {
                 try await executeLoop(loopStatRecord: &loopStatRecord)
                 requestNightscoutUpload(
@@ -334,6 +328,15 @@ final class BaseAPSManager: APSManager, Injectable {
                 loopStatRecord.loopStatus = error.localizedDescription
                 await finalizeLoop(error: error, loopStatRecord: loopStatRecord)
                 debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to complete Loop: \(error)")
+            }
+
+            // End the background task on the async path itself — `defer` cannot `await`,
+            // and spawning a follow-up Task for endBackgroundTask is not guaranteed to land
+            // before iOS suspends the app, violating UIApplication's contract.
+            // Note: the previous code had an expirationHandler; it was buggy (also ended the
+            // task from a Task) and has been intentionally dropped — see PR description.
+            if bgTask != .invalid {
+                await UIApplication.shared.endBackgroundTask(bgTask)
             }
         }
     }
