@@ -101,20 +101,24 @@ private actor LoopGuard {
 /// data races between Combine sinks (processQueue) and async contexts (cancelBolus).
 private actor BolusProgressState {
     private var reporter: DoseProgressReporter?
-    private weak var observer: (any DoseProgressObserver)?
     private var generation: UInt64 = 0
+
+    // Observer is supplied by the caller on every call instead of being cached weakly:
+    // a stored weak ref could nil out between setReporter and clear (if the owning
+    // BaseAPSManager were torn down in between), making the removeObserver call a no-op
+    // and leaking the observer through any internal strong list inside DoseProgressReporter.
+    // Holding it strong here would form a retain cycle (BaseAPSManager → state → observer).
 
     func setReporter(_ newReporter: DoseProgressReporter?, observer: any DoseProgressObserver) {
         generation &+= 1
         reporter?.removeObserver(observer)
         reporter = newReporter
         reporter?.addObserver(observer)
-        self.observer = observer
     }
 
-    func clear() -> UInt64 {
+    func clear(observer: any DoseProgressObserver) -> UInt64 {
         generation &+= 1
-        if let observer { reporter?.removeObserver(observer) }
+        reporter?.removeObserver(observer)
         reporter = nil
         return generation
     }
@@ -1229,7 +1233,7 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func clearBolusReporter() async {
-        let token = await bolusProgressState.clear()
+        let token = await bolusProgressState.clear(observer: self)
         try? await Task.sleep(for: .milliseconds(500))
         // Generation token guards against a new bolus starting during the 500 ms grace:
         // if `setReporter` ran in between, our stale `send(nil)` would clobber its initial `send(0)`.
