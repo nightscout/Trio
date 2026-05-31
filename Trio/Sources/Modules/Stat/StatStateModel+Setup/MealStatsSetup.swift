@@ -107,37 +107,30 @@ extension Stat.StateModel {
         }
     }
 
-    /// Calculates and caches the daily averages of macronutrients
+    /// Caches per-day macro totals keyed by `startOfDay`, for fast range
+    /// lookups in `calculateAveragesForDateRange`.
     ///
-    /// This function:
-    /// 1. Groups meal statistics by day
-    /// 2. Calculates average carbs, fat and protein for each day
-    /// 3. Caches the results for later use
+    /// `dailyMealStats` already has one entry per day (built that way by
+    /// `fetchMealStats`'s `dailyGrouped`), so re-grouping and dividing by
+    /// `count == 1` was a no-op. The `uniquingKeysWith:` merge is
+    /// defensive against any future call site that constructs `MealStats`
+    /// with mid-day timestamps for the same day.
     ///
-    /// This only needs to be called once during subscribe.
+    /// Only needs to be called once during subscribe.
     private func calculateAndCacheDailyAverages() async {
         let calendar = Calendar.current
 
-        // Calculate averages in context
         let dailyAverages = await mealTaskContext.perform { [dailyMealStats] in
-            // Group by days
-            let groupedByDay = Dictionary(grouping: dailyMealStats) { stat in
-                calendar.startOfDay(for: stat.date)
-            }
-
-            // Calculate averages for each day
-            var averages: [Date: (Double, Double, Double)] = [:]
-            for (day, stats) in groupedByDay {
-                let total = stats.reduce((0.0, 0.0, 0.0)) { acc, stat in
-                    (acc.0 + stat.carbs, acc.1 + stat.fat, acc.2 + stat.protein)
+            Dictionary(
+                dailyMealStats.map { stat in
+                    (calendar.startOfDay(for: stat.date), (stat.carbs, stat.fat, stat.protein))
+                },
+                uniquingKeysWith: { existing, new in
+                    (existing.0 + new.0, existing.1 + new.1, existing.2 + new.2)
                 }
-                let count = Double(stats.count)
-                averages[day] = (total.0 / count, total.1 / count, total.2 / count)
-            }
-            return averages
+            )
         }
 
-        // Update cache on main thread
         await MainActor.run {
             self.dailyAveragesCache = dailyAverages
         }
