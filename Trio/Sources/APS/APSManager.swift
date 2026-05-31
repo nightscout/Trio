@@ -594,11 +594,18 @@ final class BaseAPSManager: APSManager, Injectable {
         do {
             try await pump.enactBolus(units: roundedAmount, automatic: isSMB)
             debug(.apsManager, "Bolus succeeded")
-            if !isSMB {
-                try await determineBasalSync()
-            }
             bolusProgress.send(0)
             callback?(true, String(localized: "Bolus enacted successfully.", comment: "Success message for enacting a bolus"))
+            if !isSMB {
+                do {
+                    try await determineBasalSync()
+                } catch {
+                    warning(
+                        .apsManager,
+                        "determineBasalSync after manual bolus failed: \(error.localizedDescription)"
+                    )
+                }
+            }
         } catch {
             warning(.apsManager, "Bolus failed with error: \(error)")
             processError(APSError.pumpError(error))

@@ -38,6 +38,7 @@ extension Settings {
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
         @Environment(AppState.self) var appState
+        @Environment(SettingsSearchHighlight.self) var searchHighlight
 
         private var filteredItems: [FilteredSettingItem] {
             SettingItems.filteredItems(searchText: searchText)
@@ -284,15 +285,19 @@ extension Settings {
                         content: {
                             if filteredItems.isNotEmpty {
                                 ForEach(filteredItems) { filteredItem in
-                                    VStack(alignment: .leading) {
-                                        Text(filteredItem.matchedContent.localized).bold()
-                                        if let path = filteredItem.settingItem.path {
-                                            Text(path.map(\.localized).joined(separator: " > "))
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
+                                    NavigationLink(value: SearchResultTarget(
+                                        screen: filteredItem.settingItem.view,
+                                        scrollLabel: filteredItem.scrollLabel.localized
+                                    )) {
+                                        VStack(alignment: .leading) {
+                                            Text(filteredItem.matchedContent.localized).bold()
+                                            if let path = filteredItem.settingItem.path {
+                                                Text(path.map(\.localized).joined(separator: " > "))
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                            }
                                         }
-
-                                    }.navigationLink(to: filteredItem.settingItem.view, from: self)
+                                    }
                                 }
                             } else {
                                 Text("No settings matching your search query")
@@ -339,6 +344,12 @@ extension Settings {
                 }
             }
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
+            .navigationDestination(for: SearchResultTarget.self) { target in
+                state.view(for: target.screen)
+                    .onAppear {
+                        searchHighlight.highlightedSetting = target.scrollLabel
+                    }
+            }
             .screenNavigation(self)
             .onAppear {
                 Task { @MainActor in

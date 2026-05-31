@@ -10,7 +10,7 @@ class TrioRemoteControl: Injectable {
     @Injected() internal var nightscoutManager: NightscoutManager!
     @Injected() internal var overrideStorage: OverrideStorage!
     @Injected() internal var settings: SettingsManager!
-    @Injected() internal var iobService: IOBService!
+    @Injected() internal var bolusSafetyValidator: BolusSafetyValidator!
 
     private let timeWindow: TimeInterval = 600
 

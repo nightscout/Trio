@@ -16,7 +16,7 @@ extension ShortcutsConfig {
             units = settingsManager.settings.units
 
             subscribeSetting(\.bolusShortcut, on: $maxBolusByShortcuts) {
-                maxBolusByShortcuts = ($0 == .notAllowed) ? .limitBolusMax : $0
+                maxBolusByShortcuts = ($0 == .notAllowed) ? .limitWithSafetyChecks : $0
                 allowBolusByShortcuts = ($0 != .notAllowed)
             }
 
@@ -29,7 +29,7 @@ extension ShortcutsConfig {
                         if let bs = self?.maxBolusByShortcuts {
                             self?.settingsManager.settings.bolusShortcut = bs
                         } else {
-                            self?.settingsManager.settings.bolusShortcut = .limitBolusMax
+                            self?.settingsManager.settings.bolusShortcut = .limitWithSafetyChecks
                         }
                     }
                 }

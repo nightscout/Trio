@@ -370,6 +370,7 @@ extension SMBSettings {
             .onAppear(perform: configureView)
             .navigationTitle("SMB Settings")
             .navigationBarTitleDisplayMode(.automatic)
+            .settingsHighlightScroll()
         }
     }
 }

@@ -264,6 +264,7 @@ extension GlucoseNotificationSettings {
             .onAppear(perform: configureView)
             .navigationBarTitle("Trio Notifications")
             .navigationBarTitleDisplayMode(.automatic)
+            .settingsHighlightScroll()
         }
 
         var lowAndHighGlucoseAlertSection: some View {
