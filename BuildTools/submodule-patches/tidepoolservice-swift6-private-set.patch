@@ -1,0 +1,13 @@
+diff --git a/TidepoolServiceKit/TidepoolService.swift b/TidepoolServiceKit/TidepoolService.swift
+index 805eaa1..c493732 100644
+--- a/TidepoolServiceKit/TidepoolService.swift
++++ b/TidepoolServiceKit/TidepoolService.swift
+@@ -50,7 +50,7 @@ public final class TidepoolService: Service, TAPIObserver, ObservableObject {
+ 
+     public let tapi: TAPI = TAPI(clientId: BuildDetails.default.tidepoolServiceClientId, redirectURL: BuildDetails.default.tidepoolServiceRedirectURL)
+ 
+-    public private (set) var error: Error?
++    public private(set) var error: Error?
+ 
+     private let id: String
+ 

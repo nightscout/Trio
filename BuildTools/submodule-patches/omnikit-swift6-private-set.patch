@@ -1,0 +1,13 @@
+diff --git a/OmniKit/PumpManager/OmnipodPumpManagerState.swift b/OmniKit/PumpManager/OmnipodPumpManagerState.swift
+index 507454a..9490e51 100644
+--- a/OmniKit/PumpManager/OmnipodPumpManagerState.swift
++++ b/OmniKit/PumpManager/OmnipodPumpManagerState.swift
+@@ -18,7 +18,7 @@ public struct OmnipodPumpManagerState: RawRepresentable, Equatable {
+     
+     public var isOnboarded: Bool
+ 
+-    private (set) public var podState: PodState?
++    public private(set) var podState: PodState?
+ 
+     // podState should only be modifiable by PodComms
+     mutating func updatePodStateFromPodComms(_ podState: PodState?) {

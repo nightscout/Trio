@@ -194,6 +194,17 @@ jobs:
           git apply ./patches/* --allow-empty -v --whitespace=fix
           fi
 
+          # Apply local submodule patches for Swift 6 compatibility fixes
+          if [ -f ./BuildTools/submodule-patches/tidepoolservice-swift6-private-set.patch ]; then
+            git -C TidepoolService apply ../BuildTools/submodule-patches/tidepoolservice-swift6-private-set.patch -v --whitespace=fix
+          fi
+          if [ -f ./BuildTools/submodule-patches/omnible-swift6-private-set.patch ]; then
+            git -C OmniBLE apply ../BuildTools/submodule-patches/omnible-swift6-private-set.patch -v --whitespace=fix
+          fi
+          if [ -f ./BuildTools/submodule-patches/omnikit-swift6-private-set.patch ]; then
+            git -C OmniKit apply ../BuildTools/submodule-patches/omnikit-swift6-private-set.patch -v --whitespace=fix
+          fi
+
           # Download and apply Trio patches from GitHub:
           # Template for customizing Trio code (as opposed to submodule code)
           # Remove the "#" sign from the beginning of the line below to activate
@@ -246,7 +257,21 @@ jobs:
 
       # Upload to TestFlight
       - name: Fastlane upload to TestFlight
-        run: bundle exec fastlane release
+        run: |
+          max_attempts=3
+          for attempt in $(seq 1 "$max_attempts"); do
+            if bundle exec fastlane release; then
+              exit 0
+            fi
+
+            if [ "$attempt" -lt "$max_attempts" ]; then
+              echo "TestFlight upload failed (attempt $attempt/$max_attempts). Retrying in 60 seconds..."
+              sleep 60
+            fi
+          done
+
+          echo "TestFlight upload failed after $max_attempts attempts."
+          exit 1
         env:
           TEAMID: ${{ secrets.TEAMID }}
           GH_PAT: ${{ secrets.GH_PAT }}
