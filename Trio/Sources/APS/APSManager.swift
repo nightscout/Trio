@@ -646,7 +646,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 )
             )
         }
-        await bolusProgressState.clear()
+        _ = await bolusProgressState.clear(observer: self)
         bolusProgress.send(nil)
     }
 
@@ -1358,7 +1358,12 @@ extension BaseAPSManager: DoseProgressObserver {
     func doseProgressReporterDidUpdate(_ doseProgressReporter: DoseProgressReporter) {
         bolusProgress.send(Decimal(doseProgressReporter.progress.percentComplete))
         if doseProgressReporter.progress.isComplete {
-            clearBolusReporter()
+            // Protocol method is sync — wrap the now-async clear in a Task.
+            // The 500 ms delayed send(nil) is gated by the generation token in
+            // BolusProgressState, so a new bolus arriving in the meantime won't be clobbered.
+            Task { [weak self] in
+                await self?.clearBolusReporter()
+            }
         }
     }
 }
