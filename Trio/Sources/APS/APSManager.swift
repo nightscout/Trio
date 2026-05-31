@@ -380,8 +380,12 @@ final class BaseAPSManager: APSManager, Injectable {
 
     /// Single exit point for loop — replaces the old `loopCompleted()`.
     private func finalizeLoop(error: Error? = nil, loopStatRecord: LoopStats) async {
-        isLooping.send(false)
+        // Free the actor first, then publish state. If we published first, a heartbeat
+        // arriving in the gap would see the loop as done, call loop(), and trip
+        // tryStart on the still-busy actor — producing a spurious "Loop skipped" log
+        // at the tail of every loop. No functional harm, but unnecessary noise.
         await loopGuard.finish()
+        isLooping.send(false)
 
         if let error = error {
             warning(.apsManager, "Loop failed with error: \(error)")
