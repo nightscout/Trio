@@ -1,3 +1,4 @@
+import CoreData
 import Foundation
 
 // Fetch Data for Glucose and Determination from Core Data and map them to the Structs in order to pass them thread safe to the glucoseDidUpdate/ pushUpdate function
