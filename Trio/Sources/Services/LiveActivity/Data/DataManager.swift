@@ -68,58 +68,62 @@ extension LiveActivityManager {
     }
 
     func fetchAndMapTempTarget() async throws -> TempTargetData? {
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+        try await fetchAndMapLatest(
             ofType: TempTargetStored.self,
-            onContext: context,
-            predicate: NSPredicate.predicateForOneDayAgo,
+            predicate: .predicateForOneDayAgo,
             key: "date",
-            ascending: false,
-            fetchLimit: 1,
             propertiesToFetch: ["enabled", "name", "target", "date", "duration"]
-        )
-
-        return try await context.perform {
-            guard let tempTargetResults = results as? [[String: Any]] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            return tempTargetResults.first.map {
-                TempTargetData(
-                    isActive: $0["enabled"] as? Bool ?? false,
-                    tempTargetName: $0["name"] as? String ?? "Temp Target",
-                    date: $0["date"] as? Date ?? Date(),
-                    duration: $0["duration"] as? Decimal ?? 0,
-                    target: $0["target"] as? Decimal ?? 0
-                )
-            }
+        ) { row in
+            TempTargetData(
+                isActive: row["enabled"] as? Bool ?? false,
+                tempTargetName: row["name"] as? String ?? "Temp Target",
+                date: row["date"] as? Date ?? Date(),
+                duration: row["duration"] as? Decimal ?? 0,
+                target: row["target"] as? Decimal ?? 0
+            )
         }
     }
 
     func fetchAndMapOverride() async throws -> OverrideData? {
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+        try await fetchAndMapLatest(
             ofType: OverrideStored.self,
-            onContext: context,
-            predicate: NSPredicate.predicateForOneDayAgo,
+            predicate: .predicateForOneDayAgo,
             key: "date",
+            propertiesToFetch: ["enabled", "name", "target", "date", "duration"]
+        ) { row in
+            OverrideData(
+                isActive: row["enabled"] as? Bool ?? false,
+                overrideName: row["name"] as? String ?? "Override",
+                date: row["date"] as? Date ?? Date(),
+                duration: row["duration"] as? Decimal ?? 0,
+                target: row["target"] as? Decimal ?? 0
+            )
+        }
+    }
+
+    private func fetchAndMapLatest<Entity: NSManagedObject, Output>(
+        ofType type: Entity.Type,
+        predicate: NSPredicate,
+        key: String,
+        propertiesToFetch: [String],
+        map: @escaping ([String: Any]) -> Output
+    ) async throws -> Output? {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: type,
+            onContext: context,
+            predicate: predicate,
+            key: key,
             ascending: false,
             fetchLimit: 1,
-            propertiesToFetch: ["enabled", "name", "target", "date", "duration"]
+            propertiesToFetch: propertiesToFetch
         )
 
         return try await context.perform {
-            guard let overrideResults = results as? [[String: Any]] else {
+            guard let rows = results as? [[String: Any]] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
-            return overrideResults.first.map {
-                OverrideData(
-                    isActive: $0["enabled"] as? Bool ?? false,
-                    overrideName: $0["name"] as? String ?? "Override",
-                    date: $0["date"] as? Date ?? Date(),
-                    duration: $0["duration"] as? Decimal ?? 0,
-                    target: $0["target"] as? Decimal ?? 0
-                )
-            }
+            return rows.first.map(map)
         }
     }
 }
