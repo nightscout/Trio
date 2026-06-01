@@ -65,7 +65,7 @@ import WatchConnectivity
     /// Snapshots older than this are dropped at the top of the WC delegate
     /// methods. Single source of truth for both `didReceiveMessage` and
     /// `didReceiveUserInfo`.
-    private static let maxAcceptableMessageAge: TimeInterval = 15 * 60
+    private static let maxAcceptableMessageAgeInMinutes: TimeInterval = 15 * 60
 
     // MARK: - Debouncing and batch processing helpers
 
@@ -236,7 +236,7 @@ import WatchConnectivity
         // Wall-clock staleness gate. Drops the queued backlog cheaply when
         // the watch app wakes after long disuse; without it, every payload
         // schedules merge + UI work.
-        guard date >= Date().addingTimeInterval(-Self.maxAcceptableMessageAge) else {
+        guard date >= Date().addingTimeInterval(-Self.maxAcceptableMessageAgeInMinutes) else {
             Task { await WatchLogger.shared.log("⌚️ Skipping stale watch state (\(date))") }
             DispatchQueue.main.async { self.showSyncingAnimation = false }
             return
