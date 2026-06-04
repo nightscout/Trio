@@ -29,6 +29,10 @@ enum TidepoolHealth: Equatable {
     case transient(at: Date)
 }
 
+protocol TidepoolHealthObserver {
+    func tidepoolHealthDidChange(_ health: TidepoolHealth)
+}
+
 protocol TidepoolManager {
     func addTidepoolService(service: Service)
     func getTidepoolServiceUI() -> ServiceUI?
@@ -40,9 +44,6 @@ protocol TidepoolManager {
     func uploadGlucose() async
     func uploadSettings() async
     func forceTidepoolDataUpload()
-    /// Live updates whenever an upload returns; backed by a `CurrentValueSubject`
-    /// so subscribers receive the current value on subscribe.
-    var healthPublisher: AnyPublisher<TidepoolHealth, Never> { get }
 }
 
 final class BaseTidepoolManager: TidepoolManager, Injectable {
@@ -90,15 +91,6 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     private var subscriptions = Set<AnyCancellable>()
 
     @PersistedProperty(key: "TidepoolState") var rawTidepoolManager: Service.RawValue?
-
-    /// Backing storage for `healthPublisher`. Seeded with `.unknown` so the UI
-    /// shows the optimistic "connected" indicator until the first upload
-    /// returns. Mutated only via `noteUploadSuccess` / `noteUploadFailure`.
-    private let healthSubject = CurrentValueSubject<TidepoolHealth, Never>(.unknown)
-
-    var healthPublisher: AnyPublisher<TidepoolHealth, Never> {
-        healthSubject.eraseToAnyPublisher()
-    }
 
     init(resolver: Resolver) {
         self.resolver = resolver
@@ -198,11 +190,11 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
 
     // MARK: - Upload health tracking
 
-    /// Records a successful Tidepool upload. Resets `health` to `.healthy(now)`
-    /// — also clears any prior `.authFailed` / `.transient` state, so the UI
-    /// returns to the optimistic indicator on the next success.
+    /// Records a successful Tidepool upload — broadcasts `.healthy(now)` to any
+    /// `TidepoolHealthObserver`, clearing any prior `.authFailed` / `.transient`
+    /// state on the indicator.
     fileprivate func noteUploadSuccess() {
-        healthSubject.send(.healthy(at: Date()))
+        notifyHealth(.healthy(at: Date()))
     }
 
     /// Records a failed Tidepool upload. Routes through `classify` to decide
@@ -210,7 +202,18 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     /// transient network/server hiccup. Called from every `.failure` branch
     /// in the upload completion handlers.
     fileprivate func noteUploadFailure(_ error: Error) {
-        healthSubject.send(classify(error))
+        notifyHealth(classify(error))
+    }
+
+    /// Fans a health change out to all registered `TidepoolHealthObserver`s
+    /// on the main thread. Upload completion handlers can fire from arbitrary
+    /// background queues, and observers update SwiftUI `@Published` state.
+    private func notifyHealth(_ health: TidepoolHealth) {
+        DispatchQueue.main.async {
+            self.broadcaster.notify(TidepoolHealthObserver.self, on: .main) {
+                $0.tidepoolHealthDidChange(health)
+            }
+        }
     }
 
     /// Best-effort classification of a Tidepool upload error.

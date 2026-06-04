@@ -11,11 +11,6 @@ struct TidepoolStartView: BaseView {
     @State private var decimalPlaceholder: Decimal = 0.0
     @State private var booleanPlaceholder: Bool = false
 
-    /// Mirror of `TidepoolManager.healthPublisher`. Drives the connection
-    /// indicator below — `getTidepoolServiceUI() != nil` only proves the
-    /// service was once configured, not that it's still authenticated.
-    @State private var tidepoolHealth: TidepoolHealth = .unknown
-
     @Environment(\.colorScheme) var colorScheme
     @Environment(AppState.self) var appState
 
@@ -113,16 +108,10 @@ struct TidepoolStartView: BaseView {
         .navigationTitle("Tidepool")
         .navigationBarTitleDisplayMode(.automatic)
         .onAppear(perform: configureView)
-        .onReceive(state.provider.tidepoolManager.healthPublisher) { newHealth in
-            tidepoolHealth = newHealth
-        }
     }
 
-    /// Label shown next to the network icon when a Tidepool service is configured.
-    /// Auth failures get an explicit re-login prompt; transient hiccups are
-    /// surfaced but kept gentler so a flaky network doesn't alarm the user.
     private var connectionLabel: String {
-        switch tidepoolHealth {
+        switch state.tidepoolHealth {
         case .healthy,
              .unknown:
             return String(localized: "Connected to Tidepool")
@@ -133,9 +122,8 @@ struct TidepoolStartView: BaseView {
         }
     }
 
-    /// SF Symbol for the small status dot overlaid on the network icon.
     private var connectionIconName: String {
-        switch tidepoolHealth {
+        switch state.tidepoolHealth {
         case .healthy,
              .unknown:
             return "checkmark.circle.fill"
@@ -147,7 +135,7 @@ struct TidepoolStartView: BaseView {
     }
 
     private var connectionIconColor: Color {
-        switch tidepoolHealth {
+        switch state.tidepoolHealth {
         case .healthy,
              .unknown:
             return .green
