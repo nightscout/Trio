@@ -113,7 +113,9 @@ struct LiveActivityChartView: View {
         let duration = context.state.detailedViewState.overrideDuration
         let durationAsTimeInterval = TimeInterval((duration as NSDecimalNumber).doubleValue * 60) // return seconds
 
-        let end: Date = start.addingTimeInterval(durationAsTimeInterval)
+        let end: Date = duration == 0
+            ? Date(timeIntervalSinceNow: 7200)
+            : start.addingTimeInterval(durationAsTimeInterval)
         let target = context.state.detailedViewState.overrideTarget
 
         return RuleMark(
