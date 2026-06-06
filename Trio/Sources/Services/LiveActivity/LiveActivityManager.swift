@@ -324,9 +324,7 @@ final class LiveActivityData: ObservableObject {
                                 tempTargetTarget: 0,
                                 widgetItems: [],
                                 minForecast: [],
-                                maxForecast: [],
-                                forecastLines: [],
-                                forecastDisplayType: ForecastDisplayType.cone.rawValue
+                                maxForecast: []
                             ),
                             isInitialState: true
                         ),

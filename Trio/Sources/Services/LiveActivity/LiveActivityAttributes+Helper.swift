@@ -120,11 +120,7 @@ extension LiveActivityAttributes.ContentState {
             tempTargetTarget: tempTarget?.target ?? 0,
             widgetItems: widgetItems ?? [], // set empty array here to silence compiler; this can never be nil
             minForecast: determination?.minForecast ?? [],
-            maxForecast: determination?.maxForecast ?? [],
-            forecastLines: (determination?.forecastLines ?? []).map {
-                LiveActivityAttributes.ForecastLine(type: $0.type, values: $0.values)
-            },
-            forecastDisplayType: settings.forecastDisplayType.rawValue
+            maxForecast: determination?.maxForecast ?? []
         )
 
         self.init(

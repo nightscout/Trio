@@ -60,18 +60,14 @@ extension LiveActivityManager {
 
             let tddValue = (tddResults.first?["total"] as? NSDecimalNumber)?.decimalValue ?? 0
 
-            // Compute cone bounds and per-type lines from forecast relationships (max 36 values = 3h)
+            // Compute cone bounds from forecast relationships (max 36 values = 3h)
             var allForecastValues = [[Int]]()
-            var forecastLines = [(type: String, values: [Int])]()
 
             if let forecasts = determination.forecasts {
                 for forecast in forecasts.sorted(by: { ($0.type ?? "") < ($1.type ?? "") }) {
                     let values = forecast.forecastValuesArray.prefix(36).map { Int($0.value) }
                     guard !values.isEmpty else { continue }
                     allForecastValues.append(Array(values))
-                    if let type = forecast.type {
-                        forecastLines.append((type: type, values: Array(values)))
-                    }
                 }
             }
 
@@ -91,8 +87,7 @@ extension LiveActivityManager {
                 target: determination.currentTarget?.decimalValue ?? 0,
                 date: determination.deliverAt,
                 minForecast: minForecast,
-                maxForecast: maxForecast,
-                forecastLines: forecastLines
+                maxForecast: maxForecast
             )
         }
     }
