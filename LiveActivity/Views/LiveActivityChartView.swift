@@ -213,8 +213,8 @@ struct LiveActivityChartView: View {
         let colorMap: [String: Color] = [
             "iob": Color(red: 0.118, green: 0.588, blue: 0.988),
             "cob": Color.orange,
-            "uam": Color(red: 0.820, green: 0.169, blue: 0.969),
-            "zt": Color(red: 0.443, green: 0.380, blue: 0.937)
+            "uam": Color("UAM"),
+            "zt": Color("ZT")
         ]
 
         let points: [(series: String, date: Date, value: Decimal)] = additionalState.forecastLines.flatMap { line in
@@ -224,7 +224,7 @@ struct LiveActivityChartView: View {
             }
         }
 
-        return ForEach(Array(points.indices), id: \.self) { i in
+        return ForEach(0 ..< points.count, id: \.self) { i in
             let point = points[i]
             LineMark(
                 x: .value("Time", point.date),
