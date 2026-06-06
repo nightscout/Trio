@@ -38,7 +38,7 @@ struct LiveActivityChartView: View {
 
         let isOverrideActive = additionalState.isOverrideActive == true
         let isTempTargetActive = additionalState.isTempTargetActive == true
-        let hasForecast = !additionalState.minForecast.isEmpty
+        let hasForecast = !additionalState.minForecast.isEmpty || !additionalState.forecastLines.isEmpty
 
         let calendar = Calendar.current
         let now = Date()
@@ -47,7 +47,11 @@ struct LiveActivityChartView: View {
         let endDate: Date = {
             let baseEnd = calendar.date(byAdding: .minute, value: isWatchOS ? 5 : 0, to: now) ?? now
             guard hasForecast, let anchorDate = state.date else { return baseEnd }
-            let predictionEnd = anchorDate.addingTimeInterval(TimeInterval(additionalState.minForecast.count * 300))
+            let forecastCount = max(
+                additionalState.minForecast.count,
+                additionalState.forecastLines.max(by: { $0.values.count < $1.values.count })?.values.count ?? 0
+            )
+            let predictionEnd = anchorDate.addingTimeInterval(TimeInterval(forecastCount * 300))
             return max(baseEnd, predictionEnd)
         }()
 
@@ -94,7 +98,11 @@ struct LiveActivityChartView: View {
             }
 
             if hasForecast, let anchorDate = state.date {
-                drawForecastCone(anchorDate: anchorDate, isMgdL: isMgdL, maxValue: maxValue)
+                if additionalState.forecastDisplayType == "lines" {
+                    drawForecastLines(anchorDate: anchorDate, isMgdL: isMgdL)
+                } else {
+                    drawForecastCone(anchorDate: anchorDate, isMgdL: isMgdL, maxValue: maxValue)
+                }
             }
 
             drawChart(yAxisRuleMarkMin: yAxisRuleMarkMin, yAxisRuleMarkMax: yAxisRuleMarkMax)
@@ -197,6 +205,34 @@ struct LiveActivityChartView: View {
                 yEnd: .value("Max", coneData[i].yMax)
             )
             .foregroundStyle(Color.blue.opacity(0.5))
+            .interpolationMethod(.linear)
+        }
+    }
+
+    private func drawForecastLines(anchorDate: Date, isMgdL: Bool) -> some ChartContent {
+        let colorMap: [String: Color] = [
+            "iob": Color(red: 0.118, green: 0.588, blue: 0.988),
+            "cob": Color.orange,
+            "uam": Color(red: 0.820, green: 0.169, blue: 0.969),
+            "zt": Color(red: 0.443, green: 0.380, blue: 0.937)
+        ]
+
+        let points: [(series: String, date: Date, value: Decimal)] = additionalState.forecastLines.flatMap { line in
+            line.values.enumerated().map { index, value in
+                let displayValue = isMgdL ? Decimal(value) : Decimal(value).asMmolL
+                return (series: line.type, date: timeForIndex(index, anchorDate: anchorDate), value: displayValue)
+            }
+        }
+
+        return ForEach(Array(points.indices), id: \.self) { i in
+            let point = points[i]
+            LineMark(
+                x: .value("Time", point.date),
+                y: .value("Value", point.value),
+                series: .value("Type", point.series)
+            )
+            .foregroundStyle(colorMap[point.series] ?? Color.gray)
+            .lineStyle(.init(lineWidth: 1.5))
             .interpolationMethod(.linear)
         }
     }

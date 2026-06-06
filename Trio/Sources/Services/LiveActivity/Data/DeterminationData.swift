@@ -7,4 +7,5 @@ struct DeterminationData {
     let date: Date?
     let minForecast: [Int]
     let maxForecast: [Int]
+    let forecastLines: [(type: String, values: [Int])]
 }
