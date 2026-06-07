@@ -502,12 +502,12 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             return
         }
 
-        // Skip if we already sent this state or older
-        let lastSent = WatchStateSnapshot.loadLatestDateFromDisk()
-        guard lastSent < state.date else {
-            debug(.watchManager, "🕐 Skipping push — newer or equal state already sent")
-            return
-        }
+        // Stamp the snapshot with send time. Each push gets a strictly newer
+        // `date` than the previous one, which is what the watch's monotonicity
+        // dedup relies on — including watch-requested re-pushes when no CGM
+        // tick has bumped the build-time date.
+        var state = state
+        state.date = Date()
 
         let message: [String: Any] = watchStateToDictionary(from: state)
 
@@ -517,12 +517,11 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             session.sendMessage([WatchMessageKeys.watchState: message], replyHandler: nil) { error in
                 debug(.watchManager, "❌ Error sending watch state: \(error)")
             }
-            WatchStateSnapshot.saveLatestDateToDisk(state.date)
         } else {
-            WatchStateSnapshot.saveLatestDateToDisk(state.date)
             session.transferUserInfo([WatchMessageKeys.watchState: message])
             debug(.watchManager, "📤 Transferred new WatchState snapshot via userInfo")
         }
+        WatchStateSnapshot.saveLatestDateToDisk(state.date)
     }
 
     func sendAcknowledgment(toWatch success: Bool, message: String = "", ackCode: AcknowledgmentCode) {

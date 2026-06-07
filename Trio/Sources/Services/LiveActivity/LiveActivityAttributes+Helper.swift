@@ -69,6 +69,7 @@ extension LiveActivityAttributes.ContentState {
         determination: DeterminationData?,
         iob: Decimal?,
         override: OverrideData?,
+        tempTarget: TempTargetData?,
         widgetItems: [LiveActivityAttributes.LiveActivityItem]?
     ) {
         let glucose = bg.glucose
@@ -112,6 +113,11 @@ extension LiveActivityAttributes.ContentState {
             overrideDate: override?.date ?? Date(),
             overrideDuration: override?.duration ?? 0,
             overrideTarget: override?.target ?? 0,
+            isTempTargetActive: tempTarget?.isActive ?? false,
+            tempTargetName: tempTarget?.tempTargetName ?? "Temp Target",
+            tempTargetDate: tempTarget?.date ?? Date(),
+            tempTargetDuration: tempTarget?.duration ?? 0,
+            tempTargetTarget: tempTarget?.target ?? 0,
             widgetItems: widgetItems ?? [] // set empty array here to silence compiler; this can never be nil
         )
 
