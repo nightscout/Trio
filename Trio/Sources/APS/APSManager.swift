@@ -73,7 +73,6 @@ enum APSError: LocalizedError {
 // MARK: - Thread-safe loop serialization
 
 /// Ensures only one loop runs at a time via actor isolation.
-/// Replaces the non-atomic check-then-act pattern on `isLooping` CurrentValueSubject.
 private actor LoopGuard {
     private var isRunning = false
 
@@ -100,12 +99,6 @@ private actor LoopGuard {
 private actor BolusProgressState {
     private var reporter: DoseProgressReporter?
     private var generation: UInt64 = 0
-
-    // Observer is supplied by the caller on every call instead of being cached weakly:
-    // a stored weak ref could nil out between setReporter and clear (if the owning
-    // BaseAPSManager were torn down in between), making the removeObserver call a no-op
-    // and leaking the observer through any internal strong list inside DoseProgressReporter.
-    // Holding it strong here would form a retain cycle (BaseAPSManager → state → observer).
 
     func setReporter(_ newReporter: DoseProgressReporter?, observer: any DoseProgressObserver) {
         generation &+= 1
@@ -239,9 +232,6 @@ final class BaseAPSManager: APSManager, Injectable {
         deviceDataManager.bolusTrigger
             .receive(on: processQueue)
             .sink { [weak self] bolusing in
-                // Funnel both transitions through a single Task so create/clear can't
-                // reorder against each other at the actor (unstructured Tasks enter
-                // the actor in scheduler order, not FIFO).
                 Task { [weak self] in
                     guard let self else { return }
                     if bolusing {
@@ -303,7 +293,6 @@ final class BaseAPSManager: APSManager, Injectable {
                 return
             }
 
-            // Local background task — no shared mutable state
             let bgTask = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting")
             isLooping.send(true)
 
@@ -332,11 +321,6 @@ final class BaseAPSManager: APSManager, Injectable {
                 debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to complete Loop: \(error)")
             }
 
-            // End the background task on the async path itself — `defer` cannot `await`,
-            // and spawning a follow-up Task for endBackgroundTask is not guaranteed to land
-            // before iOS suspends the app, violating UIApplication's contract.
-            // Note: the previous code had an expirationHandler; it was buggy (also ended the
-            // task from a Task) and has been intentionally dropped — see PR description.
             if bgTask != .invalid {
                 await UIApplication.shared.endBackgroundTask(bgTask)
             }
@@ -382,10 +366,6 @@ final class BaseAPSManager: APSManager, Injectable {
 
     /// Single exit point for loop — replaces the old `loopCompleted()`.
     private func finalizeLoop(error: Error? = nil, loopStatRecord: LoopStats) async {
-        // Free the actor first, then publish state. If we published first, a heartbeat
-        // arriving in the gap would see the loop as done, call loop(), and trip
-        // tryStart on the still-busy actor — producing a spurious "Loop skipped" log
-        // at the tail of every loop. No functional harm, but unnecessary noise.
         await loopGuard.finish()
         isLooping.send(false)
 
@@ -1363,9 +1343,6 @@ extension BaseAPSManager: DoseProgressObserver {
     func doseProgressReporterDidUpdate(_ doseProgressReporter: DoseProgressReporter) {
         bolusProgress.send(Decimal(doseProgressReporter.progress.percentComplete))
         if doseProgressReporter.progress.isComplete {
-            // Protocol method is sync — wrap the now-async clear in a Task.
-            // The 500 ms delayed send(nil) is gated by the generation token in
-            // BolusProgressState, so a new bolus arriving in the meantime won't be clobbered.
             Task { [weak self] in
                 await self?.clearBolusReporter()
             }
