@@ -91,8 +91,6 @@ private actor LoopGuard {
     func finish() {
         isRunning = false
     }
-
-    var running: Bool { isRunning }
 }
 
 // MARK: - Thread-safe bolus progress state
