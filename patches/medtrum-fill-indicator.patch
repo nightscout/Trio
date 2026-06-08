@@ -1,8 +1,8 @@
 diff --git a/MedtrumKit/PumpManager/MedtrumPumpManager.swift b/MedtrumKit/PumpManager/MedtrumPumpManager.swift
-index 9924f52..f0163f0 100644
+index 096d402..b26cdae 100644
 --- a/MedtrumKit/PumpManager/MedtrumPumpManager.swift
 +++ b/MedtrumKit/PumpManager/MedtrumPumpManager.swift
-@@ -795,6 +795,32 @@ public extension MedtrumPumpManager {
+@@ -670,6 +670,32 @@ public extension MedtrumPumpManager {
          }
      }
  
@@ -148,7 +148,7 @@ index a416fec..36124a9 100644
                  if pumpManager.state.pumpState.rawValue > PatchState.priming.rawValue,
                     pumpManager.state.pumpState.rawValue < PatchState.active.rawValue
 diff --git a/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift b/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
-index 579c2a8..657f773 100644
+index a07835a..2dbd3fe 100644
 --- a/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
 +++ b/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
 @@ -51,6 +51,49 @@ struct PatchPrimingView: View {
@@ -182,15 +182,15 @@ index 579c2a8..657f773 100644
 +                        if viewModel.isPreparingFill {
 +                            HStack(spacing: 8) {
 +                                ActivityIndicator()
-+                                Text(LocalizedString("Connecting to patch...", comment: "Status while connecting to Medtrum patch before filling"))
++                                Text("Connecting to patch...", comment: "Status while connecting to Medtrum patch before filling")
 +                                    .foregroundStyle(.secondary)
 +                            }
 +                        } else if viewModel.hasMinimumFill {
-+                            Text(LocalizedString("Minimum fill reached. You can start priming.", comment: "Status when Medtrum patch has enough insulin to prime"))
++                            Text("Minimum fill reached. You can start priming.", comment: "Status when Medtrum patch has enough insulin to prime")
 +                                .multilineTextAlignment(.center)
 +                                .foregroundStyle(.green)
 +                        } else {
-+                            Text(LocalizedString("Fill at least 70U before priming.", comment: "Status when Medtrum patch needs more insulin before priming"))
++                            Text("Fill at least 70U before priming.", comment: "Status when Medtrum patch needs more insulin before priming")
 +                                .multilineTextAlignment(.center)
 +                                .foregroundStyle(.red)
 +                        }
@@ -202,7 +202,7 @@ index 579c2a8..657f773 100644
                      supportImage("half_press_needle_button")
                      HStack(alignment: .top) {
 @@ -83,17 +126,25 @@ struct PatchPrimingView: View {
-                 Text(LocalizedString("Go back to pump base", comment: "label for go to pump base patch"))
+                 Text("Go back to pump base", comment: "label for go to pump base patch")
              }
              .buttonStyle(ActionButtonStyle(.secondary))
 -            .disabled(viewModel.isPriming)
@@ -222,9 +222,9 @@ index 579c2a8..657f773 100644
 +                if viewModel.isPriming || viewModel.isPreparingFill {
 +                    ActivityIndicator()
 +                } else if viewModel.canStartPrime {
-                     Text(LocalizedString("Start priming", comment: "label for prime start action"))
+                     Text("Start priming", comment: "label for prime start action")
 +                } else {
-+                    Text(LocalizedString("Retry connection", comment: "label for retrying Medtrum patch fill connection"))
++                    Text("Retry connection", comment: "label for retrying Medtrum patch fill connection")
                  }
              }
 -            .disabled(viewModel.isPriming)
@@ -235,7 +235,7 @@ index 579c2a8..657f773 100644
 @@ -101,6 +152,9 @@ struct PatchPrimingView: View {
          .edgesIgnoringSafeArea(.bottom)
          .navigationBarBackButtonHidden(viewModel.isPriming)
-         .navigationTitle(LocalizedString("Patch priming", comment: "Priming header"))
+         .navigationTitle(String(localized: "Patch Priming", comment: "Priming header"))
 +        .onAppear {
 +            viewModel.prepareForFilling()
 +        }
