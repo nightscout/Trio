@@ -31,8 +31,8 @@ extension Stat.StateModel {
                     self.dailyMealStats = daily
                 }
 
-                // Initially calculate and cache daily averages
-                await calculateAndCacheDailyAverages()
+                // Initially calculate and cache per-day totals
+                await calculateAndCacheDailyTotals()
             } catch {
                 debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch meal stats: \(error)")
             }
@@ -112,27 +112,26 @@ extension Stat.StateModel {
     ///
     /// `dailyMealStats` already has one entry per day (built that way by
     /// `fetchMealStats`'s `dailyGrouped`), so re-grouping and dividing by
-    /// `count == 1` was a no-op. The `uniquingKeysWith:` merge is
-    /// defensive against any future call site that constructs `MealStats`
-    /// with mid-day timestamps for the same day.
+    /// `count == 1` was a no-op.
+    /// The `uniquingKeysWith:` merge is defensive against any future call
+    /// site that constructs `MealStats` with mid-day timestamps for the
+    /// same day.
     ///
     /// Only needs to be called once during subscribe.
-    private func calculateAndCacheDailyAverages() async {
+    private func calculateAndCacheDailyTotals() async {
         let calendar = Calendar.current
 
-        let dailyAverages = await mealTaskContext.perform { [dailyMealStats] in
-            Dictionary(
-                dailyMealStats.map { stat in
-                    (calendar.startOfDay(for: stat.date), (stat.carbs, stat.fat, stat.protein))
-                },
-                uniquingKeysWith: { existing, new in
-                    (existing.0 + new.0, existing.1 + new.1, existing.2 + new.2)
-                }
-            )
-        }
+        let dailyTotals = Dictionary(
+            dailyMealStats.map { stat in
+                (calendar.startOfDay(for: stat.date), (stat.carbs, stat.fat, stat.protein))
+            },
+            uniquingKeysWith: { existing, new in
+                (existing.0 + new.0, existing.1 + new.1, existing.2 + new.2)
+            }
+        )
 
         await MainActor.run {
-            self.dailyAveragesCache = dailyAverages
+            self.dailyMealTotalsCache = dailyTotals
         }
     }
 
@@ -155,8 +154,8 @@ extension Stat.StateModel {
         // `startOfDay(today) + 1s`, leaving `today 00:00:00` just outside the
         // range). Compare against the day *window* — a day belongs in the
         // range if any moment of it overlaps the range. Fixes #1181.
-        let dayLength: TimeInterval = 86_400
-        let relevantStats = dailyAveragesCache.filter { dayStart, _ in
+        let dayLength: TimeInterval = 86400
+        let relevantStats = dailyMealTotalsCache.filter { dayStart, _ in
             let dayEnd = dayStart.addingTimeInterval(dayLength)
             return dayStart < endDate && dayEnd > startDate
         }
@@ -165,8 +164,8 @@ extension Stat.StateModel {
         guard !relevantStats.isEmpty else { return (0, 0, 0) }
 
         // Calculate total macronutrients across all days
-        let total = relevantStats.values.reduce((0.0, 0.0, 0.0)) { acc, avg in
-            (acc.0 + avg.0, acc.1 + avg.1, acc.2 + avg.2)
+        let total = relevantStats.values.reduce((0.0, 0.0, 0.0)) { acc, dayTotal in
+            (acc.0 + dayTotal.0, acc.1 + dayTotal.1, acc.2 + dayTotal.2)
         }
 
         // Calculate averages by dividing totals by number of days
