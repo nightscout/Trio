@@ -221,6 +221,29 @@ extension Decimal {
         Trio.rounded(self / GlucoseUnits.exchangeRate, scale: 0, roundingMode: .plain)
     }
 
+    /// mmol/L → integer mg/dL biased toward preserving the source's
+    /// mmol/L display, used at the Nightscout import boundary
+    /// during Trio's Onboading flow..
+    ///
+    /// This variant rounds the source to its 1-decimal mmol/L display
+    /// first, then searches small neighbors of the naive mg/dL for the
+    /// integer whose round-trip back to mmol/L matches that display.
+    /// One mmol/L step spans ~1.8 integer mg/dL, so +/-2 always suffices
+    /// for in-range therapy values; we widen to ±3 defensively.
+    var asMgdLForImport: Decimal {
+        let targetDisplay = Trio.rounded(self, scale: 1, roundingMode: .plain)
+        let naive = asMgdL
+        let naiveInt = NSDecimalNumber(decimal: naive).intValue
+        for delta in [0, 1, -1, 2, -2, 3, -3] {
+            let candidate = Decimal(naiveInt + delta)
+            let display = Trio.rounded(candidate * GlucoseUnits.exchangeRate, scale: 1, roundingMode: .plain)
+            if display == targetDisplay {
+                return candidate
+            }
+        }
+        return naive
+    }
+
     var formattedAsMmolL: String {
         NumberFormatter.glucoseFormatter.string(from: asMmolL as NSDecimalNumber) ?? "\(asMmolL)"
     }
