@@ -159,7 +159,8 @@ extension Preferences {
 
         // checks for 'exercise mode' like conditions
         if profile.highTemptargetRaisesSensitivity,
-           let profileTarget = profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables), profileTarget >= profile.halfBasalExerciseTarget
+           let profileTarget = profile.profileTarget(trioCustomOrefVariables: trioCustomOrefVariables),
+           profileTarget >= profile.halfBasalExerciseTarget
         {
             return .off
         }
@@ -167,4 +168,3 @@ extension Preferences {
         return sigmoid ? .sigmoid : .logrithmic
     }
 }
-g
