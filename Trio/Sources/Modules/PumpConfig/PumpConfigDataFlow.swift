@@ -9,6 +9,7 @@ enum PumpConfig {
         case minimed
         case omnipod
         case omnipodBLE
+        case omni
         case dana
         case tandem
         case medtrum

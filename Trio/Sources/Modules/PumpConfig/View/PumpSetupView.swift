@@ -9,6 +9,7 @@ import MockKitUI
 import OmniBLE
 import OmniKit
 import OmniKitUI
+import OmnipodKit
 import SwiftUI
 import TandemKit
 import UIKit
@@ -59,6 +60,15 @@ extension PumpConfig {
                     bluetoothProvider: bluetoothManager,
                     colorPalette: .default,
                     allowDebugFeatures: true,
+                    allowedInsulinTypes: [.apidra, .humalog, .novolog, .fiasp, .lyumjev]
+                )
+            case .omni:
+                setupViewController = OmniPumpManager.setupViewController(
+                    initialSettings: initialSettings,
+                    bluetoothProvider: bluetoothManager,
+                    colorPalette: .default,
+                    allowDebugFeatures: true,
+                    prefersToSkipUserInteraction: false,
                     allowedInsulinTypes: [.apidra, .humalog, .novolog, .fiasp, .lyumjev]
                 )
             case .dana:

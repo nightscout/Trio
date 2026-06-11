@@ -483,18 +483,62 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
     }
 }
 
+/// Three-state diagnostics-sharing consent.
+///
+/// Maps to a pair of independent `Bool?` flags in `PropertyPersistentFlags`:
+/// `diagnosticsSharingEnabled` (Crashlytics) and `telemetryEnabled` (the
+/// anonymous-usage POST). See `TelemetryClient`.
 enum DiagnosticsSharingOption: String, Equatable, CaseIterable, Identifiable {
-    case enabled
+    case full
+    case crashOnly
     case disabled
 
     var id: String { rawValue }
 
     var displayName: String {
         switch self {
-        case .enabled:
-            return String(localized: "Enable Sharing")
+        case .full:
+            return String(localized: "Enable Full Sharing")
+        case .crashOnly:
+            return String(localized: "Crash Reports Only")
         case .disabled:
             return String(localized: "Disable Sharing")
+        }
+    }
+
+    var caption: String {
+        switch self {
+        case .full:
+            return String(localized: "Share anonymous crash reports + usage data.")
+        case .crashOnly:
+            return String(localized: "Share only crash reports — no usage data.")
+        case .disabled:
+            return String(localized: "Do not share any diagnostic data.")
+        }
+    }
+
+    var crashlyticsEnabled: Bool {
+        switch self {
+        case .crashOnly,
+             .full: return true
+        case .disabled: return false
+        }
+    }
+
+    var telemetryEnabled: Bool {
+        switch self {
+        case .full: return true
+        case .crashOnly,
+             .disabled: return false
+        }
+    }
+
+    init(crashlyticsEnabled: Bool, telemetryEnabled: Bool) {
+        switch (crashlyticsEnabled, telemetryEnabled) {
+        case (true, true): self = .full
+        case (true, false): self = .crashOnly
+        case (false, true): self = .full // unreachable in normal flow
+        case (false, false): self = .disabled
         }
     }
 }

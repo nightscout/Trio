@@ -81,6 +81,7 @@ struct NightscoutUploadView: View {
         }
         .navigationTitle("Upload")
         .navigationBarTitleDisplayMode(.automatic)
+        .settingsHighlightScroll()
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))
     }

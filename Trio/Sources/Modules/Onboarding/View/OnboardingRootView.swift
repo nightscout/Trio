@@ -71,7 +71,7 @@ extension Onboarding {
 
         // Next button conditional
         private var shouldDisableNextButton: Bool {
-            (currentStep == .diagnostics && state.diagnosticsSharingOption == .enabled && !state.hasAcceptedPrivacyPolicy)
+            (currentStep == .diagnostics && state.diagnosticsSharingOption != .disabled && !state.hasAcceptedPrivacyPolicy)
                 ||
                 (currentStep == .nightscout && didSelectNightscoutSetupOption)
                 ||
