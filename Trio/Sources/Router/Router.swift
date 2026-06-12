@@ -52,23 +52,12 @@ final class BaseRouter: Router {
 
     func allowNotify(_ message: MessageContent, _ settings: TrioSettings) -> Bool {
         if message.type == .error { return true }
-        switch message.subtype {
-        case .pump:
-            guard settings.notificationsPump else { return false }
-        case .cgm:
-            guard settings.notificationsCgm else { return false }
-        case .carb:
-            guard settings.notificationsCarb else { return false }
-        case .glucose:
-            guard (
+        if message.subtype == .glucose {
+            return (
                 message.type == .warning &&
                     settings.glucoseNotificationsOption == GlucoseNotificationsOption.onlyAlarmLimits
             ) ||
-                settings.glucoseNotificationsOption == GlucoseNotificationsOption.alwaysEveryCGM else { return false }
-        case .algorithm:
-            guard settings.notificationsAlgorithm else { return false }
-        case .misc:
-            return true
+                settings.glucoseNotificationsOption == GlucoseNotificationsOption.alwaysEveryCGM
         }
         return true
     }

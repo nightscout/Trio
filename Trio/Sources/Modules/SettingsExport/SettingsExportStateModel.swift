@@ -850,30 +850,6 @@ extension SettingsExport {
                 addSetting(
                     category: notificationsCategory,
                     subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "Always Notify Pump"),
-                    value: trioSettings.notificationsPump ? String(localized: "Enabled") : String(localized: "Disabled")
-                )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "Always Notify CGM"),
-                    value: trioSettings.notificationsCgm ? String(localized: "Enabled") : String(localized: "Disabled")
-                )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "Always Notify Carb"),
-                    value: trioSettings.notificationsCarb ? String(localized: "Enabled") : String(localized: "Disabled")
-                )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "Always Notify Algorithm"),
-                    value: trioSettings.notificationsAlgorithm ? String(localized: "Enabled") : String(localized: "Disabled")
-                )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
                     name: String(localized: "Show Glucose App Badge"),
                     value: trioSettings.glucoseBadge ? String(localized: "Enabled") : String(localized: "Disabled")
                 )

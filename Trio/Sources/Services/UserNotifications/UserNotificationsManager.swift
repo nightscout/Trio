@@ -36,11 +36,6 @@ protocol alertMessageNotificationObserver {
     func alertMessageNotification(_ message: MessageContent)
 }
 
-protocol pumpNotificationObserver {
-    func pumpNotification(alert: AlertEntry)
-    func pumpRemoveNotification()
-}
-
 // MARK: - SnoozeObserver Protocol
 
 protocol SnoozeObserver {
@@ -53,8 +48,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         case carbsRequiredNotification = "Trio.carbsRequiredNotification"
         case noLoopFirstNotification = "Trio.noLoopFirstNotification"
         case noLoopSecondNotification = "Trio.noLoopSecondNotification"
-        case bolusFailedNotification = "Trio.bolusFailedNotification"
-        case pumpNotification = "Trio.pumpNotification"
         case alertMessageNotification = "Trio.alertMessageNotification"
     }
 
@@ -64,6 +57,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var apsManager: APSManager!
     @Injected() private var router: Router!
+    @Injected() private var trioAlertManager: TrioAlertManager!
 
     @Injected(as: FetchGlucoseManager.self) private var sourceInfoProvider: SourceInfoProvider!
 
@@ -98,8 +92,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 .eraseToAnyPublisher()
 
         broadcaster.register(DeterminationObserver.self, observer: self)
-        broadcaster.register(BolusFailureObserver.self, observer: self)
-        broadcaster.register(pumpNotificationObserver.self, observer: self)
         broadcaster.register(alertMessageNotificationObserver.self, observer: self)
 //        requestNotificationPermissionsIfNeeded()
         Task {
@@ -189,7 +181,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
     private func notifyCarbsRequired(_ carbs: Int) {
         guard Decimal(carbs) >= settingsManager.settings.carbsRequiredThreshold,
-              settingsManager.settings.showCarbsRequiredBadge, settingsManager.settings.notificationsCarb else { return }
+              settingsManager.settings.showCarbsRequiredBadge else { return }
 
         var titles: [String] = []
 
@@ -246,28 +238,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             trigger: secondTrigger,
             messageType: .error,
             messageSubtype: .algorithm
-        )
-    }
-
-    private func notifyBolusFailure() {
-        let title = String(localized: "Bolus failed", comment: "Bolus failed")
-        let body = String(
-            localized:
-            "Bolus failed or inaccurate. Check pump history before repeating.",
-            comment: "Bolus failed or inaccurate. Check pump history before repeating."
-        )
-        let content = UNMutableNotificationContent()
-        content.title = title
-        content.body = body
-        content.sound = .default
-
-        addRequest(
-            identifier: .noLoopFirstNotification,
-            content: content,
-            deleteOld: true,
-            trigger: nil,
-            messageType: .error,
-            messageSubtype: .pump
         )
     }
 
@@ -502,8 +472,9 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             action: action
         )
         var alertIdentifier = identifier.rawValue
-        alertIdentifier = identifier == .pumpNotification ? alertIdentifier + content
-            .title : (identifier == .alertMessageNotification ? alertIdentifier + content.body : alertIdentifier)
+        if identifier == .alertMessageNotification {
+            alertIdentifier += content.body
+        }
         if deleteOld {
             DispatchQueue.main.async {
                 self.notificationCenter.removeDeliveredNotifications(withIdentifiers: [alertIdentifier])
@@ -570,12 +541,6 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
             content.title = message.title
         }
         switch message.subtype {
-        case .pump:
-            if message.type == .info || message.type == .error {
-                identifier = Identifier.alertMessageNotification
-            } else {
-                identifier = .pumpNotification
-            }
         case .carb:
             identifier = .carbsRequiredNotification
         case .glucose:
@@ -584,8 +549,6 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
             if message.trigger != nil {
                 identifier = message.content.contains(String(firstInterval)) ? Identifier.noLoopFirstNotification : Identifier
                     .noLoopSecondNotification
-            } else {
-                identifier = Identifier.alertMessageNotification
             }
         default:
             identifier = .alertMessageNotification
@@ -612,40 +575,7 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
     }
 }
 
-extension BaseUserNotificationsManager: pumpNotificationObserver {
-    func pumpNotification(alert: AlertEntry) {
-        let content = UNMutableNotificationContent()
-        let alertUp = alert.alertIdentifier.uppercased()
-        let typeMessage: MessageType
-        if alertUp.contains("FAULT") || alertUp.contains("ERROR") {
-            content.userInfo[NotificationAction.key] = NotificationAction.pumpConfig.rawValue
-            typeMessage = .error
-        } else {
-            typeMessage = .warning
-            guard settingsManager.settings.notificationsPump else { return }
-        }
-        content.title = alert.contentTitle ?? "Unknown"
-        content.body = alert.contentBody ?? "Unknown"
-        content.sound = .default
-        addRequest(
-            identifier: .pumpNotification,
-            content: content,
-            deleteOld: true,
-            trigger: nil,
-            messageType: typeMessage,
-            messageSubtype: .pump,
-            action: .pumpConfig
-        )
-    }
-
-    func pumpRemoveNotification() {
-        let identifier: Identifier = .pumpNotification
-        DispatchQueue.main.async {
-            self.notificationCenter.removeDeliveredNotifications(withIdentifiers: [identifier.rawValue])
-            self.notificationCenter.removePendingNotificationRequests(withIdentifiers: [identifier.rawValue])
-        }
-    }
-
+extension BaseUserNotificationsManager {
     /// Removes all glucose notifications (delivered and pending).
     /// Must be called from the main thread. Safe to call from @MainActor contexts.
     @MainActor private func removeGlucoseNotifications() {
@@ -662,18 +592,17 @@ extension BaseUserNotificationsManager: DeterminationObserver {
     }
 }
 
-extension BaseUserNotificationsManager: BolusFailureObserver {
-    func bolusDidFail() {
-        notifyBolusFailure()
-    }
-}
-
 extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
     func userNotificationCenter(
         _: UNUserNotificationCenter,
-        willPresent _: UNNotification,
+        willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
+        let userInfo = notification.request.content.userInfo
+        if userInfo[AlertUserInfoKey.managerIdentifier.rawValue] is String {
+            completionHandler([.badge, .list])
+            return
+        }
         completionHandler([.banner, .badge, .sound, .list])
     }
 
@@ -685,6 +614,12 @@ extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         defer { completionHandler() }
+
+        let userInfo = response.notification.request.content.userInfo
+        if userInfo[AlertUserInfoKey.managerIdentifier.rawValue] is String {
+            trioAlertManager.handleNotificationResponse(response)
+            return
+        }
 
         // Handle quick snooze actions (from notification action buttons)
         if let quickAction = NotificationResponseAction(rawValue: response.actionIdentifier) {

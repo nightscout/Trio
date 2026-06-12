@@ -200,49 +200,6 @@ extension Main {
             SwiftMessages.show(config: config, view: view)
         }
 
-        /*
-          Reclassification is needed for Medtronic pumps for 'Pump error:' RileyLink related messages.
-          For details, see https://discord.com/channels/1020905149037813862/1338245444186279946/1343469793013141525.
-          These messages are repeatedly displayed causing users to simply ignore them.
-          Reclassification of these Info type messages is based on APSManager.APSError enum values.
-          We reclassify APSError.pumpError and APSError.invalidPumpState as MessageType.info and MessageSubtype.pump.
-          This allows the user to disable these messages using using the 'Trio Notification' -> 'Always Notify Pump' setting.
-          MessageType.error messagges are always displayed to the user and the user cannot disable them.
-          Other APSManager.APSError remain as MessageType.info which allows users to disable them
-          using the 'Trio Notification' -> 'Always Notify Algorithm' setting.
-         */
-
-        func reclassifyInfoNotification(_ message: inout MessageContent) {
-            if message.title == "" {
-                switch message.type {
-                case .info:
-                    if message.content.range(of: "error", options: .caseInsensitive) != nil || message.content
-                        .range(of: String(localized: "Error"), options: .caseInsensitive) != nil
-                    {
-                        message.title = String(localized: "Error", comment: "Error title")
-                    } else {
-                        message.title = String(localized: "Info", comment: "Info title")
-                    }
-                    if APSError.pumpWarningMatches(message: message.content) {
-                        message.subtype = .pump
-                        let lastLoopMinutes = Int((Date().timeIntervalSince(apsManager.lastLoopDate) - 30) / 60) + 1
-                        if lastLoopMinutes > 10 {
-                            message.type = .error
-                        }
-                    } else if APSError.pumpErrorMatches(message: message.content) {
-                        message.subtype = .pump
-                        message.type = .error
-                    }
-                case .warning:
-                    message.title = String(localized: "Warning", comment: "Warning title")
-                case .error:
-                    message.title = String(localized: "Error", comment: "Error title")
-                case .other:
-                    message.title = String(localized: "Info", comment: "Info title")
-                }
-            }
-        }
-
         override func subscribe() {
             router.mainModalScreen
                 .map { $0?.modal(resolver: self.resolver!) }
@@ -262,10 +219,8 @@ extension Main {
                 .receive(on: DispatchQueue.main)
                 .sink { message in
                     guard !self.isApnPumpConfigAction(message) else { return }
-                    var reclassifyMessage = message
-                    self.reclassifyInfoNotification(&reclassifyMessage)
-                    guard self.router.allowNotify(reclassifyMessage, self.settingsManager.settings) else { return }
-                    self.showAlertMessage(reclassifyMessage)
+                    guard self.router.allowNotify(message, self.settingsManager.settings) else { return }
+                    self.showAlertMessage(message)
                 }
                 .store(in: &lifetime)
 

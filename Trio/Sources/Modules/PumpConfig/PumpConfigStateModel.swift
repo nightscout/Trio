@@ -1,3 +1,4 @@
+import Foundation
 import LoopKit
 import LoopKitUI
 import SwiftDate
@@ -11,6 +12,7 @@ extension PumpConfig {
         private(set) var initialSettings: PumpInitialSettings = .default
         @Published var hasUnacknowledgedAlert: Bool = false
         @Injected() var bluetoothManager: BluetoothStateManager!
+        @Injected() var trioAlertManager: TrioAlertManager!
 
         override func subscribe() {
             provider.pumpDisplayState
@@ -49,7 +51,32 @@ extension PumpConfig {
         }
 
         func ack() {
-            provider.deviceManager.alertHistoryStorage.broadcastAlertUpdates()
+            trioAlertManager.acknowledgeAllOutstanding()
+        }
+
+        func fireTestAlert(critical: Bool) {
+            let identifier = Alert.Identifier(
+                managerIdentifier: "Trio.test",
+                alertIdentifier: "test-\(UUID().uuidString.prefix(8))"
+            )
+            let content = Alert.Content(
+                title: critical ? "Critical test alert" : "Test alert",
+                body: "If you see this banner in-app, the foreground modal scheduler is wired. Background it before tapping to test the UN push path.",
+                acknowledgeActionButtonLabel: "OK"
+            )
+            let alert = Alert(
+                identifier: identifier,
+                foregroundContent: content,
+                backgroundContent: content,
+                trigger: .immediate,
+                interruptionLevel: critical ? .critical : .timeSensitive
+            )
+            trioAlertManager.issueAlert(alert)
+        }
+
+        func retractTestAlerts() {
+            let identifier = Alert.Identifier(managerIdentifier: "Trio.test", alertIdentifier: "test")
+            trioAlertManager.retractAlert(identifier: identifier)
         }
     }
 }

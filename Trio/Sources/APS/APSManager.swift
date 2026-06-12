@@ -57,17 +57,6 @@ enum APSError: LocalizedError {
             return String(localized: "Manual Temporary Basal Rate (\(message)). Looping suspended.")
         }
     }
-
-    static func pumpErrorMatches(message: String) -> Bool {
-        message.contains(String(localized: "Pump Error"))
-    }
-
-    static func pumpWarningMatches(message: String) -> Bool {
-        message.contains(String(localized: "Invalid Pump State")) || message
-            .contains("PumpMessage") || message
-            .contains("PumpOpsError") || message.contains("RileyLink") || message
-            .contains(String(localized: "Pump did not respond in time"))
-    }
 }
 
 final class BaseAPSManager: APSManager, Injectable {
@@ -82,6 +71,7 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var tddStorage: TDDStorage!
     @Injected() private var broadcaster: Broadcaster!
+    @Injected() private var trioAlertManager: TrioAlertManager!
     @Persisted(key: "lastLoopStartDate") private var lastLoopStartDate: Date = .distantPast
     @Persisted(key: "lastLoopDate") var lastLoopDate: Date = .distantPast {
         didSet {
@@ -369,6 +359,8 @@ final class BaseAPSManager: APSManager, Injectable {
             debug(.apsManager, "Loop succeeded")
             lastLoopDate = Date()
             lastError.send(nil)
+            transientCategoryFirstSeen.removeAll()
+            transientCategoryCount.removeAll()
         }
 
         loopStats(loopStatRecord: loopStatRecord)
@@ -597,9 +589,14 @@ final class BaseAPSManager: APSManager, Injectable {
             }
         } catch {
             warning(.apsManager, "Bolus failed with error: \(error)")
-            processError(APSError.pumpError(error))
+            lastError.send(APSError.pumpError(error))
+            issueAlertForCategory(
+                .bolusFailed,
+                title: String(localized: "Bolus failed"),
+                body: String(localized: "Check pump history before repeating.")
+                    + "\n\n\(error.localizedDescription)"
+            )
             if !isSMB {
-                // Use MainActor to handle broadcaster notification
                 let broadcaster = self.broadcaster
                 Task { @MainActor in
                     broadcaster?.notify(BolusFailureObserver.self, on: .main) {
@@ -623,7 +620,12 @@ final class BaseAPSManager: APSManager, Injectable {
             callback?(true, String(localized: "Bolus cancelled successfully.", comment: "Success message for canceling a bolus"))
         } catch {
             debug(.apsManager, "Bolus cancellation failed with error: \(error)")
-            processError(APSError.pumpError(error))
+            lastError.send(APSError.pumpError(error))
+            issueAlertForCategory(
+                .bolusFailed,
+                title: String(localized: "Bolus cancellation failed"),
+                body: String(localized: "Try again.") + "\n\n\(error.localizedDescription)"
+            )
             callback?(
                 false,
                 String(
@@ -714,10 +716,9 @@ final class BaseAPSManager: APSManager, Injectable {
             throw APSError.apsError(message: "Pump not set")
         }
 
-        // Check if pump is suspended and abort if it is
         if pump.status.pumpStatus.suspended {
-            info(.apsManager, "Skipping enactDetermination because pump is suspended")
-            return // return without throwing an error
+            debug(.apsManager, "Skipping enactDetermination because pump is suspended")
+            return
         }
 
         // Unable to do temp basal during manual temp basal 😁
@@ -1208,9 +1209,119 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
+    private var transientCategoryFirstSeen: [String: Date] = [:]
+    private var transientCategoryCount: [String: Int] = [:]
+    private static let transientDwellThreshold: TimeInterval = 60
+    private static let transientCountThreshold = 2
+
     private func processError(_ error: Error) {
         warning(.apsManager, "\(error)")
         lastError.send(error)
+        surfaceErrorIfNeeded(error)
+    }
+
+    private func surfaceErrorIfNeeded(_ error: Error) {
+        let category = TrioAlertClassifier.categorize(error: error)
+        let key = String(describing: category)
+
+        if category.isAlertWorthy {
+            transientCategoryFirstSeen.removeValue(forKey: key)
+            transientCategoryCount.removeValue(forKey: key)
+            issueAlertForError(error, category: category)
+            return
+        }
+
+        let now = Date()
+        let firstSeen = transientCategoryFirstSeen[key] ?? now
+        let count = (transientCategoryCount[key] ?? 0) + 1
+        let dwellElapsed = now.timeIntervalSince(firstSeen)
+        let dwellMet = dwellElapsed >= Self.transientDwellThreshold
+        let countMet = count >= Self.transientCountThreshold
+
+        if dwellMet || countMet {
+            transientCategoryFirstSeen.removeValue(forKey: key)
+            transientCategoryCount.removeValue(forKey: key)
+            issueAlertForError(error, category: category)
+        } else {
+            transientCategoryFirstSeen[key] = firstSeen
+            transientCategoryCount[key] = count
+            debug(
+                .apsManager,
+                "APSManager suppressed transient \(category) (count=\(count)/\(Self.transientCountThreshold), dwell=\(Int(dwellElapsed))s/\(Int(Self.transientDwellThreshold))s)"
+            )
+        }
+    }
+
+    private func issueAlertForCategory(_ category: TrioAlertCategory, title: String, body: String) {
+        let content = Alert.Content(
+            title: title,
+            body: body,
+            acknowledgeActionButtonLabel: String(localized: "OK")
+        )
+        let alertId: String
+        switch category {
+        case .bolusFailed: alertId = "bolusFailed"
+        case .pumpFault: alertId = "pumpFault"
+        case .occlusion: alertId = "occlusion"
+        case .reservoirEmpty: alertId = "reservoirEmpty"
+        case .reservoirLow: alertId = "reservoirLow"
+        case .batteryEmpty: alertId = "batteryEmpty"
+        case .batteryLow: alertId = "batteryLow"
+        case .manualTempBasalActive: alertId = "manualTempBasalActive"
+        case .glucoseDataStale: alertId = "glucoseDataStale"
+        default: alertId = "general"
+        }
+        let alert = Alert(
+            identifier: Alert.Identifier(managerIdentifier: "trio.aps", alertIdentifier: alertId),
+            foregroundContent: content,
+            backgroundContent: content,
+            trigger: .immediate,
+            interruptionLevel: category.interruptionLevel
+        )
+        trioAlertManager?.issueAlert(alert)
+    }
+
+    private func issueAlertForError(_ error: Error, category: TrioAlertCategory) {
+        let (alertId, title, body) = describeForAlert(error, category: category)
+        let content = Alert.Content(
+            title: title,
+            body: body,
+            acknowledgeActionButtonLabel: "OK"
+        )
+        let alert = Alert(
+            identifier: Alert.Identifier(managerIdentifier: "trio.aps", alertIdentifier: alertId),
+            foregroundContent: content,
+            backgroundContent: content,
+            trigger: .immediate,
+            interruptionLevel: category.interruptionLevel
+        )
+        trioAlertManager?.issueAlert(alert)
+    }
+
+    private func describeForAlert(
+        _ error: Error,
+        category _: TrioAlertCategory
+    ) -> (alertId: String, title: String, body: String) {
+        if let apsError = error as? APSError {
+            switch apsError {
+            case let .pumpError(inner):
+                return (
+                    "pumpError",
+                    String(localized: "Pump Error"),
+                    String(localized: "Trio could not communicate with the pump. Check the pump and try again.")
+                        + "\n\n\(inner.localizedDescription)"
+                )
+            case let .invalidPumpState(message):
+                return ("invalidPumpState", String(localized: "Pump State"), message)
+            case let .glucoseError(message):
+                return ("glucoseError", String(localized: "Glucose"), message)
+            case let .apsError(message):
+                return ("algorithmError", String(localized: "Algorithm"), message)
+            case let .manualBasalTemp(message):
+                return ("manualBasalTemp", String(localized: "Manual Temp Basal"), message)
+            }
+        }
+        return ("general", "Trio", error.localizedDescription)
     }
 
     private func createBolusReporter() {

@@ -179,6 +179,10 @@
 		38E87401274F77E400975559 /* CoreNFC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38E873FD274F761800975559 /* CoreNFC.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		38E87403274F78C000975559 /* libswiftCoreNFC.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 38E87402274F78C000975559 /* libswiftCoreNFC.tbd */; settings = {ATTRIBUTES = (Weak, ); }; };
 		38E87408274F9AD000975559 /* UserNotificationsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E87407274F9AD000975559 /* UserNotificationsManager.swift */; };
+		BD1179202F4E22C100F90001 /* TrioAlertManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179212F4E22C100F90001 /* TrioAlertManager.swift */; };
+		BD1179222F4E22C100F90001 /* TrioModalAlertScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179232F4E22C100F90001 /* TrioModalAlertScheduler.swift */; };
+		BD1179242F4E22C100F90001 /* TrioUserNotificationAlertScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179252F4E22C100F90001 /* TrioUserNotificationAlertScheduler.swift */; };
+		BD1179282F4E22C100F90001 /* TrioAlertCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179292F4E22C100F90001 /* TrioAlertCategory.swift */; };
 		38E989DD25F5021400C0CED0 /* PumpStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E989DC25F5021400C0CED0 /* PumpStatus.swift */; };
 		38E98A2325F52C9300C0CED0 /* Signpost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E98A1B25F52C9300C0CED0 /* Signpost.swift */; };
 		38E98A2425F52C9300C0CED0 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E98A1C25F52C9300C0CED0 /* Logger.swift */; };
@@ -1070,6 +1074,10 @@
 		38E873FD274F761800975559 /* CoreNFC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreNFC.framework; path = System/Library/Frameworks/CoreNFC.framework; sourceTree = SDKROOT; };
 		38E87402274F78C000975559 /* libswiftCoreNFC.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCoreNFC.tbd; path = usr/lib/swift/libswiftCoreNFC.tbd; sourceTree = SDKROOT; };
 		38E87407274F9AD000975559 /* UserNotificationsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserNotificationsManager.swift; sourceTree = "<group>"; };
+		BD1179212F4E22C100F90001 /* TrioAlertManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioAlertManager.swift; sourceTree = "<group>"; };
+		BD1179232F4E22C100F90001 /* TrioModalAlertScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioModalAlertScheduler.swift; sourceTree = "<group>"; };
+		BD1179252F4E22C100F90001 /* TrioUserNotificationAlertScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioUserNotificationAlertScheduler.swift; sourceTree = "<group>"; };
+		BD1179292F4E22C100F90001 /* TrioAlertCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioAlertCategory.swift; sourceTree = "<group>"; };
 		38E989DC25F5021400C0CED0 /* PumpStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpStatus.swift; sourceTree = "<group>"; };
 		38E98A1B25F52C9300C0CED0 /* Signpost.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Signpost.swift; sourceTree = "<group>"; };
 		38E98A1C25F52C9300C0CED0 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
@@ -2134,6 +2142,7 @@
 		3811DE9125C9D88200A708ED /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				BD1179262F4E22C100F90001 /* Alerts */,
 				3811DE9225C9D88200A708ED /* Appearance */,
 				DDA9AC072D67291600E6F1A9 /* AppVersionChecker */,
 				CEB434E128B8F9BC00B70274 /* Bluetooth */,
@@ -2156,6 +2165,17 @@
 				38E8754D275556E100975559 /* WatchManager */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		BD1179262F4E22C100F90001 /* Alerts */ = {
+			isa = PBXGroup;
+			children = (
+				BD1179292F4E22C100F90001 /* TrioAlertCategory.swift */,
+				BD1179212F4E22C100F90001 /* TrioAlertManager.swift */,
+				BD1179232F4E22C100F90001 /* TrioModalAlertScheduler.swift */,
+				BD1179252F4E22C100F90001 /* TrioUserNotificationAlertScheduler.swift */,
+			);
+			path = Alerts;
 			sourceTree = "<group>";
 		};
 		DD7E1E30000000000000000A /* Telemetry */ = {
@@ -4588,6 +4608,10 @@
 				BD249D8C2D42FC2C00412DEB /* GlucoseDistributionChart.swift in Sources */,
 				DDFF20312DB1D15500AB8A96 /* BluetoothPermissionStepView.swift in Sources */,
 				38E87408274F9AD000975559 /* UserNotificationsManager.swift in Sources */,
+				BD1179202F4E22C100F90001 /* TrioAlertManager.swift in Sources */,
+				BD1179222F4E22C100F90001 /* TrioModalAlertScheduler.swift in Sources */,
+				BD1179242F4E22C100F90001 /* TrioUserNotificationAlertScheduler.swift in Sources */,
+				BD1179282F4E22C100F90001 /* TrioAlertCategory.swift in Sources */,
 				DD3F1F902D9E153F00DCE7B3 /* NightscoutImportStepView.swift in Sources */,
 				CE82E02528E867BA00473A9C /* AlertStorage.swift in Sources */,
 				DD1745372C55B74200211FAC /* AlgorithmSettings.swift in Sources */,
