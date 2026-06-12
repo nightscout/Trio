@@ -37,6 +37,18 @@ final class GlucoseAlertCoordinator: Injectable {
     /// at the threshold boundary.
     private static let recoveryMarginMgDL: Decimal = 5
 
+    /// Suppresses evaluations for a short window after launch. `firingAlertIDs`
+    /// isn't persisted across relaunches, so without this quiet window the
+    /// first reading after launch would re-fire any in-flight alarm whose
+    /// glucose is still past threshold. UN throttle dedupes the lock-screen
+    /// notification (5-min window), but the in-app banner can re-pop. Skipping
+    /// the first ~30s lets the picture settle.
+    private static let launchQuietWindow: TimeInterval = 30
+    private let launchedAt = Date()
+    private var isInLaunchQuietWindow: Bool {
+        Date().timeIntervalSince(launchedAt) < Self.launchQuietWindow
+    }
+
     init(resolver: Resolver) {
         injectServices(resolver)
         let store = GlucoseAlertsStore.shared
@@ -58,6 +70,7 @@ final class GlucoseAlertCoordinator: Injectable {
     // MARK: - Reading-based evaluation
 
     private func evaluateGlucoseAlarms() {
+        guard !isInLaunchQuietWindow else { return }
         let snapshot = alertsSnapshot
         let configuration = configurationSnapshot
         let now = Date()
@@ -117,6 +130,7 @@ final class GlucoseAlertCoordinator: Injectable {
     // MARK: - Forecast-based evaluation
 
     private func evaluateForecast(_ determination: Determination) {
+        guard !isInLaunchQuietWindow else { return }
         let snapshot = alertsSnapshot
         let configuration = configurationSnapshot
         let now = Date()

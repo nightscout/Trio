@@ -8,6 +8,15 @@ protocol TrioModalAlertResponder: AnyObject {
     /// Applies a global snooze for `duration` seconds — same path as the UN
     /// quick-action buttons + the Snooze module + Apple Watch action.
     func requestSnooze(duration: TimeInterval)
+    /// Returns true if the alert is still tracked by the manager. Used by
+    /// `.delayed` timers to skip stale fires after the app resumes from
+    /// suspension — the timer fires immediately on resume, and without this
+    /// gate a banner would appear for an already-retracted alert.
+    func isAlertActive(identifier: LoopKit.Alert.Identifier) -> Bool
+    /// True if a global snooze is active. Non-critical `.delayed`/`.repeating`
+    /// banners check this at fire time so a previously-scheduled banner
+    /// (e.g. Not-Looping at +20m) stays silent during the snooze window.
+    func isSnoozeActive(at date: Date) -> Bool
 }
 
 final class TrioModalAlertScheduler: ObservableObject {
@@ -31,6 +40,17 @@ final class TrioModalAlertScheduler: ObservableObject {
         }
         responder?.handleAcknowledgement(identifier: identifier)
         remove(identifier: identifier)
+    }
+
+    /// Drops every active non-critical banner. Called from `applySnooze` so
+    /// banners visible at the moment a global snooze starts disappear too —
+    /// otherwise they'd outlive the alarm they advertised.
+    func clearNonCriticalBanners() {
+        guard Thread.isMainThread else {
+            DispatchQueue.main.async { [weak self] in self?.clearNonCriticalBanners() }
+            return
+        }
+        active.removeAll { $0.interruptionLevel != .critical }
     }
 
     func snooze(identifier: LoopKit.Alert.Identifier, duration: TimeInterval) {
@@ -67,9 +87,25 @@ final class TrioModalAlertScheduler: ObservableObject {
         if pending[alert.identifier] != nil { return }
         let timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: repeats) { [weak self] _ in
             DispatchQueue.main.async {
-                self?.insert(alert)
-                if !repeats {
+                // Skip stale fires (e.g. iOS suspended the app for longer
+                // than `interval`; on resume the timer fires immediately
+                // even if the underlying alert was already retracted).
+                guard let self, self.responder?.isAlertActive(identifier: alert.identifier) ?? true else {
                     self?.pending.removeValue(forKey: alert.identifier)
+                    return
+                }
+                // Honor active global snooze for non-critical banners.
+                if alert.interruptionLevel != .critical,
+                   self.responder?.isSnoozeActive(at: Date()) == true
+                {
+                    if !repeats {
+                        self.pending.removeValue(forKey: alert.identifier)
+                    }
+                    return
+                }
+                self.insert(alert)
+                if !repeats {
+                    self.pending.removeValue(forKey: alert.identifier)
                 }
             }
         }

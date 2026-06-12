@@ -272,6 +272,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         if duration > 0 {
             muter.mute(for: duration)
             clearPendingNonCriticalNotifications()
+            modalScheduler.clearNonCriticalBanners()
         } else {
             muter.unmute()
         }
@@ -337,6 +338,14 @@ extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAle
         Task { @MainActor [weak self] in
             await self?.applySnooze(for: duration)
         }
+    }
+
+    func isAlertActive(identifier: Alert.Identifier) -> Bool {
+        queue.sync { liveAlerts[identifier] != nil }
+    }
+
+    func isSnoozeActive(at date: Date) -> Bool {
+        muter.shouldMute(at: date)
     }
 }
 
