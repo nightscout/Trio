@@ -5,6 +5,9 @@ import SwiftUI
 
 protocol TrioModalAlertResponder: AnyObject {
     func handleAcknowledgement(identifier: LoopKit.Alert.Identifier)
+    /// Applies a global snooze for `duration` seconds — same path as the UN
+    /// quick-action buttons + the Snooze module + Apple Watch action.
+    func requestSnooze(duration: TimeInterval)
 }
 
 final class TrioModalAlertScheduler: ObservableObject {
@@ -27,6 +30,19 @@ final class TrioModalAlertScheduler: ObservableObject {
             return
         }
         responder?.handleAcknowledgement(identifier: identifier)
+        remove(identifier: identifier)
+    }
+
+    func snooze(identifier: LoopKit.Alert.Identifier, duration: TimeInterval) {
+        guard Thread.isMainThread else {
+            DispatchQueue.main.async { [weak self] in
+                self?.snooze(identifier: identifier, duration: duration)
+            }
+            return
+        }
+        responder?.requestSnooze(duration: duration)
+        // Drop the in-app banner too — the global snooze mutes the queue,
+        // and leaving this specific banner hanging would be noise.
         remove(identifier: identifier)
     }
 
@@ -87,9 +103,12 @@ struct TrioAlertBanner: View {
     let alert: LoopKit.Alert
     let onTap: () -> Void
     let onSwipeAway: () -> Void
+    let onSnooze: (TimeInterval) -> Void
 
     @State private var presentedAt = Date()
     @State private var dragOffset: CGFloat = 0
+
+    private var canSnooze: Bool { alert.interruptionLevel != .critical }
 
     private var content: LoopKit.Alert.Content? { alert.foregroundContent }
 
@@ -136,6 +155,25 @@ struct TrioAlertBanner: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
+
+            if canSnooze {
+                Menu {
+                    ForEach(NotificationResponseAction.allCases, id: \.self) { action in
+                        Button {
+                            onSnooze(action.duration)
+                        } label: {
+                            Label(action.localizedTitle, systemImage: "moon.zzz")
+                        }
+                    }
+                } label: {
+                    Image(systemName: "moon.zzz.fill")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 32, height: 32)
+                        .contentShape(Rectangle())
+                }
+                .accessibilityLabel(Text("Snooze"))
+            }
         }
         .padding(12)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
@@ -150,8 +188,14 @@ struct TrioAlertBanner: View {
                     dragOffset = abs(dx) > abs(value.translation.height) ? dx : 0
                 }
                 .onEnded { value in
-                    if abs(value.translation.width) > 80 {
+                    let dx = value.translation.width
+                    // Swipe right past threshold → dismiss / acknowledge.
+                    // Swipe left past threshold → quick snooze (20m) when
+                    // the alert isn't critical. Otherwise reset.
+                    if dx > 80 {
                         onSwipeAway()
+                    } else if dx < -80, canSnooze {
+                        onSnooze(NotificationResponseAction.snooze20.duration)
                     } else {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             dragOffset = 0
@@ -160,6 +204,24 @@ struct TrioAlertBanner: View {
                 }
         )
         .onTapGesture { onTap() }
+        .contextMenu {
+            if canSnooze {
+                Section(String(localized: "Snooze")) {
+                    ForEach(NotificationResponseAction.allCases, id: \.self) { action in
+                        Button {
+                            onSnooze(action.duration)
+                        } label: {
+                            Label(action.localizedTitle, systemImage: "moon.zzz")
+                        }
+                    }
+                }
+            }
+            Button {
+                onTap()
+            } label: {
+                Label(String(localized: "Acknowledge"), systemImage: "checkmark")
+            }
+        }
     }
 
     private func relativeTimestamp(now: Date) -> String {
@@ -206,7 +268,10 @@ struct TrioAlertModifier: ViewModifier {
                     TrioAlertBanner(
                         alert: alert,
                         onTap: { scheduler.acknowledge(identifier: alert.identifier) },
-                        onSwipeAway: { scheduler.acknowledge(identifier: alert.identifier) }
+                        onSwipeAway: { scheduler.acknowledge(identifier: alert.identifier) },
+                        onSnooze: { duration in
+                            scheduler.snooze(identifier: alert.identifier, duration: duration)
+                        }
                     )
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
@@ -227,7 +292,10 @@ struct TrioAlertModifier: ViewModifier {
                             isExpanded = true
                         }
                     },
-                    onSwipeAway: { scheduler.acknowledge(identifier: alert.identifier) }
+                    onSwipeAway: { scheduler.acknowledge(identifier: alert.identifier) },
+                    onSnooze: { duration in
+                        scheduler.snooze(identifier: alert.identifier, duration: duration)
+                    }
                 )
                 .scaleEffect(1 - CGFloat(index) * 0.04, anchor: .top)
                 .offset(y: CGFloat(index) * 14)

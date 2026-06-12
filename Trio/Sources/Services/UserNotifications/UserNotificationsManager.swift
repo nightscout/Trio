@@ -221,26 +221,12 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         }
     }
 
+    /// Forwards to the canonical snooze entry point on `TrioAlertManager`.
+    /// All snooze surfaces (this method via UN actions / Watch / Snooze
+    /// module / in-app banner) converge there so persistent state, mute
+    /// window, and observers stay in sync.
     @MainActor func applySnooze(for duration: TimeInterval) async {
-        let untilDate = duration > 0 ? Date().addingTimeInterval(duration) : .distantPast
-        snoozeUntilDate = untilDate
-        // removeGlucoseNotifications() is safe to call here since we're @MainActor
-        removeGlucoseNotifications()
-
-        // Mirror the snooze into the unified AlertMuter so non-critical
-        // LoopKit alerts (pump/cgm/algorithm) are suppressed during the
-        // same window. Critical alerts (e.g. glucose.urgentLow) pierce
-        // the mute in `TrioAlertManager.issueAlert`.
-        if duration > 0 {
-            trioAlertManager.muter.mute(for: duration)
-        } else {
-            trioAlertManager.muter.unmute()
-        }
-
-        // Notify observers that snooze was applied
-        broadcaster.notify(SnoozeObserver.self, on: .main) { (observer: SnoozeObserver) in
-            observer.snoozeDidChange(untilDate)
-        }
+        await trioAlertManager.applySnooze(for: duration)
     }
 
     private func addRequest(

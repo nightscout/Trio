@@ -42,6 +42,12 @@ final class TrioUserNotificationAlertScheduler {
         ]
         content.interruptionLevel = alert.interruptionLevel.unNotificationLevel
         content.sound = sound(for: alert, muted: muted, soundURL: soundURL)
+        // Surface the four quick-snooze actions (20 min / 1 h / 3 h / 6 h)
+        // on both phone and watch lock-screen notifications. The category +
+        // its actions are registered by `NotificationCategoryFactory` on
+        // both the phone (`BaseUserNotificationsManager`) and watch
+        // (`WatchNotificationHandler`) UN delegates.
+        content.categoryIdentifier = NotificationCategoryIdentifier.trioAlert.rawValue
 
         return UNNotificationRequest(
             identifier: alert.identifier.value,

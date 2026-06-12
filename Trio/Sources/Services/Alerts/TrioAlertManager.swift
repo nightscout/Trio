@@ -15,6 +15,17 @@ protocol TrioAlertManager: AnyObject {
     func handleAcknowledgement(identifier: Alert.Identifier)
     func handleNotificationResponse(_ response: UNNotificationResponse)
     func acknowledgeAllOutstanding()
+    /// Canonical snooze entry point used by every snooze surface:
+    /// Snooze module, phone UN action, watch UN action, in-app banner.
+    /// Persists snoozeUntilDate, mutes AlertMuter, clears any pending
+    /// non-critical UNs, broadcasts `SnoozeObserver`.
+    @MainActor func applySnooze(for duration: TimeInterval) async
+    /// Removes pending + already-delivered non-critical user notifications
+    /// posted via the new alert pipeline. Used internally when a snooze
+    /// begins so previously-scheduled delayed alerts (e.g. not-looping)
+    /// don't fire during the snooze window. Critical UNs are left in
+    /// place — they pierce snooze by design.
+    func clearPendingNonCriticalNotifications()
 
     var muter: AlertMuter { get }
     var modalScheduler: TrioModalAlertScheduler { get }
@@ -31,6 +42,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
     static let soundsDirectoryName = "Sounds"
 
     @Injected() private var alertHistoryStorage: AlertHistoryStorage!
+    @Injected() private var broadcaster: Broadcaster!
 
     let muter: AlertMuter
     private let throttler: AlertThrottler
@@ -64,6 +76,14 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         injectServices(resolver)
         modalScheduler.responder = self
         userNotificationScheduler.responder = self
+        // Rehydrate the in-memory mute window from the persisted snoozeUntilDate
+        // so a force-quit + relaunch during an active snooze still suppresses
+        // non-critical alerts until the originally-chosen end time.
+        let persistedSnoozeUntil = UserDefaults.standard
+            .object(forKey: "UserNotificationsManager.snoozeUntilDate") as? Date
+        if let until = persistedSnoozeUntil, until > Date() {
+            muter.mute(for: until.timeIntervalSinceNow)
+        }
     }
 
     /// Falls back to in-process AVAudioPlayer for `.critical` alerts on
@@ -215,6 +235,52 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         }
     }
 
+    func clearPendingNonCriticalNotifications() {
+        let center = UNUserNotificationCenter.current()
+        center.getPendingNotificationRequests { requests in
+            let ids = requests
+                .filter { $0.content.interruptionLevel != .critical }
+                .map(\.identifier)
+            guard !ids.isEmpty else { return }
+            center.removePendingNotificationRequests(withIdentifiers: ids)
+        }
+        center.getDeliveredNotifications { delivered in
+            let ids = delivered
+                .filter { $0.request.content.interruptionLevel != .critical }
+                .map(\.request.identifier)
+            guard !ids.isEmpty else { return }
+            center.removeDeliveredNotifications(withIdentifiers: ids)
+        }
+    }
+
+    /// Persisted under the same key UN reads, so a force-quit + relaunch
+    /// during a snooze sees the same end-date.
+    private static let snoozeUntilDateKey = "UserNotificationsManager.snoozeUntilDate"
+    private static let legacyGlucoseNotificationID = "Trio.glucoseNotification"
+
+    @MainActor func applySnooze(for duration: TimeInterval) async {
+        let untilDate = duration > 0 ? Date().addingTimeInterval(duration) : .distantPast
+        UserDefaults.standard.set(untilDate, forKey: Self.snoozeUntilDateKey)
+
+        // Legacy glucose-notification UN cleanup (the new pipeline uses
+        // per-alarm identifiers; this catches anything still lingering
+        // from older installs).
+        let center = UNUserNotificationCenter.current()
+        center.removeDeliveredNotifications(withIdentifiers: [Self.legacyGlucoseNotificationID])
+        center.removePendingNotificationRequests(withIdentifiers: [Self.legacyGlucoseNotificationID])
+
+        if duration > 0 {
+            muter.mute(for: duration)
+            clearPendingNonCriticalNotifications()
+        } else {
+            muter.unmute()
+        }
+
+        broadcaster.notify(SnoozeObserver.self, on: .main) { (observer: SnoozeObserver) in
+            observer.snoozeDidChange(untilDate)
+        }
+    }
+
     // MARK: - Registry
 
     func register(responder: AlertResponder, for managerIdentifier: String) {
@@ -266,7 +332,13 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
     }
 }
 
-extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAlertResponder {}
+extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAlertResponder {
+    func requestSnooze(duration: TimeInterval) {
+        Task { @MainActor [weak self] in
+            await self?.applySnooze(for: duration)
+        }
+    }
+}
 
 enum AlertUserInfoKey: String {
     case managerIdentifier = "trio.alert.managerIdentifier"
