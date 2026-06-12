@@ -77,6 +77,7 @@ extension Notification.Name {
         _ = resolver.resolve(FetchTreatmentsManager.self)!
         _ = resolver.resolve(CalendarManager.self)!
         _ = resolver.resolve(UserNotificationsManager.self)!
+        _ = resolver.resolve(ForecastedGlucoseAlertObserver.self)!
         _ = resolver.resolve(WatchManager.self)!
         _ = resolver.resolve(ContactImageManager.self)!
         _ = resolver.resolve(HealthKitManager.self)!

@@ -35,6 +35,10 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
     let muter: AlertMuter
     private let throttler: AlertThrottler
     private let soundLoader: AlertSoundLoader
+    /// Created lazily on first main-actor access. `CriticalAlertAudioPlayer`
+    /// is `@MainActor` (its `MPVolumeView` + `Timer` members require main),
+    /// but `BaseTrioAlertManager.init` runs on the Swinject resolve thread.
+    @MainActor private var criticalAudioPlayer: CriticalAlertAudioPlayer?
 
     let modalScheduler: TrioModalAlertScheduler
     private let userNotificationScheduler: TrioUserNotificationAlertScheduler
@@ -62,6 +66,25 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         userNotificationScheduler.responder = self
     }
 
+    /// Falls back to in-process AVAudioPlayer for `.critical` alerts on
+    /// builds without the Critical Alerts entitlement. iOS silently
+    /// downgrades `.criticalSoundNamed` and `.defaultCritical` to a regular
+    /// notification without the entitlement, which DnD / silent switch /
+    /// Focus modes then mute — dangerous for an overnight urgent-low.
+    /// `.playback` audio session bypasses those.
+    ///
+    /// Only fires for immediate-trigger alerts; delayed/repeating go
+    /// through UNNotification at fire time. No-op when muted or non-critical.
+    private func playCriticalAudioFallbackIfNeeded(_ alert: Alert, muted: Bool) {
+        guard alert.interruptionLevel == .critical, !muted else { return }
+        guard case .immediate = alert.trigger else { return }
+        let soundName = alert.sound?.filename ?? "critical.caf"
+        Task { @MainActor in
+            if criticalAudioPlayer == nil { criticalAudioPlayer = CriticalAlertAudioPlayer() }
+            criticalAudioPlayer?.play(soundNamed: soundName)
+        }
+    }
+
     // MARK: - Issue / Retract
 
     func issueAlert(_ alert: Alert) {
@@ -74,6 +97,14 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             debug(.service, "TrioAlertManager dropped \(alert.identifier.value): \(category) not alert-worthy")
             return
         }
+        let now = Date()
+        // Critical alerts pierce the snooze/mute window. Everything else is
+        // suppressed entirely while muted (no modal, no UN sound, no critical
+        // audio fallback).
+        if alert.interruptionLevel != .critical, muter.shouldMute(at: now) {
+            debug(.service, "TrioAlertManager muted \(alert.identifier.value) (snooze window active)")
+            return
+        }
         guard throttler.shouldDeliver(alert) else {
             debug(.service, "TrioAlertManager throttled \(alert.identifier.value)")
             return
@@ -82,13 +113,14 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             self.liveAlerts[alert.identifier] = alert
         }
         recordIssued(alert)
-        let muted = muter.shouldMute(at: Date())
+        let muted = muter.shouldMute(at: now)
         modalScheduler.schedule(alert)
         userNotificationScheduler.schedule(
             alert,
             muted: muted,
             soundURL: soundLoader.url(for: alert)
         )
+        playCriticalAudioFallbackIfNeeded(alert, muted: muted)
     }
 
     func retractAlert(identifier: Alert.Identifier) {
@@ -97,6 +129,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         }
         modalScheduler.unschedule(identifier: identifier)
         userNotificationScheduler.unschedule(identifier: identifier)
+        Task { @MainActor in criticalAudioPlayer?.stop() }
         alertHistoryStorage.removeAlert(identifier: identifier.alertIdentifier)
     }
 
@@ -105,6 +138,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
     func handleAcknowledgement(identifier: Alert.Identifier) {
         modalScheduler.unschedule(identifier: identifier)
         userNotificationScheduler.unschedule(identifier: identifier)
+        Task { @MainActor in criticalAudioPlayer?.stop() }
         alertHistoryStorage.acknowledgeAlert(issuedDate(for: identifier) ?? Date(), nil)
         queue.async {
             self.liveAlerts.removeValue(forKey: identifier)

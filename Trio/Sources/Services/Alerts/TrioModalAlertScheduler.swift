@@ -199,7 +199,7 @@ struct TrioAlertModifier: ViewModifier {
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: isExpanded)
     }
 
-    @ViewBuilder  private var bannerStack: some View {
+    @ViewBuilder private var bannerStack: some View {
         if isExpanded || scheduler.active.count <= 1 {
             VStack(spacing: 8) {
                 ForEach(scheduler.active, id: \.identifier) { alert in

@@ -447,6 +447,16 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         // removeGlucoseNotifications() is safe to call here since we're @MainActor
         removeGlucoseNotifications()
 
+        // Mirror the snooze into the unified AlertMuter so non-critical
+        // LoopKit alerts (pump/cgm/algorithm) are suppressed during the
+        // same window. Critical alerts (e.g. glucose.urgentLow) pierce
+        // the mute in `TrioAlertManager.issueAlert`.
+        if duration > 0 {
+            trioAlertManager.muter.mute(for: duration)
+        } else {
+            trioAlertManager.muter.unmute()
+        }
+
         // Notify observers that snooze was applied
         broadcaster.notify(SnoozeObserver.self, on: .main) { (observer: SnoozeObserver) in
             observer.snoozeDidChange(untilDate)

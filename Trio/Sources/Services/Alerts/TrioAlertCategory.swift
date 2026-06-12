@@ -14,6 +14,10 @@ enum TrioAlertCategory: Equatable {
     case suspendTimeExpired
     case bolusFailed
     case manualTempBasalActive
+    case glucoseUrgentLow
+    case glucoseLow
+    case glucoseForecastedLow
+    case glucoseHigh
     case glucoseDataStale
     case algorithmError
     case commsTransient
@@ -25,6 +29,10 @@ enum TrioAlertCategory: Equatable {
              .batteryLow,
              .bolusFailed,
              .glucoseDataStale,
+             .glucoseForecastedLow,
+             .glucoseHigh,
+             .glucoseLow,
+             .glucoseUrgentLow,
              .manualTempBasalActive,
              .occlusion,
              .other,
@@ -45,6 +53,7 @@ enum TrioAlertCategory: Equatable {
     var interruptionLevel: Alert.InterruptionLevel {
         switch self {
         case .batteryEmpty,
+             .glucoseUrgentLow,
              .occlusion,
              .pumpFault,
              .reservoirEmpty:
@@ -52,6 +61,9 @@ enum TrioAlertCategory: Equatable {
         case .batteryLow,
              .bolusFailed,
              .glucoseDataStale,
+             .glucoseForecastedLow,
+             .glucoseHigh,
+             .glucoseLow,
              .manualTempBasalActive,
              .podExpired,
              .podShutdownImminent,
@@ -105,6 +117,10 @@ enum TrioAlertClassifier {
         }
         if id.contains("bolusfailed") { return .bolusFailed }
         if id.contains("manualtempbasal") { return .manualTempBasalActive }
+        if id.contains("glucose.urgentlow") || id.contains("glucoseurgentlow") { return .glucoseUrgentLow }
+        if id.contains("glucose.forecastedlow") || id.contains("glucoseforecastedlow") { return .glucoseForecastedLow }
+        if id.contains("glucose.low") || id.contains("glucoselow") { return .glucoseLow }
+        if id.contains("glucose.high") || id.contains("glucosehigh") { return .glucoseHigh }
         if id.contains("glucose"), id.contains("stale") { return .glucoseDataStale }
         return .other(alertIdentifier)
     }
