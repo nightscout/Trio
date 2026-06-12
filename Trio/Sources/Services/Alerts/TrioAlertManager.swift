@@ -99,30 +99,58 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             debug(.service, "TrioAlertManager dropped \(alert.identifier.value): \(category) not alert-worthy")
             return
         }
+
+        // Apply the user's tier config for pump / device alarms. The category
+        // maps to one of three tiers (Critical / Time-Sensitive / Normal) and
+        // the tier config overrides sound + interruption level. Glucose
+        // alarms bypass this — they're owned by `GlucoseAlertCoordinator`.
+        let effective: Alert
+        if let pumpCategory = PumpAlertCategory(trioCategory: category) {
+            effective = applyDeviceSeverityConfig(to: alert, category: pumpCategory)
+        } else {
+            effective = alert
+        }
+
         let now = Date()
         // Critical alerts pierce the snooze/mute window. Everything else is
         // suppressed entirely while muted (no modal, no UN sound, no critical
         // audio fallback).
-        if alert.interruptionLevel != .critical, muter.shouldMute(at: now) {
-            debug(.service, "TrioAlertManager muted \(alert.identifier.value) (snooze window active)")
+        if effective.interruptionLevel != .critical, muter.shouldMute(at: now) {
+            debug(.service, "TrioAlertManager muted \(effective.identifier.value) (snooze window active)")
             return
         }
-        guard throttler.shouldDeliver(alert) else {
-            debug(.service, "TrioAlertManager throttled \(alert.identifier.value)")
+        guard throttler.shouldDeliver(effective) else {
+            debug(.service, "TrioAlertManager throttled \(effective.identifier.value)")
             return
         }
         queue.async {
-            self.liveAlerts[alert.identifier] = alert
+            self.liveAlerts[effective.identifier] = effective
         }
-        recordIssued(alert)
+        recordIssued(effective)
         let muted = muter.shouldMute(at: now)
-        modalScheduler.schedule(alert)
+        modalScheduler.schedule(effective)
         userNotificationScheduler.schedule(
-            alert,
+            effective,
             muted: muted,
-            soundURL: soundLoader.url(for: alert)
+            soundURL: soundLoader.url(for: effective)
         )
-        playCriticalAudioFallbackIfNeeded(alert, muted: muted)
+        playCriticalAudioFallbackIfNeeded(effective, muted: muted)
+    }
+
+    private func applyDeviceSeverityConfig(to alert: Alert, category: PumpAlertCategory) -> Alert {
+        let severity = category.defaultSeverity
+        guard let config = DeviceAlertsStore.shared.config(for: severity) else { return alert }
+        let sound: Alert.Sound? = config.playsSound ? .sound(name: config.soundFilename) : nil
+        let level: Alert.InterruptionLevel = config.overridesSilenceAndDND ? .critical : .timeSensitive
+        return Alert(
+            identifier: alert.identifier,
+            foregroundContent: alert.foregroundContent,
+            backgroundContent: alert.backgroundContent,
+            trigger: alert.trigger,
+            interruptionLevel: level,
+            sound: sound,
+            metadata: alert.metadata
+        )
     }
 
     func retractAlert(identifier: Alert.Identifier) {

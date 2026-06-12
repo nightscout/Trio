@@ -42,8 +42,11 @@ struct GlucoseAlertEditorView: View {
                 case .high: highBody
                 }
 
-                AlarmActiveSection(alarm: $working)
-                AlarmAudioSection(alarm: $working)
+                AlarmActiveSection(activeOption: $working.activeOption)
+                AlarmAudioSection(
+                    playsSound: $working.playsSound,
+                    soundFilename: $working.soundFilename
+                )
 
                 if !isNew, store.canDelete(working) {
                     Section {
@@ -91,7 +94,7 @@ struct GlucoseAlertEditorView: View {
             TextField(String(localized: "Name"), text: $working.name)
             Toggle(String(localized: "Enabled"), isOn: $working.isEnabled)
             Toggle(
-                String(localized: "Override Silence & Do Not Disturb"),
+                String(localized: "Override Silence & Focus Mode"),
                 isOn: $working.overridesSilenceAndDND
             )
         }.listRowBackground(Color.chart)
@@ -101,7 +104,7 @@ struct GlucoseAlertEditorView: View {
         AlarmBGSection(
             header: String(localized: "Urgent Low Threshold"),
             footer: String(
-                localized: "Recommended to always override silence and Do Not Disturb."
+                localized: "Recommended to always override silence and Focus mode."
             ),
             title: String(localized: "Glucose"),
             range: 40 ... 80,

@@ -2,22 +2,23 @@ import AVFoundation
 import SwiftUI
 
 struct AlarmAudioSection: View {
-    @Binding var alarm: GlucoseAlert
+    @Binding var playsSound: Bool
+    @Binding var soundFilename: String
 
     @State private var showTonePicker = false
 
     var body: some View {
         Section(header: Text("Alert Sound")) {
-            Toggle("Play Sound", isOn: $alarm.playsSound)
+            Toggle("Play Sound", isOn: $playsSound)
 
-            if alarm.playsSound {
+            if playsSound {
                 Button {
                     showTonePicker = true
                 } label: {
                     HStack {
                         Text("Tone")
                         Spacer()
-                        Text(AlarmSoundCatalog.displayName(for: alarm.soundFilename))
+                        Text(AlarmSoundCatalog.displayName(for: soundFilename))
                             .foregroundColor(.secondary)
                         Image(systemName: "chevron.right")
                             .foregroundColor(.secondary)
@@ -26,7 +27,7 @@ struct AlarmAudioSection: View {
                 }
                 .buttonStyle(.plain)
                 .sheet(isPresented: $showTonePicker) {
-                    TonePickerSheet(selected: $alarm.soundFilename)
+                    TonePickerSheet(selected: $soundFilename)
                 }
             }
         }

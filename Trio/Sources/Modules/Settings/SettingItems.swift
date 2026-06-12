@@ -332,10 +332,25 @@ enum SettingItems {
                 "Day & Night",
                 "Alert Sound",
                 "Override Silence",
-                "Show Glucose App Badge",
-                "Add Glucose Source to Alarm"
+                "Show Glucose App Badge"
             ],
             path: ["Notifications", "Glucose Alarms"]
+        ),
+        SettingItem(
+            title: "Device Alarms",
+            view: .deviceAlarms,
+            searchContents: [
+                "Critical",
+                "Time-Sensitive",
+                "Normal",
+                "Occlusion",
+                "Pump Fault",
+                "Reservoir",
+                "Battery",
+                "Bolus Failed",
+                "Pod"
+            ],
+            path: ["Notifications", "Device Alarms"]
         ),
         SettingItem(
             title: "Live Activity",

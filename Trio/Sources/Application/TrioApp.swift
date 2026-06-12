@@ -91,6 +91,7 @@ extension Notification.Name {
         }
         _ = resolver.resolve(IOBService.self)!
         _ = resolver.resolve(GlucoseAlertCoordinator.self)!
+        _ = DeviceAlertsStore.shared
     }
 
     init() {

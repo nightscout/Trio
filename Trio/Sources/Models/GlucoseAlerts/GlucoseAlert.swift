@@ -13,7 +13,7 @@ struct GlucoseAlert: Identifiable, Codable, Equatable {
     /// When false, the alarm fires the banner / notification but no sound.
     /// iOS still drives haptics from the interruption level.
     var playsSound: Bool
-    /// When true, this alarm bypasses Do Not Disturb / silent switch / Focus
+    /// When true, this alarm bypasses Focus Mode / silent switch
     /// modes. Maps to `Alert.InterruptionLevel.critical` and triggers the
     /// in-process `CriticalAlertAudioPlayer` fallback for builds without the
     /// Critical Alerts entitlement.

@@ -8,6 +8,11 @@ import Swinject
 
 protocol APSManager {
     func heartbeat(date: Date)
+    /// Mark the next loop attempt as user-initiated (e.g. force-loop button).
+    /// Surfaces transient errors immediately instead of waiting for the
+    /// usual dwell threshold — when the user explicitly asks for a loop,
+    /// they want feedback even if the underlying error is "transient".
+    func markNextLoopUserInitiated()
     func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async
     var pumpManager: PumpManagerUI? { get set }
     var bluetoothManager: BluetoothStateManager? { get }
@@ -225,6 +230,13 @@ final class BaseAPSManager: APSManager, Injectable {
 
             // Check if we can start a new loop
             guard await self.canStartNewLoop() else { return }
+
+            // Consume the user-initiated flag for the duration of this loop —
+            // affects whether transient errors surface immediately instead of
+            // dwell-suppressed (see `surfaceErrorIfNeeded`).
+            self.currentLoopUserInitiated = self.nextLoopUserInitiated
+            self.nextLoopUserInitiated = false
+            defer { self.currentLoopUserInitiated = false }
 
             // Setup loop and background task
             var (loopStatRecord, backgroundTask) = await self.setupLoop()
@@ -1214,6 +1226,16 @@ final class BaseAPSManager: APSManager, Injectable {
     private static let transientDwellThreshold: TimeInterval = 60
     private static let transientCountThreshold = 2
 
+    /// Set by `markNextLoopUserInitiated()` (e.g. force-loop button), consumed
+    /// on the next entry into `loop()` so that errors during a user-initiated
+    /// loop surface immediately instead of being suppressed by dwell logic.
+    @SyncAccess private var nextLoopUserInitiated: Bool = false
+    private var currentLoopUserInitiated: Bool = false
+
+    func markNextLoopUserInitiated() {
+        nextLoopUserInitiated = true
+    }
+
     private func processError(_ error: Error) {
         warning(.apsManager, "\(error)")
         lastError.send(error)
@@ -1224,7 +1246,7 @@ final class BaseAPSManager: APSManager, Injectable {
         let category = TrioAlertClassifier.categorize(error: error)
         let key = String(describing: category)
 
-        if category.isAlertWorthy {
+        if category.isAlertWorthy || currentLoopUserInitiated {
             transientCategoryFirstSeen.removeValue(forKey: key)
             transientCategoryCount.removeValue(forKey: key)
             issueAlertForError(error, category: category)
