@@ -77,7 +77,6 @@ extension Notification.Name {
         _ = resolver.resolve(FetchTreatmentsManager.self)!
         _ = resolver.resolve(CalendarManager.self)!
         _ = resolver.resolve(UserNotificationsManager.self)!
-        _ = resolver.resolve(ForecastedGlucoseAlertObserver.self)!
         _ = resolver.resolve(WatchManager.self)!
         _ = resolver.resolve(ContactImageManager.self)!
         _ = resolver.resolve(HealthKitManager.self)!
@@ -91,6 +90,7 @@ extension Notification.Name {
             _ = resolver.resolve(LiveActivityManager.self)!
         }
         _ = resolver.resolve(IOBService.self)!
+        _ = resolver.resolve(GlucoseAlertCoordinator.self)!
     }
 
     init() {

@@ -731,8 +731,6 @@ extension Onboarding {
             if !isFreshTrioInstall {
                 let providedSettings = settingsProvider.settings
 
-                settingsCopy.lowGlucose = settingsCopy.lowGlucose.clamp(to: providedSettings.lowGlucose)
-                settingsCopy.highGlucose = settingsCopy.highGlucose.clamp(to: providedSettings.highGlucose)
                 settingsCopy.carbsRequiredThreshold = settingsCopy.carbsRequiredThreshold
                     .clamp(to: providedSettings.carbsRequiredThreshold)
                 settingsCopy.individualAdjustmentFactor = settingsCopy.individualAdjustmentFactor

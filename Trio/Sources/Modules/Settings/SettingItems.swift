@@ -322,24 +322,20 @@ enum SettingItems {
     static let notificationItems = [
         SettingItem(title: "Manage iOS Preferences", view: .notificationSettings),
         SettingItem(
-            title: "Trio Notifications",
-            view: .glucoseNotificationSettings,
+            title: "Glucose Alarms",
+            view: .glucoseAlerts,
             searchContents: [
-                "Always Notify Pump",
-                "Always Notify CGM",
-                "Always Notify Carb",
-                "Always Notify Algorithm",
+                "Urgent Low Glucose",
+                "Low Glucose",
+                "Forecasted Low Glucose",
+                "High Glucose",
+                "Day & Night",
+                "Alert Sound",
+                "Override Silence",
                 "Show Glucose App Badge",
-                "Glucose Notifications",
-                "Add Glucose Source to Alarm",
-                "Low Glucose Alarm Limit",
-                "High Glucose Alarm Limit"
+                "Add Glucose Source to Alarm"
             ],
-            scrollTargetLabels: [
-                "Low Glucose Alarm Limit": "Glucose Notifications",
-                "High Glucose Alarm Limit": "Glucose Notifications"
-            ],
-            path: ["Notifications", "Trio Notifications"] // Glucose
+            path: ["Notifications", "Glucose Alarms"]
         ),
         SettingItem(
             title: "Live Activity",

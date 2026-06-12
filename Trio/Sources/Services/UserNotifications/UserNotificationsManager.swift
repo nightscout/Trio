@@ -59,12 +59,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     @Injected() private var router: Router!
     @Injected() private var trioAlertManager: TrioAlertManager!
 
-    @Injected(as: FetchGlucoseManager.self) private var sourceInfoProvider: SourceInfoProvider!
-
     @Persisted(key: "UserNotificationsManager.snoozeUntilDate") private var snoozeUntilDate: Date = .distantPast
-    // The glucose notification observers below (Core Data saves and the storage publisher) can fire for the same
-    // reading, so we persist the last alert token to avoid enqueueing identical high/low notifications multiple times.
-    @Persisted(key: "UserNotificationsManager.lastGlucoseAlertToken") private var lastGlucoseAlertToken: String = ""
 
     private let notificationCenter = UNUserNotificationCenter.current()
     private var lifetime = Lifetime()
@@ -260,6 +255,10 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         }
     }
 
+    /// Maintains the app icon badge from the latest stored glucose reading.
+    /// Glucose alarm emission has moved to `GlucoseAlertCoordinator` —
+    /// urgent-low / low / forecasted-low / high are issued via `TrioAlertManager`
+    /// based on the user-configured `[GlucoseAlert]` list.
     @MainActor private func sendGlucoseNotification() async {
         do {
             addAppBadge(glucose: nil)
@@ -267,155 +266,12 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             let glucoseObjects = try glucoseIDs.compactMap { id in
                 try viewContext.existingObject(with: id) as? GlucoseStored
             }
-
-            if glucoseStorage.alarm == .none {
-                lastGlucoseAlertToken = ""
-            }
-
-            guard let lastReading = glucoseObjects.first?.glucose,
-                  let secondLastReading = glucoseObjects.dropFirst().first?.glucose,
-                  let lastDirection = glucoseObjects.first?.directionEnum?.symbol else { return }
-
             addAppBadge(glucose: (glucoseObjects.first?.glucose).map { Int($0) })
-
-            var titles: [String] = []
-            var notificationAlarm = false
-            var messageType = MessageType.info
-
-            switch glucoseStorage.alarm {
-            case .none:
-                titles.append(String(localized: "Glucose", comment: "Glucose"))
-            case .low:
-                titles.append(String(localized: "LOWALERT!", comment: "LOWALERT!"))
-                messageType = MessageType.warning
-                notificationAlarm = true
-            case .high:
-                titles.append(String(localized: "HIGHALERT!", comment: "HIGHALERT!"))
-                messageType = MessageType.warning
-                notificationAlarm = true
-            }
-
-            let delta = glucoseObjects.count >= 2 ? lastReading - secondLastReading : nil
-            let body = glucoseText(
-                glucoseValue: Int(lastReading),
-                delta: Int(delta ?? 0),
-                direction: lastDirection
-            ) + infoBody()
-
-            if snoozeUntilDate > Date() {
-                titles.append(String(localized: "(Snoozed)", comment: "(Snoozed)"))
-                notificationAlarm = false
-            } else {
-                let token = alertToken(from: glucoseObjects.first)
-
-                if token == "unknown" {
-                    warning(.service, "Missing glucose token fields; skipping notification to avoid re-alerting")
-                    return
-                }
-                if notificationAlarm, token == lastGlucoseAlertToken {
-                    return
-                }
-                titles.append(body)
-                let content = UNMutableNotificationContent()
-                content.title = titles.joined(separator: " ")
-                content.body = body
-
-                if notificationAlarm {
-                    content.sound = .default
-                    content.userInfo[NotificationAction.key] = NotificationAction.snooze.rawValue
-                    content.categoryIdentifier = NotificationCategoryIdentifier.trioAlert.rawValue
-                }
-
-                addRequest(
-                    identifier: .glucoseNotification,
-                    content: content,
-                    deleteOld: true,
-                    messageType: messageType,
-                    messageSubtype: .glucose,
-                    action: NotificationAction.snooze
-                )
-                if notificationAlarm {
-                    lastGlucoseAlertToken = token
-                }
-            }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to send glucose notification with error: \(error)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update glucose badge with error: \(error)"
             )
         }
-    }
-
-    private func alertToken(from glucose: GlucoseStored?) -> String {
-        if let id = glucose?.id?.uuidString { return id }
-
-        if let date = glucose?.date {
-            let roundedMinute = Int((date.timeIntervalSince1970 / 60).rounded())
-            return "date-\(roundedMinute)"
-        }
-
-        // Stable fallback for Core Data objects:
-        if let glucose, !glucose.objectID.isTemporaryID {
-            return "objectID-\(glucose.objectID.uriRepresentation().absoluteString)"
-        }
-
-        // Stable “unknown” fallback: prevents repeated alarms when identifiers are missing
-        return "unknown"
-    }
-
-    private func glucoseText(glucoseValue: Int, delta: Int?, direction: String?) -> String {
-        let units = settingsManager.settings.units
-        let glucoseText = glucoseFormatter
-            .string(from: Double(
-                units == .mmolL ? glucoseValue
-                    .asMmolL : Decimal(glucoseValue)
-            ) as NSNumber)! + " " + String(localized: "\(units.rawValue)", comment: "units")
-        let directionText = direction ?? "↔︎"
-        let deltaText = delta
-            .map {
-                self.deltaFormatter
-                    .string(from: Double(
-                        units == .mmolL ? $0
-                            .asMmolL : Decimal($0)
-                    ) as NSNumber)!
-            } ?? "--"
-
-        return glucoseText + " " + directionText + " " + deltaText
-    }
-
-    private func infoBody() -> String {
-        var body = ""
-
-        if settingsManager.settings.addSourceInfoToGlucoseNotifications,
-           let info = sourceInfoProvider.sourceInfo()
-        {
-            // Description
-            if let description = info[GlucoseSourceKey.description.rawValue] as? String {
-                body.append("\n" + description)
-            }
-
-            // NS ping
-            if let ping = info[GlucoseSourceKey.nightscoutPing.rawValue] as? TimeInterval {
-                body.append(
-                    "\n"
-                        + String(
-                            format: String(localized: "Nightscout ping: %d ms", comment: "Nightscout ping"),
-                            Int(ping * 1000)
-                        )
-                )
-            }
-
-            // Transmitter battery
-            if let transmitterBattery = info[GlucoseSourceKey.transmitterBattery.rawValue] as? Int {
-                body.append(
-                    "\n"
-                        + String(
-                            format: String(localized: "Transmitter: %@%%", comment: "Transmitter: %@%%"),
-                            "\(transmitterBattery)"
-                        )
-                )
-            }
-        }
-        return body
     }
 
     func getNotificationSettings(completionHandler: @escaping (UNNotificationSettings) -> Void) {
@@ -443,7 +299,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     @MainActor func applySnooze(for duration: TimeInterval) async {
         let untilDate = duration > 0 ? Date().addingTimeInterval(duration) : .distantPast
         snoozeUntilDate = untilDate
-        lastGlucoseAlertToken = ""
         // removeGlucoseNotifications() is safe to call here since we're @MainActor
         removeGlucoseNotifications()
 
@@ -508,26 +363,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 debug(.service, "Sending \(identifier) notification for \(request.content.title)")
             }
         }
-    }
-
-    private var glucoseFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        if settingsManager.settings.units == .mmolL {
-            formatter.minimumFractionDigits = 1
-            formatter.maximumFractionDigits = 1
-        }
-        formatter.roundingMode = .halfUp
-        return formatter
-    }
-
-    private var deltaFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
-        formatter.positivePrefix = "+"
-        return formatter
     }
 }
 

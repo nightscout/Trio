@@ -853,37 +853,6 @@ extension SettingsExport {
                     name: String(localized: "Show Glucose App Badge"),
                     value: trioSettings.glucoseBadge ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "Glucose Notifications"),
-                    value: trioSettings.glucoseNotificationsOption.rawValue
-                )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "Add Glucose Source to Alarm"),
-                    value: trioSettings
-                        .addSourceInfoToGlucoseNotifications ? String(localized: "Enabled") : String(localized: "Disabled")
-                )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "Low Glucose Alarm Limit"),
-                    value: trioSettings
-                        .units == .mgdL ? String(describing: trioSettings.lowGlucose) :
-                        String(describing: trioSettings.lowGlucose.asMmolL),
-                    unit: trioSettings.units.rawValue
-                )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "High Glucose Alarm Limit"),
-                    value: trioSettings
-                        .units == .mgdL ? String(describing: trioSettings.highGlucose) :
-                        String(describing: trioSettings.highGlucose.asMmolL),
-                    unit: trioSettings.units.rawValue
-                )
 
                 // Live Activity subcategory
                 let liveActivitySubcategory = String(localized: "Live Activity")

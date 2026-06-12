@@ -78,7 +78,9 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
     private func playCriticalAudioFallbackIfNeeded(_ alert: Alert, muted: Bool) {
         guard alert.interruptionLevel == .critical, !muted else { return }
         guard case .immediate = alert.trigger else { return }
-        let soundName = alert.sound?.filename ?? "critical.caf"
+        // Honor `playsSound: false` (alert was issued with sound: nil) —
+        // user explicitly opted out of audio on this alarm.
+        guard let soundName = alert.sound?.filename else { return }
         Task { @MainActor in
             if criticalAudioPlayer == nil { criticalAudioPlayer = CriticalAlertAudioPlayer() }
             criticalAudioPlayer?.play(soundNamed: soundName)

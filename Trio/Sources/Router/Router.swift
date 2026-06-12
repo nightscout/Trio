@@ -50,14 +50,13 @@ final class BaseRouter: Router {
         screen.view(resolver: resolver).asAny()
     }
 
-    func allowNotify(_ message: MessageContent, _ settings: TrioSettings) -> Bool {
+    func allowNotify(_ message: MessageContent, _: TrioSettings) -> Bool {
         if message.type == .error { return true }
         if message.subtype == .glucose {
-            return (
-                message.type == .warning &&
-                    settings.glucoseNotificationsOption == GlucoseNotificationsOption.onlyAlarmLimits
-            ) ||
-                settings.glucoseNotificationsOption == GlucoseNotificationsOption.alwaysEveryCGM
+            // Glucose alarms are owned by `GlucoseAlertCoordinator` and routed
+            // through `TrioAlertManager`. Generic glucose-warning messages on
+            // the legacy bus no longer surface notifications.
+            return false
         }
         return true
     }
