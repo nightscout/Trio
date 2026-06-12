@@ -82,6 +82,9 @@ struct NotificationsView: BaseView {
                     Text("Device Alarms")
                         .navigationLink(to: .deviceAlarms, from: self)
 
+                    Text("Day & Night Windows")
+                        .navigationLink(to: .alarmWindows, from: self)
+
                     if #available(iOS 16.2, *) {
                         Text("Live Activity").navigationLink(to: .liveActivitySettings, from: self)
                     }

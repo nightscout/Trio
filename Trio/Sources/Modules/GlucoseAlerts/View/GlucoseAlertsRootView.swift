@@ -51,67 +51,10 @@ extension GlucoseAlerts {
                     }.listRowBackground(Color.chart)
                 }
 
-                Section(header: Text("Day and Night Window")) {
-                    VStack {
-                        DatePicker(
-                            selection: dayStart,
-                            displayedComponents: .hourAndMinute
-                        ) {
-                            HStack {
-                                Image(systemName: "sun.max.fill").foregroundStyle(.orange)
-                                Text("Day Starts")
-                            }
-                        }
-                        .padding(.top)
-
-                        DatePicker(
-                            selection: nightStart,
-                            displayedComponents: .hourAndMinute
-                        ) {
-                            HStack {
-                                Image(systemName: "moon.stars.fill").foregroundStyle(.indigo)
-                                Text("Night Starts")
-                            }
-                        }
-
-                        HStack(alignment: .center) {
-                            Text("Decides when each alarm's Day or Night setting applies.")
-                                .lineLimit(nil)
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-
-                            Spacer()
-                            Button(
-                                action: {
-                                    hintLabel = String(localized: "Day and Night Window")
-                                    selectedVerboseHint =
-                                        AnyView(
-                                            VStack(alignment: .leading, spacing: 10) {
-                                                Text("Default: Day starts 06:00, Night starts 22:00.").bold()
-                                                Text(
-                                                    "These two times define the Day and Night windows. Each alarm's Active setting picks one — Day & Night, Day only, or Night only — and only fires when that window is current."
-                                                )
-                                                Text(
-                                                    "The Night window runs from 'Night Starts' back around to 'Day Starts' — so by default, Night covers 22:00 through 06:00 the next morning."
-                                                )
-
-                                                Text(
-                                                    "For example, you can create a Day only Low alarm at \(state.units == .mgdL ? "80" : 80.formattedAsMmolL), plus a second Night only Low alarm only at \(state.units == .mgdL ? "70" : 70.formattedAsMmolL), and be alerted at different glucose readings depending on time."
-                                                )
-                                            }
-                                        )
-
-                                    shouldDisplayHint.toggle()
-                                },
-                                label: {
-                                    HStack {
-                                        Image(systemName: "questionmark.circle")
-                                    }
-                                }
-                            ).buttonStyle(BorderlessButtonStyle())
-                        }.padding(.top)
-                    }.padding(.bottom).listRowBackground(Color.chart)
-                }
+                Section {
+                    Text("Day & Night Windows")
+                        .navigationLink(to: .alarmWindows, from: self)
+                }.listRowBackground(Color.chart)
 
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
@@ -182,31 +125,6 @@ extension GlucoseAlerts {
             DispatchQueue.main.async {
                 sheet = .editor(GlucoseAlert(type: type), isNew: true)
             }
-        }
-
-        // MARK: - Day & Night time bindings
-
-        private var dayStart: Binding<Date> {
-            Binding(
-                get: { Self.dateFromTimeOfDay(store.configuration.dayStart) },
-                set: { store.configuration.dayStart = Self.timeOfDay(from: $0) }
-            )
-        }
-
-        private var nightStart: Binding<Date> {
-            Binding(
-                get: { Self.dateFromTimeOfDay(store.configuration.nightStart) },
-                set: { store.configuration.nightStart = Self.timeOfDay(from: $0) }
-            )
-        }
-
-        private static func dateFromTimeOfDay(_ time: TimeOfDay) -> Date {
-            Calendar.current.date(bySettingHour: time.hour, minute: time.minute, second: 0, of: Date()) ?? Date()
-        }
-
-        private static func timeOfDay(from date: Date) -> TimeOfDay {
-            let comps = Calendar.current.dateComponents([.hour, .minute], from: date)
-            return TimeOfDay(hour: comps.hour ?? 0, minute: comps.minute ?? 0)
         }
 
         // MARK: - Sorted lists

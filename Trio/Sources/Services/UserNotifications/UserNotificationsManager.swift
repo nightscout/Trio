@@ -1,11 +1,8 @@
-import AudioToolbox
 import Combine
 import CoreData
 import Foundation
-import LoopKit
 import SwiftUI
 import Swinject
-import UIKit
 import UserNotifications
 
 protocol UserNotificationsManager {
@@ -14,22 +11,12 @@ protocol UserNotificationsManager {
     @MainActor func applySnooze(for duration: TimeInterval) async
 }
 
-enum GlucoseSourceKey: String {
-    case transmitterBattery
-    case nightscoutPing
-    case description
-}
-
 enum NotificationAction: String {
     static let key = "action"
 
     case snooze
     case pumpConfig
     case none
-}
-
-protocol BolusFailureObserver {
-    func bolusDidFail()
 }
 
 protocol alertMessageNotificationObserver {
@@ -46,8 +33,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     enum Identifier: String {
         case glucoseNotification = "Trio.glucoseNotification"
         case carbsRequiredNotification = "Trio.carbsRequiredNotification"
-        case noLoopFirstNotification = "Trio.noLoopFirstNotification"
-        case noLoopSecondNotification = "Trio.noLoopSecondNotification"
         case alertMessageNotification = "Trio.alertMessageNotification"
     }
 
@@ -62,7 +47,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     @Persisted(key: "UserNotificationsManager.snoozeUntilDate") private var snoozeUntilDate: Date = .distantPast
 
     private let notificationCenter = UNUserNotificationCenter.current()
-    private var lifetime = Lifetime()
 
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
     private let backgroundContext = CoreDataStack.shared.newTaskContext()
@@ -71,9 +55,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private let queue = DispatchQueue(label: "BaseUserNotificationsManager.queue", qos: .userInitiated)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
-
-    let firstInterval = 20 // min
-    let secondInterval = 40 // min
 
     init(resolver: Resolver) {
         super.init()
@@ -88,14 +69,9 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
         broadcaster.register(DeterminationObserver.self, observer: self)
         broadcaster.register(alertMessageNotificationObserver.self, observer: self)
-//        requestNotificationPermissionsIfNeeded()
-        Task {
-            await sendGlucoseNotification()
-        }
+        Task { await updateGlucoseBadge() }
         configureNotificationCategories()
-        registerHandlers()
-        registerSubscribers()
-        subscribeOnLoop()
+        subscribeGlucoseUpdates()
     }
 
     private func configureNotificationCategories() {
@@ -114,33 +90,19 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         }
     }
 
-    private func subscribeOnLoop() {
-        apsManager.lastLoopDateSubject
-            .sink { [weak self] date in
-                self?.scheduleMissingLoopNotifiactions(date: date)
-            }
-            .store(in: &lifetime)
-    }
-
-    private func registerHandlers() {
-        // Due to the Batch insert this only is used for observing Deletion of Glucose entries
-        coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task {
-                await self.sendGlucoseNotification()
-            }
-        }.store(in: &subscriptions)
-    }
-
-    private func registerSubscribers() {
+    /// Subscribes to the two sources that signal a glucose change so the app
+    /// icon badge stays current:
+    /// - `coreDataPublisher` filtered to `GlucoseStored` — catches deletions
+    ///   (batch inserts don't fire normal Core Data save notifications, so
+    ///   inserts come through `updatePublisher` below).
+    /// - `glucoseStorage.updatePublisher` — fires on every new reading.
+    private func subscribeGlucoseUpdates() {
+        coreDataPublisher?.filteredByEntityName("GlucoseStored")
+            .sink { [weak self] _ in Task { await self?.updateGlucoseBadge() } }
+            .store(in: &subscriptions)
         glucoseStorage.updatePublisher
             .receive(on: DispatchQueue.global(qos: .background))
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                Task {
-                    await self.sendGlucoseNotification()
-                }
-            }
+            .sink { [weak self] _ in Task { await self?.updateGlucoseBadge() } }
             .store(in: &subscriptions)
     }
 
@@ -201,41 +163,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         addRequest(identifier: .carbsRequiredNotification, content: content, deleteOld: true, messageSubtype: .carb)
     }
 
-    private func scheduleMissingLoopNotifiactions(date _: Date) {
-        let title = String(localized: "Trio Not Active", comment: "Trio Not Active")
-        let body = String(localized: "Last loop was more than %d min ago", comment: "Last loop was more than %d min ago")
-
-        let firstContent = UNMutableNotificationContent()
-        firstContent.title = title
-        firstContent.body = String(format: body, firstInterval)
-        firstContent.sound = .default
-
-        let secondContent = UNMutableNotificationContent()
-        secondContent.title = title
-        secondContent.body = String(format: body, secondInterval)
-        secondContent.sound = .default
-
-        let firstTrigger = UNTimeIntervalNotificationTrigger(timeInterval: 60 * TimeInterval(firstInterval), repeats: false)
-        let secondTrigger = UNTimeIntervalNotificationTrigger(timeInterval: 60 * TimeInterval(secondInterval), repeats: false)
-
-        addRequest(
-            identifier: .noLoopFirstNotification,
-            content: firstContent,
-            deleteOld: true,
-            trigger: firstTrigger,
-            messageType: .error,
-            messageSubtype: .algorithm
-        )
-        addRequest(
-            identifier: .noLoopSecondNotification,
-            content: secondContent,
-            deleteOld: true,
-            trigger: secondTrigger,
-            messageType: .error,
-            messageSubtype: .algorithm
-        )
-    }
-
     private func fetchGlucoseIDs() async throws -> [NSManagedObjectID] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
@@ -255,22 +182,20 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         }
     }
 
-    /// Maintains the app icon badge from the latest stored glucose reading.
-    /// Glucose alarm emission has moved to `GlucoseAlertCoordinator` —
-    /// urgent-low / low / forecasted-low / high are issued via `TrioAlertManager`
-    /// based on the user-configured `[GlucoseAlert]` list.
-    @MainActor private func sendGlucoseNotification() async {
+    /// Refreshes the Trio app icon badge from the latest stored glucose
+    /// reading. Glucose alarm emission has moved to `GlucoseAlertCoordinator`
+    /// (urgent-low / low / forecasted-low / high are issued via
+    /// `TrioAlertManager` based on the user-configured `[GlucoseAlert]` list).
+    @MainActor private func updateGlucoseBadge() async {
         do {
             addAppBadge(glucose: nil)
             let glucoseIDs = try await fetchGlucoseIDs()
-            let glucoseObjects = try glucoseIDs.compactMap { id in
+            let latest = try glucoseIDs.compactMap { id in
                 try viewContext.existingObject(with: id) as? GlucoseStored
-            }
-            addAppBadge(glucose: (glucoseObjects.first?.glucose).map { Int($0) })
+            }.first?.glucose
+            addAppBadge(glucose: latest.map { Int($0) })
         } catch {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update glucose badge with error: \(error)"
-            )
+            debug(.service, "Failed to update glucose badge: \(error)")
         }
     }
 
@@ -390,11 +315,6 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
             identifier = .carbsRequiredNotification
         case .glucose:
             identifier = .glucoseNotification
-        case .algorithm:
-            if message.trigger != nil {
-                identifier = message.content.contains(String(firstInterval)) ? Identifier.noLoopFirstNotification : Identifier
-                    .noLoopSecondNotification
-            }
         default:
             identifier = .alertMessageNotification
         }

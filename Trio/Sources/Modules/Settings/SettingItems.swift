@@ -345,12 +345,21 @@ enum SettingItems {
                 "Normal",
                 "Occlusion",
                 "Pump Fault",
+                "Hardware Fault",
                 "Reservoir",
                 "Battery",
                 "Bolus Failed",
-                "Pod"
+                "Pod",
+                "Sensor Failure",
+                "Device Expired"
             ],
             path: ["Notifications", "Device Alarms"]
+        ),
+        SettingItem(
+            title: "Day & Night Windows",
+            view: .alarmWindows,
+            searchContents: ["Day Starts", "Night Starts", "Day & Night"],
+            path: ["Notifications", "Day & Night Windows"]
         ),
         SettingItem(
             title: "Live Activity",

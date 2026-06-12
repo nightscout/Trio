@@ -14,6 +14,7 @@ enum PumpAlertCategory: String, Codable, CaseIterable, Identifiable {
     case bolusFailed
     case deliveryUncertain
     case manualTempBasalActive
+    case notLooping
     case sensorFailure
     case deviceExpirationReminder
     case deviceExpired
@@ -34,6 +35,7 @@ enum PumpAlertCategory: String, Codable, CaseIterable, Identifiable {
         case .bolusFailed: return String(localized: "Bolus Failed")
         case .deliveryUncertain: return String(localized: "Delivery Uncertain")
         case .manualTempBasalActive: return String(localized: "Manual Temp Basal Active")
+        case .notLooping: return String(localized: "Loop Not Running")
         case .sensorFailure: return String(localized: "Sensor Failure")
         case .deviceExpirationReminder: return String(localized: "Device Expiration Reminder")
         case .deviceExpired: return String(localized: "Device Expired")
@@ -49,6 +51,7 @@ enum PumpAlertCategory: String, Codable, CaseIterable, Identifiable {
         case .batteryEmpty,
              .deliveryUncertain,
              .hardwareFault,
+             .notLooping,
              .occlusion,
              .reservoirEmpty:
             return .critical
@@ -78,6 +81,7 @@ enum PumpAlertCategory: String, Codable, CaseIterable, Identifiable {
         case .bolusFailed: self = .bolusFailed
         case .deliveryUncertain: self = .deliveryUncertain
         case .manualTempBasalActive: self = .manualTempBasalActive
+        case .notLooping: self = .notLooping
         case .sensorFailure: self = .sensorFailure
         case .deviceExpirationReminder: self = .deviceExpirationReminder
         case .deviceExpired: self = .deviceExpired

@@ -36,6 +36,7 @@ enum TrioAlertCategory: Equatable {
     case suspendTimeExpired
     case bolusFailed
     case manualTempBasalActive
+    case notLooping
     case sensorFailure
     case glucoseUrgentLow
     case glucoseLow
@@ -61,6 +62,7 @@ enum TrioAlertCategory: Equatable {
              .glucoseUrgentLow,
              .hardwareFault,
              .manualTempBasalActive,
+             .notLooping,
              .occlusion,
              .other,
              .podShutdownImminent,
@@ -81,6 +83,7 @@ enum TrioAlertCategory: Equatable {
              .deliveryUncertain,
              .glucoseUrgentLow,
              .hardwareFault,
+             .notLooping,
              .occlusion,
              .reservoirEmpty:
             return .critical
@@ -199,6 +202,10 @@ enum TrioAlertClassifier {
         if id.contains("bolusfailed") { return .bolusFailed }
         if id.contains("suspendtimeexpired") || id.contains("suspendended") { return .suspendTimeExpired }
         if id.contains("manualtempbasal") { return .manualTempBasalActive }
+
+        // Loop has not run for the expected interval — emitted internally
+        // by the not-looping monitor, not by any pump manager.
+        if id.contains("notlooping") || id.contains("loop.notactive") { return .notLooping }
 
         return .other(alertIdentifier)
     }

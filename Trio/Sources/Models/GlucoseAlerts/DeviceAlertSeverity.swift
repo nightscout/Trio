@@ -29,7 +29,7 @@ enum DeviceAlertSeverity: String, Codable, CaseIterable, Identifiable {
         case .timeSensitive:
             return String(localized: "Pierces banner suppression but obeys Silence & Focus Mode.")
         case .normal:
-            return String(localized: "Default notification banner. Suppressed by Silence and DND.")
+            return String(localized: "Default notification banner. Suppressed by Silence and Focus Mode.")
         }
     }
 

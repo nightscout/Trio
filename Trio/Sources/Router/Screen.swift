@@ -22,6 +22,7 @@ enum Screen: Identifiable, Hashable {
     case healthkit
     case glucoseAlerts
     case deviceAlarms
+    case alarmWindows
     case mealSettings
     case iconConfig
     case overrideConfig
@@ -110,6 +111,8 @@ extension Screen {
             GlucoseAlerts.RootView(resolver: resolver)
         case .deviceAlarms:
             DeviceAlarms.RootView(resolver: resolver)
+        case .alarmWindows:
+            AlarmWindows.RootView(resolver: resolver)
         case .mealSettings:
             MealSettings.RootView(resolver: resolver)
         case .iconConfig:

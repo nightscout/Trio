@@ -104,9 +104,17 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         // maps to one of three tiers (Critical / Time-Sensitive / Normal) and
         // the tier config overrides sound + interruption level. Glucose
         // alarms bypass this — they're owned by `GlucoseAlertCoordinator`.
+        // If every variant in the matched tier is disabled, drop the alert.
         let effective: Alert
         if let pumpCategory = PumpAlertCategory(trioCategory: category) {
-            effective = applyDeviceSeverityConfig(to: alert, category: pumpCategory)
+            guard let configured = applyDeviceSeverityConfig(to: alert, category: pumpCategory) else {
+                debug(
+                    .service,
+                    "TrioAlertManager dropped \(alert.identifier.value): all variants in tier \(pumpCategory.defaultSeverity) disabled"
+                )
+                return
+            }
+            effective = configured
         } else {
             effective = alert
         }
@@ -137,9 +145,13 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         playCriticalAudioFallbackIfNeeded(effective, muted: muted)
     }
 
-    private func applyDeviceSeverityConfig(to alert: Alert, category: PumpAlertCategory) -> Alert {
+    private func applyDeviceSeverityConfig(to alert: Alert, category: PumpAlertCategory) -> Alert? {
         let severity = category.defaultSeverity
-        guard let config = DeviceAlertsStore.shared.config(for: severity) else { return alert }
+        let now = Date()
+        let isNight = GlucoseAlertsStore.shared.configuration.isNight(at: now)
+        guard let config = DeviceAlertsStore.shared.config(for: severity, at: now, isNight: isNight) else {
+            return nil
+        }
         let sound: Alert.Sound? = config.playsSound ? .sound(name: config.soundFilename) : nil
         let level: Alert.InterruptionLevel = config.overridesSilenceAndDND ? .critical : .timeSensitive
         return Alert(
@@ -159,6 +171,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         }
         modalScheduler.unschedule(identifier: identifier)
         userNotificationScheduler.unschedule(identifier: identifier)
+        throttler.reset(identifier: identifier)
         Task { @MainActor in criticalAudioPlayer?.stop() }
         alertHistoryStorage.removeAlert(identifier: identifier.alertIdentifier)
     }

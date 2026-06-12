@@ -41,6 +41,13 @@ protocol APSManager {
     var iobFileDidUpdate: PassthroughSubject<Void, Never> { get }
 }
 
+/// Notified after a bolus-related failure so observing UI (e.g. the
+/// treatment screen's bolus state) can clean up state. Broadcast by
+/// `APSManager` from `enactBolus` / `cancelBolus` error paths.
+protocol BolusFailureObserver {
+    func bolusDidFail()
+}
+
 enum APSError: LocalizedError {
     case pumpError(Error)
     case invalidPumpState(message: String)
