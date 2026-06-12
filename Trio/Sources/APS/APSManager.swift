@@ -1283,13 +1283,17 @@ final class BaseAPSManager: APSManager, Injectable {
         let alertId: String
         switch category {
         case .bolusFailed: alertId = "bolusFailed"
-        case .pumpFault: alertId = "pumpFault"
+        case .hardwareFault: alertId = "hardwareFault"
+        case .deliveryUncertain: alertId = "deliveryUncertain"
         case .occlusion: alertId = "occlusion"
         case .reservoirEmpty: alertId = "reservoirEmpty"
         case .reservoirLow: alertId = "reservoirLow"
         case .batteryEmpty: alertId = "batteryEmpty"
         case .batteryLow: alertId = "batteryLow"
         case .manualTempBasalActive: alertId = "manualTempBasalActive"
+        case .sensorFailure: alertId = "sensorFailure"
+        case .deviceExpired: alertId = "deviceExpired"
+        case .deviceExpirationReminder: alertId = "deviceExpirationReminder"
         case .glucoseDataStale: alertId = "glucoseDataStale"
         default: alertId = "general"
         }

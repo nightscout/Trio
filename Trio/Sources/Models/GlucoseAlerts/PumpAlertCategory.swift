@@ -3,18 +3,20 @@ import LoopKit
 
 /// Fixed categories of pump / device alarms. Each maps to a
 /// `DeviceAlertSeverity` tier — the user configures three tiers globally
-/// (Critical / Time-Sensitive / Normal), not 13 categories individually.
+/// (Critical / Time-Sensitive / Normal), not 13+ categories individually.
 enum PumpAlertCategory: String, Codable, CaseIterable, Identifiable {
     case occlusion
-    case pumpFault
+    case hardwareFault
     case reservoirEmpty
     case reservoirLow
     case batteryEmpty
     case batteryLow
     case bolusFailed
+    case deliveryUncertain
     case manualTempBasalActive
-    case podExpirationReminder
-    case podExpired
+    case sensorFailure
+    case deviceExpirationReminder
+    case deviceExpired
     case podShutdownImminent
     case suspendTimeExpired
     case glucoseDataStale
@@ -24,16 +26,18 @@ enum PumpAlertCategory: String, Codable, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .occlusion: return String(localized: "Occlusion")
-        case .pumpFault: return String(localized: "Pump Fault")
+        case .hardwareFault: return String(localized: "Hardware Fault")
         case .reservoirEmpty: return String(localized: "Reservoir Empty")
         case .reservoirLow: return String(localized: "Reservoir Low")
         case .batteryEmpty: return String(localized: "Battery Empty")
         case .batteryLow: return String(localized: "Battery Low")
         case .bolusFailed: return String(localized: "Bolus Failed")
+        case .deliveryUncertain: return String(localized: "Delivery Uncertain")
         case .manualTempBasalActive: return String(localized: "Manual Temp Basal Active")
-        case .podExpirationReminder: return String(localized: "Pod Expiration Reminder")
-        case .podExpired: return String(localized: "Pod Expired")
-        case .podShutdownImminent: return String(localized: "Pod Shutdown Imminent")
+        case .sensorFailure: return String(localized: "Sensor Failure")
+        case .deviceExpirationReminder: return String(localized: "Device Expiration Reminder")
+        case .deviceExpired: return String(localized: "Device Expired")
+        case .podShutdownImminent: return String(localized: "Shutdown Imminent")
         case .suspendTimeExpired: return String(localized: "Suspend Time Expired")
         case .glucoseDataStale: return String(localized: "Glucose Data Stale")
         }
@@ -43,20 +47,22 @@ enum PumpAlertCategory: String, Codable, CaseIterable, Identifiable {
     var defaultSeverity: DeviceAlertSeverity {
         switch self {
         case .batteryEmpty,
+             .deliveryUncertain,
+             .hardwareFault,
              .occlusion,
-             .pumpFault,
              .reservoirEmpty:
             return .critical
         case .batteryLow,
              .bolusFailed,
+             .deviceExpired,
              .glucoseDataStale,
              .manualTempBasalActive,
-             .podExpired,
              .podShutdownImminent,
              .reservoirLow,
+             .sensorFailure,
              .suspendTimeExpired:
             return .timeSensitive
-        case .podExpirationReminder:
+        case .deviceExpirationReminder:
             return .normal
         }
     }
@@ -64,15 +70,17 @@ enum PumpAlertCategory: String, Codable, CaseIterable, Identifiable {
     init?(trioCategory: TrioAlertCategory) {
         switch trioCategory {
         case .occlusion: self = .occlusion
-        case .pumpFault: self = .pumpFault
+        case .hardwareFault: self = .hardwareFault
         case .reservoirEmpty: self = .reservoirEmpty
         case .reservoirLow: self = .reservoirLow
         case .batteryEmpty: self = .batteryEmpty
         case .batteryLow: self = .batteryLow
         case .bolusFailed: self = .bolusFailed
+        case .deliveryUncertain: self = .deliveryUncertain
         case .manualTempBasalActive: self = .manualTempBasalActive
-        case .podExpirationReminder: self = .podExpirationReminder
-        case .podExpired: self = .podExpired
+        case .sensorFailure: self = .sensorFailure
+        case .deviceExpirationReminder: self = .deviceExpirationReminder
+        case .deviceExpired: self = .deviceExpired
         case .podShutdownImminent: self = .podShutdownImminent
         case .suspendTimeExpired: self = .suspendTimeExpired
         case .glucoseDataStale: self = .glucoseDataStale
