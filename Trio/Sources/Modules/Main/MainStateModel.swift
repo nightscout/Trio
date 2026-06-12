@@ -219,7 +219,6 @@ extension Main {
                 .receive(on: DispatchQueue.main)
                 .sink { message in
                     guard !self.isApnPumpConfigAction(message) else { return }
-                    guard self.router.allowNotify(message, self.settingsManager.settings) else { return }
                     self.showAlertMessage(message)
                 }
                 .store(in: &lifetime)

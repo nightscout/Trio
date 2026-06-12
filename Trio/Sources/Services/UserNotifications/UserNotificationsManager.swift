@@ -261,7 +261,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             router.alertMessage.send(messageCont)
             return
         }
-        guard router.allowNotify(messageCont, settingsManager.settings) else { return }
 
         let request = UNNotificationRequest(identifier: alertIdentifier, content: content, trigger: trigger)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -323,16 +322,6 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
             messageSubtype: message.subtype,
             action: message.action
         )
-    }
-}
-
-extension BaseUserNotificationsManager {
-    /// Removes all glucose notifications (delivered and pending).
-    /// Must be called from the main thread. Safe to call from @MainActor contexts.
-    @MainActor private func removeGlucoseNotifications() {
-        let identifier = Identifier.glucoseNotification.rawValue
-        notificationCenter.removeDeliveredNotifications(withIdentifiers: [identifier])
-        notificationCenter.removePendingNotificationRequests(withIdentifiers: [identifier])
     }
 }
 

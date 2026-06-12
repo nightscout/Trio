@@ -33,7 +33,6 @@ protocol Router {
     var mainSecondaryModalView: CurrentValueSubject<AnyView?, Never> { get }
     var alertMessage: PassthroughSubject<MessageContent, Never> { get }
     func view(for screen: Screen) -> AnyView
-    func allowNotify(_ message: MessageContent, _ settings: TrioSettings) -> Bool
 }
 
 final class BaseRouter: Router {
@@ -48,16 +47,5 @@ final class BaseRouter: Router {
 
     func view(for screen: Screen) -> AnyView {
         screen.view(resolver: resolver).asAny()
-    }
-
-    func allowNotify(_ message: MessageContent, _: TrioSettings) -> Bool {
-        if message.type == .error { return true }
-        if message.subtype == .glucose {
-            // Glucose alarms are owned by `GlucoseAlertCoordinator` and routed
-            // through `TrioAlertManager`. Generic glucose-warning messages on
-            // the legacy bus no longer surface notifications.
-            return false
-        }
-        return true
     }
 }
