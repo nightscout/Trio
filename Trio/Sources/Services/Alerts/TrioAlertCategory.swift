@@ -82,6 +82,37 @@ enum TrioAlertCategory: Equatable {
         }
     }
 
+    /// Canonical slug used when constructing `Alert.Identifier`. Round-trips
+    /// through `TrioAlertClassifier.categorize(alertIdentifier:)` — keep the
+    /// substring matchers in the classifier in sync with these slugs.
+    var alertIdentifier: String {
+        switch self {
+        case .occlusion: return "occlusion"
+        case .reservoirLow: return "reservoirLow"
+        case .reservoirEmpty: return "reservoirEmpty"
+        case .batteryLow: return "batteryLow"
+        case .batteryEmpty: return "batteryEmpty"
+        case .hardwareFault: return "hardwareFault"
+        case .deliveryUncertain: return "deliveryUncertain"
+        case .deviceExpirationReminder: return "deviceExpirationReminder"
+        case .deviceExpired: return "deviceExpired"
+        case .podShutdownImminent: return "podShutdownImminent"
+        case .suspendTimeExpired: return "suspendTimeExpired"
+        case .bolusFailed: return "bolusFailed"
+        case .manualTempBasalActive: return "manualTempBasalActive"
+        case .notLooping: return "notLooping"
+        case .sensorFailure: return "sensorFailure"
+        case .glucoseUrgentLow: return "glucoseUrgentLow"
+        case .glucoseLow: return "glucoseLow"
+        case .glucoseForecastedLow: return "glucoseForecastedLow"
+        case .glucoseHigh: return "glucoseHigh"
+        case .glucoseDataStale: return "glucoseDataStale"
+        case .algorithmError: return "algorithmError"
+        case .commsTransient: return "commsTransient"
+        case let .other(id): return id
+        }
+    }
+
     var interruptionLevel: Alert.InterruptionLevel {
         switch self {
         case .batteryEmpty,
@@ -178,20 +209,26 @@ enum TrioAlertClassifier {
             return .sensorFailure
         }
 
+        // Expiration reminders — F3, pre-expiry warnings (pod expiring, sensor
+        // grace period, calibration grace). Checked BEFORE `.deviceExpired`
+        // so "podexpiring" / "sensorgrace" don't get swallowed by the
+        // generic `expired` substring catch-all below.
+        if id.contains("podexpiring") || id.contains("expirationreminder") || id.contains("userpodexpiration")
+            || id.contains("retiringsoon") || id.contains("sensorending") || id.contains("calibrationgrace")
+            || id.contains("sensorgrace") || id.contains("graceperiod")
+        {
+            return .deviceExpirationReminder
+        }
+
         // Device expired — N6 (pod, sensor, transmitter end-of-life).
-        if id.contains("podexpired") || id.contains("podexpiring") || id.contains("sensorexpired")
+        if id.contains("podexpired") || id.contains("sensorexpired")
             || id.contains("sensorretired") || id.contains("transmittereol") || id.contains("sensoragedout")
-            || id.contains("mspalarm") || id.contains("expiredsensor") || id.contains("sensorgrace")
+            || id.contains("mspalarm") || id.contains("expiredsensor")
             || (id.contains("expired") && !id.contains("suspendtimeexpired"))
         {
             return .deviceExpired
         }
         if id.contains("shutdownimminent") || id.contains("expireimminent") { return .podShutdownImminent }
-        if id.contains("expirationreminder") || id.contains("userpodexpiration") || id.contains("retiringsoon")
-            || id.contains("sensorending") || id.contains("calibrationgrace") || id.contains("gracePeriod".lowercased())
-        {
-            return .deviceExpirationReminder
-        }
 
         // Low-supply warnings — F1 / F2.
         if id.contains("lowreservoir") || id.contains("reservoirlow") || id.contains("remaininginsulin") {

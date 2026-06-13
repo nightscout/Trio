@@ -248,8 +248,8 @@ final class GlucoseAlertCoordinator: Injectable {
             )
         case .forecastedLow:
             return String(
-                format: String(localized: "Forecast +20 min %1$@, at or below limit %2$@."),
-                valueString, limitString
+                format: String(localized: "Forecast +%1$d min %2$@, at or below limit %3$@."),
+                ForecastedGlucoseEvaluator.defaultHorizonMinutes, valueString, limitString
             )
         case .high:
             return String(

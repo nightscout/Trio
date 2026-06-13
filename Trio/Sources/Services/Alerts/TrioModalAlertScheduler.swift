@@ -123,14 +123,16 @@ final class TrioModalAlertScheduler: ObservableObject {
     }
 
     private func sortByPriority() {
-        active.sort { Self.priority(of: $0.interruptionLevel) > Self.priority(of: $1.interruptionLevel) }
+        active.sort { Self.rank(of: $0.interruptionLevel) < Self.rank(of: $1.interruptionLevel) }
     }
 
-    private static func priority(of level: LoopKit.Alert.InterruptionLevel) -> Int {
+    /// Lower rank = higher severity. Matches `DeviceAlertsStore.severityRank`
+    /// so the sort convention is consistent across the alert pipeline.
+    private static func rank(of level: LoopKit.Alert.InterruptionLevel) -> Int {
         switch level {
-        case .critical: return 2
+        case .critical: return 0
         case .timeSensitive: return 1
-        case .active: return 0
+        case .active: return 2
         }
     }
 }
@@ -138,11 +140,9 @@ final class TrioModalAlertScheduler: ObservableObject {
 struct TrioAlertBanner: View {
     let alert: LoopKit.Alert
     let onTap: () -> Void
-    let onSwipeAway: () -> Void
     let onSnooze: (TimeInterval) -> Void
 
     @State private var presentedAt = Date()
-    @State private var dragOffset: CGFloat = 0
 
     private var canSnooze: Bool { alert.interruptionLevel != .critical }
 
@@ -215,30 +215,6 @@ struct TrioAlertBanner: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
         .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .offset(x: dragOffset)
-        .opacity(1 - min(abs(dragOffset) / 200, 0.6))
-        .gesture(
-            DragGesture(minimumDistance: 12)
-                .onChanged { value in
-                    let dx = value.translation.width
-                    dragOffset = abs(dx) > abs(value.translation.height) ? dx : 0
-                }
-                .onEnded { value in
-                    let dx = value.translation.width
-                    // Swipe right past threshold → dismiss / acknowledge.
-                    // Swipe left past threshold → quick snooze (20m) when
-                    // the alert isn't critical. Otherwise reset.
-                    if dx > 80 {
-                        onSwipeAway()
-                    } else if dx < -80, canSnooze {
-                        onSnooze(NotificationResponseAction.snooze20.duration)
-                    } else {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            dragOffset = 0
-                        }
-                    }
-                }
-        )
         .onTapGesture { onTap() }
         .contextMenu {
             if canSnooze {
@@ -304,7 +280,6 @@ struct TrioAlertModifier: ViewModifier {
                     TrioAlertBanner(
                         alert: alert,
                         onTap: { scheduler.acknowledge(identifier: alert.identifier) },
-                        onSwipeAway: { scheduler.acknowledge(identifier: alert.identifier) },
                         onSnooze: { duration in
                             scheduler.snooze(identifier: alert.identifier, duration: duration)
                         }
@@ -328,7 +303,6 @@ struct TrioAlertModifier: ViewModifier {
                             isExpanded = true
                         }
                     },
-                    onSwipeAway: { scheduler.acknowledge(identifier: alert.identifier) },
                     onSnooze: { duration in
                         scheduler.snooze(identifier: alert.identifier, duration: duration)
                     }

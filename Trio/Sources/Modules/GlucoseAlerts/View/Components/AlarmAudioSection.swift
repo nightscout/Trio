@@ -141,7 +141,7 @@ private struct TonePickerRow: View {
             player = p
             playing = filename
         } catch {
-            // best-effort preview — ignore
+            debug(.service, "Audio preview failed for \(filename): \(error)")
         }
     }
 

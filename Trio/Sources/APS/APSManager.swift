@@ -1287,25 +1287,8 @@ final class BaseAPSManager: APSManager, Injectable {
             body: body,
             acknowledgeActionButtonLabel: String(localized: "OK")
         )
-        let alertId: String
-        switch category {
-        case .bolusFailed: alertId = "bolusFailed"
-        case .hardwareFault: alertId = "hardwareFault"
-        case .deliveryUncertain: alertId = "deliveryUncertain"
-        case .occlusion: alertId = "occlusion"
-        case .reservoirEmpty: alertId = "reservoirEmpty"
-        case .reservoirLow: alertId = "reservoirLow"
-        case .batteryEmpty: alertId = "batteryEmpty"
-        case .batteryLow: alertId = "batteryLow"
-        case .manualTempBasalActive: alertId = "manualTempBasalActive"
-        case .sensorFailure: alertId = "sensorFailure"
-        case .deviceExpired: alertId = "deviceExpired"
-        case .deviceExpirationReminder: alertId = "deviceExpirationReminder"
-        case .glucoseDataStale: alertId = "glucoseDataStale"
-        default: alertId = "general"
-        }
         let alert = Alert(
-            identifier: Alert.Identifier(managerIdentifier: "trio.aps", alertIdentifier: alertId),
+            identifier: Alert.Identifier(managerIdentifier: "trio.aps", alertIdentifier: category.alertIdentifier),
             foregroundContent: content,
             backgroundContent: content,
             trigger: .immediate,
@@ -1315,14 +1298,14 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func issueAlertForError(_ error: Error, category: TrioAlertCategory) {
-        let (alertId, title, body) = describeForAlert(error, category: category)
+        let (title, body) = describeForAlert(error)
         let content = Alert.Content(
             title: title,
             body: body,
             acknowledgeActionButtonLabel: "OK"
         )
         let alert = Alert(
-            identifier: Alert.Identifier(managerIdentifier: "trio.aps", alertIdentifier: alertId),
+            identifier: Alert.Identifier(managerIdentifier: "trio.aps", alertIdentifier: category.alertIdentifier),
             foregroundContent: content,
             backgroundContent: content,
             trigger: .immediate,
@@ -1331,30 +1314,22 @@ final class BaseAPSManager: APSManager, Injectable {
         trioAlertManager?.issueAlert(alert)
     }
 
-    private func describeForAlert(
-        _ error: Error,
-        category _: TrioAlertCategory
-    ) -> (alertId: String, title: String, body: String) {
+    private func describeForAlert(_ error: Error) -> (title: String, body: String) {
         if let apsError = error as? APSError {
             switch apsError {
             case let .pumpError(inner):
                 return (
-                    "pumpError",
                     String(localized: "Pump Error"),
                     String(localized: "Trio could not communicate with the pump. Check the pump and try again.")
                         + "\n\n\(inner.localizedDescription)"
                 )
-            case let .invalidPumpState(message):
-                return ("invalidPumpState", String(localized: "Pump State"), message)
-            case let .glucoseError(message):
-                return ("glucoseError", String(localized: "Glucose"), message)
-            case let .apsError(message):
-                return ("algorithmError", String(localized: "Algorithm"), message)
-            case let .manualBasalTemp(message):
-                return ("manualBasalTemp", String(localized: "Manual Temp Basal"), message)
+            case let .invalidPumpState(message): return (String(localized: "Pump State"), message)
+            case let .glucoseError(message): return (String(localized: "Glucose"), message)
+            case let .apsError(message): return (String(localized: "Algorithm"), message)
+            case let .manualBasalTemp(message): return (String(localized: "Manual Temp Basal"), message)
             }
         }
-        return ("general", "Trio", error.localizedDescription)
+        return ("Trio", error.localizedDescription)
     }
 
     private func createBolusReporter() {
