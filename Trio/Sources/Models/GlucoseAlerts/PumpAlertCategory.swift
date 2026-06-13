@@ -21,6 +21,7 @@ enum PumpAlertCategory: String, Codable, CaseIterable, Identifiable {
     case podShutdownImminent
     case suspendTimeExpired
     case glucoseDataStale
+    case algorithmError
 
     var id: String { rawValue }
 
@@ -42,6 +43,7 @@ enum PumpAlertCategory: String, Codable, CaseIterable, Identifiable {
         case .podShutdownImminent: return String(localized: "Shutdown Imminent")
         case .suspendTimeExpired: return String(localized: "Suspend Time Expired")
         case .glucoseDataStale: return String(localized: "Glucose Data Stale")
+        case .algorithmError: return String(localized: "Algorithm Error")
         }
     }
 
@@ -53,7 +55,8 @@ enum PumpAlertCategory: String, Codable, CaseIterable, Identifiable {
              .hardwareFault,
              .notLooping,
              .occlusion,
-             .reservoirEmpty:
+             .reservoirEmpty,
+             .sensorFailure:
             return .critical
         case .batteryLow,
              .bolusFailed,
@@ -62,10 +65,10 @@ enum PumpAlertCategory: String, Codable, CaseIterable, Identifiable {
              .manualTempBasalActive,
              .podShutdownImminent,
              .reservoirLow,
-             .sensorFailure,
              .suspendTimeExpired:
             return .timeSensitive
-        case .deviceExpirationReminder:
+        case .algorithmError,
+             .deviceExpirationReminder:
             return .normal
         }
     }
@@ -88,6 +91,7 @@ enum PumpAlertCategory: String, Codable, CaseIterable, Identifiable {
         case .podShutdownImminent: self = .podShutdownImminent
         case .suspendTimeExpired: self = .suspendTimeExpired
         case .glucoseDataStale: self = .glucoseDataStale
+        case .algorithmError: self = .algorithmError
         default: return nil
         }
     }

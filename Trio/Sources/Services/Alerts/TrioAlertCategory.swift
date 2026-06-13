@@ -47,9 +47,15 @@ enum TrioAlertCategory: Equatable {
     case commsTransient
     case other(String)
 
+    /// Whether an inbound alert in this category surfaces *immediately*.
+    /// `false` means the category is dwell-suppressed by `APSManager`
+    /// (count + time threshold) before it reaches `TrioAlertManager`.
+    /// `commsTransient` stays suppressed because connectivity blips
+    /// recover on their own.
     var isAlertWorthy: Bool {
         switch self {
-        case .batteryEmpty,
+        case .algorithmError,
+             .batteryEmpty,
              .batteryLow,
              .bolusFailed,
              .deliveryUncertain,
@@ -71,8 +77,7 @@ enum TrioAlertCategory: Equatable {
              .sensorFailure,
              .suspendTimeExpired:
             return true
-        case .algorithmError,
-             .commsTransient:
+        case .commsTransient:
             return false
         }
     }
@@ -85,7 +90,8 @@ enum TrioAlertCategory: Equatable {
              .hardwareFault,
              .notLooping,
              .occlusion,
-             .reservoirEmpty:
+             .reservoirEmpty,
+             .sensorFailure:
             return .critical
         case .batteryLow,
              .bolusFailed,
@@ -97,7 +103,6 @@ enum TrioAlertCategory: Equatable {
              .manualTempBasalActive,
              .podShutdownImminent,
              .reservoirLow,
-             .sensorFailure,
              .suspendTimeExpired:
             return .timeSensitive
         case .algorithmError,
@@ -206,6 +211,11 @@ enum TrioAlertClassifier {
         // Loop has not run for the expected interval — emitted internally
         // by the not-looping monitor, not by any pump manager.
         if id.contains("notlooping") || id.contains("loop.notactive") { return .notLooping }
+
+        // Algorithm error — emitted by APSManager after dwell suppression.
+        // Re-classification by identifier needs to land here so the tier
+        // config in Device Alarms applies on the round-trip through issueAlert.
+        if id.contains("algorithmerror") || id.contains("apserror") { return .algorithmError }
 
         return .other(alertIdentifier)
     }
