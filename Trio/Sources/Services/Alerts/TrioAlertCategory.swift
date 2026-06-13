@@ -183,7 +183,8 @@ enum TrioAlertClassifier {
 
         // Uncertain delivery — N3, must come before generic bolusFailed.
         if id.contains("unacknowledged") || id.contains("uncertaindelivery") || id.contains("uncertain delivery")
-            || id.contains("delivery-uncertain") || id.contains("unabletoreachpod") || id.contains("commsrecovery")
+            || id.contains("delivery-uncertain") || id.contains("deliveryuncertain")
+            || id.contains("unabletoreachpod") || id.contains("commsrecovery")
         {
             return .deliveryUncertain
         }
@@ -201,9 +202,10 @@ enum TrioAlertClassifier {
 
         // Sensor / session failure — N7 (CGM-side).
         if id.contains("sensorfailed") || id.contains("sensor.failed") || id.contains("sensorstopped")
-            || id.contains("sensorerror") || id.contains("invalidsensor") || id.contains("encryptedsensor")
-            || id.contains("sensortemperature") || id.contains("sensorlowtemperature")
-            || id.contains("readertemperature") || id.contains("sensorretirement") || id.contains("nosensordetected")
+            || id.contains("sensorfailure") || id.contains("sensorerror") || id.contains("invalidsensor")
+            || id.contains("encryptedsensor") || id.contains("sensortemperature")
+            || id.contains("sensorlowtemperature") || id.contains("readertemperature")
+            || id.contains("sensorretirement") || id.contains("nosensordetected")
             || id.contains("transmitterdisconnected") || id.contains("glucosesuspended")
             || id.contains("sensorconnection")
         {
