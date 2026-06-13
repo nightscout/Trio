@@ -810,9 +810,16 @@ extension Home {
                         Spacer()
 
                         VStack {
-                            Text("Bolusing")
-                                .font(.subheadline)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            if state.bolusStatus == .inProcess {
+                                Text("Bolusing")
+                                    .font(.subheadline)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            } else if state.bolusStatus == .initiating {
+                                Text("Bolus Initiating")
+                                    .font(.subheadline)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            
                             Text(bolusString)
                                 .font(.caption)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -820,12 +827,16 @@ extension Home {
 
                         Spacer()
 
-                        Button {
-                            state.showProgressView()
-                            state.cancelBolus()
-                        } label: {
-                            Image(systemName: "xmark.app")
-                                .font(.system(size: 25))
+                        if state.bolusStatus == .inProcess {
+                            Button {
+                                state.showProgressView()
+                                state.cancelBolus()
+                            } label: {
+                                Image(systemName: "xmark.app")
+                                    .font(.system(size: 25))
+                            }
+                        } else if state.bolusStatus == .initiating {
+                            ProgressView()
                         }
                     }.padding(.horizontal, 10)
                         .padding(.trailing, 8)
