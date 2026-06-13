@@ -152,9 +152,9 @@ enum TrioAlertClassifier {
     /// for anything unrecognized.
     ///
     /// Coverage notes (manager audit):
-    ///   - Pumps: OmniBLE / OmniKit / OmnipodKit / DanaKit / MinimedKit /
-    ///     MedtrumKit (MedtrumKit bypasses LoopKit `AlertIssuer` today —
-    ///     submodule change required to route through this classifier).
+    ///   - Pumps: OmnipodKit (Eros + DASH), DanaKit, MinimedKit, MedtrumKit
+    ///     (MedtrumKit alerts land via jbr7rr/MedtrumKit#147 — slugs are
+    ///     `com.nightscout.medtrumkit.*`).
     ///   - CGMs: CGMBLEKit (Dexcom G5/G6), G7SensorKit, LibreTransmitter,
     ///     EversenseKit, NightscoutRemoteCGM, dexcom-share-client-swift.
     static func categorize(alertIdentifier: String) -> TrioAlertCategory {
@@ -171,7 +171,7 @@ enum TrioAlertClassifier {
         // Hard-fail device states first (most severe wins on substring overlap).
         if id.contains("occlusion") || id.contains("occluded") { return .occlusion }
         if id.contains("reservoirempty") || id.contains("emptyreservoir") || id.contains("nodelivery")
-            || id.contains("reservoirempty")
+            || id.contains("patch-empty") || id.contains("patchempty")
         {
             return .reservoirEmpty
         }
@@ -216,9 +216,13 @@ enum TrioAlertClassifier {
         // grace period, calibration grace). Checked BEFORE `.deviceExpired`
         // so "podexpiring" / "sensorgrace" don't get swallowed by the
         // generic `expired` substring catch-all below.
+        // Medtrum's `patch-expired` slug is a misnomer — the underlying
+        // alert is a pre-expiry warning ("Your patch has X hours left")
+        // fired via `.delayed`, so it belongs with the reminders.
         if id.contains("podexpiring") || id.contains("expirationreminder") || id.contains("userpodexpiration")
             || id.contains("retiringsoon") || id.contains("sensorending") || id.contains("calibrationgrace")
             || id.contains("sensorgrace") || id.contains("graceperiod")
+            || id.contains("patch-expired") || id.contains("patchexpired")
         {
             return .deviceExpirationReminder
         }
@@ -234,7 +238,9 @@ enum TrioAlertClassifier {
         if id.contains("shutdownimminent") || id.contains("expireimminent") { return .podShutdownImminent }
 
         // Low-supply warnings — F1 / F2.
-        if id.contains("lowreservoir") || id.contains("reservoirlow") || id.contains("remaininginsulin") {
+        if id.contains("lowreservoir") || id.contains("reservoirlow") || id.contains("reservoir-low")
+            || id.contains("remaininginsulin")
+        {
             return .reservoirLow
         }
         if id.contains("lowbattery") || id.contains("batterylow") || id.contains("rlbattery")
@@ -243,9 +249,17 @@ enum TrioAlertClassifier {
             return .batteryLow
         }
 
-        // Bolus + delivery state.
+        // Bolus + delivery state. Medtrum's hourly/daily insulin caps auto-
+        // suspend the pump — the patient sees "Insulin has been suspended!"
+        // and needs to clear it. Map to suspendTimeExpired (N2 Delivery
+        // Stopped) so the existing tier config applies.
         if id.contains("bolusfailed") { return .bolusFailed }
-        if id.contains("suspendtimeexpired") || id.contains("suspendended") { return .suspendTimeExpired }
+        if id.contains("suspendtimeexpired") || id.contains("suspendended")
+            || id.contains("patch-daily-limit") || id.contains("patchdailylimit")
+            || id.contains("patch-hourly-limit") || id.contains("patchhourlylimit")
+        {
+            return .suspendTimeExpired
+        }
         if id.contains("manualtempbasal") { return .manualTempBasalActive }
 
         // Loop has not run for the expected interval — emitted internally

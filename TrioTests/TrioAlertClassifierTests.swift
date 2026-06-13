@@ -110,6 +110,57 @@ import Testing
         }
     }
 
+    // MARK: - MedtrumKit (jbr7rr/MedtrumKit PR #147)
+
+    @Test("Medtrum: patch-expired → reminder (misnamed, fires PRE-expiry via .delayed)") func medtrumPatchExpiredIsReminder() {
+        #expect(
+            TrioAlertClassifier
+                .categorize(alertIdentifier: "com.nightscout.medtrumkit.patch-expired") == .deviceExpirationReminder
+        )
+    }
+
+    @Test("Medtrum: patch-occlusion → occlusion") func medtrumOcclusion() {
+        #expect(
+            TrioAlertClassifier
+                .categorize(alertIdentifier: "com.nightscout.medtrumkit.patch-occlusion") == .occlusion
+        )
+    }
+
+    @Test("Medtrum: patch-fault → hardwareFault") func medtrumPatchFault() {
+        #expect(
+            TrioAlertClassifier
+                .categorize(alertIdentifier: "com.nightscout.medtrumkit.patch-fault") == .hardwareFault
+        )
+    }
+
+    @Test("Medtrum: patch-empty → reservoirEmpty") func medtrumPatchEmpty() {
+        #expect(
+            TrioAlertClassifier
+                .categorize(alertIdentifier: "com.nightscout.medtrumkit.patch-empty") == .reservoirEmpty
+        )
+    }
+
+    @Test("Medtrum: reservoir-low → reservoirLow") func medtrumReservoirLow() {
+        #expect(
+            TrioAlertClassifier
+                .categorize(alertIdentifier: "com.nightscout.medtrumkit.reservoir-low") == .reservoirLow
+        )
+    }
+
+    @Test("Medtrum: patch-daily-limit → suspendTimeExpired (auto-suspend on cap)") func medtrumPatchDailyLimit() {
+        #expect(
+            TrioAlertClassifier
+                .categorize(alertIdentifier: "com.nightscout.medtrumkit.patch-daily-limit") == .suspendTimeExpired
+        )
+    }
+
+    @Test("Medtrum: patch-hourly-limit → suspendTimeExpired") func medtrumPatchHourlyLimit() {
+        #expect(
+            TrioAlertClassifier
+                .categorize(alertIdentifier: "com.nightscout.medtrumkit.patch-hourly-limit") == .suspendTimeExpired
+        )
+    }
+
     // MARK: - MinimedKit
 
     @Test("Minimed: PumpBatteryLow → batteryLow") func minimedBatteryLow() {
