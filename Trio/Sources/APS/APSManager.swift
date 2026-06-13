@@ -1253,7 +1253,7 @@ final class BaseAPSManager: APSManager, Injectable {
         let category = TrioAlertClassifier.categorize(error: error)
         let key = String(describing: category)
 
-        if category.isAlertWorthy || currentLoopUserInitiated {
+        if category.shouldFireImmediately || currentLoopUserInitiated {
             transientCategoryFirstSeen.removeValue(forKey: key)
             transientCategoryCount.removeValue(forKey: key)
             issueAlertForError(error, category: category)

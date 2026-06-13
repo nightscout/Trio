@@ -115,8 +115,8 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             .service,
             "TrioAlertManager.issueAlert \(alert.identifier.value) category=\(category) level=\(alert.interruptionLevel)"
         )
-        guard category.isAlertWorthy else {
-            debug(.service, "TrioAlertManager dropped \(alert.identifier.value): \(category) not alert-worthy")
+        guard category.shouldFireImmediately else {
+            debug(.service, "TrioAlertManager dropped \(alert.identifier.value): \(category) does not surface")
             return
         }
 

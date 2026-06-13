@@ -49,10 +49,11 @@ enum TrioAlertCategory: Equatable {
 
     /// Whether an inbound alert in this category surfaces *immediately*.
     /// `false` means the category is dwell-suppressed by `APSManager`
-    /// (count + time threshold) before it reaches `TrioAlertManager`.
-    /// `commsTransient` stays suppressed because connectivity blips
+    /// (count + time threshold) before it reaches `TrioAlertManager`, and
+    /// also dropped at the manager boundary if it leaks through. Today
+    /// only `commsTransient` qualifies — connectivity blips usually
     /// recover on their own.
-    var isAlertWorthy: Bool {
+    var shouldFireImmediately: Bool {
         switch self {
         case .algorithmError,
              .batteryEmpty,
