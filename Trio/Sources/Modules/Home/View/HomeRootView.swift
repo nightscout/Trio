@@ -819,7 +819,6 @@ extension Home {
                                     .font(.subheadline)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
-
                             Text(bolusString)
                                 .font(.caption)
                                 .frame(maxWidth: .infinity, alignment: .leading)
