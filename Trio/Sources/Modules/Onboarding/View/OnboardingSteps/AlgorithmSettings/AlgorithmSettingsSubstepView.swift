@@ -22,7 +22,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
              .minimed:
             return false
         case .medtrum,
-             .omnipod:
+             .omni:
             return true
         }
     }

@@ -545,7 +545,7 @@ enum DiagnosticsSharingOption: String, Equatable, CaseIterable, Identifiable {
 
 enum PumpOptionForOnboardingUnits: String, Equatable, CaseIterable, Identifiable {
     case minimed
-    case omnipod
+    case omni
     case dana
     case medtrum
 
@@ -555,8 +555,8 @@ enum PumpOptionForOnboardingUnits: String, Equatable, CaseIterable, Identifiable
         switch self {
         case .minimed:
             return "Medtronic"
-        case .omnipod:
-            return "Omnipod"
+        case .omni:
+            return "All Omnipod Types"
         case .dana:
             return "Dana (RS/-i)"
         case .medtrum:

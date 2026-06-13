@@ -127,7 +127,7 @@ extension Onboarding {
                 let defaultOption: PumpOptionForOnboardingUnits
                 if let pumpManager = apsManager?.pumpManager {
                     if pumpManager is OmniPumpManager {
-                        defaultOption = .omnipod
+                        defaultOption = .omni
                     } else if pumpManager is MedtrumPumpManager {
                         defaultOption = .medtrum
                     } else if pumpManager is DanaKitPumpManager {
@@ -135,10 +135,10 @@ extension Onboarding {
                     } else if pumpManager is MinimedPumpManager {
                         defaultOption = .minimed
                     } else {
-                        defaultOption = .omnipod
+                        defaultOption = .omni
                     }
                 } else {
-                    defaultOption = .omnipod
+                    defaultOption = .omni
                 }
 
                 // cache it so picker can stay in sync
@@ -171,7 +171,7 @@ extension Onboarding {
                 return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 3, type: .insulinUnitPerHour)
             case .minimed:
                 return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 35, type: .insulinUnitPerHour)
-            case .omnipod:
+            case .omni:
                 return PickerSetting(
                     value: 0.1,
                     step: 0.05,
