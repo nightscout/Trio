@@ -35,6 +35,14 @@ struct GlucoseAlert: Identifiable, Codable, Equatable {
         snoozedUntil = nil
     }
 
+    /// Whether the coordinator should fire this alarm when a reading breaches.
+    /// Urgent-low is the safety floor — the editor hides the Enabled toggle so
+    /// the user can't accidentally turn it off, and stored `isEnabled = false`
+    /// from a prior install is ignored here.
+    var shouldEvaluate: Bool {
+        type == .urgentLow || isEnabled
+    }
+
     // MARK: - Codable
 
     private enum CodingKeys: String, CodingKey {

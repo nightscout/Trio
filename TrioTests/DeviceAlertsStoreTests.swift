@@ -68,19 +68,34 @@ import Testing
     }
 
     @Test("Disabled variants are skipped; falls back to next enabled") func disabledVariantSkipped() {
-        var dayDisabled = DeviceAlertSeverityConfig(severity: .critical, activeOption: .day)
+        // Use timeSensitive — Critical configs are always considered enabled
+        // regardless of the stored isEnabled flag.
+        var dayDisabled = DeviceAlertSeverityConfig(severity: .timeSensitive, activeOption: .day)
         dayDisabled.isEnabled = false
         dayDisabled.soundFilename = "disabled-day.caf"
-        var alwaysFallback = DeviceAlertSeverityConfig(severity: .critical, activeOption: .always)
+        var alwaysFallback = DeviceAlertSeverityConfig(severity: .timeSensitive, activeOption: .always)
         alwaysFallback.soundFilename = "always.caf"
         let store = Self.makeStore(seed: [
+            DeviceAlertSeverityConfig(severity: .critical, activeOption: .always),
             alwaysFallback,
             dayDisabled,
+            DeviceAlertSeverityConfig(severity: .normal, activeOption: .always)
+        ])
+        let match = store.config(for: .timeSensitive, at: Date(), isNight: false)
+        #expect(match?.soundFilename == "always.caf")
+    }
+
+    @Test("Critical tier ignores stored isEnabled flag") func criticalAlwaysEnabled() {
+        var disabledCritical = DeviceAlertSeverityConfig(severity: .critical, activeOption: .always)
+        disabledCritical.isEnabled = false
+        disabledCritical.soundFilename = "critical.caf"
+        let store = Self.makeStore(seed: [
+            disabledCritical,
             DeviceAlertSeverityConfig(severity: .timeSensitive, activeOption: .always),
             DeviceAlertSeverityConfig(severity: .normal, activeOption: .always)
         ])
         let match = store.config(for: .critical, at: Date(), isNight: false)
-        #expect(match?.soundFilename == "always.caf")
+        #expect(match?.soundFilename == "critical.caf")
     }
 
     @Test("All variants disabled returns nil") func allDisabledReturnsNil() {

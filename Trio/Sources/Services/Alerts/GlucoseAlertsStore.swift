@@ -34,16 +34,19 @@ final class GlucoseAlertsStore: ObservableObject {
         bind()
     }
 
-    /// Enabled Low + High pair, urgent-low and forecasted-low disabled by
-    /// default. User can enable, edit thresholds, or add more entries.
+    /// Seed every glucose alarm enabled. Users running a stock CGM app for
+    /// low/high notifications can disable the duplicates per-alarm; the
+    /// safer default is to have Trio alert until the user opts out.
+    /// `urgentLow` cannot be disabled from the editor regardless — it's the
+    /// safety floor — but the stored flag is kept honest so the UI binding
+    /// stays simple.
     private static func defaultAlerts() -> [GlucoseAlert] {
-        var urgent = GlucoseAlert(type: .urgentLow)
-        urgent.isEnabled = false
-        var forecasted = GlucoseAlert(type: .forecastedLow)
-        forecasted.isEnabled = false
-        let low = GlucoseAlert(type: .low)
-        let high = GlucoseAlert(type: .high)
-        return [urgent, low, forecasted, high]
+        [
+            GlucoseAlert(type: .urgentLow),
+            GlucoseAlert(type: .low),
+            GlucoseAlert(type: .forecastedLow),
+            GlucoseAlert(type: .high)
+        ]
     }
 
     private func bind() {

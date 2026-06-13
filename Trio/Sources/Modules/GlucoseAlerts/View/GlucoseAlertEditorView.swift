@@ -92,7 +92,11 @@ struct GlucoseAlertEditorView: View {
             footer: Text(working.type.blurb)
         ) {
             TextField(String(localized: "Name"), text: $working.name)
-            Toggle(String(localized: "Enabled"), isOn: $working.isEnabled)
+            // Urgent-low is the safety floor — the user can mute the sound
+            // from the Audio section but the alarm itself is always armed.
+            if working.type != .urgentLow {
+                Toggle(String(localized: "Enabled"), isOn: $working.isEnabled)
+            }
             Toggle(
                 String(localized: "Override Silence & Focus Mode"),
                 isOn: $working.overridesSilenceAndDND

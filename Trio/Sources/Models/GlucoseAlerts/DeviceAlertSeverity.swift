@@ -25,13 +25,11 @@ enum DeviceAlertSeverity: String, Codable, CaseIterable, Identifiable {
     var blurb: String {
         switch self {
         case .critical:
-            return String(
-                localized: "Overrides Silence & Focus Mode. Always audible. For situations requiring immediate attention."
-            )
+            return String(localized: "Overrides Silence & Focus Mode. For situations requiring immediate attention.")
         case .timeSensitive:
             return String(localized: "Pierces banner suppression but obeys Silence & Focus Mode.")
         case .normal:
-            return String(localized: "Default notification banner. Suppressed by Silence and Focus Mode.")
+            return String(localized: "Default notification banner. Suppressed by Silence & Focus Mode.")
         }
     }
 

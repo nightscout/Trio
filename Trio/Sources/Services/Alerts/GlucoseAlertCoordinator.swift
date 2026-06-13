@@ -109,7 +109,7 @@ final class GlucoseAlertCoordinator: Injectable {
         now: Date,
         configuration: GlucoseAlertConfiguration
     ) {
-        guard alarm.isEnabled, !isAlarmSnoozed(alarm, at: now),
+        guard alarm.shouldEvaluate, !isAlarmSnoozed(alarm, at: now),
               isActive(alarm, at: now, configuration: configuration)
         else {
             retractIfFiring(alarm)
@@ -165,7 +165,7 @@ final class GlucoseAlertCoordinator: Injectable {
         now: Date,
         configuration: GlucoseAlertConfiguration
     ) {
-        guard alarm.isEnabled, !isAlarmSnoozed(alarm, at: now),
+        guard alarm.shouldEvaluate, !isAlarmSnoozed(alarm, at: now),
               isActive(alarm, at: now, configuration: configuration),
               let result = ForecastedGlucoseEvaluator.evaluate(determination: determination)
         else {

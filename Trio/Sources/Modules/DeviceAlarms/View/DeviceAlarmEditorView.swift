@@ -41,7 +41,12 @@ struct DeviceAlarmEditorView: View {
                             .font(.footnote)
                             .foregroundColor(.secondary)
                     }
-                    Toggle(String(localized: "Enabled"), isOn: $working.isEnabled)
+                    // Critical-tier configs are always armed — the user can
+                    // mute the sound via the Audio section but not turn the
+                    // alarm itself off. Other tiers expose the toggle.
+                    if working.severity != .critical {
+                        Toggle(String(localized: "Enabled"), isOn: $working.isEnabled)
+                    }
                     Toggle(
                         String(localized: "Override Silence & Focus Mode"),
                         isOn: $working.overridesSilenceAndDND

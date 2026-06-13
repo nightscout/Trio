@@ -57,7 +57,15 @@ final class DeviceAlertsStore: ObservableObject {
         at _: Date,
         isNight: Bool
     ) -> DeviceAlertSeverityConfig? {
-        let matching = configs.filter { $0.severity == severity && $0.isEnabled }
+        // Critical configs are always considered enabled — the editor hides
+        // the Enabled toggle on this tier, but legacy stored data may still
+        // carry `isEnabled = false` from a prior install. Honoring that
+        // flag here would silence the alarm despite the UI no longer
+        // exposing a way to re-enable it.
+        let matching = configs.filter { config in
+            guard config.severity == severity else { return false }
+            return severity == .critical || config.isEnabled
+        }
         let windowMatch = matching.first { config in
             switch config.activeOption {
             case .always: return false // .always is the fallback, prefer specific match
