@@ -54,7 +54,11 @@ extension PumpConfig {
             trioAlertManager.acknowledgeAllOutstanding()
         }
 
-        func fireTestAlert(critical: Bool) {
+        // FIXME: Remove before merge. Dev-only buttons for exercising the
+    // foreground modal scheduler + background UN delivery paths. The body
+    // text is intentionally technobabble — it's for developers verifying
+    // pipeline wiring, not end users.
+    func fireTestAlert(critical: Bool) {
             let identifier = Alert.Identifier(
                 managerIdentifier: "Trio.test",
                 alertIdentifier: "test-\(UUID().uuidString.prefix(8))"

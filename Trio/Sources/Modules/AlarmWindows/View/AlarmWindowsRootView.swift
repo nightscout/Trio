@@ -64,14 +64,28 @@ extension AlarmWindows {
                             Button(
                                 action: {
                                     hintLabel = String(localized: "Day and Night Window")
+                                    let dayDefault = Self.formattedTimeOfDay(hour: 6, minute: 0)
+                                    let nightDefault = Self.formattedTimeOfDay(hour: 22, minute: 0)
                                     selectedVerboseHint = AnyView(
                                         VStack(alignment: .leading, spacing: 10) {
-                                            Text("Default: Day starts 06:00, Night starts 22:00.").bold()
+                                            Text(
+                                                String(
+                                                    format: String(localized: "Default: Day starts %1$@, Night starts %2$@."),
+                                                    dayDefault,
+                                                    nightDefault
+                                                )
+                                            ).bold()
                                             Text(
                                                 "These two times define the Day and Night windows. Each alarm's Active setting picks one — Day & Night, Day only, or Night only — and only fires when that window is current."
                                             )
                                             Text(
-                                                "The Night window runs from 'Night Starts' back around to 'Day Starts' — so by default, Night covers 22:00 through 06:00 the next morning."
+                                                String(
+                                                    format: String(
+                                                        localized: "The Night window runs from 'Night Starts' back around to 'Day Starts' — so by default, Night covers %1$@ through %2$@ the next morning."
+                                                    ),
+                                                    nightDefault,
+                                                    dayDefault
+                                                )
                                             )
                                             Text(
                                                 "These windows are shared between Glucose Alarms and Device Alarms."
@@ -109,6 +123,13 @@ extension AlarmWindows {
         private static func timeOfDay(from date: Date) -> TimeOfDay {
             let comps = Calendar.current.dateComponents([.hour, .minute], from: date)
             return TimeOfDay(hour: comps.hour ?? 0, minute: comps.minute ?? 0)
+        }
+
+        /// Locale-aware HH:mm / h:mm a. Used so 12-hour locales see "10:00 PM"
+        /// instead of "22:00" in hint copy.
+        private static func formattedTimeOfDay(hour: Int, minute: Int) -> String {
+            let date = Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: Date()) ?? Date()
+            return date.formatted(.dateTime.hour().minute())
         }
     }
 }

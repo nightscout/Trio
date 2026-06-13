@@ -9,25 +9,24 @@ final class CriticalAlertAudioPlayer {
     private let log = OSLog(subsystem: "org.nightscout.Trio", category: "CriticalAlertAudioPlayer")
 
     private var player: AVAudioPlayer?
-    private var stopTimer: Timer?
     private var vibrationTimer: Timer?
 
     private let vibrationInterval: TimeInterval = 2.0
     private let boostedVolume: Float = 1.0
     private let volumeBooster = SystemVolumeBooster()
-    private let maxDuration: TimeInterval = 6
 
     var isPlaying: Bool { player?.isPlaying ?? false }
 
     /// Start (or restart) looping playback of a bundled critical alert sound.
-    /// Safe to call repeatedly — replaces any current playback.
+    /// Loops until `stop()` is called from `retractAlert` /
+    /// `handleAcknowledgement` in `BaseTrioAlertManager` — modeled on the
+    /// LoopFollow / Jonas loop-failure alarm. `.playback` audio session gives
+    /// the app a privileged background state so the alarm continues even if
+    /// the user has the screen locked.
     func play(soundNamed soundName: String = "critical.caf") {
         stop()
 
         startVibration()
-        stopTimer = Timer.scheduledTimer(withTimeInterval: maxDuration, repeats: false) { [weak self] _ in
-            Task { @MainActor in self?.stop() }
-        }
 
         let resource = (soundName as NSString).deletingPathExtension
         let ext = (soundName as NSString).pathExtension.isEmpty ? "caf" : (soundName as NSString).pathExtension
@@ -82,11 +81,9 @@ final class CriticalAlertAudioPlayer {
 
     /// Stop playback if any. Safe to call when not playing.
     func stop() {
-        guard player != nil || stopTimer != nil || vibrationTimer != nil else { return }
+        guard player != nil || vibrationTimer != nil else { return }
         player?.stop()
         player = nil
-        stopTimer?.invalidate()
-        stopTimer = nil
         vibrationTimer?.invalidate()
         vibrationTimer = nil
         volumeBooster.restore()

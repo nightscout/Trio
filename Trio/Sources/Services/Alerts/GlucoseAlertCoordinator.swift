@@ -37,6 +37,13 @@ final class GlucoseAlertCoordinator: Injectable {
     /// at the threshold boundary.
     private static let recoveryMarginMgDL: Decimal = 5
 
+    /// Readings older than this are considered stale and won't drive new
+    /// alarms — matches `APSManager`'s loop-input freshness gate (12 min,
+    /// allowing for one missed CGM transmission on a 5-min schedule).
+    /// Without this gate, force-quitting the app and reopening it after a
+    /// CGM blackout could fire an alarm based on a 19-min-old reading.
+    private static let readingFreshnessWindow: TimeInterval = 12 * 60
+
     /// Suppresses evaluations for a short window after launch. `firingAlertIDs`
     /// isn't persisted across relaunches, so without this quiet window the
     /// first reading after launch would re-fire any in-flight alarm whose
@@ -276,7 +283,7 @@ final class GlucoseAlertCoordinator: Injectable {
 
     private func fetchLatestReading() -> GlucoseStored? {
         do {
-            let cutoff = Date().addingTimeInterval(-20 * 60)
+            let cutoff = Date().addingTimeInterval(-Self.readingFreshnessWindow)
             let predicate = NSPredicate(format: "date >= %@", cutoff as NSDate)
             let results = try CoreDataStack.shared.fetchEntities(
                 ofType: GlucoseStored.self,

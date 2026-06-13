@@ -1323,10 +1323,10 @@ final class BaseAPSManager: APSManager, Injectable {
                     String(localized: "Trio could not communicate with the pump. Check the pump and try again.")
                         + "\n\n\(inner.localizedDescription)"
                 )
-            case let .invalidPumpState(message): return (String(localized: "Pump State"), message)
-            case let .glucoseError(message): return (String(localized: "Glucose"), message)
-            case let .apsError(message): return (String(localized: "Algorithm"), message)
-            case let .manualBasalTemp(message): return (String(localized: "Manual Temp Basal"), message)
+            case let .invalidPumpState(message): return (String(localized: "Pump State Error"), message)
+            case let .glucoseError(message): return (String(localized: "Glucose Error"), message)
+            case let .apsError(message): return (String(localized: "Algorithm Error"), message)
+            case let .manualBasalTemp(message): return (String(localized: "Manual Temp Basal Active"), message)
             }
         }
         return ("Trio", error.localizedDescription)

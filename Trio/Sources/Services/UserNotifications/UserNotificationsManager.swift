@@ -295,11 +295,14 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
         } else {
             content.title = message.title
         }
+        // Pump / algorithm / glucose subtypes used to route to dedicated UN
+        // identifiers (`pumpNotification`, `noLoopFirst/Second`, etc.) — all
+        // of those have moved into the unified `TrioAlertManager` pipeline.
+        // Only `.carb` keeps a dedicated identifier here so successive carb
+        // recommendations replace the previous one rather than stacking.
         switch message.subtype {
         case .carb:
             identifier = .carbsRequiredNotification
-        case .glucose:
-            identifier = .glucoseNotification
         default:
             identifier = .alertMessageNotification
         }
