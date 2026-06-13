@@ -185,10 +185,12 @@ final class BaseAPSManager: APSManager, Injectable {
 
         deviceDataManager.bolusTrigger
             .receive(on: processQueue)
-            .sink { bolusing in
-                if bolusing {
+            .sink { bolusState in
+                switch bolusState {
+                case .initiating,
+                     .inProcess:
                     self.createBolusReporter()
-                } else {
+                case .noBolus:
                     self.clearBolusReporter()
                 }
             }
@@ -1214,6 +1216,10 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func createBolusReporter() {
+        if bolusReporter != nil {
+            return
+        }
+
         bolusReporter = pumpManager?.createBolusProgressReporter(reportingOn: processQueue)
         bolusReporter?.addObserver(self)
     }

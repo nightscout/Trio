@@ -20,7 +20,7 @@ protocol DeviceDataManager: GlucoseSource {
     var loopInProgress: Bool { get set }
     var pumpDisplayState: CurrentValueSubject<PumpDisplayState?, Never> { get }
     var recommendsLoop: PassthroughSubject<Void, Never> { get }
-    var bolusTrigger: PassthroughSubject<Bool, Never> { get }
+    var bolusTrigger: PassthroughSubject<BolusStatus, Never> { get }
     var manualTempBasal: PassthroughSubject<Bool, Never> { get }
     var scheduledBasal: PassthroughSubject<Bool?, Never> { get }
     var suspended: PassthroughSubject<Bool, Never> { get }
@@ -67,7 +67,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
         .distantPast
 
     let recommendsLoop = PassthroughSubject<Void, Never>()
-    let bolusTrigger = PassthroughSubject<Bool, Never>()
+    let bolusTrigger = PassthroughSubject<BolusStatus, Never>()
     let errorSubject = PassthroughSubject<Error, Never>()
     let pumpNewStatus = PassthroughSubject<Void, Never>()
     let manualTempBasal = PassthroughSubject<Bool, Never>()
@@ -441,10 +441,13 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         debug(.deviceManager, "New pump status Bolus: \(status.bolusState)")
         debug(.deviceManager, "New pump status Basal: \(String(describing: status.basalDeliveryState))")
 
-        if case .inProgress = status.bolusState {
-            bolusTrigger.send(true)
-        } else {
-            bolusTrigger.send(false)
+        switch status.bolusState {
+        case .initiating:
+            bolusTrigger.send(.initiating)
+        case let .inProgress(dose):
+            bolusTrigger.send(.inProcess)
+        default:
+            bolusTrigger.send(.noBolus)
         }
 
         switch status.basalDeliveryState {

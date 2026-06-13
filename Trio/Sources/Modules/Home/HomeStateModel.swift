@@ -96,6 +96,7 @@ extension Home {
         var tempBasals: [PumpEventStored] = []
         var suspendAndResumeEvents: [PumpEventStored] = []
         var batteryFromPersistence: [OpenAPS_Battery] = []
+        var bolusStatus: BolusStatus = .noBolus
         var lastPumpBolus: PumpEventStored?
         var overrides: [OverrideStored] = []
         var overrideRunStored: [OverrideRunStored] = []
@@ -250,6 +251,14 @@ extension Home {
                 .sink { [weak self] _ in
                     guard let self = self else { return }
                     self.setupFPUsArray()
+                }
+                .store(in: &subscriptions)
+
+            provider.deviceManager.bolusTrigger
+                .receive(on: queue)
+                .sink { [weak self] state in
+                    guard let self = self else { return }
+                    self.bolusStatus = state
                 }
                 .store(in: &subscriptions)
         }
