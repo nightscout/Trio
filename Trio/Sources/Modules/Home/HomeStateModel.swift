@@ -1,7 +1,10 @@
+import CGMBLEKit
 import CGMBLEKitUI
 import Combine
 import CoreData
 import Foundation
+import G7SensorKit
+import LibreTransmitter
 import LoopKit
 import LoopKitUI
 import Observation
@@ -107,6 +110,9 @@ extension Home {
         var pumpStatusBadgeImage: UIImage?
         var pumpStatusBadgeColor: Color?
         var cgmAvailable: Bool = false
+        var cgmDisplayState: CgmDisplayState?
+        var cgmProgressHighlight: DeviceLifecycleProgress?
+        var cgmSensorExpiresAt: Date?
         var listOfCGM: [CGMModel] = []
         var cgmCurrent = cgmDefaultModel
         var pumpInitialSettings = PumpConfig.PumpInitialSettings.default
@@ -325,6 +331,23 @@ extension Home {
                 }
             }
             timer.resume()
+
+            fetchGlucoseManager.cgmDisplayState
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] state in self?.cgmDisplayState = state }
+                .store(in: &lifetime)
+            fetchGlucoseManager.cgmProgressHighlight
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] progress in
+                    guard let self else { return }
+                    self.cgmProgressHighlight = progress
+                    self.cgmSensorExpiresAt = Self.resolveSensorExpiresAt(
+                        manager: self.fetchGlucoseManager.cgmManager,
+                        glucoseSource: self.fetchGlucoseManager.glucoseSource,
+                        lifecycle: progress
+                    )
+                }
+                .store(in: &lifetime)
 
             apsManager.isLooping
                 .receive(on: DispatchQueue.main)
@@ -641,6 +664,51 @@ extension Home {
                     return
                 }
             }
+        }
+
+        /// Pulls `cgmStatusHighlight` + `cgmLifecycleProgress` off the active
+        /// `CGMManagerUI` and derives the bobble's outer-arc/tag display state.
+        /// Called from the home timer (every 5s) and on subscribe. Cheap — both
+        /// LoopKit properties are computed accessors backed by the manager's
+        /// in-memory sensor state.
+        ///
+        /// Falls back to `GlucoseSimulatorSource`'s synthetic values when no
+        /// real `CGMManagerUI` is active — lets the lifecycle indicator be
+        /// exercised end-to-end without Libre/Dexcom hardware.
+        /// G7 exposes `sensorExpiresAt` directly; for everyone else we reverse-
+        /// derive it from `activatedAt + percentComplete`. Falls through to
+        /// nil if neither is available — UI then drops the time label.
+        private static func resolveSensorExpiresAt(
+            manager: CGMManagerUI?,
+            glucoseSource: GlucoseSource?,
+            lifecycle: DeviceLifecycleProgress?
+        ) -> Date? {
+            if let sim = glucoseSource as? GlucoseSimulatorSource {
+                return sim.simulatedSensorExpiresAt
+            }
+            guard let manager else { return nil }
+            if let g7 = manager as? G7CGMManager, let exp = g7.sensorExpiresAt { return exp }
+
+            let activatedAt: Date?
+            if let g7 = manager as? G7CGMManager {
+                activatedAt = g7.sensorActivatedAt
+            } else if let g6 = manager as? G6CGMManager {
+                activatedAt = g6.latestReading?.activationDate ?? g6.latestReading?.sessionStartDate
+            } else if let g5 = manager as? G5CGMManager {
+                activatedAt = g5.latestReading?.activationDate ?? g5.latestReading?.sessionStartDate
+            } else if let libre = manager as? LibreTransmitterManagerV3 {
+                activatedAt = libre.sensorInfoObservable.activatedAt
+            } else {
+                activatedAt = nil
+            }
+
+            guard let activatedAt,
+                  let lifecycle,
+                  lifecycle.percentComplete > 0.001
+            else { return nil }
+            let elapsed = Date().timeIntervalSince(activatedAt)
+            guard elapsed > 0 else { return nil }
+            return activatedAt.addingTimeInterval(elapsed / lifecycle.percentComplete)
         }
     }
 }

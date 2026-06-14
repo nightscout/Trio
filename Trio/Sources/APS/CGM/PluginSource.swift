@@ -11,7 +11,12 @@ final class PluginSource: GlucoseSource {
     private let glucoseStorage: GlucoseStorage!
     var glucoseManager: FetchGlucoseManager?
 
-    var cgmManager: CGMManagerUI?
+    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    let cgmProgressHighlight = CurrentValueSubject<DeviceLifecycleProgress?, Never>(nil)
+
+    var cgmManager: CGMManagerUI? {
+        didSet { publishCGMStatus() }
+    }
 
     var cgmHasValidSensorSession: Bool = false
 
@@ -22,6 +27,20 @@ final class PluginSource: GlucoseSource {
         cgmManager = glucoseManager.cgmManager
         cgmManager?.delegateQueue = processQueue
         cgmManager?.cgmManagerDelegate = self
+    }
+
+    /// Republishes the manager's lifecycle/highlight to the subjects.
+    /// Called from `cgmManager.didSet` and after delegate state updates.
+    func publishCGMStatus() {
+        if let highlight = cgmManager?.cgmStatusHighlight {
+            cgmDisplayState.value = CgmDisplayState(
+                localizedMessage: highlight.localizedMessage,
+                status: CgmDisplayStatus.from(highlight.state)
+            )
+        } else {
+            cgmDisplayState.value = nil
+        }
+        cgmProgressHighlight.value = cgmManager?.cgmLifecycleProgress
     }
 
     /// Function that fetches blood glucose data
@@ -170,6 +189,10 @@ extension PluginSource: CGMManagerDelegate {
                 cgmGlucosePluginId: fetchGlucoseManager.settingsManager.settings.cgmPluginIdentifier,
                 newManager: cgmManager as? CGMManagerUI
             )
+
+            // Pick up manager-internal state changes (sensor swap, warmup,
+            // expiry crossover) when the instance itself stays the same.
+            self.publishCGMStatus()
         }
     }
 

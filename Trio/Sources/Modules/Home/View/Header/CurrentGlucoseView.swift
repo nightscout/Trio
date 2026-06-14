@@ -1,4 +1,5 @@
 import CoreData
+import LoopKit
 import SwiftUI
 
 struct CurrentGlucoseView: View {
@@ -11,6 +12,14 @@ struct CurrentGlucoseView: View {
     var currentGlucoseTarget: Decimal
     let glucoseColorScheme: GlucoseColorScheme
     let glucose: [GlucoseStored] // This contains the last two glucose values, no matter if its manual or a cgm reading
+
+    /// Drives the outer ring.
+    var cgmProgress: DeviceLifecycleProgress?
+    /// CGM status highlight, rendered verbatim.
+    var cgmStatus: CgmDisplayState?
+    /// Sensor expiration — fallback tag when `cgmStatus` is nil.
+    var cgmSensorExpiresAt: Date?
+
     @State private var rotationDegrees: Double = 0.0
     @State private var angularGradient = AngularGradient(colors: [
         Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
@@ -42,80 +51,52 @@ struct CurrentGlucoseView: View {
         let triangleColor = Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
 
         if cgmAvailable {
-            ZStack {
-                TrendShape(gradient: angularGradient, color: triangleColor)
-                    .rotationEffect(.degrees(rotationDegrees))
-
-                VStack(alignment: .center) {
-                    HStack {
-                        if let glucoseValue = glucose.last?.glucose {
-                            let displayGlucose = units == .mgdL ? Decimal(glucoseValue).description : Decimal(glucoseValue)
-                                .formattedAsMmolL
-
-                            var glucoseDisplayColor = Color.primary
-
-                            // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
-                            let hardCodedLow = Decimal(55)
-                            let hardCodedHigh = Decimal(220)
-                            let isDynamicColorScheme = glucoseColorScheme == .dynamicColor
-
-                            if Decimal(glucoseValue) <= lowGlucose || Decimal(glucoseValue) >= highGlucose {
-                                glucoseDisplayColor = Trio.getDynamicGlucoseColor(
-                                    glucoseValue: Decimal(glucoseValue),
-                                    highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
-                                    lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
-                                    targetGlucose: currentGlucoseTarget,
-                                    glucoseColorScheme: glucoseColorScheme
-                                )
-                            }
-
-                            return Text(
-                                glucoseValue == 400 ? "HIGH" : displayGlucose
-                            )
-                            .font(.system(size: 40, weight: .bold, design: .rounded))
-                            .foregroundStyle(glucoseDisplayColor)
-                        } else {
-                            return Text("--")
-                                .font(.system(size: 40, weight: .bold, design: .rounded))
-                                .foregroundStyle(.secondary)
-                        }
+            VStack(spacing: 0) {
+                ZStack {
+                    if let progress = cgmProgress {
+                        SensorLifecycleArcView(
+                            progress: progress.percentComplete,
+                            progressState: progress.progressState
+                        )
                     }
-                    HStack {
-                        let minutesAgoString = TimeAgoFormatter.minutesAgo(from: glucose.last?.date)
-                        Group {
-                            Text(minutesAgoString)
-                            Text(delta)
-                        }
-                        .font(.callout).fontWeight(.bold)
-                        .foregroundStyle(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
+
+                    TrendShape(gradient: angularGradient, color: triangleColor, showArrow: true)
+                        .rotationEffect(.degrees(rotationDegrees))
+
+                    VStack(alignment: .center) {
+                        bobbleContent()
                     }
-                    .frame(alignment: .top)
                 }
-            }
-            .onChange(of: glucose.last?.directionEnum) {
-                withAnimation {
-                    switch glucose.last?.directionEnum {
-                    case .doubleUp,
-                         .singleUp,
-                         .tripleUp:
-                        rotationDegrees = -90
-                    case .fortyFiveUp:
-                        rotationDegrees = -45
-                    case .flat:
-                        rotationDegrees = 0
-                    case .fortyFiveDown:
-                        rotationDegrees = 45
-                    case .doubleDown,
-                         .singleDown,
-                         .tripleDown:
-                        rotationDegrees = 90
-                    case nil,
-                         .notComputable,
-                         .rateOutOfRange:
-                        rotationDegrees = 0
-                    default:
-                        rotationDegrees = 0
+                .onChange(of: glucose.last?.directionEnum) {
+                    withAnimation {
+                        switch glucose.last?.directionEnum {
+                        case .doubleUp,
+                             .singleUp,
+                             .tripleUp:
+                            rotationDegrees = -90
+                        case .fortyFiveUp:
+                            rotationDegrees = -45
+                        case .flat:
+                            rotationDegrees = 0
+                        case .fortyFiveDown:
+                            rotationDegrees = 45
+                        case .doubleDown,
+                             .singleDown,
+                             .tripleDown:
+                            rotationDegrees = 90
+                        case nil,
+                             .notComputable,
+                             .rateOutOfRange:
+                            rotationDegrees = 0
+                        default:
+                            rotationDegrees = 0
+                        }
                     }
+                }
+
+                if let tag = tagLabel {
+                    SensorStatusTagView(text: tag.text, theme: tag.theme)
+                        .zIndex(1)
                 }
             }
         } else {
@@ -146,6 +127,87 @@ struct CurrentGlucoseView: View {
         let delta = lastGlucose - secondLastGlucose
         return deltaFormatter.string(from: delta as NSNumber) ?? "--"
     }
+
+    @ViewBuilder private func bobbleContent() -> some View {
+        HStack {
+            if let glucoseValue = glucose.last?.glucose, isReadingFresh {
+                let displayGlucose = units == .mgdL
+                    ? Decimal(glucoseValue).description
+                    : Decimal(glucoseValue).formattedAsMmolL
+                Text(glucoseValue == 400 ? "HIGH" : displayGlucose)
+                    .font(.system(size: 40, weight: .bold, design: .rounded))
+                    .foregroundStyle(glucoseColor(for: glucoseValue))
+            } else {
+                Text("– –")
+                    .font(.system(size: 40, weight: .bold, design: .rounded))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        if isReadingFresh {
+            HStack {
+                let minutesAgoString = TimeAgoFormatter.minutesAgo(from: glucose.last?.date)
+                Group {
+                    Text(minutesAgoString)
+                    Text(delta)
+                }
+                .font(.callout).fontWeight(.bold)
+                .foregroundStyle(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
+            }
+            .frame(alignment: .top)
+        }
+    }
+
+    /// Matches `APSManager`'s loop-input freshness gate — readings older than
+    /// 12 minutes (one missed CGM transmission on a 5-min schedule) get
+    /// masked to dashes. Handles warmup + sensor failure naturally: no
+    /// fresh data → no number on the bobble.
+    private var isReadingFresh: Bool {
+        guard let date = glucose.last?.date else { return false }
+        return Date().timeIntervalSince(date) < 12 * 60
+    }
+
+    /// Status highlight wins; otherwise fall back to remaining-time.
+    private var tagLabel: (text: String, theme: SensorStatusTagTheme)? {
+        if let status = cgmStatus {
+            return (status.localizedMessage, theme(for: status.status))
+        }
+        if let expiresAt = cgmSensorExpiresAt {
+            let text = SensorRemainingTimeFormatter.format(until: expiresAt)
+            let theme: SensorStatusTagTheme
+            switch cgmProgress?.progressState {
+            case .critical: theme = .red
+            case .warning: theme = .orange
+            default: theme = .green
+            }
+            return (text, theme)
+        }
+        return nil
+    }
+
+    private func theme(for status: CgmDisplayStatus) -> SensorStatusTagTheme {
+        switch status {
+        case .critical: return .red
+        case .warning: return .orange
+        case .normal: return .secondary
+        }
+    }
+
+    private func glucoseColor(for glucoseValue: Int16) -> Color {
+        // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+        let hardCodedLow = Decimal(55)
+        let hardCodedHigh = Decimal(220)
+        let isDynamicColorScheme = glucoseColorScheme == .dynamicColor
+        guard Decimal(glucoseValue) <= lowGlucose || Decimal(glucoseValue) >= highGlucose else {
+            return Color.primary
+        }
+        return Trio.getDynamicGlucoseColor(
+            glucoseValue: Decimal(glucoseValue),
+            highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
+            lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
+            targetGlucose: currentGlucoseTarget,
+            glucoseColorScheme: glucoseColorScheme
+        )
+    }
 }
 
 struct Triangle: Shape {
@@ -168,13 +230,16 @@ struct TrendShape: View {
 
     let gradient: AngularGradient
     let color: Color
+    var showArrow: Bool = true
 
     var body: some View {
         HStack(alignment: .center) {
             ZStack {
                 Group {
                     CircleShape(gradient: gradient)
-                    TriangleShape(color: color)
+                    if showArrow {
+                        TriangleShape(color: color)
+                    }
                 }.shadow(color: Color.black.opacity(colorScheme == .dark ? 0.75 : 0.33), radius: colorScheme == .dark ? 5 : 3)
                 CircleShape(gradient: gradient)
             }

@@ -30,6 +30,9 @@ struct AppGroupSource: GlucoseSource {
     let from: String
     var cgmType: CGMType
 
+    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    let cgmProgressHighlight = CurrentValueSubject<LoopKit.DeviceLifecycleProgress?, Never>(nil)
+
     func fetch(_ heartbeat: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
         guard let suiteName = Bundle.main.appGroupSuiteName,
               let sharedDefaults = UserDefaults(suiteName: suiteName)

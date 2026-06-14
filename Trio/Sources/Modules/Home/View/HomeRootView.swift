@@ -133,7 +133,10 @@ extension Home {
                 cgmAvailable: state.cgmAvailable,
                 currentGlucoseTarget: state.currentGlucoseTarget,
                 glucoseColorScheme: state.glucoseColorScheme,
-                glucose: state.latestTwoGlucoseValues
+                glucose: state.latestTwoGlucoseValues,
+                cgmProgress: state.cgmProgressHighlight,
+                cgmStatus: state.cgmDisplayState,
+                cgmSensorExpiresAt: state.cgmSensorExpiresAt
             ).scaleEffect(0.9)
                 .onTapGesture {
                     if !state.cgmAvailable {

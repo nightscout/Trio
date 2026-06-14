@@ -321,6 +321,9 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     var cgmManager: CGMManagerUI?
     var cgmType: CGMType = .enlite
 
+    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    let cgmProgressHighlight = CurrentValueSubject<DeviceLifecycleProgress?, Never>(nil)
+
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
         fetch(nil)
     }
