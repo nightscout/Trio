@@ -268,7 +268,7 @@ enum TrioAlertClassifier {
 
         // Algorithm error — emitted by APSManager after dwell suppression.
         // Re-classification by identifier needs to land here so the tier
-        // config in Device Alarms applies on the round-trip through issueAlert.
+        // config in Pump & CGM Alarms applies on the round-trip through issueAlert.
         if id.contains("algorithmerror") || id.contains("apserror") { return .algorithmError }
 
         return .other(alertIdentifier)

@@ -353,7 +353,7 @@ enum SettingItems {
                 "Sensor Failure",
                 "Device Expired"
             ],
-            path: ["Notifications", "Device Alarms"]
+            path: ["Notifications", "Pump & CGM Alarms"]
         ),
         SettingItem(
             title: "Day & Night Windows",

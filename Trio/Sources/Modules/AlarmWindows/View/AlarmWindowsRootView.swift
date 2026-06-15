@@ -88,7 +88,7 @@ extension AlarmWindows {
                                                 )
                                             )
                                             Text(
-                                                "These windows are shared between Glucose Alarms and Device Alarms."
+                                                "These windows are shared between Glucose Alarms and Pump & CGM Alarms."
                                             )
                                         }
                                     )
