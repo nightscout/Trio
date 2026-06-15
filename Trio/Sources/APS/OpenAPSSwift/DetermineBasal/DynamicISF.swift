@@ -143,7 +143,7 @@ enum DynamicIsfState {
 }
 
 extension Preferences {
-    func dynamicIsfState(profile: Profile, trioCustomOrefVariables: TrioCustomOrefVariables) -> DynamicIsfState {
+    func dynamicIsfState(profile: Profile, trioCustomOrefVariables _: TrioCustomOrefVariables) -> DynamicIsfState {
         guard useNewFormula else { return .off }
 
         // Turn off when autosens.min = autosens.max
