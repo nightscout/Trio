@@ -815,11 +815,11 @@ extension Home {
                                     .font(.subheadline)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             } else if state.bolusStatus == .initiating {
-                                Text("Bolus Initiating")
+                                Text("Initiating…")
                                     .font(.subheadline)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
-                            
+
                             Text(bolusString)
                                 .font(.caption)
                                 .frame(maxWidth: .infinity, alignment: .leading)
