@@ -15,6 +15,17 @@ enum GlucoseAlertType: String, Codable, CaseIterable, Identifiable {
 
     var priority: Int { Self.allCases.firstIndex(of: self) ?? 0 }
 
+    /// Parses a glucose-alarm slug emitted by `GlucoseAlertCoordinator`
+    /// (`glucose.<type>.<uuid>`). Returns nil for non-glucose alert
+    /// identifiers — used by `BaseTrioAlertManager.requestSnooze` to decide
+    /// between per-type and global mute routing.
+    init?(slug: String) {
+        let parts = slug.split(separator: ".")
+        guard parts.count >= 2, parts[0] == "glucose" else { return nil }
+        guard let parsed = GlucoseAlertType(rawValue: String(parts[1])) else { return nil }
+        self = parsed
+    }
+
     var displayName: String {
         switch self {
         case .urgentLow: return String(localized: "Urgent Low Glucose")

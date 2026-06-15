@@ -68,23 +68,42 @@ final class GlucoseAlertCoordinator: Injectable {
             .sink { [weak self] new in self?.configurationSnapshot = new }
             .store(in: &subscriptions)
         broadcaster.register(DeterminationObserver.self, observer: self)
+        broadcaster.register(SnoozeObserver.self, observer: self)
+        broadcaster.register(GlucoseSnoozeObserver.self, observer: self)
         glucoseStorage.updatePublisher
-            .receive(on: evaluationQueue)
-            .sink { [weak self] _ in self?.evaluateGlucoseAlarms() }
+            .sink { [weak self] _ in
+                Task { [weak self] in await self?.evaluateGlucoseAlarms() }
+            }
             .store(in: &subscriptions)
     }
 
     // MARK: - Reading-based evaluation
 
-    private func evaluateGlucoseAlarms() {
+    /// Two-stage: async-fetch the latest value (Core Data perform), then hop
+    /// onto `evaluationQueue` to mutate `firingAlertIDs` safely.
+    private func evaluateGlucoseAlarms() async {
         guard !isInLaunchQuietWindow else { return }
+        guard let latestValue = await fetchLatestReadingMgDL() else { return }
         let snapshot = alertsSnapshot
         let configuration = configurationSnapshot
         let now = Date()
+        evaluationQueue.async { [weak self] in
+            self?.applyReadingBasedEvaluation(
+                latestValue: latestValue,
+                snapshot: snapshot,
+                configuration: configuration,
+                now: now
+            )
+        }
+    }
 
-        guard let latest = fetchLatestReading() else { return }
-        let latestValue = Decimal(latest.glucose)
-
+    private func applyReadingBasedEvaluation(
+        latestValue: Decimal,
+        snapshot: [GlucoseAlert],
+        configuration: GlucoseAlertConfiguration,
+        now: Date
+    ) {
+        dispatchPrecondition(condition: .onQueue(evaluationQueue))
         // Iterate in type priority order so we can suppress lesser low-family
         // alarms when a more severe one is firing (urgent low > low). Without
         // this, glucose=60 with both urgent-low (54) AND low (70) configured
@@ -281,19 +300,26 @@ final class GlucoseAlertCoordinator: Injectable {
         }
     }
 
-    private func fetchLatestReading() -> GlucoseStored? {
+    /// Async fetch matching Trio's standard Core Data pattern — never blocks
+    /// the caller's thread, never lets a `GlucoseStored` managed object cross
+    /// queue boundaries (would otherwise trip
+    /// `_PFAssertSafeMultiThreadedAccess_impl`).
+    private func fetchLatestReadingMgDL() async -> Decimal? {
+        let cutoff = Date().addingTimeInterval(-Self.readingFreshnessWindow)
+        let predicate = NSPredicate(format: "date >= %@", cutoff as NSDate)
         do {
-            let cutoff = Date().addingTimeInterval(-Self.readingFreshnessWindow)
-            let predicate = NSPredicate(format: "date >= %@", cutoff as NSDate)
-            let results = try CoreDataStack.shared.fetchEntities(
+            let results = try await CoreDataStack.shared.fetchEntitiesAsync(
                 ofType: GlucoseStored.self,
                 onContext: coreDataContext,
                 predicate: predicate,
                 key: "date",
                 ascending: false,
                 fetchLimit: 1
-            ) as? [GlucoseStored]
-            return results?.first
+            )
+            return await coreDataContext.perform {
+                guard let latest = (results as? [GlucoseStored])?.first else { return nil }
+                return Decimal(latest.glucose)
+            }
         } catch {
             debug(.service, "GlucoseAlertCoordinator: glucose fetch failed: \(error)")
             return nil
@@ -305,6 +331,46 @@ extension GlucoseAlertCoordinator: DeterminationObserver {
     func determinationDidUpdate(_ determination: Determination) {
         evaluationQueue.async { [weak self] in
             self?.evaluateForecast(determination)
+        }
+    }
+}
+
+extension GlucoseAlertCoordinator: SnoozeObserver {
+    /// Global snooze (Snooze module / lock-screen action). Clear all firing
+    /// IDs so the post-snooze evaluation can re-fire fresh if any condition
+    /// still breaches.
+    func snoozeDidChange(_ untilDate: Date) {
+        guard untilDate > Date() else { return }
+        evaluationQueue.async { [weak self] in
+            self?.firingAlertIDs.removeAll()
+        }
+    }
+}
+
+extension GlucoseAlertCoordinator: GlucoseSnoozeObserver {
+    /// Per-type snooze from an in-app banner tap / swipe / menu choice.
+    /// Stamps `snoozedUntil` on every matching `GlucoseAlert`, retracts every
+    /// in-flight alert of that type (so a stacked deck of multiple low
+    /// alarms dismisses as one unit), and drops matching entries from
+    /// `firingAlertIDs` so the next post-snooze reading evaluates fresh.
+    func snoozeGlucoseType(_ type: GlucoseAlertType, until untilDate: Date) {
+        DispatchQueue.main.async {
+            let store = GlucoseAlertsStore.shared
+            var updated = store.alerts
+            var matchingAlarms: [GlucoseAlert] = []
+            for index in updated.indices where updated[index].type == type {
+                updated[index].snoozedUntil = untilDate
+                matchingAlarms.append(updated[index])
+            }
+            guard !matchingAlarms.isEmpty else { return }
+            store.alerts = updated
+            for alarm in matchingAlarms {
+                self.trioAlertManager.retractAlert(identifier: self.alertID(for: alarm))
+            }
+            let ids = Set(matchingAlarms.map(\.id))
+            self.evaluationQueue.async { [weak self] in
+                self?.firingAlertIDs.subtract(ids)
+            }
         }
     }
 }

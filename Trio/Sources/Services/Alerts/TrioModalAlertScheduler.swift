@@ -5,9 +5,11 @@ import SwiftUI
 
 protocol TrioModalAlertResponder: AnyObject {
     func handleAcknowledgement(identifier: LoopKit.Alert.Identifier)
-    /// Applies a global snooze for `duration` seconds — same path as the UN
-    /// quick-action buttons + the Snooze module + Apple Watch action.
-    func requestSnooze(duration: TimeInterval)
+    /// Snooze the alert (and any siblings of its type). Glucose alarms route
+    /// to per-type suppression — snoozing a "low" silences all low alarms
+    /// for `duration` but leaves urgent-low / high / forecasted-low firing
+    /// normally. Pump / device alerts fall back to the global muter.
+    func requestSnooze(identifier: LoopKit.Alert.Identifier, duration: TimeInterval)
     /// Returns true if the alert is still tracked by the manager. Used by
     /// `.delayed` timers to skip stale fires after the app resumes from
     /// suspension — the timer fires immediately on resume, and without this
@@ -60,10 +62,26 @@ final class TrioModalAlertScheduler: ObservableObject {
             }
             return
         }
-        responder?.requestSnooze(duration: duration)
+        responder?.requestSnooze(identifier: identifier, duration: duration)
         // Drop the in-app banner too — the global snooze mutes the queue,
         // and leaving this specific banner hanging would be noise.
         remove(identifier: identifier)
+    }
+
+    /// "Snooze all" entry point from the expanded stack header. Each alert
+    /// goes through its own routing — glucose per-type, device per-category,
+    /// everything else global — so a mixed stack snoozes correctly bucket by
+    /// bucket.
+    func snoozeAll(duration: TimeInterval) {
+        guard Thread.isMainThread else {
+            DispatchQueue.main.async { [weak self] in self?.snoozeAll(duration: duration) }
+            return
+        }
+        let identifiers = active.map(\.identifier)
+        for identifier in identifiers {
+            responder?.requestSnooze(identifier: identifier, duration: duration)
+        }
+        active.removeAll()
     }
 
     private func scheduleOnMain(_ alert: LoopKit.Alert) {
@@ -139,12 +157,28 @@ final class TrioModalAlertScheduler: ObservableObject {
 
 struct TrioAlertBanner: View {
     let alert: LoopKit.Alert
-    let onTap: () -> Void
+    /// Single-tap action — `nil` means tap behaves like swipe-up (fires the
+    /// 20-min snooze). The collapsed stack overrides this with "expand",
+    /// since tapping a stacked card should reveal the rest of the deck
+    /// before letting the user dismiss anything individually.
+    var onTap: (() -> Void)? = nil
+    /// Snooze path — fires from swipe-up + long-press menu + (when `onTap`
+    /// is nil) tap.
     let onSnooze: (TimeInterval) -> Void
 
     @State private var presentedAt = Date()
+    @State private var dragOffset: CGSize = .zero
 
-    private var canSnooze: Bool { alert.interruptionLevel != .critical }
+    private static let quickSnooze: TimeInterval = 20 * 60
+
+    /// Critical alerts and urgent-low glucose alarms are limited to the
+    /// 20-minute quick snooze — the safety floor. Other alerts get the full
+    /// 20m / 1h / 3h / 6h menu.
+    private var isQuickSnoozeOnly: Bool {
+        if alert.interruptionLevel == .critical { return true }
+        if GlucoseAlertType(slug: alert.identifier.alertIdentifier) == .urgentLow { return true }
+        return false
+    }
 
     private var content: LoopKit.Alert.Content? { alert.foregroundContent }
 
@@ -192,34 +226,62 @@ struct TrioAlertBanner: View {
                 }
             }
 
-            if canSnooze {
-                Menu {
-                    ForEach(NotificationResponseAction.allCases, id: \.self) { action in
-                        Button {
-                            onSnooze(action.duration)
-                        } label: {
-                            Label(action.localizedTitle, systemImage: "moon.zzz")
-                        }
+            Menu {
+                ForEach(snoozeOptions, id: \.self) { action in
+                    Button {
+                        onSnooze(action.duration)
+                    } label: {
+                        Label(action.localizedTitle, systemImage: "moon.zzz")
                     }
-                } label: {
-                    Image(systemName: "moon.zzz.fill")
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                        .frame(width: 32, height: 32)
-                        .contentShape(Rectangle())
                 }
-                .accessibilityLabel(Text("Snooze"))
+            } label: {
+                Image(systemName: "moon.zzz.fill")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Rectangle())
             }
+            .accessibilityLabel(Text("Snooze"))
         }
         .padding(12)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
         .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .onTapGesture { onTap() }
+        .offset(y: min(0, dragOffset.height))
+        .opacity(1 - min(abs(dragOffset.height) / 200, 0.4))
+        .gesture(
+            // Swipe-up — iOS-banner gesture; tracks the drag visually then
+            // commits a 20-minute snooze past −50pt. Springs back otherwise.
+            DragGesture(minimumDistance: 8)
+                .onChanged { value in
+                    guard value.translation.height < 0 else { return }
+                    dragOffset = value.translation
+                }
+                .onEnded { value in
+                    if value.translation.height < -50 {
+                        onSnooze(Self.quickSnooze)
+                    } else {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            dragOffset = .zero
+                        }
+                    }
+                }
+        )
+        .onTapGesture {
+            if let onTap { onTap() } else { onSnooze(Self.quickSnooze) }
+        }
         .contextMenu {
-            if canSnooze {
+            if isQuickSnoozeOnly {
+                // Critical + urgent-low: a single labeled action; no header,
+                // no other options.
+                Button {
+                    onSnooze(Self.quickSnooze)
+                } label: {
+                    Label(String(localized: "Snooze (20 min)"), systemImage: "moon.zzz")
+                }
+            } else {
                 Section(String(localized: "Snooze")) {
-                    ForEach(NotificationResponseAction.allCases, id: \.self) { action in
+                    ForEach(snoozeOptions, id: \.self) { action in
                         Button {
                             onSnooze(action.duration)
                         } label: {
@@ -228,12 +290,11 @@ struct TrioAlertBanner: View {
                     }
                 }
             }
-            Button {
-                onTap()
-            } label: {
-                Label(String(localized: "Acknowledge"), systemImage: "checkmark")
-            }
         }
+    }
+
+    private var snoozeOptions: [NotificationResponseAction] {
+        isQuickSnoozeOnly ? [.snooze20] : NotificationResponseAction.allCases
     }
 
     private func relativeTimestamp(now: Date) -> String {
@@ -276,10 +337,12 @@ struct TrioAlertModifier: ViewModifier {
     @ViewBuilder private var bannerStack: some View {
         if isExpanded || scheduler.active.count <= 1 {
             VStack(spacing: 8) {
+                if scheduler.active.count > 1 {
+                    snoozeAllHeader
+                }
                 ForEach(scheduler.active, id: \.identifier) { alert in
                     TrioAlertBanner(
                         alert: alert,
-                        onTap: { scheduler.acknowledge(identifier: alert.identifier) },
                         onSnooze: { duration in
                             scheduler.snooze(identifier: alert.identifier, duration: duration)
                         }
@@ -292,6 +355,30 @@ struct TrioAlertModifier: ViewModifier {
         }
     }
 
+    /// iOS-style "clear all" affordance at the top of the expanded stack.
+    /// Runs every active alert through its own snooze routing — glucose
+    /// per-type, device per-category, etc.
+    private var snoozeAllHeader: some View {
+        HStack {
+            Spacer()
+            Button {
+                scheduler.snoozeAll(duration: 20 * 60)
+            } label: {
+                HStack(spacing: 4) {
+                    Text(String(localized: "Snooze all (20 min)"))
+                        .font(.footnote.weight(.semibold))
+                    Image(systemName: "moon.zzz.fill")
+                        .font(.footnote)
+                }
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(.ultraThinMaterial, in: Capsule())
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
     private var collapsedStack: some View {
         let visible = scheduler.active.prefix(Self.maxStackedVisible)
         return ZStack(alignment: .top) {
@@ -299,6 +386,8 @@ struct TrioAlertModifier: ViewModifier {
                 TrioAlertBanner(
                     alert: alert,
                     onTap: {
+                        // Tap on the collapsed deck expands it; individual
+                        // banners then own their own tap-to-snooze.
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                             isExpanded = true
                         }

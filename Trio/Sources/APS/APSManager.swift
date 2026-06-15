@@ -274,6 +274,15 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func canStartNewLoop() async -> Bool {
+        // Don't try to run a loop while pump setup / pod pairing is in
+        // progress — `verifyStatus` would throw `invalidPumpState("Pump not
+        // set")` and surface a modal banner on top of the pod activation
+        // sheet, closing the sheet (reported by tester during O5 pairing).
+        guard pumpManager != nil else {
+            debug(.apsManager, "No pump manager — skipping loop attempt")
+            return false
+        }
+
         // Check if too soon for next loop
         if lastLoopDate > lastLoopStartDate {
             guard lastLoopStartDate.addingTimeInterval(Config.loopInterval) < Date() else {

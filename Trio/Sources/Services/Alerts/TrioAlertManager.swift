@@ -127,6 +127,13 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         // If every variant in the matched tier is disabled, drop the alert.
         let effective: Alert
         if let pumpCategory = PumpAlertCategory(trioCategory: category) {
+            // Per-category snooze (set by in-app banner snooze) — drop new
+            // alerts in this category for the duration so a stacked deck
+            // doesn't re-pop while the user is still acting on it.
+            if DeviceAlertsStore.shared.isCategorySnoozed(pumpCategory, at: Date()) {
+                debug(.service, "TrioAlertManager dropped \(alert.identifier.value): category \(pumpCategory) snoozed")
+                return
+            }
             guard let configured = applyDeviceSeverityConfig(to: alert, category: pumpCategory) else {
                 debug(
                     .service,
@@ -334,6 +341,49 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
 }
 
 extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAlertResponder {
+    func requestSnooze(identifier: Alert.Identifier, duration: TimeInterval) {
+        let untilDate = duration > 0 ? Date().addingTimeInterval(duration) : .distantPast
+        if let glucoseType = GlucoseAlertType(slug: identifier.alertIdentifier) {
+            // Per-type snooze for glucose alarms — the coordinator stamps
+            // `snoozedUntil` on every matching alarm AND retracts each of
+            // their in-flight alerts, so a stacked deck of multiple lows
+            // dismisses together rather than one card at a time.
+            broadcaster.notify(GlucoseSnoozeObserver.self, on: .main) { (observer: GlucoseSnoozeObserver) in
+                observer.snoozeGlucoseType(glucoseType, until: untilDate)
+            }
+        } else if let pumpCategory = pumpCategory(forIdentifier: identifier) {
+            // Per-category snooze for device alarms — mirrors the glucose
+            // behavior. Records the category snooze on `DeviceAlertsStore`,
+            // retracts every in-flight alert in this category so any
+            // stacked siblings dismiss together.
+            DeviceAlertsStore.shared.snoozeCategory(pumpCategory, until: untilDate)
+            retractAlertsInCategory(pumpCategory)
+        } else {
+            // Unknown / fallback — global mute (Snooze module, lock-screen
+            // action, etc. take this path too).
+            Task { @MainActor [weak self] in
+                await self?.applySnooze(for: duration)
+            }
+        }
+    }
+
+    private func pumpCategory(forIdentifier identifier: Alert.Identifier) -> PumpAlertCategory? {
+        PumpAlertCategory(trioCategory: TrioAlertClassifier.categorize(alertIdentifier: identifier.alertIdentifier))
+    }
+
+    private func retractAlertsInCategory(_ category: PumpAlertCategory) {
+        let toRetract: [Alert.Identifier] = queue.sync {
+            liveAlerts.keys.filter { id in
+                pumpCategory(forIdentifier: id) == category
+            }
+        }
+        for id in toRetract {
+            retractAlert(identifier: id)
+        }
+    }
+
+    /// Convenience for the UN-action / Watch / Snooze-module paths that
+    /// don't have an originating alert identifier — they all want global.
     func requestSnooze(duration: TimeInterval) {
         Task { @MainActor [weak self] in
             await self?.applySnooze(for: duration)
@@ -347,6 +397,13 @@ extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAle
     func isSnoozeActive(at date: Date) -> Bool {
         muter.shouldMute(at: date)
     }
+}
+
+/// Observer for per-type glucose snoozes triggered from an in-app banner.
+/// `GlucoseAlertCoordinator` registers and applies the snooze to its
+/// `snoozedUntil` field on every matching `GlucoseAlert`.
+protocol GlucoseSnoozeObserver {
+    func snoozeGlucoseType(_ type: GlucoseAlertType, until: Date)
 }
 
 enum AlertUserInfoKey: String {

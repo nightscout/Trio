@@ -11,18 +11,25 @@ final class DeviceAlertsStore: ObservableObject {
     static let shared = DeviceAlertsStore()
 
     @Published var configs: [DeviceAlertSeverityConfig]
+    /// Per-category snooze expirations. Keyed by `PumpAlertCategory.rawValue`
+    /// for stable Codable round-tripping. `BaseTrioAlertManager.issueAlert`
+    /// drops alerts whose category has an entry with a future date.
+    @Published var categorySnoozes: [String: Date]
 
     private let defaults: UserDefaults
     private let configsKey: String
+    private let snoozesKey: String
 
     private var subscriptions = Set<AnyCancellable>()
 
     init(
         defaults: UserDefaults = .standard,
-        configsKey: String = "trio.deviceAlertSeverityConfigs.v1"
+        configsKey: String = "trio.deviceAlertSeverityConfigs.v1",
+        snoozesKey: String = "trio.deviceAlertCategorySnoozes.v1"
     ) {
         self.defaults = defaults
         self.configsKey = configsKey
+        self.snoozesKey = snoozesKey
         let loaded = Self.decode([DeviceAlertSeverityConfig].self, from: defaults, key: configsKey) ?? []
         // Guarantee one default `.always` per severity on first load. Any
         // missing severity gets a fresh seed so the lookup always finds a
@@ -34,7 +41,25 @@ final class DeviceAlertsStore: ObservableObject {
             seeded.append(DeviceAlertSeverityConfig(severity: severity, activeOption: .always))
         }
         configs = Self.sorted(seeded)
+        let snoozes = Self.decode([String: Date].self, from: defaults, key: snoozesKey) ?? [:]
+        // Prune expired entries on launch so the dictionary doesn't grow.
+        categorySnoozes = snoozes.filter { $0.value > Date() }
         bind()
+    }
+
+    // MARK: - Per-category snooze
+
+    func snoozeCategory(_ category: PumpAlertCategory, until: Date) {
+        if until > Date() {
+            categorySnoozes[category.rawValue] = until
+        } else {
+            categorySnoozes.removeValue(forKey: category.rawValue)
+        }
+    }
+
+    func isCategorySnoozed(_ category: PumpAlertCategory, at date: Date) -> Bool {
+        guard let until = categorySnoozes[category.rawValue] else { return false }
+        return until > date
     }
 
     private func bind() {
@@ -42,6 +67,11 @@ final class DeviceAlertsStore: ObservableObject {
             .dropFirst()
             .removeDuplicates()
             .sink { [weak self] value in self?.encode(value, to: self?.configsKey ?? "") }
+            .store(in: &subscriptions)
+        $categorySnoozes
+            .dropFirst()
+            .removeDuplicates()
+            .sink { [weak self] value in self?.encode(value, to: self?.snoozesKey ?? "") }
             .store(in: &subscriptions)
     }
 
