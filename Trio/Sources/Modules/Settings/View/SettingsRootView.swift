@@ -3,6 +3,7 @@ import LoopKit
 import LoopKitUI
 import SwiftUI
 import Swinject
+import UIKit
 
 extension Settings {
     struct VersionInfo: Equatable {
@@ -34,6 +35,7 @@ extension Settings {
             isDevUpdateAvailable: false
         )
         @State private var closedLoopDisabled = true
+        @State private var showCopiedToast = false
 
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
@@ -149,6 +151,16 @@ extension Settings {
                                         }
 
                                         versionInfoView
+                                    }
+                                }
+                                .contentShape(Rectangle())
+                                .onLongPressGesture {
+                                    UIPasteboard.general.string =
+                                        "Trio v\(devVersion) (\(buildNumber)) \(buildDetails.branchAndSha)"
+                                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                                    withAnimation { showCopiedToast = true }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                        withAnimation { showCopiedToast = false }
                                     }
                                 }
                             }
@@ -308,6 +320,18 @@ extension Settings {
                             }
                         }
                     ).listRowBackground(Color.chart)
+                }
+            }
+            .overlay(alignment: .bottom) {
+                if showCopiedToast {
+                    Label("Copied", systemImage: "checkmark.circle.fill")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .padding(.bottom, 32)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
