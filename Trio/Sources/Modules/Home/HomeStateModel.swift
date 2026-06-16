@@ -673,11 +673,16 @@ extension Home {
         /// in-memory sensor state.
         ///
         /// Falls back to `GlucoseSimulatorSource`'s synthetic values when no
-        /// real `CGMManagerUI` is active — lets the lifecycle indicator be
-        /// exercised end-to-end without Libre/Dexcom hardware.
-        /// G7 exposes `sensorExpiresAt` directly; for everyone else we reverse-
-        /// derive it from `activatedAt + percentComplete`. Falls through to
-        /// nil if neither is available — UI then drops the time label.
+        /// Best available `sensorExpiresAt` for the home label:
+        /// 1. Some managers expose it directly (G7 `sensorExpiresAt`, G5/G6
+        ///    `latestReading.sessionExpDate`).
+        /// 2. Others only expose `activatedAt` — combined with
+        ///    `lifecycle.percentComplete` we reverse-derive total lifetime.
+        ///    Critically `activatedAt` must be the *session* start, not the
+        ///    transmitter activation date, or the math blows up (an Anubis-
+        ///    modded G6 with `Glucose.activationDate` months old produced
+        ///    "7337d remaining" — bug, fixed by reading session start instead).
+        /// 3. Falls through to nil — UI drops the time label.
         private static func resolveSensorExpiresAt(
             manager: CGMManagerUI?,
             glucoseSource: GlucoseSource?,
@@ -688,14 +693,12 @@ extension Home {
             }
             guard let manager else { return nil }
             if let g7 = manager as? G7CGMManager, let exp = g7.sensorExpiresAt { return exp }
+            if let g6 = manager as? G6CGMManager, let exp = g6.latestReading?.sessionExpDate { return exp }
+            if let g5 = manager as? G5CGMManager, let exp = g5.latestReading?.sessionExpDate { return exp }
 
             let activatedAt: Date?
             if let g7 = manager as? G7CGMManager {
                 activatedAt = g7.sensorActivatedAt
-            } else if let g6 = manager as? G6CGMManager {
-                activatedAt = g6.latestReading?.activationDate ?? g6.latestReading?.sessionStartDate
-            } else if let g5 = manager as? G5CGMManager {
-                activatedAt = g5.latestReading?.activationDate ?? g5.latestReading?.sessionStartDate
             } else if let libre = manager as? LibreTransmitterManagerV3 {
                 activatedAt = libre.sensorInfoObservable.activatedAt
             } else {

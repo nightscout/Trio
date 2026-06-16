@@ -51,52 +51,57 @@ struct CurrentGlucoseView: View {
         let triangleColor = Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
 
         if cgmAvailable {
-            VStack(spacing: 0) {
-                ZStack {
-                    if let progress = cgmProgress {
-                        SensorLifecycleArcView(
-                            progress: progress.percentComplete,
-                            progressState: progress.progressState
-                        )
-                    }
-
-                    TrendShape(gradient: angularGradient, color: triangleColor, showArrow: true)
-                        .rotationEffect(.degrees(rotationDegrees))
-
-                    VStack(alignment: .center) {
-                        bobbleContent()
-                    }
-                }
-                .onChange(of: glucose.last?.directionEnum) {
-                    withAnimation {
-                        switch glucose.last?.directionEnum {
-                        case .doubleUp,
-                             .singleUp,
-                             .tripleUp:
-                            rotationDegrees = -90
-                        case .fortyFiveUp:
-                            rotationDegrees = -45
-                        case .flat:
-                            rotationDegrees = 0
-                        case .fortyFiveDown:
-                            rotationDegrees = 45
-                        case .doubleDown,
-                             .singleDown,
-                             .tripleDown:
-                            rotationDegrees = 90
-                        case nil,
-                             .notComputable,
-                             .rateOutOfRange:
-                            rotationDegrees = 0
-                        default:
-                            rotationDegrees = 0
-                        }
-                    }
+            ZStack {
+                if let progress = cgmProgress {
+                    SensorLifecycleArcView(
+                        progress: progress.percentComplete,
+                        progressState: progress.progressState
+                    )
                 }
 
-                if let tag = tagLabel {
+                TrendShape(gradient: angularGradient, color: triangleColor, showArrow: true)
+                    .rotationEffect(.degrees(rotationDegrees))
+
+                VStack(alignment: .center) {
+                    bobbleContent()
+                }
+            }
+            .overlay(alignment: .bottom) {
+                // Tag floats outside the bobble's frame so it doesn't push
+                // chart / stats / tab bar down. When the trend triangle
+                // rotates into the lower half (`rotationDegrees >= 45`) it
+                // ends up around 6 o'clock and collides with the tag —
+                // hide the SensorStatusTagView to avoid collision
+                if let tag = tagLabel, !trendIsDownward {
                     SensorStatusTagView(text: tag.text, theme: tag.theme)
+                        .offset(y: 14)
                         .zIndex(1)
+                }
+            }
+            .onChange(of: glucose.last?.directionEnum) {
+                withAnimation {
+                    switch glucose.last?.directionEnum {
+                    case .doubleUp,
+                         .singleUp,
+                         .tripleUp:
+                        rotationDegrees = -90
+                    case .fortyFiveUp:
+                        rotationDegrees = -45
+                    case .flat:
+                        rotationDegrees = 0
+                    case .fortyFiveDown:
+                        rotationDegrees = 45
+                    case .doubleDown,
+                         .singleDown,
+                         .tripleDown:
+                        rotationDegrees = 90
+                    case nil,
+                         .notComputable,
+                         .rateOutOfRange:
+                        rotationDegrees = 0
+                    default:
+                        rotationDegrees = 0
+                    }
                 }
             }
         } else {
@@ -165,6 +170,11 @@ struct CurrentGlucoseView: View {
         guard let date = glucose.last?.date else { return false }
         return Date().timeIntervalSince(date) < 12 * 60
     }
+
+    /// True when the trend arrow is rotated into the lower half of the
+    /// circle — used to decide whether the bottom tag needs to dodge the
+    /// triangle by sliding up onto the bobble's rim.
+    private var trendIsDownward: Bool { rotationDegrees >= 45 }
 
     /// Status highlight wins; otherwise fall back to remaining-time.
     private var tagLabel: (text: String, theme: SensorStatusTagTheme)? {

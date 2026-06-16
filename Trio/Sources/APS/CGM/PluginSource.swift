@@ -140,6 +140,13 @@ extension PluginSource: CGMManagerDelegate {
                 debug(.deviceManager, "CGM PLUGIN - unable to read CGM result")
             }
 
+            // New reading means `latestReading` (and thus lifecycle /
+            // highlight) advanced — republish so the home arc + tag pick
+            // it up. `cgmManagerDidUpdateState` only fires on config-level
+            // changes, which means cold-start (no reading yet) would leave
+            // the subjects stuck at nil until something else triggered.
+            self.publishCGMStatus()
+
             debug(.deviceManager, "CGM PLUGIN - Direct return done")
         }
     }

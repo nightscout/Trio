@@ -14,8 +14,7 @@ struct SensorStatusTagView: View {
                 .foregroundStyle(theme.textColor)
                 .lineLimit(1)
         }
-        .padding(.vertical, 5)
-        .padding(.horizontal, 10)
+        .padding(.bottom, -16)
     }
 }
 
