@@ -100,30 +100,49 @@ extension Settings {
             }
         }
 
+        private func copyVersionInfo(_ text: String) {
+            UIPasteboard.general.string = text
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            withAnimation { showCopiedToast = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation { showCopiedToast = false }
+            }
+        }
+
         var body: some View {
             List {
                 if searchText.isEmpty {
                     let buildDetails = BuildDetails.shared
 
+                    /// The current development version of the app.
+                    ///
+                    /// Follows a semantic pattern where release versions are like `0.5.0`, and
+                    /// development versions increment with a fourth component (e.g., `0.5.0.1`, `0.5.0.2`)
+                    /// after the base release. For example:
+                    /// - After release `0.5.0` → `0.5.0`
+                    /// - First dev push → `0.5.0.1`
+                    /// - Next dev push → `0.5.0.2`
+                    /// - Next release `0.6.0` → `0.6.0`
+                    /// - Next dev push → `0.6.0.1`
+                    ///
+                    /// If the dev version is unavailable, `"unknown"` is returned.
+                    let devVersion = Bundle.main.appDevVersion ?? "unknown"
+
+                    let buildNumber = Bundle.main.buildVersionNumber ?? String(localized: "Unknown")
+
                     Section(
-                        header: Text("BRANCH: \(buildDetails.branchAndSha)").textCase(nil),
+                        header: HStack(spacing: 4) {
+                            Button {
+                                copyVersionInfo(
+                                    "Trio v\(devVersion) (\(buildNumber)) \(buildDetails.branchAndSha)"
+                                )
+                            } label: {
+                                Image(systemName: "doc.on.doc.fill")
+                            }
+                            .buttonStyle(.plain)
+                            Text("BRANCH: \(buildDetails.branchAndSha)")
+                        }.textCase(nil),
                         content: {
-                            /// The current development version of the app.
-                            ///
-                            /// Follows a semantic pattern where release versions are like `0.5.0`, and
-                            /// development versions increment with a fourth component (e.g., `0.5.0.1`, `0.5.0.2`)
-                            /// after the base release. For example:
-                            /// - After release `0.5.0` → `0.5.0`
-                            /// - First dev push → `0.5.0.1`
-                            /// - Next dev push → `0.5.0.2`
-                            /// - Next release `0.6.0` → `0.6.0`
-                            /// - Next dev push → `0.6.0.1`
-                            ///
-                            /// If the dev version is unavailable, `"unknown"` is returned.
-                            let devVersion = Bundle.main.appDevVersion ?? "unknown"
-
-                            let buildNumber = Bundle.main.buildVersionNumber ?? String(localized: "Unknown")
-
                             NavigationLink(destination: SubmodulesView(buildDetails: buildDetails)) {
                                 HStack {
                                     Image(appIcons.appIcon.rawValue)
@@ -151,16 +170,6 @@ extension Settings {
                                         }
 
                                         versionInfoView
-                                    }
-                                }
-                                .contentShape(Rectangle())
-                                .onLongPressGesture {
-                                    UIPasteboard.general.string =
-                                        "Trio v\(devVersion) (\(buildNumber)) \(buildDetails.branchAndSha)"
-                                    UINotificationFeedbackGenerator().notificationOccurred(.success)
-                                    withAnimation { showCopiedToast = true }
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                        withAnimation { showCopiedToast = false }
                                     }
                                 }
                             }
