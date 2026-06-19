@@ -19,6 +19,8 @@ struct CurrentGlucoseView: View {
     var cgmStatus: CgmDisplayState?
     /// Sensor expiration — fallback tag when `cgmStatus` is nil.
     var cgmSensorExpiresAt: Date?
+    /// Wall-clock end of the warmup window. Drives the warmup countdown tag.
+    var cgmWarmupEndsAt: Date?
 
     @State private var rotationDegrees: Double = 0.0
     @State private var angularGradient = AngularGradient(colors: [
@@ -52,7 +54,7 @@ struct CurrentGlucoseView: View {
 
         if cgmAvailable {
             ZStack {
-                if let progress = cgmProgress {
+                if let progress = cgmProgress, shouldShowArc {
                     SensorLifecycleArcView(
                         progress: progress.percentComplete,
                         progressState: progress.progressState
@@ -67,13 +69,10 @@ struct CurrentGlucoseView: View {
                 }
             }
             .overlay(alignment: .bottom) {
-                // Tag floats outside the bobble's frame so it doesn't push
-                // chart / stats / tab bar down. When the trend triangle
-                // rotates into the lower half (`rotationDegrees >= 45`) it
-                // ends up around 6 o'clock and collides with the tag —
-                // hide the SensorStatusTagView to avoid collision
+                // Overlay (not VStack) so the tag doesn't push siblings down;
+                // hidden when the trend arrow rotates toward 6 o'clock.
                 if let tag = tagLabel, !trendIsDownward {
-                    SensorStatusTagView(text: tag.text, theme: tag.theme)
+                    SensorStatusTagView(text: tag.text, theme: tag.theme, iconSystemName: tag.icon)
                         .offset(y: 14)
                         .zIndex(1)
                 }
@@ -171,17 +170,49 @@ struct CurrentGlucoseView: View {
         return Date().timeIntervalSince(date) < 12 * 60
     }
 
-    /// True when the trend arrow is rotated into the lower half of the
-    /// circle — used to decide whether the bottom tag needs to dodge the
-    /// triangle by sliding up onto the bobble's rim.
-    private var trendIsDownward: Bool { rotationDegrees >= 45 }
+    private var trendIsDownward: Bool { rotationDegrees >= 90 }
 
-    /// Status highlight wins; otherwise fall back to remaining-time.
-    private var tagLabel: (text: String, theme: SensorStatusTagTheme)? {
-        if let status = cgmStatus {
-            return (status.localizedMessage, theme(for: status.status))
-        }
+    /// Arc shown for warmup, the last 48 h of a time-based sensor (incl.
+    /// grace period), or any non-normal state from a battery-based manager.
+    private var shouldShowArc: Bool {
+        if isInWarmup { return true }
         if let expiresAt = cgmSensorExpiresAt {
+            return expiresAt.timeIntervalSinceNow <= 48 * 60 * 60
+        }
+        return cgmProgress?.progressState != .normalCGM
+    }
+
+    /// String sniff — loopandlearn LoopKit has no structural warmup flag.
+    private var isInWarmup: Bool {
+        guard let message = cgmStatus?.localizedMessage else { return false }
+        let lowered = message.lowercased()
+        return lowered.contains("warming up") || lowered.contains("warmup")
+    }
+
+    private var isStabilizing: Bool {
+        cgmStatus?.localizedMessage.lowercased().contains("stabilizing") ?? false
+    }
+
+    /// Warmup → hourglass + countdown; stabilizing → hourglass + "Stabilizing"
+    /// (no countdown — duration is sensor-driven); otherwise status verbatim,
+    /// otherwise time-to-expiry.
+    private var tagLabel: (text: String, theme: SensorStatusTagTheme, icon: String?)? {
+        if isInWarmup {
+            let text: String
+            if let endsAt = cgmWarmupEndsAt {
+                text = SensorRemainingTimeFormatter.format(until: endsAt)
+            } else {
+                text = "Warming up"
+            }
+            return (text, .orange, "hourglass")
+        }
+        if isStabilizing {
+            return ("Stabilizing", .orange, "hourglass")
+        }
+        if let status = cgmStatus {
+            return (status.localizedMessage, theme(for: status.status), nil)
+        }
+        if let expiresAt = cgmSensorExpiresAt, expiresAt.timeIntervalSinceNow <= 48 * 60 * 60 {
             let text = SensorRemainingTimeFormatter.format(until: expiresAt)
             let theme: SensorStatusTagTheme
             switch cgmProgress?.progressState {
@@ -189,7 +220,7 @@ struct CurrentGlucoseView: View {
             case .warning: theme = .orange
             default: theme = .green
             }
-            return (text, theme)
+            return (text, theme, nil)
         }
         return nil
     }

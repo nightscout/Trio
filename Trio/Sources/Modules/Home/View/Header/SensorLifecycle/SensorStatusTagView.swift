@@ -4,9 +4,16 @@ import SwiftUI
 struct SensorStatusTagView: View {
     let text: String
     let theme: SensorStatusTagTheme
+    var iconSystemName: String?
 
     var body: some View {
-        HStack {
+        HStack(spacing: 4) {
+            if let iconSystemName {
+                Image(systemName: iconSystemName)
+                    .font(.callout)
+                    .fontWeight(.bold)
+                    .foregroundStyle(theme.textColor)
+            }
             Text(text)
                 .font(.callout)
                 .fontWeight(.bold)

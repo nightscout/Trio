@@ -27,6 +27,8 @@ final class PluginSource: GlucoseSource {
         cgmManager = glucoseManager.cgmManager
         cgmManager?.delegateQueue = processQueue
         cgmManager?.cgmManagerDelegate = self
+        // didSet doesn't fire from the defining class's own init.
+        publishCGMStatus()
     }
 
     /// Republishes the manager's lifecycle/highlight to the subjects.
@@ -140,11 +142,6 @@ extension PluginSource: CGMManagerDelegate {
                 debug(.deviceManager, "CGM PLUGIN - unable to read CGM result")
             }
 
-            // New reading means `latestReading` (and thus lifecycle /
-            // highlight) advanced — republish so the home arc + tag pick
-            // it up. `cgmManagerDidUpdateState` only fires on config-level
-            // changes, which means cold-start (no reading yet) would leave
-            // the subjects stuck at nil until something else triggered.
             self.publishCGMStatus()
 
             debug(.deviceManager, "CGM PLUGIN - Direct return done")
@@ -197,8 +194,6 @@ extension PluginSource: CGMManagerDelegate {
                 newManager: cgmManager as? CGMManagerUI
             )
 
-            // Pick up manager-internal state changes (sensor swap, warmup,
-            // expiry crossover) when the instance itself stays the same.
             self.publishCGMStatus()
         }
     }
