@@ -70,7 +70,11 @@ struct CurrentGlucoseView: View {
                     }
                 }.frame(alignment: .top)
             } else {
+                // Bobble renders at 0.9 to leave breathing room for the right
+                // panel + pump view siblings; the compact and empty-state
+                // branches above and below already fit at 1.0.
                 bobbleAndTag(triangleColor: triangleColor)
+                    .scaleEffect(0.9)
             }
         } else {
             VStack(alignment: .center, spacing: 12) {
