@@ -62,6 +62,7 @@ final class GlucoseSimulatorSource: GlucoseSource {
         if let highlight = cgmStatusHighlight {
             cgmDisplayState.value = CgmDisplayState(
                 localizedMessage: highlight.localizedMessage,
+                imageName: highlight.imageName,
                 status: CgmDisplayStatus.from(highlight.state)
             )
         } else {

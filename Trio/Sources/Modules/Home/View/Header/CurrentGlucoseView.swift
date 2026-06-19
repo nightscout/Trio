@@ -53,55 +53,24 @@ struct CurrentGlucoseView: View {
         let triangleColor = Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
 
         if cgmAvailable {
-            ZStack {
-                if let progress = cgmProgress, shouldShowArc {
-                    SensorLifecycleArcView(
-                        progress: progress.percentComplete,
-                        progressState: progress.progressState
-                    )
-                }
-
-                TrendShape(gradient: angularGradient, color: triangleColor, showArrow: true)
-                    .rotationEffect(.degrees(rotationDegrees))
-
-                VStack(alignment: .center) {
-                    bobbleContent()
-                }
-            }
-            .overlay(alignment: .bottom) {
-                // Overlay (not VStack) so the tag doesn't push siblings down;
-                // hidden when the trend arrow rotates toward 6 o'clock.
-                if let tag = tagLabel, !trendIsDownward {
-                    SensorStatusTagView(text: tag.text, theme: tag.theme, iconSystemName: tag.icon)
-                        .offset(y: 14)
-                        .zIndex(1)
-                }
-            }
-            .onChange(of: glucose.last?.directionEnum) {
-                withAnimation {
-                    switch glucose.last?.directionEnum {
-                    case .doubleUp,
-                         .singleUp,
-                         .tripleUp:
-                        rotationDegrees = -90
-                    case .fortyFiveUp:
-                        rotationDegrees = -45
-                    case .flat:
-                        rotationDegrees = 0
-                    case .fortyFiveDown:
-                        rotationDegrees = 45
-                    case .doubleDown,
-                         .singleDown,
-                         .tripleDown:
-                        rotationDegrees = 90
-                    case nil,
-                         .notComputable,
-                         .rateOutOfRange:
-                        rotationDegrees = 0
-                    default:
-                        rotationDegrees = 0
+            if let stale = stalenessState {
+                // Compact error/transition state — same styles as the
+                // empty-state "Add CGM" layout below, just colored by tier.
+                VStack(alignment: .center, spacing: 12) {
+                    HStack {
+                        Image(systemName: stale.imageName)
+                            .font(.body)
+                            .imageScale(.large)
+                            .foregroundStyle(stale.color)
                     }
-                }
+                    HStack {
+                        Text(stale.label)
+                            .font(.caption).bold()
+                            .foregroundStyle(stale.color)
+                    }
+                }.frame(alignment: .top)
+            } else {
+                bobbleAndTag(triangleColor: triangleColor)
             }
         } else {
             VStack(alignment: .center, spacing: 12) {
@@ -114,6 +83,59 @@ struct CurrentGlucoseView: View {
                     Text("Add CGM").font(.caption).bold()
                 }
             }.frame(alignment: .top)
+        }
+    }
+
+    @ViewBuilder private func bobbleAndTag(triangleColor: Color) -> some View {
+        ZStack {
+            if let progress = cgmProgress, shouldShowArc {
+                SensorLifecycleArcView(
+                    progress: progress.percentComplete,
+                    progressState: progress.progressState
+                )
+            }
+
+            TrendShape(gradient: angularGradient, color: triangleColor, showArrow: true)
+                .rotationEffect(.degrees(rotationDegrees))
+
+            VStack(alignment: .center) {
+                bobbleContent()
+            }
+        }
+        .overlay(alignment: .bottom) {
+            // Overlay (not VStack) so the tag doesn't push siblings down;
+            // hidden when the trend arrow rotates toward 6 o'clock.
+            if let tag = tagLabel, !trendIsDownward {
+                SensorStatusTagView(text: tag.text, theme: tag.theme, iconSystemName: tag.icon)
+                    .offset(y: 14)
+                    .zIndex(1)
+            }
+        }
+        .onChange(of: glucose.last?.directionEnum) {
+            withAnimation {
+                switch glucose.last?.directionEnum {
+                case .doubleUp,
+                     .singleUp,
+                     .tripleUp:
+                    rotationDegrees = -90
+                case .fortyFiveUp:
+                    rotationDegrees = -45
+                case .flat:
+                    rotationDegrees = 0
+                case .fortyFiveDown:
+                    rotationDegrees = 45
+                case .doubleDown,
+                     .singleDown,
+                     .tripleDown:
+                    rotationDegrees = 90
+                case nil,
+                     .notComputable,
+                     .rateOutOfRange:
+                    rotationDegrees = 0
+                default:
+                    rotationDegrees = 0
+                }
+            }
         }
     }
 
@@ -172,6 +194,30 @@ struct CurrentGlucoseView: View {
 
     private var trendIsDownward: Bool { rotationDegrees >= 90 }
 
+    /// Error/transition states (sensor expired, sensor failure, signal loss,
+    /// stabilizing, etc.) collapse the bobble to a compact symbol-over-label
+    /// view — the bobble's purpose is to show glucose, so a fresh-reading-less
+    /// bobble with arc + dashes obscures rather than informs. Warmup is the
+    /// exception: it's a short, expected lifecycle phase and the arc + tag
+    /// countdown carry useful info, so the bobble stays.
+    private var stalenessState: (imageName: String, label: String, color: Color)? {
+        guard !isReadingFresh,
+              !isInWarmup,
+              let status = cgmStatus,
+              !status.imageName.isEmpty
+        else { return nil }
+        let color: Color
+        switch status.status {
+        case .critical: color = .loopRed
+        case .warning: color = .orange
+        case .normal: color = .secondary
+        }
+        // LibreLoop/G7 split labels with "\n" for their two-line native pills;
+        // collapse to spaces so the compact label reads cleanly.
+        let oneLine = status.localizedMessage.replacingOccurrences(of: "\n", with: " ")
+        return (status.imageName, oneLine, color)
+    }
+
     /// Arc shown for warmup, the last 48 h of a time-based sensor (incl.
     /// grace period), or any non-normal state from a battery-based manager.
     private var shouldShowArc: Bool {
@@ -211,7 +257,11 @@ struct CurrentGlucoseView: View {
         }
         guard shouldShowArc else { return nil }
         if let status = cgmStatus {
-            return (status.localizedMessage, theme(for: status.status), nil)
+            // LibreLoop's cgmStatusHighlight uses "\n" to split two-line pill
+            // labels ("Signal\nLoss", "Sensor\nWarmup"); we render in a
+            // single-line tag, so collapse newlines to spaces here.
+            let oneLine = status.localizedMessage.replacingOccurrences(of: "\n", with: " ")
+            return (oneLine, theme(for: status.status), nil)
         }
         if let expiresAt = cgmSensorExpiresAt {
             let text = SensorRemainingTimeFormatter.format(until: expiresAt)

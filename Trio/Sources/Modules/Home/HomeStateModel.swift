@@ -339,6 +339,7 @@ extension Home {
                     if let highlight = manager?.cgmStatusHighlight {
                         self.cgmDisplayState = CgmDisplayState(
                             localizedMessage: highlight.localizedMessage,
+                            imageName: highlight.imageName,
                             status: CgmDisplayStatus.from(highlight.state)
                         )
                     } else {
