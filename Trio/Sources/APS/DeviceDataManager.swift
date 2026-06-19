@@ -3,6 +3,7 @@ import Combine
 import CoreData
 import DanaKit
 import Foundation
+import HealthKit
 import LoopKit
 import LoopKitUI
 import MedtrumKit
@@ -90,6 +91,18 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 /// copy its rawValue to rawPumpManager which will be saved to persistant storage.
                 rawPumpManager = pumpManager.rawValue
                 UserDefaults.standard.clearLegacyPumpManagerRawValue()
+
+                /// Re-sync delivery limits from the user's settings whenever a pump manager is set.
+                /// A manager restored from persisted state can retain a stale or default limit and
+                /// reject in-range temp basals; keep this ahead of the early returns below.
+                let deliveryLimits = Self.deliveryLimits(from: settingsManager.pumpSettings)
+                processQueue.async {
+                    pumpManager.syncDeliveryLimits(limits: deliveryLimits) { result in
+                        if case let .failure(error) = result {
+                            debug(.deviceManager, "syncDeliveryLimits on pump manager init failed: \(error)")
+                        }
+                    }
+                }
 
                 pumpDisplayState.value = PumpDisplayState(name: pumpManager.localizedTitle, image: pumpManager.smallImage)
                 pumpName.send(pumpManager.localizedTitle)
@@ -282,6 +295,20 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
 
     public func pumpManagerTypeByIdentifier(_ identifier: String) -> PumpManagerUI.Type? {
         staticPumpManagersByIdentifier[identifier]
+    }
+
+    /// Builds pump-manager delivery limits from the user's configured pump settings.
+    static func deliveryLimits(from pumpSettings: PumpSettings) -> DeliveryLimits {
+        DeliveryLimits(
+            maximumBasalRate: HKQuantity(
+                unit: .internationalUnitsPerHour,
+                doubleValue: Double(pumpSettings.maxBasal)
+            ),
+            maximumBolus: HKQuantity(
+                unit: .internationalUnit(),
+                doubleValue: Double(pumpSettings.maxBolus)
+            )
+        )
     }
 
     private func pumpManagerFromRawValue(_ rawValue: [String: Any]) -> PumpManagerUI? {
