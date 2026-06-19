@@ -38,6 +38,7 @@ final class PluginSource: GlucoseSource {
         if let highlight = cgmManager?.cgmStatusHighlight {
             cgmDisplayState.value = CgmDisplayState(
                 localizedMessage: highlight.localizedMessage,
+                imageName: highlight.imageName,
                 status: CgmDisplayStatus.from(highlight.state)
             )
         } else {

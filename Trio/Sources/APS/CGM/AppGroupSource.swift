@@ -141,6 +141,7 @@ struct AppGroupSource: GlucoseSource {
         else { return nil }
         return CgmDisplayState(
             localizedMessage: message,
+            imageName: (status["imageName"] as? String) ?? "",
             status: cgmDisplayStatus(forCode: status["displayState"] as? String ?? status["code"] as? String)
         )
     }
