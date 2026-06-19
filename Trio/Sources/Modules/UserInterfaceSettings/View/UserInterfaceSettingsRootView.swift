@@ -286,7 +286,7 @@ extension UserInterfaceSettings {
 
                             HStack(alignment: .center) {
                                 Text(
-                                    "Set low and high glucose values for the main screen, watch app and live activity glucose graph."
+                                    "Set low and high glucose values for the main screen, watch app, live activity, and contact image colors."
                                 )
                                 .lineLimit(nil)
                                 .font(.footnote)
@@ -303,7 +303,10 @@ extension UserInterfaceSettings {
                                                         "Default values are based on internationally accepted Time in Range values of \(state.units == .mgdL ? "70" : 70.formattedAsMmolL)-\(state.units == .mgdL ? "180" : 180.formattedAsMmolL) \(state.units.rawValue)."
                                                     ).bold()
                                                     Text(
-                                                        "Adjust these values if you would like the statistics to reflect different values than the internationally accepted Time In Range values used as the default."
+                                                        "These thresholds drive the chart band colors, statistics in-range buckets, Live Activity colors, and Contact Image colors."
+                                                    )
+                                                    Text(
+                                                        "To configure when alarms fire (urgent low / low / high / forecasted low), open Glucose Alarms."
                                                     )
                                                     Text("Note: These values are not used to calculate insulin dosing.")
                                                 }

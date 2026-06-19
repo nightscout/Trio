@@ -33,7 +33,6 @@ protocol Router {
     var mainSecondaryModalView: CurrentValueSubject<AnyView?, Never> { get }
     var alertMessage: PassthroughSubject<MessageContent, Never> { get }
     func view(for screen: Screen) -> AnyView
-    func allowNotify(_ message: MessageContent, _ settings: TrioSettings) -> Bool
 }
 
 final class BaseRouter: Router {
@@ -48,28 +47,5 @@ final class BaseRouter: Router {
 
     func view(for screen: Screen) -> AnyView {
         screen.view(resolver: resolver).asAny()
-    }
-
-    func allowNotify(_ message: MessageContent, _ settings: TrioSettings) -> Bool {
-        if message.type == .error { return true }
-        switch message.subtype {
-        case .pump:
-            guard settings.notificationsPump else { return false }
-        case .cgm:
-            guard settings.notificationsCgm else { return false }
-        case .carb:
-            guard settings.notificationsCarb else { return false }
-        case .glucose:
-            guard (
-                message.type == .warning &&
-                    settings.glucoseNotificationsOption == GlucoseNotificationsOption.onlyAlarmLimits
-            ) ||
-                settings.glucoseNotificationsOption == GlucoseNotificationsOption.alwaysEveryCGM else { return false }
-        case .algorithm:
-            guard settings.notificationsAlgorithm else { return false }
-        case .misc:
-            return true
-        }
-        return true
     }
 }

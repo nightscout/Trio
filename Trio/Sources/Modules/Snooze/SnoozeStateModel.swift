@@ -28,8 +28,10 @@ extension Snooze {
         }
 
         @MainActor func applySnooze(_ duration: TimeInterval) async {
-            // Allow any duration chosen in the Snooze UI, while keeping validation for quick actions elsewhere.
-            snoozeUntilDate = duration > 0 ? Date().addingTimeInterval(duration) : .distantPast
+            // Canonical path: notificationsManager.applySnooze → BaseTrioAlertManager
+            // writes the persisted date, mutes AlertMuter, clears pending UNs, and
+            // broadcasts SnoozeObserver. `snoozeDidChange` below then updates the
+            // @Persisted value here for SwiftUI observation.
             alarm = glucoseStorage.alarm
             await notificationsManager.applySnooze(for: duration)
         }

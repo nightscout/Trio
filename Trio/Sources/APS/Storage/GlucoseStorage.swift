@@ -771,11 +771,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
                 let glucoseValue = glucose.glucose
 
-                if Decimal(glucoseValue) <= settingsManager.settings.lowGlucose {
+                if Decimal(glucoseValue) <= settingsManager.settings.low {
                     return .low
                 }
 
-                if Decimal(glucoseValue) >= settingsManager.settings.highGlucose {
+                if Decimal(glucoseValue) >= settingsManager.settings.high {
                     return .high
                 }
 
