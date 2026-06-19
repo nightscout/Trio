@@ -2,6 +2,8 @@ import CGMBLEKit
 import Foundation
 import G7SensorKit
 import G7SensorKitUI
+import LibreLoop
+import LibreLoopUI
 import LibreTransmitter
 import LibreTransmitterUI
 import LoopKit
@@ -40,6 +42,11 @@ class BasePluginManager: Injectable, PluginManager {
             pluginIdentifier: LibreTransmitterManagerV3.pluginIdentifier,
             localizedTitle: String(localized: "FreeStyle Libre"),
             manager: LibreTransmitterManagerV3.self
+        ),
+        CgmPluginDescription(
+            pluginIdentifier: LibreLoopCGMManager.pluginIdentifier,
+            localizedTitle: String(localized: "FreeStyle Libre 3/3 Plus"),
+            manager: LibreLoopCGMManager.self
         )
     ]
 
