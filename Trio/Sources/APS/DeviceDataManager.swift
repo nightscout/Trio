@@ -1,4 +1,5 @@
 import Algorithms
+import HealthKit
 import Combine
 import CoreData
 import DanaKit
@@ -105,6 +106,25 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 modifiedPreferences
                     .bolusIncrement = bolusIncrement > 0 ? bolusIncrement : 0.1
                 storage.save(modifiedPreferences, as: OpenAPS.Settings.preferences)
+
+                // Ensure the pump manager's delivery limits always reflect the user's
+                // current settings. Without this, the active pump manager instance
+                // may use a stale or default value from deserialized state
+                // — silently rejecting temp basals that oref correctly
+                // determines are within the user's configured maxBasal.
+                let pumpSettings = settingsManager.pumpSettings
+                let deliveryLimits = DeliveryLimits(
+                    maximumBasalRate: HKQuantity(unit: .internationalUnitsPerHour, doubleValue: Double(pumpSettings.maxBasal)),
+                    maximumBolus: HKQuantity(unit: .internationalUnit(), doubleValue: Double(pumpSettings.maxBolus))
+                )
+
+                processQueue.async {
+                    pumpManager.syncDeliveryLimits(limits: deliveryLimits) { result in
+                        if case let .failure(error) = result {
+                            debug(.deviceManager, "syncDeliveryLimits on pump manager init failed: \(error)")
+                        }
+                    }
+                }
 
                 if let medtrumPump = pumpManager as? MedtrumPumpManager {
                     // Medtrum's state.patchExpiresAt is actually lifespan + grace
