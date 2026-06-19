@@ -1,9 +1,9 @@
 import Algorithms
-import HealthKit
 import Combine
 import CoreData
 import DanaKit
 import Foundation
+import HealthKit
 import LoopKit
 import LoopKitUI
 import MedtrumKit
