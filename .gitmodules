@@ -36,7 +36,7 @@
 	url = https://github.com/loopandlearn/LibreCRKit.git
 [submodule "LibreLoop"]
 	path = LibreLoop
-	url = https://github.com/loopandlearn/LibreLoop.git
+	url = https://github.com/trioneer-dev/LibreLoop.git
 [submodule "LoopAlgorithm"]
 	path = LoopAlgorithm
 	url = https://github.com/loopandlearn/LoopAlgorithm.git
