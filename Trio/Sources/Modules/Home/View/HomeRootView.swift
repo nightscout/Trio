@@ -136,7 +136,8 @@ extension Home {
                 glucose: state.latestTwoGlucoseValues,
                 cgmProgress: state.cgmProgressHighlight,
                 cgmStatus: state.cgmDisplayState,
-                cgmSensorExpiresAt: state.cgmSensorExpiresAt
+                cgmSensorExpiresAt: state.cgmSensorExpiresAt,
+                cgmWarmupEndsAt: state.cgmWarmupEndsAt
             ).scaleEffect(0.9)
                 .onTapGesture {
                     if !state.cgmAvailable {

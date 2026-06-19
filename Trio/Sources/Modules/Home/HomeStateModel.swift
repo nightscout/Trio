@@ -4,6 +4,7 @@ import Combine
 import CoreData
 import Foundation
 import G7SensorKit
+import LibreLoop
 import LibreTransmitter
 import LoopKit
 import LoopKitUI
@@ -30,7 +31,7 @@ extension Home {
             CGMSettings.StateModel.shared
         }
 
-        private let timer = DispatchTimer(timeInterval: 5)
+        private let timer = DispatchTimer(timeInterval: 30)
         private(set) var filteredHours = 24
         var startMarker = Date(timeIntervalSinceNow: TimeInterval(hours: -24))
         var endMarker = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
@@ -113,6 +114,7 @@ extension Home {
         var cgmDisplayState: CgmDisplayState?
         var cgmProgressHighlight: DeviceLifecycleProgress?
         var cgmSensorExpiresAt: Date?
+        var cgmWarmupEndsAt: Date?
         var listOfCGM: [CGMModel] = []
         var cgmCurrent = cgmDefaultModel
         var pumpInitialSettings = PumpConfig.PumpInitialSettings.default
@@ -327,7 +329,28 @@ extension Home {
 
             timer.eventHandler = {
                 DispatchQueue.main.async { [weak self] in
-                    self?.timerDate = Date()
+                    guard let self else { return }
+                    self.timerDate = Date()
+                    // The publisher only re-emits on state changes; re-pull
+                    // so the arc + countdowns + status text advance during
+                    // warmup / stabilizing / expiry.
+                    let manager = self.fetchGlucoseManager.cgmManager
+                    let progress = manager?.cgmLifecycleProgress
+                    self.cgmProgressHighlight = progress
+                    if let highlight = manager?.cgmStatusHighlight {
+                        self.cgmDisplayState = CgmDisplayState(
+                            localizedMessage: highlight.localizedMessage,
+                            status: CgmDisplayStatus.from(highlight.state)
+                        )
+                    } else {
+                        self.cgmDisplayState = nil
+                    }
+                    self.cgmSensorExpiresAt = Self.resolveSensorExpiresAt(
+                        manager: manager,
+                        glucoseSource: self.fetchGlucoseManager.glucoseSource,
+                        lifecycle: progress
+                    )
+                    self.cgmWarmupEndsAt = Self.resolveWarmupEndsAt(manager: manager)
                 }
             }
             timer.resume()
@@ -345,6 +368,9 @@ extension Home {
                         manager: self.fetchGlucoseManager.cgmManager,
                         glucoseSource: self.fetchGlucoseManager.glucoseSource,
                         lifecycle: progress
+                    )
+                    self.cgmWarmupEndsAt = Self.resolveWarmupEndsAt(
+                        manager: self.fetchGlucoseManager.cgmManager
                     )
                 }
                 .store(in: &lifetime)
@@ -666,23 +692,9 @@ extension Home {
             }
         }
 
-        /// Pulls `cgmStatusHighlight` + `cgmLifecycleProgress` off the active
-        /// `CGMManagerUI` and derives the bobble's outer-arc/tag display state.
-        /// Called from the home timer (every 5s) and on subscribe. Cheap — both
-        /// LoopKit properties are computed accessors backed by the manager's
-        /// in-memory sensor state.
-        ///
-        /// Falls back to `GlucoseSimulatorSource`'s synthetic values when no
-        /// Best available `sensorExpiresAt` for the home label:
-        /// 1. Some managers expose it directly (G7 `sensorExpiresAt`, G5/G6
-        ///    `latestReading.sessionExpDate`).
-        /// 2. Others only expose `activatedAt` — combined with
-        ///    `lifecycle.percentComplete` we reverse-derive total lifetime.
-        ///    Critically `activatedAt` must be the *session* start, not the
-        ///    transmitter activation date, or the math blows up (an Anubis-
-        ///    modded G6 with `Glucose.activationDate` months old produced
-        ///    "7337d remaining" — bug, fixed by reading session start instead).
-        /// 3. Falls through to nil — UI drops the time label.
+        /// Sensor expiration for the home label. Prefers manager-reported
+        /// dates; reverse-derives from `lifecycle.percentComplete` when not.
+        /// `activatedAt` must be session start, not transmitter activation.
         private static func resolveSensorExpiresAt(
             manager: CGMManagerUI?,
             glucoseSource: GlucoseSource?,
@@ -695,6 +707,14 @@ extension Home {
             if let g7 = manager as? G7CGMManager, let exp = g7.sensorExpiresAt { return exp }
             if let g6 = manager as? G6CGMManager, let exp = g6.latestReading?.sessionExpDate { return exp }
             if let g5 = manager as? G5CGMManager, let exp = g5.latestReading?.sessionExpDate { return exp }
+
+            if let libreLoop = manager as? LibreLoopCGMManager {
+                if case let .active(remaining, _) = libreLoop.sensorLifecycle, remaining > 0 {
+                    return Date().addingTimeInterval(remaining)
+                }
+                // Warmup / initializing / expired — no meaningful expiry yet.
+                return nil
+            }
 
             let activatedAt: Date?
             if let g7 = manager as? G7CGMManager {
@@ -712,6 +732,31 @@ extension Home {
             let elapsed = Date().timeIntervalSince(activatedAt)
             guard elapsed > 0 else { return nil }
             return activatedAt.addingTimeInterval(elapsed / lifecycle.percentComplete)
+        }
+
+        /// Wall-clock end of the sensor's warmup window; `nil` when not warming up.
+        private static func resolveWarmupEndsAt(manager: CGMManagerUI?) -> Date? {
+            guard let manager else { return nil }
+            if let g7 = manager as? G7CGMManager {
+                guard let ends = g7.sensorFinishesWarmupAt, ends > Date() else { return nil }
+                return ends
+            }
+            if let g6 = manager as? G6CGMManager, let start = g6.latestReading?.sessionStartDate {
+                let window: TimeInterval = g6.isAnubis ? 50 * 60 : 2 * 60 * 60
+                let ends = start.addingTimeInterval(window)
+                return ends > Date() ? ends : nil
+            }
+            if let g5 = manager as? G5CGMManager, let start = g5.latestReading?.sessionStartDate {
+                let ends = start.addingTimeInterval(2 * 60 * 60)
+                return ends > Date() ? ends : nil
+            }
+            if let libreLoop = manager as? LibreLoopCGMManager {
+                if case let .warmup(_, remaining) = libreLoop.sensorLifecycle, remaining > 0 {
+                    return Date().addingTimeInterval(remaining)
+                }
+                return nil
+            }
+            return nil
         }
     }
 }
