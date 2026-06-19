@@ -194,8 +194,8 @@ struct CurrentGlucoseView: View {
     }
 
     /// Warmup → hourglass + countdown; stabilizing → hourglass + "Stabilizing"
-    /// (no countdown — duration is sensor-driven); otherwise status verbatim,
-    /// otherwise time-to-expiry.
+    /// (no countdown — duration is sensor-driven); outside warmup/stabilizing
+    /// the tag is gated to the same 48h window as the arc.
     private var tagLabel: (text: String, theme: SensorStatusTagTheme, icon: String?)? {
         if isInWarmup {
             let text: String
@@ -209,10 +209,11 @@ struct CurrentGlucoseView: View {
         if isStabilizing {
             return ("Stabilizing", .orange, "hourglass")
         }
+        guard shouldShowArc else { return nil }
         if let status = cgmStatus {
             return (status.localizedMessage, theme(for: status.status), nil)
         }
-        if let expiresAt = cgmSensorExpiresAt, expiresAt.timeIntervalSinceNow <= 48 * 60 * 60 {
+        if let expiresAt = cgmSensorExpiresAt {
             let text = SensorRemainingTimeFormatter.format(until: expiresAt)
             let theme: SensorStatusTagTheme
             switch cgmProgress?.progressState {
