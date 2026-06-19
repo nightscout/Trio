@@ -214,6 +214,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
         guard context.hasChanges else { return }
         try context.save()
+        updateSubject.send()
     }
 
     private func storeGlucoseBatch(_ glucose: [BloodGlucose]) throws {
@@ -232,7 +233,6 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             }
         )
         try context.execute(batchInsert)
-        // Only send update for batch insert since regular save triggers CoreData notifications
         updateSubject.send()
     }
 
