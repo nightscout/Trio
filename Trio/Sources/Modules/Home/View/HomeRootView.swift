@@ -138,7 +138,7 @@ extension Home {
                 cgmStatus: state.cgmDisplayState,
                 cgmSensorExpiresAt: state.cgmSensorExpiresAt,
                 cgmWarmupEndsAt: state.cgmWarmupEndsAt
-            ).scaleEffect(0.9)
+            )
                 .onTapGesture {
                     if !state.cgmAvailable {
                         showCGMSelection.toggle()
