@@ -10,11 +10,13 @@ import Testing
         let suiteName = "DeviceAlertsStoreTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
+        let configsKey = "configs.\(suiteName)"
+        let snoozesKey = "snoozes.\(suiteName)"
         if let seed {
             let data = try? JSONEncoder().encode(seed)
-            defaults.set(data, forKey: "trio.deviceAlertSeverityConfigs.v1")
+            defaults.set(data, forKey: configsKey)
         }
-        return DeviceAlertsStore(defaults: defaults, configsKey: "trio.deviceAlertSeverityConfigs.v1")
+        return DeviceAlertsStore(defaults: defaults, configsKey: configsKey, snoozesKey: snoozesKey)
     }
 
     @Test("Fresh store seeds one .always config per severity") func freshSeed() {
