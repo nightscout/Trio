@@ -51,9 +51,21 @@ extension GlucoseAlerts {
                     }.listRowBackground(Color.chart)
                 }
 
+                // FIXME: make this into a nice setting with mini and verbose hint
                 Section {
                     Text("Day & Night Windows")
                         .navigationLink(to: .alarmWindows, from: self)
+                }.listRowBackground(Color.chart)
+
+                Section(footer: Text(
+                    "On by default for all CGMs that handle glucose alerts (all Dexcom CGMs, xDrip4iOS). Turn off if you've disabled those and want Trio to alert you instead."
+                )) {
+                    Toggle(isOn: Binding(
+                        get: { !store.configuration.forceTrioAlertsWhenCGMProvidesOwn },
+                        set: { store.configuration.forceTrioAlertsWhenCGMProvidesOwn = !$0 }
+                    )) {
+                        Text("Use CGM App Alerts")
+                    }
                 }.listRowBackground(Color.chart)
 
                 SettingInputSection(

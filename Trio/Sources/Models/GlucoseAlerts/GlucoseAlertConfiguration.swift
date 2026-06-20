@@ -3,13 +3,33 @@ import Foundation
 struct GlucoseAlertConfiguration: Codable, Equatable {
     var dayStart: TimeOfDay
     var nightStart: TimeOfDay
+    /// Force Trio alarms on even when the CGM advertises its own.
+    var forceTrioAlertsWhenCGMProvidesOwn: Bool
 
     init(
         dayStart: TimeOfDay = TimeOfDay(hour: 6, minute: 0),
-        nightStart: TimeOfDay = TimeOfDay(hour: 22, minute: 0)
+        nightStart: TimeOfDay = TimeOfDay(hour: 22, minute: 0),
+        forceTrioAlertsWhenCGMProvidesOwn: Bool = false
     ) {
         self.dayStart = dayStart
         self.nightStart = nightStart
+        self.forceTrioAlertsWhenCGMProvidesOwn = forceTrioAlertsWhenCGMProvidesOwn
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case dayStart
+        case nightStart
+        case forceTrioAlertsWhenCGMProvidesOwn
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        dayStart = try container.decode(TimeOfDay.self, forKey: .dayStart)
+        nightStart = try container.decode(TimeOfDay.self, forKey: .nightStart)
+        forceTrioAlertsWhenCGMProvidesOwn = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .forceTrioAlertsWhenCGMProvidesOwn
+        ) ?? false
     }
 
     /// Resolve whether `date` falls into the user's "night" window. Mirrors

@@ -181,6 +181,7 @@
 		38E87403274F78C000975559 /* libswiftCoreNFC.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 38E87402274F78C000975559 /* libswiftCoreNFC.tbd */; settings = {ATTRIBUTES = (Weak, ); }; };
 		38E87408274F9AD000975559 /* UserNotificationsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E87407274F9AD000975559 /* UserNotificationsManager.swift */; };
 		BD1179202F4E22C100F90001 /* TrioAlertManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179212F4E22C100F90001 /* TrioAlertManager.swift */; };
+		CA01000000000000000010C6 /* CGMManagerAlertOwnership.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA01000000000000000010C5 /* CGMManagerAlertOwnership.swift */; };
 		BD1179222F4E22C100F90001 /* TrioModalAlertScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179232F4E22C100F90001 /* TrioModalAlertScheduler.swift */; };
 		BD1179242F4E22C100F90001 /* TrioUserNotificationAlertScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179252F4E22C100F90001 /* TrioUserNotificationAlertScheduler.swift */; };
 		BD1179322F4E22C100F90001 /* CriticalAlertAudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179312F4E22C100F90001 /* CriticalAlertAudioPlayer.swift */; };
@@ -1188,6 +1189,7 @@
 		38E87402274F78C000975559 /* libswiftCoreNFC.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCoreNFC.tbd; path = usr/lib/swift/libswiftCoreNFC.tbd; sourceTree = SDKROOT; };
 		38E87407274F9AD000975559 /* UserNotificationsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserNotificationsManager.swift; sourceTree = "<group>"; };
 		BD1179212F4E22C100F90001 /* TrioAlertManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioAlertManager.swift; sourceTree = "<group>"; };
+		CA01000000000000000010C5 /* CGMManagerAlertOwnership.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGMManagerAlertOwnership.swift; sourceTree = "<group>"; };
 		BD1179232F4E22C100F90001 /* TrioModalAlertScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioModalAlertScheduler.swift; sourceTree = "<group>"; };
 		BD1179252F4E22C100F90001 /* TrioUserNotificationAlertScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioUserNotificationAlertScheduler.swift; sourceTree = "<group>"; };
 		BD1179312F4E22C100F90001 /* CriticalAlertAudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriticalAlertAudioPlayer.swift; sourceTree = "<group>"; };
@@ -2406,6 +2408,7 @@
 				BD1179212F4E22C100F90001 /* TrioAlertManager.swift */,
 				BD1179232F4E22C100F90001 /* TrioModalAlertScheduler.swift */,
 				BD1179252F4E22C100F90001 /* TrioUserNotificationAlertScheduler.swift */,
+				CA01000000000000000010C5 /* CGMManagerAlertOwnership.swift */,
 			);
 			path = Alerts;
 			sourceTree = "<group>";
@@ -5115,6 +5118,7 @@
 				DDFF20312DB1D15500AB8A96 /* BluetoothPermissionStepView.swift in Sources */,
 				38E87408274F9AD000975559 /* UserNotificationsManager.swift in Sources */,
 				BD1179202F4E22C100F90001 /* TrioAlertManager.swift in Sources */,
+				CA01000000000000000010C6 /* CGMManagerAlertOwnership.swift in Sources */,
 				BD1179222F4E22C100F90001 /* TrioModalAlertScheduler.swift in Sources */,
 				BD1179242F4E22C100F90001 /* TrioUserNotificationAlertScheduler.swift in Sources */,
 				BD1179322F4E22C100F90001 /* CriticalAlertAudioPlayer.swift in Sources */,
