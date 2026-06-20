@@ -1,27 +1,9 @@
 import Foundation
 import LoopKit
 
-/// Coarse-grained classification of an incoming LoopKit `Alert` or a Swift
-/// `Error` caught at the `APSManager` boundary. The user never sees these
-/// directly — they pick a *severity tier* on the Device Alarms screen, and
-/// each category maps to a tier via `PumpAlertCategory.defaultSeverity`.
-///
-/// Buckets follow the manager-audit taxonomy:
-///   - N1 Hardware Fault        → `.hardwareFault`
-///   - N2 Delivery Stopped      → `.suspendTimeExpired` / pump-managed
-///   - N3 Uncertain Delivery    → `.deliveryUncertain`
-///   - N4 Reservoir Empty       → `.reservoirEmpty`
-///   - N5 Battery Dead          → `.batteryEmpty`
-///   - N6 Device Expired        → `.deviceExpired` (pod / sensor / transmitter)
-///   - N7 Sensor / Session Fail → `.sensorFailure`
-///   - F1 Insulin Low           → `.reservoirLow`
-///   - F2 Battery Low           → `.batteryLow`
-///   - F3 Expiration Approaching → `.deviceExpirationReminder`
-///   - Bolus failure (confirmed) → `.bolusFailed`
-///   - Glucose alarms           → `.glucose*` (owned by `GlucoseAlertCoordinator`)
-///   - N8 Connectivity blips    → `.commsTransient` (dwell-suppressed)
-///   - Algorithm error          → `.algorithmError` (dwell-suppressed)
-///   - Other unclassified       → `.other(String)`
+/// Internal slug + severity producer for Trio-emitted alerts (APSManager,
+/// notLooping, glucose threshold). Pump/device alarms now flow through
+/// `AlertCatalogRegistry` and don't touch this enum.
 enum TrioAlertCategory: Equatable {
     case occlusion
     case reservoirLow
@@ -83,9 +65,7 @@ enum TrioAlertCategory: Equatable {
         }
     }
 
-    /// Canonical slug used when constructing `Alert.Identifier`. Round-trips
-    /// through `TrioAlertClassifier.categorize(alertIdentifier:)` — keep the
-    /// substring matchers in the classifier in sync with these slugs.
+    /// Slug used when Trio constructs its own `Alert.Identifier`.
     var alertIdentifier: String {
         switch self {
         case .occlusion: return "occlusion"
@@ -147,135 +127,8 @@ enum TrioAlertCategory: Equatable {
 }
 
 enum TrioAlertClassifier {
-    /// Classify a LoopKit alert identifier coming from a pump or CGM manager.
-    /// Substring-matched on the lowercased identifier. Returns `.other(identifier)`
-    /// for anything unrecognized.
-    ///
-    /// Coverage notes (manager audit):
-    ///   - Pumps: OmnipodKit (Eros + DASH), DanaKit, MinimedKit, MedtrumKit
-    ///     (MedtrumKit alerts land via jbr7rr/MedtrumKit#147 — slugs are
-    ///     `com.nightscout.medtrumkit.*`).
-    ///   - CGMs: CGMBLEKit (Dexcom G5/G6), G7SensorKit, LibreTransmitter,
-    ///     EversenseKit, NightscoutRemoteCGM, dexcom-share-client-swift.
-    static func categorize(alertIdentifier: String) -> TrioAlertCategory {
-        let id = alertIdentifier.lowercased()
-
-        // Glucose family — owned by GlucoseAlertCoordinator, return early so the
-        // pump/device interception in TrioAlertManager doesn't apply tier config.
-        if id.contains("glucose.urgentlow") || id.contains("glucoseurgentlow") { return .glucoseUrgentLow }
-        if id.contains("glucose.forecastedlow") || id.contains("glucoseforecastedlow") { return .glucoseForecastedLow }
-        if id.contains("glucose.low") || id.contains("glucoselow") { return .glucoseLow }
-        if id.contains("glucose.high") || id.contains("glucosehigh") { return .glucoseHigh }
-        if id.contains("glucose"), id.contains("stale") { return .glucoseDataStale }
-
-        // Hard-fail device states first (most severe wins on substring overlap).
-        if id.contains("occlusion") || id.contains("occluded") { return .occlusion }
-        if id.contains("reservoirempty") || id.contains("emptyreservoir") || id.contains("nodelivery")
-            || id.contains("patch-empty") || id.contains("patchempty")
-        {
-            return .reservoirEmpty
-        }
-        if id.contains("batteryempty") || id.contains("batteryzero") || id.contains("batterydepleted")
-            || id.contains("batteryout") || id.contains("emptybattery")
-        {
-            return .batteryEmpty
-        }
-
-        // Uncertain delivery — N3, must come before generic bolusFailed.
-        if id.contains("unacknowledged") || id.contains("uncertaindelivery") || id.contains("uncertain delivery")
-            || id.contains("delivery-uncertain") || id.contains("deliveryuncertain")
-            || id.contains("unabletoreachpod") || id.contains("commsrecovery")
-        {
-            return .deliveryUncertain
-        }
-
-        // Hardware fault — N1. Covers pump faults, transmitter critical faults,
-        // CGM hardware errors.
-        if id.contains("fault") || id.contains("pumperror") || id.contains("checkshaft")
-            || id.contains("autooff") || id.contains("auto-off") || id.contains("devicereset")
-            || id.contains("reprogram") || id.contains("unexpectedalert") || id.contains("criticalfault")
-            || id.contains("vibrationcurrent") || id.contains("batteryerror") || id.contains("transmittererror")
-            || id == "shutdown" || id.contains("unknownalarm")
-        {
-            return .hardwareFault
-        }
-
-        // Sensor / session failure — N7 (CGM-side).
-        if id.contains("sensorfailed") || id.contains("sensor.failed") || id.contains("sensorstopped")
-            || id.contains("sensorfailure") || id.contains("sensorerror") || id.contains("invalidsensor")
-            || id.contains("encryptedsensor") || id.contains("sensortemperature")
-            || id.contains("sensorlowtemperature") || id.contains("readertemperature")
-            || id.contains("sensorretirement") || id.contains("nosensordetected")
-            || id.contains("transmitterdisconnected") || id.contains("glucosesuspended")
-            || id.contains("sensorconnection")
-        {
-            return .sensorFailure
-        }
-
-        // Expiration reminders — F3, pre-expiry warnings (pod expiring, sensor
-        // grace period, calibration grace). Checked BEFORE `.deviceExpired`
-        // so "podexpiring" / "sensorgrace" don't get swallowed by the
-        // generic `expired` substring catch-all below.
-        // Medtrum's `patch-expired` slug is a misnomer — the underlying
-        // alert is a pre-expiry warning ("Your patch has X hours left")
-        // fired via `.delayed`, so it belongs with the reminders.
-        if id.contains("podexpiring") || id.contains("expirationreminder") || id.contains("userpodexpiration")
-            || id.contains("retiringsoon") || id.contains("sensorending") || id.contains("calibrationgrace")
-            || id.contains("sensorgrace") || id.contains("graceperiod")
-            || id.contains("patch-expired") || id.contains("patchexpired")
-        {
-            return .deviceExpirationReminder
-        }
-
-        // Device expired — N6 (pod, sensor, transmitter end-of-life).
-        if id.contains("podexpired") || id.contains("sensorexpired")
-            || id.contains("sensorretired") || id.contains("transmittereol") || id.contains("sensoragedout")
-            || id.contains("mspalarm") || id.contains("expiredsensor")
-            || (id.contains("expired") && !id.contains("suspendtimeexpired"))
-        {
-            return .deviceExpired
-        }
-        if id.contains("shutdownimminent") || id.contains("expireimminent") { return .podShutdownImminent }
-
-        // Low-supply warnings — F1 / F2.
-        if id.contains("lowreservoir") || id.contains("reservoirlow") || id.contains("reservoir-low")
-            || id.contains("remaininginsulin")
-        {
-            return .reservoirLow
-        }
-        if id.contains("lowbattery") || id.contains("batterylow") || id.contains("rlbattery")
-            || id.contains("verylowbattery") || id.contains("batterystatus")
-        {
-            return .batteryLow
-        }
-
-        // Bolus + delivery state. Medtrum's hourly/daily insulin caps auto-
-        // suspend the pump — the patient sees "Insulin has been suspended!"
-        // and needs to clear it. Map to suspendTimeExpired (N2 Delivery
-        // Stopped) so the existing tier config applies.
-        if id.contains("bolusfailed") { return .bolusFailed }
-        if id.contains("suspendtimeexpired") || id.contains("suspendended")
-            || id.contains("patch-daily-limit") || id.contains("patchdailylimit")
-            || id.contains("patch-hourly-limit") || id.contains("patchhourlylimit")
-        {
-            return .suspendTimeExpired
-        }
-        if id.contains("manualtempbasal") { return .manualTempBasalActive }
-
-        // Loop has not run for the expected interval — emitted internally
-        // by the not-looping monitor, not by any pump manager.
-        if id.contains("notlooping") || id.contains("loop.notactive") { return .notLooping }
-
-        // Algorithm error — emitted by APSManager after dwell suppression.
-        // Re-classification by identifier needs to land here so the tier
-        // config in Pump & CGM Alarms applies on the round-trip through issueAlert.
-        if id.contains("algorithmerror") || id.contains("apserror") { return .algorithmError }
-
-        return .other(alertIdentifier)
-    }
-
-    /// Classify a Swift error caught at the `APSManager` boundary — these don't
-    /// come with a LoopKit alert identifier so we inspect the type + description.
+    /// Classify a Swift error caught at the `APSManager` boundary so dwell
+    /// suppression + alert emission have a stable bucket.
     static func categorize(error: Error) -> TrioAlertCategory {
         if let apsError = error as? APSError {
             switch apsError {

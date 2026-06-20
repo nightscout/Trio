@@ -11,7 +11,7 @@ import Swinject
 ///
 /// Replaces the legacy `scheduleMissingLoopNotifiactions` direct-UN path
 /// in `BaseUserNotificationsManager`. The alert now flows through
-/// `TrioAlertManager` and inherits tier config from Pump & CGM Alarms
+/// `TrioAlertManager` and inherits tier config from Pump Alarms
 /// (Critical tier by default).
 final class NotLoopingMonitor: Injectable {
     @Injected() private var apsManager: APSManager!

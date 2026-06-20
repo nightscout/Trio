@@ -178,6 +178,8 @@
 		38E87403274F78C000975559 /* libswiftCoreNFC.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 38E87402274F78C000975559 /* libswiftCoreNFC.tbd */; settings = {ATTRIBUTES = (Weak, ); }; };
 		38E87408274F9AD000975559 /* UserNotificationsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E87407274F9AD000975559 /* UserNotificationsManager.swift */; };
 		BD1179202F4E22C100F90001 /* TrioAlertManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179212F4E22C100F90001 /* TrioAlertManager.swift */; };
+		CA01000000000000000010C2 /* AlertCatalogVendor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA01000000000000000010C1 /* AlertCatalogVendor.swift */; };
+		CA01000000000000000010C4 /* AlertCatalogRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA01000000000000000010C3 /* AlertCatalogRegistry.swift */; };
 		CA01000000000000000010C6 /* CGMManagerAlertOwnership.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA01000000000000000010C5 /* CGMManagerAlertOwnership.swift */; };
 		BD1179222F4E22C100F90001 /* TrioModalAlertScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179232F4E22C100F90001 /* TrioModalAlertScheduler.swift */; };
 		BD1179242F4E22C100F90001 /* TrioUserNotificationAlertScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179252F4E22C100F90001 /* TrioUserNotificationAlertScheduler.swift */; };
@@ -203,7 +205,6 @@
 		BD1179792F4E22C100F90001 /* AlarmAudioSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11797A2F4E22C100F90001 /* AlarmAudioSection.swift */; };
 		BD11797B2F4E22C100F90001 /* AlarmSoundCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11797C2F4E22C100F90001 /* AlarmSoundCatalog.swift */; };
 		BD11797D2F4E22C100F90001 /* AlarmWindowIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11797E2F4E22C100F90001 /* AlarmWindowIcon.swift */; };
-		BD1179812F4E22C100F90001 /* PumpAlertCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179822F4E22C100F90001 /* PumpAlertCategory.swift */; };
 		BD1179832F4E22C100F90001 /* DeviceAlertSeverity.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179842F4E22C100F90001 /* DeviceAlertSeverity.swift */; };
 		BD1179852F4E22C100F90001 /* DeviceAlertSeverityConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179862F4E22C100F90001 /* DeviceAlertSeverityConfig.swift */; };
 		BD1179872F4E22C100F90001 /* DeviceAlertsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179882F4E22C100F90001 /* DeviceAlertsStore.swift */; };
@@ -1175,6 +1176,8 @@
 		38E87402274F78C000975559 /* libswiftCoreNFC.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCoreNFC.tbd; path = usr/lib/swift/libswiftCoreNFC.tbd; sourceTree = SDKROOT; };
 		38E87407274F9AD000975559 /* UserNotificationsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserNotificationsManager.swift; sourceTree = "<group>"; };
 		BD1179212F4E22C100F90001 /* TrioAlertManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioAlertManager.swift; sourceTree = "<group>"; };
+		CA01000000000000000010C1 /* AlertCatalogVendor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertCatalogVendor.swift; sourceTree = "<group>"; };
+		CA01000000000000000010C3 /* AlertCatalogRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertCatalogRegistry.swift; sourceTree = "<group>"; };
 		CA01000000000000000010C5 /* CGMManagerAlertOwnership.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGMManagerAlertOwnership.swift; sourceTree = "<group>"; };
 		BD1179232F4E22C100F90001 /* TrioModalAlertScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioModalAlertScheduler.swift; sourceTree = "<group>"; };
 		BD1179252F4E22C100F90001 /* TrioUserNotificationAlertScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioUserNotificationAlertScheduler.swift; sourceTree = "<group>"; };
@@ -1200,7 +1203,6 @@
 		BD11797A2F4E22C100F90001 /* AlarmAudioSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmAudioSection.swift; sourceTree = "<group>"; };
 		BD11797C2F4E22C100F90001 /* AlarmSoundCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSoundCatalog.swift; sourceTree = "<group>"; };
 		BD11797E2F4E22C100F90001 /* AlarmWindowIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmWindowIcon.swift; sourceTree = "<group>"; };
-		BD1179822F4E22C100F90001 /* PumpAlertCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpAlertCategory.swift; sourceTree = "<group>"; };
 		BD1179842F4E22C100F90001 /* DeviceAlertSeverity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceAlertSeverity.swift; sourceTree = "<group>"; };
 		BD1179862F4E22C100F90001 /* DeviceAlertSeverityConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceAlertSeverityConfig.swift; sourceTree = "<group>"; };
 		BD1179882F4E22C100F90001 /* DeviceAlertsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceAlertsStore.swift; sourceTree = "<group>"; };
@@ -2388,6 +2390,8 @@
 				BD1179212F4E22C100F90001 /* TrioAlertManager.swift */,
 				BD1179232F4E22C100F90001 /* TrioModalAlertScheduler.swift */,
 				BD1179252F4E22C100F90001 /* TrioUserNotificationAlertScheduler.swift */,
+				CA01000000000000000010C1 /* AlertCatalogVendor.swift */,
+				CA01000000000000000010C3 /* AlertCatalogRegistry.swift */,
 				CA01000000000000000010C5 /* CGMManagerAlertOwnership.swift */,
 			);
 			path = Alerts;
@@ -2726,7 +2730,6 @@
 				BD1179532F4E22C100F90001 /* GlucoseAlert.swift */,
 				BD1179552F4E22C100F90001 /* GlucoseAlertConfiguration.swift */,
 				BD1179572F4E22C100F90001 /* GlucoseAlertType.swift */,
-				BD1179822F4E22C100F90001 /* PumpAlertCategory.swift */,
 				BD1179842F4E22C100F90001 /* DeviceAlertSeverity.swift */,
 				BD1179862F4E22C100F90001 /* DeviceAlertSeverityConfig.swift */,
 			);
@@ -5081,6 +5084,8 @@
 				DDFF20312DB1D15500AB8A96 /* BluetoothPermissionStepView.swift in Sources */,
 				38E87408274F9AD000975559 /* UserNotificationsManager.swift in Sources */,
 				BD1179202F4E22C100F90001 /* TrioAlertManager.swift in Sources */,
+				CA01000000000000000010C2 /* AlertCatalogVendor.swift in Sources */,
+				CA01000000000000000010C4 /* AlertCatalogRegistry.swift in Sources */,
 				CA01000000000000000010C6 /* CGMManagerAlertOwnership.swift in Sources */,
 				BD1179222F4E22C100F90001 /* TrioModalAlertScheduler.swift in Sources */,
 				BD1179242F4E22C100F90001 /* TrioUserNotificationAlertScheduler.swift in Sources */,
@@ -5105,7 +5110,6 @@
 				BD1179792F4E22C100F90001 /* AlarmAudioSection.swift in Sources */,
 				BD11797B2F4E22C100F90001 /* AlarmSoundCatalog.swift in Sources */,
 				BD11797D2F4E22C100F90001 /* AlarmWindowIcon.swift in Sources */,
-				BD1179812F4E22C100F90001 /* PumpAlertCategory.swift in Sources */,
 				BD1179832F4E22C100F90001 /* DeviceAlertSeverity.swift in Sources */,
 				BD1179852F4E22C100F90001 /* DeviceAlertSeverityConfig.swift in Sources */,
 				BD1179872F4E22C100F90001 /* DeviceAlertsStore.swift in Sources */,

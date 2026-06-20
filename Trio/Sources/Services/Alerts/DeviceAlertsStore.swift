@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import LoopKit
 
 /// Persists a flat list of `[DeviceAlertSeverityConfig]` to `UserDefaults`.
 /// Multiple configs per severity tier are allowed — each with its own
@@ -11,10 +12,8 @@ final class DeviceAlertsStore: ObservableObject {
     static let shared = DeviceAlertsStore()
 
     @Published var configs: [DeviceAlertSeverityConfig]
-    /// Per-category snooze expirations. Keyed by `PumpAlertCategory.rawValue`
-    /// for stable Codable round-tripping. `BaseTrioAlertManager.issueAlert`
-    /// drops alerts whose category has an entry with a future date.
-    @Published var categorySnoozes: [String: Date]
+    /// Per-tier snooze expirations keyed by `DeviceAlertSeverity.rawValue`.
+    @Published var tierSnoozes: [String: Date]
 
     private let defaults: UserDefaults
     private let configsKey: String
@@ -25,15 +24,12 @@ final class DeviceAlertsStore: ObservableObject {
     init(
         defaults: UserDefaults = .standard,
         configsKey: String = "trio.deviceAlertSeverityConfigs.v1",
-        snoozesKey: String = "trio.deviceAlertCategorySnoozes.v1"
+        snoozesKey: String = "trio.deviceAlertTierSnoozes.v1"
     ) {
         self.defaults = defaults
         self.configsKey = configsKey
         self.snoozesKey = snoozesKey
         let loaded = Self.decode([DeviceAlertSeverityConfig].self, from: defaults, key: configsKey) ?? []
-        // Guarantee one default `.always` per severity on first load. Any
-        // missing severity gets a fresh seed so the lookup always finds a
-        // baseline match.
         var seeded = loaded
         for severity in DeviceAlertSeverity.allCases
             where !seeded.contains(where: { $0.severity == severity && $0.activeOption == .always })
@@ -42,23 +38,22 @@ final class DeviceAlertsStore: ObservableObject {
         }
         configs = Self.sorted(seeded)
         let snoozes = Self.decode([String: Date].self, from: defaults, key: snoozesKey) ?? [:]
-        // Prune expired entries on launch so the dictionary doesn't grow.
-        categorySnoozes = snoozes.filter { $0.value > Date() }
+        tierSnoozes = snoozes.filter { $0.value > Date() }
         bind()
     }
 
-    // MARK: - Per-category snooze
+    // MARK: - Per-tier snooze
 
-    func snoozeCategory(_ category: PumpAlertCategory, until: Date) {
+    func snoozeTier(_ tier: DeviceAlertSeverity, until: Date) {
         if until > Date() {
-            categorySnoozes[category.rawValue] = until
+            tierSnoozes[tier.rawValue] = until
         } else {
-            categorySnoozes.removeValue(forKey: category.rawValue)
+            tierSnoozes.removeValue(forKey: tier.rawValue)
         }
     }
 
-    func isCategorySnoozed(_ category: PumpAlertCategory, at date: Date) -> Bool {
-        guard let until = categorySnoozes[category.rawValue] else { return false }
+    func isTierSnoozed(_ tier: DeviceAlertSeverity, at date: Date) -> Bool {
+        guard let until = tierSnoozes[tier.rawValue] else { return false }
         return until > date
     }
 
@@ -68,7 +63,7 @@ final class DeviceAlertsStore: ObservableObject {
             .removeDuplicates()
             .sink { [weak self] value in self?.encode(value, to: self?.configsKey ?? "") }
             .store(in: &subscriptions)
-        $categorySnoozes
+        $tierSnoozes
             .dropFirst()
             .removeDuplicates()
             .sink { [weak self] value in self?.encode(value, to: self?.snoozesKey ?? "") }
