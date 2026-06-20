@@ -3,14 +3,17 @@ let cgmOptions: [CGMOption] = [
     CGMOption(name: "Dexcom G6 / ONE", predicate: { $0.type == .plugin && $0.displayName.contains("G6") }),
     CGMOption(name: "Dexcom G7 / ONE+", predicate: { $0.type == .plugin && $0.displayName.contains("G7") }),
     CGMOption(name: "Dexcom Share", predicate: { $0.type == .plugin && $0.displayName.contains("Dexcom Share") }),
-    CGMOption(name: "FreeStyle Libre", predicate: { $0.type == .plugin && $0.displayName == "FreeStyle Libre" }),
+    CGMOption(
+        name: "FreeStyle Libre 1 / 2 / 2+",
+        predicate: { $0.type == .plugin && $0.displayName == "FreeStyle Libre 1 / 2 / 2+" }
+    ),
     CGMOption(
         name: "FreeStyle Libre Demo",
         predicate: { $0.type == .plugin && $0.displayName == "FreeStyle Libre Demo" }
     ),
     CGMOption(
-        name: "FreeStyle Libre 3/3 Plus",
-        predicate: { $0.type == .plugin && $0.displayName == "FreeStyle Libre 3/3 Plus" }
+        name: "FreeStyle Libre 3 / 3+",
+        predicate: { $0.type == .plugin && $0.displayName == "FreeStyle Libre 3 / 3+" }
     ),
     CGMOption(name: "Glucose Simulator", predicate: { $0.type == .simulator }),
     CGMOption(name: "Medtronic Enlite", predicate: { $0.type == .enlite }),

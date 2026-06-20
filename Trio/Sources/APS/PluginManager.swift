@@ -40,12 +40,12 @@ class BasePluginManager: Injectable, PluginManager {
         ),
         CgmPluginDescription(
             pluginIdentifier: LibreTransmitterManagerV3.pluginIdentifier,
-            localizedTitle: String(localized: "FreeStyle Libre"),
+            localizedTitle: String(localized: "FreeStyle Libre 1 / 2 / 2+"),
             manager: LibreTransmitterManagerV3.self
         ),
         CgmPluginDescription(
             pluginIdentifier: LibreLoopCGMManager.pluginIdentifier,
-            localizedTitle: String(localized: "FreeStyle Libre 3/3 Plus"),
+            localizedTitle: String(localized: "FreeStyle Libre 3 / 3+"),
             manager: LibreLoopCGMManager.self
         )
     ]
