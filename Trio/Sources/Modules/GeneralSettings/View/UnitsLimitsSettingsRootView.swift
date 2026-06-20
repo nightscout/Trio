@@ -129,9 +129,6 @@ extension UnitsLimitsSettings {
                         Text(
                             "This is the maximum basal rate allowed to be set or scheduled. This applies to both automatic and manual basal rates."
                         )
-                        Text(
-                            "Note to Medtronic Pump Users: You must also manually set the max basal rate on the pump to this value or higher."
-                        )
                     }
                 )
 
