@@ -111,7 +111,7 @@ struct GlucoseAlertEditorView: View {
                 localized: "Recommended to always override silence and Focus mode."
             ),
             title: String(localized: "Glucose"),
-            range: 40 ... 80,
+            range: 54 ... 80,
             step: 1,
             units: units,
             valueMgDL: $working.thresholdMgDL
@@ -125,7 +125,7 @@ struct GlucoseAlertEditorView: View {
                 localized: "Fires when glucose is at or below this value."
             ),
             title: String(localized: "Glucose"),
-            range: 40 ... 100,
+            range: 54 ... 100,
             step: 1,
             units: units,
             valueMgDL: $working.thresholdMgDL
@@ -139,7 +139,7 @@ struct GlucoseAlertEditorView: View {
                 localized: "Fires when the forecast at +20 minutes (blended across all available prediction curves) is at or below this value."
             ),
             title: String(localized: "Glucose"),
-            range: 40 ... 100,
+            range: 54 ... 100,
             step: 1,
             units: units,
             valueMgDL: $working.thresholdMgDL
