@@ -486,7 +486,7 @@ enum DeterminationGenerator {
         if forecastResult.eventualGlucose >= adjustedGlucoseTargets.maxGlucose {
             determination
                 .reason +=
-                "Eventual BG \(DosingEngine.convertGlucose(profile: profile, glucose: forecastResult.eventualGlucose)) >= \(DosingEngine.convertGlucose(profile: profile, glucose: adjustedGlucoseTargets.maxGlucose)), "
+                "Eventual BG \(forecastResult.eventualGlucose.jsRounded()) >= \(adjustedGlucoseTargets.maxGlucose.jsRounded()), "
         }
 
         let (shouldSetTempBasalForIobGreaterThanMax, iobGreaterThanMaxDetermination) = try DosingEngine.iobGreaterThanMax(
