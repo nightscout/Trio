@@ -25,6 +25,7 @@ final class GlucoseAlertCoordinator: Injectable {
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var trioAlertManager: TrioAlertManager!
     @Injected() private var settingsManager: SettingsManager!
+    @Injected() private var fetchGlucoseManager: FetchGlucoseManager!
 
     private let coreDataContext = CoreDataStack.shared.newTaskContext()
     private let evaluationQueue = DispatchQueue(label: "GlucoseAlertCoordinator.queue")
@@ -56,6 +57,11 @@ final class GlucoseAlertCoordinator: Injectable {
         Date().timeIntervalSince(launchedAt) < Self.launchQuietWindow
     }
 
+    private var effectiveTrioAlertsEnabled: Bool {
+        if configurationSnapshot.forceTrioAlertsWhenCGMProvidesOwn { return true }
+        return !CGMManagerAlertOwnership.providesOwnGlucoseAlerts(fetchGlucoseManager?.cgmManager)
+    }
+
     init(resolver: Resolver) {
         injectServices(resolver)
         let store = GlucoseAlertsStore.shared
@@ -83,6 +89,10 @@ final class GlucoseAlertCoordinator: Injectable {
     /// onto `evaluationQueue` to mutate `firingAlertIDs` safely.
     private func evaluateGlucoseAlarms() async {
         guard !isInLaunchQuietWindow else { return }
+        guard effectiveTrioAlertsEnabled else {
+            retractAllFiringIfNeeded()
+            return
+        }
         guard let latestValue = await fetchLatestReadingMgDL() else { return }
         let snapshot = alertsSnapshot
         let configuration = configurationSnapshot
@@ -157,6 +167,10 @@ final class GlucoseAlertCoordinator: Injectable {
 
     private func evaluateForecast(_ determination: Determination) {
         guard !isInLaunchQuietWindow else { return }
+        guard effectiveTrioAlertsEnabled else {
+            retractAllFiringIfNeeded()
+            return
+        }
         let snapshot = alertsSnapshot
         let configuration = configurationSnapshot
         let now = Date()
@@ -232,6 +246,17 @@ final class GlucoseAlertCoordinator: Injectable {
         guard firingAlertIDs.contains(alarm.id) else { return }
         firingAlertIDs.remove(alarm.id)
         trioAlertManager.retractAlert(identifier: alertID(for: alarm))
+    }
+
+    private func retractAllFiringIfNeeded() {
+        evaluationQueue.async { [weak self] in
+            guard let self, !self.firingAlertIDs.isEmpty else { return }
+            let snapshot = self.alertsSnapshot
+            for alarm in snapshot where self.firingAlertIDs.contains(alarm.id) {
+                self.trioAlertManager.retractAlert(identifier: self.alertID(for: alarm))
+            }
+            self.firingAlertIDs.removeAll()
+        }
     }
 
     private func shouldRetract(_ alarm: GlucoseAlert, latestMgDL: Decimal) -> Bool {
