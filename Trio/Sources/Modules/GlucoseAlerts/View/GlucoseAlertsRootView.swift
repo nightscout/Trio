@@ -58,7 +58,7 @@ extension GlucoseAlerts {
                 }.listRowBackground(Color.chart)
 
                 Section(footer: Text(
-                    "On by default for all CGMs that handle glucose alerts (all Dexcom CGMs, xDrip4iOS). Turn off if you've disabled those and want Trio to alert you instead."
+                    "On by default for all CGM or apps that handle glucose alerts (all Dexcom CGMs, xDrip4iOS). Turn off if you've disabled those and want Trio to alert you instead."
                 )) {
                     Toggle(isOn: Binding(
                         get: { !store.configuration.forceTrioAlertsWhenCGMProvidesOwn },
