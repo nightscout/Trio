@@ -14,6 +14,14 @@ enum DeviceAlertSeverity: String, Codable, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    init?(level: Alert.InterruptionLevel) {
+        switch level {
+        case .critical: self = .critical
+        case .timeSensitive: self = .timeSensitive
+        case .active: self = .normal
+        }
+    }
+
     var displayName: String {
         switch self {
         case .critical: return String(localized: "Critical")

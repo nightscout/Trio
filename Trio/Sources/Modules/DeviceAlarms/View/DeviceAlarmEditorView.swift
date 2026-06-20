@@ -1,3 +1,4 @@
+import LoopKit
 import SwiftUI
 
 struct DeviceAlarmEditorView: View {
@@ -60,8 +61,8 @@ struct DeviceAlarmEditorView: View {
                 )
 
                 Section(header: Text("Applies To")) {
-                    ForEach(PumpAlertCategory.allCases.filter { $0.defaultSeverity == working.severity }) { category in
-                        Text(category.displayName)
+                    ForEach(conceptsForTier(working.severity), id: \.self) { concept in
+                        Text(concept.displayTitle)
                             .font(.footnote)
                             .foregroundColor(.secondary)
                     }
@@ -109,5 +110,20 @@ struct DeviceAlarmEditorView: View {
         case .day: return String(localized: "Day only")
         case .night: return String(localized: "Night only")
         }
+    }
+
+    /// Distinct alarm concepts whose catalog entries fall into this tier.
+    /// Sorted by display title so the list is stable across plugin changes.
+    private func conceptsForTier(_ tier: DeviceAlertSeverity) -> [LoopKit.Alert.CatalogConcept] {
+        var seen: Set<LoopKit.Alert.CatalogConcept> = []
+        var ordered: [LoopKit.Alert.CatalogConcept] = []
+        for entry in AlertCatalogRegistry.entries
+            where DeviceAlertSeverity(level: entry.interruptionLevel) == tier
+        {
+            if seen.insert(entry.concept).inserted {
+                ordered.append(entry.concept)
+            }
+        }
+        return ordered.sorted { $0.displayTitle < $1.displayTitle }
     }
 }

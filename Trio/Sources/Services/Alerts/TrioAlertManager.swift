@@ -110,40 +110,27 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
     // MARK: - Issue / Retract
 
     func issueAlert(_ alert: Alert) {
-        let category = TrioAlertClassifier.categorize(alertIdentifier: alert.identifier.alertIdentifier)
         debug(
             .service,
-            "TrioAlertManager.issueAlert \(alert.identifier.value) category=\(category) level=\(alert.interruptionLevel)"
+            "TrioAlertManager.issueAlert \(alert.identifier.value) level=\(alert.interruptionLevel)"
         )
-        guard category.shouldFireImmediately else {
-            debug(.service, "TrioAlertManager dropped \(alert.identifier.value): \(category) does not surface")
-            return
-        }
 
-        // Apply the user's tier config for pump / device alarms. The category
-        // maps to one of three tiers (Critical / Time-Sensitive / Normal) and
-        // the tier config overrides sound + interruption level. Glucose
-        // alarms bypass this — they're owned by `GlucoseAlertCoordinator`.
-        // If every variant in the matched tier is disabled, drop the alert.
-        let effective: Alert
-        if let pumpCategory = PumpAlertCategory(trioCategory: category) {
-            // Per-category snooze (set by in-app banner snooze) — drop new
-            // alerts in this category for the duration so a stacked deck
-            // doesn't re-pop while the user is still acting on it.
-            if DeviceAlertsStore.shared.isCategorySnoozed(pumpCategory, at: Date()) {
-                debug(.service, "TrioAlertManager dropped \(alert.identifier.value): category \(pumpCategory) snoozed")
-                return
-            }
-            guard let configured = applyDeviceSeverityConfig(to: alert, category: pumpCategory) else {
-                debug(
-                    .service,
-                    "TrioAlertManager dropped \(alert.identifier.value): all variants in tier \(pumpCategory.defaultSeverity) disabled"
-                )
-                return
-            }
-            effective = configured
-        } else {
-            effective = alert
+        // Pump alerts: look up in catalog → override interruptionLevel.
+        // Everything else (CGM lifecycle, Trio-internal glucose / loop) is
+        // passed through with the level its producer chose.
+        let effective: Alert = AlertCatalogRegistry.lookup(alert.identifier).map { entry in
+            applyCatalogEntry(entry, to: alert)
+        } ?? alert
+
+        // Per-tier snooze for catalog-known pump alerts. Critical tier
+        // ignores snooze.
+        if let tier = DeviceAlertSeverity(level: effective.interruptionLevel),
+           AlertCatalogRegistry.lookup(effective.identifier) != nil,
+           tier != .critical,
+           DeviceAlertsStore.shared.isTierSnoozed(tier, at: Date())
+        {
+            debug(.service, "TrioAlertManager dropped \(effective.identifier.value): tier \(tier) snoozed")
+            return
         }
 
         let now = Date()
@@ -172,22 +159,14 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         playCriticalAudioFallbackIfNeeded(effective, muted: muted)
     }
 
-    private func applyDeviceSeverityConfig(to alert: Alert, category: PumpAlertCategory) -> Alert? {
-        let severity = category.defaultSeverity
-        let now = Date()
-        let isNight = GlucoseAlertsStore.shared.configuration.isNight(at: now)
-        guard let config = DeviceAlertsStore.shared.config(for: severity, at: now, isNight: isNight) else {
-            return nil
-        }
-        let sound: Alert.Sound? = config.playsSound ? .sound(name: config.soundFilename) : nil
-        let level: Alert.InterruptionLevel = config.overridesSilenceAndDND ? .critical : .timeSensitive
-        return Alert(
+    private func applyCatalogEntry(_ entry: Alert.CatalogEntry, to alert: Alert) -> Alert {
+        Alert(
             identifier: alert.identifier,
             foregroundContent: alert.foregroundContent,
             backgroundContent: alert.backgroundContent,
             trigger: alert.trigger,
-            interruptionLevel: level,
-            sound: sound,
+            interruptionLevel: entry.interruptionLevel,
+            sound: alert.sound,
             metadata: alert.metadata
         )
     }
@@ -344,37 +323,30 @@ extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAle
     func requestSnooze(identifier: Alert.Identifier, duration: TimeInterval) {
         let untilDate = duration > 0 ? Date().addingTimeInterval(duration) : .distantPast
         if let glucoseType = GlucoseAlertType(slug: identifier.alertIdentifier) {
-            // Per-type snooze for glucose alarms — the coordinator stamps
-            // `snoozedUntil` on every matching alarm AND retracts each of
-            // their in-flight alerts, so a stacked deck of multiple lows
-            // dismisses together rather than one card at a time.
             broadcaster.notify(GlucoseSnoozeObserver.self, on: .main) { (observer: GlucoseSnoozeObserver) in
                 observer.snoozeGlucoseType(glucoseType, until: untilDate)
             }
-        } else if let pumpCategory = pumpCategory(forIdentifier: identifier) {
-            // Per-category snooze for device alarms — mirrors the glucose
-            // behavior. Records the category snooze on `DeviceAlertsStore`,
-            // retracts every in-flight alert in this category so any
-            // stacked siblings dismiss together.
-            DeviceAlertsStore.shared.snoozeCategory(pumpCategory, until: untilDate)
-            retractAlertsInCategory(pumpCategory)
+        } else if let entry = AlertCatalogRegistry.lookup(identifier),
+                  let tier = DeviceAlertSeverity(level: entry.interruptionLevel),
+                  tier != .critical
+        {
+            DeviceAlertsStore.shared.snoozeTier(tier, until: untilDate)
+            retractAlertsInTier(tier)
         } else {
-            // Unknown / fallback — global mute (Snooze module, lock-screen
-            // action, etc. take this path too).
             Task { @MainActor [weak self] in
                 await self?.applySnooze(for: duration)
             }
         }
     }
 
-    private func pumpCategory(forIdentifier identifier: Alert.Identifier) -> PumpAlertCategory? {
-        PumpAlertCategory(trioCategory: TrioAlertClassifier.categorize(alertIdentifier: identifier.alertIdentifier))
-    }
-
-    private func retractAlertsInCategory(_ category: PumpAlertCategory) {
+    private func retractAlertsInTier(_ tier: DeviceAlertSeverity) {
         let toRetract: [Alert.Identifier] = queue.sync {
-            liveAlerts.keys.filter { id in
-                pumpCategory(forIdentifier: id) == category
+            liveAlerts.compactMap { id, alert in
+                guard let entry = AlertCatalogRegistry.lookup(id),
+                      DeviceAlertSeverity(level: entry.interruptionLevel) == tier
+                else { return nil }
+                _ = alert
+                return id
             }
         }
         for id in toRetract {

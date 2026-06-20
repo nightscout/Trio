@@ -79,7 +79,7 @@ struct NotificationsView: BaseView {
                     Text("Glucose Alarms")
                         .navigationLink(to: .glucoseAlerts, from: self)
 
-                    Text("Pump & CGM Alarms")
+                    Text("Pump Alarms")
                         .navigationLink(to: .deviceAlarms, from: self)
 
                     Text("Day & Night Windows")
