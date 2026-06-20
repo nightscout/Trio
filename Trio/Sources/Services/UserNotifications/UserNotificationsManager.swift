@@ -1,6 +1,7 @@
 import Combine
 import CoreData
 import Foundation
+import LoopKit
 import SwiftUI
 import Swinject
 import UserNotifications
@@ -71,6 +72,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         broadcaster.register(alertMessageNotificationObserver.self, observer: self)
         Task { await updateGlucoseBadge() }
         configureNotificationCategories()
+        clearLegacyCarbsRequiredNotification()
         subscribeGlucoseUpdates()
     }
 
@@ -136,31 +138,48 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         }
     }
 
+    private static let carbsRequiredAlertID = Alert.Identifier(
+        managerIdentifier: "trio.aps",
+        alertIdentifier: TrioAlertCategory.carbsRequired.alertIdentifier
+    )
+
     private func notifyCarbsRequired(_ carbs: Int) {
         guard Decimal(carbs) >= settingsManager.settings.carbsRequiredThreshold,
-              settingsManager.settings.showCarbsRequiredBadge else { return }
-
-        var titles: [String] = []
-
-        let content = UNMutableNotificationContent()
-
-        if snoozeUntilDate > Date() {
+              settingsManager.settings.showCarbsRequiredBadge
+        else {
+            trioAlertManager.retractAlert(identifier: Self.carbsRequiredAlertID)
             return
         }
-        content.sound = .default
-
-        titles.append(String(format: String(localized: "Carbs required: %d g", comment: "Carbs required"), carbs))
-
-        content.title = titles.joined(separator: " ")
-        content.body = String(
-            format: String(
-                localized:
-                "To prevent LOW required %d g of carbs",
-                comment: "To prevent LOW required %d g of carbs"
-            ),
+        let title = String(format: String(localized: "Carbs required: %d g", comment: "Carbs required"), carbs)
+        let body = String(
+            format: String(localized: "To prevent LOW required %d g of carbs", comment: "To prevent LOW required %d g of carbs"),
             carbs
         )
-        addRequest(identifier: .carbsRequiredNotification, content: content, deleteOld: true, messageSubtype: .carb)
+        let content = Alert.Content(
+            title: title,
+            body: body,
+            acknowledgeActionButtonLabel: String(localized: "OK")
+        )
+        let alert = Alert(
+            identifier: Self.carbsRequiredAlertID,
+            foregroundContent: content,
+            backgroundContent: content,
+            trigger: .immediate,
+            interruptionLevel: TrioAlertCategory.carbsRequired.interruptionLevel
+        )
+        trioAlertManager.issueAlert(alert)
+    }
+
+    private func retractCarbsRequiredAlert() {
+        trioAlertManager.retractAlert(identifier: Self.carbsRequiredAlertID)
+    }
+
+    /// Removes any `Trio.carbsRequiredNotification` UN still sitting in the
+    /// system from a pre-pipeline install. Safe no-op when none exist.
+    private func clearLegacyCarbsRequiredNotification() {
+        let id = Identifier.carbsRequiredNotification.rawValue
+        notificationCenter.removePendingNotificationRequests(withIdentifiers: [id])
+        notificationCenter.removeDeliveredNotifications(withIdentifiers: [id])
     }
 
     private func fetchGlucoseIDs() async throws -> [NSManagedObjectID] {
@@ -330,8 +349,11 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
 
 extension BaseUserNotificationsManager: DeterminationObserver {
     func determinationDidUpdate(_ determination: Determination) {
-        guard let carndRequired = determination.carbsReq else { return }
-        notifyCarbsRequired(Int(carndRequired))
+        guard let carbsRequired = determination.carbsReq else {
+            retractCarbsRequiredAlert()
+            return
+        }
+        notifyCarbsRequired(Int(carbsRequired))
     }
 }
 
