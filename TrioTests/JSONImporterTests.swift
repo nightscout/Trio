@@ -276,8 +276,6 @@ class BundleReference {}
         #expect(determination.reservoir == Decimal(string: "3735928559").map(NSDecimalNumber.init))
         #expect(determination.insulinSensitivity == Decimal(string: "4.6").map(NSDecimalNumber.init))
         #expect(determination.currentTarget == Decimal(string: "94").map(NSDecimalNumber.init))
-        #expect(determination.insulinForManualBolus == Decimal(string: "0.8").map(NSDecimalNumber.init))
-        #expect(determination.manualBolusErrorString == Decimal(string: "0").map(NSDecimalNumber.init))
         #expect(determination.minDelta == NSDecimalNumber(5))
         #expect(determination.expectedDelta == Decimal(string: "-5.9").map(NSDecimalNumber.init))
         #expect(determination.threshold == Decimal(string: "3.7").map(NSDecimalNumber.init))

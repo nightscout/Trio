@@ -42,7 +42,7 @@ struct TrioCustomOrefVariables: JSON, Equatable {
         start: Decimal,
         end: Decimal,
         smbMinutes: Decimal,
-        uamMinutes: Decimal,
+        uamMinutes: Decimal
     ) {
         self.average_total_data = average_total_data
         self.weightedAverage = weightedAverage

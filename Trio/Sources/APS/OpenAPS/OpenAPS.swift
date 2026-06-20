@@ -40,7 +40,6 @@ final class OpenAPS {
             newOrefDetermination.currentTarget = self.decimalToNSDecimalNumber(determination.current_target)
             newOrefDetermination.eventualBG = determination.eventualBG.map(NSDecimalNumber.init)
             newOrefDetermination.deliverAt = determination.deliverAt
-            newOrefDetermination.insulinForManualBolus = self.decimalToNSDecimalNumber(determination.insulinForManualBolus)
             newOrefDetermination.carbRatio = self.decimalToNSDecimalNumber(determination.carbRatio)
             newOrefDetermination.glucose = self.decimalToNSDecimalNumber(determination.bg)
             newOrefDetermination.reservoir = self.decimalToNSDecimalNumber(determination.reservoir)
@@ -55,7 +54,6 @@ final class OpenAPS {
             newOrefDetermination.sensitivityRatio = self.decimalToNSDecimalNumber(determination.sensitivityRatio)
             newOrefDetermination.expectedDelta = self.decimalToNSDecimalNumber(determination.expectedDelta)
             newOrefDetermination.cob = Int16(Int(determination.cob ?? 0))
-            newOrefDetermination.manualBolusErrorString = self.decimalToNSDecimalNumber(determination.manualBolusErrorString)
             newOrefDetermination.smbToDeliver = determination.units.map { NSDecimalNumber(decimal: $0) }
             newOrefDetermination.carbsRequired = Int16(Int(determination.carbsReq ?? 0))
             newOrefDetermination.isUploadedToNS = false
@@ -101,13 +99,20 @@ final class OpenAPS {
     func fetchAndProcessGlucose(
         context: NSManagedObjectContext,
         shouldSmoothGlucose: Bool,
-        fetchLimit: Int?
+        fetchLimit: Int?,
+        fetchHours: Decimal = 24
     ) async throws -> String {
-        // make it async and await it
+        // Time window from `fetchHours` hours ago up to now. determineBasal feeds
+        // `maxMealAbsorptionTime + 0.5h` (just enough glucose to cover the longest
+        // tracked meal absorption plus a small lead-in); Autosens uses the default
+        // 24h because its sensitivity algorithm needs that full window.
+        let cutoff = Date().addingTimeInterval(-(Double(truncating: fetchHours as NSNumber) * 3600))
+        let timePredicate = NSPredicate(format: "date >= %@", cutoff as NSDate)
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
-            predicate: NSPredicate.predicateForOneDayAgoInMinutes,
+            predicate: timePredicate,
             key: "date",
             ascending: false,
             fetchLimit: fetchLimit,
@@ -380,6 +385,7 @@ final class OpenAPS {
     func determineBasal(
         currentTemp: TempBasal,
         shouldSmoothGlucose: Bool,
+        useSwiftOref: Bool,
         clock: Date = Date(),
         simulatedCarbsAmount: Decimal? = nil,
         simulatedBolusAmount: Decimal? = nil,
@@ -394,13 +400,21 @@ final class OpenAPS {
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
         async let carbs = fetchAndProcessCarbs(additionalCarbs: simulatedCarbsAmount ?? 0, carbsDate: simulatedCarbsDate)
-        async let glucose = fetchAndProcessGlucose(context: context, shouldSmoothGlucose: shouldSmoothGlucose, fetchLimit: 72)
+
+        var preferences = await storage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
+        let glucoseFetchHours = preferences.maxMealAbsorptionTime + 0.5 // MMAT + half hour buffer
+        async let glucose = fetchAndProcessGlucose(
+            context: context,
+            shouldSmoothGlucose: shouldSmoothGlucose,
+            fetchLimit: nil,
+            fetchHours: glucoseFetchHours
+        )
+
         async let prepareTrioCustomOrefVariables = prepareTrioCustomOrefVariables()
         async let profileAsync = loadFileFromStorageAsync(name: Settings.profile)
         async let basalAsync = loadFileFromStorageAsync(name: Settings.basalProfile)
         async let autosenseAsync = loadFileFromStorageAsync(name: Settings.autosense)
         async let reservoirAsync = loadFileFromStorageAsync(name: Monitor.reservoir)
-        async let preferencesAsync = storage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
         async let hasSufficientTddForDynamic = tddStorage.hasSufficientTDD()
 
         // Await the results of asynchronous tasks
@@ -433,7 +447,8 @@ final class OpenAPS {
             basalProfile: basalProfile,
             clock: clock,
             carbs: carbsAsJSON,
-            glucose: glucoseAsJSON
+            glucose: glucoseAsJSON,
+            useSwiftOref: useSwiftOref
         )
 
         // IOB calculation
@@ -441,15 +456,14 @@ final class OpenAPS {
             pumphistory: pumpHistoryJSON,
             profile: profile,
             clock: clock,
-            autosens: autosens.isEmpty ? .null : autosens
+            autosens: autosens.isEmpty ? .null : autosens,
+            useSwiftOref: useSwiftOref
         )
 
         // TODO: refactor this to core data
         if !simulation {
             storage.save(iob, as: Monitor.iob)
         }
-
-        var preferences = await preferencesAsync
 
         if !hasSufficientTdd, preferences.useNewFormula || (preferences.useNewFormula && preferences.sigmoid) {
             debug(.openAPS, "Insufficient TDD for dynamic formula; disabling for determine basal run.")
@@ -470,7 +484,8 @@ final class OpenAPS {
             pumpHistory: pumpHistoryJSON,
             preferences: preferences,
             basalProfile: basalProfile,
-            trioCustomOrefVariables: trioCustomOrefVariables
+            trioCustomOrefVariables: trioCustomOrefVariables,
+            useSwiftOref: useSwiftOref
         )
 
         debug(.openAPS, "\(simulation ? "[SIMULATION]" : "") OREF DETERMINATION: \(orefDetermination)")
@@ -563,7 +578,7 @@ final class OpenAPS {
         }
     }
 
-    func autosense(shouldSmoothGlucose: Bool) async throws -> Autosens? {
+    func autosense(shouldSmoothGlucose: Bool, useSwiftOref: Bool) async throws -> Autosens? {
         debug(.openAPS, "Start autosens")
 
         // Perform asynchronous calls in parallel
@@ -591,7 +606,8 @@ final class OpenAPS {
             basalprofile: basalProfile,
             profile: profile,
             carbs: carbsAsJSON,
-            temptargets: tempTargets
+            temptargets: tempTargets,
+            useSwiftOref: useSwiftOref
         )
 
         debug(.openAPS, "AUTOSENS: \(autosenseResult)")
@@ -605,7 +621,7 @@ final class OpenAPS {
         }
     }
 
-    func createProfiles() async throws {
+    func createProfiles(useSwiftOref: Bool) async throws {
         debug(.openAPS, "Start creating pump profile and user profile")
 
         // Load required settings and profiles asynchronously
@@ -669,6 +685,7 @@ final class OpenAPS {
             }
         }
 
+        let clock = Date()
         do {
             let pumpProfile = try await makeProfile(
                 preferences: adjustedPreferences,
@@ -680,7 +697,9 @@ final class OpenAPS {
                 tempTargets: tempTargets,
                 model: model,
                 autotune: RawJSON.null,
-                trioData: trioSettings
+                trioSettings: trioSettings,
+                useSwiftOref: useSwiftOref,
+                clock: clock
             )
 
             let profile = try await makeProfile(
@@ -693,7 +712,9 @@ final class OpenAPS {
                 tempTargets: tempTargets,
                 model: model,
                 autotune: RawJSON.null,
-                trioData: trioSettings
+                trioSettings: trioSettings,
+                useSwiftOref: useSwiftOref,
+                clock: clock
             )
 
             // Save the profiles
@@ -708,22 +729,44 @@ final class OpenAPS {
         }
     }
 
-    private func iob(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) async throws -> RawJSON {
-        try await withCheckedThrowingContinuation { continuation in
-            jsWorker.inCommonContext { worker in
-                worker.evaluateBatch(scripts: [
-                    Script(name: Prepare.log),
-                    Script(name: Bundle.iob),
-                    Script(name: Prepare.iob)
-                ])
-                let result = worker.call(function: Function.generate, with: [
-                    pumphistory,
-                    profile,
-                    clock,
-                    autosens
-                ])
-                continuation.resume(returning: result)
+    private func iob(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON, useSwiftOref: Bool) async throws -> RawJSON {
+        // FIXME: For now we'll just remove duplicate suspends here (ISSUE-399)
+        var pumphistory = pumphistory
+        if let pumpHistoryArray = try? JSONBridge.pumpHistory(from: pumphistory) {
+            pumphistory = pumpHistoryArray.removingDuplicateSuspendResumeEvents().rawJSON
+        }
+
+        if useSwiftOref {
+            let swiftResult = OpenAPSSwift
+                .iob(pumphistory: pumphistory, profile: profile, clock: clock, autosens: autosens)
+            return try swiftResult.returnOrThrow()
+        } else {
+            let jsResult = await iobJavascript(pumphistory: pumphistory, profile: profile, clock: clock, autosens: autosens)
+            return try jsResult.returnOrThrow()
+        }
+    }
+
+    func iobJavascript(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) async -> OrefFunctionResult {
+        do {
+            let result = try await withCheckedThrowingContinuation { continuation in
+                jsWorker.inCommonContext { worker in
+                    worker.evaluateBatch(scripts: [
+                        Script(name: Prepare.log),
+                        Script(name: Bundle.iob),
+                        Script(name: Prepare.iob)
+                    ])
+                    let result = worker.call(function: Function.generate, with: [
+                        pumphistory,
+                        profile,
+                        clock,
+                        autosens
+                    ])
+                    continuation.resume(returning: result)
+                }
             }
+            return .success(result)
+        } catch {
+            return .failure(error)
         }
     }
 
@@ -733,25 +776,63 @@ final class OpenAPS {
         basalProfile: JSON,
         clock: JSON,
         carbs: JSON,
-        glucose: JSON
+        glucose: JSON,
+        useSwiftOref: Bool
     ) async throws -> RawJSON {
-        try await withCheckedThrowingContinuation { continuation in
-            jsWorker.inCommonContext { worker in
-                worker.evaluateBatch(scripts: [
-                    Script(name: Prepare.log),
-                    Script(name: Bundle.meal),
-                    Script(name: Prepare.meal)
-                ])
-                let result = worker.call(function: Function.generate, with: [
-                    pumphistory,
-                    profile,
-                    clock,
-                    glucose,
-                    basalProfile,
-                    carbs
-                ])
-                continuation.resume(returning: result)
+        if useSwiftOref {
+            let swiftResult = OpenAPSSwift
+                .meal(
+                    pumphistory: pumphistory,
+                    profile: profile,
+                    basalProfile: basalProfile,
+                    clock: clock,
+                    carbs: carbs,
+                    glucose: glucose
+                )
+            return try swiftResult.returnOrThrow()
+        } else {
+            let jsResult = await mealJavascript(
+                pumphistory: pumphistory,
+                profile: profile,
+                basalProfile: basalProfile,
+                clock: clock,
+                carbs: carbs,
+                glucose: glucose
+            )
+            return try jsResult.returnOrThrow()
+        }
+    }
+
+    private func mealJavascript(
+        pumphistory: JSON,
+        profile: JSON,
+        basalProfile: JSON,
+        clock: JSON,
+        carbs: JSON,
+        glucose: JSON
+    ) async -> OrefFunctionResult {
+        do {
+            let result = try await withCheckedThrowingContinuation { continuation in
+                jsWorker.inCommonContext { worker in
+                    worker.evaluateBatch(scripts: [
+                        Script(name: Prepare.log),
+                        Script(name: Bundle.meal),
+                        Script(name: Prepare.meal)
+                    ])
+                    let result = worker.call(function: Function.generate, with: [
+                        pumphistory,
+                        profile,
+                        clock,
+                        glucose,
+                        basalProfile,
+                        carbs
+                    ])
+                    continuation.resume(returning: result)
+                }
             }
+            return .success(result)
+        } catch {
+            return .failure(error)
         }
     }
 
@@ -761,25 +842,64 @@ final class OpenAPS {
         basalprofile: JSON,
         profile: JSON,
         carbs: JSON,
-        temptargets: JSON
+        temptargets: JSON,
+        useSwiftOref: Bool
     ) async throws -> RawJSON {
-        try await withCheckedThrowingContinuation { continuation in
-            jsWorker.inCommonContext { worker in
-                worker.evaluateBatch(scripts: [
-                    Script(name: Prepare.log),
-                    Script(name: Bundle.autosens),
-                    Script(name: Prepare.autosens)
-                ])
-                let result = worker.call(function: Function.generate, with: [
-                    glucose,
-                    pumpHistory,
-                    basalprofile,
-                    profile,
-                    carbs,
-                    temptargets
-                ])
-                continuation.resume(returning: result)
+        if useSwiftOref {
+            let swiftResult = OpenAPSSwift
+                .autosense(
+                    glucose: glucose,
+                    pumpHistory: pumpHistory,
+                    basalProfile: basalprofile,
+                    profile: profile,
+                    carbs: carbs,
+                    tempTargets: temptargets,
+                    clock: Date()
+                )
+            return try swiftResult.returnOrThrow()
+        } else {
+            let jsResult = await autosenseJavascript(
+                glucose: glucose,
+                pumpHistory: pumpHistory,
+                basalprofile: basalprofile,
+                profile: profile,
+                carbs: carbs,
+                temptargets: temptargets
+            )
+            return try jsResult.returnOrThrow()
+        }
+    }
+
+    private func autosenseJavascript(
+        glucose: JSON,
+        pumpHistory: JSON,
+        basalprofile: JSON,
+        profile: JSON,
+        carbs: JSON,
+        temptargets: JSON
+    ) async -> OrefFunctionResult {
+        do {
+            let result = try await withCheckedThrowingContinuation { continuation in
+                jsWorker.inCommonContext { worker in
+                    worker.evaluateBatch(scripts: [
+                        Script(name: Prepare.log),
+                        Script(name: Bundle.autosens),
+                        Script(name: Prepare.autosens)
+                    ])
+                    let result = worker.call(function: Function.generate, with: [
+                        glucose,
+                        pumpHistory,
+                        basalprofile,
+                        profile,
+                        carbs,
+                        temptargets
+                    ])
+                    continuation.resume(returning: result)
+                }
             }
+            return .success(result)
+        } catch {
+            return .failure(error)
         }
     }
 
@@ -795,40 +915,96 @@ final class OpenAPS {
         pumpHistory: JSON,
         preferences: JSON,
         basalProfile: JSON,
-        trioCustomOrefVariables: JSON
+        trioCustomOrefVariables: JSON,
+        useSwiftOref: Bool
     ) async throws -> RawJSON {
-        try await withCheckedThrowingContinuation { continuation in
-            jsWorker.inCommonContext { worker in
-                worker.evaluateBatch(scripts: [
-                    Script(name: Prepare.log),
-                    Script(name: Prepare.determineBasal),
-                    Script(name: Bundle.basalSetTemp),
-                    Script(name: Bundle.getLastGlucose),
-                    Script(name: Bundle.determineBasal)
-                ])
+        let clock = Date()
 
-                if let middleware = self.middlewareScript(name: OpenAPS.Middleware.determineBasal) {
-                    worker.evaluate(script: middleware)
+        if useSwiftOref {
+            let swiftResult = OpenAPSSwift.determineBasal(
+                glucose: glucose,
+                currentTemp: currentTemp,
+                iob: iob,
+                profile: profile,
+                autosens: autosens,
+                meal: meal,
+                microBolusAllowed: microBolusAllowed,
+                reservoir: reservoir,
+                pumpHistory: pumpHistory,
+                preferences: preferences,
+                basalProfile: basalProfile,
+                trioCustomOrefVariables: trioCustomOrefVariables,
+                clock: clock
+            )
+            return try swiftResult.returnOrThrow()
+        } else {
+            let jsResult = await determineBasalJavascript(
+                glucose: glucose,
+                currentTemp: currentTemp,
+                iob: iob,
+                profile: profile,
+                autosens: autosens,
+                meal: meal,
+                microBolusAllowed: microBolusAllowed,
+                reservoir: reservoir,
+                pumpHistory: pumpHistory,
+                preferences: preferences,
+                basalProfile: basalProfile,
+                trioCustomOrefVariables: trioCustomOrefVariables,
+                clock: clock
+            )
+            return try jsResult.returnOrThrow()
+        }
+    }
+
+    private func determineBasalJavascript(
+        glucose: JSON,
+        currentTemp: JSON,
+        iob: JSON,
+        profile: JSON,
+        autosens: JSON,
+        meal: JSON,
+        microBolusAllowed: Bool,
+        reservoir: JSON,
+        pumpHistory: JSON,
+        preferences: JSON,
+        basalProfile: JSON,
+        trioCustomOrefVariables: JSON,
+        clock: Date
+    ) async -> OrefFunctionResult {
+        do {
+            let result = try await withCheckedThrowingContinuation { continuation in
+                jsWorker.inCommonContext { worker in
+                    worker.evaluateBatch(scripts: [
+                        Script(name: Prepare.log),
+                        Script(name: Prepare.determineBasal),
+                        Script(name: Bundle.basalSetTemp),
+                        Script(name: Bundle.getLastGlucose),
+                        Script(name: Bundle.determineBasal)
+                    ])
+
+                    let result = worker.call(function: Function.generate, with: [
+                        iob,
+                        currentTemp,
+                        glucose,
+                        profile,
+                        autosens,
+                        meal,
+                        microBolusAllowed,
+                        reservoir,
+                        clock,
+                        pumpHistory,
+                        preferences,
+                        basalProfile,
+                        trioCustomOrefVariables
+                    ])
+
+                    continuation.resume(returning: result)
                 }
-
-                let result = worker.call(function: Function.generate, with: [
-                    iob,
-                    currentTemp,
-                    glucose,
-                    profile,
-                    autosens,
-                    meal,
-                    microBolusAllowed,
-                    reservoir,
-                    Date(),
-                    pumpHistory,
-                    preferences,
-                    basalProfile,
-                    trioCustomOrefVariables
-                ])
-
-                continuation.resume(returning: result)
             }
+            return .success(result)
+        } catch {
+            return .failure(error)
         }
     }
 
@@ -844,6 +1020,48 @@ final class OpenAPS {
         }
     }
 
+    // use `internal` protection to expose to unit tests
+    func makeProfileJavascript(
+        preferences: JSON,
+        pumpSettings: JSON,
+        bgTargets: JSON,
+        basalProfile: JSON,
+        isf: JSON,
+        carbRatio: JSON,
+        tempTargets: JSON,
+        model: JSON,
+        autotune: JSON,
+        trioSettings: JSON
+    ) async -> OrefFunctionResult {
+        do {
+            let result = try await withCheckedThrowingContinuation { continuation in
+                jsWorker.inCommonContext { worker in
+                    worker.evaluateBatch(scripts: [
+                        Script(name: Prepare.log),
+                        Script(name: Bundle.profile),
+                        Script(name: Prepare.profile)
+                    ])
+                    let result = worker.call(function: Function.generate, with: [
+                        pumpSettings,
+                        bgTargets,
+                        isf,
+                        basalProfile,
+                        preferences,
+                        carbRatio,
+                        tempTargets,
+                        model,
+                        autotune,
+                        trioSettings
+                    ])
+                    continuation.resume(returning: result)
+                }
+            }
+            return .success(result)
+        } catch {
+            return .failure(error)
+        }
+    }
+
     private func makeProfile(
         preferences: JSON,
         pumpSettings: JSON,
@@ -854,29 +1072,38 @@ final class OpenAPS {
         tempTargets: JSON,
         model: JSON,
         autotune: JSON,
-        trioData: JSON
+        trioSettings: JSON,
+        useSwiftOref: Bool,
+        clock: Date
     ) async throws -> RawJSON {
-        try await withCheckedThrowingContinuation { continuation in
-            jsWorker.inCommonContext { worker in
-                worker.evaluateBatch(scripts: [
-                    Script(name: Prepare.log),
-                    Script(name: Bundle.profile),
-                    Script(name: Prepare.profile)
-                ])
-                let result = worker.call(function: Function.generate, with: [
-                    pumpSettings,
-                    bgTargets,
-                    isf,
-                    basalProfile,
-                    preferences,
-                    carbRatio,
-                    tempTargets,
-                    model,
-                    autotune,
-                    trioData
-                ])
-                continuation.resume(returning: result)
-            }
+        if useSwiftOref {
+            let swiftResult = OpenAPSSwift.makeProfile(
+                preferences: preferences,
+                pumpSettings: pumpSettings,
+                bgTargets: bgTargets,
+                basalProfile: basalProfile,
+                isf: isf,
+                carbRatio: carbRatio,
+                tempTargets: tempTargets,
+                model: model,
+                trioSettings: trioSettings,
+                clock: clock
+            )
+            return try swiftResult.returnOrThrow()
+        } else {
+            let jsResult = await makeProfileJavascript(
+                preferences: preferences,
+                pumpSettings: pumpSettings,
+                bgTargets: bgTargets,
+                basalProfile: basalProfile,
+                isf: isf,
+                carbRatio: carbRatio,
+                tempTargets: tempTargets,
+                model: model,
+                autotune: autotune,
+                trioSettings: trioSettings
+            )
+            return try jsResult.returnOrThrow()
         }
     }
 
@@ -895,23 +1122,6 @@ final class OpenAPS {
                 continuation.resume(returning: result)
             }
         }
-    }
-
-    private func middlewareScript(name: String) -> Script? {
-        if let body = storage.retrieveRaw(name) {
-            return Script(name: name, body: body)
-        }
-
-        if let url = Foundation.Bundle.main.url(forResource: "javascript/\(name)", withExtension: "") {
-            do {
-                let body = try String(contentsOf: url)
-                return Script(name: name, body: body)
-            } catch {
-                debug(.openAPS, "Failed to load script \(name): \(error)")
-            }
-        }
-
-        return nil
     }
 
     static func defaults(for file: String) -> RawJSON {
