@@ -248,7 +248,7 @@ struct TrioAlertBanner: View {
         .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
         .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .offset(y: min(0, dragOffset.height))
-        .opacity(1 - min(abs(dragOffset.height) / 200, 0.4))
+        .opacity(1 - min(abs(dragOffset.height) / CGFloat(200), 0.4))
         .gesture(
             // Swipe-up — iOS-banner gesture; tracks the drag visually then
             // commits a 20-minute snooze past −50pt. Springs back otherwise.
