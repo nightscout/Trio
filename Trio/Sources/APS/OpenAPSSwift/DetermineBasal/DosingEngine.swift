@@ -88,15 +88,6 @@ enum DosingEngine {
         return false
     }
 
-    /// helper function for reason string glucose output
-    static func convertGlucose(profile: Profile, glucose: Decimal) -> Decimal {
-        let units = profile.outUnits ?? .mgdL
-        switch units {
-        case .mgdL: return glucose.jsRounded()
-        case .mmolL: return glucose.asMmolL
-        }
-    }
-
     /// Top level smb enabling logic
     ///
     /// This function includes both the profile / customOrefVariable checks from JS `enable_smb` as
@@ -135,7 +126,7 @@ enum DosingEngine {
         let maxDeltaGlucoseThreshold = min(profile.maxDeltaBgThreshold, 0.4)
         if glucoseStatus.maxDelta > maxDeltaGlucoseThreshold * currentGlucose {
             reason =
-                "maxDelta \(convertGlucose(profile: profile, glucose: glucoseStatus.maxDelta)) > \(100 * maxDeltaGlucoseThreshold)% of BG \(convertGlucose(profile: profile, glucose: currentGlucose)) - SMB disabled!, "
+                "maxDelta \(glucoseStatus.maxDelta.jsRounded()) > \(100 * maxDeltaGlucoseThreshold)% of BG \(currentGlucose.jsRounded()) - SMB disabled!, "
             smbIsEnabled = false
         }
 
@@ -287,16 +278,16 @@ enum DosingEngine {
         if currentGlucose < threshold, iob < suspendThreshold, minDelta > 0, minDelta > expectedDelta {
             let iobString = String(describing: iob)
             let suspendString = String(describing: suspendThreshold.jsRounded(scale: 2))
-            let minDeltaString = String(describing: convertGlucose(profile: profile, glucose: minDelta))
-            let expectedDeltaString = String(describing: convertGlucose(profile: profile, glucose: expectedDelta))
+            let minDeltaString = String(describing: minDelta.jsRounded())
+            let expectedDeltaString = String(describing: expectedDelta.jsRounded())
 
             newDetermination
                 .reason +=
                 "IOB \(iobString) < \(suspendString) and minDelta \(minDeltaString) > expectedDelta \(expectedDeltaString); "
             return (shouldSetTempBasal: false, determination: newDetermination)
         } else if currentGlucose < threshold || minGuardGlucose < threshold {
-            let minGuardGlucoseString = String(describing: convertGlucose(profile: profile, glucose: minGuardGlucose))
-            let thresholdString = String(describing: convertGlucose(profile: profile, glucose: threshold))
+            let minGuardGlucoseString = String(describing: minGuardGlucose.jsRounded())
+            let thresholdString = String(describing: threshold.jsRounded())
             newDetermination.reason += "minGuardBG \(minGuardGlucoseString)<\(thresholdString)"
 
             let glucoseUndershoot = targetGlucose - minGuardGlucose
@@ -396,7 +387,7 @@ enum DosingEngine {
         var newDetermination = determination
         newDetermination
             .reason +=
-            "Eventual BG \(convertGlucose(profile: profile, glucose: eventualGlucose)) < \(convertGlucose(profile: profile, glucose: minGlucose))"
+            "Eventual BG \(eventualGlucose.jsRounded()) < \(minGlucose.jsRounded())"
 
         // if 5m or 30m avg glucose is rising faster than expected delta
         // BUG: in JS it's doing a "truthiness" check for carbs required
@@ -419,12 +410,12 @@ enum DosingEngine {
             if glucoseStatus.delta > minDelta {
                 newDetermination
                     .reason +=
-                    ", but Delta \(convertGlucose(profile: profile, glucose: glucoseStatus.delta)) > expectedDelta \(convertGlucose(profile: profile, glucose: expectedDelta))"
+                    ", but Delta \(glucoseStatus.delta.jsRounded()) > expectedDelta \(expectedDelta.jsRounded())"
             } else {
                 let minDeltaFormatted = String(format: "%.2f", Double(truncating: minDelta.jsRounded(scale: 2) as NSNumber))
                 newDetermination
                     .reason +=
-                    ", but Min. Delta \(minDeltaFormatted) > Exp. Delta \(convertGlucose(profile: profile, glucose: expectedDelta))"
+                    ", but Min. Delta \(minDeltaFormatted) > Exp. Delta \(expectedDelta.jsRounded())"
             }
 
             let roundedBasal = TempBasalFunctions.roundBasal(profile: profile, basalRate: basal)
@@ -549,12 +540,12 @@ enum DosingEngine {
             if glucoseStatus.delta < minDelta {
                 newDetermination
                     .reason +=
-                    "Eventual BG \(convertGlucose(profile: profile, glucose: eventualGlucose)) > \(convertGlucose(profile: profile, glucose: minGlucose)) but Delta \(convertGlucose(profile: profile, glucose: glucoseStatus.delta)) < Exp. Delta \(convertGlucose(profile: profile, glucose: expectedDelta))"
+                    "Eventual BG \(eventualGlucose.jsRounded()) > \(minGlucose.jsRounded()) but Delta \(glucoseStatus.delta.jsRounded()) < Exp. Delta \(expectedDelta.jsRounded())"
             } else {
                 let minDeltaFormatted = String(format: "%.2f", Double(truncating: minDelta.jsRounded(scale: 2) as NSNumber))
                 newDetermination
                     .reason +=
-                    "Eventual BG \(convertGlucose(profile: profile, glucose: eventualGlucose)) > \(convertGlucose(profile: profile, glucose: minGlucose)) but Min. Delta \(minDeltaFormatted) < Exp. Delta \(convertGlucose(profile: profile, glucose: expectedDelta))"
+                    "Eventual BG \(eventualGlucose.jsRounded()) > \(minGlucose.jsRounded()) but Min. Delta \(minDeltaFormatted) < Exp. Delta \(expectedDelta.jsRounded())"
             }
 
             let roundedBasal = TempBasalFunctions.roundBasal(profile: profile, basalRate: basal)
@@ -604,7 +595,7 @@ enum DosingEngine {
         if !smbIsEnabled {
             newDetermination
                 .reason +=
-                "\(convertGlucose(profile: profile, glucose: eventualGlucose))-\(convertGlucose(profile: profile, glucose: minForecastGlucose)) in range: no temp required"
+                "\(eventualGlucose.jsRounded())-\(minForecastGlucose.jsRounded()) in range: no temp required"
 
             let roundedBasal = TempBasalFunctions.roundBasal(profile: profile, basalRate: basal)
             let roundedCurrentRate = TempBasalFunctions.roundBasal(profile: profile, basalRate: currentTemp.rate)
