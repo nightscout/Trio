@@ -198,12 +198,12 @@ jobs:
           if [ -f ./BuildTools/submodule-patches/tidepoolservice-swift6-private-set.patch ]; then
             git -C TidepoolService apply ../BuildTools/submodule-patches/tidepoolservice-swift6-private-set.patch -v --whitespace=fix
           fi
-          if [ -f ./BuildTools/submodule-patches/omnible-swift6-private-set.patch ]; then
-            git -C OmniBLE apply ../BuildTools/submodule-patches/omnible-swift6-private-set.patch -v --whitespace=fix
-          fi
-          if [ -f ./BuildTools/submodule-patches/omnikit-swift6-private-set.patch ]; then
-            git -C OmniKit apply ../BuildTools/submodule-patches/omnikit-swift6-private-set.patch -v --whitespace=fix
-          fi
+          #if [ -f ./BuildTools/submodule-patches/omnible-swift6-private-set.patch ]; then
+          #  git -C OmniBLE apply ../BuildTools/submodule-patches/omnible-swift6-private-set.patch -v --whitespace=fix
+          #fi
+          #if [ -f ./BuildTools/submodule-patches/omnikit-swift6-private-set.patch ]; then
+          #  git -C OmniKit apply ../BuildTools/submodule-patches/omnikit-swift6-private-set.patch -v --whitespace=fix
+          #fi
 
           # Download and apply Trio patches from GitHub:
           # Template for customizing Trio code (as opposed to submodule code)
