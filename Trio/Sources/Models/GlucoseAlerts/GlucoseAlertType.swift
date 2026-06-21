@@ -30,7 +30,7 @@ enum GlucoseAlertType: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .urgentLow: return String(localized: "Urgent Low Glucose")
         case .low: return String(localized: "Low Glucose")
-        case .forecastedLow: return String(localized: "Forecasted Low Glucose")
+        case .forecastedLow: return String(localized: "Low Glucose Soon")
         case .high: return String(localized: "High Glucose")
         }
     }
