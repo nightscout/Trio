@@ -121,6 +121,11 @@ private extension LiveActivityAttributes.ContentState {
             overrideDate: Date().addingTimeInterval(-3600),
             overrideDuration: 120,
             overrideTarget: 150,
+            isTempTargetActive: false,
+            tempTargetName: "Temp Target",
+            tempTargetDate: Date().addingTimeInterval(-1800),
+            tempTargetDuration: 60,
+            tempTargetTarget: 120,
             widgetItems: LiveActivityAttributes.LiveActivityItem.defaultItems
         )
 
