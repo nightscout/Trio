@@ -183433,6 +183433,7 @@
       }
     },
     "Note to Medtronic Pump Users: You must also manually set the max basal rate on the pump to this value or higher." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
