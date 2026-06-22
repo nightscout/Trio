@@ -36,7 +36,45 @@ final class GlucoseAlertCoordinator: Injectable {
 
     /// 5 mg/dL recovery margin before we retract a fired alert. Prevents flap
     /// at the threshold boundary.
-    private static let recoveryMarginMgDL: Decimal = 5
+    static let recoveryMarginMgDL: Decimal = 5
+
+    /// Pure breach predicate. Low family (low/urgentLow/forecastedLow) breaches
+    /// when the value is at or below threshold; high breaches at or above.
+    /// `carbsRequired` is determination-driven and evaluated separately.
+    /// Extracted for unit testing — the instance evaluators call through here.
+    static func breached(type: GlucoseAlertType, latestMgDL: Decimal, thresholdMgDL: Decimal) -> Bool {
+        switch type {
+        case .forecastedLow,
+             .low,
+             .urgentLow:
+            return latestMgDL <= thresholdMgDL
+        case .high:
+            return latestMgDL >= thresholdMgDL
+        case .carbsRequired:
+            return false
+        }
+    }
+
+    /// Pure retract predicate. A fired low-family alert retracts once the value
+    /// recovers to threshold + margin; a high alert once it falls to
+    /// threshold - margin. Extracted for unit testing.
+    static func shouldRetract(
+        type: GlucoseAlertType,
+        latestMgDL: Decimal,
+        thresholdMgDL: Decimal,
+        recoveryMarginMgDL: Decimal = recoveryMarginMgDL
+    ) -> Bool {
+        switch type {
+        case .forecastedLow,
+             .low,
+             .urgentLow:
+            return latestMgDL >= thresholdMgDL + recoveryMarginMgDL
+        case .high:
+            return latestMgDL <= thresholdMgDL - recoveryMarginMgDL
+        case .carbsRequired:
+            return false
+        }
+    }
 
     /// Readings older than this are considered stale and won't drive new
     /// alarms — matches `APSManager`'s loop-input freshness gate (12 min,
@@ -120,7 +158,7 @@ final class GlucoseAlertCoordinator: Injectable {
         // would surface two in-app alerts for the same low event.
         let sorted = snapshot.sorted { $0.type.priority < $1.type.priority }
         var urgentLowFiring = false
-        for alarm in sorted where alarm.type != .forecastedLow {
+        for alarm in sorted where alarm.type.isReadingDriven {
             if alarm.type == .low, urgentLowFiring {
                 retractIfFiring(alarm)
                 continue
@@ -145,16 +183,14 @@ final class GlucoseAlertCoordinator: Injectable {
             return
         }
 
-        let breached: Bool
-        switch alarm.type {
-        case .low,
-             .urgentLow:
-            breached = latestMgDL <= alarm.thresholdMgDL
-        case .high:
-            breached = latestMgDL >= alarm.thresholdMgDL
-        case .forecastedLow:
+        if alarm.type == .forecastedLow {
             return // handled via determinationDidUpdate
         }
+        let breached = Self.breached(
+            type: alarm.type,
+            latestMgDL: latestMgDL,
+            thresholdMgDL: alarm.thresholdMgDL
+        )
 
         if breached {
             fireIfNeeded(alarm, valueMgDL: latestMgDL)
@@ -213,6 +249,35 @@ final class GlucoseAlertCoordinator: Injectable {
         }
     }
 
+    // MARK: - Carbs-required evaluation
+
+    /// Mirrors `evaluateForecast` for the carbs-required alarms. The alarm
+    /// threshold (grams, stored in `thresholdMgDL`) is independent from the
+    /// tab badge's threshold — surfaces are configured separately so the
+    /// user can have a low-threshold badge for awareness and a higher-
+    /// threshold alarm for active interruption.
+    private func evaluateCarbsRequired(_ determination: Determination) {
+        guard !isInLaunchQuietWindow else { return }
+        let snapshot = alertsSnapshot
+        let configuration = configurationSnapshot
+        let now = Date()
+        let carbsReq: Decimal? = determination.carbsReq
+
+        for alarm in snapshot where alarm.type == .carbsRequired {
+            guard alarm.shouldEvaluate, !isAlarmSnoozed(alarm, at: now),
+                  isActive(alarm, at: now, configuration: configuration)
+            else {
+                retractIfFiring(alarm)
+                continue
+            }
+            guard let carbs = carbsReq, carbs >= alarm.thresholdMgDL else {
+                retractIfFiring(alarm)
+                continue
+            }
+            fireIfNeeded(alarm, valueMgDL: carbs)
+        }
+    }
+
     // MARK: - Issue / retract bookkeeping
 
     /// Called only from the evaluation queue (forecast + reading paths both
@@ -262,14 +327,11 @@ final class GlucoseAlertCoordinator: Injectable {
     private func shouldRetract(_ alarm: GlucoseAlert, latestMgDL: Decimal) -> Bool {
         dispatchPrecondition(condition: .onQueue(evaluationQueue))
         guard firingAlertIDs.contains(alarm.id) else { return false }
-        switch alarm.type {
-        case .forecastedLow,
-             .low,
-             .urgentLow:
-            return latestMgDL >= alarm.thresholdMgDL + Self.recoveryMarginMgDL
-        case .high:
-            return latestMgDL <= alarm.thresholdMgDL - Self.recoveryMarginMgDL
-        }
+        return Self.shouldRetract(
+            type: alarm.type,
+            latestMgDL: latestMgDL,
+            thresholdMgDL: alarm.thresholdMgDL
+        )
     }
 
     private func alertID(for alarm: GlucoseAlert) -> Alert.Identifier {
@@ -279,6 +341,7 @@ final class GlucoseAlertCoordinator: Injectable {
         case .low: typeSlug = "low"
         case .forecastedLow: typeSlug = "forecastedLow"
         case .high: typeSlug = "high"
+        case .carbsRequired: typeSlug = "carbsRequired"
         }
         return Alert.Identifier(
             managerIdentifier: BaseTrioAlertManager.managerIdentifier,
@@ -306,6 +369,11 @@ final class GlucoseAlertCoordinator: Injectable {
             return String(
                 format: String(localized: "Glucose %1$@."),
                 valueString, limitString
+            )
+        case .carbsRequired:
+            return String(
+                format: String(localized: "To prevent LOW required %d g of carbs"),
+                Int(NSDecimalNumber(decimal: valueMgDL).intValue)
             )
         }
     }
@@ -356,6 +424,7 @@ extension GlucoseAlertCoordinator: DeterminationObserver {
     func determinationDidUpdate(_ determination: Determination) {
         evaluationQueue.async { [weak self] in
             self?.evaluateForecast(determination)
+            self?.evaluateCarbsRequired(determination)
         }
     }
 }

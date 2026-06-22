@@ -25,7 +25,18 @@ final class GlucoseAlertsStore: ObservableObject {
         self.alertsKey = alertsKey
         self.configKey = configKey
         let loaded = Self.decode([GlucoseAlert].self, from: defaults, key: alertsKey) ?? []
-        alerts = loaded.isEmpty ? Self.defaultAlerts() : loaded
+        if loaded.isEmpty {
+            alerts = Self.defaultAlerts()
+        } else {
+            // Backfill alarm types added by later releases so upgrading users
+            // get a default-on entry instead of silently missing the type.
+            var migrated = loaded
+            let presentTypes = Set(loaded.map(\.type))
+            for type in GlucoseAlertType.allCases where !presentTypes.contains(type) {
+                migrated.append(GlucoseAlert(type: type))
+            }
+            alerts = migrated
+        }
         configuration = Self.decode(
             GlucoseAlertConfiguration.self,
             from: defaults,
@@ -45,7 +56,8 @@ final class GlucoseAlertsStore: ObservableObject {
             GlucoseAlert(type: .urgentLow),
             GlucoseAlert(type: .low),
             GlucoseAlert(type: .forecastedLow),
-            GlucoseAlert(type: .high)
+            GlucoseAlert(type: .high),
+            GlucoseAlert(type: .carbsRequired)
         ]
     }
 
@@ -81,6 +93,38 @@ final class GlucoseAlertsStore: ObservableObject {
     /// disable any alarm via its enabled toggle but not delete the last one.
     func canDelete(_ alert: GlucoseAlert) -> Bool {
         alerts.filter { $0.type == alert.type }.count > 1
+    }
+
+    /// `ActiveOption`s a new alarm of `type` could still occupy without
+    /// overlapping an existing alarm of the same type. `.always` covers both
+    /// windows, so it's removed as soon as either `.day` or `.night` is taken.
+    /// Returns the empty set when the type is fully covered (either `.always`
+    /// is already present, or both `.day` AND `.night` are present).
+    func availableActiveOptions(forNewAlarmOfType type: GlucoseAlertType) -> Set<ActiveOption> {
+        availableActiveOptions(forType: type, excludingAlertID: nil)
+    }
+
+    /// Variant used when editing an existing alarm — excludes the alarm being
+    /// edited from the "taken" set so its current window stays valid.
+    func availableActiveOptions(
+        forType type: GlucoseAlertType,
+        excludingAlertID excludedID: UUID?
+    ) -> Set<ActiveOption> {
+        let taken = Set(
+            alerts
+                .filter { $0.type == type && $0.id != excludedID }
+                .map(\.activeOption)
+        )
+        // `.always` covers both windows — fully blocks all additions.
+        if taken.contains(.always) { return [] }
+        // `.day` + `.night` together also cover everything.
+        if taken.contains(.day), taken.contains(.night) { return [] }
+        var available = Set(ActiveOption.allCases)
+        available.subtract(taken)
+        // Anything already taken (even just `.day` or `.night`) makes
+        // `.always` redundant — pull it out so it's not an option.
+        if !taken.isEmpty { available.remove(.always) }
+        return available
     }
 
     // MARK: - Codable helpers

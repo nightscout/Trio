@@ -101,29 +101,57 @@ final class TrioModalAlertScheduler: ObservableObject {
         remove(identifier: identifier)
     }
 
+    /// Outcome of a `.delayed`/`.repeating` timer fire, factored out of the
+    /// timer closure so the snooze-pierce gate is unit-testable as a pure
+    /// function. See `shouldInsertOnFire`.
+    enum FireDecision: Equatable {
+        case insert
+        case suppressKeepPending
+        case dropStale
+    }
+
+    /// Pure decision for what a timer fire should do, given the alert's
+    /// interruption level and the manager's current active/snooze state.
+    /// - `dropStale`: alert no longer tracked — skip and drop pending.
+    /// - `suppressKeepPending`: non-critical banner muted by global snooze.
+    /// - `insert`: present the banner.
+    static func shouldInsertOnFire(
+        interruptionLevel: LoopKit.Alert.InterruptionLevel,
+        isAlertActive: Bool,
+        isSnoozeActive: Bool
+    ) -> FireDecision {
+        guard isAlertActive else { return .dropStale }
+        if interruptionLevel != .critical, isSnoozeActive { return .suppressKeepPending }
+        return .insert
+    }
+
     private func scheduleTimer(alert: LoopKit.Alert, interval: TimeInterval, repeats: Bool) {
         if pending[alert.identifier] != nil { return }
         let timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: repeats) { [weak self] _ in
             DispatchQueue.main.async {
+                guard let self else { return }
                 // Skip stale fires (e.g. iOS suspended the app for longer
                 // than `interval`; on resume the timer fires immediately
                 // even if the underlying alert was already retracted).
-                guard let self, self.responder?.isAlertActive(identifier: alert.identifier) ?? true else {
-                    self?.pending.removeValue(forKey: alert.identifier)
-                    return
-                }
+                let isAlertActive = self.responder?.isAlertActive(identifier: alert.identifier) ?? true
                 // Honor active global snooze for non-critical banners.
-                if alert.interruptionLevel != .critical,
-                   self.responder?.isSnoozeActive(at: Date()) == true
-                {
+                let isSnoozeActive = self.responder?.isSnoozeActive(at: Date()) == true
+                switch Self.shouldInsertOnFire(
+                    interruptionLevel: alert.interruptionLevel,
+                    isAlertActive: isAlertActive,
+                    isSnoozeActive: isSnoozeActive
+                ) {
+                case .dropStale:
+                    self.pending.removeValue(forKey: alert.identifier)
+                case .suppressKeepPending:
                     if !repeats {
                         self.pending.removeValue(forKey: alert.identifier)
                     }
-                    return
-                }
-                self.insert(alert)
-                if !repeats {
-                    self.pending.removeValue(forKey: alert.identifier)
+                case .insert:
+                    self.insert(alert)
+                    if !repeats {
+                        self.pending.removeValue(forKey: alert.identifier)
+                    }
                 }
             }
         }
@@ -411,3 +439,11 @@ extension View {
         modifier(TrioAlertModifier(scheduler: scheduler))
     }
 }
+
+#if DEBUG
+    extension TrioModalAlertScheduler {
+        /// Test-only seam: seeds the published `active` queue so tests can exercise
+        /// `clearNonCriticalBanners()` without driving the private `insert` path.
+        func seedForTesting(_ alerts: [LoopKit.Alert]) { active = alerts }
+    }
+#endif

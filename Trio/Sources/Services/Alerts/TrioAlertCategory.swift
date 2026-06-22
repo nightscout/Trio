@@ -27,7 +27,6 @@ enum TrioAlertCategory: Equatable {
     case glucoseDataStale
     case algorithmError
     case commsTransient
-    case carbsRequired
     case other(String)
 
     /// Whether an inbound alert in this category surfaces *immediately*.
@@ -42,7 +41,6 @@ enum TrioAlertCategory: Equatable {
              .batteryEmpty,
              .batteryLow,
              .bolusFailed,
-             .carbsRequired,
              .deliveryUncertain,
              .deviceExpirationReminder,
              .deviceExpired,
@@ -92,7 +90,6 @@ enum TrioAlertCategory: Equatable {
         case .glucoseDataStale: return "glucoseDataStale"
         case .algorithmError: return "algorithmError"
         case .commsTransient: return "commsTransient"
-        case .carbsRequired: return "carbsRequired"
         case let .other(id): return id
         }
     }
@@ -110,7 +107,6 @@ enum TrioAlertCategory: Equatable {
             return .critical
         case .batteryLow,
              .bolusFailed,
-             .carbsRequired,
              .deviceExpired,
              .glucoseDataStale,
              .glucoseForecastedLow,

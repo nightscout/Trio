@@ -204,6 +204,7 @@
 		BD11796D2F4E22C100F90001 /* AddGlucoseAlertSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11796E2F4E22C100F90001 /* AddGlucoseAlertSheet.swift */; };
 		BD1179712F4E22C100F90001 /* AlarmEnumMenuPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179722F4E22C100F90001 /* AlarmEnumMenuPicker.swift */; };
 		BD1179732F4E22C100F90001 /* AlarmBGSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179742F4E22C100F90001 /* AlarmBGSection.swift */; };
+		CA05000000000000000010C2 /* AlarmGramsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA05000000000000000010C1 /* AlarmGramsSection.swift */; };
 		BD1179772F4E22C100F90001 /* AlarmActiveSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179782F4E22C100F90001 /* AlarmActiveSection.swift */; };
 		BD1179792F4E22C100F90001 /* AlarmAudioSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11797A2F4E22C100F90001 /* AlarmAudioSection.swift */; };
 		BD11797B2F4E22C100F90001 /* AlarmSoundCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11797C2F4E22C100F90001 /* AlarmSoundCatalog.swift */; };
@@ -240,6 +241,21 @@
 		38FCF3D625E8FDF40078B0D1 /* MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FCF3D525E8FDF40078B0D1 /* MD5.swift */; };
 		38FCF3F925E902C20078B0D1 /* FileStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FCF3F825E902C20078B0D1 /* FileStorageTests.swift */; };
 		BD11A001000000000000A002 /* AlertMuterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A002 /* AlertMuterTests.swift */; };
+		BD11A001000000000000A013 /* TandemKitAlertEmissionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A013 /* TandemKitAlertEmissionTests.swift */; };
+		BD11A001000000000000A012 /* RileyLinkKitAlertEmissionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A012 /* RileyLinkKitAlertEmissionTests.swift */; };
+		BD11A001000000000000A011 /* OmnipodKitAlertEmissionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A011 /* OmnipodKitAlertEmissionTests.swift */; };
+		BD11A001000000000000A010 /* MinimedKitAlertEmissionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A010 /* MinimedKitAlertEmissionTests.swift */; };
+		BD11A001000000000000A00F /* MedtrumKitAlertEmissionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A00F /* MedtrumKitAlertEmissionTests.swift */; };
+		BD11A001000000000000A00E /* DanaKitAlertEmissionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A00E /* DanaKitAlertEmissionTests.swift */; };
+		BD11A001000000000000A00D /* AlertCatalogRegistryEntriesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A00D /* AlertCatalogRegistryEntriesTests.swift */; };
+		BD11A001000000000000A00C /* NotLoopingMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A00C /* NotLoopingMonitorTests.swift */; };
+		BD11A001000000000000A00B /* TrioModalAlertSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A00B /* TrioModalAlertSchedulerTests.swift */; };
+		BD11A001000000000000A00A /* GlucoseAlertCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A00A /* GlucoseAlertCoordinatorTests.swift */; };
+		CA06000000000000000010C2 /* GlucoseAlertsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA06000000000000000010C1 /* GlucoseAlertsStoreTests.swift */; };
+		BD11A001000000000000A009 /* TrioAlertCategoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A009 /* TrioAlertCategoryTests.swift */; };
+		BD11A001000000000000A008 /* GlucoseAlertTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A008 /* GlucoseAlertTests.swift */; };
+		BD11A001000000000000A007 /* GlucoseAlertConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A007 /* GlucoseAlertConfigurationTests.swift */; };
+		BD11A001000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift */; };
 		BD11A001000000000000A003 /* DeviceAlertsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A003 /* DeviceAlertsStoreTests.swift */; };
 		38FCF3FD25E997A80078B0D1 /* PumpHistoryStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FCF3FC25E997A80078B0D1 /* PumpHistoryStorage.swift */; };
 		38FE826A25CC82DB001FF17A /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FE826925CC82DB001FF17A /* NetworkService.swift */; };
@@ -1214,6 +1230,7 @@
 		BD11796E2F4E22C100F90001 /* AddGlucoseAlertSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddGlucoseAlertSheet.swift; sourceTree = "<group>"; };
 		BD1179722F4E22C100F90001 /* AlarmEnumMenuPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmEnumMenuPicker.swift; sourceTree = "<group>"; };
 		BD1179742F4E22C100F90001 /* AlarmBGSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmBGSection.swift; sourceTree = "<group>"; };
+		CA05000000000000000010C1 /* AlarmGramsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmGramsSection.swift; sourceTree = "<group>"; };
 		BD1179782F4E22C100F90001 /* AlarmActiveSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmActiveSection.swift; sourceTree = "<group>"; };
 		BD11797A2F4E22C100F90001 /* AlarmAudioSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmAudioSection.swift; sourceTree = "<group>"; };
 		BD11797C2F4E22C100F90001 /* AlarmSoundCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSoundCatalog.swift; sourceTree = "<group>"; };
@@ -1253,6 +1270,21 @@
 		38FCF3F125E9028E0078B0D1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		38FCF3F825E902C20078B0D1 /* FileStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileStorageTests.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A002 /* AlertMuterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertMuterTests.swift; sourceTree = "<group>"; };
+		BD11A000000000000000A013 /* TandemKitAlertEmissionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TandemKitAlertEmissionTests.swift; sourceTree = "<group>"; };
+		BD11A000000000000000A012 /* RileyLinkKitAlertEmissionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RileyLinkKitAlertEmissionTests.swift; sourceTree = "<group>"; };
+		BD11A000000000000000A011 /* OmnipodKitAlertEmissionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmnipodKitAlertEmissionTests.swift; sourceTree = "<group>"; };
+		BD11A000000000000000A010 /* MinimedKitAlertEmissionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimedKitAlertEmissionTests.swift; sourceTree = "<group>"; };
+		BD11A000000000000000A00F /* MedtrumKitAlertEmissionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedtrumKitAlertEmissionTests.swift; sourceTree = "<group>"; };
+		BD11A000000000000000A00E /* DanaKitAlertEmissionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DanaKitAlertEmissionTests.swift; sourceTree = "<group>"; };
+		BD11A000000000000000A00D /* AlertCatalogRegistryEntriesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertCatalogRegistryEntriesTests.swift; sourceTree = "<group>"; };
+		BD11A000000000000000A00C /* NotLoopingMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotLoopingMonitorTests.swift; sourceTree = "<group>"; };
+		BD11A000000000000000A00B /* TrioModalAlertSchedulerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioModalAlertSchedulerTests.swift; sourceTree = "<group>"; };
+		BD11A000000000000000A00A /* GlucoseAlertCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseAlertCoordinatorTests.swift; sourceTree = "<group>"; };
+		CA06000000000000000010C1 /* GlucoseAlertsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseAlertsStoreTests.swift; sourceTree = "<group>"; };
+		BD11A000000000000000A009 /* TrioAlertCategoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioAlertCategoryTests.swift; sourceTree = "<group>"; };
+		BD11A000000000000000A008 /* GlucoseAlertTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseAlertTests.swift; sourceTree = "<group>"; };
+		BD11A000000000000000A007 /* GlucoseAlertConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseAlertConfigurationTests.swift; sourceTree = "<group>"; };
+		BD11A000000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastedGlucoseEvaluatorTests.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A003 /* DeviceAlertsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceAlertsStoreTests.swift; sourceTree = "<group>"; };
 		38FCF3FC25E997A80078B0D1 /* PumpHistoryStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpHistoryStorage.swift; sourceTree = "<group>"; };
 		38FE826925CC82DB001FF17A /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
@@ -3030,6 +3062,21 @@
 				3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */,
 				38FCF3F825E902C20078B0D1 /* FileStorageTests.swift */,
 				BD11A000000000000000A002 /* AlertMuterTests.swift */,
+				BD11A000000000000000A013 /* TandemKitAlertEmissionTests.swift */,
+				BD11A000000000000000A012 /* RileyLinkKitAlertEmissionTests.swift */,
+				BD11A000000000000000A011 /* OmnipodKitAlertEmissionTests.swift */,
+				BD11A000000000000000A010 /* MinimedKitAlertEmissionTests.swift */,
+				BD11A000000000000000A00F /* MedtrumKitAlertEmissionTests.swift */,
+				BD11A000000000000000A00E /* DanaKitAlertEmissionTests.swift */,
+				BD11A000000000000000A00D /* AlertCatalogRegistryEntriesTests.swift */,
+				BD11A000000000000000A00C /* NotLoopingMonitorTests.swift */,
+				BD11A000000000000000A00B /* TrioModalAlertSchedulerTests.swift */,
+				BD11A000000000000000A00A /* GlucoseAlertCoordinatorTests.swift */,
+				CA06000000000000000010C1 /* GlucoseAlertsStoreTests.swift */,
+				BD11A000000000000000A009 /* TrioAlertCategoryTests.swift */,
+				BD11A000000000000000A008 /* GlucoseAlertTests.swift */,
+				BD11A000000000000000A007 /* GlucoseAlertConfigurationTests.swift */,
+				BD11A000000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift */,
 				BD11A000000000000000A003 /* DeviceAlertsStoreTests.swift */,
 				3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */,
 				CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */,
@@ -4432,6 +4479,7 @@
 				BD1179782F4E22C100F90001 /* AlarmActiveSection.swift */,
 				BD11797A2F4E22C100F90001 /* AlarmAudioSection.swift */,
 				BD1179742F4E22C100F90001 /* AlarmBGSection.swift */,
+				CA05000000000000000010C1 /* AlarmGramsSection.swift */,
 				BD1179722F4E22C100F90001 /* AlarmEnumMenuPicker.swift */,
 				BD11797E2F4E22C100F90001 /* AlarmWindowIcon.swift */,
 			);
@@ -5146,6 +5194,7 @@
 				BD11796D2F4E22C100F90001 /* AddGlucoseAlertSheet.swift in Sources */,
 				BD1179712F4E22C100F90001 /* AlarmEnumMenuPicker.swift in Sources */,
 				BD1179732F4E22C100F90001 /* AlarmBGSection.swift in Sources */,
+				CA05000000000000000010C2 /* AlarmGramsSection.swift in Sources */,
 				BD1179772F4E22C100F90001 /* AlarmActiveSection.swift in Sources */,
 				BD1179792F4E22C100F90001 /* AlarmAudioSection.swift in Sources */,
 				BD11797B2F4E22C100F90001 /* AlarmSoundCatalog.swift in Sources */,
@@ -5605,6 +5654,21 @@
 				3B1C5C482D68E269004E9273 /* IobHistoryTests.swift in Sources */,
 				38FCF3F925E902C20078B0D1 /* FileStorageTests.swift in Sources */,
 				BD11A001000000000000A002 /* AlertMuterTests.swift in Sources */,
+				BD11A001000000000000A013 /* TandemKitAlertEmissionTests.swift in Sources */,
+				BD11A001000000000000A012 /* RileyLinkKitAlertEmissionTests.swift in Sources */,
+				BD11A001000000000000A011 /* OmnipodKitAlertEmissionTests.swift in Sources */,
+				BD11A001000000000000A010 /* MinimedKitAlertEmissionTests.swift in Sources */,
+				BD11A001000000000000A00F /* MedtrumKitAlertEmissionTests.swift in Sources */,
+				BD11A001000000000000A00E /* DanaKitAlertEmissionTests.swift in Sources */,
+				BD11A001000000000000A00D /* AlertCatalogRegistryEntriesTests.swift in Sources */,
+				BD11A001000000000000A00C /* NotLoopingMonitorTests.swift in Sources */,
+				BD11A001000000000000A00B /* TrioModalAlertSchedulerTests.swift in Sources */,
+				BD11A001000000000000A00A /* GlucoseAlertCoordinatorTests.swift in Sources */,
+				CA06000000000000000010C2 /* GlucoseAlertsStoreTests.swift in Sources */,
+				BD11A001000000000000A009 /* TrioAlertCategoryTests.swift in Sources */,
+				BD11A001000000000000A008 /* GlucoseAlertTests.swift in Sources */,
+				BD11A001000000000000A007 /* GlucoseAlertConfigurationTests.swift in Sources */,
+				BD11A001000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift in Sources */,
 				BD11A001000000000000A003 /* DeviceAlertsStoreTests.swift in Sources */,
 				3B8221B22E5882E300585156 /* DetermineBasalEarlyExitTests.swift in Sources */,
 				3BA643EA2ED9FAD8007BC31F /* DetermineBasalAggressiveDosingTests.swift in Sources */,

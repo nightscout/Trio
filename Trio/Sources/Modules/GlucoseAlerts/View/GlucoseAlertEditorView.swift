@@ -4,6 +4,18 @@ struct GlucoseAlertEditorView: View {
     @ObservedObject var store: GlucoseAlertsStore
     let alertID: UUID
     let isNew: Bool
+
+    /// Windows the user can still pick without overlapping another alarm of
+    /// the same type. The being-edited alarm is excluded from "taken" so its
+    /// current option stays valid.
+    private var allowedActiveOptions: [ActiveOption] {
+        let available = store.availableActiveOptions(
+            forType: working.type,
+            excludingAlertID: isNew ? nil : alertID
+        )
+        return ActiveOption.allCases.filter { available.contains($0) }
+    }
+
     let units: GlucoseUnits
     var onDone: () -> Void
     var onCancel: () -> Void
@@ -40,9 +52,13 @@ struct GlucoseAlertEditorView: View {
                 case .low: lowBody
                 case .forecastedLow: forecastedLowBody
                 case .high: highBody
+                case .carbsRequired: carbsRequiredBody
                 }
 
-                AlarmActiveSection(activeOption: $working.activeOption)
+                AlarmActiveSection(
+                    activeOption: $working.activeOption,
+                    allowed: allowedActiveOptions
+                )
                 AlarmAudioSection(
                     playsSound: $working.playsSound,
                     soundFilename: $working.soundFilename
@@ -157,6 +173,19 @@ struct GlucoseAlertEditorView: View {
             step: 1,
             units: units,
             valueMgDL: $working.thresholdMgDL
+        )
+    }
+
+    private var carbsRequiredBody: some View {
+        AlarmGramsSection(
+            header: String(localized: "Carbs Required Threshold"),
+            footer: String(
+                localized: "Fires when the algorithm suggests to eat at least this many grams of carbs to avoid a low."
+            ),
+            title: String(localized: "Carbs"),
+            range: 5 ... 50,
+            step: 1,
+            valueGrams: $working.thresholdMgDL
         )
     }
 }

@@ -31,7 +31,19 @@ final class NotLoopingMonitor: Injectable {
 
     init(resolver: Resolver) {
         injectServices(resolver)
-        apsManager.lastLoopDateSubject
+        subscribe(to: apsManager.lastLoopDateSubject.eraseToAnyPublisher())
+    }
+
+    /// Publisher-only seam for tests: assigns the alert manager directly and
+    /// subscribes to a supplied loop-date publisher, avoiding the need to stub
+    /// the full `APSManager` protocol.
+    init(loopDates: AnyPublisher<Date, Never>, trioAlertManager: TrioAlertManager) {
+        self.trioAlertManager = trioAlertManager
+        subscribe(to: loopDates)
+    }
+
+    private func subscribe(to loopDates: AnyPublisher<Date, Never>) {
+        loopDates
             .sink { [weak self] _ in self?.rescheduleAlarm() }
             .store(in: &subscriptions)
     }
