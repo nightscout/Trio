@@ -306,16 +306,16 @@ final class BaseAPSManager: APSManager, Injectable {
 
     private func executeLoop(loopStatRecord: inout LoopStats) async throws {
         try await determineBasal()
+        
+        // Closed loop: also enact the determination.
+        if settings.closedLoop {
+            try await enactDetermination()
+        }
 
         let endDate = Date()
         loopStatRecord.end = endDate
         loopStatRecord.duration = roundDouble((endDate - loopStatRecord.start).timeInterval / 60, 2)
         loopStatRecord.loopStatus = "Success"
-
-        // Closed loop: also enact the determination.
-        if settings.closedLoop {
-            try await enactDetermination()
-        }
     }
 
     private func calculateLoopInterval(loopStartDate: Date) async -> Double? {
