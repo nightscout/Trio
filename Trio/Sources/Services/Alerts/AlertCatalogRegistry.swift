@@ -143,7 +143,14 @@ private extension AlertCatalogRegistry {
             "Delivery",
             .insulinLimitReached
         ),
+        // MedtrumKit currently emits the occlusion alert with a misspelled
+        // identifier ("patch-occlussion", double "s") — see MedtrumKit's
+        // NotificationManager. We register both the misspelled identifier (what
+        // ships today) and the corrected spelling so the alert escalates to
+        // critical regardless of which MedtrumKit is bundled. Drop the
+        // misspelled entry once the typo is fixed upstream.
         addEntry("Medtrum", "com.nightscout.medtrumkit.patch-occlussion", .critical, "Occlusion", "Delivery", .occlusion),
+        addEntry("Medtrum", "com.nightscout.medtrumkit.patch-occlusion", .critical, "Occlusion", "Delivery", .occlusion),
         addEntry("Medtrum", "com.nightscout.medtrumkit.patch-fault", .critical, "Patch Fault", "Hardware", .hardwareFault),
         addEntry("Medtrum", "com.nightscout.medtrumkit.patch-empty", .critical, "Reservoir Empty", "Reservoir", .reservoirEmpty),
         addEntry(
