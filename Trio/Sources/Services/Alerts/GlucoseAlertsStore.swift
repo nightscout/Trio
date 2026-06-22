@@ -95,6 +95,32 @@ final class GlucoseAlertsStore: ObservableObject {
         alerts.filter { $0.type == alert.type }.count > 1
     }
 
+    /// `ActiveOption`s a new alarm of `type` could still occupy without
+    /// overlapping an existing alarm of the same type. `.always` covers both
+    /// windows, so it's removed as soon as either `.day` or `.night` is taken.
+    /// Returns the empty set when the type is fully covered (either `.always`
+    /// is already present, or both `.day` AND `.night` are present).
+    func availableActiveOptions(forNewAlarmOfType type: GlucoseAlertType) -> Set<ActiveOption> {
+        availableActiveOptions(forType: type, excludingAlertID: nil)
+    }
+
+    /// Variant used when editing an existing alarm — excludes the alarm being
+    /// edited from the "taken" set so its current window stays valid.
+    func availableActiveOptions(
+        forType type: GlucoseAlertType,
+        excludingAlertID excludedID: UUID?
+    ) -> Set<ActiveOption> {
+        let taken = Set(
+            alerts
+                .filter { $0.type == type && $0.id != excludedID }
+                .map(\.activeOption)
+        )
+        var available = Set(ActiveOption.allCases)
+        available.subtract(taken)
+        if !taken.isEmpty { available.remove(.always) }
+        return available
+    }
+
     // MARK: - Codable helpers
 
     private static func decode<T: Decodable>(

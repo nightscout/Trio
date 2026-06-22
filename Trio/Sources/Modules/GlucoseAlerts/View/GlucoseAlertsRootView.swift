@@ -104,7 +104,7 @@ extension GlucoseAlerts {
             .sheet(item: $sheet, onDismiss: handleSheetDismiss) { which in
                 switch which {
                 case .picker:
-                    AddGlucoseAlertSheet { type in
+                    AddGlucoseAlertSheet(store: store) { type in
                         pendingNewType = type
                         sheet = nil
                     }
@@ -135,7 +135,14 @@ extension GlucoseAlerts {
             guard let type = pendingNewType else { return }
             pendingNewType = nil
             DispatchQueue.main.async {
-                sheet = .editor(GlucoseAlert(type: type), isNew: true)
+                var seed = GlucoseAlert(type: type)
+                // Default new alarm to the first available window so it
+                // doesn't overlap with whatever is already configured.
+                let available = store.availableActiveOptions(forNewAlarmOfType: type)
+                if let first = ActiveOption.allCases.first(where: available.contains) {
+                    seed.activeOption = first
+                }
+                sheet = .editor(seed, isNew: true)
             }
         }
 

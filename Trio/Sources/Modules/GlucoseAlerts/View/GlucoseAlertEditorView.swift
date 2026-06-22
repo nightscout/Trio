@@ -4,6 +4,17 @@ struct GlucoseAlertEditorView: View {
     @ObservedObject var store: GlucoseAlertsStore
     let alertID: UUID
     let isNew: Bool
+
+    /// Windows the user can still pick without overlapping another alarm of
+    /// the same type. The being-edited alarm is excluded from "taken" so its
+    /// current option stays valid.
+    private var allowedActiveOptions: [ActiveOption] {
+        let available = store.availableActiveOptions(
+            forType: working.type,
+            excludingAlertID: isNew ? nil : alertID
+        )
+        return ActiveOption.allCases.filter { available.contains($0) }
+    }
     let units: GlucoseUnits
     var onDone: () -> Void
     var onCancel: () -> Void
@@ -43,7 +54,10 @@ struct GlucoseAlertEditorView: View {
                 case .carbsRequired: carbsRequiredBody
                 }
 
-                AlarmActiveSection(activeOption: $working.activeOption)
+                AlarmActiveSection(
+                    activeOption: $working.activeOption,
+                    allowed: allowedActiveOptions
+                )
                 AlarmAudioSection(
                     playsSound: $working.playsSound,
                     soundFilename: $working.soundFilename
