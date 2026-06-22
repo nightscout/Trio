@@ -129,4 +129,16 @@ import Testing
         let editingDay = store.availableActiveOptions(forType: .low, excludingAlertID: day.id)
         #expect(editingDay == [.day])
     }
+
+    /// Pins the user-reported regression: fresh install seeds every type with
+    /// `.always`, so the Add picker must show every type as unavailable.
+    @Test("Fresh-seeded store has no available windows for any type") func freshSeedHasNoneAvailable() {
+        let store = Self.makeStore()
+        for type in GlucoseAlertType.allCases {
+            #expect(
+                store.availableActiveOptions(forNewAlarmOfType: type).isEmpty,
+                "Expected \(type) to be fully covered by the default .always seed"
+            )
+        }
+    }
 }
