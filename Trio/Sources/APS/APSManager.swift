@@ -301,8 +301,18 @@ final class BaseAPSManager: APSManager, Injectable {
                 return
             }
 
-            // Local background-task identifier — no shared mutable state.
-            let bgTask = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting")
+            // Start background task
+            // we probably need to refactor this when implementing Swift 6 due to mutation of a captured var in an async context
+            var taskID: UIBackgroundTaskIdentifier = .invalid
+            taskID = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") {
+                // closure runs on the Main Thread
+                // removed the Task that provided no guarantee to end the background task
+                if taskID != .invalid {
+                    UIApplication.shared.endBackgroundTask(taskID)
+                    taskID = .invalid
+                }
+            }
+
             isLooping.send(true)
 
             let loopStartDate = Date()
@@ -331,9 +341,10 @@ final class BaseAPSManager: APSManager, Injectable {
                 debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to complete Loop: \(error)")
             }
 
-            // End the background task on the async path itself
-            if bgTask != .invalid {
-                await UIApplication.shared.endBackgroundTask(bgTask)
+            // End the background task
+            if taskID != .invalid {
+                await UIApplication.shared.endBackgroundTask(taskID)
+                taskID = .invalid
             }
         }
     }
@@ -341,15 +352,15 @@ final class BaseAPSManager: APSManager, Injectable {
     private func executeLoop(loopStatRecord: inout LoopStats) async throws {
         try await determineBasal()
 
-        let endDate = Date()
-        loopStatRecord.end = endDate
-        loopStatRecord.duration = roundDouble((endDate - loopStatRecord.start).timeInterval / 60, 2)
-        loopStatRecord.loopStatus = "Success"
-
         // Closed loop: also enact the determination.
         if settings.closedLoop {
             try await enactDetermination()
         }
+
+        let endDate = Date()
+        loopStatRecord.end = endDate
+        loopStatRecord.duration = roundDouble((endDate - loopStatRecord.start).timeInterval / 60, 2)
+        loopStatRecord.loopStatus = "Success"
     }
 
     private func calculateLoopInterval(loopStartDate: Date) async -> Double? {
