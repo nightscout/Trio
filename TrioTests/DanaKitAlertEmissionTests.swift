@@ -34,7 +34,7 @@ import Testing
 /// (N1 Hardware Fault catch-all -> `.critical`) is registered `.timeSensitive`
 /// — so a daily/basal hard stop or an unrecognized pump alarm reaches the user
 /// below critical.
-@Suite("Manager Emissions: DanaKit") struct DanaKitAlertEmissionTests {
+@Suite("Trio Alert Emission: DanaKit") struct DanaKitAlertEmissionTests {
     private func id(_ manager: String, _ alertID: String) -> Alert.Identifier {
         Alert.Identifier(managerIdentifier: manager, alertIdentifier: alertID)
     }
@@ -214,7 +214,7 @@ import Testing
 /// (`DanaKit/Packets/DanaNotifyAlarm.swift`,
 /// `DanaKit/PumpManager/*.swift`, `DanaKit/Packets/DanaBolusStart.swift`,
 /// `DanaKitUI/*`, `Common/NotificationHelper.swift`).
-@Suite("Message Classification: DanaKit") struct DanaKitMessageClassificationTests {
+@Suite("Trio Alert Emission: DanaKit — Classification") struct DanaKitMessageClassificationTests {
     /// An error whose `String(describing:)` is exactly the catalogued display
     /// string, so the classifier matches over the real natural-language text.
     private struct StubError: Error, CustomStringConvertible { let description: String }

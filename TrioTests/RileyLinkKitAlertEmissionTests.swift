@@ -38,7 +38,7 @@ import Testing
 /// (`.active`) as designed. There is NO dominant critical-tier miss because
 /// RileyLinkKit emits no Critical alerts. Per the audit, none of these rows
 /// are marked `isGap`, so the documented escalation-gap set is empty.
-@Suite("Manager Emissions: RileyLinkKit") struct RileyLinkKitAlertEmissionTests {
+@Suite("Trio Alert Emission: RileyLinkKit") struct RileyLinkKitAlertEmissionTests {
     private func id(_ manager: String, _ alertID: String) -> Alert.Identifier {
         Alert.Identifier(managerIdentifier: manager, alertIdentifier: alertID)
     }
@@ -160,7 +160,7 @@ import Testing
 /// Audit + classified data:
 /// loopkit-manager-synthesis/investigations/alert-notification-emissions/managers/pump/RileyLinkKit/
 /// Classifier source: Trio/Sources/Services/Alerts/TrioAlertCategory.swift
-@Suite("Manager Message Classification: RileyLinkKit") struct RileyLinkKitMessageClassificationTests {
+@Suite("Trio Alert Emission: RileyLinkKit — Classification") struct RileyLinkKitMessageClassificationTests {
     /// Stub whose `String(describing:)` IS the display string, so classification
     /// runs over the natural-language text a user would actually see.
     private struct StubError: Error, CustomStringConvertible {

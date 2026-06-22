@@ -48,7 +48,7 @@ import Testing
 /// input (a LoopKit `PumpManagerError` enum — not `CustomStringConvertible` —
 /// wrapping a `PumpCommError`/validation case) cannot be stated with
 /// certainty. Per the SCOPE rule those are omitted rather than guessed.
-@Suite("Manager Emissions: TandemKit") struct TandemKitAlertEmissionTests {
+@Suite("Trio Alert Emission: TandemKit") struct TandemKitAlertEmissionTests {
     /// TandemKit issues no LoopKit Alerts, so it carries no real
     /// `managerIdentifier`. We keep the audit's verbatim placeholder string so
     /// the (empty) registry-lookup pin documents exactly what was searched.
@@ -160,7 +160,7 @@ import Testing
 ///
 /// References: managers — TandemKit / TandemKitUI / TandemCore; pump —
 /// Tandem t:slim X2 / Mobi.
-@Suite("Message Classification: TandemKit") struct TandemKitMessageClassificationTests {
+@Suite("Trio Alert Emission: TandemKit — Classification") struct TandemKitMessageClassificationTests {
     /// A throwaway `Error` whose `String(describing:)` is exactly the emission
     /// display string, so `categorize(error:)` matches over natural-language
     /// text (mind the spaces: "reservoir is empty" does NOT contain

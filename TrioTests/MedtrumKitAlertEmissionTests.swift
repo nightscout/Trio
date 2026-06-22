@@ -29,7 +29,7 @@ import Testing
 /// hourly suspend) reach the user only at the UN-notification default level
 /// (treated as `.timeSensitive` — unknown -> assume time-sensitive),
 /// below their `.critical` taxonomy mapping.
-@Suite("Manager Emissions: MedtrumKit") struct MedtrumKitAlertEmissionTests {
+@Suite("Trio Alert Emission: MedtrumKit") struct MedtrumKitAlertEmissionTests {
     private func id(_ manager: String, _ alertID: String) -> Alert.Identifier {
         Alert.Identifier(managerIdentifier: manager, alertIdentifier: alertID)
     }
@@ -179,7 +179,7 @@ import Testing
 /// and the BLE "timeout" strings. Notably the occlusion notification body is
 /// misspelled "occlussion" (double-s), which does NOT contain "occlusion" and
 /// thus mis-routes to `.other`.
-@Suite("Message Classification: MedtrumKit") struct MedtrumKitMessageClassificationTests {
+@Suite("Trio Alert Emission: MedtrumKit — Classification") struct MedtrumKitMessageClassificationTests {
     /// `String(describing:)` returns `description` verbatim, reproducing the
     /// exact text the classifier's substring matcher sees.
     private struct StubError: Error, CustomStringConvertible {

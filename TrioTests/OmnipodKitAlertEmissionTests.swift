@@ -38,7 +38,7 @@ import Testing
 // Classifier-channel gaps: podSuspended, noResponse, podNotConnected, unfinalizedBolus
 // all land at .active where taxonomy wants .timeSensitive.
 
-@Suite("Manager Emissions: OmnipodKit") struct OmnipodKitAlertEmissionTests {
+@Suite("Trio Alert Emission: OmnipodKit") struct OmnipodKitAlertEmissionTests {
     // MARK: Helpers
 
     private func id(_ manager: String, _ alertID: String) -> Alert.Identifier {
@@ -246,7 +246,7 @@ import Testing
 // The gap ratchet fails the moment the classifier improves (a gap row starts
 // hitting a real bucket), forcing this file to be updated.
 
-@Suite("Message Classification: OmnipodKit") struct OmnipodKitMessageClassificationTests {
+@Suite("Trio Alert Emission: OmnipodKit — Classification") struct OmnipodKitMessageClassificationTests {
     /// Error whose String(describing:) is exactly `description`, so the substring
     /// classifier matches over the supplied display text verbatim.
     private struct StubError: Error, CustomStringConvertible {

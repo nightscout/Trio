@@ -26,7 +26,7 @@ import Testing
 /// intended registry entry ("Minimed","PumpReservoirEmpty"=.critical) is
 /// unreachable under the emitted managerIdentifier "Minimed500" — so an
 /// out-of-insulin condition never escalates to a critical interruption.
-@Suite("Manager Emissions: MinimedKit") struct MinimedKitAlertEmissionTests {
+@Suite("Trio Alert Emission: MinimedKit") struct MinimedKitAlertEmissionTests {
     private func id(_ manager: String, _ alertID: String) -> Alert.Identifier {
         Alert.Identifier(managerIdentifier: manager, alertIdentifier: alertID)
     }
@@ -136,7 +136,7 @@ import Testing
 /// (`MinimedKit/...`). Each row pins CURRENT behavior (must be green) and the
 /// gap ratchet below fails when the classifier is improved to map the
 /// taxonomy-intended messages.
-@Suite("Message Classification: MinimedKit") struct MinimedKitMessageClassificationTests {
+@Suite("Trio Alert Emission: MinimedKit — Classification") struct MinimedKitMessageClassificationTests {
     private struct StubError: Error, CustomStringConvertible { let description: String }
 
     struct Row {
