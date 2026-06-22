@@ -40,6 +40,7 @@ struct GlucoseAlertEditorView: View {
                 case .low: lowBody
                 case .forecastedLow: forecastedLowBody
                 case .high: highBody
+                case .carbsRequired: carbsRequiredBody
                 }
 
                 AlarmActiveSection(activeOption: $working.activeOption)
@@ -157,6 +158,19 @@ struct GlucoseAlertEditorView: View {
             step: 1,
             units: units,
             valueMgDL: $working.thresholdMgDL
+        )
+    }
+
+    private var carbsRequiredBody: some View {
+        AlarmGramsSection(
+            header: String(localized: "Carbs Required Threshold"),
+            footer: String(
+                localized: "Fires when the algorithm suggests to eat at least this many grams of carbs to avoid a low."
+            ),
+            title: String(localized: "Carbs"),
+            range: 5 ... 50,
+            step: 1,
+            valueGrams: $working.thresholdMgDL
         )
     }
 }

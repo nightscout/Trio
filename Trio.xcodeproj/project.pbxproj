@@ -201,6 +201,7 @@
 		BD11796D2F4E22C100F90001 /* AddGlucoseAlertSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11796E2F4E22C100F90001 /* AddGlucoseAlertSheet.swift */; };
 		BD1179712F4E22C100F90001 /* AlarmEnumMenuPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179722F4E22C100F90001 /* AlarmEnumMenuPicker.swift */; };
 		BD1179732F4E22C100F90001 /* AlarmBGSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179742F4E22C100F90001 /* AlarmBGSection.swift */; };
+		CA05000000000000000010C2 /* AlarmGramsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA05000000000000000010C1 /* AlarmGramsSection.swift */; };
 		BD1179772F4E22C100F90001 /* AlarmActiveSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179782F4E22C100F90001 /* AlarmActiveSection.swift */; };
 		BD1179792F4E22C100F90001 /* AlarmAudioSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11797A2F4E22C100F90001 /* AlarmAudioSection.swift */; };
 		BD11797B2F4E22C100F90001 /* AlarmSoundCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11797C2F4E22C100F90001 /* AlarmSoundCatalog.swift */; };
@@ -1214,6 +1215,7 @@
 		BD11796E2F4E22C100F90001 /* AddGlucoseAlertSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddGlucoseAlertSheet.swift; sourceTree = "<group>"; };
 		BD1179722F4E22C100F90001 /* AlarmEnumMenuPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmEnumMenuPicker.swift; sourceTree = "<group>"; };
 		BD1179742F4E22C100F90001 /* AlarmBGSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmBGSection.swift; sourceTree = "<group>"; };
+		CA05000000000000000010C1 /* AlarmGramsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmGramsSection.swift; sourceTree = "<group>"; };
 		BD1179782F4E22C100F90001 /* AlarmActiveSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmActiveSection.swift; sourceTree = "<group>"; };
 		BD11797A2F4E22C100F90001 /* AlarmAudioSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmAudioSection.swift; sourceTree = "<group>"; };
 		BD11797C2F4E22C100F90001 /* AlarmSoundCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSoundCatalog.swift; sourceTree = "<group>"; };
@@ -4441,6 +4443,7 @@
 				BD1179782F4E22C100F90001 /* AlarmActiveSection.swift */,
 				BD11797A2F4E22C100F90001 /* AlarmAudioSection.swift */,
 				BD1179742F4E22C100F90001 /* AlarmBGSection.swift */,
+				CA05000000000000000010C1 /* AlarmGramsSection.swift */,
 				BD1179722F4E22C100F90001 /* AlarmEnumMenuPicker.swift */,
 				BD11797E2F4E22C100F90001 /* AlarmWindowIcon.swift */,
 			);
@@ -5151,6 +5154,7 @@
 				BD11796D2F4E22C100F90001 /* AddGlucoseAlertSheet.swift in Sources */,
 				BD1179712F4E22C100F90001 /* AlarmEnumMenuPicker.swift in Sources */,
 				BD1179732F4E22C100F90001 /* AlarmBGSection.swift in Sources */,
+				CA05000000000000000010C2 /* AlarmGramsSection.swift in Sources */,
 				BD1179772F4E22C100F90001 /* AlarmActiveSection.swift in Sources */,
 				BD1179792F4E22C100F90001 /* AlarmAudioSection.swift in Sources */,
 				BD11797B2F4E22C100F90001 /* AlarmSoundCatalog.swift in Sources */,

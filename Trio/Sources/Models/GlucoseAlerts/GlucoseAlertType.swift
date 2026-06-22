@@ -10,10 +10,29 @@ enum GlucoseAlertType: String, Codable, CaseIterable, Identifiable {
     case low
     case forecastedLow
     case high
+    /// Driven by `Determination.carbsReq`, not by a glucose reading. Stored
+    /// alongside the other glucose alarms so the user has one place to
+    /// configure schedule/sound/snooze for everything fired by Trio.
+    case carbsRequired
 
     var id: String { rawValue }
 
     var priority: Int { Self.allCases.firstIndex(of: self) ?? 0 }
+
+    /// `true` when the alarm fires off a CGM glucose reading. `false` for
+    /// `forecastedLow` (driven by the determination forecast) and
+    /// `carbsRequired` (driven by the determination's `carbsReq` field).
+    var isReadingDriven: Bool {
+        switch self {
+        case .high,
+             .low,
+             .urgentLow:
+            return true
+        case .carbsRequired,
+             .forecastedLow:
+            return false
+        }
+    }
 
     /// Parses a glucose-alarm slug emitted by `GlucoseAlertCoordinator`
     /// (`glucose.<type>.<uuid>`). Returns nil for non-glucose alert
@@ -32,6 +51,7 @@ enum GlucoseAlertType: String, Codable, CaseIterable, Identifiable {
         case .low: return String(localized: "Low Glucose")
         case .forecastedLow: return String(localized: "Low Glucose Soon")
         case .high: return String(localized: "High Glucose")
+        case .carbsRequired: return String(localized: "Carbs Required")
         }
     }
 
@@ -41,16 +61,19 @@ enum GlucoseAlertType: String, Codable, CaseIterable, Identifiable {
         case .low: return String(localized: "Fires when glucose drops to or below a low threshold.")
         case .forecastedLow: return String(localized: "Fires when glucose is forecasted to be low within the next 20 minutes.")
         case .high: return String(localized: "Fires when glucose rises to or above a high threshold.")
+        case .carbsRequired: return String(localized: "Fires when oref recommends eating carbs to avoid a low.")
         }
     }
 
-    /// Default mg/dL threshold when adding a new alarm of this type.
+    /// Default threshold when adding a new alarm. Mg/dL for glucose types,
+    /// grams for `carbsRequired`.
     var defaultThresholdMgDL: Decimal {
         switch self {
         case .urgentLow: return 54
         case .low: return 72
         case .forecastedLow: return 72
         case .high: return 270
+        case .carbsRequired: return 10
         }
     }
 
@@ -61,6 +84,7 @@ enum GlucoseAlertType: String, Codable, CaseIterable, Identifiable {
         case .low: return "trill.caf"
         case .forecastedLow: return "bloom.caf"
         case .high: return "chime.caf"
+        case .carbsRequired: return "bloop.caf"
         }
     }
 
@@ -70,7 +94,8 @@ enum GlucoseAlertType: String, Codable, CaseIterable, Identifiable {
     var defaultOverridesSilenceAndDND: Bool {
         switch self {
         case .urgentLow: return true
-        case .forecastedLow,
+        case .carbsRequired,
+             .forecastedLow,
              .high,
              .low: return false
         }

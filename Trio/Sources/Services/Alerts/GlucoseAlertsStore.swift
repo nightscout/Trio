@@ -25,7 +25,18 @@ final class GlucoseAlertsStore: ObservableObject {
         self.alertsKey = alertsKey
         self.configKey = configKey
         let loaded = Self.decode([GlucoseAlert].self, from: defaults, key: alertsKey) ?? []
-        alerts = loaded.isEmpty ? Self.defaultAlerts() : loaded
+        if loaded.isEmpty {
+            alerts = Self.defaultAlerts()
+        } else {
+            // Backfill alarm types added by later releases so upgrading users
+            // get a default-on entry instead of silently missing the type.
+            var migrated = loaded
+            let presentTypes = Set(loaded.map(\.type))
+            for type in GlucoseAlertType.allCases where !presentTypes.contains(type) {
+                migrated.append(GlucoseAlert(type: type))
+            }
+            alerts = migrated
+        }
         configuration = Self.decode(
             GlucoseAlertConfiguration.self,
             from: defaults,
@@ -45,7 +56,8 @@ final class GlucoseAlertsStore: ObservableObject {
             GlucoseAlert(type: .urgentLow),
             GlucoseAlert(type: .low),
             GlucoseAlert(type: .forecastedLow),
-            GlucoseAlert(type: .high)
+            GlucoseAlert(type: .high),
+            GlucoseAlert(type: .carbsRequired)
         ]
     }
 

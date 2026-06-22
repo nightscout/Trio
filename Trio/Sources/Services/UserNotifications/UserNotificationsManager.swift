@@ -68,7 +68,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 .share()
                 .eraseToAnyPublisher()
 
-        broadcaster.register(DeterminationObserver.self, observer: self)
         broadcaster.register(alertMessageNotificationObserver.self, observer: self)
         Task { await updateGlucoseBadge() }
         configureNotificationCategories()
@@ -136,42 +135,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 print(error)
             }
         }
-    }
-
-    private static let carbsRequiredAlertID = Alert.Identifier(
-        managerIdentifier: "trio.aps",
-        alertIdentifier: TrioAlertCategory.carbsRequired.alertIdentifier
-    )
-
-    private func notifyCarbsRequired(_ carbs: Int) {
-        guard Decimal(carbs) >= settingsManager.settings.carbsRequiredThreshold,
-              settingsManager.settings.showCarbsRequiredBadge
-        else {
-            trioAlertManager.retractAlert(identifier: Self.carbsRequiredAlertID)
-            return
-        }
-        let title = String(format: String(localized: "Carbs required: %d g", comment: "Carbs required"), carbs)
-        let body = String(
-            format: String(localized: "To prevent LOW required %d g of carbs", comment: "To prevent LOW required %d g of carbs"),
-            carbs
-        )
-        let content = Alert.Content(
-            title: title,
-            body: body,
-            acknowledgeActionButtonLabel: String(localized: "OK")
-        )
-        let alert = Alert(
-            identifier: Self.carbsRequiredAlertID,
-            foregroundContent: content,
-            backgroundContent: content,
-            trigger: .immediate,
-            interruptionLevel: TrioAlertCategory.carbsRequired.interruptionLevel
-        )
-        trioAlertManager.issueAlert(alert)
-    }
-
-    private func retractCarbsRequiredAlert() {
-        trioAlertManager.retractAlert(identifier: Self.carbsRequiredAlertID)
     }
 
     /// Removes any `Trio.carbsRequiredNotification` UN still sitting in the
@@ -298,7 +261,10 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 extension BaseUserNotificationsManager: alertMessageNotificationObserver {
     func alertMessageNotification(_ message: MessageContent) {
         let content = UNMutableNotificationContent()
-        var identifier: Identifier = .alertMessageNotification
+        // Pump / algorithm / glucose / carb subtypes used to route to dedicated
+        // UN identifiers — all of those have moved into the unified
+        // `TrioAlertManager` pipeline.
+        let identifier: Identifier = .alertMessageNotification
 
         if message.title == "" {
             switch message.type {
@@ -313,17 +279,6 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
             }
         } else {
             content.title = message.title
-        }
-        // Pump / algorithm / glucose subtypes used to route to dedicated UN
-        // identifiers (`pumpNotification`, `noLoopFirst/Second`, etc.) — all
-        // of those have moved into the unified `TrioAlertManager` pipeline.
-        // Only `.carb` keeps a dedicated identifier here so successive carb
-        // recommendations replace the previous one rather than stacking.
-        switch message.subtype {
-        case .carb:
-            identifier = .carbsRequiredNotification
-        default:
-            identifier = .alertMessageNotification
         }
         switch message.action {
         case .snooze:
@@ -344,16 +299,6 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
             messageSubtype: message.subtype,
             action: message.action
         )
-    }
-}
-
-extension BaseUserNotificationsManager: DeterminationObserver {
-    func determinationDidUpdate(_ determination: Determination) {
-        guard let carbsRequired = determination.carbsReq else {
-            retractCarbsRequiredAlert()
-            return
-        }
-        notifyCarbsRequired(Int(carbsRequired))
     }
 }
 
