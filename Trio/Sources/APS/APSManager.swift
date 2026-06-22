@@ -70,6 +70,28 @@ enum APSError: LocalizedError {
     }
 }
 
+// MARK: - Thread-safe loop serialization
+
+/// Ensures only one loop runs at a time via actor isolation
+private actor LoopGuard {
+    private var isRunning = false
+
+    /// Atomically checks whether a new loop can start and marks it as running if so.
+    func tryStart(minInterval: TimeInterval, lastLoopDate: Date, lastLoopStartDate: Date) -> Bool {
+        // If the last loop completed after it started, enforce minimum interval
+        if lastLoopDate > lastLoopStartDate {
+            guard lastLoopStartDate.addingTimeInterval(minInterval) < Date() else { return false }
+        }
+        guard !isRunning else { return false }
+        isRunning = true
+        return true
+    }
+
+    func finish() {
+        isRunning = false
+    }
+}
+
 final class BaseAPSManager: APSManager, Injectable {
     private let processQueue = DispatchQueue(label: "BaseAPSManager.processQueue")
     @Injected() private var storage: FileStorage!
@@ -95,7 +117,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
     private var lifetime = Lifetime()
 
-    private var backgroundTaskID: UIBackgroundTaskIdentifier?
+    private let loopGuard = LoopGuard()
 
     var pumpManager: PumpManagerUI? {
         get { deviceDataManager.pumpManager }
@@ -234,108 +256,80 @@ final class BaseAPSManager: APSManager, Injectable {
         Task { [weak self] in
             guard let self else { return }
 
-            // Check if we can start a new loop
-            guard await self.canStartNewLoop() else { return }
+            // Atomic check-and-set via actor — eliminates the race between
+            // checking isLooping.value and sending isLooping(true).
+            guard await loopGuard.tryStart(
+                minInterval: Config.loopInterval,
+                lastLoopDate: lastLoopDate,
+                lastLoopStartDate: lastLoopStartDate
+            ) else {
+                debug(.apsManager, "Loop skipped (already running or too soon)")
+                return
+            }
 
-            // Setup loop and background task
-            var (loopStatRecord, backgroundTask) = await self.setupLoop()
+            // Start background task
+            // we probably need to refactor this when implementing Swift 6 due to mutation of a captured var in an async context
+            var taskID: UIBackgroundTaskIdentifier = .invalid
+            taskID = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") {
+                // closure runs on the Main Thread
+                // removed the Task that provided no guarantee to end the background task
+                if taskID != .invalid {
+                    UIApplication.shared.endBackgroundTask(taskID)
+                    taskID = .invalid
+                }
+            }
+
+            isLooping.send(true)
+
+            let loopStartDate = Date()
+            lastLoopStartDate = loopStartDate
+            let interval = await calculateLoopInterval(loopStartDate: loopStartDate)
+
+            var loopStatRecord = LoopStats(
+                start: loopStartDate,
+                loopStatus: "Starting",
+                interval: interval
+            )
 
             do {
-                // Execute loop logic
-                try await self.executeLoop(loopStatRecord: &loopStatRecord)
-
+                try await executeLoop(loopStatRecord: &loopStatRecord)
                 requestNightscoutUpload(
                     [.carbs, .pumpHistory, .overrides, .tempTargets],
                     source: "APSManager"
                 )
+                await finalizeLoop(loopStatRecord: loopStatRecord)
             } catch {
                 let endDate = Date()
-                var updatedStats = loopStatRecord
-                updatedStats.end = endDate
-                updatedStats.duration = roundDouble((endDate - updatedStats.start).timeInterval / 60, 2)
-                updatedStats.loopStatus = error.localizedDescription
-                await loopCompleted(error: error, loopStatRecord: updatedStats)
+                loopStatRecord.end = endDate
+                loopStatRecord.duration = roundDouble((endDate - loopStatRecord.start).timeInterval / 60, 2)
+                loopStatRecord.loopStatus = error.localizedDescription
+                await finalizeLoop(error: error, loopStatRecord: loopStatRecord)
                 debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to complete Loop: \(error)")
             }
 
-            // Cleanup background task
-            if let backgroundTask = backgroundTask {
-                await UIApplication.shared.endBackgroundTask(backgroundTask)
-                self.backgroundTaskID = .invalid
+            // End the background task
+            if taskID != .invalid {
+                await UIApplication.shared.endBackgroundTask(taskID)
+                taskID = .invalid
             }
         }
-    }
-
-    private func canStartNewLoop() async -> Bool {
-        // Check if too soon for next loop
-        if lastLoopDate > lastLoopStartDate {
-            guard lastLoopStartDate.addingTimeInterval(Config.loopInterval) < Date() else {
-                debug(.apsManager, "Not enough time have passed since last loop at : \(lastLoopStartDate)")
-                return false
-            }
-        }
-
-        // Check if loop already in progress
-        guard !isLooping.value else {
-            warning(.apsManager, "Loop already in progress. Skip recommendation.")
-            return false
-        }
-
-        return true
-    }
-
-    private func setupLoop() async -> (LoopStats, UIBackgroundTaskIdentifier?) {
-        // Start background task
-        let backgroundTask = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") { [weak self] in
-            guard let self, let backgroundTask = self.backgroundTaskID else { return }
-            Task {
-                UIApplication.shared.endBackgroundTask(backgroundTask)
-            }
-            self.backgroundTaskID = .invalid
-        }
-        backgroundTaskID = backgroundTask
-
-        // Set loop start time
-        lastLoopStartDate = Date()
-
-        // Calculate interval from previous loop
-        let interval = await calculateLoopInterval()
-
-        // Create initial loop stats record
-        let loopStatRecord = LoopStats(
-            start: lastLoopStartDate,
-            loopStatus: "Starting",
-            interval: interval
-        )
-
-        isLooping.send(true)
-
-        return (loopStatRecord, backgroundTask)
     }
 
     private func executeLoop(loopStatRecord: inout LoopStats) async throws {
         try await determineBasal()
 
-        // Handle open loop
-        guard settings.closedLoop else {
-            let endDate = Date()
-            loopStatRecord.end = endDate
-            loopStatRecord.duration = roundDouble((endDate - loopStatRecord.start).timeInterval / 60, 2)
-            loopStatRecord.loopStatus = "Success"
-            await loopCompleted(loopStatRecord: loopStatRecord)
-            return
+        // Closed loop: also enact the determination.
+        if settings.closedLoop {
+            try await enactDetermination()
         }
 
-        // Handle closed loop
-        try await enactDetermination()
         let endDate = Date()
         loopStatRecord.end = endDate
         loopStatRecord.duration = roundDouble((endDate - loopStatRecord.start).timeInterval / 60, 2)
         loopStatRecord.loopStatus = "Success"
-        await loopCompleted(loopStatRecord: loopStatRecord)
     }
 
-    private func calculateLoopInterval() async -> Double? {
+    private func calculateLoopInterval(loopStartDate: Date) async -> Double? {
         do {
             return try await privateContext.perform { [weak self] in
                 guard let self else { return nil }
@@ -345,9 +339,9 @@ final class BaseAPSManager: APSManager, Injectable {
                 requestStats.fetchLimit = 1
                 let previousLoop = try self.privateContext.fetch(requestStats)
 
-                if (previousLoop.first?.end ?? .distantFuture) < self.lastLoopStartDate {
+                if (previousLoop.first?.end ?? .distantFuture) < loopStartDate {
                     return self.roundDouble(
-                        (self.lastLoopStartDate - (previousLoop.first?.end ?? Date())).timeInterval / 60,
+                        (loopStartDate - (previousLoop.first?.end ?? Date())).timeInterval / 60,
                         1
                     )
                 }
@@ -359,16 +353,13 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    // Loop exit point
-    private func loopCompleted(error: Error? = nil, loopStatRecord: LoopStats) async {
+    /// Single exit point for loop — replaces the old `loopCompleted()`.
+    private func finalizeLoop(error: Error? = nil, loopStatRecord: LoopStats) async {
+        await loopGuard.finish()
         isLooping.send(false)
 
         if let error = error {
             warning(.apsManager, "Loop failed with error: \(error)")
-            if let backgroundTask = backgroundTaskID {
-                await UIApplication.shared.endBackgroundTask(backgroundTask)
-                backgroundTaskID = .invalid
-            }
             processError(error)
         } else {
             debug(.apsManager, "Loop succeeded")
@@ -380,12 +371,6 @@ final class BaseAPSManager: APSManager, Injectable {
 
         if settings.closedLoop {
             await reportEnacted(wasEnacted: error == nil)
-        }
-
-        // End of the BG tasks
-        if let backgroundTask = backgroundTaskID {
-            await UIApplication.shared.endBackgroundTask(backgroundTask)
-            backgroundTaskID = .invalid
         }
     }
 
