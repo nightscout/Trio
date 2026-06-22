@@ -37,16 +37,37 @@ import Testing
         ))
     }
 
-    @Test("type priority order: urgentLow < low < forecastedLow < high") func priorityOrder() {
+    @Test("type priority order: urgentLow < low < forecastedLow < high < carbsRequired") func priorityOrder() {
         #expect(GlucoseAlertType.urgentLow.priority == 0)
         #expect(GlucoseAlertType.low.priority == 1)
         #expect(GlucoseAlertType.forecastedLow.priority == 2)
         #expect(GlucoseAlertType.high.priority == 3)
+        #expect(GlucoseAlertType.carbsRequired.priority == 4)
         #expect(GlucoseAlertType.urgentLow.priority < GlucoseAlertType.low.priority)
     }
 
     @Test("shouldRetract uses the default 5 mg/dL margin when omitted") func defaultMarginWiring() {
         #expect(GlucoseAlertCoordinator.shouldRetract(type: .low, latestMgDL: 75, thresholdMgDL: 70))
         #expect(!GlucoseAlertCoordinator.shouldRetract(type: .low, latestMgDL: 74, thresholdMgDL: 70))
+    }
+
+    // MARK: - Carbs Required predicates (mg/dL-based gates are no-ops)
+
+    /// Carbs Required is determination-driven (`evaluateCarbsRequired(_:)`),
+    /// not reading-driven. The shared mg/dL `breached` predicate must never
+    /// return true for it, regardless of value / threshold combination.
+    @Test("carbsRequired never breaches via the mg/dL predicate") func carbsRequiredNeverBreaches() {
+        #expect(!GlucoseAlertCoordinator.breached(type: .carbsRequired, latestMgDL: 0, thresholdMgDL: 0))
+        #expect(!GlucoseAlertCoordinator.breached(type: .carbsRequired, latestMgDL: 200, thresholdMgDL: 10))
+        #expect(!GlucoseAlertCoordinator.breached(type: .carbsRequired, latestMgDL: 10, thresholdMgDL: 200))
+    }
+
+    @Test("carbsRequired never retracts via the mg/dL predicate") func carbsRequiredNeverRetractsViaMgDL() {
+        #expect(!GlucoseAlertCoordinator.shouldRetract(
+            type: .carbsRequired, latestMgDL: 100, thresholdMgDL: 10, recoveryMarginMgDL: 5
+        ))
+        #expect(!GlucoseAlertCoordinator.shouldRetract(
+            type: .carbsRequired, latestMgDL: 0, thresholdMgDL: 50, recoveryMarginMgDL: 5
+        ))
     }
 }

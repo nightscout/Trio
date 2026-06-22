@@ -54,6 +54,35 @@ import Testing
         #expect(a.shouldEvaluate == true)
     }
 
+    @Test("carbsRequired does not evaluate when disabled") func carbsRequiredDisabledDoesNotEvaluate() {
+        var a = GlucoseAlert(type: .carbsRequired)
+        a.isEnabled = false
+        #expect(a.shouldEvaluate == false)
+    }
+
+    @Test("carbsRequired evaluates when enabled") func carbsRequiredEnabledEvaluates() {
+        var a = GlucoseAlert(type: .carbsRequired)
+        a.isEnabled = true
+        #expect(a.shouldEvaluate == true)
+    }
+
+    // MARK: - Group A.5: type metadata
+
+    @Test("carbsRequired defaults: threshold 10 g, bloop.caf, no override") func carbsRequiredDefaults() {
+        let a = GlucoseAlert(type: .carbsRequired)
+        #expect(a.thresholdMgDL == 10)
+        #expect(a.soundFilename == "bloop.caf")
+        #expect(a.overridesSilenceAndDND == false)
+    }
+
+    @Test("isReadingDriven: true for low family + high, false for forecast + carbs") func isReadingDriven() {
+        #expect(GlucoseAlertType.urgentLow.isReadingDriven)
+        #expect(GlucoseAlertType.low.isReadingDriven)
+        #expect(GlucoseAlertType.high.isReadingDriven)
+        #expect(!GlucoseAlertType.forecastedLow.isReadingDriven)
+        #expect(!GlucoseAlertType.carbsRequired.isReadingDriven)
+    }
+
     // MARK: - Group B: decoder defaults
 
     @Test("Omitted isEnabled defaults to true") func decodeOmittedIsEnabledDefaultsTrue() throws {
