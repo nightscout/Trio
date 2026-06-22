@@ -8,7 +8,7 @@ import Testing
 /// `OmniPumpManager` builds `Alert.Identifier` from the formatted
 /// `FaultEventCode.description` string ("Fault Event Code 0xNN: ..."), so the
 /// registry has to parse the hex code out of that prefix at lookup time.
-@Suite("AlertCatalogRegistry — Omni pod-fault hex parser") struct AlertCatalogRegistryOmniFaultTests {
+@Suite("TrioAlert: CatalogRegistry — Omni pod-fault hex parser") struct AlertCatalogRegistryOmniFaultTests {
     private func omniFaultID(_ desc: String) -> Alert.Identifier {
         Alert.Identifier(managerIdentifier: "Omni:pumpFault", alertIdentifier: desc)
     }

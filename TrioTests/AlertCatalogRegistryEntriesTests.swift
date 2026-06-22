@@ -9,7 +9,7 @@ import Testing
 /// (`.timeSensitive`); this table is the sole escalation source. An unknown
 /// `(manager, alertId)` returns nil (pass-through). The Omni hex-fault parser
 /// is covered separately in `AlertCatalogRegistryOmniFaultTests`.
-@Suite("AlertCatalogRegistry — static exact-match entries") struct AlertCatalogRegistryEntriesTests {
+@Suite("TrioAlert: CatalogRegistry — static exact-match entries") struct AlertCatalogRegistryEntriesTests {
     private func id(_ manager: String, _ alertID: String) -> Alert.Identifier {
         Alert.Identifier(managerIdentifier: manager, alertIdentifier: alertID)
     }
