@@ -153,7 +153,7 @@ final class BaseAPSManager: APSManager, Injectable {
             if wasParsed {
                 Task {
                     do {
-                        try await openAPS.createProfiles()
+                        try await openAPS.createProfiles(useSwiftOref: settings.useSwiftOref)
                     } catch {
                         debug(
                             .apsManager,
@@ -175,46 +175,48 @@ final class BaseAPSManager: APSManager, Injectable {
         deviceDataManager.errorSubject
             .receive(on: processQueue)
             .map { APSError.pumpError($0) }
-            .sink {
-                self.processError($0)
+            .sink { [weak self] in
+                self?.processError($0)
             }
             .store(in: &lifetime)
 
         deviceDataManager.bolusTrigger
             .receive(on: processQueue)
-            .sink { bolusing in
+            .sink { [weak self] bolusing in
                 if bolusing {
-                    self.createBolusReporter()
+                    self?.createBolusReporter()
                 } else {
-                    self.clearBolusReporter()
+                    self?.clearBolusReporter()
                 }
             }
             .store(in: &lifetime)
 
+        // The following three publishers update `@Persisted` properties that
+        // are also read from the main thread (UI bindings)
         deviceDataManager.scheduledBasal
             .receive(on: DispatchQueue.main)
-            .sink { scheduledBasal in
-                self.isScheduledBasal = scheduledBasal
+            .sink { [weak self] scheduledBasal in
+                self?.isScheduledBasal = scheduledBasal
             }
             .store(in: &lifetime)
 
         deviceDataManager.suspended
             .receive(on: DispatchQueue.main)
-            .sink { suspended in
-                self.isSuspended = suspended
+            .sink { [weak self] suspended in
+                self?.isSuspended = suspended
             }
             .store(in: &lifetime)
 
         // manage a manual Temp Basal from PumpManager - force loop() after manual temp basal is cancelled or finishes
         deviceDataManager.manualTempBasal
-            .receive(on: processQueue)
-            .sink { manualBasal in
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] manualBasal in
                 if manualBasal {
-                    self.isManualTempBasal = true
+                    self?.isManualTempBasal = true
                 } else {
-                    if self.isManualTempBasal {
-                        self.isManualTempBasal = false
-                        self.loop()
+                    if self?.isManualTempBasal == true {
+                        self?.isManualTempBasal = false
+                        self?.loop()
                     }
                 }
             }
@@ -245,9 +247,10 @@ final class BaseAPSManager: APSManager, Injectable {
                     source: "APSManager"
                 )
             } catch {
+                let endDate = Date()
                 var updatedStats = loopStatRecord
-                updatedStats.end = Date()
-                updatedStats.duration = roundDouble((updatedStats.end! - updatedStats.start).timeInterval / 60, 2)
+                updatedStats.end = endDate
+                updatedStats.duration = roundDouble((endDate - updatedStats.start).timeInterval / 60, 2)
                 updatedStats.loopStatus = error.localizedDescription
                 await loopCompleted(error: error, loopStatRecord: updatedStats)
                 debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to complete Loop: \(error)")
@@ -313,8 +316,9 @@ final class BaseAPSManager: APSManager, Injectable {
 
         // Handle open loop
         guard settings.closedLoop else {
-            loopStatRecord.end = Date()
-            loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
+            let endDate = Date()
+            loopStatRecord.end = endDate
+            loopStatRecord.duration = roundDouble((endDate - loopStatRecord.start).timeInterval / 60, 2)
             loopStatRecord.loopStatus = "Success"
             await loopCompleted(loopStatRecord: loopStatRecord)
             return
@@ -322,8 +326,9 @@ final class BaseAPSManager: APSManager, Injectable {
 
         // Handle closed loop
         try await enactDetermination()
-        loopStatRecord.end = Date()
-        loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
+        let endDate = Date()
+        loopStatRecord.end = endDate
+        loopStatRecord.duration = roundDouble((endDate - loopStatRecord.start).timeInterval / 60, 2)
         loopStatRecord.loopStatus = "Success"
         await loopCompleted(loopStatRecord: loopStatRecord)
     }
@@ -332,7 +337,8 @@ final class BaseAPSManager: APSManager, Injectable {
         let context = CoreDataStack.shared.newTaskContext()
         context.name = "calculateLoopInterval"
         do {
-            return try await context.perform {
+            return try await context.perform { [weak self] in
+                guard let self else { return nil }
                 let requestStats = LoopStatRecord.fetchRequest() as NSFetchRequest<LoopStatRecord>
                 let sortStats = NSSortDescriptor(key: "end", ascending: false)
                 requestStats.sortDescriptors = [sortStats]
@@ -409,7 +415,10 @@ final class BaseAPSManager: APSManager, Injectable {
         guard let autosense = await storage.retrieveAsync(OpenAPS.Settings.autosense, as: Autosens.self),
               (autosense.timestamp ?? .distantPast).addingTimeInterval(30.minutes.timeInterval) > Date()
         else {
-            let result = try await openAPS.autosense(shouldSmoothGlucose: settingsManager.settings.smoothGlucose)
+            let result = try await openAPS.autosense(
+                shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
+                useSwiftOref: settings.useSwiftOref
+            )
             return result != nil
         }
 
@@ -491,10 +500,11 @@ final class BaseAPSManager: APSManager, Injectable {
             async let autosenseResult = autosense()
 
             _ = try await autosenseResult
-            try await openAPS.createProfiles()
+            try await openAPS.createProfiles(useSwiftOref: settings.useSwiftOref)
             let determination = try await openAPS.determineBasal(
                 currentTemp: await currentTemp,
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
+                useSwiftOref: settings.useSwiftOref,
                 clock: now
             )
             iobFileDidUpdate.send(())
@@ -541,6 +551,7 @@ final class BaseAPSManager: APSManager, Injectable {
             return try await openAPS.determineBasal(
                 currentTemp: temp,
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
+                useSwiftOref: settings.useSwiftOref,
                 clock: Date(),
                 simulatedCarbsAmount: simulatedCarbsAmount,
                 simulatedBolusAmount: simulatedBolusAmount,
@@ -851,7 +862,8 @@ final class BaseAPSManager: APSManager, Injectable {
         return Double(sorted[length / 2])
     }
 
-    /// Must be called from within a `perform`/`performAndWait` block on the context that owns `glucose`.
+    /// Computes Time-in-Range statistics. Must be called from within a
+    /// `perform`/`performAndWait` block on the context that owns `glucose`.
     private func tir(_ glucose: [GlucoseStored]) -> (TIR: Double, hypos: Double, hypers: Double, normal_: Double) {
         let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
         let totalReadings = justGlucoseArray.count
@@ -863,7 +875,7 @@ final class BaseAPSManager: APSManager, Injectable {
         let hypoArray = glucose.filter({ $0.glucose <= Int(lowLimit) })
         let hypoReadings = hypoArray.compactMap({ each in each.glucose as Int16 }).count
         let hypoPercentage = Double(hypoReadings) / Double(totalReadings) * 100
-        // Euglyccemic range
+        // Euglycemic range
         let normalArray = glucose.filter({ $0.glucose >= 70 && $0.glucose <= 140 })
         let normalReadings = normalArray.compactMap({ each in each.glucose as Int16 }).count
         let normalPercentage = Double(normalReadings) / Double(totalReadings) * 100

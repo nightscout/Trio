@@ -72,7 +72,7 @@ The following information is included in the telemetry payload:
 - A small set of preference flags: units (mg/dL or mmol/L), closed-loop
   on/off, Live Activity enabled, calendar integration enabled
 - A rolling 7-day count of how often the app was cold-launched
-- The commit SHAs of pinned submodules (e.g. LoopKit, OmniBLE)
+- The commit SHAs of pinned submodules (e.g. LoopKit, OmnipodKit)
 - The device's system locale (e.g. "en_US") — used to help Trio
   developers understand which languages to prioritize for translation
 - The device's time zone identifier (e.g. "America/New_York") — used

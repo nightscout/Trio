@@ -28,14 +28,8 @@ files:
     translation: /Dependencies/rileylink_ios/RileyLinkKitUI/%osx_locale%.lproj/Localizable.strings
   - source: /FreeAPS/Resources/Base.lproj/InfoPlist.strings
     translation: /FreeAPS/Resources/%osx_locale%.lproj/InfoPlist.strings
-  - source: /Dependencies/OmniBLE/Localizations/en.lproj/Localizable.strings
-    translation: /Dependencies/OmniBLE/Localizations/%osx_locale%.lproj/Localizable.strings
   - source: /Dependencies/G7SensorKit/en.lproj/Localizable.strings
     translation: /Dependencies/G7SensorKit/%osx_locale%.lproj/Localizable.strings
-  - source: /Dependencies/OmniKit/OmniKit/Resources/en.lproj/Localizable.strings
-    translation: /Dependencies/OmniKit/OmniKit/Resources/%osx_locale%.lproj/Localizable.strings
-  - source: /Dependencies/OmniKit/OmniKitUI/Resources/en.lproj/Localizable.strings
-    translation: /Dependencies/OmniKit/OmniKitUI/Resources/%osx_locale%.lproj/Localizable.strings
   - source: /Dependencies/MinimedKit/MinimedKit/Resources/Base.lproj/Localizable.strings
     translation: /Dependencies/MinimedKit/MinimedKit/Resources/%osx_locale%.lproj/Localizable.strings
   - source: /Dependencies/MinimedKit/MinimedKitUI/Resources/en.lproj/Localizable.strings

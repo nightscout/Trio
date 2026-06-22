@@ -24,7 +24,7 @@ extension Stat {
         // Cache for Meal Stats
         var hourlyMealStats: [MealStats] = []
         var dailyMealStats: [MealStats] = []
-        var dailyAveragesCache: [Date: (carbs: Double, fat: Double, protein: Double)] = [:]
+        var dailyMealTotalsCache: [Date: (carbs: Double, fat: Double, protein: Double)] = [:]
 
         // Cache for TDD Stats
         var hourlyTDDStats: [TDDStats] = []
