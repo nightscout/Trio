@@ -36,7 +36,40 @@ final class GlucoseAlertCoordinator: Injectable {
 
     /// 5 mg/dL recovery margin before we retract a fired alert. Prevents flap
     /// at the threshold boundary.
-    private static let recoveryMarginMgDL: Decimal = 5
+    static let recoveryMarginMgDL: Decimal = 5
+
+    /// Pure breach predicate. Low family (low/urgentLow/forecastedLow) breaches
+    /// when the value is at or below threshold; high breaches at or above.
+    /// Extracted for unit testing — the instance evaluators call through here.
+    static func breached(type: GlucoseAlertType, latestMgDL: Decimal, thresholdMgDL: Decimal) -> Bool {
+        switch type {
+        case .forecastedLow,
+             .low,
+             .urgentLow:
+            return latestMgDL <= thresholdMgDL
+        case .high:
+            return latestMgDL >= thresholdMgDL
+        }
+    }
+
+    /// Pure retract predicate. A fired low-family alert retracts once the value
+    /// recovers to threshold + margin; a high alert once it falls to
+    /// threshold - margin. Extracted for unit testing.
+    static func shouldRetract(
+        type: GlucoseAlertType,
+        latestMgDL: Decimal,
+        thresholdMgDL: Decimal,
+        recoveryMarginMgDL: Decimal = recoveryMarginMgDL
+    ) -> Bool {
+        switch type {
+        case .forecastedLow,
+             .low,
+             .urgentLow:
+            return latestMgDL >= thresholdMgDL + recoveryMarginMgDL
+        case .high:
+            return latestMgDL <= thresholdMgDL - recoveryMarginMgDL
+        }
+    }
 
     /// Readings older than this are considered stale and won't drive new
     /// alarms — matches `APSManager`'s loop-input freshness gate (12 min,
@@ -145,16 +178,14 @@ final class GlucoseAlertCoordinator: Injectable {
             return
         }
 
-        let breached: Bool
-        switch alarm.type {
-        case .low,
-             .urgentLow:
-            breached = latestMgDL <= alarm.thresholdMgDL
-        case .high:
-            breached = latestMgDL >= alarm.thresholdMgDL
-        case .forecastedLow:
+        if alarm.type == .forecastedLow {
             return // handled via determinationDidUpdate
         }
+        let breached = Self.breached(
+            type: alarm.type,
+            latestMgDL: latestMgDL,
+            thresholdMgDL: alarm.thresholdMgDL
+        )
 
         if breached {
             fireIfNeeded(alarm, valueMgDL: latestMgDL)
@@ -262,14 +293,11 @@ final class GlucoseAlertCoordinator: Injectable {
     private func shouldRetract(_ alarm: GlucoseAlert, latestMgDL: Decimal) -> Bool {
         dispatchPrecondition(condition: .onQueue(evaluationQueue))
         guard firingAlertIDs.contains(alarm.id) else { return false }
-        switch alarm.type {
-        case .forecastedLow,
-             .low,
-             .urgentLow:
-            return latestMgDL >= alarm.thresholdMgDL + Self.recoveryMarginMgDL
-        case .high:
-            return latestMgDL <= alarm.thresholdMgDL - Self.recoveryMarginMgDL
-        }
+        return Self.shouldRetract(
+            type: alarm.type,
+            latestMgDL: latestMgDL,
+            thresholdMgDL: alarm.thresholdMgDL
+        )
     }
 
     private func alertID(for alarm: GlucoseAlert) -> Alert.Identifier {
