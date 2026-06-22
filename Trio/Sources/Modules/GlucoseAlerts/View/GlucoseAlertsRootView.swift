@@ -37,14 +37,14 @@ extension GlucoseAlerts {
         var body: some View {
             List {
                 if !enabledAlerts.isEmpty {
-                    Section(header: Text("Active")) {
+                    Section(header: Text("Enabled")) {
                         ForEach(enabledAlerts) { alarm in
                             row(for: alarm)
                         }
                     }.listRowBackground(Color.chart)
                 }
                 if !disabledAlerts.isEmpty {
-                    Section(header: Text("Inactive")) {
+                    Section(header: Text("Disabled")) {
                         ForEach(disabledAlerts) { alarm in
                             row(for: alarm).opacity(0.6)
                         }
