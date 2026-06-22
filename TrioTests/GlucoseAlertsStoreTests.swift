@@ -61,4 +61,72 @@ import Testing
             #expect(countsByType[type] == 1, "Duplicated \(type) on load")
         }
     }
+
+    // MARK: - availableActiveOptions for new alarms
+
+    private static func storeWithOnly(_ alerts: [GlucoseAlert]) -> GlucoseAlertsStore {
+        let store = Self.makeStore()
+        store.alerts = alerts
+        return store
+    }
+
+    @Test("Single .always covers everything: no options available") func alwaysCoversAll() {
+        let existing = GlucoseAlert(type: .low) // default .always
+        let store = Self.storeWithOnly([existing])
+        #expect(store.availableActiveOptions(forNewAlarmOfType: .low).isEmpty)
+    }
+
+    @Test("Only .day taken → only .night available") func dayTakenOffersNight() {
+        var existing = GlucoseAlert(type: .low)
+        existing.activeOption = .day
+        let store = Self.storeWithOnly([existing])
+        #expect(store.availableActiveOptions(forNewAlarmOfType: .low) == [.night])
+    }
+
+    @Test("Only .night taken → only .day available") func nightTakenOffersDay() {
+        var existing = GlucoseAlert(type: .high)
+        existing.activeOption = .night
+        let store = Self.storeWithOnly([existing])
+        #expect(store.availableActiveOptions(forNewAlarmOfType: .high) == [.day])
+    }
+
+    @Test(".day + .night both taken → none available") func dayAndNightTakenLocked() {
+        var day = GlucoseAlert(type: .forecastedLow)
+        day.activeOption = .day
+        var night = GlucoseAlert(type: .forecastedLow)
+        night.activeOption = .night
+        let store = Self.storeWithOnly([day, night])
+        #expect(store.availableActiveOptions(forNewAlarmOfType: .forecastedLow).isEmpty)
+    }
+
+    @Test("No alarm of this type → all three options available") func emptyOffersAll() {
+        let store = Self.storeWithOnly([])
+        #expect(store.availableActiveOptions(forNewAlarmOfType: .carbsRequired) == [.always, .day, .night])
+    }
+
+    @Test("Gating is per-type — other types don't block") func gatingIsPerType() {
+        let lowAlways = GlucoseAlert(type: .low) // .always blocks Low
+        let store = Self.storeWithOnly([lowAlways])
+        #expect(store.availableActiveOptions(forNewAlarmOfType: .low).isEmpty)
+        #expect(store.availableActiveOptions(forNewAlarmOfType: .high) == [.always, .day, .night])
+    }
+
+    @Test("Editing an existing .day alarm: .always becomes pickable again") func editingExcludesSelf() {
+        var existing = GlucoseAlert(type: .urgentLow)
+        existing.activeOption = .day
+        let store = Self.storeWithOnly([existing])
+        let available = store.availableActiveOptions(forType: .urgentLow, excludingAlertID: existing.id)
+        #expect(available == [.always, .day, .night])
+    }
+
+    @Test("Editing one of two split alarms: only own window available") func editingOneOfTwoSplit() {
+        var day = GlucoseAlert(type: .low)
+        day.activeOption = .day
+        var night = GlucoseAlert(type: .low)
+        night.activeOption = .night
+        let store = Self.storeWithOnly([day, night])
+        // Editing the .day alarm: .night is taken by the other, .always would conflict with .night.
+        let editingDay = store.availableActiveOptions(forType: .low, excludingAlertID: day.id)
+        #expect(editingDay == [.day])
+    }
 }

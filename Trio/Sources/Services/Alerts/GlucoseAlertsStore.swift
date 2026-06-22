@@ -115,8 +115,14 @@ final class GlucoseAlertsStore: ObservableObject {
                 .filter { $0.type == type && $0.id != excludedID }
                 .map(\.activeOption)
         )
+        // `.always` covers both windows — fully blocks all additions.
+        if taken.contains(.always) { return [] }
+        // `.day` + `.night` together also cover everything.
+        if taken.contains(.day), taken.contains(.night) { return [] }
         var available = Set(ActiveOption.allCases)
         available.subtract(taken)
+        // Anything already taken (even just `.day` or `.night`) makes
+        // `.always` redundant — pull it out so it's not an option.
         if !taken.isEmpty { available.remove(.always) }
         return available
     }

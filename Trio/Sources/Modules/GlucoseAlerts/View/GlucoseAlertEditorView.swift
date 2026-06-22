@@ -15,6 +15,7 @@ struct GlucoseAlertEditorView: View {
         )
         return ActiveOption.allCases.filter { available.contains($0) }
     }
+
     let units: GlucoseUnits
     var onDone: () -> Void
     var onCancel: () -> Void
