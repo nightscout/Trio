@@ -68,7 +68,7 @@ extension GlucoseAlerts {
                 }.listRowBackground(Color.chart)
 
                 Section(footer: Text(
-                    "On by default when using a CGM in Trio which requires another app (e.g. Dexcom G6 / One, Dexcom G7 / One+, or xDrip4iOS). Turn off if you've disabled those and want Trio to alert you instead."
+                    "Your CGM app handles alerts (Dexcom G6 / One, G7 / One+, or xDrip4iOS). Turn off to let Trio alert you."
                 )) {
                     Toggle(isOn: Binding(
                         get: { !store.configuration.forceTrioAlertsWhenCGMProvidesOwn },
@@ -270,10 +270,18 @@ extension GlucoseAlerts {
             let comparator: String = {
                 switch alarm.type {
                 case .high: return String(localized: "above")
+                case .carbsRequired: return String(localized: "at least")
                 default: return String(localized: "below")
                 }
             }()
-            let threshold = "\(alarm.thresholdMgDL.formatted(for: state.units)) \(state.units.rawValue)"
+            let threshold: String = {
+                // `thresholdMgDL` stores grams for carbsRequired — no
+                // mg/dL ↔ mmol/L conversion and a fixed "g" unit label.
+                if alarm.type == .carbsRequired {
+                    return "\(alarm.thresholdMgDL) \(String(localized: "g", comment: "gram of carbs"))"
+                }
+                return "\(alarm.thresholdMgDL.formatted(for: state.units)) \(state.units.rawValue)"
+            }()
             let window = AlarmEnumDescription.description(for: alarm.activeOption)
             return "\(comparator.localizedCapitalized) \(threshold) • \(window)"
         }
