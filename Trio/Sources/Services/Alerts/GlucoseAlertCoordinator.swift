@@ -97,7 +97,10 @@ final class GlucoseAlertCoordinator: Injectable {
 
     private var effectiveTrioAlertsEnabled: Bool {
         if configurationSnapshot.forceTrioAlertsWhenCGMProvidesOwn { return true }
-        return !CGMManagerAlertOwnership.providesOwnGlucoseAlerts(fetchGlucoseManager?.cgmManager)
+        return !CGMManagerAlertOwnership.providesOwnGlucoseAlerts(
+            manager: fetchGlucoseManager?.cgmManager,
+            sourceType: fetchGlucoseManager?.cgmGlucoseSourceType ?? .none
+        )
     }
 
     init(resolver: Resolver) {
