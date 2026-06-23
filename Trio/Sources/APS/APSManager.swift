@@ -468,14 +468,13 @@ final class BaseAPSManager: APSManager, Injectable {
         do {
             let now = Date()
 
-            // Parallelize the fetches using async let
-            async let currentTemp = fetchCurrentTempBasal(date: now)
-            async let autosenseResult = autosense()
-
-            _ = try await autosenseResult
+            // put profile creation up front since autosens needs it
             try await openAPS.createProfiles(useSwiftOref: settings.useSwiftOref)
+            let currentTemp = try await fetchCurrentTempBasal(date: now)
+            _ = try await autosense()
+
             let determination = try await openAPS.determineBasal(
-                currentTemp: await currentTemp,
+                currentTemp: currentTemp,
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
                 useSwiftOref: settings.useSwiftOref,
                 clock: now
