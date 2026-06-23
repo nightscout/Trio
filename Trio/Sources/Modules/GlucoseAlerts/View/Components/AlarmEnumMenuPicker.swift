@@ -28,7 +28,7 @@ struct AlarmEnumMenuPicker<E: CaseIterable & Hashable & DayNightDisplayable>: Vi
             }
             .pickerStyle(.menu)
             .onAppear(perform: validate)
-            .onChange(of: allowed) { _ in validate() }
+            .onChange(of: allowed) { _, _ in validate() }
         }
     }
 

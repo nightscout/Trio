@@ -236,14 +236,20 @@ final class BaseAPSManager: APSManager, Injectable {
         Task { [weak self] in
             guard let self else { return }
 
+            // Consume the user-initiated flag unconditionally — it was set
+            // for the loop the user just triggered. If the guard below blocks
+            // (suspended, too-soon, no pump), the next scheduled tick must
+            // not inherit it and bypass dwell suppression for an error the
+            // user didn't request.
+            let userInitiated = self.nextLoopUserInitiated
+            self.nextLoopUserInitiated = false
+
             // Check if we can start a new loop
             guard await self.canStartNewLoop() else { return }
 
-            // Consume the user-initiated flag for the duration of this loop —
-            // affects whether transient errors surface immediately instead of
+            // Affects whether transient errors surface immediately instead of
             // dwell-suppressed (see `surfaceErrorIfNeeded`).
-            self.currentLoopUserInitiated = self.nextLoopUserInitiated
-            self.nextLoopUserInitiated = false
+            self.currentLoopUserInitiated = userInitiated
             defer { self.currentLoopUserInitiated = false }
 
             // Setup loop and background task
