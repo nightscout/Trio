@@ -50,6 +50,16 @@ extension GlucoseAlerts {
                         }
                     }.listRowBackground(Color.chart)
                 }
+                if !cgmHandledAlerts.isEmpty {
+                    Section(
+                        header: Text("Handled by CGM App"),
+                        footer: cgmHandledFooter
+                    ) {
+                        ForEach(cgmHandledAlerts) { alarm in
+                            row(for: alarm).opacity(0.6)
+                        }
+                    }.listRowBackground(Color.chart)
+                }
 
                 // FIXME: make this into a nice setting with mini and verbose hint
                 Section {
@@ -58,7 +68,7 @@ extension GlucoseAlerts {
                 }.listRowBackground(Color.chart)
 
                 Section(footer: Text(
-                    "On by default for all CGM or apps that handle glucose alerts (all Dexcom CGMs, xDrip4iOS). Turn off if you've disabled those and want Trio to alert you instead."
+                    "On by default when using a CGM in Trio which requires another app (e.g. Dexcom G6 / One, Dexcom G7 / One+, or xDrip4iOS). Turn off if you've disabled those and want Trio to alert you instead."
                 )) {
                     Toggle(isOn: Binding(
                         get: { !store.configuration.forceTrioAlertsWhenCGMProvidesOwn },
@@ -128,7 +138,10 @@ extension GlucoseAlerts {
                     sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
-            .onAppear(perform: configureView)
+            .onAppear {
+                configureView()
+                state.refreshCGMOwnership()
+            }
         }
 
         private func handleSheetDismiss() {
@@ -148,9 +161,61 @@ extension GlucoseAlerts {
 
         // MARK: - Sorted lists
 
+        /// Mirror of `GlucoseAlertCoordinator.shouldRespect(alarm:)`'s
+        /// CGM-ownership branch: when "Use CGM App Alerts" is ON and the
+        /// active CGM provides its own glucose alerts, the coordinator
+        /// silences reading-driven types. The view surfaces this by moving
+        /// those alarms into a dedicated section.
+        private var isCGMSuppressionActive: Bool {
+            !store.configuration.forceTrioAlertsWhenCGMProvidesOwn && state.cgmProvidesOwnAlerts
+        }
+
+        private var cgmHandledAlerts: [GlucoseAlert] {
+            guard isCGMSuppressionActive else { return [] }
+            return store.alerts
+                .filter { $0.isEnabled && $0.type.isReadingDriven }
+                .sorted { lhs, rhs in
+                    lhs.type.priority < rhs.type.priority
+                }
+        }
+
+        /// Footer for the "Handled by CGM App" section. Names the specific
+        /// companion app, and renders its name as a deep link when a URL
+        /// scheme is known for that app (see CGMManagerAlertOwnership).
+        @ViewBuilder private var cgmHandledFooter: some View {
+            if let info = state.cgmAppInfo {
+                Text(handledFooterMarkdown(for: info))
+            } else {
+                Text(
+                    "These alarms are silenced because the CGM app handles them. To have Trio notify you instead, turn off \"Use CGM App Alerts\" below."
+                )
+            }
+        }
+
+        private func handledFooterMarkdown(for info: CGMManagerAlertOwnership.OwningApp) -> AttributedString {
+            let body = String(
+                format: String(
+                    localized:
+                    "These alarms are silenced because the %@ app handles CGM alerts. To have Trio notify you instead, turn off \"Use CGM App Alerts\" below."
+                ),
+                "{{NAME}}"
+            )
+            var result = AttributedString(body)
+            if let range = result.range(of: "{{NAME}}") {
+                var name = AttributedString(info.name)
+                if let url = info.deepLink {
+                    name.link = url
+                }
+                result.replaceSubrange(range, with: name)
+            }
+            return result
+        }
+
         private var enabledAlerts: [GlucoseAlert] {
-            store.alerts
+            let handled = Set(cgmHandledAlerts.map(\.id))
+            return store.alerts
                 .filter(\.isEnabled)
+                .filter { !handled.contains($0.id) }
                 .sorted { lhs, rhs in
                     lhs.type.priority < rhs.type.priority
                 }
