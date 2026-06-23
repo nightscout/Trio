@@ -134,4 +134,54 @@ import Testing
         )
         #expect(config.isNight(at: Self.makeDate(hour: 10, minute: 0), calendar: Self.utcCalendar))
     }
+
+    // MARK: - DST transitions (America/New_York)
+
+    /// Calendar pinned to a DST-observing zone so wall-clock arithmetic
+    /// crosses the spring-forward / fall-back boundaries.
+    private static let nyCalendar: Calendar = {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "America/New_York")!
+        return cal
+    }()
+
+    private static func nyDate(year: Int, month: Int, day: Int, hour: Int, minute: Int) -> Date {
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = day
+        components.hour = hour
+        components.minute = minute
+        return nyCalendar.date(from: components)!
+    }
+
+    /// Spring-forward in the US 2026: March 8 at 02:00 → 03:00 local. Default
+    /// config (day 06:00 / night 22:00) — 23:00 must still be night and
+    /// 10:00 must still be day after the clock jumped.
+    @Test("DST spring-forward: 23:00 local is night, 10:00 local is day") func springForwardWallClock() {
+        let config = GlucoseAlertConfiguration()
+        let night = Self.nyDate(year: 2026, month: 3, day: 8, hour: 23, minute: 0)
+        let day = Self.nyDate(year: 2026, month: 3, day: 8, hour: 10, minute: 0)
+        #expect(config.isNight(at: night, calendar: Self.nyCalendar))
+        #expect(!config.isNight(at: day, calendar: Self.nyCalendar))
+    }
+
+    /// 03:30 local on spring-forward day exists post-jump and is < dayStart
+    /// 06:00, so it must classify as night.
+    @Test("DST spring-forward: 03:30 local (immediately post-jump) is night") func springForwardJustAfterJump() {
+        let config = GlucoseAlertConfiguration()
+        let postJump = Self.nyDate(year: 2026, month: 3, day: 8, hour: 3, minute: 30)
+        #expect(config.isNight(at: postJump, calendar: Self.nyCalendar))
+    }
+
+    /// Fall-back in the US 2026: November 1 at 02:00 → 01:00 local. 01:30
+    /// happens twice; both repetitions are < dayStart 06:00 and must
+    /// classify as night.
+    @Test("DST fall-back: 01:30 local (both pre- and post-rewind) is night") func fallBackBothInstancesAreNight() {
+        let config = GlucoseAlertConfiguration()
+        let oneThirty = Self.nyDate(year: 2026, month: 11, day: 1, hour: 1, minute: 30)
+        #expect(config.isNight(at: oneThirty, calendar: Self.nyCalendar))
+        // 0130 + 1h = 0230 local, which only exists once on fall-back days.
+        #expect(config.isNight(at: oneThirty.addingTimeInterval(3600), calendar: Self.nyCalendar))
+    }
 }
