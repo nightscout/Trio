@@ -49,9 +49,6 @@ extension PumpConfig {
                                     Button("Acknowledge all alerts") { state.ack() }
                                 }
                                 Spacer()
-                                Button("Fire test alert (immediate)") { state.fireTestAlert(critical: false) }
-                                Button("Fire test alert (critical)") { state.fireTestAlert(critical: true) }
-                                Button("Retract test alerts") { state.retractTestAlerts() }
                             } else {
                                 VStack {
                                     Button {
