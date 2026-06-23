@@ -287,18 +287,22 @@ extension GlucoseAlerts {
         }
 
         private func soundSummary(for alarm: GlucoseAlert) -> some View {
-            var icon = "speaker.fill"
-            var label = String(localized: "Sound on")
-            if !alarm.playsSound {
-                icon = "speaker.slash.fill"
-                label = String(localized: "Sound off")
-            } else if alarm.overridesSilenceAndDND {
-                icon = "speaker.wave.3.fill"
-                label = String(localized: "Override Silence & Focus")
-            }
-            return HStack(spacing: 4) {
-                Image(systemName: icon)
-                Text(label)
+            // Show the sound and override facts independently. Previously
+            // the override badge was hidden when sound was off, but "sound
+            // off + override on" is a valid combo (silent + haptic that
+            // breaks through Focus / Sleep) and the user needs to see it.
+            HStack(spacing: 6) {
+                HStack(spacing: 4) {
+                    Image(systemName: alarm.playsSound ? "speaker.wave.2.fill" : "speaker.slash.fill")
+                    Text(alarm.playsSound ? "Sound on" : "Sound off")
+                }
+                if alarm.overridesSilenceAndDND {
+                    Text("·")
+                    HStack(spacing: 4) {
+                        Image(systemName: "bell.badge.fill")
+                        Text("Overrides Focus")
+                    }
+                }
             }
             .font(.footnote)
             .foregroundColor(.secondary)
