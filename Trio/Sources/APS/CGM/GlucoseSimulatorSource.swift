@@ -99,6 +99,14 @@ final class GlucoseSimulatorSource: GlucoseSource {
         guard canGenerateNewValues else {
             return Just([]).eraseToAnyPublisher()
         }
+        // Match real CGM behavior: scenarios where a physical sensor wouldn't
+        // be delivering readings (warmup, calibration, expired, failed) also
+        // stop the simulator from emitting fresh values. Existing readings
+        // then age out of the 12 min freshness window, the bobble flips to
+        // its compact symbol view, and the highlight's imageName surfaces.
+        guard simulatedScenario.deliversFreshGlucose else {
+            return Just([]).eraseToAnyPublisher()
+        }
 
         let glucoses = generator.getBloodGlucoses(
             startDate: lastFetchDate,
@@ -234,6 +242,23 @@ enum SimulatedSensorScenario: String, CaseIterable, Identifiable {
         case .calibrationRequired: return "Calibration required"
         case .expired: return "Expired"
         case .sensorFailed: return "Sensor failed"
+        }
+    }
+
+    /// Whether a real CGM would still be delivering fresh glucose readings
+    /// while in this state. Drives the simulator's `fetch()` gate so non-
+    /// active scenarios stop emitting and the home view sees stale data
+    /// the same way it would from a real sensor.
+    var deliversFreshGlucose: Bool {
+        switch self {
+        case .runningNormally,
+             .expiringSoon:
+            return true
+        case .warmup,
+             .calibrationRequired,
+             .expired,
+             .sensorFailed:
+            return false
         }
     }
 
