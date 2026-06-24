@@ -92,32 +92,6 @@ private actor LoopGuard {
     }
 }
 
-// MARK: - Thread-safe bolus progress state
-
-/// Isolates the mutable `DoseProgressReporter` reference to prevent data
-/// races between Combine sinks (on `processQueue`) and async contexts
-/// (e.g. `cancelBolus`)
-private actor BolusProgressState {
-    private var reporter: DoseProgressReporter?
-    private var generation: UInt64 = 0
-
-    func setReporter(_ newReporter: DoseProgressReporter?, observer: any DoseProgressObserver) {
-        generation &+= 1
-        reporter?.removeObserver(observer)
-        reporter = newReporter
-        reporter?.addObserver(observer)
-    }
-
-    func clear(observer: any DoseProgressObserver) -> UInt64 {
-        generation &+= 1
-        reporter?.removeObserver(observer)
-        reporter = nil
-        return generation
-    }
-
-    func isCurrent(_ token: UInt64) -> Bool { token == generation }
-}
-
 final class BaseAPSManager: APSManager, Injectable {
     private let processQueue = DispatchQueue(label: "BaseAPSManager.processQueue")
     @Injected() private var storage: FileStorage!
@@ -144,7 +118,11 @@ final class BaseAPSManager: APSManager, Injectable {
     private var lifetime = Lifetime()
 
     private let loopGuard = LoopGuard()
-    private let bolusProgressState = BolusProgressState()
+    /// All reads/writes are dispatched onto `processQueue` so the bolus
+    /// trigger sink, `cancelBolus`, and the `DoseProgressReporter`
+    /// callback (which the pump manager already invokes on
+    /// `processQueue`) all serialize through one queue
+    private var bolusReporter: DoseProgressReporter?
 
     var pumpManager: PumpManagerUI? {
         get { deviceDataManager.pumpManager }
@@ -234,17 +212,10 @@ final class BaseAPSManager: APSManager, Injectable {
         deviceDataManager.bolusTrigger
             .receive(on: processQueue)
             .sink { [weak self] bolusing in
-                // Funnel both transitions through a single Task so create/clear
-                // can't reorder against each other at the actor — unstructured
-                // Tasks enter an actor in scheduler order, not the order they
-                // were spawned.
-                Task { [weak self] in
-                    guard let self else { return }
-                    if bolusing {
-                        await self.createBolusReporter()
-                    } else {
-                        await self.clearBolusReporter()
-                    }
+                if bolusing {
+                    self?.createBolusReporter()
+                } else {
+                    self?.clearBolusReporter()
                 }
             }
             .store(in: &lifetime)
@@ -658,8 +629,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 )
             )
         }
-        _ = await bolusProgressState.clear(observer: self)
-        bolusProgress.send(nil)
+        clearBolusReporter()
     }
 
     func enactTempBasal(rate: Double, duration: TimeInterval) async {
@@ -1239,17 +1209,23 @@ final class BaseAPSManager: APSManager, Injectable {
         lastError.send(error)
     }
 
-    private func createBolusReporter() async {
-        let reporter = pumpManager?.createBolusProgressReporter(reportingOn: processQueue)
-        await bolusProgressState.setReporter(reporter, observer: self)
+    /// Called from the `bolusTrigger` Combine sink (already on
+    /// `processQueue`) and from `doseProgressReporterDidUpdate` (the
+    /// pump manager schedules the callback on `processQueue` too).
+    /// Mutations are dispatched onto the queue regardless, so a future
+    /// caller from another context (e.g. `cancelBolus`) stays safe.
+    private func createBolusReporter() {
+        processQueue.async {
+            self.bolusReporter = self.pumpManager?.createBolusProgressReporter(reportingOn: self.processQueue)
+            self.bolusReporter?.addObserver(self)
+        }
     }
 
-    private func clearBolusReporter() async {
-        let token = await bolusProgressState.clear(observer: self)
-        try? await Task.sleep(for: .milliseconds(500))
-        // Generation token guards against a new bolus starting during the 500 ms grace
-        if await bolusProgressState.isCurrent(token) {
-            bolusProgress.send(nil)
+    private func clearBolusReporter() {
+        processQueue.async {
+            self.bolusReporter?.removeObserver(self)
+            self.bolusReporter = nil
+            self.bolusProgress.send(nil)
         }
     }
 }
@@ -1369,13 +1345,7 @@ extension BaseAPSManager: DoseProgressObserver {
     func doseProgressReporterDidUpdate(_ doseProgressReporter: DoseProgressReporter) {
         bolusProgress.send(Decimal(doseProgressReporter.progress.percentComplete))
         if doseProgressReporter.progress.isComplete {
-            // Protocol method is sync; wrap the now-async clear in a Task.
-            // The 500 ms delayed send(nil) is gated by the generation token
-            // in BolusProgressState, so a new bolus arriving in the meantime
-            // is not clobbered.
-            Task { [weak self] in
-                await self?.clearBolusReporter()
-            }
+            clearBolusReporter()
         }
     }
 }
