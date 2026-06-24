@@ -13,6 +13,7 @@
 ///  - OscillatingGenerator: BloodGlucoseGenerator - Generates sinusoidal glucose values around a center point
 
 import Combine
+import CoreData
 import Foundation
 import LoopKit
 import LoopKitUI
@@ -70,10 +71,40 @@ final class GlucoseSimulatorSource: GlucoseSource {
         }
     }
 
-    /// Picker entry point — change scenario + propagate immediately.
+    /// Picker entry point — change scenario + propagate immediately. When
+    /// flipping to a state where a real sensor wouldn't be delivering fresh
+    /// readings, drop any GlucoseStored rows inside the home view's 12 min
+    /// freshness window so the bobble switches to its compact stale view
+    /// right away instead of waiting for organic aging.
     func applySimulatedScenario(_ scenario: SimulatedSensorScenario) {
         simulatedScenario = scenario
+        if !scenario.deliversFreshGlucose {
+            clearRecentSimulatorReadings()
+        }
         publishSimulatedState()
+    }
+
+    /// Deletes GlucoseStored rows newer than the home view's 12 min
+    /// freshness window. Dev-only — only invoked from the simulator's
+    /// scenario picker, which is itself gated to simulator mode.
+    private func clearRecentSimulatorReadings() {
+        let context = CoreDataStack.shared.newTaskContext()
+        let cutoff = Date().addingTimeInterval(-12 * 60)
+        context.perform {
+            let request = GlucoseStored.fetchRequest()
+            request.predicate = NSPredicate(format: "date > %@", cutoff as NSDate)
+            do {
+                let recent = try context.fetch(request)
+                for row in recent {
+                    context.delete(row)
+                }
+                if context.hasChanges {
+                    try context.save()
+                }
+            } catch {
+                print("GlucoseSimulatorSource: clearRecentSimulatorReadings failed: \(error)")
+            }
+        }
     }
 
     /// The glucose generator used to create simulated values
@@ -251,13 +282,13 @@ enum SimulatedSensorScenario: String, CaseIterable, Identifiable {
     /// the same way it would from a real sensor.
     var deliversFreshGlucose: Bool {
         switch self {
-        case .runningNormally,
-             .expiringSoon:
+        case .expiringSoon,
+             .runningNormally:
             return true
-        case .warmup,
-             .calibrationRequired,
+        case .calibrationRequired,
              .expired,
-             .sensorFailed:
+             .sensorFailed,
+             .warmup:
             return false
         }
     }
