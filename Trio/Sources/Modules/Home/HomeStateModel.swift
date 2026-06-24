@@ -333,11 +333,26 @@ extension Home {
                     self.timerDate = Date()
                     // The publisher only re-emits on state changes; re-pull
                     // so the arc + countdowns + status text advance during
-                    // warmup / stabilizing / expiry.
+                    // warmup / stabilizing / expiry. Simulator has no
+                    // CGMManager, so fall back to reading its synthetic
+                    // lifecycle / highlight so the bobble sees the same
+                    // data shape a real CGM would deliver.
                     let manager = self.fetchGlucoseManager.cgmManager
-                    let progress = manager?.cgmLifecycleProgress
+                    let source = self.fetchGlucoseManager.glucoseSource
+                    let progress: DeviceLifecycleProgress?
+                    let highlight: DeviceStatusHighlight?
+                    if let manager {
+                        progress = manager.cgmLifecycleProgress
+                        highlight = manager.cgmStatusHighlight
+                    } else if let sim = source as? GlucoseSimulatorSource {
+                        progress = sim.cgmLifecycleProgress
+                        highlight = sim.cgmStatusHighlight
+                    } else {
+                        progress = nil
+                        highlight = nil
+                    }
                     self.cgmProgressHighlight = progress
-                    if let highlight = manager?.cgmStatusHighlight {
+                    if let highlight {
                         self.cgmDisplayState = CgmDisplayState(
                             localizedMessage: highlight.localizedMessage,
                             imageName: highlight.imageName,
@@ -348,7 +363,7 @@ extension Home {
                     }
                     self.cgmSensorExpiresAt = Self.resolveSensorExpiresAt(
                         manager: manager,
-                        glucoseSource: self.fetchGlucoseManager.glucoseSource,
+                        glucoseSource: source,
                         lifecycle: progress
                     )
                     self.cgmWarmupEndsAt = Self.resolveWarmupEndsAt(manager: manager)
