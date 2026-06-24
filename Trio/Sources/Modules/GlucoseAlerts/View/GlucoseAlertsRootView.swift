@@ -67,15 +67,21 @@ extension GlucoseAlerts {
                         .navigationLink(to: .alarmWindows, from: self)
                 }.listRowBackground(Color.chart)
 
-                Section(footer: Text(
-                    "Your CGM app handles alerts (Dexcom G6 / One, G7 / One+, or xDrip4iOS). Turn off to let Trio alert you."
-                )) {
+                Section(footer: Text(useCGMAlertsFooter)) {
                     Toggle(isOn: Binding(
-                        get: { !store.configuration.forceTrioAlertsWhenCGMProvidesOwn },
+                        // When the active CGM has no companion app to defer
+                        // to, force the visible state OFF regardless of the
+                        // stored preference — there's nothing for the toggle
+                        // to control, so showing it ON would mislead.
+                        get: {
+                            guard state.cgmProvidesOwnAlerts else { return false }
+                            return !store.configuration.forceTrioAlertsWhenCGMProvidesOwn
+                        },
                         set: { store.configuration.forceTrioAlertsWhenCGMProvidesOwn = !$0 }
                     )) {
                         Text("Use CGM App Alerts")
                     }
+                    .disabled(!state.cgmProvidesOwnAlerts)
                 }.listRowBackground(Color.chart)
 
                 SettingInputSection(
@@ -177,6 +183,23 @@ extension GlucoseAlerts {
                 .sorted { lhs, rhs in
                     lhs.type.priority < rhs.type.priority
                 }
+        }
+
+        /// Footer for the "Use CGM App Alerts" toggle. Names the eligible
+        /// CGMs when one of them is active and the user can decide; when
+        /// the active CGM has no companion app the toggle is disabled and
+        /// the footer says Trio is handling alarms.
+        private var useCGMAlertsFooter: String {
+            if state.cgmProvidesOwnAlerts {
+                return String(
+                    localized:
+                    "Your CGM app handles alerts (Dexcom G6 / One, G7 / One+, or xDrip4iOS). Turn off to let Trio alert you."
+                )
+            }
+            return String(
+                localized:
+                "Your CGM has no companion app, so Trio handles alarms."
+            )
         }
 
         /// Footer for the "Handled by CGM App" section. Names the specific
