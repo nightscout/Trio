@@ -542,9 +542,12 @@ final class OpenAPS {
                 .reduce(0, +)
 
             let currentTDD = historicalTDDData.last?["total"] as? Decimal ?? 0
-            let averageTDDLastTwoHours = recentTotalTDD / Decimal(recentDataCount)
-            let averageTDDLastTenDays = totalTDD / Decimal(totalDaysCount)
-            let weightedTDD = weightPercentage * averageTDDLastTwoHours + (1 - weightPercentage) * averageTDDLastTenDays
+            // Round derived TDD averages to avoid floating-point artifacts (e.g. ...85000000000001)
+            // leaking into the raw algorithm output. Matches the precision handling in TDDStorage. (#1209)
+            let averageTDDLastTwoHours = (recentTotalTDD / Decimal(recentDataCount)).rounded(toPlaces: 2)
+            let averageTDDLastTenDays = (totalTDD / Decimal(totalDaysCount)).rounded(toPlaces: 2)
+            let weightedTDD = (weightPercentage * averageTDDLastTwoHours + (1 - weightPercentage) * averageTDDLastTenDays)
+                .rounded(toPlaces: 2)
 
             let glucose = try self.fetchGlucose()
 
