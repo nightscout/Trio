@@ -905,6 +905,14 @@ extension Treatments.StateModel {
 
     private func updateDeterminationsArray(with objects: [OrefDetermination]) {
         Task { @MainActor in
+            // Fall back to the current profile values for target/ISF/carb ratio so the bolus
+            // calculator never shows or divides by 0 when there is no recent determination
+            // (e.g. implicit open loop during sensor warmup or missing readings). These are
+            // overwritten below with the determination's values when one is available. (#1139)
+            target = currentBGTarget
+            isf = currentISF
+            carbRatio = currentCarbRatio
+
             guard let mostRecentDetermination = objects.first else { return }
             determination = objects
 
