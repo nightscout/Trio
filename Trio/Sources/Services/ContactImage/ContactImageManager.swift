@@ -369,28 +369,18 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
         }
     }
 
-    /// Creates a new contact in the Apple contact list or updates an existing one with the same name.
+    /// Creates a new, dedicated contact in the Apple contact list.
     /// - Parameter name: The name of the contact.
-    /// - Returns: The `identifier` of the created/updated contact, or `nil` if an error occurs.
+    /// - Returns: The `identifier` of the created contact, or `nil` if an error occurs.
+    ///
+    /// We intentionally always create a fresh contact rather than looking up an existing one by
+    /// name. `CNContact.predicateForContacts(matchingName:)` performs a fuzzy, token-based match,
+    /// so reusing the first match for a name like "Trio" would hijack an unrelated user contact
+    /// whose card merely contains that token (see #1232). Trio tracks the contact it owns via the
+    /// `contactId` persisted in Core Data, so de-duplication by name is neither needed nor correct.
     func createContact(name: String) async -> String? {
         do {
-            // First check if a contact with this name already exists
-            let predicate = CNContact.predicateForContacts(matchingName: name)
-            let existingContacts = try contactStore.unifiedContacts(
-                matching: predicate,
-                keysToFetch: [
-                    CNContactIdentifierKey as CNKeyDescriptor,
-                    CNContactGivenNameKey as CNKeyDescriptor
-                ]
-            )
-
-            // If contact exists, return its identifier
-            if let existingContact = existingContacts.first {
-                debugPrint("Found existing contact with name: \(name)")
-                return existingContact.identifier
-            }
-
-            // If no existing contact, create a new one
+            // Always create a new, dedicated contact.
             let contact = CNMutableContact()
             contact.givenName = name
 
@@ -399,20 +389,11 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
 
             try contactStore.execute(saveRequest)
 
-            // Re-fetch to get the identifier
-            let newContacts = try contactStore.unifiedContacts(
-                matching: predicate,
-                keysToFetch: [CNContactIdentifierKey as CNKeyDescriptor]
-            )
-
-            guard let createdContact = newContacts.first else {
-                debugPrint("\(DebuggingIdentifiers.failed) Contact creation failed: No contact found after save.")
-                return nil
-            }
-
-            return createdContact.identifier
+            // `CNMutableContact` is assigned its identifier on creation and it persists after the
+            // save, so we can return it directly instead of re-fetching with the fuzzy name predicate.
+            return contact.identifier
         } catch {
-            debugPrint("\(DebuggingIdentifiers.failed) Error creating/finding contact: \(error)")
+            debugPrint("\(DebuggingIdentifiers.failed) Error creating contact: \(error)")
             return nil
         }
     }
