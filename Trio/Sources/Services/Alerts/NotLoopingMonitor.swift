@@ -16,6 +16,7 @@ import Swinject
 final class NotLoopingMonitor: Injectable {
     @Injected() private var apsManager: APSManager!
     @Injected() private var trioAlertManager: TrioAlertManager!
+    @Injected() private var settingsManager: SettingsManager!
 
     /// Minutes of staleness before the alarm fires. Mirrors the legacy
     /// `firstInterval` (20 min) — the second 40-min reminder is dropped;
@@ -52,6 +53,17 @@ final class NotLoopingMonitor: Injectable {
         // Retract first — clears pending UN, modal timer, and throttler so the
         // next issueAlert isn't blocked by 5-min duplicate suppression.
         trioAlertManager.retractAlert(identifier: Self.alertID)
+
+        // Skip when Trio isn't expected to be auto-enacting: open loop, an
+        // active manual temp basal, or a suspended pump. In all three the
+        // user has implicitly told Trio "don't loop right now"; a "Not
+        // Looping" alarm would just be noise. nil injection (publisher-only
+        // test seam) passes so the existing tests still exercise the
+        // retract/reschedule plumbing.
+        guard settingsManager?.settings.closedLoop != false,
+              apsManager?.isManualTempBasal != true,
+              apsManager?.isSuspended != true
+        else { return }
 
         let content = Alert.Content(
             title: String(localized: "Trio Not Active"),
