@@ -186,7 +186,7 @@ final class TrioModalAlertScheduler: ObservableObject {
 struct TrioAlertBanner: View {
     let alert: LoopKit.Alert
     /// Single-tap action — `nil` means tap behaves like swipe-up (fires the
-    /// 20-min snooze). The collapsed stack overrides this with "expand",
+    /// 15-min snooze). The collapsed stack overrides this with "expand",
     /// since tapping a stacked card should reveal the rest of the deck
     /// before letting the user dismiss anything individually.
     var onTap: (() -> Void)? = nil
@@ -200,8 +200,8 @@ struct TrioAlertBanner: View {
     private static let quickSnooze: TimeInterval = 15 * 60
 
     /// Critical alerts and urgent-low glucose alarms are limited to the
-    /// 20-minute quick snooze — the safety floor. Other alerts get the full
-    /// 20m / 1h / 3h / 6h menu.
+    /// 15-minute quick snooze — the safety floor. Other alerts get the full
+    /// 15m / 1h / 3h / 6h menu.
     private var isQuickSnoozeOnly: Bool {
         if alert.interruptionLevel == .critical { return true }
         if GlucoseAlertType(slug: alert.identifier.alertIdentifier) == .urgentLow { return true }
@@ -279,7 +279,7 @@ struct TrioAlertBanner: View {
         .opacity(1 - min(abs(dragOffset.height) / CGFloat(200), 0.4))
         .gesture(
             // Swipe-up — iOS-banner gesture; tracks the drag visually then
-            // commits a 20-minute snooze past −50pt. Springs back otherwise.
+            // commits a 15-minute snooze past −50pt. Springs back otherwise.
             DragGesture(minimumDistance: 8)
                 .onChanged { value in
                     guard value.translation.height < 0 else { return }
