@@ -6,7 +6,7 @@ enum NotificationCategoryIdentifier: String {
 }
 
 enum NotificationResponseAction: String, CaseIterable {
-    case snooze20 = "Trio.snooze20"
+    case snooze15 = "Trio.snooze15"
     case snooze1hr = "Trio.snooze1hr"
     case snooze3hr = "Trio.snooze3hr"
     case snooze6hr = "Trio.snooze6hr"
@@ -17,8 +17,8 @@ enum NotificationResponseAction: String, CaseIterable {
 
     var minutes: Int {
         switch self {
-        case .snooze20:
-            return 20
+        case .snooze15:
+            return 15
         case .snooze1hr:
             return 60
         case .snooze3hr:
@@ -30,14 +30,14 @@ enum NotificationResponseAction: String, CaseIterable {
 
     var localizedTitle: String {
         switch self {
-        case .snooze20:
-            return String(localized: "20 min", comment: "Snooze glucose alerts for 20 minutes")
+        case .snooze15:
+            return String(localized: "Snooze 15 min", comment: "Snooze glucose alerts for 15 minutes")
         case .snooze1hr:
-            return String(localized: "1 hour", comment: "Snooze glucose alerts for 1 hour")
+            return String(localized: "Snooze 1 hr", comment: "Snooze glucose alerts for 1 hour")
         case .snooze3hr:
-            return String(localized: "3 hours", comment: "Snooze glucose alerts for 3 hours")
+            return String(localized: "Snooze 3 hrs", comment: "Snooze glucose alerts for 3 hours")
         case .snooze6hr:
-            return String(localized: "6 hours", comment: "Snooze glucose alerts for 6 hours")
+            return String(localized: "Snooze 6 hrs", comment: "Snooze glucose alerts for 6 hours")
         }
     }
 }
