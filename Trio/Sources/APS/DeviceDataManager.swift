@@ -493,6 +493,13 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
             settingsManager.updateInsulinCurve(status.insulinType)
         }
 
+        // Check if manual temp basal is active
+        let manualTempBasalActive = status.basalDeliveryState?.isManualTempBasal ?? false
+        if manualTempBasalActive {
+            debug(.deviceManager, "manual temp basal")
+        }
+        manualTempBasal.send(manualTempBasalActive)
+
         if let medtrumPump = pumpManager as? MedtrumPumpManager {
             storage.save(Decimal(medtrumPump.state.reservoir), as: OpenAPS.Monitor.reservoir)
             broadcaster.notify(PumpReservoirObserver.self, on: processQueue) {
@@ -524,18 +531,6 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
             storage.save(Decimal(reservoir), as: OpenAPS.Monitor.reservoir)
             broadcaster.notify(PumpReservoirObserver.self, on: processQueue) {
                 $0.pumpReservoirDidChange(Decimal(reservoir))
-            }
-
-            // manual temp basal on
-            if let tempBasal = omni.state.podState?.unfinalizedTempBasal, !tempBasal.isFinished(),
-               !tempBasal.automatic
-            {
-                // the manual basal temp is launch - block every thing
-                debug(.deviceManager, "manual temp basal")
-                manualTempBasal.send(true)
-            } else {
-                // no more manual Temp Basal !
-                manualTempBasal.send(false)
             }
 
             guard let endTime = omni.state.podState?.expiresAt else {
