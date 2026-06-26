@@ -142,11 +142,6 @@ extension Home {
                         state.shouldDisplayCGMSetupSheet.toggle()
                     }
                 }
-                .onLongPressGesture {
-                    let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                    impactHeavy.impactOccurred()
-                    state.showModal(for: .snooze)
-                }
         }
 
         var pumpView: some View {
