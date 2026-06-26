@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		041D1E995A6AE92E9289DC49 /* TreatmentsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */; };
-		0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5822B15939E719628E9FF7C /* SnoozeRootView.swift */; };
 		0D9A5E34A899219C5C4CDFAF /* HistoryStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9455FA2D92E77A6C4AFED8A3 /* HistoryStateModel.swift */; };
 		110AEDE32C5193D200615CC9 /* BolusIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE02C5193D100615CC9 /* BolusIntent.swift */; };
 		110AEDE42C5193D200615CC9 /* BolusIntentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE12C5193D100615CC9 /* BolusIntentRequest.swift */; };
@@ -95,6 +94,7 @@
 		38192E04261B82FA0094D973 /* ReachabilityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38192E03261B82FA0094D973 /* ReachabilityManager.swift */; };
 		38192E07261BA9960094D973 /* FetchTreatmentsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38192E06261BA9960094D973 /* FetchTreatmentsManager.swift */; };
 		38192E0D261BAF980094D973 /* ConvenienceExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38192E0C261BAF980094D973 /* ConvenienceExtensions.swift */; };
+		D7C5E1F4A7B91E2F3C5D6E70 /* TimeInterval+Convenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C5E1F4A7B91E2F3C5D6E71 /* TimeInterval+Convenience.swift */; };
 		3821ED4C25DD18BA00BC42AD /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3821ED4B25DD18BA00BC42AD /* Constants.swift */; };
 		382C133725F13A1E00715CE1 /* InsulinSensitivities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 382C133625F13A1E00715CE1 /* InsulinSensitivities.swift */; };
 		382C134B25F14E3700715CE1 /* BGTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 382C134A25F14E3700715CE1 /* BGTargets.swift */; };
@@ -157,7 +157,6 @@
 		38DAB280260CBB7F00F74C1A /* PumpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAB27F260CBB7F00F74C1A /* PumpView.swift */; };
 		38DAB28A260D349500F74C1A /* FetchGlucoseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAB289260D349500F74C1A /* FetchGlucoseManager.swift */; };
 		38DF1786276A73D400B3528F /* TagCloudView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DF1785276A73D400B3528F /* TagCloudView.swift */; };
-		38DF1789276FC8C400B3528F /* SwiftMessages in Frameworks */ = {isa = PBXBuildFile; productRef = 38DF1788276FC8C400B3528F /* SwiftMessages */; };
 		38DF178D27733E6800B3528F /* snow.sks in Resources */ = {isa = PBXBuildFile; fileRef = 38DF178B27733E6800B3528F /* snow.sks */; };
 		38DF178E27733E6800B3528F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 38DF178C27733E6800B3528F /* Assets.xcassets */; };
 		38DF179027733EAD00B3528F /* SnowScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DF178F27733EAD00B3528F /* SnowScene.swift */; };
@@ -441,17 +440,14 @@
 		6B1A8D242B14D91700E76752 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6B1A8D232B14D91700E76752 /* Assets.xcassets */; };
 		6B1A8D282B14D91700E76752 /* LiveActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6B1A8D172B14D91600E76752 /* LiveActivityExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6B1A8D2E2B156EEF00E76752 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B1A8D2D2B156EEF00E76752 /* LiveActivityManager.swift */; };
-		6B1F539F9FF75646D1606066 /* SnoozeDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36A708CDB546692C2230B385 /* SnoozeDataFlow.swift */; };
 		6BCF84DD2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BCF84DC2B16843A003AD46E /* LiveActitiyAttributes.swift */; };
 		6BCF84DE2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BCF84DC2B16843A003AD46E /* LiveActitiyAttributes.swift */; };
 		6EADD581738D64431902AC0A /* (null) in Sources */ = {isa = PBXBuildFile; };
-		6FFAE524D1D9C262F2407CAE /* SnoozeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CAE81192B118804DCD23034 /* SnoozeProvider.swift */; };
 		711C0CB42CAABE788916BC9D /* ManualTempBasalDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96653287EDB276A111288305 /* ManualTempBasalDataFlow.swift */; };
 		71D44AAB2CA5F5EA0036EE9E /* AlertPermissionsChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71D44AAA2CA5F5EA0036EE9E /* AlertPermissionsChecker.swift */; };
 		72F1BD388F42FCA6C52E4500 /* ConfigEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44080E4709E3AE4B73054563 /* ConfigEditorProvider.swift */; };
 		7BCFACB97C821041BA43A114 /* ManualTempBasalRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C377490C77661D75E8C50649 /* ManualTempBasalRootView.swift */; };
 		7F7B756BE8543965D9FDF1A2 /* HistoryDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A401509D21F7F35D4E109EDA /* HistoryDataFlow.swift */; };
-		8194B80890CDD6A3C13B0FEE /* SnoozeStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26904AACA8D9C15D229D675 /* SnoozeStateModel.swift */; };
 		88AB39B23C9552BD6E0C9461 /* ISFEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBB3BAE7494CB771ABAC7B8B /* ISFEditorRootView.swift */; };
 		8A91342A2D63D9A1007F8874 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
 		8A91342C2D63D9A2007F8874 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A91342B2D63D9A2007F8874 /* InfoPlist.xcstrings */; };
@@ -1054,11 +1050,9 @@
 		19F95FF429F10FCF00314DDC /* StatProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatProvider.swift; sourceTree = "<group>"; };
 		19F95FF629F10FEE00314DDC /* StatStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatStateModel.swift; sourceTree = "<group>"; };
 		19F95FF929F1102A00314DDC /* StatRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatRootView.swift; sourceTree = "<group>"; };
-		1CAE81192B118804DCD23034 /* SnoozeProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeProvider.swift; sourceTree = "<group>"; };
 		223EC0494F55A91E3EA69EF4 /* TreatmentsStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TreatmentsStateModel.swift; sourceTree = "<group>"; };
 		2AD22C985B79A2F0D2EA3D9D /* PumpConfigRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigRootView.swift; sourceTree = "<group>"; };
 		2F2A13DF0EDEEEDC4106AA2A /* NightscoutConfigDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NightscoutConfigDataFlow.swift; sourceTree = "<group>"; };
-		36A708CDB546692C2230B385 /* SnoozeDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeDataFlow.swift; sourceTree = "<group>"; };
 		36F58DDD71F0E795464FA3F0 /* TargetsEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorStateModel.swift; sourceTree = "<group>"; };
 		3811DE0725C9D32E00A708ED /* BaseView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseView.swift; sourceTree = "<group>"; };
 		3811DE0825C9D32F00A708ED /* BaseProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseProvider.swift; sourceTree = "<group>"; };
@@ -1111,6 +1105,7 @@
 		38192E03261B82FA0094D973 /* ReachabilityManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReachabilityManager.swift; sourceTree = "<group>"; };
 		38192E06261BA9960094D973 /* FetchTreatmentsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchTreatmentsManager.swift; sourceTree = "<group>"; };
 		38192E0C261BAF980094D973 /* ConvenienceExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConvenienceExtensions.swift; sourceTree = "<group>"; };
+		D7C5E1F4A7B91E2F3C5D6E71 /* TimeInterval+Convenience.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TimeInterval+Convenience.swift"; sourceTree = "<group>"; };
 		3821ED4B25DD18BA00BC42AD /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		382C133625F13A1E00715CE1 /* InsulinSensitivities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsulinSensitivities.swift; sourceTree = "<group>"; };
 		382C134A25F14E3700715CE1 /* BGTargets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BGTargets.swift; sourceTree = "<group>"; };
@@ -1460,7 +1455,6 @@
 		A8630D58BDAD6D9C650B9B39 /* PumpConfigProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigProvider.swift; sourceTree = "<group>"; };
 		AAFF91130F2FCCC7EBBA11AD /* BasalProfileEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorStateModel.swift; sourceTree = "<group>"; };
 		AF65DA88F972B56090AD6AC3 /* PumpConfigDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigDataFlow.swift; sourceTree = "<group>"; };
-		B5822B15939E719628E9FF7C /* SnoozeRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeRootView.swift; sourceTree = "<group>"; };
 		B6E925122EB3932A0076D719 /* OmnipodKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = OmnipodKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B9B5C0607505A38F256BF99A /* CGMSettingsDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CGMSettingsDataFlow.swift; sourceTree = "<group>"; };
 		BA49538D56989D8DA6FCF538 /* TargetsEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorDataFlow.swift; sourceTree = "<group>"; };
@@ -1866,7 +1860,6 @@
 		E06B9119275B5EEA003C04B6 /* Array+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Extension.swift"; sourceTree = "<group>"; };
 		E0CC2C5B275B9DAE00A7BC71 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		E0D4F80427513ECF00BDF1FE /* HealthKitSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitSample.swift; sourceTree = "<group>"; };
-		E26904AACA8D9C15D229D675 /* SnoozeStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeStateModel.swift; sourceTree = "<group>"; };
 		E592A36F2CEEC01E009A472C /* ContactTrickEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickEntry.swift; sourceTree = "<group>"; };
 		E592A3712CEEC038009A472C /* ContactImageRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageRootView.swift; sourceTree = "<group>"; };
 		E592A3732CEEC038009A472C /* ContactImageDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageDataFlow.swift; sourceTree = "<group>"; };
@@ -1940,7 +1933,6 @@
 				CE95BF5F2BA7715800DC3DE3 /* MockKit.framework in Frameworks */,
 				DD17A0292E3FE0BD008E1BF0 /* SwiftJWT in Frameworks */,
 				3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */,
-				38DF1789276FC8C400B3528F /* SwiftMessages in Frameworks */,
 				3B4BA7842D8DBD690069D5B8 /* RileyLinkKit.framework in Frameworks */,
 				CE95BF612BA7715900DC3DE3 /* MockKitUI.framework in Frameworks */,
 				E0CC2C5C275B9F0F00A7BC71 /* HealthKit.framework in Frameworks */,
@@ -2000,14 +1992,6 @@
 				4E8C7B59F8065047ECE20965 /* View */,
 			);
 			path = ConfigEditor;
-			sourceTree = "<group>";
-		};
-		0A67A70F9438DB6586398458 /* View */ = {
-			isa = PBXGroup;
-			children = (
-				B5822B15939E719628E9FF7C /* SnoozeRootView.swift */,
-			);
-			path = View;
 			sourceTree = "<group>";
 		};
 		0D76BBC81CEDC1A0050F45EF /* View */ = {
@@ -2207,17 +2191,6 @@
 			path = View;
 			sourceTree = "<group>";
 		};
-		29B478DF61BF8D270F7D8954 /* Snooze */ = {
-			isa = PBXGroup;
-			children = (
-				36A708CDB546692C2230B385 /* SnoozeDataFlow.swift */,
-				1CAE81192B118804DCD23034 /* SnoozeProvider.swift */,
-				E26904AACA8D9C15D229D675 /* SnoozeStateModel.swift */,
-				0A67A70F9438DB6586398458 /* View */,
-			);
-			path = Snooze;
-			sourceTree = "<group>";
-		};
 		34CA4DF169B53D67EF18ED8A /* View */ = {
 			isa = PBXGroup;
 			children = (
@@ -2265,7 +2238,6 @@
 				3811DE3825C9D4A100A708ED /* Settings */,
 				110AEDEA2C51A0AE00615CC9 /* ShortcutsConfig */,
 				DD17451E2C55520000211FAC /* SMBSettings */,
-				29B478DF61BF8D270F7D8954 /* Snooze */,
 				19F95FF129F10F9C00314DDC /* Stat */,
 				DD17452C2C55AE3500211FAC /* TargetBehavoir */,
 				6517011F19F244F64E1FF14B /* TargetsEditor */,
@@ -2876,6 +2848,7 @@
 				49239B422EEA27AD00469145 /* TempTargetCalculations.swift */,
 				DDCAE8322D78D49C00B1BB51 /* TherapySettingsUtil.swift */,
 				DDD5889C2DDDC9A900C8848D /* TimeAgoFormatter.swift */,
+				D7C5E1F4A7B91E2F3C5D6E71 /* TimeInterval+Convenience.swift */,
 				BD2FF19F2AE29D43005D1C5D /* ToggleStyles.swift */,
 				CEB434E428B8FF5D00B70274 /* UIColor.swift */,
 				FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */,
@@ -4519,7 +4492,6 @@
 				3811DE0F25C9D37700A708ED /* Swinject */,
 				38B17B6525DD90E0005CAE3D /* SwiftDate */,
 				3833B46C26012030003021B3 /* Algorithms */,
-				38DF1788276FC8C400B3528F /* SwiftMessages */,
 				CEB434FC28B90B7C00B70274 /* SwiftCharts */,
 				B958F1B62BA0711600484851 /* MKRingProgressView */,
 				3BD9687B2D8DDD4600899469 /* SlideButton */,
@@ -4697,7 +4669,6 @@
 				3811DE0E25C9D37700A708ED /* XCRemoteSwiftPackageReference "Swinject" */,
 				38B17B6425DD90E0005CAE3D /* XCRemoteSwiftPackageReference "SwiftDate" */,
 				3833B46B26012030003021B3 /* XCRemoteSwiftPackageReference "swift-algorithms" */,
-				38DF1787276FC8C300B3528F /* XCRemoteSwiftPackageReference "SwiftMessages" */,
 				CEB434FB28B90B7C00B70274 /* XCRemoteSwiftPackageReference "SwiftCharts" */,
 				B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */,
 				3BD9687A2D8DDD4600899469 /* XCRemoteSwiftPackageReference "SlideButton" */,
@@ -4967,6 +4938,7 @@
 				BDC2EA452C3043B000E5BBD0 /* OverrideStorage.swift in Sources */,
 				3811DE4225C9D4A100A708ED /* SettingsDataFlow.swift in Sources */,
 				DDD5889D2DDDC9A900C8848D /* TimeAgoFormatter.swift in Sources */,
+				D7C5E1F4A7B91E2F3C5D6E70 /* TimeInterval+Convenience.swift in Sources */,
 				CEE9A6562BBB418300EB5194 /* CalibrationsRootView.swift in Sources */,
 				3B5CD2B72D4AEA6600CE213C /* ComputedBGTargets.swift in Sources */,
 				3B5CD2B82D4AEA6600CE213C /* ComputedInsulinSensitivities.swift in Sources */,
@@ -5543,14 +5515,10 @@
 				DD4A00212DAEEED800AB7387 /* OnboardingView+AlgorithmUtil.swift in Sources */,
 				DDE179712C910127003CDDB7 /* OverrideStored+CoreDataProperties.swift in Sources */,
 				CE7CA3502A064973004BE681 /* CancelTempPresetIntent.swift in Sources */,
-				6B1F539F9FF75646D1606066 /* SnoozeDataFlow.swift in Sources */,
-				6FFAE524D1D9C262F2407CAE /* SnoozeProvider.swift in Sources */,
 				DD3C47B52DC57E06003DD20D /* MainMigrationErrorView.swift in Sources */,
 				BD4ED4FD2CF9D5E8000EDC9C /* AppState.swift in Sources */,
 				DDF847DD2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift in Sources */,
-				8194B80890CDD6A3C13B0FEE /* SnoozeStateModel.swift in Sources */,
 				BDA25EE42D260CD500035F34 /* AppleWatchManager.swift in Sources */,
-				0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */,
 				BD175EBE0000100000000001 /* HistoryDataFlow+Models.swift in Sources */,
 				BD175EBE0000100000000002 /* HistoryDeletionTarget.swift in Sources */,
 				BD175EBE0000100000000003 /* HistoryStateModel+Glucose.swift in Sources */,
@@ -6352,14 +6320,6 @@
 				minimumVersion = 6.3.1;
 			};
 		};
-		38DF1787276FC8C300B3528F /* XCRemoteSwiftPackageReference "SwiftMessages" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SwiftKickMobile/SwiftMessages";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 9.0.0;
-			};
-		};
 		3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
@@ -6433,11 +6393,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 38B17B6425DD90E0005CAE3D /* XCRemoteSwiftPackageReference "SwiftDate" */;
 			productName = SwiftDate;
-		};
-		38DF1788276FC8C400B3528F /* SwiftMessages */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 38DF1787276FC8C300B3528F /* XCRemoteSwiftPackageReference "SwiftMessages" */;
-			productName = SwiftMessages;
 		};
 		3B47C60F2DA0A28F00B0E5EF /* FirebaseCrashlytics */ = {
 			isa = XCSwiftPackageProductDependency;
