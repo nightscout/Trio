@@ -12,18 +12,6 @@ protocol UserNotificationsManager {
     @MainActor func applySnooze(for duration: TimeInterval) async
 }
 
-enum NotificationAction: String {
-    static let key = "action"
-
-    case snooze
-    case pumpConfig
-    case none
-}
-
-protocol alertMessageNotificationObserver {
-    func alertMessageNotification(_ message: MessageContent)
-}
-
 // MARK: - SnoozeObserver Protocol
 
 protocol SnoozeObserver {
@@ -32,9 +20,7 @@ protocol SnoozeObserver {
 
 final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, Injectable {
     enum Identifier: String {
-        case glucoseNotification = "Trio.glucoseNotification"
         case carbsRequiredNotification = "Trio.carbsRequiredNotification"
-        case alertMessageNotification = "Trio.alertMessageNotification"
     }
 
     @Injected() var alertPermissionsChecker: AlertPermissionsChecker!
@@ -42,7 +28,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var apsManager: APSManager!
-    @Injected() private var router: Router!
     @Injected() private var trioAlertManager: TrioAlertManager!
 
     @Persisted(key: "UserNotificationsManager.snoozeUntilDate") private var snoozeUntilDate: Date = .distantPast
@@ -68,7 +53,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 .share()
                 .eraseToAnyPublisher()
 
-        broadcaster.register(alertMessageNotificationObserver.self, observer: self)
         Task { await updateGlucoseBadge() }
         configureNotificationCategories()
         clearLegacyCarbsRequiredNotification()
@@ -210,96 +194,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     @MainActor func applySnooze(for duration: TimeInterval) async {
         await trioAlertManager.applySnooze(for: duration)
     }
-
-    private func addRequest(
-        identifier: Identifier,
-        content: UNMutableNotificationContent,
-        deleteOld: Bool = false,
-        trigger: UNNotificationTrigger? = nil,
-        messageType: MessageType = MessageType.other,
-        messageSubtype: MessageSubtype = MessageSubtype.misc,
-        action: NotificationAction = NotificationAction.none
-    ) {
-        let messageCont = MessageContent(
-            content: content.body,
-            type: messageType,
-            subtype: messageSubtype,
-            title: content.title,
-            useAPN: false,
-            trigger: trigger,
-            action: action
-        )
-        var alertIdentifier = identifier.rawValue
-        if identifier == .alertMessageNotification {
-            alertIdentifier += content.body
-        }
-        if deleteOld {
-            DispatchQueue.main.async {
-                self.notificationCenter.removeDeliveredNotifications(withIdentifiers: [alertIdentifier])
-                self.notificationCenter.removePendingNotificationRequests(withIdentifiers: [alertIdentifier])
-            }
-        }
-        if alertPermissionsChecker.notificationsDisabled {
-            router.alertMessage.send(messageCont)
-            return
-        }
-
-        let request = UNNotificationRequest(identifier: alertIdentifier, content: content, trigger: trigger)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.notificationCenter.add(request) { error in
-                if let error = error {
-                    warning(.service, "Unable to addNotificationRequest", error: error)
-                    return
-                }
-
-                debug(.service, "Sending \(identifier) notification for \(request.content.title)")
-            }
-        }
-    }
-}
-
-extension BaseUserNotificationsManager: alertMessageNotificationObserver {
-    func alertMessageNotification(_ message: MessageContent) {
-        let content = UNMutableNotificationContent()
-        // Pump / algorithm / glucose / carb subtypes used to route to dedicated
-        // UN identifiers — all of those have moved into the unified
-        // `TrioAlertManager` pipeline.
-        let identifier: Identifier = .alertMessageNotification
-
-        if message.title == "" {
-            switch message.type {
-            case .info:
-                content.title = String(localized: "Info", comment: "Info title")
-            case .warning:
-                content.title = String(localized: "Warning", comment: "Warning title")
-            case .error:
-                content.title = String(localized: "Error", comment: "Error title")
-            default:
-                content.title = message.title
-            }
-        } else {
-            content.title = message.title
-        }
-        switch message.action {
-        case .snooze:
-            content.userInfo[NotificationAction.key] = NotificationAction.snooze.rawValue
-        case .pumpConfig:
-            content.userInfo[NotificationAction.key] = NotificationAction.pumpConfig.rawValue
-        default: break
-        }
-
-        content.body = String(localized: "\(message.content)", comment: "Info message")
-        content.sound = .default
-        addRequest(
-            identifier: identifier,
-            content: content,
-            deleteOld: true,
-            trigger: message.trigger,
-            messageType: message.type,
-            messageSubtype: message.subtype,
-            action: message.action
-        )
-    }
 }
 
 extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
@@ -331,36 +225,11 @@ extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
             return
         }
 
-        // Handle quick snooze actions (from notification action buttons)
+        // Handle quick snooze actions (from notification action buttons).
         if let quickAction = NotificationResponseAction(rawValue: response.actionIdentifier) {
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 await self.applySnooze(for: quickAction.duration)
-            }
-            return
-        }
-
-        // Handle other notification actions (e.g., tapping notification body)
-        guard let actionRaw = response.notification.request.content.userInfo[NotificationAction.key] as? String,
-              let action = NotificationAction(rawValue: actionRaw)
-        else { return }
-
-        // Ensure UI operations happen on main thread using Task for consistency
-        Task { @MainActor [weak self] in
-            guard let self = self else { return }
-            switch action {
-            case .snooze:
-                self.router.mainModalScreen.send(.snooze)
-            case .pumpConfig:
-                let messageCont = MessageContent(
-                    content: response.notification.request.content.body,
-                    type: MessageType.other,
-                    subtype: .pump,
-                    useAPN: false,
-                    action: .pumpConfig
-                )
-                self.router.alertMessage.send(messageCont)
-            default: break
             }
         }
     }
