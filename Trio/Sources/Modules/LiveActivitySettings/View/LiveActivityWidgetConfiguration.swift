@@ -220,9 +220,9 @@ struct LiveActivityWidgetConfiguration: BaseView {
                 let pointMarkColor = Trio.getDynamicGlucoseColor(
                     glucoseValue: Decimal(data.glucoseLevel),
                     highGlucoseColorValue: !(state.settingsManager.settings.glucoseColorScheme == .dynamicColor) ? state
-                        .settingsManager.settings.highGlucose : Decimal(220),
+                        .settingsManager.settings.high : Decimal(220),
                     lowGlucoseColorValue: !(state.settingsManager.settings.glucoseColorScheme == .dynamicColor) ? state
-                        .settingsManager.settings.lowGlucose : Decimal(55),
+                        .settingsManager.settings.low : Decimal(55),
                     targetGlucose: Decimal(100),
                     glucoseColorScheme: state.settingsManager.settings.glucoseColorScheme
                 )

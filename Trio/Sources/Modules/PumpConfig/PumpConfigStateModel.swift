@@ -1,3 +1,4 @@
+import Foundation
 import LoopKit
 import LoopKitUI
 import SwiftDate
@@ -11,6 +12,7 @@ extension PumpConfig {
         private(set) var initialSettings: PumpInitialSettings = .default
         @Published var hasUnacknowledgedAlert: Bool = false
         @Injected() var bluetoothManager: BluetoothStateManager!
+        @Injected() var trioAlertManager: TrioAlertManager!
 
         override func subscribe() {
             provider.pumpDisplayState
@@ -49,7 +51,7 @@ extension PumpConfig {
         }
 
         func ack() {
-            provider.deviceManager.alertHistoryStorage.broadcastAlertUpdates()
+            trioAlertManager.acknowledgeAllOutstanding()
         }
     }
 }
