@@ -19,6 +19,10 @@ protocol FetchGlucoseManager: SourceInfoProvider {
     var cgmGlucosePluginId: String { get }
     var settingsManager: SettingsManager! { get }
     var shouldSyncToRemoteService: Bool { get }
+    /// Routes CGMManager-issued alerts (sensor failure, signal loss, expiry,
+    /// etc.) into the unified `TrioAlertManager` pipeline. Read by
+    /// `PluginSource.issueAlert` / `retractAlert`.
+    var trioAlertManager: TrioAlertManager! { get }
 }
 
 extension FetchGlucoseManager {
@@ -40,6 +44,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     @Injected() var deviceDataManager: DeviceDataManager!
     @Injected() var pluginCGMManager: PluginManager!
     @Injected() var calibrationService: CalibrationService!
+    @Injected() var trioAlertManager: TrioAlertManager!
 
     private var lifetime = Lifetime()
     private let timer = DispatchTimer(timeInterval: 1.minutes.timeInterval)

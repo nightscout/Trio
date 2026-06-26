@@ -77,9 +77,18 @@ extension PluginSource: CGMManagerDelegate {
         debug(.deviceManager, "device Manager for \(String(describing: deviceIdentifier)) : \(message)")
     }
 
-    func issueAlert(_: LoopKit.Alert) {}
+    /// Forwards CGMManager-issued alerts into the unified `TrioAlertManager`
+    /// pipeline so they get the same in-app banner + UN scheduling + history
+    /// logging treatment as everything else. Used to be a no-op; on
+    /// dev-libre3 / LibreLoop builds that meant CGM-issued alerts (sensor
+    /// failure, signal loss, expiry, etc.) silently dropped.
+    func issueAlert(_ alert: LoopKit.Alert) {
+        glucoseManager?.trioAlertManager?.issueAlert(alert)
+    }
 
-    func retractAlert(identifier _: LoopKit.Alert.Identifier) {}
+    func retractAlert(identifier: LoopKit.Alert.Identifier) {
+        glucoseManager?.trioAlertManager?.retractAlert(identifier: identifier)
+    }
 
     func doesIssuedAlertExist(identifier _: LoopKit.Alert.Identifier, completion _: @escaping (Result<Bool, Error>) -> Void) {}
 
