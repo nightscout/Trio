@@ -15,6 +15,8 @@ struct NotificationsView: BaseView {
     @ObservedObject var state: Settings.StateModel
     @State var notificationsDisabled = false
     @State var showAlert = false
+    @State private var showSnoozeSheet = false
+    @State private var snoozeUntilDate: Date = .distantPast
     @State private var shouldDisplayHint: Bool = false
     @State var hintDetent = PresentationDetent.large
     @State var selectedVerboseHint: AnyView? = AnyView(
@@ -33,45 +35,32 @@ struct NotificationsView: BaseView {
     var body: some View {
         List {
             Section(
-                header: Text("Manage iOS Preferences"),
+                header: Text("Mute Trio Alarms"),
                 content: {
-                    manageNotifications
+                    VStack {
+                        Button {
+                            showSnoozeSheet = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "zzz").foregroundStyle(.tint)
+                                Text("Snooze All Alarms").bold()
+                            }
+                            .font(.title3)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .buttonStyle(.bordered)
+                    }.padding(.vertical)
                 }
             ).listRowBackground(Color.chart)
 
-            Section {
-                VStack {
+            Section(
+                header: Text("Manage iOS Preferences"),
+                content: {
                     notificationsEnabledStatus
-                    HStack(alignment: .top) {
-                        Text("Notifications give you important Trio information without requiring you to open the app.")
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .lineLimit(nil)
-                        Spacer()
-                        Button(
-                            action: {
-                                hintLabel = String(localized: "Manage iOS Preferences")
-                                selectedVerboseHint = AnyView(
-                                    VStack(alignment: .leading, spacing: 10) {
-                                        Text(
-                                            "Notifications give you important Trio information without requiring you to open the app."
-                                        )
-                                        Text(
-                                            "Keep these turned ON in your phone’s settings to ensure you receive Trio Notifications, Critical Alerts, and Time Sensitive Notifications."
-                                        )
-                                    }
-                                )
-                                shouldDisplayHint.toggle()
-                            },
-                            label: {
-                                HStack {
-                                    Image(systemName: "questionmark.circle")
-                                }
-                            }
-                        ).buttonStyle(BorderlessButtonStyle())
-                    }.padding(.top)
-                }.padding(.bottom)
-            }.listRowBackground(Color.chart)
+
+                    manageNotifications
+                }
+            ).listRowBackground(Color.chart)
 
             Section(
                 header: Text("Notification Center"),
@@ -84,7 +73,12 @@ struct NotificationsView: BaseView {
 
                     Text("Day & Night Windows")
                         .navigationLink(to: .alarmWindows, from: self)
+                }
+            ).listRowBackground(Color.chart)
 
+            Section(
+                header: Text("Other Notifications"),
+                content: {
                     if #available(iOS 16.2, *) {
                         Text("Live Activity").navigationLink(to: .liveActivitySettings, from: self)
                     }
@@ -117,6 +111,9 @@ struct NotificationsView: BaseView {
                 hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
+        }
+        .sheet(isPresented: $showSnoozeSheet) {
+            snoozeSheet
         }
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))
@@ -163,6 +160,68 @@ extension NotificationsView {
             Text(String(localized: "Notifications", comment: "Notifications Status text"))
             Spacer()
             onOff(!notificationsDisabled)
+        }
+    }
+
+    /// Inline sheet replacement for the old Snooze module. Lists the four
+    /// canonical snooze durations and routes through `TrioAlertManager`
+    /// directly — no module / router roundtrip, no legacy `GlucoseAlarm`
+    /// shape, no obsolete 20 min option.
+    private var snoozeSheet: some View {
+        NavigationStack {
+            List {
+                if snoozeUntilDate > Date() {
+                    Section {
+                        HStack {
+                            Image(systemName: "moon.zzz.fill").foregroundStyle(.tint)
+                            Text(String(
+                                format: String(localized: "Snoozed until %@"),
+                                snoozeUntilDate.formatted(date: .omitted, time: .shortened)
+                            ))
+                                .font(.headline)
+                        }
+                    }.listRowBackground(Color.chart)
+                }
+                Section(footer: Text(
+                    "Pick a duration to mute every Trio alarm. Critical alerts (e.g. occlusion, urgent low) still pierce the snooze."
+                )) {
+                    ForEach(NotificationResponseAction.allCases, id: \.self) { action in
+                        Button {
+                            applySnooze(action.duration)
+                        } label: {
+                            HStack {
+                                Text(action.localizedTitle).foregroundStyle(.primary)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.gray)
+                                    .font(.footnote)
+                            }
+                        }
+                    }
+                }.listRowBackground(Color.chart)
+            }
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationTitle("Snooze Alerts")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Close") { showSnoozeSheet = false }
+                }
+            }
+            .onAppear {
+                snoozeUntilDate = UserDefaults.standard
+                    .object(forKey: "UserNotificationsManager.snoozeUntilDate") as? Date ?? .distantPast
+            }
+        }
+    }
+
+    private func applySnooze(_ duration: TimeInterval) {
+        let trioAlertManager = resolver.resolve(TrioAlertManager.self)
+        Task { @MainActor in
+            await trioAlertManager?.applySnooze(for: duration)
+            snoozeUntilDate = Date().addingTimeInterval(duration)
+            showSnoozeSheet = false
         }
     }
 }
