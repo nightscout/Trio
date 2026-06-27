@@ -7,12 +7,14 @@ import LoopKit
 /// registry. As plugins adopt `AlertCatalogVendor` upstream, their entries
 /// move out of here and into the plugin repo.
 ///
-/// Scope is pump alerts only. CGM lifecycle alerts (LibreLoop sensor end,
-/// etc.) pass through with the plugin's chosen level. Trio-internal alerts
+/// Scope covers pump + CGM-issued alerts (LibreLoop sensor expiry / attention
+/// / reconnect). G5/G6/One/G7/One+ don't go through `issueAlert` — their
+/// status surfaces via `cgmStatusHighlight` instead. Trio-internal alerts
 /// (glucose thresholds, algorithm error, not-looping) set their level at
 /// construction and don't need a catalog entry.
 enum AlertCatalogRegistry {
-    static let entries: [Alert.CatalogEntry] = omniEntries + minimedEntries + danaEntries + medtrumEntries
+    static let entries: [Alert.CatalogEntry] =
+        omniEntries + minimedEntries + danaEntries + medtrumEntries + libreLoopEntries + trioAlgorithmEntries
 
     static func lookup(_ identifier: Alert.Identifier) -> Alert.CatalogEntry? {
         if let exact = entries.first(where: { $0.identifier == identifier }) {
@@ -161,6 +163,76 @@ private extension AlertCatalogRegistry {
             "Reservoir",
             .reservoirLow
         )
+    ]
+}
+
+// MARK: - LibreLoop (FreeStyle Libre 3)
+
+private extension AlertCatalogRegistry {
+    /// Manager identifier matches `LibreLoopCGMManager.pluginIdentifier`.
+    /// Alert identifiers come from `LibreLoopExpiryAlerts` +
+    /// `LibreLoopCGMManager.sensorAttentionAlertID` /
+    /// `needsReScanAlertID`. The 24 h warning is advance notice
+    /// (`.timeSensitive`); the 2 h warning, end-of-session, and replace-
+    /// needed escalate to `.critical`. Reconnect-needs-rescan is a user-
+    /// action prompt — `.timeSensitive`.
+    static let libreLoopEntries: [Alert.CatalogEntry] = [
+        addEntry(
+            "LibreLoopCGMManager",
+            "sensorExpiry.warning24h",
+            .timeSensitive,
+            "Sensor Expires in 24 Hours",
+            "Sensor",
+            .cgmExpiringSoon
+        ),
+        addEntry(
+            "LibreLoopCGMManager",
+            "sensorExpiry.warning2h",
+            .critical,
+            "Sensor Expires in 2 Hours",
+            "Sensor",
+            .cgmExpiringSoon
+        ),
+        addEntry(
+            "LibreLoopCGMManager",
+            "sensorExpiry.sessionEnded",
+            .critical,
+            "Sensor Session Ended",
+            "Sensor",
+            .cgmExpired
+        ),
+        addEntry(
+            "LibreLoopCGMManager",
+            "sensorAttention",
+            .critical,
+            "Replace Sensor",
+            "Sensor",
+            .cgmReplacementNeeded
+        ),
+        addEntry(
+            "LibreLoopCGMManager",
+            "reconnectNeedsReScan",
+            .timeSensitive,
+            "Re-scan Sensor",
+            "Connectivity",
+            .cgmReconnectNeeded
+        )
+    ]
+}
+
+// MARK: - Trio internal — Algorithm
+
+private extension AlertCatalogRegistry {
+    /// Trio-internal alerts emitted under `manager = "trio.aps"`. Levels
+    /// match what `APSManager.issueAlertFor…` / `NotLoopingMonitor` set at
+    /// construction; the catalog presence is what lets these surface in the
+    /// Device Alarms screen alongside pump and CGM entries.
+    /// `loop.notActive` matches `NotLoopingMonitor.alertID`; other slugs
+    /// come from `TrioAlertCategory.alertIdentifier`.
+    static let trioAlgorithmEntries: [Alert.CatalogEntry] = [
+        addEntry("trio.aps", "loop.notActive", .critical, "Trio Not Looping", "Algorithm", .notLooping),
+        addEntry("trio.aps", "algorithmError", .active, "Algorithm Error", "Algorithm", .algorithmError),
+        addEntry("trio.aps", "glucoseDataStale", .timeSensitive, "Glucose Data Stale", "Algorithm", .glucoseDataStale)
     ]
 }
 
