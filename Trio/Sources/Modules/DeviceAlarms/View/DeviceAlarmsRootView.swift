@@ -46,7 +46,7 @@ extension DeviceAlarms {
             }
             .scrollContentBackground(.hidden)
             .background(appState.trioBackgroundColor(for: colorScheme))
-            .navigationTitle("Pump Alarms")
+            .navigationTitle("Device Alarms")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
