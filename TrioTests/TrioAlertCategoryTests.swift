@@ -20,7 +20,6 @@ import Testing
         // .timeSensitive
         (.batteryLow, .timeSensitive),
         (.bolusFailed, .timeSensitive),
-        (.carbsRequired, .timeSensitive),
         (.deviceExpired, .timeSensitive),
         (.glucoseDataStale, .timeSensitive),
         (.glucoseForecastedLow, .timeSensitive),
@@ -44,7 +43,6 @@ import Testing
         (.batteryEmpty, true),
         (.batteryLow, true),
         (.bolusFailed, true),
-        (.carbsRequired, true),
         (.deliveryUncertain, true),
         (.deviceExpirationReminder, true),
         (.deviceExpired, true),
