@@ -13,7 +13,9 @@
 ///  - OscillatingGenerator: BloodGlucoseGenerator - Generates sinusoidal glucose values around a center point
 
 import Combine
+import CoreData
 import Foundation
+import LoopKit
 import LoopKitUI
 
 // MARK: - Glucose simulator
@@ -24,6 +26,9 @@ import LoopKitUI
 final class GlucoseSimulatorSource: GlucoseSource {
     var cgmManager: CGMManagerUI?
     var glucoseManager: FetchGlucoseManager?
+
+    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    let cgmProgressHighlight = CurrentValueSubject<DeviceLifecycleProgress?, Never>(nil)
 
     private enum Config {
         /// Minimum time period between data publications (in seconds)
@@ -48,6 +53,57 @@ final class GlucoseSimulatorSource: GlucoseSource {
                 lastDate = lastDate.addingTimeInterval(-Config.workInterval)
             }
             lastFetchDate = lastDate
+        }
+        publishSimulatedState()
+    }
+
+    /// Republishes synthetic lifecycle/highlight from `simulatedScenario`.
+    func publishSimulatedState() {
+        cgmProgressHighlight.value = cgmLifecycleProgress
+        if let highlight = cgmStatusHighlight {
+            cgmDisplayState.value = CgmDisplayState(
+                localizedMessage: highlight.localizedMessage,
+                imageName: highlight.imageName,
+                status: CgmDisplayStatus.from(highlight.state)
+            )
+        } else {
+            cgmDisplayState.value = nil
+        }
+    }
+
+    /// Picker entry point — change scenario + propagate immediately. When
+    /// flipping to a state where a real sensor wouldn't be delivering fresh
+    /// readings, drop any GlucoseStored rows inside the home view's 12 min
+    /// freshness window so the bobble switches to its compact stale view
+    /// right away instead of waiting for organic aging.
+    func applySimulatedScenario(_ scenario: SimulatedSensorScenario) {
+        simulatedScenario = scenario
+        if !scenario.deliversFreshGlucose {
+            clearRecentSimulatorReadings()
+        }
+        publishSimulatedState()
+    }
+
+    /// Deletes GlucoseStored rows newer than the home view's 12 min
+    /// freshness window. Dev-only — only invoked from the simulator's
+    /// scenario picker, which is itself gated to simulator mode.
+    private func clearRecentSimulatorReadings() {
+        let context = CoreDataStack.shared.newTaskContext()
+        let cutoff = Date().addingTimeInterval(-12 * 60)
+        context.perform {
+            let request = GlucoseStored.fetchRequest()
+            request.predicate = NSPredicate(format: "date > %@", cutoff as NSDate)
+            do {
+                let recent = try context.fetch(request)
+                for row in recent {
+                    context.delete(row)
+                }
+                if context.hasChanges {
+                    try context.save()
+                }
+            } catch {
+                print("GlucoseSimulatorSource: clearRecentSimulatorReadings failed: \(error)")
+            }
         }
     }
 
@@ -74,6 +130,14 @@ final class GlucoseSimulatorSource: GlucoseSource {
         guard canGenerateNewValues else {
             return Just([]).eraseToAnyPublisher()
         }
+        // Match real CGM behavior: scenarios where a physical sensor wouldn't
+        // be delivering readings (warmup, calibration, expired, failed) also
+        // stop the simulator from emitting fresh values. Existing readings
+        // then age out of the 12 min freshness window, the bobble flips to
+        // its compact symbol view, and the highlight's imageName surfaces.
+        guard simulatedScenario.deliversFreshGlucose else {
+            return Just([]).eraseToAnyPublisher()
+        }
 
         let glucoses = generator.getBloodGlucoses(
             startDate: lastFetchDate,
@@ -94,6 +158,170 @@ final class GlucoseSimulatorSource: GlucoseSource {
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
         fetch(nil)
     }
+
+    // MARK: - Simulated sensor lifecycle / status (dev-only)
+
+    //
+    // The simulator doesn't own a real `CGMManagerUI`, so `cgmStatusHighlight`
+    // and `cgmLifecycleProgress` would be nil on the home screen. To make the
+    // outer arc + tag indicator actually exercisable without Libre/Dexcom
+    // hardware, the simulator exposes synthetic values driven by
+    // `simulatedScenario`. Flip the persisted enum at runtime (debug menu or
+    // by editing the default below) and the home view picks up the change on
+    // its next 5-second refresh tick.
+
+    /// Which pre-canned sensor state the simulator should advertise. Plain
+    /// `UserDefaults` string access (not `@Persisted`) so the CGM-settings
+    /// picker — which writes via `UserDefaults.standard.set(_:forKey:)` — and
+    /// the read here use the same encoding. `@Persisted` stores values as
+    /// JSON-wrapped `Data`, which would silently break the picker round-trip.
+    static let simulatedScenarioKey = "GlucoseSimulator.simulatedScenario"
+
+    var simulatedScenario: SimulatedSensorScenario {
+        get {
+            let raw = UserDefaults.standard.string(forKey: Self.simulatedScenarioKey)
+            return raw.flatMap(SimulatedSensorScenario.init(rawValue:)) ?? .runningNormally
+        }
+        set {
+            UserDefaults.standard.set(newValue.rawValue, forKey: Self.simulatedScenarioKey)
+        }
+    }
+
+    /// Synthetic expiration date that mirrors what a real CGM would expose.
+    /// Picked so the remaining-time label matches the scenario's
+    /// `percentComplete` against a 10-day total (Dexcom-like).
+    var simulatedSensorExpiresAt: Date? {
+        guard let progress = cgmLifecycleProgress else { return nil }
+        let totalLifetime: TimeInterval = 10 * 24 * 60 * 60
+        let remaining = (1.0 - progress.percentComplete) * totalLifetime
+        return Date().addingTimeInterval(remaining)
+    }
+
+    /// Synthetic outer-arc data — nil for scenarios where lifetime is moot
+    /// (warmup, hardware fault). Matches the production `DeviceLifecycleProgress`
+    /// shape so the home state model can treat both sources identically.
+    var cgmLifecycleProgress: DeviceLifecycleProgress? {
+        switch simulatedScenario {
+        case .runningNormally:
+            return SimulatedLifecycleProgress(percentComplete: 0.45, progressState: .normalCGM)
+        case .expiringSoon:
+            return SimulatedLifecycleProgress(percentComplete: 0.94, progressState: .warning)
+        case .warmup:
+            return nil
+        case .calibrationRequired:
+            return SimulatedLifecycleProgress(percentComplete: 0.30, progressState: .normalCGM)
+        case .expired:
+            return SimulatedLifecycleProgress(percentComplete: 1.0, progressState: .critical)
+        case .sensorFailed:
+            return nil
+        }
+    }
+
+    /// Synthetic status highlight. nil for `.runningNormally` and
+    /// `.expiringSoon` (those run off lifecycle only).
+    var cgmStatusHighlight: DeviceStatusHighlight? {
+        switch simulatedScenario {
+        case .expiringSoon,
+             .runningNormally:
+            return nil
+        case .warmup:
+            return SimulatedStatusHighlight(
+                localizedMessage: "Sensor warming up",
+                imageName: "hourglass",
+                state: .warning
+            )
+        case .calibrationRequired:
+            return SimulatedStatusHighlight(
+                localizedMessage: "Calibrate",
+                imageName: "drop.fill",
+                state: .warning
+            )
+        case .expired:
+            return SimulatedStatusHighlight(
+                localizedMessage: "Sensor expired",
+                imageName: "exclamationmark.circle.fill",
+                state: .critical
+            )
+        case .sensorFailed:
+            return SimulatedStatusHighlight(
+                localizedMessage: "Replace Sensor",
+                imageName: "exclamationmark.triangle.fill",
+                state: .critical
+            )
+        }
+    }
+}
+
+/// Pre-canned sensor scenarios surfaced by `GlucoseSimulatorSource`. One per
+/// home-screen state so flipping this drives the indicator
+/// through every visual state.
+enum SimulatedSensorScenario: String, CaseIterable, Identifiable {
+    case runningNormally
+    case expiringSoon
+    case warmup
+    case calibrationRequired
+    case expired
+    case sensorFailed
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .runningNormally: return "Running normally"
+        case .expiringSoon: return "Expiring soon"
+        case .warmup: return "Warmup"
+        case .calibrationRequired: return "Calibration required"
+        case .expired: return "Expired"
+        case .sensorFailed: return "Sensor failed"
+        }
+    }
+
+    /// Whether a real CGM would still be delivering fresh glucose readings
+    /// while in this state. Drives the simulator's `fetch()` gate so non-
+    /// active scenarios stop emitting and the home view sees stale data
+    /// the same way it would from a real sensor.
+    var deliversFreshGlucose: Bool {
+        switch self {
+        case .expiringSoon,
+             .runningNormally:
+            return true
+        case .calibrationRequired,
+             .expired,
+             .sensorFailed,
+             .warmup:
+            return false
+        }
+    }
+
+    /// Short blurb shown under the picker so dev users know what each
+    /// scenario renders on the home screen.
+    var devNotes: String {
+        switch self {
+        case .runningNormally:
+            return "Teal outer ring at ~45%, tag shows time remaining."
+        case .expiringSoon:
+            return "Amber outer ring at ~94%, tag shows time remaining with \"left\" suffix."
+        case .warmup:
+            return "Arc hidden, pulsing amber tag, glucose shown as \"– –\"."
+        case .calibrationRequired:
+            return "Arc visible, amber tag with \"Calibrate\" message, glucose still shown."
+        case .expired:
+            return "Red full ring, red tag \"sensor expired\", glucose shown as \"– –\"."
+        case .sensorFailed:
+            return "Arc hidden, pulsing red tag, glucose shown as \"– –\"."
+        }
+    }
+}
+
+private struct SimulatedLifecycleProgress: DeviceLifecycleProgress {
+    let percentComplete: Double
+    let progressState: DeviceLifecycleProgressState
+}
+
+private struct SimulatedStatusHighlight: DeviceStatusHighlight {
+    let localizedMessage: String
+    let imageName: String
+    let state: DeviceStatusHighlightState
 }
 
 // MARK: - Glucose generator
