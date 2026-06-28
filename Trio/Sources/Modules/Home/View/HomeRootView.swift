@@ -1149,7 +1149,10 @@ extension Home {
         private func formatBolusConfirmTitle(_ amount: Decimal) -> String {
             let formatted = Formatter.bolusFormatter.string(from: amount as NSDecimalNumber) ?? amount.description
             return String(
-                format: String(localized: "Deliver %@ U?", comment: "Quick bolus confirmation dialog title; %@ is the formatted bolus amount"),
+                format: String(
+                    localized: "Deliver %@ U?",
+                    comment: "Quick bolus confirmation dialog title; %@ is the formatted bolus amount"
+                ),
                 formatted
             )
         }
@@ -1162,26 +1165,67 @@ extension Home {
                     CustomProgressView(text: String(localized: "Updating IOB...", comment: "Progress text when updating IOB"))
                 }
             }
-            .confirmationDialog(
-                String(localized: "Quick Bolus", comment: "Title of the quick bolus picker sheet"),
-                isPresented: $showQuickBolusPicker,
-                titleVisibility: .visible
-            ) {
-                Button(String(localized: "How does this work?", comment: "Quick bolus info button")) {
-                    showQuickBolusInfo = true
-                }
-                ForEach(state.quickBolusHistory, id: \.self) { amount in
-                    Button(formatBolusLabel(amount)) {
-                        quickBolusAmount = amount
-                        showQuickBolusConfirm = true
+            .sheet(isPresented: $showQuickBolusPicker) {
+                NavigationStack {
+                    List {
+                        Section {
+                            ForEach(state.quickBolusHistory, id: \.self) { amount in
+                                Button(formatBolusLabel(amount)) {
+                                    quickBolusAmount = amount
+                                    showQuickBolusPicker = false
+                                    showQuickBolusConfirm = true
+                                }
+                                .foregroundStyle(.primary)
+                            }
+                        } footer: {
+                            Text(String(
+                                localized: "Based on your bolus history at this time of day",
+                                comment: "Subtitle of the quick bolus picker sheet"
+                            ))
+                        }
+                    }
+                    .navigationTitle(String(localized: "Quick Bolus", comment: "Title of the quick bolus picker sheet"))
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button(String(localized: "Cancel")) {
+                                showQuickBolusPicker = false
+                            }
+                        }
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button {
+                                showQuickBolusInfo = true
+                            } label: {
+                                Image(systemName: "questionmark.circle")
+                            }
+                        }
+                    }
+                    .sheet(isPresented: $showQuickBolusInfo) {
+                        NavigationStack {
+                            ScrollView {
+                                Text(String(
+                                    localized: "Quick Bolus looks at your manual boluses from the past 90 days and suggests the amounts you most commonly take at this time of day.\n\nIt gives more weight to boluses from similar times of day, and treats weekdays and weekends separately. Older entries gradually count less.\n\nTap a suggestion to confirm and deliver it — your normal Face ID or Touch ID approval always applies.",
+                                    comment: "Info sheet body explaining how quick bolus scoring works"
+                                ))
+                                    .padding()
+                            }
+                            .navigationTitle(String(
+                                localized: "About Quick Bolus",
+                                comment: "Info sheet title for quick bolus feature"
+                            ))
+                            .navigationBarTitleDisplayMode(.inline)
+                            .toolbar {
+                                ToolbarItem(placement: .confirmationAction) {
+                                    Button(String(localized: "Done")) {
+                                        showQuickBolusInfo = false
+                                    }
+                                }
+                            }
+                        }
+                        .presentationDetents([.medium])
                     }
                 }
-                Button(String(localized: "Cancel"), role: .cancel) {}
-            } message: {
-                Text(String(
-                    localized: "Based on your bolus history at this time of day",
-                    comment: "Subtitle of the quick bolus picker sheet"
-                ))
+                .presentationDetents([.height(CGFloat(state.quickBolusHistory.count) * 52 + 140)])
             }
             .confirmationDialog(
                 formatBolusConfirmTitle(quickBolusAmount),
@@ -1202,17 +1246,6 @@ extension Home {
                 Text(String(
                     localized: "Quick Bolus learns from your manual boluses over time. Once you've delivered a few boluses, it will suggest amounts based on what you typically take at this time of day.",
                     comment: "Alert body explaining that quick bolus history is empty"
-                ))
-            }
-            .alert(
-                String(localized: "About Quick Bolus", comment: "Info alert title for quick bolus feature"),
-                isPresented: $showQuickBolusInfo
-            ) {
-                Button(String(localized: "OK"), role: .cancel) {}
-            } message: {
-                Text(String(
-                    localized: "Quick Bolus looks at your manual boluses from the past 90 days and suggests the amounts you most commonly take at this time of day.\n\nIt gives more weight to boluses from similar times of day, and treats weekdays and weekends separately. Older entries gradually count less.\n\nTap a suggestion to confirm and deliver it — your normal Face ID or Touch ID approval always applies.",
-                    comment: "Info alert body explaining how quick bolus scoring works"
                 ))
             }
         }
