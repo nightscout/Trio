@@ -121,8 +121,28 @@ class CoreDataStack: ObservableObject {
     func fetchPersistentHistory() async {
         do {
             try await fetchPersistentHistoryTransactionsAndChanges()
+        } catch let error as NSError where error.code == NSPersistentHistoryTokenExpiredError {
+            debug(.coreData, "Persistent history token expired; clearing token and replaying available history.")
+            await recoverFromExpiredHistoryToken()
         } catch {
             debug(.coreData, "\(error)")
+        }
+    }
+
+    /// Recovers the change-merge pipeline after the persistent history token expires.
+    private func recoverFromExpiredHistoryToken() async {
+        lastToken = nil
+        do {
+            try await fetchPersistentHistoryTransactionsAndChanges()
+        } catch {
+            debug(.coreData, "Replay after token reset failed; jumping to current token. \(error)")
+            let viewContext = persistentContainer.viewContext
+            let currentToken = persistentContainer.persistentStoreCoordinator
+                .currentPersistentHistoryToken(fromStores: nil)
+            lastToken = currentToken
+            await viewContext.perform {
+                viewContext.refreshAllObjects()
+            }
         }
     }
 
