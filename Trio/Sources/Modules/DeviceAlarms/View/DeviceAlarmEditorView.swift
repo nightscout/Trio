@@ -60,7 +60,7 @@ struct DeviceAlarmEditorView: View {
                     soundFilename: $working.soundFilename
                 )
 
-                Section(header: Text("Applies To")) {
+                Section(header: Text("Applies To (Cannot be changed)")) {
                     ForEach(conceptsForTier(working.severity), id: \.self) { concept in
                         Text(concept.displayTitle)
                             .font(.footnote)
