@@ -22,6 +22,10 @@ extension CGMSettings {
         @State private var period: Double = UserDefaults.standard.double(forKey: "GlucoseSimulator_Period")
         @State private var noiseAmplitude: Double = UserDefaults.standard.double(forKey: "GlucoseSimulator_NoiseAmplitude")
         @State private var produceStaleValues: Bool = UserDefaults.standard.bool(forKey: "GlucoseSimulator_ProduceStaleValues")
+      
+        /// Drives the synthetic `cgmStatusHighlight`
+        @State private var simulatedScenarioRaw: String = UserDefaults.standard
+            .string(forKey: "GlucoseSimulator.simulatedScenario") ?? SimulatedSensorScenario.runningNormally.rawValue
 
         /// Routes "open URL failed" warnings through `TrioAlertManager` so
         /// they share the same in-app banner UI as the rest of the alert
@@ -279,6 +283,37 @@ extension CGMSettings {
                         .foregroundStyle(Color.secondary)
                         .lineLimit(nil)
                         .padding(.bottom)
+                    }
+                }.listRowBackground(Color.chart)
+
+                Section(
+                    header: Text("Sensor Lifecycle Scenario"),
+                    footer: Text(
+                        "Drives the outer-ring + tag on the home screen's glucose bobble."
+                    )
+                ) {
+                    Picker("Scenario", selection: $simulatedScenarioRaw) {
+                        ForEach(SimulatedSensorScenario.allCases) { scenario in
+                            Text(scenario.displayName).tag(scenario.rawValue)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .onChange(of: simulatedScenarioRaw) { _, newValue in
+                        UserDefaults.standard.set(newValue, forKey: "GlucoseSimulator.simulatedScenario")
+                        // Push the change through the active simulator
+                        // instance so subjects emit immediately.
+                        if let scenario = SimulatedSensorScenario(rawValue: newValue),
+                           let sim = resolver.resolve(FetchGlucoseManager.self)?.glucoseSource as? GlucoseSimulatorSource
+                        {
+                            sim.applySimulatedScenario(scenario)
+                        }
+                    }
+
+                    if let scenario = SimulatedSensorScenario(rawValue: simulatedScenarioRaw) {
+                        Text(scenario.devNotes)
+                            .font(.footnote)
+                            .foregroundStyle(Color.secondary)
+                            .lineLimit(nil)
                     }
                 }.listRowBackground(Color.chart)
 
