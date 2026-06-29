@@ -31,7 +31,7 @@ struct LiveActivityChartView: View {
         let chartMin = additionalState.chart.min(by: { $0.value < $1.value })?.value ?? 39
         let chartMax = additionalState.chart.max(by: { $0.value < $1.value })?.value ?? maxThreshhold
         let forecastMin = additionalState.minForecast.min().map { Decimal($0) } ?? chartMin
-        let forecastMax = additionalState.maxForecast.max().map { Decimal($0) } ?? chartMax
+        let forecastMax = min(additionalState.maxForecast.max().map { Decimal($0) } ?? chartMax, maxThreshhold)
         let minValue = min(min(chartMin, forecastMin), 39)
         let maxValue = max(max(chartMax, forecastMax), maxThreshhold)
 
