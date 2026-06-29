@@ -236,7 +236,7 @@ struct SettingInputSection<VerboseHint: View>: View {
         }.padding(.top)
     }
 
-    private func hintSection(
+    public func hintSection(
         miniHint: String,
         shouldDisplayHint: Binding<Bool>,
         verboseHint: VerboseHint,
