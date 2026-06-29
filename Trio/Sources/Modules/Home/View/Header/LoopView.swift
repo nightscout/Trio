@@ -45,7 +45,7 @@ struct LoopView: View {
                         // Animated spinning pill
                         Capsule()
                             .stroke(color.opacity(0.4), style: StrokeStyle(
-                                lineWidth: isAnimatingLoop ? 2.5 : 3,
+                                lineWidth: isAnimatingLoop ? 2.5 : 2,
                                 lineCap: .round,
                                 dash: [perimeter * 0.7, perimeter * 0.3],
                                 dashPhase: dashPhase
@@ -55,7 +55,7 @@ struct LoopView: View {
                         // Static pill
                         Capsule()
                             .stroke(color.opacity(0.4), style: StrokeStyle(
-                                lineWidth: isAnimatingLoop ? 2.5 : 3,
+                                lineWidth: isAnimatingLoop ? 2.5 : 2,
                                 lineCap: .round,
                                 dash: [perimeter + 10, 0]
                             ))
