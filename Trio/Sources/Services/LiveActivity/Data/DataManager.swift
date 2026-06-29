@@ -65,9 +65,14 @@ extension LiveActivityManager {
             var forecastLines = [(type: String, values: [Int])]()
 
             if let forecasts = determination.forecasts {
+                let hasCarbs = forecasts.contains(where: {
+                    ($0.type == "cob" || $0.type == "uam") && !$0.forecastValuesArray.isEmpty
+                })
                 for forecast in forecasts.sorted(by: { ($0.type ?? "") < ($1.type ?? "") }) {
                     let values = forecast.forecastValuesArray.prefix(24).map { Int($0.value) }
                     guard !values.isEmpty else { continue }
+                    // iob is hidden when cob or uam are active (matches phone app behavior)
+                    if forecast.type == "iob", hasCarbs { continue }
                     allForecastValues.append(Array(values))
                     if let type = forecast.type {
                         forecastLines.append((type: type, values: Array(values)))

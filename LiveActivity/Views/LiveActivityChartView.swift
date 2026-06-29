@@ -9,6 +9,11 @@ import Foundation
 import SwiftUI
 import WidgetKit
 
+private enum ForecastDisplayTypeKey {
+    static let lines = "lines"
+    static let cone = "cone"
+}
+
 struct LiveActivityChartView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.isWatchOS) var isWatchOS
@@ -98,7 +103,7 @@ struct LiveActivityChartView: View {
             }
 
             if hasForecast, let anchorDate = state.date {
-                if additionalState.forecastDisplayType == "lines" {
+                if additionalState.forecastDisplayType == ForecastDisplayTypeKey.lines {
                     drawForecastLines(anchorDate: anchorDate, isMgdL: isMgdL)
                 } else {
                     drawForecastCone(anchorDate: anchorDate, isMgdL: isMgdL, maxValue: maxValue)
@@ -213,8 +218,8 @@ struct LiveActivityChartView: View {
         let colorMap: [String: Color] = [
             "iob": Color(red: 0.118, green: 0.588, blue: 0.988),
             "cob": Color.orange,
-            "uam": Color("UAM"),
-            "zt": Color("ZT")
+            "uam": Color(red: 0.820, green: 0.169, blue: 0.969),
+            "zt": Color(red: 0.443, green: 0.380, blue: 0.937)
         ]
 
         let points: [(series: String, date: Date, value: Decimal)] = additionalState.forecastLines.flatMap { line in
