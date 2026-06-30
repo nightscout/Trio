@@ -39,7 +39,7 @@ struct CapsuleSpinnerView<Content: View>: View {
                                 updatePerimeter(size: geo.size)
                             }
                             .onChange(of: geo.size) { _, newSize in
-                                withAnimation(.easeInOut(duration: 0.3)) {
+                                withAnimation(.easeInOut(duration: 0.2)) {
                                     contentSize = newSize
                                     updatePerimeter(size: newSize)
                                 }
