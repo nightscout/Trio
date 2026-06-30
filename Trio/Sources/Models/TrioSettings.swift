@@ -341,6 +341,10 @@ extension TrioSettings: Decodable {
             settings.confirmBolus = confirmBolus
         }
 
+        if let enableQuickBolus = try? container.decode(Bool.self, forKey: .enableQuickBolus) {
+            settings.enableQuickBolus = enableQuickBolus
+        }
+
         if let useLiveActivity = try? container.decode(Bool.self, forKey: .useLiveActivity) {
             settings.useLiveActivity = useLiveActivity
         }
