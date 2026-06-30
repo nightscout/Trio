@@ -6,14 +6,17 @@ struct CapsuleSpinnerView<Content: View>: View {
 
     let isLooping: Bool
     let color: Color
+
+    // Internally, we keep the version that passes the state
     let content: (Bool) -> Content
 
-    @State private var isAnimatingLoop: Bool = false
+    @State private var isAnimating: Bool = false
     @State private var dashPhase: CGFloat = 0.0
     @State private var perimeter: CGFloat = 200
     @State private var contentSize: CGSize = .zero
     @State private var stopAnimationTask: Task<Void, Never>? = nil
 
+    // OPTION 1: Initializer WITH the animating argument
     init(
         isLooping: Bool,
         color: Color,
@@ -24,10 +27,22 @@ struct CapsuleSpinnerView<Content: View>: View {
         self.content = content
     }
 
+    // OPTION 2: Initializer WITHOUT the animating argument
+    init(
+        isLooping: Bool,
+        color: Color,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.isLooping = isLooping
+        self.color = color
+        // We capture the view and ignore the incoming Bool state
+        self.content = { _ in content() }
+    }
+
     var body: some View {
         ZStack {
             // INVISIBLE MEASUREMENT LAYER
-            content(isAnimatingLoop)
+            content(isAnimating)
                 .padding(.vertical, 5)
                 .padding(.horizontal, 10)
                 .hidden()
@@ -48,7 +63,7 @@ struct CapsuleSpinnerView<Content: View>: View {
                 )
 
             // VISIBLE ANIMATED LAYER
-            content(isAnimatingLoop)
+            content(isAnimating)
                 .padding(.vertical, 5)
                 .padding(.horizontal, 10)
                 .frame(
@@ -57,7 +72,7 @@ struct CapsuleSpinnerView<Content: View>: View {
                 )
                 .overlay(
                     Group {
-                        if isAnimatingLoop {
+                        if isAnimating {
                             Capsule()
                                 .stroke(color.opacity(0.4), style: StrokeStyle(
                                     lineWidth: 2.5,
@@ -100,7 +115,7 @@ struct CapsuleSpinnerView<Content: View>: View {
     private func updateAnimating(_ newValue: Bool) {
         if newValue {
             withAnimation(.easeInOut(duration: 0.3)) {
-                isAnimatingLoop = true
+                isAnimating = true
             }
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -121,7 +136,7 @@ struct CapsuleSpinnerView<Content: View>: View {
                 guard !Task.isCancelled else { return }
                 await MainActor.run {
                     withAnimation(.easeInOut(duration: 0.3)) {
-                        isAnimatingLoop = false
+                        isAnimating = false
                     }
                 }
             }
