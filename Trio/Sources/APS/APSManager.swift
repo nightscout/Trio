@@ -118,6 +118,11 @@ final class BaseAPSManager: APSManager, Injectable {
     private var lifetime = Lifetime()
 
     private let loopGuard = LoopGuard()
+    /// All reads/writes are dispatched onto `processQueue` so the bolus
+    /// trigger sink, `cancelBolus`, and the `DoseProgressReporter`
+    /// callback (which the pump manager already invokes on
+    /// `processQueue`) all serialize through one queue
+    private var bolusReporter: DoseProgressReporter?
 
     var pumpManager: PumpManagerUI? {
         get { deviceDataManager.pumpManager }
@@ -545,8 +550,6 @@ final class BaseAPSManager: APSManager, Injectable {
         return min(rounded, maxBolus)
     }
 
-    private var bolusReporter: DoseProgressReporter?
-
     func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async {
         if amount <= 0 {
             return
@@ -626,9 +629,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 )
             )
         }
-        bolusReporter?.removeObserver(self)
-        bolusReporter = nil
-        bolusProgress.send(nil)
+        clearBolusReporter()
     }
 
     func enactTempBasal(rate: Double, duration: TimeInterval) async {
@@ -1208,15 +1209,22 @@ final class BaseAPSManager: APSManager, Injectable {
         lastError.send(error)
     }
 
+    /// Called from the `bolusTrigger` Combine sink (already on
+    /// `processQueue`) and from `doseProgressReporterDidUpdate` (the
+    /// pump manager schedules the callback on `processQueue` too).
+    /// Mutations are dispatched onto the queue regardless, so a future
+    /// caller from another context (e.g. `cancelBolus`) stays safe.
     private func createBolusReporter() {
-        bolusReporter = pumpManager?.createBolusProgressReporter(reportingOn: processQueue)
-        bolusReporter?.addObserver(self)
+        processQueue.async {
+            self.bolusReporter = self.pumpManager?.createBolusProgressReporter(reportingOn: self.processQueue)
+            self.bolusReporter?.addObserver(self)
+        }
     }
 
     private func clearBolusReporter() {
-        bolusReporter?.removeObserver(self)
-        bolusReporter = nil
-        processQueue.asyncAfter(deadline: .now() + 0.5) {
+        processQueue.async {
+            self.bolusReporter?.removeObserver(self)
+            self.bolusReporter = nil
             self.bolusProgress.send(nil)
         }
     }

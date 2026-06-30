@@ -133,8 +133,12 @@ extension Home {
                 cgmAvailable: state.cgmAvailable,
                 currentGlucoseTarget: state.currentGlucoseTarget,
                 glucoseColorScheme: state.glucoseColorScheme,
-                glucose: state.latestTwoGlucoseValues
-            ).scaleEffect(0.9)
+                glucose: state.latestTwoGlucoseValues,
+                cgmProgress: state.cgmProgressHighlight,
+                cgmStatus: state.cgmDisplayState,
+                cgmSensorExpiresAt: state.cgmSensorExpiresAt,
+                cgmWarmupEndsAt: state.cgmWarmupEndsAt
+            )
                 .onTapGesture {
                     if !state.cgmAvailable {
                         showCGMSelection.toggle()
