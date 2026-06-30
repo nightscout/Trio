@@ -19,18 +19,18 @@ struct LoopView: View {
     let determination: [OrefDetermination]
 
     var body: some View {
-        SpinnerView(isLooping: isLooping, color: color) {
-            loopStatusContent
+        CapsuleSpinnerView(isLooping: isLooping, color: color) { isSpinnerAnimating in
+            loopStatusContent(isAnimating: isSpinnerAnimating)
         }
     }
 
-    private var loopStatusContent: some View {
+    private func loopStatusContent(isAnimating: Bool) -> some View {
         HStack(alignment: .center) {
             ZStack {
                 Image(systemName: (!closedLoop || manualTempBasal) ? "circle.and.line.horizontal" : "circle")
-                    .symbolEffect(.pulse, options: .repeating, isActive: isLooping)
+                    .symbolEffect(.pulse, options: .repeating, isActive: isAnimating)
             }
-            if isLooping {
+            if isAnimating {
                 // Exclude from localization; the term 'looping' is an idiom in the DIY loop jargon. IYKYK
                 Text(verbatim: "looping")
             } else if manualTempBasal {
