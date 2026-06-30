@@ -51,7 +51,7 @@ struct QuickBolusView: View {
                 QuickBolusInfoView(isPresented: $showInfo)
             }
         }
-        .presentationDetents([.height(260)])
+        .presentationDetents([.height(320)])
     }
 
     private var displayedSuggestions: [Decimal] {
