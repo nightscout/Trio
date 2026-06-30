@@ -3,8 +3,6 @@ import SwiftUI
 struct QuickBolusInfoView: View {
     @Binding var isPresented: Bool
 
-    @State private var detent = PresentationDetent.medium
-
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -31,6 +29,6 @@ struct QuickBolusInfoView: View {
             .padding([.horizontal, .bottom])
             .padding(.top, 4)
         }
-        .presentationDetents([.medium], selection: $detent)
+        .presentationDetents([.medium])
     }
 }

@@ -22,7 +22,7 @@ struct SlideToConfirmView: View {
 
                 Text(label)
                     .font(.headline)
-                    .foregroundStyle(isEnabled ? .white.opacity(1 - progress * 1.5) : .secondary)
+                    .foregroundStyle(isEnabled ? .white.opacity(1 - progress) : .secondary)
                     .frame(maxWidth: .infinity)
 
                 RoundedRectangle(cornerRadius: thumbSize / 2)
@@ -40,16 +40,15 @@ struct SlideToConfirmView: View {
                                 dragOffset = min(max(0, value.translation.width), maxDrag)
                             }
                             .onEnded { _ in
+                                guard maxDrag > 0 else { return }
                                 if dragOffset >= maxDrag * completionThreshold {
                                     UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                                     action()
-                                    withAnimation(.spring(duration: 0.4)) { dragOffset = 0 }
                                 } else {
                                     withAnimation(.spring()) { dragOffset = 0 }
                                 }
                             } : nil
                     )
-                    .animation(.interactiveSpring(), value: dragOffset)
             }
             .frame(height: trackHeight)
         }

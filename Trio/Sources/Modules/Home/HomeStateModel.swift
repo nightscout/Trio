@@ -611,8 +611,8 @@ extension Home {
             }
         }
 
-        func enactQuickBolus(amount: Decimal) async {
-            guard amount > 0 else { return }
+        func enactQuickBolus(amount: Decimal) async -> Bool {
+            guard amount > 0 else { return false }
             let delivery = min(
                 Double(truncating: amount as NSDecimalNumber),
                 pumpInitialSettings.maxBolusUnits
@@ -621,9 +621,12 @@ extension Home {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
                     await apsManager.enactBolus(amount: delivery, isSMB: false, callback: nil)
+                    return true
                 }
+                return false
             } catch {
                 debug(.bolusState, "Quick bolus authentication error: \(error)")
+                return false
             }
         }
 

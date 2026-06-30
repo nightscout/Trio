@@ -2,11 +2,13 @@ import SwiftUI
 
 struct QuickBolusView: View {
     let suggestions: [Decimal]
-    let onEnact: (Decimal) async -> Void
+    let onEnact: (Decimal) async -> Bool
     @Binding var isPresented: Bool
 
     @State private var selectedAmount: Decimal?
     @State private var showInfo = false
+    @State private var isEnacting = false
+    @State private var showAuthFailedAlert = false
 
     var body: some View {
         NavigationStack {
@@ -27,11 +29,21 @@ struct QuickBolusView: View {
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 SlideToConfirmView(
                     label: String(localized: "Slide to Enact Bolus", comment: "Slide to confirm label for quick bolus"),
-                    isEnabled: selectedAmount != nil
+                    isEnabled: selectedAmount != nil && !isEnacting
                 ) {
-                    guard let amount = selectedAmount else { return }
-                    isPresented = false
-                    Task { await onEnact(amount) }
+                    guard let amount = selectedAmount, !isEnacting else { return }
+                    isEnacting = true
+                    Task {
+                        let success = await onEnact(amount)
+                        await MainActor.run {
+                            if success {
+                                isPresented = false
+                            } else {
+                                isEnacting = false
+                                showAuthFailedAlert = true
+                            }
+                        }
+                    }
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 12)
@@ -50,12 +62,23 @@ struct QuickBolusView: View {
             .sheet(isPresented: $showInfo) {
                 QuickBolusInfoView(isPresented: $showInfo)
             }
+            .alert(
+                String(localized: "Could not authenticate", comment: "Alert title when biometric auth fails for quick bolus"),
+                isPresented: $showAuthFailedAlert
+            ) {
+                Button(String(localized: "OK"), role: .cancel) {}
+            } message: {
+                Text(String(
+                    localized: "Face ID or Touch ID did not succeed. The bolus was not enacted.",
+                    comment: "Alert body when biometric auth fails for quick bolus"
+                ))
+            }
         }
         .presentationDetents([.height(320)])
     }
 
     private var displayedSuggestions: [Decimal] {
-        Array(suggestions.sorted().prefix(3))
+        Array(suggestions.prefix(3).sorted())
     }
 
     private var pillRow: some View {

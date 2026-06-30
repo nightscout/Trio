@@ -29,7 +29,7 @@ extension QuickBolusConfig {
                             hintLabel = String(localized: "Enable Quick Bolus")
                         }
                     ),
-                    units: .mgdL,
+                    units: state.units,
                     type: .boolean,
                     label: String(localized: "Enable Quick Bolus"),
                     miniHint: String(localized: "Long-press the + button on the home screen to enact a quick bolus."),
