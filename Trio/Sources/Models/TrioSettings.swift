@@ -70,6 +70,7 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var sweetMealFactor: Decimal = 1
     var displayPresets: Bool = true
     var confirmBolus: Bool = false
+    var enableQuickBolus: Bool = false
     var useLiveActivity: Bool = false
     var lockScreenView: LockScreenView = .simple
     var smartStackView: LockScreenView = .simple

@@ -121,6 +121,7 @@ extension Home {
         var shouldRunDeleteOnSettingsChange = true
 
         var showCarbsRequiredBadge: Bool = true
+        var enableQuickBolus: Bool = false
         var quickBolusHistory: [Decimal] = []
         private(set) var setupPumpType: PumpConfig.PumpType = .minimed
         var minForecast: [Int] = []
@@ -480,6 +481,7 @@ extension Home {
             bolusDisplayThreshold = settingsManager.settings.bolusDisplayThreshold
             thresholdLines = settingsManager.settings.rulerMarks
             showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
+            enableQuickBolus = settingsManager.settings.enableQuickBolus
             forecastDisplayType = settingsManager.settings.forecastDisplayType
             isExerciseModeActive = settingsManager.preferences.exerciseMode
             highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
@@ -537,6 +539,7 @@ extension Home {
         }
 
         func loadQuickBolusSuggestions() async {
+            guard enableQuickBolus else { return }
             let cutoff = Calendar.current.date(byAdding: .day, value: -90, to: Date()) ?? Date()
             let predicate = NSPredicate(
                 format: "isSMB == false AND isExternal == false AND pumpEvent.timestamp >= %@",
@@ -894,6 +897,7 @@ extension Home.StateModel:
         thresholdLines = settingsManager.settings.rulerMarks
         bolusDisplayThreshold = settingsManager.settings.bolusDisplayThreshold
         showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
+        enableQuickBolus = settingsManager.settings.enableQuickBolus
         forecastDisplayType = settingsManager.settings.forecastDisplayType
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()

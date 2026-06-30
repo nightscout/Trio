@@ -480,6 +480,13 @@
 		BD7DA9A72AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A62AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift */; };
 		BD7DA9A92AE06E9200601B20 /* BolusCalculatorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A82AE06E9200601B20 /* BolusCalculatorStateModel.swift */; };
 		BD7DA9AC2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9AB2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift */; };
+		786B6E8A8E294AE883581154 /* QuickBolusConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D543DE17E0054AF0821411BB /* QuickBolusConfigDataFlow.swift */; };
+		FA6B58486AE2496F9F8589C6 /* QuickBolusConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EEC5C2927FA4C5DA61A1A40 /* QuickBolusConfigProvider.swift */; };
+		87F4D02B8D4D4D329BA291D2 /* QuickBolusConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91711E7CA54747EFAD6540EE /* QuickBolusConfigStateModel.swift */; };
+		C5BAAA36C643401D97A8CE11 /* QuickBolusConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3EBC8BA17C4627BD32C58F /* QuickBolusConfigRootView.swift */; };
+		584C79A91D034426A1DE60CB /* SlideToConfirmView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF96FC200503405E94334390 /* SlideToConfirmView.swift */; };
+		DECF1903237041E2BBBE4033 /* QuickBolusInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1526A587AD1544C495050662 /* QuickBolusInfoView.swift */; };
+		3F23E18680094E6DA98628E4 /* QuickBolusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54068ABDAE4898B243DF14 /* QuickBolusView.swift */; };
 		BD7DB88E2D2C4A17003D3155 /* BolusCalculationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DB88D2D2C4A0A003D3155 /* BolusCalculationManager.swift */; };
 		BD8207C42D2B42E60023339D /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6B1A8D182B14D91600E76752 /* WidgetKit.framework */; };
 		BD8207C52D2B42E60023339D /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6B1A8D1A2B14D91600E76752 /* SwiftUI.framework */; };
@@ -1422,6 +1429,13 @@
 		BD7DA9A62AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigProvider.swift; sourceTree = "<group>"; };
 		BD7DA9A82AE06E9200601B20 /* BolusCalculatorStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorStateModel.swift; sourceTree = "<group>"; };
 		BD7DA9AB2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigRootView.swift; sourceTree = "<group>"; };
+		D543DE17E0054AF0821411BB /* QuickBolusConfigDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickBolusConfigDataFlow.swift; sourceTree = "<group>"; };
+		2EEC5C2927FA4C5DA61A1A40 /* QuickBolusConfigProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickBolusConfigProvider.swift; sourceTree = "<group>"; };
+		91711E7CA54747EFAD6540EE /* QuickBolusConfigStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickBolusConfigStateModel.swift; sourceTree = "<group>"; };
+		DB3EBC8BA17C4627BD32C58F /* QuickBolusConfigRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickBolusConfigRootView.swift; sourceTree = "<group>"; };
+		CF96FC200503405E94334390 /* SlideToConfirmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideToConfirmView.swift; sourceTree = "<group>"; };
+		1526A587AD1544C495050662 /* QuickBolusInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickBolusInfoView.swift; sourceTree = "<group>"; };
+		8A54068ABDAE4898B243DF14 /* QuickBolusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickBolusView.swift; sourceTree = "<group>"; };
 		BD7DB88D2D2C4A0A003D3155 /* BolusCalculationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculationManager.swift; sourceTree = "<group>"; };
 		BD8207C32D2B42E50023339D /* Trio Watch Complication Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Trio Watch Complication Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD8E6B202D9036CA00ABF8FA /* OnboardingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingProvider.swift; sourceTree = "<group>"; };
@@ -2156,6 +2170,7 @@
 				DD9ECB6B2CA99FA400AA7C45 /* RemoteControlConfig */,
 				3811DE3825C9D4A100A708ED /* Settings */,
 				110AEDEA2C51A0AE00615CC9 /* ShortcutsConfig */,
+				08A79EA89BFA498F80F4D6FE /* QuickBolusConfig */,
 				DD17451E2C55520000211FAC /* SMBSettings */,
 				29B478DF61BF8D270F7D8954 /* Snooze */,
 				19F95FF129F10F9C00314DDC /* Stat */,
@@ -2248,8 +2263,19 @@
 				3811DE2E25C9D49500A708ED /* HomeRootView.swift */,
 				3833B51E260264AC003021B3 /* Chart */,
 				3833B51F260264B6003021B3 /* Header */,
+				FDB1D1005DA54C048E622761 /* QuickBolus */,
 			);
 			path = View;
+			sourceTree = "<group>";
+		};
+		FDB1D1005DA54C048E622761 /* QuickBolus */ = {
+			isa = PBXGroup;
+			children = (
+				CF96FC200503405E94334390 /* SlideToConfirmView.swift */,
+				1526A587AD1544C495050662 /* QuickBolusInfoView.swift */,
+				8A54068ABDAE4898B243DF14 /* QuickBolusView.swift */,
+			);
+			path = QuickBolus;
 			sourceTree = "<group>";
 		};
 		3811DE3825C9D4A100A708ED /* Settings */ = {
@@ -3377,6 +3403,25 @@
 			isa = PBXGroup;
 			children = (
 				BD7DA9AB2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		08A79EA89BFA498F80F4D6FE /* QuickBolusConfig */ = {
+			isa = PBXGroup;
+			children = (
+				D543DE17E0054AF0821411BB /* QuickBolusConfigDataFlow.swift */,
+				2EEC5C2927FA4C5DA61A1A40 /* QuickBolusConfigProvider.swift */,
+				91711E7CA54747EFAD6540EE /* QuickBolusConfigStateModel.swift */,
+				2148032F6F184487B49B1095 /* View */,
+			);
+			path = QuickBolusConfig;
+			sourceTree = "<group>";
+		};
+		2148032F6F184487B49B1095 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				DB3EBC8BA17C4627BD32C58F /* QuickBolusConfigRootView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -4897,6 +4942,13 @@
 				3B2A3BC12E2B19C600658FB9 /* DynamicISF.swift in Sources */,
 				CEE9A6592BBB418300EB5194 /* CalibrationsDataFlow.swift in Sources */,
 				3811DE3525C9D49500A708ED /* HomeRootView.swift in Sources */,
+				584C79A91D034426A1DE60CB /* SlideToConfirmView.swift in Sources */,
+				DECF1903237041E2BBBE4033 /* QuickBolusInfoView.swift in Sources */,
+				3F23E18680094E6DA98628E4 /* QuickBolusView.swift in Sources */,
+				786B6E8A8E294AE883581154 /* QuickBolusConfigDataFlow.swift in Sources */,
+				FA6B58486AE2496F9F8589C6 /* QuickBolusConfigProvider.swift in Sources */,
+				87F4D02B8D4D4D329BA291D2 /* QuickBolusConfigStateModel.swift in Sources */,
+				C5BAAA36C643401D97A8CE11 /* QuickBolusConfigRootView.swift in Sources */,
 				38E98A2925F52C9300C0CED0 /* Error+Extensions.swift in Sources */,
 				3E62C7822F54CC1B00433237 /* BolusDisplayThreshold.swift in Sources */,
 				38EA05DA261F6E7C0064E39B /* SimpleLogReporter.swift in Sources */,
