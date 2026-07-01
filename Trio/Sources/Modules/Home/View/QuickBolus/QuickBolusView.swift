@@ -13,75 +13,82 @@ struct QuickBolusView: View {
     var body: some View {
         let titleText = String(localized: "Quick-Pick Boluses", comment: "Title of the quick-pick boluses sheet")
         NavigationStack {
-            VStack(spacing: 12) {
-                pillRow
-                    .padding(.top, 4)
+            HStack(alignment: .top) {
+                VStack(alignment: .leading) {
+                    pillRow
+                        .padding(.top)
 
-                Text(
-                    "Your most-used bolus amounts at similar times on similar days. Tap one to pick it.",
-                    comment: "Subtitle of the quick-pick boluses pill row"
-                )
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.leading)
-                .padding(.horizontal)
-            }
-            .frame(maxWidth: .infinity)
-            .safeAreaInset(edge: .bottom, spacing: 10) {
-                SlideToConfirmView(
-                    label: String(localized: "Slide to Enact Bolus", comment: "Slide to confirm label for quick-pick boluses"),
-                    isEnabled: selectedAmount != nil && !isEnacting
-                ) {
-                    guard let amount = selectedAmount, !isEnacting else { return }
-                    isEnacting = true
-                    Task {
-                        let success = await onEnact(amount)
-                        await MainActor.run {
-                            if success {
-                                isPresented = false
-                            } else {
-                                isEnacting = false
-                                showAuthFailedAlert = true
+                    Text(
+                        "Your most-used bolus amounts at similar times on similar days. Tap one to pick it.",
+                        comment: "Subtitle of the quick-pick boluses pill row"
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
+                    .padding()
+
+                    Spacer()
+                }
+            }.padding(.horizontal)
+                .frame(maxWidth: .infinity)
+                .safeAreaInset(edge: .bottom) {
+                    VStack {
+                        SlideToConfirmView(
+                            label: String(
+                                localized: "Slide to Enact Bolus",
+                                comment: "Slide to confirm label for quick-pick boluses"
+                            ),
+                            isEnabled: selectedAmount != nil && !isEnacting
+                        ) {
+                            guard let amount = selectedAmount, !isEnacting else { return }
+                            isEnacting = true
+                            Task {
+                                let success = await onEnact(amount)
+                                await MainActor.run {
+                                    if success {
+                                        isPresented = false
+                                    } else {
+                                        isEnacting = false
+                                        showAuthFailedAlert = true
+                                    }
+                                }
                             }
+                        }.padding(.horizontal)
+                    }
+                    .padding(.horizontal)
+                }
+                .navigationTitle(titleText)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Text(titleText)
+                            .font(.title3.bold())
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showInfo = true
+                        } label: {
+                            Image(systemName: "questionmark.circle")
                         }
                     }
                 }
-                .padding(.horizontal)
-                .padding(.top, 6)
-                .padding(.bottom, 8)
-            }
-            .navigationTitle(titleText)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text(titleText)
-                        .font(.title3.bold())
+                .sheet(isPresented: $showInfo) {
+                    QuickBolusInfoView(isPresented: $showInfo)
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showInfo = true
-                    } label: {
-                        Image(systemName: "questionmark.circle")
-                    }
+                .alert(
+                    String(
+                        localized: "Could not authenticate",
+                        comment: "Alert title when biometric auth fails for quick-pick boluses"
+                    ),
+                    isPresented: $showAuthFailedAlert
+                ) {
+                    Button(String(localized: "OK"), role: .cancel) {}
+                } message: {
+                    Text(String(
+                        localized: "Face ID or Touch ID did not succeed. The bolus was not enacted.",
+                        comment: "Alert body when biometric auth fails for quick-pick boluses"
+                    ))
                 }
-            }
-            .sheet(isPresented: $showInfo) {
-                QuickBolusInfoView(isPresented: $showInfo)
-            }
-            .alert(
-                String(
-                    localized: "Could not authenticate",
-                    comment: "Alert title when biometric auth fails for quick-pick boluses"
-                ),
-                isPresented: $showAuthFailedAlert
-            ) {
-                Button(String(localized: "OK"), role: .cancel) {}
-            } message: {
-                Text(String(
-                    localized: "Face ID or Touch ID did not succeed. The bolus was not enacted.",
-                    comment: "Alert body when biometric auth fails for quick-pick boluses"
-                ))
-            }
         }
         .presentationDetents([.height(320)])
         .presentationDragIndicator(.visible)
@@ -95,13 +102,15 @@ struct QuickBolusView: View {
 
     private var pillRow: some View {
         let pills = displayedSuggestions
-        let isCompact = pills.count < 3
+        let isCompact = pills.count < 2
         return HStack(spacing: 16) {
             if isCompact { Spacer() }
+
             ForEach(pills, id: \.self) { amount in
                 bolusAmountPill(amount)
                     .frame(maxWidth: isCompact ? 160 : .infinity)
             }
+
             if isCompact { Spacer() }
         }
         .padding(.horizontal)
