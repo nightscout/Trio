@@ -112,7 +112,7 @@ struct NotificationsView: BaseView {
             )
         }
         .sheet(isPresented: $showSnoozeSheet) {
-            SnoozeAllSheet(resolver: resolver, isPresented: $showSnoozeSheet)
+            SnoozeAlertsSheetView(resolver: resolver, isPresented: $showSnoozeSheet)
         }
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))

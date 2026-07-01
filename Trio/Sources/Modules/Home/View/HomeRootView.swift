@@ -997,7 +997,7 @@ extension Home {
                 ChartLegendView(state: state)
             }
             .sheet(isPresented: $showSnoozeSheet) {
-                SnoozeAllSheet(resolver: resolver, isPresented: $showSnoozeSheet)
+                SnoozeAlertsSheetView(resolver: resolver, isPresented: $showSnoozeSheet)
             }
             // PUMP RELATED
             .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
