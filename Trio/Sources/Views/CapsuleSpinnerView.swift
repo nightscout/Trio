@@ -12,6 +12,7 @@ struct CapsuleSpinnerView<Content: View>: View {
     @State private var dashPhase: CGFloat = 0.0
     @State private var perimeter: CGFloat = 200
     @State private var contentSize: CGSize = .zero
+    @State private var spinStartDate: Date? = nil
     @State private var startAnimationTask: Task<Void, Never>? = nil
     @State private var stopAnimationTask: Task<Void, Never>? = nil
 
@@ -119,37 +120,63 @@ struct CapsuleSpinnerView<Content: View>: View {
             stopAnimationTask?.cancel()
             startAnimationTask?.cancel()
 
+            spinStartDate = Date()
+
             startAnimationTask = Task { @MainActor in
-                // 1. Fade in the spinning capsule layout structure
+                // 1. Fade in the spinning capsule layout structure FIRST
+                //    so the dashed Capsule actually mounts.
                 withAnimation(.easeInOut(duration: 0.3)) {
                     isAnimating = true
                 }
 
-                // 2. Wait exactly for the fade transaction to finish mounting the new capsule
+                // 2. Wait for that transition to finish mounting the new capsule
                 try? await Task.sleep(for: .seconds(0.3))
                 guard !Task.isCancelled else { return }
 
-                // 3. Reset layout matrix positions instantly without animation hooks
+                // 3. Reset dashPhase instantly, no animation
                 var transaction = Transaction()
                 transaction.disablesAnimations = true
                 withTransaction(transaction) {
                     self.dashPhase = 0.0
                 }
 
-                // 4. Fire continuous hardware loop safely
+                // 4. NOW the dashed Capsule exists — animation will actually attach
                 withAnimation(.linear(duration: 1.333).repeatForever(autoreverses: false)) {
                     self.dashPhase = -self.perimeter
                 }
             }
         } else {
             stopAnimationTask?.cancel()
-            stopAnimationTask = Task { @MainActor in
-                try? await Task.sleep(for: .seconds(2.0))
-                guard !Task.isCancelled else { return }
+            startAnimationTask?.cancel() // keep this symmetric, as discussed earlier
 
+            stopAnimationTask = Task { @MainActor in
+                // Enforce minimum 2s total spin time
+                let elapsed = spinStartDate.map { Date().timeIntervalSince($0) } ?? 0
+                let minimumSpinTime: TimeInterval = 2.0
+                let remaining = max(0, minimumSpinTime - elapsed)
+
+                if remaining > 0 {
+                    try? await Task.sleep(for: .seconds(remaining))
+                    guard !Task.isCancelled else { return }
+                }
+
+                // 1. Fade out spinning capsule layout structure
                 withAnimation(.easeInOut(duration: 0.3)) {
                     isAnimating = false
                 }
+
+                // 2. Wait for the fade transaction to finish unmounting the capsule
+                try? await Task.sleep(for: .seconds(0.3))
+                guard !Task.isCancelled else { return }
+
+                // 3. Reset spinning animation
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    self.dashPhase = 0.0
+                }
+
+                spinStartDate = nil
             }
         }
     }
