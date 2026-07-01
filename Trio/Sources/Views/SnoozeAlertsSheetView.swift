@@ -24,7 +24,7 @@ struct SnoozeAlertsSheetView: View {
                                 format: String(localized: "Snoozed until %@"),
                                 snoozeUntilDate.formatted(date: .omitted, time: .shortened)
                             ))
-                            .font(.headline)
+                                .font(.headline)
                         }
                     }.listRowBackground(Color.chart)
                 }

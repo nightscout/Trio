@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import LoopKit
 import Swinject
+import UIKit
 import UserNotifications
 
 protocol TrioAlertManager: AnyObject {
@@ -83,6 +84,39 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             .object(forKey: "UserNotificationsManager.snoozeUntilDate") as? Date
         if let until = persistedSnoozeUntil, until > Date() {
             muter.mute(for: until.timeIntervalSinceNow)
+        }
+
+        // iOS doesn't fire `didReceive` on swipe for critical UNs, so we
+        // can't rely on the callback for alerts that override Silence & DnD.
+        // On foreground, mirror iOS: any banner whose UN is no longer in the
+        // delivered list gets hidden.
+        Foundation.NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(reconcileBannersWithDeliveredNotifications),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+    }
+
+    @objc private func reconcileBannersWithDeliveredNotifications() {
+        UNUserNotificationCenter.current().getDeliveredNotifications { [weak self] delivered in
+            guard let self else { return }
+            let deliveredIDs = Set(delivered.compactMap { note -> Alert.Identifier? in
+                let userInfo = note.request.content.userInfo
+                guard
+                    let managerId = userInfo[AlertUserInfoKey.managerIdentifier.rawValue] as? String,
+                    let alertId = userInfo[AlertUserInfoKey.alertIdentifier.rawValue] as? String
+                else { return nil }
+                return Alert.Identifier(managerIdentifier: managerId, alertIdentifier: alertId)
+            })
+            DispatchQueue.main.async {
+                let stale = self.modalScheduler.active
+                    .map(\.identifier)
+                    .filter { !deliveredIDs.contains($0) }
+                for identifier in stale {
+                    self.modalScheduler.unschedule(identifier: identifier)
+                }
+            }
         }
     }
 
