@@ -140,18 +140,18 @@ extension Home {
                 cgmSensorExpiresAt: state.cgmSensorExpiresAt,
                 cgmWarmupEndsAt: state.cgmWarmupEndsAt
             )
-                .onTapGesture {
-                    if !state.cgmAvailable {
-                        showCGMSelection.toggle()
-                    } else {
-                        state.shouldDisplayCGMSetupSheet.toggle()
-                    }
+            .onTapGesture {
+                if !state.cgmAvailable {
+                    showCGMSelection.toggle()
+                } else {
+                    state.shouldDisplayCGMSetupSheet.toggle()
                 }
-                .onLongPressGesture {
-                    let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                    impactHeavy.impactOccurred()
-                    showSnoozeSheet = true
-                }
+            }
+            .onLongPressGesture {
+                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                impactHeavy.impactOccurred()
+                state.showModal(for: .snooze)
+            }
         }
 
         var pumpView: some View {
