@@ -11,6 +11,7 @@ struct QuickBolusView: View {
     @State private var showAuthFailedAlert = false
 
     var body: some View {
+        let titleText = String(localized: "Quick Bolus", comment: "Title of the quick bolus sheet")
         NavigationStack {
             VStack(spacing: 12) {
                 pillRow
@@ -49,11 +50,11 @@ struct QuickBolusView: View {
                 .padding(.top, 6)
                 .padding(.bottom, 8)
             }
-            .navigationTitle(String(localized: "Quick Bolus", comment: "Title of the quick bolus sheet"))
+            .navigationTitle(titleText)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("Quick Bolus", comment: "Title of the quick bolus sheet")
+                    Text(titleText)
                         .font(.title3.bold())
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -81,20 +82,25 @@ struct QuickBolusView: View {
         }
         .presentationDetents([.height(320)])
         .presentationDragIndicator(.visible)
+        .interactiveDismissDisabled(isEnacting)
     }
 
     private var displayedSuggestions: [Decimal] {
-        Array(suggestions.prefix(3).sorted())
+        var seen = Set<Decimal>()
+        return suggestions.prefix(3).filter { seen.insert($0).inserted }.sorted()
     }
 
     private var pillRow: some View {
-        HStack(spacing: 16) {
-            ForEach(displayedSuggestions, id: \.self) { amount in
+        let pills = displayedSuggestions
+        let isCompact = pills.count < 3
+        return HStack(spacing: 16) {
+            if isCompact { Spacer() }
+            ForEach(pills, id: \.self) { amount in
                 bolusAmountPill(amount)
-                    .frame(maxWidth: displayedSuggestions.count < 3 ? 160 : .infinity)
+                    .frame(maxWidth: isCompact ? 160 : .infinity)
             }
+            if isCompact { Spacer() }
         }
-        .frame(maxWidth: .infinity)
         .padding(.horizontal)
     }
 
@@ -114,7 +120,7 @@ struct QuickBolusView: View {
             }
             .padding(.vertical, 12)
             .padding(.horizontal, 24)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, minHeight: 44)
             .background(isSelected ? Color.accentColor : Color(.secondarySystemFill))
             .foregroundStyle(isSelected ? .white : .primary)
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))

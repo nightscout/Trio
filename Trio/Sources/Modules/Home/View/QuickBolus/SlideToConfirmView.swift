@@ -43,6 +43,7 @@ struct SlideToConfirmView: View {
                                 guard maxDrag > 0 else { return }
                                 if dragOffset >= maxDrag * completionThreshold {
                                     UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                                    withAnimation(.spring()) { dragOffset = 0 }
                                     action()
                                 } else {
                                     withAnimation(.spring()) { dragOffset = 0 }
