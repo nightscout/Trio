@@ -729,7 +729,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     /// - Parameter amount: The requested bolus amount in units
     private func handleBolusRequest(_ amount: Decimal) {
         Task {
-            let bolusReference = BolusOriginStore.shared.makeReference(for: BolusOrigin.watch.rawValue)
+            let bolusReference = BolusOriginStore.shared.makeReference(for: .watch)
             await apsManager
                 .enactBolus(amount: Double(amount), isSMB: false, bolusReference: bolusReference) { success, message in
                     // Acknowledge success or error of bolus
@@ -851,7 +851,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
                 // Enact bolus via APS Manager
                 let bolusDouble = NSDecimalNumber(decimal: bolusAmount).doubleValue
-                let bolusReference = BolusOriginStore.shared.makeReference(for: BolusOrigin.watch.rawValue)
+                let bolusReference = BolusOriginStore.shared.makeReference(for: .watch)
                 await apsManager
                     .enactBolus(amount: bolusDouble, isSMB: false, bolusReference: bolusReference) { success, message in
                         // Acknowledge success or error of bolus

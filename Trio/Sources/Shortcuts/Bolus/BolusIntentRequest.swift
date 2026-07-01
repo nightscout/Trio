@@ -24,7 +24,7 @@ final class BolusIntentRequest: BaseIntentsRequest {
             }
 
             let bolusQuantity = apsManager.roundBolus(amount: requestedAmount)
-            let bolusReference = BolusOriginStore.shared.makeReference(for: BolusOrigin.shortcut.rawValue)
+            let bolusReference = BolusOriginStore.shared.makeReference(for: .shortcut)
             await apsManager.enactBolus(
                 amount: Double(bolusQuantity),
                 isSMB: false,

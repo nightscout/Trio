@@ -577,7 +577,7 @@ extension Treatments {
                     await MainActor.run {
                         self.isAwaitingDeterminationResult = true
                     }
-                    let bolusReference = BolusOriginStore.shared.makeReference(for: BolusOrigin.manual.rawValue)
+                    let bolusReference = BolusOriginStore.shared.makeReference(for: .manual)
                     await apsManager.enactBolus(amount: maxAmount, isSMB: false, bolusReference: bolusReference, callback: nil)
                 }
             } catch {

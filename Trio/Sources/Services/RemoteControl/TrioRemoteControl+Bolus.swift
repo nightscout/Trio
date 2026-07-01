@@ -32,7 +32,7 @@ extension TrioRemoteControl {
             return
         }
 
-        let bolusReference = BolusOriginStore.shared.makeReference(for: BolusOrigin.remote.rawValue)
+        let bolusReference = BolusOriginStore.shared.makeReference(for: .remote)
 
         if let returnInfo = payload.returnNotification {
             await RemoteNotificationResponseManager.shared.sendResponseNotification(
