@@ -35,7 +35,11 @@ struct LoopView: View {
                 Text(verbatim: "looping")
             } else if manualTempBasal {
                 Text("Manual")
-            } else if determination.first?.deliverAt != nil {
+            } else if determination.first?
+                .deliverAt !=
+                nil
+            {
+                // previously the .timestamp property was used here because this only gets updated when the reportenacted function in the aps manager gets called
                 Text(timeString)
             } else {
                 Text("--")
@@ -55,7 +59,9 @@ struct LoopView: View {
     }
 
     private var color: Color {
-        guard determination.first?.timestamp != nil else {
+        guard determination.first?.timestamp != nil
+        else {
+            // previously the .timestamp property was used here because this only gets updated when the reportenacted function in the aps manager gets called
             return .secondary
         }
         guard manualTempBasal == false else {
