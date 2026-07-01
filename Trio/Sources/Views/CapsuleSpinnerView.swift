@@ -142,7 +142,7 @@ struct CapsuleSpinnerView<Content: View>: View {
                 }
 
                 // 4. NOW the dashed Capsule exists — animation will actually attach
-                    (.linear(duration: 1.333).repeatForever(autoreverses: false)) {
+                withAnimation(.linear(duration: 1.333).repeatForever(autoreverses: false)) {
                     self.dashPhase = -self.perimeter
                 }
 
