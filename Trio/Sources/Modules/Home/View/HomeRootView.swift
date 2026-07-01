@@ -1157,14 +1157,14 @@ extension Home {
                 )
             }
             .alert(
-                String(localized: "No Quick Bolus History Yet", comment: "Alert title when no quick bolus history exists"),
+                String(localized: "No bolus history yet", comment: "Alert title when no quick-pick boluses history exists"),
                 isPresented: $showQuickBolusNoHistory
             ) {
                 Button(String(localized: "OK"), role: .cancel) {}
             } message: {
                 Text(String(
-                    localized: "Quick Bolus learns from your manual boluses over time. Once you've delivered a few boluses, it will suggest amounts based on what you typically take at this time of day.",
-                    comment: "Alert body explaining that quick bolus history is empty"
+                    localized: "Quick-Pick Boluses learns from your manual boluses over time. Once you've delivered a few boluses, it will suggest amounts based on what you typically enact at this time of day.",
+                    comment: "Alert body explaining that quick-pick boluses history is empty"
                 ))
             }
         }

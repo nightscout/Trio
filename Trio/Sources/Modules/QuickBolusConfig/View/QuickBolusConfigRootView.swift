@@ -26,17 +26,17 @@ extension QuickBolusConfig {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Enable Quick Bolus")
+                            hintLabel = String(localized: "Enable Quick-Pick Boluses")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: String(localized: "Enable Quick Bolus"),
-                    miniHint: String(localized: "Long-press the + button on the home screen to enact a quick bolus."),
+                    label: String(localized: "Enable Quick-Pick Boluses"),
+                    miniHint: String(localized: "Long-press the + button on the home screen to enact a quick-pick bolus."),
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "When enabled, long-pressing the + button on the home screen opens a Quick Bolus sheet. It suggests up to three bolus amounts based on your bolus history at similar times of day, weighted by recency and day type (weekday vs. weekend)."
+                            "When enabled, long-pressing the + button on the home screen opens a Quick-Pick Boluses sheet. It suggests up to three bolus amounts based on your bolus history at similar times of day, weighted by recency and day type (weekday vs. weekend)."
                         )
                         Text(
                             "Slide to confirm your selected amount. Face ID or Touch ID is always required before the bolus is enacted."
@@ -56,7 +56,7 @@ extension QuickBolusConfig {
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
-            .navigationBarTitle("Quick Bolus")
+            .navigationBarTitle("Quick-Pick Boluses")
             .navigationBarTitleDisplayMode(.automatic)
             .settingsHighlightScroll()
         }

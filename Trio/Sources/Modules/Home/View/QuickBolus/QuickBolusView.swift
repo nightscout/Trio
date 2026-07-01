@@ -11,7 +11,7 @@ struct QuickBolusView: View {
     @State private var showAuthFailedAlert = false
 
     var body: some View {
-        let titleText = String(localized: "Quick Bolus", comment: "Title of the quick bolus sheet")
+        let titleText = String(localized: "Quick-Pick Boluses", comment: "Title of the quick-pick boluses sheet")
         NavigationStack {
             VStack(spacing: 12) {
                 pillRow
@@ -19,7 +19,7 @@ struct QuickBolusView: View {
 
                 Text(
                     "Your most-used bolus amounts at similar times on similar days. Tap one to pick it.",
-                    comment: "Subtitle of the quick bolus pill row"
+                    comment: "Subtitle of the quick-pick boluses pill row"
                 )
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -29,7 +29,7 @@ struct QuickBolusView: View {
             .frame(maxWidth: .infinity)
             .safeAreaInset(edge: .bottom, spacing: 10) {
                 SlideToConfirmView(
-                    label: String(localized: "Slide to Enact Bolus", comment: "Slide to confirm label for quick bolus"),
+                    label: String(localized: "Slide to Enact Bolus", comment: "Slide to confirm label for quick-pick boluses"),
                     isEnabled: selectedAmount != nil && !isEnacting
                 ) {
                     guard let amount = selectedAmount, !isEnacting else { return }
@@ -69,14 +69,17 @@ struct QuickBolusView: View {
                 QuickBolusInfoView(isPresented: $showInfo)
             }
             .alert(
-                String(localized: "Could not authenticate", comment: "Alert title when biometric auth fails for quick bolus"),
+                String(
+                    localized: "Could not authenticate",
+                    comment: "Alert title when biometric auth fails for quick-pick boluses"
+                ),
                 isPresented: $showAuthFailedAlert
             ) {
                 Button(String(localized: "OK"), role: .cancel) {}
             } message: {
                 Text(String(
                     localized: "Face ID or Touch ID did not succeed. The bolus was not enacted.",
-                    comment: "Alert body when biometric auth fails for quick bolus"
+                    comment: "Alert body when biometric auth fails for quick-pick boluses"
                 ))
             }
         }
