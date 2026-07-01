@@ -1122,6 +1122,8 @@ extension Home {
                     }
                     .onLongPressGesture(minimumDuration: 0.5) {
                         guard state.enableQuickBolus else { return }
+                        let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                        impactHeavy.impactOccurred()
                         Task {
                             await state.loadQuickBolusSuggestions()
                             if state.quickBolusHistory.isEmpty {
