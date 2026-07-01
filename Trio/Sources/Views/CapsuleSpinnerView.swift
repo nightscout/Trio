@@ -118,7 +118,9 @@ struct CapsuleSpinnerView<Content: View>: View {
     private func updateAnimating(_ newValue: Bool) {
         if newValue {
             stopAnimationTask?.cancel()
-            startAnimationTask?.cancel()
+            stopAnimationTask = nil
+
+            guard startAnimationTask == nil else { return }
 
             spinStartDate = Date()
 
@@ -131,7 +133,6 @@ struct CapsuleSpinnerView<Content: View>: View {
 
                 // 2. Wait for that transition to finish mounting the new capsule
                 try? await Task.sleep(for: .seconds(0.3))
-                guard !Task.isCancelled else { return }
 
                 // 3. Reset dashPhase instantly, no animation
                 var transaction = Transaction()
@@ -141,16 +142,23 @@ struct CapsuleSpinnerView<Content: View>: View {
                 }
 
                 // 4. NOW the dashed Capsule exists — animation will actually attach
-                withAnimation(.linear(duration: 1.333).repeatForever(autoreverses: false)) {
+                    (.linear(duration: 1.333).repeatForever(autoreverses: false)) {
                     self.dashPhase = -self.perimeter
                 }
+
+                startAnimationTask = nil
             }
         } else {
+            // Let any in-flight start finish attaching the animation first
             stopAnimationTask?.cancel()
-            startAnimationTask?.cancel() // keep this symmetric, as discussed earlier
 
             stopAnimationTask = Task { @MainActor in
-                // Enforce minimum 2s total spin time
+                // Wait for start sequence to complete if it's still running
+                while startAnimationTask != nil {
+                    try? await Task.sleep(for: .milliseconds(20))
+                    guard !Task.isCancelled else { return }
+                }
+
                 let elapsed = spinStartDate.map { Date().timeIntervalSince($0) } ?? 0
                 let minimumSpinTime: TimeInterval = 2.0
                 let remaining = max(0, minimumSpinTime - elapsed)
