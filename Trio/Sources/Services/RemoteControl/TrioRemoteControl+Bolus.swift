@@ -1,5 +1,6 @@
 import Foundation
 import HealthKit
+import LoopKit
 
 extension TrioRemoteControl {
     func handleBolusCommand(_ payload: CommandPayload) async throws {
@@ -31,7 +32,7 @@ extension TrioRemoteControl {
             return
         }
 
-        let bolusReference = await TrioApp.resolver.resolve(BolusOriginStore.self)?.makeReference(for: .remote)
+        let bolusReference = BolusOriginStore.shared.makeReference(for: BolusOrigin.remote.rawValue)
 
         if let returnInfo = payload.returnNotification {
             await RemoteNotificationResponseManager.shared.sendResponseNotification(

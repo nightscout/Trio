@@ -111,7 +111,6 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var tddStorage: TDDStorage!
     @Injected() private var broadcaster: Broadcaster!
-    @Injected() private var bolusOriginStore: BolusOriginStore!
     @Persisted(key: "lastLoopStartDate") private var lastLoopStartDate: Date = .distantPast
     @Persisted(key: "lastLoopDate") var lastLoopDate: Date = .distantPast {
         didSet {
@@ -605,7 +604,7 @@ final class BaseAPSManager: APSManager, Injectable {
             // Drop the origin mapping on a definite failure. On uncertain delivery we keep it, because the
             // dose may still be reported (and reconciled) later and should still resolve its origin.
             if let bolusReference = bolusReference, !error.isUncertainDelivery {
-                bolusOriginStore.remove(bolusReference)
+                BolusOriginStore.shared.remove(reference: bolusReference)
             }
             processError(APSError.pumpError(error))
             if !isSMB {

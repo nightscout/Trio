@@ -1,6 +1,7 @@
 import Combine
 import CoreData
 import Foundation
+import LoopKit
 import Swinject
 import UIKit
 import WatchConnectivity
@@ -26,7 +27,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     @Injected() private var bolusCalculationManager: BolusCalculationManager!
     @Injected() private var iobService: IOBService!
     @Injected() private var notificationsManager: UserNotificationsManager!
-    @Injected() private var bolusOriginStore: BolusOriginStore!
 
     private var units: GlucoseUnits = .mgdL
     private var glucoseColorScheme: GlucoseColorScheme = .staticColor
@@ -729,7 +729,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     /// - Parameter amount: The requested bolus amount in units
     private func handleBolusRequest(_ amount: Decimal) {
         Task {
-            let bolusReference = bolusOriginStore.makeReference(for: .watch)
+            let bolusReference = BolusOriginStore.shared.makeReference(for: BolusOrigin.watch.rawValue)
             await apsManager
                 .enactBolus(amount: Double(amount), isSMB: false, bolusReference: bolusReference) { success, message in
                     // Acknowledge success or error of bolus
@@ -851,7 +851,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
                 // Enact bolus via APS Manager
                 let bolusDouble = NSDecimalNumber(decimal: bolusAmount).doubleValue
-                let bolusReference = bolusOriginStore.makeReference(for: .watch)
+                let bolusReference = BolusOriginStore.shared.makeReference(for: BolusOrigin.watch.rawValue)
                 await apsManager
                     .enactBolus(amount: bolusDouble, isSMB: false, bolusReference: bolusReference) { success, message in
                         // Acknowledge success or error of bolus

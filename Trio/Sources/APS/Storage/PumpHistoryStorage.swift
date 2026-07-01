@@ -24,7 +24,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     @Injected() private var storage: FileStorage!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var settings: SettingsManager!
-    @Injected() private var bolusOriginStore: BolusOriginStore!
 
     private let updateSubject = PassthroughSubject<Void, Never>()
 
@@ -110,10 +109,11 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     if dose.automatic == true {
                         origin = .smb
                     } else if let reference = dose.bolusReference,
-                              let resolved = self.bolusOriginStore.origin(for: reference)
+                              let token = BolusOriginStore.shared.origin(forReference: reference),
+                              let resolved = BolusOrigin(rawValue: token)
                     {
                         origin = resolved
-                        self.bolusOriginStore.remove(reference)
+                        BolusOriginStore.shared.remove(reference: reference)
                         newPumpEvent.note = resolved.displayName
                         debug(.coreData, "Tagged bolus origin: \(resolved.displayName)")
                     } else {
