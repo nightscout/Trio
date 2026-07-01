@@ -12,7 +12,8 @@ struct CapsuleSpinnerView<Content: View>: View {
     @State private var dashPhase: CGFloat = 0.0
     @State private var perimeter: CGFloat = 200
     @State private var contentSize: CGSize = .zero
-    @State private var animationTask: Task<Void, Never>? = nil
+    @State private var startAnimationTask: Task<Void, Never>? = nil
+    @State private var stopAnimationTask: Task<Void, Never>? = nil
 
     // OPTION 1: Initializer WITH the animating argument
     init(
@@ -49,6 +50,10 @@ struct CapsuleSpinnerView<Content: View>: View {
                             .onAppear {
                                 contentSize = geo.size
                                 updatePerimeter(size: geo.size)
+                                // If it was supposed to loop initially, trigger it now that we know the size
+                                if isLooping {
+                                    updateAnimating(true)
+                                }
                             }
                             .onChange(of: geo.size) { _, newSize in
                                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -110,35 +115,35 @@ struct CapsuleSpinnerView<Content: View>: View {
     }
 
     private func updateAnimating(_ newValue: Bool) {
-        // Cancel any pending start or stop cycles to prevent overlapping states
-        animationTask?.cancel()
-
         if newValue {
-            animationTask = Task {
-                // 1. Fade in the spinning capsule state
+            stopAnimationTask?.cancel()
+            startAnimationTask?.cancel()
+
+            startAnimationTask = Task { @MainActor in
+                // 1. Fade in the spinning capsule layout structure
                 withAnimation(.easeInOut(duration: 0.3)) {
                     isAnimating = true
                 }
 
-                // 2. Wait exactly for the fade transition to finish mounting the new capsule
+                // 2. Wait exactly for the fade transaction to finish mounting the new capsule
                 try? await Task.sleep(for: .seconds(0.3))
                 guard !Task.isCancelled else { return }
 
-                // 3. Reset the dash structure instantly without animation
+                // 3. Reset layout matrix positions instantly without animation hooks
                 var transaction = Transaction()
                 transaction.disablesAnimations = true
                 withTransaction(transaction) {
                     self.dashPhase = 0.0
                 }
 
-                // 4. Safely spin up the loop on the newly mounted capsule view
+                // 4. Fire continuous hardware loop safely
                 withAnimation(.linear(duration: 1.333).repeatForever(autoreverses: false)) {
                     self.dashPhase = -self.perimeter
                 }
             }
         } else {
-            animationTask = Task {
-                // Keep spinning for a minimum timeline requirement if needed, then fade out
+            stopAnimationTask?.cancel()
+            stopAnimationTask = Task { @MainActor in
                 try? await Task.sleep(for: .seconds(2.0))
                 guard !Task.isCancelled else { return }
 
