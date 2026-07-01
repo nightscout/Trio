@@ -8,7 +8,7 @@ import Swinject
 
 protocol APSManager {
     func heartbeat(date: Date)
-    func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async
+    func enactBolus(amount: Double, isSMB: Bool, bolusReference: String?, callback: ((Bool, String) -> Void)?) async
     var pumpManager: PumpManagerUI? { get set }
     var bluetoothManager: BluetoothStateManager? { get }
     var pumpDisplayState: CurrentValueSubject<PumpDisplayState?, Never> { get }
@@ -34,6 +34,13 @@ protocol APSManager {
     var lastError: CurrentValueSubject<Error?, Never> { get }
     func cancelBolus(_ callback: ((Bool, String) -> Void)?) async
     var iobFileDidUpdate: PassthroughSubject<Void, Never> { get }
+}
+
+extension APSManager {
+    /// Convenience for callers that do not tag a bolus origin.
+    func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async {
+        await enactBolus(amount: amount, isSMB: isSMB, bolusReference: nil, callback: callback)
+    }
 }
 
 enum APSError: LocalizedError {
@@ -104,6 +111,7 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var tddStorage: TDDStorage!
     @Injected() private var broadcaster: Broadcaster!
+    @Injected() private var bolusOriginStore: BolusOriginStore!
     @Persisted(key: "lastLoopStartDate") private var lastLoopStartDate: Date = .distantPast
     @Persisted(key: "lastLoopDate") var lastLoopDate: Date = .distantPast {
         didSet {
@@ -550,7 +558,7 @@ final class BaseAPSManager: APSManager, Injectable {
         return min(rounded, maxBolus)
     }
 
-    func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async {
+    func enactBolus(amount: Double, isSMB: Bool, bolusReference: String?, callback: ((Bool, String) -> Void)?) async {
         if amount <= 0 {
             return
         }
@@ -578,7 +586,7 @@ final class BaseAPSManager: APSManager, Injectable {
         debug(.apsManager, "Enact bolus \(roundedAmount), manual \(!isSMB)")
 
         do {
-            try await pump.enactBolus(units: roundedAmount, automatic: isSMB)
+            try await pump.enactBolus(units: roundedAmount, automatic: isSMB, bolusReference: bolusReference)
             debug(.apsManager, "Bolus succeeded")
             bolusProgress.send(0)
             callback?(true, String(localized: "Bolus enacted successfully.", comment: "Success message for enacting a bolus"))
@@ -594,6 +602,11 @@ final class BaseAPSManager: APSManager, Injectable {
             }
         } catch {
             warning(.apsManager, "Bolus failed with error: \(error)")
+            // Drop the origin mapping on a definite failure. On uncertain delivery we keep it, because the
+            // dose may still be reported (and reconciled) later and should still resolve its origin.
+            if let bolusReference = bolusReference, !error.isUncertainDelivery {
+                bolusOriginStore.remove(bolusReference)
+            }
             processError(APSError.pumpError(error))
             if !isSMB {
                 // Use MainActor to handle broadcaster notification
@@ -755,6 +768,7 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func performBolus(pump: PumpManager, smbToDeliver: NSDecimalNumber) async throws {
+        // SMB is not origin-tagged: it is already distinguishable in Nightscout via eventType "SMB".
         try await pump.enactBolus(units: Double(truncating: smbToDeliver), automatic: true)
         bolusProgress.send(0)
     }
@@ -1245,11 +1259,11 @@ private extension PumpManager {
         }
     }
 
-    func enactBolus(units: Double, automatic: Bool) async throws {
+    func enactBolus(units: Double, automatic: Bool, bolusReference: String? = nil) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             let automaticValue = automatic ? BolusActivationType.automatic : BolusActivationType.manualRecommendationAccepted
 
-            self.enactBolus(units: units, activationType: automaticValue) { error in
+            self.enactBolus(units: units, activationType: automaticValue, bolusReference: bolusReference) { error in
                 if let error = error {
                     debug(.apsManager, "Bolus failed: \(units)")
                     continuation.resume(throwing: error)
@@ -1356,5 +1370,15 @@ extension PumpManagerStatus {
         let suspended = basalDeliveryState?.isSuspended ?? true
         let type = suspended ? StatusType.suspended : (bolusing ? .bolusing : .normal)
         return PumpStatus(status: type, bolusing: bolusing, suspended: suspended, timestamp: Date())
+    }
+}
+
+private extension Error {
+    /// True when a bolus command failed with uncertain delivery — the pump may still report the dose later,
+    /// so any correlation state (e.g. the bolus-origin mapping) must be kept rather than cleaned up.
+    var isUncertainDelivery: Bool {
+        guard let pumpError = self as? PumpManagerError else { return false }
+        if case .uncertainDelivery = pumpError { return true }
+        return false
     }
 }

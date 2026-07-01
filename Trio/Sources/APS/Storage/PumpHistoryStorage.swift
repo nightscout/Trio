@@ -24,6 +24,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     @Injected() private var storage: FileStorage!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var settings: SettingsManager!
+    @Injected() private var bolusOriginStore: BolusOriginStore!
 
     private let updateSubject = PassthroughSubject<Void, Never>()
 
@@ -102,6 +103,16 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     newBolusEntry.amount = NSDecimalNumber(decimal: amount)
                     newBolusEntry.isExternal = dose.manuallyEntered
                     newBolusEntry.isSMB = dose.automatic ?? true
+
+                    // Resolve where this bolus originated (remote, watch, loop, …) from the opaque
+                    // reference the pump echoed back, and record it for display and Nightscout upload.
+                    if let reference = dose.bolusReference,
+                       let origin = self.bolusOriginStore.origin(for: reference)
+                    {
+                        newPumpEvent.note = origin.displayName
+                        self.bolusOriginStore.remove(reference)
+                        debug(.coreData, "Tagged bolus origin: \(origin.displayName)")
+                    }
 
                 case .tempBasal:
                     guard let dose = event.dose else { continue }
@@ -348,7 +359,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         enteredBy: NightscoutTreatment.local,
                         bolus: nil,
                         insulin: event.bolus?.amount as Decimal?,
-                        notes: nil,
+                        notes: event.note,
                         carbs: nil,
                         fat: nil,
                         protein: nil,

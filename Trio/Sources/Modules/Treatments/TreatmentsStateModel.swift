@@ -19,6 +19,7 @@ extension Treatments {
         @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
         @ObservationIgnored @Injected() var bolusCalculationManager: BolusCalculationManager!
+        @ObservationIgnored @Injected() var bolusOriginStore: BolusOriginStore!
 
         var lowGlucose: Decimal = 70
         var highGlucose: Decimal = 180
@@ -577,7 +578,8 @@ extension Treatments {
                     await MainActor.run {
                         self.isAwaitingDeterminationResult = true
                     }
-                    await apsManager.enactBolus(amount: maxAmount, isSMB: false, callback: nil)
+                    let bolusReference = bolusOriginStore.makeReference(for: .manual)
+                    await apsManager.enactBolus(amount: maxAmount, isSMB: false, bolusReference: bolusReference, callback: nil)
                 }
             } catch {
                 debug(.bolusState, "Authentication error for pump bolus: \(error)")

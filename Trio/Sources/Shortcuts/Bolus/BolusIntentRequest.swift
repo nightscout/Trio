@@ -23,7 +23,13 @@ final class BolusIntentRequest: BaseIntentsRequest {
             }
 
             let bolusQuantity = apsManager.roundBolus(amount: requestedAmount)
-            await apsManager.enactBolus(amount: Double(bolusQuantity), isSMB: false, callback: nil)
+            let bolusReference = bolusOriginStore.makeReference(for: .shortcut)
+            await apsManager.enactBolus(
+                amount: Double(bolusQuantity),
+                isSMB: false,
+                bolusReference: bolusReference,
+                callback: nil
+            )
             return String(
                 localized:
                 "A bolus command of \(bolusQuantity.formatted()) U of insulin was sent."

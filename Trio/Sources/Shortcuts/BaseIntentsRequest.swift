@@ -18,6 +18,7 @@ import Swinject
     @Injected() var pumpHistoryStorage: PumpHistoryStorage!
     @Injected() var iobService: IOBService!
     @Injected() var bolusSafetyValidator: BolusSafetyValidator!
+    @Injected() var bolusOriginStore: BolusOriginStore!
 
     let resolver: Resolver
 

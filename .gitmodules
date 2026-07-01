@@ -1,6 +1,6 @@
 [submodule "LoopKit"]
 	path = LoopKit
-	url = https://github.com/loopandlearn/LoopKit.git
+	url = https://github.com/bjorkert/LoopKit.git
 [submodule "CGMBLEKit"]
 	path = CGMBLEKit
 	url = https://github.com/loopandlearn/CGMBLEKit.git
@@ -30,4 +30,4 @@
 	url = https://github.com/loopandlearn/MedtrumKit
 [submodule "OmnipodKit"]
 	path = OmnipodKit
-	url = https://github.com/loopandlearn/OmnipodKit
+	url = https://github.com/bjorkert/OmnipodKit.git
