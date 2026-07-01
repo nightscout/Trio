@@ -12,9 +12,9 @@ struct QuickBolusView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
+            VStack(spacing: 12) {
                 pillRow
-                    .padding(.top, 8)
+                    .padding(.top, 4)
 
                 Text(
                     "Your most-used bolus amounts at similar times on similar days. Tap one to pick it.",
@@ -22,11 +22,11 @@ struct QuickBolusView: View {
                 )
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+                .multilineTextAlignment(.leading)
                 .padding(.horizontal)
             }
             .frame(maxWidth: .infinity)
-            .safeAreaInset(edge: .bottom, spacing: 0) {
+            .safeAreaInset(edge: .bottom, spacing: 10) {
                 SlideToConfirmView(
                     label: String(localized: "Slide to Enact Bolus", comment: "Slide to confirm label for quick bolus"),
                     isEnabled: selectedAmount != nil && !isEnacting
@@ -46,16 +46,21 @@ struct QuickBolusView: View {
                     }
                 }
                 .padding(.horizontal)
-                .padding(.vertical, 12)
+                .padding(.top, 6)
+                .padding(.bottom, 8)
             }
             .navigationTitle(String(localized: "Quick Bolus", comment: "Title of the quick bolus sheet"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Quick Bolus", comment: "Title of the quick bolus sheet")
+                        .font(.title3.bold())
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showInfo = true
                     } label: {
-                        Image(systemName: "info.circle")
+                        Image(systemName: "questionmark.circle")
                     }
                 }
             }
@@ -75,6 +80,7 @@ struct QuickBolusView: View {
             }
         }
         .presentationDetents([.height(320)])
+        .presentationDragIndicator(.visible)
     }
 
     private var displayedSuggestions: [Decimal] {
@@ -82,11 +88,13 @@ struct QuickBolusView: View {
     }
 
     private var pillRow: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 16) {
             ForEach(displayedSuggestions, id: \.self) { amount in
                 bolusAmountPill(amount)
+                    .frame(maxWidth: displayedSuggestions.count < 3 ? 160 : .infinity)
             }
         }
+        .frame(maxWidth: .infinity)
         .padding(.horizontal)
     }
 
@@ -101,10 +109,12 @@ struct QuickBolusView: View {
                 Text(formatted)
                     .font(.title2.bold())
                 Text("U")
-                    .font(.callout)
+                    .font(.title2)
                     .foregroundStyle(isSelected ? .white.opacity(0.85) : .secondary)
             }
-            .frame(maxWidth: .infinity, minHeight: 64)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 24)
+            .frame(maxWidth: .infinity)
             .background(isSelected ? Color.accentColor : Color(.secondarySystemFill))
             .foregroundStyle(isSelected ? .white : .primary)
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))

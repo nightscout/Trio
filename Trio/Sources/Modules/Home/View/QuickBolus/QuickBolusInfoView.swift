@@ -30,5 +30,6 @@ struct QuickBolusInfoView: View {
             .padding(.top, 4)
         }
         .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
 }

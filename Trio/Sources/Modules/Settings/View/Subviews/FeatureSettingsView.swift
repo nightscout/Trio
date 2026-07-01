@@ -21,9 +21,7 @@ struct FeatureSettingsView: BaseView {
             Section(
                 header: Text("Trio Features"),
                 content: {
-                    Text("Bolus Calculator").navigationLink(to: .bolusCalculatorConfig, from: self)
-                    Text("Quick Bolus").navigationLink(to: .quickBolusConfig, from: self)
-                    Text("Meal Settings").navigationLink(to: .mealSettings, from: self)
+                    Text("Treatments").navigationLink(to: .treatmentsSettings, from: self)
                     Text("Shortcuts").navigationLink(to: .shortcutsConfig, from: self)
                     Text("Remote Control").navigationLink(to: .remoteControlConfig, from: self)
                 }
@@ -50,6 +48,30 @@ struct FeatureSettingsView: BaseView {
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))
         .navigationTitle("Feature Settings")
+        .navigationBarTitleDisplayMode(.automatic)
+    }
+}
+
+struct TreatmentsSettingsView: BaseView {
+    let resolver: Resolver
+
+    @ObservedObject var state: Settings.StateModel
+
+    @Environment(\.colorScheme) var colorScheme
+    @Environment(AppState.self) var appState
+
+    var body: some View {
+        Form {
+            Section {
+                Text("Bolus Calculator").navigationLink(to: .bolusCalculatorConfig, from: self)
+                Text("Quick Bolus").navigationLink(to: .quickBolusConfig, from: self)
+                Text("Meal Settings").navigationLink(to: .mealSettings, from: self)
+            }
+            .listRowBackground(Color.chart)
+        }
+        .scrollContentBackground(.hidden)
+        .background(appState.trioBackgroundColor(for: colorScheme))
+        .navigationTitle("Treatments")
         .navigationBarTitleDisplayMode(.automatic)
     }
 }
