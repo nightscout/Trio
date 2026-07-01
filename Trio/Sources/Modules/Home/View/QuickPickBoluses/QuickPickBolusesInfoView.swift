@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct QuickBolusInfoView: View {
+struct QuickPickBolusesInfoView: View {
     @Binding var isPresented: Bool
 
     var body: some View {

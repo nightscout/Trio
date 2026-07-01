@@ -1,7 +1,7 @@
 import SwiftUI
 import Swinject
 
-extension QuickBolusConfig {
+extension QuickPickBolusesConfig {
     struct RootView: BaseView {
         let resolver: Resolver
 

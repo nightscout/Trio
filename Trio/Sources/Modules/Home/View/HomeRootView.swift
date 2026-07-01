@@ -1150,7 +1150,7 @@ extension Home {
                 }
             }
             .sheet(isPresented: $showQuickBolusPicker) {
-                QuickBolusView(
+                QuickPickBolusesView(
                     suggestions: state.quickBolusHistory,
                     onEnact: { amount in await state.enactQuickBolus(amount: amount) },
                     isPresented: $showQuickBolusPicker

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct QuickBolusView: View {
+struct QuickPickBolusesView: View {
     let suggestions: [Decimal]
     let onEnact: (Decimal) async -> Bool
     @Binding var isPresented: Bool
@@ -73,7 +73,7 @@ struct QuickBolusView: View {
                     }
                 }
                 .sheet(isPresented: $showInfo) {
-                    QuickBolusInfoView(isPresented: $showInfo)
+                    QuickPickBolusesInfoView(isPresented: $showInfo)
                 }
                 .alert(
                     String(

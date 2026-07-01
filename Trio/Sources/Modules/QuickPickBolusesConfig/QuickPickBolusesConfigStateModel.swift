@@ -1,6 +1,6 @@
 import SwiftUI
 
-extension QuickBolusConfig {
+extension QuickPickBolusesConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Published var enableQuickBolus: Bool = false
         @Published var units: GlucoseUnits = .mgdL
@@ -12,7 +12,7 @@ extension QuickBolusConfig {
     }
 }
 
-extension QuickBolusConfig.StateModel: SettingsObserver {
+extension QuickPickBolusesConfig.StateModel: SettingsObserver {
     func settingsDidChange(_ settings: TrioSettings) {
         units = settings.units
     }

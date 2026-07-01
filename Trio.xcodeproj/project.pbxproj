@@ -318,7 +318,7 @@
 		3E54EF2D2E476DA40006F54D /* MedtrumKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3E54EF2B2E476DA40006F54D /* MedtrumKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3E62C7822F54CC1B00433237 /* BolusDisplayThreshold.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E62C7812F54CC1600433237 /* BolusDisplayThreshold.swift */; };
 		3EF667132FE48509009FB31A /* BasalDeliveryState+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EF667122FE48502009FB31A /* BasalDeliveryState+Extension.swift */; };
-		3F23E18680094E6DA98628E4 /* QuickBolusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54068ABDAE4898B243DF14 /* QuickBolusView.swift */; };
+		3F23E18680094E6DA98628E4 /* QuickPickBolusesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54068ABDAE4898B243DF14 /* QuickPickBolusesView.swift */; };
 		41740E936552456AAC0EDAC3 /* SettingsSearchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3919BBB515547118D684CA2 /* SettingsSearchTests.swift */; };
 		45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */; };
 		45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */; };
@@ -393,11 +393,11 @@
 		715120D22D3C2BB4005D9FB6 /* GlucoseNotificationsOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 715120D12D3C2B84005D9FB6 /* GlucoseNotificationsOption.swift */; };
 		71D44AAB2CA5F5EA0036EE9E /* AlertPermissionsChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71D44AAA2CA5F5EA0036EE9E /* AlertPermissionsChecker.swift */; };
 		72F1BD388F42FCA6C52E4500 /* ConfigEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44080E4709E3AE4B73054563 /* ConfigEditorProvider.swift */; };
-		786B6E8A8E294AE883581154 /* QuickBolusConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D543DE17E0054AF0821411BB /* QuickBolusConfigDataFlow.swift */; };
+		786B6E8A8E294AE883581154 /* QuickPickBolusesConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D543DE17E0054AF0821411BB /* QuickPickBolusesConfigDataFlow.swift */; };
 		7BCFACB97C821041BA43A114 /* ManualTempBasalRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C377490C77661D75E8C50649 /* ManualTempBasalRootView.swift */; };
 		7F7B756BE8543965D9FDF1A2 /* HistoryDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A401509D21F7F35D4E109EDA /* HistoryDataFlow.swift */; };
 		8194B80890CDD6A3C13B0FEE /* SnoozeStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26904AACA8D9C15D229D675 /* SnoozeStateModel.swift */; };
-		87F4D02B8D4D4D329BA291D2 /* QuickBolusConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91711E7CA54747EFAD6540EE /* QuickBolusConfigStateModel.swift */; };
+		87F4D02B8D4D4D329BA291D2 /* QuickPickBolusesConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91711E7CA54747EFAD6540EE /* QuickPickBolusesConfigStateModel.swift */; };
 		88AB39B23C9552BD6E0C9461 /* ISFEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBB3BAE7494CB771ABAC7B8B /* ISFEditorRootView.swift */; };
 		8A91342A2D63D9A1007F8874 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
 		8A91342C2D63D9A2007F8874 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A91342B2D63D9A2007F8874 /* InfoPlist.xcstrings */; };
@@ -552,7 +552,7 @@
 		C2BA6B972F758E7500348E6A /* WatchNotificationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2BA6B962F758E7500348E6A /* WatchNotificationHandler.swift */; };
 		C2BA6B992F758E7600348E6A /* NotificationIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2BA6B982F758E7600348E6A /* NotificationIdentifiers.swift */; };
 		C2BA6B9A2F7593C300348E6A /* NotificationIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2BA6B982F758E7600348E6A /* NotificationIdentifiers.swift */; };
-		C5BAAA36C643401D97A8CE11 /* QuickBolusConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3EBC8BA17C4627BD32C58F /* QuickBolusConfigRootView.swift */; };
+		C5BAAA36C643401D97A8CE11 /* QuickPickBolusesConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3EBC8BA17C4627BD32C58F /* QuickPickBolusesConfigRootView.swift */; };
 		C967DACD3B1E638F8B43BE06 /* ManualTempBasalStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFCFE0781F9074C2917890E8 /* ManualTempBasalStateModel.swift */; };
 		CA02000000000000000010C2 /* DeliveryLimitsSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA02000000000000000010C1 /* DeliveryLimitsSyncTests.swift */; };
 		CA370FC152BC98B3D1832968 /* BasalProfileEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8BCB0C37DEB5EC377B9612 /* BasalProfileEditorRootView.swift */; };
@@ -823,7 +823,7 @@
 		DDFF204A2DB29EF500AB8A96 /* WatchLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFF20492DB29EF500AB8A96 /* WatchLogger.swift */; };
 		DDFF204E2DB2C00B00AB8A96 /* WatchStateSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFF204D2DB2C00B00AB8A96 /* WatchStateSnapshot.swift */; };
 		DDFF20502DB2C11900AB8A96 /* WatchStateSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFF204F2DB2C11900AB8A96 /* WatchStateSnapshot.swift */; };
-		DECF1903237041E2BBBE4033 /* QuickBolusInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1526A587AD1544C495050662 /* QuickBolusInfoView.swift */; };
+		DECF1903237041E2BBBE4033 /* QuickPickBolusesInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1526A587AD1544C495050662 /* QuickPickBolusesInfoView.swift */; };
 		E00EEC0327368630002FF094 /* ServiceAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00EEBFD27368630002FF094 /* ServiceAssembly.swift */; };
 		E00EEC0427368630002FF094 /* SecurityAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00EEBFE27368630002FF094 /* SecurityAssembly.swift */; };
 		E00EEC0527368630002FF094 /* StorageAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00EEBFF27368630002FF094 /* StorageAssembly.swift */; };
@@ -853,7 +853,7 @@
 		F90692D3274B9A130037068D /* AppleHealthKitRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90692D2274B9A130037068D /* AppleHealthKitRootView.swift */; };
 		F90692D6274B9A450037068D /* HealthKitStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90692D5274B9A450037068D /* HealthKitStateModel.swift */; };
 		FA630397F76B582C8D8681A7 /* BasalProfileEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42369F66CF91F30624C0B3A6 /* BasalProfileEditorProvider.swift */; };
-		FA6B58486AE2496F9F8589C6 /* QuickBolusConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EEC5C2927FA4C5DA61A1A40 /* QuickBolusConfigProvider.swift */; };
+		FA6B58486AE2496F9F8589C6 /* QuickPickBolusesConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EEC5C2927FA4C5DA61A1A40 /* QuickPickBolusesConfigProvider.swift */; };
 		FE41E4D629463EE20047FD55 /* NightscoutPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE41E4D529463EE20047FD55 /* NightscoutPreferences.swift */; };
 		FE66D16B291F74F8005D6F77 /* Bundle+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */; };
 		FEFFA7A22929FE49007B8193 /* UIDevice+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */; };
@@ -978,7 +978,7 @@
 		118DF7652C5ECBC60067FEB7 /* CancelOverrideIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CancelOverrideIntent.swift; sourceTree = "<group>"; };
 		118DF7672C5ECBC60067FEB7 /* OverridePresetEntity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OverridePresetEntity.swift; sourceTree = "<group>"; };
 		118DF7682C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OverridePresetsIntentRequest.swift; sourceTree = "<group>"; };
-		1526A587AD1544C495050662 /* QuickBolusInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickBolusInfoView.swift; sourceTree = "<group>"; };
+		1526A587AD1544C495050662 /* QuickPickBolusesInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPickBolusesInfoView.swift; sourceTree = "<group>"; };
 		19012CDB291D2CB900FB8210 /* LoopStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStats.swift; sourceTree = "<group>"; };
 		190EBCC329FF136900BA767D /* UserInterfaceSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInterfaceSettingsDataFlow.swift; sourceTree = "<group>"; };
 		190EBCC529FF138000BA767D /* UserInterfaceSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInterfaceSettingsProvider.swift; sourceTree = "<group>"; };
@@ -1014,7 +1014,7 @@
 		223EC0494F55A91E3EA69EF4 /* TreatmentsStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TreatmentsStateModel.swift; sourceTree = "<group>"; };
 		22963BD06A9C83959D4914E4 /* GlucoseNotificationSettingsRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlucoseNotificationSettingsRootView.swift; sourceTree = "<group>"; };
 		2AD22C985B79A2F0D2EA3D9D /* PumpConfigRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigRootView.swift; sourceTree = "<group>"; };
-		2EEC5C2927FA4C5DA61A1A40 /* QuickBolusConfigProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickBolusConfigProvider.swift; sourceTree = "<group>"; };
+		2EEC5C2927FA4C5DA61A1A40 /* QuickPickBolusesConfigProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPickBolusesConfigProvider.swift; sourceTree = "<group>"; };
 		2F2A13DF0EDEEEDC4106AA2A /* NightscoutConfigDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NightscoutConfigDataFlow.swift; sourceTree = "<group>"; };
 		3260468377DA9DB4DEE9AF6D /* GlucoseNotificationSettingsDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlucoseNotificationSettingsDataFlow.swift; sourceTree = "<group>"; };
 		36A708CDB546692C2230B385 /* SnoozeDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeDataFlow.swift; sourceTree = "<group>"; };
@@ -1348,10 +1348,10 @@
 		7E22146D3DF4853786C78132 /* CarbRatioEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarbRatioEditorDataFlow.swift; sourceTree = "<group>"; };
 		8782B44544F38F2B2D82C38E /* NightscoutConfigRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NightscoutConfigRootView.swift; sourceTree = "<group>"; };
 		881E04BA5E0A003DE8E0A9C6 /* HistoryRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HistoryRootView.swift; sourceTree = "<group>"; };
-		8A54068ABDAE4898B243DF14 /* QuickBolusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickBolusView.swift; sourceTree = "<group>"; };
+		8A54068ABDAE4898B243DF14 /* QuickPickBolusesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPickBolusesView.swift; sourceTree = "<group>"; };
 		8A9134292D63D9A1007F8874 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		8A91342B2D63D9A2007F8874 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
-		91711E7CA54747EFAD6540EE /* QuickBolusConfigStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickBolusConfigStateModel.swift; sourceTree = "<group>"; };
+		91711E7CA54747EFAD6540EE /* QuickPickBolusesConfigStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPickBolusesConfigStateModel.swift; sourceTree = "<group>"; };
 		920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorRootView.swift; sourceTree = "<group>"; };
 		9455FA2D92E77A6C4AFED8A3 /* HistoryStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HistoryStateModel.swift; sourceTree = "<group>"; };
 		96653287EDB276A111288305 /* ManualTempBasalDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualTempBasalDataFlow.swift; sourceTree = "<group>"; };
@@ -1564,8 +1564,8 @@
 		CF96FC200503405E94334390 /* SlideToConfirmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideToConfirmView.swift; sourceTree = "<group>"; };
 		CFCFE0781F9074C2917890E8 /* ManualTempBasalStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualTempBasalStateModel.swift; sourceTree = "<group>"; };
 		D0BDC6993C1087310EDFC428 /* CarbRatioEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarbRatioEditorRootView.swift; sourceTree = "<group>"; };
-		D543DE17E0054AF0821411BB /* QuickBolusConfigDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickBolusConfigDataFlow.swift; sourceTree = "<group>"; };
-		DB3EBC8BA17C4627BD32C58F /* QuickBolusConfigRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickBolusConfigRootView.swift; sourceTree = "<group>"; };
+		D543DE17E0054AF0821411BB /* QuickPickBolusesConfigDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPickBolusesConfigDataFlow.swift; sourceTree = "<group>"; };
+		DB3EBC8BA17C4627BD32C58F /* QuickPickBolusesConfigRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPickBolusesConfigRootView.swift; sourceTree = "<group>"; };
 		DC2C6489D29ECCCAD78E0721 /* GlucoseNotificationSettingsStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlucoseNotificationSettingsStateModel.swift; sourceTree = "<group>"; };
 		DD09D47A2C5986D1003FEA5D /* CalendarEventSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventSettingsDataFlow.swift; sourceTree = "<group>"; };
 		DD09D47C2C5986DA003FEA5D /* CalendarEventSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventSettingsProvider.swift; sourceTree = "<group>"; };
@@ -1912,15 +1912,15 @@
 			path = ConfigEditor;
 			sourceTree = "<group>";
 		};
-		08A79EA89BFA498F80F4D6FE /* QuickBolusConfig */ = {
+		08A79EA89BFA498F80F4D6FE /* QuickPickBolusesConfig */ = {
 			isa = PBXGroup;
 			children = (
-				D543DE17E0054AF0821411BB /* QuickBolusConfigDataFlow.swift */,
-				2EEC5C2927FA4C5DA61A1A40 /* QuickBolusConfigProvider.swift */,
-				91711E7CA54747EFAD6540EE /* QuickBolusConfigStateModel.swift */,
+				D543DE17E0054AF0821411BB /* QuickPickBolusesConfigDataFlow.swift */,
+				2EEC5C2927FA4C5DA61A1A40 /* QuickPickBolusesConfigProvider.swift */,
+				91711E7CA54747EFAD6540EE /* QuickPickBolusesConfigStateModel.swift */,
 				2148032F6F184487B49B1095 /* View */,
 			);
-			path = QuickBolusConfig;
+			path = QuickPickBolusesConfig;
 			sourceTree = "<group>";
 		};
 		0A67A70F9438DB6586398458 /* View */ = {
@@ -2131,7 +2131,7 @@
 		2148032F6F184487B49B1095 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				DB3EBC8BA17C4627BD32C58F /* QuickBolusConfigRootView.swift */,
+				DB3EBC8BA17C4627BD32C58F /* QuickPickBolusesConfigRootView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -2191,7 +2191,7 @@
 				DD9ECB6B2CA99FA400AA7C45 /* RemoteControlConfig */,
 				3811DE3825C9D4A100A708ED /* Settings */,
 				110AEDEA2C51A0AE00615CC9 /* ShortcutsConfig */,
-				08A79EA89BFA498F80F4D6FE /* QuickBolusConfig */,
+				08A79EA89BFA498F80F4D6FE /* QuickPickBolusesConfig */,
 				DD17451E2C55520000211FAC /* SMBSettings */,
 				29B478DF61BF8D270F7D8954 /* Snooze */,
 				19F95FF129F10F9C00314DDC /* Stat */,
@@ -2284,7 +2284,7 @@
 				3811DE2E25C9D49500A708ED /* HomeRootView.swift */,
 				3833B51E260264AC003021B3 /* Chart */,
 				3833B51F260264B6003021B3 /* Header */,
-				FDB1D1005DA54C048E622761 /* QuickBolus */,
+				FDB1D1005DA54C048E622761 /* QuickPickBoluses */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -4322,14 +4322,14 @@
 			path = View;
 			sourceTree = "<group>";
 		};
-		FDB1D1005DA54C048E622761 /* QuickBolus */ = {
+		FDB1D1005DA54C048E622761 /* QuickPickBoluses */ = {
 			isa = PBXGroup;
 			children = (
 				CF96FC200503405E94334390 /* SlideToConfirmView.swift */,
-				1526A587AD1544C495050662 /* QuickBolusInfoView.swift */,
-				8A54068ABDAE4898B243DF14 /* QuickBolusView.swift */,
+				1526A587AD1544C495050662 /* QuickPickBolusesInfoView.swift */,
+				8A54068ABDAE4898B243DF14 /* QuickPickBolusesView.swift */,
 			);
-			path = QuickBolus;
+			path = QuickPickBoluses;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -4946,12 +4946,12 @@
 				CEE9A6592BBB418300EB5194 /* CalibrationsDataFlow.swift in Sources */,
 				3811DE3525C9D49500A708ED /* HomeRootView.swift in Sources */,
 				584C79A91D034426A1DE60CB /* SlideToConfirmView.swift in Sources */,
-				DECF1903237041E2BBBE4033 /* QuickBolusInfoView.swift in Sources */,
-				3F23E18680094E6DA98628E4 /* QuickBolusView.swift in Sources */,
-				786B6E8A8E294AE883581154 /* QuickBolusConfigDataFlow.swift in Sources */,
-				FA6B58486AE2496F9F8589C6 /* QuickBolusConfigProvider.swift in Sources */,
-				87F4D02B8D4D4D329BA291D2 /* QuickBolusConfigStateModel.swift in Sources */,
-				C5BAAA36C643401D97A8CE11 /* QuickBolusConfigRootView.swift in Sources */,
+				DECF1903237041E2BBBE4033 /* QuickPickBolusesInfoView.swift in Sources */,
+				3F23E18680094E6DA98628E4 /* QuickPickBolusesView.swift in Sources */,
+				786B6E8A8E294AE883581154 /* QuickPickBolusesConfigDataFlow.swift in Sources */,
+				FA6B58486AE2496F9F8589C6 /* QuickPickBolusesConfigProvider.swift in Sources */,
+				87F4D02B8D4D4D329BA291D2 /* QuickPickBolusesConfigStateModel.swift in Sources */,
+				C5BAAA36C643401D97A8CE11 /* QuickPickBolusesConfigRootView.swift in Sources */,
 				38E98A2925F52C9300C0CED0 /* Error+Extensions.swift in Sources */,
 				3E62C7822F54CC1B00433237 /* BolusDisplayThreshold.swift in Sources */,
 				38EA05DA261F6E7C0064E39B /* SimpleLogReporter.swift in Sources */,

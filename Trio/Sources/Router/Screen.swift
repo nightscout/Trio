@@ -126,7 +126,7 @@ extension Screen {
         case .bolusCalculatorConfig:
             BolusCalculatorConfig.RootView(resolver: resolver)
         case .quickBolusConfig:
-            QuickBolusConfig.RootView(resolver: resolver)
+            QuickPickBolusesConfig.RootView(resolver: resolver)
         case .dynamicISF:
             DynamicSettings.RootView(resolver: resolver)
         case .calibrations:
