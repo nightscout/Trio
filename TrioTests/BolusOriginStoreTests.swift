@@ -13,6 +13,7 @@ import Testing
     }
 
     @Test("displayName maps each origin") func displayNames() {
+        #expect(BolusOrigin.smb.displayName == "SMB")
         #expect(BolusOrigin.remote.displayName == "Remote")
         #expect(BolusOrigin.watch.displayName == "Watch")
         #expect(BolusOrigin.manual.displayName == "Manual")
@@ -31,7 +32,7 @@ import Testing
 
     @Test("unknown reference resolves to nil") func unknownReference() {
         let store = makeStore()
-        #expect(store.origin(for: UUID().uuidString) == nil)
+        #expect(store.origin(for: UUID()) == nil)
     }
 
     /// The reference is persisted, so a dose reported after an app restart (a fresh store instance) still

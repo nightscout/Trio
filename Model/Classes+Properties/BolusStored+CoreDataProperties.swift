@@ -7,6 +7,7 @@ public extension BolusStored {
     }
 
     @NSManaged var amount: NSDecimalNumber?
+    @NSManaged var bolusOrigin: String?
     @NSManaged var isExternal: Bool
     @NSManaged var isSMB: Bool
     @NSManaged var pumpEvent: PumpEventStored?

@@ -1,9 +1,9 @@
 import Foundation
 
-/// Where a bolus request originated. Trio holds this meaning on its own side, keyed by an opaque reference
-/// that is round-tripped through the pump (LoopKit `DoseEntry.bolusReference`), so a delivered dose can be
-/// traced back to what asked for it — including across an app restart while delivery is in progress.
+/// Classifies where a bolus came from. User origins are tagged via `DoseEntry.bolusReference` and resolved on
+/// return; `.smb` is derived from the dose. `rawValue` is the machine token; `displayName` the human label.
 enum BolusOrigin: String, JSON {
+    case smb
     case remote
     case watch
     case manual
@@ -12,6 +12,7 @@ enum BolusOrigin: String, JSON {
     /// Human-readable label recorded on the pump event note and uploaded to Nightscout (treatment `notes`).
     var displayName: String {
         switch self {
+        case .smb: return "SMB"
         case .remote: return "Remote"
         case .watch: return "Watch"
         case .manual: return "Manual"

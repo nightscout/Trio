@@ -104,15 +104,22 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     newBolusEntry.isExternal = dose.manuallyEntered
                     newBolusEntry.isSMB = dose.automatic ?? true
 
-                    // Resolve where this bolus originated (remote, watch, loop, …) from the opaque
-                    // reference the pump echoed back, and record it for display and Nightscout upload.
-                    if let reference = dose.bolusReference,
-                       let origin = self.bolusOriginStore.origin(for: reference)
+                    // SMB is derived from the dose; user origins are resolved from the echoed reference. The
+                    // machine value goes to `bolusOrigin`; the display `note` is set for user origins only.
+                    let origin: BolusOrigin?
+                    if dose.automatic == true {
+                        origin = .smb
+                    } else if let reference = dose.bolusReference,
+                              let resolved = self.bolusOriginStore.origin(for: reference)
                     {
-                        newPumpEvent.note = origin.displayName
+                        origin = resolved
                         self.bolusOriginStore.remove(reference)
-                        debug(.coreData, "Tagged bolus origin: \(origin.displayName)")
+                        newPumpEvent.note = resolved.displayName
+                        debug(.coreData, "Tagged bolus origin: \(resolved.displayName)")
+                    } else {
+                        origin = nil
                     }
+                    newBolusEntry.bolusOrigin = origin?.rawValue
 
                 case .tempBasal:
                     guard let dose = event.dose else { continue }
@@ -360,6 +367,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         bolus: nil,
                         insulin: event.bolus?.amount as Decimal?,
                         notes: event.note,
+                        bolusOrigin: event.bolus?.bolusOrigin,
                         carbs: nil,
                         fat: nil,
                         protein: nil,

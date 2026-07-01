@@ -8,15 +8,15 @@ import Swinject
 /// the in-flight window, matching the pump-side persistence of the reference.
 protocol BolusOriginStore {
     /// Remember an origin under a freshly generated reference and return the reference to pass to the pump.
-    func makeReference(for origin: BolusOrigin) -> String
+    func makeReference(for origin: BolusOrigin) -> UUID
     /// Resolve the origin previously stored for a reference, if any.
-    func origin(for reference: String) -> BolusOrigin?
+    func origin(for reference: UUID) -> BolusOrigin?
     /// Drop the mapping once it has been consumed.
-    func remove(_ reference: String)
+    func remove(_ reference: UUID)
 }
 
 private struct BolusOriginEntry: JSON, Equatable {
-    let reference: String
+    let reference: UUID
     let origin: BolusOrigin
     let createdAt: Date
 }
@@ -39,13 +39,13 @@ final class BaseBolusOriginStore: BolusOriginStore, Injectable {
         }
     }
 
-    func makeReference(for origin: BolusOrigin) -> String {
-        let reference = UUID().uuidString
+    func makeReference(for origin: BolusOrigin) -> UUID {
+        let reference = UUID()
         register(origin, for: reference)
         return reference
     }
 
-    private func register(_ origin: BolusOrigin, for reference: String) {
+    private func register(_ origin: BolusOrigin, for reference: UUID) {
         sync {
             entries.removeAll { $0.reference == reference }
             entries.append(BolusOriginEntry(reference: reference, origin: origin, createdAt: Date()))
@@ -53,11 +53,11 @@ final class BaseBolusOriginStore: BolusOriginStore, Injectable {
         }
     }
 
-    func origin(for reference: String) -> BolusOrigin? {
+    func origin(for reference: UUID) -> BolusOrigin? {
         sync { entries.first(where: { $0.reference == reference })?.origin }
     }
 
-    func remove(_ reference: String) {
+    func remove(_ reference: UUID) {
         sync {
             entries.removeAll { $0.reference == reference }
             persist()

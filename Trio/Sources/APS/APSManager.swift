@@ -8,7 +8,7 @@ import Swinject
 
 protocol APSManager {
     func heartbeat(date: Date)
-    func enactBolus(amount: Double, isSMB: Bool, bolusReference: String?, callback: ((Bool, String) -> Void)?) async
+    func enactBolus(amount: Double, isSMB: Bool, bolusReference: UUID?, callback: ((Bool, String) -> Void)?) async
     var pumpManager: PumpManagerUI? { get set }
     var bluetoothManager: BluetoothStateManager? { get }
     var pumpDisplayState: CurrentValueSubject<PumpDisplayState?, Never> { get }
@@ -558,7 +558,7 @@ final class BaseAPSManager: APSManager, Injectable {
         return min(rounded, maxBolus)
     }
 
-    func enactBolus(amount: Double, isSMB: Bool, bolusReference: String?, callback: ((Bool, String) -> Void)?) async {
+    func enactBolus(amount: Double, isSMB: Bool, bolusReference: UUID?, callback: ((Bool, String) -> Void)?) async {
         if amount <= 0 {
             return
         }
@@ -1259,7 +1259,7 @@ private extension PumpManager {
         }
     }
 
-    func enactBolus(units: Double, automatic: Bool, bolusReference: String? = nil) async throws {
+    func enactBolus(units: Double, automatic: Bool, bolusReference: UUID? = nil) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             let automaticValue = automatic ? BolusActivationType.automatic : BolusActivationType.manualRecommendationAccepted
 
