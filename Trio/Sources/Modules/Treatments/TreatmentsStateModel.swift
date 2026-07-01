@@ -577,7 +577,8 @@ extension Treatments {
                     await MainActor.run {
                         self.isAwaitingDeterminationResult = true
                     }
-                    await apsManager.enactBolus(amount: maxAmount, isSMB: false, callback: nil)
+                    let bolusReference = BolusOriginStore.shared.makeReference(for: .manual)
+                    await apsManager.enactBolus(amount: maxAmount, isSMB: false, bolusReference: bolusReference, callback: nil)
                 }
             } catch {
                 debug(.bolusState, "Authentication error for pump bolus: \(error)")

@@ -1,6 +1,7 @@
 import Combine
 import CoreData
 import Foundation
+import LoopKit
 
 final class BolusIntentRequest: BaseIntentsRequest {
     func bolus(_ bolusAmount: Double) async throws -> String {
@@ -23,7 +24,13 @@ final class BolusIntentRequest: BaseIntentsRequest {
             }
 
             let bolusQuantity = apsManager.roundBolus(amount: requestedAmount)
-            await apsManager.enactBolus(amount: Double(bolusQuantity), isSMB: false, callback: nil)
+            let bolusReference = BolusOriginStore.shared.makeReference(for: .shortcut)
+            await apsManager.enactBolus(
+                amount: Double(bolusQuantity),
+                isSMB: false,
+                bolusReference: bolusReference,
+                callback: nil
+            )
             return String(
                 localized:
                 "A bolus command of \(bolusQuantity.formatted()) U of insulin was sent."

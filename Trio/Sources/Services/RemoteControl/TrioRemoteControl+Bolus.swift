@@ -1,5 +1,6 @@
 import Foundation
 import HealthKit
+import LoopKit
 
 extension TrioRemoteControl {
     func handleBolusCommand(_ payload: CommandPayload) async throws {
@@ -31,6 +32,8 @@ extension TrioRemoteControl {
             return
         }
 
+        let bolusReference = BolusOriginStore.shared.makeReference(for: .remote)
+
         if let returnInfo = payload.returnNotification {
             await RemoteNotificationResponseManager.shared.sendResponseNotification(
                 to: returnInfo,
@@ -41,7 +44,11 @@ extension TrioRemoteControl {
         }
 
         await apsManager
-            .enactBolus(amount: Double(truncating: bolusAmount as NSNumber), isSMB: false) { [weak self] success, message in
+            .enactBolus(
+                amount: Double(truncating: bolusAmount as NSNumber),
+                isSMB: false,
+                bolusReference: bolusReference
+            ) { [weak self] success, message in
                 guard let self = self else { return }
                 Task {
                     if success {

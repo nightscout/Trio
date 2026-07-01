@@ -103,6 +103,18 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     newBolusEntry.isExternal = dose.manuallyEntered
                     newBolusEntry.isSMB = dose.automatic ?? true
 
+                    // Record the finer origin of a user-initiated bolus (remote/watch/manual/shortcut) resolved
+                    // from the reference the pump echoed back. SMB is not tagged here — it is already conveyed by
+                    // isSMB / the SMB event type. The machine value goes to `bolusOrigin`, the display to `note`.
+                    if let reference = dose.bolusReference,
+                       let resolved = BolusOriginStore.shared.origin(forReference: reference)
+                    {
+                        BolusOriginStore.shared.remove(reference: reference)
+                        newBolusEntry.bolusOrigin = resolved.rawValue
+                        newPumpEvent.note = resolved.displayName
+                        debug(.coreData, "Tagged bolus origin: \(resolved.displayName)")
+                    }
+
                 case .tempBasal:
                     guard let dose = event.dose else { continue }
 
@@ -348,7 +360,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         enteredBy: NightscoutTreatment.local,
                         bolus: nil,
                         insulin: event.bolus?.amount as Decimal?,
-                        notes: nil,
+                        notes: event.note,
+                        bolusOrigin: event.bolus?.bolusOrigin,
                         carbs: nil,
                         fat: nil,
                         protein: nil,

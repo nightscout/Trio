@@ -1,6 +1,7 @@
 import Combine
 import CoreData
 import Foundation
+import LoopKit
 import Swinject
 import UIKit
 import WatchConnectivity
@@ -728,14 +729,16 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     /// - Parameter amount: The requested bolus amount in units
     private func handleBolusRequest(_ amount: Decimal) {
         Task {
-            await apsManager.enactBolus(amount: Double(amount), isSMB: false) { success, message in
-                // Acknowledge success or error of bolus
-                self.sendAcknowledgment(
-                    toWatch: success,
-                    message: message,
-                    ackCode: success == true ? .genericSuccess : .genericFailure
-                )
-            }
+            let bolusReference = BolusOriginStore.shared.makeReference(for: .watch)
+            await apsManager
+                .enactBolus(amount: Double(amount), isSMB: false, bolusReference: bolusReference) { success, message in
+                    // Acknowledge success or error of bolus
+                    self.sendAcknowledgment(
+                        toWatch: success,
+                        message: message,
+                        ackCode: success == true ? .genericSuccess : .genericFailure
+                    )
+                }
             debug(.watchManager, "📱 Enacted bolus via APS Manager: \(amount)U")
         }
     }
@@ -848,14 +851,16 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
                 // Enact bolus via APS Manager
                 let bolusDouble = NSDecimalNumber(decimal: bolusAmount).doubleValue
-                await apsManager.enactBolus(amount: bolusDouble, isSMB: false) { success, message in
-                    // Acknowledge success or error of bolus
-                    self.sendAcknowledgment(
-                        toWatch: success,
-                        message: message,
-                        ackCode: success == true ? .genericSuccess : .genericFailure
-                    )
-                }
+                let bolusReference = BolusOriginStore.shared.makeReference(for: .watch)
+                await apsManager
+                    .enactBolus(amount: bolusDouble, isSMB: false, bolusReference: bolusReference) { success, message in
+                        // Acknowledge success or error of bolus
+                        self.sendAcknowledgment(
+                            toWatch: success,
+                            message: message,
+                            ackCode: success == true ? .genericSuccess : .genericFailure
+                        )
+                    }
                 debug(.watchManager, "📱 Enacted bolus from watch via APS Manager: \(bolusDouble) U")
                 // Notify Watch: "Carbs and bolus logged successfully"
                 sendAcknowledgment(

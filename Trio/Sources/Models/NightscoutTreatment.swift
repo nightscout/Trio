@@ -12,6 +12,8 @@ struct NightscoutTreatment: JSON, Hashable, Equatable {
     var bolus: PumpHistoryEvent?
     var insulin: Decimal?
     var notes: String?
+    /// Machine-readable bolus origin, stable across locales (`notes` carries the human-readable label).
+    var bolusOrigin: String?
     var carbs: Decimal?
     var fat: Decimal?
     var protein: Decimal?
@@ -50,6 +52,7 @@ extension NightscoutTreatment {
         case bolus
         case insulin
         case notes
+        case bolusOrigin
         case carbs
         case fat
         case protein
