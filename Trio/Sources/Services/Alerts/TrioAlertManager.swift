@@ -207,6 +207,15 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             let alertId = userInfo[AlertUserInfoKey.alertIdentifier.rawValue] as? String
         else { return }
         let identifier = Alert.Identifier(managerIdentifier: managerId, alertIdentifier: alertId)
+
+        // Swipe = 15-min snooze (mirrors the in-app banner's swipe-up).
+        // Tap and action buttons keep the full-ack path.
+        if response.actionIdentifier == UNNotificationDismissActionIdentifier {
+            modalScheduler.snooze(identifier: identifier, duration: 15 * 60)
+            userNotificationScheduler.unschedule(identifier: identifier)
+            return
+        }
+
         handleAcknowledgement(identifier: identifier)
     }
 
