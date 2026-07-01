@@ -16,7 +16,6 @@ struct NotificationsView: BaseView {
     @State var notificationsDisabled = false
     @State var showAlert = false
     @State private var showSnoozeSheet = false
-    @State private var snoozeUntilDate: Date = .distantPast
     @State private var shouldDisplayHint: Bool = false
     @State var hintDetent = PresentationDetent.large
     @State var selectedVerboseHint: AnyView? = AnyView(
@@ -113,7 +112,7 @@ struct NotificationsView: BaseView {
             )
         }
         .sheet(isPresented: $showSnoozeSheet) {
-            snoozeSheet
+            SnoozeAllSheet(resolver: resolver, isPresented: $showSnoozeSheet)
         }
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))
@@ -163,65 +162,4 @@ extension NotificationsView {
         }
     }
 
-    /// Inline sheet replacement for the old Snooze module. Lists the four
-    /// canonical snooze durations and routes through `TrioAlertManager`
-    /// directly — no module / router roundtrip, no legacy `GlucoseAlarm`
-    /// shape, no obsolete 20 min option.
-    private var snoozeSheet: some View {
-        NavigationStack {
-            List {
-                if snoozeUntilDate > Date() {
-                    Section {
-                        HStack {
-                            Image(systemName: "moon.zzz.fill").foregroundStyle(.tint)
-                            Text(String(
-                                format: String(localized: "Snoozed until %@"),
-                                snoozeUntilDate.formatted(date: .omitted, time: .shortened)
-                            ))
-                                .font(.headline)
-                        }
-                    }.listRowBackground(Color.chart)
-                }
-                Section(footer: Text(
-                    "Pick a duration to mute every Trio alarm. Critical alerts (e.g. occlusion, urgent low) still pierce the snooze."
-                )) {
-                    ForEach(NotificationResponseAction.allCases, id: \.self) { action in
-                        Button {
-                            applySnooze(action.duration)
-                        } label: {
-                            HStack {
-                                Text(action.localizedTitle).foregroundStyle(.primary)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .foregroundColor(.gray)
-                                    .font(.footnote)
-                            }
-                        }
-                    }
-                }.listRowBackground(Color.chart)
-            }
-            .scrollContentBackground(.hidden)
-            .background(appState.trioBackgroundColor(for: colorScheme))
-            .navigationTitle("Snooze Alerts")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Close") { showSnoozeSheet = false }
-                }
-            }
-            .onAppear {
-                snoozeUntilDate = UserDefaults.standard
-                    .object(forKey: "UserNotificationsManager.snoozeUntilDate") as? Date ?? .distantPast
-            }
-        }
-    }
-
-    private func applySnooze(_ duration: TimeInterval) {
-        let trioAlertManager = resolver.resolve(TrioAlertManager.self)
-        Task { @MainActor in
-            await trioAlertManager?.applySnooze(for: duration)
-            snoozeUntilDate = Date().addingTimeInterval(duration)
-            showSnoozeSheet = false
-        }
-    }
 }
