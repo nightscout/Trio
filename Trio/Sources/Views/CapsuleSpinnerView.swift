@@ -6,15 +6,13 @@ struct CapsuleSpinnerView<Content: View>: View {
 
     let isLooping: Bool
     let color: Color
-
-    // Internally, we keep the version that passes the state
     let content: (Bool) -> Content
 
     @State private var isAnimating: Bool = false
     @State private var dashPhase: CGFloat = 0.0
     @State private var perimeter: CGFloat = 200
     @State private var contentSize: CGSize = .zero
-    @State private var stopAnimationTask: Task<Void, Never>? = nil
+    @State private var animationTask: Task<Void, Never>? = nil
 
     // OPTION 1: Initializer WITH the animating argument
     init(
@@ -35,7 +33,6 @@ struct CapsuleSpinnerView<Content: View>: View {
     ) {
         self.isLooping = isLooping
         self.color = color
-        // We capture the view and ignore the incoming Bool state
         self.content = { _ in content() }
     }
 
@@ -113,31 +110,40 @@ struct CapsuleSpinnerView<Content: View>: View {
     }
 
     private func updateAnimating(_ newValue: Bool) {
-        if newValue {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                isAnimating = true
-            }
+        // Cancel any pending start or stop cycles to prevent overlapping states
+        animationTask?.cancel()
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        if newValue {
+            animationTask = Task {
+                // 1. Fade in the spinning capsule state
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isAnimating = true
+                }
+
+                // 2. Wait exactly for the fade transition to finish mounting the new capsule
+                try? await Task.sleep(for: .seconds(0.3))
+                guard !Task.isCancelled else { return }
+
+                // 3. Reset the dash structure instantly without animation
                 var transaction = Transaction()
                 transaction.disablesAnimations = true
                 withTransaction(transaction) {
                     self.dashPhase = 0.0
                 }
 
+                // 4. Safely spin up the loop on the newly mounted capsule view
                 withAnimation(.linear(duration: 1.333).repeatForever(autoreverses: false)) {
                     self.dashPhase = -self.perimeter
                 }
             }
         } else {
-            stopAnimationTask?.cancel()
-            stopAnimationTask = Task {
+            animationTask = Task {
+                // Keep spinning for a minimum timeline requirement if needed, then fade out
                 try? await Task.sleep(for: .seconds(2.0))
                 guard !Task.isCancelled else { return }
-                await MainActor.run {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        isAnimating = false
-                    }
+
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isAnimating = false
                 }
             }
         }
