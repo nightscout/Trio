@@ -686,6 +686,7 @@
 		DD1745262C55526F00211FAC /* SMBSettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745252C55526F00211FAC /* SMBSettingsRootView.swift */; };
 		DD1745292C55642100211FAC /* SettingInputSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745282C55642100211FAC /* SettingInputSection.swift */; };
 		DD17452B2C556E8100211FAC /* SettingInputHintView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17452A2C556E8100211FAC /* SettingInputHintView.swift */; };
+		DD500A712807000000000101 /* SnoozeAllSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD500A712807000000000100 /* SnoozeAllSheet.swift */; };
 		DD17452E2C55AE4800211FAC /* TargetBehavoirDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17452D2C55AE4800211FAC /* TargetBehavoirDataFlow.swift */; };
 		DD1745302C55AE5300211FAC /* TargetBehaviorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17452F2C55AE5300211FAC /* TargetBehaviorProvider.swift */; };
 		DD1745322C55AE6000211FAC /* TargetBehavoirStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745312C55AE6000211FAC /* TargetBehavoirStateModel.swift */; };
@@ -1692,6 +1693,7 @@
 		DD1745252C55526F00211FAC /* SMBSettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBSettingsRootView.swift; sourceTree = "<group>"; };
 		DD1745282C55642100211FAC /* SettingInputSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingInputSection.swift; sourceTree = "<group>"; };
 		DD17452A2C556E8100211FAC /* SettingInputHintView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingInputHintView.swift; sourceTree = "<group>"; };
+		DD500A712807000000000100 /* SnoozeAllSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnoozeAllSheet.swift; sourceTree = "<group>"; };
 		DD17452D2C55AE4800211FAC /* TargetBehavoirDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetBehavoirDataFlow.swift; sourceTree = "<group>"; };
 		DD17452F2C55AE5300211FAC /* TargetBehaviorProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetBehaviorProvider.swift; sourceTree = "<group>"; };
 		DD1745312C55AE6000211FAC /* TargetBehavoirStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetBehavoirStateModel.swift; sourceTree = "<group>"; };
@@ -2704,6 +2706,7 @@
 				DD1745282C55642100211FAC /* SettingInputSection.swift */,
 				48B83503461B4F8D97B30115 /* SettingsSearchHighlight.swift */,
 				DD17452A2C556E8100211FAC /* SettingInputHintView.swift */,
+				DD500A712807000000000100 /* SnoozeAllSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -5051,6 +5054,7 @@
 				19D466A729AA2C22004D5F33 /* MealSettingsStateModel.swift in Sources */,
 				AC19EF2C94084B5BA0175D1D /* SettingsSearchHighlight.swift in Sources */,
 				DD17452B2C556E8100211FAC /* SettingInputHintView.swift in Sources */,
+				DD500A712807000000000101 /* SnoozeAllSheet.swift in Sources */,
 				38E44528274E401C00EC9A94 /* Protected.swift in Sources */,
 				DD3F1F8B2D9E08B600DCE7B3 /* NightscoutLoginStepView.swift in Sources */,
 				3811DEB625C9D88300A708ED /* UnlockManager.swift in Sources */,
