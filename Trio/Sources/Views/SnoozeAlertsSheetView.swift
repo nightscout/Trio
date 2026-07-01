@@ -4,7 +4,7 @@ import Swinject
 /// Shared "Snooze All" sheet. Used from Notifications settings and the home
 /// glucose long-press. Wraps `TrioAlertManager.applySnooze` directly — no
 /// router / module hop.
-struct SnoozeAllSheet: View {
+struct SnoozeAlertsSheetView: View {
     let resolver: Resolver
     @Binding var isPresented: Bool
 
