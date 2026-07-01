@@ -54,11 +54,13 @@ enum NotificationCategoryFactory {
             )
         }
 
+        // `.customDismissAction` — otherwise iOS swallows swipes silently and
+        // the in-app banner outlives the notification.
         return UNNotificationCategory(
             identifier: NotificationCategoryIdentifier.trioAlert.rawValue,
             actions: snoozeActions,
             intentIdentifiers: [],
-            options: []
+            options: [.customDismissAction]
         )
     }
 }
