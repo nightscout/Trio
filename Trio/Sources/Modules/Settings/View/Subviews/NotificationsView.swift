@@ -161,5 +161,4 @@ extension NotificationsView {
             onOff(!notificationsDisabled)
         }
     }
-
 }
