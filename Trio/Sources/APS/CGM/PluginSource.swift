@@ -11,7 +11,12 @@ final class PluginSource: GlucoseSource {
     private let glucoseStorage: GlucoseStorage!
     var glucoseManager: FetchGlucoseManager?
 
-    var cgmManager: CGMManagerUI?
+    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    let cgmProgressHighlight = CurrentValueSubject<DeviceLifecycleProgress?, Never>(nil)
+
+    var cgmManager: CGMManagerUI? {
+        didSet { publishCGMStatus() }
+    }
 
     var cgmHasValidSensorSession: Bool = false
 
@@ -22,6 +27,23 @@ final class PluginSource: GlucoseSource {
         cgmManager = glucoseManager.cgmManager
         cgmManager?.delegateQueue = processQueue
         cgmManager?.cgmManagerDelegate = self
+        // didSet doesn't fire from the defining class's own init.
+        publishCGMStatus()
+    }
+
+    /// Republishes the manager's lifecycle/highlight to the subjects.
+    /// Called from `cgmManager.didSet` and after delegate state updates.
+    func publishCGMStatus() {
+        if let highlight = cgmManager?.cgmStatusHighlight {
+            cgmDisplayState.value = CgmDisplayState(
+                localizedMessage: highlight.localizedMessage,
+                imageName: highlight.imageName,
+                status: CgmDisplayStatus.from(highlight.state)
+            )
+        } else {
+            cgmDisplayState.value = nil
+        }
+        cgmProgressHighlight.value = cgmManager?.cgmLifecycleProgress
     }
 
     /// Function that fetches blood glucose data
@@ -121,6 +143,8 @@ extension PluginSource: CGMManagerDelegate {
                 debug(.deviceManager, "CGM PLUGIN - unable to read CGM result")
             }
 
+            self.publishCGMStatus()
+
             debug(.deviceManager, "CGM PLUGIN - Direct return done")
         }
     }
@@ -170,6 +194,8 @@ extension PluginSource: CGMManagerDelegate {
                 cgmGlucosePluginId: fetchGlucoseManager.settingsManager.settings.cgmPluginIdentifier,
                 newManager: cgmManager as? CGMManagerUI
             )
+
+            self.publishCGMStatus()
         }
     }
 
@@ -180,7 +206,6 @@ extension PluginSource: CGMManagerDelegate {
 
     func cgmManager(_: CGMManager, didUpdate status: CGMManagerStatus) {
         debug(.deviceManager, "CGM Manager did update state to \(status)")
-
         processQueue.async { [weak self] in
             guard let self = self else { return }
 

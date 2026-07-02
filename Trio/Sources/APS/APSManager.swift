@@ -70,6 +70,28 @@ enum APSError: LocalizedError {
     }
 }
 
+// MARK: - Thread-safe loop serialization
+
+/// Ensures only one loop runs at a time via actor isolation
+private actor LoopGuard {
+    private var isRunning = false
+
+    /// Atomically checks whether a new loop can start and marks it as running if so.
+    func tryStart(minInterval: TimeInterval, lastLoopDate: Date, lastLoopStartDate: Date) -> Bool {
+        // If the last loop completed after it started, enforce minimum interval
+        if lastLoopDate > lastLoopStartDate {
+            guard lastLoopStartDate.addingTimeInterval(minInterval) < Date() else { return false }
+        }
+        guard !isRunning else { return false }
+        isRunning = true
+        return true
+    }
+
+    func finish() {
+        isRunning = false
+    }
+}
+
 final class BaseAPSManager: APSManager, Injectable {
     private let processQueue = DispatchQueue(label: "BaseAPSManager.processQueue")
     @Injected() private var storage: FileStorage!
@@ -89,14 +111,18 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    let viewContext = CoreDataStack.shared.persistentContainer.viewContext
     let privateContext = CoreDataStack.shared.newTaskContext()
 
     private var openAPS: OpenAPS!
 
     private var lifetime = Lifetime()
 
-    private var backgroundTaskID: UIBackgroundTaskIdentifier?
+    private let loopGuard = LoopGuard()
+    /// All reads/writes are dispatched onto `processQueue` so the bolus
+    /// trigger sink, `cancelBolus`, and the `DoseProgressReporter`
+    /// callback (which the pump manager already invokes on
+    /// `processQueue`) all serialize through one queue
+    private var bolusReporter: DoseProgressReporter?
 
     var pumpManager: PumpManagerUI? {
         get { deviceDataManager.pumpManager }
@@ -156,7 +182,7 @@ final class BaseAPSManager: APSManager, Injectable {
             if wasParsed {
                 Task {
                     do {
-                        try await openAPS.createProfiles()
+                        try await openAPS.createProfiles(useSwiftOref: settings.useSwiftOref)
                     } catch {
                         debug(
                             .apsManager,
@@ -178,46 +204,48 @@ final class BaseAPSManager: APSManager, Injectable {
         deviceDataManager.errorSubject
             .receive(on: processQueue)
             .map { APSError.pumpError($0) }
-            .sink {
-                self.processError($0)
+            .sink { [weak self] in
+                self?.processError($0)
             }
             .store(in: &lifetime)
 
         deviceDataManager.bolusTrigger
             .receive(on: processQueue)
-            .sink { bolusing in
+            .sink { [weak self] bolusing in
                 if bolusing {
-                    self.createBolusReporter()
+                    self?.createBolusReporter()
                 } else {
-                    self.clearBolusReporter()
+                    self?.clearBolusReporter()
                 }
             }
             .store(in: &lifetime)
 
+        // The following three publishers update `@Persisted` properties that
+        // are also read from the main thread (UI bindings)
         deviceDataManager.scheduledBasal
-            .receive(on: processQueue)
-            .sink { scheduledBasal in
-                self.isScheduledBasal = scheduledBasal
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] scheduledBasal in
+                self?.isScheduledBasal = scheduledBasal
             }
             .store(in: &lifetime)
 
         deviceDataManager.suspended
-            .receive(on: processQueue)
-            .sink { suspended in
-                self.isSuspended = suspended
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] suspended in
+                self?.isSuspended = suspended
             }
             .store(in: &lifetime)
 
         // manage a manual Temp Basal from PumpManager - force loop() after manual temp basal is cancelled or finishes
         deviceDataManager.manualTempBasal
-            .receive(on: processQueue)
-            .sink { manualBasal in
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] manualBasal in
                 if manualBasal {
-                    self.isManualTempBasal = true
+                    self?.isManualTempBasal = true
                 } else {
-                    if self.isManualTempBasal {
-                        self.isManualTempBasal = false
-                        self.loop()
+                    if self?.isManualTempBasal == true {
+                        self?.isManualTempBasal = false
+                        self?.loop()
                     }
                 }
             }
@@ -233,116 +261,92 @@ final class BaseAPSManager: APSManager, Injectable {
         Task { [weak self] in
             guard let self else { return }
 
-            // Check if we can start a new loop
-            guard await self.canStartNewLoop() else { return }
+            // Atomic check-and-set via actor — eliminates the race between
+            // checking isLooping.value and sending isLooping(true).
+            guard await loopGuard.tryStart(
+                minInterval: Config.loopInterval,
+                lastLoopDate: lastLoopDate,
+                lastLoopStartDate: lastLoopStartDate
+            ) else {
+                debug(.apsManager, "Loop skipped (already running or too soon)")
+                return
+            }
 
-            // Setup loop and background task
-            var (loopStatRecord, backgroundTask) = await self.setupLoop()
+            // Start background task
+            // we probably need to refactor this when implementing Swift 6 due to mutation of a captured var in an async context
+            var taskID: UIBackgroundTaskIdentifier = .invalid
+            taskID = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") {
+                // closure runs on the Main Thread
+                // removed the Task that provided no guarantee to end the background task
+                if taskID != .invalid {
+                    UIApplication.shared.endBackgroundTask(taskID)
+                    taskID = .invalid
+                }
+            }
+
+            isLooping.send(true)
+
+            let loopStartDate = Date()
+            lastLoopStartDate = loopStartDate
+            let interval = await calculateLoopInterval(loopStartDate: loopStartDate)
+
+            var loopStatRecord = LoopStats(
+                start: loopStartDate,
+                loopStatus: "Starting",
+                interval: interval
+            )
 
             do {
-                // Execute loop logic
-                try await self.executeLoop(loopStatRecord: &loopStatRecord)
-
+                try await executeLoop(loopStatRecord: &loopStatRecord)
                 requestNightscoutUpload(
                     [.carbs, .pumpHistory, .overrides, .tempTargets],
                     source: "APSManager"
                 )
+                await finalizeLoop(loopStatRecord: loopStatRecord)
             } catch {
-                var updatedStats = loopStatRecord
-                updatedStats.end = Date()
-                updatedStats.duration = roundDouble((updatedStats.end! - updatedStats.start).timeInterval / 60, 2)
-                updatedStats.loopStatus = error.localizedDescription
-                await loopCompleted(error: error, loopStatRecord: updatedStats)
+                let endDate = Date()
+                loopStatRecord.end = endDate
+                loopStatRecord.duration = roundDouble((endDate - loopStatRecord.start).timeInterval / 60, 2)
+                loopStatRecord.loopStatus = error.localizedDescription
+                await finalizeLoop(error: error, loopStatRecord: loopStatRecord)
                 debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to complete Loop: \(error)")
             }
 
-            // Cleanup background task
-            if let backgroundTask = backgroundTask {
-                await UIApplication.shared.endBackgroundTask(backgroundTask)
-                self.backgroundTaskID = .invalid
+            // End the background task
+            if taskID != .invalid {
+                await UIApplication.shared.endBackgroundTask(taskID)
+                taskID = .invalid
             }
         }
-    }
-
-    private func canStartNewLoop() async -> Bool {
-        // Check if too soon for next loop
-        if lastLoopDate > lastLoopStartDate {
-            guard lastLoopStartDate.addingTimeInterval(Config.loopInterval) < Date() else {
-                debug(.apsManager, "Not enough time have passed since last loop at : \(lastLoopStartDate)")
-                return false
-            }
-        }
-
-        // Check if loop already in progress
-        guard !isLooping.value else {
-            warning(.apsManager, "Loop already in progress. Skip recommendation.")
-            return false
-        }
-
-        return true
-    }
-
-    private func setupLoop() async -> (LoopStats, UIBackgroundTaskIdentifier?) {
-        // Start background task
-        let backgroundTask = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") { [weak self] in
-            guard let self, let backgroundTask = self.backgroundTaskID else { return }
-            Task {
-                UIApplication.shared.endBackgroundTask(backgroundTask)
-            }
-            self.backgroundTaskID = .invalid
-        }
-        backgroundTaskID = backgroundTask
-
-        // Set loop start time
-        lastLoopStartDate = Date()
-
-        // Calculate interval from previous loop
-        let interval = await calculateLoopInterval()
-
-        // Create initial loop stats record
-        let loopStatRecord = LoopStats(
-            start: lastLoopStartDate,
-            loopStatus: "Starting",
-            interval: interval
-        )
-
-        isLooping.send(true)
-
-        return (loopStatRecord, backgroundTask)
     }
 
     private func executeLoop(loopStatRecord: inout LoopStats) async throws {
         try await determineBasal()
 
-        // Handle open loop
-        guard settings.closedLoop else {
-            loopStatRecord.end = Date()
-            loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
-            loopStatRecord.loopStatus = "Success"
-            await loopCompleted(loopStatRecord: loopStatRecord)
-            return
+        // Closed loop: also enact the determination.
+        if settings.closedLoop {
+            try await enactDetermination()
         }
 
-        // Handle closed loop
-        try await enactDetermination()
-        loopStatRecord.end = Date()
-        loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
+        let endDate = Date()
+        loopStatRecord.end = endDate
+        loopStatRecord.duration = roundDouble((endDate - loopStatRecord.start).timeInterval / 60, 2)
         loopStatRecord.loopStatus = "Success"
-        await loopCompleted(loopStatRecord: loopStatRecord)
     }
 
-    private func calculateLoopInterval() async -> Double? {
+    private func calculateLoopInterval(loopStartDate: Date) async -> Double? {
         do {
-            return try await privateContext.perform {
+            return try await privateContext.perform { [weak self] in
+                guard let self else { return nil }
                 let requestStats = LoopStatRecord.fetchRequest() as NSFetchRequest<LoopStatRecord>
                 let sortStats = NSSortDescriptor(key: "end", ascending: false)
                 requestStats.sortDescriptors = [sortStats]
                 requestStats.fetchLimit = 1
                 let previousLoop = try self.privateContext.fetch(requestStats)
 
-                if (previousLoop.first?.end ?? .distantFuture) < self.lastLoopStartDate {
+                if (previousLoop.first?.end ?? .distantFuture) < loopStartDate {
                     return self.roundDouble(
-                        (self.lastLoopStartDate - (previousLoop.first?.end ?? Date())).timeInterval / 60,
+                        (loopStartDate - (previousLoop.first?.end ?? Date())).timeInterval / 60,
                         1
                     )
                 }
@@ -354,16 +358,13 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    // Loop exit point
-    private func loopCompleted(error: Error? = nil, loopStatRecord: LoopStats) async {
+    /// Single exit point for loop — replaces the old `loopCompleted()`.
+    private func finalizeLoop(error: Error? = nil, loopStatRecord: LoopStats) async {
+        await loopGuard.finish()
         isLooping.send(false)
 
         if let error = error {
             warning(.apsManager, "Loop failed with error: \(error)")
-            if let backgroundTask = backgroundTaskID {
-                await UIApplication.shared.endBackgroundTask(backgroundTask)
-                backgroundTaskID = .invalid
-            }
             processError(error)
         } else {
             debug(.apsManager, "Loop succeeded")
@@ -375,12 +376,6 @@ final class BaseAPSManager: APSManager, Injectable {
 
         if settings.closedLoop {
             await reportEnacted(wasEnacted: error == nil)
-        }
-
-        // End of the BG tasks
-        if let backgroundTask = backgroundTaskID {
-            await UIApplication.shared.endBackgroundTask(backgroundTask)
-            backgroundTaskID = .invalid
         }
     }
 
@@ -410,7 +405,10 @@ final class BaseAPSManager: APSManager, Injectable {
         guard let autosense = await storage.retrieveAsync(OpenAPS.Settings.autosense, as: Autosens.self),
               (autosense.timestamp ?? .distantPast).addingTimeInterval(30.minutes.timeInterval) > Date()
         else {
-            let result = try await openAPS.autosense(shouldSmoothGlucose: settingsManager.settings.smoothGlucose)
+            let result = try await openAPS.autosense(
+                shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
+                useSwiftOref: settings.useSwiftOref
+            )
             return result != nil
         }
 
@@ -475,15 +473,15 @@ final class BaseAPSManager: APSManager, Injectable {
         do {
             let now = Date()
 
-            // Parallelize the fetches using async let
-            async let currentTemp = fetchCurrentTempBasal(date: now)
-            async let autosenseResult = autosense()
+            // put profile creation up front since autosens needs it
+            try await openAPS.createProfiles(useSwiftOref: settings.useSwiftOref)
+            let currentTemp = try await fetchCurrentTempBasal(date: now)
+            _ = try await autosense()
 
-            _ = try await autosenseResult
-            try await openAPS.createProfiles()
             let determination = try await openAPS.determineBasal(
-                currentTemp: await currentTemp,
+                currentTemp: currentTemp,
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
+                useSwiftOref: settings.useSwiftOref,
                 clock: now
             )
             iobFileDidUpdate.send(())
@@ -530,6 +528,7 @@ final class BaseAPSManager: APSManager, Injectable {
             return try await openAPS.determineBasal(
                 currentTemp: temp,
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
+                useSwiftOref: settings.useSwiftOref,
                 clock: Date(),
                 simulatedCarbsAmount: simulatedCarbsAmount,
                 simulatedBolusAmount: simulatedBolusAmount,
@@ -550,8 +549,6 @@ final class BaseAPSManager: APSManager, Injectable {
         let maxBolus = Decimal(pump.roundToSupportedBolusVolume(units: Double(settingsManager.pumpSettings.maxBolus)))
         return min(rounded, maxBolus)
     }
-
-    private var bolusReporter: DoseProgressReporter?
 
     func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async {
         if amount <= 0 {
@@ -632,9 +629,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 )
             )
         }
-        bolusReporter?.removeObserver(self)
-        bolusReporter = nil
-        bolusProgress.send(nil)
+        clearBolusReporter()
     }
 
     func enactTempBasal(rate: Double, duration: TimeInterval) async {
@@ -833,31 +828,31 @@ final class BaseAPSManager: APSManager, Injectable {
         return Double(sorted[length / 2])
     }
 
+    /// Computes Time-in-Range statistics. Must be called from inside a
+    /// `privateContext.perform` block — the inner perform was redundant
     private func tir(_ glucose: [GlucoseStored]) -> (TIR: Double, hypos: Double, hypers: Double, normal_: Double) {
-        privateContext.perform {
-            let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
-            let totalReadings = justGlucoseArray.count
-            let highLimit = settingsManager.settings.high
-            let lowLimit = settingsManager.settings.low
-            let hyperArray = glucose.filter({ $0.glucose >= Int(highLimit) })
-            let hyperReadings = hyperArray.compactMap({ each in each.glucose as Int16 }).count
-            let hyperPercentage = Double(hyperReadings) / Double(totalReadings) * 100
-            let hypoArray = glucose.filter({ $0.glucose <= Int(lowLimit) })
-            let hypoReadings = hypoArray.compactMap({ each in each.glucose as Int16 }).count
-            let hypoPercentage = Double(hypoReadings) / Double(totalReadings) * 100
-            // Euglyccemic range
-            let normalArray = glucose.filter({ $0.glucose >= 70 && $0.glucose <= 140 })
-            let normalReadings = normalArray.compactMap({ each in each.glucose as Int16 }).count
-            let normalPercentage = Double(normalReadings) / Double(totalReadings) * 100
-            // TIR
-            let tir = 100 - (hypoPercentage + hyperPercentage)
-            return (
-                roundDouble(tir, 1),
-                roundDouble(hypoPercentage, 1),
-                roundDouble(hyperPercentage, 1),
-                roundDouble(normalPercentage, 1)
-            )
-        }
+        let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
+        let totalReadings = justGlucoseArray.count
+        let highLimit = settingsManager.settings.high
+        let lowLimit = settingsManager.settings.low
+        let hyperArray = glucose.filter({ $0.glucose >= Int(highLimit) })
+        let hyperReadings = hyperArray.compactMap({ each in each.glucose as Int16 }).count
+        let hyperPercentage = Double(hyperReadings) / Double(totalReadings) * 100
+        let hypoArray = glucose.filter({ $0.glucose <= Int(lowLimit) })
+        let hypoReadings = hypoArray.compactMap({ each in each.glucose as Int16 }).count
+        let hypoPercentage = Double(hypoReadings) / Double(totalReadings) * 100
+        // Euglycemic range
+        let normalArray = glucose.filter({ $0.glucose >= 70 && $0.glucose <= 140 })
+        let normalReadings = normalArray.compactMap({ each in each.glucose as Int16 }).count
+        let normalPercentage = Double(normalReadings) / Double(totalReadings) * 100
+        // TIR
+        let tir = 100 - (hypoPercentage + hyperPercentage)
+        return (
+            roundDouble(tir, 1),
+            roundDouble(hypoPercentage, 1),
+            roundDouble(hyperPercentage, 1),
+            roundDouble(normalPercentage, 1)
+        )
     }
 
     private func glucoseStats(_ fetchedGlucose: [GlucoseStored])
@@ -1055,17 +1050,14 @@ final class BaseAPSManager: APSManager, Injectable {
             let glucose24h = try await fetchGlucose(predicate: NSPredicate.predicateForOneDayAgo, fetchLimit: 288, batchSize: 50)
             let glucoseOneWeek = try await fetchGlucose(
                 predicate: NSPredicate.predicateForOneWeek,
-                fetchLimit: 288 * 7,
                 batchSize: 250
             )
             let glucoseOneMonth = try await fetchGlucose(
                 predicate: NSPredicate.predicateForOneMonth,
-                fetchLimit: 288 * 7 * 30,
                 batchSize: 500
             )
             let glucoseThreeMonths = try await fetchGlucose(
                 predicate: NSPredicate.predicateForThreeMonths,
-                fetchLimit: 288 * 7 * 30 * 3,
                 batchSize: 1000
             )
 
@@ -1191,7 +1183,8 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func loopStats(loopStatRecord: LoopStats) {
-        privateContext.perform {
+        privateContext.perform { [weak self] in
+            guard let self else { return }
             let nLS = LoopStatRecord(context: self.privateContext)
             nLS.start = loopStatRecord.start
             nLS.end = loopStatRecord.end ?? Date()
@@ -1213,15 +1206,22 @@ final class BaseAPSManager: APSManager, Injectable {
         lastError.send(error)
     }
 
+    /// Called from the `bolusTrigger` Combine sink (already on
+    /// `processQueue`) and from `doseProgressReporterDidUpdate` (the
+    /// pump manager schedules the callback on `processQueue` too).
+    /// Mutations are dispatched onto the queue regardless, so a future
+    /// caller from another context (e.g. `cancelBolus`) stays safe.
     private func createBolusReporter() {
-        bolusReporter = pumpManager?.createBolusProgressReporter(reportingOn: processQueue)
-        bolusReporter?.addObserver(self)
+        processQueue.async {
+            self.bolusReporter = self.pumpManager?.createBolusProgressReporter(reportingOn: self.processQueue)
+            self.bolusReporter?.addObserver(self)
+        }
     }
 
     private func clearBolusReporter() {
-        bolusReporter?.removeObserver(self)
-        bolusReporter = nil
-        processQueue.asyncAfter(deadline: .now() + 0.5) {
+        processQueue.async {
+            self.bolusReporter?.removeObserver(self)
+            self.bolusReporter = nil
             self.bolusProgress.send(nil)
         }
     }
@@ -1302,7 +1302,8 @@ extension BaseAPSManager: PumpManagerStatusObserver {
     func pumpManager(_: PumpManager, didUpdate status: PumpManagerStatus, oldStatus _: PumpManagerStatus) {
         let percent = Int((status.pumpBatteryChargeRemaining ?? 1) * 100)
 
-        privateContext.perform {
+        privateContext.perform { [weak self] in
+            guard let self else { return }
             /// only update the last item with the current battery infos instead of saving a new one each time
             let fetchRequest: NSFetchRequest<OpenAPS_Battery> = OpenAPS_Battery.fetchRequest()
             fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
