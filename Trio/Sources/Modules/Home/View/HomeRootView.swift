@@ -150,7 +150,7 @@ extension Home {
             .onLongPressGesture {
                 let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                 impactHeavy.impactOccurred()
-                state.showModal(for: .snooze)
+                showSnoozeSheet = true
             }
         }
 

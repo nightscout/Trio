@@ -22,7 +22,7 @@ extension CGMSettings {
         @State private var period: Double = UserDefaults.standard.double(forKey: "GlucoseSimulator_Period")
         @State private var noiseAmplitude: Double = UserDefaults.standard.double(forKey: "GlucoseSimulator_NoiseAmplitude")
         @State private var produceStaleValues: Bool = UserDefaults.standard.bool(forKey: "GlucoseSimulator_ProduceStaleValues")
-      
+
         /// Drives the synthetic `cgmStatusHighlight`
         @State private var simulatedScenarioRaw: String = UserDefaults.standard
             .string(forKey: "GlucoseSimulator.simulatedScenario") ?? SimulatedSensorScenario.runningNormally.rawValue
