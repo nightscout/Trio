@@ -274,8 +274,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             onContext: context,
             predicate: NSPredicate.pumpHistoryLast24h,
             key: "timestamp",
-            ascending: false,
-            fetchLimit: 288
+            ascending: false
         )
 
         return await context.perform {

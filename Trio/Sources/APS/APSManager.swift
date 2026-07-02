@@ -1086,17 +1086,14 @@ final class BaseAPSManager: APSManager, Injectable {
             let glucose24h = try await fetchGlucose(predicate: NSPredicate.predicateForOneDayAgo, fetchLimit: 288, batchSize: 50)
             let glucoseOneWeek = try await fetchGlucose(
                 predicate: NSPredicate.predicateForOneWeek,
-                fetchLimit: 288 * 7,
                 batchSize: 250
             )
             let glucoseOneMonth = try await fetchGlucose(
                 predicate: NSPredicate.predicateForOneMonth,
-                fetchLimit: 288 * 7 * 30,
                 batchSize: 500
             )
             let glucoseThreeMonths = try await fetchGlucose(
                 predicate: NSPredicate.predicateForThreeMonths,
-                fetchLimit: 288 * 7 * 30 * 3,
                 batchSize: 1000
             )
 
