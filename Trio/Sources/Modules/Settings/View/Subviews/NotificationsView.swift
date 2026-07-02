@@ -15,6 +15,7 @@ struct NotificationsView: BaseView {
     @ObservedObject var state: Settings.StateModel
     @State var notificationsDisabled = false
     @State var showAlert = false
+    @State private var showSnoozeSheet = false
     @State private var shouldDisplayHint: Bool = false
     @State var hintDetent = PresentationDetent.large
     @State var selectedVerboseHint: AnyView? = AnyView(
@@ -33,45 +34,32 @@ struct NotificationsView: BaseView {
     var body: some View {
         List {
             Section(
-                header: Text("Manage iOS Preferences"),
+                header: Text("Mute Trio Alarms"),
                 content: {
-                    manageNotifications
+                    VStack {
+                        Button {
+                            showSnoozeSheet = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "zzz").foregroundStyle(.tint)
+                                Text("Snooze All Alarms").bold()
+                            }
+                            .font(.title3)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .buttonStyle(.bordered)
+                    }.padding(.vertical)
                 }
             ).listRowBackground(Color.chart)
 
-            Section {
-                VStack {
+            Section(
+                header: Text("Manage iOS Preferences"),
+                content: {
                     notificationsEnabledStatus
-                    HStack(alignment: .top) {
-                        Text("Notifications give you important Trio information without requiring you to open the app.")
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .lineLimit(nil)
-                        Spacer()
-                        Button(
-                            action: {
-                                hintLabel = String(localized: "Manage iOS Preferences")
-                                selectedVerboseHint = AnyView(
-                                    VStack(alignment: .leading, spacing: 10) {
-                                        Text(
-                                            "Notifications give you important Trio information without requiring you to open the app."
-                                        )
-                                        Text(
-                                            "Keep these turned ON in your phone’s settings to ensure you receive Trio Notifications, Critical Alerts, and Time Sensitive Notifications."
-                                        )
-                                    }
-                                )
-                                shouldDisplayHint.toggle()
-                            },
-                            label: {
-                                HStack {
-                                    Image(systemName: "questionmark.circle")
-                                }
-                            }
-                        ).buttonStyle(BorderlessButtonStyle())
-                    }.padding(.top)
-                }.padding(.bottom)
-            }.listRowBackground(Color.chart)
+
+                    manageNotifications
+                }
+            ).listRowBackground(Color.chart)
 
             Section(
                 header: Text("Notification Center"),
@@ -79,12 +67,17 @@ struct NotificationsView: BaseView {
                     Text("Glucose Alarms")
                         .navigationLink(to: .glucoseAlerts, from: self)
 
-                    Text("Pump Alarms")
+                    Text("Device Alarms")
                         .navigationLink(to: .deviceAlarms, from: self)
 
                     Text("Day & Night Windows")
                         .navigationLink(to: .alarmWindows, from: self)
+                }
+            ).listRowBackground(Color.chart)
 
+            Section(
+                header: Text("Other Notifications"),
+                content: {
                     if #available(iOS 16.2, *) {
                         Text("Live Activity").navigationLink(to: .liveActivitySettings, from: self)
                     }
@@ -117,6 +110,9 @@ struct NotificationsView: BaseView {
                 hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
+        }
+        .sheet(isPresented: $showSnoozeSheet) {
+            SnoozeAlertsSheetView(resolver: resolver, isPresented: $showSnoozeSheet)
         }
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))

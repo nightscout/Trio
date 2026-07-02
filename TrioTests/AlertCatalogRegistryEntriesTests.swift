@@ -33,7 +33,11 @@ import Testing
             ("Medtrum", "com.nightscout.medtrumkit.patch-occlussion"), // double-s (current MedtrumKit)
             ("Medtrum", "com.nightscout.medtrumkit.patch-occlusion"), // single-s (future MedtrumKit)
             ("Medtrum", "com.nightscout.medtrumkit.patch-fault"),
-            ("Medtrum", "com.nightscout.medtrumkit.patch-empty")
+            ("Medtrum", "com.nightscout.medtrumkit.patch-empty"),
+            ("LibreLoopCGMManager", "sensorExpiry.warning2h"),
+            ("LibreLoopCGMManager", "sensorExpiry.sessionEnded"),
+            ("LibreLoopCGMManager", "sensorAttention"),
+            ("trio.aps", "loop.notActive")
         ]
     ) func criticalEntries(manager: String, alertID: String) {
         #expect(AlertCatalogRegistry.lookup(id(manager, alertID))?.interruptionLevel == .critical)
@@ -49,7 +53,10 @@ import Testing
             ("Dana", "lowBattery"),
             ("Dana", "unknown"),
             ("Medtrum", "com.nightscout.medtrumkit.reservoir-low"),
-            ("Medtrum", "com.nightscout.medtrumkit.patch-daily-limit")
+            ("Medtrum", "com.nightscout.medtrumkit.patch-daily-limit"),
+            ("LibreLoopCGMManager", "sensorExpiry.warning24h"),
+            ("LibreLoopCGMManager", "reconnectNeedsReScan"),
+            ("trio.aps", "glucoseDataStale")
         ]
     ) func timeSensitiveEntries(manager: String, alertID: String) {
         #expect(AlertCatalogRegistry.lookup(id(manager, alertID))?.interruptionLevel == .timeSensitive)
@@ -62,7 +69,8 @@ import Testing
         arguments: [
             ("Omni", "userPodExpiration"),
             ("Dana", "basalCompare"),
-            ("Medtrum", "com.nightscout.medtrumkit.patch-expired")
+            ("Medtrum", "com.nightscout.medtrumkit.patch-expired"),
+            ("trio.aps", "algorithmError")
         ]
     ) func activeEntries(manager: String, alertID: String) {
         #expect(AlertCatalogRegistry.lookup(id(manager, alertID))?.interruptionLevel == .active)
@@ -126,5 +134,50 @@ import Testing
     @Test("entries have unique manager+alert identifiers") func entriesHaveUniqueKeys() {
         let keys = Set(AlertCatalogRegistry.entries.map(\.identifier))
         #expect(keys.count == AlertCatalogRegistry.entries.count)
+    }
+
+    // MARK: - I: LibreLoop CGM entries map to CGM-side concepts
+
+    @Test(
+        "LibreLoop sensor-expiry entries collapse to .cgmExpiringSoon / .cgmExpired",
+        arguments: [
+            ("sensorExpiry.warning24h", Alert.CatalogConcept.cgmExpiringSoon),
+            ("sensorExpiry.warning2h", Alert.CatalogConcept.cgmExpiringSoon),
+            ("sensorExpiry.sessionEnded", Alert.CatalogConcept.cgmExpired),
+            ("sensorAttention", Alert.CatalogConcept.cgmReplacementNeeded),
+            ("reconnectNeedsReScan", Alert.CatalogConcept.cgmReconnectNeeded)
+        ]
+    ) func libreLoopConcepts(alertID: String, expected: Alert.CatalogConcept) {
+        #expect(AlertCatalogRegistry.lookup(id("LibreLoopCGMManager", alertID))?.concept == expected)
+    }
+
+    @Test("LibreLoop expiry + attention entries are categorized under Sensor") func libreLoopSensorCategory() {
+        let sensorIDs = ["sensorExpiry.warning24h", "sensorExpiry.warning2h", "sensorExpiry.sessionEnded", "sensorAttention"]
+        for alertID in sensorIDs {
+            #expect(AlertCatalogRegistry.lookup(id("LibreLoopCGMManager", alertID))?.category == "Sensor")
+        }
+    }
+
+    @Test("LibreLoop reconnect is categorized under Connectivity") func libreLoopConnectivityCategory() {
+        #expect(AlertCatalogRegistry.lookup(id("LibreLoopCGMManager", "reconnectNeedsReScan"))?.category == "Connectivity")
+    }
+
+    // MARK: - J: Trio-internal Algorithm entries
+
+    @Test(
+        "Trio-internal entries map to Algorithm-side concepts",
+        arguments: [
+            ("loop.notActive", Alert.CatalogConcept.notLooping),
+            ("algorithmError", Alert.CatalogConcept.algorithmError),
+            ("glucoseDataStale", Alert.CatalogConcept.glucoseDataStale)
+        ]
+    ) func trioAlgorithmConcepts(alertID: String, expected: Alert.CatalogConcept) {
+        #expect(AlertCatalogRegistry.lookup(id("trio.aps", alertID))?.concept == expected)
+    }
+
+    @Test("Trio-internal entries are categorized under Algorithm") func trioAlgorithmCategory() {
+        for alertID in ["loop.notActive", "algorithmError", "glucoseDataStale"] {
+            #expect(AlertCatalogRegistry.lookup(id("trio.aps", alertID))?.category == "Algorithm")
+        }
     }
 }

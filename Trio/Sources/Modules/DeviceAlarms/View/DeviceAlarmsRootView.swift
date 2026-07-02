@@ -4,11 +4,13 @@ import Swinject
 private enum DeviceAlarmSheet: Identifiable {
     case picker
     case editor(DeviceAlertSeverityConfig, isNew: Bool)
+    case help(DeviceAlertSeverity)
 
     var id: String {
         switch self {
         case .picker: return "picker"
         case let .editor(config, _): return config.id.uuidString
+        case let .help(severity): return "helpSheet_" + severity.id
         }
     }
 }
@@ -22,16 +24,43 @@ extension DeviceAlarms {
         @State private var sheet: DeviceAlarmSheet?
         @State private var pendingNewSeverity: DeviceAlertSeverity?
 
+        @State private var shouldDisplayHint: Bool = false
+        @State var hintDetent = PresentationDetent.large
+        @State var selectedVerboseHint: AnyView?
+
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
         var body: some View {
             List {
                 ForEach(DeviceAlertSeverity.allCases) { severity in
-                    Section(
-                        header: header(for: severity),
-                        footer: footer(for: severity)
-                    ) {
+                    Section {
+                        VStack(alignment: .leading, spacing: 5) {
+                            HStack {
+                                Image(systemName: severityIcon(for: severity))
+                                    .foregroundStyle(severityTint(for: severity))
+                                Text(severity.displayName)
+                                Spacer()
+                            }.font(.headline)
+
+                            HStack(alignment: .center) {
+                                Text(severity.blurb)
+                                    .font(.footnote)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(nil)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer()
+                                Button(action: {
+                                    sheet = .help(severity)
+                                }) {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle")
+                                    }
+                                }
+                                .buttonStyle(BorderlessButtonStyle())
+                            }.padding(.vertical, 5)
+                        }
+
                         ForEach(store.configs(in: severity)) { config in
                             row(for: config)
                                 .opacity(config.isEnabled ? 1 : 0.5)
@@ -41,12 +70,13 @@ extension DeviceAlarms {
 
                 Section {
                     Text("Day & Night Windows")
+                        .foregroundStyle(Color.accentColor)
                         .navigationLink(to: .alarmWindows, from: self)
                 }.listRowBackground(Color.chart)
             }
             .scrollContentBackground(.hidden)
             .background(appState.trioBackgroundColor(for: colorScheme))
-            .navigationTitle("Pump Alarms")
+            .navigationTitle("Device Alarms")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -68,6 +98,24 @@ extension DeviceAlarms {
                         onDone: { sheet = nil },
                         onCancel: { sheet = nil }
                     )
+                case let .help(severity):
+                    SettingInputHintView(
+                        hintDetent: $hintDetent,
+                        shouldDisplayHint: Binding(
+                            get: { sheet != nil },
+                            set: { if !$0 { sheet = nil } }
+                        ),
+                        hintLabel: String(
+                            localized: "\(severity.displayName) Device Alerts",
+                            comment: "Device Alerts help sheet label; text reads: '<severity level> Device Alerts'."
+                        ),
+                        hintText: selectedVerboseHint ?? AnyView(
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(severity.hintText)
+                            }
+                        ),
+                        sheetTitle: String(localized: "Help", comment: "Help sheet title")
+                    )
                 }
             }
             .onAppear(perform: configureView)
@@ -83,20 +131,6 @@ extension DeviceAlarms {
                 )
                 sheet = .editor(new, isNew: true)
             }
-        }
-
-        // MARK: - Section header / footer
-
-        private func header(for severity: DeviceAlertSeverity) -> some View {
-            HStack {
-                Image(systemName: severityIcon(for: severity))
-                    .foregroundStyle(severityTint(for: severity))
-                Text(severity.displayName)
-            }
-        }
-
-        private func footer(for severity: DeviceAlertSeverity) -> some View {
-            Text(severity.blurb)
         }
 
         // MARK: - Row
@@ -131,22 +165,22 @@ extension DeviceAlarms {
         }
 
         private func soundSummary(for config: DeviceAlertSeverityConfig) -> some View {
-            let icon: String
-            let label: String
-            if !config.playsSound {
-                icon = "speaker.slash.fill"
-                label = String(localized: "Sound off")
-            } else if config.overridesSilenceAndDND {
-                icon = "speaker.wave.3.fill"
-                label =
-                    "\(AlarmSoundCatalog.displayName(for: config.soundFilename)) • \(String(localized: "Overrides Silence & Focus Mode"))"
-            } else {
-                icon = "speaker.fill"
-                label = AlarmSoundCatalog.displayName(for: config.soundFilename)
-            }
-            return HStack(spacing: 4) {
-                Image(systemName: icon)
-                Text(label)
+            // Show the sound and override facts independently. Previously
+            // the override badge was hidden when sound was off, but "sound
+            // off + override on" is a valid combo (silent + haptic that
+            // breaks through Focus / Sleep) and the user needs to see it.
+            HStack(spacing: 6) {
+                HStack(spacing: 4) {
+                    Image(systemName: config.playsSound ? "speaker.wave.2.fill" : "speaker.slash.fill")
+                    Text(config.playsSound ? "Sound on" : "Sound off")
+                }
+                if config.overridesSilenceAndDND {
+                    Text("·")
+                    HStack(spacing: 4) {
+                        Image(systemName: "bell.badge.fill")
+                        Text("Overrides Focus")
+                    }
+                }
             }
             .font(.footnote)
             .foregroundColor(.secondary)

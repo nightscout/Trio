@@ -33,6 +33,17 @@ extension Alert {
         case pairingFailed
         case userBloodGlucoseReminder
         case basalProfileMismatch
+        // CGM-side concepts. Surface through `TrioAlertManager` via
+        // `PluginSource.issueAlert(_:)`.
+        case cgmExpiringSoon
+        case cgmExpired
+        case cgmReplacementNeeded
+        case cgmReconnectNeeded
+        // Trio-internal "Algorithm" concepts. Emitted by `APSManager` /
+        // `NotLoopingMonitor` under the `trio.aps` manager identifier.
+        case notLooping
+        case algorithmError
+        case glucoseDataStale
         /// Plugin-unique alarm that doesn't merge with anything else.
         case unspecified
 
@@ -57,6 +68,13 @@ extension Alert {
             case .pairingFailed: return String(localized: "Pairing Failed")
             case .userBloodGlucoseReminder: return String(localized: "Blood Glucose Reminder")
             case .basalProfileMismatch: return String(localized: "Basal Profile Mismatch")
+            case .cgmExpiringSoon: return String(localized: "CGM Sensor Expires Soon")
+            case .cgmExpired: return String(localized: "CGM Sensor Expired")
+            case .cgmReplacementNeeded: return String(localized: "Replace CGM Sensor")
+            case .cgmReconnectNeeded: return String(localized: "CGM Reconnect Required")
+            case .notLooping: return String(localized: "Trio Not Looping")
+            case .algorithmError: return String(localized: "Algorithm Error")
+            case .glucoseDataStale: return String(localized: "Glucose Data Stale")
             case .unspecified: return ""
             }
         }

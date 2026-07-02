@@ -351,9 +351,14 @@ enum SettingItems {
                 "Bolus Failed",
                 "Pod",
                 "Sensor Failure",
-                "Device Expired"
+                "Sensor Stopped",
+                "Calibration",
+                "Signal Loss",
+                "Device Expired",
+                "Not Looping",
+                "Algorithm"
             ],
-            path: ["Notifications", "Pump Alarms"]
+            path: ["Notifications", "Device Alarms"]
         ),
         SettingItem(
             title: "Day & Night Windows",

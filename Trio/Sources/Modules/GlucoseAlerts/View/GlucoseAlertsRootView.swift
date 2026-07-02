@@ -64,6 +64,7 @@ extension GlucoseAlerts {
                 // FIXME: make this into a nice setting with mini and verbose hint
                 Section {
                     Text("Day & Night Windows")
+                        .foregroundStyle(Color.accentColor)
                         .navigationLink(to: .alarmWindows, from: self)
                 }.listRowBackground(Color.chart)
 

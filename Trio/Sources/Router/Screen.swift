@@ -26,7 +26,6 @@ enum Screen: Identifiable, Hashable {
     case mealSettings
     case iconConfig
     case overrideConfig
-    case snooze
     case statistics
     case watch
     case userInterfaceSettings
@@ -119,8 +118,6 @@ extension Screen {
             IconConfig.RootView(resolver: resolver)
         case .overrideConfig:
             Adjustments.RootView(resolver: resolver)
-        case .snooze:
-            Snooze.RootView(resolver: resolver)
         case .watch:
             WatchConfig.RootView(resolver: resolver)
         case .statistics:
