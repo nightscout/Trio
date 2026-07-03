@@ -8,7 +8,7 @@ import Swinject
 
 protocol APSManager {
     func heartbeat(date: Date)
-    func enactBolus(amount: Double, isSMB: Bool, bolusReference: UUID?, callback: ((Bool, String) -> Void)?) async
+    func enactBolus(amount: Double, isSMB: Bool, origin: BolusOrigin?, callback: ((Bool, String) -> Void)?) async
     var pumpManager: PumpManagerUI? { get set }
     var bluetoothManager: BluetoothStateManager? { get }
     var pumpDisplayState: CurrentValueSubject<PumpDisplayState?, Never> { get }
@@ -39,7 +39,7 @@ protocol APSManager {
 extension APSManager {
     /// Convenience for callers that do not tag a bolus origin.
     func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async {
-        await enactBolus(amount: amount, isSMB: isSMB, bolusReference: nil, callback: callback)
+        await enactBolus(amount: amount, isSMB: isSMB, origin: nil, callback: callback)
     }
 }
 
@@ -557,7 +557,7 @@ final class BaseAPSManager: APSManager, Injectable {
         return min(rounded, maxBolus)
     }
 
-    func enactBolus(amount: Double, isSMB: Bool, bolusReference: UUID?, callback: ((Bool, String) -> Void)?) async {
+    func enactBolus(amount: Double, isSMB: Bool, origin: BolusOrigin?, callback: ((Bool, String) -> Void)?) async {
         if amount <= 0 {
             return
         }
@@ -581,6 +581,10 @@ final class BaseAPSManager: APSManager, Injectable {
         }
 
         let roundedAmount = pump.roundToSupportedBolusVolume(units: amount)
+
+        // Mint the correlation reference only once the command is actually going to the pump, so none of the
+        // early returns above can leave an orphaned origin mapping behind.
+        let bolusReference = origin.map { BolusOriginStore.shared.makeReference(for: $0) }
 
         debug(.apsManager, "Enact bolus \(roundedAmount), manual \(!isSMB)")
 

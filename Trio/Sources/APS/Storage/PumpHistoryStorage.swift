@@ -48,6 +48,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 
     func storePumpEvents(_ events: [NewPumpEvent]) async throws {
         try await context.perform {
+            // Origin mappings consumed while tagging boluses below; removed from the store only after the
+            // context saves, so a failed save leaves them resolvable when the pump re-delivers the events.
+            var consumedBolusReferences: [UUID] = []
+
             for event in events {
                 let existingEvents: [PumpEventStored] = try CoreDataStack.shared.fetchEntities(
                     ofType: PumpEventStored.self,
@@ -109,9 +113,9 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     if let reference = dose.bolusReference,
                        let resolved = BolusOriginStore.shared.origin(forReference: reference)
                     {
-                        BolusOriginStore.shared.remove(reference: reference)
                         newBolusEntry.bolusOrigin = resolved.rawValue
                         newPumpEvent.note = resolved.displayName
+                        consumedBolusReferences.append(reference)
                         debug(.coreData, "Tagged bolus origin: \(resolved.displayName)")
                     }
 
@@ -240,6 +244,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             do {
                 guard self.context.hasChanges else { return }
                 try self.context.save()
+
+                for reference in consumedBolusReferences {
+                    BolusOriginStore.shared.remove(reference: reference)
+                }
 
                 self.updateSubject.send(())
                 debug(.coreData, "\(DebuggingIdentifiers.succeeded) stored pump events in Core Data")

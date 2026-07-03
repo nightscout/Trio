@@ -32,8 +32,6 @@ extension TrioRemoteControl {
             return
         }
 
-        let bolusReference = BolusOriginStore.shared.makeReference(for: .remote)
-
         if let returnInfo = payload.returnNotification {
             await RemoteNotificationResponseManager.shared.sendResponseNotification(
                 to: returnInfo,
@@ -47,7 +45,7 @@ extension TrioRemoteControl {
             .enactBolus(
                 amount: Double(truncating: bolusAmount as NSNumber),
                 isSMB: false,
-                bolusReference: bolusReference
+                origin: .remote
             ) { [weak self] success, message in
                 guard let self = self else { return }
                 Task {
