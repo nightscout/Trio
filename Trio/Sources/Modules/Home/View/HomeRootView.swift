@@ -789,6 +789,8 @@ extension Home {
                         + String(localized: " of ", comment: "Bolus string partial message: 'x U of y U' in home view") +
                         (Formatter.decimalFormatterWithThreeFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
                         + String(localized: " U", comment: "Insulin unit")
+                let bolusLabel = state
+                    .bolusStatus == .inProgress ? String(localized: "Bolusing") : String(localized: "Initiating…")
 
                 ZStack {
                     /// rectangle as background
@@ -814,15 +816,9 @@ extension Home {
                         Spacer()
 
                         VStack {
-                            if state.bolusStatus == .inProcess {
-                                Text("Bolusing")
-                                    .font(.subheadline)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            } else if state.bolusStatus == .initiating {
-                                Text("Initiating…")
-                                    .font(.subheadline)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
+                            Text(bolusLabel)
+                                .font(.subheadline)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             Text(bolusString)
                                 .font(.caption)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -830,7 +826,7 @@ extension Home {
 
                         Spacer()
 
-                        if state.bolusStatus == .inProcess {
+                        if state.bolusStatus == .inProgress {
                             Button {
                                 state.showProgressView()
                                 state.cancelBolus()

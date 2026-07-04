@@ -568,6 +568,7 @@ extension Treatments {
                     + (Formatter.decimalFormatterWithThreeFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
                     + String(localized: " U", comment: "Insulin unit")
             }()
+            let bolusLabel = state.bolusStatus == .inProgress ? String(localized: "Bolusing") : String(localized: "Initiating…")
 
             ZStack {
                 // background card
@@ -593,15 +594,9 @@ extension Treatments {
                     Spacer()
 
                     VStack {
-                        if state.bolusStatus == .inProcess {
-                            Text("Bolusing")
-                                .font(.subheadline)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        } else if state.bolusStatus == .initiating {
-                            Text("Initiating…")
-                                .font(.subheadline)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
+                        Text(bolusLabel)
+                            .font(.subheadline)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         Text(bolusString)
                             .font(.caption)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -610,7 +605,7 @@ extension Treatments {
 
                     Spacer()
 
-                    if state.bolusStatus == .inProcess {
+                    if state.bolusStatus == .inProgress {
                         Button { state.cancelBolus() } label: {
                             Image(systemName: "xmark.app")
                                 .font(.system(size: 25))

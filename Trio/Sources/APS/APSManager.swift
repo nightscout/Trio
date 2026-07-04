@@ -215,9 +215,10 @@ final class BaseAPSManager: APSManager, Injectable {
                 switch bolusState {
                 case .initiating,
                      .inProgress:
-                    self.createBolusReporter()
+                    self?.createBolusReporter()
                 case .noBolus:
-                    self.clearBolusReporter()
+                    self?.clearBolusReporter()
+                }
             }
             .store(in: &lifetime)
 
