@@ -435,9 +435,6 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
                 Text(
                     "This is the maximum basal rate allowed to be set or scheduled. This applies to both automatic and manual basal rates."
                 )
-                Text(
-                    "Note to Medtronic Pump Users: You must also manually set the max basal rate on the pump to this value or higher."
-                )
             }
         case .maxCOB:
             return VStack(alignment: .leading, spacing: 8) {
@@ -556,7 +553,7 @@ enum PumpOptionForOnboardingUnits: String, Equatable, CaseIterable, Identifiable
         case .minimed:
             return "Medtronic"
         case .omni:
-            return "All Omnipod Types"
+            return "Omnipod"
         case .dana:
             return "Dana (RS/-i)"
         case .medtrum:

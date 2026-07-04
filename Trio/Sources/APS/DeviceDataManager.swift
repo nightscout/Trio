@@ -3,6 +3,7 @@ import Combine
 import CoreData
 import DanaKit
 import Foundation
+import HealthKit
 import LoopKit
 import LoopKitUI
 import MedtrumKit
@@ -105,6 +106,25 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 modifiedPreferences
                     .bolusIncrement = bolusIncrement > 0 ? bolusIncrement : 0.1
                 storage.save(modifiedPreferences, as: OpenAPS.Settings.preferences)
+
+                // Ensure the pump manager's delivery limits always reflect the user's
+                // current settings. Without this, the active pump manager instance
+                // may use a stale or default value from deserialized state
+                // — silently rejecting temp basals that oref correctly
+                // determines are within the user's configured maxBasal.
+                let pumpSettings = settingsManager.pumpSettings
+                let deliveryLimits = DeliveryLimits(
+                    maximumBasalRate: HKQuantity(unit: .internationalUnitsPerHour, doubleValue: Double(pumpSettings.maxBasal)),
+                    maximumBolus: HKQuantity(unit: .internationalUnit(), doubleValue: Double(pumpSettings.maxBolus))
+                )
+
+                processQueue.async {
+                    pumpManager.syncDeliveryLimits(limits: deliveryLimits) { result in
+                        if case let .failure(error) = result {
+                            debug(.deviceManager, "syncDeliveryLimits on pump manager init failed: \(error)")
+                        }
+                    }
+                }
 
                 if let medtrumPump = pumpManager as? MedtrumPumpManager {
                     // Medtrum's state.patchExpiresAt is actually lifespan + grace
@@ -321,6 +341,9 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     var cgmManager: CGMManagerUI?
     var cgmType: CGMType = .enlite
 
+    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    let cgmProgressHighlight = CurrentValueSubject<DeviceLifecycleProgress?, Never>(nil)
+
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
         fetch(nil)
     }
@@ -470,6 +493,13 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
             settingsManager.updateInsulinCurve(status.insulinType)
         }
 
+        // Check if manual temp basal is active
+        let manualTempBasalActive = status.basalDeliveryState?.isManualTempBasal ?? false
+        if manualTempBasalActive {
+            debug(.deviceManager, "manual temp basal")
+        }
+        manualTempBasal.send(manualTempBasalActive)
+
         if let medtrumPump = pumpManager as? MedtrumPumpManager {
             storage.save(Decimal(medtrumPump.state.reservoir), as: OpenAPS.Monitor.reservoir)
             broadcaster.notify(PumpReservoirObserver.self, on: processQueue) {
@@ -501,18 +531,6 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
             storage.save(Decimal(reservoir), as: OpenAPS.Monitor.reservoir)
             broadcaster.notify(PumpReservoirObserver.self, on: processQueue) {
                 $0.pumpReservoirDidChange(Decimal(reservoir))
-            }
-
-            // manual temp basal on
-            if let tempBasal = omni.state.podState?.unfinalizedTempBasal, !tempBasal.isFinished(),
-               !tempBasal.automatic
-            {
-                // the manual basal temp is launch - block every thing
-                debug(.deviceManager, "manual temp basal")
-                manualTempBasal.send(true)
-            } else {
-                // no more manual Temp Basal !
-                manualTempBasal.send(false)
             }
 
             guard let endTime = omni.state.podState?.expiresAt else {
