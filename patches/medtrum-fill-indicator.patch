@@ -232,10 +232,9 @@ index a07835a..2dbd3fe 100644
              .buttonStyle(ActionButtonStyle())
              .padding([.bottom, .horizontal])
          }
-@@ -101,6 +152,9 @@ struct PatchPrimingView: View {
+@@ -101,5 +152,8 @@ struct PatchPrimingView: View {
          .edgesIgnoringSafeArea(.bottom)
          .navigationBarBackButtonHidden(viewModel.isPriming)
-         .navigationTitle(String(localized: "Patch Priming", comment: "Priming header"))
 +        .onAppear {
 +            viewModel.prepareForFilling()
 +        }
