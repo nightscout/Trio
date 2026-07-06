@@ -101,8 +101,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         dose.unitsInDeliverableIncrements,
                         toIncrement: Double(self.settings.preferences.bolusIncrement)
                     )
-                    // restrict entry to now or past
-                    let timestamp = event.date > Date() ? Date() : event.date
+                    // Use the event's own timestamp to dedup
+                    let timestamp = event.date
                     let key = dedupKey(timestamp: timestamp, type: PumpEvent.bolus.rawValue)
 
                     if let existingEvent = existingByKey[key] {
