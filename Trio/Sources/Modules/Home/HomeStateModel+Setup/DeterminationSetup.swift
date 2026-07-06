@@ -7,20 +7,30 @@ extension Home.StateModel {
     @MainActor func setupEnactedDeterminationController() {
         enactedDeterminationControllerDelegate.onContentChange = { [weak self] in
             Task { @MainActor in
-                guard let self else { return }
-                self.updateEnactedDeterminationFromController()
-                await self.updateForecastData()
+                self?.scheduleForecastUpdate()
             }
         }
 
         do {
             try enactedDeterminationController.performFetch()
             updateEnactedDeterminationFromController()
+            // Initial population runs immediately — no burst to coalesce at startup.
             Task { @MainActor in
                 await self.updateForecastData()
             }
         } catch {
             debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform enacted determination fetch: \(error)")
+        }
+    }
+
+    /// Coalesces rapid determination changes — each cancels the previous pending recompute.
+    @MainActor func scheduleForecastUpdate() {
+        forecastUpdateTask?.cancel()
+        forecastUpdateTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(150))
+            guard !Task.isCancelled else { return }
+            updateEnactedDeterminationFromController()
+            await updateForecastData()
         }
     }
 

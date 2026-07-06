@@ -10,6 +10,12 @@ class CoreDataStack: ObservableObject {
     private var notificationToken: NSObjectProtocol?
     private let inMemory: Bool
 
+    /// Debounces `NSPersistentStoreRemoteChange` bursts into a single history fetch + merge.
+    /// Lossless, since `fetchHistory(after: lastToken)` drains all accumulated transactions.
+    private let remoteChangeSubject = PassthroughSubject<Void, Never>()
+    private var remoteChangeCancellable: AnyCancellable?
+    private let historyQueue = DispatchQueue(label: "CoreDataStack.history", qos: .utility)
+
     let persistentContainer: NSPersistentContainer
 
     private let maxRetries = 3
@@ -210,11 +216,18 @@ class CoreDataStack: ObservableObject {
             forName: .NSPersistentStoreRemoteChange,
             object: nil,
             queue: nil
-        ) { _ in
-            Task {
-                await self.fetchPersistentHistory()
-            }
+        ) { [weak self] _ in
+            // Just signal here; fetching happens in the debounced pipeline below. Notifications
+            // arrive on arbitrary threads, so serialize the sends via `historyQueue`.
+            guard let self else { return }
+            self.historyQueue.async { self.remoteChangeSubject.send() }
         }
+
+        remoteChangeCancellable = remoteChangeSubject
+            .debounce(for: .milliseconds(200), scheduler: historyQueue)
+            .sink { [weak self] in
+                Task { await self?.fetchPersistentHistory() }
+            }
 
         debug(.coreData, "Set up persistent store change notifications")
     }

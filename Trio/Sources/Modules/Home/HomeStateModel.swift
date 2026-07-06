@@ -389,6 +389,10 @@ extension Home {
 
         private var subscriptions = Set<AnyCancellable>()
 
+        /// Debounces the forecast recompute — the most expensive `onContentChange` callback,
+        /// which a manual re-determine fires twice in quick succession.
+        @ObservationIgnored var forecastUpdateTask: Task<Void, Never>?
+
         typealias PumpEvent = PumpEventStored.EventType
 
         override init() {
