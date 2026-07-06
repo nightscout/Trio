@@ -168,18 +168,19 @@ class CoreDataStack: ObservableObject {
         // Update view context with objectIDs from history change request
         /// - Tag: mergeChanges
         let viewContext = persistentContainer.viewContext
+        let changedObjectIDs = Set(history.flatMap { $0.changes ?? [] }.map(\.changedObjectID))
+
         viewContext.perform {
             for transaction in history {
                 viewContext.mergeChanges(fromContextDidSave: transaction.objectIDNotification())
                 self.lastToken = transaction.token
             }
-        }
 
-        // Notify app-side observers (services) about which objects changed. This history-sourced
-        // change feed replaces the hand-rolled changedObjectsOnManagedObjectContextDidSavePublisher.
-        let changedObjectIDs = Set(history.flatMap { $0.changes ?? [] }.map(\.changedObjectID))
-        if !changedObjectIDs.isEmpty {
-            entityChangeSubject.send(changedObjectIDs)
+            // Notify app-side observers (services) about which objects changed. This history-sourced
+            // change feed replaces the hand-rolled changedObjectsOnManagedObjectContextDidSavePublisher.
+            if !changedObjectIDs.isEmpty {
+                self.entityChangeSubject.send(changedObjectIDs)
+            }
         }
     }
 
