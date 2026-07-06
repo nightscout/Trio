@@ -90,10 +90,6 @@ struct SettingInputSection<VerboseHint: View>: View {
     // Helper function to retrieve PickerSetting based on key
     private func getPickerSetting(for key: String) -> PickerSetting? {
         switch key {
-        case "lowGlucose":
-            return pickerSettingsProvider.settings.lowGlucose
-        case "highGlucose":
-            return pickerSettingsProvider.settings.highGlucose
         case "carbsRequiredThreshold":
             return pickerSettingsProvider.settings.carbsRequiredThreshold
         case "individualAdjustmentFactor":
@@ -240,7 +236,7 @@ struct SettingInputSection<VerboseHint: View>: View {
         }.padding(.top)
     }
 
-    private func hintSection(
+    public func hintSection(
         miniHint: String,
         shouldDisplayHint: Binding<Bool>,
         verboseHint: VerboseHint,
