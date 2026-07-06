@@ -336,7 +336,9 @@ extension CoreDataStack {
         taskContext.transactionAuthor = "batchDelete"
 
         // Get the number of days we want to keep the data
-        let targetDate = Calendar.current.date(byAdding: .day, value: -days, to: Date())!
+        guard let targetDate = Calendar.current.date(byAdding: .day, value: -days, to: Date()) else {
+            throw CoreDataError.validationError(function: callingFunction, file: callingClass)
+        }
 
         // Fetch all the objects that are older than the specified days
         let fetchRequest = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: objectType))
@@ -394,7 +396,9 @@ extension CoreDataStack {
         taskContext.transactionAuthor = "batchDelete"
 
         // Get the target date
-        let targetDate = Calendar.current.date(byAdding: .day, value: -days, to: Date())!
+        guard let targetDate = Calendar.current.date(byAdding: .day, value: -days, to: Date()) else {
+            throw CoreDataError.validationError(function: callingFunction, file: callingClass)
+        }
 
         // Fetch Parent objects older than the target date
         let fetchParentRequest = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: parentType))
