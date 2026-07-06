@@ -383,8 +383,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             onContext: context,
             predicate: NSPredicate.glucose,
             key: "date",
-            ascending: false,
-            fetchLimit: 288
+            ascending: false
         )
 
         return try await context.perform {

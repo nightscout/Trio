@@ -13,8 +13,7 @@ extension LiveActivityManager {
             onContext: context,
             predicate: NSPredicate.predicateForSixHoursAgo,
             key: "date",
-            ascending: false,
-            fetchLimit: 72
+            ascending: false
         )
 
         return try await context.perform {

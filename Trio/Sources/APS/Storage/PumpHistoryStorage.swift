@@ -237,7 +237,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             predicate: NSPredicate.pumpHistoryLast24h,
             key: "timestamp",
             ascending: false,
-            fetchLimit: 288,
             relationshipKeyPathsForPrefetching: ["bolus", "tempBasal"]
         )
 

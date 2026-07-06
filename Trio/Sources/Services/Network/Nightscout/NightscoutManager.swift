@@ -1,6 +1,7 @@
 import Combine
 import CoreData
 import Foundation
+import LoopKit
 import LoopKitUI
 import Swinject
 import UIKit
@@ -409,6 +410,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
     var glucoseManager: FetchGlucoseManager?
     var cgmManager: CGMManagerUI?
+
+    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    let cgmProgressHighlight = CurrentValueSubject<DeviceLifecycleProgress?, Never>(nil)
 
     func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
         Future { promise in
