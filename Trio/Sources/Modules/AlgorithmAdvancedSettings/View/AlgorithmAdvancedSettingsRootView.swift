@@ -392,31 +392,30 @@ extension AlgorithmAdvancedSettings {
                 )
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.useSwiftOref,
+                    booleanValue: $state.useJavascriptOref,
                     shouldDisplayHint: $shouldDisplayHint,
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Use Swift Oref", comment: "Use Swift Oref")
+                            hintLabel = NSLocalizedString("Use JavaScript Oref", comment: "Use JavaScript Oref")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: NSLocalizedString("Use Swift Oref", comment: "Use Swift Oref"),
+                    label: NSLocalizedString("Use JavaScript Oref", comment: "Use JavaScript Oref"),
                     miniHint: String(
-                        localized: "EXPERIMENTAL FEATURE! Enables new, fully Swift-based algorithm version.",
-                        comment: "Use Swift Oref mini hint"
+                        localized: "Switches back to the legacy JavaScript-based algorithm version.",
+                        comment: "Use JavaScript Oref mini hint"
                     ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
-                        Text("This feature is EXPERIMENTAL and not yet cleared for general use.").bold().foregroundStyle(.orange)
                         Text(
-                            "We're building a faster and more maintainable Swift version of the algorithm (Oref) that runs in Trio. It's faster, more accurate and improves Trio for everyone."
+                            "Trio now uses a fully Swift-based version of the algorithm (Oref) by default. It's faster, more accurate and improves Trio for everyone."
                         )
                         Text(
-                            "When enabled, Trio will no longer use the old JavaScript-based algorithm that runs virtualized on your phone. Instead, it will use a fully Swift-based algorithm."
+                            "When enabled, Trio will instead use the legacy JavaScript-based algorithm that runs virtualized on your phone. Only enable this if you encounter issues with the Swift-based algorithm."
                         )
 
                         Text(
