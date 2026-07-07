@@ -32,6 +32,8 @@ extension Home {
         @State var isMenuPresented = false
         @State var showTreatments = false
         @State var selectedTab: Int = 0
+        @State var showQuickBolusPicker = false
+        @State var showQuickBolusNoHistory = false
         @State var showPumpSelection: Bool = false
         @State var showCGMSelection: Bool = false
         @State var showSnoozeSheet: Bool = false
@@ -1113,17 +1115,28 @@ extension Home {
                 }
                 .tint(Color.tabBar)
 
-                Button(
-                    action: {
-                        state.showModal(for: .treatmentView) },
-                    label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 40))
-                            .foregroundStyle(Color.tabBar)
-                            .padding(.vertical, 2)
-                            .padding(.horizontal, 24)
+                Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 40))
+                    .foregroundStyle(Color.tabBar)
+                    .padding(.vertical, 2)
+                    .padding(.horizontal, 24)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        state.showModal(for: .treatmentView)
                     }
-                )
+                    .onLongPressGesture(minimumDuration: 0.5) {
+                        guard state.enableQuickBolus else { return }
+                        let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                        impactHeavy.impactOccurred()
+                        Task {
+                            await state.loadQuickBolusSuggestions()
+                            if state.quickBolusHistory.isEmpty {
+                                showQuickBolusNoHistory = true
+                            } else {
+                                showQuickBolusPicker = true
+                            }
+                        }
+                    }
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
                 .onChange(of: selectedTab) {
                     if !settingsPath.isEmpty {
@@ -1139,6 +1152,24 @@ extension Home {
                 if state.waitForSuggestion {
                     CustomProgressView(text: String(localized: "Updating IOB...", comment: "Progress text when updating IOB"))
                 }
+            }
+            .sheet(isPresented: $showQuickBolusPicker) {
+                QuickPickBolusesView(
+                    suggestions: state.quickBolusHistory,
+                    onEnact: { amount in await state.enactQuickBolus(amount: amount) },
+                    isPresented: $showQuickBolusPicker
+                )
+            }
+            .alert(
+                String(localized: "No bolus history yet", comment: "Alert title when no quick-pick boluses history exists"),
+                isPresented: $showQuickBolusNoHistory
+            ) {
+                Button(String(localized: "OK"), role: .cancel) {}
+            } message: {
+                Text(String(
+                    localized: "Quick-Pick Boluses learns from your manual boluses over time. Once you've delivered a few boluses, it will suggest amounts based on what you typically enact at this time of day.",
+                    comment: "Alert body explaining that quick-pick boluses history is empty"
+                ))
             }
         }
     }
