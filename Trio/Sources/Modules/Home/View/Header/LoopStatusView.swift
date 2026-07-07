@@ -289,7 +289,7 @@ struct LoopStatusView: View {
         }
 
         // FIXME: remove this before feat/dev-oref-swift is merged to dev
-        if state.settingsManager.settings.useSwiftOref {
+        if !state.settingsManager.settings.useJavascriptOref {
             tags.append("Swift Oref")
         }
 
