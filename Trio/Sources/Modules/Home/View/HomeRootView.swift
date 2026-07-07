@@ -36,6 +36,7 @@ extension Home {
         @State var showQuickBolusNoHistory = false
         @State var showPumpSelection: Bool = false
         @State var showCGMSelection: Bool = false
+        @State var showSnoozeSheet: Bool = false
         @State var notificationsDisabled = false
         @State var timeButtons: [TimePicker] = [
             TimePicker(active: false, hours: 4),
@@ -151,7 +152,7 @@ extension Home {
             .onLongPressGesture {
                 let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                 impactHeavy.impactOccurred()
-                state.showModal(for: .snooze)
+                showSnoozeSheet = true
             }
         }
 
@@ -996,6 +997,9 @@ extension Home {
             }
             .sheet(isPresented: $state.isLegendPresented) {
                 ChartLegendView(state: state)
+            }
+            .sheet(isPresented: $showSnoozeSheet) {
+                SnoozeAlertsSheetView(resolver: resolver, isPresented: $showSnoozeSheet)
             }
             // PUMP RELATED
             .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {

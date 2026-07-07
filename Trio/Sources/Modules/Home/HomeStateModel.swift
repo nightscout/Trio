@@ -423,7 +423,7 @@ extension Home {
                 .map { [weak self] error in
                     self?.errorDate = error == nil ? nil : Date()
                     if let error = error {
-                        info(.default, String(describing: error), notificationText: error.localizedDescription)
+                        debug(.default, "APSManager lastError: \(String(describing: error))")
                     }
                     return error?.localizedDescription
                 }

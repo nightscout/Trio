@@ -30,14 +30,6 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var displayCalendarIOBandCOB: Bool = false
     var displayCalendarEmojis: Bool = false
     var glucoseBadge: Bool = false
-    var notificationsPump: Bool = true
-    var notificationsCgm: Bool = true
-    var notificationsCarb: Bool = true
-    var notificationsAlgorithm: Bool = true
-    var glucoseNotificationsOption: GlucoseNotificationsOption = .onlyAlarmLimits
-    var addSourceInfoToGlucoseNotifications: Bool = false
-    var lowGlucose: Decimal = 72
-    var highGlucose: Decimal = 270
     var carbsRequiredThreshold: Decimal = 10
     var showCarbsRequiredBadge: Bool = true
     var useFPUconversion: Bool = false
@@ -213,44 +205,6 @@ extension TrioSettings: Decodable {
 
         if let delay = try? container.decode(Decimal.self, forKey: .delay) {
             settings.delay = delay
-        }
-
-        if let notificationsPump = try? container.decode(Bool.self, forKey: .notificationsPump) {
-            settings.notificationsPump = notificationsPump
-        }
-
-        if let notificationsCgm = try? container.decode(Bool.self, forKey: .notificationsCgm) {
-            settings.notificationsCgm = notificationsCgm
-        }
-
-        if let notificationsCarb = try? container.decode(Bool.self, forKey: .notificationsCarb) {
-            settings.notificationsCarb = notificationsCarb
-        }
-
-        if let notificationsAlgorithm = try? container.decode(Bool.self, forKey: .notificationsAlgorithm) {
-            settings.notificationsAlgorithm = notificationsAlgorithm
-        }
-
-        if let glucoseNotificationsOption = try? container.decode(
-            GlucoseNotificationsOption.self,
-            forKey: .glucoseNotificationsOption
-        ) {
-            settings.glucoseNotificationsOption = glucoseNotificationsOption
-        }
-
-        if let addSourceInfoToGlucoseNotifications = try? container.decode(
-            Bool.self,
-            forKey: .addSourceInfoToGlucoseNotifications
-        ) {
-            settings.addSourceInfoToGlucoseNotifications = addSourceInfoToGlucoseNotifications
-        }
-
-        if let lowGlucose = try? container.decode(Decimal.self, forKey: .lowGlucose) {
-            settings.lowGlucose = lowGlucose
-        }
-
-        if let highGlucose = try? container.decode(Decimal.self, forKey: .highGlucose) {
-            settings.highGlucose = highGlucose
         }
 
         if let carbsRequiredThreshold = try? container.decode(Decimal.self, forKey: .carbsRequiredThreshold) {
