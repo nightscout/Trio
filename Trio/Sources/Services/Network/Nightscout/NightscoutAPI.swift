@@ -85,7 +85,7 @@ extension NightscoutAPI {
         }
 
         var request = URLRequest(url: url)
-        request.allowsConstrainedNetworkAccess = false
+        request.allowsConstrainedNetworkAccess = true
         request.timeoutInterval = Config.timeout
 
         if let secret = secret {
@@ -138,7 +138,7 @@ extension NightscoutAPI {
         }
 
         var request = URLRequest(url: components.url!)
-        request.allowsConstrainedNetworkAccess = false
+        request.allowsConstrainedNetworkAccess = true
         request.timeoutInterval = Config.timeout
 
         if let secret = secret {
@@ -171,7 +171,7 @@ extension NightscoutAPI {
         ]
 
         var request = URLRequest(url: components.url!)
-        request.allowsConstrainedNetworkAccess = false
+        request.allowsConstrainedNetworkAccess = true
         request.timeoutInterval = Config.timeout
         request.httpMethod = "DELETE"
 
@@ -210,7 +210,7 @@ extension NightscoutAPI {
         }
 
         var request = URLRequest(url: url)
-        request.allowsConstrainedNetworkAccess = false
+        request.allowsConstrainedNetworkAccess = true
         request.timeoutInterval = Config.timeout
         request.httpMethod = "DELETE"
 
@@ -240,7 +240,7 @@ extension NightscoutAPI {
         }
 
         var request = URLRequest(url: url)
-        request.allowsConstrainedNetworkAccess = false
+        request.allowsConstrainedNetworkAccess = true
         request.timeoutInterval = Config.timeout
         request.httpMethod = "DELETE"
 
@@ -279,7 +279,7 @@ extension NightscoutAPI {
         }
 
         var request = URLRequest(url: components.url!)
-        request.allowsConstrainedNetworkAccess = false
+        request.allowsConstrainedNetworkAccess = true
         request.timeoutInterval = Config.timeout
 
         if let secret = secret {
@@ -313,7 +313,7 @@ extension NightscoutAPI {
         }
 
         var request = URLRequest(url: requestURL)
-        request.allowsConstrainedNetworkAccess = false
+        request.allowsConstrainedNetworkAccess = true
         request.timeoutInterval = Config.timeout
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
@@ -350,7 +350,7 @@ extension NightscoutAPI {
         components.path = Config.uploadEntriesPath
 
         var request = URLRequest(url: components.url!)
-        request.allowsConstrainedNetworkAccess = false
+        request.allowsConstrainedNetworkAccess = true
         request.timeoutInterval = Config.timeout
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
@@ -386,7 +386,7 @@ extension NightscoutAPI {
         components.path = Config.statusPath
 
         var request = URLRequest(url: components.url!)
-        request.allowsConstrainedNetworkAccess = false
+        request.allowsConstrainedNetworkAccess = true
         request.timeoutInterval = Config.timeout
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
@@ -425,7 +425,7 @@ extension NightscoutAPI {
         }
 
         var request = URLRequest(url: url)
-        request.allowsConstrainedNetworkAccess = false
+        request.allowsConstrainedNetworkAccess = true
         request.timeoutInterval = Config.timeout
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
@@ -491,7 +491,7 @@ extension NightscoutAPI {
         components.path = Config.treatmentsPath
 
         var request = URLRequest(url: components.url!)
-        request.allowsConstrainedNetworkAccess = false
+        request.allowsConstrainedNetworkAccess = true
         request.timeoutInterval = Config.timeout
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
@@ -532,7 +532,7 @@ extension NightscoutAPI {
         }
 
         var request = URLRequest(url: url)
-        request.allowsConstrainedNetworkAccess = false
+        request.allowsConstrainedNetworkAccess = true
         request.timeoutInterval = Config.timeout
 
         if let secret = secret {
