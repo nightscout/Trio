@@ -184,7 +184,7 @@ final class BaseAPSManager: APSManager, Injectable {
             if wasParsed {
                 Task {
                     do {
-                        try await openAPS.createProfiles(useJavascriptOref: settings.useJavascriptOref)
+                        try await openAPS.createProfiles()
                     } catch {
                         debug(
                             .apsManager,
@@ -435,8 +435,7 @@ final class BaseAPSManager: APSManager, Injectable {
               (autosense.timestamp ?? .distantPast).addingTimeInterval(30.minutes.timeInterval) > Date()
         else {
             let result = try await openAPS.autosense(
-                shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
-                useJavascriptOref: settings.useJavascriptOref
+                shouldSmoothGlucose: settingsManager.settings.smoothGlucose
             )
             return result != nil
         }
@@ -503,14 +502,13 @@ final class BaseAPSManager: APSManager, Injectable {
             let now = Date()
 
             // put profile creation up front since autosens needs it
-            try await openAPS.createProfiles(useJavascriptOref: settings.useJavascriptOref)
+            try await openAPS.createProfiles()
             let currentTemp = try await fetchCurrentTempBasal(date: now)
             _ = try await autosense()
 
             let determination = try await openAPS.determineBasal(
                 currentTemp: currentTemp,
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
-                useJavascriptOref: settings.useJavascriptOref,
                 clock: now
             )
             iobFileDidUpdate.send(())
@@ -557,7 +555,6 @@ final class BaseAPSManager: APSManager, Injectable {
             return try await openAPS.determineBasal(
                 currentTemp: temp,
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
-                useJavascriptOref: settings.useJavascriptOref,
                 clock: Date(),
                 simulatedCarbsAmount: simulatedCarbsAmount,
                 simulatedBolusAmount: simulatedBolusAmount,
