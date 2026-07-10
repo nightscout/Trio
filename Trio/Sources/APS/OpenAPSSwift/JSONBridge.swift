@@ -40,10 +40,6 @@ enum JSONBridge {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func glucose(from: JSON) throws -> [BloodGlucose] {
-        try JSONBridge.from(string: from.rawJSON)
-    }
-
     static func currentTemp(from: JSON) throws -> TempBasal {
         try JSONBridge.from(string: from.rawJSON)
     }

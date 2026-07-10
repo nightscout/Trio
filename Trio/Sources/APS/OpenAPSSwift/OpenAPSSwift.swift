@@ -26,7 +26,7 @@ struct OpenAPSSwift {
     }
 
     static func determineBasal(
-        glucose: JSON,
+        glucose: [BloodGlucose],
         currentTemp: JSON,
         iob: JSON,
         profile: JSON,
@@ -41,7 +41,6 @@ struct OpenAPSSwift {
         clock: Date
     ) -> (OrefFunctionResult) {
         do {
-            let glucose = try JSONBridge.glucose(from: glucose)
             let currentTemp = try JSONBridge.currentTemp(from: currentTemp)
             let iob = try JSONBridge.iobResult(from: iob)
             let profile = try JSONBridge.profile(from: profile)
@@ -94,7 +93,7 @@ struct OpenAPSSwift {
         basalProfile: JSON,
         clock: JSON,
         carbs: JSON,
-        glucose: JSON
+        glucose: [BloodGlucose]
     ) -> (OrefFunctionResult) {
         do {
             let pumpHistory = try JSONBridge.pumpHistory(from: pumphistory)
@@ -102,7 +101,6 @@ struct OpenAPSSwift {
             let basalProfile = try JSONBridge.basalProfile(from: basalProfile)
             let clock = try JSONBridge.clock(from: clock)
             let carbs = try JSONBridge.carbs(from: carbs)
-            let glucose = try JSONBridge.glucose(from: glucose)
 
             let mealResult = try MealGenerator.generate(
                 pumpHistory: pumpHistory,
@@ -140,7 +138,7 @@ struct OpenAPSSwift {
     }
 
     static func autosense(
-        glucose: JSON,
+        glucose: [BloodGlucose],
         pumpHistory: JSON,
         basalProfile: JSON,
         profile: JSON,
@@ -150,7 +148,6 @@ struct OpenAPSSwift {
         includeDeviationsForTesting: Bool = false
     ) -> (OrefFunctionResult) {
         do {
-            let glucose = try JSONBridge.glucose(from: glucose)
             let pumpHistory = try JSONBridge.pumpHistory(from: pumpHistory)
             let basalProfile = try JSONBridge.basalProfile(from: basalProfile)
             let profile = try JSONBridge.profile(from: profile)

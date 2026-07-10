@@ -293,8 +293,8 @@ import Testing
 
         #expect(algorithmInput.count == 1, "Expected to process one glucose entry.")
         #expect(
-            algorithmInput.first?.glucose == 140,
-            "Algorithm should have used the smoothed glucose value (140), but used \(algorithmInput.first?.glucose ?? 0)."
+            algorithmInput.first?.sgv == 140,
+            "Algorithm should have used the smoothed glucose value (140), but used \(algorithmInput.first?.sgv ?? 0)."
         )
     }
 
@@ -305,8 +305,8 @@ import Testing
 
         #expect(algorithmInput.count == 1, "Expected to process one glucose entry.")
         #expect(
-            algorithmInput.first?.glucose == 150,
-            "Algorithm should have used the raw glucose value (150), but used \(algorithmInput.first?.glucose ?? 0)."
+            algorithmInput.first?.sgv == 150,
+            "Algorithm should have used the raw glucose value (150), but used \(algorithmInput.first?.sgv ?? 0)."
         )
     }
 
@@ -317,8 +317,8 @@ import Testing
 
         #expect(algorithmInput.count == 1, "Expected to process one glucose entry.")
         #expect(
-            algorithmInput.first?.glucose == 150,
-            "Algorithm should have fallen back to the raw glucose value (150), but used \(algorithmInput.first?.glucose ?? 0)."
+            algorithmInput.first?.sgv == 150,
+            "Algorithm should have fallen back to the raw glucose value (150), but used \(algorithmInput.first?.sgv ?? 0)."
         )
     }
 
@@ -336,22 +336,12 @@ import Testing
 
     // MARK: - Helpers
 
-    private func runFetchAndProcessGlucose(smoothGlucose: Bool) async throws -> [AlgorithmGlucose] {
-        let jsonString = try await openAPS.fetchAndProcessGlucose(
+    private func runFetchAndProcessGlucose(smoothGlucose: Bool) async throws -> [BloodGlucose] {
+        try await openAPS.fetchAndProcessGlucose(
             context: testContext,
             shouldSmoothGlucose: smoothGlucose,
             fetchLimit: 10
         )
-
-        let data = jsonString.data(using: .utf8)!
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .custom { decoder in
-            let container = try decoder.singleValueContainer()
-            let dateDouble = try container.decode(Double.self)
-            return Date(timeIntervalSince1970: dateDouble / 1000)
-        }
-
-        return try decoder.decode([AlgorithmGlucose].self, from: data)
     }
 
     private func createGlucose(glucose: Int16, smoothed: Decimal?, isManual: Bool, date: Date) async {
