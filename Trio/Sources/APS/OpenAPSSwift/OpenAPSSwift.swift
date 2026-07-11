@@ -6,8 +6,8 @@ struct OpenAPSSwift {
         pumpSettings: PumpSettings,
         bgTargets: BGTargets,
         basalProfile: [BasalProfileEntry],
-        isf: InsulinSensitivities,
-        carbRatio: CarbRatios,
+        insulinSensitivities: InsulinSensitivities,
+        carbRatios: CarbRatios,
         tempTargets: [TempTarget],
         model: String,
         clock: Date
@@ -16,9 +16,9 @@ struct OpenAPSSwift {
             pumpSettings: pumpSettings,
             bgTargets: bgTargets,
             basalProfile: basalProfile,
-            isf: isf,
+            isf: insulinSensitivities,
             preferences: preferences,
-            carbRatios: carbRatio,
+            carbRatios: carbRatios,
             tempTargets: tempTargets,
             model: model,
             clock: clock

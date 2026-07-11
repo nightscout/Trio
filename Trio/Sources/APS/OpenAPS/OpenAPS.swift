@@ -621,17 +621,17 @@ final class OpenAPS {
         async let getPumpSettings = loadFileFromStorageAsync(name: Settings.settings)
         async let getBGTargets = loadFileFromStorageAsync(name: Settings.bgTargets)
         async let getBasalProfile = loadFileFromStorageAsync(name: Settings.basalProfile)
-        async let getISF = loadFileFromStorageAsync(name: Settings.insulinSensitivities)
-        async let getCR = loadFileFromStorageAsync(name: Settings.carbRatios)
+        async let getInsulinSensitivities = loadFileFromStorageAsync(name: Settings.insulinSensitivities)
+        async let getCarbRatios = loadFileFromStorageAsync(name: Settings.carbRatios)
         async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
         async let getModel = loadFileFromStorageAsync(name: Settings.model)
 
-        let (pumpSettings, bgTargets, basalProfile, isf, cr, tempTargets, model) = await (
+        let (pumpSettings, bgTargets, basalProfile, insulinSensitivities, carbRatios, tempTargets, model) = await (
             getPumpSettings,
             getBGTargets,
             getBasalProfile,
-            getISF,
-            getCR,
+            getInsulinSensitivities,
+            getCarbRatios,
             getTempTargets,
             getModel
         )
@@ -684,8 +684,8 @@ final class OpenAPS {
             let pumpSettings = try JSONBridge.pumpSettings(from: pumpSettings)
             let bgTargets = try JSONBridge.bgTargets(from: bgTargets)
             let basalProfile = try JSONBridge.basalProfile(from: basalProfile)
-            let isf = try JSONBridge.insulinSensitivities(from: isf)
-            let carbRatio = try JSONBridge.carbRatios(from: cr)
+            let insulinSensitivities = try JSONBridge.insulinSensitivities(from: insulinSensitivities)
+            let carbRatios = try JSONBridge.carbRatios(from: carbRatios)
             let tempTargets = try JSONBridge.tempTargets(from: tempTargets)
 
             let pumpProfile = try OpenAPSSwift.makeProfile(
@@ -693,8 +693,8 @@ final class OpenAPS {
                 pumpSettings: pumpSettings,
                 bgTargets: bgTargets,
                 basalProfile: basalProfile,
-                isf: isf,
-                carbRatio: carbRatio,
+                insulinSensitivities: insulinSensitivities,
+                carbRatios: carbRatios,
                 tempTargets: tempTargets,
                 model: model,
                 clock: clock
@@ -705,8 +705,8 @@ final class OpenAPS {
                 pumpSettings: pumpSettings,
                 bgTargets: bgTargets,
                 basalProfile: basalProfile,
-                isf: isf,
-                carbRatio: carbRatio,
+                insulinSensitivities: insulinSensitivities,
+                carbRatios: carbRatios,
                 tempTargets: tempTargets,
                 model: model,
                 clock: clock
