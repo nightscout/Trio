@@ -40,14 +40,6 @@ enum JSONBridge {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func model(from: JSON) -> String {
-        from.rawJSON
-    }
-
-    static func trioSettings(from: JSON) throws -> TrioSettings {
-        try JSONBridge.from(string: from.rawJSON)
-    }
-
     static func glucose(from: JSON) throws -> [BloodGlucose] {
         try JSONBridge.from(string: from.rawJSON)
     }

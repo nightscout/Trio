@@ -621,21 +621,19 @@ final class OpenAPS {
         async let getPumpSettings = loadFileFromStorageAsync(name: Settings.settings)
         async let getBGTargets = loadFileFromStorageAsync(name: Settings.bgTargets)
         async let getBasalProfile = loadFileFromStorageAsync(name: Settings.basalProfile)
-        async let getISF = loadFileFromStorageAsync(name: Settings.insulinSensitivities)
-        async let getCR = loadFileFromStorageAsync(name: Settings.carbRatios)
+        async let getInsulinSensitivities = loadFileFromStorageAsync(name: Settings.insulinSensitivities)
+        async let getCarbRatios = loadFileFromStorageAsync(name: Settings.carbRatios)
         async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
         async let getModel = loadFileFromStorageAsync(name: Settings.model)
-        async let getTrioSettingDefaults = loadFileFromStorageAsync(name: Trio.settings)
 
-        let (pumpSettings, bgTargets, basalProfile, isf, cr, tempTargets, model, trioSettings) = await (
+        let (pumpSettings, bgTargets, basalProfile, insulinSensitivities, carbRatios, tempTargets, model) = await (
             getPumpSettings,
             getBGTargets,
             getBasalProfile,
-            getISF,
-            getCR,
+            getInsulinSensitivities,
+            getCarbRatios,
             getTempTargets,
-            getModel,
-            getTrioSettingDefaults
+            getModel
         )
 
         // Retrieve user preferences, or set defaults if not available
@@ -680,31 +678,37 @@ final class OpenAPS {
 
         let clock = Date()
         do {
-            let pumpProfile = try makeProfile(
+            // Decode the raw settings into native models. The bundled-defaults
+            // fallback still happens in loadFileFromStorageAsync above, so decoding
+            // here preserves the same behavior it previously had inside makeProfile.
+            let pumpSettings = try JSONBridge.pumpSettings(from: pumpSettings)
+            let bgTargets = try JSONBridge.bgTargets(from: bgTargets)
+            let basalProfile = try JSONBridge.basalProfile(from: basalProfile)
+            let insulinSensitivities = try JSONBridge.insulinSensitivities(from: insulinSensitivities)
+            let carbRatios = try JSONBridge.carbRatios(from: carbRatios)
+            let tempTargets = try JSONBridge.tempTargets(from: tempTargets)
+
+            let pumpProfile = try OpenAPSSwift.makeProfile(
                 preferences: adjustedPreferences,
                 pumpSettings: pumpSettings,
                 bgTargets: bgTargets,
                 basalProfile: basalProfile,
-                isf: isf,
-                carbRatio: cr,
+                insulinSensitivities: insulinSensitivities,
+                carbRatios: carbRatios,
                 tempTargets: tempTargets,
                 model: model,
-                autotune: RawJSON.null,
-                trioSettings: trioSettings,
                 clock: clock
             )
 
-            let profile = try makeProfile(
+            let profile = try OpenAPSSwift.makeProfile(
                 preferences: adjustedPreferences,
                 pumpSettings: pumpSettings,
                 bgTargets: bgTargets,
                 basalProfile: basalProfile,
-                isf: isf,
-                carbRatio: cr,
+                insulinSensitivities: insulinSensitivities,
+                carbRatios: carbRatios,
                 tempTargets: tempTargets,
                 model: model,
-                autotune: RawJSON.null,
-                trioSettings: trioSettings,
                 clock: clock
             )
 
@@ -806,34 +810,6 @@ final class OpenAPS {
             preferences: preferences,
             basalProfile: basalProfile,
             trioCustomOrefVariables: trioCustomOrefVariables,
-            clock: clock
-        )
-        return try swiftResult.returnOrThrow()
-    }
-
-    private func makeProfile(
-        preferences: JSON,
-        pumpSettings: JSON,
-        bgTargets: JSON,
-        basalProfile: JSON,
-        isf: JSON,
-        carbRatio: JSON,
-        tempTargets: JSON,
-        model: JSON,
-        autotune _: JSON,
-        trioSettings: JSON,
-        clock: Date
-    ) throws -> RawJSON {
-        let swiftResult = OpenAPSSwift.makeProfile(
-            preferences: preferences,
-            pumpSettings: pumpSettings,
-            bgTargets: bgTargets,
-            basalProfile: basalProfile,
-            isf: isf,
-            carbRatio: carbRatio,
-            tempTargets: tempTargets,
-            model: model,
-            trioSettings: trioSettings,
             clock: clock
         )
         return try swiftResult.returnOrThrow()
