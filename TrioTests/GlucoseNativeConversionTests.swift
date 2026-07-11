@@ -5,7 +5,7 @@ import Testing
 @testable import Trio
 
 /// Golden tests certifying that the native `GlucoseStored` → `BloodGlucose` mapping
-/// (`OpenAPS.mapToBloodGlucose`) reproduces, byte for byte, the glucose the algorithm used to
+/// (`BaseGlucoseStorage.mapToBloodGlucose`) reproduces, byte for byte, the glucose the algorithm used to
 /// receive through the old JSON round-trip (`GlucoseStored` → `AlgorithmGlucose` → JSON →
 /// `JSONBridge.glucose`). The golden literals below were captured from that old path while it
 /// still existed (via a temporary differential run), so a match proves the algorithm still sees
@@ -403,7 +403,11 @@ import Testing
     private func nativeBloodGlucose(shouldSmoothGlucose: Bool) async throws -> [BloodGlucose] {
         try await testContext.perform {
             try self.fetchRowsNewestFirst().map {
-                OpenAPS.mapToBloodGlucose($0, shouldSmoothGlucose: shouldSmoothGlucose, roundingBehavior: Self.roundingBehavior)
+                BaseGlucoseStorage.mapToBloodGlucose(
+                    $0,
+                    shouldSmoothGlucose: shouldSmoothGlucose,
+                    roundingBehavior: Self.roundingBehavior
+                )
             }
         }
     }

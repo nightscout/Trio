@@ -7,14 +7,16 @@ final class OpenAPS {
 
     private let storage: FileStorage
     private let tddStorage: TDDStorage
+    private let glucoseStorage: GlucoseStorage
 
     let context = CoreDataStack.shared.newTaskContext()
 
     let jsonConverter = JSONConverter()
 
-    init(storage: FileStorage, tddStorage: TDDStorage) {
+    init(storage: FileStorage, tddStorage: TDDStorage, glucoseStorage: GlucoseStorage) {
         self.storage = storage
         self.tddStorage = tddStorage
+        self.glucoseStorage = glucoseStorage
     }
 
     static let dateFormatter: ISO8601DateFormatter = {
@@ -91,107 +93,6 @@ final class OpenAPS {
                 debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Determination to Core Data")
             }
         }
-    }
-
-    // fetch glucose to pass it to the meal function and to determine basal
-    func fetchAndProcessGlucose(
-        context: NSManagedObjectContext,
-        shouldSmoothGlucose: Bool,
-        fetchLimit: Int?,
-        fetchHours: Decimal = 24
-    ) async throws -> [BloodGlucose] {
-        // Time window from `fetchHours` hours ago up to now. determineBasal feeds
-        // `maxMealAbsorptionTime + 0.5h` (just enough glucose to cover the longest
-        // tracked meal absorption plus a small lead-in); Autosens uses the default
-        // 24h because its sensitivity algorithm needs that full window.
-        let cutoff = Date().addingTimeInterval(-(Double(truncating: fetchHours as NSNumber) * 3600))
-        let timePredicate = NSPredicate(format: "date >= %@", cutoff as NSDate)
-
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: GlucoseStored.self,
-            onContext: context,
-            predicate: timePredicate,
-            key: "date",
-            ascending: false,
-            fetchLimit: fetchLimit,
-            batchSize: 48
-        )
-
-        return try await context.perform {
-            guard let glucoseResults = results as? [GlucoseStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            // extracting handler to only create it 1x
-            let roundingBehavior = NSDecimalNumberHandler(
-                roundingMode: .plain,
-                scale: 0,
-                raiseOnExactness: false,
-                raiseOnOverflow: false,
-                raiseOnUnderflow: false,
-                raiseOnDivideByZero: false
-            )
-
-            return glucoseResults.map {
-                OpenAPS.mapToBloodGlucose($0, shouldSmoothGlucose: shouldSmoothGlucose, roundingBehavior: roundingBehavior)
-            }
-        }
-    }
-
-    /// The glucose value the algorithm consumes for a stored reading: the smoothed value when
-    /// smoothing is on and a valid non-zero smoothed CGM value exists, otherwise the raw value
-    /// (finger pricks/manual entries always use the raw value — cf.
-    /// https://github.com/nightscout/Trio/issues/1054).
-    static func algorithmGlucoseValue(
-        for glucose: GlucoseStored,
-        shouldSmoothGlucose: Bool,
-        roundingBehavior: NSDecimalNumberHandler
-    ) -> Int16 {
-        if shouldSmoothGlucose {
-            if !glucose.isManual, let smoothedGlucose = glucose.smoothedGlucose, smoothedGlucose != 0 {
-                return smoothedGlucose.rounding(accordingToBehavior: roundingBehavior).int16Value
-            } else {
-                return glucose.glucose
-            }
-        } else {
-            return glucose.glucose
-        }
-    }
-
-    /// Maps a `GlucoseStored` to the `BloodGlucose` the algorithm consumes, reproducing exactly
-    /// the coercions the old `AlgorithmGlucose` → JSON → `JSONBridge.glucose` round-trip applied:
-    /// - CGM readings populate `sgv`, manual readings populate `glucose` (driven by `isManual`).
-    /// - `dateString` is the stored reading date. The old path round-tripped it through an ISO8601
-    ///   fractional-seconds string, truncating it to millisecond precision; we keep the full-precision
-    ///   `Date` instead, since the extra sub-millisecond precision is harmless to the algorithm and
-    ///   the JSON representation is unaffected (`dateString` still encodes to 3-digit-ms ISO8601).
-    /// - `date` is the unix-millisecond timestamp as a `Decimal`.
-    /// - `type` is always "sgv" (matching the old hardcoded encode).
-    static func mapToBloodGlucose(
-        _ glucose: GlucoseStored,
-        shouldSmoothGlucose: Bool,
-        roundingBehavior: NSDecimalNumberHandler
-    ) -> BloodGlucose {
-        let glucoseValue = algorithmGlucoseValue(
-            for: glucose,
-            shouldSmoothGlucose: shouldSmoothGlucose,
-            roundingBehavior: roundingBehavior
-        )
-        let isManual = glucose.isManual
-        // The ?? Date() is problematic, but this is how it worked previously
-        // so we'll retain it
-        let dateString = glucose.date ?? Date()
-        let dateMilliseconds = Decimal(Int64(dateString.timeIntervalSince1970 * 1000))
-
-        return BloodGlucose(
-            id: glucose.id?.uuidString ?? UUID().uuidString,
-            sgv: isManual ? nil : Int(glucoseValue),
-            direction: glucose.direction.flatMap { BloodGlucose.Direction(rawValue: $0) },
-            date: dateMilliseconds,
-            dateString: dateString,
-            glucose: isManual ? Int(glucoseValue) : nil,
-            type: "sgv"
-        )
     }
 
     private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil, carbsDate: Date? = nil) async throws -> String {
@@ -435,10 +336,8 @@ final class OpenAPS {
 
         var preferences = await storage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
         let glucoseFetchHours = preferences.maxMealAbsorptionTime + 0.5 // MMAT + half hour buffer
-        async let glucoseFetch = fetchAndProcessGlucose(
-            context: context,
+        async let glucoseFetch = glucoseStorage.getGlucoseForAlgorithm(
             shouldSmoothGlucose: shouldSmoothGlucose,
-            fetchLimit: nil,
             fetchHours: glucoseFetchHours
         )
 
@@ -613,10 +512,10 @@ final class OpenAPS {
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
         async let carbs = fetchAndProcessCarbs()
-        async let glucoseFetch = fetchAndProcessGlucose(
-            context: context,
+        // Autosens needs the full 24h window for its sensitivity algorithm.
+        async let glucoseFetch = glucoseStorage.getGlucoseForAlgorithm(
             shouldSmoothGlucose: shouldSmoothGlucose,
-            fetchLimit: nil
+            fetchHours: 24
         )
         async let getProfile = loadFileFromStorageAsync(name: Settings.profile)
         async let getBasalProfile = loadFileFromStorageAsync(name: Settings.basalProfile)

@@ -100,6 +100,7 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var alertHistoryStorage: AlertHistoryStorage!
     @Injected() private var tempTargetsStorage: TempTargetsStorage!
     @Injected() private var carbsStorage: CarbsStorage!
+    @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var determinationStorage: DeterminationStorage!
     @Injected() private var deviceDataManager: DeviceDataManager!
     @Injected() private var settingsManager: SettingsManager!
@@ -169,7 +170,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
     init(resolver: Resolver) {
         injectServices(resolver)
-        openAPS = OpenAPS(storage: storage, tddStorage: tddStorage)
+        openAPS = OpenAPS(storage: storage, tddStorage: tddStorage, glucoseStorage: glucoseStorage)
         subscribe()
         lastLoopDateSubject.send(lastLoopDate)
 
