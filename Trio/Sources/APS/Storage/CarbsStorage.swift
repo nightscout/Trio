@@ -13,6 +13,7 @@ protocol CarbsStorage {
     func storeCarbs(_ carbs: [CarbsEntry], areFetchedFromRemote: Bool) async throws
     func deleteCarbsEntryStored(_ treatmentObjectID: NSManagedObjectID) async
     func syncDate() -> Date
+    func getCarbsForAlgorithm(additionalCarbs: Decimal?, carbsDate: Date?) async throws -> [CarbsEntry]
     func getCarbsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func getFPUsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func getCarbsNotYetUploadedToHealth() async throws -> [CarbsEntry]
@@ -342,6 +343,75 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
 
     func syncDate() -> Date {
         Date().addingTimeInterval(-1.days.timeInterval)
+    }
+
+    /// Fetches the last day of carbs and converts them into the `CarbsEntry` values the oref algorithm
+    /// consumes, optionally appending a synthetic "additional carbs" entry for bolus simulation.
+    func getCarbsForAlgorithm(additionalCarbs: Decimal? = nil, carbsDate: Date? = nil) async throws -> [CarbsEntry] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: context,
+            predicate: NSPredicate.predicateForOneDayAgo,
+            key: "date",
+            ascending: false
+        )
+
+        return try await context.perform {
+            guard let carbResults = results as? [CarbEntryStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
+
+            var entries = carbResults.map { Self.mapToCarbsEntry($0) }
+
+            if let additionalCarbs = additionalCarbs {
+                entries.append(Self.additionalCarbsEntry(carbs: additionalCarbs, date: carbsDate ?? Date()))
+            }
+
+            return entries
+        }
+    }
+
+    /// Converts a `Double` to the exact `Decimal` the old JSON round-trip produced.
+    /// The problem is that the CarbEntryStored values are Double, not Decimal so JSON
+    /// was doing some conversion for us.
+    static func algorithmDecimal(_ value: Double) -> Decimal {
+        Decimal(string: value.description) ?? Decimal(value)
+    }
+
+    /// Maps a `CarbEntryStored` to the `CarbsEntry` the algorithm consumes, reproducing the coercions
+    /// the old `CarbEntryStored` → JSON → `JSONBridge.carbs` round-trip applied
+    static func mapToCarbsEntry(_ carbEntry: CarbEntryStored) -> CarbsEntry {
+        // The old encode used `date ?? Date()` for both created_at and actualDate.
+        let date = carbEntry.date ?? Date()
+        return CarbsEntry(
+            id: carbEntry.id?.uuidString,
+            createdAt: date,
+            actualDate: date,
+            carbs: algorithmDecimal(carbEntry.carbs),
+            fat: algorithmDecimal(carbEntry.fat),
+            protein: algorithmDecimal(carbEntry.protein),
+            note: nil,
+            enteredBy: CarbsEntry.local,
+            isFPU: carbEntry.isFPU,
+            fpuID: nil
+        )
+    }
+
+    /// Builds the synthetic "additional carbs" entry that the determine-basal flow appends for bolus
+    /// simulation.
+    static func additionalCarbsEntry(carbs: Decimal, date: Date, id: String = UUID().uuidString) -> CarbsEntry {
+        CarbsEntry(
+            id: id,
+            createdAt: date,
+            actualDate: date,
+            carbs: carbs,
+            fat: 0,
+            protein: 0,
+            note: nil,
+            enteredBy: CarbsEntry.local,
+            isFPU: false,
+            fpuID: nil
+        )
     }
 
     func deleteCarbsEntryStored(_ treatmentObjectID: NSManagedObjectID) async {
