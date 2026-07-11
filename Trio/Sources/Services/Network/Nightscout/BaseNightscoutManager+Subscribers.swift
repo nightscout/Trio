@@ -31,8 +31,8 @@ extension BaseNightscoutManager {
             .store(in: &subscriptions)
     }
 
-    /// Maps Core Data entity changes into upload pipeline requests. We rely on
-    /// per-pipeline throttle so rapid changes don’t spam Nightscout.
+    /// Maps Core Data entity changes into upload pipeline requests. Requests are
+    /// coalesced and serialized per pipeline so rapid changes don’t spam Nightscout.
     func wireCoreDataSubscribers() {
         coreDataPublisher?
             .filteredByEntityName("OrefDetermination")

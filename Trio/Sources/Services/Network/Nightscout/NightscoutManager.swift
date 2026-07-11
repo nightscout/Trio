@@ -13,7 +13,7 @@ protocol NightscoutManager: GlucoseSource {
     func deleteCarbs(withID id: String) async
     func deleteInsulin(withID id: String) async
     func deleteGlucose(withID id: String, withDate date: Date) async
-    func uploadDeviceStatus() async throws
+    func uploadDeviceStatus() async
     func uploadGlucose() async
     func uploadCarbs() async
     func uploadPumpHistory() async
@@ -44,59 +44,35 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private let processQueue = DispatchQueue(label: "BaseNetworkManager.processQueue")
     private var ping: TimeInterval?
 
-    // Queue where upload pipelines run.
-    let uploadPipelineQueue = DispatchQueue(label: "NightscoutManager.uploadPipelines", qos: .utility)
+    /// Coalesces and serializes upload runs so no two runs of the same pipeline overlap.
+    /// Runs execute `performUpload(for:)`, provided at init. The public `upload*()`
+    /// methods and `requestUpload(_:)` go through the serializer; the `performUpload*()`
+    /// bodies must never call those entry points, or a same-pipeline run deadlocks
+    /// behind itself.
+    private var uploadSerializer: NightscoutUploadSerializer!
 
     // Background Core Data context for fetches used by upload tasks.
     var backgroundContext = CoreDataStack.shared.newTaskContext()
 
-    /// Throttle window (seconds) per upload pipeline. Any requests inside this window
-    /// coalesce into a single upload run for that pipeline.
-    let uploadPipelineInterval: [NightscoutUploadPipeline: TimeInterval] = [
-        .carbs: 2, .pumpHistory: 2, .overrides: 2, .tempTargets: 2,
-        .glucose: 2, .deviceStatus: 2
-    ]
-
-    /// Subjects used to request an upload pipeline. The pipeline applies a throttle so
-    /// close calls don’t double-upload.
-    var uploadPipelineSubjects: [NightscoutUploadPipeline: PassthroughSubject<Void, Never>] = {
-        var d: [NightscoutUploadPipeline: PassthroughSubject<Void, Never>] = [:]
-        NightscoutUploadPipeline.allCases.forEach { d[$0] = PassthroughSubject<Void, Never>() }
-        return d
-    }()
-
     /// Request an upload for a pipeline (enqueue work). Safe to call from anywhere.
+    /// Bursts of requests coalesce: at most one run follows the one currently in flight.
     func requestUpload(_ uploadPipeline: NightscoutUploadPipeline) {
-        uploadPipelineSubjects[uploadPipeline]?.send(())
-    }
-
-    /// Build the Combine pipelines for all upload pipelines: subject → throttle → upload.
-    /// Must be called once during init().
-    func setupLanePipelines() {
-        for pipeline in NightscoutUploadPipeline.allCases {
-            guard let subject = uploadPipelineSubjects[pipeline], let window = uploadPipelineInterval[pipeline] else { continue }
-            subject
-                .receive(on: uploadPipelineQueue)
-                .throttle(for: .seconds(window), scheduler: uploadPipelineQueue, latest: false)
-                .sink { [weak self] in
-                    guard let self else { return }
-                    Task(priority: .utility) { await self.runUploadPipeline(pipeline) }
-                }
-                .store(in: &subscriptions)
+        Task(priority: .utility) { [weak self] in
+            await self?.uploadSerializer.request(uploadPipeline)
         }
     }
 
-    /// Runs the actual upload for a single upload pipeline.
-    /// Called by the throttled pipeline, not directly by callers.
-    func runUploadPipeline(_ uploadPipeline: NightscoutUploadPipeline) async {
+    /// Dispatches to a pipeline's upload routine. Runs inside the serializer; must only
+    /// call `performUpload*()` functions, never the public `upload*()` entry points.
+    private func performUpload(for uploadPipeline: NightscoutUploadPipeline) async {
         switch uploadPipeline {
-        case .carbs: await uploadCarbs()
-        case .pumpHistory: await uploadPumpHistory()
-        case .overrides: await uploadOverrides()
-        case .tempTargets: await uploadTempTargets()
-        case .glucose: await uploadGlucose()
+        case .carbs: await performUploadCarbs()
+        case .pumpHistory: await performUploadPumpHistory()
+        case .overrides: await performUploadOverrides()
+        case .tempTargets: await performUploadTempTargets()
+        case .glucose: await performUploadGlucose()
         case .deviceStatus:
-            do { try await uploadDeviceStatus() }
+            do { try await performUploadDeviceStatus() }
             catch { debug(.nightscout, "deviceStatus upload failed: \(error)") }
         }
     }
@@ -142,6 +118,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
     init(resolver: Resolver) {
         injectServices(resolver)
+
+        uploadSerializer = NightscoutUploadSerializer { [weak self] pipeline in
+            await self?.performUpload(for: pipeline)
+        }
+
         subscribe()
 
         coreDataPublisher =
@@ -152,7 +133,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         setupNotification()
 
-        setupLanePipelines()
         wireSubscribers()
 
         /// Ensure that Nightscout Manager holds the `lastEnactedDetermination`, if one exists, on initialization.
@@ -182,6 +162,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
+    /// Direct upload triggers for App Intents / remote control, which await the upload
+    /// before ending their background task. Uploads are serialized per pipeline, so these
+    /// may fire alongside the Core Data triggers for the same change without double-uploading.
     func setupNotification() {
         Foundation.NotificationCenter.default.publisher(for: .willUpdateOverrideConfiguration)
             .sink { [weak self] _ in
@@ -408,7 +391,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     ///
     /// - Note: Ensure `nightscoutAPI` is initialized and `isUploadEnabled` is set to `true` before invoking this function.
     /// - Returns: Nothing.
-    func uploadDeviceStatus() async throws {
+    func uploadDeviceStatus() async {
+        await uploadSerializer.run(.deviceStatus)
+    }
+
+    private func performUploadDeviceStatus() async throws {
         guard let nightscout = nightscoutAPI, isUploadEnabled else {
             debug(.nightscout, "NS API not available or upload disabled. Aborting NS Status upload.")
             return
@@ -764,6 +751,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func uploadGlucose() async {
+        await uploadSerializer.run(.glucose)
+    }
+
+    private func performUploadGlucose() async {
         do {
             try await uploadGlucose(glucoseStorage.getGlucoseNotYetUploadedToNightscout())
             try await uploadNonCoreDataTreatments(glucoseStorage.getCGMStateNotYetUploadedToNightscout())
@@ -776,6 +767,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func uploadPumpHistory() async {
+        await uploadSerializer.run(.pumpHistory)
+    }
+
+    private func performUploadPumpHistory() async {
         do {
             try await uploadPumpHistory(pumpHistoryStorage.getPumpHistoryNotYetUploadedToNightscout())
         } catch {
@@ -787,6 +782,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func uploadCarbs() async {
+        await uploadSerializer.run(.carbs)
+    }
+
+    private func performUploadCarbs() async {
         do {
             try await uploadCarbs(carbsStorage.getCarbsNotYetUploadedToNightscout())
             try await uploadCarbs(carbsStorage.getFPUsNotYetUploadedToNightscout())
@@ -799,6 +798,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func uploadOverrides() async {
+        await uploadSerializer.run(.overrides)
+    }
+
+    private func performUploadOverrides() async {
         do {
             try await uploadOverrides(overridesStorage.getOverridesNotYetUploadedToNightscout())
             try await uploadOverrideRuns(overridesStorage.getOverrideRunsNotYetUploadedToNightscout())
@@ -811,6 +814,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func uploadTempTargets() async {
+        await uploadSerializer.run(.tempTargets)
+    }
+
+    private func performUploadTempTargets() async {
         do {
             try await uploadTempTargets(await tempTargetsStorage.getTempTargetsNotYetUploadedToNightscout())
             try await uploadTempTargetRuns(await tempTargetsStorage.getTempTargetRunsNotYetUploadedToNightscout())
