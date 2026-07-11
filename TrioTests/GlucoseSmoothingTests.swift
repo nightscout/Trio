@@ -11,7 +11,7 @@ import Testing
     var coreDataStack: CoreDataStack!
     var testContext: NSManagedObjectContext!
     var fetchGlucoseManager: BaseFetchGlucoseManager!
-    var openAPS: OpenAPS!
+    var glucoseStorage: BaseGlucoseStorage!
 
     init() async throws {
         coreDataStack = try await CoreDataStack.createForTests()
@@ -32,8 +32,7 @@ import Testing
 
         fetchGlucoseManager = resolver.resolve(FetchGlucoseManager.self)! as? BaseFetchGlucoseManager
 
-        let fileStorage = resolver.resolve(FileStorage.self)!
-        openAPS = OpenAPS(storage: fileStorage, tddStorage: MockTDDStorage())
+        glucoseStorage = BaseGlucoseStorage(resolver: resolver, context: testContext)
     }
 
     // MARK: - Exponential Smoothing Tests
@@ -337,11 +336,7 @@ import Testing
     // MARK: - Helpers
 
     private func runFetchAndProcessGlucose(smoothGlucose: Bool) async throws -> [BloodGlucose] {
-        try await openAPS.fetchAndProcessGlucose(
-            context: testContext,
-            shouldSmoothGlucose: smoothGlucose,
-            fetchLimit: 10
-        )
+        try await glucoseStorage.getGlucoseForAlgorithm(shouldSmoothGlucose: smoothGlucose, fetchHours: 24)
     }
 
     private func createGlucose(glucose: Int16, smoothed: Decimal?, isManual: Bool, date: Date) async {
