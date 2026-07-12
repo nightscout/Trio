@@ -119,9 +119,9 @@ final class OpenAPS {
     private func parsePumpHistory(
         _ pumpHistoryObjectIDs: [NSManagedObjectID],
         simulatedBolusAmount: Decimal? = nil
-    ) async throws -> String {
-        // Return an empty JSON object if the list of object IDs is empty
-        guard !pumpHistoryObjectIDs.isEmpty else { return "{}" }
+    ) async throws -> [PumpHistoryEvent] {
+        // Empty history returns an empty array, which also drops any simulated bolus.
+        guard !pumpHistoryObjectIDs.isEmpty else { return [] }
 
         // Addresses https://github.com/nightscout/Trio/issues/898
         //
@@ -133,87 +133,50 @@ final class OpenAPS {
 
         // Execute all operations on the background context
         return await context.perform {
-            // Load and map pump events to DTOs
-            var dtos = self.loadAndMapPumpEvents(pumpHistoryObjectIDs, orphanedResumes: orphanedResumes)
+            // Load and map pump events to native algorithm models
+            var events = OpenAPS.nativePumpHistory(
+                pumpHistoryObjectIDs,
+                orphanedResumes: orphanedResumes,
+                from: self.context
+            )
 
-            // Optionally add the IOB as a DTO
+            // Optionally add the simulated bolus for the bolus-preview simulation
             if let simulatedBolusAmount = simulatedBolusAmount {
-                let simulatedBolusDTO = self.createSimulatedBolusDTO(simulatedBolusAmount: simulatedBolusAmount)
-                dtos.insert(simulatedBolusDTO, at: 0)
+                events.insert(self.createSimulatedBolusEvent(simulatedBolusAmount: simulatedBolusAmount), at: 0)
             }
 
-            // Convert the DTOs to JSON
-            return self.jsonConverter.convertToJSON(dtos)
+            return events
         }
     }
 
-    private func loadAndMapPumpEvents(
-        _ pumpHistoryObjectIDs: [NSManagedObjectID],
-        orphanedResumes: [NSManagedObjectID]
-    ) -> [PumpEventDTO] {
-        OpenAPS.loadAndMapPumpEvents(pumpHistoryObjectIDs, orphanedResumes: orphanedResumes, from: context)
-    }
-
-    /// Fetches and parses pump events, expose this as static and not private for testing
-    static func loadAndMapPumpEvents(
+    /// Fetches and maps pump events into `[PumpHistoryEvent]`, expose this as static and not private for testing
+    static func nativePumpHistory(
         _ pumpHistoryObjectIDs: [NSManagedObjectID],
         orphanedResumes: [NSManagedObjectID],
         from context: NSManagedObjectContext
-    ) -> [PumpEventDTO] {
+    ) -> [PumpHistoryEvent] {
         let orphanedSet = Set(orphanedResumes)
         let filteredObjectIds = pumpHistoryObjectIDs.filter { !orphanedSet.contains($0) }
-        // Load the pump events from the object IDs
         let pumpHistory: [PumpEventStored] = filteredObjectIds
             .compactMap { context.object(with: $0) as? PumpEventStored }
 
-        // Create the DTOs
-        let dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in
-            var eventDTOs: [PumpEventDTO] = []
-            if let bolusDTO = event.toBolusDTOEnum() {
-                eventDTOs.append(bolusDTO)
-            }
-            if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
-                eventDTOs.append(tempBasalDurationDTO)
-            }
-            if let tempBasalDTO = event.toTempBasalDTOEnum() {
-                eventDTOs.append(tempBasalDTO)
-            }
-            if let pumpSuspendDTO = event.toPumpSuspendDTO() {
-                eventDTOs.append(pumpSuspendDTO)
-            }
-            if let pumpResumeDTO = event.toPumpResumeDTO() {
-                eventDTOs.append(pumpResumeDTO)
-            }
-            if let rewindDTO = event.toRewindDTO() {
-                eventDTOs.append(rewindDTO)
-            }
-            if let primeDTO = event.toPrimeDTO() {
-                eventDTOs.append(primeDTO)
-            }
-            return eventDTOs
-        }
-        return dtos
+        return pumpHistory.flatMap { $0.toPumpHistoryEvents() }
     }
 
-    private func createSimulatedBolusDTO(simulatedBolusAmount: Decimal) -> PumpEventDTO {
-        let oneSecondAgo = Calendar.current
-            .date(
-                byAdding: .second,
-                value: -1,
-                to: Date()
-            )! // adding -1s to the current Date ensures that oref actually uses the mock entry to calculate iob and not guard it away
-        let dateFormatted = PumpEventStored.dateFormatter.string(from: oneSecondAgo)
+    private func createSimulatedBolusEvent(simulatedBolusAmount: Decimal) -> PumpHistoryEvent {
+        // Adding -1s to the current Date ensures oref actually uses the mock entry to calculate iob
+        // and does not guard it away.
+        let oneSecondAgo = Date().addingTimeInterval(-1)
 
-        let bolusDTO = BolusDTO(
+        return PumpHistoryEvent(
             id: UUID().uuidString,
-            timestamp: dateFormatted,
-            amount: Double(simulatedBolusAmount),
-            isExternal: false,
-            isSMB: true,
+            type: .bolus,
+            timestamp: oneSecondAgo,
+            amount: simulatedBolusAmount,
             duration: 0,
-            _type: "Bolus"
+            isSMB: true,
+            isExternal: false
         )
-        return .bolus(bolusDTO)
     }
 
     /// Detects a cold-start orphaned resume: returns the resume's object ID if it's an orphaned resume
@@ -303,7 +266,7 @@ final class OpenAPS {
 
         // Await the results of asynchronous tasks
         let (
-            pumpHistoryJSON,
+            pumpHistory,
             carbs,
             glucose,
             trioCustomOrefVariables,
@@ -326,7 +289,7 @@ final class OpenAPS {
 
         // Meal calculation
         let meal = try self.meal(
-            pumphistory: pumpHistoryJSON,
+            pumphistory: pumpHistory,
             profile: profile,
             basalProfile: basalProfile,
             clock: clock,
@@ -336,7 +299,7 @@ final class OpenAPS {
 
         // IOB calculation
         let iob = try self.iob(
-            pumphistory: pumpHistoryJSON,
+            pumphistory: pumpHistory,
             profile: profile,
             clock: clock,
             autosens: autosens.isEmpty ? .null : autosens
@@ -363,7 +326,6 @@ final class OpenAPS {
             meal: meal,
             microBolusAllowed: true,
             reservoir: reservoir,
-            pumpHistory: pumpHistoryJSON,
             preferences: preferences,
             basalProfile: basalProfile,
             trioCustomOrefVariables: trioCustomOrefVariables
@@ -475,7 +437,7 @@ final class OpenAPS {
         async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
 
         // Await the results of asynchronous tasks
-        let (pumpHistoryJSON, carbs, glucose, profile, basalProfile, tempTargets) = await (
+        let (pumpHistory, carbs, glucose, profile, basalProfile, tempTargets) = await (
             try parsePumpHistory(await pumpHistoryObjectIDs),
             try carbsFetch,
             try glucoseFetch,
@@ -487,7 +449,7 @@ final class OpenAPS {
         // Autosense
         let autosenseResult = try autosense(
             glucose: glucose,
-            pumpHistory: pumpHistoryJSON,
+            pumpHistory: pumpHistory,
             basalprofile: basalProfile,
             profile: profile,
             carbs: carbs,
@@ -616,16 +578,13 @@ final class OpenAPS {
     }
 
     private func iob(
-        pumphistory: JSON,
+        pumphistory: [PumpHistoryEvent],
         profile: JSON,
         clock: JSON,
         autosens: JSON
     ) throws -> RawJSON {
         // FIXME: For now we'll just remove duplicate suspends here (ISSUE-399)
-        var pumphistory = pumphistory
-        if let pumpHistoryArray = try? JSONBridge.pumpHistory(from: pumphistory) {
-            pumphistory = pumpHistoryArray.removingDuplicateSuspendResumeEvents().rawJSON
-        }
+        let pumphistory = pumphistory.removingDuplicateSuspendResumeEvents()
 
         let swiftResult = OpenAPSSwift
             .iob(pumphistory: pumphistory, profile: profile, clock: clock, autosens: autosens)
@@ -633,7 +592,7 @@ final class OpenAPS {
     }
 
     private func meal(
-        pumphistory: JSON,
+        pumphistory: [PumpHistoryEvent],
         profile: JSON,
         basalProfile: JSON,
         clock: JSON,
@@ -654,7 +613,7 @@ final class OpenAPS {
 
     private func autosense(
         glucose: [BloodGlucose],
-        pumpHistory: JSON,
+        pumpHistory: [PumpHistoryEvent],
         basalprofile: JSON,
         profile: JSON,
         carbs: [CarbsEntry],
@@ -682,7 +641,6 @@ final class OpenAPS {
         meal: JSON,
         microBolusAllowed: Bool,
         reservoir: JSON,
-        pumpHistory: JSON,
         preferences: JSON,
         basalProfile: JSON,
         trioCustomOrefVariables: JSON
@@ -697,7 +655,6 @@ final class OpenAPS {
             meal: meal,
             microBolusAllowed: microBolusAllowed,
             reservoir: reservoir,
-            pumpHistory: pumpHistory,
             preferences: preferences,
             basalProfile: basalProfile,
             trioCustomOrefVariables: trioCustomOrefVariables,

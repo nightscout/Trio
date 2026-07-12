@@ -41,7 +41,7 @@ import Testing
     @Test("Fractional carbs/fat/protein keep clean decimal values") func testFractionalDecimals() async throws {
         // 33.33 as a Double is 33.32999999999999488; the old JSON round-trip recovered the clean
         // 33.33 (JSONEncoder writes the shortest round-trippable string). `Decimal(Double)` would
-        // leak the binary expansion, so `algorithmDecimal` must reproduce the clean value.
+        // leak the binary expansion, so `Decimal(algorithmValue:)` must reproduce the clean value.
         await insertCarb(carbs: 33.33, isFPU: true, date: fixedDate(minutesAgo: 0), fat: 5.5, protein: 3.2, id: uuid(1))
         await insertCarb(carbs: 12.5, isFPU: false, date: fixedDate(minutesAgo: 5), id: uuid(2))
 
