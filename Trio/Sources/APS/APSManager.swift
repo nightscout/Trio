@@ -461,6 +461,9 @@ final class BaseAPSManager: APSManager, Injectable {
             basalProfile: basalProfile
         )
 
+        // decoupled bookkeeping; must never block a loop
+        try? await pumpHistoryStorage.reconcileScheduledBasal()
+
         // Store TDD in Core Data
         await tddStorage.storeTDD(tddResult)
     }

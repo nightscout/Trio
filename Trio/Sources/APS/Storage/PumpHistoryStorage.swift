@@ -13,6 +13,7 @@ protocol PumpHistoryStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
     func getPumpHistory() async throws -> [PumpHistoryEvent]
     func storePumpEvents(_ events: [NewPumpEvent]) async throws
+    func reconcileScheduledBasal() async throws
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async
     func getPumpHistoryNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func getPumpHistoryNotYetUploadedToHealth() async throws -> [PumpHistoryEvent]

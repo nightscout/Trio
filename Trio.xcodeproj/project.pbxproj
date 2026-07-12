@@ -191,6 +191,7 @@
 		38FCF3D625E8FDF40078B0D1 /* MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FCF3D525E8FDF40078B0D1 /* MD5.swift */; };
 		38FCF3F925E902C20078B0D1 /* FileStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FCF3F825E902C20078B0D1 /* FileStorageTests.swift */; };
 		38FCF3FD25E997A80078B0D1 /* PumpHistoryStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FCF3FC25E997A80078B0D1 /* PumpHistoryStorage.swift */; };
+		7A11AC0DE000000000000108 /* PumpHistoryStorage+ScheduledBasal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000008 /* PumpHistoryStorage+ScheduledBasal.swift */; };
 		38FE826A25CC82DB001FF17A /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FE826925CC82DB001FF17A /* NetworkService.swift */; };
 		38FE826D25CC8461001FF17A /* NightscoutAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FE826C25CC8461001FF17A /* NightscoutAPI.swift */; };
 		38FEF3FA2737E42000574A46 /* BaseStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF3F92737E42000574A46 /* BaseStateModel.swift */; };
@@ -1224,6 +1225,7 @@
 		38FCF3F125E9028E0078B0D1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		38FCF3F825E902C20078B0D1 /* FileStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileStorageTests.swift; sourceTree = "<group>"; };
 		38FCF3FC25E997A80078B0D1 /* PumpHistoryStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpHistoryStorage.swift; sourceTree = "<group>"; };
+		7A11AC0DE000000000000008 /* PumpHistoryStorage+ScheduledBasal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpHistoryStorage+ScheduledBasal.swift"; sourceTree = "<group>"; };
 		38FE826925CC82DB001FF17A /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
 		38FE826C25CC8461001FF17A /* NightscoutAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutAPI.swift; sourceTree = "<group>"; };
 		38FEF3F92737E42000574A46 /* BaseStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseStateModel.swift; sourceTree = "<group>"; };
@@ -2858,6 +2860,7 @@
 				DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */,
 				38A0363A25ECF07E00FCBB52 /* GlucoseStorage.swift */,
 				38FCF3FC25E997A80078B0D1 /* PumpHistoryStorage.swift */,
+				7A11AC0DE000000000000008 /* PumpHistoryStorage+ScheduledBasal.swift */,
 				38F3B2EE25ED8E2A005C48AA /* TempTargetsStorage.swift */,
 				CE82E02428E867BA00473A9C /* AlertStorage.swift */,
 				BDC2EA442C3043B000E5BBD0 /* OverrideStorage.swift */,
@@ -4925,6 +4928,7 @@
 				3811DEB225C9D88300A708ED /* KeychainItemAccessibility.swift in Sources */,
 				38AEE73D25F0200C0013F05B /* TrioSettings.swift in Sources */,
 				38FCF3FD25E997A80078B0D1 /* PumpHistoryStorage.swift in Sources */,
+				7A11AC0DE000000000000108 /* PumpHistoryStorage+ScheduledBasal.swift in Sources */,
 				58645BA72CA2D390008AFCE7 /* ChartAxisSetup.swift in Sources */,
 				38D0B3B625EBE24900CB6E88 /* Battery.swift in Sources */,
 				38C4D33725E9A1A300D30B77 /* DispatchQueue+Extensions.swift in Sources */,
