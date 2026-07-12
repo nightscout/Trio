@@ -211,12 +211,26 @@ extension Treatments {
 
         private var hasCleanedUp = false
 
+        /// In-flight work started by this instance; cancelled in `cleanupTreatmentState()`.
+        @ObservationIgnored private var setupTask: Task<Void, Never>?
+        @ObservationIgnored private var determinationUpdateTask: Task<Void, Never>?
+
         func cleanupTreatmentState() {
             guard !hasCleanedUp else { return }
             hasCleanedUp = true
 
             unsubscribe()
             lifetime = Lifetime()
+
+            // Stop the FRC → recompute pipelines; a dismissed instance must not keep
+            // re-running the bolus calculator on every viewContext merge.
+            glucoseControllerDelegate.onContentChange = nil
+            determinationControllerDelegate.onContentChange = nil
+            lastBolusControllerDelegate.onContentChange = nil
+
+            // Cancel in-flight work — the setup task awaits a full oref simulation.
+            setupTask?.cancel()
+            determinationUpdateTask?.cancel()
 
             broadcaster?.unregister(DeterminationObserver.self, observer: self)
             broadcaster?.unregister(BolusFailureObserver.self, observer: self)
@@ -226,7 +240,7 @@ extension Treatments {
 
         private func setupBolusStateConcurrently() {
             debug(.bolusState, "Setting up bolus state concurrently...")
-            Task {
+            setupTask = Task {
                 // Load settings and observers first so the determination controller's initial
                 // population (which runs calculateInsulin) sees correct values.
                 do {
@@ -247,6 +261,8 @@ extension Treatments {
                 } catch let error as NSError {
                     debug(.default, "Failed to setup bolus state concurrently: \(error)")
                 }
+
+                guard !Task.isCancelled else { return }
 
                 // NSFetchedResultsControllers are bound to the viewContext, so set them up on the main actor.
                 await self.setupGlucoseController()
@@ -773,7 +789,8 @@ extension Treatments.StateModel {
     @MainActor func setupGlucoseController() {
         glucoseControllerDelegate.onContentChange = { [weak self] in
             Task { @MainActor in
-                self?.updateGlucoseFromController()
+                guard let self, self.isActive else { return }
+                self.updateGlucoseFromController()
             }
         }
 
@@ -820,24 +837,31 @@ extension Treatments.StateModel {
     @MainActor func setupDeterminationController() {
         determinationControllerDelegate.onContentChange = { [weak self] in
             Task { @MainActor in
-                guard let self else { return }
+                guard let self, self.isActive else { return }
                 self.updateDeterminationFromController()
-                self.insulinCalculated = await self.calculateInsulin()
-                let forecastData = self.mapForecastsFromController()
-                await self.updateForecasts(with: forecastData)
+                self.scheduleInsulinAndForecastUpdate()
             }
         }
 
         do {
             try determinationController.performFetch()
             updateDeterminationFromController()
-            Task { @MainActor in
-                self.insulinCalculated = await self.calculateInsulin()
-                let forecastData = self.mapForecastsFromController()
-                await self.updateForecasts(with: forecastData)
-            }
+            scheduleInsulinAndForecastUpdate()
         } catch {
             debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform determination fetch: \(error)")
+        }
+    }
+
+    /// Recomputes bolus recommendation and forecast; each new determination cancels the
+    /// previous in-flight run so a superseded run cannot publish stale results.
+    @MainActor private func scheduleInsulinAndForecastUpdate() {
+        determinationUpdateTask?.cancel()
+        determinationUpdateTask = Task { @MainActor in
+            let insulinCalculated = await self.calculateInsulin()
+            guard !Task.isCancelled else { return }
+            self.insulinCalculated = insulinCalculated
+            let forecastData = self.mapForecastsFromController()
+            await self.updateForecasts(with: forecastData)
         }
     }
 
@@ -975,7 +999,8 @@ extension Treatments.StateModel {
     @MainActor func setupLastBolusController() {
         lastBolusControllerDelegate.onContentChange = { [weak self] in
             Task { @MainActor in
-                self?.updateLastBolusFromController()
+                guard let self, self.isActive else { return }
+                self.updateLastBolusFromController()
             }
         }
 
