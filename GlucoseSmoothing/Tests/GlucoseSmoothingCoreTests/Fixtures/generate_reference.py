@@ -62,6 +62,13 @@ gapBase = BASE - (3 * 5 + 120) * 60_000
 tsB = [gapBase - i * STEP for i in range(3)]
 add("gap6", valsA + valsB, tsA + tsB)
 
+# orphan trace: 2 leading points (newest) isolated by a 90-min gap from a 3-point segment. The two
+# leading points join no segment (run < 3) — V4UKF pre-fills them to their floored raw value, so the
+# Swift port must NOT leave them nil. Exercises the unprocessed-fill path.
+orphanVals = [105.0, 103.0, 120.0, 119.0, 121.0]
+orphanTs = [BASE, BASE - STEP, BASE - STEP - 90 * 60_000, BASE - STEP - 95 * 60_000, BASE - STEP - 100 * 60_000]
+add("orphan5", orphanVals, orphanTs)
+
 out_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ukf_python_reference.json")
 json.dump(traces, open(out_path, "w"), indent=1)
 print(f"wrote {len(traces)} traces -> {out_path}")

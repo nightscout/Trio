@@ -78,6 +78,25 @@ final class UkfGoldenVectorTests: XCTestCase {
         for i in a.indices { XCTAssertEqual(b[i].smoothed!, a[i].smoothed!, accuracy: 1e-9) }
     }
 
+    func testOrphanPointsIsolatedByAGapAreFilledNotLeftNil() {
+        // Two leading (newest) points isolated by a 90-min gap from a 3-point segment join no segment
+        // (run < 3). They must be filled with their floored raw value — never returned nil — matching
+        // the reference Python V4UKF and keeping the `.smoothed` contract for Seam-1 consumers.
+        let base: Int64 = 1_700_000_000_000
+        let step: Int64 = 5 * 60_000
+        let readings = [
+            InMemoryGlucoseValue(timestamp: base, value: 105),
+            InMemoryGlucoseValue(timestamp: base - step, value: 103),
+            InMemoryGlucoseValue(timestamp: base - step - 90 * 60_000, value: 120),
+            InMemoryGlucoseValue(timestamp: base - step - 95 * 60_000, value: 119),
+            InMemoryGlucoseValue(timestamp: base - step - 100 * 60_000, value: 121),
+        ]
+        let out = filter().smooth(readings)
+        for v in out { XCTAssertNotNil(v.smoothed, "every returned point must have a smoothed value") }
+        XCTAssertEqual(out[0].smoothed, 105.0) // orphan → floored raw
+        XCTAssertEqual(out[1].smoothed, 103.0)
+    }
+
     func testACompressionLowWithNearZeroIobIsDampedNotTrackedToTheFloor() {
         // newest-first: steady ~100 then a steep fall toward 40 (a compression dip).
         let vals: [Double] = [40, 44, 60, 82, 100, 100, 100, 100]

@@ -175,8 +175,14 @@ public final class UnscentedKalmanFilter {
                            previousTimestamp: previousTimestamp, iobTotal: iobTotal)
         }
 
-        // Fill any unprocessed points (faithful to Kotlin: only those left at exactly 0.0).
-        for i in data.indices where data[i].smoothed == 0.0 {
+        // Fill any unprocessed point (one orphaned by gaps/invalid spacing into a run of <2, so it
+        // joined no segment) with its floored raw value. DELIBERATE deviation from the Kotlin, which
+        // checks `smoothed == 0.0` against a `Double? = null` default — a dead check that never fires,
+        // leaving orphan points null (AAPS then falls back via `recalculated = smoothed ?: value`).
+        // The reference Python V4UKF instead pre-fills every point to `max(value, 39)`; matching it
+        // keeps L2 parity on gappy traces AND honours the `smoothed` contract (never nil on return),
+        // so a Seam-1 consumer can't nil-crash. Points that DID process are non-nil and untouched.
+        for i in data.indices where data[i].smoothed == nil {
             data[i].smoothed = max(data[i].value, 39.0)
             data[i].trendArrow = .none
         }
