@@ -13,6 +13,10 @@ let package = Package(
     ],
     targets: [
         .target(name: "GlucoseSmoothingCore"),
-        .testTarget(name: "GlucoseSmoothingCoreTests", dependencies: ["GlucoseSmoothingCore"]),
+        .testTarget(
+            name: "GlucoseSmoothingCoreTests",
+            dependencies: ["GlucoseSmoothingCore"],
+            resources: [.copy("Fixtures")]
+        ),
     ]
 )
