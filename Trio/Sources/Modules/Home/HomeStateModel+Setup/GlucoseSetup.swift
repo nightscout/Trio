@@ -8,6 +8,18 @@ extension Home.StateModel {
                 let ids = try await self.fetchGlucose()
                 let glucoseObjects: [GlucoseStored] = try await CoreDataStack.shared
                     .getNSManagedObject(with: ids, context: viewContext)
+                // The view context does not auto-merge other contexts' saves
+                // (automaticallyMergesChangesFromParent = false), and getNSManagedObject returns cached
+                // objects via existingObject(with:). So after FetchGlucoseManager writes
+                // `smoothedGlucose` in its own context, the view context's cached GlucoseStored keeps a
+                // stale (nil) smoothed value — which is why the smoothed line/popover only appeared
+                // after an app relaunch reset the cache. Refresh each object so it re-faults from the
+                // store and the smoothed values surface live.
+                await viewContext.perform {
+                    for object in glucoseObjects where !object.isFault {
+                        self.viewContext.refresh(object, mergeChanges: false)
+                    }
+                }
                 await updateGlucoseArray(with: glucoseObjects)
             } catch {
                 debug(
