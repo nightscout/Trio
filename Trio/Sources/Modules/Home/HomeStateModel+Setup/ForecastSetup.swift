@@ -33,8 +33,13 @@ extension Home.StateModel {
     }
 
     // Update forecast data and UI on the main thread
+    //
+    // Runs inside `forecastUpdateTask`; cancellation is checked after every suspension
+    // point so a superseded run cannot overwrite fresher results.
     @MainActor func updateForecastData() async {
         let forecastDataIDs = await preprocessForecastData()
+
+        guard !Task.isCancelled else { return }
 
         var allForecastValues = [[Int]]()
         var preprocessedData = [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)]()
@@ -96,6 +101,8 @@ extension Home.StateModel {
 
             return (minForecast, maxForecast)
         }.value
+
+        guard !Task.isCancelled else { return }
 
         minForecast = minResult
         maxForecast = maxResult

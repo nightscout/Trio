@@ -14,8 +14,9 @@ extension Home.StateModel {
         do {
             try enactedDeterminationController.performFetch()
             updateEnactedDeterminationFromController()
-            // Initial population runs immediately — no burst to coalesce at startup.
-            Task { @MainActor in
+            // Initial population; assigned to `forecastUpdateTask` so a change arriving
+            // during startup cancels it instead of racing it.
+            forecastUpdateTask = Task { @MainActor in
                 await self.updateForecastData()
             }
         } catch {
