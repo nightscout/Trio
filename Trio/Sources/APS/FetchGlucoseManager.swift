@@ -428,12 +428,13 @@ extension BaseFetchGlucoseManager {
     ///
     func exponentialSmoothingGlucose(context: NSManagedObjectContext) async {
         let startTime = Date()
-        // Phase-1 UKF shadow: when the smoother is set to `.ukf`, ALSO run the Unscented Kalman
-        // Filter over the same window and log its output alongside the exponential result — WITHOUT
-        // consuming it (the delivered `smoothedGlucose` stays the exponential value). This lets the
-        // filter run on real device data before it ever touches the dose path. Off by default; when
-        // the smoother is `.exponential`/`.off` the shadow does not run and this method is unchanged.
-        let runUkfShadow = settingsManager.settings.glucoseSmoother == .ukf
+        // UKF consume (P2): when the smoother is set to `.ukf`, run the Unscented Kalman Filter over
+        // the same newest-first window AFTER the exponential pass and OVERWRITE `smoothedGlucose` with
+        // the UKF value wherever the filter produced a valid (non-nil) smoothed level. The exponential
+        // pass still runs unconditionally first, so it remains the proven baseline and the fail-safe
+        // fallback for any reading the UKF can't smooth. When the smoother is `.exponential`/`.off`
+        // this branch does not run and the delivered `smoothedGlucose` is byte-identical to today.
+        let useUkf = settingsManager.settings.glucoseSmoother == .ukf
 
         do {
             // get objectIDs
@@ -461,7 +462,7 @@ extension BaseFetchGlucoseManager {
                     secondOrderBeta: 1.0
                 )
 
-                if runUkfShadow { Self.logUkfShadow(glucoseReadings: glucoseReadings) }
+                if useUkf { Self.applyUkfSmoothingAndStore(glucoseReadings: glucoseReadings) }
 
                 try context.save()
             }
@@ -473,25 +474,52 @@ extension BaseFetchGlucoseManager {
         }
     }
 
-    /// Phase-1 UKF shadow — run the Unscented Kalman Filter over the same newest-first window and log
-    /// its newest output next to the raw and exponential values. Observation only: it does NOT write
-    /// `smoothedGlucose`, so selecting `.ukf` in this phase changes nothing that reaches the loop.
-    /// Runs on the context queue (reads managed-object properties). Static to avoid self-capture.
-    private static func logUkfShadow(glucoseReadings data: [GlucoseStored]) {
+    /// UKF consume (P2) — run the Unscented Kalman Filter over the same newest-first window and
+    /// OVERWRITE `smoothedGlucose` with the forward-smoothed level wherever the filter produced a
+    /// valid (non-nil) value. Readings the UKF can't smooth keep the exponential value written by
+    /// `applyExponentialSmoothingAndStore`, so the result is never worse than the exponential path.
+    /// Runs on the context queue (reads/writes managed-object properties). Static to avoid self-capture.
+    private static func applyUkfSmoothingAndStore(glucoseReadings data: [GlucoseStored]) {
+        // Minimum stored smoothed glucose (mg/dL) — matches the exponential path's floor exactly.
+        let minimumSmoothedGlucose: Decimal = 39
+
         // `data` is newest-first (fetchGlucose sorts date descending) — the order the UKF expects.
-        let input = data.compactMap { g -> InMemoryGlucoseValue? in
+        // Pair each GlucoseStored with its UKF input so write-back can't misalign.
+        let pairs: [(GlucoseStored, InMemoryGlucoseValue)] = data.compactMap { g in
             guard let date = g.date else { return nil }
-            return InMemoryGlucoseValue(timestamp: Int64(date.timeIntervalSince1970 * 1000), value: Double(g.glucose))
+            return (g, InMemoryGlucoseValue(timestamp: Int64(date.timeIntervalSince1970 * 1000), value: Double(g.glucose)))
         }
-        guard let newestRaw = input.first else { return }
-        let out = UnscentedKalmanFilter().smooth(input)
-        guard let newest = out.first, let ukf = newest.smoothed else { return }
-        let exp = data.first?.smoothedGlucose?.doubleValue
-        debug(
-            .deviceManager,
-            "UKF shadow (n=\(input.count)): raw=\(Int(newestRaw.value)) ukf=\(String(format: "%.1f", ukf)) " +
-                "trend=\(newest.trendArrow.rawValue)" + (exp.map { " exp=\(String(format: "%.1f", $0))" } ?? "")
-        )
+
+        guard !pairs.isEmpty else { return }
+
+        let out = UnscentedKalmanFilter().smooth(pairs.map(\.1))
+
+        guard out.count == pairs.count else {
+            debug(
+                .deviceManager,
+                "UKF consume: count mismatch (in=\(pairs.count) out=\(out.count)); keeping exponential smoothing"
+            )
+            return
+        }
+
+        for i in pairs.indices {
+            guard let s = out[i].smoothed else { continue } // no valid UKF value → keep exponential
+            // Match the exponential storage treatment exactly: round to whole mg/dL (ties away from
+            // zero), floor at 39, store as NSDecimalNumber.
+            let rounded = Decimal(s).rounded(toPlaces: 0)
+            let clamped = max(rounded, minimumSmoothedGlucose)
+            pairs[i].0.smoothedGlucose = clamped as NSDecimalNumber
+        }
+
+        // Observability: summarise the newest reading (raw vs consumed UKF value + trend + count).
+        if let newest = out.first, let ukf = newest.smoothed, let newestRaw = pairs.first?.1 {
+            let stored = pairs.first?.0.smoothedGlucose?.doubleValue
+            debug(
+                .deviceManager,
+                "UKF consume (n=\(pairs.count)): raw=\(Int(newestRaw.value)) ukf=\(String(format: "%.1f", ukf)) " +
+                    "stored=\(stored.map { String(format: "%.0f", $0) } ?? "nil") trend=\(newest.trendArrow.rawValue)"
+            )
+        }
     }
 
     private static func applyExponentialSmoothingAndStore(
