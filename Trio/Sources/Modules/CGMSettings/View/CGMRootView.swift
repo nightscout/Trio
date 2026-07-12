@@ -113,12 +113,12 @@ extension CGMSettings {
                         units: state.units,
                         type: .boolean,
                         label: String(localized: "Smooth Glucose Value"),
-                        miniHint: String(localized: "Smooth CGM readings using exponential smoothing."),
+                        miniHint: String(localized: "Smooth CGM readings using Adaptive Smoothing."),
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
 
                             Text(
-                                "This feature smooths your CGM readings to reduce noise and make them easier to read. It is based on a method used in AndroidAPS (AAPS). It uses two approaches: one that reacts quickly to recent changes, and one that looks at longer trends. These are combined to give a balanced result."
+                                "This feature applies Adaptive Smoothing to your CGM readings to reduce noise and make them easier to read. It estimates both your glucose level and how fast it's changing, learns how noisy your sensor is and adjusts automatically, follows genuine fast moves while rejecting one-off spikes, and guards against suspected sensor-compression lows."
                             )
 
                             Text(
@@ -138,7 +138,7 @@ extension CGMSettings {
                             }
 
                             Text(
-                                "It can handle small gaps in data and ignores sensor error values. It needs at least 4 readings within 12 minutes to work properly. Only CGM readings are smoothed—manual entries are not changed."
+                                "It handles gaps in data by splitting the series into segments and ignores sensor error values. Only CGM readings are smoothed—manual entries are not changed."
                             )
 
                             Text(
@@ -146,17 +146,6 @@ extension CGMSettings {
                             )
                         }
                     )
-
-                    Section(
-                        header: Text("Glucose Smoother"),
-                        content: {
-                            Picker("Smoother", selection: $state.glucoseSmoother) {
-                                ForEach(GlucoseSmoother.allCases) { smoother in
-                                    Text(smoother.displayName).tag(smoother)
-                                }
-                            }
-                        }
-                    ).listRowBackground(Color.chart)
                 }
                 .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
                 .onAppear(perform: configureView)

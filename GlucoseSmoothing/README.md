@@ -1,9 +1,9 @@
 # Adaptive Smoothing (`GlucoseSmoothingCore`)
 
 A standalone, dependency-free Swift package that provides Trio's **Adaptive Smoothing** CGM
-glucose smoother — selectable in *Settings → CGM → Glucose Smoother* alongside `None` and the
-existing `Exponential` smoother. **Off by default**: unless a user picks *Adaptive Smoothing*,
-nothing here runs and behaviour is byte-identical to today.
+glucose smoother. It is the sole smoother (it replaced the previous double-exponential one) and is
+enabled by the *Settings → CGM → Smooth Glucose Value* toggle. **Off by default**: with the toggle
+off, nothing here runs and behaviour is byte-identical to today.
 
 Despite the class name, this is **much more than a Kalman filter**. At its core is an Unscented
 Kalman Filter, but the useful behaviour comes from the layers built around it: online noise
@@ -83,9 +83,9 @@ let engine = UnscentedKalmanFilter(
 
 ## How Trio uses it
 
-When *Adaptive Smoothing* is selected, `FetchGlucoseManager` runs the exponential smoother first (as
-the proven baseline / fail-safe fallback), then overwrites `smoothedGlucose` with this engine's value
-wherever it produced a valid one. `smoothedGlucose` feeds oref (when smoothing is enabled) and the
+When smoothing is enabled, `FetchGlucoseManager.applyAdaptiveSmoothingAndStore` runs the engine and
+writes `smoothedGlucose`. It fail-safes internally (floors at 39, fills unmodellable points with the
+raw value), so there's no separate fallback pass. `smoothedGlucose` feeds oref (when smoothing is on) and the
 chart's smoothed line; the primary glucose number and dots always remain the **raw** reading.
 
 ## Test
