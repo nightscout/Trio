@@ -1,4 +1,5 @@
 import CGMBLEKit
+import EversenseKit
 import Foundation
 import G7SensorKit
 import G7SensorKitUI
@@ -37,6 +38,11 @@ class BasePluginManager: Injectable, PluginManager {
             pluginIdentifier: G7CGMManager.pluginIdentifier,
             localizedTitle: String(localized: "Dexcom G7 / ONE+"),
             manager: G7CGMManager.self
+        ),
+        CgmPluginDescription(
+            pluginIdentifier: EversenseCGMManager.pluginIdentifier,
+            localizedTitle: String(localized: "Eversense"),
+            manager: EversenseCGMManager.self
         ),
         CgmPluginDescription(
             pluginIdentifier: LibreTransmitterManagerV3.pluginIdentifier,

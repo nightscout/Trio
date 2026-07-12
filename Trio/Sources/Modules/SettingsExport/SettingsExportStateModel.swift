@@ -871,6 +871,12 @@ extension SettingsExport {
                     name: String(localized: "Lock Screen Widget Style"),
                     value: trioSettings.lockScreenView.rawValue
                 )
+                addSetting(
+                    category: notificationsCategory,
+                    subcategory: liveActivitySubcategory,
+                    name: String(localized: "Display Glucose Forecasts"),
+                    value: trioSettings.displayGlucoseForecasts ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
             }
 
             // Services
