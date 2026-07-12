@@ -62,6 +62,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var bluetoothProvider: BluetoothStateManager!
+    @Injected() private var trioAlertManager: TrioAlertManager!
 
     @Persisted(key: "BaseDeviceDataManager.lastEventDate") var lastEventDate: Date? = nil
     @SyncAccess(lock: accessLock) @Persisted(key: "BaseDeviceDataManager.lastHeartBeatTime") var lastHeartBeatTime: Date =
@@ -83,9 +84,15 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
 
     var pumpManager: PumpManagerUI? {
         didSet {
+            if let oldValue = oldValue {
+                trioAlertManager?.unregister(managerIdentifier: oldValue.pluginIdentifier)
+            }
             if let pumpManager = pumpManager {
                 pumpManager.pumpManagerDelegate = self
                 pumpManager.delegateQueue = processQueue
+
+                trioAlertManager?.register(responder: pumpManager, for: pumpManager.pluginIdentifier)
+                trioAlertManager?.register(soundVendor: pumpManager, for: pumpManager.pluginIdentifier)
 
                 /// Since the pump manager has been successfully instantiated from its saved state,
                 /// copy its rawValue to rawPumpManager which will be saved to persistant storage.
@@ -241,7 +248,6 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
         injectServices(resolver)
         setupPumpManager()
         UIDevice.current.isBatteryMonitoringEnabled = true
-        broadcaster.register(AlertObserver.self, observer: self)
     }
 
     func setupPumpManager() {
@@ -636,22 +642,13 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
 
 extension BaseDeviceDataManager: DeviceManagerDelegate {
     func issueAlert(_ alert: Alert) {
-        alertHistoryStorage.addAlert(
-            AlertEntry(
-                alertIdentifier: alert.identifier.alertIdentifier,
-                primitiveInterruptionLevel: alert.interruptionLevel.storedValue as? Decimal,
-                issuedDate: Date(),
-                managerIdentifier: alert.identifier.managerIdentifier,
-                triggerType: alert.trigger.storedType,
-                triggerInterval: alert.trigger.storedInterval as? Decimal,
-                contentTitle: alert.foregroundContent?.title,
-                contentBody: alert.foregroundContent?.body
-            )
-        )
+        debug(.deviceManager, "issueAlert \(alert.identifier.value)")
+        trioAlertManager.issueAlert(alert)
     }
 
     func retractAlert(identifier: Alert.Identifier) {
-        alertHistoryStorage.removeAlert(identifier: identifier.alertIdentifier)
+        debug(.deviceManager, "retractAlert \(identifier.value)")
+        trioAlertManager.retractAlert(identifier: identifier)
     }
 
     func doesIssuedAlertExist(identifier _: Alert.Identifier, completion _: @escaping (Result<Bool, Error>) -> Void) {
@@ -704,37 +701,6 @@ extension BaseDeviceDataManager: CGMManagerDelegate {
     func credentialStoragePrefix(for _: CGMManager) -> String { "BaseDeviceDataManager" }
 
     func cgmManager(_: CGMManager, didUpdate _: CGMManagerStatus) {}
-}
-
-// MARK: - AlertPresenter
-
-extension BaseDeviceDataManager: AlertObserver {
-    func AlertDidUpdate(_ alerts: [AlertEntry]) {
-        alerts.forEach { alert in
-            if alert.acknowledgedDate == nil {
-                ackAlert(alert: alert)
-            }
-        }
-    }
-
-    private func ackAlert(alert: AlertEntry) {
-        let alertIssueDate = alert.issuedDate
-
-        processQueue.async {
-            self.pumpManager?.acknowledgeAlert(alertIdentifier: alert.alertIdentifier) { error in
-                if let error = error {
-                    self.alertHistoryStorage.acknowledgeAlert(alertIssueDate, error.localizedDescription)
-                    debug(.deviceManager, "acknowledge not succeeded with error \(error)")
-                } else {
-                    self.alertHistoryStorage.acknowledgeAlert(alertIssueDate, nil)
-                }
-            }
-
-            self.broadcaster.notify(pumpNotificationObserver.self, on: self.processQueue) {
-                $0.pumpNotification(alert: alert)
-            }
-        }
-    }
 }
 
 // extension BaseDeviceDataManager: AlertPresenter {

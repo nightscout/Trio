@@ -5,12 +5,24 @@ import LoopKitUI
 enum PumpConfig {
     enum Config {}
 
-    enum PumpType: Equatable {
+    enum PumpType: Equatable, CaseIterable {
         case minimed
         case omni
         case dana
         case medtrum
         case simulator
+
+        /// `Alert.Identifier.managerIdentifier` emitted by this plugin's
+        /// `PumpManager`. Nil for `.simulator` — no real plugin.
+        var pluginIdentifier: String? {
+            switch self {
+            case .minimed: return "Minimed"
+            case .omni: return "Omni"
+            case .dana: return "Dana"
+            case .medtrum: return "Medtrum"
+            case .simulator: return nil
+            }
+        }
     }
 
     struct PumpInitialSettings {
