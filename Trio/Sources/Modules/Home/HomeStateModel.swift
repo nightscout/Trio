@@ -355,9 +355,18 @@ extension Home {
 
         // MARK: - Fetch window re-anchoring
 
-        /// Called on `UIApplication.willEnterForegroundNotification`
+        //
+        // Window predicates freeze their anchor at build time, so the unbounded controllers
+        // are re-anchored to "now" on foreground. fetchLimit-1 and override controllers keep
+        // the launch anchor on purpose; temp targets must re-anchor ("date >= now" disjunct).
+
+        /// Called on `willEnterForegroundNotification`; idempotent at launch.
         @MainActor func reanchorFetchWindows() {
-            reanchor(glucoseController, with: NSPredicate.glucose) { self.updateGlucoseFromController() }
+            reanchor(glucoseController, with: NSPredicate.glucose) {
+                self.updateGlucoseFromController()
+                // Re-sync the chart domain even if no new reading arrived while backgrounded.
+                self.updateStartEndMarkers()
+            }
             reanchor(carbsController, with: NSPredicate.carbsForChart) { self.updateCarbsFromController() }
             reanchor(fpuController, with: NSPredicate.fpusForChart) { self.updateFPUsFromController() }
             reanchor(determinationController, with: NSPredicate.determinationsForCobIobCharts) {
@@ -366,6 +375,9 @@ extension Home {
             reanchor(insulinController, with: NSPredicate.pumpHistoryLast24h) { self.updateInsulinFromController() }
             reanchor(overrideRunController, with: NSPredicate.predicateForStartDateOneDayAgo) {
                 self.updateOverrideRunsFromController()
+            }
+            reanchor(tempTargetController, with: NSPredicate.tempTargetsForMainChart) {
+                self.updateTempTargetsFromController()
             }
             reanchor(tempTargetRunController, with: NSPredicate.predicateForStartDateOneDayAgo) {
                 self.updateTempTargetRunsFromController()

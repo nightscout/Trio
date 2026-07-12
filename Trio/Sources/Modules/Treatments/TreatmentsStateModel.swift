@@ -262,12 +262,13 @@ extension Treatments {
                     debug(.default, "Failed to setup bolus state concurrently: \(error)")
                 }
 
-                guard !Task.isCancelled else { return }
-
-                // NSFetchedResultsControllers are bound to the viewContext, so set them up on the main actor.
-                await self.setupGlucoseController()
-                await self.setupDeterminationController()
-                await self.setupLastBolusController()
+                // viewContext-bound FRCs: guard and wiring share one main-actor slice.
+                await MainActor.run {
+                    guard !Task.isCancelled, !self.hasCleanedUp else { return }
+                    self.setupGlucoseController()
+                    self.setupDeterminationController()
+                    self.setupLastBolusController()
+                }
             }
         }
 
@@ -456,6 +457,9 @@ extension Treatments {
                 simulatedCOB: simulatedCOB,
                 isBackdated: isBackdated
             )
+
+            // A superseded run must not overwrite the breakdown a newer run published.
+            guard !Task.isCancelled else { return apsManager.roundBolus(amount: result.insulinCalculated) }
 
             // Update state properties with calculation results on main thread
             await MainActor.run {
@@ -772,6 +776,8 @@ extension Treatments.StateModel: DeterminationObserver, BolusFailureObserver {
 
     func bolusDidFail() {
         DispatchQueue.main.async {
+            // A dismissed instance may still observe until dealloc — don't hide an unrelated modal.
+            guard self.isActive else { return }
             debug(.bolusState, "bolusDidFail fired")
             self.isAwaitingDeterminationResult = false
             if self.addButtonPressed {
@@ -930,7 +936,7 @@ extension Treatments.StateModel {
             simulatedDetermination = forecastData
             debugPrint("\(DebuggingIdentifiers.failed) minPredBG: \(minPredBG)")
         } else {
-            simulatedDetermination = await Task { [self] in
+            let simulated = await Task { [self] in
                 debug(.bolusState, "calling simulateDetermineBasal to get forecast data")
                 return await apsManager.simulateDetermineBasal(
                     simulatedCarbsAmount: carbs,
@@ -939,8 +945,12 @@ extension Treatments.StateModel {
                 )
             }.value
 
+            // Stale minPredBG/cob from a superseded run would feed the next bolus calculation.
+            guard !Task.isCancelled else { return }
+            simulatedDetermination = simulated
+
             // Update evBG and minPredBG from simulated determination
-            if let simDetermination = simulatedDetermination {
+            if let simDetermination = simulated {
                 evBG = Decimal(simDetermination.eventualBG ?? 0)
                 minPredBG = simDetermination.minPredBGFromReason ?? 0
                 debugPrint("\(DebuggingIdentifiers.inProgress) minPredBG: \(minPredBG)")
@@ -979,8 +989,13 @@ extension Treatments.StateModel {
             }
         }.value
 
-        minForecast = await minForecastResult
-        maxForecast = await maxForecastResult
+        let minResult = await minForecastResult
+        let maxResult = await maxForecastResult
+
+        guard !Task.isCancelled else { return }
+
+        minForecast = minResult
+        maxForecast = maxResult
     }
 }
 

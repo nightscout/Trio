@@ -19,7 +19,7 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateTempTargetsFromController() {
+    @MainActor func updateTempTargetsFromController() {
         guard let objects = tempTargetController.fetchedObjects else { return }
         tempTargetStored = objects
     }
