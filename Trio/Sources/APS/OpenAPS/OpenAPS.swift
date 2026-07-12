@@ -729,6 +729,29 @@ final class OpenAPS {
         }
     }
 
+    /// Recomputes only the IOB file from current pump history, reusing the
+    /// profile and autosens saved by the last loop cycle. Cheap enough to run
+    /// whenever insulin lands in pump history (SMBs, syncs), keeping IOB
+    /// fresh between cycles without a full determination.
+    func updateIobFile(useJavascriptOref: Bool, clock: Date = Date()) async throws {
+        let pumpHistoryObjectIDs = try await fetchPumpHistoryObjectIDs() ?? []
+        let pumpHistoryJSON = try await parsePumpHistory(pumpHistoryObjectIDs)
+        let profile = await loadFileFromStorageAsync(name: Settings.profile)
+        // No profile yet means no loop has ever run; nothing to compute against.
+        guard !profile.isEmpty, profile != RawJSON.null else { return }
+        let autosens = await loadFileFromStorageAsync(name: Settings.autosense)
+
+        let iob = try await iob(
+            pumphistory: pumpHistoryJSON,
+            profile: profile,
+            clock: clock,
+            autosens: autosens.isEmpty ? .null : autosens,
+            useJavascriptOref: useJavascriptOref
+        )
+        await storage.saveAsync(iob, as: Monitor.iob)
+        debug(.openAPS, "IOB-only update complete")
+    }
+
     private func iob(
         pumphistory: JSON,
         profile: JSON,

@@ -30,6 +30,7 @@ protocol APSManager {
     func enactTempBasal(rate: Double, duration: TimeInterval) async
     func determineBasal() async throws
     func determineBasalSync() async throws
+    func updateIob() async
     func simulateDetermineBasal(
         simulatedCarbsAmount: Decimal,
         simulatedBolusAmount: Decimal,
@@ -543,6 +544,15 @@ final class BaseAPSManager: APSManager, Injectable {
 
     func determineBasalSync() async throws {
         _ = try await determineBasal()
+    }
+
+    func updateIob() async {
+        do {
+            try await openAPS.updateIobFile(useJavascriptOref: settings.useJavascriptOref)
+            iobFileDidUpdate.send(())
+        } catch {
+            warning(.apsManager, "IOB-only update failed: \(error.localizedDescription)")
+        }
     }
 
     func simulateDetermineBasal(

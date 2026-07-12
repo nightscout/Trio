@@ -52,6 +52,16 @@ final class BaseIOBService: IOBService, Injectable {
             self?.updateIOB()
         }.store(in: &subscriptions)
 
+        // Recompute IOB whenever insulin lands in pump history (SMB
+        // enactment, manual boluses, history syncs, deletions). Debounced:
+        // dose syncs and upload-flag updates write events in bursts.
+        coreDataPublisher?.filteredByEntityName("PumpEventStored")
+            .debounce(for: .seconds(2), scheduler: queue)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                Task { await self.apsManager.updateIob() }
+            }.store(in: &subscriptions)
+
         // Trigger update when the iob file is updated
         apsManager.iobFileDidUpdate
             .sink { [weak self] _ in
