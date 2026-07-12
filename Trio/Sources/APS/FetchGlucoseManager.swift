@@ -428,13 +428,13 @@ extension BaseFetchGlucoseManager {
     ///
     func exponentialSmoothingGlucose(context: NSManagedObjectContext) async {
         let startTime = Date()
-        // UKF consume (P2): when the smoother is set to `.ukf`, run the Unscented Kalman Filter over
-        // the same newest-first window AFTER the exponential pass and OVERWRITE `smoothedGlucose` with
-        // the UKF value wherever the filter produced a valid (non-nil) smoothed level. The exponential
-        // pass still runs unconditionally first, so it remains the proven baseline and the fail-safe
-        // fallback for any reading the UKF can't smooth. When the smoother is `.exponential`/`.off`
+        // Adaptive Smoothing consume (P2): when the smoother is `.adaptive`, run the Adaptive Smoothing
+        // engine (UKF core) over the same window AFTER the exponential pass and OVERWRITE
+        // `smoothedGlucose` wherever it produced a valid (non-nil) smoothed level. The exponential pass
+        // still runs unconditionally first, so it remains the proven baseline and the fail-safe
+        // fallback for any reading the engine can't smooth. When the smoother is `.exponential`/`.off`
         // this branch does not run and the delivered `smoothedGlucose` is byte-identical to today.
-        let useUkf = settingsManager.settings.glucoseSmoother == .ukf
+        let useAdaptiveSmoothing = settingsManager.settings.glucoseSmoother == .adaptive
 
         do {
             // get objectIDs
@@ -462,7 +462,7 @@ extension BaseFetchGlucoseManager {
                     secondOrderBeta: 1.0
                 )
 
-                if useUkf { Self.applyUkfSmoothingAndStore(glucoseReadings: glucoseReadings) }
+                if useAdaptiveSmoothing { Self.applyAdaptiveSmoothingAndStore(glucoseReadings: glucoseReadings) }
 
                 try context.save()
             }
@@ -474,12 +474,12 @@ extension BaseFetchGlucoseManager {
         }
     }
 
-    /// UKF consume (P2) — run the Unscented Kalman Filter over the same window (reversed to the
-    /// newest-first order the filter requires) and OVERWRITE `smoothedGlucose` wherever it produced a
-    /// valid (non-nil) value. Readings the UKF can't smooth keep the exponential value written by
-    /// `applyExponentialSmoothingAndStore`, so the result is never worse than the exponential path.
-    /// Runs on the context queue (reads/writes managed-object properties). Static to avoid self-capture.
-    static func applyUkfSmoothingAndStore(glucoseReadings data: [GlucoseStored]) {
+    /// Adaptive Smoothing consume (P2) — run the Adaptive Smoothing engine (an Unscented Kalman Filter
+    /// core) over the same window (reversed to the newest-first order it requires) and OVERWRITE
+    /// `smoothedGlucose` wherever it produced a valid (non-nil) value. Readings it can't smooth keep the
+    /// exponential value written by `applyExponentialSmoothingAndStore`, so the result is never worse
+    /// than the exponential path. Runs on the context queue. Static to avoid self-capture.
+    static func applyAdaptiveSmoothingAndStore(glucoseReadings data: [GlucoseStored]) {
         // Minimum stored smoothed glucose (mg/dL) — matches the exponential path's floor exactly.
         let minimumSmoothedGlucose: Decimal = 39
 
@@ -499,13 +499,13 @@ extension BaseFetchGlucoseManager {
         guard out.count == pairs.count else {
             debug(
                 .deviceManager,
-                "UKF consume: count mismatch (in=\(pairs.count) out=\(out.count)); keeping exponential smoothing"
+                "Adaptive smoothing: count mismatch (in=\(pairs.count) out=\(out.count)); keeping exponential smoothing"
             )
             return
         }
 
         for i in pairs.indices {
-            guard let s = out[i].smoothed else { continue } // no valid UKF value → keep exponential
+            guard let s = out[i].smoothed else { continue } // no valid smoothed value → keep exponential
             // Match the exponential storage treatment exactly: round to whole mg/dL (ties away from
             // zero), floor at 39, store as NSDecimalNumber.
             let rounded = Decimal(s).rounded(toPlaces: 0)
@@ -513,12 +513,12 @@ extension BaseFetchGlucoseManager {
             pairs[i].0.smoothedGlucose = clamped as NSDecimalNumber
         }
 
-        // Observability: summarise the newest reading (raw vs consumed UKF value + trend + count).
-        if let newest = out.first, let ukf = newest.smoothed, let newestRaw = pairs.first?.1 {
+        // Observability: summarise the newest reading (raw vs consumed smoothed value + trend + count).
+        if let newest = out.first, let smoothedValue = newest.smoothed, let newestRaw = pairs.first?.1 {
             let stored = pairs.first?.0.smoothedGlucose?.doubleValue
             debug(
                 .deviceManager,
-                "UKF consume (n=\(pairs.count)): raw=\(Int(newestRaw.value)) ukf=\(String(format: "%.1f", ukf)) " +
+                "Adaptive smoothing (n=\(pairs.count)): raw=\(Int(newestRaw.value)) out=\(String(format: "%.1f", smoothedValue)) " +
                     "stored=\(stored.map { String(format: "%.0f", $0) } ?? "nil") trend=\(newest.trendArrow.rawValue)"
             )
         }

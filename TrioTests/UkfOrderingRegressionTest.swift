@@ -9,13 +9,15 @@ import Testing
 /// `fetchGlucose` returns readings **oldest-first** (it fetches date-descending for the limit, then
 /// reverses). `UnscentedKalmanFilter.smooth` requires **newest-first** — fed oldest-first its
 /// segmentation sees negative time-diffs, forms no segment, and copies raw, so the filter goes inert.
-/// `applyUkfSmoothingAndStore` must therefore reverse before feeding the UKF.
+/// `applyAdaptiveSmoothingAndStore` must therefore reverse before feeding the UKF core.
 ///
 /// This test feeds the production method the production order (oldest-first) and asserts (a) the UKF
 /// actually smooths (departs from raw) and (b) the stored values match an independent newest-first
 /// UKF run. If the reversal is ever removed, both assertions fail.
 @Suite("UKF ordering regression", .serialized) struct UkfOrderingRegressionTest {
-    @Test("applyUkfSmoothingAndStore feeds the UKF newest-first (guards the oldest-first order bug)")  func ukfReceivesNewestFirst(
+    @Test(
+        "applyAdaptiveSmoothingAndStore feeds the UKF core newest-first (guards the oldest-first order bug)"
+    ) func adaptiveSmoothingReceivesNewestFirst(
     ) async throws {
         let stack = try await CoreDataStack.createForTests()
         let ctx = stack.newTaskContext()
@@ -41,7 +43,7 @@ import Testing
                 let n = readings.count
 
                 // Production method — receives oldest-first, must reverse internally.
-                BaseFetchGlucoseManager.applyUkfSmoothingAndStore(glucoseReadings: readings)
+                BaseFetchGlucoseManager.applyAdaptiveSmoothingAndStore(glucoseReadings: readings)
                 let stored = readings.map { $0.smoothedGlucose?.doubleValue ?? -1 } // oldest-first
 
                 // Independent oracle: feed the UKF newest-first directly, then map back to oldest-first

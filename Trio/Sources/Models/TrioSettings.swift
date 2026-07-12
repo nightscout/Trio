@@ -16,11 +16,13 @@ enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
 }
 
 /// CGM glucose smoother selection. `off` = raw (no smoothing beyond oref's own), `exponential` =
-/// today's double-exponential smoother, `ukf` = the Unscented Kalman Filter (shadow-only this phase).
+/// today's double-exponential smoother, `adaptive` = the Adaptive Smoothing engine (an Unscented
+/// Kalman Filter core with online-learned measurement noise, a compression-low guard, gap
+/// segmentation and RTS refinement — see GlucoseSmoothing/README.md).
 enum GlucoseSmoother: String, JSON, CaseIterable, Identifiable {
     case off
     case exponential
-    case ukf
+    case adaptive
 
     var id: GlucoseSmoother { self }
 
@@ -28,7 +30,7 @@ enum GlucoseSmoother: String, JSON, CaseIterable, Identifiable {
         switch self {
         case .off: return String(localized: "None")
         case .exponential: return String(localized: "Exponential")
-        case .ukf: return String(localized: "Kalman (UKF)")
+        case .adaptive: return String(localized: "Adaptive Smoothing")
         }
     }
 }
@@ -56,9 +58,9 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var delay: Decimal = 60
     var useAppleHealth: Bool = false
     var smoothGlucose: Bool = false
-    // Which CGM smoother to use. Default `.exponential` preserves today's behaviour. `.ukf` runs the
-    // Unscented Kalman Filter; in this phase it is computed in SHADOW (logged, not consumed) so a
-    // build with it selected is behaviourally identical to `.exponential`. See FetchGlucoseManager.
+    // Which CGM smoother to use. Default `.exponential` preserves today's behaviour. `.adaptive` runs
+    // the Adaptive Smoothing engine (UKF core + adaptive noise/compression/gap/RTS handling). See
+    // FetchGlucoseManager and GlucoseSmoothing/README.md.
     var glucoseSmoother: GlucoseSmoother = .exponential
     var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent
     var high: Decimal = 180
