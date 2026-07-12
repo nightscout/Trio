@@ -253,7 +253,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         timestamp: event.timestamp ?? Date(),
                         amount: event.tempBasal?.rate as Decimal?,
                         duration: Int(event.tempBasal?.duration ?? 0),
-                        isScheduledBasal: event.tempBasal?.isScheduledBasal ?? false
+                        isScheduledBasal: event.tempBasal?.isScheduledBasal ?? false,
+                        deliveredUnits: event.tempBasal?.deliveredUnits as Decimal?
                     )
                 default:
                     return nil

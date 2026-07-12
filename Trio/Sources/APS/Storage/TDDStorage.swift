@@ -213,11 +213,17 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     ) -> Decimal {
         guard !tempBasalEvents.isEmpty else { return 0 }
 
+        // Finalized rows carry the pump-reported total (suspends and pulse
+        // quantization included); timeline math covers only the rest.
+        let reportedInsulin = tempBasalEvents.compactMap(\.deliveredUnits).reduce(0, +)
+        let inferredEvents = tempBasalEvents.filter { $0.deliveredUnits == nil }
+        guard !inferredEvents.isEmpty else { return reportedInsulin }
+
         // Merge temp basal events and suspend-resume pairs into a single timeline
         var timeline = [(start: Date, end: Date, type: EventType, rate: Decimal?)]()
 
         // Add temp basal events to the timeline
-        for event in tempBasalEvents {
+        for event in inferredEvents {
             guard let duration = event.duration, let rate = event.amount else { continue }
             let end = event.timestamp.addingTimeInterval(TimeInterval(duration * 60))
             timeline.append((start: event.timestamp, end: end, type: .tempBasal, rate: rate))
@@ -280,7 +286,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
             }
         }
 
-        return totalInsulin
+        return reportedInsulin + totalInsulin
     }
 
     //    /// Finds gaps between tempBasal events where scheduled basal ran, excluding suspend-resume periods
