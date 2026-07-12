@@ -17,7 +17,7 @@ final class UkfPythonParityTests: XCTestCase {
     /// Max absolute divergence (mg/dL) permitted between the Swift and Python smoothed level. Two
     /// independent faithful Double ports of identical arithmetic agree far tighter than this; the
     /// margin absorbs incidental floating-point ordering differences without hiding a real port bug.
-    private let tolerance = 1e-6
+    private let tolerance = 1E-6
 
     private struct Trace: Decodable {
         let values: [Double]
@@ -55,7 +55,8 @@ final class UkfPythonParityTests: XCTestCase {
                 let expected = trace.level_offline[i]
                 let err = abs(got - expected)
                 checked += 1
-                if err > worst { worst = err; worstCtx = "\(name)[\(i)] expected=\(expected) got=\(got)" }
+                if err > worst { worst = err
+                    worstCtx = "\(name)[\(i)] expected=\(expected) got=\(got)" }
                 XCTAssertEqual(
                     got, expected, accuracy: tolerance,
                     "\(name)[\(i)]: Swift smoothed diverged from Python V4UKF level_offline"

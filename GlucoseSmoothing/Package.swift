@@ -9,7 +9,7 @@ let package = Package(
     name: "GlucoseSmoothingCore",
     platforms: [.iOS(.v15), .macOS(.v12)],
     products: [
-        .library(name: "GlucoseSmoothingCore", targets: ["GlucoseSmoothingCore"]),
+        .library(name: "GlucoseSmoothingCore", targets: ["GlucoseSmoothingCore"])
     ],
     targets: [
         .target(name: "GlucoseSmoothingCore"),
@@ -17,6 +17,6 @@ let package = Package(
             name: "GlucoseSmoothingCoreTests",
             dependencies: ["GlucoseSmoothingCore"],
             resources: [.copy("Fixtures")]
-        ),
+        )
     ]
 )

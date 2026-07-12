@@ -15,6 +15,24 @@ enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
     }
 }
 
+/// CGM glucose smoother selection. `off` = raw (no smoothing beyond oref's own), `exponential` =
+/// today's double-exponential smoother, `ukf` = the Unscented Kalman Filter (shadow-only this phase).
+enum GlucoseSmoother: String, JSON, CaseIterable, Identifiable {
+    case off
+    case exponential
+    case ukf
+
+    var id: GlucoseSmoother { self }
+
+    var displayName: String {
+        switch self {
+        case .off: return String(localized: "None")
+        case .exponential: return String(localized: "Exponential")
+        case .ukf: return String(localized: "Kalman (UKF)")
+        }
+    }
+}
+
 struct TrioSettings: JSON, Equatable, Encodable {
     var units: GlucoseUnits = .mgdL
     var closedLoop: Bool = false
@@ -38,6 +56,10 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var delay: Decimal = 60
     var useAppleHealth: Bool = false
     var smoothGlucose: Bool = false
+    // Which CGM smoother to use. Default `.exponential` preserves today's behaviour. `.ukf` runs the
+    // Unscented Kalman Filter; in this phase it is computed in SHADOW (logged, not consumed) so a
+    // build with it selected is behaviourally identical to `.exponential`. See FetchGlucoseManager.
+    var glucoseSmoother: GlucoseSmoother = .exponential
     var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent
     var high: Decimal = 180
     var low: Decimal = 70
@@ -217,6 +239,10 @@ extension TrioSettings: Decodable {
 
         if let smoothGlucose = try? container.decode(Bool.self, forKey: .smoothGlucose) {
             settings.smoothGlucose = smoothGlucose
+        }
+
+        if let glucoseSmoother = try? container.decode(GlucoseSmoother.self, forKey: .glucoseSmoother) {
+            settings.glucoseSmoother = glucoseSmoother
         }
 
         if let low = try? container.decode(Decimal.self, forKey: .low) {

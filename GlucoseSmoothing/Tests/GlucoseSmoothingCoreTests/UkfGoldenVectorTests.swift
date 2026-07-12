@@ -17,7 +17,7 @@ final class UkfGoldenVectorTests: XCTestCase {
     private func series(_ values: [Double], stepMin: Int64 = 5) -> [InMemoryGlucoseValue] {
         let base: Int64 = 1_700_000_000_000
         return values.enumerated().map { i, v in
-            InMemoryGlucoseValue(timestamp: base - Int64(i) * stepMin * 60_000, value: v)
+            InMemoryGlucoseValue(timestamp: base - Int64(i) * stepMin * 60000, value: v)
         }
     }
 
@@ -62,11 +62,11 @@ final class UkfGoldenVectorTests: XCTestCase {
     func testDataSpanningAMajorGapIsSplitIntoSegmentsAndBothClustersAreSmoothed() {
         let base: Int64 = 1_700_000_000_000
         let clusterA = [100.0, 101.0, 99.0].enumerated().map { i, v in
-            InMemoryGlucoseValue(timestamp: base - Int64(i) * 5 * 60_000, value: v)
+            InMemoryGlucoseValue(timestamp: base - Int64(i) * 5 * 60000, value: v)
         }
-        let gapBase = base - Int64(3 * 5 + 120) * 60_000 // 120-min (major) gap after cluster A
+        let gapBase = base - Int64(3 * 5 + 120) * 60000 // 120-min (major) gap after cluster A
         let clusterB = [120.0, 119.0, 121.0].enumerated().map { i, v in
-            InMemoryGlucoseValue(timestamp: gapBase - Int64(i) * 5 * 60_000, value: v)
+            InMemoryGlucoseValue(timestamp: gapBase - Int64(i) * 5 * 60000, value: v)
         }
         let out = filter().smooth(clusterA + clusterB)
         XCTAssertGreaterThanOrEqual(out.filter { $0.smoothed != nil }.count, 4)
@@ -75,7 +75,7 @@ final class UkfGoldenVectorTests: XCTestCase {
     func testSmoothingIsDeterministicAcrossFreshInstances() {
         let a = filter().smooth(series([120, 118, 122, 119, 121, 120, 118]))
         let b = filter().smooth(series([120, 118, 122, 119, 121, 120, 118]))
-        for i in a.indices { XCTAssertEqual(b[i].smoothed!, a[i].smoothed!, accuracy: 1e-9) }
+        for i in a.indices { XCTAssertEqual(b[i].smoothed!, a[i].smoothed!, accuracy: 1E-9) }
     }
 
     func testOrphanPointsIsolatedByAGapAreFilledNotLeftNil() {
@@ -83,13 +83,13 @@ final class UkfGoldenVectorTests: XCTestCase {
         // (run < 3). They must be filled with their floored raw value — never returned nil — matching
         // the reference Python V4UKF and keeping the `.smoothed` contract for Seam-1 consumers.
         let base: Int64 = 1_700_000_000_000
-        let step: Int64 = 5 * 60_000
+        let step: Int64 = 5 * 60000
         let readings = [
             InMemoryGlucoseValue(timestamp: base, value: 105),
             InMemoryGlucoseValue(timestamp: base - step, value: 103),
-            InMemoryGlucoseValue(timestamp: base - step - 90 * 60_000, value: 120),
-            InMemoryGlucoseValue(timestamp: base - step - 95 * 60_000, value: 119),
-            InMemoryGlucoseValue(timestamp: base - step - 100 * 60_000, value: 121),
+            InMemoryGlucoseValue(timestamp: base - step - 90 * 60000, value: 120),
+            InMemoryGlucoseValue(timestamp: base - step - 95 * 60000, value: 119),
+            InMemoryGlucoseValue(timestamp: base - step - 100 * 60000, value: 121)
         ]
         let out = filter().smooth(readings)
         for v in out { XCTAssertNotNil(v.smoothed, "every returned point must have a smoothed value") }

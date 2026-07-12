@@ -146,6 +146,17 @@ extension CGMSettings {
                             )
                         }
                     )
+
+                    Section(
+                        header: Text("Glucose Smoother"),
+                        content: {
+                            Picker("Smoother", selection: $state.glucoseSmoother) {
+                                ForEach(GlucoseSmoother.allCases) { smoother in
+                                    Text(smoother.displayName).tag(smoother)
+                                }
+                            }
+                        }
+                    ).listRowBackground(Color.chart)
                 }
                 .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
                 .onAppear(perform: configureView)

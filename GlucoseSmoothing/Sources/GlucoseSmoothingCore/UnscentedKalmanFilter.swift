@@ -107,7 +107,8 @@ public final class UnscentedKalmanFilter {
         wmArr[0] = lambda / (Double(n) + lambda)
         wcArr[0] = lambda / (Double(n) + lambda) + (1 - alpha * alpha + beta)
         let w = 1.0 / (2.0 * (Double(n) + lambda))
-        for i in 1 ..< (2 * n + 1) { wmArr[i] = w; wcArr[i] = w }
+        for i in 1 ..< (2 * n + 1) { wmArr[i] = w
+            wcArr[i] = w }
         wm = wmArr
         wc = wcArr
         learnedR = rInit
@@ -118,8 +119,7 @@ public final class UnscentedKalmanFilter {
     /// Smooth a **newest-first** list of readings, writing each element's `smoothed` (mg/dL, ≥39)
     /// and — on the newest point of each segment — `trendArrow`. Returns the mutated copy. Any
     /// internal error falls back to raw-copied smoothed values so a fault never blocks the caller.
-    @discardableResult
-    public func smooth(_ input: [InMemoryGlucoseValue]) -> [InMemoryGlucoseValue] {
+    @discardableResult public func smooth(_ input: [InMemoryGlucoseValue]) -> [InMemoryGlucoseValue] {
         var data = input
         if data.isEmpty { return data }
         smoothInternal(&data)
@@ -171,8 +171,13 @@ public final class UnscentedKalmanFilter {
         lastProcessedTimestamp = data[0].timestamp
 
         for segment in segments {
-            processSegment(&data, startIdx: segment.startIdx, endIdx: segment.endIdx,
-                           previousTimestamp: previousTimestamp, iobTotal: iobTotal)
+            processSegment(
+                &data,
+                startIdx: segment.startIdx,
+                endIdx: segment.endIdx,
+                previousTimestamp: previousTimestamp,
+                iobTotal: iobTotal
+            )
         }
 
         // Fill any unprocessed point (one orphaned by gaps/invalid spacing into a run of <2, so it
@@ -255,8 +260,12 @@ public final class UnscentedKalmanFilter {
             // Error-code readings (≤38): prediction-only, no measurement update.
             if rawValue <= 38.0 {
                 let stateBefore = FilterState(x: x, p: p, xPred: xPredBase, pPred: pPredBase, dt: dtUsed)
-                x[0] = xPredBase[0]; x[1] = xPredBase[1]
-                p[0] = pPredBase[0]; p[1] = pPredBase[1]; p[2] = pPredBase[2]; p[3] = pPredBase[3]
+                x[0] = xPredBase[0]
+                x[1] = xPredBase[1]
+                p[0] = pPredBase[0]
+                p[1] = pPredBase[1]
+                p[2] = pPredBase[2]
+                p[3] = pPredBase[3]
                 forwardResults[i - startIdx] = x[0]
                 forwardStates.insert(stateBefore, at: 0)
                 i -= 1
@@ -424,7 +433,7 @@ public final class UnscentedKalmanFilter {
         let pfT10 = p[2] + p[3] * dt
         let pfT11 = p[3] * damp
         let det = pPred[0] * pPred[3] - pPred[1] * pPred[2]
-        if abs(det) < 1e-10 { return [0, 0, 0, 0] }
+        if abs(det) < 1E-10 { return [0, 0, 0, 0] }
         let inv00 = pPred[3] / det
         let inv01 = -pPred[1] / det
         let inv10 = -pPred[2] / det
@@ -433,7 +442,7 @@ public final class UnscentedKalmanFilter {
             pfT00 * inv00 + pfT01 * inv10,
             pfT00 * inv01 + pfT01 * inv11,
             pfT10 * inv00 + pfT11 * inv10,
-            pfT10 * inv01 + pfT11 * inv11,
+            pfT10 * inv01 + pfT11 * inv11
         ]
     }
 
@@ -484,9 +493,13 @@ public final class UnscentedKalmanFilter {
         }
         pzz += r
 
-        if pzz < 1e-6 {
-            x[0] = xPred[0]; x[1] = xPred[1]
-            p[0] = pPred[0]; p[1] = pPred[1]; p[2] = pPred[2]; p[3] = pPred[3]
+        if pzz < 1E-6 {
+            x[0] = xPred[0]
+            x[1] = xPred[1]
+            p[0] = pPred[0]
+            p[1] = pPred[1]
+            p[2] = pPred[2]
+            p[3] = pPred[3]
             return
         }
 
@@ -534,13 +547,13 @@ public final class UnscentedKalmanFilter {
         let a = p[0]
         let b = (p[1] + p[2]) / 2.0
         let d = p[3]
-        let l11 = max(a, 1e-9).squareRoot()
+        let l11 = max(a, 1E-9).squareRoot()
         let l21 = b / l11
         let discriminant = d - l21 * l21
-        if discriminant < -1e-9 {
+        if discriminant < -1E-9 {
             return [max(a, 0.1).squareRoot(), 0.0, 0.0, max(d, 0.01).squareRoot()]
         }
-        let l22 = max(discriminant, 1e-9).squareRoot()
+        let l22 = max(discriminant, 1E-9).squareRoot()
         return [l11, l21, 0.0, l22]
     }
 
