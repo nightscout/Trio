@@ -48,6 +48,7 @@ extension PumpConfig {
                                     Spacer()
                                     Button("Acknowledge all alerts") { state.ack() }
                                 }
+                                Spacer()
                             } else {
                                 VStack {
                                     Button {

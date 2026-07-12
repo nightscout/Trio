@@ -5,7 +5,6 @@ import UIKit
 var LoggerTestMode = false
 
 private let baseReporter = TrioApp.resolver.resolve(GroupedIssueReporter.self)!
-private let router = TrioApp.resolver.resolve(Router.self)!
 
 let loggerLock = NSRecursiveLock()
 
@@ -28,37 +27,13 @@ func debug(
 func info(
     _ category: Logger.Category,
     _ message: String,
-    type: MessageType = .info,
     file: String = #file,
     function: String = #function,
     line: UInt = #line
 ) {
     DispatchWorkItem(qos: .background, flags: .enforceQoS) {
         loggerLock.perform {
-            category.logger.info(message, type: type, file: file, function: function, line: line)
-        }
-    }.perform()
-}
-
-func info(
-    _ category: Logger.Category,
-    _ message: String,
-    notificationText: String,
-    type: MessageType = .info,
-    file: String = #file,
-    function: String = #function,
-    line: UInt = #line
-) {
-    DispatchWorkItem(qos: .background, flags: .enforceQoS) {
-        loggerLock.perform {
-            category.logger.info(
-                message,
-                notificationText: notificationText,
-                type: type,
-                file: file,
-                function: function,
-                line: line
-            )
+            category.logger.info(message, file: file, function: function, line: line)
         }
     }.perform()
 }
@@ -268,18 +243,6 @@ final class Logger {
 
     func info(
         _ message: String,
-        type: MessageType = .info,
-        file: String = #file,
-        function: String = #function,
-        line: UInt = #line
-    ) {
-        info(message, notificationText: message, type: type, file: file, function: function, line: line)
-    }
-
-    func info(
-        _ message: String,
-        notificationText: String,
-        type: MessageType = .info,
         file: String = #file,
         function: String = #function,
         line: UInt = #line
@@ -287,8 +250,6 @@ final class Logger {
         let printedMessage = "INFO: \(message)"
         os_log("%@ - %@ - %d %{public}@", log: log, type: .info, file.file, function, line, printedMessage)
         reporter.log(category.name, printedMessage, file: file, function: function, line: line)
-
-        showAlert(notificationText, type: type)
     }
 
     func warning(
@@ -322,13 +283,6 @@ final class Logger {
         fatalError(
             "\(message) @ \(String(describing: description)) @ \(String(describing: maybeError)) @ \(file) @ \(function) @ \(line)"
         )
-    }
-
-    private func showAlert(_ message: String, type: MessageType = .info) {
-        DispatchQueue.main.async {
-            let messageCont = MessageContent(content: message, type: type)
-            router.alertMessage.send(messageCont)
-        }
     }
 
     fileprivate func errorWithoutFatalError(

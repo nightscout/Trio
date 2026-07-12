@@ -38,7 +38,7 @@ extension LiveActivityManager {
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1,
-            propertiesToFetch: ["cob", "currentTarget", "deliverAt"]
+            relationshipKeyPathsForPrefetching: ["forecasts", "forecasts.forecastValues"]
         )
 
         let tddResults = try await CoreDataStack.shared.fetchEntitiesAsync(
@@ -52,7 +52,9 @@ extension LiveActivityManager {
         )
 
         return try await context.perform {
-            guard let determinationResults = results as? [[String: Any]], let tddResults = tddResults as? [[String: Any]] else {
+            guard let determinationResults = results as? [OrefDetermination],
+                  let tddResults = tddResults as? [[String: Any]]
+            else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
@@ -62,11 +64,44 @@ extension LiveActivityManager {
 
             let tddValue = (tddResults.first?["total"] as? NSDecimalNumber)?.decimalValue ?? 0
 
+            // Compute cone bounds and per-type lines from forecast relationships (cap at 24 values = 2h)
+            var allForecastValues = [[Int]]()
+            var forecastLines = [(type: String, values: [Int])]()
+
+            if let forecasts = determination.forecasts {
+                let hasCarbs = forecasts.contains(where: {
+                    ($0.type == "cob" || $0.type == "uam") && !$0.forecastValuesArray.isEmpty
+                })
+                for forecast in forecasts.sorted(by: { ($0.type ?? "") < ($1.type ?? "") }) {
+                    let values = forecast.forecastValuesArray.prefix(24).map { Int($0.value) }
+                    guard !values.isEmpty else { continue }
+                    // iob is hidden when cob or uam are active (matches phone app behavior)
+                    if forecast.type == "iob", hasCarbs { continue }
+                    allForecastValues.append(Array(values))
+                    if let type = forecast.type {
+                        forecastLines.append((type: type, values: Array(values)))
+                    }
+                }
+            }
+
+            let minCount = allForecastValues.map(\.count).min() ?? 0
+            var minForecast = [Int]()
+            var maxForecast = [Int]()
+
+            for index in 0 ..< minCount {
+                let col = allForecastValues.compactMap { $0.indices.contains(index) ? $0[index] : nil }
+                minForecast.append(col.min() ?? 0)
+                maxForecast.append(col.max() ?? 0)
+            }
+
             return DeterminationData(
-                cob: (determination["cob"] as? Int) ?? 0,
+                cob: Int(determination.cob),
                 tdd: tddValue,
-                target: (determination["currentTarget"] as? NSDecimalNumber)?.decimalValue ?? 0,
-                date: determination["deliverAt"] as? Date ?? nil
+                target: determination.currentTarget?.decimalValue ?? 0,
+                date: determination.deliverAt,
+                minForecast: minForecast,
+                maxForecast: maxForecast,
+                forecastLines: forecastLines
             )
         }
     }

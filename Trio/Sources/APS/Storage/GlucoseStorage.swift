@@ -228,6 +228,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
         guard context.hasChanges else { return }
         try context.save()
+        updateSubject.send()
     }
 
     private func storeGlucoseBatch(_ glucose: [BloodGlucose], context: NSManagedObjectContext) throws {
@@ -246,7 +247,6 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             }
         )
         try context.execute(batchInsert)
-        // Only send update for batch insert since regular save triggers CoreData notifications
         updateSubject.send()
     }
 
@@ -808,11 +808,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
                 let glucoseValue = glucose.glucose
 
-                if Decimal(glucoseValue) <= settingsManager.settings.lowGlucose {
+                if Decimal(glucoseValue) <= settingsManager.settings.low {
                     return .low
                 }
 
-                if Decimal(glucoseValue) >= settingsManager.settings.highGlucose {
+                if Decimal(glucoseValue) >= settingsManager.settings.high {
                     return .high
                 }
 

@@ -2,6 +2,7 @@ import Combine
 import ConnectIQ
 import CoreData
 import Foundation
+import LoopKit
 import Swinject
 
 // MARK: - GarminManager Protocol
@@ -54,6 +55,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     @Injected() private var determinationStorage: DeterminationStorage!
 
     @Injected() private var iobService: IOBService!
+    @Injected() private var trioAlertManager: TrioAlertManager!
 
     /// Persists the user's device list between app launches.
     @Persisted(key: "BaseGarminManager.persistedDevices") private var persistedDevices: [GarminDevice] = []
@@ -967,13 +969,26 @@ extension BaseGarminManager: IQUIOverrideDelegate, IQDeviceEventDelegate, IQAppM
     /// Typically, you would show an alert or prompt the user to install the app from the store.
     func needsToInstallConnectMobile() {
         debug(.apsManager, "Garmin is not available")
-        let messageCont = MessageContent(
-            content: "The app Garmin Connect must be installed to use Trio.\nGo to the App Store to download it.",
-            type: .warning,
-            subtype: .misc,
-            title: "Garmin is not available"
+        let content = Alert.Content(
+            title: String(localized: "Garmin is not available"),
+            body: String(
+                localized:
+                "The app Garmin Connect must be installed to use Trio.\nGo to the App Store to download it."
+            ),
+            acknowledgeActionButtonLabel: String(localized: "OK")
         )
-        router.alertMessage.send(messageCont)
+        let alert = Alert(
+            identifier: Alert.Identifier(
+                managerIdentifier: "trio.garmin",
+                alertIdentifier: "connect.mobile.missing"
+            ),
+            foregroundContent: content,
+            backgroundContent: content,
+            trigger: .immediate,
+            interruptionLevel: .active,
+            sound: nil
+        )
+        trioAlertManager?.issueAlert(alert)
     }
 
     // MARK: - IQDeviceEventDelegate

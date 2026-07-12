@@ -8,6 +8,11 @@ import Swinject
 
 protocol APSManager {
     func heartbeat(date: Date)
+    /// Mark the next loop attempt as user-initiated (e.g. force-loop button).
+    /// Surfaces transient errors immediately instead of waiting for the
+    /// usual dwell threshold — when the user explicitly asks for a loop,
+    /// they want feedback even if the underlying error is "transient".
+    func markNextLoopUserInitiated()
     func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async
     var pumpManager: PumpManagerUI? { get set }
     var bluetoothManager: BluetoothStateManager? { get }
@@ -36,6 +41,13 @@ protocol APSManager {
     var iobFileDidUpdate: PassthroughSubject<Void, Never> { get }
 }
 
+/// Notified after a bolus-related failure so observing UI (e.g. the
+/// treatment screen's bolus state) can clean up state. Broadcast by
+/// `APSManager` from `enactBolus` / `cancelBolus` error paths.
+protocol BolusFailureObserver {
+    func bolusDidFail()
+}
+
 enum APSError: LocalizedError {
     case pumpError(Error)
     case invalidPumpState(message: String)
@@ -56,17 +68,6 @@ enum APSError: LocalizedError {
         case let .manualBasalTemp(message):
             return String(localized: "Manual Temporary Basal Rate (\(message)). Looping suspended.")
         }
-    }
-
-    static func pumpErrorMatches(message: String) -> Bool {
-        message.contains(String(localized: "Pump Error"))
-    }
-
-    static func pumpWarningMatches(message: String) -> Bool {
-        message.contains(String(localized: "Invalid Pump State")) || message
-            .contains("PumpMessage") || message
-            .contains("PumpOpsError") || message.contains("RileyLink") || message
-            .contains(String(localized: "Pump did not respond in time"))
     }
 }
 
@@ -104,6 +105,7 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var tddStorage: TDDStorage!
     @Injected() private var broadcaster: Broadcaster!
+    @Injected() private var trioAlertManager: TrioAlertManager!
     @Persisted(key: "lastLoopStartDate") private var lastLoopStartDate: Date = .distantPast
     @Persisted(key: "lastLoopDate") var lastLoopDate: Date = .distantPast {
         didSet {
@@ -180,7 +182,7 @@ final class BaseAPSManager: APSManager, Injectable {
             if wasParsed {
                 Task {
                     do {
-                        try await openAPS.createProfiles(useSwiftOref: settings.useSwiftOref)
+                        try await openAPS.createProfiles(useJavascriptOref: settings.useJavascriptOref)
                     } catch {
                         debug(
                             .apsManager,
@@ -209,10 +211,12 @@ final class BaseAPSManager: APSManager, Injectable {
 
         deviceDataManager.bolusTrigger
             .receive(on: processQueue)
-            .sink { [weak self] bolusing in
-                if bolusing {
+            .sink { [weak self] bolusState in
+                switch bolusState {
+                case .initiating,
+                     .inProgress:
                     self?.createBolusReporter()
-                } else {
+                case .noBolus:
                     self?.clearBolusReporter()
                 }
             }
@@ -259,6 +263,24 @@ final class BaseAPSManager: APSManager, Injectable {
         Task { [weak self] in
             guard let self else { return }
 
+            // Consume the user-initiated flag unconditionally — it was set
+            // for the loop the user just triggered. If the guards below block
+            // (suspended, too-soon, no pump), the next scheduled tick must
+            // not inherit it and bypass dwell suppression for an error the
+            // user didn't request.
+            let userInitiated = self.nextLoopUserInitiated
+            self.nextLoopUserInitiated = false
+
+            // Don't try to run a loop while pump setup / pod pairing is in
+            // progress — `verifyStatus` would throw `invalidPumpState("Pump
+            // not set")` and surface a modal banner on top of the pod
+            // activation sheet, closing the sheet (reported by tester during
+            // O5 pairing).
+            guard self.pumpManager != nil else {
+                debug(.apsManager, "No pump manager — skipping loop attempt")
+                return
+            }
+
             // Atomic check-and-set via actor — eliminates the race between
             // checking isLooping.value and sending isLooping(true).
             guard await loopGuard.tryStart(
@@ -269,6 +291,11 @@ final class BaseAPSManager: APSManager, Injectable {
                 debug(.apsManager, "Loop skipped (already running or too soon)")
                 return
             }
+
+            // Affects whether transient errors surface immediately instead of
+            // dwell-suppressed (see `surfaceErrorIfNeeded`).
+            self.currentLoopUserInitiated = userInitiated
+            defer { self.currentLoopUserInitiated = false }
 
             // Start background task
             // we probably need to refactor this when implementing Swift 6 due to mutation of a captured var in an async context
@@ -370,6 +397,8 @@ final class BaseAPSManager: APSManager, Injectable {
             debug(.apsManager, "Loop succeeded")
             lastLoopDate = Date()
             lastError.send(nil)
+            transientCategoryFirstSeen.removeAll()
+            transientCategoryCount.removeAll()
         }
 
         loopStats(loopStatRecord: loopStatRecord)
@@ -407,7 +436,7 @@ final class BaseAPSManager: APSManager, Injectable {
         else {
             let result = try await openAPS.autosense(
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
-                useSwiftOref: settings.useSwiftOref
+                useJavascriptOref: settings.useJavascriptOref
             )
             return result != nil
         }
@@ -486,14 +515,14 @@ final class BaseAPSManager: APSManager, Injectable {
             let now = Date()
 
             // put profile creation up front since autosens needs it
-            try await openAPS.createProfiles(useSwiftOref: settings.useSwiftOref)
+            try await openAPS.createProfiles(useJavascriptOref: settings.useJavascriptOref)
             let currentTemp = try await fetchCurrentTempBasal(date: now)
             _ = try await autosense()
 
             let determination = try await openAPS.determineBasal(
                 currentTemp: currentTemp,
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
-                useSwiftOref: settings.useSwiftOref,
+                useJavascriptOref: settings.useJavascriptOref,
                 clock: now
             )
             iobFileDidUpdate.send(())
@@ -540,7 +569,7 @@ final class BaseAPSManager: APSManager, Injectable {
             return try await openAPS.determineBasal(
                 currentTemp: temp,
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
-                useSwiftOref: settings.useSwiftOref,
+                useJavascriptOref: settings.useJavascriptOref,
                 clock: Date(),
                 simulatedCarbsAmount: simulatedCarbsAmount,
                 simulatedBolusAmount: simulatedBolusAmount,
@@ -606,9 +635,14 @@ final class BaseAPSManager: APSManager, Injectable {
             }
         } catch {
             warning(.apsManager, "Bolus failed with error: \(error)")
-            processError(APSError.pumpError(error))
+            lastError.send(APSError.pumpError(error))
+            issueAlertForCategory(
+                .bolusFailed,
+                title: String(localized: "Bolus failed"),
+                body: String(localized: "Check pump history before repeating.")
+                    + "\n\n\(error.localizedDescription)"
+            )
             if !isSMB {
-                // Use MainActor to handle broadcaster notification
                 let broadcaster = self.broadcaster
                 Task { @MainActor in
                     broadcaster?.notify(BolusFailureObserver.self, on: .main) {
@@ -632,7 +666,12 @@ final class BaseAPSManager: APSManager, Injectable {
             callback?(true, String(localized: "Bolus cancelled successfully.", comment: "Success message for canceling a bolus"))
         } catch {
             debug(.apsManager, "Bolus cancellation failed with error: \(error)")
-            processError(APSError.pumpError(error))
+            lastError.send(APSError.pumpError(error))
+            issueAlertForCategory(
+                .bolusFailed,
+                title: String(localized: "Bolus cancellation failed"),
+                body: String(localized: "Try again.") + "\n\n\(error.localizedDescription)"
+            )
             callback?(
                 false,
                 String(
@@ -724,10 +763,9 @@ final class BaseAPSManager: APSManager, Injectable {
             throw APSError.apsError(message: "Pump not set")
         }
 
-        // Check if pump is suspended and abort if it is
         if pump.status.pumpStatus.suspended {
-            info(.apsManager, "Skipping enactDetermination because pump is suspended")
-            return // return without throwing an error
+            debug(.apsManager, "Skipping enactDetermination because pump is suspended")
+            return
         }
 
         // Unable to do temp basal during manual temp basal 😁
@@ -1239,9 +1277,108 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
+    private var transientCategoryFirstSeen: [String: Date] = [:]
+    private var transientCategoryCount: [String: Int] = [:]
+    private static let transientDwellThreshold: TimeInterval = 60
+    private static let transientCountThreshold = 2
+
+    /// Set by `markNextLoopUserInitiated()` (e.g. force-loop button), consumed
+    /// on the next entry into `loop()` so that errors during a user-initiated
+    /// loop surface immediately instead of being suppressed by dwell logic.
+    @SyncAccess private var nextLoopUserInitiated: Bool = false
+    private var currentLoopUserInitiated: Bool = false
+
+    func markNextLoopUserInitiated() {
+        nextLoopUserInitiated = true
+    }
+
     private func processError(_ error: Error) {
         warning(.apsManager, "\(error)")
         lastError.send(error)
+        surfaceErrorIfNeeded(error)
+    }
+
+    private func surfaceErrorIfNeeded(_ error: Error) {
+        let category = TrioAlertClassifier.categorize(error: error)
+        let key = String(describing: category)
+
+        if category.shouldFireImmediately || currentLoopUserInitiated {
+            transientCategoryFirstSeen.removeValue(forKey: key)
+            transientCategoryCount.removeValue(forKey: key)
+            issueAlertForError(error, category: category)
+            return
+        }
+
+        let now = Date()
+        let firstSeen = transientCategoryFirstSeen[key] ?? now
+        let count = (transientCategoryCount[key] ?? 0) + 1
+        let dwellElapsed = now.timeIntervalSince(firstSeen)
+        let dwellMet = dwellElapsed >= Self.transientDwellThreshold
+        let countMet = count >= Self.transientCountThreshold
+
+        if dwellMet || countMet {
+            transientCategoryFirstSeen.removeValue(forKey: key)
+            transientCategoryCount.removeValue(forKey: key)
+            issueAlertForError(error, category: category)
+        } else {
+            transientCategoryFirstSeen[key] = firstSeen
+            transientCategoryCount[key] = count
+            debug(
+                .apsManager,
+                "APSManager suppressed transient \(category) (count=\(count)/\(Self.transientCountThreshold), dwell=\(Int(dwellElapsed))s/\(Int(Self.transientDwellThreshold))s)"
+            )
+        }
+    }
+
+    private func issueAlertForCategory(_ category: TrioAlertCategory, title: String, body: String) {
+        let content = Alert.Content(
+            title: title,
+            body: body,
+            acknowledgeActionButtonLabel: String(localized: "OK")
+        )
+        let alert = Alert(
+            identifier: Alert.Identifier(managerIdentifier: "trio.aps", alertIdentifier: category.alertIdentifier),
+            foregroundContent: content,
+            backgroundContent: content,
+            trigger: .immediate,
+            interruptionLevel: category.interruptionLevel
+        )
+        trioAlertManager?.issueAlert(alert)
+    }
+
+    private func issueAlertForError(_ error: Error, category: TrioAlertCategory) {
+        let (title, body) = describeForAlert(error)
+        let content = Alert.Content(
+            title: title,
+            body: body,
+            acknowledgeActionButtonLabel: "OK"
+        )
+        let alert = Alert(
+            identifier: Alert.Identifier(managerIdentifier: "trio.aps", alertIdentifier: category.alertIdentifier),
+            foregroundContent: content,
+            backgroundContent: content,
+            trigger: .immediate,
+            interruptionLevel: category.interruptionLevel
+        )
+        trioAlertManager?.issueAlert(alert)
+    }
+
+    private func describeForAlert(_ error: Error) -> (title: String, body: String) {
+        if let apsError = error as? APSError {
+            switch apsError {
+            case let .pumpError(inner):
+                return (
+                    String(localized: "Pump Error"),
+                    String(localized: "Trio could not communicate with the pump. Check the pump and try again.")
+                        + "\n\n\(inner.localizedDescription)"
+                )
+            case let .invalidPumpState(message): return (String(localized: "Pump State Error"), message)
+            case let .glucoseError(message): return (String(localized: "Glucose Error"), message)
+            case let .apsError(message): return (String(localized: "Algorithm Error"), message)
+            case let .manualBasalTemp(message): return (String(localized: "Manual Temp Basal Active"), message)
+            }
+        }
+        return ("Trio", error.localizedDescription)
     }
 
     /// Called from the `bolusTrigger` Combine sink (already on
@@ -1250,6 +1387,10 @@ final class BaseAPSManager: APSManager, Injectable {
     /// Mutations are dispatched onto the queue regardless, so a future
     /// caller from another context (e.g. `cancelBolus`) stays safe.
     private func createBolusReporter() {
+        if bolusReporter != nil {
+            return
+        }
+
         processQueue.async {
             self.bolusReporter = self.pumpManager?.createBolusProgressReporter(reportingOn: self.processQueue)
             self.bolusReporter?.addObserver(self)
