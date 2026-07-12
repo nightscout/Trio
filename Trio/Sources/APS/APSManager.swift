@@ -213,10 +213,12 @@ final class BaseAPSManager: APSManager, Injectable {
 
         deviceDataManager.bolusTrigger
             .receive(on: processQueue)
-            .sink { [weak self] bolusing in
-                if bolusing {
+            .sink { [weak self] bolusState in
+                switch bolusState {
+                case .initiating,
+                     .inProgress:
                     self?.createBolusReporter()
-                } else {
+                case .noBolus:
                     self?.clearBolusReporter()
                 }
             }
@@ -1347,6 +1349,10 @@ final class BaseAPSManager: APSManager, Injectable {
     /// Mutations are dispatched onto the queue regardless, so a future
     /// caller from another context (e.g. `cancelBolus`) stays safe.
     private func createBolusReporter() {
+        if bolusReporter != nil {
+            return
+        }
+
         processQueue.async {
             self.bolusReporter = self.pumpManager?.createBolusProgressReporter(reportingOn: self.processQueue)
             self.bolusReporter?.addObserver(self)
