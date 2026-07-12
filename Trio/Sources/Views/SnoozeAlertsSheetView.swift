@@ -27,17 +27,11 @@ struct SnoozeAlertsSheetView: View {
                                 .font(.headline)
                         }
                         Button {
-                            undoSnooze()
+                            endSnooze()
                         } label: {
-                            HStack {
-                                Image(systemName: "arrow.uturn.backward.circle").foregroundStyle(.red)
-                                Text("Undo Snooze").bold()
-                            }
-                            .font(.title3)
+                            Text("End Snooze")
+                                .foregroundColor(.red)
                         }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .buttonStyle(.bordered)
-                        .tint(.red)
                     }.listRowBackground(Color.chart)
                 }
                 Section(footer: Text(
@@ -83,7 +77,7 @@ struct SnoozeAlertsSheetView: View {
         }
     }
 
-    private func undoSnooze() {
+    private func endSnooze() {
         let trioAlertManager = resolver.resolve(TrioAlertManager.self)
         Task { @MainActor in
             await trioAlertManager?.applySnooze(for: 0)
