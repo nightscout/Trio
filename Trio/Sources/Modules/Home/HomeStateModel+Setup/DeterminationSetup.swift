@@ -46,7 +46,7 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateDeterminationsFromController() {
+    @MainActor func updateDeterminationsFromController() {
         guard let objects = determinationController.fetchedObjects else { return }
         enactedAndNonEnactedDeterminations = objects
         yAxisChartDataCobChart(determinations: objects)

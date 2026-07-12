@@ -41,7 +41,7 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateTempTargetRunsFromController() {
+    @MainActor func updateTempTargetRunsFromController() {
         guard let objects = tempTargetRunController.fetchedObjects else { return }
         tempTargetRunStored = objects
     }

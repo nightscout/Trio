@@ -22,7 +22,7 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateInsulinFromController() {
+    @MainActor func updateInsulinFromController() {
         guard let objects = insulinController.fetchedObjects else { return }
         insulinFromPersistence = objects
 

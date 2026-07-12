@@ -17,7 +17,7 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateBatteryFromController() {
+    @MainActor func updateBatteryFromController() {
         guard let objects = batteryController.fetchedObjects else { return }
         batteryFromPersistence = objects
     }

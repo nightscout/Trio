@@ -41,7 +41,7 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateOverrideRunsFromController() {
+    @MainActor func updateOverrideRunsFromController() {
         guard let objects = overrideRunController.fetchedObjects else { return }
         overrideRunStored = objects
     }

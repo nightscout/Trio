@@ -19,7 +19,7 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateCarbsFromController() {
+    @MainActor func updateCarbsFromController() {
         guard let objects = carbsController.fetchedObjects else { return }
         carbsFromPersistence = objects
     }
@@ -41,7 +41,7 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateFPUsFromController() {
+    @MainActor func updateFPUsFromController() {
         guard let objects = fpuController.fetchedObjects else { return }
         fpusFromPersistence = objects
     }

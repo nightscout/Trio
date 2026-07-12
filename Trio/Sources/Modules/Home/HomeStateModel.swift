@@ -281,7 +281,7 @@ extension Home {
         @ObservationIgnored private(set) lazy var overrideRunController: NSFetchedResultsController<OverrideRunStored> = {
             let request = NSFetchRequest<OverrideRunStored>(entityName: "OverrideRunStored")
             request.sortDescriptors = [NSSortDescriptor(keyPath: \OverrideRunStored.startDate, ascending: false)]
-            request.predicate = NSPredicate(format: "startDate >= %@", Date.oneDayAgo as NSDate)
+            request.predicate = NSPredicate.predicateForStartDateOneDayAgo
             let controller = NSFetchedResultsController(
                 fetchRequest: request,
                 managedObjectContext: viewContext,
@@ -311,7 +311,7 @@ extension Home {
         @ObservationIgnored private(set) lazy var tempTargetRunController: NSFetchedResultsController<TempTargetRunStored> = {
             let request = NSFetchRequest<TempTargetRunStored>(entityName: "TempTargetRunStored")
             request.sortDescriptors = [NSSortDescriptor(keyPath: \TempTargetRunStored.startDate, ascending: false)]
-            request.predicate = NSPredicate(format: "startDate >= %@", Date.oneDayAgo as NSDate)
+            request.predicate = NSPredicate.predicateForStartDateOneDayAgo
             let controller = NSFetchedResultsController(
                 fetchRequest: request,
                 managedObjectContext: viewContext,
@@ -352,6 +352,40 @@ extension Home {
             controller.delegate = tddControllerDelegate
             return controller
         }()
+
+        // MARK: - Fetch window re-anchoring
+
+        /// Called on `UIApplication.willEnterForegroundNotification`
+        @MainActor func reanchorFetchWindows() {
+            reanchor(glucoseController, with: NSPredicate.glucose) { self.updateGlucoseFromController() }
+            reanchor(carbsController, with: NSPredicate.carbsForChart) { self.updateCarbsFromController() }
+            reanchor(fpuController, with: NSPredicate.fpusForChart) { self.updateFPUsFromController() }
+            reanchor(determinationController, with: NSPredicate.determinationsForCobIobCharts) {
+                self.updateDeterminationsFromController()
+            }
+            reanchor(insulinController, with: NSPredicate.pumpHistoryLast24h) { self.updateInsulinFromController() }
+            reanchor(overrideRunController, with: NSPredicate.predicateForStartDateOneDayAgo) {
+                self.updateOverrideRunsFromController()
+            }
+            reanchor(tempTargetRunController, with: NSPredicate.predicateForStartDateOneDayAgo) {
+                self.updateTempTargetRunsFromController()
+            }
+            reanchor(batteryController, with: NSPredicate.predicateFor30MinAgo) { self.updateBatteryFromController() }
+        }
+
+        @MainActor private func reanchor<T: NSFetchRequestResult>(
+            _ controller: NSFetchedResultsController<T>,
+            with predicate: NSPredicate,
+            republish: () -> Void
+        ) {
+            controller.fetchRequest.predicate = predicate
+            do {
+                try controller.performFetch()
+                republish()
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) Failed to re-anchor fetch window for \(T.self): \(error)")
+            }
+        }
 
         private var subscriptions = Set<AnyCancellable>()
 
@@ -482,6 +516,14 @@ extension Home {
                 }
             }
             timer.resume()
+
+            Foundation.NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
+                .sink { [weak self] _ in
+                    Task { @MainActor in
+                        self?.reanchorFetchWindows()
+                    }
+                }
+                .store(in: &lifetime)
 
             fetchGlucoseManager.cgmDisplayState
                 .receive(on: DispatchQueue.main)
