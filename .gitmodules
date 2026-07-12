@@ -33,4 +33,4 @@
 	url = https://github.com/loopandlearn/OmnipodKit
 [submodule "AccuChekKit"]
 	path = AccuChekKit
-	url = https://github.com/bastiaanv/AccuChekKit
+	url = https://github.com/loopandlearn/AccuChekKit
