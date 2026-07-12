@@ -288,7 +288,7 @@ import Testing
     @Test("Algorithm uses smoothed glucose when enabled") func testAlgorithmUsesSmoothedGlucose() async throws {
         await createGlucose(glucose: 150, smoothed: 140, isManual: false, date: Date())
 
-        let algorithmInput = try await runFetchAndProcessGlucose(smoothGlucose: true)
+        let algorithmInput = try await glucoseStorage.getGlucoseForAlgorithm(shouldSmoothGlucose: true, fetchHours: 24)
 
         #expect(algorithmInput.count == 1, "Expected to process one glucose entry.")
         #expect(
@@ -300,7 +300,7 @@ import Testing
     @Test("Algorithm uses raw glucose when smoothing is disabled") func testAlgorithmUsesRawGlucose() async throws {
         await createGlucose(glucose: 150, smoothed: 140, isManual: false, date: Date())
 
-        let algorithmInput = try await runFetchAndProcessGlucose(smoothGlucose: false)
+        let algorithmInput = try await glucoseStorage.getGlucoseForAlgorithm(shouldSmoothGlucose: false, fetchHours: 24)
 
         #expect(algorithmInput.count == 1, "Expected to process one glucose entry.")
         #expect(
@@ -312,7 +312,7 @@ import Testing
     @Test("Algorithm falls back to raw glucose if smoothed value is missing") func testAlgorithmFallbackToRawGlucose() async throws {
         await createGlucose(glucose: 150, smoothed: nil, isManual: false, date: Date())
 
-        let algorithmInput = try await runFetchAndProcessGlucose(smoothGlucose: true)
+        let algorithmInput = try await glucoseStorage.getGlucoseForAlgorithm(shouldSmoothGlucose: true, fetchHours: 24)
 
         #expect(algorithmInput.count == 1, "Expected to process one glucose entry.")
         #expect(
@@ -324,7 +324,7 @@ import Testing
     @Test("Algorithm ignores smoothed value for manual glucose entries") func testAlgorithmIgnoresSmoothedManualGlucose() async throws {
         await createGlucose(glucose: 150, smoothed: 140, isManual: true, date: Date())
 
-        let algorithmInput = try await runFetchAndProcessGlucose(smoothGlucose: true)
+        let algorithmInput = try await glucoseStorage.getGlucoseForAlgorithm(shouldSmoothGlucose: true, fetchHours: 24)
 
         #expect(algorithmInput.count == 1, "Expected to process one glucose entry.")
         #expect(
@@ -334,10 +334,6 @@ import Testing
     }
 
     // MARK: - Helpers
-
-    private func runFetchAndProcessGlucose(smoothGlucose: Bool) async throws -> [BloodGlucose] {
-        try await glucoseStorage.getGlucoseForAlgorithm(shouldSmoothGlucose: smoothGlucose, fetchHours: 24)
-    }
 
     private func createGlucose(glucose: Int16, smoothed: Decimal?, isManual: Bool, date: Date) async {
         await testContext.perform {
