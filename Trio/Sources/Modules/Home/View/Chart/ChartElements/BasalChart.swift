@@ -47,7 +47,7 @@ extension MainChartView {
 
 extension MainChartView {
     func drawTempBasals(dummy: Bool) -> some ChartContent {
-        ForEach(preparedTempBasals, id: \.rate) { basal in
+        ForEach(preparedTempBasals, id: \.start) { basal in
             if dummy {
                 RectangleMark(
                     xStart: .value("start", basal.start),
@@ -77,12 +77,15 @@ extension MainChartView {
                         endPoint: .top
                     )
                 ).alignsMarkStylesWithPlotArea()
+                    .opacity(basal.isScheduled ? 0.5 : 1)
 
                 LineMark(x: .value("Start Date", basal.start), y: .value("Amount", basal.rate))
                     .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                    .opacity(basal.isScheduled ? 0.5 : 1)
 
                 LineMark(x: .value("End Date", basal.end), y: .value("Amount", basal.rate))
                     .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                    .opacity(basal.isScheduled ? 0.5 : 1)
             }
         }
     }
@@ -146,24 +149,26 @@ extension MainChartView {
         }
     }
 
-    func prepareTempBasals() async -> [(start: Date, end: Date, rate: Double)] {
+    func prepareTempBasals() async -> [(start: Date, end: Date, rate: Double, isScheduled: Bool)] {
         let now = Date()
         let tempBasals = state.tempBasals
 
-        return tempBasals.compactMap { temp -> (start: Date, end: Date, rate: Double)? in
+        return tempBasals.compactMap { temp -> (start: Date, end: Date, rate: Double, isScheduled: Bool)? in
             let duration = temp.tempBasal?.duration ?? 0
             let timestamp = temp.timestamp ?? Date()
             let end = timestamp + duration.minutes
+            let isScheduled = temp.tempBasal?.isScheduledBasal ?? false
             let isInsulinSuspended = state.suspendAndResumeEvents
                 .contains { $0.timestamp ?? now >= timestamp && $0.timestamp ?? now <= end }
 
             let rate = Double(truncating: temp.tempBasal?.rate ?? Decimal.zero as NSDecimalNumber) * (isInsulinSuspended ? 0 : 1)
 
-            // Check if there's a subsequent temp basal to determine the end time
+            // reconciler rows carry exact bounds; commanded TBRs clip at the next event
+            guard !isScheduled else { return (timestamp, end, rate, true) }
             guard let nextTemp = state.tempBasals.first(where: { $0.timestamp ?? .distantPast > timestamp }) else {
-                return (timestamp, end, rate)
+                return (timestamp, end, rate, false)
             }
-            return (timestamp, nextTemp.timestamp ?? Date(), rate)
+            return (timestamp, nextTemp.timestamp ?? Date(), rate, false)
         }
     }
 

@@ -21,7 +21,7 @@ struct MainChartView: View {
     var state: Home.StateModel
 
     @State var basalProfiles: [BasalProfile] = []
-    @State var preparedTempBasals: [(start: Date, end: Date, rate: Double)] = []
+    @State var preparedTempBasals: [(start: Date, end: Date, rate: Double, isScheduled: Bool)] = []
     @State var selection: Date? = nil
 
     @State var mainChartHasInitialized = false

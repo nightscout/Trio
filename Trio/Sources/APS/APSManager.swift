@@ -448,21 +448,11 @@ final class BaseAPSManager: APSManager, Injectable {
     private func calculateAndStoreTDD() async throws {
         guard let pumpManager else { return }
 
-        async let pumpHistory = pumpHistoryStorage.getPumpHistory()
-        async let basalProfile = storage
-            .retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) ??
-            [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile)) ??
-            [] // OpenAPS.defaults ensures we at least get default rate of 1u/hr for 24 hrs
-
-        // Calculate TDD
+        // Calculate TDD; pump history includes recorded scheduled-basal rows
         let tddResult = try await tddStorage.calculateTDD(
             pumpManager: pumpManager,
-            pumpHistory: pumpHistory,
-            basalProfile: basalProfile
+            pumpHistory: pumpHistoryStorage.getPumpHistory()
         )
-
-        // decoupled bookkeeping; must never block a loop
-        try? await pumpHistoryStorage.reconcileScheduledBasal()
 
         // Store TDD in Core Data
         await tddStorage.storeTDD(tddResult)
@@ -470,6 +460,9 @@ final class BaseAPSManager: APSManager, Injectable {
 
     func determineBasal() async throws {
         debug(.apsManager, "Start determine basal")
+
+        // decoupled bookkeeping; must never block a loop
+        try? await pumpHistoryStorage.reconcileScheduledBasal()
 
         try await calculateAndStoreTDD()
 
