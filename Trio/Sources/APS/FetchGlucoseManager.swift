@@ -474,18 +474,20 @@ extension BaseFetchGlucoseManager {
         }
     }
 
-    /// UKF consume (P2) — run the Unscented Kalman Filter over the same newest-first window and
-    /// OVERWRITE `smoothedGlucose` with the forward-smoothed level wherever the filter produced a
+    /// UKF consume (P2) — run the Unscented Kalman Filter over the same window (reversed to the
+    /// newest-first order the filter requires) and OVERWRITE `smoothedGlucose` wherever it produced a
     /// valid (non-nil) value. Readings the UKF can't smooth keep the exponential value written by
     /// `applyExponentialSmoothingAndStore`, so the result is never worse than the exponential path.
     /// Runs on the context queue (reads/writes managed-object properties). Static to avoid self-capture.
-    private static func applyUkfSmoothingAndStore(glucoseReadings data: [GlucoseStored]) {
+    static func applyUkfSmoothingAndStore(glucoseReadings data: [GlucoseStored]) {
         // Minimum stored smoothed glucose (mg/dL) — matches the exponential path's floor exactly.
         let minimumSmoothedGlucose: Decimal = 39
 
-        // `data` is newest-first (fetchGlucose sorts date descending) — the order the UKF expects.
-        // Pair each GlucoseStored with its UKF input so write-back can't misalign.
-        let pairs: [(GlucoseStored, InMemoryGlucoseValue)] = data.compactMap { g in
+        // `data` arrives OLDEST-first: fetchGlucose fetches date-descending for the limit, then
+        // REVERSES before returning (see fetchGlucose). The UKF requires NEWEST-first (data[0] = most
+        // recent) — fed oldest-first, findDataSegments sees negative time-diffs, forms no segment, and
+        // copies raw (the filter goes inert). So reverse here. Pairing keeps write-back aligned.
+        let pairs: [(GlucoseStored, InMemoryGlucoseValue)] = data.reversed().compactMap { g in
             guard let date = g.date else { return nil }
             return (g, InMemoryGlucoseValue(timestamp: Int64(date.timeIntervalSince1970 * 1000), value: Double(g.glucose)))
         }
