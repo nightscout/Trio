@@ -82,12 +82,12 @@ public extension PumpEventStored {
 extension NSPredicate {
     static var pumpHistoryLast1440Minutes: NSPredicate {
         let date = Date.oneDayAgoInMinutes
-        return NSPredicate(format: "timestamp >= %@", date as NSDate)
+        return NSPredicate(format: "timestamp >= %@ AND NOT (tempBasal.isScheduledBasal == YES)", date as NSDate)
     }
 
     static var pumpHistoryLast48h: NSPredicate {
         let date = Date() - TimeInterval(hours: 48)
-        return NSPredicate(format: "timestamp >= %@", date as NSDate)
+        return NSPredicate(format: "timestamp >= %@ AND NOT (tempBasal.isScheduledBasal == YES)", date as NSDate)
     }
 
     static var pumpHistoryLast24h: NSPredicate {
@@ -103,7 +103,7 @@ extension NSPredicate {
     static var recentPumpHistory: NSPredicate {
         let date = Date.twentyMinutesAgo
         return NSPredicate(
-            format: "type == %@ AND timestamp >= %@",
+            format: "type == %@ AND timestamp >= %@ AND NOT (tempBasal.isScheduledBasal == YES)",
             PumpEventStored.EventType.tempBasal.rawValue,
             date as NSDate
         )
@@ -120,17 +120,29 @@ extension NSPredicate {
 
     static var pumpEventsNotYetUploadedToNightscout: NSPredicate {
         let date = Date.oneDayAgo
-        return NSPredicate(format: "timestamp >= %@ AND isUploadedToNS == %@", date as NSDate, false as NSNumber)
+        return NSPredicate(
+            format: "timestamp >= %@ AND isUploadedToNS == %@ AND NOT (tempBasal.isScheduledBasal == YES)",
+            date as NSDate,
+            false as NSNumber
+        )
     }
 
     static var pumpEventsNotYetUploadedToHealth: NSPredicate {
         let date = Date.oneDayAgo
-        return NSPredicate(format: "timestamp >= %@ AND isUploadedToHealth == %@", date as NSDate, false as NSNumber)
+        return NSPredicate(
+            format: "timestamp >= %@ AND isUploadedToHealth == %@ AND NOT (tempBasal.isScheduledBasal == YES)",
+            date as NSDate,
+            false as NSNumber
+        )
     }
 
     static var pumpEventsNotYetUploadedToTidepool: NSPredicate {
         let date = Date.oneDayAgo
-        return NSPredicate(format: "timestamp >= %@ AND isUploadedToTidepool == %@", date as NSDate, false as NSNumber)
+        return NSPredicate(
+            format: "timestamp >= %@ AND isUploadedToTidepool == %@ AND NOT (tempBasal.isScheduledBasal == YES)",
+            date as NSDate,
+            false as NSNumber
+        )
     }
 }
 
