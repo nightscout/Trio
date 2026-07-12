@@ -17,7 +17,7 @@ struct SnoozeAlertsSheetView: View {
         NavigationStack {
             List {
                 if snoozeUntilDate > Date() {
-                    Section(footer: Text("Swipe left or right to end snooze.")) {
+                    Section(footer: Text("Swipe left to end snooze.")) {
                         HStack {
                             Image(systemName: "moon.zzz.fill").foregroundStyle(.tint)
                             Text(String(
@@ -25,9 +25,6 @@ struct SnoozeAlertsSheetView: View {
                                 snoozeUntilDate.formatted(date: .omitted, time: .shortened)
                             ))
                                 .font(.headline)
-                        }
-                        .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                            endSnoozeAction
                         }
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             endSnoozeAction
@@ -73,7 +70,7 @@ struct SnoozeAlertsSheetView: View {
         Button(role: .destructive) {
             endSnooze()
         } label: {
-            Text("End Snooze")
+            Label("End Snooze", systemImage: "hand.draw.fill")
         }
         .tint(.red)
     }
