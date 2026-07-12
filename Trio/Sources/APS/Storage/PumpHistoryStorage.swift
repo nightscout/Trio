@@ -12,7 +12,7 @@ protocol PumpHistoryObserver {
 protocol PumpHistoryStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
     func getPumpHistory() async throws -> [PumpHistoryEvent]
-    func storePumpEvents(_ events: [NewPumpEvent]) async throws
+    func storePumpEvents(_ events: [NewPumpEvent], replacePendingEvents: Bool) async throws
     func reconcileScheduledBasal() async throws
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async
     func getPumpHistoryNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
@@ -47,7 +47,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         return Decimal(roundedValue)
     }
 
-    func storePumpEvents(_ events: [NewPumpEvent]) async throws {
+    func storePumpEvents(_ events: [NewPumpEvent], replacePendingEvents: Bool) async throws {
         try await context.perform {
             // upsert candidates: dose syncIdentifier, timestamp+type as fallback
             let syncIdentifiers = events.compactMap(\.dose?.syncIdentifier)
@@ -68,6 +68,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 uniquingKeysWith: { first, _ in first }
             )
 
+            var assertedRows = Set<NSManagedObjectID>()
+
             for event in events {
                 guard let storedType = event.type?.storedEventType else { continue }
 
@@ -77,6 +79,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     ?? byTimestampAndType[fallbackKey]
 
                 if let match = match {
+                    assertedRows.insert(match.objectID)
                     // finalized rows never change
                     if match.isMutable, let dose = event.dose {
                         self.updateMutablePumpEvent(match, with: dose)
@@ -137,6 +140,19 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     bySyncIdentifier[syncIdentifier] = newPumpEvent
                 }
                 byTimestampAndType[fallbackKey] = newPumpEvent
+                assertedRows.insert(newPumpEvent.objectID)
+            }
+
+            // Mutable rows are the pump's assertions (LoopKit contract): a
+            // complete pending report supersedes any it no longer contains.
+            // Trio-owned scheduled-basal rows are not the pump's to revoke.
+            if replacePendingEvents {
+                let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
+                request.predicate = NSPredicate(format: "isMutable == YES AND NOT (tempBasal.isScheduledBasal == YES)")
+                for orphan in try self.context.fetch(request) where !assertedRows.contains(orphan.objectID) {
+                    debug(.coreData, "Removing unasserted mutable event \(orphan.syncIdentifier ?? orphan.id ?? "-")")
+                    self.context.delete(orphan)
+                }
             }
 
             do {

@@ -121,7 +121,7 @@ extension NSPredicate {
     static var pumpEventsNotYetUploadedToNightscout: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(
-            format: "timestamp >= %@ AND isUploadedToNS == %@ AND NOT (tempBasal.isScheduledBasal == YES)",
+            format: "timestamp >= %@ AND isUploadedToNS == %@ AND NOT (tempBasal.isScheduledBasal == YES) AND NOT (isMutable == YES)",
             date as NSDate,
             false as NSNumber
         )
@@ -130,7 +130,7 @@ extension NSPredicate {
     static var pumpEventsNotYetUploadedToHealth: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(
-            format: "timestamp >= %@ AND isUploadedToHealth == %@ AND NOT (tempBasal.isScheduledBasal == YES)",
+            format: "timestamp >= %@ AND isUploadedToHealth == %@ AND NOT (tempBasal.isScheduledBasal == YES) AND NOT (isMutable == YES)",
             date as NSDate,
             false as NSNumber
         )
@@ -139,7 +139,7 @@ extension NSPredicate {
     static var pumpEventsNotYetUploadedToTidepool: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(
-            format: "timestamp >= %@ AND isUploadedToTidepool == %@ AND NOT (tempBasal.isScheduledBasal == YES)",
+            format: "timestamp >= %@ AND isUploadedToTidepool == %@ AND NOT (tempBasal.isScheduledBasal == YES) AND NOT (isMutable == YES)",
             date as NSDate,
             false as NSNumber
         )
