@@ -183,8 +183,6 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                         isf: self.decimal(from: orefDetermination.insulinSensitivity),
                         timestamp: orefDetermination.timestamp,
                         current_target: self.decimal(from: orefDetermination.currentTarget),
-                        insulinForManualBolus: self.decimal(from: orefDetermination.insulinForManualBolus),
-                        manualBolusErrorString: self.decimal(from: orefDetermination.manualBolusErrorString),
                         minDelta: self.decimal(from: orefDetermination.minDelta),
                         expectedDelta: self.decimal(from: orefDetermination.expectedDelta),
                         minGuardBG: nil,

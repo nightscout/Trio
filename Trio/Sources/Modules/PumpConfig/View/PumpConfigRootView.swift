@@ -48,6 +48,7 @@ extension PumpConfig {
                                     Spacer()
                                     Button("Acknowledge all alerts") { state.ack() }
                                 }
+                                Spacer()
                             } else {
                                 VStack {
                                     Button {
@@ -136,8 +137,6 @@ extension PumpConfig {
                 .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
                     Button("Medtronic") { state.addPump(.minimed) }
                     Button("All Omnipod Types") { state.addPump(.omni) }
-                    Button("Omnipod Eros") { state.addPump(.omnipod) }
-                    Button("Omnipod DASH") { state.addPump(.omnipodBLE) }
                     Button("Dana(RS/-i)") { state.addPump(.dana) }
                     Button("Medtrum Nano") { state.addPump(.medtrum) }
                     Button("Pump Simulator") { state.addPump(.simulator) }

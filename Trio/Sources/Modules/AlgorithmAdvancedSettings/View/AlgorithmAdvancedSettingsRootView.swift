@@ -390,6 +390,39 @@ extension AlgorithmAdvancedSettings {
                         Text("Note: A CGM is considered noisy when it provides inconsistent readings.")
                     }
                 )
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.useJavascriptOref,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = NSLocalizedString("Use JavaScript Oref", comment: "Use JavaScript Oref")
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: NSLocalizedString("Use JavaScript Oref", comment: "Use JavaScript Oref"),
+                    miniHint: String(
+                        localized: "Switches back to the legacy JavaScript-based algorithm version.",
+                        comment: "Use JavaScript Oref mini hint"
+                    ),
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text(
+                            "Trio now uses a fully Swift-based version of the algorithm (Oref) by default. It's faster, more accurate and improves Trio for everyone."
+                        )
+                        Text(
+                            "When enabled, Trio will instead use the legacy JavaScript-based algorithm that runs virtualized on your phone. Only enable this if you encounter issues with the Swift-based algorithm."
+                        )
+
+                        Text(
+                            "You can disable this feature anytime."
+                        )
+                    }
+                )
             }
             .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {

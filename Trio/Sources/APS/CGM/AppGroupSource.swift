@@ -30,6 +30,9 @@ struct AppGroupSource: GlucoseSource {
     let from: String
     var cgmType: CGMType
 
+    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    let cgmProgressHighlight = CurrentValueSubject<LoopKit.DeviceLifecycleProgress?, Never>(nil)
+
     func fetch(_ heartbeat: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
         guard let suiteName = Bundle.main.appGroupSuiteName,
               let sharedDefaults = UserDefaults(suiteName: suiteName)
@@ -52,7 +55,21 @@ struct AppGroupSource: GlucoseSource {
         HeartBeatManager.shared.checkCGMBluetoothTransmitter(sharedUserDefaults: sharedDefaults, heartbeat: heartbeat)
         debug(.deviceManager, "APPGROUP : START FETCH LAST BG ")
         let decoded = try? JSONSerialization.jsonObject(with: sharedData, options: [])
-        guard let sgvs = decoded as? [AnyObject] else {
+
+        // Two shapes accepted:
+        //   Legacy (xDrip4iOS today): top-level array of reading dicts.
+        //   Rich (xDrip4iOS extended for CGM lifecycle):
+        //   top-level dict carrying readings under
+        //   `recentReadings` plus sibling keys for CGM status, sensor
+        //   lifecycle, and transmitter info — see `applyRichState`.
+        let sgvs: [AnyObject]
+        if let dict = decoded as? [String: Any] {
+            applyRichState(dict)
+            sgvs = (dict["recentReadings"] as? [AnyObject]) ?? []
+        } else if let arr = decoded as? [AnyObject] {
+            applyRichState(nil)
+            sgvs = arr
+        } else {
             return []
         }
 
@@ -101,6 +118,81 @@ struct AppGroupSource: GlucoseSource {
         return results
     }
 
+    /// Reads the rich top-level dict from xDrip4iOS (when present) and
+    /// pushes status + lifecycle into the publishers HomeStateModel
+    /// subscribes to. Defensive on every key — xdrip ships partial dicts
+    /// during warmup / failure / between sensors.
+    private func applyRichState(_ payload: [String: Any]?) {
+        guard let payload else {
+            cgmDisplayState.value = nil
+            cgmProgressHighlight.value = nil
+            return
+        }
+
+        let cgm = payload["cgm"] as? [String: Any]
+        cgmDisplayState.value = parseStatus(cgm?["status"] as? [String: Any])
+        cgmProgressHighlight.value = parseSensorLifecycle(cgm?["sensor"] as? [String: Any])
+    }
+
+    private func parseStatus(_ status: [String: Any]?) -> CgmDisplayState? {
+        guard let status,
+              let message = status["localizedMessage"] as? String,
+              !message.isEmpty
+        else { return nil }
+        return CgmDisplayState(
+            localizedMessage: message,
+            imageName: (status["imageName"] as? String) ?? "",
+            status: cgmDisplayStatus(forCode: status["displayState"] as? String ?? status["code"] as? String)
+        )
+    }
+
+    /// xDrip4iOS sends a free-form code string (e.g. "normal", "warning",
+    /// "critical", "warmup", "calibration_needed", "sensor_failed"). We
+    /// fold anything unfamiliar into `.warning` so unknown future codes
+    /// surface visibly instead of going silent.
+    private func cgmDisplayStatus(forCode code: String?) -> CgmDisplayStatus {
+        switch code?.lowercased() {
+        case nil,
+             "normal",
+             "ok": return .normal
+        case "critical",
+             "expired",
+             "sensor_failed",
+             "session_failed",
+             "stopped": return .critical
+        default: return .warning
+        }
+    }
+
+    private func parseSensorLifecycle(_ sensor: [String: Any]?) -> DeviceLifecycleProgress? {
+        guard let sensor else { return nil }
+        let percent = (sensor["percentComplete"] as? NSNumber)?.doubleValue
+        guard let percent else { return nil }
+        let progressState = lifecycleProgressState(
+            for: sensor["progressState"] as? String,
+            isInWarmup: sensor["isInWarmup"] as? Bool ?? false,
+            isExpired: sensor["isExpired"] as? Bool ?? false
+        )
+        return AppGroupLifecycleProgress(
+            percentComplete: max(0, min(1, percent)),
+            progressState: progressState
+        )
+    }
+
+    private func lifecycleProgressState(
+        for code: String?,
+        isInWarmup: Bool,
+        isExpired: Bool
+    ) -> DeviceLifecycleProgressState {
+        if isExpired { return .critical }
+        if isInWarmup { return .normalCGM }
+        switch code?.lowercased() {
+        case "critical": return .critical
+        case "warning": return .warning
+        default: return .normalCGM
+        }
+    }
+
     private func parseDate(_ timestamp: String) -> Date? {
         // timestamp looks like "/Date(1462404576000)/"
         guard let re = try? NSRegularExpression(pattern: "\\((.*)\\)"),
@@ -117,6 +209,11 @@ struct AppGroupSource: GlucoseSource {
     func sourceInfo() -> [String: Any]? {
         [GlucoseSourceKey.description.rawValue: "Group ID: \(Bundle.main.appGroupSuiteName ?? String(localized: "Not set"))"]
     }
+}
+
+private struct AppGroupLifecycleProgress: DeviceLifecycleProgress {
+    let percentComplete: Double
+    let progressState: DeviceLifecycleProgressState
 }
 
 public extension Bundle {

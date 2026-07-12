@@ -14,9 +14,6 @@
       location = "group:LibreTransmitter/LibreTransmitter.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:OmniBLE/OmniBLE.xcodeproj">
-   </FileRef>
-   <FileRef
       location = "group:DanaKit/DanaKit.xcodeproj">
    </FileRef>
    <FileRef
@@ -35,10 +32,10 @@
       location = "group:LoopKit/LoopKit.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:OmniKit/OmniKit.xcodeproj">
+      location = "group:G7SensorKit/G7SensorKit.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:G7SensorKit/G7SensorKit.xcodeproj">
+      location = "group:EversenseKit/EversenseKit.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:TidepoolService/TidepoolService.xcodeproj">

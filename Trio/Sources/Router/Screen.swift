@@ -20,15 +20,17 @@ enum Screen: Identifiable, Hashable {
     case history
     case cgm
     case healthkit
-    case glucoseNotificationSettings
+    case glucoseAlerts
+    case deviceAlarms
+    case alarmWindows
     case mealSettings
     case iconConfig
     case overrideConfig
-    case snooze
     case statistics
     case watch
     case userInterfaceSettings
     case bolusCalculatorConfig
+    case quickBolusConfig
     case dynamicISF
     case calibrations
     case shortcutsConfig
@@ -50,6 +52,7 @@ enum Screen: Identifiable, Hashable {
     case unitsAndLimits
     case appDiagnostics
     case settingsExport
+    case treatmentsSettings
 
     var id: Int { String(reflecting: self).hashValue }
 }
@@ -105,16 +108,18 @@ extension Screen {
             )
         case .healthkit:
             AppleHealthKit.RootView(resolver: resolver)
-        case .glucoseNotificationSettings:
-            GlucoseNotificationSettings.RootView(resolver: resolver)
+        case .glucoseAlerts:
+            GlucoseAlerts.RootView(resolver: resolver)
+        case .deviceAlarms:
+            DeviceAlarms.RootView(resolver: resolver)
+        case .alarmWindows:
+            AlarmWindows.RootView(resolver: resolver)
         case .mealSettings:
             MealSettings.RootView(resolver: resolver)
         case .iconConfig:
             IconConfig.RootView(resolver: resolver)
         case .overrideConfig:
             Adjustments.RootView(resolver: resolver)
-        case .snooze:
-            Snooze.RootView(resolver: resolver)
         case .watch:
             WatchConfig.RootView(resolver: resolver)
         case .statistics:
@@ -123,6 +128,8 @@ extension Screen {
             UserInterfaceSettings.RootView(resolver: resolver)
         case .bolusCalculatorConfig:
             BolusCalculatorConfig.RootView(resolver: resolver)
+        case .quickBolusConfig:
+            QuickPickBolusesConfig.RootView(resolver: resolver)
         case .dynamicISF:
             DynamicSettings.RootView(resolver: resolver)
         case .calibrations:
@@ -165,6 +172,8 @@ extension Screen {
             AppDiagnostics.RootView(resolver: resolver)
         case .settingsExport:
             SettingsExport.RootView(resolver: resolver)
+        case .treatmentsSettings:
+            TreatmentsSettingsView(resolver: resolver, state: Settings.StateModel())
         }
     }
 

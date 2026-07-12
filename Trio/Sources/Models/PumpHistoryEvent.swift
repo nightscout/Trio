@@ -57,10 +57,6 @@ enum EventType: String, JSON {
     case bolus = "Bolus"
     case smb = "SMB"
     case isExternal = "External Insulin"
-    case mealBolus = "Meal Bolus"
-    case correctionBolus = "Correction Bolus"
-    case snackBolus = "Snack Bolus"
-    case bolusWizard = "BolusWizard"
     case tempBasal = "TempBasal"
     case tempBasalDuration = "TempBasalDuration"
     case pumpSuspend = "PumpSuspend"
@@ -69,7 +65,6 @@ enum EventType: String, JSON {
     case pumpBattery = "PumpBattery"
     case rewind = "Rewind"
     case prime = "Prime"
-    case journalCarbs = "JournalEntryMealMarker"
 
     case nsTempBasal = "Temp Basal"
     case nsCarbCorrection = "Carb Correction"
