@@ -62,7 +62,14 @@ struct TrioMainWatchView: View {
     var body: some View {
         NavigationStack(path: $navigationPath) {
             TabView(selection: $currentPage) {
-                // Page 1: Current glucose trend in "BG bobble"
+                // Page 1: Combined View of glucose trend and chart view
+                CombinedGlucoseChartview(
+                    state: state,
+                    rotationDegrees: rotationDegrees,
+                    isWatchStateDated: isWatchStateDated || isSessionUnreachable
+                )
+                .tag(0)
+                // Page 2: Current glucose trend in "BG bobble"
                 ZStack {
                     GlucoseTrendView(
                         state: state,
@@ -85,15 +92,16 @@ struct TrioMainWatchView: View {
                                     7 // Font .body == 14, so half of default size for the SF Symbol image
                             )
                     }
-                }.tag(0)
+                }.tag(1)
 
-                // Page 2: Glucose chart
+                // Page 3: Glucose chart
                 GlucoseChartView(
+                    state: state,
                     glucoseValues: state.glucoseValues,
                     minYAxisValue: state.minYAxisValue,
                     maxYAxisValue: state.maxYAxisValue
                 )
-                .tag(1)
+                .tag(2)
             }
             .onAppear {
                 /// Hard reset variables when main view appears

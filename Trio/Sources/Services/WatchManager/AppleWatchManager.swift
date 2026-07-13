@@ -202,7 +202,11 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             let tempTargetPresetObjects: [TempTargetStored] = try await CoreDataStack.shared
                 .getNSManagedObject(with: tempTargetPresetIds, context: backgroundContext)
 
-            return await backgroundContext.perform {
+            // Fixed: assign perform's result to a local `let`, then return it
+            // separately below — avoids the Void/WatchState overload-inference bug.
+            // Explicit `() -> WatchState in` signature avoids Swift resolving
+            // NSManagedObjectContext.perform to its old Void-returning overload.
+            let watchState = await backgroundContext.perform { () -> WatchState in
                 var watchState = WatchState(date: Date())
 
                 // Set lastLoopDate
@@ -353,6 +357,78 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 watchState.bolusIncrement = self.settingsManager.preferences.bolusIncrement
                 watchState.confirmBolusFaster = self.settingsManager.settings.confirmBolusFaster
 
+                watchState.showForecast = self.settingsManager.settings.showForecastWatch
+                watchState.isForecastCone = self.settingsManager.settings.forecastDisplayType == .cone
+
+                // Forecast data comes from OrefDetermination's `forecasts` CoreData
+                // relationship (Set<Forecast>), NOT a `.predictions` property — the
+                // decoded `Determination.predictions` JSON struct only exists
+                // transiently while a new determination is being processed
+                // (see OpenAPS.processDetermination), before being persisted as
+                // separate Forecast / ForecastValue rows. Each Forecast has a
+                // lowercase `.type` ("iob" / "cob" / "zt" / "uam") and a
+                // `.forecastValuesArray` (via the Forecast+helper.swift extension),
+                // sorted by index, each holding an Int32 `.value`.
+                if let latestDetermination = determinationObjects.first,
+                   let forecastsSet = latestDetermination.forecasts,
+                   !forecastsSet.isEmpty
+                {
+                    let anchorDate = latestDetermination.deliverAt ?? latestDetermination.timestamp ?? Date()
+                    watchState.forecastStartDate = anchorDate
+
+                    // Rebuild a [type: [Int]] dictionary from the CoreData relationship.
+                    var rawPredictions: [String: [Int]] = [:]
+                    for forecast in forecastsSet {
+                        guard let type = forecast.type else { continue }
+                        let values = forecast.forecastValuesArray.map { Int($0.value) }
+                        guard !values.isEmpty else { continue }
+                        rawPredictions[type] = values
+                    }
+
+                    func convert(_ values: [Int]?) -> [Double] {
+                        guard let values = values else { return [] }
+                        return values.map { raw in
+                            self.units == .mgdL ? Double(raw) : Double(truncating: Decimal(raw).asMmolL as NSNumber)
+                        }
+                    }
+
+                    if watchState.isForecastCone {
+                        let allSeries: [[Int]] = [
+                            rawPredictions["iob"],
+                            rawPredictions["zt"],
+                            rawPredictions["cob"],
+                            rawPredictions["uam"]
+                        ].compactMap { $0 }
+                        let count = allSeries.map(\.count).max() ?? 0
+
+                        var coneMin: [Double] = []
+                        var coneMax: [Double] = []
+                        for i in 0 ..< count {
+                            let valuesAtIndex = allSeries.compactMap { $0.indices.contains(i) ? $0[i] : nil }
+                            guard let minRaw = valuesAtIndex.min(), let maxRaw = valuesAtIndex.max() else { continue }
+                            coneMin.append(convert([minRaw])[0])
+                            coneMax.append(convert([maxRaw])[0])
+                        }
+                        watchState.forecastConeMin = coneMin
+                        watchState.forecastConeMax = coneMax
+                        watchState.forecastLines = [:]
+                    } else {
+                        var lines: [String: [Double]] = [:]
+                        if let iob = rawPredictions["iob"] { lines["iob"] = convert(iob) }
+                        if let cob = rawPredictions["cob"] { lines["cob"] = convert(cob) }
+                        if let uam = rawPredictions["uam"] { lines["uam"] = convert(uam) }
+                        if let zt = rawPredictions["zt"] { lines["zt"] = convert(zt) }
+                        watchState.forecastLines = lines
+                        watchState.forecastConeMin = []
+                        watchState.forecastConeMax = []
+                    }
+                } else {
+                    watchState.forecastStartDate = nil
+                    watchState.forecastConeMin = []
+                    watchState.forecastConeMax = []
+                    watchState.forecastLines = [:]
+                }
+
                 debug(
                     .watchManager,
 
@@ -361,6 +437,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
                 return watchState
             }
+
+            return watchState
+
         } catch {
             debug(
                 .watchManager,
@@ -468,7 +547,15 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.maxProtein: state.maxProtein,
             WatchMessageKeys.bolusIncrement: state.bolusIncrement,
             WatchMessageKeys.confirmBolusFaster: state.confirmBolusFaster,
-            WatchMessageKeys.units: state.units.rawValue
+            WatchMessageKeys.units: state.units.rawValue,
+            WatchMessageKeys.showForecastWatch: state.showForecast,
+            WatchMessageKeys.isForecastCone: state.isForecastCone,
+            WatchMessageKeys.forecastData: [
+                WatchMessageKeys.forecastStartDate: state.forecastStartDate?.timeIntervalSince1970 as Any,
+                WatchMessageKeys.forecastConeMin: state.forecastConeMin,
+                WatchMessageKeys.forecastConeMax: state.forecastConeMax,
+                WatchMessageKeys.forecastLines: state.forecastLines
+            ]
         ]
     }
 
