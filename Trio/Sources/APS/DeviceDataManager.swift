@@ -21,7 +21,7 @@ protocol DeviceDataManager: GlucoseSource {
     var loopInProgress: Bool { get set }
     var pumpDisplayState: CurrentValueSubject<PumpDisplayState?, Never> { get }
     var recommendsLoop: PassthroughSubject<Void, Never> { get }
-    var bolusTrigger: PassthroughSubject<Bool, Never> { get }
+    var bolusTrigger: CurrentValueSubject<BolusStatus, Never> { get }
     var manualTempBasal: PassthroughSubject<Bool, Never> { get }
     var scheduledBasal: PassthroughSubject<Bool?, Never> { get }
     var suspended: PassthroughSubject<Bool, Never> { get }
@@ -69,7 +69,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
         .distantPast
 
     let recommendsLoop = PassthroughSubject<Void, Never>()
-    let bolusTrigger = PassthroughSubject<Bool, Never>()
+    let bolusTrigger = CurrentValueSubject<BolusStatus, Never>(.noBolus)
     let errorSubject = PassthroughSubject<Error, Never>()
     let pumpNewStatus = PassthroughSubject<Void, Never>()
     let manualTempBasal = PassthroughSubject<Bool, Never>()
@@ -80,7 +80,6 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     @SyncAccess private var pumpUpdateCancellable: AnyCancellable?
     private var pumpUpdatePromise: Future<Bool, Never>.Promise?
     @SyncAccess var loopInProgress: Bool = false
-    private let privateContext = CoreDataStack.shared.newTaskContext()
 
     var pumpManager: PumpManagerUI? {
         didSet {
@@ -174,8 +173,10 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                         display: simulatorPump.state.pumpBatteryChargeRemaining != nil
                     )
                     Task {
-                        await self.privateContext.perform {
-                            let saveBatteryToCoreData = OpenAPS_Battery(context: self.privateContext)
+                        let context = CoreDataStack.shared.newTaskContext()
+                        context.name = "storeSimulatorBattery"
+                        await context.perform {
+                            let saveBatteryToCoreData = OpenAPS_Battery(context: context)
                             saveBatteryToCoreData.id = UUID()
                             saveBatteryToCoreData.date = Date()
                             saveBatteryToCoreData.percent = Double(batteryPercent)
@@ -185,8 +186,8 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                             saveBatteryToCoreData.display = simulatorPump.state.pumpBatteryChargeRemaining != nil
 
                             do {
-                                guard self.privateContext.hasChanges else { return }
-                                try self.privateContext.save()
+                                guard context.hasChanges else { return }
+                                try context.save()
                             } catch {
                                 print(error.localizedDescription)
                             }
@@ -209,18 +210,20 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 storage.save(modifiedPreferences, as: OpenAPS.Settings.preferences)
                 // Remove OpenAPS_Battery entries
                 Task {
-                    await self.privateContext.perform {
+                    let context = CoreDataStack.shared.newTaskContext()
+                    context.name = "deleteBatteryEntries"
+                    await context.perform {
                         let fetchRequest: NSFetchRequest<OpenAPS_Battery> = OpenAPS_Battery.fetchRequest()
 
                         do {
-                            let batteryEntries = try self.privateContext.fetch(fetchRequest)
+                            let batteryEntries = try context.fetch(fetchRequest)
 
                             for entry in batteryEntries {
-                                self.privateContext.delete(entry)
+                                context.delete(entry)
                             }
 
-                            guard self.privateContext.hasChanges else { return }
-                            try self.privateContext.save()
+                            guard context.hasChanges else { return }
+                            try context.save()
 
                         } catch {
                             debug(.deviceManager, "Failed to delete OpenAPS_Battery entries: \(error)")
@@ -470,10 +473,13 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         debug(.deviceManager, "New pump status Bolus: \(status.bolusState)")
         debug(.deviceManager, "New pump status Basal: \(String(describing: status.basalDeliveryState))")
 
-        if case .inProgress = status.bolusState {
-            bolusTrigger.send(true)
-        } else {
-            bolusTrigger.send(false)
+        switch status.bolusState {
+        case .initiating:
+            bolusTrigger.send(.initiating)
+        case let .inProgress(dose):
+            bolusTrigger.send(.inProgress)
+        default:
+            bolusTrigger.send(.noBolus)
         }
 
         switch status.basalDeliveryState {
