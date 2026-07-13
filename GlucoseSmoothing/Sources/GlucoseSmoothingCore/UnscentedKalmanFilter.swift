@@ -114,6 +114,40 @@ public final class UnscentedKalmanFilter {
         learnedR = rInit
     }
 
+    // MARK: - Cross-restart persistence (parity with AAPS loadPersistedParameters / save)
+
+    /// The subset of learned state AndroidAPS persists across app restarts: the learned measurement
+    /// noise, the newest timestamp processed, and the sensor-session counter. Innovation windows are
+    /// deliberately excluded (AAPS doesn't persist them either — they refill within a window).
+    public struct PersistedState: Codable, Equatable, Sendable {
+        public let learnedR: Double
+        public let lastProcessedTimestamp: Int64
+        public let sensorSessionId: Int
+        public init(learnedR: Double, lastProcessedTimestamp: Int64, sensorSessionId: Int) {
+            self.learnedR = learnedR
+            self.lastProcessedTimestamp = lastProcessedTimestamp
+            self.sensorSessionId = sensorSessionId
+        }
+    }
+
+    /// Current persistable state — save this after `smooth()` so learning survives an app restart.
+    public var persistedState: PersistedState {
+        PersistedState(
+            learnedR: learnedR,
+            lastProcessedTimestamp: lastProcessedTimestamp,
+            sensorSessionId: sensorSessionId
+        )
+    }
+
+    /// Restore state saved from a previous run (call once, before the first `smooth()`). Mirrors AAPS
+    /// `loadPersistedParameters`: an out-of-range `learnedR` is rejected back to the default rather than
+    /// trusted, so a corrupt store can never seed the filter with a bad noise estimate.
+    public func restore(_ state: PersistedState) {
+        learnedR = (state.learnedR >= rMin && state.learnedR <= rMax) ? state.learnedR : rInit
+        lastProcessedTimestamp = state.lastProcessedTimestamp
+        sensorSessionId = state.sensorSessionId
+    }
+
     // MARK: - Public API
 
     /// Smooth a **newest-first** list of readings, writing each element's `smoothed` (mg/dL, ≥39)
