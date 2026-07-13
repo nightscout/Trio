@@ -42,7 +42,10 @@ import Testing
                 try ctx.save()
                 let n = readings.count
 
-                // Production method — receives oldest-first, must reverse internally.
+                // Production method — receives oldest-first, must reverse internally. Reset the
+                // persistent smoother first so this single call is a clean start, matching the fresh
+                // oracle below.
+                BaseFetchGlucoseManager.resetSharedSmoother()
                 BaseFetchGlucoseManager.applyAdaptiveSmoothingAndStore(glucoseReadings: readings)
                 let stored = readings.map { $0.smoothedGlucose?.doubleValue ?? -1 } // oldest-first
 

@@ -457,6 +457,27 @@ extension BaseFetchGlucoseManager {
         }
     }
 
+    /// Persistent smoother instance, reused across fetch cycles so the learned measurement-noise state
+    /// (`learnedR`, innovation windows, session counters) carries forward between calls. This matches
+    /// AndroidAPS — whose smoothing plugin is a singleton that persists `learnedR` across cycles — and
+    /// the Python reference, which keeps the same state as instance members. Constructing a fresh
+    /// `UnscentedKalmanFilter()` each cycle (the previous behaviour) left `lastProcessedTimestamp` at 0
+    /// every call, so `shouldResetLearning` took the clean-start path every cycle and the filter never
+    /// persisted — diverging from AAPS by up to ~15 mg/dL on real data. The core is documented as
+    /// "one instance carries the learned state across calls"; it is not thread-safe, so access is
+    /// serialised by `smootherLock` (fetch cycles are already serialised via `glucoseStoreAndHeartLock`
+    /// and the Core Data context queue — the lock is belt-and-braces).
+    private static var sharedSmoother = UnscentedKalmanFilter()
+    private static let smootherLock = NSLock()
+
+    /// Reset the persistent smoother to a clean-start instance. Used by tests for isolation (each test
+    /// wants a fresh filter); a future sensor-change hook could call this to mirror AAPS's reset.
+    static func resetSharedSmoother() {
+        smootherLock.lock()
+        sharedSmoother = UnscentedKalmanFilter()
+        smootherLock.unlock()
+    }
+
     /// Adaptive Smoothing — the sole glucose smoother (it replaced the double-exponential one). Runs
     /// the engine (an Unscented Kalman Filter core) over the window (reversed to the newest-first order
     /// it requires) and writes `smoothedGlucose`. The engine fail-safes internally: `smooth()` floors
@@ -478,7 +499,11 @@ extension BaseFetchGlucoseManager {
 
         guard !pairs.isEmpty else { return }
 
-        let out = UnscentedKalmanFilter().smooth(pairs.map(\.1))
+        // Reuse the persistent smoother (see `sharedSmoother`) so learned state carries across cycles,
+        // as it does in AAPS. Serialised because the core is not thread-safe.
+        smootherLock.lock()
+        let out = sharedSmoother.smooth(pairs.map(\.1))
+        smootherLock.unlock()
 
         guard out.count == pairs.count else {
             debug(

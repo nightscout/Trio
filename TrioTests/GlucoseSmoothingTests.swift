@@ -34,6 +34,10 @@ import Testing
 
         let fileStorage = resolver.resolve(FileStorage.self)!
         openAPS = OpenAPS(storage: fileStorage, tddStorage: MockTDDStorage())
+
+        // The smoother now persists learned state across calls (matching AAPS). Reset it before each
+        // test so cases don't leak learned state into one another.
+        BaseFetchGlucoseManager.resetSharedSmoother()
     }
 
     // MARK: - Adaptive Smoothing Tests
