@@ -150,6 +150,9 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
                 debug(.service, "\(DebuggingIdentifiers.failed) Failed to set up Tidepool upload controllers: \(error)")
             }
         }
+
+        broadcaster.register(SettingsObserver.self, observer: self)
+        broadcaster.register(PreferencesObserver.self, observer: self)
     }
 
     /// Loads the Tidepool service from saved state
