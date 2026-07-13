@@ -469,14 +469,44 @@ extension BaseFetchGlucoseManager {
     /// "one instance carries the learned state across calls"; it is not thread-safe, so access is
     /// serialised by `smootherLock` (fetch cycles are already serialised via `glucoseStoreAndHeartLock`
     /// and the Core Data context queue — the lock is belt-and-braces).
-    private static var sharedSmoother = UnscentedKalmanFilter()
     private static let smootherLock = NSLock()
+    /// UserDefaults key for the smoother's learned state — mirrors AAPS persisting `learnedR` etc. to
+    /// preferences so learning survives an app restart.
+    private static let ukfStateKey = "adaptiveSmoothing.ukfPersistedState"
+    /// Set by `notifySensorChange()` (from the CGM sensor-start event), consumed on the next smooth —
+    /// the Trio analogue of AAPS's SENSOR_CHANGE therapy-event reset.
+    private static var pendingSensorChange = false
+    /// Persisted state is reloaded from UserDefaults exactly once, on the first smooth after launch.
+    private static var didRestoreUkfState = false
+    private static var sharedSmoother = makeSharedSmoother()
 
-    /// Reset the persistent smoother to a clean-start instance. Used by tests for isolation (each test
-    /// wants a fresh filter); a future sensor-change hook could call this to mirror AAPS's reset.
+    /// Build a smoother wired to the sensor-change signal. The closure is consumed once per `smooth()`
+    /// call (inside `smootherLock`), so a sensor change scheduled between cycles resets learning on the
+    /// next pass, exactly as AAPS's `checkForSensorChange` does.
+    private static func makeSharedSmoother() -> UnscentedKalmanFilter {
+        UnscentedKalmanFilter(sensorChangedSinceLastCall: {
+            let changed = pendingSensorChange
+            pendingSensorChange = false
+            return changed
+        })
+    }
+
+    /// Signal that the CGM sensor was replaced, so the next smoothing pass resets learned state (matches
+    /// AAPS resetting on a SENSOR_CHANGE therapy event). Wired from the CGM sensor-start path.
+    static func notifySensorChange() {
+        smootherLock.lock()
+        pendingSensorChange = true
+        smootherLock.unlock()
+    }
+
+    /// Reset the persistent smoother to a clean-start instance and clear its persisted state. Used by
+    /// tests for isolation; `didRestoreUkfState = true` so the fresh instance is not re-seeded from disk.
     static func resetSharedSmoother() {
         smootherLock.lock()
-        sharedSmoother = UnscentedKalmanFilter()
+        sharedSmoother = makeSharedSmoother()
+        pendingSensorChange = false
+        didRestoreUkfState = true
+        UserDefaults.standard.removeObject(forKey: ukfStateKey)
         smootherLock.unlock()
     }
 
@@ -504,7 +534,21 @@ extension BaseFetchGlucoseManager {
         // Reuse the persistent smoother (see `sharedSmoother`) so learned state carries across cycles,
         // as it does in AAPS. Serialised because the core is not thread-safe.
         smootherLock.lock()
+        // Once per launch, re-seed from the last saved state so learning survives an app restart
+        // (mirrors AAPS `loadPersistedParameters`). Fail-safe: a missing/corrupt store just starts clean.
+        if !didRestoreUkfState {
+            if let saved = UserDefaults.standard.data(forKey: ukfStateKey),
+               let state = try? JSONDecoder().decode(UnscentedKalmanFilter.PersistedState.self, from: saved)
+            {
+                sharedSmoother.restore(state)
+            }
+            didRestoreUkfState = true
+        }
         let out = sharedSmoother.smooth(pairs.map(\.1))
+        // Persist the updated learned state (mirrors AAPS saving after each smooth).
+        if let encoded = try? JSONEncoder().encode(sharedSmoother.persistedState) {
+            UserDefaults.standard.set(encoded, forKey: ukfStateKey)
+        }
         smootherLock.unlock()
 
         guard out.count == pairs.count else {
