@@ -361,14 +361,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 watchState.isForecastCone = self.settingsManager.settings.forecastDisplayType == .cone
 
                 // Forecast data comes from OrefDetermination's `forecasts` CoreData
-                // relationship (Set<Forecast>), NOT a `.predictions` property — the
-                // decoded `Determination.predictions` JSON struct only exists
-                // transiently while a new determination is being processed
-                // (see OpenAPS.processDetermination), before being persisted as
-                // separate Forecast / ForecastValue rows. Each Forecast has a
-                // lowercase `.type` ("iob" / "cob" / "zt" / "uam") and a
-                // `.forecastValuesArray` (via the Forecast+helper.swift extension),
-                // sorted by index, each holding an Int32 `.value`.
+                // relationship (Set<Forecast>), NOT a `.predictions` property.
                 if let latestDetermination = determinationObjects.first,
                    let forecastsSet = latestDetermination.forecasts,
                    !forecastsSet.isEmpty
@@ -377,10 +370,11 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     watchState.forecastStartDate = anchorDate
 
                     // Rebuild a [type: [Int]] dictionary from the CoreData relationship.
+                    // Strictly cap to 24 points (2 hours of 5-minute forecasts)
                     var rawPredictions: [String: [Int]] = [:]
                     for forecast in forecastsSet {
                         guard let type = forecast.type else { continue }
-                        let values = forecast.forecastValuesArray.map { Int($0.value) }
+                        let values = Array(forecast.forecastValuesArray.map { Int($0.value) }.prefix(24))
                         guard !values.isEmpty else { continue }
                         rawPredictions[type] = values
                     }
@@ -399,7 +393,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                             rawPredictions["cob"],
                             rawPredictions["uam"]
                         ].compactMap { $0 }
-                        let count = allSeries.map(\.count).max() ?? 0
+
+                        // Change .max() to .min() so the shortest prediction line cuts off the cone
+                        let count = allSeries.map(\.count).min() ?? 0
 
                         var coneMin: [Double] = []
                         var coneMax: [Double] = []
@@ -1367,3 +1363,4 @@ extension BaseWatchManager {
         case genericFailure = "failure"
     }
 }
+ 
