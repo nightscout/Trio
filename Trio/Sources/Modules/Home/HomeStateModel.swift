@@ -140,22 +140,271 @@ extension Home {
         var minValueIobChart: Decimal = 0
         var maxValueIobChart: Decimal = 5
 
-        let taskContext = CoreDataStack.shared.newTaskContext()
-        let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
-        let carbsFetchContext = CoreDataStack.shared.newTaskContext()
-        let fpuFetchContext = CoreDataStack.shared.newTaskContext()
-        let determinationFetchContext = CoreDataStack.shared.newTaskContext()
-        let tddFetchContext = CoreDataStack.shared.newTaskContext()
-        let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
-        let overrideFetchContext = CoreDataStack.shared.newTaskContext()
-        let tempTargetFetchContext = CoreDataStack.shared.newTaskContext()
-        let batteryFetchContext = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
-        // Queue for handling Core Data change notifications
-        private let queue = DispatchQueue(label: "HomeStateModel.queue", qos: .userInitiated)
-        private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
+        // MARK: - NSFetchedResultsControllers
+
+        //
+        // Each Core Data backed array on this state model is driven by an NSFetchedResultsController
+        // bound to the viewContext. The controllers keep their `fetchedObjects` continuously in sync
+        // with the viewContext (which in turn is fed by the persistent history merge in CoreDataStack)
+        // and notify us via their delegate's `onContentChange` closure. This replaces the previous
+        // hand-rolled `changedObjectsOnManagedObjectContextDidSavePublisher` + re-fetch approach.
+
+        @ObservationIgnored let glucoseControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var glucoseController: NSFetchedResultsController<GlucoseStored> = {
+            let request = NSFetchRequest<GlucoseStored>(entityName: "GlucoseStored")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: true)]
+            request.predicate = NSPredicate.glucose
+            request.fetchBatchSize = 50
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: viewContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
+            controller.delegate = glucoseControllerDelegate
+            return controller
+        }()
+
+        @ObservationIgnored let carbsControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var carbsController: NSFetchedResultsController<CarbEntryStored> = {
+            let request = NSFetchRequest<CarbEntryStored>(entityName: "CarbEntryStored")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \CarbEntryStored.date, ascending: false)]
+            request.predicate = NSPredicate.carbsForChart
+            request.fetchBatchSize = 5
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: viewContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
+            controller.delegate = carbsControllerDelegate
+            return controller
+        }()
+
+        @ObservationIgnored let fpuControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var fpuController: NSFetchedResultsController<CarbEntryStored> = {
+            let request = NSFetchRequest<CarbEntryStored>(entityName: "CarbEntryStored")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \CarbEntryStored.date, ascending: false)]
+            request.predicate = NSPredicate.fpusForChart
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: viewContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
+            controller.delegate = fpuControllerDelegate
+            return controller
+        }()
+
+        @ObservationIgnored let enactedDeterminationControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var enactedDeterminationController: NSFetchedResultsController<OrefDetermination> =
+            {
+                let request = NSFetchRequest<OrefDetermination>(entityName: "OrefDetermination")
+                request.sortDescriptors = [NSSortDescriptor(keyPath: \OrefDetermination.deliverAt, ascending: false)]
+                request.predicate = NSPredicate.enactedDetermination
+                request.fetchLimit = 1
+                let controller = NSFetchedResultsController(
+                    fetchRequest: request,
+                    managedObjectContext: viewContext,
+                    sectionNameKeyPath: nil,
+                    cacheName: nil
+                )
+                controller.delegate = enactedDeterminationControllerDelegate
+                return controller
+            }()
+
+        @ObservationIgnored let determinationControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var determinationController: NSFetchedResultsController<OrefDetermination> = {
+            let request = NSFetchRequest<OrefDetermination>(entityName: "OrefDetermination")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \OrefDetermination.deliverAt, ascending: false)]
+            request.predicate = NSPredicate.determinationsForCobIobCharts
+            request.fetchBatchSize = 50
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: viewContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
+            controller.delegate = determinationControllerDelegate
+            return controller
+        }()
+
+        @ObservationIgnored let insulinControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var insulinController: NSFetchedResultsController<PumpEventStored> = {
+            let request = NSFetchRequest<PumpEventStored>(entityName: "PumpEventStored")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \PumpEventStored.timestamp, ascending: true)]
+            request.predicate = NSPredicate.pumpHistoryLast24h
+            request.fetchBatchSize = 30
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: viewContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
+            controller.delegate = insulinControllerDelegate
+            return controller
+        }()
+
+        @ObservationIgnored let lastBolusControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var lastBolusController: NSFetchedResultsController<PumpEventStored> = {
+            let request = NSFetchRequest<PumpEventStored>(entityName: "PumpEventStored")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \PumpEventStored.timestamp, ascending: false)]
+            request.predicate = NSPredicate.lastPumpBolus
+            request.fetchLimit = 1
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: viewContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
+            controller.delegate = lastBolusControllerDelegate
+            return controller
+        }()
+
+        @ObservationIgnored let overrideControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var overrideController: NSFetchedResultsController<OverrideStored> = {
+            let request = NSFetchRequest<OverrideStored>(entityName: "OverrideStored")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \OverrideStored.date, ascending: false)]
+            request.predicate = NSPredicate.lastActiveOverride
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: viewContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
+            controller.delegate = overrideControllerDelegate
+            return controller
+        }()
+
+        @ObservationIgnored let overrideRunControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var overrideRunController: NSFetchedResultsController<OverrideRunStored> = {
+            let request = NSFetchRequest<OverrideRunStored>(entityName: "OverrideRunStored")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \OverrideRunStored.startDate, ascending: false)]
+            request.predicate = NSPredicate.predicateForStartDateOneDayAgo
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: viewContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
+            controller.delegate = overrideRunControllerDelegate
+            return controller
+        }()
+
+        @ObservationIgnored let tempTargetControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var tempTargetController: NSFetchedResultsController<TempTargetStored> = {
+            let request = NSFetchRequest<TempTargetStored>(entityName: "TempTargetStored")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \TempTargetStored.date, ascending: false)]
+            request.predicate = NSPredicate.tempTargetsForMainChart
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: viewContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
+            controller.delegate = tempTargetControllerDelegate
+            return controller
+        }()
+
+        @ObservationIgnored let tempTargetRunControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var tempTargetRunController: NSFetchedResultsController<TempTargetRunStored> = {
+            let request = NSFetchRequest<TempTargetRunStored>(entityName: "TempTargetRunStored")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \TempTargetRunStored.startDate, ascending: false)]
+            request.predicate = NSPredicate.predicateForStartDateOneDayAgo
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: viewContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
+            controller.delegate = tempTargetRunControllerDelegate
+            return controller
+        }()
+
+        @ObservationIgnored let batteryControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var batteryController: NSFetchedResultsController<OpenAPS_Battery> = {
+            let request = NSFetchRequest<OpenAPS_Battery>(entityName: "OpenAPS_Battery")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \OpenAPS_Battery.date, ascending: false)]
+            request.predicate = NSPredicate.predicateFor30MinAgo
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: viewContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
+            controller.delegate = batteryControllerDelegate
+            return controller
+        }()
+
+        @ObservationIgnored let tddControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var tddController: NSFetchedResultsController<TDDStored> = {
+            let request = NSFetchRequest<TDDStored>(entityName: "TDDStored")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \TDDStored.date, ascending: false)]
+            request.predicate = NSPredicate.predicateForOneDayAgo
+            request.fetchLimit = 1
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: viewContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
+            controller.delegate = tddControllerDelegate
+            return controller
+        }()
+
+        // MARK: - Fetch window re-anchoring
+
+        //
+        // Window predicates freeze their anchor at build time, so the unbounded controllers
+        // are re-anchored to "now" on foreground. fetchLimit-1 and override controllers keep
+        // the launch anchor on purpose; temp targets must re-anchor ("date >= now" disjunct).
+
+        /// Called on `willEnterForegroundNotification`; idempotent at launch.
+        @MainActor func reanchorFetchWindows() {
+            reanchor(glucoseController, with: NSPredicate.glucose) {
+                self.updateGlucoseFromController()
+                // Re-sync the chart domain even if no new reading arrived while backgrounded.
+                self.updateStartEndMarkers()
+            }
+            reanchor(carbsController, with: NSPredicate.carbsForChart) { self.updateCarbsFromController() }
+            reanchor(fpuController, with: NSPredicate.fpusForChart) { self.updateFPUsFromController() }
+            reanchor(determinationController, with: NSPredicate.determinationsForCobIobCharts) {
+                self.updateDeterminationsFromController()
+            }
+            reanchor(insulinController, with: NSPredicate.pumpHistoryLast24h) { self.updateInsulinFromController() }
+            reanchor(overrideRunController, with: NSPredicate.predicateForStartDateOneDayAgo) {
+                self.updateOverrideRunsFromController()
+            }
+            reanchor(tempTargetController, with: NSPredicate.tempTargetsForMainChart) {
+                self.updateTempTargetsFromController()
+            }
+            reanchor(tempTargetRunController, with: NSPredicate.predicateForStartDateOneDayAgo) {
+                self.updateTempTargetRunsFromController()
+            }
+            reanchor(batteryController, with: NSPredicate.predicateFor30MinAgo) { self.updateBatteryFromController() }
+        }
+
+        @MainActor private func reanchor<T: NSFetchRequestResult>(
+            _ controller: NSFetchedResultsController<T>,
+            with predicate: NSPredicate,
+            republish: () -> Void
+        ) {
+            controller.fetchRequest.predicate = predicate
+            do {
+                try controller.performFetch()
+                republish()
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) Failed to re-anchor fetch window for \(T.self): \(error)")
+            }
+        }
+
         private var subscriptions = Set<AnyCancellable>()
+
+        /// Debounces the forecast recompute — the most expensive `onContentChange` callback,
+        /// which a manual re-determine fires twice in quick succession.
+        @ObservationIgnored var forecastUpdateTask: Task<Void, Never>?
 
         typealias PumpEvent = PumpEventStored.EventType
 
@@ -164,14 +413,7 @@ extension Home {
         }
 
         override func subscribe() {
-            coreDataPublisher =
-                changedObjectsOnManagedObjectContextDidSavePublisher()
-                    .receive(on: queue)
-                    .share()
-                    .eraseToAnyPublisher()
-
             registerSubscribers()
-            registerHandlers()
 
             // Parallelize Setup functions
             setupHomeViewConcurrently()
@@ -185,32 +427,24 @@ extension Home {
                 await self.setupCGMSettings()
                 self.registerObservers()
 
+                // Set up the NSFetchedResultsControllers. These are bound to the viewContext,
+                // so `performFetch` and the initial population must run on the main actor.
+                await self.setupGlucoseController()
+                await self.setupCarbsController()
+                await self.setupFPUController()
+                await self.setupEnactedDeterminationController()
+                await self.setupDeterminationController()
+                await self.setupInsulinController()
+                await self.setupLastBolusController()
+                await self.setupOverrideController()
+                await self.setupOverrideRunController()
+                await self.setupTempTargetController()
+                await self.setupTempTargetRunController()
+                await self.setupBatteryController()
+                await self.setupTDDController()
+
                 // The rest can be initialized concurrently
                 await withTaskGroup(of: Void.self) { group in
-                    group.addTask {
-                        self.setupGlucoseArray()
-                    }
-                    group.addTask {
-                        self.setupCarbsArray()
-                    }
-                    group.addTask {
-                        self.setupFPUsArray()
-                    }
-                    group.addTask {
-                        self.setupDeterminationsArray()
-                    }
-                    group.addTask {
-                        self.setupTDDArray()
-                    }
-                    group.addTask {
-                        self.setupInsulinArray()
-                    }
-                    group.addTask {
-                        self.setupLastBolus()
-                    }
-                    group.addTask {
-                        self.setupBatteryArray()
-                    }
                     group.addTask {
                         await self.setupBasalProfile()
                     }
@@ -221,25 +455,12 @@ extension Home {
                         self.setupReservoir()
                     }
                     group.addTask {
-                        self.setupOverrides()
-                    }
-                    group.addTask {
-                        self.setupOverrideRunStored()
-                    }
-                    group.addTask {
-                        self.setupTempTargetsStored()
-                    }
-                    group.addTask {
-                        self.setupTempTargetsRunStored()
-                    }
-                    group.addTask {
                         self.iobService.updateIOB()
                     }
                 }
             }
         }
 
-        // These combine subscribers are only necessary due to the batch inserts of glucose/FPUs which do not trigger a ManagedObjectContext change notification
         private func registerSubscribers() {
             iobService.iobPublisher
                 .receive(on: DispatchQueue.main)
@@ -249,84 +470,14 @@ extension Home {
                 }
                 .store(in: &subscriptions)
 
-            glucoseStorage.updatePublisher
-                .receive(on: queue)
-                .sink { [weak self] _ in
-                    guard let self = self else { return }
-                    self.setupGlucoseArray()
-                }
-                .store(in: &subscriptions)
-
-            carbsStorage.updatePublisher
-                .receive(on: queue)
-                .sink { [weak self] _ in
-                    guard let self = self else { return }
-                    self.setupFPUsArray()
-                }
-                .store(in: &subscriptions)
-
+            // core-data-fixes drives Core Data updates via NSFetchedResultsController delegates,
+            // so dev's glucose/carbs updatePublisher sinks and the coreDataPublisher-based
+            // registerHandlers() are obsolete here. Only the bolus-status subscription (a genuinely
+            // new feature, consumed by HomeRootView) is carried over, wired in our subscriber style.
             provider.deviceManager.bolusTrigger
-                .receive(on: queue)
-                .sink { [weak self] state in
-                    guard let self = self else { return }
-                    self.bolusStatus = state
-                }
+                .receive(on: DispatchQueue.main)
+                .weakAssign(to: \.bolusStatus, on: self)
                 .store(in: &subscriptions)
-        }
-
-        private func registerHandlers() {
-            coreDataPublisher?.filteredByEntityName("OrefDetermination").sink { [weak self] _ in
-                guard let self = self else { return }
-                self.setupDeterminationsArray()
-            }.store(in: &subscriptions)
-
-            coreDataPublisher?.filteredByEntityName("TDDStored").sink { [weak self] _ in
-                guard let self = self else { return }
-                self.setupTDDArray()
-            }.store(in: &subscriptions)
-
-            coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
-                guard let self = self else { return }
-                self.setupGlucoseArray()
-            }.store(in: &subscriptions)
-
-            coreDataPublisher?.filteredByEntityName("CarbEntryStored").sink { [weak self] _ in
-                guard let self = self else { return }
-                self.setupCarbsArray()
-            }.store(in: &subscriptions)
-
-            coreDataPublisher?.filteredByEntityName("PumpEventStored").sink { [weak self] _ in
-                guard let self = self else { return }
-                self.setupInsulinArray()
-                self.setupLastBolus()
-                self.displayPumpStatusHighlightMessage()
-                self.displayPumpStatusBadge()
-            }.store(in: &subscriptions)
-
-            coreDataPublisher?.filteredByEntityName("OpenAPS_Battery").sink { [weak self] _ in
-                guard let self = self else { return }
-                self.setupBatteryArray()
-            }.store(in: &subscriptions)
-
-            coreDataPublisher?.filteredByEntityName("OverrideStored").sink { [weak self] _ in
-                guard let self = self else { return }
-                self.setupOverrides()
-            }.store(in: &subscriptions)
-
-            coreDataPublisher?.filteredByEntityName("OverrideRunStored").sink { [weak self] _ in
-                guard let self = self else { return }
-                self.setupOverrideRunStored()
-            }.store(in: &subscriptions)
-
-            coreDataPublisher?.filteredByEntityName("TempTargetStored").sink { [weak self] _ in
-                guard let self = self else { return }
-                self.setupTempTargetsStored()
-            }.store(in: &subscriptions)
-
-            coreDataPublisher?.filteredByEntityName("TempTargetRunStored").sink { [weak self] _ in
-                guard let self = self else { return }
-                self.setupTempTargetsRunStored()
-            }.store(in: &subscriptions)
         }
 
         private func registerObservers() {
@@ -382,6 +533,14 @@ extension Home {
                 }
             }
             timer.resume()
+
+            Foundation.NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
+                .sink { [weak self] _ in
+                    Task { @MainActor in
+                        self?.reanchorFetchWindows()
+                    }
+                }
+                .store(in: &lifetime)
 
             fetchGlucoseManager.cgmDisplayState
                 .receive(on: DispatchQueue.main)
@@ -550,6 +709,8 @@ extension Home {
 
         func loadQuickBolusSuggestions() async {
             guard enableQuickBolus else { return }
+
+            let fetchContext = CoreDataStack.shared.newTaskContext()
             let cutoff = Calendar.current.date(byAdding: .day, value: -90, to: Date()) ?? Date()
             let predicate = NSPredicate(
                 format: "isSMB == false AND isExternal == false AND pumpEvent.timestamp >= %@",
@@ -558,14 +719,14 @@ extension Home {
             do {
                 let results: Any = try await CoreDataStack.shared.fetchEntitiesAsync(
                     ofType: BolusStored.self,
-                    onContext: pumpHistoryFetchContext,
+                    onContext: fetchContext,
                     predicate: predicate,
                     key: "pumpEvent.timestamp",
                     ascending: false,
                     batchSize: 100
                 )
 
-                let suggestions: [Decimal] = await pumpHistoryFetchContext.perform {
+                let suggestions: [Decimal] = await fetchContext.perform {
                     guard let boluses = results as? [BolusStored] else { return [] }
 
                     let now = Date()
@@ -680,7 +841,7 @@ extension Home {
 
         /// Display the eventual status message provided by the manager of the pump
         /// Only display if state is warning or critical message else return nil
-        private func displayPumpStatusHighlightMessage(_ didDeactivate: Bool = false) {
+        func displayPumpStatusHighlightMessage(_ didDeactivate: Bool = false) {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 if let statusHighlight = self.provider.deviceManager.pumpManager?.pumpStatusHighlight,
@@ -694,7 +855,7 @@ extension Home {
             }
         }
 
-        private func displayPumpStatusBadge(_ didDeactivate: Bool = false) {
+        func displayPumpStatusBadge(_ didDeactivate: Bool = false) {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 if let statusBadge = self.provider.deviceManager.pumpManager?.pumpStatusBadge,
