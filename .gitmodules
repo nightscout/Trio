@@ -31,3 +31,6 @@
 [submodule "OmnipodKit"]
 	path = OmnipodKit
 	url = https://github.com/loopandlearn/OmnipodKit
+[submodule "EversenseKit"]
+	path = EversenseKit
+	url = https://github.com/loopandlearn/EversenseKit

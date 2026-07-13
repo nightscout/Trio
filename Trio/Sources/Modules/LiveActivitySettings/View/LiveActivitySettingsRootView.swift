@@ -9,6 +9,7 @@ extension LiveActivitySettings {
 
         @State private var shouldDisplayHintLockScreen: Bool = false
         @State private var shouldDisplayHintSmartStack: Bool = false
+        @State private var shouldDisplayHintGlucoseForecasts: Bool = false
         @State var hintDetent = PresentationDetent.large
         @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
@@ -83,6 +84,30 @@ extension LiveActivitySettings {
                     )
 
                     if state.useLiveActivity {
+                        SettingInputSection(
+                            decimalValue: $decimalPlaceholder,
+                            booleanValue: $state.displayGlucoseForecasts,
+                            shouldDisplayHint: $shouldDisplayHintGlucoseForecasts,
+                            selectedVerboseHint: Binding(
+                                get: { selectedVerboseHint },
+                                set: {
+                                    selectedVerboseHint = $0.map { AnyView($0) }
+                                    hintLabel = String(localized: "Display Glucose Forecasts")
+                                }
+                            ),
+                            units: state.units,
+                            type: .boolean,
+                            label: String(localized: "Display Glucose Forecasts"),
+                            miniHint: String(localized: "Display Glucose Forecasts made by the Oref algorithm."),
+                            verboseHint: VStack(alignment: .leading, spacing: 10) {
+                                Text("Default: OFF").bold()
+                                Text(
+                                    "When enabled, the live activity widget on the lock screen will show glucose forecasts. The visual representation will be the same as in the Main view. To change between Cone and Lines, change the setting under Features - User Interface - Forecast Display Type."
+                                )
+                            },
+                            headerText: String(localized: "Display Glucose Forecasts")
+                        )
+
                         Section {
                             VStack {
                                 Picker(
@@ -224,6 +249,15 @@ extension LiveActivitySettings {
                 SettingInputHintView(
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHintSmartStack,
+                    hintLabel: hintLabel ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
+                )
+            }
+            .sheet(isPresented: $shouldDisplayHintGlucoseForecasts) {
+                SettingInputHintView(
+                    hintDetent: $hintDetent,
+                    shouldDisplayHint: $shouldDisplayHintGlucoseForecasts,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: String(localized: "Help", comment: "Help sheet title")
