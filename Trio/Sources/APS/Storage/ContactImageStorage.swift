@@ -13,9 +13,10 @@ protocol ContactImageStorage {
 final class BaseContactImageStorage: ContactImageStorage, Injectable {
     @Injected() private var settingsManager: SettingsManager!
 
-    private let backgroundContext = CoreDataStack.shared.newTaskContext()
+    private let makeContext: () -> NSManagedObjectContext
 
-    init(resolver: Resolver) {
+    init(resolver: Resolver, contextProvider: (() -> NSManagedObjectContext)? = nil) {
+        makeContext = contextProvider ?? { CoreDataStack.shared.newTaskContext() }
         injectServices(resolver)
     }
 
@@ -26,16 +27,18 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
     ///
     /// - Returns: An array of `ContactImageEntry` objects.
     func fetchContactImageEntries() async -> [ContactImageEntry] {
+        let context = makeContext()
+        context.name = "fetchContactImageEntries"
         do {
             let results = try await CoreDataStack.shared.fetchEntitiesAsync(
                 ofType: ContactImageEntryStored.self,
-                onContext: backgroundContext,
+                onContext: context,
                 predicate: NSPredicate.all,
                 key: "hasHighContrast",
                 ascending: false
             )
 
-            return try await backgroundContext.perform {
+            return try await context.perform {
                 guard let fetchedContactImageEntries = results as? [ContactImageEntryStored]
                 else { throw CoreDataError.fetchError(function: #function, file: #file)
                 }
@@ -75,8 +78,10 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
     ///
     /// - Parameter contactImageEntry: The `ContactImageEntry` object to be stored.
     func storeContactImageEntry(_ contactImageEntry: ContactImageEntry) async {
-        await backgroundContext.perform {
-            let newContactImageEntry = ContactImageEntryStored(context: self.backgroundContext)
+        let context = makeContext()
+        context.name = "storeContactImageEntry"
+        await context.perform {
+            let newContactImageEntry = ContactImageEntryStored(context: context)
 
             newContactImageEntry.id = UUID()
             newContactImageEntry.name = contactImageEntry.name
@@ -96,8 +101,8 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
             newContactImageEntry.fontWeight = contactImageEntry.fontWeight.asString
 
             do {
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Contact Trick Entry to Core Data with error: \(error.userInfo)"
@@ -114,12 +119,14 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
     ///
     /// - Parameter contactImageEntry: The `ContactImageEntry` object with updated values.
     func updateContactImageEntry(_ contactImageEntry: ContactImageEntry) async {
-        await backgroundContext.perform {
+        let context = makeContext()
+        context.name = "updateContactImageEntry"
+        await context.perform {
             let fetchRequest: NSFetchRequest<ContactImageEntryStored> = ContactImageEntryStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "contactId == %@", contactImageEntry.contactId ?? "")
 
             do {
-                if let existingEntry = try self.backgroundContext.fetch(fetchRequest).first {
+                if let existingEntry = try context.fetch(fetchRequest).first {
                     // Update the properties of the existing entry
                     existingEntry.name = contactImageEntry.name
                     existingEntry.layout = contactImageEntry.layout.rawValue
@@ -136,8 +143,8 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
                     existingEntry.fontWeight = contactImageEntry.fontWeight.asString
                     existingEntry.fontWidth = contactImageEntry.fontWidth.asString
 
-                    guard self.backgroundContext.hasChanges else { return }
-                    try self.backgroundContext.save()
+                    guard context.hasChanges else { return }
+                    try context.save()
                 } else {
                     debugPrint(
                         "\(DebuggingIdentifiers.failed) \(#file) \(#function) No matching Contact Trick Entry found to update."

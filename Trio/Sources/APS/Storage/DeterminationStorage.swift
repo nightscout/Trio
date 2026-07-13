@@ -18,14 +18,16 @@ protocol DeterminationStorage {
 
 final class BaseDeterminationStorage: DeterminationStorage, Injectable {
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-    private let context: NSManagedObjectContext
+    private let makeContext: () -> NSManagedObjectContext
 
-    init(resolver: Resolver, context: NSManagedObjectContext? = nil) {
-        self.context = context ?? CoreDataStack.shared.newTaskContext()
+    init(resolver: Resolver, contextProvider: (() -> NSManagedObjectContext)? = nil) {
+        makeContext = contextProvider ?? { CoreDataStack.shared.newTaskContext() }
         injectServices(resolver)
     }
 
     func fetchLastDeterminationObjectID(predicate: NSPredicate) async throws -> [NSManagedObjectID] {
+        let context = makeContext()
+        context.name = "fetchLastDeterminationObjectID"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: context,
@@ -116,31 +118,30 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
 
     // Convert NSSet to array of Ints for Predictions
     func parseForecastValues(ofType type: String, from determinationID: NSManagedObjectID) async -> [Int]? {
-        let forecastIDs = await getForecastIDs(for: determinationID, in: context)
+        let context = makeContext()
+        context.name = "parseForecastValues"
 
-        var forecastValuesList: [Int] = []
+        return await context.perform {
+            let request = NSFetchRequest<Forecast>(entityName: "Forecast")
+            request.predicate = NSPredicate(
+                format: "orefDetermination = %@ AND type == %@",
+                determinationID,
+                type
+            )
+            request.fetchLimit = 1
+            request.relationshipKeyPathsForPrefetching = ["forecastValues"]
 
-        for forecastID in forecastIDs {
-            await context.perform {
-                if let forecast = try? self.context.existingObject(with: forecastID) as? Forecast {
-                    // Filter the forecast based on the type
-                    if forecast.type == type {
-                        let forecastValueIDs = forecast.forecastValues?.sorted(by: { $0.index < $1.index }).map(\.objectID) ?? []
-
-                        for forecastValueID in forecastValueIDs {
-                            if let forecastValue = try? self.context
-                                .existingObject(with: forecastValueID) as? ForecastValue
-                            {
-                                let forecastValueInt = Int(forecastValue.value)
-                                forecastValuesList.append(forecastValueInt)
-                            }
-                        }
-                    }
-                }
+            do {
+                guard let forecast = try context.fetch(request).first else { return nil }
+                let values = forecast.forecastValuesArray.map { Int($0.value) }
+                return values.isEmpty ? nil : values
+            } catch {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch forecast of type \(type): \(error)"
+                )
+                return nil
             }
         }
-
-        return forecastValuesList.isEmpty ? nil : forecastValuesList
     }
 
     func getOrefDeterminationNotYetUploadedToNightscout(_ determinationIds: [NSManagedObjectID]) async -> Determination? {
@@ -157,9 +158,11 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
             uam: await parseForecastValues(ofType: "uam", from: determinationId)
         )
 
+        let context = makeContext()
+        context.name = "getOrefDeterminationNotYetUploadedToNightscout"
         return await context.perform {
             do {
-                let orefDetermination = try self.context.existingObject(with: determinationId) as? OrefDetermination
+                let orefDetermination = try context.existingObject(with: determinationId) as? OrefDetermination
 
                 // Check if the fetched object is of the expected type
                 if let orefDetermination = orefDetermination {
