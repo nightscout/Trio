@@ -27,7 +27,6 @@ final class GlucoseAlertCoordinator: Injectable {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var fetchGlucoseManager: FetchGlucoseManager!
 
-    private let coreDataContext = CoreDataStack.shared.newTaskContext()
     private let evaluationQueue = DispatchQueue(label: "GlucoseAlertCoordinator.queue")
     private var firingAlertIDs: Set<UUID> = []
     private var subscriptions = Set<AnyCancellable>()
@@ -403,16 +402,18 @@ final class GlucoseAlertCoordinator: Injectable {
     private func fetchLatestReadingMgDL() async -> Decimal? {
         let cutoff = Date().addingTimeInterval(-Self.readingFreshnessWindow)
         let predicate = NSPredicate(format: "date >= %@", cutoff as NSDate)
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "GlucoseAlertCoordinator.fetchLatestReading"
         do {
             let results = try await CoreDataStack.shared.fetchEntitiesAsync(
                 ofType: GlucoseStored.self,
-                onContext: coreDataContext,
+                onContext: context,
                 predicate: predicate,
                 key: "date",
                 ascending: false,
                 fetchLimit: 1
             )
-            return await coreDataContext.perform {
+            return await context.perform {
                 guard let latest = (results as? [GlucoseStored])?.first else { return nil }
                 return Decimal(latest.glucose)
             }

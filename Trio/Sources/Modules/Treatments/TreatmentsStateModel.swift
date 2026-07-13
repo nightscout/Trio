@@ -110,7 +110,6 @@ extension Treatments {
         var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         var predictionsForChart: Predictions?
         var simulatedDetermination: Determination?
-        @MainActor var determinationObjectIDs: [NSManagedObjectID] = []
 
         var minForecast: [Int] = []
         var maxForecast: [Int] = []
@@ -122,18 +121,67 @@ extension Treatments {
         let now = Date.now
 
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-        let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
-        let determinationFetchContext = CoreDataStack.shared.newTaskContext()
-        let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
 
         var isActive: Bool = false
 
         var showDeterminationFailureAlert = false
         var determinationFailureMessage = ""
 
-        // Queue for handling Core Data change notifications
-        private let queue = DispatchQueue(label: "TreatmentsStateModel.queue", qos: .userInitiated)
-        private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
+        // MARK: - NSFetchedResultsControllers
+
+        //
+        // Glucose, the latest determination and the last pump bolus are driven by
+        // NSFetchedResultsControllers bound to the viewContext. They keep their `fetchedObjects`
+        // continuously in sync and notify us through their delegate's `onContentChange` closure.
+
+        @ObservationIgnored let glucoseControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var glucoseController: NSFetchedResultsController<GlucoseStored> = {
+            let request = NSFetchRequest<GlucoseStored>(entityName: "GlucoseStored")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: false)]
+            request.predicate = NSPredicate.glucose
+            request.fetchBatchSize = 50
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: viewContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
+            controller.delegate = glucoseControllerDelegate
+            return controller
+        }()
+
+        @ObservationIgnored let determinationControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var determinationController: NSFetchedResultsController<OrefDetermination> = {
+            let request = NSFetchRequest<OrefDetermination>(entityName: "OrefDetermination")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \OrefDetermination.deliverAt, ascending: false)]
+            request.predicate = NSPredicate.predicateFor30MinAgoForDetermination
+            request.fetchLimit = 1
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: viewContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
+            controller.delegate = determinationControllerDelegate
+            return controller
+        }()
+
+        @ObservationIgnored let lastBolusControllerDelegate = FetchedResultsControllerDelegate()
+        @ObservationIgnored private(set) lazy var lastBolusController: NSFetchedResultsController<PumpEventStored> = {
+            let request = NSFetchRequest<PumpEventStored>(entityName: "PumpEventStored")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \PumpEventStored.timestamp, ascending: false)]
+            request.predicate = NSPredicate.lastPumpBolus
+            request.fetchLimit = 1
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: viewContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
+            controller.delegate = lastBolusControllerDelegate
+            return controller
+        }()
+
         private var subscriptions = Set<AnyCancellable>()
 
         typealias PumpEvent = PumpEventStored.EventType
@@ -153,13 +201,6 @@ extension Treatments {
             }
 
             debug(.bolusState, "subscribe fired")
-            coreDataPublisher =
-                changedObjectsOnManagedObjectContextDidSavePublisher()
-                    .receive(on: queue)
-                    .share()
-                    .eraseToAnyPublisher()
-            registerHandlers()
-            registerSubscribers()
             setupBolusStateConcurrently()
             subscribeToBolusProgress()
         }
@@ -170,12 +211,26 @@ extension Treatments {
 
         private var hasCleanedUp = false
 
+        /// In-flight work started by this instance; cancelled in `cleanupTreatmentState()`.
+        @ObservationIgnored private var setupTask: Task<Void, Never>?
+        @ObservationIgnored private var determinationUpdateTask: Task<Void, Never>?
+
         func cleanupTreatmentState() {
             guard !hasCleanedUp else { return }
             hasCleanedUp = true
 
             unsubscribe()
             lifetime = Lifetime()
+
+            // Stop the FRC → recompute pipelines; a dismissed instance must not keep
+            // re-running the bolus calculator on every viewContext merge.
+            glucoseControllerDelegate.onContentChange = nil
+            determinationControllerDelegate.onContentChange = nil
+            lastBolusControllerDelegate.onContentChange = nil
+
+            // Cancel in-flight work — the setup task awaits a full oref simulation.
+            setupTask?.cancel()
+            determinationUpdateTask?.cancel()
 
             broadcaster?.unregister(DeterminationObserver.self, observer: self)
             broadcaster?.unregister(BolusFailureObserver.self, observer: self)
@@ -185,14 +240,13 @@ extension Treatments {
 
         private func setupBolusStateConcurrently() {
             debug(.bolusState, "Setting up bolus state concurrently...")
-            Task {
+            setupTask = Task {
+                // Load settings and observers first so the determination controller's initial
+                // population (which runs calculateInsulin) sees correct values.
                 do {
                     try await withThrowingTaskGroup(of: Void.self) { group in
                         group.addTask {
-                            self.setupGlucoseArray()
-                        }
-                        group.addTask {
-                            self.setupDeterminationsAndForecasts()
+                            await self.getAllSettingsValues()
                         }
                         group.addTask {
                             await self.setupSettings()
@@ -200,15 +254,20 @@ extension Treatments {
                         group.addTask {
                             self.registerObservers()
                         }
-                        group.addTask {
-                            self.setupLastBolus()
-                        }
 
                         // Wait for all tasks to complete
                         try await group.waitForAll()
                     }
                 } catch let error as NSError {
                     debug(.default, "Failed to setup bolus state concurrently: \(error)")
+                }
+
+                // viewContext-bound FRCs: guard and wiring share one main-actor slice.
+                await MainActor.run {
+                    guard !Task.isCancelled, !self.hasCleanedUp else { return }
+                    self.setupGlucoseController()
+                    self.setupDeterminationController()
+                    self.setupLastBolusController()
                 }
             }
         }
@@ -271,20 +330,6 @@ extension Treatments {
                         self.maxCOB = getPreferences.maxCOB
                     }
                 }
-            }
-        }
-
-        private func setupDeterminationsAndForecasts() {
-            Task {
-                async let getAllSettingsDefaults: () = getAllSettingsValues()
-                async let setupDeterminations: () = setupDeterminationsArray()
-
-                await getAllSettingsDefaults
-                await setupDeterminations
-
-                // Determination has updated, so we can use this to draw the initial Forecast Chart
-                let forecastData = await mapForecastsForChart()
-                await updateForecasts(with: forecastData)
             }
         }
 
@@ -412,6 +457,9 @@ extension Treatments {
                 simulatedCOB: simulatedCOB,
                 isBackdated: isBackdated
             )
+
+            // A superseded run must not overwrite the breakdown a newer run published.
+            guard !Task.isCancelled else { return apsManager.roundBolus(amount: result.insulinCalculated) }
 
             // Update state properties with calculation results on main thread
             await MainActor.run {
@@ -728,6 +776,8 @@ extension Treatments.StateModel: DeterminationObserver, BolusFailureObserver {
 
     func bolusDidFail() {
         DispatchQueue.main.async {
+            // A dismissed instance may still observe until dealloc — don't hide an unrelated modal.
+            guard self.isActive else { return }
             debug(.bolusState, "bolusDidFail fired")
             self.isAwaitingDeterminationResult = false
             if self.addButtonPressed {
@@ -737,79 +787,30 @@ extension Treatments.StateModel: DeterminationObserver, BolusFailureObserver {
     }
 }
 
-extension Treatments.StateModel {
-    private func registerHandlers() {
-        coreDataPublisher?.filteredByEntityName("OrefDetermination").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task {
-                await self.setupDeterminationsArray()
-                let forecastData = await self.mapForecastsForChart()
-                await self.updateForecasts(with: forecastData)
-            }
-        }.store(in: &subscriptions)
-
-        // Due to the Batch insert this only is used for observing Deletion of Glucose entries
-        coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            self.setupGlucoseArray()
-        }.store(in: &subscriptions)
-
-        // Refresh `lastPumpBolus` whenever a new pump event lands (mirrors HomeStateModel)
-        coreDataPublisher?.filteredByEntityName("PumpEventStored").sink { [weak self] _ in
-            self?.setupLastBolus()
-        }.store(in: &subscriptions)
-    }
-
-    private func registerSubscribers() {
-        glucoseStorage.updatePublisher
-            .receive(on: DispatchQueue.global(qos: .background))
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                self.setupGlucoseArray()
-            }
-            .store(in: &subscriptions)
-    }
-}
-
-// MARK: - Setup Glucose and Determinations
+// MARK: - Setup Glucose, Determinations and Last Bolus
 
 extension Treatments.StateModel {
-    // Glucose
-    private func setupGlucoseArray() {
-        Task {
-            do {
-                let ids = try await self.fetchGlucose()
-                let glucoseObjects: [GlucoseStored] = try await CoreDataStack.shared
-                    .getNSManagedObject(with: ids, context: viewContext)
-                await updateGlucoseArray(with: glucoseObjects)
-            } catch {
-                debug(
-                    .default,
-                    "\(DebuggingIdentifiers.failed) Error setting up glucose array: \(error)"
-                )
+    // MARK: - Glucose Controller
+
+    @MainActor func setupGlucoseController() {
+        glucoseControllerDelegate.onContentChange = { [weak self] in
+            Task { @MainActor in
+                guard let self, self.isActive else { return }
+                self.updateGlucoseFromController()
             }
+        }
+
+        do {
+            try glucoseController.performFetch()
+            updateGlucoseFromController()
+        } catch {
+            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform glucose fetch: \(error)")
         }
     }
 
-    private func fetchGlucose() async throws -> [NSManagedObjectID] {
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: GlucoseStored.self,
-            onContext: glucoseFetchContext,
-            predicate: NSPredicate.glucose,
-            key: "date",
-            ascending: false
-        )
+    @MainActor private func updateGlucoseFromController() {
+        guard let objects = glucoseController.fetchedObjects else { return }
 
-        return try await glucoseFetchContext.perform {
-            guard let fetchedResults = results as? [GlucoseStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
-    @MainActor private func updateGlucoseArray(with objects: [GlucoseStored]) {
         // Store all objects for the forecast graph
         glucoseFromPersistence = objects
 
@@ -837,96 +838,89 @@ extension Treatments.StateModel {
         deltaBG = delta
     }
 
-    // Determinations
-    private func setupDeterminationsArray() async {
-        do {
-            let fetchedObjectIDs = try await determinationStorage.fetchLastDeterminationObjectID(
-                predicate: NSPredicate.predicateFor30MinAgoForDetermination
-            )
+    // MARK: - Determination Controller
 
-            await MainActor.run {
-                determinationObjectIDs = fetchedObjectIDs
+    @MainActor func setupDeterminationController() {
+        determinationControllerDelegate.onContentChange = { [weak self] in
+            Task { @MainActor in
+                guard let self, self.isActive else { return }
+                self.updateDeterminationFromController()
+                self.scheduleInsulinAndForecastUpdate()
             }
+        }
 
-            let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
-                .getNSManagedObject(with: determinationObjectIDs, context: viewContext)
-
-            updateDeterminationsArray(with: determinationObjects)
-        } catch let error as CoreDataError {
-            debug(.default, "Core Data error: \(error)")
+        do {
+            try determinationController.performFetch()
+            updateDeterminationFromController()
+            scheduleInsulinAndForecastUpdate()
         } catch {
-            debug(.default, "Unexpected error: \(error)")
+            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform determination fetch: \(error)")
         }
     }
 
-    private func mapForecastsForChart() async -> Determination? {
-        do {
-            let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
-                .getNSManagedObject(with: determinationObjectIDs, context: determinationFetchContext)
+    /// Recomputes bolus recommendation and forecast; each new determination cancels the
+    /// previous in-flight run so a superseded run cannot publish stale results.
+    @MainActor private func scheduleInsulinAndForecastUpdate() {
+        determinationUpdateTask?.cancel()
+        determinationUpdateTask = Task { @MainActor in
+            let insulinCalculated = await self.calculateInsulin()
+            guard !Task.isCancelled else { return }
+            self.insulinCalculated = insulinCalculated
+            let forecastData = self.mapForecastsFromController()
+            await self.updateForecasts(with: forecastData)
+        }
+    }
 
-            let determination = await determinationFetchContext.perform {
-                let determinationObject = determinationObjects.first
+    @MainActor private func updateDeterminationFromController() {
+        guard let objects = determinationController.fetchedObjects,
+              let mostRecentDetermination = objects.first else { return }
 
-                let forecastsSet = determinationObject?.forecasts ?? []
-                let predictions = Predictions(
-                    iob: forecastsSet.extractValues(for: "iob"),
-                    zt: forecastsSet.extractValues(for: "zt"),
-                    cob: forecastsSet.extractValues(for: "cob"),
-                    uam: forecastsSet.extractValues(for: "uam")
-                )
+        determination = objects
 
-                return Determination(
-                    id: UUID(),
-                    reason: "",
-                    units: 0,
-                    insulinReq: 0,
-                    sensitivityRatio: 0,
-                    rate: 0,
-                    duration: 0,
-                    iob: 0,
-                    cob: 0,
-                    predictions: predictions.isEmpty ? nil : predictions,
-                    carbsReq: 0,
-                    temp: nil,
-                    reservoir: 0,
-                    carbRatio: 0,
-                    received: false
-                )
-            }
+        // setup vars for bolus calculation
+        insulinRequired = (mostRecentDetermination.insulinReq ?? 0) as Decimal
+        evBG = (mostRecentDetermination.eventualBG ?? 0) as Decimal
+        minPredBG = (mostRecentDetermination.minPredBGFromReason ?? 0) as Decimal
+        lastLoopDate = apsManager.lastLoopDate as Date?
+        insulin = (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal
+        target = (mostRecentDetermination.currentTarget ?? currentBGTarget as NSDecimalNumber) as Decimal
+        isf = (mostRecentDetermination.insulinSensitivity ?? currentISF as NSDecimalNumber) as Decimal
+        cob = mostRecentDetermination.cob as Int16
+        iob = (mostRecentDetermination.iob ?? 0) as Decimal
+        basal = (mostRecentDetermination.tempBasal ?? 0) as Decimal
+        carbRatio = (mostRecentDetermination.carbRatio ?? currentCarbRatio as NSDecimalNumber) as Decimal
+    }
 
-            guard !determinationObjects.isEmpty else {
-                return nil
-            }
-
-            return determination
-        } catch {
-            debug(
-                .default,
-                "\(DebuggingIdentifiers.failed) Error mapping forecasts for chart: \(error)"
-            )
+    @MainActor private func mapForecastsFromController() -> Determination? {
+        guard let determinationObject = determinationController.fetchedObjects?.first else {
             return nil
         }
-    }
 
-    private func updateDeterminationsArray(with objects: [OrefDetermination]) {
-        Task { @MainActor in
-            guard let mostRecentDetermination = objects.first else { return }
-            determination = objects
+        let forecastsSet = determinationObject.forecasts ?? []
+        let predictions = Predictions(
+            iob: forecastsSet.extractValues(for: "iob"),
+            zt: forecastsSet.extractValues(for: "zt"),
+            cob: forecastsSet.extractValues(for: "cob"),
+            uam: forecastsSet.extractValues(for: "uam")
+        )
 
-            // setup vars for bolus calculation
-            insulinRequired = (mostRecentDetermination.insulinReq ?? 0) as Decimal
-            evBG = (mostRecentDetermination.eventualBG ?? 0) as Decimal
-            minPredBG = (mostRecentDetermination.minPredBGFromReason ?? 0) as Decimal
-            lastLoopDate = apsManager.lastLoopDate as Date?
-            insulin = (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal
-            target = (mostRecentDetermination.currentTarget ?? currentBGTarget as NSDecimalNumber) as Decimal
-            isf = (mostRecentDetermination.insulinSensitivity ?? currentISF as NSDecimalNumber) as Decimal
-            cob = mostRecentDetermination.cob as Int16
-            iob = (mostRecentDetermination.iob ?? 0) as Decimal
-            basal = (mostRecentDetermination.tempBasal ?? 0) as Decimal
-            carbRatio = (mostRecentDetermination.carbRatio ?? currentCarbRatio as NSDecimalNumber) as Decimal
-            insulinCalculated = await calculateInsulin()
-        }
+        return Determination(
+            id: UUID(),
+            reason: "",
+            units: 0,
+            insulinReq: 0,
+            sensitivityRatio: 0,
+            rate: 0,
+            duration: 0,
+            iob: 0,
+            cob: 0,
+            predictions: predictions.isEmpty ? nil : predictions,
+            carbsReq: 0,
+            temp: nil,
+            reservoir: 0,
+            carbRatio: 0,
+            received: false
+        )
     }
 }
 
@@ -942,7 +936,7 @@ extension Treatments.StateModel {
             simulatedDetermination = forecastData
             debugPrint("\(DebuggingIdentifiers.failed) minPredBG: \(minPredBG)")
         } else {
-            simulatedDetermination = await Task { [self] in
+            let simulated = await Task { [self] in
                 debug(.bolusState, "calling simulateDetermineBasal to get forecast data")
                 return await apsManager.simulateDetermineBasal(
                     simulatedCarbsAmount: carbs,
@@ -951,8 +945,12 @@ extension Treatments.StateModel {
                 )
             }.value
 
+            // Stale minPredBG/cob from a superseded run would feed the next bolus calculation.
+            guard !Task.isCancelled else { return }
+            simulatedDetermination = simulated
+
             // Update evBG and minPredBG from simulated determination
-            if let simDetermination = simulatedDetermination {
+            if let simDetermination = simulated {
                 evBG = Decimal(simDetermination.eventualBG ?? 0)
                 minPredBG = simDetermination.minPredBGFromReason ?? 0
                 debugPrint("\(DebuggingIdentifiers.inProgress) minPredBG: \(minPredBG)")
@@ -991,18 +989,13 @@ extension Treatments.StateModel {
             }
         }.value
 
-        minForecast = await minForecastResult
-        maxForecast = await maxForecastResult
-    }
-}
+        let minResult = await minForecastResult
+        let maxResult = await maxForecastResult
 
-private extension Set where Element == Forecast {
-    func extractValues(for type: String) -> [Int]? {
-        let values = first { $0.type == type }?
-            .forecastValues?
-            .sorted { $0.index < $1.index }
-            .compactMap { Int($0.value) }
-        return values?.isEmpty ?? true ? nil : values
+        guard !Task.isCancelled else { return }
+
+        minForecast = minResult
+        maxForecast = maxResult
     }
 }
 
@@ -1015,43 +1008,36 @@ private extension Predictions {
 // MARK: - Last Pump Bolus
 
 extension Treatments.StateModel {
-    /// Mirrors `HomeStateModel.setupLastBolus` so the in-progress visualizer can show the
+    /// Mirrors `HomeStateModel`'s last-bolus controller so the in-progress visualizer can show the
     /// running pump-bolus's amount as the denominator (not the user's pending entry).
     /// Filters out external boluses via `NSPredicate.lastPumpBolus`.
-    func setupLastBolus() {
-        Task {
-            do {
-                guard let id = try await fetchLastBolus() else { return }
-                await updateLastBolus(with: id)
-            } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) Error setting up last bolus: \(error)")
+    @MainActor func setupLastBolusController() {
+        lastBolusControllerDelegate.onContentChange = { [weak self] in
+            Task { @MainActor in
+                guard let self, self.isActive else { return }
+                self.updateLastBolusFromController()
             }
         }
-    }
 
-    private func fetchLastBolus() async throws -> NSManagedObjectID? {
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: PumpEventStored.self,
-            onContext: pumpHistoryFetchContext,
-            predicate: NSPredicate.lastPumpBolus,
-            key: "timestamp",
-            ascending: false,
-            fetchLimit: 1
-        )
-
-        return try await pumpHistoryFetchContext.perform {
-            guard let fetched = results as? [PumpEventStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-            return fetched.map(\.objectID).first
-        }
-    }
-
-    @MainActor private func updateLastBolus(with id: NSManagedObjectID) {
         do {
-            lastPumpBolus = try viewContext.existingObject(with: id) as? PumpEventStored
+            try lastBolusController.performFetch()
+            updateLastBolusFromController()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) updateLastBolus: \(error)")
+            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform last bolus fetch: \(error)")
         }
+    }
+
+    @MainActor private func updateLastBolusFromController() {
+        lastPumpBolus = lastBolusController.fetchedObjects?.first
+    }
+}
+
+private extension Set where Element == Forecast {
+    /// Extracts the sorted forecast values for a given prediction type (iob/zt/cob/uam).
+    func extractValues(for type: String) -> [Int]? {
+        let values = first { $0.type == type }?
+            .forecastValuesArray
+            .map { Int($0.value) }
+        return (values?.isEmpty ?? true) ? nil : values
     }
 }
