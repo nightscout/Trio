@@ -126,11 +126,11 @@ import Testing
     // MARK: - fetchGlucose Window Tests
 
     @Test(
-        "fetchGlucose retains the most recent 350 readings (not the oldest) when 24h holds more than 350"
+        "fetchGlucose retains the most recent 500 readings (not the oldest) when 34h holds more than 500"
     ) func testFetchGlucoseKeepsMostRecentWhenOverLimit() async throws {
-        // GIVEN: 360 readings within the last 24h (3 min spacing => ~18h span).
+        // GIVEN: 520 readings within the last 34h (3 min spacing => ~26h span).
         // Each reading carries a unique glucose value so we can verify which subset survives the limit.
-        let count = 360
+        let count = 520
         let values: [Int16] = (0 ..< count).map { Int16(100 + $0) }
         await createGlucoseSequence(values: values, interval: 3 * 60, isManual: false)
 
@@ -138,11 +138,11 @@ import Testing
         let objectIDs = try await fetchGlucoseManager.fetchGlucose(context: testContext)
 
         // THEN
-        #expect(objectIDs.count == 350, "fetchGlucose should respect the 350 limit, got \(objectIDs.count).")
+        #expect(objectIDs.count == 500, "fetchGlucose should respect the 500 limit, got \(objectIDs.count).")
 
         await testContext.perform {
             let fetched = objectIDs.compactMap { self.testContext.object(with: $0) as? GlucoseStored }
-            #expect(fetched.count == 350, "All returned object IDs must resolve to GlucoseStored instances.")
+            #expect(fetched.count == 500, "All returned object IDs must resolve to GlucoseStored instances.")
 
             // Returned order must be oldest-first (chronological) — the smoother walks the array this way.
             let dates = fetched.compactMap(\.date)
@@ -151,10 +151,10 @@ import Testing
             // The most recent reading (current BG) must be the LAST element after the chronological reverse.
             #expect(
                 fetched.last?.glucose == Int16(100 + count - 1),
-                "Most recent reading (current BG) must be retained after the 350-limit truncation."
+                "Most recent reading (current BG) must be retained after the 500-limit truncation."
             )
 
-            // The oldest 10 readings must be dropped — verify the limit cut from the OLD end, not the recent end.
+            // The oldest 20 readings must be dropped — verify the limit cut from the OLD end, not the recent end.
             let returnedGlucoseValues = Set(fetched.map(\.glucose))
             #expect(
                 !returnedGlucoseValues.contains(Int16(100)),
@@ -168,10 +168,10 @@ import Testing
     }
 
     @Test(
-        "Adaptive smoothing writes a smoothed value for the current BG when 24h holds more than 350 readings"
+        "Adaptive smoothing writes a smoothed value for the current BG when 34h holds more than 500 readings"
     ) func testAdaptiveSmoothingCoversCurrentBGAboveLimit() async throws {
-        // GIVEN: 360 contiguous CGM readings within the last 24h (3 min spacing, no gaps).
-        let count = 360
+        // GIVEN: 520 contiguous CGM readings within the last 34h (3 min spacing, no gaps).
+        let count = 520
         let values: [Int16] = (0 ..< count).map { _ in Int16(120) }
         await createGlucoseSequence(values: values, interval: 3 * 60, isManual: false)
 
@@ -179,7 +179,7 @@ import Testing
         await fetchGlucoseManager.applyGlucoseSmoothing(context: testContext)
 
         // THEN: the most recent reading must have received a smoothed value.
-        // Regression test for the bug where ascending+fetchLimit kept the OLDEST 350 readings,
+        // Regression test for the bug where ascending+fetchLimit kept the OLDEST readings,
         // so the current BG fell outside the smoothing window and was never written.
         let ascending = try await fetchAndSortGlucose()
         // The in-memory test store is shared across this serialized suite, so readings from other
@@ -189,7 +189,7 @@ import Testing
 
         #expect(
             ascending.last?.smoothedGlucose != nil,
-            "Most recent reading (current BG) must receive a smoothed value when over the 350-row limit."
+            "Most recent reading (current BG) must receive a smoothed value when over the 500-row limit."
         )
     }
 

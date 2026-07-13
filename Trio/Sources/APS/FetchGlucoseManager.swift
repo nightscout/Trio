@@ -391,8 +391,10 @@ extension BaseFetchGlucoseManager: SettingsObserver {
 
 extension BaseFetchGlucoseManager {
     func fetchGlucose(context: NSManagedObjectContext) async throws -> [NSManagedObjectID] {
-        // Compound predicate: time window + non-manual + valid date
-        let timePredicate = NSPredicate.predicateForOneDayAgoInMinutes
+        // Compound predicate: time window + non-manual + valid date.
+        // 34-hour window matches the period AndroidAPS feeds its smoother (24h + 10h max DIA), so
+        // Trio's Adaptive Smoothing sees the same history AAPS does.
+        let timePredicate = NSPredicate.predicateForThirtyFourHoursAgo
         let manualPredicate = NSPredicate(format: "isManual == NO")
         let datePredicate = NSPredicate(format: "date != nil")
 
@@ -405,15 +407,15 @@ extension BaseFetchGlucoseManager {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
-            // Predicate must cover at least the full glucose horizon used by downstream algorithm consumers.
-            // If autosens / oref / smoothing logic ever starts looking back further (e.g. 36h),
-            // this fetch window must be expanded accordingly.
-            // Fetch descending (newest first) so the limit always keeps the most recent 350 readings.
+            // Fetch descending (newest first) so the limit keeps the most recent readings; the limit
+            // is a safety cap on smoothing cost, sized to cover the full 34h at 5-min spacing
+            // (34h ≈ 408 readings) with margin. A denser CGM caps here rather than spanning the full
+            // 34h — AAPS avoids that by 5-min bucketing; Trio smooths raw, so this cap stands in.
             // Reversed before return so callers receive oldest-first (chronological) order.
             predicate: compoundPredicate,
             key: "date",
             ascending: false,
-            fetchLimit: 350
+            fetchLimit: 500
         )
 
         guard let glucoseArray = results as? [GlucoseStored] else {
