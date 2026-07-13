@@ -21,7 +21,7 @@ protocol DeviceDataManager: GlucoseSource {
     var loopInProgress: Bool { get set }
     var pumpDisplayState: CurrentValueSubject<PumpDisplayState?, Never> { get }
     var recommendsLoop: PassthroughSubject<Void, Never> { get }
-    var bolusTrigger: PassthroughSubject<BolusStatus, Never> { get }
+    var bolusTrigger: CurrentValueSubject<BolusStatus, Never> { get }
     var manualTempBasal: PassthroughSubject<Bool, Never> { get }
     var scheduledBasal: PassthroughSubject<Bool?, Never> { get }
     var suspended: PassthroughSubject<Bool, Never> { get }
@@ -69,7 +69,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
         .distantPast
 
     let recommendsLoop = PassthroughSubject<Void, Never>()
-    let bolusTrigger = PassthroughSubject<BolusStatus, Never>()
+    let bolusTrigger = CurrentValueSubject<BolusStatus, Never>(.noBolus)
     let errorSubject = PassthroughSubject<Error, Never>()
     let pumpNewStatus = PassthroughSubject<Void, Never>()
     let manualTempBasal = PassthroughSubject<Bool, Never>()
