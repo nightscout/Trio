@@ -81,12 +81,18 @@ private struct TonePickerRow: View {
             Button {
                 selected = filename
             } label: {
+                Image(systemName: filename == selected ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(.accentColor)
+                    .frame(width: 20)
+
                 Text(AlarmSoundCatalog.displayName(for: filename))
                     .foregroundColor(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+
+            Spacer()
 
             Button {
                 previewer.toggle(filename: filename)
@@ -98,11 +104,6 @@ private struct TonePickerRow: View {
             .buttonStyle(.plain)
 
             Spacer()
-
-            Image(systemName: "checkmark")
-                .foregroundColor(.accentColor)
-                .opacity(filename == selected ? 1 : 0)
-                .frame(width: 20)
         }
     }
 
