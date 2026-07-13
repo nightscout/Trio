@@ -50,7 +50,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     func storePumpEvents(_ events: [NewPumpEvent], replacePendingEvents: Bool) async throws {
         try await context.perform {
             // upsert candidates: dose syncIdentifier, timestamp+type as fallback
-            let syncIdentifiers = events.compactMap(\.dose?.syncIdentifier)
+            // LoopKit derives dose.syncIdentifier from raw; empty raw must not become a shared identity
+            let syncIdentifiers = events.compactMap(\.dose?.syncIdentifier).filter { !$0.isEmpty }
             let timestamps = events.map(\.date)
             let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
             request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [
@@ -75,7 +76,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 
                 // type-aware key: same-timestamp bolus + TBR no longer shadow each other
                 let fallbackKey = TimestampAndType(timestamp: event.date, type: storedType.rawValue)
-                let match = event.dose?.syncIdentifier.flatMap { bySyncIdentifier[$0] }
+                let syncIdentifier = event.dose?.syncIdentifier.flatMap { $0.isEmpty ? nil : $0 }
+                let match = syncIdentifier.flatMap { bySyncIdentifier[$0] }
                     ?? byTimestampAndType[fallbackKey]
 
                 if let match = match {
@@ -92,7 +94,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 // restrict entry to now or past
                 newPumpEvent.timestamp = min(event.date, Date())
                 newPumpEvent.type = storedType.rawValue
-                newPumpEvent.syncIdentifier = event.dose?.syncIdentifier
+                newPumpEvent.syncIdentifier = syncIdentifier
                 newPumpEvent.isMutable = event.dose?.isMutable ?? false
                 newPumpEvent.isUploadedToNS = false
                 newPumpEvent.isUploadedToHealth = false

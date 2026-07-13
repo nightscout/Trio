@@ -35,6 +35,10 @@ extension BasePumpHistoryStorage {
 
             var covered: [DateInterval] = []
             var openSuspendStart: Date?
+            // an open suspend from before the window must block backfill
+            if try self.lastSuspendResume(before: windowStart)?.type == PumpEvent.pumpSuspend.rawValue {
+                openSuspendStart = windowStart
+            }
             for event in events {
                 switch event.type {
                 case PumpEvent.tempBasal.rawValue:
@@ -87,6 +91,18 @@ extension BasePumpHistoryStorage {
             try self.context.save()
             self.updateSubject.send(())
         }
+    }
+
+    private func lastSuspendResume(before date: Date) throws -> PumpEventStored? {
+        let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
+        request.predicate = NSPredicate(
+            format: "timestamp < %@ AND type IN %@",
+            date as NSDate,
+            [PumpEvent.pumpSuspend.rawValue, PumpEvent.pumpResume.rawValue]
+        )
+        request.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
+        request.fetchLimit = 1
+        return try context.fetch(request).first
     }
 
     private func insertScheduledBasal(_ interval: DateInterval, profile: [BasalProfileEntry], isMutable: Bool) {
