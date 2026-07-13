@@ -17,7 +17,7 @@ struct SnoozeAlertsSheetView: View {
         NavigationStack {
             List {
                 if snoozeUntilDate > Date() {
-                    Section(footer: Text("Swipe left to end snooze.")) {
+                    Section {
                         HStack {
                             Image(systemName: "moon.zzz.fill").foregroundStyle(.tint)
                             Text(String(
@@ -29,8 +29,13 @@ struct SnoozeAlertsSheetView: View {
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             endSnoozeAction
                         }
+                        .listRowBackground(Color.chart)
+                    } footer: {
+                        HStack {
+                            Image(systemName: "hand.draw.fill").foregroundStyle(.primary)
+                            Text("Swipe left to end snooze.")
+                        }
                     }
-                    .listRowBackground(Color.chart)
                 }
                 Section(footer: Text(
                     "Pick a duration to mute every Trio alarm. Critical alerts (e.g. occlusion, urgent low) still pierce the snooze."
@@ -70,7 +75,7 @@ struct SnoozeAlertsSheetView: View {
         Button(role: .destructive) {
             endSnooze()
         } label: {
-            Label("End Snooze", systemImage: "hand.draw.fill")
+            Label("End Snooze", systemImage: "alarm.waves.left.and.right.fill")
         }
         .tint(.red)
     }
