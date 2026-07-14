@@ -226,8 +226,18 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         queue.async {
             self.liveAlerts.removeValue(forKey: identifier)
         }
-        let responder = queue.sync { responders[identifier.managerIdentifier]?.ref as? AlertResponder }
-        responder?.acknowledgeAlert(alertIdentifier: identifier.alertIdentifier) { error in
+        acknowledgeOnDevice(identifier: identifier)
+    }
+
+    /// Forwards the user's response to the issuing device manager — pump alerts
+    /// need this to also clear the alert on the device itself (e.g. pod beeps).
+    /// Only device managers register as responders (currently just the pump
+    /// manager), so Trio-internal alerts (glucose, not-looping, algorithm)
+    /// never match and bail out here.
+    private func acknowledgeOnDevice(identifier: Alert.Identifier) {
+        guard let responder = queue.sync(execute: { responders[identifier.managerIdentifier]?.ref as? AlertResponder })
+        else { return }
+        responder.acknowledgeAlert(alertIdentifier: identifier.alertIdentifier) { error in
             if let error = error {
                 debug(.service, "AlertManager ack failed for \(identifier.value): \(error)")
             }
@@ -364,6 +374,8 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
 
 extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAlertResponder {
     func requestSnooze(identifier: Alert.Identifier, duration: TimeInterval) {
+        // Dismissal is the user's response — ack device-issued alerts at the PM layer too.
+        acknowledgeOnDevice(identifier: identifier)
         let untilDate = duration > 0 ? Date().addingTimeInterval(duration) : .distantPast
         if let glucoseType = GlucoseAlertType(slug: identifier.alertIdentifier) {
             broadcaster.notify(GlucoseSnoozeObserver.self, on: .main) { (observer: GlucoseSnoozeObserver) in
