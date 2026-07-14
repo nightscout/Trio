@@ -6,7 +6,8 @@ import Swinject
 protocol TDDStorage {
     func calculateTDD(
         pumpManager: any PumpManagerUI,
-        pumpHistory: [PumpHistoryEvent]
+        pumpHistory: [PumpHistoryEvent],
+        basalProfile: [BasalProfileEntry]
     ) async throws
         -> TDDResult
     func storeTDD(_ tddResult: TDDResult) async
@@ -37,12 +38,13 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     /// Main function to calculate TDD from pump history
     /// - Parameters:
     ///   - pumpManager: Representation of paired pump's PumpManagerUI
-    ///   - pumpHistory: Array of pump history events, including the
-    ///     scheduled-basal rows recorded by the reconciler
+    ///   - pumpHistory: Array of pump history events
+    ///   - basalProfile: Schedule used to infer delivery for uncovered gaps
     /// - Returns: TDDResult containing all calculated values
     func calculateTDD(
         pumpManager: any PumpManagerUI,
-        pumpHistory: [PumpHistoryEvent]
+        pumpHistory: [PumpHistoryEvent],
+        basalProfile: [BasalProfileEntry]
     ) async throws -> TDDResult {
         debug(.apsManager, "Starting TDD calculation with \(pumpHistory.count) pump events")
 
@@ -64,11 +66,18 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         let groupedEvents = Dictionary(grouping: pumpHistory, by: { $0.type })
         let bolusEvents = groupedEvents[.bolus] ?? []
         let allBasalEvents = groupedEvents[.tempBasal] ?? []
-        // scheduled basal is recorded by the reconciler; inference removed
+        // pump-reported scheduled basal counts as recorded delivery
         let scheduledBasalEvents = allBasalEvents.filter { $0.isScheduledBasal == true }
         let tempBasalEvents = allBasalEvents.filter { $0.isScheduledBasal != true }
         let pumpSuspendEvents = groupedEvents[.pumpSuspend] ?? []
         let pumpResumeEvents = groupedEvents[.pumpResume] ?? []
+
+        // gaps no event covers ran the pump's schedule; inferred in memory, never persisted
+        let inferredSegments = ScheduledBasalInference.segments(
+            events: Self.timelineEvents(from: pumpHistory),
+            profile: basalProfile,
+            now: Date()
+        )
 
         // Create pairs of suspend + resume events
         let suspendResumePairs = zip(pumpSuspendEvents, pumpResumeEvents).filter { suspend, resume in
@@ -80,6 +89,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         async let bolusInsulin = calculateBolusInsulin(bolusEvents)
         async let scheduledBasalInsulin = calculateScheduledBasalInsulin(
             scheduledBasalEvents,
+            inferredSegments: inferredSegments,
             roundToSupportedBasalRate: pumpManager.roundToSupportedBasalRate
         )
         async let tempBasalInsulin = calculateTempBasalInsulin(
@@ -292,128 +302,40 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         return reportedInsulin + totalInsulin
     }
 
-    //    /// Finds gaps between tempBasal events where scheduled basal ran, excluding suspend-resume periods
-    //    /// - Parameters:
-    //    ///   - tempBasalEvents: Array of pump history events of type tempBasal
-    //    ///   - suspendResumePairs: Array of suspend and resume event pairs
-    //    /// - Returns: Array of gaps, where each gap has a start and end time
-    //    private func findBasalGaps(
-    //        in tempBasalEvents: [PumpHistoryEvent],
-    //        excluding suspendResumePairs: [(suspend: PumpHistoryEvent, resume: PumpHistoryEvent)]
-    //    ) -> [(start: Date, end: Date)] {
-    //        guard !tempBasalEvents.isEmpty else {
-    //            let startOfDay = Calendar.current.startOfDay(for: Date())
-    //            return [(start: startOfDay, end: startOfDay.addingTimeInterval(24 * 60 * 60 - 1))]
-    //        }
-    //
-    //        // Merge temp basal and suspend-resume events into a unified timeline
-    //        var timeline = [(start: Date, end: Date, type: EventType)]()
-    //
-    //        for event in tempBasalEvents {
-    //            guard let duration = event.duration else { continue }
-    //            let eventEnd = event.timestamp.addingTimeInterval(TimeInterval(duration * 60))
-    //            timeline.append((start: event.timestamp, end: eventEnd, type: .tempBasal))
-    //        }
-    //
-    //        for suspendResume in suspendResumePairs {
-    //            timeline.append((start: suspendResume.suspend.timestamp, end: suspendResume.resume.timestamp, type: .pumpSuspend))
-    //        }
-    //
-    //        // Sort the timeline by start time
-    //        timeline.sort { $0.start < $1.start }
-    //
-    //        // Process the timeline to calculate gaps
-    //        var gaps = [(start: Date, end: Date)]()
-    //        var lastEndTime = Calendar.current.startOfDay(for: timeline.first!.start)
-    //        let endOfDay = lastEndTime.addingTimeInterval(24 * 60 * 60 - 1)
-    //
-    //        for interval in timeline {
-    //            if interval.type == .pumpSuspend {
-    //                // Extend lastEndTime for suspend periods
-    //                lastEndTime = max(lastEndTime, interval.end)
-    //                continue
-    //            }
-    //
-    //            if interval.start > lastEndTime {
-    //                // Add a gap if there is a gap between lastEndTime and interval.start
-    //                gaps.append((start: lastEndTime, end: interval.start))
-    //            }
-    //
-    //            // Update lastEndTime to the maximum end time encountered
-    //            lastEndTime = max(lastEndTime, interval.end)
-    //        }
-    //
-    //        if lastEndTime < endOfDay {
-    //            // Add a final gap if the lastEndTime is before the end of the day
-    //            gaps.append((start: lastEndTime, end: endOfDay))
-    //        }
-    //
-    //        return gaps
-    //    }
-
-    //    /// Calculates scheduled basal insulin delivery during gaps between temporary basals
-    //    /// - Parameters:
-    //    ///   - gaps: Array of time periods where scheduled basal was active
-    //    ///   - profile: Basal profile entries defining rates throughout the day
-    //    ///   - roundToSupportedBasalRate: Closure to round rates to pump-supported values
-    //    /// - Returns: Total insulin delivered via scheduled basal in units
-    //    private func calculateScheduledBasalInsulin(
-    //        gaps: [(start: Date, end: Date)],
-    //        profile: [BasalProfileEntry],
-    //        roundToSupportedBasalRate: @escaping (_ unitsPerHour: Double) -> Double
-    //    ) -> Decimal {
-    //        // Initialize cached formatter for time string conversion
-    //        let timeFormatter: DateFormatter = {
-    //            let formatter = DateFormatter()
-    //            formatter.dateFormat = "HH:mm:ss"
-    //            return formatter
-    //        }()
-    //
-    //        // Pre-calculate profile switch times for efficient lookup
-    //        let profileSwitches = profile.map(\.minutes)
-    //
-    //        return gaps.reduce(into: Decimal(0)) { totalInsulin, gap in
-    //            var currentTime = gap.start
-    //
-    //            while currentTime < gap.end {
-    //                // Find applicable basal rate for the current time
-    //                guard let rate = findBasalRate(
-    //                    for: timeFormatter.string(from: currentTime),
-    //                    in: profile
-    //                ) else { break }
-    //
-    //                // Determine when the rate changes (profile switch or gap end)
-    //                let nextSwitchTime = getNextBasalRateSwitch(
-    //                    after: currentTime,
-    //                    switches: profileSwitches,
-    //                    calendar: Calendar.current
-    //                ) ?? gap.end
-    //                let endTime = min(nextSwitchTime, gap.end)
-    //                let durationHours = Decimal(endTime.timeIntervalSince(currentTime)) / 3600
-    //
-    //                let insulin = Decimal(roundToSupportedBasalRate(Double(rate * durationHours)))
-    //                totalInsulin += insulin
-    //
-    //                debug(
-    //                    .apsManager,
-    //                    "Scheduled Insulin added: \(insulin) U. Duration: \(durationHours) hrs (\(currentTime)-\(endTime))"
-    //                )
-    //
-    //                currentTime = endTime
-    //            }
-    //        }
-    //    }
-
-    /// Sums scheduled-basal rows recorded by the reconciler.
+    /// Sums pump-reported scheduled-basal rows plus in-memory inferred gap segments.
     private func calculateScheduledBasalInsulin(
         _ scheduledBasalEvents: [PumpHistoryEvent],
+        inferredSegments: [ScheduledBasalInference.Segment],
         roundToSupportedBasalRate: @escaping (_ unitsPerHour: Double) -> Double
     ) -> Decimal {
-        scheduledBasalEvents.reduce(into: Decimal(0)) { totalInsulin, event in
+        let reported = scheduledBasalEvents.reduce(into: Decimal(0)) { totalInsulin, event in
             guard let rate = event.amount, let duration = event.duration, duration > 0 else { return }
             let durationHours = Decimal(duration) / 60
             let insulin = Decimal(roundToSupportedBasalRate(Double(truncating: (rate * durationHours) as NSNumber)))
             if insulin > 0 { totalInsulin += insulin }
+        }
+        let inferred = inferredSegments.reduce(into: Decimal(0)) { totalInsulin, segment in
+            let durationHours = Decimal(segment.end.timeIntervalSince(segment.start) / 3600)
+            let insulin = Decimal(roundToSupportedBasalRate(Double(truncating: (segment.rate * durationHours) as NSNumber)))
+            if insulin > 0 { totalInsulin += insulin }
+        }
+        return reported + inferred
+    }
+
+    /// Maps pump history onto the inference timeline (temp basal intervals, suspend/resume points).
+    static func timelineEvents(from pumpHistory: [PumpHistoryEvent]) -> [ScheduledBasalInference.TimelineEvent] {
+        pumpHistory.compactMap { event in
+            switch event.type {
+            case .tempBasal:
+                let end = event.timestamp.addingTimeInterval(TimeInterval(event.duration ?? 0) * 60)
+                return ScheduledBasalInference.TimelineEvent(start: event.timestamp, end: end, kind: .tempBasal)
+            case .pumpSuspend:
+                return ScheduledBasalInference.TimelineEvent(start: event.timestamp, kind: .suspend)
+            case .pumpResume:
+                return ScheduledBasalInference.TimelineEvent(start: event.timestamp, kind: .resume)
+            default:
+                return nil
+            }
         }
     }
 

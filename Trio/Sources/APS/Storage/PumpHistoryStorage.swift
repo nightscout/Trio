@@ -13,7 +13,6 @@ protocol PumpHistoryStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
     func getPumpHistory() async throws -> [PumpHistoryEvent]
     func storePumpEvents(_ events: [NewPumpEvent], replacePendingEvents: Bool) async throws
-    func reconcileScheduledBasal() async throws
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async
     func getPumpHistoryNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func getPumpHistoryNotYetUploadedToHealth() async throws -> [PumpHistoryEvent]
@@ -149,10 +148,9 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 
             // Mutable rows are the pump's assertions (LoopKit contract): a
             // complete pending report supersedes any it no longer contains.
-            // Trio-owned scheduled-basal rows are not the pump's to revoke.
             if replacePendingEvents {
                 let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
-                request.predicate = NSPredicate(format: "isMutable == YES AND NOT (tempBasal.isScheduledBasal == YES)")
+                request.predicate = NSPredicate(format: "isMutable == YES")
                 for orphan in try context.fetch(request) where !assertedRows.contains(orphan.objectID) {
                     debug(.coreData, "Removing unasserted mutable event \(orphan.syncIdentifier ?? orphan.id ?? "-")")
                     context.delete(orphan)

@@ -242,39 +242,6 @@ import Testing
         #expect(events.first?.isMutable == true)
     }
 
-    @Test("Scheduled basal rows are exempt from the pending purge") func testReplacePendingEventsSparesScheduledBasalRows() async throws {
-        let now = Date()
-
-        // Trio-owned synthetic scheduled basal row, mutable trailing segment
-        try await testContext.perform {
-            let sbr = PumpEventStored(context: testContext)
-            sbr.id = UUID().uuidString
-            sbr.timestamp = now.addingTimeInterval(-20.minutes.timeInterval)
-            sbr.type = PumpEvent.tempBasal.rawValue
-            sbr.syncIdentifier = "trio-sbr-test"
-            sbr.isMutable = true
-            let tempBasal = TempBasalStored(context: testContext)
-            tempBasal.pumpEvent = sbr
-            tempBasal.isScheduledBasal = true
-            tempBasal.rate = 1.0
-            tempBasal.startDate = sbr.timestamp
-            tempBasal.endDate = now
-            tempBasal.duration = 20
-            try testContext.save()
-        }
-
-        try await storage.storePumpEvents(
-            [bolusEvent(date: now, units: 1.0, deliveredUnits: 1.0, syncIdentifier: "bolus-4", isMutable: false)],
-            replacePendingEvents: true
-        )
-
-        let events = try await fetchAllEvents()
-        #expect(
-            events.contains { $0.syncIdentifier == "trio-sbr-test" },
-            "Scheduled basal rows are not the pump's to revoke"
-        )
-    }
-
     // MARK: - Identity edge cases
 
     @Test("Same-timestamp bolus and temp basal don't shadow each other") func testSameTimestampBolusAndTempBasal() async throws {

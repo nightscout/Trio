@@ -163,7 +163,7 @@ extension MainChartView {
             let isInsulinSuspended = suspensionTimes.contains { $0 >= timestamp && $0 <= end }
             let rate = Double(truncating: event.rate ?? 0) * (isInsulinSuspended ? 0 : 1)
 
-            // reconciler rows carry exact bounds; no clipping
+            // pump-reported scheduled basal carries exact bounds; no clipping
             if event.isScheduled {
                 prepared.append((timestamp, end, rate, true))
                 continue
@@ -181,6 +181,23 @@ extension MainChartView {
             } else {
                 prepared.append((timestamp, end, rate, false))
             }
+        }
+
+        // gaps no event covers ran the pump's schedule; inferred in memory, drawn dimmed
+        var timeline = events.map {
+            ScheduledBasalInference.TimelineEvent(
+                start: $0.timestamp ?? now,
+                end: ($0.timestamp ?? now) + $0.duration.minutes,
+                kind: .tempBasal
+            )
+        }
+        timeline += state.suspendAndResumeEvents.compactMap { event -> ScheduledBasalInference.TimelineEvent? in
+            guard let timestamp = event.timestamp else { return nil }
+            let isSuspend = event.type == PumpEventStored.EventType.pumpSuspend.rawValue
+            return ScheduledBasalInference.TimelineEvent(start: timestamp, kind: isSuspend ? .suspend : .resume)
+        }
+        for segment in ScheduledBasalInference.segments(events: timeline, profile: state.basalProfile, now: now) {
+            prepared.append((segment.start, segment.end, Double(truncating: segment.rate as NSNumber), true))
         }
 
         preparedTempBasals = prepared

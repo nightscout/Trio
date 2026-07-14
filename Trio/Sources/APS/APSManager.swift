@@ -448,10 +448,13 @@ final class BaseAPSManager: APSManager, Injectable {
     private func calculateAndStoreTDD() async throws {
         guard let pumpManager else { return }
 
-        // Calculate TDD; pump history includes recorded scheduled-basal rows
+        let basalProfile = storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) ?? []
+
+        // Calculate TDD; uncovered gaps are inferred from the basal profile in memory
         let tddResult = try await tddStorage.calculateTDD(
             pumpManager: pumpManager,
-            pumpHistory: pumpHistoryStorage.getPumpHistory()
+            pumpHistory: pumpHistoryStorage.getPumpHistory(),
+            basalProfile: basalProfile
         )
 
         // Store TDD in Core Data
@@ -460,9 +463,6 @@ final class BaseAPSManager: APSManager, Injectable {
 
     func determineBasal() async throws {
         debug(.apsManager, "Start determine basal")
-
-        // decoupled bookkeeping; must never block a loop
-        try? await pumpHistoryStorage.reconcileScheduledBasal()
 
         try await calculateAndStoreTDD()
 
