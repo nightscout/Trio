@@ -290,9 +290,6 @@ final class OpenAPS {
         )
 
         // Decode the JSON-at-rest inputs into native models at the call boundary.
-        // The bundled-defaults fallback still happens in loadFileFromStorageAsync
-        // above, so decoding here preserves the same behavior it previously had
-        // inside OpenAPSSwift.
         let profile = try JSONBridge.profile(from: rawProfile)
         let basalProfile = try JSONBridge.basalProfile(from: rawBasalProfile)
         let autosens = try JSONBridge.autosens(from: rawAutosens.isEmpty ? .null : rawAutosens)
