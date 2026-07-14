@@ -245,9 +245,6 @@ final class OpenAPS {
 
         let context = newContext("determineBasal")
 
-        // temp_basal
-        let tempBasal = currentTemp.rawJSON
-
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs(on: context) ?? []
         async let carbsFetch = carbsStorage.getCarbsForAlgorithm(
@@ -274,11 +271,11 @@ final class OpenAPS {
             pumpHistory,
             carbs,
             glucose,
-            trioCustomOrefVariables,
-            profile,
-            basalProfile,
-            autosens,
-            reservoir,
+            rawTrioCustomOrefVariables,
+            rawProfile,
+            rawBasalProfile,
+            rawAutosens,
+            rawReservoir,
             hasSufficientTdd
         ) = await (
             try parsePumpHistory(on: context, await pumpHistoryObjectIDs, simulatedBolusAmount: simulatedBolusAmount),
@@ -291,6 +288,13 @@ final class OpenAPS {
             reservoirAsync,
             try hasSufficientTddForDynamic
         )
+
+        // Decode the JSON-at-rest inputs into native models at the call boundary.
+        let profile = try JSONBridge.profile(from: rawProfile)
+        let basalProfile = try JSONBridge.basalProfile(from: rawBasalProfile)
+        let autosens = try JSONBridge.autosens(from: rawAutosens.isEmpty ? .null : rawAutosens)
+        let reservoir = Decimal(string: rawReservoir) ?? 100
+        let trioCustomOrefVariables = try JSONBridge.trioCustomOrefVariables(from: rawTrioCustomOrefVariables)
 
         // Meal calculation
         let meal = try self.meal(
@@ -307,7 +311,7 @@ final class OpenAPS {
             pumphistory: pumpHistory,
             profile: profile,
             clock: clock,
-            autosens: autosens.isEmpty ? .null : autosens
+            autosens: autosens
         )
 
         // TODO: refactor this to core data
@@ -324,21 +328,20 @@ final class OpenAPS {
         // Determine basal
         let orefDetermination = try determineBasal(
             glucose: glucose,
-            currentTemp: tempBasal,
+            currentTemp: currentTemp,
             iob: iob,
             profile: profile,
-            autosens: autosens.isEmpty ? .null : autosens,
+            autosens: autosens,
             meal: meal,
             microBolusAllowed: true,
             reservoir: reservoir,
             preferences: preferences,
-            basalProfile: basalProfile,
             trioCustomOrefVariables: trioCustomOrefVariables
         )
 
-        debug(.openAPS, "\(simulation ? "[SIMULATION]" : "") OREF DETERMINATION: \(orefDetermination)")
+        debug(.openAPS, "\(simulation ? "[SIMULATION]" : "") OREF DETERMINATION: \(String(describing: orefDetermination))")
 
-        if var determination = Determination(from: orefDetermination), let deliverAt = determination.deliverAt {
+        if var determination = orefDetermination, let deliverAt = determination.deliverAt {
             // set both timestamp and deliverAt to the SAME date; this will be updated for timestamp once it is enacted
             // AAPS does it the same way! we'll follow their example!
             determination.timestamp = deliverAt
@@ -352,7 +355,7 @@ final class OpenAPS {
         } else {
             debug(
                 .openAPS,
-                "\(DebuggingIdentifiers.failed) No determination data. orefDetermination: \(orefDetermination), Determination(from: orefDetermination): \(String(describing: Determination(from: orefDetermination))), deliverAt: \(String(describing: Determination(from: orefDetermination)?.deliverAt))"
+                "\(DebuggingIdentifiers.failed) No determination data. determination: \(String(describing: orefDetermination)), deliverAt: \(String(describing: orefDetermination?.deliverAt))"
             )
             throw APSError.apsError(message: "No determination data.")
         }
@@ -444,7 +447,7 @@ final class OpenAPS {
         async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
 
         // Await the results of asynchronous tasks
-        let (pumpHistory, carbs, glucose, profile, basalProfile, tempTargets) = await (
+        let (pumpHistory, carbs, glucose, rawProfile, rawBasalProfile, rawTempTargets) = await (
             try parsePumpHistory(on: context, await pumpHistoryObjectIDs),
             try carbsFetch,
             try glucoseFetch,
@@ -453,25 +456,27 @@ final class OpenAPS {
             getTempTargets
         )
 
+        // Decode the JSON-at-rest inputs into native models at the call boundary.
+        let profile = try JSONBridge.profile(from: rawProfile)
+        let basalProfile = try JSONBridge.basalProfile(from: rawBasalProfile)
+        let tempTargets = try JSONBridge.tempTargets(from: rawTempTargets)
+
         // Autosense
-        let autosenseResult = try autosense(
+        var autosens = try autosense(
             glucose: glucose,
             pumpHistory: pumpHistory,
-            basalprofile: basalProfile,
+            basalProfile: basalProfile,
             profile: profile,
             carbs: carbs,
-            temptargets: tempTargets
+            tempTargets: tempTargets,
+            clock: Date()
         )
 
-        debug(.openAPS, "AUTOSENS: \(autosenseResult)")
-        if var autosens = Autosens(from: autosenseResult) {
-            autosens.timestamp = Date()
-            await storage.saveAsync(autosens, as: Settings.autosense)
+        debug(.openAPS, "AUTOSENS: \(autosens)")
+        autosens.timestamp = Date()
+        await storage.saveAsync(autosens, as: Settings.autosense)
 
-            return autosens
-        } else {
-            return nil
-        }
+        return autosens
     }
 
     func createProfiles() async throws {
@@ -550,24 +555,24 @@ final class OpenAPS {
             let carbRatios = try JSONBridge.carbRatios(from: carbRatios)
             let tempTargets = try JSONBridge.tempTargets(from: tempTargets)
 
-            let pumpProfile = try OpenAPSSwift.makeProfile(
-                preferences: adjustedPreferences,
+            let pumpProfile = try ProfileGenerator.generate(
                 pumpSettings: pumpSettings,
                 bgTargets: bgTargets,
                 basalProfile: basalProfile,
-                insulinSensitivities: insulinSensitivities,
+                isf: insulinSensitivities,
+                preferences: adjustedPreferences,
                 carbRatios: carbRatios,
                 tempTargets: tempTargets,
                 model: model,
                 clock: clock
             )
 
-            let profile = try OpenAPSSwift.makeProfile(
-                preferences: adjustedPreferences,
+            let profile = try ProfileGenerator.generate(
                 pumpSettings: pumpSettings,
                 bgTargets: bgTargets,
                 basalProfile: basalProfile,
-                insulinSensitivities: insulinSensitivities,
+                isf: insulinSensitivities,
+                preferences: adjustedPreferences,
                 carbRatios: carbRatios,
                 tempTargets: tempTargets,
                 model: model,
@@ -588,88 +593,105 @@ final class OpenAPS {
 
     private func iob(
         pumphistory: [PumpHistoryEvent],
-        profile: JSON,
-        clock: JSON,
-        autosens: JSON
-    ) throws -> RawJSON {
+        profile: Profile,
+        clock: Date,
+        autosens: Autosens?
+    ) throws -> [IobResult] {
         // FIXME: For now we'll just remove duplicate suspends here (ISSUE-399)
         let pumphistory = pumphistory.removingDuplicateSuspendResumeEvents()
 
-        let swiftResult = OpenAPSSwift
-            .iob(pumphistory: pumphistory, profile: profile, clock: clock, autosens: autosens)
-        return try swiftResult.returnOrThrow()
+        return try IobGenerator.generate(
+            history: pumphistory,
+            profile: profile,
+            clock: clock,
+            autosens: autosens
+        )
     }
 
     private func meal(
         pumphistory: [PumpHistoryEvent],
-        profile: JSON,
-        basalProfile: JSON,
-        clock: JSON,
+        profile: Profile,
+        basalProfile: [BasalProfileEntry],
+        clock: Date,
         carbs: [CarbsEntry],
         glucose: [BloodGlucose]
-    ) throws -> RawJSON {
-        let swiftResult = OpenAPSSwift
-            .meal(
-                pumphistory: pumphistory,
-                profile: profile,
-                basalProfile: basalProfile,
-                clock: clock,
-                carbs: carbs,
-                glucose: glucose
-            )
-        return try swiftResult.returnOrThrow()
+    ) throws -> ComputedCarbs? {
+        try MealGenerator.generate(
+            pumpHistory: pumphistory,
+            profile: profile,
+            basalProfile: basalProfile,
+            clock: clock,
+            carbHistory: carbs,
+            glucoseHistory: glucose
+        )
     }
 
     private func autosense(
         glucose: [BloodGlucose],
         pumpHistory: [PumpHistoryEvent],
-        basalprofile: JSON,
-        profile: JSON,
+        basalProfile: [BasalProfileEntry],
+        profile: Profile,
         carbs: [CarbsEntry],
-        temptargets: JSON
-    ) throws -> RawJSON {
-        let swiftResult = OpenAPSSwift
-            .autosense(
-                glucose: glucose,
-                pumpHistory: pumpHistory,
-                basalProfile: basalprofile,
-                profile: profile,
-                carbs: carbs,
-                tempTargets: temptargets,
-                clock: Date()
-            )
-        return try swiftResult.returnOrThrow()
+        tempTargets: [TempTarget],
+        clock: Date
+    ) throws -> Autosens {
+        // this logic is from prepare/autosens.js
+        let ratio8h = try AutosensGenerator.generate(
+            glucose: glucose,
+            pumpHistory: pumpHistory,
+            basalProfile: basalProfile,
+            profile: profile,
+            carbs: carbs,
+            tempTargets: tempTargets,
+            maxDeviations: 96,
+            clock: clock
+        )
+
+        let ratio24h = try AutosensGenerator.generate(
+            glucose: glucose,
+            pumpHistory: pumpHistory,
+            basalProfile: basalProfile,
+            profile: profile,
+            carbs: carbs,
+            tempTargets: tempTargets,
+            maxDeviations: 288,
+            clock: clock
+        )
+
+        return ratio8h.ratio < ratio24h.ratio ? ratio8h : ratio24h
     }
 
     private func determineBasal(
         glucose: [BloodGlucose],
-        currentTemp: JSON,
-        iob: JSON,
-        profile: JSON,
-        autosens: JSON,
-        meal: JSON,
+        currentTemp: TempBasal,
+        iob: [IobResult],
+        profile: Profile,
+        autosens: Autosens?,
+        meal: ComputedCarbs?,
         microBolusAllowed: Bool,
-        reservoir: JSON,
-        preferences: JSON,
-        basalProfile: JSON,
-        trioCustomOrefVariables: JSON
-    ) throws -> RawJSON {
+        reservoir: Decimal,
+        preferences: Preferences,
+        trioCustomOrefVariables: TrioCustomOrefVariables
+    ) throws -> Determination? {
         let clock = Date()
-        let swiftResult = OpenAPSSwift.determineBasal(
-            glucose: glucose,
-            currentTemp: currentTemp,
-            iob: iob,
+
+        guard let meal = meal, let autosens = autosens else {
+            throw DeterminationError.missingInputs
+        }
+
+        return try DeterminationGenerator.generate(
             profile: profile,
-            autosens: autosens,
-            meal: meal,
-            microBolusAllowed: microBolusAllowed,
-            reservoir: reservoir,
             preferences: preferences,
-            basalProfile: basalProfile,
+            currentTemp: currentTemp,
+            iobData: iob,
+            mealData: meal,
+            autosensData: autosens,
+            reservoirData: reservoir,
+            glucose: glucose,
+            microBolusAllowed: microBolusAllowed,
             trioCustomOrefVariables: trioCustomOrefVariables,
-            clock: clock
+            currentTime: clock
         )
-        return try swiftResult.returnOrThrow()
     }
 
     private func loadJSON(name: String) -> String {

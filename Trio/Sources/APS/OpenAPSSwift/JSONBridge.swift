@@ -8,10 +8,6 @@ enum JSONError: Error {
 }
 
 enum JSONBridge {
-    static func preferences(from: JSON) throws -> Preferences {
-        try JSONBridge.from(string: from.rawJSON)
-    }
-
     static func pumpSettings(from: JSON) throws -> PumpSettings {
         try JSONBridge.from(string: from.rawJSON)
     }
@@ -40,19 +36,7 @@ enum JSONBridge {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func currentTemp(from: JSON) throws -> TempBasal {
-        try JSONBridge.from(string: from.rawJSON)
-    }
-
-    static func iobResult(from: JSON) throws -> [IobResult] {
-        try JSONBridge.from(string: from.rawJSON)
-    }
-
     static func profile(from: JSON) throws -> Profile {
-        try JSONBridge.from(string: from.rawJSON)
-    }
-
-    static func computedCarbs(from: JSON) throws -> ComputedCarbs? {
         try JSONBridge.from(string: from.rawJSON)
     }
 
@@ -60,29 +44,10 @@ enum JSONBridge {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func clock(from: JSON) throws -> Date {
-        let dateJson = from.rawJSON.replacingOccurrences(of: "\"", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
-        if let date = Formatter.iso8601withFractionalSeconds.date(from: dateJson) ?? Formatter.iso8601
-            .date(from: dateJson)
-        {
-            return date
-        }
-
-        throw JSONError.invalidDate(from.rawJSON)
-    }
-
     static func from<T: Decodable>(string: String) throws -> T {
         guard let data = string.data(using: .utf8) else {
             throw JSONError.invalidString
         }
         return try JSONCoding.decoder.decode(T.self, from: data)
-    }
-
-    static func to<T: Encodable>(_ value: T) throws -> String {
-        let data = try JSONCoding.encoder.encode(value)
-        guard let string = String(data: data, encoding: .utf8) else {
-            throw JSONError.encodingFailed
-        }
-        return string
     }
 }
