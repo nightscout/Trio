@@ -34,10 +34,10 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         updateSubject.eraseToAnyPublisher()
     }
 
-    private let context: NSManagedObjectContext
+    private let makeContext: () -> NSManagedObjectContext
 
-    init(resolver: Resolver, context: NSManagedObjectContext? = nil) {
-        self.context = context ?? CoreDataStack.shared.newTaskContext()
+    init(resolver: Resolver, contextProvider: (() -> NSManagedObjectContext)? = nil) {
+        makeContext = contextProvider ?? { CoreDataStack.shared.newTaskContext() }
         injectServices(resolver)
     }
 
@@ -75,6 +75,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     private func filterRemoteEntries(entries: [CarbsEntry]) async throws -> [CarbsEntry] {
+        let context = makeContext()
+        context.name = "filterRemoteEntries"
         // Fetch only the date property from Core Data
         guard let existing24hCarbEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
@@ -281,8 +283,10 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     private func saveCarbsToCoreData(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
         guard let entry = entries.last else { return }
 
+        let context = makeContext()
+        context.name = "saveCarbsToCoreData"
         await context.perform {
-            let newItem = CarbEntryStored(context: self.context)
+            let newItem = CarbEntryStored(context: context)
             newItem.date = entry.actualDate ?? entry.createdAt
             newItem.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
             newItem.fat = Double(truncating: NSDecimalNumber(decimal: entry.fat ?? 0))
@@ -299,8 +303,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             }
 
             do {
-                guard self.context.hasChanges else { return }
-                try self.context.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch {
                 print(error.localizedDescription)
             }
@@ -328,9 +332,11 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             // do NOT set Health and Tidepool flags to ensure they will NOT be uploaded
             return false // return false to continue
         }
+        let context = makeContext()
+        context.name = "saveFPUToCoreDataAsBatchInsert"
         await context.perform {
             do {
-                try self.context.execute(batchInsert)
+                try context.execute(batchInsert)
                 debugPrint("Carbs Storage: \(DebuggingIdentifiers.succeeded) saved fpus to core data")
 
                 // Notify subscriber in Home State Model to update the FPU Array
@@ -348,6 +354,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     /// Fetches the last day of carbs and converts them into the `CarbsEntry` values the oref algorithm
     /// consumes, optionally appending a synthetic "additional carbs" entry for bolus simulation.
     func getCarbsForAlgorithm(additionalCarbs: Decimal? = nil, carbsDate: Date? = nil) async throws -> [CarbsEntry] {
+        let context = makeContext()
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: context,
@@ -407,19 +414,14 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     func deleteCarbsEntryStored(_ treatmentObjectID: NSManagedObjectID) async {
-        // Use injected context if available, otherwise create new task context
-        let taskContext = context != CoreDataStack.shared.newTaskContext()
-            ? context
-            : CoreDataStack.shared.newTaskContext()
-
-        taskContext.name = "deleteContext"
-        taskContext.transactionAuthor = "deleteCarbs"
+        let context = makeContext()
+        context.name = "deleteCarbsEntryStored"
 
         var carbEntryFromCoreData: CarbEntryStored?
 
-        await taskContext.perform {
+        await context.perform {
             do {
-                carbEntryFromCoreData = try taskContext.existingObject(with: treatmentObjectID) as? CarbEntryStored
+                carbEntryFromCoreData = try context.existingObject(with: treatmentObjectID) as? CarbEntryStored
                 guard let carbEntry = carbEntryFromCoreData else {
                     debugPrint("Carb entry for batch delete not found. \(DebuggingIdentifiers.failed)")
                     return
@@ -439,7 +441,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     deleteRequest.resultType = .resultTypeCount
 
                     // execute the batch delete request
-                    let result = try taskContext.execute(deleteRequest) as? NSBatchDeleteResult
+                    let result = try context.execute(deleteRequest) as? NSBatchDeleteResult
                     debugPrint("\(DebuggingIdentifiers.succeeded) Deleted \(result?.result ?? 0) items with FpuID \(fpuID)")
 
                     // Notifiy subscribers of the batch delete
@@ -448,10 +450,10 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 // entry has no fpuID
                 // => it's a carb-only entry. use its ID to for deletion
                 else {
-                    taskContext.delete(carbEntry)
+                    context.delete(carbEntry)
 
-                    guard taskContext.hasChanges else { return }
-                    try taskContext.save()
+                    guard context.hasChanges else { return }
+                    try context.save()
 
                     debugPrint(
                         "CarbsStorage: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
@@ -465,6 +467,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     func getCarbsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
+        let context = makeContext()
+        context.name = "getCarbsNotYetUploadedToNightscout"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: context,
@@ -504,6 +508,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     func getFPUsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
+        let context = makeContext()
+        context.name = "getFPUsNotYetUploadedToNightscout"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: context,
@@ -543,6 +549,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     func getCarbsNotYetUploadedToHealth() async throws -> [CarbsEntry] {
+        let context = makeContext()
+        context.name = "getCarbsNotYetUploadedToHealth"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: context,
@@ -574,6 +582,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     func getCarbsNotYetUploadedToTidepool() async throws -> [CarbsEntry] {
+        let context = makeContext()
+        context.name = "getCarbsNotYetUploadedToTidepool"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: context,

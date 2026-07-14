@@ -32,7 +32,8 @@ import Testing
 
         fetchGlucoseManager = resolver.resolve(FetchGlucoseManager.self)! as? BaseFetchGlucoseManager
 
-        glucoseStorage = BaseGlucoseStorage(resolver: resolver, context: testContext)
+        let context: NSManagedObjectContext = testContext
+        glucoseStorage = BaseGlucoseStorage(resolver: resolver, contextProvider: { context })
     }
 
     // MARK: - Exponential Smoothing Tests

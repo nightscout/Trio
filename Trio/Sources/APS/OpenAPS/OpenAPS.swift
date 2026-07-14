@@ -10,9 +10,13 @@ final class OpenAPS {
     private let glucoseStorage: GlucoseStorage
     private let carbsStorage: CarbsStorage
 
-    let context = CoreDataStack.shared.newTaskContext()
-
     let jsonConverter = JSONConverter()
+
+    private func newContext(_ name: String) -> NSManagedObjectContext {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = name
+        return context
+    }
 
     init(storage: FileStorage, tddStorage: TDDStorage, glucoseStorage: GlucoseStorage, carbsStorage: CarbsStorage) {
         self.storage = storage
@@ -34,9 +38,9 @@ final class OpenAPS {
     }
 
     // Use the helper function for cleaner code
-    func processDetermination(_ determination: Determination) async {
+    func processDetermination(_ determination: Determination, on context: NSManagedObjectContext) async {
         await context.perform {
-            let newOrefDetermination = OrefDetermination(context: self.context)
+            let newOrefDetermination = OrefDetermination(context: context)
             newOrefDetermination.id = UUID()
             newOrefDetermination.insulinSensitivity = self.decimalToNSDecimalNumber(determination.isf)
             newOrefDetermination.currentTarget = self.decimalToNSDecimalNumber(determination.current_target)
@@ -64,14 +68,14 @@ final class OpenAPS {
                 ["iob": predictions.iob, "zt": predictions.zt, "cob": predictions.cob, "uam": predictions.uam]
                     .forEach { type, values in
                         if let values = values {
-                            let forecast = Forecast(context: self.context)
+                            let forecast = Forecast(context: context)
                             forecast.id = UUID()
                             forecast.type = type
                             forecast.date = Date()
                             forecast.orefDetermination = newOrefDetermination
 
                             for (index, value) in values.enumerated() {
-                                let forecastValue = ForecastValue(context: self.context)
+                                let forecastValue = ForecastValue(context: context)
                                 forecastValue.index = Int32(index)
                                 forecastValue.value = Int32(value)
                                 forecast.addToForecastValues(forecastValue)
@@ -83,21 +87,21 @@ final class OpenAPS {
         }
 
         // First save the current Determination to Core Data
-        await attemptToSaveContext()
+        await attemptToSaveContext(on: context)
     }
 
-    func attemptToSaveContext() async {
+    func attemptToSaveContext(on context: NSManagedObjectContext) async {
         await context.perform {
             do {
-                guard self.context.hasChanges else { return }
-                try self.context.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch {
                 debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Determination to Core Data")
             }
         }
     }
 
-    private func fetchPumpHistoryObjectIDs() async throws -> [NSManagedObjectID]? {
+    private func fetchPumpHistoryObjectIDs(on context: NSManagedObjectContext) async throws -> [NSManagedObjectID]? {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
@@ -117,6 +121,7 @@ final class OpenAPS {
     }
 
     private func parsePumpHistory(
+        on context: NSManagedObjectContext,
         _ pumpHistoryObjectIDs: [NSManagedObjectID],
         simulatedBolusAmount: Decimal? = nil
     ) async throws -> [PumpHistoryEvent] {
@@ -129,7 +134,7 @@ final class OpenAPS {
         // the oldest event in pump history can be a resume with no preceding pump
         // activity. oref interprets this as the end of a suspend that never started,
         // which drives negative IOB and can cause excessive insulin delivery.
-        let orphanedResumes = try await fetchOrphanedResumes()
+        let orphanedResumes = try await fetchOrphanedResumes(on: context)
 
         // Execute all operations on the background context
         return await context.perform {
@@ -137,7 +142,7 @@ final class OpenAPS {
             var events = OpenAPS.nativePumpHistory(
                 pumpHistoryObjectIDs,
                 orphanedResumes: orphanedResumes,
-                from: self.context
+                from: context
             )
 
             // Optionally add the simulated bolus for the bolus-preview simulation
@@ -164,10 +169,9 @@ final class OpenAPS {
     }
 
     private func createSimulatedBolusEvent(simulatedBolusAmount: Decimal) -> PumpHistoryEvent {
-
         // for the timestamp, subtract 1 second from now to ensure
         // that the algorithm take this simulated bolus into account
-        return PumpHistoryEvent(
+        PumpHistoryEvent(
             id: UUID().uuidString,
             type: .bolus,
             timestamp: Date().addingTimeInterval(-1),
@@ -179,7 +183,7 @@ final class OpenAPS {
     }
 
     /// Detects a cold-start orphaned resume: returns the resume's object ID if it's an orphaned resume
-    private func fetchOrphanedResumes() async throws -> [NSManagedObjectID] {
+    private func fetchOrphanedResumes(on context: NSManagedObjectContext) async throws -> [NSManagedObjectID] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
@@ -239,11 +243,13 @@ final class OpenAPS {
     ) async throws -> Determination? {
         debug(.openAPS, "Start determineBasal")
 
+        let context = newContext("determineBasal")
+
         // temp_basal
         let tempBasal = currentTemp.rawJSON
 
         // Perform asynchronous calls in parallel
-        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
+        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs(on: context) ?? []
         async let carbsFetch = carbsStorage.getCarbsForAlgorithm(
             additionalCarbs: simulatedCarbsAmount ?? 0,
             carbsDate: simulatedCarbsDate
@@ -256,7 +262,7 @@ final class OpenAPS {
             fetchHours: glucoseFetchHours
         )
 
-        async let prepareTrioCustomOrefVariables = prepareTrioCustomOrefVariables()
+        async let prepareTrioCustomOrefVariables = prepareTrioCustomOrefVariables(on: context)
         async let profileAsync = loadFileFromStorageAsync(name: Settings.profile)
         async let basalAsync = loadFileFromStorageAsync(name: Settings.basalProfile)
         async let autosenseAsync = loadFileFromStorageAsync(name: Settings.autosense)
@@ -275,7 +281,7 @@ final class OpenAPS {
             reservoir,
             hasSufficientTdd
         ) = await (
-            try parsePumpHistory(await pumpHistoryObjectIDs, simulatedBolusAmount: simulatedBolusAmount),
+            try parsePumpHistory(on: context, await pumpHistoryObjectIDs, simulatedBolusAmount: simulatedBolusAmount),
             try carbsFetch,
             try glucoseFetch,
             try prepareTrioCustomOrefVariables,
@@ -339,7 +345,7 @@ final class OpenAPS {
 
             if !simulation {
                 // save to core data asynchronously
-                await processDetermination(determination)
+                await processDetermination(determination, on: context)
             }
 
             return determination
@@ -352,7 +358,7 @@ final class OpenAPS {
         }
     }
 
-    func prepareTrioCustomOrefVariables() async throws -> RawJSON {
+    func prepareTrioCustomOrefVariables(on context: NSManagedObjectContext) async throws -> RawJSON {
         try await context.perform {
             // Retrieve user preferences
             let userPreferences = self.storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
@@ -363,10 +369,10 @@ final class OpenAPS {
             // Fetch historical events for Total Daily Dose (TDD) calculation
             let tenDaysAgo = Date().addingTimeInterval(-10.days.timeInterval)
             let twoHoursAgo = Date().addingTimeInterval(-2.hours.timeInterval)
-            let historicalTDDData = try self.fetchHistoricalTDDData(from: tenDaysAgo)
+            let historicalTDDData = try self.fetchHistoricalTDDData(from: tenDaysAgo, on: context)
 
             // Fetch the last active Override
-            let activeOverrides = try self.fetchActiveOverrides()
+            let activeOverrides = try self.fetchActiveOverrides(on: context)
             let isOverrideActive = activeOverrides.first?.enabled ?? false
             let overridePercentage = Decimal(activeOverrides.first?.percentage ?? 100)
             let isOverrideIndefinite = activeOverrides.first?.indefinite ?? true
@@ -388,7 +394,7 @@ final class OpenAPS {
             let averageTDDLastTenDays = totalTDD / Decimal(totalDaysCount)
             let weightedTDD = weightPercentage * averageTDDLastTwoHours + (1 - weightPercentage) * averageTDDLastTenDays
 
-            let glucose = try self.fetchGlucose()
+            let glucose = try self.fetchGlucose(on: context)
 
             // Prepare Trio's custom oref variables
             let trioCustomOrefVariablesData = TrioCustomOrefVariables(
@@ -423,8 +429,10 @@ final class OpenAPS {
     func autosense(shouldSmoothGlucose: Bool) async throws -> Autosens? {
         debug(.openAPS, "Start autosens")
 
+        let context = newContext("autosense")
+
         // Perform asynchronous calls in parallel
-        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
+        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs(on: context) ?? []
         async let carbsFetch = carbsStorage.getCarbsForAlgorithm(additionalCarbs: nil, carbsDate: nil)
         // Autosens needs the full 24h window for its sensitivity algorithm.
         async let glucoseFetch = glucoseStorage.getGlucoseForAlgorithm(
@@ -437,7 +445,7 @@ final class OpenAPS {
 
         // Await the results of asynchronous tasks
         let (pumpHistory, carbs, glucose, profile, basalProfile, tempTargets) = await (
-            try parsePumpHistory(await pumpHistoryObjectIDs),
+            try parsePumpHistory(on: context, await pumpHistoryObjectIDs),
             try carbsFetch,
             try glucoseFetch,
             getProfile,
@@ -469,6 +477,8 @@ final class OpenAPS {
     func createProfiles() async throws {
         debug(.openAPS, "Start creating pump profile and user profile")
 
+        let context = newContext("createProfiles")
+
         // Load required settings and profiles asynchronously
         async let getPumpSettings = loadFileFromStorageAsync(name: Settings.settings)
         async let getBGTargets = loadFileFromStorageAsync(name: Settings.bgTargets)
@@ -496,7 +506,7 @@ final class OpenAPS {
         // Check for active Temp Targets and adjust HBT if necessary
         try await context.perform {
             // Check if a Temp Target is active and check HBT differs from setting and adjust
-            if let activeTempTarget = try self.fetchActiveTempTargets().first,
+            if let activeTempTarget = try self.fetchActiveTempTargets(on: context).first,
                activeTempTarget.enabled,
                let targetValue = activeTempTarget.target?.decimalValue
             {
@@ -689,15 +699,16 @@ final class OpenAPS {
 
     func processAndSave(forecastData: [String: [Int]]) {
         let currentDate = Date()
+        let context = newContext("processAndSave")
 
         context.perform {
             for (type, values) in forecastData {
-                self.createForecast(type: type, values: values, date: currentDate, context: self.context)
+                self.createForecast(type: type, values: values, date: currentDate, context: context)
             }
 
             do {
-                guard self.context.hasChanges else { return }
-                try self.context.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch {
                 print(error.localizedDescription)
             }
@@ -721,7 +732,7 @@ final class OpenAPS {
 
 // Non-Async fetch methods for trio_custom_oref_variables
 extension OpenAPS {
-    func fetchActiveTempTargets() throws -> [TempTargetStored] {
+    func fetchActiveTempTargets(on context: NSManagedObjectContext) throws -> [TempTargetStored] {
         try CoreDataStack.shared.fetchEntities(
             ofType: TempTargetStored.self,
             onContext: context,
@@ -732,7 +743,7 @@ extension OpenAPS {
         ) as? [TempTargetStored] ?? []
     }
 
-    func fetchActiveOverrides() throws -> [OverrideStored] {
+    func fetchActiveOverrides(on context: NSManagedObjectContext) throws -> [OverrideStored] {
         try CoreDataStack.shared.fetchEntities(
             ofType: OverrideStored.self,
             onContext: context,
@@ -743,7 +754,7 @@ extension OpenAPS {
         ) as? [OverrideStored] ?? []
     }
 
-    func fetchHistoricalTDDData(from date: Date) throws -> [[String: Any]] {
+    func fetchHistoricalTDDData(from date: Date, on context: NSManagedObjectContext) throws -> [[String: Any]] {
         try CoreDataStack.shared.fetchEntities(
             ofType: TDDStored.self,
             onContext: context,
@@ -754,7 +765,7 @@ extension OpenAPS {
         ) as? [[String: Any]] ?? []
     }
 
-    func fetchGlucose() throws -> [GlucoseStored] {
+    func fetchGlucose(on context: NSManagedObjectContext) throws -> [GlucoseStored] {
         let results = try CoreDataStack.shared.fetchEntities(
             ofType: GlucoseStored.self,
             onContext: context,
