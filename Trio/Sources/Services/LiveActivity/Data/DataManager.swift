@@ -6,6 +6,8 @@ import Foundation
 @available(iOS 16.2, *)
 extension LiveActivityManager {
     func fetchAndMapGlucose() async throws -> [GlucoseData] {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchAndMapGlucose"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
@@ -27,6 +29,8 @@ extension LiveActivityManager {
 
     // TODO: extract logic or at least rename function appropiately
     func fetchAndMapDetermination() async throws -> DeterminationData? {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchAndMapDetermination"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: context,
@@ -143,6 +147,9 @@ extension LiveActivityManager {
         propertiesToFetch: [String],
         map: @escaping ([String: Any]) -> Output
     ) async throws -> Output? {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchAndMapLatest"
+
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: type,
             onContext: context,

@@ -21,13 +21,15 @@ extension BasePumpHistoryStorage {
               !profile.isEmpty
         else { return }
 
+        let context = makeContext()
+        context.name = "reconcileScheduledBasal"
         try await context.perform {
             let windowStart = now.addingTimeInterval(-ReconcilerConfig.lookbackHours * 3600)
 
             let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
             request.predicate = NSPredicate(format: "timestamp >= %@", windowStart as NSDate)
             request.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: true)]
-            let events = try self.context.fetch(request)
+            let events = try context.fetch(request)
 
             // never fabricate history before the first reported event
             guard let firstEventDate = events.first?.timestamp else { return }
@@ -36,7 +38,7 @@ extension BasePumpHistoryStorage {
             var covered: [DateInterval] = []
             var openSuspendStart: Date?
             // an open suspend from before the window must block backfill
-            if try self.lastSuspendResume(before: windowStart)?.type == PumpEvent.pumpSuspend.rawValue {
+            if try self.lastSuspendResume(before: windowStart, on: context)?.type == PumpEvent.pumpSuspend.rawValue {
                 openSuspendStart = windowStart
             }
             for event in events {
@@ -70,7 +72,7 @@ extension BasePumpHistoryStorage {
                 let end = max(start, temp.endDate ?? start)
                 let interval = DateInterval(start: start, end: end)
                 if event.isMutable || reported.contains(where: { ($0.intersection(with: interval)?.duration ?? 0) > 0 }) {
-                    self.context.delete(event)
+                    context.delete(event)
                 } else {
                     keptSynthetic.append(interval)
                 }
@@ -83,17 +85,17 @@ extension BasePumpHistoryStorage {
             for gap in gaps {
                 for segment in Self.scheduleSegments(for: gap, profile: profile) {
                     let isTrailing = abs(segment.end.timeIntervalSince(now)) < 1
-                    self.insertScheduledBasal(segment, profile: profile, isMutable: isTrailing)
+                    self.insertScheduledBasal(segment, profile: profile, isMutable: isTrailing, on: context)
                 }
             }
 
-            guard self.context.hasChanges else { return }
-            try self.context.save()
+            guard context.hasChanges else { return }
+            try context.save()
             self.updateSubject.send(())
         }
     }
 
-    private func lastSuspendResume(before date: Date) throws -> PumpEventStored? {
+    private func lastSuspendResume(before date: Date, on context: NSManagedObjectContext) throws -> PumpEventStored? {
         let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
         request.predicate = NSPredicate(
             format: "timestamp < %@ AND type IN %@",
@@ -105,7 +107,12 @@ extension BasePumpHistoryStorage {
         return try context.fetch(request).first
     }
 
-    private func insertScheduledBasal(_ interval: DateInterval, profile: [BasalProfileEntry], isMutable: Bool) {
+    private func insertScheduledBasal(
+        _ interval: DateInterval,
+        profile: [BasalProfileEntry],
+        isMutable: Bool,
+        on context: NSManagedObjectContext
+    ) {
         let rate = findBasalRateForOffset(for: Self.minutesOfDay(interval.start), in: profile) ?? 0
 
         let newPumpEvent = PumpEventStored(context: context)

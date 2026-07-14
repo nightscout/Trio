@@ -32,10 +32,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         updateSubject.eraseToAnyPublisher()
     }
 
-    let context: NSManagedObjectContext
+    let makeContext: () -> NSManagedObjectContext
 
-    init(resolver: Resolver, context: NSManagedObjectContext? = nil) {
-        self.context = context ?? CoreDataStack.shared.newTaskContext()
+    init(resolver: Resolver, contextProvider: (() -> NSManagedObjectContext)? = nil) {
+        makeContext = contextProvider ?? { CoreDataStack.shared.newTaskContext() }
         injectServices(resolver)
     }
 
@@ -48,6 +48,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func storePumpEvents(_ events: [NewPumpEvent], replacePendingEvents: Bool) async throws {
+        let context = makeContext()
+        context.name = "storePumpEvents"
         try await context.perform {
             // upsert candidates: dose syncIdentifier, timestamp+type as fallback
             // LoopKit derives dose.syncIdentifier from raw; empty raw must not become a shared identity
@@ -58,7 +60,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 NSPredicate(format: "syncIdentifier IN %@", syncIdentifiers),
                 NSPredicate(format: "timestamp IN %@", timestamps)
             ])
-            let existingRows = try self.context.fetch(request)
+            let existingRows = try context.fetch(request)
 
             var bySyncIdentifier = Dictionary(
                 existingRows.compactMap { row in row.syncIdentifier.map { ($0, row) } },
@@ -89,7 +91,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     continue
                 }
 
-                let newPumpEvent = PumpEventStored(context: self.context)
+                let newPumpEvent = PumpEventStored(context: context)
                 newPumpEvent.id = UUID().uuidString
                 // restrict entry to now or past
                 newPumpEvent.timestamp = min(event.date, Date())
@@ -103,10 +105,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 switch storedType {
                 case .bolus:
                     guard let dose = event.dose else {
-                        self.context.delete(newPumpEvent)
+                        context.delete(newPumpEvent)
                         continue
                     }
-                    let newBolusEntry = BolusStored(context: self.context)
+                    let newBolusEntry = BolusStored(context: context)
                     newBolusEntry.pumpEvent = newPumpEvent
                     newBolusEntry.amount = NSDecimalNumber(decimal: self.roundDose(
                         dose.unitsInDeliverableIncrements,
@@ -117,10 +119,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 
                 case .tempBasal:
                     guard let dose = event.dose else {
-                        self.context.delete(newPumpEvent)
+                        context.delete(newPumpEvent)
                         continue
                     }
-                    let newTempBasal = TempBasalStored(context: self.context)
+                    let newTempBasal = TempBasalStored(context: context)
                     newTempBasal.pumpEvent = newPumpEvent
                     newTempBasal.duration = Int16(round((dose.endDate - dose.startDate).timeInterval / 60))
                     newTempBasal.rate = Decimal(dose.unitsPerHour) as NSDecimalNumber
@@ -151,15 +153,15 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             if replacePendingEvents {
                 let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
                 request.predicate = NSPredicate(format: "isMutable == YES AND NOT (tempBasal.isScheduledBasal == YES)")
-                for orphan in try self.context.fetch(request) where !assertedRows.contains(orphan.objectID) {
+                for orphan in try context.fetch(request) where !assertedRows.contains(orphan.objectID) {
                     debug(.coreData, "Removing unasserted mutable event \(orphan.syncIdentifier ?? orphan.id ?? "-")")
-                    self.context.delete(orphan)
+                    context.delete(orphan)
                 }
             }
 
             do {
-                guard self.context.hasChanges else { return }
-                try self.context.save()
+                guard context.hasChanges else { return }
+                try context.save()
 
                 self.updateSubject.send(())
                 debug(.coreData, "\(DebuggingIdentifiers.succeeded) stored pump events in Core Data")
@@ -210,9 +212,11 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async {
+        let context = makeContext()
+        context.name = "storeExternalInsulinEvent"
         await context.perform {
             // create pump event
-            let newPumpEvent = PumpEventStored(context: self.context)
+            let newPumpEvent = PumpEventStored(context: context)
             let identifier = UUID().uuidString
             newPumpEvent.id = identifier
             // Trio-created record: it is its own source of truth, born final.
@@ -226,15 +230,15 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             newPumpEvent.isUploadedToTidepool = false
 
             // create bolus entry and specify relationship to pump event
-            let newBolusEntry = BolusStored(context: self.context)
+            let newBolusEntry = BolusStored(context: context)
             newBolusEntry.pumpEvent = newPumpEvent
             newBolusEntry.amount = amount as NSDecimalNumber
             newBolusEntry.isExternal = true // we are creating an external dose
             newBolusEntry.isSMB = false // the dose is manually administered
 
             do {
-                guard self.context.hasChanges else { return }
-                try self.context.save()
+                guard context.hasChanges else { return }
+                try context.save()
                 debug(.coreData, "External insulin saved")
                 self.updateSubject.send(())
             } catch {
@@ -244,6 +248,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func getPumpHistory() async throws -> [PumpHistoryEvent] {
+        let context = makeContext()
+        context.name = "getPumpHistory"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
@@ -295,6 +301,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func getPumpHistoryNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
+        let context = makeContext()
+        context.name = "getPumpHistoryNotYetUploadedToNightscout"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
@@ -456,6 +464,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func getPumpHistoryNotYetUploadedToHealth() async throws -> [PumpHistoryEvent] {
+        let context = makeContext()
+        context.name = "getPumpHistoryNotYetUploadedToHealth"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
@@ -500,6 +510,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func getPumpHistoryNotYetUploadedToTidepool() async throws -> [PumpHistoryEvent] {
+        let context = makeContext()
+        context.name = "getPumpHistoryNotYetUploadedToTidepool"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
