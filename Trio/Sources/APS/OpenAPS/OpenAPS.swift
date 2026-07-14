@@ -8,15 +8,17 @@ final class OpenAPS {
     private let storage: FileStorage
     private let tddStorage: TDDStorage
     private let glucoseStorage: GlucoseStorage
+    private let carbsStorage: CarbsStorage
 
     let context = CoreDataStack.shared.newTaskContext()
 
     let jsonConverter = JSONConverter()
 
-    init(storage: FileStorage, tddStorage: TDDStorage, glucoseStorage: GlucoseStorage) {
+    init(storage: FileStorage, tddStorage: TDDStorage, glucoseStorage: GlucoseStorage, carbsStorage: CarbsStorage) {
         self.storage = storage
         self.tddStorage = tddStorage
         self.glucoseStorage = glucoseStorage
+        self.carbsStorage = carbsStorage
     }
 
     static let dateFormatter: ISO8601DateFormatter = {
@@ -93,58 +95,6 @@ final class OpenAPS {
                 debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Determination to Core Data")
             }
         }
-    }
-
-    private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil, carbsDate: Date? = nil) async throws -> String {
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: CarbEntryStored.self,
-            onContext: context,
-            predicate: NSPredicate.predicateForOneDayAgo,
-            key: "date",
-            ascending: false
-        )
-
-        let json = try await context.perform {
-            guard let carbResults = results as? [CarbEntryStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            var jsonArray = self.jsonConverter.convertToJSON(carbResults)
-
-            if let additionalCarbs = additionalCarbs {
-                let formattedDate = carbsDate.map { ISO8601DateFormatter().string(from: $0) } ?? ISO8601DateFormatter()
-                    .string(from: Date())
-
-                let additionalEntry = [
-                    "carbs": Double(additionalCarbs),
-                    "actualDate": formattedDate,
-                    "id": UUID().uuidString,
-                    "note": NSNull(),
-                    "protein": 0,
-                    "created_at": formattedDate,
-                    "isFPU": false,
-                    "fat": 0,
-                    "enteredBy": "Trio"
-                ] as [String: Any]
-
-                // Assuming jsonArray is a String, convert it to a list of dictionaries first
-                if let jsonData = jsonArray.data(using: .utf8) {
-                    var jsonList = try? JSONSerialization.jsonObject(with: jsonData, options: []) as? [[String: Any]]
-                    jsonList?.append(additionalEntry)
-
-                    // Convert back to JSON string
-                    if let updatedJsonData = try? JSONSerialization
-                        .data(withJSONObject: jsonList ?? [], options: .prettyPrinted)
-                    {
-                        jsonArray = String(data: updatedJsonData, encoding: .utf8) ?? jsonArray
-                    }
-                }
-            }
-
-            return jsonArray
-        }
-
-        return json
     }
 
     private func fetchPumpHistoryObjectIDs() async throws -> [NSManagedObjectID]? {
@@ -332,7 +282,10 @@ final class OpenAPS {
 
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
-        async let carbs = fetchAndProcessCarbs(additionalCarbs: simulatedCarbsAmount ?? 0, carbsDate: simulatedCarbsDate)
+        async let carbsFetch = carbsStorage.getCarbsForAlgorithm(
+            additionalCarbs: simulatedCarbsAmount ?? 0,
+            carbsDate: simulatedCarbsDate
+        )
 
         var preferences = await storage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
         let glucoseFetchHours = preferences.maxMealAbsorptionTime + 0.5 // MMAT + half hour buffer
@@ -351,7 +304,7 @@ final class OpenAPS {
         // Await the results of asynchronous tasks
         let (
             pumpHistoryJSON,
-            carbsAsJSON,
+            carbs,
             glucose,
             trioCustomOrefVariables,
             profile,
@@ -361,7 +314,7 @@ final class OpenAPS {
             hasSufficientTdd
         ) = await (
             try parsePumpHistory(await pumpHistoryObjectIDs, simulatedBolusAmount: simulatedBolusAmount),
-            try carbs,
+            try carbsFetch,
             try glucoseFetch,
             try prepareTrioCustomOrefVariables,
             profileAsync,
@@ -377,7 +330,7 @@ final class OpenAPS {
             profile: profile,
             basalProfile: basalProfile,
             clock: clock,
-            carbs: carbsAsJSON,
+            carbs: carbs,
             glucose: glucose
         )
 
@@ -511,7 +464,7 @@ final class OpenAPS {
 
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
-        async let carbs = fetchAndProcessCarbs()
+        async let carbsFetch = carbsStorage.getCarbsForAlgorithm(additionalCarbs: nil, carbsDate: nil)
         // Autosens needs the full 24h window for its sensitivity algorithm.
         async let glucoseFetch = glucoseStorage.getGlucoseForAlgorithm(
             shouldSmoothGlucose: shouldSmoothGlucose,
@@ -522,9 +475,9 @@ final class OpenAPS {
         async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
 
         // Await the results of asynchronous tasks
-        let (pumpHistoryJSON, carbsAsJSON, glucose, profile, basalProfile, tempTargets) = await (
+        let (pumpHistoryJSON, carbs, glucose, profile, basalProfile, tempTargets) = await (
             try parsePumpHistory(await pumpHistoryObjectIDs),
-            try carbs,
+            try carbsFetch,
             try glucoseFetch,
             getProfile,
             getBasalProfile,
@@ -537,7 +490,7 @@ final class OpenAPS {
             pumpHistory: pumpHistoryJSON,
             basalprofile: basalProfile,
             profile: profile,
-            carbs: carbsAsJSON,
+            carbs: carbs,
             temptargets: tempTargets
         )
 
@@ -684,7 +637,7 @@ final class OpenAPS {
         profile: JSON,
         basalProfile: JSON,
         clock: JSON,
-        carbs: JSON,
+        carbs: [CarbsEntry],
         glucose: [BloodGlucose]
     ) throws -> RawJSON {
         let swiftResult = OpenAPSSwift
@@ -704,7 +657,7 @@ final class OpenAPS {
         pumpHistory: JSON,
         basalprofile: JSON,
         profile: JSON,
-        carbs: JSON,
+        carbs: [CarbsEntry],
         temptargets: JSON
     ) throws -> RawJSON {
         let swiftResult = OpenAPSSwift

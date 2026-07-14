@@ -830,6 +830,7 @@
 		DDD7C8C22F4DB45400E5CF09 /* GlucoseStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD7C8C02F4DB45400E5CF09 /* GlucoseStored+CoreDataProperties.swift */; };
 		DDDD0FFB2F4E22C000F9C645 /* GlucoseSmoothingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDDD0FFA2F4E22C000F9C645 /* GlucoseSmoothingTests.swift */; };
 		DDDD0FFD2F4E22C000F9C645 /* GlucoseNativeConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDDD0FFC2F4E22C000F9C645 /* GlucoseNativeConversionTests.swift */; };
+		DDDD10A12F4E22C000F9C645 /* CarbsNativeConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDDD10A02F4E22C000F9C645 /* CarbsNativeConversionTests.swift */; };
 		DDDD0FFF2F4E231B00F9C645 /* MockTDDStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDDD0FFE2F4E231B00F9C645 /* MockTDDStorage.swift */; };
 		DDE179522C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179322C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift */; };
 		DDE179532C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179332C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift */; };
@@ -1842,6 +1843,7 @@
 		DDD7C8C02F4DB45400E5CF09 /* GlucoseStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlucoseStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDDD0FFA2F4E22C000F9C645 /* GlucoseSmoothingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseSmoothingTests.swift; sourceTree = "<group>"; };
 		DDDD0FFC2F4E22C000F9C645 /* GlucoseNativeConversionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseNativeConversionTests.swift; sourceTree = "<group>"; };
+		DDDD10A02F4E22C000F9C645 /* CarbsNativeConversionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbsNativeConversionTests.swift; sourceTree = "<group>"; };
 		DDDD0FFE2F4E231B00F9C645 /* MockTDDStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockTDDStorage.swift; sourceTree = "<group>"; };
 		DDE179322C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealPresetStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		DDE179332C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealPresetStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -2977,6 +2979,7 @@
 				DDDD0FFD2F4E231600F9C645 /* Mocks */,
 				DDDD0FFA2F4E22C000F9C645 /* GlucoseSmoothingTests.swift */,
 				DDDD0FFC2F4E22C000F9C645 /* GlucoseNativeConversionTests.swift */,
+				DDDD10A02F4E22C000F9C645 /* CarbsNativeConversionTests.swift */,
 				DDC6CA6C2DD90A2A0060EE25 /* LocalizationTests.swift */,
 				3B997DD22DC02AEF006B6BB2 /* JSONImporterData */,
 				BD8FC05C2D6618BE00B95AED /* BolusCalculatorTests */,
@@ -5641,6 +5644,7 @@
 				BD8FC0542D66186000B95AED /* TestError.swift in Sources */,
 				DDDD0FFB2F4E22C000F9C645 /* GlucoseSmoothingTests.swift in Sources */,
 				DDDD0FFD2F4E22C000F9C645 /* GlucoseNativeConversionTests.swift in Sources */,
+				DDDD10A12F4E22C000F9C645 /* CarbsNativeConversionTests.swift in Sources */,
 				CEE9A65E2BBC9F6500EB5194 /* CalibrationsTests.swift in Sources */,
 				CA02000000000000000010C2 /* DeliveryLimitsSyncTests.swift in Sources */,
 				BD8FC0622D6619E600B95AED /* OverrideStorageTests.swift in Sources */,

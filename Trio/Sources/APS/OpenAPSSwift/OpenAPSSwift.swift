@@ -92,7 +92,7 @@ struct OpenAPSSwift {
         profile: JSON,
         basalProfile: JSON,
         clock: JSON,
-        carbs: JSON,
+        carbs: [CarbsEntry],
         glucose: [BloodGlucose]
     ) -> (OrefFunctionResult) {
         do {
@@ -100,7 +100,6 @@ struct OpenAPSSwift {
             let profile = try JSONBridge.profile(from: profile)
             let basalProfile = try JSONBridge.basalProfile(from: basalProfile)
             let clock = try JSONBridge.clock(from: clock)
-            let carbs = try JSONBridge.carbs(from: carbs)
 
             let mealResult = try MealGenerator.generate(
                 pumpHistory: pumpHistory,
@@ -142,7 +141,7 @@ struct OpenAPSSwift {
         pumpHistory: JSON,
         basalProfile: JSON,
         profile: JSON,
-        carbs: JSON,
+        carbs: [CarbsEntry],
         tempTargets: JSON,
         clock: JSON,
         includeDeviationsForTesting: Bool = false
@@ -151,7 +150,6 @@ struct OpenAPSSwift {
             let pumpHistory = try JSONBridge.pumpHistory(from: pumpHistory)
             let basalProfile = try JSONBridge.basalProfile(from: basalProfile)
             let profile = try JSONBridge.profile(from: profile)
-            let carbs = try JSONBridge.carbs(from: carbs)
             let tempTargets = try JSONBridge.tempTargets(from: tempTargets)
             let clock = try JSONBridge.clock(from: clock)
 

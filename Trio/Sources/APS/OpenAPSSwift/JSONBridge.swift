@@ -44,10 +44,6 @@ enum JSONBridge {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func carbs(from: JSON) throws -> [CarbsEntry] {
-        try JSONBridge.from(string: from.rawJSON)
-    }
-
     static func iobResult(from: JSON) throws -> [IobResult] {
         try JSONBridge.from(string: from.rawJSON)
     }
