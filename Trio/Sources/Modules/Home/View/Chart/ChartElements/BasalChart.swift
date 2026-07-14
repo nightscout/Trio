@@ -27,7 +27,7 @@ extension MainChartView {
                 drawSuspensions()
             }.onChange(of: state.tempBasals) {
                 calculateBasals()
-                calculateTempBasalsInBackground()
+                calculateTempBasals()
             }
             .onChange(of: state.maxBasal) {
                 calculateBasals()
@@ -137,34 +137,39 @@ extension MainChartView {
 // MARK: - Calculation
 
 extension MainChartView {
-    func calculateTempBasalsInBackground() {
-        Task {
-            let basals = await prepareTempBasals()
-            await MainActor.run {
-                preparedTempBasals = basals
-            }
-        }
-    }
-
-    func prepareTempBasals() async -> [(start: Date, end: Date, rate: Double)] {
+    @MainActor func calculateTempBasals() {
         let now = Date()
-        let tempBasals = state.tempBasals
+        let suspensionTimes = state.suspendAndResumeEvents.compactMap(\.timestamp)
 
-        return tempBasals.compactMap { temp -> (start: Date, end: Date, rate: Double)? in
-            let duration = temp.tempBasal?.duration ?? 0
-            let timestamp = temp.timestamp ?? Date()
-            let end = timestamp + duration.minutes
-            let isInsulinSuspended = state.suspendAndResumeEvents
-                .contains { $0.timestamp ?? now >= timestamp && $0.timestamp ?? now <= end }
-
-            let rate = Double(truncating: temp.tempBasal?.rate ?? Decimal.zero as NSDecimalNumber) * (isInsulinSuspended ? 0 : 1)
-
-            // Check if there's a subsequent temp basal to determine the end time
-            guard let nextTemp = state.tempBasals.first(where: { $0.timestamp ?? .distantPast > timestamp }) else {
-                return (timestamp, end, rate)
-            }
-            return (timestamp, nextTemp.timestamp ?? Date(), rate)
+        // Snapshot the managed-object fields once; plain values from here on.
+        let events = state.tempBasals.map {
+            (timestamp: $0.timestamp, duration: $0.tempBasal?.duration ?? 0, rate: $0.tempBasal?.rate)
         }
+
+        var prepared = [(start: Date, end: Date, rate: Double)]()
+        prepared.reserveCapacity(events.count)
+
+        for (index, event) in events.enumerated() {
+            let timestamp = event.timestamp ?? now
+            let end = timestamp + event.duration.minutes
+            let isInsulinSuspended = suspensionTimes.contains { $0 >= timestamp && $0 <= end }
+            let rate = Double(truncating: event.rate ?? 0) * (isInsulinSuspended ? 0 : 1)
+
+            // A bar ends where the next later-starting temp basal begins,
+            // else at its own scheduled end.
+            var next = index + 1
+            while next < events.count {
+                if let nextStart = events[next].timestamp, nextStart > timestamp { break }
+                next += 1
+            }
+            if next < events.count, let nextStart = events[next].timestamp {
+                prepared.append((timestamp, nextStart, rate))
+            } else {
+                prepared.append((timestamp, end, rate))
+            }
+        }
+
+        preparedTempBasals = prepared
     }
 
     func findRegularBasalPoints(

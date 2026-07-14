@@ -51,9 +51,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     /// behind itself.
     private var uploadSerializer: NightscoutUploadSerializer!
 
-    // Background Core Data context for fetches used by upload tasks.
-    var backgroundContext = CoreDataStack.shared.newTaskContext()
-
     /// Request an upload for a pipeline (enqueue work). Safe to call from anywhere.
     /// Bursts of requests coalesce: at most one run follows the one currently in flight.
     func requestUpload(_ uploadPipeline: NightscoutUploadPipeline) {
@@ -106,15 +103,169 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private var lastEnactedDetermination: Determination?
     private var lastSuggestedDetermination: Determination?
 
-    // Queue for handling Core Data change notifications
-    let queue = DispatchQueue(label: "BaseNightscoutManager.queue", qos: .utility)
-
-    /// Emits changed Core Data object IDs from the app. We filter by entity names
-    /// and request upload pipelines based on what changed.
-    var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
-
     /// Bag for Combine subscriptions owned by this manager.
     var subscriptions = Set<AnyCancellable>()
+
+    let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+
+    // MARK: - Upload triggers
+
+    //
+    // Each upload pipeline is driven by an NSFetchedResultsController whose predicate is the
+    // "not yet uploaded to Nightscout" set for that entity. The controller fires whenever
+    // un-uploaded items appear (or drop out after a successful upload), which we map to a
+    // `requestUpload(pipeline)` call (coalesced and serialized per pipeline). Bound to the viewContext, they
+    // also pick up batch-inserted glucose via the persistent history merge in CoreDataStack —
+    // replacing the previous changedObjects publisher plus the glucoseStorage.updatePublisher
+    // fallback.
+
+    let determinationUploadControllerDelegate = FetchedResultsControllerDelegate()
+    lazy var determinationUploadController: NSFetchedResultsController<OrefDetermination> = {
+        let request = NSFetchRequest<OrefDetermination>(entityName: "OrefDetermination")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \OrefDetermination.deliverAt, ascending: true)]
+        request.predicate = NSPredicate(
+            format: "deliverAt >= %@ AND isUploadedToNS == %@",
+            Date.oneDayAgo as NSDate,
+            false as NSNumber
+        )
+        request.fetchBatchSize = 50
+        let controller = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = determinationUploadControllerDelegate
+        return controller
+    }()
+
+    let overrideUploadControllerDelegate = FetchedResultsControllerDelegate()
+    lazy var overrideUploadController: NSFetchedResultsController<OverrideStored> = {
+        let request = NSFetchRequest<OverrideStored>(entityName: "OverrideStored")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \OverrideStored.date, ascending: true)]
+        request.predicate = NSPredicate(
+            format: "date >= %@ AND isUploadedToNS == %@",
+            Date.oneDayAgo as NSDate,
+            false as NSNumber
+        )
+        let controller = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = overrideUploadControllerDelegate
+        return controller
+    }()
+
+    let overrideRunUploadControllerDelegate = FetchedResultsControllerDelegate()
+    lazy var overrideRunUploadController: NSFetchedResultsController<OverrideRunStored> = {
+        let request = NSFetchRequest<OverrideRunStored>(entityName: "OverrideRunStored")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \OverrideRunStored.startDate, ascending: true)]
+        request.predicate = NSPredicate(
+            format: "startDate >= %@ AND isUploadedToNS == %@",
+            Date.oneDayAgo as NSDate,
+            false as NSNumber
+        )
+        let controller = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = overrideRunUploadControllerDelegate
+        return controller
+    }()
+
+    let tempTargetUploadControllerDelegate = FetchedResultsControllerDelegate()
+    lazy var tempTargetUploadController: NSFetchedResultsController<TempTargetStored> = {
+        let request = NSFetchRequest<TempTargetStored>(entityName: "TempTargetStored")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \TempTargetStored.date, ascending: true)]
+        request.predicate = NSPredicate(
+            format: "date >= %@ AND isUploadedToNS == %@",
+            Date.oneDayAgo as NSDate,
+            false as NSNumber
+        )
+        let controller = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = tempTargetUploadControllerDelegate
+        return controller
+    }()
+
+    let tempTargetRunUploadControllerDelegate = FetchedResultsControllerDelegate()
+    lazy var tempTargetRunUploadController: NSFetchedResultsController<TempTargetRunStored> = {
+        let request = NSFetchRequest<TempTargetRunStored>(entityName: "TempTargetRunStored")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \TempTargetRunStored.startDate, ascending: true)]
+        request.predicate = NSPredicate(
+            format: "startDate >= %@ AND isUploadedToNS == %@",
+            Date.oneDayAgo as NSDate,
+            false as NSNumber
+        )
+        let controller = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = tempTargetRunUploadControllerDelegate
+        return controller
+    }()
+
+    let pumpEventUploadControllerDelegate = FetchedResultsControllerDelegate()
+    lazy var pumpEventUploadController: NSFetchedResultsController<PumpEventStored> = {
+        let request = NSFetchRequest<PumpEventStored>(entityName: "PumpEventStored")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \PumpEventStored.timestamp, ascending: true)]
+        request.predicate = NSPredicate.pumpEventsNotYetUploadedToNightscout
+        request.fetchBatchSize = 50
+        let controller = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = pumpEventUploadControllerDelegate
+        return controller
+    }()
+
+    let carbEntryUploadControllerDelegate = FetchedResultsControllerDelegate()
+    lazy var carbEntryUploadController: NSFetchedResultsController<CarbEntryStored> = {
+        let request = NSFetchRequest<CarbEntryStored>(entityName: "CarbEntryStored")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \CarbEntryStored.date, ascending: true)]
+        request.predicate = NSPredicate(
+            format: "date >= %@ AND isUploadedToNS == %@",
+            Date.oneDayAgo as NSDate,
+            false as NSNumber
+        )
+        request.fetchBatchSize = 50
+        let controller = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = carbEntryUploadControllerDelegate
+        return controller
+    }()
+
+    let glucoseUploadControllerDelegate = FetchedResultsControllerDelegate()
+    lazy var glucoseUploadController: NSFetchedResultsController<GlucoseStored> = {
+        let request = NSFetchRequest<GlucoseStored>(entityName: "GlucoseStored")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: true)]
+        request.predicate = NSPredicate.glucoseNotYetUploadedToNightscout
+        request.fetchBatchSize = 50
+        let controller = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = glucoseUploadControllerDelegate
+        return controller
+    }()
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -124,12 +275,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
 
         subscribe()
-
-        coreDataPublisher =
-            changedObjectsOnManagedObjectContextDidSavePublisher()
-                .receive(on: queue)
-                .share()
-                .eraseToAnyPublisher()
 
         setupNotification()
 
@@ -339,9 +484,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func fetchBattery() async -> Battery {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchBattery"
+        return await context.perform {
             do {
-                let results = try self.backgroundContext.fetch(OpenAPS_Battery.fetch(NSPredicate.predicateFor30MinAgo))
+                let results = try context.fetch(OpenAPS_Battery.fetch(NSPredicate.predicateFor30MinAgo))
                 if let last = results.first {
                     let percent: Int? = Int(last.percent)
                     let voltage: Decimal? = last.voltage as Decimal?
@@ -401,16 +548,18 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             return
         }
 
+        let tddContext = CoreDataStack.shared.newTaskContext()
+        tddContext.name = "uploadDeviceStatus.tdd"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TDDStored.self,
-            onContext: backgroundContext,
+            onContext: tddContext,
             predicate: NSPredicate.predicateFor30MinAgo,
             key: "date",
             ascending: false,
             fetchLimit: 1
         )
 
-        let tdd: Decimal? = await backgroundContext.perform {
+        let tdd: Decimal? = await tddContext.perform {
             (results as? [TDDStored])?.first?.total as? Decimal
         }
 
@@ -575,19 +724,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updateOrefDeterminationAsUploaded(_ determination: [Determination]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateOrefDeterminationAsUploaded"
+        await context.perform {
             let ids = determination.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<OrefDetermination> = OrefDetermination.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
@@ -850,19 +1001,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updateGlucoseAsUploaded(_ glucose: [BloodGlucose]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateGlucoseAsUploaded"
+        await context.perform {
             let ids = glucose.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
@@ -906,19 +1059,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updatePumpEventStoredsAsUploaded(_ treatments: [NightscoutTreatment]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updatePumpEventStoredsAsUploaded"
+        await context.perform {
             let ids = treatments.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
@@ -947,19 +1102,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updateCarbsAsUploaded(_ treatments: [NightscoutTreatment]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateCarbsAsUploaded"
+        await context.perform {
             let ids = treatments.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
@@ -1006,19 +1163,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updateOverridesAsUploaded(_ overrides: [NightscoutExercise]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateOverridesAsUploaded"
+        await context.perform {
             let ids = overrides.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<OverrideStored> = OverrideStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
@@ -1064,19 +1223,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updateOverrideRunsAsUploaded(_ overrideRuns: [NightscoutExercise]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateOverrideRunsAsUploaded"
+        await context.perform {
             let ids = overrideRuns.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<OverrideRunStored> = OverrideRunStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
@@ -1105,19 +1266,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updateTempTargetsAsUploaded(_ tempTargets: [NightscoutTreatment]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateTempTargetsAsUploaded"
+        await context.perform {
             let ids = tempTargets.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<TempTargetStored> = TempTargetStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS for TempTargetStored: \(error.userInfo)"
@@ -1146,19 +1309,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func updateTempTargetRunsAsUploaded(_ tempTargetRuns: [NightscoutTreatment]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateTempTargetRunsAsUploaded"
+        await context.perform {
             let ids = tempTargetRuns.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<TempTargetRunStored> = TempTargetRunStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToNS = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS for TempTargetRunStored: \(error.userInfo)"
