@@ -8,22 +8,6 @@ import Testing
 /// (`BaseCarbsStorage.mapToCarbsEntry`) reproduces, field for field, the carbs the algorithm used to receive
 /// through the old JSON round-trip (`CarbEntryStored` → JSON → `JSONBridge.carbs`) — with one
 /// deliberate, documented change: `id`.
-///
-/// The old encode-side keys didn't line up with the `CarbsEntry` decode-side `CodingKeys`, so a
-/// couple of fields silently dropped to nil crossing the boundary. The golden literals below were
-/// captured from that old path while it still existed (via a temporary differential run), so a match
-/// proves the algorithm still sees identical inputs now that the JSON round-trip is gone:
-/// - `id` was encoded under "id" but decoded from "_id" → **always nil** in the old path. We now
-///   populate it from Core Data (harmless to the algorithm, which never reads `id`); the goldens
-///   below therefore carry the real id and `testIdIsNowPopulatedFromCoreData` pins the difference.
-/// - `note` was encoded under "note" but decoded from "notes" → **always nil**. We preserve that.
-///
-/// The comparison is field by field (see `expectFieldsEqual`), NOT `==`: `CarbsEntry.==` only
-/// compares `createdAt`, so a plain array comparison would pass even if
-/// `id`/`carbs`/`fat`/`protein`/`note`/`isFPU`/`actualDate` differed — exactly the coerced fields
-/// this migration must preserve.
-///
-/// Fixtures use fixed dates and ids so the mapping is fully deterministic.
 @Suite("Carbs Native Conversion Tests", .serialized) struct CarbsNativeConversionTests {
     var coreDataStack: CoreDataStack!
     var testContext: NSManagedObjectContext!
@@ -210,10 +194,7 @@ import Testing
 
     // MARK: - Comparison helpers
 
-    /// Asserts the native mapping reproduces the frozen golden `CarbsEntry` values. The goldens were
-    /// captured from the old `CarbEntryStored` → JSON → `JSONBridge.carbs` path (see the differential
-    /// run in this migration's history), except `id`, which the old path always dropped to nil and
-    /// which we now populate from Core Data.
+    /// Asserts the native mapping reproduces the frozen golden `CarbsEntry` values.
     private func assertNativeMatchesGolden(_ golden: [CarbsEntry]) async throws {
         let native = try await nativeCarbsEntries()
 
@@ -224,14 +205,7 @@ import Testing
         }
     }
 
-    /// Field-by-field comparison. We can't use `==`: `CarbsEntry.==` only compares `createdAt`, so a
-    /// direct comparison would pass even if `id`/`carbs`/`fat`/`protein`/`note`/`isFPU`/`actualDate`
-    /// differed — exactly the coerced fields we must pin.
-    ///
-    /// `createdAt`/`actualDate` are compared at millisecond resolution rather than as exact `Date`s:
-    /// the mapping keeps the reading's full-precision date, but only millisecond precision is ever
-    /// observable (it's what the old ISO8601 round-trip preserved) and Core Data's `Double` storage
-    /// perturbs sub-millisecond bits anyway, so an exact `Date` comparison would be flaky.
+    /// Field-by-field comparison
     private func expectFieldsEqual(_ actual: CarbsEntry, _ expected: CarbsEntry, entry index: Int) {
         #expect(actual.id == expected.id, "entry \(index): id \(actual.id ?? "nil") != \(expected.id ?? "nil")")
         #expect(

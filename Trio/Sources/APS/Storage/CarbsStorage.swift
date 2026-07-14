@@ -371,15 +371,12 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         }
     }
 
-    /// Converts a `Double` to the exact `Decimal` the old JSON round-trip produced.
-    /// The problem is that the CarbEntryStored values are Double, not Decimal so JSON
-    /// was doing some conversion for us.
+    /// Converts a `Double` to a `Decimal` using JSON style conversion
     static func algorithmDecimal(_ value: Double) -> Decimal {
         Decimal(string: value.description) ?? Decimal(value)
     }
 
-    /// Maps a `CarbEntryStored` to the `CarbsEntry` the algorithm consumes, reproducing the coercions
-    /// the old `CarbEntryStored` → JSON → `JSONBridge.carbs` round-trip applied
+    /// Converts CoreData stored carb entries into a struct that the oref algorithm can use
     static func mapToCarbsEntry(_ carbEntry: CarbEntryStored) -> CarbsEntry {
         // The old encode used `date ?? Date()` for both created_at and actualDate.
         let date = carbEntry.date ?? Date()
