@@ -256,7 +256,6 @@
 		3B506FD92E635304000740B9 /* IOBService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B506FD82E635304000740B9 /* IOBService.swift */; };
 		3B56079E2ECD62A800C723C1 /* DeletedGlucoseStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B56079D2ECD62A800C723C1 /* DeletedGlucoseStored+CoreDataClass.swift */; };
 		3B5607A02ECD62AC00C723C1 /* DeletedGlucoseStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B56079F2ECD62AC00C723C1 /* DeletedGlucoseStored+CoreDataProperties.swift */; };
-		3B5CD1EC2D4912A600CE213C /* OpenAPSSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD1E92D4912A600CE213C /* OpenAPSSwift.swift */; };
 		3B5CD1ED2D4912A600CE213C /* JSONBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD1EA2D4912A600CE213C /* JSONBridge.swift */; };
 		3B5CD2982D4AEA3C00CE213C /* Carbs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2922D4AEA3C00CE213C /* Carbs.swift */; };
 		3B5CD2992D4AEA3C00CE213C /* Isf.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2932D4AEA3C00CE213C /* Isf.swift */; };
@@ -300,7 +299,6 @@
 		3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687E2D8DDD8800899469 /* CryptoSwift */; };
 		3BE2F1E82E030E2F009E2900 /* MealCobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE2F1E72E030E2F009E2900 /* MealCobTests.swift */; };
 		3BE2F1EA2E031951009E2900 /* MealCobBucketingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE2F1E92E031951009E2900 /* MealCobBucketingTests.swift */; };
-		3BEA3AE02D58F79700A67A1D /* OrefFunctionResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BEA3ADE2D58F79700A67A1D /* OrefFunctionResult.swift */; };
 		3BEDC9932EEB27B600AC6492 /* IobConsecutiveEventsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BEDC9922EEB27B600AC6492 /* IobConsecutiveEventsTests.swift */; };
 		3BEF6AB12D9731660076089D /* MealHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BEF6AB02D9731530076089D /* MealHistoryTests.swift */; };
 		3BEF6AB32D97316F0076089D /* MealTotalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BEF6AB22D97316A0076089D /* MealTotalTests.swift */; };
@@ -1270,7 +1268,6 @@
 		3B506FD82E635304000740B9 /* IOBService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOBService.swift; sourceTree = "<group>"; };
 		3B56079D2ECD62A800C723C1 /* DeletedGlucoseStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DeletedGlucoseStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		3B56079F2ECD62AC00C723C1 /* DeletedGlucoseStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DeletedGlucoseStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		3B5CD1E92D4912A600CE213C /* OpenAPSSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAPSSwift.swift; sourceTree = "<group>"; };
 		3B5CD1EA2D4912A600CE213C /* JSONBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONBridge.swift; sourceTree = "<group>"; };
 		3B5CD2912D4AEA3C00CE213C /* Basal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Basal.swift; sourceTree = "<group>"; };
 		3B5CD2922D4AEA3C00CE213C /* Carbs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Carbs.swift; sourceTree = "<group>"; };
@@ -1313,7 +1310,6 @@
 		3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorProvider.swift; sourceTree = "<group>"; };
 		3BE2F1E72E030E2F009E2900 /* MealCobTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCobTests.swift; sourceTree = "<group>"; };
 		3BE2F1E92E031951009E2900 /* MealCobBucketingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCobBucketingTests.swift; sourceTree = "<group>"; };
-		3BEA3ADE2D58F79700A67A1D /* OrefFunctionResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrefFunctionResult.swift; sourceTree = "<group>"; };
 		3BEDC9922EEB27B600AC6492 /* IobConsecutiveEventsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobConsecutiveEventsTests.swift; sourceTree = "<group>"; };
 		3BEF6AB02D9731530076089D /* MealHistoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealHistoryTests.swift; sourceTree = "<group>"; };
 		3BEF6AB22D97316A0076089D /* MealTotalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealTotalTests.swift; sourceTree = "<group>"; };
@@ -3079,8 +3075,6 @@
 				3B5CD2B22D4AEA6600CE213C /* Models */,
 				3B5CD2972D4AEA3C00CE213C /* Profile */,
 				3B5CD2A02D4AEA5100CE213C /* Utils */,
-				3B5CD1E92D4912A600CE213C /* OpenAPSSwift.swift */,
-				3BEA3ADE2D58F79700A67A1D /* OrefFunctionResult.swift */,
 				3B5CD1EA2D4912A600CE213C /* JSONBridge.swift */,
 			);
 			path = OpenAPSSwift;
@@ -5143,7 +5137,6 @@
 				582DF97B2C8CE209001F516D /* CarbView.swift in Sources */,
 				DD940BAA2CA7585D000830A5 /* GlucoseColorScheme.swift in Sources */,
 				3811DE2225C9D48300A708ED /* MainProvider.swift in Sources */,
-				3BEA3AE02D58F79700A67A1D /* OrefFunctionResult.swift in Sources */,
 				BD47FD1B2D88AB4F0043966B /* OnboardingStateModel.swift in Sources */,
 				3811DE0C25C9D32F00A708ED /* BaseProvider.swift in Sources */,
 				CE95BF5A2BA62E4A00DC3DE3 /* PluginSource.swift in Sources */,
@@ -5434,7 +5427,6 @@
 				C29835B02E2AA3F30068C5BB /* NightscoutUploadStepView.swift in Sources */,
 				58D08B3A2C8DFECD00AA37D3 /* TempTargets.swift in Sources */,
 				38E98A2325F52C9300C0CED0 /* Signpost.swift in Sources */,
-				3B5CD1EC2D4912A600CE213C /* OpenAPSSwift.swift in Sources */,
 				3B5CD1ED2D4912A600CE213C /* JSONBridge.swift in Sources */,
 				CE7CA3542A064973004BE681 /* TempPresetsIntentRequest.swift in Sources */,
 				58A3D5442C96DE11003F90FC /* TempTargetStored+Helper.swift in Sources */,
