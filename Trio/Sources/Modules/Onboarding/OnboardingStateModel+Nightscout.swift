@@ -116,11 +116,13 @@ extension Onboarding.StateModel {
                 )
             }
 
-            // Sensitivities
+            // Sensitivities — `asMgdLForImport` (not `asMgdL`) picks the integer
+            // mg/dL whose round-trip back to mmol/L matches the user-intended
+            // display, so NS values that came through NS's own integer-mg/dL
+            // storage don't drift by ±0.1 mmol/L. See #1179.
             let sensitivities = fetchedProfile.sens.map { sensitivity in
                 InsulinSensitivityEntry(
-                    sensitivity: shouldConvertToMgdL ? correctUnitParsingOffsets(sensitivity.value.asMgdL) : sensitivity
-                        .value,
+                    sensitivity: shouldConvertToMgdL ? sensitivity.value.asMgdLForImport : sensitivity.value,
                     offset: offset(sensitivity.time) / 60,
                     start: sensitivity.time
                 )
@@ -140,11 +142,11 @@ extension Onboarding.StateModel {
                 sensitivities: sensitivities
             )
 
-            // Targets
+            // Targets — same display-preserving conversion as sensitivities above.
             let targets = fetchedProfile.target_low.map { target in
                 BGTargetEntry(
-                    low: shouldConvertToMgdL ? correctUnitParsingOffsets(target.value.asMgdL) : target.value,
-                    high: shouldConvertToMgdL ? correctUnitParsingOffsets(target.value.asMgdL) : target.value,
+                    low: shouldConvertToMgdL ? target.value.asMgdLForImport : target.value,
+                    high: shouldConvertToMgdL ? target.value.asMgdLForImport : target.value,
                     start: target.time,
                     offset: offset(target.time) / 60
                 )
@@ -232,10 +234,6 @@ extension Onboarding.StateModel {
                 currentStep.wrappedValue = next
             }
         }
-    }
-
-    fileprivate func correctUnitParsingOffsets(_ parsedValue: Decimal) -> Decimal {
-        Int(parsedValue) % 2 == 0 ? parsedValue : parsedValue + 1
     }
 
     fileprivate func offset(_ string: String) -> Int {

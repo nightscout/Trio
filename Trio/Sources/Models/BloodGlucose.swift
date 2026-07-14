@@ -186,7 +186,12 @@ enum GlucoseUnits: String, JSON, Equatable, CaseIterable, Identifiable {
     case mgdL = "mg/dL"
     case mmolL = "mmol/L"
 
-    static let exchangeRate: Decimal = 0.0555
+    /// mg/dL ↔ mmol/L conversion factor. Glucose has a molar mass of
+    /// 180.156 g/mol, so 1 mmol/L = 18.0182 mg/dL; the reciprocal
+    /// 1 / 18.0182 ≈ 0.055495 is the correct mg/dL → mmol/L multiplier.
+    /// (Earlier code used 0.0555 — a 3-sig-fig approximation that drifted
+    /// noticeably on round-trip conversions, e.g. ISF imports from NS.)
+    static let exchangeRate: Decimal = 0.055495
 
     var id: String { rawValue }
 }
@@ -220,6 +225,29 @@ extension Decimal {
 
     var asMgdL: Decimal {
         Trio.rounded(self / GlucoseUnits.exchangeRate, scale: 0, roundingMode: .plain)
+    }
+
+    /// mmol/L → integer mg/dL biased toward preserving the source's
+    /// mmol/L display, used at the Nightscout import boundary
+    /// during Trio's Onboading flow..
+    ///
+    /// This variant rounds the source to its 1-decimal mmol/L display
+    /// first, then searches small neighbors of the naive mg/dL for the
+    /// integer whose round-trip back to mmol/L matches that display.
+    /// One mmol/L step spans ~1.8 integer mg/dL, so +/-2 always suffices
+    /// for in-range therapy values; we widen to ±3 defensively.
+    var asMgdLForImport: Decimal {
+        let targetDisplay = Trio.rounded(self, scale: 1, roundingMode: .plain)
+        let naive = asMgdL
+        let naiveInt = NSDecimalNumber(decimal: naive).intValue
+        for delta in [0, 1, -1, 2, -2, 3, -3] {
+            let candidate = Decimal(naiveInt + delta)
+            let display = Trio.rounded(candidate * GlucoseUnits.exchangeRate, scale: 1, roundingMode: .plain)
+            if display == targetDisplay {
+                return candidate
+            }
+        }
+        return naive
     }
 
     var formattedAsMmolL: String {
