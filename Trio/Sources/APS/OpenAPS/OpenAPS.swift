@@ -164,14 +164,13 @@ final class OpenAPS {
     }
 
     private func createSimulatedBolusEvent(simulatedBolusAmount: Decimal) -> PumpHistoryEvent {
-        // Adding -1s to the current Date ensures oref actually uses the mock entry to calculate iob
-        // and does not guard it away.
-        let oneSecondAgo = Date().addingTimeInterval(-1)
 
+        // for the timestamp, subtract 1 second from now to ensure
+        // that the algorithm take this simulated bolus into account
         return PumpHistoryEvent(
             id: UUID().uuidString,
             type: .bolus,
-            timestamp: oneSecondAgo,
+            timestamp: Date().addingTimeInterval(-1),
             amount: simulatedBolusAmount,
             duration: 0,
             isSMB: true,
