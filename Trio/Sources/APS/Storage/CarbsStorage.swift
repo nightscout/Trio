@@ -371,11 +371,6 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         }
     }
 
-    /// Converts a `Double` to a `Decimal` using JSON style conversion
-    static func algorithmDecimal(_ value: Double) -> Decimal {
-        Decimal(string: value.description) ?? Decimal(value)
-    }
-
     /// Converts CoreData stored carb entries into a struct that the oref algorithm can use
     static func mapToCarbsEntry(_ carbEntry: CarbEntryStored) -> CarbsEntry {
         // The old encode used `date ?? Date()` for both created_at and actualDate.
@@ -384,9 +379,9 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             id: carbEntry.id?.uuidString,
             createdAt: date,
             actualDate: date,
-            carbs: algorithmDecimal(carbEntry.carbs),
-            fat: algorithmDecimal(carbEntry.fat),
-            protein: algorithmDecimal(carbEntry.protein),
+            carbs: Decimal(algorithmValue: carbEntry.carbs),
+            fat: Decimal(algorithmValue: carbEntry.fat),
+            protein: Decimal(algorithmValue: carbEntry.protein),
             note: nil,
             enteredBy: CarbsEntry.local,
             isFPU: carbEntry.isFPU,
