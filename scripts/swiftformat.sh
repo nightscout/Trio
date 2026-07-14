@@ -115,4 +115,5 @@ trailingClosures \
 --exclude OmnipodKit \
 --exclude LibreLoop \
 --exclude LibreCRKit \
---exclude LoopAlgorithm
+--exclude LoopAlgorithm \
+--exclude AccuChekKit
