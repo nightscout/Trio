@@ -51,13 +51,17 @@ import Testing
         }
     }
 
-    /// Polls until `condition` is true, giving up after ~2 seconds so a broken
-    /// serializer fails the test instead of hanging it.
+    /// Thrown when `waitUntil` gives up on its condition.
+    private struct TimeoutError: Error {}
+
+    /// Polls until `condition` is true, throwing after ~2 seconds so a broken
+    /// serializer fails the test at the wait site instead of hanging it.
     private func waitUntil(_ condition: @escaping @Sendable() async -> Bool) async throws {
         for _ in 0 ..< 400 {
             if await condition() { return }
             try await Task.sleep(nanoseconds: 5_000_000)
         }
+        throw TimeoutError()
     }
 
     @Test("Concurrent runs of the same pipeline never overlap") func noOverlapWithinPipeline() async {
@@ -137,6 +141,45 @@ import Testing
 
         await serializer.run(.carbs)
         #expect(await log.events == ["run-1", "run-2"])
+    }
+
+    /// Holds the serializer so an upload operation can call back into it.
+    private actor SerializerBox {
+        private var serializer: NightscoutUploadSerializer?
+
+        func set(_ serializer: NightscoutUploadSerializer) { self.serializer = serializer }
+        func get() -> NightscoutUploadSerializer? { serializer }
+    }
+
+    @Test(
+        "A re-entrant run from inside its own operation degrades to a follow-up instead of deadlocking"
+    ) func reentrantRunDoesNotDeadlock() async throws {
+        let log = EventLog()
+        let reentrantLog = EventLog()
+        let box = SerializerBox()
+
+        let serializer = NightscoutUploadSerializer(
+            uploadOperation: { _ in
+                let n = await log.beginRun()
+                await log.append("run-\(n)")
+                if n == 1 {
+                    // Forbidden re-entrant call; the guard must turn it into a queued follow-up.
+                    await box.get()?.run(.overrides)
+                }
+            },
+            onReentrantRun: { pipeline in
+                Task { await reentrantLog.append("reentrant-\(pipeline)") }
+            }
+        )
+        await box.set(serializer)
+
+        await serializer.request(.overrides)
+
+        try await waitUntil { await log.events.contains("run-2") }
+        try await waitUntil { await reentrantLog.events.isEmpty == false }
+
+        #expect(await log.events == ["run-1", "run-2"])
+        #expect(await reentrantLog.events == ["reentrant-overrides"])
     }
 
     @Test("Different pipelines run independently of each other") func pipelinesAreIndependent() async throws {

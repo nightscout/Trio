@@ -13,10 +13,7 @@ protocol NightscoutManager: GlucoseSource {
     func deleteCarbs(withID id: String) async
     func deleteInsulin(withID id: String) async
     func deleteGlucose(withID id: String, withDate date: Date) async
-    func uploadDeviceStatus() async
-    func uploadGlucose() async
     func uploadCarbs() async
-    func uploadPumpHistory() async
     func uploadOverrides() async
     func uploadTempTargets() async
     func uploadProfiles() async throws
@@ -47,8 +44,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     /// Coalesces and serializes upload runs so no two runs of the same pipeline overlap.
     /// Runs execute `performUpload(for:)`, provided at init. The public `upload*()`
     /// methods and `requestUpload(_:)` go through the serializer; the `performUpload*()`
-    /// bodies must never call those entry points, or a same-pipeline run deadlocks
-    /// behind itself.
+    /// bodies must not call the awaitable `upload*()` entry points. The serializer
+    /// asserts on such a call in debug builds and downgrades it to a fire-and-forget
+    /// request in release.
     private var uploadSerializer: NightscoutUploadSerializer!
 
     /// Request an upload for a pipeline (enqueue work). Safe to call from anywhere.
@@ -110,14 +108,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
     // MARK: - Upload triggers
 
-    //
     // Each upload pipeline is driven by an NSFetchedResultsController whose predicate is the
     // "not yet uploaded to Nightscout" set for that entity. The controller fires whenever
     // un-uploaded items appear (or drop out after a successful upload), which we map to a
-    // `requestUpload(pipeline)` call (coalesced and serialized per pipeline). Bound to the viewContext, they
-    // also pick up batch-inserted glucose via the persistent history merge in CoreDataStack —
-    // replacing the previous changedObjects publisher plus the glucoseStorage.updatePublisher
-    // fallback.
+    // `requestUpload(pipeline)` call (coalesced and serialized per pipeline). Bound to the viewContext,
+    // they also pick up batch-inserted glucose via the persistent history merge in CoreDataStack.
 
     let determinationUploadControllerDelegate = FetchedResultsControllerDelegate()
     lazy var determinationUploadController: NSFetchedResultsController<OrefDetermination> = {
@@ -282,7 +277,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         /// Ensure that Nightscout Manager holds the `lastEnactedDetermination`, if one exists, on initialization.
         /// We have to set this here in `init()`, so there's a `lastEnactedDetermination` available after an app restart
-        /// for `uploadDeviceStatus()`, as within that fuction `lastEnactedDetermination` is reassigned at the very end of the function.
+        /// for `performUploadDeviceStatus()`, as within that function `lastEnactedDetermination` is reassigned at the very end of the function.
         /// This way, we ensure the latest enacted determination is always part of `devicestatus` and avoid having instances
         /// where the first uploaded non-enacted determination (i.e., "suggested"), lacks the "enacted" data.
         Task {
@@ -537,11 +532,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     /// - Schedule a task to upload pod age data separately.
     ///
     /// - Note: Ensure `nightscoutAPI` is initialized and `isUploadEnabled` is set to `true` before invoking this function.
-    /// - Returns: Nothing.
-    func uploadDeviceStatus() async {
-        await uploadSerializer.run(.deviceStatus)
-    }
-
     private func performUploadDeviceStatus() async throws {
         guard let nightscout = nightscoutAPI, isUploadEnabled else {
             debug(.nightscout, "NS API not available or upload disabled. Aborting NS Status upload.")
@@ -901,10 +891,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    func uploadGlucose() async {
-        await uploadSerializer.run(.glucose)
-    }
-
     private func performUploadGlucose() async {
         do {
             try await uploadGlucose(glucoseStorage.getGlucoseNotYetUploadedToNightscout())
@@ -915,10 +901,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 "\(DebuggingIdentifiers.failed) failed to upload glucose with error: \(error)"
             )
         }
-    }
-
-    func uploadPumpHistory() async {
-        await uploadSerializer.run(.pumpHistory)
     }
 
     private func performUploadPumpHistory() async {
