@@ -13,7 +13,6 @@ struct TimePicker: Identifiable {
 extension Home {
     struct RootView: BaseView {
         let resolver: Resolver
-        let safeAreaSize: CGFloat = 0.08
 
         @Environment(\.managedObjectContext) var moc
         @Environment(\.colorScheme) var colorScheme
@@ -57,32 +56,6 @@ extension Home {
             fetchLimit: 1
         )) var latestTempTarget: FetchedResults<TempTargetStored>
 
-        var bolusProgressFormatter: NumberFormatter {
-            let fractionDigits: Int = switch state.settingsManager.preferences.bolusIncrement {
-            case 0.1: 1
-            case 0.025: 3
-            default: 2
-            }
-
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.minimum = 0
-            formatter.maximumFractionDigits = fractionDigits
-            formatter.minimumFractionDigits = fractionDigits
-            formatter.allowsFloats = true
-            formatter.roundingIncrement = Double(state.settingsManager.preferences.bolusIncrement) as NSNumber
-            return formatter
-        }
-
-        private var fetchedTargetFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            if state.units == .mmolL {
-                formatter.maximumFractionDigits = 1
-            } else { formatter.maximumFractionDigits = 0 }
-            return formatter
-        }
-
         private var historySFSymbol: String {
             if #available(iOS 17.0, *) {
                 return "book.pages"
@@ -91,267 +64,8 @@ extension Home {
             }
         }
 
-        @ViewBuilder func pumpTimezoneView(_ badgeImage: UIImage, _ badgeColor: Color) -> some View {
-            HStack {
-                Image(uiImage: badgeImage.withRenderingMode(.alwaysTemplate))
-                    .font(.system(size: 14))
-                    .colorMultiply(badgeColor)
-                Text(String(localized: "Time Change Detected", comment: ""))
-                    .bold()
-                    .font(.system(size: 14))
-                    .foregroundStyle(badgeColor)
-            }
-            .onTapGesture {
-                if state.pumpDisplayState != nil {
-                    // sends user to pump settings
-                    state.shouldDisplayPumpSetupSheet.toggle()
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.vertical, 5)
-            .padding(.horizontal, 10)
-            .overlay(
-                Capsule()
-                    .stroke(badgeColor.opacity(0.4), lineWidth: 2)
-            )
-        }
-
-        var cgmSelectionButtons: some View {
-            ForEach(cgmOptions, id: \.name) { option in
-                if let cgm = state.listOfCGM.first(where: option.predicate) {
-                    Button(option.name) {
-                        state.addCGM(cgm: cgm)
-                    }
-                }
-            }
-        }
-
-        var glucoseView: some View {
-            CurrentGlucoseView(
-                timerDate: state.timerDate,
-                units: state.units,
-                alarm: state.alarm,
-                lowGlucose: state.lowGlucose,
-                highGlucose: state.highGlucose,
-                cgmAvailable: state.cgmAvailable,
-                currentGlucoseTarget: state.currentGlucoseTarget,
-                glucoseColorScheme: state.glucoseColorScheme,
-                glucose: state.latestTwoGlucoseValues,
-                cgmProgress: state.cgmProgressHighlight,
-                cgmStatus: state.cgmDisplayState,
-                cgmSensorExpiresAt: state.cgmSensorExpiresAt,
-                cgmWarmupEndsAt: state.cgmWarmupEndsAt
-            )
-            .onTapGesture {
-                if !state.cgmAvailable {
-                    showCGMSelection.toggle()
-                } else {
-                    state.shouldDisplayCGMSetupSheet.toggle()
-                }
-            }
-            .onLongPressGesture {
-                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                impactHeavy.impactOccurred()
-                showSnoozeSheet = true
-            }
-        }
-
-        var pumpView: some View {
-            PumpView(
-                reservoir: state.reservoir,
-                name: state.pumpName,
-                expiresAtDate: state.pumpExpiresAtDate,
-                activatedAtDate: state.pumpActivatedAtDate,
-                timerDate: state.timerDate,
-                pumpStatusHighlightMessage: state.pumpStatusHighlightMessage,
-                battery: state.batteryFromPersistence
-            )
-            .onTapGesture {
-                if state.pumpDisplayState == nil {
-                    // shows user confirmation dialog with pump model choices, then proceeds to setup
-                    showPumpSelection.toggle()
-                } else {
-                    // sends user to pump settings
-                    state.shouldDisplayPumpSetupSheet.toggle()
-                }
-            }
-        }
-
-        var basalString: String? {
-            var rate: NSNumber = 0
-            var manualBasalString = ""
-
-            guard let apsManager = state.apsManager else {
-                return nil
-            }
-
-            if apsManager.isScheduledBasal == true {
-                guard let scheduledRate = scheduledBasalDeliveryRate(at: Date()) else {
-                    return nil
-                }
-                rate = scheduledRate
-            } else {
-                guard let lastTempBasal = state.tempBasals.last?.tempBasal, let tempRate = lastTempBasal.rate else {
-                    return nil
-                }
-                if apsManager.isManualTempBasal {
-                    manualBasalString = String(
-                        localized: " - Manual Basal ⚠️",
-                        comment: "Manual Temp basal"
-                    )
-                }
-                rate = tempRate
-            }
-
-            let rateString = Formatter.decimalFormatterWithThreeFractionDigits.string(from: rate) ?? "0"
-            return rateString + String(localized: " U/hr", comment: "Unit per hour with space") +
-                manualBasalString
-        }
-
         // Returns the scheduled basal rate for the current time based on the saved basal scheduled.
         // Would be better if in the future BasalDeliveryStatus could be updated to include this info.
-        func scheduledBasalDeliveryRate(at when: Date) -> NSNumber? {
-            let calendar = Calendar(identifier: .gregorian)
-            // calendar.timeZone = timeZone /// should come from pumpManager in case it's different!
-
-            let hours = calendar.component(.hour, from: when)
-            let minutes = calendar.component(.minute, from: when)
-            let totalMinutes = hours * 60 + minutes
-
-            if let rate = findBasalRateForOffset(for: totalMinutes, in: state.basalProfile) {
-                return NSDecimalNumber(decimal: rate)
-            }
-            return nil
-        }
-
-        var overrideString: String? {
-            guard let latestOverride = latestOverride.first else {
-                return nil
-            }
-
-            guard let settingsManager = state.settingsManager else {
-                return nil
-            }
-
-            let percent = latestOverride.percentage
-            let percentString = percent == 100 ? "" : "\(percent.formatted(.number)) %"
-
-            let unit = state.units
-            var target = (latestOverride.target ?? 0) as Decimal
-            target = unit == .mmolL ? target.asMmolL : target
-
-            var targetString = target == 0 ? "" : (fetchedTargetFormatter.string(from: target as NSNumber) ?? "") + " " + unit
-                .rawValue
-            if tempTargetString != nil {
-                targetString = ""
-            }
-
-            let duration = latestOverride.duration ?? 0
-            let addedMinutes = Int(truncating: duration)
-            let date = latestOverride.date ?? Date()
-            let newDuration = max(
-                Decimal(Date().distance(to: date.addingTimeInterval(addedMinutes.minutes.timeInterval)).minutes),
-                0
-            )
-            let indefinite = latestOverride.indefinite
-            var durationString = ""
-
-            if !indefinite {
-                if newDuration >= 1 {
-                    durationString = formatHrMin(Int(newDuration))
-                } else if newDuration > 0 {
-                    durationString = "\(Int(newDuration * 60)) s"
-
-                } else {
-                    /// Do not show the Override anymore
-                    Task {
-                        guard let objectID = self.latestOverride.first?.objectID else { return }
-                        await state.cancelOverride(withID: objectID)
-                    }
-                }
-            }
-
-            let smbScheduleString = latestOverride
-                .smbIsScheduledOff && ((latestOverride.start?.stringValue ?? "") != (latestOverride.end?.stringValue ?? ""))
-                ? " \(formatTimeRange(start: latestOverride.start?.stringValue, end: latestOverride.end?.stringValue))"
-                : ""
-
-            let smbToggleString = latestOverride.smbIsOff || latestOverride
-                .smbIsScheduledOff ? String(localized: "SMBs Off\(smbScheduleString)") : ""
-
-            var smbMinuteString: String = ""
-            var uamMinuteString: String = ""
-
-            if !latestOverride.smbIsOff, latestOverride.advancedSettings {
-                if let smbMinutes = latestOverride.smbMinutes,
-                   smbMinutes.decimalValue != settingsManager.preferences.maxSMBBasalMinutes
-                {
-                    smbMinuteString = "SMB\u{00A0}\(smbMinutes)\u{00A0}" +
-                        String(localized: "m", comment: "Abbreviation for Minutes")
-                }
-
-                if let uamMinutes = latestOverride.uamMinutes,
-                   uamMinutes.decimalValue != settingsManager.preferences.maxUAMSMBBasalMinutes
-                {
-                    uamMinuteString = "UAM\u{00A0}\(uamMinutes)\u{00A0}" +
-                        String(localized: "m", comment: "Abbreviation for Minutes")
-                }
-            }
-
-            let components = [durationString, percentString, targetString, smbToggleString, smbMinuteString, uamMinuteString]
-                .filter { !$0.isEmpty }
-            return components.isEmpty ? nil : components.joined(separator: ", ")
-        }
-
-        var tempTargetString: String? {
-            guard let latestTempTarget = latestTempTarget.first else {
-                return nil
-            }
-            let duration = latestTempTarget.duration
-            let addedMinutes = Int(truncating: duration ?? 0)
-            let date = latestTempTarget.date ?? Date()
-            let newDuration = max(
-                Decimal(Date().distance(to: date.addingTimeInterval(addedMinutes.minutes.timeInterval)).minutes),
-                0
-            )
-            var durationString = ""
-            var percentageString = ""
-            var target = (latestTempTarget.target ?? 100) as Decimal
-            // Use TempTargetCalculations to get effective HBT (handles both custom and auto-adjusted standard TT)
-            let effectiveHBT = TempTargetCalculations.computeEffectiveHBT(
-                tempTargetHalfBasalTarget: latestTempTarget.halfBasalTarget?.decimalValue,
-                settingHalfBasalTarget: state.settingHalfBasalTarget,
-                target: target,
-                autosensMax: state.autosensMax
-            ) ?? state.settingHalfBasalTarget
-            var showPercentage = false
-            if target > 100, state.isExerciseModeActive || state.highTTraisesSens { showPercentage = true }
-            if target < 100, state.lowTTlowersSens, state.autosensMax > 1 { showPercentage = true }
-            if showPercentage {
-                percentageString =
-                    " \(Int(TempTargetCalculations.computeAdjustedPercentage(halfBasalTarget: effectiveHBT, target: target, autosensMax: state.autosensMax)))%"
-            }
-            target = state.units == .mmolL ? target.asMmolL : target
-            let targetString = target == 0 ? "" : (fetchedTargetFormatter.string(from: target as NSNumber) ?? "") + " " +
-                state.units.rawValue + percentageString
-
-            if newDuration >= 1 {
-                durationString =
-                    "\(newDuration.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) min"
-            } else if newDuration > 0 {
-                durationString =
-                    "\((newDuration * 60).formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) s"
-            } else {
-                /// Do not show the Temp Target anymore
-                Task {
-                    guard let objectID = self.latestTempTarget.first?.objectID else { return }
-                    await state.cancelTempTarget(withID: objectID)
-                }
-            }
-
-            let components = [targetString, durationString].filter { !$0.isEmpty }
-            return components.isEmpty ? nil : components.joined(separator: ", ")
-        }
 
         var timeIntervalButtons: some View {
             let buttonColor = (colorScheme == .dark ? Color.white : Color.black).opacity(0.8)
@@ -423,10 +137,16 @@ extension Home {
         }
 
         @ViewBuilder func mainChart(geo: GeometryProxy) -> some View {
+            // the chart is the only flexible zone: it takes what the fixed slots leave over
+            let chartHeight = max(
+                geo.size.height - HomeLayout.headerHeight - HomeLayout.mealSlotHeight - HomeLayout
+                    .timeButtonsRowHeight - HomeLayout.bottomZoneHeight,
+                HomeLayout.chartMinHeight
+            )
             ZStack {
                 MainChartView(
                     geo: geo,
-                    safeAreaSize: notificationsDisabled == true ? safeAreaSize : 0,
+                    chartHeight: chartHeight,
                     units: state.units,
                     hours: state.filteredHours,
                     highGlucose: state.highGlucose,
@@ -440,463 +160,14 @@ extension Home {
                     state: state
                 )
             }
-            .padding(.bottom, UIDevice.adjustPadding(min: 0, max: nil))
+            // enforce the zone budget; panes flex within it
+            .frame(height: chartHeight)
         }
 
         func highlightButtons() {
             for i in 0 ..< timeButtons.count {
                 timeButtons[i].active = timeButtons[i].hours == state.hours
             }
-        }
-
-        @ViewBuilder func rightHeaderPanel(_: GeometryProxy) -> some View {
-            VStack(alignment: .leading, spacing: 20) {
-                /// Loop view at bottomLeading
-                LoopView(
-                    closedLoop: state.closedLoop,
-                    timerDate: state.timerDate,
-                    isLooping: state.isLooping,
-                    lastLoopDate: state.lastLoopDate,
-                    manualTempBasal: state.manualTempBasal,
-                    determination: state.determinationsFromPersistence
-                )
-                .onTapGesture {
-                    state.isLoopStatusPresented = true
-                }
-                .onLongPressGesture {
-                    let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                    impactHeavy.impactOccurred()
-                    state.runLoop()
-                }
-                /// eventualBG string at bottomTrailing
-
-                if let eventualBG = state.enactedAndNonEnactedDeterminations.first?.eventualBG {
-                    let eventualGlucose = eventualBG as Decimal
-                    HStack {
-                        Image(systemName: "arrow.right.circle")
-                            .font(.callout)
-                            .fontWeight(.bold)
-
-                        Text(state.units == .mgdL ? eventualGlucose.description : eventualGlucose.formattedAsMmolL)
-                            .font(.callout)
-                            .fontWeight(.bold)
-                            .fontDesign(.rounded)
-                    }
-                    // aligns the evBG icon exactly with the first pixel of loop status icon
-                    .padding(.leading, 12)
-                } else {
-                    HStack {
-                        Image(systemName: "arrow.right.circle")
-                            .font(.callout).fontWeight(.bold)
-                        Text("--")
-                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                    }
-                }
-            }
-        }
-
-        @ViewBuilder func mealPanel(_: GeometryProxy) -> some View {
-            HStack {
-                HStack {
-                    Image(systemName: "syringe.fill")
-                        .font(.callout)
-                        .foregroundColor(Color.insulin)
-                    Text(
-                        (
-                            Formatter.decimalFormatterWithTwoFractionDigits
-                                .string(from: state.currentIOB as NSNumber) ?? "0"
-                        ) +
-                            String(localized: " U", comment: "Insulin unit")
-                    )
-                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                }
-
-                Spacer()
-
-                HStack {
-                    Image(systemName: "fork.knife")
-                        .font(.callout)
-                        .foregroundColor(.loopYellow)
-                    Text(
-                        (
-                            Formatter.decimalFormatterWithTwoFractionDigits.string(
-                                from: NSNumber(value: state.enactedAndNonEnactedDeterminations.first?.cob ?? 0)
-                            ) ?? "0"
-                        ) +
-                            String(localized: " g", comment: "gram of carbs")
-                    )
-                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                }
-
-                Spacer()
-
-                if state.maxIOB == 0.0 {
-                    HStack {
-                        Image(systemName: "exclamationmark.circle.fill")
-                        Text("MaxIOB: 0 U")
-                    }.bold()
-                        .foregroundStyle(Color.red)
-                        .font(.callout)
-                } else {
-                    HStack {
-                        /// Only display the insulin delivery rate info if the pump is not
-                        /// suspended and is available (e.g., pod is paired & not faulted).
-                        let pumpAvailable = state.apsManager.isScheduledBasal != nil
-                        if !state.apsManager.isSuspended && pumpAvailable {
-                            Image(systemName: "drop.circle")
-                                .font(.callout)
-                                .foregroundColor(.insulinTintColor)
-                            if let basalString = self.basalString {
-                                /// Adjust opacity when displaying a scheduled basal rate
-                                let opacity = state.apsManager?.isScheduledBasal == true ? 0.6 : 1.0
-                                if basalString.count > 5 {
-                                    Text(basalString)
-                                        .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.85)
-                                        .truncationMode(.tail)
-                                        .allowsTightening(true)
-                                        .opacity(opacity)
-                                } else {
-                                    // Short strings can just display normally
-                                    Text(basalString)
-                                        .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                                        .opacity(opacity)
-                                }
-                            } else {
-                                Text("No Data")
-                                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                            }
-                        }
-                    }
-                }
-            }.padding(.horizontal)
-        }
-
-        @ViewBuilder func adjustmentsOverrideView(_ overrideString: String) -> some View {
-            Group {
-                Image(systemName: "clock.arrow.2.circlepath")
-                    .font(.title2)
-                    .foregroundStyle(Color.primary, Color.purple)
-                VStack(alignment: .leading) {
-                    Text(latestOverride.first?.name ?? String(localized: "Custom Override"))
-                        .font(.subheadline)
-                        .frame(alignment: .leading)
-
-                    Text(overrideString)
-                        .font(.caption)
-                }
-            }
-            .onTapGesture {
-                selectedTab = 2
-            }
-        }
-
-        @ViewBuilder func adjustmentsTempTargetView(_ tempTargetString: String) -> some View {
-            Group {
-                Image(systemName: "target")
-                    .font(.title2)
-                    .foregroundStyle(Color.loopGreen)
-                VStack(alignment: .leading) {
-                    Text(latestTempTarget.first?.name ?? String(localized: "Temp Target"))
-                        .font(.subheadline)
-                    Text(tempTargetString)
-                        .font(.caption)
-                }
-            }
-            .onTapGesture {
-                selectedTab = 2
-            }
-        }
-
-        @ViewBuilder func adjustmentsCancelView(_ cancelAction: @escaping () -> Void) -> some View {
-            Image(systemName: "xmark.app")
-                .font(.title)
-                .onTapGesture {
-                    cancelAction()
-                }
-        }
-
-        @ViewBuilder func adjustmentsCancelTempTargetView() -> some View {
-            Image(systemName: "xmark.app")
-                .font(.title)
-                .confirmationDialog(
-                    "Stop the Temp Target \"\(latestTempTarget.first?.name ?? "")\"?",
-                    isPresented: $isConfirmStopTempTargetShown,
-                    titleVisibility: .visible
-                ) {
-                    Button("Stop", role: .destructive) {
-                        Task {
-                            guard let objectID = latestTempTarget.first?.objectID else { return }
-                            await state.cancelTempTarget(withID: objectID)
-                        }
-                    }
-                    Button("Cancel", role: .cancel) {}
-                }
-                .padding(.trailing, 8)
-                .onTapGesture {
-                    if !latestTempTarget.isEmpty {
-                        isConfirmStopTempTargetShown = true
-                    }
-                }
-        }
-
-        @ViewBuilder func adjustmentsCancelOverrideView() -> some View {
-            Image(systemName: "xmark.app")
-                .font(.title)
-                .confirmationDialog(
-                    "Stop the Override \"\(latestOverride.first?.name ?? "")\"?",
-                    isPresented: $isConfirmStopOverridePresented,
-                    titleVisibility: .visible
-                ) {
-                    Button("Stop", role: .destructive) {
-                        Task {
-                            guard let objectID = latestOverride.first?.objectID else { return }
-                            await state.cancelOverride(withID: objectID)
-                        }
-                    }
-                    Button("Cancel", role: .cancel) {}
-                }
-                .padding(.trailing, 8)
-                .onTapGesture {
-                    if !latestOverride.isEmpty {
-                        isConfirmStopOverridePresented = true
-                    }
-                }
-        }
-
-        @ViewBuilder func noActiveAdjustmentsView() -> some View {
-            Group {
-                VStack {
-                    Text("No Active Adjustment")
-                        .font(.subheadline)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text("Profile at 100 %")
-                        .font(.caption)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }.padding(.leading, 10)
-
-                Spacer()
-
-                /// to ensure the same position....
-                Image(systemName: "xmark.app")
-                    .font(.title)
-                    // clear color for the icon
-                    .foregroundStyle(Color.clear)
-            }.onTapGesture {
-                selectedTab = 2
-            }
-        }
-
-        @ViewBuilder func adjustmentView(geo: GeometryProxy) -> some View {
-//            let background = colorScheme == .dark ? Material.ultraThinMaterial.opacity(0.5) : Color.black.opacity(0.2)
-
-            ZStack {
-                /// rectangle as background
-                RoundedRectangle(cornerRadius: 15)
-                    .fill(
-                        (overrideString != nil || tempTargetString != nil) ?
-                            (
-                                colorScheme == .dark ?
-                                    Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) :
-                                    Color.insulin.opacity(0.1)
-                            ) : Color.clear // Use clear and add the Material in the background
-                    )
-                    .background(colorScheme == .dark ? Color.chart.opacity(0.25) : Color.black.opacity(0.075))
-                    .clipShape(RoundedRectangle(cornerRadius: 15))
-                    .frame(height: geo.size.height * 0.08)
-                    .shadow(
-                        color: (overrideString != nil || tempTargetString != nil) ?
-                            (
-                                colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                                    Color.black.opacity(0.33)
-                            ) : Color.clear,
-                        radius: 3
-                    )
-                HStack {
-                    if let overrideString = overrideString, let tempTargetString = tempTargetString {
-                        HStack {
-                            adjustmentsOverrideView(overrideString)
-
-                            Spacer()
-
-                            Divider()
-                                .frame(height: geo.size.height * 0.05)
-                                .padding(.horizontal, 2)
-
-                            adjustmentsTempTargetView(tempTargetString)
-
-                            Spacer()
-
-                            adjustmentsCancelView({
-                                if !latestTempTarget.isEmpty, !latestOverride.isEmpty {
-                                    showCancelConfirmDialog = true
-                                } else if !latestOverride.isEmpty {
-                                    showCancelAlert = true
-                                } else if !latestTempTarget.isEmpty {
-                                    showCancelAlert = true
-                                }
-                            })
-                        }
-                    } else if let overrideString = overrideString {
-                        adjustmentsOverrideView(overrideString)
-                        Spacer()
-                        adjustmentsCancelOverrideView()
-
-                    } else if let tempTargetString = tempTargetString {
-                        HStack {
-                            adjustmentsTempTargetView(tempTargetString)
-                            Spacer()
-                            adjustmentsCancelTempTargetView()
-                        }
-                    } else {
-                        noActiveAdjustmentsView()
-                    }
-                }.padding(.horizontal, 10)
-                    .confirmationDialog("Adjustment to Stop", isPresented: $showCancelConfirmDialog) {
-                        Button("Stop Override", role: .destructive) {
-                            Task {
-                                guard let objectID = latestOverride.first?.objectID else { return }
-                                await state.cancelOverride(withID: objectID)
-                            }
-                        }
-                        Button("Stop Temp Target", role: .destructive) {
-                            Task {
-                                guard let objectID = latestTempTarget.first?.objectID else { return }
-                                await state.cancelTempTarget(withID: objectID)
-                            }
-                        }
-                        Button("Stop All Adjustments", role: .destructive) {
-                            Task {
-                                guard let overrideObjectID = latestOverride.first?.objectID else { return }
-                                await state.cancelOverride(withID: overrideObjectID)
-
-                                guard let tempTargetObjectID = latestTempTarget.first?.objectID else { return }
-                                await state.cancelTempTarget(withID: tempTargetObjectID)
-                            }
-                        }
-                    } message: {
-                        Text("Select Adjustment")
-                    }
-            }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
-        }
-
-        @ViewBuilder func bolusView(geo: GeometryProxy, _ progress: Decimal) -> some View {
-            /// ensure that state.lastPumpBolus has a value, i.e. there is a last bolus done by the pump and not an external bolus
-            /// - TRUE:  show the pump bolus
-            /// - FALSE:  do not show a progress bar at all
-            if let bolusTotal = state.lastPumpBolus?.bolus?.amount {
-                let bolusFraction = progress * (bolusTotal as Decimal)
-                let bolusString =
-                    (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
-                        + String(localized: " of ", comment: "Bolus string partial message: 'x U of y U' in home view") +
-                        (Formatter.decimalFormatterWithThreeFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
-                        + String(localized: " U", comment: "Insulin unit")
-                let bolusLabel = state
-                    .bolusStatus == .inProgress ? String(localized: "Bolusing") : String(localized: "Initiating…")
-
-                ZStack {
-                    /// rectangle as background
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(
-                            colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) : Color
-                                .insulin
-                                .opacity(0.2)
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 15))
-                        .frame(height: geo.size.height * 0.08)
-                        .shadow(
-                            color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                                Color.black.opacity(0.33),
-                            radius: 3
-                        )
-
-                    /// actual bolus view
-                    HStack {
-                        Image(systemName: "cross.vial.fill")
-                            .font(.system(size: 25))
-
-                        Spacer()
-
-                        VStack {
-                            Text(bolusLabel)
-                                .font(.subheadline)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            Text(bolusString)
-                                .font(.caption)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }.padding(.leading, 5)
-
-                        Spacer()
-
-                        if state.bolusStatus == .inProgress {
-                            Button {
-                                state.showProgressView()
-                                state.cancelBolus()
-                            } label: {
-                                Image(systemName: "xmark.app")
-                                    .font(.system(size: 25))
-                            }
-                        } else if state.bolusStatus == .initiating {
-                            ProgressView()
-                        }
-                    }.padding(.horizontal, 10)
-                        .padding(.trailing, 8)
-                }
-                .padding(.horizontal, 10)
-                .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
-                .overlay(alignment: .bottom) {
-                    BolusProgressBar(progress: progress)
-                        .padding(.horizontal, 18)
-                        .padding(.bottom, 9)
-                }.clipShape(RoundedRectangle(cornerRadius: 15))
-            }
-        }
-
-        @ViewBuilder func alertSafetyNotificationsView(geo: GeometryProxy) -> some View {
-            ZStack {
-                /// rectangle as background
-                RoundedRectangle(cornerRadius: 15)
-                    .fill(
-                        Color(
-                            red: 0.9,
-                            green: 0.133333333,
-                            blue: 0.2156862745
-                        )
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 15))
-                    .frame(height: geo.size.height * safeAreaSize)
-                    .coordinateSpace(name: "alertSafetyNotificationsView")
-                    .shadow(
-                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                            Color.black.opacity(0.33),
-                        radius: 3
-                    )
-                HStack {
-                    Spacer()
-                    VStack {
-                        Text("⚠️ Safety Notifications are OFF")
-                            .font(.headline)
-                            .fontWeight(.bold)
-                            .fontDesign(.rounded)
-                            .foregroundStyle(.white.gradient)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        Text("Fix now by turning Notifications ON.")
-                            .font(.footnote)
-                            .fontDesign(.rounded)
-                            .foregroundStyle(.white.gradient)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }.padding(.leading, 5)
-                    Spacer()
-                    Image(systemName: "chevron.right").foregroundColor(.white)
-                        .font(.headline)
-                }.padding(.horizontal, 10)
-                    .padding(.trailing, 8)
-                    .onTapGesture {
-                        UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
-                    }
-            }.padding(.horizontal, 10)
-                .padding(.top, 0)
         }
 
         @ViewBuilder func mainViewElements(_ geo: GeometryProxy) -> some View {
@@ -910,7 +181,7 @@ extension Home {
                         /// right panel with loop status and evBG
                         HStack {
                             Spacer()
-                            rightHeaderPanel(geo)
+                            rightHeaderPanel()
                         }.padding(.trailing, 20)
 
                         /// glucose bobble
@@ -923,19 +194,22 @@ extension Home {
                         }.padding(.leading, 20)
                     }
                 }
-                .padding(.top, 10)
-                .safeAreaInset(edge: .top, spacing: 0) {
-                    if notificationsDisabled {
-                        alertSafetyNotificationsView(geo: geo)
-                    }
-                    if let badgeImage = state.pumpStatusBadgeImage, let badgeColor = state.pumpStatusBadgeColor {
-                        pumpTimezoneView(badgeImage, badgeColor)
-                            .padding(.horizontal, 20)
+                // fixed slot: header state changes never reflow the zones below
+                .frame(height: HomeLayout.headerHeight)
+                // layout-inert warnings; the multi-use panel absorbs these later
+                .overlay(alignment: .top) {
+                    VStack(spacing: 4) {
+                        if notificationsDisabled {
+                            alertSafetyNotificationsView(geo: geo)
+                        }
+                        if let badgeImage = state.pumpStatusBadgeImage, let badgeColor = state.pumpStatusBadgeColor {
+                            pumpTimezoneView(badgeImage, badgeColor)
+                                .padding(.horizontal, 20)
+                        }
                     }
                 }
 
-                mealPanel(geo).padding(.top, UIDevice.adjustPadding(min: nil, max: 30))
-                    .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 20))
+                mealPanel().frame(height: HomeLayout.mealSlotHeight)
 
                 mainChart(geo: geo)
 
@@ -949,8 +223,7 @@ extension Home {
 
                     Spacer()
 
-                    timeIntervalButtons.padding(.top, UIDevice.adjustPadding(min: 0, max: 10))
-                        .padding(.bottom, UIDevice.adjustPadding(min: 0, max: 10))
+                    timeIntervalButtons
 
                     Spacer()
 
@@ -960,14 +233,15 @@ extension Home {
                         iconString: "info",
                         action: { state.isLegendPresented.toggle() }
                     )
-                }.padding([.horizontal, .bottom])
-
-                if let progress = state.bolusProgress {
-                    bolusView(geo: geo, progress)
-                        .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
-                } else {
-                    adjustmentView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                 }
+                .padding(.horizontal)
+                .frame(height: HomeLayout.timeButtonsRowHeight)
+            }
+            // fill the screen; zones stay top-aligned, chart takes the slack
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            // safe-area anchor: the tab bar can never cover the bottom controls
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                bottomControls()
             }
             .background(appState.trioBackgroundColor(for: colorScheme))
             .onReceive(
@@ -986,6 +260,8 @@ extension Home {
         @ViewBuilder func mainView() -> some View {
             GeometryReader { geo in
                 mainViewElements(geo)
+                    // fixed zones bust beyond XXL; cap dashboard type size
+                    .dynamicTypeSize(...DynamicTypeSize.xxLarge)
             }
             .onChange(of: state.hours) {
                 highlightButtons()
@@ -1178,39 +454,6 @@ extension Home {
                 ))
             }
         }
-    }
-}
-
-extension UIDevice {
-    public enum DeviceSize: CGFloat {
-        case smallDevice = 667 // Height for 4" iPhone SE
-        case largeDevice = 852 // Height for 6.1" iPhone 15 Pro
-    }
-
-    @usableFromInline static func adjustPadding(
-        min: CGFloat? = nil,
-        max: CGFloat? = nil
-    ) -> CGFloat? {
-        if UIScreen.screenHeight > UIDevice.DeviceSize.smallDevice.rawValue {
-            if UIScreen.screenHeight >= UIDevice.DeviceSize.largeDevice.rawValue {
-                return max
-            } else {
-                return min != nil ?
-                    (max != nil ? max! * (UIScreen.screenHeight / UIDevice.DeviceSize.largeDevice.rawValue) : nil) : nil
-            }
-        } else {
-            return min
-        }
-    }
-}
-
-extension UIScreen {
-    static var screenHeight: CGFloat {
-        UIScreen.main.bounds.height
-    }
-
-    static var screenWidth: CGFloat {
-        UIScreen.main.bounds.width
     }
 }
 
