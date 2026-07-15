@@ -46,21 +46,16 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         return Decimal(roundedValue)
     }
 
-    /// Effective peak in minutes, mirroring `IobCalculation.lookupPeak`.
-    private var effectiveInsulinPeakTime: Decimal {
-        let preferences = settings.preferences
-        guard preferences.useCustomPeakTime else {
-            return Decimal(preferences.curve.insulinModel.peakActivity / 60)
-        }
-        let range = preferences.curve.customPeakRange
-        return preferences.insulinPeakTime.clamp(lowerBound: range.lowerBound, upperBound: range.upperBound)
-    }
-
     /// Dose-time snapshot of the active insulin model; never revised on finalization.
     private func applyInsulinSnapshot(to event: PumpEventStored, insulinType: InsulinType?) {
+        let preferences = settings.preferences
         event.insulinType = Int16(insulinType?.rawValue ?? -1)
         event.actionDuration = settings.pumpSettings.insulinActionCurve as NSDecimalNumber
-        event.peakTime = effectiveInsulinPeakTime as NSDecimalNumber
+        event.peakTime = IobCalculation.lookupPeak(
+            curve: preferences.curve,
+            useCustomPeakTime: preferences.useCustomPeakTime,
+            insulinPeakTime: preferences.insulinPeakTime
+        ).map { Decimal($0) as NSDecimalNumber }
     }
 
     func storePumpEvents(_ events: [NewPumpEvent], replacePendingEvents: Bool) async throws {
@@ -589,18 +584,6 @@ extension BasePumpHistoryStorage {
     struct TimestampAndType: Hashable {
         let timestamp: Date
         let type: String
-    }
-}
-
-private extension InsulinCurve {
-    /// LoopKit preset backing this curve; Trio supports exponential curves only.
-    var insulinModel: ExponentialInsulinModelPreset {
-        self == .ultraRapid ? .fiasp : .rapidActingAdult
-    }
-
-    /// Custom peak bounds from oref0, as enforced by `IobCalculation.lookupPeak`.
-    var customPeakRange: ClosedRange<Decimal> {
-        self == .ultraRapid ? 35 ... 100 : 50 ... 120
     }
 }
 
