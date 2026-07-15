@@ -1,6 +1,6 @@
 import Foundation
 
-struct IobResult: Codable {
+struct IobResult: JSON {
     static func from(iob: IobTotal, iobWithZeroTemp: IobTotal) -> IobResult {
         IobResult(
             iob: iob.iob,
