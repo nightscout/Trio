@@ -163,6 +163,24 @@ import Testing
         // Double→Decimal rounding leaves binary noise; compare with tolerance
         let amount = row?.bolus?.amount?.doubleValue ?? 0
         #expect(abs(amount - 2.4) < 0.0001, "Amount should be the delivered units, not programmed units")
+        let programmed = row?.bolus?.programmedAmount?.doubleValue ?? 0
+        #expect(abs(programmed - 5.0) < 0.0001, "Programmed amount must survive finalization")
+    }
+
+    @Test("Insulin model snapshot is stored per event") func testInsulinSnapshotStored() async throws {
+        let date = Date().addingTimeInterval(-5.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [bolusEvent(date: date, units: 1.0, deliveredUnits: 1.0, syncIdentifier: "bolus-snap", isMutable: false)],
+            replacePendingEvents: false
+        )
+
+        let settings = resolver.resolve(SettingsManager.self)!
+        let events = try await fetchAllEvents()
+        let row = events.first
+        #expect(row?.insulinType == Int16(LoopKit.InsulinType.lyumjev.rawValue), "Pump-reported insulin type must be stored")
+        #expect(row?.actionDuration as? Decimal == settings.pumpSettings.insulinActionCurve, "DIA snapshot must match settings")
+        #expect(row?.peakTime as? Decimal == 75, "Default rapid-acting peak is 75 min")
     }
 
     @Test("Finalized rows are frozen against later reports") func testFinalizedRowIsFrozen() async throws {
@@ -288,5 +306,8 @@ import Testing
         #expect(row?.syncIdentifier != nil, "External insulin needs a stable identity")
         #expect(row?.bolus?.isExternal == true)
         #expect(row?.bolus?.amount as? Decimal == 1.5)
+        #expect(row?.bolus?.programmedAmount as? Decimal == 1.5)
+        #expect(row?.insulinType == -1, "Insulin type is unknown for doses external to the pump")
+        #expect(row?.actionDuration != nil, "External doses still snapshot the insulin model")
     }
 }

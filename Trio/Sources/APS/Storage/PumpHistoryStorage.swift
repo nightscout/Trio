@@ -46,6 +46,23 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         return Decimal(roundedValue)
     }
 
+    /// Effective peak in minutes, mirroring `IobCalculation.lookupPeak`.
+    private var effectiveInsulinPeakTime: Decimal {
+        let preferences = settings.preferences
+        guard preferences.useCustomPeakTime else {
+            return Decimal(preferences.curve.insulinModel.peakActivity / 60)
+        }
+        let range = preferences.curve.customPeakRange
+        return preferences.insulinPeakTime.clamp(lowerBound: range.lowerBound, upperBound: range.upperBound)
+    }
+
+    /// Dose-time snapshot of the active insulin model; never revised on finalization.
+    private func applyInsulinSnapshot(to event: PumpEventStored, insulinType: InsulinType?) {
+        event.insulinType = Int16(insulinType?.rawValue ?? -1)
+        event.actionDuration = settings.pumpSettings.insulinActionCurve as NSDecimalNumber
+        event.peakTime = effectiveInsulinPeakTime as NSDecimalNumber
+    }
+
     func storePumpEvents(_ events: [NewPumpEvent], replacePendingEvents: Bool) async throws {
         let context = makeContext()
         context.name = "storePumpEvents"
@@ -100,6 +117,9 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 newPumpEvent.isUploadedToNS = false
                 newPumpEvent.isUploadedToHealth = false
                 newPumpEvent.isUploadedToTidepool = false
+                if let dose = event.dose {
+                    self.applyInsulinSnapshot(to: newPumpEvent, insulinType: dose.insulinType)
+                }
 
                 switch storedType {
                 case .bolus:
@@ -111,6 +131,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     newBolusEntry.pumpEvent = newPumpEvent
                     newBolusEntry.amount = NSDecimalNumber(decimal: self.roundDose(
                         dose.unitsInDeliverableIncrements,
+                        toIncrement: Double(self.settings.preferences.bolusIncrement)
+                    ))
+                    newBolusEntry.programmedAmount = NSDecimalNumber(decimal: self.roundDose(
+                        dose.programmedUnits,
                         toIncrement: Double(self.settings.preferences.bolusIncrement)
                     ))
                     newBolusEntry.isExternal = dose.manuallyEntered
@@ -226,11 +250,14 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             newPumpEvent.isUploadedToNS = false
             newPumpEvent.isUploadedToHealth = false
             newPumpEvent.isUploadedToTidepool = false
+            // insulin type unknown: dose is external to the pump
+            self.applyInsulinSnapshot(to: newPumpEvent, insulinType: nil)
 
             // create bolus entry and specify relationship to pump event
             let newBolusEntry = BolusStored(context: context)
             newBolusEntry.pumpEvent = newPumpEvent
             newBolusEntry.amount = amount as NSDecimalNumber
+            newBolusEntry.programmedAmount = amount as NSDecimalNumber
             newBolusEntry.isExternal = true // we are creating an external dose
             newBolusEntry.isSMB = false // the dose is manually administered
 
@@ -562,6 +589,18 @@ extension BasePumpHistoryStorage {
     struct TimestampAndType: Hashable {
         let timestamp: Date
         let type: String
+    }
+}
+
+private extension InsulinCurve {
+    /// LoopKit preset backing this curve; Trio supports exponential curves only.
+    var insulinModel: ExponentialInsulinModelPreset {
+        self == .ultraRapid ? .fiasp : .rapidActingAdult
+    }
+
+    /// Custom peak bounds from oref0, as enforced by `IobCalculation.lookupPeak`.
+    var customPeakRange: ClosedRange<Decimal> {
+        self == .ultraRapid ? 35 ... 100 : 50 ... 120
     }
 }
 

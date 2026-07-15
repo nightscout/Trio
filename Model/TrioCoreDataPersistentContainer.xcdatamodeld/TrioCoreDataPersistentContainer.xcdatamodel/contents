@@ -4,6 +4,7 @@
         <attribute name="amount" optional="YES" attributeType="Decimal" defaultValueString="0"/>
         <attribute name="isExternal" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="isSMB" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="programmedAmount" optional="YES" attributeType="Decimal"/>
         <relationship name="pumpEvent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PumpEventStored" inverseName="bolus" inverseEntity="PumpEventStored"/>
     </entity>
     <entity name="CarbEntryStored" representedClassName="CarbEntryStored" syncable="YES">
@@ -199,12 +200,15 @@
         </fetchIndex>
     </entity>
     <entity name="PumpEventStored" representedClassName="PumpEventStored" syncable="YES">
+        <attribute name="actionDuration" optional="YES" attributeType="Decimal"/>
         <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="insulinType" optional="YES" attributeType="Integer 16" defaultValueString="-1" usesScalarValueType="YES"/>
         <attribute name="isMutable" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isUploadedToHealth" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isUploadedToTidepool" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="note" optional="YES" attributeType="String"/>
+        <attribute name="peakTime" optional="YES" attributeType="Decimal"/>
         <attribute name="syncIdentifier" optional="YES" attributeType="String"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="type" optional="YES" attributeType="String"/>
