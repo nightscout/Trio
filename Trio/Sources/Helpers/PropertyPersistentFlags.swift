@@ -32,10 +32,9 @@ final class PropertyPersistentFlags {
     //
     // See Trio/Sources/Services/Telemetry/TelemetryClient.swift.
     // `telemetryEnabled` gates the anonymous-usage POST. `diagnosticsSharingEnabled`
-    // remains the Crashlytics gate. Both flags `nil` means the user has not yet
-    // chosen — used to surface the one-time migration sheet to existing users.
+    // remains the Crashlytics gate. Both streams are on by default: `nil` means
+    // enabled; only an explicit `false` (Settings → Features → App Diagnostics) opts out.
     @PersistedProperty(key: "telemetryEnabled") var telemetryEnabled: Bool?
-    @PersistedProperty(key: "telemetryConsentDecisionMade") var telemetryConsentDecisionMade: Bool?
     @PersistedProperty(key: "telemetryLastSentAt") var telemetryLastSentAt: Date?
     @PersistedProperty(key: "telemetryLastSentSha") var telemetryLastSentSha: String?
     // Sliding 7-day window of cold-launch timestamps; count is sent as `coldLaunches7d`.

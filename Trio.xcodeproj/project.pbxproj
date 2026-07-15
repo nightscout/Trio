@@ -777,7 +777,6 @@
 		DD7E1E300000000000000002 /* TelemetryClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD7E1E300000000000000001 /* TelemetryClient.swift */; };
 		DD7E1E300000000000000004 /* TelemetryPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD7E1E300000000000000003 /* TelemetryPreviewView.swift */; };
 		DD7E1E300000000000000006 /* TelemetryPrivacyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD7E1E300000000000000005 /* TelemetryPrivacyView.swift */; };
-		DD7E1E300000000000000008 /* TelemetryMigrationSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD7E1E300000000000000007 /* TelemetryMigrationSheetView.swift */; };
 		DD7E1E30000000000000000E /* TelemetryDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD7E1E30000000000000000D /* TelemetryDataFlow.swift */; };
 		DD7E1E300000000000000010 /* TelemetryProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD7E1E30000000000000000F /* TelemetryProvider.swift */; };
 		DD7E1E300000000000000012 /* TelemetryStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD7E1E300000000000000011 /* TelemetryStateModel.swift */; };
@@ -863,7 +862,6 @@
 		DDE179712C910127003CDDB7 /* OverrideStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179512C910127003CDDB7 /* OverrideStored+CoreDataProperties.swift */; };
 		DDEBB05C2D89E9050032305D /* TimeInRangeType.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDEBB05B2D89E9050032305D /* TimeInRangeType.swift */; };
 		DDF68FFC2D9ECF7F008BF16C /* OnboardingStateModel+Nightscout.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF68FFB2D9ECF77008BF16C /* OnboardingStateModel+Nightscout.swift */; };
-		DDF6902C2DA028D3008BF16C /* DiagnosticsStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF6902B2DA028D3008BF16C /* DiagnosticsStepView.swift */; };
 		DDF6905C2DA0AFC5008BF16C /* WelcomeStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF6905B2DA0AFC5008BF16C /* WelcomeStepView.swift */; };
 		DDF691012DA2CA11008BF16C /* AppDiagnosticsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF691002DA2CA0B008BF16C /* AppDiagnosticsDataFlow.swift */; };
 		DDF691032DA2CA1E008BF16C /* AppDiagnosticsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF691022DA2CA14008BF16C /* AppDiagnosticsProvider.swift */; };
@@ -1790,7 +1788,6 @@
 		DD7E1E300000000000000001 /* TelemetryClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryClient.swift; sourceTree = "<group>"; };
 		DD7E1E300000000000000003 /* TelemetryPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryPreviewView.swift; sourceTree = "<group>"; };
 		DD7E1E300000000000000005 /* TelemetryPrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryPrivacyView.swift; sourceTree = "<group>"; };
-		DD7E1E300000000000000007 /* TelemetryMigrationSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryMigrationSheetView.swift; sourceTree = "<group>"; };
 		DD7E1E30000000000000000D /* TelemetryDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryDataFlow.swift; sourceTree = "<group>"; };
 		DD7E1E30000000000000000F /* TelemetryProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryProvider.swift; sourceTree = "<group>"; };
 		DD7E1E300000000000000011 /* TelemetryStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryStateModel.swift; sourceTree = "<group>"; };
@@ -1879,7 +1876,6 @@
 		DDE179512C910127003CDDB7 /* OverrideStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDEBB05B2D89E9050032305D /* TimeInRangeType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeInRangeType.swift; sourceTree = "<group>"; };
 		DDF68FFB2D9ECF77008BF16C /* OnboardingStateModel+Nightscout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OnboardingStateModel+Nightscout.swift"; sourceTree = "<group>"; };
-		DDF6902B2DA028D3008BF16C /* DiagnosticsStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsStepView.swift; sourceTree = "<group>"; };
 		DDF6905B2DA0AFC5008BF16C /* WelcomeStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeStepView.swift; sourceTree = "<group>"; };
 		DDF691002DA2CA0B008BF16C /* AppDiagnosticsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiagnosticsDataFlow.swift; sourceTree = "<group>"; };
 		DDF691022DA2CA14008BF16C /* AppDiagnosticsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiagnosticsProvider.swift; sourceTree = "<group>"; };
@@ -3602,7 +3598,6 @@
 				DD4A00222DAEF5CD00AB7387 /* AlgorithmSettings */,
 				DDBD53FB2DAA903100F940A6 /* OverviewStepView.swift */,
 				DDF6905B2DA0AFC5008BF16C /* WelcomeStepView.swift */,
-				DDF6902B2DA028D3008BF16C /* DiagnosticsStepView.swift */,
 				DD3F1F8E2D9E151200DCE7B3 /* Nightscout */,
 				DD3F1F842D9DD83B00DCE7B3 /* DeliveryLimitsStepView.swift */,
 				DD3F1F822D9DC78300DCE7B3 /* UnitSelectionStepView.swift */,
@@ -4200,7 +4195,6 @@
 			children = (
 				DD7E1E300000000000000003 /* TelemetryPreviewView.swift */,
 				DD7E1E300000000000000005 /* TelemetryPrivacyView.swift */,
-				DD7E1E300000000000000007 /* TelemetryMigrationSheetView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -5045,7 +5039,6 @@
 				DD7E1E300000000000000014 /* TelemetryAttestor.swift in Sources */,
 				DD7E1E300000000000000004 /* TelemetryPreviewView.swift in Sources */,
 				DD7E1E300000000000000006 /* TelemetryPrivacyView.swift in Sources */,
-				DD7E1E300000000000000008 /* TelemetryMigrationSheetView.swift in Sources */,
 				DD7E1E30000000000000000E /* TelemetryDataFlow.swift in Sources */,
 				DD7E1E300000000000000010 /* TelemetryProvider.swift in Sources */,
 				DD7E1E300000000000000012 /* TelemetryStateModel.swift in Sources */,
@@ -5343,7 +5336,6 @@
 				DD906BF62EA6AAE900262772 /* BaseNightscoutManager+Subscribers.swift in Sources */,
 				53F2382465BF74DB1A967C8B /* PumpConfigProvider.swift in Sources */,
 				5D16287A969E64D18CE40E44 /* PumpConfigStateModel.swift in Sources */,
-				DDF6902C2DA028D3008BF16C /* DiagnosticsStepView.swift in Sources */,
 				C2BA6B992F758E7600348E6A /* NotificationIdentifiers.swift in Sources */,
 				19D466AA29AA3099004D5F33 /* MealSettingsRootView.swift in Sources */,
 				CEF1ED6B2D58FB5800FAF41E /* CGMOptions.swift in Sources */,

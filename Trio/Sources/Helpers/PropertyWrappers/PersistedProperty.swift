@@ -125,7 +125,6 @@ enum FileProtectionFixer {
             "lastCleanupDate.plist",
             "hasSeenFatProteinOrderChange.plist",
             "telemetryEnabled.plist",
-            "telemetryConsentDecisionMade.plist",
             "telemetryLastSentAt.plist",
             "telemetryLastSentSha.plist",
             "telemetryColdLaunchTimes.plist",
