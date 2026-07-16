@@ -33,7 +33,7 @@ extension Home {
 
         private let timer = DispatchTimer(timeInterval: 30)
         private(set) var filteredHours = 24
-        var startMarker = Date(timeIntervalSinceNow: TimeInterval(hours: -24))
+        var startMarker = Date(timeIntervalSinceNow: -MainChartHelper.Config.chartHistorySeconds)
         var endMarker = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
         var manualGlucose: [BloodGlucose] = []
         var uploadStats = false

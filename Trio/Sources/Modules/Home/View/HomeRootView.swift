@@ -32,6 +32,10 @@ extension Home {
         @State var showSnoozeSheet: Bool = false
         @State var showManualGlucose: Bool = false
         @State var alarmsSnoozeUntil: Date = .distantPast
+        // Pull-down-to-force-loop (see HomeRootView+Refresh.swift)
+        @State var pullOffset: CGFloat = 0
+        @State var isRefreshArmed = false
+        @State var isForcingLoop = false
         @State var notificationsDisabled = false
 
         @FetchRequest(fetchRequest: OverrideStored.fetch(
@@ -65,12 +69,10 @@ extension Home {
                     geo: geo,
                     chartHeight: chartHeight,
                     units: state.units,
-                    hours: state.filteredHours,
                     highGlucose: state.highGlucose,
                     lowGlucose: state.lowGlucose,
                     currentGlucoseTarget: state.currentGlucoseTarget,
                     glucoseColorScheme: state.glucoseColorScheme,
-                    screenHours: state.hours,
                     displayXgridLines: state.displayXgridLines,
                     displayYgridLines: state.displayYgridLines,
                     thresholdLines: state.thresholdLines,
@@ -124,6 +126,44 @@ extension Home {
         }
 
         @ViewBuilder func mainViewElements(_ geo: GeometryProxy) -> some View {
+            // viewport-sized content: rubber-bands for the pull-down, never scrolls
+            ScrollView(.vertical, showsIndicators: false) {
+                dashboardContent(geo)
+                    .padding(.top, isForcingLoop ? HomeLayout.refreshIndicatorHeight : 0)
+                    .animation(.easeInOut(duration: 0.25), value: isForcingLoop)
+                    .background(
+                        GeometryReader { g in
+                            Color.clear.preference(
+                                key: HomePullOffsetKey.self,
+                                value: g.frame(in: .named("homeScroll")).minY
+                            )
+                        }
+                    )
+            }
+            .coordinateSpace(name: "homeScroll")
+            .scrollBounceBehavior(.always, axes: [.vertical])
+            .modifier(HomePullOffsetReader(onChange: handlePullChange))
+            .onPreferenceChange(HomePullOffsetKey.self) { handlePullChange($0) }
+            .overlay(alignment: .top) { pullToRefreshIndicator }
+            // safe-area anchor: the tab bar can never cover the bottom controls
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                bottomControls()
+            }
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .onReceive(
+                resolver.resolve(AlertPermissionsChecker.self)!.$notificationsDisabled,
+                perform: {
+                    if notificationsDisabled != $0 {
+                        notificationsDisabled = $0
+                        if notificationsDisabled {
+                            debug(.default, "notificationsDisabled")
+                        }
+                    }
+                }
+            )
+        }
+
+        @ViewBuilder private func dashboardContent(_ geo: GeometryProxy) -> some View {
             VStack(spacing: 0) {
                 ZStack {
                     if let apsManager = state.apsManager, let bluetoothManager = apsManager.bluetoothManager,
@@ -154,24 +194,7 @@ extension Home {
 
                 mainChart(geo: geo)
             }
-            // fill the screen; zones stay top-aligned, chart takes the slack
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            // safe-area anchor: the tab bar can never cover the bottom controls
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                bottomControls()
-            }
-            .background(appState.trioBackgroundColor(for: colorScheme))
-            .onReceive(
-                resolver.resolve(AlertPermissionsChecker.self)!.$notificationsDisabled,
-                perform: {
-                    if notificationsDisabled != $0 {
-                        notificationsDisabled = $0
-                        if notificationsDisabled {
-                            debug(.default, "notificationsDisabled")
-                        }
-                    }
-                }
-            )
+            .frame(maxWidth: .infinity)
         }
 
         @ViewBuilder func mainView() -> some View {

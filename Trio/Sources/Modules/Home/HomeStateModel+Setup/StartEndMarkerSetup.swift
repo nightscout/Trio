@@ -3,7 +3,7 @@ import Foundation
 extension Home.StateModel {
     // Update start and  end marker to fix scroll update problem with x axis
     func updateStartEndMarkers() {
-        startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
+        startMarker = Date(timeIntervalSinceNow: -MainChartHelper.Config.chartHistorySeconds)
 
         let threeHourSinceNow = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
 
