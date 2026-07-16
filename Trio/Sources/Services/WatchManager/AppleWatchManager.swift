@@ -507,7 +507,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     // MARK: - Send to Watch
 
     func watchStateToDictionary(from state: WatchState) -> [String: Any] {
-        [
+        var dictionary: [String: Any] = [
             WatchMessageKeys.date: state.date.timeIntervalSince1970,
             WatchMessageKeys.currentGlucose: state.currentGlucose ?? "--",
             WatchMessageKeys.currentGlucoseColorString: state.currentGlucoseColorString ?? "#ffffff",
@@ -545,14 +545,21 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.confirmBolusFaster: state.confirmBolusFaster,
             WatchMessageKeys.units: state.units.rawValue,
             WatchMessageKeys.showForecastWatch: state.showForecast,
-            WatchMessageKeys.isForecastCone: state.isForecastCone,
-            WatchMessageKeys.forecastData: [
-                WatchMessageKeys.forecastStartDate: state.forecastStartDate?.timeIntervalSince1970 as Any,
-                WatchMessageKeys.forecastConeMin: state.forecastConeMin,
-                WatchMessageKeys.forecastConeMax: state.forecastConeMax,
-                WatchMessageKeys.forecastLines: state.forecastLines
-            ]
+            WatchMessageKeys.isForecastCone: state.isForecastCone
         ]
+
+        var forecastData: [String: Any] = [
+            WatchMessageKeys.forecastConeMin: state.forecastConeMin,
+            WatchMessageKeys.forecastConeMax: state.forecastConeMax,
+            WatchMessageKeys.forecastLines: state.forecastLines
+        ]
+
+        if let start = state.forecastStartDate?.timeIntervalSince1970 {
+            forecastData[WatchMessageKeys.forecastStartDate] = start
+        }
+
+        dictionary[WatchMessageKeys.forecastData] = forecastData
+        return dictionary
     }
 
     /// Sends the state of type WatchState to the connected Watch
