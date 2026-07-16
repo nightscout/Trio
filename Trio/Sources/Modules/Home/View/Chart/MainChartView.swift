@@ -55,6 +55,19 @@ struct MainChartView: View {
     @State var scrollPosition = Date.now
         .addingTimeInterval(-MainChartHelper.Config.defaultVisibleSeconds)
 
+    /// Rendered slice of the domain. The canvas covers only this window (visible
+    /// ± `Config.renderWindowPadFactor` viewports), bounding canvas width and
+    /// per-layout cost no matter how long the data domain grows.
+    @State private var renderWindowStart = Date.now
+        .addingTimeInterval(-MainChartHelper.Config.defaultVisibleSeconds * 2.5)
+    @State private var renderWindowEnd = Date.now
+        .addingTimeInterval(MainChartHelper.Config.defaultVisibleSeconds * 1.5)
+
+    /// Horizontal stretch applied while a pinch is live. The zoom itself is
+    /// committed once, on release; between touch-down and release the canvas
+    /// is only transformed, never re-laid.
+    @State private var pinchScale: CGFloat = 1
+
     /// Captured at pinch start so the zoom stays anchored under the pinch centroid.
     @State private var pinchAnchor: (
         visibleAtStart: TimeInterval,
@@ -102,6 +115,8 @@ struct MainChartView: View {
                 displayYgridLines: displayYgridLines,
                 thresholdLines: thresholdLines,
                 visibleSeconds: visibleSeconds,
+                windowStart: renderWindowStart,
+                windowEnd: renderWindowEnd,
                 canvasWidth: canvasWidth,
                 basalHeight: basalHeight,
                 mainHeight: mainHeight,
@@ -110,6 +125,7 @@ struct MainChartView: View {
             )
             .equatable()
             .offset(x: -canvasOffsetX)
+            .scaleEffect(x: pinchScale, y: 1, anchor: pinchScaleAnchor)
 
             nowOffscreenGradient
 
@@ -154,12 +170,20 @@ struct MainChartView: View {
             inspectHoldTask?.cancel()
             edgePanTask?.cancel()
         }
+        .onChange(of: scrollPosition) {
+            updateRenderWindow()
+        }
+        .onChange(of: visibleSeconds) {
+            updateRenderWindow(force: true)
+        }
         .onChange(of: state.glucoseFromPersistence.last?.glucose) {
             state.updateStartEndMarkers()
             scrollToTrailingEdge()
+            updateRenderWindow()
         }
         .onChange(of: state.enactedAndNonEnactedDeterminations.first?.deliverAt) {
             scrollToTrailingEdge()
+            updateRenderWindow()
         }
         .onChange(of: units) {
             // TODO: - Refactor this to only update the Y Axis Scale
@@ -169,6 +193,7 @@ struct MainChartView: View {
             if !mainChartHasInitialized {
                 state.updateStartEndMarkers()
                 scrollToTrailingEdge()
+                updateRenderWindow(force: true)
                 mainChartHasInitialized = true
             }
         }
@@ -187,19 +212,45 @@ extension MainChartView {
     var mainHeight: CGFloat { chartHeight * 0.66 }
     var cobIobHeight: CGFloat { chartHeight * 0.24 }
 
-    private var totalSeconds: TimeInterval {
-        max(state.endMarker.timeIntervalSince(state.startMarker), 1)
+    private var windowSeconds: TimeInterval {
+        max(renderWindowEnd.timeIntervalSince(renderWindowStart), 1)
     }
 
-    /// Width of the full pre-laid-out canvas: the viewport shows `visibleSeconds` of the
-    /// `totalSeconds` domain, so the canvas is proportionally wider than the viewport.
+    /// Width of the pre-laid-out canvas covering the render window.
     private var canvasWidth: CGFloat {
-        viewportWidth * CGFloat(totalSeconds / visibleSeconds)
+        viewportWidth * CGFloat(windowSeconds / visibleSeconds)
     }
 
-    /// Pixel offset of the canvas for the current leading-edge date.
+    /// Pixel offset of the canvas for the current leading-edge date. Derived,
+    /// not stored: re-anchoring the window recomputes it consistently.
     private var canvasOffsetX: CGFloat {
-        CGFloat(scrollPosition.timeIntervalSince(state.startMarker) / totalSeconds) * canvasWidth
+        CGFloat(scrollPosition.timeIntervalSince(renderWindowStart) / windowSeconds) * canvasWidth
+    }
+
+    /// Re-anchors the render window when the visible window nears its edge.
+    /// Between re-anchors, panning stays a pure offset transform.
+    func updateRenderWindow(force: Bool = false) {
+        let pad = MainChartHelper.Config.renderWindowPadFactor * visibleSeconds
+        let margin = MainChartHelper.Config.renderWindowMarginFactor * visibleSeconds
+        let domainStart = state.startMarker
+        let domainEnd = max(state.endMarker, domainStart.addingTimeInterval(1))
+        // Trailing overscan can push the visible window past the domain; the
+        // window itself never exceeds the domain, so compare clamped edges.
+        let visibleStart = max(scrollPosition, domainStart)
+        let visibleEnd = min(scrollPosition.addingTimeInterval(visibleSeconds), domainEnd)
+
+        let nearLeft = visibleStart.timeIntervalSince(renderWindowStart) < margin
+            && renderWindowStart > domainStart
+        let nearRight = renderWindowEnd.timeIntervalSince(visibleEnd) < margin
+            && renderWindowEnd < domainEnd
+        let uncovered = visibleStart < renderWindowStart || visibleEnd > renderWindowEnd
+        guard force || nearLeft || nearRight || uncovered else { return }
+
+        let newStart = max(visibleStart.addingTimeInterval(-pad), domainStart)
+        let newEnd = min(visibleEnd.addingTimeInterval(pad), domainEnd)
+        guard newStart != renderWindowStart || newEnd != renderWindowEnd else { return }
+        renderWindowStart = newStart
+        renderWindowEnd = newEnd
     }
 
     /// Glucose y-domain padded above and below so values at the data extremes (and the carb
@@ -392,10 +443,11 @@ extension MainChartView {
         let next = presets.first(where: { $0 > visibleSeconds + 1 }) ?? presets[0]
         let trailing = scrollPosition.addingTimeInterval(visibleSeconds)
         momentumTask?.cancel()
-        withAnimation(.easeInOut(duration: 0.25)) {
-            visibleSeconds = next
-            scrollPosition = clampedLeadingEdge(trailing.addingTimeInterval(-next))
-        }
+        // Snap, like pinch commits: animating the zoom animates canvasWidth,
+        // which re-lays the canvas every animation frame.
+        visibleSeconds = next
+        scrollPosition = clampedLeadingEdge(trailing.addingTimeInterval(-next))
+        updateRenderWindow(force: true)
     }
 
     /// Clamps a proposed leading edge so the visible window never leaves the chart's domain.
@@ -610,38 +662,67 @@ extension MainChartView {
                 }
                 guard let pinch = pinchAnchor, value.magnification > 0 else { return }
 
-                // Pinch out (magnification > 1) narrows the visible window, i.e. zooms in.
-                var proposed = pinch.visibleAtStart / TimeInterval(value.magnification)
-                proposed = min(
-                    max(proposed, MainChartHelper.Config.minVisibleSeconds),
+                // Live pinch previews as a transform: stretch the already-
+                // laid-out canvas about the centroid. Pinch out
+                // (magnification > 1) narrows the visible window, i.e. zooms
+                // in. Once the stretch drifts past the commit threshold, a
+                // crisp re-layout is committed mid-gesture and the transform
+                // continues from that new baseline.
+                let proposed = min(
+                    max(pinch.visibleAtStart / TimeInterval(value.magnification), MainChartHelper.Config.minVisibleSeconds),
                     MainChartHelper.Config.maxVisibleSeconds
                 )
-                // Snap to the geometric zoom grid (~4 % steps): a full halving of the
-                // window costs ~18 canvas re-layouts instead of hundreds.
-                let ratio = MainChartHelper.Config.zoomStepRatio
-                let step = (log(proposed / MainChartHelper.Config.defaultVisibleSeconds) / log(ratio)).rounded()
-                proposed = MainChartHelper.Config.defaultVisibleSeconds * pow(ratio, step)
-                proposed = min(
-                    max(proposed, MainChartHelper.Config.minVisibleSeconds),
-                    MainChartHelper.Config.maxVisibleSeconds
-                )
+                pinchScale = CGFloat(visibleSeconds / proposed)
 
-                guard proposed != visibleSeconds else {
-                    // Still keep the anchor pinned while between grid steps.
-                    scrollPosition = clampedLeadingEdge(
-                        pinch.anchorDate.addingTimeInterval(-visibleSeconds * pinch.anchorFraction)
-                    )
-                    return
+                let drift = MainChartHelper.Config.pinchCommitScaleDrift
+                if pinchScale > drift || pinchScale < 1 / drift {
+                    commitPinchZoom(proposed)
                 }
-
-                visibleSeconds = proposed
-                scrollPosition = clampedLeadingEdge(
-                    pinch.anchorDate.addingTimeInterval(-proposed * pinch.anchorFraction)
-                )
             }
             .onEnded { _ in
+                guard pinchAnchor != nil else { return }
+                commitPinchZoom(visibleSeconds / TimeInterval(pinchScale))
+                // The commit no-ops when the zoom quantizes back to the
+                // current value; the preview must still un-stretch.
+                pinchScale = 1
                 pinchAnchor = nil
             }
+    }
+
+    /// Quantizes to the geometric zoom grid and re-lays the canvas exactly
+    /// once: window re-anchor happens in the same transaction, else the
+    /// commit first lays out the OLD window at the new zoom (a canvas up to
+    /// 12x the viewport) before re-laying at the right size.
+    private func commitPinchZoom(_ proposed: TimeInterval) {
+        guard let pinch = pinchAnchor else { return }
+        let ratio = MainChartHelper.Config.zoomStepRatio
+        let step = (log(proposed / MainChartHelper.Config.defaultVisibleSeconds) / log(ratio)).rounded()
+        var quantized = MainChartHelper.Config.defaultVisibleSeconds * pow(ratio, step)
+        quantized = min(
+            max(quantized, MainChartHelper.Config.minVisibleSeconds),
+            MainChartHelper.Config.maxVisibleSeconds
+        )
+        // A no-op commit would just snap the preview back to 1 with no fresh
+        // layout to justify it.
+        guard quantized != visibleSeconds else { return }
+
+        visibleSeconds = quantized
+        scrollPosition = clampedLeadingEdge(
+            pinch.anchorDate.addingTimeInterval(-quantized * pinch.anchorFraction)
+        )
+        updateRenderWindow(force: true)
+        pinchScale = 1
+    }
+
+    /// Anchor for the live-pinch stretch: the centroid's layout position on
+    /// the canvas, so the content under the fingers stays put on screen.
+    private var pinchScaleAnchor: UnitPoint {
+        guard let pinch = pinchAnchor, canvasWidth > 0 else { return .center }
+        // The scale composes on top of the already-offset render, anchored in
+        // the canvas's layout frame (origin at viewport 0) — so the centroid's
+        // viewport position is the anchor and the content under the fingers
+        // stays put on screen.
+        return UnitPoint(x: pinch.anchorFraction * viewportWidth / canvasWidth, y: 0.5)
     }
 }
 
@@ -705,6 +786,9 @@ struct MainChartCanvas: View {
     var displayYgridLines: Bool
     var thresholdLines: Bool
     var visibleSeconds: TimeInterval
+    /// Rendered slice of the domain; all panes share this x-scale.
+    var windowStart: Date
+    var windowEnd: Date
     var canvasWidth: CGFloat
     var basalHeight: CGFloat
     var mainHeight: CGFloat
@@ -725,6 +809,44 @@ struct MainChartCanvas: View {
 
     var upperLimit: Decimal {
         units == .mgdL ? 400 : 22.2
+    }
+
+    // The point series sliced to the render window: marks outside the window
+    // clip invisibly but still cost layout, so with 72h loaded an unfiltered
+    // re-layout (every pinch step) does 3x the work for nothing.
+    var windowedGlucose: [GlucoseStored] {
+        state.glucoseFromPersistence.filter { entry in
+            guard let date = entry.date else { return false }
+            return date >= windowStart && date <= windowEnd
+        }
+    }
+
+    var windowedInsulin: [PumpEventStored] {
+        state.insulinFromPersistence.filter { entry in
+            guard let date = entry.timestamp else { return false }
+            return date >= windowStart && date <= windowEnd
+        }
+    }
+
+    var windowedCarbs: [CarbEntryStored] {
+        state.carbsFromPersistence.filter { entry in
+            guard let date = entry.date else { return false }
+            return date >= windowStart && date <= windowEnd
+        }
+    }
+
+    var windowedFPUs: [CarbEntryStored] {
+        state.fpusFromPersistence.filter { entry in
+            guard let date = entry.date else { return false }
+            return date >= windowStart && date <= windowEnd
+        }
+    }
+
+    var windowedDeterminations: [OrefDetermination] {
+        state.enactedAndNonEnactedDeterminations.filter { entry in
+            guard let date = entry.deliverAt else { return false }
+            return date >= windowStart && date <= windowEnd
+        }
     }
 
     var body: some View {
@@ -768,7 +890,7 @@ extension MainChartCanvas {
             )
 
             GlucoseChartView(
-                glucoseData: state.glucoseFromPersistence,
+                glucoseData: windowedGlucose,
                 units: state.units,
                 highGlucose: state.highGlucose,
                 lowGlucose: state.lowGlucose,
@@ -778,17 +900,17 @@ extension MainChartCanvas {
             )
 
             InsulinView(
-                glucoseData: state.glucoseFromPersistence,
-                insulinData: state.insulinFromPersistence,
+                glucoseData: windowedGlucose,
+                insulinData: windowedInsulin,
                 units: state.units,
                 bolusDisplayThreshold: state.bolusDisplayThreshold
             )
 
             CarbView(
-                glucoseData: state.glucoseFromPersistence,
+                glucoseData: windowedGlucose,
                 units: state.units,
-                carbData: state.carbsFromPersistence,
-                fpuData: state.fpusFromPersistence,
+                carbData: windowedCarbs,
+                fpuData: windowedFPUs,
                 minValue: units == .mgdL ? state.minYAxisValue : state.minYAxisValue
                     .asMmolL
             )
@@ -804,7 +926,7 @@ extension MainChartCanvas {
             )
         }
         .frame(width: canvasWidth, height: mainHeight)
-        .chartXScale(domain: state.startMarker ... state.endMarker)
+        .chartXScale(domain: windowStart ... windowEnd)
         .chartXAxis { mainChartXAxis }
         .chartYAxis(.hidden)
         .chartYScale(domain: glucoseYDomain)
@@ -835,6 +957,8 @@ extension MainChartCanvas: Equatable {
             lhs.displayYgridLines == rhs.displayYgridLines &&
             lhs.thresholdLines == rhs.thresholdLines &&
             lhs.visibleSeconds == rhs.visibleSeconds &&
+            lhs.windowStart == rhs.windowStart &&
+            lhs.windowEnd == rhs.windowEnd &&
             lhs.canvasWidth == rhs.canvasWidth &&
             lhs.basalHeight == rhs.basalHeight &&
             lhs.mainHeight == rhs.mainHeight &&

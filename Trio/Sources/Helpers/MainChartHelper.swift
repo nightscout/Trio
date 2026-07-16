@@ -42,7 +42,8 @@ enum MainChartHelper {
         /// How far back the chart's `startMarker` is anchored — the fixed 24 h
         /// history window loaded on every open. Independent of the currently
         /// visible viewport, which the user can pinch-zoom within this range.
-        static let chartHistorySeconds: TimeInterval = 24 * 3600
+        static let chartHistorySeconds: TimeInterval = 72 * 3600
+        /// Backfill triggers when the visible leading edge gets this close
         /// Visible x-axis window seeded on first launch of the chart (matches the old 6 h default).
         static let defaultVisibleSeconds: TimeInterval = 6 * 3600
         /// Tightest pinch-in zoom.
@@ -51,10 +52,19 @@ enum MainChartHelper {
         static let maxVisibleSeconds: TimeInterval = 24 * 3600
         /// Double-tap cycles the visible window through these presets.
         static let zoomPresets: [TimeInterval] = [6 * 3600, 12 * 3600, 24 * 3600]
+        /// Render window extends this many visible-windows beyond each visible edge.
+        static let renderWindowPadFactor = 1.5
+        /// Re-anchor when the visible edge gets within this fraction of a
+        /// visible-window of the render window's edge.
+        static let renderWindowMarginFactor = 0.5
         /// Geometric grid for pinch commits (~4 % per step). Every committed zoom step
         /// re-lays the full-width canvas, so this bounds a halving of the visible window
         /// to roughly 18 re-layouts instead of hundreds.
         static let zoomStepRatio: Double = 1.04
+        /// Live pinch previews as a transform; once the stretch drifts past
+        /// this ratio a crisp re-layout is committed mid-gesture, so the
+        /// distortion stays bounded.
+        static let pinchCommitScaleDrift: Double = 1.25
         /// How far (pt) a one-finger touch may travel and still count as a stationary
         /// press-to-inspect; beyond this the touch becomes a pan.
         static let inspectMovementTolerance: CGFloat = 10
@@ -220,7 +230,7 @@ extension MainChartCanvas {
     }
 
     var mainChartXAxis: some AxisContent {
-        AxisMarks(values: hourAxisMarks(over: state.startMarker ... state.endMarker)) { _ in
+        AxisMarks(values: hourAxisMarks(over: windowStart ... windowEnd)) { _ in
             if displayXgridLines {
                 AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
             } else {
@@ -233,14 +243,24 @@ extension MainChartCanvas {
     /// labels render exactly once for the whole stack; the basal and glucose panes use
     /// `mainChartXAxis` (grid lines only) at the same absolute-anchored mark dates.
     var basalChartXAxis: some AxisContent {
-        AxisMarks(values: hourAxisMarks(over: state.startMarker ... state.endMarker)) { _ in
+        AxisMarks(values: hourAxisMarks(over: windowStart ... windowEnd)) { value in
             if displayXgridLines {
                 AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
             } else {
                 AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
             }
-            AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
-                .font(.footnote).foregroundStyle(Color.primary)
+            // Midnight ticks carry the day ("TUE 07") so panned-back history
+            // stays unambiguous; all other ticks show the hour.
+            if let date = value.as(Date.self), calendar.component(.hour, from: date) == 0 {
+                AxisValueLabel(anchor: .top) {
+                    Text(date.formatted(.dateTime.weekday(.abbreviated).day(.twoDigits)).uppercased())
+                        .font(.footnote).bold()
+                        .foregroundStyle(Color.primary)
+                }
+            } else {
+                AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
+                    .font(.footnote).foregroundStyle(Color.primary)
+            }
         }
     }
 

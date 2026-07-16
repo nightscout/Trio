@@ -604,9 +604,16 @@ extension Home.RootView {
                                 Text(tirString)
                                     .font(.title2).fontWeight(.bold).fontDesign(.rounded)
                                     .foregroundStyle(.primary)
-                                Text("Time in Range", comment: "Stats banner subtitle")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                // chart shows 72h; make the daily scope explicit
+                                (
+                                    Text("Time in Range", comment: "Stats banner subtitle").fontWeight(.semibold)
+                                        + Text(" ")
+                                        + Text("today", comment: "Stats banner scope")
+                                )
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                             }
 
                             statsDistributionBar(segments)
@@ -614,9 +621,15 @@ extension Home.RootView {
                         }
                     case .distributionBar:
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Time in Range", comment: "Stats banner subtitle")
-                                .font(.subheadline).fontWeight(.semibold)
-                                .foregroundStyle(.secondary)
+                            (
+                                Text("Time in Range", comment: "Stats banner subtitle").fontWeight(.semibold)
+                                    + Text(" ")
+                                    + Text("today", comment: "Stats banner scope")
+                            )
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
 
                             statsDistributionBar(segments)
                                 .frame(height: 6)

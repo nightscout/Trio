@@ -12,6 +12,14 @@ extension NSPredicate {
         return NSPredicate(format: "isFPU == false AND date >= %@ AND carbs > 0", date as NSDate)
     }
 
+    static func carbsForChart(since date: Date) -> NSPredicate {
+        NSPredicate(format: "isFPU == false AND date >= %@ AND carbs > 0", date as NSDate)
+    }
+
+    static func fpusForChart(since date: Date) -> NSPredicate {
+        NSPredicate(format: "isFPU == true AND date >= %@", date as NSDate)
+    }
+
     static var carbsForStats: NSPredicate {
         let date = Date.threeMonthsAgo
         return NSPredicate(format: "date >= %@ AND isFPU == %@", date as NSDate, false as NSNumber)
