@@ -30,6 +30,7 @@ extension Home {
         @State var showPumpSelection: Bool = false
         @State var showCGMSelection: Bool = false
         @State var showSnoozeSheet: Bool = false
+        @State var showManualGlucose: Bool = false
         @State var alarmsSnoozeUntil: Date = .distantPast
         @State var notificationsDisabled = false
 
@@ -148,18 +149,6 @@ extension Home {
                 }
                 // fixed slot: header state changes never reflow the zones below
                 .frame(height: HomeLayout.headerHeight)
-                // layout-inert warnings; the multi-use panel absorbs these later
-                .overlay(alignment: .top) {
-                    VStack(spacing: 4) {
-                        if notificationsDisabled {
-                            alertSafetyNotificationsView(geo: geo)
-                        }
-                        if let badgeImage = state.pumpStatusBadgeImage, let badgeColor = state.pumpStatusBadgeColor {
-                            pumpTimezoneView(badgeImage, badgeColor)
-                                .padding(.horizontal, 20)
-                        }
-                    }
-                }
 
                 mealPanel().frame(height: HomeLayout.mealSlotHeight)
 
@@ -212,6 +201,11 @@ extension Home {
             }
             .sheet(isPresented: $showSnoozeSheet) {
                 SnoozeAlertsSheetView(resolver: resolver, isPresented: $showSnoozeSheet)
+            }
+            .sheet(isPresented: $showManualGlucose) {
+                ManualGlucoseEntryView(units: state.units, isPresented: $showManualGlucose) { amount in
+                    state.addManualGlucose(amount)
+                }
             }
             // PUMP RELATED
             .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
@@ -351,7 +345,8 @@ extension Home {
                     }
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
                 .onChange(of: selectedTab) {
-                    if !settingsPath.isEmpty {
+                    // reset only when leaving Settings; programmatic pushes survive the switch
+                    if selectedTab != 3, !settingsPath.isEmpty {
                         settingsPath = NavigationPath()
                     }
                 }
