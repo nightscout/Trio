@@ -23,48 +23,10 @@ extension Adjustments.RootView {
                     actionButtonsForOverrides(for: preset)
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    actionButtonsForOverrides(for: preset)
+                    actionButtonsForOverrides(for: preset, deleteRole: nil)
                 }
             }
             .onMove(perform: state.reorderOverride)
-            .confirmationDialog(
-                "Delete the Override Preset \"\(selectedOverride?.name ?? "")\"?",
-                isPresented: $isConfirmDeletePresented,
-                titleVisibility: .visible
-            ) {
-                if let itemToDelete = selectedOverride {
-                    Button(
-                        state.currentActiveOverride == selectedOverride ? "Stop and Delete" : "Delete",
-                        role: .destructive
-                    ) {
-                        if state.currentActiveOverride == selectedOverride {
-                            Task {
-                                // Save cancelled Override in OverrideRunStored Entity
-                                // Cancel ALL active Override
-                                await state.disableAllActiveOverrides(createOverrideRunEntry: true)
-                            }
-                        }
-                        // Perform the delete action
-                        Task {
-                            await state.invokeOverridePresetDeletion(itemToDelete.objectID)
-                        }
-                        // Reset the selected item after deletion
-                        selectedOverride = nil
-                    }
-                }
-                Button("Cancel", role: .cancel) {
-                    // Dismiss the dialog without action
-                    selectedOverride = nil
-                }
-            } message: {
-                if state.currentActiveOverride == selectedOverride {
-                    Text(
-                        state
-                            .currentActiveOverride == selectedOverride ?
-                            "This override preset is currently running. Deleting will stop it." : ""
-                    )
-                }
-            }
             .listRowBackground(Color.chart)
         } header: {
             Text("Override Presets")
@@ -72,6 +34,37 @@ extension Adjustments.RootView {
             HStack {
                 Image(systemName: "hand.draw.fill").foregroundStyle(.primary)
                 Text("Swipe left to edit or delete an override preset. Hold, drag and drop to reorder a preset.")
+            }
+        }
+    }
+
+    func overrideDeleteConfirmation(_ content: some View) -> some View {
+        content.confirmationDialog(
+            "Delete the Override Preset \"\(overrideToDelete?.name ?? "")\"?",
+            isPresented: Binding(
+                get: { overrideToDelete != nil },
+                set: { if !$0 { overrideToDelete = nil } }
+            ),
+            titleVisibility: .visible,
+            presenting: overrideToDelete
+        ) { target in
+            Button(
+                state.currentActiveOverride == target ? "Stop and Delete" : "Delete",
+                role: .destructive
+            ) {
+                if state.currentActiveOverride == target {
+                    Task {
+                        await state.disableAllActiveOverrides(createOverrideRunEntry: true)
+                    }
+                }
+                Task {
+                    await state.invokeOverridePresetDeletion(target.objectID)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { target in
+            if state.currentActiveOverride == target {
+                Text("This override preset is currently running. Deleting will stop it.")
             }
         }
     }
@@ -86,23 +79,25 @@ extension Adjustments.RootView {
         requestPresetActivation(activation)
     }
 
-    func actionButtonsForOverrides(for preset: OverrideStored) -> some View {
+    func actionButtonsForOverrides(
+        for preset: OverrideStored,
+        deleteRole: ButtonRole? = .destructive
+    ) -> some View {
         Group {
-            Button(role: .destructive) {
-                selectedOverride = preset
-                isConfirmDeletePresented = true
+            Button(role: deleteRole) {
+                overrideToDelete = preset
             } label: {
                 Label("Delete", systemImage: "trash.fill")
-                    .tint(.red)
             }
-            Button(action: {
+            .tint(.red)
+            Button {
                 // Set the selected Override to the chosen Preset and pass it to the Edit Sheet
                 selectedOverride = preset
                 state.showOverrideEditSheet = true
-            }, label: {
+            } label: {
                 Label("Edit", systemImage: "pencil")
-                    .tint(.blue)
-            })
+            }
+            .tint(.blue)
         }
     }
 
