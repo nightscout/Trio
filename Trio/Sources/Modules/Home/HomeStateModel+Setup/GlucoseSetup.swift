@@ -33,6 +33,11 @@ extension Home.StateModel {
 }
 
 extension Home.StateModel {
+    func addManualGlucose(_ amount: Decimal) {
+        let glucose = units == .mmolL ? amount.asMgdL : amount
+        glucoseStorage.addManualGlucose(glucose: Int(glucose))
+    }
+
     /// Today's glucose range distribution for the stats banner.
     var todayGlucoseDistribution: GlucoseDailyDistributionStats {
         let startOfDay = Calendar.current.startOfDay(for: Date())

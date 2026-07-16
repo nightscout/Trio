@@ -646,6 +646,122 @@ extension Home.RootView {
         .buttonStyle(.plain)
     }
 
+    var multiUsePanelState: MultiUsePanelState {
+        MultiUsePanelState.resolve(
+            notificationsDisabled: notificationsDisabled,
+            pumpTimeMismatch: state.pumpStatusBadgeImage != nil,
+            lastGlucoseDate: state.glucoseFromPersistence.last?.date,
+            maxIOB: state.maxIOB,
+            now: state.timerDate
+        )
+    }
+
+    /// Shared chrome for the non-stats panel states.
+    @ViewBuilder func panelBanner(
+        systemImage: String,
+        title: String,
+        subtitle: String,
+        tint: Color,
+        isCritical: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 17, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 17, style: .continuous)
+                            .fill(tint.opacity(isCritical ? 0.30 : 0.12))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 17, style: .continuous)
+                            .strokeBorder(tint.opacity(isCritical ? 0.8 : 0.35), lineWidth: isCritical ? 1.5 : 1)
+                    )
+                    .frame(height: HomeLayout.statsBannerHeight)
+                    .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
+                    .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.10), radius: 3, y: 1)
+
+                HStack(spacing: 12) {
+                    adjustmentIcon(systemImage, tint: tint)
+
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(title)
+                            .font(.subheadline).fontWeight(.semibold)
+                            .foregroundStyle(.primary)
+                        Text(subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer(minLength: 8)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 16)
+            }
+            .padding(.horizontal, 10)
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// One slot, highest-priority state wins; stats is the default face.
+    @ViewBuilder func multiUsePanel() -> some View {
+        switch multiUsePanelState {
+        case .notificationsDisabled:
+            panelBanner(
+                systemImage: "bell.slash.fill",
+                title: String(localized: "Notifications Disabled"),
+                subtitle: String(localized: "Alarms cannot alert you. Tap to fix."),
+                tint: .red,
+                isCritical: true
+            ) {
+                UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+            }
+        case .pumpTimeMismatch:
+            panelBanner(
+                systemImage: "clock.badge.exclamationmark.fill",
+                title: String(localized: "Time Change Detected"),
+                subtitle: String(localized: "Pump clock differs from phone. Tap to review."),
+                tint: .orange
+            ) {
+                if state.pumpDisplayState != nil {
+                    state.shouldDisplayPumpSetupSheet.toggle()
+                }
+            }
+        case .cgmStale:
+            panelBanner(
+                systemImage: "drop.fill",
+                title: String(localized: "No Recent Glucose"),
+                subtitle: String(localized: "Tap to add a fingerstick reading."),
+                tint: .orange
+            ) {
+                showManualGlucose = true
+            }
+        case .maxIOBZero:
+            panelBanner(
+                systemImage: "exclamationmark.triangle.fill",
+                title: String(localized: "Max IOB is 0 U"),
+                subtitle: String(localized: "Automated dosing is limited. Tap to review."),
+                tint: .orange
+            ) {
+                openMaxIOBSetting()
+            }
+        case .stats:
+            statsBanner()
+        }
+    }
+
+    func openMaxIOBSetting() {
+        // same target search results push, so scroll + highlight wiggle match
+        selectedTab = 3
+        settingsPath.append(SearchResultTarget(
+            screen: .unitsAndLimits,
+            scrollLabel: "Maximum Insulin on Board (IOB)".localized
+        ))
+    }
+
     /// Bottom-anchored fixed zone: adjustment/bolus panel above the stats banner.
     @ViewBuilder func bottomControls() -> some View {
         VStack(spacing: HomeLayout.bottomZonePadding) {
@@ -659,7 +775,7 @@ extension Home.RootView {
             .frame(height: HomeLayout.bottomPanelHeight)
             .animation(.easeInOut(duration: 0.2), value: state.bolusProgress != nil)
 
-            statsBanner()
+            multiUsePanel()
                 .frame(height: HomeLayout.statsBannerHeight)
         }
         .padding(.vertical, HomeLayout.bottomZonePadding)
