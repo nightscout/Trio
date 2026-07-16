@@ -84,5 +84,11 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
         hasher.combine(maxProtein)
         hasher.combine(bolusIncrement)
         hasher.combine(confirmBolusFaster)
+        hasher.combine(showForecast)
+        hasher.combine(isForecastCone)
+        hasher.combine(forecastStartDate)
+        hasher.combine(forecastConeMin)
+        hasher.combine(forecastConeMax)
+        hasher.combine(forecastLines)
     }
 }
