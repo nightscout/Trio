@@ -14,6 +14,10 @@ enum HomeLayout {
     /// clear air above, between, and below the bottom-zone panels
     static let bottomZonePadding: CGFloat = 10
     static var bottomZoneHeight: CGFloat { bottomPanelHeight + statsBannerHeight + 3 * bottomZonePadding }
+    /// pull distance that triggers the forced loop
+    static let refreshTriggerDistance: CGFloat = 70
+    /// indicator row height while the loop runs
+    static let refreshIndicatorHeight: CGFloat = 40
     /// minimum usable chart height; must stay below the natural SE allocation
     /// (598 − header − meal slot − bottom zone = 238) or the bottom zone overflows
     static let chartMinHeight: CGFloat = 220
