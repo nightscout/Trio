@@ -31,7 +31,7 @@ extension MainChartCanvas {
                 calculateBasals()
             }
             .frame(width: canvasWidth, height: basalHeight)
-            .chartXScale(domain: state.startMarker ... state.endMarker)
+            .chartXScale(domain: windowStart ... windowEnd)
             .chartXAxis { mainChartXAxis } // grid lines only; hour labels render once, on the bottom pane
             .chartYAxis(.hidden)
             .chartYScale(domain: 0 ... basalDomainMax)
