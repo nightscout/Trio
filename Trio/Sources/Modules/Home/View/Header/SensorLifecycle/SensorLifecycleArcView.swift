@@ -2,10 +2,12 @@ import LoopKit
 import LoopKitUI
 import SwiftUI
 
-/// Concentric outer ring around the glucose bobble that drains clockwise from
-/// 12 o'clock as the sensor session ages. Always renders a faint track behind
-/// the fill so the indicator's footprint is visible even at `progress == 0`.
+/// Concentric outer ring around the glucose bobble that counts down: the arc
+/// starts full and drains back toward 12 o'clock as the phase elapses, since
+/// warmup, grace period, and lifetime are all countdowns. A faint track stays
+/// behind the arc so the footprint remains visible when nearly depleted.
 struct SensorLifecycleArcView: View {
+    /// Elapsed fraction of the lifecycle phase (LoopKit `percentComplete`).
     let progress: Double
     let progressState: DeviceLifecycleProgressState
 
@@ -32,9 +34,11 @@ struct SensorLifecycleArcView: View {
                 .stroke(Color.secondary.opacity(0.4), lineWidth: Self.strokeWidth)
 
             Circle()
-                .trim(from: 0, to: max(0, min(1, progress)))
+                .trim(from: 0, to: 1 - max(0, min(1, progress)))
                 .stroke(arcColor, style: StrokeStyle(lineWidth: Self.strokeWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
+                // mirror: the arc extends counterclockwise and drains back into 12 o'clock
+                .scaleEffect(x: -1)
                 .animation(.easeInOut(duration: 0.25), value: progress)
         }
         .frame(width: Self.diameter, height: Self.diameter)
@@ -44,10 +48,10 @@ struct SensorLifecycleArcView: View {
 
 #Preview("Arc — progress states") {
     VStack(spacing: 24) {
-        SensorLifecycleArcView(progress: 0.15, progressState: .normalCGM)
+        SensorLifecycleArcView(progress: 0.15, progressState: .normalCGM) // nearly full
         SensorLifecycleArcView(progress: 0.55, progressState: .normalCGM)
-        SensorLifecycleArcView(progress: 0.92, progressState: .warning)
-        SensorLifecycleArcView(progress: 1.0, progressState: .critical)
+        SensorLifecycleArcView(progress: 0.92, progressState: .warning) // almost drained
+        SensorLifecycleArcView(progress: 1.0, progressState: .critical) // track only
     }
     .padding(40)
     .background(Color.black)
