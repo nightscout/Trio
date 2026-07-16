@@ -303,7 +303,9 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         try await glucoseStorage.storeGlucose(filtered)
 
         if settingsManager.settings.smoothGlucose {
-            await applyGlucoseSmoothing(context: context)
+            let smoothingContext = CoreDataStack.shared.newTaskContext()
+            smoothingContext.name = "adaptiveSmoothingGlucose"
+            await applyGlucoseSmoothing(context: smoothingContext)
         }
 
         deviceDataManager.heartbeat(date: Date())
@@ -380,7 +382,9 @@ extension BaseFetchGlucoseManager: SettingsObserver {
 
             self.glucoseStoreAndHeartLock.wait()
             Task {
-                await self.applyGlucoseSmoothing(context: self.context)
+                let smoothingContext = CoreDataStack.shared.newTaskContext()
+                smoothingContext.name = "adaptiveSmoothingGlucose"
+                await self.applyGlucoseSmoothing(context: smoothingContext)
                 self.glucoseStoreAndHeartLock.signal()
             }
         }
