@@ -2,8 +2,6 @@ import Charts
 import Foundation
 import SwiftUI
 
-// MARK: - Current Glucose View
-
 struct GlucoseChartView: View {
     let state: WatchState
     let glucoseValues: [(date: Date, glucose: Double, color: Color)]
@@ -26,38 +24,32 @@ struct GlucoseChartView: View {
         }
     }
 
+    private var futureOffset: TimeInterval {
+        guard state.showForecast else { return 0 }
+        let now = Date()
+        if state.isForecastCone {
+            return forecastConePoints.last?.date.timeIntervalSince(now) ?? (2 * 3600)
+        } else {
+            let maxLineDate = forecastLinePoints.map(\.date).max()
+            return maxLineDate?.timeIntervalSince(now) ?? (2 * 3600)
+        }
+    }
+
+    private var pastOffset: TimeInterval {
+        let totalWindowDuration = Double(timeWindow.rawValue) * 3600
+        return -(totalWindowDuration - futureOffset)
+    }
+
     private var xAxisDomain: ClosedRange<Date> {
         let now = Date()
-        let pastOffset = -Double(timeWindow.rawValue - 2) * 3600
         let startDate = now.addingTimeInterval(pastOffset)
-
-        // By default, the chart ends at "now" if no forecast is active
-        var endDate = now
-
-        if state.showForecast {
-            if state.isForecastCone {
-                if let lastConePoint = forecastConePoints.last {
-                    endDate = lastConePoint.date
-                } else {
-                    endDate = now.addingTimeInterval(2 * 3600) // Fallback if data is missing
-                }
-            } else {
-                if let maxLineDate = forecastLinePoints.map(\.date).max() {
-                    endDate = maxLineDate
-                } else {
-                    endDate = now.addingTimeInterval(2 * 3600) // Fallback if data is missing
-                }
-            }
-        }
-
-        // Prevents an invalid range interval if the calculated end date is in the past
+        let endDate = now.addingTimeInterval(futureOffset)
         return startDate ... max(now, endDate)
     }
 
     private var filteredValues: [(date: Date, glucose: Double, color: Color)] {
-        let pastHours = Double(timeWindow.rawValue - 2)
-        let cutoffDate = Date().addingTimeInterval(-pastHours * 3600)
-        return glucoseValues.filter { $0.date > cutoffDate }
+        let cutoffDate = Date().addingTimeInterval(pastOffset)
+        return glucoseValues.filter { $0.date >= cutoffDate }
     }
 
     struct ForecastConePoint: Identifiable {
@@ -175,7 +167,6 @@ struct GlucoseChartView: View {
 
                     if state.showForecast {
                         if state.isForecastCone {
-                            // Only the fill area of the cone — no border lines for min/max.
                             ForEach(forecastConePoints) { pt in
                                 AreaMark(
                                     x: .value("Time", pt.date),
@@ -185,7 +176,6 @@ struct GlucoseChartView: View {
                                 .foregroundStyle(Color.insulin.opacity(0.3))
                             }
                         } else {
-                            // Uses the cleanly capped forecast line points in the chart
                             ForEach(forecastLinePoints) { pt in
                                 LineMark(
                                     x: .value("Time", pt.date),
@@ -231,11 +221,9 @@ struct GlucoseChartView: View {
                         )
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
-                // Allow the chart to expand fully to utilize all vertical room
                 .frame(maxHeight: .infinity)
             }
         }
-        // Switched from scenePadding() to horizontal-only padding to let the chart stretch taller
         .padding(.horizontal, 6)
         .onTapGesture {
             withAnimation {
