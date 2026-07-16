@@ -63,8 +63,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
     private lazy var simulatorSource = GlucoseSimulatorSource()
 
-    private let context = CoreDataStack.shared.newTaskContext()
-
     /// Enforce mutual exclusion on calls to glucoseStoreAndHeartDecision
     private let glucoseStoreAndHeartLock = DispatchSemaphore(value: 1)
 

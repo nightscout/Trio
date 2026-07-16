@@ -78,6 +78,12 @@ extension NSPredicate {
         return NSPredicate(format: "date >= %@", date as NSDate)
     }
 
+    /// For entities keyed on `startDate` (OverrideRunStored, TempTargetRunStored).
+    static var predicateForStartDateOneDayAgo: NSPredicate {
+        let date = Date.oneDayAgo
+        return NSPredicate(format: "startDate >= %@", date as NSDate)
+    }
+
     static var carbsHistory: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(format: "date >= %@ AND carbs > 0", date as NSDate)

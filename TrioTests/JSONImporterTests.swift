@@ -92,7 +92,7 @@ class BundleReference {}
         ) as? [PumpEventStored] ?? []
 
         let objectIds = allReadings.map(\.objectID)
-        let parsedHistory = OpenAPS.loadAndMapPumpEvents(objectIds, orphanedResumes: [], from: context)
+        let parsedHistory = OpenAPS.nativePumpHistory(objectIds, orphanedResumes: [], from: context)
 
         var bolusTotal = 0.0
         var bolusCount = 0
@@ -103,21 +103,21 @@ class BundleReference {}
         var suspendCount = 0
         var resumeCount = 0
         for event in parsedHistory {
-            switch event {
-            case let .bolus(bolus):
-                bolusTotal += bolus.amount
+            switch event.type {
+            case .bolus:
+                bolusTotal += event.amount.map { ($0 as NSDecimalNumber).doubleValue } ?? 0
                 bolusCount += 1
-                if bolus.isSMB {
+                if event.isSMB == true {
                     smbCount += 1
                 }
-            case let .tempBasal(tempBasal):
-                rateTotal += tempBasal.rate
+            case .tempBasal:
+                rateTotal += event.rate.map { ($0 as NSDecimalNumber).doubleValue } ?? 0
                 tempBasalCount += 1
-            case let .tempBasalDuration(tempBasalDuration):
-                durationTotal += tempBasalDuration.duration
-            case .suspend:
+            case .tempBasalDuration:
+                durationTotal += event.durationMin ?? 0
+            case .pumpSuspend:
                 suspendCount += 1
-            case .resume:
+            case .pumpResume:
                 resumeCount += 1
             default:
                 fatalError("unhandled pump event")
@@ -172,22 +172,15 @@ class BundleReference {}
         ) as? [PumpEventStored] ?? []
 
         let objectIds = allReadings.map(\.objectID)
-        let parsedHistory = OpenAPS.loadAndMapPumpEvents(objectIds, orphanedResumes: [], from: context)
+        let parsedHistory = OpenAPS.nativePumpHistory(objectIds, orphanedResumes: [], from: context)
 
         #expect(parsedHistory.count == 1)
 
-        let bolus: BolusDTO? = {
-            switch parsedHistory.first! {
-            case let .bolus(bolus):
-                return bolus
-            default:
-                return nil
-            }
-        }()
-
-        #expect(bolus != nil)
-        #expect(bolus!.isExternal)
-        #expect(bolus!.amount.isApproximatelyEqual(to: 0.88, epsilon: 0.01))
+        let bolus = parsedHistory.first
+        #expect(bolus?.type == .bolus)
+        #expect(bolus?.isExternal == true)
+        let amount = bolus?.amount.map { ($0 as NSDecimalNumber).doubleValue }
+        #expect(amount?.isApproximatelyEqual(to: 0.88, epsilon: 0.01) == true)
     }
 
     @Test("Import carb history with value checks") func testImportCarbHistoryDetails() async throws {

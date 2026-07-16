@@ -5,12 +5,10 @@ import Foundation
 extension BaseNightscoutManager {
     /// Call once from init. Hooks up:
     /// 1) external upload requests (NotificationCenter)
-    /// 2) Core Data change triggers → requests per upload pipeline
-    /// 3) Glucose storage updates → request glucose pipeline
+    /// 2) Core Data "not yet uploaded" triggers → requests per upload pipeline
     func wireSubscribers() {
         wireExternalUploadRequests()
-        wireCoreDataSubscribers()
-        wireGlucoseStorageSubscriber()
+        wireUploadControllers()
     }
 
     /// Listens for `.nightscoutUploadRequested`, converts userInfo pipelines to enums,
@@ -31,59 +29,50 @@ extension BaseNightscoutManager {
             .store(in: &subscriptions)
     }
 
-    /// Maps Core Data entity changes into upload pipeline requests. We rely on
-    /// per-pipeline throttle so rapid changes don’t spam Nightscout.
-    func wireCoreDataSubscribers() {
-        coreDataPublisher?
-            .filteredByEntityName("OrefDetermination")
-            .sink { [weak self] _ in self?.requestUpload(.deviceStatus) }
-            .store(in: &subscriptions)
+    /// Maps Core Data "not yet uploaded to Nightscout" sets to upload pipeline requests via
+    /// NSFetchedResultsControllers. Each controller fires when un-uploaded items appear (or drop
+    /// out after a successful upload). Requests are coalesced and serialized per pipeline so
+    /// rapid changes don't spam Nightscout.
+    func wireUploadControllers() {
+        determinationUploadControllerDelegate.onContentChange = { [weak self] in
+            self?.requestUpload(.deviceStatus)
+        }
+        overrideUploadControllerDelegate.onContentChange = { [weak self] in
+            self?.requestUpload(.overrides)
+        }
+        overrideRunUploadControllerDelegate.onContentChange = { [weak self] in
+            self?.requestUpload(.overrides)
+        }
+        tempTargetUploadControllerDelegate.onContentChange = { [weak self] in
+            self?.requestUpload(.tempTargets)
+        }
+        tempTargetRunUploadControllerDelegate.onContentChange = { [weak self] in
+            self?.requestUpload(.tempTargets)
+        }
+        pumpEventUploadControllerDelegate.onContentChange = { [weak self] in
+            self?.requestUpload(.pumpHistory)
+        }
+        carbEntryUploadControllerDelegate.onContentChange = { [weak self] in
+            self?.requestUpload(.carbs)
+        }
+        glucoseUploadControllerDelegate.onContentChange = { [weak self] in
+            self?.requestUpload(.glucose)
+        }
 
-        coreDataPublisher?
-            .filteredByEntityName("OverrideStored")
-            .sink { [weak self] _ in self?.requestUpload(.overrides) }
-            .store(in: &subscriptions)
-
-        coreDataPublisher?
-            .filteredByEntityName("OverrideRunStored")
-            .sink { [weak self] _ in self?.requestUpload(.overrides) }
-            .store(in: &subscriptions)
-
-        coreDataPublisher?
-            .filteredByEntityName("TempTargetStored")
-            .sink { [weak self] _ in self?.requestUpload(.tempTargets) }
-            .store(in: &subscriptions)
-
-        coreDataPublisher?
-            .filteredByEntityName("TempTargetRunStored")
-            .sink { [weak self] _ in self?.requestUpload(.tempTargets) }
-            .store(in: &subscriptions)
-
-        coreDataPublisher?
-            .filteredByEntityName("PumpEventStored")
-            .sink { [weak self] _ in self?.requestUpload(.pumpHistory) }
-            .store(in: &subscriptions)
-
-        coreDataPublisher?
-            .filteredByEntityName("CarbEntryStored")
-            .sink { [weak self] _ in self?.requestUpload(.carbs) }
-            .store(in: &subscriptions)
-
-        coreDataPublisher?
-            .filteredByEntityName("GlucoseStored")
-            .sink { [weak self] _ in
-                self?.requestUpload(.glucose)
+        // performFetch must run on the viewContext's queue (main).
+        Task { @MainActor in
+            do {
+                try self.determinationUploadController.performFetch()
+                try self.overrideUploadController.performFetch()
+                try self.overrideRunUploadController.performFetch()
+                try self.tempTargetUploadController.performFetch()
+                try self.tempTargetRunUploadController.performFetch()
+                try self.pumpEventUploadController.performFetch()
+                try self.carbEntryUploadController.performFetch()
+                try self.glucoseUploadController.performFetch()
+            } catch {
+                debug(.nightscout, "\(DebuggingIdentifiers.failed) Failed to set up Nightscout upload controllers: \(error)")
             }
-            .store(in: &subscriptions)
-    }
-
-    /// Glucose storage updates → request glucose pipeline
-    func wireGlucoseStorageSubscriber() {
-        glucoseStorage.updatePublisher
-            .receive(on: queue)
-            .sink { [weak self] _ in
-                self?.requestUpload(.glucose)
-            }
-            .store(in: &subscriptions)
+        }
     }
 }

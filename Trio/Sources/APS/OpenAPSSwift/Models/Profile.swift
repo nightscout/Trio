@@ -1,6 +1,6 @@
 import Foundation
 
-struct Profile: Codable {
+struct Profile: JSON {
     // Kotlin-defined properties from AndroidAPS OapsProfile.kt
     // with defaults pulled from profile.js
     var dia: Decimal?
