@@ -31,8 +31,8 @@ extension BaseNightscoutManager {
 
     /// Maps Core Data "not yet uploaded to Nightscout" sets to upload pipeline requests via
     /// NSFetchedResultsControllers. Each controller fires when un-uploaded items appear (or drop
-    /// out after a successful upload). We rely on the per-pipeline throttle so rapid changes
-    /// don't spam Nightscout.
+    /// out after a successful upload). Requests are coalesced and serialized per pipeline so
+    /// rapid changes don't spam Nightscout.
     func wireUploadControllers() {
         determinationUploadControllerDelegate.onContentChange = { [weak self] in
             self?.requestUpload(.deviceStatus)
