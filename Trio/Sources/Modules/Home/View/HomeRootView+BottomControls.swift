@@ -31,6 +31,40 @@ extension Home.RootView {
         return formatter
     }
 
+    func remainingFraction(start: Date?, durationMinutes: Decimal?, indefinite: Bool) -> Double? {
+        guard !indefinite, let start = start, let durationMinutes = durationMinutes, durationMinutes > 0 else {
+            return nil
+        }
+        let total = Double(truncating: durationMinutes as NSNumber) * 60
+        let elapsed = Date().timeIntervalSince(start)
+        guard total > 0 else { return nil }
+        return min(max(1 - elapsed / total, 0), 1)
+    }
+
+    var overrideRemainingFraction: Double? {
+        guard let o = latestOverride.first else { return nil }
+        return remainingFraction(start: o.date, durationMinutes: o.duration as Decimal?, indefinite: o.indefinite)
+    }
+
+    var tempTargetRemainingFraction: Double? {
+        guard let t = latestTempTarget.first else { return nil }
+        return remainingFraction(start: t.date, durationMinutes: t.duration as Decimal?, indefinite: false)
+    }
+
+    @ViewBuilder func adjustmentIcon(_ systemName: String, tint: Color) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: 15, weight: .semibold))
+            .foregroundStyle(tint)
+            .frame(width: 30, height: 30)
+            .background(Circle().fill(tint.opacity(0.18)))
+    }
+
+    var adjustmentTint: Color? {
+        if overrideString != nil { return Color.purple }
+        if tempTargetString != nil { return Color.loopGreen }
+        return nil
+    }
+
     var overrideString: String? {
         guard let latestOverride = latestOverride.first else {
             return nil
@@ -162,16 +196,15 @@ extension Home.RootView {
 
     @ViewBuilder func adjustmentsOverrideView(_ overrideString: String) -> some View {
         Group {
-            Image(systemName: "clock.arrow.2.circlepath")
-                .font(.title2)
-                .foregroundStyle(Color.primary, Color.purple)
-            VStack(alignment: .leading) {
+            adjustmentIcon("clock.arrow.2.circlepath", tint: Color.purple)
+            VStack(alignment: .leading, spacing: 1) {
                 Text(latestOverride.first?.name ?? String(localized: "Custom Override"))
-                    .font(.subheadline)
+                    .font(.subheadline).fontWeight(.semibold)
                     .frame(alignment: .leading)
 
                 Text(overrideString)
                     .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .onTapGesture {
@@ -181,14 +214,13 @@ extension Home.RootView {
 
     @ViewBuilder func adjustmentsTempTargetView(_ tempTargetString: String) -> some View {
         Group {
-            Image(systemName: "target")
-                .font(.title2)
-                .foregroundStyle(Color.loopGreen)
-            VStack(alignment: .leading) {
+            adjustmentIcon("target", tint: Color.loopGreen)
+            VStack(alignment: .leading, spacing: 1) {
                 Text(latestTempTarget.first?.name ?? String(localized: "Temp Target"))
-                    .font(.subheadline)
+                    .font(.subheadline).fontWeight(.semibold)
                 Text(tempTargetString)
                     .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .onTapGesture {
@@ -254,76 +286,119 @@ extension Home.RootView {
 
     @ViewBuilder func noActiveAdjustmentsView() -> some View {
         Group {
-            VStack {
+            adjustmentIcon("slider.horizontal.2.gobackward", tint: Color.secondary)
+
+            VStack(alignment: .leading, spacing: 1) {
                 Text("No Active Adjustment")
-                    .font(.subheadline)
+                    .font(.subheadline).fontWeight(.medium)
+                    .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Text("Profile at 100 %")
                     .font(.caption)
+                    .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-            }.padding(.leading, 10)
+            }
 
             Spacer()
 
-            /// to ensure the same position....
+            // clear icon keeps text aligned with the cancel-button states
             Image(systemName: "xmark.app")
                 .font(.title)
-                // clear color for the icon
                 .foregroundStyle(Color.clear)
         }.onTapGesture {
             selectedTab = 2
         }
     }
 
+    @ViewBuilder func remainingBar(_ fraction: Double?, tint: Color) -> some View {
+        GeometryReader { barGeo in
+            if let fraction {
+                Capsule()
+                    .fill(tint.opacity(0.85))
+                    .frame(width: barGeo.size.width * fraction, height: 3)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
+            }
+        }
+        .frame(height: 3)
+    }
+
     @ViewBuilder func adjustmentView() -> some View {
-//            let background = colorScheme == .dark ? Material.ultraThinMaterial.opacity(0.5) : Color.black.opacity(0.2)
+        let tint = adjustmentTint
+        // concurrent override + temp target: halved tint, one remaining bar per half
+        let isConcurrent = overrideString != nil && tempTargetString != nil
 
         ZStack {
-            /// rectangle as background
-            RoundedRectangle(cornerRadius: 15)
-                .fill(
-                    (overrideString != nil || tempTargetString != nil) ?
-                        (
-                            colorScheme == .dark ?
-                                Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) :
-                                Color.insulin.opacity(0.1)
-                        ) : Color.clear // Use clear and add the Material in the background
+            RoundedRectangle(cornerRadius: 17, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    Group {
+                        if isConcurrent {
+                            HStack(spacing: 0) {
+                                Color.purple.opacity(0.12)
+                                Color.loopGreen.opacity(0.12)
+                            }
+                            .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
+                        } else {
+                            RoundedRectangle(cornerRadius: 17, style: .continuous)
+                                .fill((tint ?? Color.clear).opacity(0.12))
+                        }
+                    }
                 )
-                .background(colorScheme == .dark ? Color.chart.opacity(0.25) : Color.black.opacity(0.075))
-                .clipShape(RoundedRectangle(cornerRadius: 15))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 17, style: .continuous)
+                        .strokeBorder(
+                            isConcurrent
+                                ? AnyShapeStyle(LinearGradient(
+                                    colors: [Color.purple.opacity(0.30), Color.loopGreen.opacity(0.30)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                ))
+                                : AnyShapeStyle((tint ?? Color.primary).opacity(tint == nil ? 0.08 : 0.30)),
+                            lineWidth: 1
+                        )
+                )
                 .frame(height: HomeLayout.bottomPanelHeight)
-                .shadow(
-                    color: (overrideString != nil || tempTargetString != nil) ?
-                        (
-                            colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                                Color.black.opacity(0.33)
-                        ) : Color.clear,
-                    radius: 3
-                )
+                .overlay(alignment: .bottom) {
+                    if isConcurrent {
+                        HStack(spacing: 6) {
+                            remainingBar(overrideRemainingFraction, tint: .purple)
+                            remainingBar(tempTargetRemainingFraction, tint: .loopGreen)
+                        }
+                        .padding(.horizontal, 4)
+                    } else if let tint = tint {
+                        remainingBar(overrideRemainingFraction ?? tempTargetRemainingFraction, tint: tint)
+                            .padding(.horizontal, 4)
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
+                .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.10), radius: 3, y: 1)
             HStack {
                 if let overrideString = overrideString, let tempTargetString = tempTargetString {
-                    HStack {
-                        adjustmentsOverrideView(overrideString)
+                    // content halves match the tint halves so icons clear the seam
+                    HStack(spacing: 0) {
+                        HStack {
+                            adjustmentsOverrideView(overrideString)
+                            Spacer(minLength: 0)
+                        }
+                        .frame(maxWidth: .infinity)
 
-                        Spacer()
+                        HStack {
+                            adjustmentsTempTargetView(tempTargetString)
+                                .padding(.leading, 8)
 
-                        Divider()
-                            .frame(height: HomeLayout.bottomPanelHeight - 24)
-                            .padding(.horizontal, 2)
+                            Spacer(minLength: 0)
 
-                        adjustmentsTempTargetView(tempTargetString)
-
-                        Spacer()
-
-                        adjustmentsCancelView({
-                            if !latestTempTarget.isEmpty, !latestOverride.isEmpty {
-                                showCancelConfirmDialog = true
-                            } else if !latestOverride.isEmpty {
-                                showCancelAlert = true
-                            } else if !latestTempTarget.isEmpty {
-                                showCancelAlert = true
-                            }
-                        })
+                            adjustmentsCancelView({
+                                if !latestTempTarget.isEmpty, !latestOverride.isEmpty {
+                                    showCancelConfirmDialog = true
+                                } else if !latestOverride.isEmpty {
+                                    showCancelAlert = true
+                                } else if !latestTempTarget.isEmpty {
+                                    showCancelAlert = true
+                                }
+                            })
+                        }
+                        .frame(maxWidth: .infinity)
                     }
                 } else if let overrideString = overrideString {
                     adjustmentsOverrideView(overrideString)
@@ -440,18 +515,99 @@ extension Home.RootView {
         }
     }
 
-    /// Bottom-anchored fixed slot shared by adjustment panel and bolus progress.
-    @ViewBuilder func bottomControls() -> some View {
-        Group {
-            if let progress = state.bolusProgress {
-                bolusView(progress)
-            } else {
-                adjustmentView()
+    func statsDistributionBar(_ segments: [(color: Color, fraction: CGFloat)]) -> some View {
+        GeometryReader { g in
+            let spacing: CGFloat = 2
+            let shown = segments.filter { $0.fraction > 0.005 }
+            let available = max(g.size.width - spacing * CGFloat(max(shown.count - 1, 0)), 0)
+            HStack(spacing: spacing) {
+                ForEach(Array(shown.enumerated()), id: \.offset) { _, segment in
+                    Capsule()
+                        .fill(segment.color)
+                        .frame(width: available * segment.fraction)
+                }
             }
+            .frame(maxHeight: .infinity)
         }
-        .frame(height: HomeLayout.bottomPanelHeight)
-        .animation(.easeInOut(duration: 0.2), value: state.bolusProgress != nil)
-        // clear air below the chart's x-axis labels and above the tab bar
+    }
+
+    @ViewBuilder func statsBanner() -> some View {
+        let distribution = state.todayGlucoseDistribution
+        let coveragePct = distribution.veryLowPct + distribution.lowPct + distribution.inRangePct + distribution
+            .highPct + distribution.veryHighPct
+        let hasData = coveragePct > 0
+        let tirString = hasData
+            ? distribution.inRangePct.formatted(.number.precision(.fractionLength(0 ... 1))) + " %"
+            : "-- %"
+        let segments: [(color: Color, fraction: CGFloat)] = hasData ? [
+            (.red, CGFloat(distribution.veryLowPct / 100)),
+            (.orange, CGFloat(distribution.lowPct / 100)),
+            (.loopGreen, CGFloat(distribution.inRangePct / 100)),
+            (.purple, CGFloat((distribution.highPct + distribution.veryHighPct) / 100))
+        ] : [(Color.secondary.opacity(0.3), 1)]
+
+        Button {
+            state.showModal(for: .statistics)
+        } label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: 17, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 17, style: .continuous)
+                            .fill(Color.insulin.opacity(0.08))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 17, style: .continuous)
+                            .strokeBorder(Color.insulin.opacity(0.35), lineWidth: 1)
+                    )
+                    .frame(height: HomeLayout.statsBannerHeight)
+                    .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
+                    .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.10), radius: 3, y: 1)
+
+                HStack(alignment: .center, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                            Text(tirString)
+                                .font(.title2).fontWeight(.bold).fontDesign(.rounded)
+                                .foregroundStyle(.primary)
+                            Text("Time in Range", comment: "Stats banner subtitle")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        statsDistributionBar(segments)
+                            .frame(height: 6)
+                    }
+
+                    Spacer(minLength: 8)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 16)
+            }
+            .padding(.horizontal, 10)
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Bottom-anchored fixed zone: adjustment/bolus panel above the stats banner.
+    @ViewBuilder func bottomControls() -> some View {
+        VStack(spacing: HomeLayout.bottomZonePadding) {
+            Group {
+                if let progress = state.bolusProgress {
+                    bolusView(progress)
+                } else {
+                    adjustmentView()
+                }
+            }
+            .frame(height: HomeLayout.bottomPanelHeight)
+            .animation(.easeInOut(duration: 0.2), value: state.bolusProgress != nil)
+
+            statsBanner()
+                .frame(height: HomeLayout.statsBannerHeight)
+        }
         .padding(.vertical, HomeLayout.bottomZonePadding)
     }
 }

@@ -4,12 +4,6 @@ import SwiftDate
 import SwiftUI
 import Swinject
 
-struct TimePicker: Identifiable {
-    var active: Bool
-    let hours: Int16
-    var id: String { hours.description }
-}
-
 extension Home {
     struct RootView: BaseView {
         let resolver: Resolver
@@ -36,13 +30,8 @@ extension Home {
         @State var showPumpSelection: Bool = false
         @State var showCGMSelection: Bool = false
         @State var showSnoozeSheet: Bool = false
+        @State var alarmsSnoozeUntil: Date = .distantPast
         @State var notificationsDisabled = false
-        @State var timeButtons: [TimePicker] = [
-            TimePicker(active: false, hours: 4),
-            TimePicker(active: false, hours: 6),
-            TimePicker(active: false, hours: 12),
-            TimePicker(active: false, hours: 24)
-        ]
 
         @FetchRequest(fetchRequest: OverrideStored.fetch(
             NSPredicate.lastActiveOverride,
@@ -56,7 +45,7 @@ extension Home {
             fetchLimit: 1
         )) var latestTempTarget: FetchedResults<TempTargetStored>
 
-        private var historySFSymbol: String {
+        var historySFSymbol: String {
             if #available(iOS 17.0, *) {
                 return "book.pages"
             } else {
@@ -64,83 +53,10 @@ extension Home {
             }
         }
 
-        // Returns the scheduled basal rate for the current time based on the saved basal scheduled.
-        // Would be better if in the future BasalDeliveryStatus could be updated to include this info.
-
-        var timeIntervalButtons: some View {
-            let buttonColor = (colorScheme == .dark ? Color.white : Color.black).opacity(0.8)
-
-            return HStack(alignment: .center) {
-                ForEach(timeButtons) { button in
-                    Button(action: {
-                        state.hours = button.hours
-                    }) {
-                        Group {
-                            if button.active {
-                                Text(
-                                    button.hours.description + "\u{00A0}" +
-                                        String(localized: "h", comment: "h")
-                                )
-                            } else {
-                                Text(button.hours.description)
-                            }
-                        }
-                        .font(.footnote)
-                        .fontWeight(button.active ? .semibold : .regular)
-                        .padding(.vertical, 5)
-                        .padding(.horizontal, 10)
-                        .foregroundColor(
-                            button
-                                .active ? (colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white) : buttonColor
-                        )
-                        .background(button.active ? buttonColor.opacity(colorScheme == .dark ? 1 : 0.8) : Color.clear)
-                        .clipShape(Capsule())
-                        .overlay(
-                            Capsule()
-                                .stroke(button.active ? buttonColor.opacity(0.4) : Color.clear, lineWidth: 2)
-                        )
-                    }
-                }
-            }
-        }
-
-        var statsIconString: String {
-            if #available(iOS 18, *) {
-                return "chart.line.text.clipboard"
-            } else {
-                return "list.clipboard"
-            }
-        }
-
-        @ViewBuilder private func tappableButton(
-            buttonColor: Color,
-            label: String,
-            iconString: String,
-            action: @escaping () -> Void
-        ) -> some View {
-            Button(action: {
-                action()
-            }) {
-                HStack {
-                    Image(systemName: iconString)
-                    Text(label)
-                }
-                .font(.footnote)
-                .padding(.vertical, 5)
-                .padding(.horizontal, 10)
-                .foregroundStyle(buttonColor)
-                .overlay(
-                    Capsule()
-                        .stroke(buttonColor.opacity(0.4), lineWidth: 2)
-                )
-            }
-        }
-
         @ViewBuilder func mainChart(geo: GeometryProxy) -> some View {
             // the chart is the only flexible zone: it takes what the fixed slots leave over
             let chartHeight = max(
-                geo.size.height - HomeLayout.headerHeight - HomeLayout.mealSlotHeight - HomeLayout
-                    .timeButtonsRowHeight - HomeLayout.bottomZoneHeight,
+                geo.size.height - HomeLayout.headerHeight - HomeLayout.mealSlotHeight - HomeLayout.bottomZoneHeight,
                 HomeLayout.chartMinHeight
             )
             ZStack {
@@ -162,12 +78,47 @@ extension Home {
             }
             // enforce the zone budget; panes flex within it
             .frame(height: chartHeight)
+            .overlay(alignment: .bottomTrailing) {
+                chartInfoButton
+                    .offset(x: 0, y: -10)
+            }
+            .overlay(alignment: .topTrailing) {
+                // borderless capsule (not a control); centered in the basal
+                // pane band so it clears the y-axis labels on every device size
+                if let rate = currentBasalRateLabel {
+                    Text(rate)
+                        .font(.system(size: 14, weight: .semibold))
+                        .fontDesign(.rounded)
+                        .foregroundStyle(Color.insulin)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(.ultraThinMaterial))
+                        .frame(height: chartHeight * 0.10)
+                        .padding(.trailing, 8)
+                }
+            }
         }
 
-        func highlightButtons() {
-            for i in 0 ..< timeButtons.count {
-                timeButtons[i].active = timeButtons[i].hours == state.hours
+        private var currentBasalRateLabel: String? {
+            guard let rate = state.tempBasals.last?.tempBasal?.rate else { return nil }
+            let value = Formatter.decimalFormatterWithTwoFractionDigits.string(from: rate) ?? "\(rate)"
+            return value + String(localized: " U/hr", comment: "Unit per hour with space")
+        }
+
+        @ViewBuilder private var chartInfoButton: some View {
+            Button {
+                state.isLegendPresented.toggle()
+            } label: {
+                Image(systemName: "info")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 32, height: 32)
+                    .background(Circle().fill(.ultraThinMaterial))
+                    .overlay(Circle().strokeBorder(Color.primary.opacity(0.12), lineWidth: 1))
             }
+            .contentShape(Circle())
+            .padding(.bottom, 6)
+            .padding(.trailing, 8)
         }
 
         @ViewBuilder func mainViewElements(_ geo: GeometryProxy) -> some View {
@@ -212,30 +163,6 @@ extension Home {
                 mealPanel().frame(height: HomeLayout.mealSlotHeight)
 
                 mainChart(geo: geo)
-
-                HStack {
-                    tappableButton(
-                        buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
-                        label: String(localized: "Stats", comment: "Stats icon in main view"),
-                        iconString: statsIconString,
-                        action: { state.showModal(for: .statistics) }
-                    )
-
-                    Spacer()
-
-                    timeIntervalButtons
-
-                    Spacer()
-
-                    tappableButton(
-                        buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
-                        label: String(localized: "Info", comment: "Info icon in main view"),
-                        iconString: "info",
-                        action: { state.isLegendPresented.toggle() }
-                    )
-                }
-                .padding(.horizontal)
-                .frame(height: HomeLayout.timeButtonsRowHeight)
             }
             // fill the screen; zones stay top-aligned, chart takes the slack
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -263,13 +190,13 @@ extension Home {
                     // fixed zones bust beyond XXL; cap dashboard type size
                     .dynamicTypeSize(...DynamicTypeSize.xxLarge)
             }
-            .onChange(of: state.hours) {
-                highlightButtons()
-            }
             .onAppear {
-                configureView {
-                    highlightButtons()
-                }
+                configureView()
+                refreshAlarmsSnooze()
+            }
+            // UserDefaults changes don't invalidate views; refresh on sheet dismissal
+            .onChange(of: showSnoozeSheet) {
+                if !showSnoozeSheet { refreshAlarmsSnooze() }
             }
             .navigationTitle("Home")
             .navigationBarHidden(true)

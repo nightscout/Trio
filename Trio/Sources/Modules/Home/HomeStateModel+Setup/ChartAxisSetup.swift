@@ -34,7 +34,9 @@ extension Home.StateModel {
             maxYValue = 400
         }
 
-        minYAxisValue = minOverall
+        // keep the low threshold (and target) inside the domain: RuleMarks
+        // below the floor would clamp onto the plot edge
+        minYAxisValue = min(minOverall, lowGlucose - 20)
         maxYAxisValue = maxYValue
     }
 

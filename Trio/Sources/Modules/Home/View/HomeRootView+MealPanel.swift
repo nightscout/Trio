@@ -4,51 +4,6 @@ import SwiftUI
 // MARK: - Zone C: meal panel (IOB / COB / delivery rate)
 
 extension Home.RootView {
-    var basalString: String? {
-        var rate: NSNumber = 0
-        var manualBasalString = ""
-
-        guard let apsManager = state.apsManager else {
-            return nil
-        }
-
-        if apsManager.isScheduledBasal == true {
-            guard let scheduledRate = scheduledBasalDeliveryRate(at: Date()) else {
-                return nil
-            }
-            rate = scheduledRate
-        } else {
-            guard let lastTempBasal = state.tempBasals.last?.tempBasal, let tempRate = lastTempBasal.rate else {
-                return nil
-            }
-            if apsManager.isManualTempBasal {
-                manualBasalString = String(
-                    localized: " - Manual Basal ⚠️",
-                    comment: "Manual Temp basal"
-                )
-            }
-            rate = tempRate
-        }
-
-        let rateString = Formatter.decimalFormatterWithThreeFractionDigits.string(from: rate) ?? "0"
-        return rateString + String(localized: " U/hr", comment: "Unit per hour with space") +
-            manualBasalString
-    }
-
-    func scheduledBasalDeliveryRate(at when: Date) -> NSNumber? {
-        let calendar = Calendar(identifier: .gregorian)
-        // calendar.timeZone = timeZone /// should come from pumpManager in case it's different!
-
-        let hours = calendar.component(.hour, from: when)
-        let minutes = calendar.component(.minute, from: when)
-        let totalMinutes = hours * 60 + minutes
-
-        if let rate = findBasalRateForOffset(for: totalMinutes, in: state.basalProfile) {
-            return NSDecimalNumber(decimal: rate)
-        }
-        return nil
-    }
-
     @ViewBuilder func mealPanel() -> some View {
         HStack {
             HStack {
@@ -84,46 +39,38 @@ extension Home.RootView {
 
             Spacer()
 
-            if state.maxIOB == 0.0 {
-                HStack {
-                    Image(systemName: "exclamationmark.circle.fill")
-                    Text("MaxIOB: 0 U")
-                }.bold()
-                    .foregroundStyle(Color.red)
-                    .font(.callout)
-            } else {
-                HStack {
-                    /// Only display the insulin delivery rate info if the pump is not
-                    /// suspended and is available (e.g., pod is paired & not faulted).
-                    let pumpAvailable = state.apsManager.isScheduledBasal != nil
-                    if !state.apsManager.isSuspended && pumpAvailable {
-                        Image(systemName: "drop.circle")
-                            .font(.callout)
-                            .foregroundColor(.insulinTintColor)
-                        if let basalString = self.basalString {
-                            /// Adjust opacity when displaying a scheduled basal rate
-                            let opacity = state.apsManager?.isScheduledBasal == true ? 0.6 : 1.0
-                            if basalString.count > 5 {
-                                Text(basalString)
-                                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.85)
-                                    .truncationMode(.tail)
-                                    .allowsTightening(true)
-                                    .opacity(opacity)
-                            } else {
-                                // Short strings can just display normally
-                                Text(basalString)
-                                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                                    .opacity(opacity)
-                            }
-                        } else {
-                            Text("No Data")
-                                .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                        }
-                    }
-                }
-            }
+            alarmsPill
         }.padding(.horizontal)
+    }
+
+    func refreshAlarmsSnooze() {
+        alarmsSnoozeUntil = UserDefaults.standard
+            .object(forKey: "UserNotificationsManager.snoozeUntilDate") as? Date ?? .distantPast
+    }
+
+    /// Bell pill matching the header pills; countdown replaces the label while snoozed.
+    @ViewBuilder var alarmsPill: some View {
+        // timerDate keeps the countdown ticking
+        let isSnoozed = alarmsSnoozeUntil > state.timerDate
+        let remainingMinutes = max(Int(ceil(alarmsSnoozeUntil.timeIntervalSince(state.timerDate) / 60)), 0)
+
+        Button {
+            showSnoozeSheet = true
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: isSnoozed ? "bell.slash.fill" : "bell.fill")
+                    .font(.callout)
+                Text(isSnoozed ? "\(remainingMinutes) m" : String(localized: "Alarms", comment: "Alarms header item"))
+                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+            }
+            .padding(.vertical, 5)
+            .padding(.horizontal, 10)
+            .foregroundStyle(isSnoozed ? AnyShapeStyle(.secondary) : AnyShapeStyle(.primary))
+            .overlay(
+                Capsule()
+                    .stroke(Color.primary.opacity(0.4), lineWidth: 2)
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
