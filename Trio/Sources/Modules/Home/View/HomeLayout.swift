@@ -18,7 +18,7 @@ enum HomeLayout {
     static let refreshTriggerDistance: CGFloat = 70
     /// indicator row height while the loop runs
     static let refreshIndicatorHeight: CGFloat = 40
-    /// minimum usable chart height; must stay below the natural SE allocation
-    /// (598 − header − meal slot − bottom zone = 238) or the bottom zone overflows
-    static let chartMinHeight: CGFloat = 220
+    /// last-resort chart floor; must stay below the tightest natural allocation
+    /// (SE under the iOS 26 tab bar + accessory leaves ~140) or the bottom zone overflows
+    static let chartMinHeight: CGFloat = 130
 }
