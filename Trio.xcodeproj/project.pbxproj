@@ -400,6 +400,7 @@
 		AABB00022C54389F00211FAC /* TreatmentsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB00012C54389F00211FAC /* TreatmentsSettingsView.swift */; };
 		AC0F1A2B3C4D5E6F70819201 /* InMemoryGlucoseValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0F1A2B3C4D5E6F70819202 /* InMemoryGlucoseValue.swift */; };
 		AC0F1A2B3C4D5E6F70819203 /* UnscentedKalmanFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0F1A2B3C4D5E6F70819204 /* UnscentedKalmanFilter.swift */; };
+		AC0F1A2B3C4D5E6F70819206 /* GlucoseBucketing.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0F1A2B3C4D5E6F70819205 /* GlucoseBucketing.swift */; };
 		AC19EF2C94084B5BA0175D1D /* SettingsSearchHighlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48B83503461B4F8D97B30115 /* SettingsSearchHighlight.swift */; };
 		AD3D2CD42CD01B9EB8F26522 /* PumpConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF65DA88F972B56090AD6AC3 /* PumpConfigDataFlow.swift */; };
 		B015AFE32E500000000D7351 /* BolusSafetyValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B015AFE12E500000000D7351 /* BolusSafetyValidator.swift */; };
@@ -1418,6 +1419,7 @@
 		AAFF91130F2FCCC7EBBA11AD /* BasalProfileEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorStateModel.swift; sourceTree = "<group>"; };
 		AC0F1A2B3C4D5E6F70819202 /* InMemoryGlucoseValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InMemoryGlucoseValue.swift; path = GlucoseSmoothing/Sources/GlucoseSmoothingCore/InMemoryGlucoseValue.swift; sourceTree = SOURCE_ROOT; };
 		AC0F1A2B3C4D5E6F70819204 /* UnscentedKalmanFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UnscentedKalmanFilter.swift; path = GlucoseSmoothing/Sources/GlucoseSmoothingCore/UnscentedKalmanFilter.swift; sourceTree = SOURCE_ROOT; };
+		AC0F1A2B3C4D5E6F70819205 /* GlucoseBucketing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlucoseBucketing.swift; path = GlucoseSmoothing/Sources/GlucoseSmoothingCore/GlucoseBucketing.swift; sourceTree = SOURCE_ROOT; };
 		AF65DA88F972B56090AD6AC3 /* PumpConfigDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigDataFlow.swift; sourceTree = "<group>"; };
 		B015AFE12E500000000D7351 /* BolusSafetyValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusSafetyValidator.swift; sourceTree = "<group>"; };
 		B015AFE42E500000000D7351 /* BolusSafetyValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusSafetyValidatorTests.swift; sourceTree = "<group>"; };
@@ -2765,6 +2767,7 @@
 				49C782A62F73D9870062B0DD /* AlertEntry.swift */,
 				AC0F1A2B3C4D5E6F70819202 /* InMemoryGlucoseValue.swift */,
 				AC0F1A2B3C4D5E6F70819204 /* UnscentedKalmanFilter.swift */,
+				AC0F1A2B3C4D5E6F70819205 /* GlucoseBucketing.swift */,
 				3E62C7812F54CC1600433237 /* BolusDisplayThreshold.swift */,
 				388E5A5F25B6F2310019842D /* Autosens.swift */,
 				388358C725EEF6D200E024B2 /* BasalProfileEntry.swift */,
@@ -4933,6 +4936,7 @@
 			files = (
 				AC0F1A2B3C4D5E6F70819201 /* InMemoryGlucoseValue.swift in Sources */,
 				AC0F1A2B3C4D5E6F70819203 /* UnscentedKalmanFilter.swift in Sources */,
+				AC0F1A2B3C4D5E6F70819206 /* GlucoseBucketing.swift in Sources */,
 				DD5DC9F12CF3D97C00AB8703 /* AdjustmentsStateModel+Overrides.swift in Sources */,
 				3811DE2325C9D48300A708ED /* MainDataFlow.swift in Sources */,
 				C2A0A42F2CE03131003B98E8 /* ConstantValues.swift in Sources */,

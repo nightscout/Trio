@@ -533,6 +533,12 @@ extension BaseFetchGlucoseManager {
 
         guard !pairs.isEmpty else { return }
 
+        // AAPS feeds its smoother 5-min-BUCKETED data, not raw readings. Bucketing regularises
+        // sub-2-min-spaced backfills/catch-ups onto a 5-min grid, which prevents `findDataSegments`
+        // from breaking the segment and re-initialising the filter from a raw value (the "V-spike"
+        // glitch). The UKF core is unchanged — this is pure preprocessing, so per-call parity holds.
+        let bucketed = GlucoseBucketing.bucketed(pairs.map(\.1))
+
         // Reuse the persistent smoother (see `sharedSmoother`) so learned state carries across cycles,
         // as it does in AAPS. Serialised because the core is not thread-safe.
         smootherLock.lock()
@@ -546,36 +552,36 @@ extension BaseFetchGlucoseManager {
             }
             didRestoreUkfState = true
         }
-        let out = sharedSmoother.smooth(pairs.map(\.1))
+        let grid = sharedSmoother.smooth(bucketed)
         // Persist the updated learned state (mirrors AAPS saving after each smooth).
         if let encoded = try? JSONEncoder().encode(sharedSmoother.persistedState) {
             UserDefaults.standard.set(encoded, forKey: ukfStateKey)
         }
         smootherLock.unlock()
 
-        guard out.count == pairs.count else {
-            debug(
-                .deviceManager,
-                "Adaptive smoothing: count mismatch (in=\(pairs.count) out=\(out.count)); leaving smoothedGlucose unchanged"
-            )
-            return
-        }
+        guard !grid.isEmpty else { return }
 
-        for i in pairs.indices {
-            guard let s = out[i].smoothed else { continue } // no valid smoothed value → leave unset (oref uses raw)
+        // Write-back: AAPS displays bucketed data directly, but Trio stores `smoothedGlucose` per
+        // `GlucoseStored` row (it also feeds dosing via oref's `recalculated = smoothed ?? value`). So
+        // each raw row samples the smoothed grid at its own timestamp by linear interpolation.
+        for (stored, raw) in pairs {
+            guard let s = GlucoseBucketing.interpolatedSmoothed(at: raw.timestamp, grid: grid) else { continue }
             // Round to whole mg/dL (ties away from zero), floor at 39, store as NSDecimalNumber.
             let rounded = Decimal(s).rounded(toPlaces: 0)
             let clamped = max(rounded, minimumSmoothedGlucose)
-            pairs[i].0.smoothedGlucose = clamped as NSDecimalNumber
+            stored.smoothedGlucose = clamped as NSDecimalNumber
         }
 
-        // Observability: summarise the newest reading (raw vs consumed smoothed value + trend + count).
-        if let newest = out.first, let smoothedValue = newest.smoothed, let newestRaw = pairs.first?.1 {
+        // Observability: summarise the newest reading (raw vs consumed smoothed value + trend + counts).
+        if let newestRaw = pairs.first?.1,
+           let smoothedValue = GlucoseBucketing.interpolatedSmoothed(at: newestRaw.timestamp, grid: grid)
+        {
             let stored = pairs.first?.0.smoothedGlucose?.doubleValue
             debug(
                 .deviceManager,
-                "Adaptive smoothing (n=\(pairs.count)): raw=\(Int(newestRaw.value)) out=\(String(format: "%.1f", smoothedValue)) " +
-                    "stored=\(stored.map { String(format: "%.0f", $0) } ?? "nil") trend=\(newest.trendArrow.rawValue)"
+                "Adaptive smoothing (n=\(pairs.count) buckets=\(bucketed.count)): raw=\(Int(newestRaw.value)) " +
+                    "out=\(String(format: "%.1f", smoothedValue)) stored=\(stored.map { String(format: "%.0f", $0) } ?? "nil") " +
+                    "trend=\(grid.first?.trendArrow.rawValue ?? "none")"
             )
         }
     }
