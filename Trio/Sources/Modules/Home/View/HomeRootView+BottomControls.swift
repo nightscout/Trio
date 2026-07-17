@@ -702,6 +702,7 @@ extension Home.RootView {
                 .padding(.horizontal, 16)
             }
             .padding(.horizontal, 10)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
