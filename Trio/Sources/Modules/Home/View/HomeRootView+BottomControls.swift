@@ -302,16 +302,17 @@ extension Home.RootView {
         }
     }
 
+    // same track pattern as BolusProgressBar, slightly slimmer
     @ViewBuilder func remainingBar(_ fraction: Double?, tint: Color) -> some View {
         GeometryReader { barGeo in
             if let fraction {
-                Capsule()
+                RoundedRectangle(cornerRadius: 15)
                     .fill(tint.opacity(0.85))
-                    .frame(width: barGeo.size.width * fraction, height: 3)
+                    .frame(width: barGeo.size.width * fraction, height: 4)
                     .frame(maxHeight: .infinity, alignment: .bottom)
             }
         }
-        .frame(height: 3)
+        .frame(height: 4)
     }
 
     @ViewBuilder func adjustmentView() -> some View {
@@ -351,7 +352,7 @@ extension Home.RootView {
                 )
                 .frame(height: HomeLayout.bottomPanelHeight)
                 .overlay(alignment: .bottom) {
-                    // inset clears the corner curve so the bar stays inside the shape
+                    // anchored like the bolus progress bar so both panels match
                     Group {
                         if isConcurrent {
                             HStack(spacing: 6) {
@@ -362,8 +363,8 @@ extension Home.RootView {
                             remainingBar(overrideRemainingFraction ?? tempTargetRemainingFraction, tint: tint)
                         }
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 3)
+                    .padding(.horizontal, 18)
+                    .padding(.bottom, 1)
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
                 .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.10), radius: 3, y: 1)
