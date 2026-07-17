@@ -49,7 +49,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     /// Dose-time snapshot of the active insulin model; never revised on finalization.
     private func applyInsulinSnapshot(to event: PumpEventStored, insulinType: InsulinType?) {
         let preferences = settings.preferences
-        event.insulinType = Int16(insulinType?.rawValue ?? -1)
+        event.insulinType = insulinType?.identifier
         event.actionDuration = settings.pumpSettings.insulinActionCurve as NSDecimalNumber
         event.peakTime = IobCalculation.lookupPeak(
             curve: preferences.curve,
@@ -245,8 +245,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             newPumpEvent.isUploadedToNS = false
             newPumpEvent.isUploadedToHealth = false
             newPumpEvent.isUploadedToTidepool = false
-            // insulin type unknown: dose is external to the pump
-            self.applyInsulinSnapshot(to: newPumpEvent, insulinType: nil)
 
             // create bolus entry and specify relationship to pump event
             let newBolusEntry = BolusStored(context: context)
@@ -275,7 +273,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             onContext: context,
             predicate: NSPredicate.pumpHistoryLast24h,
             key: "timestamp",
-            ascending: false
+            ascending: false,
+            relationshipKeyPathsForPrefetching: ["bolus", "tempBasal"]
         )
 
         return await context.perform {
@@ -328,7 +327,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToNightscout,
             key: "timestamp",
-            ascending: false
+            ascending: false,
+            relationshipKeyPathsForPrefetching: ["bolus", "tempBasal"]
         )
 
         return try await context.perform { [self] in
@@ -491,7 +491,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToHealth,
             key: "timestamp",
-            ascending: false
+            ascending: false,
+            relationshipKeyPathsForPrefetching: ["bolus", "tempBasal"]
         )
 
         return try await context.perform {
@@ -537,7 +538,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToTidepool,
             key: "timestamp",
-            ascending: false
+            ascending: false,
+            relationshipKeyPathsForPrefetching: ["bolus", "tempBasal"]
         )
 
         return try await context.perform {
@@ -584,6 +586,25 @@ extension BasePumpHistoryStorage {
     struct TimestampAndType: Hashable {
         let timestamp: Date
         let type: String
+    }
+}
+
+extension InsulinType {
+    /// Stable string identity for persistence; raw Int values must not be stored.
+    var identifier: String {
+        switch self {
+        case .novolog: return "novolog"
+        case .humalog: return "humalog"
+        case .apidra: return "apidra"
+        case .fiasp: return "fiasp"
+        case .lyumjev: return "lyumjev"
+        case .afrezza: return "afrezza"
+        }
+    }
+
+    init?(identifier: String) {
+        guard let match = InsulinType.allCases.first(where: { $0.identifier == identifier }) else { return nil }
+        self = match
     }
 }
 

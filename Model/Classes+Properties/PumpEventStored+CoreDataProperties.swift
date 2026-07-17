@@ -8,7 +8,7 @@ public extension PumpEventStored {
 
     @NSManaged var actionDuration: NSDecimalNumber?
     @NSManaged var id: String?
-    @NSManaged var insulinType: Int16
+    @NSManaged var insulinType: String?
     @NSManaged var isMutable: Bool
     @NSManaged var isUploadedToNS: Bool
     @NSManaged var isUploadedToHealth: Bool

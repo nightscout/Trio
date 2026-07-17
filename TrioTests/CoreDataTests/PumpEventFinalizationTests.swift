@@ -178,7 +178,7 @@ import Testing
         let settings = resolver.resolve(SettingsManager.self)!
         let events = try await fetchAllEvents()
         let row = events.first
-        #expect(row?.insulinType == Int16(LoopKit.InsulinType.lyumjev.rawValue), "Pump-reported insulin type must be stored")
+        #expect(row?.insulinType == LoopKit.InsulinType.lyumjev.identifier, "Pump-reported insulin type must be stored")
         #expect(row?.actionDuration as? Decimal == settings.pumpSettings.insulinActionCurve, "DIA snapshot must match settings")
         #expect(row?.peakTime as? Decimal == 75, "Default rapid-acting peak is 75 min")
     }
@@ -307,7 +307,8 @@ import Testing
         #expect(row?.bolus?.isExternal == true)
         #expect(row?.bolus?.amount as? Decimal == 1.5)
         #expect(row?.bolus?.programmedAmount as? Decimal == 1.5)
-        #expect(row?.insulinType == -1, "Insulin type is unknown for doses external to the pump")
-        #expect(row?.actionDuration != nil, "External doses still snapshot the insulin model")
+        #expect(row?.insulinType == nil, "Insulin type is unknown for doses external to the pump")
+        #expect(row?.actionDuration == nil, "External doses don't snapshot the pump insulin model")
+        #expect(row?.peakTime == nil, "External doses don't snapshot the pump insulin model")
     }
 }

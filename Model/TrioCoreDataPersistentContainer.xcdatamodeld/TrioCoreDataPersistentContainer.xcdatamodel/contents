@@ -202,7 +202,7 @@
     <entity name="PumpEventStored" representedClassName="PumpEventStored" syncable="YES">
         <attribute name="actionDuration" optional="YES" attributeType="Decimal"/>
         <attribute name="id" optional="YES" attributeType="String"/>
-        <attribute name="insulinType" optional="YES" attributeType="Integer 16" defaultValueString="-1" usesScalarValueType="YES"/>
+        <attribute name="insulinType" optional="YES" attributeType="String"/>
         <attribute name="isMutable" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isUploadedToHealth" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
