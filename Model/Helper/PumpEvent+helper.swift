@@ -134,189 +134,90 @@ extension NSPredicate {
     }
 }
 
-// Declare helper structs ("data transfer objects" = DTO) to utilize parsing a flattened pump history
-struct BolusDTO: Codable {
-    var id: String
-    var timestamp: String
-    var amount: Double
-    var isExternal: Bool
-    var isSMB: Bool
-    var duration: Int
-    var _type: String = EventType.bolus.rawValue
-}
+// MARK: - Native mapping
 
-struct TempBasalDTO: Codable {
-    var id: String
-    var timestamp: String
-    var temp: String
-    var rate: Double
-    var _type: String = EventType.tempBasal.rawValue
-}
-
-struct TempBasalDurationDTO: Codable {
-    var id: String
-    var timestamp: String
-    var duration: Int
-    var _type: String = EventType.tempBasalDuration.rawValue
-
-    private enum CodingKeys: String, CodingKey {
-        case id
-        case timestamp
-        case duration = "duration (min)"
-        case _type
-    }
-}
-
-struct SuspendDTO: Codable {
-    var id: String
-    var timestamp: String
-    var _type: String = EventType.pumpSuspend.rawValue
-}
-
-struct ResumeDTO: Codable {
-    var id: String
-    var timestamp: String
-    var _type: String = EventType.pumpResume.rawValue
-}
-
-struct RewindDTO: Codable {
-    var id: String
-    var timestamp: String
-    var _type: String = EventType.rewind.rawValue
-}
-
-struct PrimeDTO: Codable {
-    var id: String
-    var timestamp: String
-    var _type: String = EventType.prime.rawValue
-}
-
-// Mask distinct DTO subtypes with a common enum that conforms to Encodable
-enum PumpEventDTO: Encodable {
-    case bolus(BolusDTO)
-    case tempBasal(TempBasalDTO)
-    case tempBasalDuration(TempBasalDurationDTO)
-    case suspend(SuspendDTO)
-    case resume(ResumeDTO)
-    case rewind(RewindDTO)
-    case prime(PrimeDTO)
-
-    func encode(to encoder: Encoder) throws {
-        switch self {
-        case let .bolus(bolus):
-            try bolus.encode(to: encoder)
-        case let .tempBasal(tempBasal):
-            try tempBasal.encode(to: encoder)
-        case let .tempBasalDuration(tempBasalDuration):
-            try tempBasalDuration.encode(to: encoder)
-        case let .suspend(suspend):
-            try suspend.encode(to: encoder)
-        case let .resume(resume):
-            try resume.encode(to: encoder)
-        case let .rewind(rewind):
-            try rewind.encode(to: encoder)
-        case let .prime(prime):
-            try prime.encode(to: encoder)
-        }
-    }
-}
-
-// Extension with helper functions to map pump events to DTO objects via uniform masking enum
 extension PumpEventStored {
-    static let dateFormatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
+    /// Converts a stored pump event into the `PumpHistoryEvent`s the oref algorithm can use.
+    /// A temp basal yields a duration entry followed by a rate entry.
+    func toPumpHistoryEvents() -> [PumpHistoryEvent] {
+        var events: [PumpHistoryEvent] = []
+        if let bolus = toBolusPumpHistoryEvent() { events.append(bolus) }
+        if let duration = toTempBasalDurationPumpHistoryEvent() { events.append(duration) }
+        if let tempBasal = toTempBasalPumpHistoryEvent() { events.append(tempBasal) }
+        if let suspend = toSuspendPumpHistoryEvent() { events.append(suspend) }
+        if let resume = toResumePumpHistoryEvent() { events.append(resume) }
+        if let rewind = toRewindPumpHistoryEvent() { events.append(rewind) }
+        if let prime = toPrimePumpHistoryEvent() { events.append(prime) }
+        return events
+    }
 
-    func toBolusDTOEnum() -> PumpEventDTO? {
+    private func toBolusPumpHistoryEvent() -> PumpHistoryEvent? {
         guard let timestamp = timestamp, let bolus = bolus, let amount = bolus.amount else {
             return nil
         }
-
-        let bolusDTO = BolusDTO(
+        return PumpHistoryEvent(
             id: id ?? UUID().uuidString,
-            timestamp: PumpEventStored.dateFormatter.string(from: timestamp),
-            amount: amount.doubleValue,
-            isExternal: bolus.isExternal,
+            type: .bolus,
+            timestamp: timestamp,
+            amount: Decimal(algorithmValue: amount.doubleValue),
+            duration: 0,
             isSMB: bolus.isSMB,
-            duration: 0
+            isExternal: bolus.isExternal
         )
-        return .bolus(bolusDTO)
     }
 
-    func toTempBasalDTOEnum() -> PumpEventDTO? {
-        guard let id = id, let timestamp = timestamp, let tempBasal = tempBasal, let rate = tempBasal.rate else {
-            return nil
-        }
-
-        let tempBasalDTO = TempBasalDTO(
-            id: "_\(id)",
-            timestamp: PumpEventStored.dateFormatter.string(from: timestamp),
-            temp: tempBasal.tempType ?? "unknown",
-            rate: rate.doubleValue
-        )
-        return .tempBasal(tempBasalDTO)
-    }
-
-    func toTempBasalDurationDTOEnum() -> PumpEventDTO? {
+    // The temp basal duration populates `durationMin`, not `duration`.
+    private func toTempBasalDurationPumpHistoryEvent() -> PumpHistoryEvent? {
         guard let id = id, let timestamp = timestamp, let tempBasal = tempBasal else {
             return nil
         }
-
-        let tempBasalDurationDTO = TempBasalDurationDTO(
+        return PumpHistoryEvent(
             id: id,
-            timestamp: PumpEventStored.dateFormatter.string(from: timestamp),
-            duration: Int(tempBasal.duration)
+            type: .tempBasalDuration,
+            timestamp: timestamp,
+            durationMin: Int(tempBasal.duration)
         )
-        return .tempBasalDuration(tempBasalDurationDTO)
     }
 
-    func toPumpSuspendDTO() -> PumpEventDTO? {
-        guard let id = id, let timestamp = timestamp, let type = type, type == EventType.pumpSuspend.rawValue else {
+    // The temp basal rate entry id is prefixed with "_". An unrecognized `tempType` maps to nil.
+    private func toTempBasalPumpHistoryEvent() -> PumpHistoryEvent? {
+        guard let id = id, let timestamp = timestamp, let tempBasal = tempBasal, let rate = tempBasal.rate else {
             return nil
         }
-
-        let suspendDTO = SuspendDTO(
-            id: id,
-            timestamp: PumpEventStored.dateFormatter.string(from: timestamp)
+        return PumpHistoryEvent(
+            id: "_\(id)",
+            type: .tempBasal,
+            timestamp: timestamp,
+            rate: Decimal(algorithmValue: rate.doubleValue),
+            temp: tempBasal.tempType.flatMap { Trio.TempType(rawValue: $0) }
         )
-        return .suspend(suspendDTO)
     }
 
-    func toPumpResumeDTO() -> PumpEventDTO? {
-        guard let id = id, let timestamp = timestamp, let type = type, type == EventType.pumpResume.rawValue else {
+    private func toSuspendPumpHistoryEvent() -> PumpHistoryEvent? {
+        guard let id = id, let timestamp = timestamp, type == EventType.pumpSuspend.rawValue else {
             return nil
         }
-
-        let resumeDTO = ResumeDTO(
-            id: id,
-            timestamp: PumpEventStored.dateFormatter.string(from: timestamp)
-        )
-        return .resume(resumeDTO)
+        return PumpHistoryEvent(id: id, type: .pumpSuspend, timestamp: timestamp)
     }
 
-    func toRewindDTO() -> PumpEventDTO? {
-        guard let id = id, let timestamp = timestamp, let type = type, type == EventType.rewind.rawValue else {
+    private func toResumePumpHistoryEvent() -> PumpHistoryEvent? {
+        guard let id = id, let timestamp = timestamp, type == EventType.pumpResume.rawValue else {
             return nil
         }
-
-        let rewindDTO = RewindDTO(
-            id: id,
-            timestamp: PumpEventStored.dateFormatter.string(from: timestamp)
-        )
-        return .rewind(rewindDTO)
+        return PumpHistoryEvent(id: id, type: .pumpResume, timestamp: timestamp)
     }
 
-    func toPrimeDTO() -> PumpEventDTO? {
-        guard let id = id, let timestamp = timestamp, let type = type, type == EventType.prime.rawValue else {
+    private func toRewindPumpHistoryEvent() -> PumpHistoryEvent? {
+        guard let id = id, let timestamp = timestamp, type == EventType.rewind.rawValue else {
             return nil
         }
+        return PumpHistoryEvent(id: id, type: .rewind, timestamp: timestamp)
+    }
 
-        let primeDTO = PrimeDTO(
-            id: id,
-            timestamp: PumpEventStored.dateFormatter.string(from: timestamp)
-        )
-        return .prime(primeDTO)
+    private func toPrimePumpHistoryEvent() -> PumpHistoryEvent? {
+        guard let id = id, let timestamp = timestamp, type == EventType.prime.rawValue else {
+            return nil
+        }
+        return PumpHistoryEvent(id: id, type: .prime, timestamp: timestamp)
     }
 }

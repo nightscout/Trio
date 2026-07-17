@@ -21,7 +21,8 @@ extension Home.StateModel {
 
     @MainActor func updateTempTargetsFromController() {
         guard let objects = tempTargetController.fetchedObjects else { return }
-        tempTargetStored = objects
+        // The controller predicate anchors its date window at fetch time, so filter again with a fresh "now"
+        tempTargetStored = objects.filter(\.isVisibleInChart)
     }
 
     // MARK: - Temp Target Runs
