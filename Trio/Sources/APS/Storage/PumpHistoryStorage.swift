@@ -283,164 +283,157 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     func getPumpHistoryNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
         let context = makeContext()
         context.name = "getPumpHistoryNotYetUploadedToNightscout"
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+
+        return try await CoreDataStack.shared.fetchPendingUploads(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToNightscout,
             key: "timestamp",
             ascending: false,
             relationshipKeyPathsForPrefetching: ["bolus", "tempBasal"]
-        )
+        ) { [self] event in
+            switch event.type {
+            case PumpEvent.bolus.rawValue:
+                // eventType determines whether bolus is external, smb or manual (=administered via app by user)
+                let eventType = determineBolusEventType(for: event)
+                return NightscoutTreatment(
+                    duration: nil,
+                    rawDuration: nil,
+                    rawRate: nil,
+                    absolute: nil,
+                    rate: nil,
+                    eventType: eventType,
+                    createdAt: event.timestamp,
+                    enteredBy: NightscoutTreatment.local,
+                    bolus: nil,
+                    insulin: event.bolus?.amount as Decimal?,
+                    notes: nil,
+                    carbs: nil,
+                    fat: nil,
+                    protein: nil,
+                    targetTop: nil,
+                    targetBottom: nil,
+                    id: event.id
+                )
+            case PumpEvent.tempBasal.rawValue:
+                return NightscoutTreatment(
+                    duration: Int(event.tempBasal?.duration ?? 0),
+                    rawDuration: nil,
+                    rawRate: nil,
+                    absolute: event.tempBasal?.rate as Decimal?,
+                    rate: event.tempBasal?.rate as Decimal?,
+                    eventType: .nsTempBasal,
+                    createdAt: event.timestamp,
+                    enteredBy: NightscoutTreatment.local,
+                    bolus: nil,
+                    insulin: nil,
+                    notes: nil,
+                    carbs: nil,
+                    fat: nil,
+                    protein: nil,
+                    targetTop: nil,
+                    targetBottom: nil,
+                    id: event.id
+                )
+            case PumpEvent.pumpSuspend.rawValue:
+                return NightscoutTreatment(
+                    duration: nil,
+                    rawDuration: nil,
+                    rawRate: nil,
+                    absolute: nil,
+                    rate: nil,
+                    eventType: .nsNote,
+                    createdAt: event.timestamp,
+                    enteredBy: NightscoutTreatment.local,
+                    bolus: nil,
+                    insulin: nil,
+                    notes: PumpEvent.pumpSuspend.rawValue,
+                    carbs: nil,
+                    fat: nil,
+                    protein: nil,
+                    targetTop: nil,
+                    targetBottom: nil
+                )
+            case PumpEvent.pumpResume.rawValue:
+                return NightscoutTreatment(
+                    duration: nil,
+                    rawDuration: nil,
+                    rawRate: nil,
+                    absolute: nil,
+                    rate: nil,
+                    eventType: .nsNote,
+                    createdAt: event.timestamp,
+                    enteredBy: NightscoutTreatment.local,
+                    bolus: nil,
+                    insulin: nil,
+                    notes: PumpEvent.pumpResume.rawValue,
+                    carbs: nil,
+                    fat: nil,
+                    protein: nil,
+                    targetTop: nil,
+                    targetBottom: nil
+                )
+            case PumpEvent.rewind.rawValue:
+                return NightscoutTreatment(
+                    duration: nil,
+                    rawDuration: nil,
+                    rawRate: nil,
+                    absolute: nil,
+                    rate: nil,
+                    eventType: .nsInsulinChange,
+                    createdAt: event.timestamp,
+                    enteredBy: NightscoutTreatment.local,
+                    bolus: nil,
+                    insulin: nil,
+                    notes: nil,
+                    carbs: nil,
+                    fat: nil,
+                    protein: nil,
+                    targetTop: nil,
+                    targetBottom: nil
+                )
+            case PumpEvent.siteChange.rawValue:
+                return NightscoutTreatment(
+                    duration: nil,
+                    rawDuration: nil,
+                    rawRate: nil,
+                    absolute: nil,
+                    rate: nil,
+                    eventType: .nsSiteChange,
+                    createdAt: event.timestamp,
+                    enteredBy: NightscoutTreatment.local,
+                    bolus: nil,
+                    insulin: nil,
+                    notes: nil,
+                    carbs: nil,
+                    fat: nil,
+                    protein: nil,
+                    targetTop: nil,
+                    targetBottom: nil
+                )
+            case PumpEvent.pumpAlarm.rawValue:
+                return NightscoutTreatment(
+                    duration: 30, // minutes
+                    rawDuration: nil,
+                    rawRate: nil,
+                    absolute: nil,
+                    rate: nil,
+                    eventType: .nsAnnouncement,
+                    createdAt: event.timestamp,
+                    enteredBy: NightscoutTreatment.local,
+                    bolus: nil,
+                    insulin: nil,
+                    notes: "Alarm \(String(describing: event.note)) \(PumpEvent.pumpAlarm.rawValue)",
+                    carbs: nil,
+                    fat: nil,
+                    protein: nil,
+                    targetTop: nil,
+                    targetBottom: nil
+                )
 
-        return try await context.perform { [self] in
-            guard let fetchedPumpEvents = results as? [PumpEventStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
+            default:
+                return nil
             }
-
-            return fetchedPumpEvents.map { event in
-                switch event.type {
-                case PumpEvent.bolus.rawValue:
-                    // eventType determines whether bolus is external, smb or manual (=administered via app by user)
-                    let eventType = determineBolusEventType(for: event)
-                    return NightscoutTreatment(
-                        duration: nil,
-                        rawDuration: nil,
-                        rawRate: nil,
-                        absolute: nil,
-                        rate: nil,
-                        eventType: eventType,
-                        createdAt: event.timestamp,
-                        enteredBy: NightscoutTreatment.local,
-                        bolus: nil,
-                        insulin: event.bolus?.amount as Decimal?,
-                        notes: nil,
-                        carbs: nil,
-                        fat: nil,
-                        protein: nil,
-                        targetTop: nil,
-                        targetBottom: nil,
-                        id: event.id
-                    )
-                case PumpEvent.tempBasal.rawValue:
-                    return NightscoutTreatment(
-                        duration: Int(event.tempBasal?.duration ?? 0),
-                        rawDuration: nil,
-                        rawRate: nil,
-                        absolute: event.tempBasal?.rate as Decimal?,
-                        rate: event.tempBasal?.rate as Decimal?,
-                        eventType: .nsTempBasal,
-                        createdAt: event.timestamp,
-                        enteredBy: NightscoutTreatment.local,
-                        bolus: nil,
-                        insulin: nil,
-                        notes: nil,
-                        carbs: nil,
-                        fat: nil,
-                        protein: nil,
-                        targetTop: nil,
-                        targetBottom: nil,
-                        id: event.id
-                    )
-                case PumpEvent.pumpSuspend.rawValue:
-                    return NightscoutTreatment(
-                        duration: nil,
-                        rawDuration: nil,
-                        rawRate: nil,
-                        absolute: nil,
-                        rate: nil,
-                        eventType: .nsNote,
-                        createdAt: event.timestamp,
-                        enteredBy: NightscoutTreatment.local,
-                        bolus: nil,
-                        insulin: nil,
-                        notes: PumpEvent.pumpSuspend.rawValue,
-                        carbs: nil,
-                        fat: nil,
-                        protein: nil,
-                        targetTop: nil,
-                        targetBottom: nil
-                    )
-                case PumpEvent.pumpResume.rawValue:
-                    return NightscoutTreatment(
-                        duration: nil,
-                        rawDuration: nil,
-                        rawRate: nil,
-                        absolute: nil,
-                        rate: nil,
-                        eventType: .nsNote,
-                        createdAt: event.timestamp,
-                        enteredBy: NightscoutTreatment.local,
-                        bolus: nil,
-                        insulin: nil,
-                        notes: PumpEvent.pumpResume.rawValue,
-                        carbs: nil,
-                        fat: nil,
-                        protein: nil,
-                        targetTop: nil,
-                        targetBottom: nil
-                    )
-                case PumpEvent.rewind.rawValue:
-                    return NightscoutTreatment(
-                        duration: nil,
-                        rawDuration: nil,
-                        rawRate: nil,
-                        absolute: nil,
-                        rate: nil,
-                        eventType: .nsInsulinChange,
-                        createdAt: event.timestamp,
-                        enteredBy: NightscoutTreatment.local,
-                        bolus: nil,
-                        insulin: nil,
-                        notes: nil,
-                        carbs: nil,
-                        fat: nil,
-                        protein: nil,
-                        targetTop: nil,
-                        targetBottom: nil
-                    )
-                case PumpEvent.siteChange.rawValue:
-                    return NightscoutTreatment(
-                        duration: nil,
-                        rawDuration: nil,
-                        rawRate: nil,
-                        absolute: nil,
-                        rate: nil,
-                        eventType: .nsSiteChange,
-                        createdAt: event.timestamp,
-                        enteredBy: NightscoutTreatment.local,
-                        bolus: nil,
-                        insulin: nil,
-                        notes: nil,
-                        carbs: nil,
-                        fat: nil,
-                        protein: nil,
-                        targetTop: nil,
-                        targetBottom: nil
-                    )
-                case PumpEvent.pumpAlarm.rawValue:
-                    return NightscoutTreatment(
-                        duration: 30, // minutes
-                        rawDuration: nil,
-                        rawRate: nil,
-                        absolute: nil,
-                        rate: nil,
-                        eventType: .nsAnnouncement,
-                        createdAt: event.timestamp,
-                        enteredBy: NightscoutTreatment.local,
-                        bolus: nil,
-                        insulin: nil,
-                        notes: "Alarm \(String(describing: event.note)) \(PumpEvent.pumpAlarm.rawValue)",
-                        carbs: nil,
-                        fat: nil,
-                        protein: nil,
-                        targetTop: nil,
-                        targetBottom: nil
-                    )
-
-                default:
-                    return nil
-                }
-            }.compactMap { $0 }
         }
     }
 

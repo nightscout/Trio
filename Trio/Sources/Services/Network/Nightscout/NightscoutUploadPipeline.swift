@@ -3,7 +3,7 @@ import Foundation
 /// Logical upload “paths” handled by NightscoutManager.
 /// Runs are coalesced and serialized per pipeline (see `NightscoutUploadSerializer`)
 /// so we don’t double-upload when multiple sources trigger the same work close together.
-public enum NightscoutUploadPipeline: String, CaseIterable {
+public enum NightscoutUploadPipeline: String, CaseIterable, Sendable {
     case carbs
     case pumpHistory
     case overrides
