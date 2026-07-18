@@ -38,6 +38,7 @@ final class SpyAlertManager: TrioAlertManager {
     func handleAcknowledgement(identifier _: Alert.Identifier) {}
     func handleNotificationResponse(_: UNNotificationResponse) {}
     func acknowledgeAllOutstanding() {}
+    func replayUnacknowledgedAlerts() {}
     @MainActor func applySnooze(for _: TimeInterval) async {}
     func clearPendingNonCriticalNotifications() {}
 
