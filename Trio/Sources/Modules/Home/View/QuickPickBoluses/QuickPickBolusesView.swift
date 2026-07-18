@@ -130,6 +130,8 @@ struct QuickPickBolusesView: View {
                     .font(.title2)
                     .foregroundStyle(isSelected ? .white.opacity(0.85) : .secondary)
             }
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
             .padding(.vertical, 12)
             .padding(.horizontal, 24)
             .frame(maxWidth: .infinity, minHeight: 44)
