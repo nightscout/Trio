@@ -11,7 +11,6 @@ extension PumpConfig {
         @Published var pumpState: PumpDisplayState?
         private(set) var initialSettings: PumpInitialSettings = .default
         @Injected() var bluetoothManager: BluetoothStateManager!
-        @Injected() var trioAlertManager: TrioAlertManager!
 
         override func subscribe() {
             provider.pumpDisplayState
