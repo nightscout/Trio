@@ -189,12 +189,14 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         }
     }
 
-    /// Finalized reports freeze the row with delivered values. Upload flags
-    /// untouched: blind re-POSTs would duplicate NS treatments.
+    /// Finalized reports freeze the row with delivered values. If NS-visible
+    /// values changed on an already-uploaded row, the upload flag resets and
+    /// the re-POST replaces the NS document in place.
     private func updateMutablePumpEvent(_ event: PumpEventStored, with dose: DoseEntry) {
         switch event.type {
         case PumpEventStored.EventType.bolus.rawValue:
             guard let bolus = event.bolus else { return }
+            let previousAmount = bolus.amount
             let finalAmount = dose.deliveredUnits.map {
                 self.roundDose($0, toIncrement: Double(settings.preferences.bolusIncrement))
             }
@@ -203,18 +205,26 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             }
             bolus.isSMB = dose.automatic ?? true
             event.isMutable = dose.isMutable
+            if event.isUploadedToNS, bolus.amount != previousAmount {
+                event.isUploadedToNS = false
+            }
             if !dose.isMutable {
                 debug(.coreData, "Finalized bolus \(dose.syncIdentifier ?? "-"): \(bolus.amount ?? 0) U")
             }
 
         case PumpEventStored.EventType.tempBasal.rawValue:
             guard let tempBasal = event.tempBasal else { return }
+            let previousRate = tempBasal.rate
+            let previousDuration = tempBasal.duration
             tempBasal.duration = Int16(round((dose.endDate - dose.startDate).timeInterval / 60))
             tempBasal.rate = Decimal(dose.unitsPerHour) as NSDecimalNumber
             tempBasal.startDate = dose.startDate
             tempBasal.endDate = dose.endDate
             tempBasal.deliveredUnits = dose.deliveredUnits.map { Decimal($0) as NSDecimalNumber }
             event.isMutable = dose.isMutable
+            if event.isUploadedToNS, tempBasal.rate != previousRate || tempBasal.duration != previousDuration {
+                event.isUploadedToNS = false
+            }
             if !dose.isMutable {
                 debug(
                     .coreData,

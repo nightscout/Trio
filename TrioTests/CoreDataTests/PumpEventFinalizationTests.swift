@@ -167,6 +167,53 @@ import Testing
         #expect(abs(programmed - 5.0) < 0.0001, "Programmed amount must survive finalization")
     }
 
+    @Test("Finalizing an uploaded bolus with changed delivery resets the NS upload flag") func testChangedFinalizationResetsNSFlag(
+    ) async throws {
+        let date = Date().addingTimeInterval(-5.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [bolusEvent(date: date, units: 5.0, syncIdentifier: "bolus-ns", isMutable: true)],
+            replacePendingEvents: false
+        )
+        // mutable row was uploaded to NS
+        try await testContext.perform {
+            let rows = try testContext.fetch(PumpEventStored.fetchRequest())
+            rows.forEach { $0.isUploadedToNS = true }
+            try testContext.save()
+        }
+        // cancelled: delivered less than programmed
+        try await storage.storePumpEvents(
+            [bolusEvent(date: date, units: 5.0, deliveredUnits: 2.4, syncIdentifier: "bolus-ns", isMutable: false)],
+            replacePendingEvents: false
+        )
+
+        let events = try await fetchAllEvents()
+        #expect(events.first?.isUploadedToNS == false, "Changed values must re-upload so NS upserts the document")
+    }
+
+    @Test("Finalizing an uploaded bolus without changes keeps the NS upload flag") func testUnchangedFinalizationKeepsNSFlag(
+    ) async throws {
+        let date = Date().addingTimeInterval(-5.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [bolusEvent(date: date, units: 1.5, syncIdentifier: "bolus-ns2", isMutable: true)],
+            replacePendingEvents: false
+        )
+        try await testContext.perform {
+            let rows = try testContext.fetch(PumpEventStored.fetchRequest())
+            rows.forEach { $0.isUploadedToNS = true }
+            try testContext.save()
+        }
+        // delivered exactly as programmed
+        try await storage.storePumpEvents(
+            [bolusEvent(date: date, units: 1.5, deliveredUnits: 1.5, syncIdentifier: "bolus-ns2", isMutable: false)],
+            replacePendingEvents: false
+        )
+
+        let events = try await fetchAllEvents()
+        #expect(events.first?.isUploadedToNS == true, "Unchanged finalization must not re-upload")
+    }
+
     @Test("Insulin model snapshot is stored per event") func testInsulinSnapshotStored() async throws {
         let date = Date().addingTimeInterval(-5.minutes.timeInterval)
 

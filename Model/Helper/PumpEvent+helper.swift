@@ -118,10 +118,12 @@ extension NSPredicate {
         NSPredicate(format: "timestamp == %@", date as NSDate)
     }
 
+    // Mutable rows upload immediately; value changes reset isUploadedToNS and
+    // the re-POST replaces the NS document (upsert on created_at + eventType).
     static var pumpEventsNotYetUploadedToNightscout: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(
-            format: "timestamp >= %@ AND isUploadedToNS == %@ AND NOT (tempBasal.isScheduledBasal == YES) AND NOT (isMutable == YES)",
+            format: "timestamp >= %@ AND isUploadedToNS == %@ AND NOT (tempBasal.isScheduledBasal == YES)",
             date as NSDate,
             false as NSNumber
         )
