@@ -63,6 +63,8 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var bluetoothProvider: BluetoothStateManager!
     @Injected() private var trioAlertManager: TrioAlertManager!
+    // lazy to avoid circular dependency (NightscoutManager → PumpHistoryStorage)
+    private var resolver: Resolver?
 
     @Persisted(key: "BaseDeviceDataManager.lastEventDate") var lastEventDate: Date? = nil
     @SyncAccess(lock: accessLock) @Persisted(key: "BaseDeviceDataManager.lastHeartBeatTime") var lastHeartBeatTime: Date =
@@ -248,6 +250,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     let pumpName = CurrentValueSubject<String, Never>("Pump")
 
     init(resolver: Resolver) {
+        self.resolver = resolver
         injectServices(resolver)
         setupPumpManager()
         UIDevice.current.isBatteryMonitoringEnabled = true
@@ -594,9 +597,18 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
                     return $0.dose?.unitsPerHour ?? 0 <= Double(settingsManager.pumpSettings.maxBasal)
                 }
                 debug(.deviceManager, "Storing \(events.count) new pump events: \(events)")
-                try await pumpHistoryStorage.storePumpEvents(events, replacePendingEvents: replacePendingEvents)
+                let purgedUploadedIds = try await pumpHistoryStorage.storePumpEvents(
+                    events,
+                    replacePendingEvents: replacePendingEvents
+                )
                 lastEventDate = events.last?.date
                 completion(nil)
+                // the pump withdrew these events; remove their NS treatments
+                if !purgedUploadedIds.isEmpty, let nightscoutManager = resolver?.resolve(NightscoutManager.self) {
+                    for id in purgedUploadedIds {
+                        await nightscoutManager.deleteInsulin(withID: id)
+                    }
+                }
             } catch {
                 debug(.deviceManager, "\(DebuggingIdentifiers.failed) Failed to store pump events: \(error)")
             }

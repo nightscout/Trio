@@ -12,7 +12,9 @@ protocol PumpHistoryObserver {
 protocol PumpHistoryStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
     func getPumpHistory() async throws -> [PumpHistoryEvent]
-    func storePumpEvents(_ events: [NewPumpEvent], replacePendingEvents: Bool) async throws
+    /// Returns the ids of purged events that were already uploaded to NS,
+    /// so the caller can delete the now-withdrawn treatments remotely.
+    @discardableResult func storePumpEvents(_ events: [NewPumpEvent], replacePendingEvents: Bool) async throws -> [String]
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async
     func getPumpHistoryNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func getPumpHistoryNotYetUploadedToHealth() async throws -> [PumpHistoryEvent]
@@ -58,10 +60,12 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         ).map { Decimal($0) as NSDecimalNumber }
     }
 
-    func storePumpEvents(_ events: [NewPumpEvent], replacePendingEvents: Bool) async throws {
+    @discardableResult func storePumpEvents(_ events: [NewPumpEvent], replacePendingEvents: Bool) async throws -> [String] {
         let context = makeContext()
         context.name = "storePumpEvents"
-        try await context.perform {
+        // on constraint conflicts the persisted row wins: finalized rows never change
+        context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
+        return try await context.perform {
             // upsert candidates: dose syncIdentifier, timestamp+type as fallback
             // LoopKit derives dose.syncIdentifier from raw; empty raw must not become a shared identity
             let syncIdentifiers = events.compactMap(\.dose?.syncIdentifier).filter { !$0.isEmpty }
@@ -167,17 +171,24 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 
             // Mutable rows are the pump's assertions (LoopKit contract): a
             // complete pending report supersedes any it no longer contains.
+            var purgedUploadedIds: [String] = []
             if replacePendingEvents {
                 let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
                 request.predicate = NSPredicate(format: "isMutable == YES")
                 for orphan in try context.fetch(request) where !assertedRows.contains(orphan.objectID) {
-                    debug(.coreData, "Removing unasserted mutable event \(orphan.syncIdentifier ?? orphan.id ?? "-")")
+                    debug(
+                        .coreData,
+                        "Purging unasserted mutable event \(orphan.syncIdentifier ?? orphan.id ?? "-") (\(orphan.type ?? "?")), uploaded to NS: \(orphan.isUploadedToNS)"
+                    )
+                    if orphan.isUploadedToNS, let id = orphan.id {
+                        purgedUploadedIds.append(id)
+                    }
                     context.delete(orphan)
                 }
             }
 
             do {
-                guard context.hasChanges else { return }
+                guard context.hasChanges else { return purgedUploadedIds }
                 try context.save()
 
                 self.updateSubject.send(())
@@ -186,6 +197,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 debug(.coreData, "\(DebuggingIdentifiers.failed) failed to store pump events with error: \(error.userInfo)")
                 throw error
             }
+            return purgedUploadedIds
         }
     }
 
@@ -241,6 +253,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async {
         let context = makeContext()
         context.name = "storeExternalInsulinEvent"
+        context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
         await context.perform {
             // create pump event
             let newPumpEvent = PumpEventStored(context: context)

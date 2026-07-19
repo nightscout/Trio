@@ -288,6 +288,36 @@ import Testing
         #expect(identifiers.contains(storedIdentifier("bolus-3")), "Newly reported event must be stored")
     }
 
+    @Test("Purged uploaded events report their ids for remote deletion") func testPurgeReportsUploadedIds() async throws {
+        let start = Date().addingTimeInterval(-15.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [tempBasalEvent(
+                start: start,
+                end: start.addingTimeInterval(30.minutes.timeInterval),
+                rate: 2.0,
+                syncIdentifier: "tbr-ghost",
+                isMutable: true
+            )],
+            replacePendingEvents: false
+        )
+        // orphan was already uploaded to NS before the pump withdrew it
+        try await testContext.perform {
+            let rows = try testContext.fetch(PumpEventStored.fetchRequest())
+            rows.forEach { $0.isUploadedToNS = true }
+            try testContext.save()
+        }
+
+        let purged = try await storage.storePumpEvents(
+            [bolusEvent(date: Date(), units: 1.0, deliveredUnits: 1.0, syncIdentifier: "bolus-x", isMutable: false)],
+            replacePendingEvents: true
+        )
+
+        #expect(purged.count == 1, "The uploaded orphan must be reported for remote deletion")
+        let events = try await fetchAllEvents()
+        #expect(!events.compactMap(\.syncIdentifier).contains(storedIdentifier("tbr-ghost")), "Orphan must be purged locally")
+    }
+
     @Test("Asserted mutable events survive pending replacement") func testReplacePendingEventsKeepsAsserted() async throws {
         let start = Date().addingTimeInterval(-10.minutes.timeInterval)
         let event = tempBasalEvent(
@@ -343,6 +373,56 @@ import Testing
         #expect(events.count == 1, "Same event twice in one batch must yield one row")
     }
 
+    @Test("Purging a pump event cascades to its dose child") func testPurgeCascadesToChild() async throws {
+        let start = Date().addingTimeInterval(-10.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [tempBasalEvent(
+                start: start,
+                end: start.addingTimeInterval(30.minutes.timeInterval),
+                rate: 1.0,
+                syncIdentifier: "tbr-cascade",
+                isMutable: true
+            )],
+            replacePendingEvents: false
+        )
+        try await storage.storePumpEvents(
+            [bolusEvent(date: Date(), units: 0.5, deliveredUnits: 0.5, syncIdentifier: "bolus-y", isMutable: false)],
+            replacePendingEvents: true
+        )
+
+        let orphanedChildren = try await testContext.perform {
+            try testContext.fetch(TempBasalStored.fetchRequest() as NSFetchRequest<TempBasalStored>)
+                .filter { $0.pumpEvent == nil }
+        }
+        #expect(orphanedChildren.isEmpty, "Purging the parent must delete the dose child, not orphan it")
+    }
+
+    @Test("Same sync identifier cannot exist twice, nil identifiers can") func testSyncIdentifierUniqueness() async throws {
+        try await testContext.perform {
+            for _ in 0 ..< 2 {
+                let event = PumpEventStored(context: testContext)
+                event.id = UUID().uuidString
+                event.timestamp = Date()
+                event.type = PumpEvent.bolus.rawValue
+                event.syncIdentifier = "constraint-dup"
+            }
+            for _ in 0 ..< 2 {
+                let event = PumpEventStored(context: testContext)
+                event.id = UUID().uuidString
+                event.timestamp = Date()
+                event.type = PumpEvent.pumpSuspend.rawValue
+                event.syncIdentifier = nil
+            }
+            testContext.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
+            try testContext.save()
+        }
+
+        let events = try await fetchAllEvents()
+        #expect(events.filter { $0.syncIdentifier == "constraint-dup" }.count == 1, "Constraint must dedupe by syncIdentifier")
+        #expect(events.filter { $0.syncIdentifier == nil }.count == 2, "Nil identifiers must not be constrained")
+    }
+
     @Test("External insulin is born finalized with a sync identifier") func testExternalInsulinBornFinal() async throws {
         await storage.storeExternalInsulinEvent(amount: 1.5, timestamp: Date().addingTimeInterval(-5.minutes.timeInterval))
 
@@ -357,5 +437,84 @@ import Testing
         #expect(row?.insulinType == nil, "Insulin type is unknown for doses external to the pump")
         #expect(row?.actionDuration == nil, "External doses don't snapshot the pump insulin model")
         #expect(row?.peakTime == nil, "External doses don't snapshot the pump insulin model")
+    }
+
+    // MARK: - NS upload race (values changed while a POST was in flight)
+
+    private func nsTreatment(insulin: Decimal?, rate: Decimal?, duration: Int?, eventType: PumpEvent) -> NightscoutTreatment {
+        NightscoutTreatment(
+            duration: duration,
+            rawDuration: nil,
+            rawRate: nil,
+            absolute: rate,
+            rate: rate,
+            eventType: eventType,
+            createdAt: Date(),
+            enteredBy: NightscoutTreatment.local,
+            bolus: nil,
+            insulin: insulin,
+            notes: nil,
+            carbs: nil,
+            fat: nil,
+            protein: nil,
+            targetTop: nil,
+            targetBottom: nil,
+            id: "race-row"
+        )
+    }
+
+    @Test("Upload completion only stamps rows that still match what was sent") func testUploadStampVerifiesValues() async throws {
+        try await testContext.perform {
+            let event = PumpEventStored(context: testContext)
+            event.id = "race-row"
+            event.timestamp = Date()
+            event.type = PumpEvent.bolus.rawValue
+            let bolus = BolusStored(context: testContext)
+            bolus.amount = 2.4 as NSDecimalNumber
+            bolus.pumpEvent = event
+            try testContext.save()
+
+            // finalized to 2.4 U while the 5 U POST was in flight
+            #expect(!BaseNightscoutManager.uploadStillCurrent(event, self.nsTreatment(
+                insulin: 5.0,
+                rate: nil,
+                duration: nil,
+                eventType: .bolus
+            )))
+            #expect(BaseNightscoutManager.uploadStillCurrent(event, self.nsTreatment(
+                insulin: 2.4,
+                rate: nil,
+                duration: nil,
+                eventType: .bolus
+            )))
+        }
+    }
+
+    @Test("Upload stamp verification covers temp basal rate and duration") func testUploadStampVerifiesTempBasal() async throws {
+        try await testContext.perform {
+            let event = PumpEventStored(context: testContext)
+            event.id = "race-row"
+            event.timestamp = Date()
+            event.type = PumpEvent.tempBasal.rawValue
+            let tempBasal = TempBasalStored(context: testContext)
+            tempBasal.rate = 1.2 as NSDecimalNumber
+            tempBasal.duration = 20
+            tempBasal.pumpEvent = event
+            try testContext.save()
+
+            #expect(BaseNightscoutManager.uploadStillCurrent(event, self.nsTreatment(
+                insulin: nil,
+                rate: 1.2,
+                duration: 20,
+                eventType: .tempBasal
+            )))
+            // cancelled early while the 30 min POST was in flight
+            #expect(!BaseNightscoutManager.uploadStillCurrent(event, self.nsTreatment(
+                insulin: nil,
+                rate: 1.2,
+                duration: 30,
+                eventType: .tempBasal
+            )))
+        }
     }
 }
