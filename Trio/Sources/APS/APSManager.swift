@@ -448,16 +448,12 @@ final class BaseAPSManager: APSManager, Injectable {
     private func calculateAndStoreTDD() async throws {
         guard let pumpManager else { return }
 
-        async let pumpHistory = pumpHistoryStorage.getPumpHistory()
-        async let basalProfile = storage
-            .retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) ??
-            [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile)) ??
-            [] // OpenAPS.defaults ensures we at least get default rate of 1u/hr for 24 hrs
+        let basalProfile = storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) ?? []
 
-        // Calculate TDD
+        // Calculate TDD; uncovered gaps are inferred from the basal profile in memory
         let tddResult = try await tddStorage.calculateTDD(
             pumpManager: pumpManager,
-            pumpHistory: pumpHistory,
+            pumpHistory: pumpHistoryStorage.getPumpHistory(),
             basalProfile: basalProfile
         )
 

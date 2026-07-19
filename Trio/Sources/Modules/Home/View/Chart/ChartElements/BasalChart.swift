@@ -47,7 +47,7 @@ extension MainChartView {
 
 extension MainChartView {
     func drawTempBasals(dummy: Bool) -> some ChartContent {
-        ForEach(preparedTempBasals, id: \.rate) { basal in
+        ForEach(preparedTempBasals, id: \.start) { basal in
             if dummy {
                 RectangleMark(
                     xStart: .value("start", basal.start),
@@ -77,12 +77,15 @@ extension MainChartView {
                         endPoint: .top
                     )
                 ).alignsMarkStylesWithPlotArea()
+                    .opacity(basal.isScheduled ? 0.5 : 1)
 
                 LineMark(x: .value("Start Date", basal.start), y: .value("Amount", basal.rate))
                     .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                    .opacity(basal.isScheduled ? 0.5 : 1)
 
                 LineMark(x: .value("End Date", basal.end), y: .value("Amount", basal.rate))
                     .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                    .opacity(basal.isScheduled ? 0.5 : 1)
             }
         }
     }
@@ -143,10 +146,15 @@ extension MainChartView {
 
         // Snapshot the managed-object fields once; plain values from here on.
         let events = state.tempBasals.map {
-            (timestamp: $0.timestamp, duration: $0.tempBasal?.duration ?? 0, rate: $0.tempBasal?.rate)
+            (
+                timestamp: $0.timestamp,
+                duration: $0.tempBasal?.duration ?? 0,
+                rate: $0.tempBasal?.rate,
+                isScheduled: $0.tempBasal?.isScheduledBasal ?? false
+            )
         }
 
-        var prepared = [(start: Date, end: Date, rate: Double)]()
+        var prepared = [(start: Date, end: Date, rate: Double, isScheduled: Bool)]()
         prepared.reserveCapacity(events.count)
 
         for (index, event) in events.enumerated() {
@@ -154,6 +162,12 @@ extension MainChartView {
             let end = timestamp + event.duration.minutes
             let isInsulinSuspended = suspensionTimes.contains { $0 >= timestamp && $0 <= end }
             let rate = Double(truncating: event.rate ?? 0) * (isInsulinSuspended ? 0 : 1)
+
+            // pump-reported scheduled basal carries exact bounds; no clipping
+            if event.isScheduled {
+                prepared.append((timestamp, end, rate, true))
+                continue
+            }
 
             // A bar ends where the next later-starting temp basal begins,
             // else at its own scheduled end.
@@ -163,10 +177,27 @@ extension MainChartView {
                 next += 1
             }
             if next < events.count, let nextStart = events[next].timestamp {
-                prepared.append((timestamp, nextStart, rate))
+                prepared.append((timestamp, nextStart, rate, false))
             } else {
-                prepared.append((timestamp, end, rate))
+                prepared.append((timestamp, end, rate, false))
             }
+        }
+
+        // gaps no event covers ran the pump's schedule; inferred in memory, drawn dimmed
+        var timeline = events.map {
+            ScheduledBasalInference.TimelineEvent(
+                start: $0.timestamp ?? now,
+                end: ($0.timestamp ?? now) + $0.duration.minutes,
+                kind: .tempBasal
+            )
+        }
+        timeline += state.suspendAndResumeEvents.compactMap { event -> ScheduledBasalInference.TimelineEvent? in
+            guard let timestamp = event.timestamp else { return nil }
+            let isSuspend = event.type == PumpEventStored.EventType.pumpSuspend.rawValue
+            return ScheduledBasalInference.TimelineEvent(start: timestamp, kind: isSuspend ? .suspend : .resume)
+        }
+        for segment in ScheduledBasalInference.segments(events: timeline, profile: state.basalProfile, now: now) {
+            prepared.append((segment.start, segment.end, Double(truncating: segment.rate as NSNumber), true))
         }
 
         preparedTempBasals = prepared
