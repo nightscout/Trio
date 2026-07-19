@@ -25,13 +25,5 @@ extension PumpConfig {
                 ?? PumpSettings(from: OpenAPS.defaults(for: OpenAPS.Settings.settings))
                 ?? PumpSettings(insulinActionCurve: 10, maxBolus: 10, maxBasal: 2)
         }
-
-        var unacknowledgedAlertsPublisher: AnyPublisher<Bool, Never> {
-            deviceManager.alertHistoryStorage.unacknowledgedAlertsPublisher.eraseToAnyPublisher()
-        }
-
-        func hasInitialUnacknowledgedAlerts() -> Bool {
-            deviceManager.alertHistoryStorage.unacknowledgedAlertsWithinLast24Hours().isNotEmpty
-        }
     }
 }

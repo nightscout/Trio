@@ -10,22 +10,13 @@ extension PumpConfig {
         private(set) var setupPumpType: PumpType = .minimed
         @Published var pumpState: PumpDisplayState?
         private(set) var initialSettings: PumpInitialSettings = .default
-        @Published var hasUnacknowledgedAlert: Bool = false
         @Injected() var bluetoothManager: BluetoothStateManager!
-        @Injected() var trioAlertManager: TrioAlertManager!
 
         override func subscribe() {
             provider.pumpDisplayState
                 .receive(on: DispatchQueue.main)
                 .assign(to: \.pumpState, on: self)
                 .store(in: &lifetime)
-
-            hasUnacknowledgedAlert = provider.hasInitialUnacknowledgedAlerts()
-            provider.unacknowledgedAlertsPublisher
-                .receive(on: DispatchQueue.main)
-                .assign(to: \.hasUnacknowledgedAlert, on: self)
-                .store(in: &lifetime)
-
             Task {
                 let basalSchedule = BasalRateSchedule(
                     dailyItems: await provider.getBasalProfile().map {
@@ -48,10 +39,6 @@ extension PumpConfig {
         func addPump(_ type: PumpType) {
             setupPumpType = type
             setupPump = true
-        }
-
-        func ack() {
-            trioAlertManager.acknowledgeAllOutstanding()
         }
     }
 }
