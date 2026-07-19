@@ -27,7 +27,6 @@ final class GlucoseAlertCoordinator: Injectable {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var fetchGlucoseManager: FetchGlucoseManager!
 
-    private let coreDataContext = CoreDataStack.shared.newTaskContext()
     private let evaluationQueue = DispatchQueue(label: "GlucoseAlertCoordinator.queue")
     private var firingAlertIDs: Set<UUID> = []
     private var subscriptions = Set<AnyCancellable>()
@@ -403,16 +402,18 @@ final class GlucoseAlertCoordinator: Injectable {
     private func fetchLatestReadingMgDL() async -> Decimal? {
         let cutoff = Date().addingTimeInterval(-Self.readingFreshnessWindow)
         let predicate = NSPredicate(format: "date >= %@", cutoff as NSDate)
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "GlucoseAlertCoordinator.fetchLatestReading"
         do {
             let results = try await CoreDataStack.shared.fetchEntitiesAsync(
                 ofType: GlucoseStored.self,
-                onContext: coreDataContext,
+                onContext: context,
                 predicate: predicate,
                 key: "date",
                 ascending: false,
                 fetchLimit: 1
             )
-            return await coreDataContext.perform {
+            return await context.perform {
                 guard let latest = (results as? [GlucoseStored])?.first else { return nil }
                 return Decimal(latest.glucose)
             }
@@ -437,6 +438,16 @@ extension GlucoseAlertCoordinator: SnoozeObserver {
     /// IDs so the post-snooze evaluation can re-fire fresh if any condition
     /// still breaches.
     func snoozeDidChange(_ untilDate: Date) {
+        // Mirror the global snooze onto per-alarm snoozedUntil: alarms with
+        // "Override Silence & DnD" are issued .critical and pierce the
+        // AlertMuter, so the shared mute window alone can't hold them. A
+        // shorter per-type snooze (e.g. a 15-min swipe) would otherwise
+        // resurface them mid-window. Urgent low keeps its 15-minute safety
+        // floor and is never bulk-snoozed. An ended snooze (.distantPast)
+        // clears the stamps the same way.
+        for type in GlucoseAlertType.allCases where type != .urgentLow {
+            snoozeGlucoseType(type, until: untilDate)
+        }
         guard untilDate > Date() else { return }
         evaluationQueue.async { [weak self] in
             self?.firingAlertIDs.removeAll()

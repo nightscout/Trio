@@ -146,4 +146,102 @@ import Testing
         #expect(target.targetTop == 120, "Target top should match target")
         #expect(target.targetBottom == 120, "Target bottom should match target")
     }
+
+    @Test(
+        "Main chart predicate excludes presets saved after the predicate was built"
+    ) func testMainChartPredicateExcludesNewPresets() async throws {
+        // Given a predicate anchored before the entries exist, like the chart controller keeps between foregrounds
+        let anchoredPredicate = NSPredicate.tempTargetsForMainChart
+
+        let preset = TempTarget(
+            name: "Chart Preset",
+            createdAt: Date(),
+            targetTop: 80,
+            targetBottom: 80,
+            duration: 20,
+            enteredBy: "Test",
+            reason: "Testing chart predicate",
+            isPreset: true,
+            enabled: false,
+            halfBasalTarget: 160
+        )
+        let scheduled = TempTarget(
+            name: "Chart Scheduled",
+            createdAt: Date().addingTimeInterval(3600),
+            targetTop: 90,
+            targetBottom: 90,
+            duration: 30,
+            enteredBy: "Test",
+            reason: "Testing chart predicate",
+            isPreset: false,
+            enabled: false,
+            halfBasalTarget: 160
+        )
+        let running = TempTarget(
+            name: "Chart Running",
+            createdAt: Date(),
+            targetTop: 135,
+            targetBottom: 135,
+            duration: 120,
+            enteredBy: "Test",
+            reason: "Testing chart predicate",
+            isPreset: false,
+            enabled: true,
+            halfBasalTarget: 160
+        )
+
+        // When
+        try await storage.storeTempTarget(tempTarget: preset)
+        try await storage.storeTempTarget(tempTarget: scheduled)
+        try await storage.storeTempTarget(tempTarget: running)
+
+        // Then
+        let matches = try await coreDataStack.fetchEntitiesAsync(
+            ofType: TempTargetStored.self,
+            onContext: testContext,
+            predicate: anchoredPredicate,
+            key: "date",
+            ascending: false
+        ) as? [TempTargetStored]
+
+        let names = matches?.map(\.name)
+        #expect(names?.contains("Chart Preset") == false, "Never activated preset should not match the chart predicate")
+        #expect(names?.contains("Chart Scheduled") == true, "Scheduled temp target should match the chart predicate")
+        #expect(names?.contains("Chart Running") == true, "Running temp target should match the chart predicate")
+    }
+
+    @Test("Chart visibility keeps running and scheduled temp targets only") func testIsVisibleInChart() async throws {
+        await testContext.perform {
+            let preset = TempTargetStored(context: testContext)
+            preset.date = Date()
+            preset.enabled = false
+            preset.isPreset = true
+
+            let enactedPreset = TempTargetStored(context: testContext)
+            enactedPreset.date = Date()
+            enactedPreset.enabled = true
+            enactedPreset.isPreset = true
+
+            let scheduled = TempTargetStored(context: testContext)
+            scheduled.date = Date().addingTimeInterval(3600)
+            scheduled.enabled = false
+            scheduled.isPreset = false
+
+            let running = TempTargetStored(context: testContext)
+            running.date = Date()
+            running.enabled = true
+            running.isPreset = false
+
+            let cancelled = TempTargetStored(context: testContext)
+            cancelled.date = Date().addingTimeInterval(-600)
+            cancelled.enabled = false
+            cancelled.isPreset = false
+
+            #expect(!preset.isVisibleInChart, "Never activated preset should not be visible")
+            #expect(enactedPreset.isVisibleInChart, "Enacted preset should be visible")
+            #expect(scheduled.isVisibleInChart, "Scheduled temp target should be visible")
+            #expect(running.isVisibleInChart, "Running temp target should be visible")
+            #expect(!cancelled.isVisibleInChart, "Cancelled temp target should not be visible")
+        }
+    }
 }

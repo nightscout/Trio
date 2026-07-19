@@ -35,7 +35,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private let notificationCenter = UNUserNotificationCenter.current()
 
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-    private let backgroundContext = CoreDataStack.shared.newTaskContext()
 
     // Queue for handling Core Data change notifications
     private let queue = DispatchQueue(label: "BaseUserNotificationsManager.queue", qos: .userInitiated)
@@ -48,7 +47,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         injectServices(resolver)
 
         coreDataPublisher =
-            changedObjectsOnManagedObjectContextDidSavePublisher()
+            CoreDataStack.shared.entityChangePublisher
                 .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
@@ -56,6 +55,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         Task { await updateGlucoseBadge() }
         configureNotificationCategories()
         clearLegacyCarbsRequiredNotification()
+        clearLegacyLoopNotifications()
         subscribeGlucoseUpdates()
     }
 
@@ -129,17 +129,29 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         notificationCenter.removeDeliveredNotifications(withIdentifiers: [id])
     }
 
+    /// Purges the two "Last loop was X min ago" UNs the legacy
+    /// `scheduleMissingLoopNotifiactions` path scheduled. Their identifiers
+    /// aren't known to `NotLoopingMonitor`, so without this cleanup they'd
+    /// fire once each after upgrade — https://github.com/nightscout/Trio/issues/1296
+    private func clearLegacyLoopNotifications() {
+        let ids = ["Trio.noLoopFirstNotification", "Trio.noLoopSecondNotification"]
+        notificationCenter.removePendingNotificationRequests(withIdentifiers: ids)
+        notificationCenter.removeDeliveredNotifications(withIdentifiers: ids)
+    }
+
     private func fetchGlucoseIDs() async throws -> [NSManagedObjectID] {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchGlucoseIDs"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.predicateFor20MinAgo,
             key: "date",
             ascending: false,
             fetchLimit: 3
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [GlucoseStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }

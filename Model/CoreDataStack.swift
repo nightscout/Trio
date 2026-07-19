@@ -1,3 +1,4 @@
+import Combine
 import CoreData
 import Foundation
 import OSLog
@@ -9,10 +10,25 @@ class CoreDataStack: ObservableObject {
     private var notificationToken: NSObjectProtocol?
     private let inMemory: Bool
 
+    /// Debounces `NSPersistentStoreRemoteChange` bursts into a single history fetch + merge.
+    /// Lossless, since `fetchHistory(after: lastToken)` drains all accumulated transactions.
+    private let remoteChangeSubject = PassthroughSubject<Void, Never>()
+    private var remoteChangeCancellable: AnyCancellable?
+    private let historyQueue = DispatchQueue(label: "CoreDataStack.history", qos: .utility)
+
     let persistentContainer: NSPersistentContainer
 
     private let maxRetries = 3
     private let initializationCoordinator = CoreDataInitializationCoordinator()
+
+    /// Emits the set of changed object IDs from each batch of persistent history transactions.
+    /// Sourced from persistent history, so — unlike `NSManagedObjectContextDidSave` — it also
+    /// covers `NSBatchInsertRequest`/`NSBatchDeleteRequest` and cross-process changes. App-side
+    /// observers subscribe via `entityChangePublisher` and filter with `filteredByEntityName(_:)`.
+    private let entityChangeSubject = PassthroughSubject<Set<NSManagedObjectID>, Never>()
+    var entityChangePublisher: AnyPublisher<Set<NSManagedObjectID>, Never> {
+        entityChangeSubject.eraseToAnyPublisher()
+    }
 
     private init(inMemory: Bool = false) {
         self.inMemory = inMemory
@@ -103,8 +119,6 @@ class CoreDataStack: ObservableObject {
         /// - Tag: newBackgroundContext
         let taskContext = persistentContainer.newBackgroundContext()
 
-        /// ensure that the background contexts stay in sync with the main context
-        taskContext.automaticallyMergesChangesFromParent = true
         taskContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         taskContext.undoManager = nil
         return taskContext
@@ -160,10 +174,18 @@ class CoreDataStack: ObservableObject {
         // Update view context with objectIDs from history change request
         /// - Tag: mergeChanges
         let viewContext = persistentContainer.viewContext
+        let changedObjectIDs = Set(history.flatMap { $0.changes ?? [] }.map(\.changedObjectID))
+
         viewContext.perform {
             for transaction in history {
                 viewContext.mergeChanges(fromContextDidSave: transaction.objectIDNotification())
                 self.lastToken = transaction.token
+            }
+
+            // Notify app-side observers (services) about which objects changed. This history-sourced
+            // change feed replaces the hand-rolled changedObjectsOnManagedObjectContextDidSavePublisher.
+            if !changedObjectIDs.isEmpty {
+                self.entityChangeSubject.send(changedObjectIDs)
             }
         }
     }
@@ -194,11 +216,18 @@ class CoreDataStack: ObservableObject {
             forName: .NSPersistentStoreRemoteChange,
             object: nil,
             queue: nil
-        ) { _ in
-            Task {
-                await self.fetchPersistentHistory()
-            }
+        ) { [weak self] _ in
+            // Just signal here; fetching happens in the debounced pipeline below. Notifications
+            // arrive on arbitrary threads, so serialize the sends via `historyQueue`.
+            guard let self else { return }
+            self.historyQueue.async { self.remoteChangeSubject.send() }
         }
+
+        remoteChangeCancellable = remoteChangeSubject
+            .debounce(for: .milliseconds(200), scheduler: historyQueue)
+            .sink { [weak self] in
+                Task { await self?.fetchPersistentHistory() }
+            }
 
         debug(.coreData, "Set up persistent store change notifications")
     }
@@ -320,7 +349,9 @@ extension CoreDataStack {
         taskContext.transactionAuthor = "batchDelete"
 
         // Get the number of days we want to keep the data
-        let targetDate = Calendar.current.date(byAdding: .day, value: -days, to: Date())!
+        guard let targetDate = Calendar.current.date(byAdding: .day, value: -days, to: Date()) else {
+            throw CoreDataError.validationError(function: callingFunction, file: callingClass)
+        }
 
         // Fetch all the objects that are older than the specified days
         let fetchRequest = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: objectType))
@@ -378,7 +409,9 @@ extension CoreDataStack {
         taskContext.transactionAuthor = "batchDelete"
 
         // Get the target date
-        let targetDate = Calendar.current.date(byAdding: .day, value: -days, to: Date())!
+        guard let targetDate = Calendar.current.date(byAdding: .day, value: -days, to: Date()) else {
+            throw CoreDataError.validationError(function: callingFunction, file: callingClass)
+        }
 
         // Fetch Parent objects older than the target date
         let fetchParentRequest = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: parentType))
@@ -465,9 +498,6 @@ extension CoreDataStack {
             request.resultType = .managedObjectResultType
         }
 
-        context.name = "fetchContext"
-        context.transactionAuthor = "fetchEntities"
-
         /// we need to ensure that the fetch immediately returns a value as long as the whole app does not use the async await pattern, otherwise we could perform this asynchronously with backgroundContext.perform and not block the thread
         return try context.performAndWait {
             do {
@@ -518,9 +548,6 @@ extension CoreDataStack {
         if let prefetchKeyPaths = relationshipKeyPathsForPrefetching {
             request.relationshipKeyPathsForPrefetching = prefetchKeyPaths
         }
-
-        context.name = "fetchContext"
-        context.transactionAuthor = "fetchEntities"
 
         return try await context.perform {
             do {

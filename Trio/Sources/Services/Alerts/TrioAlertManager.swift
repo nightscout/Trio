@@ -8,6 +8,10 @@ import UserNotifications
 protocol TrioAlertManager: AnyObject {
     func issueAlert(_ alert: Alert)
     func retractAlert(identifier: Alert.Identifier)
+    /// Re-presents unacknowledged history alerts after a cold start — the
+    /// in-app presentation state dies with the process, but the history
+    /// entry and the OS-side notifications survive.
+    func replayUnacknowledgedAlerts()
 
     func register(responder: AlertResponder, for managerIdentifier: String)
     func register(soundVendor: AlertSoundVendor, for managerIdentifier: String)
@@ -99,22 +103,38 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
     }
 
     @objc private func reconcileBannersWithDeliveredNotifications() {
-        UNUserNotificationCenter.current().getDeliveredNotifications { [weak self] delivered in
-            guard let self else { return }
-            let deliveredIDs = Set(delivered.compactMap { note -> Alert.Identifier? in
-                let userInfo = note.request.content.userInfo
-                guard
-                    let managerId = userInfo[AlertUserInfoKey.managerIdentifier.rawValue] as? String,
-                    let alertId = userInfo[AlertUserInfoKey.alertIdentifier.rawValue] as? String
-                else { return nil }
-                return Alert.Identifier(managerIdentifier: managerId, alertIdentifier: alertId)
-            })
-            DispatchQueue.main.async {
-                let stale = self.modalScheduler.active
-                    .map(\.identifier)
-                    .filter { !deliveredIDs.contains($0) }
-                for identifier in stale {
-                    self.modalScheduler.unschedule(identifier: identifier)
+        let center = UNUserNotificationCenter.current()
+        center.getNotificationSettings { [weak self] settings in
+            // Without authorization nothing is ever "delivered", so a missing
+            // notification carries no dismissal signal — bail entirely.
+            guard settings.authorizationStatus == .authorized else { return }
+            center.getDeliveredNotifications { delivered in
+                center.getPendingNotificationRequests { pending in
+                    guard let self else { return }
+                    // Delivered ∪ pending — a replayed .delayed banner may fire
+                    // moments before its OS notification moves pending→delivered.
+                    let knownIDs = Set(
+                        (delivered.map(\.request) + pending).compactMap { request -> Alert.Identifier? in
+                            let userInfo = request.content.userInfo
+                            guard
+                                let managerId = userInfo[AlertUserInfoKey.managerIdentifier.rawValue] as? String,
+                                let alertId = userInfo[AlertUserInfoKey.alertIdentifier.rawValue] as? String
+                            else { return nil }
+                            return Alert.Identifier(managerIdentifier: managerId, alertIdentifier: alertId)
+                        }
+                    )
+                    DispatchQueue.main.async {
+                        let stale = self.modalScheduler.active
+                            .map(\.identifier)
+                            .filter { !knownIDs.contains($0) }
+                        for identifier in stale {
+                            // The notification is gone from Notification Center —
+                            // same gesture as swiping it away, so treat it as a
+                            // dismissal: ack (history + device) + 15-min snooze.
+                            self.requestSnooze(identifier: identifier, duration: 15 * 60)
+                            self.modalScheduler.unschedule(identifier: identifier)
+                        }
+                    }
                 }
             }
         }
@@ -216,18 +236,61 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         alertHistoryStorage.removeAlert(identifier: identifier.alertIdentifier)
     }
 
+    /// Cold-start replay. Deliberately skips `recordIssued` (entry already
+    /// exists), the UN scheduler (pending/delivered notifications survive
+    /// termination at OS level), the throttler (a genuine producer re-issue
+    /// must still deliver fully), and critical audio.
+    func replayUnacknowledgedAlerts() {
+        let now = Date()
+        let entries = AlertColdStartReplay.newestPerIdentifier(
+            alertHistoryStorage.unacknowledgedAlertsWithinLast24Hours()
+        )
+        let muted = muter.shouldMute(at: now)
+        for entry in entries {
+            switch AlertColdStartReplay.decision(
+                for: entry,
+                now: now,
+                isTierSnoozed: { DeviceAlertsStore.shared.isTierSnoozed($0, at: now) },
+                isMuted: muted
+            ) {
+            case let .replay(alert):
+                debug(.service, "TrioAlertManager replaying \(alert.identifier.value)")
+                queue.async { self.liveAlerts[alert.identifier] = alert }
+                modalScheduler.schedule(alert)
+            case .acknowledgeSilently:
+                alertHistoryStorage.acknowledgeAlert(entry.issuedDate, nil)
+            case .skip:
+                break
+            }
+        }
+    }
+
     // MARK: - Acknowledgement
 
     func handleAcknowledgement(identifier: Alert.Identifier) {
         modalScheduler.unschedule(identifier: identifier)
         userNotificationScheduler.unschedule(identifier: identifier)
         Task { @MainActor in criticalAudioPlayer?.stop() }
-        alertHistoryStorage.acknowledgeAlert(issuedDate(for: identifier) ?? Date(), nil)
+        // All matching entries — replay + a genuine re-issue can coexist.
+        alertHistoryStorage.acknowledgeAllEntries(
+            managerIdentifier: identifier.managerIdentifier,
+            alertIdentifier: identifier.alertIdentifier
+        )
         queue.async {
             self.liveAlerts.removeValue(forKey: identifier)
         }
-        let responder = queue.sync { responders[identifier.managerIdentifier]?.ref as? AlertResponder }
-        responder?.acknowledgeAlert(alertIdentifier: identifier.alertIdentifier) { error in
+        acknowledgeOnDevice(identifier: identifier)
+    }
+
+    /// Forwards the user's response to the issuing device manager — pump alerts
+    /// need this to also clear the alert on the device itself (e.g. pod beeps).
+    /// Only device managers register as responders (currently just the pump
+    /// manager), so Trio-internal alerts (glucose, not-looping, algorithm)
+    /// never match and bail out here.
+    private func acknowledgeOnDevice(identifier: Alert.Identifier) {
+        guard let responder = queue.sync(execute: { responders[identifier.managerIdentifier]?.ref as? AlertResponder })
+        else { return }
+        responder.acknowledgeAlert(alertIdentifier: identifier.alertIdentifier) { error in
             if let error = error {
                 debug(.service, "AlertManager ack failed for \(identifier.value): \(error)")
             }
@@ -352,18 +415,12 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         )
         alertHistoryStorage.addAlert(entry)
     }
-
-    private func issuedDate(for identifier: Alert.Identifier) -> Date? {
-        alertHistoryStorage.unacknowledgedAlertsWithinLast24Hours()
-            .first {
-                $0.managerIdentifier == identifier.managerIdentifier
-                    && $0.alertIdentifier == identifier.alertIdentifier
-            }?.issuedDate
-    }
 }
 
 extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAlertResponder {
     func requestSnooze(identifier: Alert.Identifier, duration: TimeInterval) {
+        // Dismissal is the user's response — full ack (history + device) first.
+        handleAcknowledgement(identifier: identifier)
         let untilDate = duration > 0 ? Date().addingTimeInterval(duration) : .distantPast
         if let glucoseType = GlucoseAlertType(slug: identifier.alertIdentifier) {
             broadcaster.notify(GlucoseSnoozeObserver.self, on: .main) { (observer: GlucoseSnoozeObserver) in
@@ -374,7 +431,7 @@ extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAle
                   tier != .critical
         {
             DeviceAlertsStore.shared.snoozeTier(tier, until: untilDate)
-            retractAlertsInTier(tier)
+            dismissAlertsInTier(tier, excluding: identifier)
         } else {
             Task { @MainActor [weak self] in
                 await self?.applySnooze(for: duration)
@@ -382,18 +439,21 @@ extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAle
         }
     }
 
-    private func retractAlertsInTier(_ tier: DeviceAlertSeverity) {
-        let toRetract: [Alert.Identifier] = queue.sync {
-            liveAlerts.compactMap { id, alert in
-                guard let entry = AlertCatalogRegistry.lookup(id),
+    /// Same-tier siblings visible when the user snoozes one alert get the
+    /// same treatment — acknowledged (history + device), not silently
+    /// retracted with their history entries deleted.
+    private func dismissAlertsInTier(_ tier: DeviceAlertSeverity, excluding: Alert.Identifier) {
+        let toDismiss: [Alert.Identifier] = queue.sync {
+            liveAlerts.compactMap { id, _ in
+                guard id != excluding,
+                      let entry = AlertCatalogRegistry.lookup(id),
                       DeviceAlertSeverity(level: entry.interruptionLevel) == tier
                 else { return nil }
-                _ = alert
                 return id
             }
         }
-        for id in toRetract {
-            retractAlert(identifier: id)
+        for id in toDismiss {
+            handleAcknowledgement(identifier: id)
         }
     }
 

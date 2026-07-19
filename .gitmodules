@@ -40,3 +40,6 @@
 [submodule "LoopAlgorithm"]
 	path = LoopAlgorithm
 	url = https://github.com/loopandlearn/LoopAlgorithm.git
+[submodule "EversenseKit"]
+	path = EversenseKit
+	url = https://github.com/loopandlearn/EversenseKit
