@@ -4,7 +4,7 @@ import CoreGraphics
 enum HomeLayout {
     /// header slot: pump panel / glucose bobble / loop status; includes room
     /// for the sensor arc/tag overhanging the bobble
-    static let headerHeight: CGFloat = 166
+    static let headerHeight: CGFloat = 172
     /// meal panel slot (IOB / COB / delivery rate)
     static let mealSlotHeight: CGFloat = 44
     /// shared slot for adjustment panel and bolus progress (was 8% of screen height)

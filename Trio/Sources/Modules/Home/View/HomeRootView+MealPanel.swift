@@ -5,41 +5,43 @@ import SwiftUI
 
 extension Home.RootView {
     @ViewBuilder func mealPanel() -> some View {
-        HStack {
-            HStack {
-                Image(systemName: "syringe.fill")
-                    .font(.callout)
-                    .foregroundColor(Color.insulin)
-                Text(
-                    (
-                        Formatter.decimalFormatterWithTwoFractionDigits
-                            .string(from: state.currentIOB as NSNumber) ?? "0"
-                    ) +
-                        String(localized: " U", comment: "Insulin unit")
-                )
-                .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-            }
-
-            Spacer()
-
-            HStack {
+        ZStack {
+            // the carb value itself sits on the panel's midline; the icon hangs off it
+            Text(
+                (
+                    Formatter.decimalFormatterWithTwoFractionDigits.string(
+                        from: NSNumber(value: state.enactedAndNonEnactedDeterminations.first?.cob ?? 0)
+                    ) ?? "0"
+                ) +
+                    String(localized: " g", comment: "gram of carbs")
+            )
+            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+            .overlay(alignment: .leading) {
                 Image(systemName: "fork.knife")
                     .font(.callout)
                     .foregroundColor(.loopYellow)
-                Text(
-                    (
-                        Formatter.decimalFormatterWithTwoFractionDigits.string(
-                            from: NSNumber(value: state.enactedAndNonEnactedDeterminations.first?.cob ?? 0)
-                        ) ?? "0"
-                    ) +
-                        String(localized: " g", comment: "gram of carbs")
-                )
-                .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                    .alignmentGuide(.leading) { $0.width + 5 }
             }
 
-            Spacer()
+            HStack {
+                HStack {
+                    Image(systemName: "syringe.fill")
+                        .font(.callout)
+                        .foregroundColor(Color.insulin)
+                    Text(
+                        (
+                            Formatter.decimalFormatterWithTwoFractionDigits
+                                .string(from: state.currentIOB as NSNumber) ?? "0"
+                        ) +
+                            String(localized: " U", comment: "Insulin unit")
+                    )
+                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                }
 
-            alarmsPill
+                Spacer()
+
+                alarmsPill
+            }
         }.padding(.horizontal)
     }
 
@@ -57,19 +59,32 @@ extension Home.RootView {
         Button {
             showSnoozeSheet = true
         } label: {
-            HStack(spacing: 5) {
-                Image(systemName: isSnoozed ? "bell.slash.fill" : "bell.fill")
-                    .font(.callout)
-                Text(isSnoozed ? "\(remainingMinutes) m" : String(localized: "Alarms", comment: "Alarms header item"))
-                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+            Group {
+                if isSnoozed {
+                    HStack(spacing: 5) {
+                        Image(systemName: "bell.slash.fill")
+                            .font(.callout)
+                        Text("\(remainingMinutes) m")
+                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                    }
+                    .padding(.vertical, 5)
+                    .padding(.horizontal, 10)
+                    .foregroundStyle(.secondary)
+                    .overlay(
+                        Capsule()
+                            .stroke(Color.primary.opacity(0.4), lineWidth: 2)
+                    )
+                } else {
+                    Image(systemName: "bell.fill")
+                        .font(.callout)
+                        .foregroundStyle(.primary)
+                        .frame(width: 32, height: 32)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.primary.opacity(0.4), lineWidth: 2)
+                        )
+                }
             }
-            .padding(.vertical, 5)
-            .padding(.horizontal, 10)
-            .foregroundStyle(isSnoozed ? AnyShapeStyle(.secondary) : AnyShapeStyle(.primary))
-            .overlay(
-                Capsule()
-                    .stroke(Color.primary.opacity(0.4), lineWidth: 2)
-            )
         }
         .buttonStyle(.plain)
     }

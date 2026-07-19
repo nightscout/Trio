@@ -94,7 +94,7 @@ extension Home {
                         .padding(.vertical, 3)
                         .background(Capsule().fill(.ultraThinMaterial))
                         .frame(height: chartHeight * 0.10)
-                        .padding(.trailing, 8)
+                        .padding(.trailing, 16)
                 }
             }
         }
@@ -118,7 +118,8 @@ extension Home {
             }
             .contentShape(Circle())
             .padding(.bottom, 6)
-            .padding(.trailing, 8)
+            // same trailing inset as the alarm bell in the meal row
+            .padding(.trailing, 16)
         }
 
         @ViewBuilder func mainViewElements(_ geo: GeometryProxy) -> some View {
