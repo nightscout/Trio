@@ -98,7 +98,7 @@ struct QuickPickTreatmentsView: View {
                 ),
                 presenting: enactAlert
             ) { alert in
-                Button(String(localized: "OK"), role: .cancel) {
+                Button(String(localized: "Got it!"), role: .cancel) {
                     if alert.dismissesSheet {
                         isPresented = false
                     }
@@ -109,7 +109,7 @@ struct QuickPickTreatmentsView: View {
         }
         .presentationDetents([.height(sheetHeight)])
         .presentationDragIndicator(.visible)
-        .interactiveDismissDisabled(isEnacting)
+        .interactiveDismissDisabled(isEnacting || enactAlert != nil)
     }
 
     private var slideToConfirmButton: some View {
