@@ -7,7 +7,8 @@ let calendar = Calendar.current
 
 struct MainChartView: View {
     var geo: GeometryProxy
-    var safeAreaSize: CGFloat
+    /// height allocated by the Home layout: the remainder after the fixed zones
+    var chartHeight: CGFloat
     var units: GlucoseUnits
     var hours: Int
     var highGlucose: Decimal
@@ -35,6 +36,45 @@ struct MainChartView: View {
 
     var upperLimit: Decimal {
         units == .mgdL ? 400 : 22.2
+    }
+
+    // pane splits of the chart's allocation (old 0.05/0.28/0.12 screen-fraction
+    // proportions); sums to 0.94 so pane spacing and axis labels fit the budget
+    var basalHeight: CGFloat { chartHeight * 0.10 }
+    var mainHeight: CGFloat { chartHeight * 0.60 }
+    var cobIobHeight: CGFloat { chartHeight * 0.24 }
+
+    /// drawn in the scrolling chart (not the static y-axis dummy) so the rules
+    /// share the exact plot geometry of the glucose marks
+    @ChartContentBuilder private var thresholdRuleMarks: some ChartContent {
+        // dynamic color shade anchors: 55 low / 220 high
+        let hardCodedLow = Decimal(55)
+        let hardCodedHigh = Decimal(220)
+        let isDynamicColorScheme = glucoseColorScheme == .dynamicColor
+
+        if thresholdLines {
+            let highColor = Trio.getDynamicGlucoseColor(
+                glucoseValue: highGlucose,
+                highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
+                lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
+                targetGlucose: currentGlucoseTarget,
+                glucoseColorScheme: glucoseColorScheme
+            )
+            let lowColor = Trio.getDynamicGlucoseColor(
+                glucoseValue: lowGlucose,
+                highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
+                lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
+                targetGlucose: currentGlucoseTarget,
+                glucoseColorScheme: glucoseColorScheme
+            )
+
+            RuleMark(y: .value("High", units == .mgdL ? highGlucose : highGlucose.asMmolL))
+                .foregroundStyle(highColor)
+                .lineStyle(.init(lineWidth: 1, dash: [5]))
+            RuleMark(y: .value("Low", units == .mgdL ? lowGlucose : lowGlucose.asMmolL))
+                .foregroundStyle(lowColor)
+                .lineStyle(.init(lineWidth: 1, dash: [5]))
+        }
     }
 
     private var selectedGlucose: GlucoseStored? {
@@ -116,6 +156,7 @@ extension MainChartView {
                 drawStartRuleMark()
                 drawEndRuleMark()
                 drawCurrentTimeMarker()
+                thresholdRuleMarks
 
                 GlucoseTargetsView(
                     targetProfiles: state.targetProfiles
@@ -189,7 +230,7 @@ extension MainChartView {
             }
             .id("MainChart")
             .frame(
-                minHeight: geo.size.height * (0.28 - safeAreaSize)
+                minHeight: mainHeight
             )
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: state.startMarker ... state.endMarker)
