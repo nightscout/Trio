@@ -191,6 +191,8 @@ extension Home {
                     // fixed zones bust beyond XXL; cap dashboard type size
                     .dynamicTypeSize(...DynamicTypeSize.xxLarge)
             }
+            // no inline text input here; a stale keyboard inset must never shrink the zone budget
+            .ignoresSafeArea(.keyboard, edges: .bottom)
             .onAppear {
                 configureView()
                 refreshAlarmsSnooze()
