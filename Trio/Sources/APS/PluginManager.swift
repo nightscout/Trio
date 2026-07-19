@@ -40,6 +40,11 @@ class BasePluginManager: Injectable, PluginManager {
             manager: G7CGMManager.self
         ),
         CgmPluginDescription(
+            pluginIdentifier: EversenseCGMManager.pluginIdentifier,
+            localizedTitle: String(localized: "Eversense"),
+            manager: EversenseCGMManager.self
+        ),
+        CgmPluginDescription(
             pluginIdentifier: LibreTransmitterManagerV3.pluginIdentifier,
             localizedTitle: String(localized: "FreeStyle Libre 1 / 2 / 2+"),
             manager: LibreTransmitterManagerV3.self
@@ -48,11 +53,6 @@ class BasePluginManager: Injectable, PluginManager {
             pluginIdentifier: LibreLoopCGMManager.pluginIdentifier,
             localizedTitle: String(localized: "FreeStyle Libre 3 / 3+"),
             manager: LibreLoopCGMManager.self
-        ),
-        CgmPluginDescription(
-            pluginIdentifier: EversenseCGMManager.pluginIdentifier,
-            localizedTitle: String(localized: "Eversense"),
-            manager: EversenseCGMManager.self
         )
     ]
 
