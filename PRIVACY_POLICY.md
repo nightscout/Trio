@@ -19,12 +19,11 @@ For complete transparency, we want to clarify that Trio does not collect:
 - Any health-related statistics or personal medical information
 - Personal identifiable information such as name, address, or email
 
-### Crash Reporting (Opt-In by default, with ability to Opt-Out)
+### Crash Reporting (Enabled by default, with ability to Opt-Out)
 
-Trio uses Google Firebase Crashlytics to collect crash reports. During
-the initial app setup (onboarding process), you will be asked to opt
-in to crash reporting. The onboarding process is the series of screens
-you see when first launching Trio that helps you set up the app.
+Trio uses Google Firebase Crashlytics to collect crash reports. Crash
+reporting is enabled by default. You can opt out at any time in
+Settings → Features → App Diagnostics.
 
 The following information may be sent to Crashlytics when Trio crashes:
 
@@ -34,16 +33,14 @@ The following information may be sent to Crashlytics when Trio crashes:
 - Device model and OS version (example: "iPhone 14 Pro running iOS 17.4.1")
 - A generated unique identifier (a random code like "A7B2C9D3" that doesn't identify you personally)
 
-### Anonymous Usage Telemetry (Opt-In by default, with ability to Opt-Out)
+### Anonymous Usage Telemetry (Enabled by default, with ability to Opt-Out)
 
-Trio can periodically send a small anonymous usage report to a
+Trio periodically sends a small anonymous usage report to a
 self-hosted telemetry endpoint operated by the Trio team. No
-third-party analytics service is involved. You are asked about this
-choice during onboarding (alongside crash reporting); existing users
-upgrading from a pre-telemetry build are prompted once on the first
-app launch after the update. You can change your choice at any time
-in Settings → App Diagnostics, and you can inspect the exact JSON
-that would be sent under "What's sent" on that same screen.
+third-party analytics service is involved. Telemetry is enabled by
+default. You can opt out at any time in Settings → Features → App
+Diagnostics, and you can inspect the exact JSON that would be sent
+under "What's sent" on that same screen.
 
 Telemetry requests are authenticated with Apple App Attest. This
 means Apple cryptographically vouches for the fact that the request
@@ -137,7 +134,7 @@ and handle any data responsibly.
 ## Opting Out and Data Retention
 
 You can opt out of crash reporting and/or anonymous usage telemetry
-at any time through Settings → App Diagnostics in Trio. The three
+at any time through Settings → Features → App Diagnostics in Trio. The three
 options ("Enable Full Sharing", "Crash Reports Only", "Disable
 Sharing") apply to both data streams. If you opt out of crash
 reporting:
@@ -182,4 +179,4 @@ trio.diy.diabetes@gmail.com.
 
 ## Last Updated
 
-May 28, 2026
+July 15, 2026

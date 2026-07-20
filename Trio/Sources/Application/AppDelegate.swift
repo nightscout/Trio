@@ -12,7 +12,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
         FirebaseApp.configure()
 
         // Default to `true` if the key doesn't exist
-        let crashReportingEnabled: Bool = PropertyPersistentFlags.shared.diagnosticsSharingEnabled ?? true
+        let crashReportingEnabled: Bool = PropertyPersistentFlags.shared.crashlyticsSharingEnabled ?? true
 
         // The docs say that changes to this don't take effect until
         // the next app boot, but this is fine since the app will need
