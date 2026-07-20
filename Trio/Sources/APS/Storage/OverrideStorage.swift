@@ -254,30 +254,22 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
         let context = makeContext()
         context.name = "getOverridesNotYetUploadedToNightscout"
 
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+        return try await CoreDataStack.shared.fetchPendingUploads(
             ofType: OverrideStored.self,
             onContext: context,
             predicate: NSPredicate.lastActiveAdjustmentNotYetUploadedToNightscout,
             key: "date",
             ascending: false
-        )
-
-        return try await context.perform {
-            guard let fetchedOverrides = results as? [OverrideStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            return fetchedOverrides.map { override in
-                let duration = override.indefinite ? 43200 : override.duration ?? 0 // 43200 min = 30 days
-                return NightscoutExercise(
-                    duration: Int(truncating: duration),
-                    eventType: OverrideStored.EventType.nsExercise,
-                    createdAt: override.date ?? Date(),
-                    enteredBy: NightscoutExercise.local,
-                    notes: override.name ?? String(localized: "Custom Override"),
-                    id: UUID(uuidString: override.id ?? UUID().uuidString)
-                )
-            }
+        ) { override in
+            let duration = override.indefinite ? 43200 : override.duration ?? 0 // 43200 min = 30 days
+            return NightscoutExercise(
+                duration: Int(truncating: duration),
+                eventType: OverrideStored.EventType.nsExercise,
+                createdAt: override.date ?? Date(),
+                enteredBy: NightscoutExercise.local,
+                notes: override.name ?? String(localized: "Custom Override"),
+                id: UUID(uuidString: override.id ?? UUID().uuidString)
+            )
         }
     }
 
@@ -285,7 +277,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
         let context = makeContext()
         context.name = "getOverrideRunsNotYetUploadedToNightscout"
 
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+        return try await CoreDataStack.shared.fetchPendingUploads(
             ofType: OverrideRunStored.self,
             onContext: context,
             predicate: NSPredicate(
@@ -295,25 +287,17 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
             ),
             key: "startDate",
             ascending: false
-        )
-
-        return try await context.perform {
-            guard let fetchedOverrideRuns = results as? [OverrideRunStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            return fetchedOverrideRuns.map { overrideRun in
-                var durationInMinutes = (overrideRun.endDate?.timeIntervalSince(overrideRun.startDate ?? Date()) ?? 1) / 60
-                durationInMinutes = durationInMinutes < 1 ? 1 : durationInMinutes
-                return NightscoutExercise(
-                    duration: Int(durationInMinutes),
-                    eventType: OverrideStored.EventType.nsExercise,
-                    createdAt: (overrideRun.startDate ?? overrideRun.override?.date) ?? Date(),
-                    enteredBy: NightscoutExercise.local,
-                    notes: overrideRun.name ?? String(localized: "Custom Override"),
-                    id: overrideRun.id
-                )
-            }
+        ) { overrideRun in
+            var durationInMinutes = (overrideRun.endDate?.timeIntervalSince(overrideRun.startDate ?? Date()) ?? 1) / 60
+            durationInMinutes = durationInMinutes < 1 ? 1 : durationInMinutes
+            return NightscoutExercise(
+                duration: Int(durationInMinutes),
+                eventType: OverrideStored.EventType.nsExercise,
+                createdAt: (overrideRun.startDate ?? overrideRun.override?.date) ?? Date(),
+                enteredBy: NightscoutExercise.local,
+                notes: overrideRun.name ?? String(localized: "Custom Override"),
+                id: overrideRun.id
+            )
         }
     }
 

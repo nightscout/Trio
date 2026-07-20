@@ -292,39 +292,31 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         let context = makeContext()
         context.name = "getTempTargetsNotYetUploadedToNightscout"
 
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+        return try await CoreDataStack.shared.fetchPendingUploads(
             ofType: TempTargetStored.self,
             onContext: context,
             predicate: NSPredicate.lastActiveAdjustmentNotYetUploadedToNightscout,
             key: "date",
             ascending: false
-        )
-
-        return try await context.perform {
-            guard let fetchedTempTargets = results as? [TempTargetStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            return fetchedTempTargets.map { tempTarget in
-                NightscoutTreatment(
-                    duration: Int(truncating: tempTarget.duration ?? 60),
-                    rawDuration: nil,
-                    rawRate: nil,
-                    absolute: nil,
-                    rate: nil,
-                    eventType: .nsTempTarget,
-                    createdAt: tempTarget.date ?? Date(),
-                    enteredBy: tempTarget.enteredBy ?? TempTarget.local,
-                    bolus: nil,
-                    insulin: nil,
-                    notes: tempTarget.name ?? TempTarget.custom,
-                    carbs: nil,
-                    targetTop: tempTarget
-                        .target as Decimal? ?? (self.settingsManager.settings.units == .mgdL ? 100.0 : 100.asMmolL),
-                    targetBottom: tempTarget
-                        .target as Decimal? ?? (self.settingsManager.settings.units == .mgdL ? 100.0 : 100.asMmolL)
-                )
-            }
+        ) { tempTarget in
+            NightscoutTreatment(
+                duration: Int(truncating: tempTarget.duration ?? 60),
+                rawDuration: nil,
+                rawRate: nil,
+                absolute: nil,
+                rate: nil,
+                eventType: .nsTempTarget,
+                createdAt: tempTarget.date ?? Date(),
+                enteredBy: tempTarget.enteredBy ?? TempTarget.local,
+                bolus: nil,
+                insulin: nil,
+                notes: tempTarget.name ?? TempTarget.custom,
+                carbs: nil,
+                targetTop: tempTarget
+                    .target as Decimal? ?? (self.settingsManager.settings.units == .mgdL ? 100.0 : 100.asMmolL),
+                targetBottom: tempTarget
+                    .target as Decimal? ?? (self.settingsManager.settings.units == .mgdL ? 100.0 : 100.asMmolL)
+            )
         }
     }
 
@@ -332,7 +324,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         let context = makeContext()
         context.name = "getTempTargetRunsNotYetUploadedToNightscout"
 
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+        return try await CoreDataStack.shared.fetchPendingUploads(
             ofType: TempTargetRunStored.self,
             onContext: context,
             predicate: NSPredicate(
@@ -342,35 +334,27 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             ),
             key: "startDate",
             ascending: false
-        )
-
-        return try await context.perform {
-            guard let fetchedTempTargetRuns = results as? [TempTargetRunStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            return fetchedTempTargetRuns.map { tempTargetRun in
-                var durationInMinutes = (tempTargetRun.endDate?.timeIntervalSince(tempTargetRun.startDate ?? Date()) ?? 1) / 60
-                durationInMinutes = durationInMinutes < 1 ? 1 : durationInMinutes
-                return NightscoutTreatment(
-                    duration: Int(durationInMinutes),
-                    rawDuration: nil,
-                    rawRate: nil,
-                    absolute: nil,
-                    rate: nil,
-                    eventType: .nsTempTarget,
-                    createdAt: (tempTargetRun.startDate ?? tempTargetRun.tempTarget?.date) ?? Date(),
-                    enteredBy: tempTargetRun.tempTarget?.enteredBy ?? TempTarget.local,
-                    bolus: nil,
-                    insulin: nil,
-                    notes: tempTargetRun.tempTarget?.name ?? TempTarget.custom,
-                    carbs: nil,
-                    targetTop: tempTargetRun
-                        .target as Decimal? ?? (self.settingsManager.settings.units == .mgdL ? 100.0 : 100.asMmolL),
-                    targetBottom: tempTargetRun
-                        .target as Decimal? ?? (self.settingsManager.settings.units == .mgdL ? 100.0 : 100.asMmolL)
-                )
-            }
+        ) { tempTargetRun in
+            var durationInMinutes = (tempTargetRun.endDate?.timeIntervalSince(tempTargetRun.startDate ?? Date()) ?? 1) / 60
+            durationInMinutes = durationInMinutes < 1 ? 1 : durationInMinutes
+            return NightscoutTreatment(
+                duration: Int(durationInMinutes),
+                rawDuration: nil,
+                rawRate: nil,
+                absolute: nil,
+                rate: nil,
+                eventType: .nsTempTarget,
+                createdAt: (tempTargetRun.startDate ?? tempTargetRun.tempTarget?.date) ?? Date(),
+                enteredBy: tempTargetRun.tempTarget?.enteredBy ?? TempTarget.local,
+                bolus: nil,
+                insulin: nil,
+                notes: tempTargetRun.tempTarget?.name ?? TempTarget.custom,
+                carbs: nil,
+                targetTop: tempTargetRun
+                    .target as Decimal? ?? (self.settingsManager.settings.units == .mgdL ? 100.0 : 100.asMmolL),
+                targetBottom: tempTargetRun
+                    .target as Decimal? ?? (self.settingsManager.settings.units == .mgdL ? 100.0 : 100.asMmolL)
+            )
         }
     }
 
