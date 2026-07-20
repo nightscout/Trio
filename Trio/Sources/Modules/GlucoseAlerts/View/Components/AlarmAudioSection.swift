@@ -68,6 +68,10 @@ private struct TonePickerSheet: View {
             }
             .onDisappear { previewer.stop() }
         }
+        // Sheets don't reliably inherit the presenting hierarchy's tint on
+        // re-render — pin Trio's accent explicitly so buttons don't fall
+        // back to system blue after a selection change.
+        .tint(Color.tabBar)
     }
 }
 
@@ -81,6 +85,10 @@ private struct TonePickerRow: View {
             Button {
                 selected = filename
             } label: {
+                Image(systemName: filename == selected ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(Color.tabBar)
+                    .frame(width: 20)
+
                 Text(AlarmSoundCatalog.displayName(for: filename))
                     .foregroundColor(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -88,21 +96,18 @@ private struct TonePickerRow: View {
             }
             .buttonStyle(.plain)
 
+            Spacer()
+
             Button {
                 previewer.toggle(filename: filename)
             } label: {
                 Image(systemName: isPlaying ? "stop.circle.fill" : "play.circle.fill")
                     .font(.title3)
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(Color.tabBar)
             }
             .buttonStyle(.plain)
 
             Spacer()
-
-            Image(systemName: "checkmark")
-                .foregroundColor(.accentColor)
-                .opacity(filename == selected ? 1 : 0)
-                .frame(width: 20)
         }
     }
 
