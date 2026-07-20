@@ -55,6 +55,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         Task { await updateGlucoseBadge() }
         configureNotificationCategories()
         clearLegacyCarbsRequiredNotification()
+        clearLegacyLoopNotifications()
         subscribeGlucoseUpdates()
     }
 
@@ -126,6 +127,16 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         let id = Identifier.carbsRequiredNotification.rawValue
         notificationCenter.removePendingNotificationRequests(withIdentifiers: [id])
         notificationCenter.removeDeliveredNotifications(withIdentifiers: [id])
+    }
+
+    /// Purges the two "Last loop was X min ago" UNs the legacy
+    /// `scheduleMissingLoopNotifiactions` path scheduled. Their identifiers
+    /// aren't known to `NotLoopingMonitor`, so without this cleanup they'd
+    /// fire once each after upgrade — https://github.com/nightscout/Trio/issues/1296
+    private func clearLegacyLoopNotifications() {
+        let ids = ["Trio.noLoopFirstNotification", "Trio.noLoopSecondNotification"]
+        notificationCenter.removePendingNotificationRequests(withIdentifiers: ids)
+        notificationCenter.removeDeliveredNotifications(withIdentifiers: ids)
     }
 
     private func fetchGlucoseIDs() async throws -> [NSManagedObjectID] {
