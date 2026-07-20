@@ -9,6 +9,30 @@ import Swinject
 import TidepoolServiceKit
 import UIKit
 
+/// Observed state of the Tidepool integration, derived from upload outcomes to Tidepool.
+///
+/// `getTidepoolServiceUI() != nil` only tells the UI that a service object
+/// is configured locally — it doesn't say whether the credentials are still
+/// accepted by Tidepool. This enum is the truth source for the "connected"
+/// indicator in `TidepoolStartView`. It's updated on every upload success /
+/// failure callback (carbs, insulin, glucose, settings, deletes).
+enum TidepoolHealth: Equatable {
+    /// No upload attempt yet this process — show optimistic UI.
+    case unknown
+    /// Most recent upload returned 2xx at the given time.
+    case healthy(at: Date)
+    /// Refresh-token grant rejected or API token explicitly refused (401/403).
+    /// User needs to re-authenticate via the existing Tidepool settings sheet.
+    case authFailed(at: Date)
+    /// Any other failure (5xx, network blip, decode error, other 4xx).
+    /// Self-clears on the next successful upload.
+    case transient(at: Date)
+}
+
+protocol TidepoolHealthObserver {
+    func tidepoolHealthDidChange(_ health: TidepoolHealth)
+}
+
 protocol TidepoolManager {
     func addTidepoolService(service: Service)
     func getTidepoolServiceUI() -> ServiceUI?
@@ -195,6 +219,60 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         nil
     }
 
+    // MARK: - Upload health tracking
+
+    /// Records a successful Tidepool upload — broadcasts `.healthy(now)` to any
+    /// `TidepoolHealthObserver`, clearing any prior `.authFailed` / `.transient`
+    /// state on the indicator.
+    fileprivate func noteUploadSuccess() {
+        notifyHealth(.healthy(at: Date()))
+    }
+
+    /// Records a failed Tidepool upload. Routes through `classify` to decide
+    /// whether the failure is auth-related (needs user re-login) or just a
+    /// transient network/server hiccup. Called from every `.failure` branch
+    /// in the upload completion handlers.
+    fileprivate func noteUploadFailure(_ error: Error) {
+        notifyHealth(classify(error))
+    }
+
+    /// Fans a health change out to all registered `TidepoolHealthObserver`s
+    /// on the main thread. Upload completion handlers can fire from arbitrary
+    /// background queues, and observers update SwiftUI `@Published` state.
+    private func notifyHealth(_ health: TidepoolHealth) {
+        DispatchQueue.main.async {
+            self.broadcaster.notify(TidepoolHealthObserver.self, on: .main) {
+                $0.tidepoolHealthDidChange(health)
+            }
+        }
+    }
+
+    /// Best-effort classification of a Tidepool upload error.
+    ///
+    /// The Tidepool plugin doesn't expose a typed error case for "refresh
+    /// token rejected" — its `responseMalformedJSON` wraps the HTTP response
+    /// inside the error, surfaced via `String(describing:)`. We inspect that
+    /// string for the OAuth host + HTTP status to distinguish:
+    ///   - 4xx on `auth.tidepool.org` → refresh-token grant rejected;
+    ///     credentials are no longer valid and the user must re-authenticate.
+    ///   - 401 / 403 on any other endpoint → access token rejected by the
+    ///     API itself; also treated as `authFailed`.
+    ///   - Everything else (5xx, non-auth 4xx like 429, network errors,
+    ///     decoding errors) → `transient`; clears on the next success.
+    fileprivate func classify(_ error: Error) -> TidepoolHealth {
+        let desc = String(describing: error)
+        let isAuthHost = desc.contains("auth.tidepool.org")
+
+        // Cheap substring scan — failure path runs rarely, ~100 lookups OK.
+        let authHostHas4xx = (400 ..< 500).contains { desc.contains("Status Code: \($0)") }
+        let tokenRejected = desc.contains("Status Code: 401") || desc.contains("Status Code: 403")
+
+        if (isAuthHost && authHostHas4xx) || tokenRejected {
+            return .authFailed(at: Date())
+        }
+        return .transient(at: Date())
+    }
+
     /// Forces a full data upload to Tidepool
     func forceTidepoolDataUpload() {
         Task {
@@ -264,8 +342,10 @@ extension BaseTidepoolManager {
                     switch result {
                     case let .failure(error):
                         debug(.nightscout, "Error synchronizing carbs data with Tidepool: \(String(describing: error))")
+                        self.noteUploadFailure(error)
                     case .success:
                         debug(.nightscout, "Success synchronizing carbs data. Upload to Tidepool complete.")
+                        self.noteUploadSuccess()
                         // After successful upload, update the isUploadedToTidepool flag in Core Data
                         Task {
                             await self.updateCarbsAsUploaded(carbs)
@@ -326,8 +406,10 @@ extension BaseTidepoolManager {
                 switch result {
                 case let .failure(error):
                     debug(.nightscout, "Error synchronizing carbs data with Tidepool: \(String(describing: error))")
+                    self.noteUploadFailure(error)
                 case .success:
                     debug(.nightscout, "Success synchronizing carbs data. Upload to Tidepool complete.")
+                    self.noteUploadSuccess()
                 }
             }
         }
@@ -434,8 +516,10 @@ extension BaseTidepoolManager {
                         switch result {
                         case let .failure(error):
                             debug(.nightscout, "Error synchronizing dose data with Tidepool: \(String(describing: error))")
+                            self.noteUploadFailure(error)
                         case .success:
                             debug(.nightscout, "Success synchronizing dose data. Upload to Tidepool complete.")
+                            self.noteUploadSuccess()
                             Task {
                                 let insulinEvents = events.filter {
                                     $0.type == .tempBasal || $0.type == .tempBasalDuration || $0.type == .bolus
@@ -449,8 +533,10 @@ extension BaseTidepoolManager {
                         switch result {
                         case let .failure(error):
                             debug(.nightscout, "Error synchronizing pump events data: \(String(describing: error))")
+                            self.noteUploadFailure(error)
                         case .success:
                             debug(.nightscout, "Success synchronizing pump events data. Upload to Tidepool complete.")
+                            self.noteUploadSuccess()
                             Task {
                                 let pumpEventType = events.map { $0.type.mapEventTypeToPumpEventType() }
                                 let pumpEvents = events.filter { _ in pumpEventType.contains(pumpEventType) }
@@ -507,8 +593,10 @@ extension BaseTidepoolManager {
                 switch result {
                 case let .failure(error):
                     debug(.nightscout, "Error synchronizing Dose delete data: \(String(describing: error))")
+                    self.noteUploadFailure(error)
                 case .success:
                     debug(.nightscout, "Success synchronizing Dose delete data")
+                    self.noteUploadSuccess()
                 }
             }
         }
@@ -672,6 +760,7 @@ extension BaseTidepoolManager {
                     switch result {
                     case .success:
                         debug(.nightscout, "Success synchronizing glucose data")
+                        self.noteUploadSuccess()
 
                         // After successful upload, update the isUploadedToTidepool flag in Core Data
                         Task {
@@ -679,6 +768,7 @@ extension BaseTidepoolManager {
                         }
                     case let .failure(error):
                         debug(.nightscout, "Error synchronizing glucose data: \(String(describing: error))")
+                        self.noteUploadFailure(error)
                     }
                 }
             }
@@ -752,8 +842,10 @@ extension BaseTidepoolManager {
                 switch result {
                 case .success:
                     debug(.service, "Settings uploaded to Tidepool (syncId: \(settings.syncIdentifier))")
+                    self.noteUploadSuccess()
                 case let .failure(error):
                     debug(.service, "Failed to upload settings to Tidepool: \(error)")
+                    self.noteUploadFailure(error)
                 }
             }
         }
