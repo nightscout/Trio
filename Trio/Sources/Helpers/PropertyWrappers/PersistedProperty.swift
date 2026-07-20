@@ -121,10 +121,10 @@ enum FileProtectionFixer {
     static func fixFlagFileProtectionForPropertyPersistentFlags() {
         let flagFiles = [
             "onboardingCompleted.plist",
-            "diagnosticsSharing.plist",
+            "crashlyticsSharingEnabled.plist",
             "lastCleanupDate.plist",
             "hasSeenFatProteinOrderChange.plist",
-            "telemetryEnabled.plist",
+            "telemetrySharingEnabled.plist",
             "telemetryLastSentAt.plist",
             "telemetryLastSentSha.plist",
             "telemetryColdLaunchTimes.plist",

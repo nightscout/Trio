@@ -123,7 +123,7 @@ final class TelemetryClient: Injectable {
     /// `checkAndSendIfOverdue()` called on every foreground transition and
     /// cold launch.
     func scheduleRecurring() {
-        guard PropertyPersistentFlags.shared.telemetryEnabled != false else {
+        guard PropertyPersistentFlags.shared.telemetrySharingEnabled != false else {
             return
         }
 
@@ -149,7 +149,7 @@ final class TelemetryClient: Injectable {
     /// if overdue. Safe to call repeatedly — if a send already fired within
     /// the window, this is a no-op.
     func checkAndSendIfOverdue() {
-        guard PropertyPersistentFlags.shared.telemetryEnabled != false else {
+        guard PropertyPersistentFlags.shared.telemetrySharingEnabled != false else {
             return
         }
 
@@ -168,7 +168,7 @@ final class TelemetryClient: Injectable {
     /// the caller's decision — startup handles the SHA-change shortcut, the
     /// timer handles 24h cadence.
     func maybeSend() async {
-        guard PropertyPersistentFlags.shared.telemetryEnabled != false else {
+        guard PropertyPersistentFlags.shared.telemetrySharingEnabled != false else {
             return
         }
         await send()
