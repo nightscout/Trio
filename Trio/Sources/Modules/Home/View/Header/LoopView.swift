@@ -31,7 +31,7 @@ struct LoopView: View {
                     .symbolEffect(.pulse, options: .repeating, isActive: isAnimating)
             }
             if isAnimating {
-                // Exclude from localization; the term 'looping' is an idiom in the DIY loop jargon. IYKYK
+                // Exclude from localization
                 Text(verbatim: "looping")
             } else if manualTempBasal {
                 Text("Manual")
