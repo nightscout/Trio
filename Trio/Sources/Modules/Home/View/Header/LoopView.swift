@@ -18,28 +18,21 @@ struct LoopView: View {
 
     let determination: [OrefDetermination]
 
-    private let rect = CGRect(x: 0, y: 0, width: 18, height: 18)
-
     var body: some View {
-        loopStatusWithMinutes
-            .padding(.vertical, 5)
-            .padding(.horizontal, 10)
-            .overlay(
-                Capsule()
-                    .stroke(color.opacity(0.4), lineWidth: 2)
-            )
+        CapsuleSpinnerView(isLooping: isLooping, color: color) { isSpinnerAnimating in
+            loopStatusContent(isAnimating: isSpinnerAnimating)
+        }
     }
 
-    private var loopStatusWithMinutes: some View {
+    private func loopStatusContent(isAnimating: Bool) -> some View {
         HStack(alignment: .center) {
             ZStack {
                 Image(systemName: (!closedLoop || manualTempBasal) ? "circle.and.line.horizontal" : "circle")
-                if isLooping {
-                    ProgressView()
-                }
+                    .symbolEffect(.pulse, options: .repeating, isActive: isAnimating)
             }
-            if isLooping {
-                Text("looping")
+            if isAnimating {
+                // Exclude from localization
+                Text(verbatim: "looping")
             } else if manualTempBasal {
                 Text("Manual")
             } else if determination.first?
