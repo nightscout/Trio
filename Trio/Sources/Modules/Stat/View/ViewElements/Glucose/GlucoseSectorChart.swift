@@ -72,7 +72,7 @@ struct GlucoseSectorChart: View {
                         .font(.subheadline)
                         .foregroundStyle(Color.secondary)
                         Text(formatPercentage(inRangePercentage, tight: true))
-                            .foregroundStyle(Color.loopGreen)
+                            .foregroundStyle(Color.dynamicTeal)
                     }
 
                     VStack(alignment: .leading, spacing: 5) {
@@ -82,7 +82,7 @@ struct GlucoseSectorChart: View {
                         .font(.subheadline)
                         .foregroundStyle(Color.secondary)
                         Text(formatPercentage(tightPercentage, tight: true))
-                            .foregroundStyle(Color.green)
+                            .foregroundStyle(Color.dynamicGreen)
                     }
                 }.padding(.leading, 5)
 
@@ -91,7 +91,7 @@ struct GlucoseSectorChart: View {
                         Text("> \(highLimit.formatted(for: units))").font(.subheadline)
                             .foregroundStyle(Color.secondary)
                         Text(formatPercentage(highPercentage, tight: true))
-                            .foregroundStyle(Color.loopYellow)
+                            .foregroundStyle(showChart ? Color.dynamicPurple : Color.dynamicBlue)
                     }
 
                     VStack(alignment: .leading, spacing: 5) {
@@ -101,7 +101,7 @@ struct GlucoseSectorChart: View {
                         .font(.subheadline)
                         .foregroundStyle(Color.secondary)
                         Text(formatPercentage(lowPercentage, tight: true))
-                            .foregroundStyle(Color.red)
+                            .foregroundStyle(showChart ? Color.dynamicRed : Color.dynamicOrange)
                     }
                 }
                 // If not showing chart, show extra stats
@@ -111,7 +111,7 @@ struct GlucoseSectorChart: View {
                             Text("> \(Decimal(220).formatted(for: units))").font(.subheadline)
                                 .foregroundStyle(Color.secondary)
                             Text(formatPercentage(moderatelyHighPercentage, tight: true))
-                                .foregroundStyle(Color.loopYellow)
+                                .foregroundStyle(Color.dynamicIndigo)
                         }
 
                         VStack(alignment: .leading, spacing: 5) {
@@ -121,7 +121,7 @@ struct GlucoseSectorChart: View {
                             .font(.subheadline)
                             .foregroundStyle(Color.secondary)
                             Text(formatPercentage(moderatelyLowPercentage, tight: true))
-                                .foregroundStyle(Color.red)
+                                .foregroundStyle(Color.dynamicOrange)
                         }
                     }
                     VStack(alignment: .leading, spacing: 10) {
@@ -129,7 +129,7 @@ struct GlucoseSectorChart: View {
                             Text("> \(Decimal(250).formatted(for: units))").font(.subheadline)
                                 .foregroundStyle(Color.secondary)
                             Text(formatPercentage(veryHighPercentage, tight: true))
-                                .foregroundStyle(Color.orange)
+                                .foregroundStyle(Color.dynamicPurple)
                         }
 
                         VStack(alignment: .leading, spacing: 5) {
@@ -139,7 +139,7 @@ struct GlucoseSectorChart: View {
                             .font(.subheadline)
                             .foregroundStyle(Color.secondary)
                             Text(formatPercentage(veryLowPercentage, tight: true))
-                                .foregroundStyle(Color.purple)
+                                .foregroundStyle(Color.dynamicRed)
                         }
                     }
                 }
@@ -230,9 +230,9 @@ struct GlucoseSectorChart: View {
 
         // Return array of tuples with range data
         return [
-            (.high, highCount, Decimal(highCount) / Decimal(total) * 100, .loopYellow),
-            (.inRange, inRangeCount, Decimal(inRangeCount) / Decimal(total) * 100, .green),
-            (.low, lowCount, Decimal(lowCount) / Decimal(total) * 100, .red)
+            (.high, highCount, Decimal(highCount) / Decimal(total) * 100, .dynamicPurple),
+            (.inRange, inRangeCount, Decimal(inRangeCount) / Decimal(total) * 100, .dynamicGreen),
+            (.low, lowCount, Decimal(lowCount) / Decimal(total) * 100, .dynamicRed)
         ]
     }
 
@@ -279,7 +279,7 @@ struct GlucoseSectorChart: View {
 
             return RangeDetail(
                 title: String(localized: "High Glucose"),
-                color: .loopYellow,
+                color: .dynamicPurple,
                 items: [
                     (
                         String(localized: "Very High (>\(Decimal(250).formatted(for: units)))"),
@@ -304,7 +304,7 @@ struct GlucoseSectorChart: View {
 
             return RangeDetail(
                 title: String(localized: "In Range"),
-                color: .green,
+                color: .dynamicGreen,
                 items: [
                     (
                         String(
@@ -334,7 +334,7 @@ struct GlucoseSectorChart: View {
 
             return RangeDetail(
                 title: String(localized: "Low Glucose"),
-                color: .red,
+                color: .dynamicRed,
                 items: [
                     (
                         String(

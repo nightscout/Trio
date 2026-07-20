@@ -64,3 +64,14 @@ public func calculateHueBasedGlucoseColor(
     let color = Color(hue: hue, saturation: 0.6, brightness: 0.9)
     return color
 }
+
+// Discrete band colors sampled from the dynamic gradient above
+public extension Color {
+    static let dynamicRed = Color(hue: 0.0 / 360.0, saturation: 0.6, brightness: 0.9)
+    static let dynamicOrange = Color(hue: 30.0 / 360.0, saturation: 0.6, brightness: 0.9)
+    static let dynamicGreen = Color(hue: 120.0 / 360.0, saturation: 0.6, brightness: 0.9)
+    static let dynamicTeal = Color(hue: 165.0 / 360.0, saturation: 0.6, brightness: 0.9)
+    static let dynamicBlue = Color(hue: 200.0 / 360.0, saturation: 0.6, brightness: 0.9)
+    static let dynamicIndigo = Color(hue: 235.0 / 360.0, saturation: 0.6, brightness: 0.9)
+    static let dynamicPurple = Color(hue: 270.0 / 360.0, saturation: 0.6, brightness: 0.9)
+}
