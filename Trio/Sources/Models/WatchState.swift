@@ -27,6 +27,14 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
     var bolusIncrement: Decimal = 0.05
     var confirmBolusFaster: Bool = false
 
+    // Forecast options
+    var showForecast: Bool = false
+    var isForecastCone: Bool = false
+    var forecastStartDate: Date? = nil
+    var forecastConeMin: [Double] = []
+    var forecastConeMax: [Double] = []
+    var forecastLines: [String: [Double]] = [:] // "iob" / "cob" / "uam" / "zt" -> values
+
     static func == (lhs: WatchState, rhs: WatchState) -> Bool {
         lhs.date == rhs.date &&
             lhs.currentGlucose == rhs.currentGlucose &&
@@ -76,5 +84,11 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
         hasher.combine(maxProtein)
         hasher.combine(bolusIncrement)
         hasher.combine(confirmBolusFaster)
+        hasher.combine(showForecast)
+        hasher.combine(isForecastCone)
+        hasher.combine(forecastStartDate)
+        hasher.combine(forecastConeMin)
+        hasher.combine(forecastConeMax)
+        hasher.combine(forecastLines)
     }
 }
