@@ -16,7 +16,8 @@ extension Adjustments {
         @State var selectedTempTargetPresetID: String?
         @State var selectedOverride: OverrideStored?
         @State var selectedTempTarget: TempTargetStored?
-        @State var isConfirmDeletePresented = false
+        @State var overrideToDelete: OverrideStored?
+        @State var tempTargetToDelete: TempTargetStored?
         @State var isPromptPresented = false
         @State var isRemoveAlertPresented = false
         @State var removeAlert: Alert?
@@ -48,6 +49,10 @@ extension Adjustments {
         }
 
         var body: some View {
+            tempTargetDeleteConfirmation(overrideDeleteConfirmation(mainContent))
+        }
+
+        private var mainContent: some View {
             ZStack(alignment: .center, content: {
                 VStack {
                     Picker("Adjustment Tabs", selection: $state.selectedTab) {

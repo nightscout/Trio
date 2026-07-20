@@ -100,7 +100,7 @@ extension Formatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.locale = .current
-        formatter.minimumIntegerDigits = 0
+        formatter.minimumIntegerDigits = 1
         formatter.maximumFractionDigits = 2
         return formatter
     }()

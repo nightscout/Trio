@@ -81,6 +81,9 @@ extension Stat.StateModel {
     func fetchLoopStatRecords(for interval: StatsTimeIntervalWithToday) async throws
         -> ([NSManagedObjectID], [NSManagedObjectID])
     {
+        let loopTaskContext = CoreDataStack.shared.newTaskContext()
+        loopTaskContext.name = "StatStateModel.fetchLoopStatRecords"
+
         // Calculate the date range based on selected duration
         let now = Date()
         let startDate: Date
@@ -154,6 +157,9 @@ extension Stat.StateModel {
     ) async throws
         -> [LoopStatsProcessedData]
     {
+        let loopTaskContext = CoreDataStack.shared.newTaskContext()
+        loopTaskContext.name = "StatStateModel.getLoopStats"
+
         // Calculate the date range for glucose readings
         let now = Date()
         let startDate: Date
@@ -170,7 +176,7 @@ extension Stat.StateModel {
             startDate = now.addingTimeInterval(-90.days.timeInterval)
         }
 
-        // Get glucose statistics
+        // Get glucose statistics (uses its own local context)
         let totalGlucose = try await calculateGlucoseStats(from: startDate, to: now)
 
         // Get NSManagedObject
@@ -236,6 +242,9 @@ extension Stat.StateModel {
         from startDate: Date,
         to _: Date
     ) async throws -> Int {
+        let loopTaskContext = CoreDataStack.shared.newTaskContext()
+        loopTaskContext.name = "StatStateModel.calculateGlucoseStats"
+
         // Create predicate for glucose readings
         let glucosePredicate = NSPredicate(format: "date >= %@", startDate as NSDate)
 

@@ -223,7 +223,13 @@ enum SettingItems {
                 "Enable Super Bolus": "Enable Super Bolus Option",
                 "Super Bolus Factor": "Enable Super Bolus Option"
             ],
-            path: ["Features", "Bolus Calculator"]
+            path: ["Features", "Treatments", "Bolus Calculator"]
+        ),
+        SettingItem(
+            title: "Quick-Pick Boluses",
+            view: .quickBolusConfig,
+            searchContents: ["Enable Quick-Pick Boluses"],
+            path: ["Features", "Treatments", "Quick-Pick Boluses"]
         ),
         SettingItem(
             title: "Meal Settings",
@@ -247,7 +253,7 @@ enum SettingItems {
                 "Fat and Protein Percentage": "Enable Fat and Protein Entries",
                 "FPU": "Enable Fat and Protein Entries"
             ],
-            path: ["Features", "Meal Settings"]
+            path: ["Features", "Treatments", "Meal Settings"]
         ),
         SettingItem(
             title: "Shortcuts",
@@ -322,24 +328,49 @@ enum SettingItems {
     static let notificationItems = [
         SettingItem(title: "Manage iOS Preferences", view: .notificationSettings),
         SettingItem(
-            title: "Trio Notifications",
-            view: .glucoseNotificationSettings,
+            title: "Glucose Alarms",
+            view: .glucoseAlerts,
             searchContents: [
-                "Always Notify Pump",
-                "Always Notify CGM",
-                "Always Notify Carb",
-                "Always Notify Algorithm",
-                "Show Glucose App Badge",
-                "Glucose Notifications",
-                "Add Glucose Source to Alarm",
-                "Low Glucose Alarm Limit",
-                "High Glucose Alarm Limit"
+                "Urgent Low Glucose",
+                "Low Glucose",
+                "Forecasted Low Glucose",
+                "High Glucose",
+                "Day & Night",
+                "Alert Sound",
+                "Override Silence",
+                "Show Glucose App Badge"
             ],
-            scrollTargetLabels: [
-                "Low Glucose Alarm Limit": "Glucose Notifications",
-                "High Glucose Alarm Limit": "Glucose Notifications"
+            path: ["Notifications", "Glucose Alarms"]
+        ),
+        SettingItem(
+            title: "Device Alarms",
+            view: .deviceAlarms,
+            searchContents: [
+                "Critical",
+                "Time-Sensitive",
+                "Normal",
+                "Occlusion",
+                "Pump Fault",
+                "Hardware Fault",
+                "Reservoir",
+                "Battery",
+                "Bolus Failed",
+                "Pod",
+                "Sensor Failure",
+                "Sensor Stopped",
+                "Calibration",
+                "Signal Loss",
+                "Device Expired",
+                "Not Looping",
+                "Algorithm"
             ],
-            path: ["Notifications", "Trio Notifications"] // Glucose
+            path: ["Notifications", "Device Alarms"]
+        ),
+        SettingItem(
+            title: "Day & Night Windows",
+            view: .alarmWindows,
+            searchContents: ["Day Starts", "Night Starts", "Day & Night"],
+            path: ["Notifications", "Day & Night Windows"]
         ),
         SettingItem(
             title: "Live Activity",

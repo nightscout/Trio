@@ -97,18 +97,22 @@ trailingClosures \
 --typeattributes same-line \
 --varattributes same-line \
 --wrapcollections before-first \
---exclude Pods, Generated, \
-  R.generated.swift, \
-  fastlane/swift, \
-  Dependencies,  \
-  LoopKit,  \
-  LibreTransmitter, \
-  G7SensorKit, \
-  dexcom-share-client-swift, \
-  CGMBLEKit, \
-  RileyLinkKit, \
-  MinimedKit, \
-  TidepoolService, \
-  DanaKit, \
-  MedtrumKit, \
-  OmnipodKit
+--exclude Pods \
+--exclude Generated \
+--exclude R.generated.swift \
+--exclude fastlane/swift \
+--exclude Dependencies \
+--exclude LoopKit \
+--exclude LibreTransmitter \
+--exclude G7SensorKit \
+--exclude dexcom-share-client-swift \
+--exclude CGMBLEKit \
+--exclude RileyLinkKit \
+--exclude MinimedKit \
+--exclude TidepoolService \
+--exclude DanaKit \
+--exclude MedtrumKit \
+--exclude OmnipodKit \
+--exclude LibreLoop \
+--exclude LibreCRKit \
+--exclude LoopAlgorithm

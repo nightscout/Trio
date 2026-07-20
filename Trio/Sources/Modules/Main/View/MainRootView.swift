@@ -9,6 +9,10 @@ extension Main {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
+        private var modalScheduler: TrioModalAlertScheduler {
+            resolver.resolve(TrioAlertManager.self)!.modalScheduler
+        }
+
         var body: some View {
             router.view(for: .home)
                 .sheet(item: $state.modal) { modal in
@@ -18,7 +22,7 @@ extension Main {
                 .sheet(item: $state.secondaryModal) { wrapper in
                     wrapper.view
                 }
-
+                .trioAlerts(modalScheduler)
                 .onAppear(perform: configureView)
                 .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
         }

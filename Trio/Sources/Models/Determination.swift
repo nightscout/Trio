@@ -1,9 +1,5 @@
 import Foundation
 
-struct DeterminationErrorResponse: JSON, Equatable {
-    let error: String
-}
-
 struct Determination: JSON, Equatable {
     let id: UUID?
     var reason: String
