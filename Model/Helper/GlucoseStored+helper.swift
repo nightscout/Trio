@@ -48,6 +48,10 @@ extension NSPredicate {
         return NSPredicate(format: "date >= %@", date as NSDate)
     }
 
+    static func glucose(since date: Date) -> NSPredicate {
+        NSPredicate(format: "date >= %@", date as NSDate)
+    }
+
     static var manualGlucose: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(format: "isManual == %@ AND date >= %@", true as NSNumber, date as NSDate)

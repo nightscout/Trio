@@ -14,7 +14,7 @@ extension MainChartCanvas {
         ])
         .chartLegend(.hidden)
         .frame(width: canvasWidth, height: cobIobHeight)
-        .chartXScale(domain: state.startMarker ... state.endMarker)
+        .chartXScale(domain: windowStart ... windowEnd)
         .chartXAxis { basalChartXAxis }
         .chartYAxis { cobIobChartYAxis }
         .chartYScale(domain: combinedYDomain())
@@ -34,7 +34,7 @@ extension MainChartCanvas {
         // We sometimes get two determinations when editing carbs, one without the entry-to-be-edited and then another one after editing the entry.
         // We are fetching determinations in descending order, so the first one is the latter determination (with correct amounts), so keeping the first one encountered.
         var seenDates = Set<Date>()
-        let filteredDeterminations = state.enactedAndNonEnactedDeterminations.filter { item in
+        let filteredDeterminations = windowedDeterminations.filter { item in
             if let date = item.deliverAt {
                 if seenDates.contains(date) {
                     // Already seen this date – filter it out.

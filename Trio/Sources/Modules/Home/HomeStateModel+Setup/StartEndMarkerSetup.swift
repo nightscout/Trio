@@ -1,6 +1,12 @@
 import Foundation
 
 extension Home.StateModel {
+    /// Leading edge of the chart-feeding fetch window (chart-only; dosing
+    /// reads its own storage fetches).
+    var chartHistoryStartDate: Date {
+        Date(timeIntervalSinceNow: -MainChartHelper.Config.chartHistorySeconds)
+    }
+
     // Update start and  end marker to fix scroll update problem with x axis
     func updateStartEndMarkers() {
         startMarker = Date(timeIntervalSinceNow: -MainChartHelper.Config.chartHistorySeconds)
