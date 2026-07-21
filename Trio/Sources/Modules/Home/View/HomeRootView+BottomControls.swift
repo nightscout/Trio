@@ -321,53 +321,14 @@ extension Home.RootView {
         let isConcurrent = overrideString != nil && tempTargetString != nil
 
         ZStack {
-            RoundedRectangle(cornerRadius: 17, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    Group {
-                        if isConcurrent {
-                            HStack(spacing: 0) {
-                                Color.purple.opacity(0.12)
-                                Color.loopGreen.opacity(0.12)
-                            }
-                            .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
-                        } else {
-                            RoundedRectangle(cornerRadius: 17, style: .continuous)
-                                .fill((tint ?? Color.clear).opacity(0.12))
-                        }
-                    }
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 17, style: .continuous)
-                        .strokeBorder(
-                            isConcurrent
-                                ? AnyShapeStyle(LinearGradient(
-                                    colors: [Color.purple.opacity(0.30), Color.loopGreen.opacity(0.30)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                ))
-                                : AnyShapeStyle((tint ?? Color.primary).opacity(tint == nil ? 0.08 : 0.30)),
-                            lineWidth: 1
-                        )
-                )
-                .frame(height: HomeLayout.bottomPanelHeight)
-                .overlay(alignment: .bottom) {
-                    // anchored like the bolus progress bar so both panels match
-                    Group {
-                        if isConcurrent {
-                            HStack(spacing: 6) {
-                                remainingBar(overrideRemainingFraction, tint: .purple)
-                                remainingBar(tempTargetRemainingFraction, tint: .loopGreen)
-                            }
-                        } else if let tint = tint {
-                            remainingBar(overrideRemainingFraction ?? tempTargetRemainingFraction, tint: tint)
-                        }
-                    }
-                    .padding(.horizontal, 18)
-                    .padding(.bottom, 1)
+            if isConcurrent {
+                // halved tint layer the single-tint glass chrome can't express
+                HStack(spacing: 0) {
+                    Color.purple.opacity(0.12)
+                    Color.loopGreen.opacity(0.12)
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
-                .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.10), radius: 3, y: 1)
+                .clipShape(GlassChrome.panelShape)
+            }
             HStack {
                 if let overrideString = overrideString, let tempTargetString = tempTargetString {
                     // content halves match the tint halves so icons clear the seam
@@ -437,6 +398,40 @@ extension Home.RootView {
                     Text("Select Adjustment")
                 }
         }
+        .frame(height: HomeLayout.bottomPanelHeight)
+        .glassPanel(
+            tint: isConcurrent ? nil : tint,
+            tintOpacity: 0.12,
+            strokeOpacity: isConcurrent ? 0 : (tint == nil ? 0.08 : 0.30)
+        )
+        .overlay(
+            // concurrent halves get a bicolor rim the single-tint chrome can't express
+            isConcurrent
+                ? GlassChrome.panelShape.strokeBorder(
+                    LinearGradient(
+                        colors: [Color.purple.opacity(0.30), Color.loopGreen.opacity(0.30)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    ),
+                    lineWidth: 1
+                )
+                : nil
+        )
+        .overlay(alignment: .bottom) {
+            // anchored like the bolus progress bar so both panels match
+            Group {
+                if isConcurrent {
+                    HStack(spacing: 6) {
+                        remainingBar(overrideRemainingFraction, tint: .purple)
+                        remainingBar(tempTargetRemainingFraction, tint: .loopGreen)
+                    }
+                } else if let tint = tint {
+                    remainingBar(overrideRemainingFraction ?? tempTargetRemainingFraction, tint: tint)
+                }
+            }
+            .padding(.horizontal, 18)
+            .padding(.bottom, 1)
+        }
         // whole panel navigates; the cancel buttons' own gestures take precedence
         .contentShape(Rectangle())
         .onTapGesture {
@@ -459,61 +454,46 @@ extension Home.RootView {
             let bolusLabel = state
                 .bolusStatus == .inProgress ? String(localized: "Bolusing") : String(localized: "Initiating…")
 
-            ZStack {
-                /// rectangle as background
-                RoundedRectangle(cornerRadius: 15)
-                    .fill(
-                        colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) : Color
-                            .insulin
-                            .opacity(0.2)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 15))
-                    .frame(height: HomeLayout.bottomPanelHeight)
-                    .shadow(
-                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                            Color.black.opacity(0.33),
-                        radius: 3
-                    )
+            HStack {
+                Image(systemName: "cross.vial.fill")
+                    .font(.system(size: 25))
 
-                /// actual bolus view
-                HStack {
-                    Image(systemName: "cross.vial.fill")
-                        .font(.system(size: 25))
+                Spacer()
 
-                    Spacer()
+                VStack {
+                    Text(bolusLabel)
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(bolusString)
+                        .font(.caption)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }.padding(.leading, 5)
 
-                    VStack {
-                        Text(bolusLabel)
-                            .font(.subheadline)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        Text(bolusString)
-                            .font(.caption)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }.padding(.leading, 5)
+                Spacer()
 
-                    Spacer()
-
-                    if state.bolusStatus == .inProgress {
-                        Button {
-                            state.showProgressView()
-                            state.cancelBolus()
-                        } label: {
-                            Image(systemName: "xmark.app")
-                                .font(.system(size: 25))
-                        }
-                    } else if state.bolusStatus == .initiating {
-                        ProgressView()
+                if state.bolusStatus == .inProgress {
+                    Button {
+                        state.showProgressView()
+                        state.cancelBolus()
+                    } label: {
+                        Image(systemName: "xmark.app")
+                            .font(.system(size: 25))
                     }
-                }.padding(.horizontal, 10)
-                    .padding(.trailing, 8)
+                } else if state.bolusStatus == .initiating {
+                    ProgressView()
+                }
             }
             .padding(.horizontal, 10)
+            .padding(.trailing, 8)
+            .frame(height: HomeLayout.bottomPanelHeight)
+            .glassPanel(tint: .insulin, tintOpacity: 0.18, strokeOpacity: 0.30)
             .overlay(alignment: .bottom) {
                 // bar hugs the panel's bottom edge (the slot no longer has outer bottom padding)
                 BolusProgressBar(progress: progress)
                     .padding(.horizontal, 18)
                     .padding(.bottom, 1)
-            }.clipShape(RoundedRectangle(cornerRadius: 15))
+            }
+            .padding(.horizontal, 10)
         }
     }
 
@@ -582,20 +562,6 @@ extension Home.RootView {
             state.showModal(for: .statistics)
         } label: {
             ZStack {
-                RoundedRectangle(cornerRadius: 17, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 17, style: .continuous)
-                            .fill(Color.insulin.opacity(0.08))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 17, style: .continuous)
-                            .strokeBorder(Color.insulin.opacity(0.35), lineWidth: 1)
-                    )
-                    .frame(height: HomeLayout.statsBannerHeight)
-                    .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
-                    .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.10), radius: 3, y: 1)
-
                 HStack(alignment: .center, spacing: 12) {
                     switch face {
                     case .timeInRange:
@@ -604,9 +570,16 @@ extension Home.RootView {
                                 Text(tirString)
                                     .font(.title2).fontWeight(.bold).fontDesign(.rounded)
                                     .foregroundStyle(.primary)
-                                Text("Time in Range", comment: "Stats banner subtitle")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                // chart shows 72h; make the daily scope explicit
+                                (
+                                    Text("Time in Range", comment: "Stats banner subtitle").fontWeight(.semibold)
+                                        + Text(" ")
+                                        + Text("today", comment: "Stats banner scope")
+                                )
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                             }
 
                             statsDistributionBar(segments)
@@ -614,9 +587,15 @@ extension Home.RootView {
                         }
                     case .distributionBar:
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Time in Range", comment: "Stats banner subtitle")
-                                .font(.subheadline).fontWeight(.semibold)
-                                .foregroundStyle(.secondary)
+                            (
+                                Text("Time in Range", comment: "Stats banner subtitle").fontWeight(.semibold)
+                                    + Text(" ")
+                                    + Text("today", comment: "Stats banner scope")
+                            )
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
 
                             statsDistributionBar(segments)
                                 .frame(height: 6)
@@ -640,6 +619,8 @@ extension Home.RootView {
                 }
                 .padding(.horizontal, 16)
             }
+            .frame(height: HomeLayout.statsBannerHeight)
+            .glassPanel()
             .padding(.horizontal, 10)
             .contentShape(Rectangle())
         }
@@ -667,20 +648,6 @@ extension Home.RootView {
     ) -> some View {
         Button(action: action) {
             ZStack {
-                RoundedRectangle(cornerRadius: 17, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 17, style: .continuous)
-                            .fill(tint.opacity(isCritical ? 0.30 : 0.12))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 17, style: .continuous)
-                            .strokeBorder(tint.opacity(isCritical ? 0.8 : 0.35), lineWidth: isCritical ? 1.5 : 1)
-                    )
-                    .frame(height: HomeLayout.statsBannerHeight)
-                    .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
-                    .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.10), radius: 3, y: 1)
-
                 HStack(spacing: 12) {
                     adjustmentIcon(systemImage, tint: tint)
 
@@ -701,6 +668,13 @@ extension Home.RootView {
                 }
                 .padding(.horizontal, 16)
             }
+            .frame(height: HomeLayout.statsBannerHeight)
+            .glassPanel(
+                tint: tint,
+                tintOpacity: isCritical ? 0.30 : 0.12,
+                strokeOpacity: isCritical ? 0.8 : 0.35,
+                strokeWidth: isCritical ? 1.5 : 1
+            )
             .padding(.horizontal, 10)
             .contentShape(Rectangle())
         }
