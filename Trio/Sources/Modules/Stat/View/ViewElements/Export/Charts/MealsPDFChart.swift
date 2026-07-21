@@ -125,35 +125,7 @@ struct MealsPDFChart: View {
         .chartXAxis {
             AxisMarks(preset: .aligned, values: .stride(by: selectedInterval == .day ? .hour : .day)) { value in
                 if let date = value.as(Date.self) {
-                    let calendar = Calendar.current
-
-                    switch selectedInterval {
-                    case .day:
-                        let hour = calendar.component(.hour, from: date)
-                        if hour % 6 == 0 {
-                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
-                                .font(.caption2)
-                            AxisGridLine()
-                        }
-                    case .month:
-                        let weekday = calendar.component(.weekday, from: date)
-                        if weekday == calendar.firstWeekday {
-                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
-                                .font(.caption2)
-                            AxisGridLine()
-                        }
-                    case .total:
-                        let day = calendar.component(.day, from: date)
-                        if day == 1 {
-                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
-                                .font(.caption2)
-                            AxisGridLine()
-                        }
-                    default:
-                        AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
-                            .font(.caption2)
-                        AxisGridLine()
-                    }
+                    StatChartUtils.axisMarkContent(for: date, selectedInterval: selectedInterval, font: .caption2)
                 }
             }
         }

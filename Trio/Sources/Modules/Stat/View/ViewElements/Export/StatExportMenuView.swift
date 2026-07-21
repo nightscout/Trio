@@ -381,116 +381,16 @@ struct StatExportMenuView: View {
             formatter.dateFormat = "yyyyMMdd_HHmmss"
             let fileName = "Trio-Statistics-\(formatter.string(from: Date()))"
 
-            @MainActor func page(
-                dataTypeDisplayName: String,
-                chartTypeDisplayName: String,
-                @ViewBuilder content: () -> some View
-            ) -> some View {
-                StatPDFPage(
-                    reportName: trimmedReportName,
-                    dataTypeDisplayName: dataTypeDisplayName,
-                    chartTypeDisplayName: chartTypeDisplayName,
-                    rangeDisplayName: selectedRange.exportDisplayName,
-                    periodStart: periodStart,
-                    periodEnd: periodEnd,
-                    generatedAt: Date(),
-                    reportMetadata: reportMetadata,
-                    content: content
-                )
-            }
-
-            @MainActor func buildPage(for chartType: ReportChartType) async -> AnyView {
-                let dataTypeDisplayName = chartType.dataType.displayName
-                let chartTypeDisplayName = chartType.displayName
-
-                switch chartType {
-                case .glucoseDistributionByTime:
-                    let data = await state.prepareGlucoseDistributionExportData(for: widenedInterval)
-                    return AnyView(page(dataTypeDisplayName: dataTypeDisplayName, chartTypeDisplayName: chartTypeDisplayName) {
-                        GlucoseDistributionPDFContent(
-                            glucose: data.glucose,
-                            glucoseRangeStats: data.rangeStats,
-                            highLimit: state.highLimit,
-                            lowLimit: state.lowLimit,
-                            units: state.units,
-                            eA1cDisplayUnit: state.eA1cDisplayUnit,
-                            timeInRangeType: state.timeInRangeType
-                        )
-                    })
-
-                case .glucosePercentileByTime:
-                    let data = await state.preparePercentileExportData(for: widenedInterval)
-                    return AnyView(page(dataTypeDisplayName: dataTypeDisplayName, chartTypeDisplayName: chartTypeDisplayName) {
-                        GlucosePercentilePDFContent(
-                            glucose: data.glucose,
-                            highLimit: state.highLimit,
-                            timeInRangeType: state.timeInRangeType,
-                            units: state.units,
-                            hourlyStats: data.hourlyStats
-                        )
-                    })
-
-                case .glucosePercentileByDay:
-                    let data = await state.prepareGlucosePercentileByDayExportData(for: selectedRange)
-                    return AnyView(page(dataTypeDisplayName: dataTypeDisplayName, chartTypeDisplayName: chartTypeDisplayName) {
-                        GlucosePercentileByDayPDFChart(
-                            dailyStats: data.dailyStats,
-                            highLimit: state.highLimit,
-                            units: state.units,
-                            timeInRangeType: state.timeInRangeType,
-                            selectedInterval: selectedRange
-                        )
-                    })
-
-                case .glucoseDistributionByDay:
-                    let data = await state.prepareGlucoseDistributionByDayExportData(for: selectedRange)
-                    return AnyView(page(dataTypeDisplayName: dataTypeDisplayName, chartTypeDisplayName: chartTypeDisplayName) {
-                        GlucoseDistributionByDayPDFChart(
-                            dailyStats: data.dailyStats,
-                            highLimit: state.highLimit,
-                            units: state.units,
-                            timeInRangeType: state.timeInRangeType,
-                            selectedInterval: selectedRange
-                        )
-                    })
-
-                case .insulinTotalDailyDose:
-                    let data = state.prepareTDDExportData(for: selectedRange)
-                    return AnyView(page(dataTypeDisplayName: dataTypeDisplayName, chartTypeDisplayName: chartTypeDisplayName) {
-                        InsulinTDDPDFChart(stats: data.stats, selectedInterval: selectedRange)
-                    })
-
-                case .insulinBolusDistribution:
-                    let data = state.prepareBolusExportData(for: selectedRange)
-                    return AnyView(page(dataTypeDisplayName: dataTypeDisplayName, chartTypeDisplayName: chartTypeDisplayName) {
-                        InsulinBolusPDFChart(stats: data.stats, selectedInterval: selectedRange)
-                    })
-
-                case .loopingPerformance:
-                    let data = await state.prepareLoopingExportData(for: widenedInterval)
-                    return AnyView(page(dataTypeDisplayName: dataTypeDisplayName, chartTypeDisplayName: chartTypeDisplayName) {
-                        LoopingPerformancePDFContent(
-                            loopStatRecords: data.loopStatRecords,
-                            selectedInterval: widenedInterval,
-                            loopStats: data.loopStats
-                        )
-                    })
-
-                case .mealsTotalMeals:
-                    let data = state.prepareMealsExportData(for: selectedRange)
-                    return AnyView(page(dataTypeDisplayName: dataTypeDisplayName, chartTypeDisplayName: chartTypeDisplayName) {
-                        MealsPDFChart(
-                            stats: data.stats,
-                            selectedInterval: selectedRange,
-                            useFPUconversion: data.useFPUconversion
-                        )
-                    })
-                }
-            }
-
             var pages: [AnyView] = []
             for item in reportItems {
-                pages.append(await buildPage(for: item))
+                pages.append(await buildPage(
+                    for: item,
+                    widenedInterval: widenedInterval,
+                    trimmedReportName: trimmedReportName,
+                    reportMetadata: reportMetadata,
+                    periodStart: periodStart,
+                    periodEnd: periodEnd
+                ))
             }
 
             do {
@@ -502,6 +402,118 @@ struct StatExportMenuView: View {
                 exportErrorMessage = error.localizedDescription
                 isExporting = false
             }
+        }
+    }
+
+    /// Builds a single PDF page for one report item: fetches/prepares that chart type's data and
+    /// wraps it in the shared `StatPDFPage` header/footer.
+    @MainActor private func buildPage(
+        for chartType: ReportChartType,
+        widenedInterval: Stat.StateModel.StatsTimeIntervalWithToday,
+        trimmedReportName: String,
+        reportMetadata: Stat.StateModel.ReportMetadata,
+        periodStart: Date,
+        periodEnd: Date
+    ) async -> AnyView {
+        let dataTypeDisplayName = chartType.dataType.displayName
+        let chartTypeDisplayName = chartType.displayName
+
+        func page(@ViewBuilder content: () -> some View) -> some View {
+            StatPDFPage(
+                reportName: trimmedReportName,
+                dataTypeDisplayName: dataTypeDisplayName,
+                chartTypeDisplayName: chartTypeDisplayName,
+                rangeDisplayName: selectedRange.exportDisplayName,
+                periodStart: periodStart,
+                periodEnd: periodEnd,
+                generatedAt: Date(),
+                reportMetadata: reportMetadata,
+                content: content
+            )
+        }
+
+        switch chartType {
+        case .glucoseDistributionByTime:
+            let data = await state.prepareGlucoseDistributionExportData(for: widenedInterval)
+            return AnyView(page {
+                GlucoseDistributionPDFContent(
+                    glucose: data.glucose,
+                    glucoseRangeStats: data.rangeStats,
+                    highLimit: state.highLimit,
+                    lowLimit: state.lowLimit,
+                    units: state.units,
+                    eA1cDisplayUnit: state.eA1cDisplayUnit,
+                    timeInRangeType: state.timeInRangeType
+                )
+            })
+
+        case .glucosePercentileByTime:
+            let data = await state.preparePercentileExportData(for: widenedInterval)
+            return AnyView(page {
+                GlucosePercentilePDFContent(
+                    glucose: data.glucose,
+                    highLimit: state.highLimit,
+                    timeInRangeType: state.timeInRangeType,
+                    units: state.units,
+                    hourlyStats: data.hourlyStats
+                )
+            })
+
+        case .glucosePercentileByDay:
+            let data = await state.prepareGlucosePercentileByDayExportData(for: selectedRange)
+            return AnyView(page {
+                GlucosePercentileByDayPDFChart(
+                    dailyStats: data.dailyStats,
+                    highLimit: state.highLimit,
+                    units: state.units,
+                    timeInRangeType: state.timeInRangeType,
+                    selectedInterval: selectedRange
+                )
+            })
+
+        case .glucoseDistributionByDay:
+            let data = await state.prepareGlucoseDistributionByDayExportData(for: selectedRange)
+            return AnyView(page {
+                GlucoseDistributionByDayPDFChart(
+                    dailyStats: data.dailyStats,
+                    highLimit: state.highLimit,
+                    units: state.units,
+                    timeInRangeType: state.timeInRangeType,
+                    selectedInterval: selectedRange
+                )
+            })
+
+        case .insulinTotalDailyDose:
+            let data = state.prepareTDDExportData(for: selectedRange)
+            return AnyView(page {
+                InsulinTDDPDFChart(stats: data.stats, selectedInterval: selectedRange)
+            })
+
+        case .insulinBolusDistribution:
+            let data = state.prepareBolusExportData(for: selectedRange)
+            return AnyView(page {
+                InsulinBolusPDFChart(stats: data.stats, selectedInterval: selectedRange)
+            })
+
+        case .loopingPerformance:
+            let data = await state.prepareLoopingExportData(for: widenedInterval)
+            return AnyView(page {
+                LoopingPerformancePDFContent(
+                    loopStatRecords: data.loopStatRecords,
+                    selectedInterval: widenedInterval,
+                    loopStats: data.loopStats
+                )
+            })
+
+        case .mealsTotalMeals:
+            let data = state.prepareMealsExportData(for: selectedRange)
+            return AnyView(page {
+                MealsPDFChart(
+                    stats: data.stats,
+                    selectedInterval: selectedRange,
+                    useFPUconversion: data.useFPUconversion
+                )
+            })
         }
     }
 }
