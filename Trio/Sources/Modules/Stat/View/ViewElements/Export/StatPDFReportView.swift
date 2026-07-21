@@ -1,22 +1,41 @@
 import SwiftUI
 
-/// The printable A4 page content for the "Glucose Distribution" PDF export.
-/// Reuses the same chart/stat components shown in the on-screen Statistics sheet so the
-/// exported report visually matches the app, but forces light, print-friendly styling.
-struct StatPDFReportView: View {
+/// The shared printable A4 page chrome for every Statistics PDF export: title, report name,
+/// data/chart-type/range subtitle, generation timestamp, hardware/software/settings metadata,
+/// and footer. Callers supply the chart-specific body as `content`, forced to light,
+/// print-friendly styling so the export looks the same regardless of the device's color scheme.
+struct StatPDFPage<Content: View>: View {
     let reportName: String
+    let dataTypeDisplayName: String
+    let chartTypeDisplayName: String
     let rangeDisplayName: String
     let periodStart: Date
     let periodEnd: Date
     let generatedAt: Date
+    let reportMetadata: Stat.StateModel.ReportMetadata
+    let content: Content
 
-    let glucose: [GlucoseStored]
-    let glucoseRangeStats: [GlucoseRangeStats]
-    let highLimit: Decimal
-    let lowLimit: Decimal
-    let units: GlucoseUnits
-    let eA1cDisplayUnit: EstimatedA1cDisplayUnit
-    let timeInRangeType: TimeInRangeType
+    init(
+        reportName: String,
+        dataTypeDisplayName: String,
+        chartTypeDisplayName: String,
+        rangeDisplayName: String,
+        periodStart: Date,
+        periodEnd: Date,
+        generatedAt: Date,
+        reportMetadata: Stat.StateModel.ReportMetadata,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.reportName = reportName
+        self.dataTypeDisplayName = dataTypeDisplayName
+        self.chartTypeDisplayName = chartTypeDisplayName
+        self.rangeDisplayName = rangeDisplayName
+        self.periodStart = periodStart
+        self.periodEnd = periodEnd
+        self.generatedAt = generatedAt
+        self.reportMetadata = reportMetadata
+        self.content = content()
+    }
 
     private let margin: CGFloat = 32
 
@@ -26,34 +45,7 @@ struct StatPDFReportView: View {
 
             Divider()
 
-            GlucoseDistributionChart(
-                glucose: glucose,
-                highLimit: highLimit,
-                lowLimit: lowLimit,
-                units: units,
-                glucoseRangeStats: glucoseRangeStats,
-                timeInRangeType: timeInRangeType
-            )
-
-            Divider()
-
-            VStack(spacing: 16) {
-                GlucoseSectorChart(
-                    highLimit: highLimit,
-                    units: units,
-                    glucose: glucose,
-                    timeInRangeType: timeInRangeType,
-                    showChart: true
-                )
-
-                Divider()
-
-                GlucoseMetricsView(
-                    units: units,
-                    eA1cDisplayUnit: eA1cDisplayUnit,
-                    glucose: glucose
-                )
-            }
+            content
 
             Spacer(minLength: 0)
 
@@ -76,14 +68,48 @@ struct StatPDFReportView: View {
                     .font(.headline)
             }
 
-            Text("Glucose · \(rangeDisplayName) (\(dateRangeText))")
+            Text("\(dataTypeDisplayName) · \(chartTypeDisplayName) · \(rangeDisplayName) (\(dateRangeText))")
                 .font(.subheadline)
                 .foregroundStyle(Color.secondary)
 
             Text("Generated \(generatedAt.formatted(date: .abbreviated, time: .shortened))")
                 .font(.caption)
                 .foregroundStyle(Color.secondary)
+
+            metaInfo
+                .padding(.top, 4)
         }
+    }
+
+    private var metaInfo: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Hardware in use").fontWeight(.semibold).foregroundStyle(Color.black)
+                Text(
+                    "CGM: \(reportMetadata.hardware.cgmName) · Pump: \(reportMetadata.hardware.pumpName) · iPhone: \(reportMetadata.hardware.iPhoneType)"
+                )
+                .foregroundStyle(Color.secondary)
+            }
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Software in use").fontWeight(.semibold).foregroundStyle(Color.black)
+                Text("Trio \(reportMetadata.software.trioVersion) · Build \(reportMetadata.software.buildDate)")
+                    .foregroundStyle(Color.secondary)
+            }
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Important settings").fontWeight(.semibold).foregroundStyle(Color.black)
+                Text(
+                    "Dynamic ISF: \(onOffText(reportMetadata.importantSettings.dynamicISFEnabled)) · SMB: \(onOffText(reportMetadata.importantSettings.smbEnabled)) · UAM: \(onOffText(reportMetadata.importantSettings.uamEnabled)) · Closed Loop: \(onOffText(reportMetadata.importantSettings.closedLoopActive))"
+                )
+                .foregroundStyle(Color.secondary)
+            }
+        }
+        .font(.caption2)
+    }
+
+    private func onOffText(_ enabled: Bool) -> String {
+        enabled ? String(localized: "On") : String(localized: "Off")
     }
 
     private var footer: some View {
