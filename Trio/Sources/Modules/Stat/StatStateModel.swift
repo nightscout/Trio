@@ -7,6 +7,9 @@ import Swinject
 extension Stat {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var settings: SettingsManager!
+        @ObservationIgnored @Injected() var apsManager: APSManager!
+        @ObservationIgnored @Injected() var fetchGlucoseManager: FetchGlucoseManager!
+        @ObservationIgnored @Injected() var storage: FileStorage!
         var highLimit: Decimal = 180
         var lowLimit: Decimal = 70
         var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent
@@ -351,7 +354,7 @@ extension Stat.StateModel {
     }
 
     /// Defines the available time periods for duration-based statistics
-    enum StatsTimeInterval: String, CaseIterable, Identifiable {
+    enum StatsTimeInterval: String, CaseIterable, Identifiable, Codable {
         /// Single day interval
         case day = "D"
         /// Week interval
