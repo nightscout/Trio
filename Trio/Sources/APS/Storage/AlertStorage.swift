@@ -10,6 +10,7 @@ protocol AlertObserver {
 protocol AlertHistoryStorage {
     func addAlert(_ alert: AlertEntry)
     func acknowledgeAlert(_ issuedAt: Date, _ error: String?)
+    func acknowledgeAllEntries(managerIdentifier: String, alertIdentifier: String)
     func removeAlert(identifier: String)
     func unacknowledgedAlertsWithinLast24Hours() -> [AlertEntry]
     func broadcastAlertUpdates()
@@ -129,14 +130,46 @@ final class BaseAlertHistoryStorage: AlertHistoryStorage, Injectable {
         }
     }
 
+    /// Marks every unacknowledged entry matching both identifiers as acknowledged.
+    ///
+    /// Used by the acknowledgement path instead of the issued-date lookup so
+    /// duplicate entries for one identifier (e.g. cold-start replay plus a
+    /// genuine producer re-issue) all clear together.
+    func acknowledgeAllEntries(managerIdentifier: String, alertIdentifier: String) {
+        processQueue.sync {
+            var all = loadAll()
+            var changed = false
+            for idx in all.indices
+                where all[idx].managerIdentifier == managerIdentifier
+                && all[idx].alertIdentifier == alertIdentifier
+                && all[idx].acknowledgedDate == nil
+            {
+                all[idx].acknowledgedDate = Date()
+                changed = true
+            }
+            guard changed else { return }
+
+            let cleaned = pruneAndSort(dedupeByIssuedDate(all))
+            saveAll(cleaned)
+            unacknowledgedAlertsPublisher.send(self.unacknowledgedAlertsWithinLast24HoursOnQueue().isNotEmpty)
+            broadcaster.notify(AlertObserver.self, on: processQueue) {
+                $0.AlertDidUpdate(cleaned)
+            }
+        }
+    }
+
     /// Deletes an alert entry by its identifier and notifies observers.
+    ///
+    /// Only unacknowledged entries match — producer retractions must not
+    /// erase rows the user already acknowledged.
     ///
     /// After persisting, this updates `unacknowledgedAlertsPublisher` and broadcasts the updated list.
     /// - Parameter identifier: The `alertIdentifier` of the entry to delete.
     func removeAlert(identifier: String) {
         processQueue.sync {
             var all = loadAll()
-            guard let idx = all.firstIndex(where: { $0.alertIdentifier == identifier }) else { return }
+            guard let idx = all.firstIndex(where: { $0.alertIdentifier == identifier && $0.acknowledgedDate == nil })
+            else { return }
 
             all.remove(at: idx)
 
