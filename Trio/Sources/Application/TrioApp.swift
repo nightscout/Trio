@@ -365,6 +365,7 @@ extension Notification.Name {
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let rootVC = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController
                 {
+                    rootVC.excludeKeyboardFromSafeAreaTree()
                     AppVersionChecker.shared.checkAndNotifyVersionStatus(in: rootVC)
                 }
                 if initState.complete {
