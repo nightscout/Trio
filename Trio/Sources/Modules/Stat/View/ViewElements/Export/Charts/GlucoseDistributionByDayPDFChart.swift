@@ -35,28 +35,7 @@ struct GlucoseDistributionByDayPDFChart: View {
         .chartXAxis {
             AxisMarks(preset: .aligned, values: .stride(by: .day)) { value in
                 if let date = value.as(Date.self) {
-                    let calendar = Calendar.current
-
-                    switch selectedInterval {
-                    case .month:
-                        let weekday = calendar.component(.weekday, from: date)
-                        if weekday == calendar.firstWeekday {
-                            AxisValueLabel(format: .dateTime.day(), centered: true)
-                                .font(.caption2)
-                            AxisGridLine()
-                        }
-                    case .total:
-                        let day = calendar.component(.day, from: date)
-                        if day == 1 {
-                            AxisValueLabel(format: .dateTime.month(.abbreviated), centered: true)
-                                .font(.caption2)
-                            AxisGridLine()
-                        }
-                    default:
-                        AxisValueLabel(format: .dateTime.weekday(.abbreviated), centered: true)
-                            .font(.caption2)
-                        AxisGridLine()
-                    }
+                    StatChartUtils.axisMarkContent(for: date, selectedInterval: selectedInterval, font: .caption2)
                 }
             }
         }
@@ -77,22 +56,12 @@ struct GlucoseDistributionByDayPDFChart: View {
 
     /// Formats a short string with the glucose values of the requested range.
     private func legend(_ rangeName: String) -> String {
-        switch rangeName {
-        case "veryLow":
-            return "<\(Decimal(54).formatted(for: units))"
-        case "low":
-            return "\(Decimal(54).formatted(for: units))-\(Decimal(timeInRangeType.bottomThreshold - 1).formatted(for: units))"
-        case "inSmallRange":
-            return "\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(Decimal(timeInRangeType.topThreshold).formatted(for: units))"
-        case "inRange":
-            return "\(Decimal(timeInRangeType.topThreshold + 1).formatted(for: units))-\(highLimit.formatted(for: units))"
-        case "high":
-            return "\((highLimit + 1).formatted(for: units))-\(Decimal(250).formatted(for: units))"
-        case "veryHigh":
-            return ">\(Decimal(250).formatted(for: units))"
-        default:
-            return "error"
-        }
+        StatChartUtils.glucoseDistributionRangeLabel(
+            rangeName,
+            highLimit: highLimit,
+            units: units,
+            timeInRangeType: timeInRangeType
+        )
     }
 
     private func barMark(x: GlucoseDailyDistributionStats, y: Double, rangeName: String) -> some ChartContent {

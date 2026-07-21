@@ -98,28 +98,7 @@ struct GlucosePercentileByDayPDFChart: View {
         .chartXAxis {
             AxisMarks(preset: .aligned, values: .stride(by: .day)) { value in
                 if let date = value.as(Date.self) {
-                    let calendar = Calendar.current
-
-                    switch selectedInterval {
-                    case .month:
-                        let weekday = calendar.component(.weekday, from: date)
-                        if weekday == calendar.firstWeekday {
-                            AxisValueLabel(format: .dateTime.day(), centered: true)
-                                .font(.caption2)
-                            AxisGridLine()
-                        }
-                    case .total:
-                        let day = calendar.component(.day, from: date)
-                        if day == 1 {
-                            AxisValueLabel(format: .dateTime.month(.abbreviated), centered: true)
-                                .font(.caption2)
-                            AxisGridLine()
-                        }
-                    default:
-                        AxisValueLabel(format: .dateTime.weekday(.abbreviated), centered: true)
-                            .font(.caption2)
-                        AxisGridLine()
-                    }
+                    StatChartUtils.axisMarkContent(for: date, selectedInterval: selectedInterval, font: .caption2)
                 }
             }
         }
@@ -172,15 +151,6 @@ struct GlucosePercentileByDayPDFChart: View {
     }
 
     private func glucoseYScaleDomain() -> ClosedRange<Double> {
-        let padding = units == .mgdL ? 20.0 : 1.0
-        let bottomLimit = 40.0.asUnit(units)
-        let topLimit = 400.0.asUnit(units)
-
-        let allValues = dailyStats.filter { $0.minimum > 0 }.map { $0.maximum.asUnit(units) }
-        guard let maxValue = allValues.max() else {
-            return bottomLimit ... topLimit
-        }
-
-        return bottomLimit ... max(Double(highLimit.asUnit(units)), maxValue + padding)
+        StatChartUtils.glucosePercentileYScaleDomain(for: dailyStats, highLimit: highLimit, units: units)
     }
 }
