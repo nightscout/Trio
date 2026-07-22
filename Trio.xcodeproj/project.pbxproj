@@ -653,6 +653,7 @@
 		8A1FDB0F8F204562AE279B38 /* StatPDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990CD1DE0254085B2DF1C2A /* StatPDFExporter.swift */; };
 		E01D388D1E0F4EE692AA8F4D /* StatPDFReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E02611957B2F410C8B666FEA /* StatPDFReportView.swift */; };
 		FA42F917796547D98B0D5A6F /* StatExportMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7B93730071F48FBBB14BD54 /* StatExportMenuView.swift */; };
+		FDDF1C3925D8431E8D844F40 /* StatExportMenuInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2B670B626B48F9BB0D5FE0 /* StatExportMenuInfoView.swift */; };
 		0AEE7647C251481C935F78A4 /* GlucosePercentileByDayPDFChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0865B3A9AD5E4C11972DEE8E /* GlucosePercentileByDayPDFChart.swift */; };
 		A03A3B2EFC8F4F82948B6ABC /* GlucoseDistributionByDayPDFChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E30588AFFF04042B9F5AC30 /* GlucoseDistributionByDayPDFChart.swift */; };
 		1B542772CCDD47F2A841798D /* InsulinTDDPDFChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 227961C75B8B4E9793CB4BFA /* InsulinTDDPDFChart.swift */; };
@@ -1895,6 +1896,7 @@
 		E990CD1DE0254085B2DF1C2A /* StatPDFExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatPDFExporter.swift; sourceTree = "<group>"; };
 		E02611957B2F410C8B666FEA /* StatPDFReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatPDFReportView.swift; sourceTree = "<group>"; };
 		E7B93730071F48FBBB14BD54 /* StatExportMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatExportMenuView.swift; sourceTree = "<group>"; };
+		9A2B670B626B48F9BB0D5FE0 /* StatExportMenuInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatExportMenuInfoView.swift; sourceTree = "<group>"; };
 		0865B3A9AD5E4C11972DEE8E /* GlucosePercentileByDayPDFChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucosePercentileByDayPDFChart.swift; sourceTree = "<group>"; };
 		0E30588AFFF04042B9F5AC30 /* GlucoseDistributionByDayPDFChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseDistributionByDayPDFChart.swift; sourceTree = "<group>"; };
 		227961C75B8B4E9793CB4BFA /* InsulinTDDPDFChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsulinTDDPDFChart.swift; sourceTree = "<group>"; };
@@ -5058,6 +5060,7 @@
 				E990CD1DE0254085B2DF1C2A /* StatPDFExporter.swift */,
 				E02611957B2F410C8B666FEA /* StatPDFReportView.swift */,
 				E7B93730071F48FBBB14BD54 /* StatExportMenuView.swift */,
+				9A2B670B626B48F9BB0D5FE0 /* StatExportMenuInfoView.swift */,
 				3BCB1C4B675D4B39BA0DAF8D /* ReportChartType.swift */,
 				B3AE0D2C5D9C4719997B035F /* Charts */,
 			);
@@ -6091,6 +6094,7 @@
 				8A1FDB0F8F204562AE279B38 /* StatPDFExporter.swift in Sources */,
 				E01D388D1E0F4EE692AA8F4D /* StatPDFReportView.swift in Sources */,
 				FA42F917796547D98B0D5A6F /* StatExportMenuView.swift in Sources */,
+				FDDF1C3925D8431E8D844F40 /* StatExportMenuInfoView.swift in Sources */,
 				0AEE7647C251481C935F78A4 /* GlucosePercentileByDayPDFChart.swift in Sources */,
 				A03A3B2EFC8F4F82948B6ABC /* GlucoseDistributionByDayPDFChart.swift in Sources */,
 				1B542772CCDD47F2A841798D /* InsulinTDDPDFChart.swift in Sources */,

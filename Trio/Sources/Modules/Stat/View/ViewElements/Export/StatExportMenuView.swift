@@ -31,6 +31,7 @@ struct StatExportMenuView: View {
     @State private var exportedPDFURL: URL?
     @State private var showShareSheet = false
     @State private var exportErrorMessage: String?
+    @State private var showInfo = false
 
     var body: some View {
         NavigationView {
@@ -83,6 +84,13 @@ struct StatExportMenuView: View {
                             .disabled(reportItems.isEmpty)
                     }
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showInfo = true
+                    } label: {
+                        Image(systemName: "questionmark.circle")
+                    }
+                }
             }
             .alert(
                 "Export Failed",
@@ -114,6 +122,9 @@ struct StatExportMenuView: View {
                 if let exportedPDFURL {
                     ShareSheet(activityItems: [exportedPDFURL])
                 }
+            }
+            .sheet(isPresented: $showInfo) {
+                StatExportMenuInfoView(isPresented: $showInfo)
             }
         }
         .onAppear {
