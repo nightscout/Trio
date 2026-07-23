@@ -175,6 +175,8 @@ _Referring to the table below, tap on each **IDENTIFIER** that has a different *
 
 > If you have previously built Trio as a beta tester (between May 13th, 2024, and today), you will already have an app group (`Loop App Group`) created and configured for your bundle identifiers. In this case, please *do not* skip this section; you are required to create the `Trio App Group` and configure it for your identifiers, as described below.
 
+> While you have the `Trio` identifier open in the steps below, you also need to enable the **Time Sensitive Notifications** capability before saving it - see [Enable Time Sensitive Notifications](#enable-time-sensitive-notifications) below.
+
 1. Go to [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list) on the Apple developer site.
 1. Repeat this step for these three Identifier **NAMES** - refer to the [Table](#table-of-identifiers) above if your Names look different; if they do, see [Optional: Identifier Description Modification](#optional-identifier-description-modification)
     * Trio
@@ -191,6 +193,15 @@ _Referring to the table below, tap on each **IDENTIFIER** that has a different *
 There is an additional identifier, but it does not need the App Group added to it:
 
 * Trio LiveActivity
+
+## Enable Time Sensitive Notifications
+
+The `Trio` identifier requires the **Time Sensitive Notifications** capability to be enabled manually. This is only required for the `Trio` identifier, not the others. You can do this at the same time you add the `Trio App Group` to the `Trio` identifier - just check the box before you Save.
+
+1. Go to [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list) on the Apple developer site.
+1. Click on the `Trio` **IDENTIFIER** row (`org.nightscout.TEAMID.trio`, substituting your team id for `TEAMID`).
+1. Scroll down until you see the "Time Sensitive Notifications" capability, and check its box to enable it.
+1. Click "Save".
 
 ## Create Trio App in App Store Connect
 
