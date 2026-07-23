@@ -2,6 +2,7 @@ import CGMBLEKit
 import Combine
 import Foundation
 import G7SensorKit
+import LibreLoop
 import LibreTransmitter
 import LoopKit
 import LoopKitUI
@@ -278,6 +279,10 @@ extension PluginSource: CGMManagerDelegate {
                 sensorActivatedAt = cgmTransmitterManager.sensorActivatedAt
                 sensorStartDate = cgmTransmitterManager.sensorActivatedAt
                 sensorTransmitterID = cgmTransmitterManager.sensorName
+            } else if let cgmTransmitterManager = cgmManager as? LibreLoopCGMManager {
+                sensorActivatedAt = cgmTransmitterManager.state.activatedAt
+                sensorStartDate = cgmTransmitterManager.state.activatedAt
+                sensorTransmitterID = cgmTransmitterManager.state.sensorSerial
             }
 
             let bloodGlucose = values.compactMap { newGlucoseSample -> BloodGlucose? in

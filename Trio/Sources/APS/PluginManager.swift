@@ -3,6 +3,8 @@ import EversenseKit
 import Foundation
 import G7SensorKit
 import G7SensorKitUI
+import LibreLoop
+import LibreLoopUI
 import LibreTransmitter
 import LibreTransmitterUI
 import LoopKit
@@ -38,14 +40,19 @@ class BasePluginManager: Injectable, PluginManager {
             manager: G7CGMManager.self
         ),
         CgmPluginDescription(
-            pluginIdentifier: LibreTransmitterManagerV3.pluginIdentifier,
-            localizedTitle: String(localized: "FreeStyle Libre"),
-            manager: LibreTransmitterManagerV3.self
-        ),
-        CgmPluginDescription(
             pluginIdentifier: EversenseCGMManager.pluginIdentifier,
             localizedTitle: String(localized: "Eversense"),
             manager: EversenseCGMManager.self
+        ),
+        CgmPluginDescription(
+            pluginIdentifier: LibreTransmitterManagerV3.pluginIdentifier,
+            localizedTitle: String(localized: "FreeStyle Libre 1 / 2 / 2+"),
+            manager: LibreTransmitterManagerV3.self
+        ),
+        CgmPluginDescription(
+            pluginIdentifier: LibreLoopCGMManager.pluginIdentifier,
+            localizedTitle: String(localized: "FreeStyle Libre 3 / 3+"),
+            manager: LibreLoopCGMManager.self
         )
     ]
 

@@ -34,3 +34,12 @@
 [submodule "EversenseKit"]
 	path = EversenseKit
 	url = https://github.com/loopandlearn/EversenseKit
+[submodule "LibreCRKit"]
+	path = LibreCRKit
+	url = https://github.com/loopandlearn/LibreCRKit.git
+[submodule "LibreLoop"]
+	path = LibreLoop
+	url = https://github.com/loopandlearn/LibreLoop.git
+[submodule "LoopAlgorithm"]
+	path = LoopAlgorithm
+	url = https://github.com/loopandlearn/LoopAlgorithm.git

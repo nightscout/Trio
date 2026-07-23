@@ -235,6 +235,10 @@
 		3B4BA7752D8DBD690069D5B8 /* LibreTransmitter.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7602D8DBD690069D5B8 /* LibreTransmitter.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3B4BA7762D8DBD690069D5B8 /* LibreTransmitterUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7612D8DBD690069D5B8 /* LibreTransmitterUI.framework */; };
 		3B4BA7772D8DBD690069D5B8 /* LibreTransmitterUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7612D8DBD690069D5B8 /* LibreTransmitterUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5E12FE0E2EBC0000000000B1 /* LibreLoop.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E12FE0E2EBC0000000000A1 /* LibreLoop.framework */; };
+		5E12FE0E2EBC0000000000C1 /* LibreLoop.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5E12FE0E2EBC0000000000A1 /* LibreLoop.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5E12FE0E2EBC0000000000B2 /* LibreLoopUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E12FE0E2EBC0000000000A2 /* LibreLoopUI.framework */; };
+		5E12FE0E2EBC0000000000C2 /* LibreLoopUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5E12FE0E2EBC0000000000A2 /* LibreLoopUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3B4BA7782D8DBD690069D5B8 /* MinimedKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7622D8DBD690069D5B8 /* MinimedKit.framework */; };
 		3B4BA7792D8DBD690069D5B8 /* MinimedKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7622D8DBD690069D5B8 /* MinimedKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3B4BA77A2D8DBD690069D5B8 /* MinimedKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7632D8DBD690069D5B8 /* MinimedKitUI.framework */; };
@@ -296,6 +300,8 @@
 		3BCE75B52D4B391F009E9453 /* Decimal+rounding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */; };
 		3BD6CE262DC24CFD00FA0472 /* pumphistory-24h-zoned.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BD6CE252DC24CFD00FA0472 /* pumphistory-24h-zoned.json */; };
 		3BD9687C2D8DDD4600899469 /* SlideButton in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687B2D8DDD4600899469 /* SlideButton */; };
+		5E12FE112EBC0000000000A2 /* LoopAlgorithm in Frameworks */ = {isa = PBXBuildFile; productRef = 5E12FE112EBC0000000000A1 /* LoopAlgorithm */; };
+		5E12FE112EBC0000000000B2 /* LibreCRKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5E12FE112EBC0000000000B1 /* LibreCRKit */; };
 		3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687E2D8DDD8800899469 /* CryptoSwift */; };
 		3BE2F1E82E030E2F009E2900 /* MealCobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE2F1E72E030E2F009E2900 /* MealCobTests.swift */; };
 		3BE2F1EA2E031951009E2900 /* MealCobBucketingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE2F1E92E031951009E2900 /* MealCobBucketingTests.swift */; };
@@ -976,6 +982,8 @@
 				3B4BA7852D8DBD690069D5B8 /* RileyLinkKit.framework in Embed Frameworks */,
 				3B4BA7752D8DBD690069D5B8 /* LibreTransmitter.framework in Embed Frameworks */,
 				3B4BA7772D8DBD690069D5B8 /* LibreTransmitterUI.framework in Embed Frameworks */,
+				5E12FE0E2EBC0000000000C1 /* LibreLoop.framework in Embed Frameworks */,
+				5E12FE0E2EBC0000000000C2 /* LibreLoopUI.framework in Embed Frameworks */,
 				3B4BA77B2D8DBD690069D5B8 /* MinimedKitUI.framework in Embed Frameworks */,
 				3B4BA7832D8DBD690069D5B8 /* RileyLinkBLEKit.framework in Embed Frameworks */,
 				CE95BF642BA771BE00DC3DE3 /* LoopTestingKit.framework in Embed Frameworks */,
@@ -1262,6 +1270,8 @@
 		3B4BA75F2D8DBD690069D5B8 /* G7SensorKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = G7SensorKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7602D8DBD690069D5B8 /* LibreTransmitter.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LibreTransmitter.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7612D8DBD690069D5B8 /* LibreTransmitterUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LibreTransmitterUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5E12FE0E2EBC0000000000A1 /* LibreLoop.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LibreLoop.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5E12FE0E2EBC0000000000A2 /* LibreLoopUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LibreLoopUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7622D8DBD690069D5B8 /* MinimedKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MinimedKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7632D8DBD690069D5B8 /* MinimedKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MinimedKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7672D8DBD690069D5B8 /* RileyLinkBLEKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RileyLinkBLEKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1941,9 +1951,13 @@
 				CE95BF632BA771BE00DC3DE3 /* LoopTestingKit.framework in Frameworks */,
 				3B4BA7722D8DBD690069D5B8 /* G7SensorKitUI.framework in Frameworks */,
 				3B4BA7742D8DBD690069D5B8 /* LibreTransmitter.framework in Frameworks */,
+				5E12FE0E2EBC0000000000B1 /* LibreLoop.framework in Frameworks */,
+				5E12FE0E2EBC0000000000B2 /* LibreLoopUI.framework in Frameworks */,
 				3B4BA78C2D8DC0EC0069D5B8 /* ShareClientUI.framework in Frameworks */,
 				3B4BA77A2D8DBD690069D5B8 /* MinimedKitUI.framework in Frameworks */,
 				3BD9687C2D8DDD4600899469 /* SlideButton in Frameworks */,
+				5E12FE112EBC0000000000A2 /* LoopAlgorithm in Frameworks */,
+				5E12FE112EBC0000000000B2 /* LibreCRKit in Frameworks */,
 				3B4BA7782D8DBD690069D5B8 /* MinimedKit.framework in Frameworks */,
 				3B4BA7762D8DBD690069D5B8 /* LibreTransmitterUI.framework in Frameworks */,
 				3E54EF2C2E476DA40006F54D /* MedtrumKit.framework in Frameworks */,
@@ -2576,6 +2590,8 @@
 				3B4BA75F2D8DBD690069D5B8 /* G7SensorKitUI.framework */,
 				3B4BA7602D8DBD690069D5B8 /* LibreTransmitter.framework */,
 				3B4BA7612D8DBD690069D5B8 /* LibreTransmitterUI.framework */,
+				5E12FE0E2EBC0000000000A1 /* LibreLoop.framework */,
+				5E12FE0E2EBC0000000000A2 /* LibreLoopUI.framework */,
 				3B4BA7622D8DBD690069D5B8 /* MinimedKit.framework */,
 				3B4BA7632D8DBD690069D5B8 /* MinimedKitUI.framework */,
 				3B4BA7672D8DBD690069D5B8 /* RileyLinkBLEKit.framework */,
@@ -4585,6 +4601,8 @@
 				3B47C60F2DA0A28F00B0E5EF /* FirebaseCrashlytics */,
 				DD17A0282E3FE0BD008E1BF0 /* SwiftJWT */,
 				3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */,
+				5E12FE112EBC0000000000A1 /* LoopAlgorithm */,
+				5E12FE112EBC0000000000B1 /* LibreCRKit */,
 			);
 			productName = Trio;
 			productReference = 388E595825AD948C0019842D /* Trio.app */;
@@ -4762,6 +4780,8 @@
 				3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				DD868FD92E381E1C005D3308 /* XCRemoteSwiftPackageReference "Swift-JWT" */,
 				3E28F2A92EB5337F00FB9EEB /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */,
+				5E12FE112EBC0000000000A0 /* XCLocalSwiftPackageReference "LoopAlgorithm" */,
+				5E12FE112EBC0000000000B0 /* XCLocalSwiftPackageReference "LibreCRKit" */,
 			);
 			productRefGroup = 388E595925AD948C0019842D /* Products */;
 			projectDirPath = "";
@@ -6480,6 +6500,17 @@
 		};
 /* End XCRemoteSwiftPackageReference section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		5E12FE112EBC0000000000A0 /* XCLocalSwiftPackageReference "LoopAlgorithm" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = LoopAlgorithm;
+		};
+		5E12FE112EBC0000000000B0 /* XCLocalSwiftPackageReference "LibreCRKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = LibreCRKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		3811DE0F25C9D37700A708ED /* Swinject */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -6530,6 +6561,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DD868FD92E381E1C005D3308 /* XCRemoteSwiftPackageReference "Swift-JWT" */;
 			productName = SwiftJWT;
+		};
+		5E12FE112EBC0000000000A1 /* LoopAlgorithm */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5E12FE112EBC0000000000A0 /* XCLocalSwiftPackageReference "LoopAlgorithm" */;
+			productName = LoopAlgorithm;
+		};
+		5E12FE112EBC0000000000B1 /* LibreCRKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5E12FE112EBC0000000000B0 /* XCLocalSwiftPackageReference "LibreCRKit" */;
+			productName = LibreCRKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 
