@@ -111,7 +111,7 @@ struct GlucoseSectorChart: View {
                             Text("> \(Decimal(220).formatted(for: units))").font(.subheadline)
                                 .foregroundStyle(Color.secondary)
                             Text(formatPercentage(moderatelyHighPercentage, tight: true))
-                                .foregroundStyle(Color.dynamicIndigo)
+                                .foregroundStyle(Color.dynamicBlue)
                         }
 
                         VStack(alignment: .leading, spacing: 5) {
