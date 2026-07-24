@@ -122,8 +122,9 @@ extension Home {
         var shouldRunDeleteOnSettingsChange = true
 
         var showCarbsRequiredBadge: Bool = true
-        var enableQuickBolus: Bool = false
-        var quickBolusHistory: [Decimal] = []
+        var enableQuickPickTreatments: Bool = false
+        var quickPickBolusSuggestions: [Decimal] = []
+        var quickPickCarbSuggestions: [Decimal] = []
         private(set) var setupPumpType: PumpConfig.PumpType = .minimed
         var minForecast: [Int] = []
         var maxForecast: [Int] = []
@@ -649,7 +650,7 @@ extension Home {
             bolusDisplayThreshold = settingsManager.settings.bolusDisplayThreshold
             thresholdLines = settingsManager.settings.rulerMarks
             showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
-            enableQuickBolus = settingsManager.settings.enableQuickBolus
+            enableQuickPickTreatments = settingsManager.settings.enableQuickPickTreatments
             forecastDisplayType = settingsManager.settings.forecastDisplayType
             isExerciseModeActive = settingsManager.preferences.exerciseMode
             highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
@@ -703,100 +704,6 @@ extension Home {
                     displayName: settingsManager.settings.cgm.displayName,
                     subtitle: settingsManager.settings.cgm.subtitle
                 )
-            }
-        }
-
-        func loadQuickBolusSuggestions() async {
-            guard enableQuickBolus else { return }
-
-            let fetchContext = CoreDataStack.shared.newTaskContext()
-            let cutoff = Calendar.current.date(byAdding: .day, value: -90, to: Date()) ?? Date()
-            let predicate = NSPredicate(
-                format: "isSMB == false AND isExternal == false AND pumpEvent.timestamp >= %@",
-                cutoff as NSDate
-            )
-            do {
-                let results: Any = try await CoreDataStack.shared.fetchEntitiesAsync(
-                    ofType: BolusStored.self,
-                    onContext: fetchContext,
-                    predicate: predicate,
-                    key: "pumpEvent.timestamp",
-                    ascending: false,
-                    batchSize: 100
-                )
-
-                let suggestions: [Decimal] = await fetchContext.perform {
-                    guard let boluses = results as? [BolusStored] else { return [] }
-
-                    let now = Date()
-                    let cal = Calendar.current
-                    let nowMinute = cal.component(.hour, from: now) * 60 + cal.component(.minute, from: now)
-                    let nowDOW = cal.component(.weekday, from: now)
-                    let sigma: Double = 60.0
-                    let halfLife: Double = 10.0
-
-                    var groups: [Decimal: Double] = [:]
-                    for bolus in boluses {
-                        guard let nsAmount = bolus.amount, nsAmount.doubleValue > 0,
-                              let timestamp = bolus.pumpEvent?.timestamp else { continue }
-
-                        var roundedKey = Decimal()
-                        var tempAmount = nsAmount as Decimal
-                        NSDecimalRound(&roundedKey, &tempAmount, 2, .plain)
-
-                        let entryMinute = cal.component(.hour, from: timestamp) * 60 + cal.component(.minute, from: timestamp)
-                        let entryDOW = cal.component(.weekday, from: timestamp)
-
-                        let diff = abs(entryMinute - nowMinute)
-                        let circularDiff = Double(min(diff, 1440 - diff))
-                        let t = exp(-(circularDiff * circularDiff) / (2.0 * sigma * sigma))
-
-                        let d: Double
-                        if entryDOW == nowDOW {
-                            d = 1.0
-                        } else {
-                            let nowWeekend = nowDOW == 1 || nowDOW == 7
-                            let entryWeekend = entryDOW == 1 || entryDOW == 7
-                            d = nowWeekend == entryWeekend ? 0.7 : 0.15
-                        }
-
-                        let daysAgo = now.timeIntervalSince(timestamp) / 86400.0
-                        let r = pow(0.5, daysAgo / halfLife)
-
-                        groups[roundedKey, default: 0] += t * d * r
-                    }
-
-                    return groups
-                        .filter { $0.value >= 0.1 }
-                        .sorted { $0.value > $1.value }
-                        .prefix(5)
-                        .map(\.key)
-                }
-
-                await MainActor.run {
-                    quickBolusHistory = suggestions
-                }
-            } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch quick bolus history: \(error)")
-            }
-        }
-
-        func enactQuickBolus(amount: Decimal) async -> Bool {
-            guard amount > 0 else { return false }
-            let delivery = min(
-                Double(truncating: amount as NSDecimalNumber),
-                pumpInitialSettings.maxBolusUnits
-            )
-            do {
-                let authenticated = try await unlockmanager.unlock()
-                if authenticated {
-                    await apsManager.enactBolus(amount: delivery, isSMB: false, callback: nil)
-                    return true
-                }
-                return false
-            } catch {
-                debug(.bolusState, "Quick bolus authentication error: \(error)")
-                return false
             }
         }
 
@@ -1070,7 +977,7 @@ extension Home.StateModel:
         thresholdLines = settingsManager.settings.rulerMarks
         bolusDisplayThreshold = settingsManager.settings.bolusDisplayThreshold
         showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
-        enableQuickBolus = settingsManager.settings.enableQuickBolus
+        enableQuickPickTreatments = settingsManager.settings.enableQuickPickTreatments
         forecastDisplayType = settingsManager.settings.forecastDisplayType
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()
