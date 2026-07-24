@@ -146,12 +146,12 @@ struct GlucoseDailyDistributionChart: View {
             }
         }
         .chartForegroundStyleScale([
-            legend("veryLow"): .purple,
-            legend("low"): .red,
-            legend("inSmallRange"): .green,
-            legend("inRange"): .darkGreen,
-            legend("high"): .loopYellow,
-            legend("veryHigh"): .orange
+            legend("veryLow"): Color.dynamicRed,
+            legend("low"): Color.dynamicOrange,
+            legend("inSmallRange"): Color.dynamicGreen,
+            legend("inRange"): Color.dynamicTeal,
+            legend("high"): Color.dynamicBlue,
+            legend("veryHigh"): Color.dynamicPurple
         ])
         .chartXSelection(value: $selectedDate.animation(.easeInOut))
         .onChange(of: selectedDate) { _, newValue in
