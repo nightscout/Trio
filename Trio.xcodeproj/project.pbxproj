@@ -786,6 +786,11 @@
 		DD88C8E22C50420800F2D558 /* DefinitionRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD88C8E12C50420800F2D558 /* DefinitionRow.swift */; };
 		DD906BF42EA6AA0100262772 /* NightscoutUploadPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD906BF32EA6AA0100262772 /* NightscoutUploadPipeline.swift */; };
 		B63C9D934FC54853BC4EF29A /* NightscoutUploadSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10E61A0885164081B57C357C /* NightscoutUploadSerializer.swift */; };
+		5CACC0DE000000000000B001 /* UploadSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CACC0DE000000000000F001 /* UploadSerializer.swift */; };
+		5CACC0DE000000000000B002 /* UploadTriggerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CACC0DE000000000000F002 /* UploadTriggerController.swift */; };
+		5CACC0DE000000000000B003 /* UploadFlagMarker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CACC0DE000000000000F003 /* UploadFlagMarker.swift */; };
+		5CACC0DE000000000000B004 /* CoreDataStack+PendingUploads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CACC0DE000000000000F004 /* CoreDataStack+PendingUploads.swift */; };
+		5CACC0DE000000000000B005 /* UploadSerializerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CACC0DE000000000000F005 /* UploadSerializerTests.swift */; };
 		DD906BF62EA6AAE900262772 /* BaseNightscoutManager+Subscribers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD906BF52EA6AAE900262772 /* BaseNightscoutManager+Subscribers.swift */; };
 		DD940BAA2CA7585D000830A5 /* GlucoseColorScheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD940BA92CA7585D000830A5 /* GlucoseColorScheme.swift */; };
 		DD940BAC2CA75889000830A5 /* DynamicGlucoseColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD940BAB2CA75889000830A5 /* DynamicGlucoseColor.swift */; };
@@ -1800,6 +1805,11 @@
 		DD88C8E12C50420800F2D558 /* DefinitionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefinitionRow.swift; sourceTree = "<group>"; };
 		DD906BF32EA6AA0100262772 /* NightscoutUploadPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutUploadPipeline.swift; sourceTree = "<group>"; };
 		10E61A0885164081B57C357C /* NightscoutUploadSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutUploadSerializer.swift; sourceTree = "<group>"; };
+		5CACC0DE000000000000F001 /* UploadSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadSerializer.swift; sourceTree = "<group>"; };
+		5CACC0DE000000000000F002 /* UploadTriggerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadTriggerController.swift; sourceTree = "<group>"; };
+		5CACC0DE000000000000F003 /* UploadFlagMarker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadFlagMarker.swift; sourceTree = "<group>"; };
+		5CACC0DE000000000000F004 /* CoreDataStack+PendingUploads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreDataStack+PendingUploads.swift"; sourceTree = "<group>"; };
+		5CACC0DE000000000000F005 /* UploadSerializerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadSerializerTests.swift; sourceTree = "<group>"; };
 		DD906BF52EA6AAE900262772 /* BaseNightscoutManager+Subscribers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BaseNightscoutManager+Subscribers.swift"; sourceTree = "<group>"; };
 		DD940BA92CA7585D000830A5 /* GlucoseColorScheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseColorScheme.swift; sourceTree = "<group>"; };
 		DD940BAB2CA75889000830A5 /* DynamicGlucoseColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicGlucoseColor.swift; sourceTree = "<group>"; };
@@ -2433,6 +2443,7 @@
 				DD9ECB662CA99EFE00AA7C45 /* RemoteControl */,
 				38AEE75025F021F10013F05B /* SettingsManager */,
 				3811DE9825C9D88300A708ED /* Storage */,
+				5CACC0DE000000000000A001 /* Sync */,
 				DD7E1E30000000000000000A /* Telemetry */,
 				3811DEA525C9D88300A708ED /* UnlockManager */,
 				38E87406274F9AA500975559 /* UserNotifications */,
@@ -3023,6 +3034,7 @@
 				B3919BBB515547118D684CA2 /* SettingsSearchTests.swift */,
 				BD8FC0532D66186000B95AED /* TestError.swift */,
 				C39FF1EC12CF4B1EBB13BE26 /* NightscoutUploadSerializerTests.swift */,
+				5CACC0DE000000000000F005 /* UploadSerializerTests.swift */,
 				BD8FC0702D661B0000B95AED /* TidepoolTherapySettingsTests.swift */,
 				CA03000000000000000010C1 /* AlertCatalogRegistryOmniFaultTests.swift */,
 			);
@@ -4283,6 +4295,17 @@
 			path = Nightscout;
 			sourceTree = "<group>";
 		};
+		5CACC0DE000000000000A001 /* Sync */ = {
+			isa = PBXGroup;
+			children = (
+				5CACC0DE000000000000F004 /* CoreDataStack+PendingUploads.swift */,
+				5CACC0DE000000000000F003 /* UploadFlagMarker.swift */,
+				5CACC0DE000000000000F001 /* UploadSerializer.swift */,
+				5CACC0DE000000000000F002 /* UploadTriggerController.swift */,
+			);
+			path = Sync;
+			sourceTree = "<group>";
+		};
 		DDCAE9772D79F98600B1BB51 /* Looping */ = {
 			isa = PBXGroup;
 			children = (
@@ -4941,6 +4964,10 @@
 				BDF530D82B40F8AC002CAF43 /* LockScreenView.swift in Sources */,
 				195D80B72AF697B800D25097 /* DynamicSettingsDataFlow.swift in Sources */,
 				DD98ACC02D71013200C0778F /* StatChartUtils.swift in Sources */,
+				5CACC0DE000000000000B001 /* UploadSerializer.swift in Sources */,
+				5CACC0DE000000000000B002 /* UploadTriggerController.swift in Sources */,
+				5CACC0DE000000000000B003 /* UploadFlagMarker.swift in Sources */,
+				5CACC0DE000000000000B004 /* CoreDataStack+PendingUploads.swift in Sources */,
 				BD47FDD92D8B657D0043966B /* InsulinSensitivityStepView.swift in Sources */,
 				3862CC2E2743F9F700BF832C /* CalendarManager.swift in Sources */,
 				38B4F3C325E2A20B00E76A18 /* PumpSetupView.swift in Sources */,
@@ -5662,6 +5689,7 @@
 				DDDD10B12F4E22C000F9C645 /* PumpHistoryNativeConversionTests.swift in Sources */,
 				CEE9A65E2BBC9F6500EB5194 /* CalibrationsTests.swift in Sources */,
 				CA02000000000000000010C2 /* DeliveryLimitsSyncTests.swift in Sources */,
+				5CACC0DE000000000000B005 /* UploadSerializerTests.swift in Sources */,
 				BD8FC0622D6619E600B95AED /* OverrideStorageTests.swift in Sources */,
 				BD8FC0592D66189700B95AED /* TestAssembly.swift in Sources */,
 				DDC6CA6D2DD90A2A0060EE25 /* LocalizationTests.swift in Sources */,

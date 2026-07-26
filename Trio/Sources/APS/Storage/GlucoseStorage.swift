@@ -545,42 +545,34 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         let context = makeContext()
         context.name = "getGlucoseNotYetUploadedToNightscout"
 
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+        return try await CoreDataStack.shared.fetchPendingUploads(
             ofType: GlucoseStored.self,
             onContext: context,
             predicate: NSPredicate.glucoseNotYetUploadedToNightscout,
             key: "date",
             ascending: false
-        )
-
-        return try await context.perform {
-            guard let fetchedResults = results as? [GlucoseStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            return fetchedResults.map { result in
-                if result.isManual {
-                    BloodGlucose(
-                        id: result.id?.uuidString ?? UUID().uuidString,
-                        mbg: Int(result.glucose),
-                        date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
-                        dateString: result.date ?? Date(),
-                        type: "mbg"
-                    )
-                } else {
-                    BloodGlucose(
-                        id: result.id?.uuidString ?? UUID().uuidString,
-                        sgv: Int(result.glucose),
-                        direction: BloodGlucose.Direction(from: result.direction ?? ""),
-                        date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
-                        dateString: result.date ?? Date(),
-                        unfiltered: Decimal(result.glucose),
-                        filtered: Decimal(result.glucose),
-                        noise: nil,
-                        glucose: Int(result.glucose),
-                        type: "sgv"
-                    )
-                }
+        ) { result in
+            if result.isManual {
+                BloodGlucose(
+                    id: result.id?.uuidString ?? UUID().uuidString,
+                    mbg: Int(result.glucose),
+                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                    dateString: result.date ?? Date(),
+                    type: "mbg"
+                )
+            } else {
+                BloodGlucose(
+                    id: result.id?.uuidString ?? UUID().uuidString,
+                    sgv: Int(result.glucose),
+                    direction: BloodGlucose.Direction(from: result.direction ?? ""),
+                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                    dateString: result.date ?? Date(),
+                    unfiltered: Decimal(result.glucose),
+                    filtered: Decimal(result.glucose),
+                    noise: nil,
+                    glucose: Int(result.glucose),
+                    type: "sgv"
+                )
             }
         }
     }

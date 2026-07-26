@@ -469,82 +469,68 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     func getCarbsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
         let context = makeContext()
         context.name = "getCarbsNotYetUploadedToNightscout"
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+
+        return try await CoreDataStack.shared.fetchPendingUploads(
             ofType: CarbEntryStored.self,
             onContext: context,
             predicate: NSPredicate.carbsNotYetUploadedToNightscout,
             key: "date",
             ascending: false
-        )
-
-        return try await context.perform {
-            guard let carbEntries = results as? [CarbEntryStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            return carbEntries.map { result in
-                NightscoutTreatment(
-                    duration: nil,
-                    rawDuration: nil,
-                    rawRate: nil,
-                    absolute: nil,
-                    rate: nil,
-                    eventType: .nsCarbCorrection,
-                    createdAt: result.date,
-                    enteredBy: CarbsEntry.local,
-                    bolus: nil,
-                    insulin: nil,
-                    notes: result.note,
-                    carbs: Decimal(result.carbs),
-                    fat: Decimal(result.fat),
-                    protein: Decimal(result.protein),
-                    foodType: result.note,
-                    targetTop: nil,
-                    targetBottom: nil,
-                    id: result.id?.uuidString
-                )
-            }
+        ) { result in
+            NightscoutTreatment(
+                duration: nil,
+                rawDuration: nil,
+                rawRate: nil,
+                absolute: nil,
+                rate: nil,
+                eventType: .nsCarbCorrection,
+                createdAt: result.date,
+                enteredBy: CarbsEntry.local,
+                bolus: nil,
+                insulin: nil,
+                notes: result.note,
+                carbs: Decimal(result.carbs),
+                fat: Decimal(result.fat),
+                protein: Decimal(result.protein),
+                foodType: result.note,
+                targetTop: nil,
+                targetBottom: nil,
+                id: result.id?.uuidString
+            )
         }
     }
 
     func getFPUsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
         let context = makeContext()
         context.name = "getFPUsNotYetUploadedToNightscout"
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+
+        return try await CoreDataStack.shared.fetchPendingUploads(
             ofType: CarbEntryStored.self,
             onContext: context,
             predicate: NSPredicate.fpusNotYetUploadedToNightscout,
             key: "date",
             ascending: false
-        )
-
-        return try await context.perform {
-            guard let fpuEntries = results as? [CarbEntryStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            return fpuEntries.map { result in
-                NightscoutTreatment(
-                    duration: nil,
-                    rawDuration: nil,
-                    rawRate: nil,
-                    absolute: nil,
-                    rate: nil,
-                    eventType: .nsCarbCorrection,
-                    createdAt: result.date,
-                    enteredBy: CarbsEntry.local,
-                    bolus: nil,
-                    insulin: nil,
-                    notes: result.note,
-                    carbs: Decimal(result.carbs),
-                    fat: Decimal(result.fat),
-                    protein: Decimal(result.protein),
-                    foodType: result.note,
-                    targetTop: nil,
-                    targetBottom: nil,
-                    id: result.fpuID?.uuidString
-                )
-            }
+        ) { result in
+            NightscoutTreatment(
+                duration: nil,
+                rawDuration: nil,
+                rawRate: nil,
+                absolute: nil,
+                rate: nil,
+                eventType: .nsCarbCorrection,
+                createdAt: result.date,
+                enteredBy: CarbsEntry.local,
+                bolus: nil,
+                insulin: nil,
+                notes: result.note,
+                carbs: Decimal(result.carbs),
+                fat: Decimal(result.fat),
+                protein: Decimal(result.protein),
+                foodType: result.note,
+                targetTop: nil,
+                targetBottom: nil,
+                id: result.fpuID?.uuidString
+            )
         }
     }
 
