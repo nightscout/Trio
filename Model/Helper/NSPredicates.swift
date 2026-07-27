@@ -10,6 +10,12 @@ extension Date {
         Calendar.current.date(byAdding: .minute, value: -1440, to: Date())!
     }
 
+    /// 34 hours ago — matches the window AndroidAPS feeds its glucose smoother (24h + 10h "max DIA",
+    /// see LoadBgDataWorker). Used by the Adaptive Smoothing fetch so Trio smooths the same period.
+    static var thirtyFourHoursAgo: Date {
+        Calendar.current.date(byAdding: .hour, value: -34, to: Date())!
+    }
+
     static var oneDayAgo: Date {
         Calendar.current.date(byAdding: .day, value: -1, to: Date())!
     }
@@ -58,6 +64,12 @@ extension NSPredicate {
 
     static var predicateForOneDayAgoInMinutes: NSPredicate {
         let date = Date.oneDayAgoInMinutes
+        return NSPredicate(format: "date >= %@", date as NSDate)
+    }
+
+    /// 34-hour window for the Adaptive Smoothing fetch (matches AndroidAPS's smoother input period).
+    static var predicateForThirtyFourHoursAgo: NSPredicate {
+        let date = Date.thirtyFourHoursAgo
         return NSPredicate(format: "date >= %@", date as NSDate)
     }
 

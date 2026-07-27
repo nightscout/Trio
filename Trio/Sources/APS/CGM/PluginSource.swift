@@ -186,6 +186,9 @@ extension PluginSource: CGMManagerDelegate {
 
                 if event.type == .sensorStart {
                     self.glucoseManager?.removeCalibrations()
+                    // Reset the Adaptive Smoothing learned state on a new sensor (parity with AAPS,
+                    // which resets on a SENSOR_CHANGE therapy event).
+                    BaseFetchGlucoseManager.notifySensorChange()
                 }
             }
         }
