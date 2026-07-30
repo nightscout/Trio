@@ -61,6 +61,10 @@ let package = Package(
         .target(
             name: "Trio",
             path: "Sources",
+            // An explicit `sources:` list restricts compilation only — SwiftPM
+            // still auto-discovers resources anywhere under `path`. Keep the
+            // app's localizations out; the algorithm reads no strings.
+            exclude: ["Localizations"],
             sources: [
                 "APS/OpenAPSSwift",
                 "APS/Extensions/DecimalExtensions.swift"
