@@ -130,6 +130,12 @@
             "state" : "needs_review",
             "value" : "Trio"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trio"
+          }
         }
       }
     },
@@ -260,6 +266,12 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "needs_review",
+            "value" : "Trio"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "Trio"
           }
         }
@@ -394,6 +406,12 @@
             "state" : "translated",
             "value" : "NFC 用於掃描 Libre 傳感器。"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC 用于扫描 Libre 传感器。"
+          }
         }
       }
     },
@@ -525,6 +543,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "藍牙用於與胰島素幫浦及連續血糖監測裝置通訊"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蓝牙用于与胰岛素泵和连续血糖监测设备通信"
           }
         }
       }
@@ -658,6 +682,12 @@
             "state" : "translated",
             "value" : "藍牙用於與胰島素幫浦及連續血糖監測裝置通訊"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蓝牙用于与胰岛素泵和连续血糖监测设备通信"
+          }
         }
       }
     },
@@ -789,6 +819,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "用以建立含血糖讀值的事件，以便在 Apple Watch 與 CarPlay 上查看"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用于创建包含血糖读数的日历事件，以便在 Apple Watch 和 CarPlay 上查看"
           }
         }
       }
@@ -922,6 +958,12 @@
             "state" : "translated",
             "value" : "行事曆用於建立新的血糖事件。"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日历用于创建新的血糖事件。"
+          }
         }
       }
     },
@@ -1052,6 +1094,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "允許 Trio 存取你的聯絡人，透過「Contact Trick」功能為 Apple Watch 聯絡人複雜功能提供即時更新。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许 Trio 访问你的联系人，通过“Contact Trick”功能为 Apple Watch 联系人复杂功能提供实时更新。"
           }
         }
       }
@@ -1185,6 +1233,12 @@
             "state" : "translated",
             "value" : "用於授權存取注射"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用于授权访问大剂量输注"
+          }
         }
       }
     },
@@ -1315,6 +1369,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "健康 App 用於儲存血糖、胰島素與碳水化合物"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "健康 App 用于保存血糖、胰岛素和碳水化合物"
           }
         }
       }
@@ -1447,6 +1507,12 @@
             "state" : "translated",
             "value" : "健康 App 用於儲存血糖、胰島素與碳水化合物"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "健康 App 用于保存血糖、胰岛素和碳水化合物"
+          }
         }
       }
     },
@@ -1575,6 +1641,12 @@
           }
         },
         "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : ""
+          }
+        },
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "new",
             "value" : ""
