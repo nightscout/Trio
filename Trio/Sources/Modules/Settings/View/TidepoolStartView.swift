@@ -31,11 +31,11 @@ struct TidepoolStartView: BaseView {
                                 }
                                 label: {
                                     HStack {
-                                        Text("Connected to Tidepool").font(.title3)
+                                        Text(connectionLabel).font(.title3)
                                         ZStack {
                                             Image(systemName: "network")
-                                            Image(systemName: "checkmark.circle.fill")
-                                                .foregroundColor(.green).font(.caption2)
+                                            Image(systemName: connectionIconName)
+                                                .foregroundColor(connectionIconColor).font(.caption2)
                                                 .offset(x: 9, y: 6)
                                         }
                                     }
@@ -108,5 +108,41 @@ struct TidepoolStartView: BaseView {
         .navigationTitle("Tidepool")
         .navigationBarTitleDisplayMode(.automatic)
         .onAppear(perform: configureView)
+    }
+
+    private var connectionLabel: String {
+        switch state.tidepoolHealth {
+        case .healthy,
+             .unknown:
+            return String(localized: "Connected to Tidepool")
+        case .authFailed:
+            return String(localized: "Tidepool Auth Error — tap to re-login")
+        case .transient:
+            return String(localized: "Tidepool Sync Error")
+        }
+    }
+
+    private var connectionIconName: String {
+        switch state.tidepoolHealth {
+        case .healthy,
+             .unknown:
+            return "checkmark.circle.fill"
+        case .authFailed:
+            return "xmark.circle.fill"
+        case .transient:
+            return "exclamationmark.circle.fill"
+        }
+    }
+
+    private var connectionIconColor: Color {
+        switch state.tidepoolHealth {
+        case .healthy,
+             .unknown:
+            return .green
+        case .authFailed:
+            return .red
+        case .transient:
+            return .orange
+        }
     }
 }

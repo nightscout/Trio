@@ -281320,6 +281320,9 @@
         }
       }
     },
+    "Tidepool Auth Error — tap to re-login" : {
+
+    },
     "Tidepool Integration" : {
       "localizations" : {
         "bg" : {
@@ -281443,6 +281446,9 @@
           }
         }
       }
+    },
+    "Tidepool Sync Error" : {
+
     },
     "Time" : {
       "comment" : "Time basal profile",

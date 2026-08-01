@@ -20,6 +20,7 @@ extension Settings {
         @Published var debugOptions = false
         @Published var serviceUIType: ServiceUI.Type?
         @Published var setupTidepool = false
+        @Published var tidepoolHealth: TidepoolHealth = .unknown
 
         private(set) var buildNumber = ""
         private(set) var versionNumber = ""
@@ -42,6 +43,8 @@ extension Settings {
             copyrightNotice = Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? ""
 
             serviceUIType = TidepoolService.self as? ServiceUI.Type
+
+            broadcaster.register(TidepoolHealthObserver.self, observer: self)
         }
 
         func logItems() -> [URL] {
@@ -90,6 +93,12 @@ extension Settings.StateModel: SettingsObserver {
     func settingsDidChange(_ settings: TrioSettings) {
         closedLoop = settings.closedLoop
         debugOptions = settings.debugOptions
+    }
+}
+
+extension Settings.StateModel: TidepoolHealthObserver {
+    func tidepoolHealthDidChange(_ health: TidepoolHealth) {
+        tidepoolHealth = health
     }
 }
 
