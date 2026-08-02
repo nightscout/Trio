@@ -3,7 +3,8 @@ import Foundation
 import Swinject
 
 class TrioRemoteControl: Injectable {
-    static let shared = TrioRemoteControl()
+    // Container-scoped singleton; shared is a convenience accessor for APNS/App Intents entry points
+    static var shared: TrioRemoteControl { TrioApp.resolver.resolve(TrioRemoteControl.self)! }
 
     @Injected() internal var tempTargetsStorage: TempTargetsStorage!
     @Injected() internal var carbsStorage: CarbsStorage!
@@ -16,9 +17,9 @@ class TrioRemoteControl: Injectable {
 
     internal let viewContext: NSManagedObjectContext
 
-    private init() {
+    init(resolver: Resolver) {
         viewContext = CoreDataStack.shared.persistentContainer.viewContext
-        injectServices(TrioApp.resolver)
+        injectServices(resolver)
     }
 
     func handleRemoteNotification(encryptedData: String) async throws {

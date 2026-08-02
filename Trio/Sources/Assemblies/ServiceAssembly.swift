@@ -36,5 +36,11 @@ final class ServiceAssembly: Assembly {
         }
         container.register(IOBService.self) { r in BaseIOBService(resolver: r) }
         container.register(BolusSafetyValidator.self) { r in BaseBolusSafetyValidator(resolver: r) }
+        container.register(TrioRemoteControl.self) { r in TrioRemoteControl(resolver: r) }
+            .inObjectScope(.container)
+        container.register(TelemetryClient.self) { r in TelemetryClient(resolver: r) }
+            .inObjectScope(.container)
+        container.register(TelemetryAttestor.self) { r in TelemetryAttestor(resolver: r) }
+            .inObjectScope(.container)
     }
 }

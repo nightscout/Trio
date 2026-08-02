@@ -15,7 +15,8 @@ import UIKit
 /// See `buildPayload()` for the exact set of fields and `TelemetryPreviewView`
 /// for the in-app inspector that renders the same payload.
 final class TelemetryClient: Injectable {
-    static let shared = TelemetryClient()
+    // Container-scoped singleton; shared is a convenience accessor for AppDelegate/UI entry points
+    static var shared: TelemetryClient { TrioApp.resolver.resolve(TelemetryClient.self)! }
 
     // MARK: Endpoint configuration
 
@@ -62,17 +63,10 @@ final class TelemetryClient: Injectable {
     @Injected() private var keychain: Keychain!
 
     private let lock = NSRecursiveLock()
-    private var didInjectServices = false
     private var timer: DispatchTimer?
 
-    private init() {}
-
-    private func injectIfNeeded() {
-        lock.lock()
-        defer { lock.unlock() }
-        guard !didInjectServices else { return }
-        injectServices(TrioApp.resolver)
-        didInjectServices = true
+    init(resolver: Resolver) {
+        injectServices(resolver)
     }
 
     // MARK: - Cold launches
@@ -186,8 +180,6 @@ final class TelemetryClient: Injectable {
     /// The exact payload that would be POSTed right now. Pure function: shared
     /// by `send()` and `TelemetryPreviewView`.
     func buildPayload() -> [String: Any] {
-        injectIfNeeded()
-
         let bd = BuildDetails.shared
         let info = Bundle.main.infoDictionary ?? [:]
 
