@@ -14,7 +14,6 @@ struct NotificationsView: BaseView {
 
     @ObservedObject var state: Settings.StateModel
     @State var notificationsDisabled = false
-    @State var showAlert = false
     @State private var showSnoozeSheet = false
     @State private var shouldDisplayHint: Bool = false
     @State var hintDetent = PresentationDetent.large
@@ -92,15 +91,8 @@ struct NotificationsView: BaseView {
             perform: {
                 if notificationsDisabled != $0 {
                     notificationsDisabled = $0
-                    if notificationsDisabled {
-                        showAlert = true
-                    }
                 }
             }
-        )
-        .alert(
-            isPresented: self.$showAlert,
-            content: { self.notificationReminder() }
         )
         .sheet(isPresented: $shouldDisplayHint) {
             SettingInputHintView(
@@ -122,24 +114,11 @@ struct NotificationsView: BaseView {
 }
 
 extension NotificationsView {
-    func notificationReminder() -> Alert {
-        Alert(
-            title: Text("\u{2757} Notifications are Required"),
-            message: Text(
-                "Please authorize notifications by tapping 'Open iOS Settings' > 'Notifications' and enable 'Allow Notifications' for 'Notification Center' and 'Banners' Alerts."
-            ),
-            dismissButton: .default(Text("Ok"))
-        )
-    }
-
     @ViewBuilder private func onOff(_ val: Bool) -> some View {
         if val {
             Text(String(localized: "On", comment: "Notification Setting Status is On"))
         } else {
-            HStack {
-                Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.critical)
-                Text(String(localized: "Off", comment: "Notification Setting Status is Off"))
-            }
+            Text(String(localized: "Off", comment: "Notification Setting Status is Off"))
         }
     }
 
