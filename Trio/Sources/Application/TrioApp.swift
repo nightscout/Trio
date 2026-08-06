@@ -3,6 +3,7 @@ import CoreData
 import Foundation
 import SwiftUI
 import Swinject
+import WatchConnectivity
 
 extension Notification.Name {
     static let initializationCompleted = Notification.Name("initializationCompleted")
@@ -74,10 +75,14 @@ extension Notification.Name {
         _ = resolver.resolve(FetchTreatmentsManager.self)!
         _ = resolver.resolve(CalendarManager.self)!
         _ = resolver.resolve(UserNotificationsManager.self)!
-        _ = resolver.resolve(WatchManager.self)!
+        if shouldStartAppleWatchManager() {
+            _ = resolver.resolve(WatchManager.self)!
+        }
         _ = resolver.resolve(ContactImageManager.self)!
         _ = resolver.resolve(HealthKitManager.self)!
-        _ = resolver.resolve(GarminManager.self)!
+        if shouldStartGarminManager(settings: settingsManager.settings) {
+            _ = resolver.resolve(GarminManager.self)!
+        }
         _ = resolver.resolve(BluetoothStateManager.self)!
         _ = resolver.resolve(PluginManager.self)!
         _ = resolver.resolve(AlertPermissionsChecker.self)!
@@ -126,6 +131,17 @@ extension Notification.Name {
             telemetry.scheduleRecurring()
             telemetry.checkAndSendIfOverdue(reason: .coldLaunch)
         }
+    }
+
+    private func shouldStartAppleWatchManager() -> Bool {
+        guard WCSession.isSupported() else { return false }
+
+        let session = WCSession.default
+        return session.isPaired || session.isWatchAppInstalled
+    }
+
+    private func shouldStartGarminManager(settings: TrioSettings) -> Bool {
+        settings.garminSettings.isWatchfaceDataEnabled || settings.garminSettings.datafield != .none
     }
 
     init() {
