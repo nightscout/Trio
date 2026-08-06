@@ -67,6 +67,7 @@ extension Notification.Name {
 
     private func loadServices() {
         resolver.resolve(AppearanceManager.self)!.setupGlobalAppearance()
+        let settingsManager = resolver.resolve(SettingsManager.self)!
         _ = resolver.resolve(DeviceDataManager.self)!
         _ = resolver.resolve(APSManager.self)!
         _ = resolver.resolve(FetchGlucoseManager.self)!
@@ -80,7 +81,7 @@ extension Notification.Name {
         _ = resolver.resolve(BluetoothStateManager.self)!
         _ = resolver.resolve(PluginManager.self)!
         _ = resolver.resolve(AlertPermissionsChecker.self)!
-        if #available(iOS 16.2, *) {
+        if #available(iOS 16.2, *), settingsManager.settings.useLiveActivity {
             _ = resolver.resolve(LiveActivityManager.self)!
         }
         _ = resolver.resolve(IOBService.self)!

@@ -95,14 +95,14 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// - Determination arrived, cancelled timer
     /// - Preparing/Prepared watch state, Skipping - data unchanged
     /// - Settings throttle timer started/running/fired
-    private let debugWatchState = true
+    private let debugWatchState = false
 
     /// Enable/disable watch status and communication logs:
     /// - Device status changes (connected, notConnected, etc.)
     /// - Registered watchface/datafield
     /// - Sending to / Successfully sent
     /// - Watchface/datafield config changed
-    private let debugGarminEnabled = true
+    private let debugGarminEnabled = false
 
     /// Helper method for conditional watch status/comms logging.
     /// Logs messages only if debugGarminEnabled is true.
