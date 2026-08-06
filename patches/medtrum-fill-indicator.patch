@@ -1,8 +1,166 @@
+diff --git a/Localization/Localizable.xcstrings b/Localization/Localizable.xcstrings
+index e20c576..db282cb 100644
+--- a/Localization/Localizable.xcstrings
++++ b/Localization/Localizable.xcstrings
+@@ -11248,7 +11248,7 @@
+         "nl" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Bevestig de patch nog niet aan het lichaam"
++            "value" : "Bevestig de patch nog niet op het lichaam"
+           }
+         },
+         "pl" : {
+@@ -11410,7 +11410,7 @@
+         "nl" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Voltooid"
++            "value" : "Gereed"
+           }
+         },
+         "pl" : {
+@@ -35132,7 +35132,133 @@
+           }
+         }
+       }
++    },
++    "Fill guide" : {
++      "comment" : "Title for Medtrum patch fill guide",
++      "extractionState" : "manual",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Fill guide"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Vulhandleiding"
++          }
++        }
++      }
++    },
++    "Reservoir: %.2fU / %.0fU" : {
++      "comment" : "Reservoir fill level during Medtrum patch filling",
++      "extractionState" : "manual",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Reservoir: %.2fU / %.0fU"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Reservoir: %.2f E / %.0f E"
++          }
++        }
++      }
++    },
++    "Connecting to patch..." : {
++      "comment" : "Status while connecting to Medtrum patch before filling",
++      "extractionState" : "manual",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Connecting to patch..."
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Verbinden met patch..."
++          }
++        }
++      }
++    },
++    "Minimum fill reached. You can start priming." : {
++      "comment" : "Status when Medtrum patch has enough insulin to prime",
++      "extractionState" : "manual",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Minimum fill reached. You can start priming."
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Minimale vulling bereikt. Je kunt starten met primen."
++          }
++        }
++      }
++    },
++    "Fill at least 70U before priming." : {
++      "comment" : "Status when Medtrum patch needs more insulin before priming",
++      "extractionState" : "manual",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Fill at least 70U before priming."
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Vul minstens 70 E voordat je gaat primen."
++          }
++        }
++      }
++    },
++    "Fill the patch with at least 70U before priming." : {
++      "comment" : "Error shown when reservoir has too little insulin before priming",
++      "extractionState" : "manual",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Fill the patch with at least 70U before priming."
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Vul de patch met minstens 70 E voordat je gaat primen."
++          }
++        }
++      }
++    },
++    "Retry connection" : {
++      "comment" : "label for retrying Medtrum patch fill connection",
++      "extractionState" : "manual",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Retry connection"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Verbinding opnieuw proberen"
++          }
++        }
++      }
+     }
+   },
+   "version" : "1.0"
+-}
+\ No newline at end of file
++}
 diff --git a/MedtrumKit/PumpManager/MedtrumPumpManager.swift b/MedtrumKit/PumpManager/MedtrumPumpManager.swift
-index 096d402..b26cdae 100644
+index 20b3935..c46c270 100644
 --- a/MedtrumKit/PumpManager/MedtrumPumpManager.swift
 +++ b/MedtrumKit/PumpManager/MedtrumPumpManager.swift
-@@ -670,6 +670,32 @@ public extension MedtrumPumpManager {
+@@ -654,6 +654,32 @@ public extension MedtrumPumpManager {
          }
      }
  
@@ -148,14 +306,76 @@ index a416fec..36124a9 100644
                  if pumpManager.state.pumpState.rawValue > PatchState.priming.rawValue,
                     pumpManager.state.pumpState.rawValue < PatchState.active.rawValue
 diff --git a/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift b/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
-index a07835a..2dbd3fe 100644
+index b435d4a..2623fbd 100644
 --- a/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
 +++ b/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
-@@ -51,6 +51,49 @@ struct PatchPrimingView: View {
-                     }
-                 }
+@@ -3,66 +3,64 @@ import SwiftUI
  
-+                Section {
+ struct PatchPrimingView: View {
+     @ObservedObject var viewModel: PatchPrimingViewModel
++    @State private var isFillGuidePresented = false
+ 
+     var body: some View {
+         VStack {
+             List {
+                 Section {
+-                    supportImage("connect_base")
+-                    HStack(alignment: .top) {
+-                        Text("1.")
+-                            .foregroundStyle(.primary)
+-                        Text("Connect your pump base to the patch.", comment: "Label for prime step 2.1")
+-                            .foregroundStyle(.primary)
+-                            .frame(maxWidth: .infinity, alignment: .leading)
+-                    }
+-                }
+-
+-                Section {
+-                    supportImage("fill_reservoir")
+-                    VStack(alignment: .leading) {
+-                        HStack(alignment: .top) {
+-                            Text("2.")
+-                                .foregroundStyle(.primary)
+-                            Text("Fill the syringe with insulin", comment: "Label for prime step 2.2")
+-                                .foregroundStyle(.primary)
+-                                .frame(maxWidth: .infinity, alignment: .leading)
+-                        }
+-                        HStack(alignment: .top) {
+-                            Text("3.")
+-                                .foregroundStyle(.primary)
+-                            Text(
+-                                "Place the syringe in the patch and pull out 1 to 2 dashes of air.",
+-                                comment: "Label for prime step 2.3"
+-                            )
+-                            .foregroundStyle(.primary)
+-                            .frame(maxWidth: .infinity, alignment: .leading)
+-                        }
+-                        HStack(alignment: .top) {
+-                            Text("4.")
+-                                .foregroundStyle(.primary)
+-                            Text(
+-                                "Fill the patch with insulin. NOTE: A minimum of 70U is required for activation.",
+-                                comment: "Label for prime step 2.4"
+-                            )
+-                            .foregroundStyle(.primary)
+-                            .frame(maxWidth: .infinity, alignment: .leading)
++                    HStack {
++                        Spacer()
++                        Button {
++                            isFillGuidePresented = true
++                        } label: {
++                            Image(systemName: "info.circle")
++                                .font(.title3)
+                         }
++                        .buttonStyle(.plain)
++                        .accessibilityLabel(Text("Fill guide", comment: "Accessibility label for Medtrum fill guide info button"))
+                     }
+-                }
+ 
+-                Section {
+-                    supportImage("half_press_needle_button")
+-                    HStack(alignment: .top) {
+-                        Text("5.")
+-                            .foregroundStyle(.primary)
 +                    VStack(spacing: 12) {
 +                        ReservoirView(
 +                            reservoirLevel: viewModel.reservoirLevel,
@@ -164,7 +384,9 @@ index a07835a..2dbd3fe 100644
 +                        )
 +                        .frame(height: 120)
 +
-+                        Text(
+                         Text(
+-                            "Press the needle button and start the priming process.",
+-                            comment: "Label for pressing needle button step 2.5"
 +                            String(
 +                                format: String(
 +                                    localized: "Reservoir: %.2fU / %.0fU",
@@ -173,8 +395,9 @@ index a07835a..2dbd3fe 100644
 +                                viewModel.reservoirLevel,
 +                                viewModel.reservoirCapacity
 +                            )
-+                        )
-+                        .foregroundStyle(.primary)
+                         )
+                         .foregroundStyle(.primary)
+-                        .frame(maxWidth: .infinity, alignment: .leading)
 +
 +                        ProgressView(progress: viewModel.reservoirProgress)
 +                            .padding(.horizontal)
@@ -194,14 +417,12 @@ index a07835a..2dbd3fe 100644
 +                                .multilineTextAlignment(.center)
 +                                .foregroundStyle(.red)
 +                        }
-+                    }
+                     }
 +                    .frame(maxWidth: .infinity)
-+                }
-+
-                 Section {
-                     supportImage("half_press_needle_button")
-                     HStack(alignment: .top) {
-@@ -83,17 +126,25 @@ struct PatchPrimingView: View {
+                 }
+             }
+             Spacer()
+@@ -83,23 +81,112 @@ struct PatchPrimingView: View {
                  Text("Go back to pump base", comment: "label for go to pump base patch")
              }
              .buttonStyle(ActionButtonStyle(.secondary))
@@ -232,11 +453,89 @@ index a07835a..2dbd3fe 100644
              .buttonStyle(ActionButtonStyle())
              .padding([.bottom, .horizontal])
          }
-@@ -101,5 +152,8 @@ struct PatchPrimingView: View {
+         .listStyle(InsetGroupedListStyle())
          .edgesIgnoringSafeArea(.bottom)
          .navigationBarBackButtonHidden(viewModel.isPriming)
 +        .onAppear {
 +            viewModel.prepareForFilling()
++        }
++        .sheet(isPresented: $isFillGuidePresented) {
++            NavigationView {
++                List {
++                    fillGuideSections
++                }
++                .listStyle(InsetGroupedListStyle())
++                .navigationTitle(Text("Fill guide", comment: "Title for Medtrum patch fill guide"))
++                .toolbar {
++                    ToolbarItem(placement: .confirmationAction) {
++                        Button {
++                            isFillGuidePresented = false
++                        } label: {
++                            Text("Done", comment: "Button label for closing Medtrum patch fill guide")
++                        }
++                    }
++                }
++            }
++        }
++    }
++
++    @ViewBuilder private var fillGuideSections: some View {
++        Section {
++            supportImage("connect_base")
++            HStack(alignment: .top) {
++                Text("1.")
++                    .foregroundStyle(.primary)
++                Text("Connect your pump base to the patch.", comment: "Label for prime step 2.1")
++                    .foregroundStyle(.primary)
++                    .frame(maxWidth: .infinity, alignment: .leading)
++            }
++        }
++
++        Section {
++            supportImage("fill_reservoir")
++            VStack(alignment: .leading) {
++                HStack(alignment: .top) {
++                    Text("2.")
++                        .foregroundStyle(.primary)
++                    Text("Fill the syringe with insulin", comment: "Label for prime step 2.2")
++                        .foregroundStyle(.primary)
++                        .frame(maxWidth: .infinity, alignment: .leading)
++                }
++                HStack(alignment: .top) {
++                    Text("3.")
++                        .foregroundStyle(.primary)
++                    Text(
++                        "Place the syringe in the patch and pull out 1 to 2 dashes of air.",
++                        comment: "Label for prime step 2.3"
++                    )
++                    .foregroundStyle(.primary)
++                    .frame(maxWidth: .infinity, alignment: .leading)
++                }
++                HStack(alignment: .top) {
++                    Text("4.")
++                        .foregroundStyle(.primary)
++                    Text(
++                        "Fill the patch with insulin. NOTE: A minimum of 70U is required for activation.",
++                        comment: "Label for prime step 2.4"
++                    )
++                    .foregroundStyle(.primary)
++                    .frame(maxWidth: .infinity, alignment: .leading)
++                }
++            }
++        }
++
++        Section {
++            supportImage("half_press_needle_button")
++            HStack(alignment: .top) {
++                Text("5.")
++                    .foregroundStyle(.primary)
++                Text(
++                    "Press the needle button and start the priming process.",
++                    comment: "Label for pressing needle button step 2.5"
++                )
++                .foregroundStyle(.primary)
++                .frame(maxWidth: .infinity, alignment: .leading)
++            }
 +        }
      }
  
