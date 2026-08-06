@@ -37,7 +37,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
     // Queue for handling Core Data change notifications
-    private let queue = DispatchQueue(label: "BaseUserNotificationsManager.queue", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "BaseUserNotificationsManager.queue", qos: .utility)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
