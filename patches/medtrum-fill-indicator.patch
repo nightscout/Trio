@@ -323,6 +323,52 @@ index a416fec..998f1f5 100644
  
                  if pumpManager.state.pumpState.rawValue > PatchState.priming.rawValue,
                     pumpManager.state.pumpState.rawValue < PatchState.active.rawValue
+diff --git a/MedtrumKitUI/ViewModels/Settings/MedtrumKitSettingsViewModel.swift b/MedtrumKitUI/ViewModels/Settings/MedtrumKitSettingsViewModel.swift
+index df5f59b..4f33d6d 100644
+--- a/MedtrumKitUI/ViewModels/Settings/MedtrumKitSettingsViewModel.swift
++++ b/MedtrumKitUI/ViewModels/Settings/MedtrumKitSettingsViewModel.swift
+@@ -19,6 +19,7 @@ class MedtrumKitSettingsViewModel: PatchLifetimeFormatting, ObservableObject, Pu
+     @Published var is300u: Bool = false
+     @Published var showPumpTimeSyncWarning = false
+     @Published var reservoirLevel: Double = 0
++    @Published var battery: Double = 0
+     @Published var maxReservoirLevel: Double = 1
+     @Published var pumpTime = Date.distantPast
+     @Published var pumpTimeSyncedAt = Date.distantPast
+@@ -60,6 +61,13 @@ class MedtrumKitSettingsViewModel: PatchLifetimeFormatting, ObservableObject, Pu
+         return formatter
+     }()
+ 
++    let batteryFormatter: QuantityFormatter = {
++        let formatter = QuantityFormatter(for: .volt())
++        formatter.numberFormatter.minimumFractionDigits = 2
++        formatter.numberFormatter.maximumFractionDigits = 2
++        return formatter
++    }()
++
+     let basalRateFormatter: NumberFormatter = {
+         let numberFormatter = NumberFormatter()
+         numberFormatter.numberStyle = .decimal
+@@ -138,6 +146,11 @@ class MedtrumKitSettingsViewModel: PatchLifetimeFormatting, ObservableObject, Pu
+         reservoirVolumeFormatter.string(from: units as NSNumber) ?? ""
+     }
+ 
++    func batteryText(for voltage: Double) -> String {
++        let quantity = HKQuantity(unit: .volt(), doubleValue: voltage)
++        return batteryFormatter.string(from: quantity) ?? ""
++    }
++
+     var patchLifecycleDays: Int? {
+         guard patchLifecycleState == .active || patchLifecycleState == .activeLast24h, let patchGracePeriodFrom else {
+             return nil
+@@ -365,6 +378,7 @@ extension MedtrumKitSettingsViewModel {
+         pumpTime = state.pumpTime
+         pumpTimeSyncedAt = state.pumpTimeSyncedAt
+         reservoirLevel = patchState != .reservoirEmpty ? state.reservoir : 0
++        battery = state.battery
+         basalType = state.basalDose.type
+         basalRate = basalType == .tempBasal ? state.basalDose.value : state.currentBaseBasalRate
+         lastSync = state.lastSync
 diff --git a/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift b/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
 index b435d4a..0155f83 100644
 --- a/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
@@ -623,3 +669,75 @@ index b435d4a..0155f83 100644
 +        return colorScheme == .dark ? Color(UIColor.systemGray2) : Color(UIColor.systemGray3)
 +    }
 +}
+diff --git a/MedtrumKitUI/Views/Settings/MedtrumKitSettings.swift b/MedtrumKitUI/Views/Settings/MedtrumKitSettings.swift
+index 03fc3cb..00a68f4 100644
+--- a/MedtrumKitUI/Views/Settings/MedtrumKitSettings.swift
++++ b/MedtrumKitUI/Views/Settings/MedtrumKitSettings.swift
+@@ -64,7 +64,10 @@ struct MedtrumKitSettings: View {
+                     HStack(alignment: .top) {
+                         deliveryStatus
+                         Spacer()
+-                        reservoirStatus
++                        VStack(alignment: .trailing, spacing: 12) {
++                            reservoirStatus
++                            batteryStatus
++                        }
+                     }
+                     .padding(.bottom, 5)
+                 }
+@@ -507,6 +510,36 @@ struct MedtrumKitSettings: View {
+         }
+     }
+ 
++    @ViewBuilder var batteryStatus: some View {
++        if viewModel.battery > 0 {
++            VStack(alignment: .trailing, spacing: 5) {
++                Text("Battery", comment: "Header for patch battery on pod settings screen")
++                    .foregroundColor(Color(UIColor.secondaryLabel))
++                HStack(alignment: .center, spacing: 6) {
++                    Image(systemName: batteryIconName)
++                        .font(.system(size: 19, weight: .semibold))
++                        .foregroundColor(batteryColor)
++                    Text(viewModel.batteryText(for: viewModel.battery))
++                        .font(.subheadline.weight(.semibold))
++                        .foregroundColor(.secondary)
++                        .fixedSize()
++                }
++            }
++        }
++    }
++
++    private var batteryIconName: String {
++        if viewModel.battery > 1.25 {
++            return "battery.100"
++        }
++
++        if viewModel.battery > 1.15 {
++            return "battery.50"
++        }
++
++        return "battery.25"
++    }
++
+     var deliveryStatus: some View {
+         VStack(alignment: .leading, spacing: 5) {
+             Text(deliverySectionTitle)
+@@ -640,6 +673,18 @@ struct MedtrumKitSettings: View {
+         return guidanceColors.critical
+     }
+ 
++    public var batteryColor: Color {
++        if viewModel.battery > 1.25 {
++            return .green
++        }
++
++        if viewModel.battery > 1.15 {
++            return guidanceColors.warning
++        }
++
++        return guidanceColors.critical
++    }
++
+     public var progressColor: Color {
+         switch viewModel.patchLifecycleState {
+         case .active:
