@@ -73,13 +73,19 @@ extension Notification.Name {
         _ = resolver.resolve(APSManager.self)!
         _ = resolver.resolve(FetchGlucoseManager.self)!
         _ = resolver.resolve(FetchTreatmentsManager.self)!
-        _ = resolver.resolve(CalendarManager.self)!
+        if settingsManager.settings.useCalendar {
+            _ = resolver.resolve(CalendarManager.self)!
+        }
         _ = resolver.resolve(UserNotificationsManager.self)!
         if shouldStartAppleWatchManager() {
             _ = resolver.resolve(WatchManager.self)!
         }
-        _ = resolver.resolve(ContactImageManager.self)!
-        _ = resolver.resolve(HealthKitManager.self)!
+        if shouldStartContactImageManager() {
+            _ = resolver.resolve(ContactImageManager.self)!
+        }
+        if settingsManager.settings.useAppleHealth {
+            _ = resolver.resolve(HealthKitManager.self)!
+        }
         if shouldStartGarminManager(settings: settingsManager.settings) {
             _ = resolver.resolve(GarminManager.self)!
         }
@@ -142,6 +148,18 @@ extension Notification.Name {
 
     private func shouldStartGarminManager(settings: TrioSettings) -> Bool {
         settings.garminSettings.isWatchfaceDataEnabled || settings.garminSettings.datafield != .none
+    }
+
+    private func shouldStartContactImageManager() -> Bool {
+        let request = NSFetchRequest<ContactImageEntryStored>(entityName: "ContactImageEntryStored")
+        request.fetchLimit = 1
+
+        do {
+            return try coreDataStack.persistentContainer.viewContext.count(for: request) > 0
+        } catch {
+            warning(.service, "Unable to count contact image entries", error: error)
+            return false
+        }
     }
 
     init() {
