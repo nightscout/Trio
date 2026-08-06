@@ -1,5 +1,5 @@
 diff --git a/Localization/Localizable.xcstrings b/Localization/Localizable.xcstrings
-index e20c576..db282cb 100644
+index e20c576..08ce9c5 100644
 --- a/Localization/Localizable.xcstrings
 +++ b/Localization/Localizable.xcstrings
 @@ -11248,7 +11248,7 @@
@@ -20,7 +20,7 @@ index e20c576..db282cb 100644
            }
          },
          "pl" : {
-@@ -35132,7 +35132,133 @@
+@@ -35132,7 +35132,151 @@
            }
          }
        }
@@ -150,6 +150,24 @@ index e20c576..db282cb 100644
 +          }
 +        }
 +      }
++    },
++    "Measure fill" : {
++      "comment" : "label for checking Medtrum patch fill level",
++      "extractionState" : "manual",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Measure fill"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Vulling meten"
++          }
++        }
++      }
      }
    },
    "version" : "1.0"
@@ -194,7 +212,7 @@ index 20b3935..c46c270 100644
          log.info("Activate patch pump...")
  
 diff --git a/MedtrumKitUI/ViewModels/Onboarding/PatchPrimingViewModel.swift b/MedtrumKitUI/ViewModels/Onboarding/PatchPrimingViewModel.swift
-index a416fec..36124a9 100644
+index a416fec..998f1f5 100644
 --- a/MedtrumKitUI/ViewModels/Onboarding/PatchPrimingViewModel.swift
 +++ b/MedtrumKitUI/ViewModels/Onboarding/PatchPrimingViewModel.swift
 @@ -1,17 +1,42 @@
@@ -233,7 +251,7 @@ index a416fec..36124a9 100644
 +        !isPreparingFill && !isPriming && hasMinimumFill
 +    }
 +
-+    var canRetryFillConnection: Bool {
++    var canRefreshFillReading: Bool {
 +        !isPreparingFill && !isPriming && !hasMinimumFill
 +    }
 +
@@ -306,7 +324,7 @@ index a416fec..36124a9 100644
                  if pumpManager.state.pumpState.rawValue > PatchState.priming.rawValue,
                     pumpManager.state.pumpState.rawValue < PatchState.active.rawValue
 diff --git a/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift b/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
-index b435d4a..2623fbd 100644
+index b435d4a..0155f83 100644
 --- a/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
 +++ b/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
 @@ -3,66 +3,64 @@ import SwiftUI
@@ -422,11 +440,13 @@ index b435d4a..2623fbd 100644
                  }
              }
              Spacer()
-@@ -83,23 +81,112 @@ struct PatchPrimingView: View {
+@@ -82,24 +80,110 @@ struct PatchPrimingView: View {
+             Button(action: { viewModel.previousStep() }) {
                  Text("Go back to pump base", comment: "label for go to pump base patch")
              }
-             .buttonStyle(ActionButtonStyle(.secondary))
+-            .buttonStyle(ActionButtonStyle(.secondary))
 -            .disabled(viewModel.isPriming)
++            .buttonStyle(PrimeButtonStyle(kind: .secondary))
 +            .disabled(viewModel.isPriming || viewModel.isPreparingFill)
              .padding(.horizontal)
  
@@ -445,20 +465,18 @@ index b435d4a..2623fbd 100644
 +                } else if viewModel.canStartPrime {
                      Text("Start priming", comment: "label for prime start action")
 +                } else {
-+                    Text("Retry connection", comment: "label for retrying Medtrum patch fill connection")
++                    Text("Measure fill", comment: "label for checking Medtrum patch fill level")
                  }
              }
 -            .disabled(viewModel.isPriming)
-+            .disabled(!viewModel.canStartPrime && !viewModel.canRetryFillConnection)
-             .buttonStyle(ActionButtonStyle())
+-            .buttonStyle(ActionButtonStyle())
++            .disabled(!viewModel.canStartPrime && !viewModel.canRefreshFillReading)
++            .buttonStyle(PrimeButtonStyle(kind: .primary))
              .padding([.bottom, .horizontal])
          }
          .listStyle(InsetGroupedListStyle())
          .edgesIgnoringSafeArea(.bottom)
          .navigationBarBackButtonHidden(viewModel.isPriming)
-+        .onAppear {
-+            viewModel.prepareForFilling()
-+        }
 +        .sheet(isPresented: $isFillGuidePresented) {
 +            NavigationView {
 +                List {
@@ -540,3 +558,68 @@ index b435d4a..2623fbd 100644
      }
  
      @ViewBuilder func supportImage(_ imageName: String) -> some View {
+@@ -114,3 +198,64 @@ struct PatchPrimingView: View {
+         }
+     }
+ }
++
++private struct PrimeButtonStyle: ButtonStyle {
++    enum Kind {
++        case primary
++        case secondary
++    }
++
++    let kind: Kind
++    @Environment(\.isEnabled) private var isEnabled
++    @Environment(\.colorScheme) private var colorScheme
++
++    func makeBody(configuration: Configuration) -> some View {
++        configuration.label
++            .font(.headline)
++            .frame(maxWidth: .infinity)
++            .frame(minHeight: 44)
++            .padding(.horizontal)
++            .foregroundStyle(foregroundColor)
++            .background(backgroundColor)
++            .overlay(
++                RoundedRectangle(cornerRadius: 10)
++                    .stroke(borderColor, lineWidth: kind == .secondary ? 1 : 0)
++            )
++            .clipShape(RoundedRectangle(cornerRadius: 10))
++            .opacity(configuration.isPressed ? 0.75 : 1)
++    }
++
++    private var backgroundColor: Color {
++        guard isEnabled else {
++            return Color(UIColor.systemGray4)
++        }
++
++        switch kind {
++        case .primary:
++            return Color(UIColor.systemBlue)
++        case .secondary:
++            return colorScheme == .dark ? Color(UIColor.systemGray5) : Color(UIColor.systemGray6)
++        }
++    }
++
++    private var foregroundColor: Color {
++        guard isEnabled else {
++            return colorScheme == .dark ? Color(UIColor.systemGray) : Color(UIColor.secondaryLabel)
++        }
++
++        switch kind {
++        case .primary:
++            return .white
++        case .secondary:
++            return colorScheme == .dark ? .white : Color(UIColor.label)
++        }
++    }
++
++    private var borderColor: Color {
++        guard kind == .secondary, isEnabled else {
++            return .clear
++        }
++
++        return colorScheme == .dark ? Color(UIColor.systemGray2) : Color(UIColor.systemGray3)
++    }
++}
