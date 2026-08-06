@@ -1,0 +1,143 @@
+name: Community Update Watch
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "20 7 * * *"
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  UPSTREAM_REPO: nightscout/Trio
+  UPSTREAM_BRANCH: main
+  TARGET_BRANCH: main
+
+jobs:
+  watch:
+    name: Watch Trio community updates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Check upstream
+        id: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          git fetch --no-tags upstream "${UPSTREAM_BRANCH}:refs/remotes/upstream/${UPSTREAM_BRANCH}"
+
+          local_sha="$(git rev-parse HEAD)"
+          upstream_ref="refs/remotes/upstream/${UPSTREAM_BRANCH}"
+          upstream_sha="$(git rev-parse "${upstream_ref}")"
+
+          echo "local_sha=${local_sha}" >> "$GITHUB_OUTPUT"
+          echo "upstream_sha=${upstream_sha}" >> "$GITHUB_OUTPUT"
+
+          if git merge-base --is-ancestor "${upstream_sha}" "${local_sha}"; then
+            echo "has_update=false" >> "$GITHUB_OUTPUT"
+            echo "Your fork already includes upstream ${upstream_sha}." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "has_update=true" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "commits<<EOF"
+            git log --oneline --no-merges "${local_sha}..${upstream_ref}" | head -30
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "watched_files<<EOF"
+            git diff --name-only "${local_sha}..${upstream_ref}" -- \
+              Trio/Sources/Application/TrioApp.swift \
+              Trio/Sources/Modules/Home/View/HomeRootView.swift \
+              Trio/Sources/Modules/Settings/View/Subviews/NotificationsView.swift \
+              Trio/Sources/Services/WatchManager/GarminManager.swift \
+              Trio/Sources/Services/WatchManager/AppleWatchManager.swift \
+              Trio/Sources/Localizations/Main/Localizable.xcstrings \
+              patches/medtrum-fill-indicator.patch
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Community update available"
+            echo ""
+            echo "- Local fork: \`${local_sha}\`"
+            echo "- Upstream: \`${upstream_sha}\`"
+            echo ""
+            echo "Ask Codex to review and update the fork before building if you want to keep local patches intact."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create or update tracking issue
+        if: steps.upstream.outputs.has_update == 'true'
+        uses: actions/github-script@v8
+        env:
+          UPSTREAM_SHA: ${{ steps.upstream.outputs.upstream_sha }}
+          LOCAL_SHA: ${{ steps.upstream.outputs.local_sha }}
+          UPSTREAM_COMMITS: ${{ steps.upstream.outputs.commits }}
+          WATCHED_FILES: ${{ steps.upstream.outputs.watched_files }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const upstreamSha = process.env.UPSTREAM_SHA;
+            const localSha = process.env.LOCAL_SHA;
+            const commits = (process.env.UPSTREAM_COMMITS || '').trim();
+            const watchedFiles = (process.env.WATCHED_FILES || '').trim();
+            const title = `Community update available: ${upstreamSha.slice(0, 7)}`;
+
+            const body = [
+              'Er staat een nieuwe Trio community update klaar.',
+              '',
+              `- Fork staat op: \`${localSha}\``,
+              `- Community staat op: \`${upstreamSha}\``,
+              '',
+              'Laat eerst meekijken voordat je deze update in je build meeneemt, zodat lokale patches behouden blijven.',
+              '',
+              'Belangrijke lokale patch-gebieden:',
+              '- Medtrum fill-scherm',
+              '- Nederlandse vertalingen',
+              '- batterij/performance startup optimalisaties',
+              '- notificatie-waarschuwingen',
+              '',
+              watchedFiles
+                ? `Bestanden uit onze patch-gebieden die upstream ook raakt:\n\n\`\`\`\n${watchedFiles}\n\`\`\``
+                : 'Upstream raakt geen bekende lokale patch-bestanden in deze snelle check.',
+              '',
+              commits
+                ? `Laatste upstream commits:\n\n\`\`\`\n${commits}\n\`\`\``
+                : 'Geen commitlijst beschikbaar.',
+              '',
+              'Vraag bijvoorbeeld aan Codex: "werk mijn Trio fork bij met de community update en behoud mijn patches".'
+            ].join('\n');
+
+            const search = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${owner}/${repo} is:issue is:open in:title "Community update available"`
+            });
+
+            if (search.data.total_count > 0) {
+              const issue = search.data.items[0];
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issue.number,
+                body: `Nieuwe check gevonden voor upstream \`${upstreamSha}\`.\n\n${body}`
+              });
+              return;
+            }
+
+            await github.rest.issues.create({
+              owner,
+              repo,
+              title,
+              body
+            });
