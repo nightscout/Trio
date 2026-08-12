@@ -43,7 +43,10 @@ struct DefinitionRow<DefinitionView: View>: View {
             definition
                 .font(fontSize ?? .subheadline)
                 .foregroundColor(.secondary)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 5)
     }
 }
