@@ -4,6 +4,46 @@ import Foundation
 import SwiftUI
 
 enum MainChartHelper {
+    struct TempBasalEvent {
+        let start: Date
+        let end: Date
+        let rate: Double
+    }
+
+    struct TempBasalSegment: Equatable {
+        let start: Date
+        let end: Date
+        let rate: Double
+    }
+
+    static func tempBasalSegments(
+        events: [TempBasalEvent],
+        suspensions: [ClosedRange<Date>]
+    ) -> [TempBasalSegment] {
+        events.flatMap { event in
+            var boundaries = [event.start, event.end]
+
+            for suspension in suspensions {
+                guard suspension.upperBound > event.start, suspension.lowerBound < event.end else {
+                    continue
+                }
+
+                boundaries.append(max(suspension.lowerBound, event.start))
+                boundaries.append(min(suspension.upperBound, event.end))
+            }
+
+            let sortedBoundaries = boundaries.sorted()
+            return zip(sortedBoundaries, sortedBoundaries.dropFirst()).compactMap { boundary -> TempBasalSegment? in
+                let (start, end) = boundary
+                guard start < end else { return nil }
+                let isSuspended = suspensions.contains {
+                    $0.lowerBound < end && $0.upperBound > start
+                }
+                return TempBasalSegment(start: start, end: end, rate: isSuspended ? 0 : event.rate)
+            }
+        }
+    }
+
     // Calculates the glucose value thats the nearest to parameter 'time'
     /// -Returns: A NSManagedObject of GlucoseStored
     /// it is thread safe as everything is executed on the main thread

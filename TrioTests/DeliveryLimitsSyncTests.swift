@@ -64,4 +64,50 @@ import Testing
         #expect(limits.maximumBolus?.doubleValue(for: bolusUnit) == Double(configuredMaxBolus))
         #expect(limits.maximumBolus?.doubleValue(for: bolusUnit) != defaultMaxBolus)
     }
+
+    @Test("Suspension splits a temp basal and preserves delivery after resume") func testTempBasalSegmentsAroundSuspension() {
+        let start = Date(timeIntervalSince1970: 1000)
+        let suspensionStart = start.addingTimeInterval(300)
+        let resume = start.addingTimeInterval(600)
+        let end = start.addingTimeInterval(900)
+
+        let segments = MainChartHelper.tempBasalSegments(
+            events: [MainChartHelper.TempBasalEvent(start: start, end: end, rate: 2.5)],
+            suspensions: [suspensionStart ... resume]
+        )
+
+        #expect(segments == [
+            MainChartHelper.TempBasalSegment(start: start, end: suspensionStart, rate: 2.5),
+            MainChartHelper.TempBasalSegment(start: suspensionStart, end: resume, rate: 0),
+            MainChartHelper.TempBasalSegment(start: resume, end: end, rate: 2.5)
+        ])
+    }
+
+    @Test("Recalculation after resume restores the full temp basal") func testTempBasalSegmentsAfterResume() {
+        let start = Date(timeIntervalSince1970: 1000)
+        let end = start.addingTimeInterval(900)
+        let event = MainChartHelper.TempBasalEvent(start: start, end: end, rate: 2.5)
+
+        let segments = MainChartHelper.tempBasalSegments(events: [event], suspensions: [])
+
+        #expect(segments == [
+            MainChartHelper.TempBasalSegment(start: start, end: end, rate: 2.5)
+        ])
+    }
+
+    @Test("Active suspension keeps the remaining temp basal at zero") func testTempBasalSegmentsDuringActiveSuspension() {
+        let start = Date(timeIntervalSince1970: 1000)
+        let suspensionStart = start.addingTimeInterval(300)
+        let end = start.addingTimeInterval(900)
+
+        let segments = MainChartHelper.tempBasalSegments(
+            events: [MainChartHelper.TempBasalEvent(start: start, end: end, rate: 2.5)],
+            suspensions: [suspensionStart ... .distantFuture]
+        )
+
+        #expect(segments == [
+            MainChartHelper.TempBasalSegment(start: start, end: suspensionStart, rate: 2.5),
+            MainChartHelper.TempBasalSegment(start: suspensionStart, end: end, rate: 0)
+        ])
+    }
 }
