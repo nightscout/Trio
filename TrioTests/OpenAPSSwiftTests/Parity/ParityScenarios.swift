@@ -246,7 +246,7 @@ enum ParityScenarios {
         )
 
         guard let mealData = meal else {
-            throw TestError("meal generation returned nil for \(scenario.name)")
+            throw ParityError("meal generation returned nil for \(scenario.name)")
         }
 
         let determination = try DeterminationGenerator.generate(

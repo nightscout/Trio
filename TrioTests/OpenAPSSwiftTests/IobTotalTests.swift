@@ -147,9 +147,10 @@ import Testing
 
     @Test("should ignore future treatments") func ignoreFutureTreatments() async throws {
         let now = Date()
+        // ascending order: iobTotal binary-searches the cutoff and asserts sortedness
         let treatments = [
-            createTreatment(insulin: 2.0, timestamp: now + 30.minutesToSeconds),
-            createTreatment(insulin: 1.0, timestamp: now - 10.minutesToSeconds)
+            createTreatment(insulin: 1.0, timestamp: now - 10.minutesToSeconds),
+            createTreatment(insulin: 2.0, timestamp: now + 30.minutesToSeconds)
         ]
 
         let result = try IobCalculation.iobTotal(

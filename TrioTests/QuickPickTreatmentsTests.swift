@@ -39,8 +39,9 @@ import Testing
         #expect(result == [5])
     }
 
-    @Test("A weekday-mismatched sample is weighted below the suggestion threshold that a matching one clears")
-    func weekdayMismatchDropsBelowThreshold() {
+    @Test(
+        "A weekday-mismatched sample is weighted below the suggestion threshold that a matching one clears"
+    ) func weekdayMismatchDropsBelowThreshold() {
         let matching = daysAgo(14)
         #expect(cal.component(.weekday, from: matching) == cal.component(.weekday, from: now))
 
