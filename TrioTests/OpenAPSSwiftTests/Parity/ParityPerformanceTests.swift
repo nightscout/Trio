@@ -10,10 +10,6 @@ import Testing
     .serialized,
     .enabled(if: ProcessInfo.processInfo.environment["TRIO_RUN_PERF"] == "1")
 ) struct ParityPerformanceTests {
-    init() {
-        _ = ParityEnv.pinned
-    }
-
     private func measure(_ label: String, iterations: Int = 10, _ body: () throws -> Void) rethrows {
         let clock = ContinuousClock()
         try body() // warm-up

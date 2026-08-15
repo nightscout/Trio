@@ -71,6 +71,8 @@ let package = Package(
             name: "OpenAPSSwiftTests",
             dependencies: ["Trio"],
             path: "OpenAPSSwiftTests",
+            // goldens are read from disk via #filePath, not from the test bundle
+            exclude: ["Parity/goldens"],
             resources: [.copy("json")],
             swiftSettings: [.define("TRIO_ALGORITHM_PACKAGE")]
         )

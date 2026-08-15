@@ -3,10 +3,6 @@ import Testing
 @testable import Trio
 
 @Suite("Wall clock parity", .serialized) struct WallClockParityTests {
-    init() {
-        _ = ParityEnv.pinned
-    }
-
     private func referenceMinutes(_ date: Date) -> Int? {
         let components = Calendar.current.dateComponents([.hour, .minute], from: date)
         guard let hour = components.hour, let minute = components.minute else { return nil }
