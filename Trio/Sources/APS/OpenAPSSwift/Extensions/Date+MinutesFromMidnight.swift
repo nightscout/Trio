@@ -14,41 +14,82 @@ enum CalendarError: LocalizedError, Equatable {
     }
 }
 
+/// Calendar-free local time; UTC offset cached between DST transitions.
+/// Deliberate exception: the algorithm is meant to stay stateless — this offset cache is the one piece of state we allow.
+enum WallClock {
+    private struct Interval {
+        let start: TimeInterval
+        let end: TimeInterval
+        let offsetSeconds: Int
+        let timeZoneIdentifier: String
+    }
+
+    private static let lock = NSLock()
+    nonisolated(unsafe) private static var cached: Interval?
+
+    /// Seconds into the local day (wall clock), in [0, 86400).
+    static func secondsIntoDay(of date: Date) -> Double {
+        let t = date.timeIntervalSince1970
+        let local = t + Double(offsetSeconds(at: date))
+        var seconds = local.truncatingRemainder(dividingBy: 86400)
+        if seconds < 0 { seconds += 86400 }
+        return seconds
+    }
+
+    static func offsetSeconds(at date: Date) -> Int {
+        let timeZone = TimeZone.current
+        let t = date.timeIntervalSince1970
+
+        lock.lock()
+        defer { lock.unlock() }
+        if let cached,
+           cached.timeZoneIdentifier == timeZone.identifier,
+           t >= cached.start, t < cached.end
+        {
+            return cached.offsetSeconds
+        }
+
+        let offset = timeZone.secondsFromGMT(for: date)
+        let end = timeZone.nextDaylightSavingTimeTransition(after: date)?
+            .timeIntervalSince1970 ?? .greatestFiniteMagnitude
+
+        // find the transition preceding `date`
+        var start = -TimeInterval.greatestFiniteMagnitude
+        var probe = date.addingTimeInterval(-366 * 86400)
+        for _ in 0 ..< 16 {
+            guard let transition = timeZone.nextDaylightSavingTimeTransition(after: probe),
+                  transition.timeIntervalSince1970 <= t
+            else { break }
+            start = transition.timeIntervalSince1970
+            probe = transition
+        }
+
+        cached = Interval(start: start, end: end, offsetSeconds: offset, timeZoneIdentifier: timeZone.identifier)
+        return offset
+    }
+}
+
 extension Date {
     /// Returns the hour component for the date using the current timezone
     var hourInLocalTime: Int? {
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.hour], from: self)
-        return components.hour
+        Int(WallClock.secondsIntoDay(of: self) / 3600)
     }
 
     /// Returns the total minutes elapsed since midnight for the current date
     var minutesSinceMidnight: Int? {
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.hour, .minute], from: self)
-        guard let hour = components.hour, let minute = components.minute else {
-            return nil
-        }
-        return hour * 60 + minute
+        Int(WallClock.secondsIntoDay(of: self) / 60)
     }
 
     var minutesSinceMidnightWithPrecision: Decimal? {
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.hour, .minute, .second, .nanosecond], from: self)
-
-        guard let hour = components.hour,
-              let minute = components.minute,
-              let second = components.second,
-              let nanosecond = components.nanosecond
-        else {
-            return nil
-        }
+        let secondsIntoDay = WallClock.secondsIntoDay(of: self)
+        let wholeSeconds = Int(secondsIntoDay)
+        let nanosecond = Int(((secondsIntoDay - Double(wholeSeconds)) * 1_000_000_000).rounded())
 
         // Convert nanoseconds to milliseconds and round
         let milliseconds = (Decimal(nanosecond) / 1_000_000).rounded()
 
-        let baseMinutes = Decimal(hour * 60 + minute)
-        let secondsAsMinutes = Decimal(second) / Decimal(60)
+        let baseMinutes = Decimal(wholeSeconds / 60)
+        let secondsAsMinutes = Decimal(wholeSeconds % 60) / Decimal(60)
         let millisecondsAsMinutes = milliseconds / Decimal(60000)
 
         return baseMinutes + secondsAsMinutes + millisecondsAsMinutes

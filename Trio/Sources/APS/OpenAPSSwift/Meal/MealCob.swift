@@ -41,8 +41,30 @@ struct MealCob {
         mealDate: Date,
         carbImpactDate: Date?
     ) throws -> CobResult {
+        try detectCarbAbsorption(
+            clock: &clock,
+            glucose: glucose,
+            computedHistory: pumpHistory.map { $0.computedEvent() },
+            basalProfile: basalProfile,
+            profile: &profile,
+            mealDate: mealDate,
+            carbImpactDate: carbImpactDate
+        )
+    }
+
+    /// Variant for callers that already mapped the pump history; the treatments
+    /// themselves must be rebuilt per call because clock/profile mutate between calls
+    static func detectCarbAbsorption(
+        clock: inout Date, // Made inout to match JS mutation bug
+        glucose: [BloodGlucose],
+        computedHistory: [ComputedPumpHistoryEvent],
+        basalProfile: [BasalProfileEntry],
+        profile: inout Profile, // Made inout to match JS mutation bug
+        mealDate: Date,
+        carbImpactDate: Date?
+    ) throws -> CobResult {
         let treatments = try IobHistory.calcTempTreatments(
-            history: pumpHistory.map { $0.computedEvent() },
+            history: computedHistory,
             profile: profile,
             clock: clock,
             autosens: nil,
@@ -196,6 +218,12 @@ struct MealCob {
         var minDeviation: Decimal = 999
         var allDeviations: [Decimal] = []
 
+        // schedules are loop-invariant; nil isfProfile still throws inside the loop
+        let isfSchedule = profile.isfProfile.map(Isf.PreparedSchedule.init)
+        let basalSchedule = Basal.PreparedSchedule(basalProfile)
+        // built on first iteration so the dia-missing throw keeps its timing
+        var preparedIob: IobCalculation.PreparedIobInputs?
+
         // Process bucketed data (excluding last 3 entries)
         for i in 0 ..< max(0, bucketedData.count - 3) {
             let bgTime = bucketedData[i].date
@@ -210,18 +238,20 @@ struct MealCob {
             let delta = bg - bucketedData[i + 1].glucose
 
             // Get ISF
-            guard let isfProfile = profile.isfProfile?.toInsulinSensitivities() else {
+            guard let isfSchedule else {
                 throw CobError.missingIsfProfile
             }
-            let (sens, _) = try Isf.isfLookup(isfDataInput: isfProfile, timestamp: bgTime)
+            let sens = try isfSchedule.sensitivity(at: bgTime)
 
             // JS BUGS: These mutations persist!
             clock = bgTime // Mutates the clock
-            profile.currentBasal = try Basal.basalLookup(basalProfile, now: bgTime) // Mutates the profile
+            profile.currentBasal = try basalSchedule.rate(at: bgTime) // Mutates the profile
 
             // Calculate IOB with mutated values
+            let prepared = try preparedIob ?? IobCalculation.prepare(treatments: treatments, profile: profile)
+            preparedIob = prepared
             let iob = try IobCalculation.iobTotal(
-                treatments: treatments,
+                prepared: prepared,
                 profile: profile,
                 time: clock // Uses the mutated clock
             )

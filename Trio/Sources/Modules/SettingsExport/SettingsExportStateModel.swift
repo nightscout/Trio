@@ -660,8 +660,8 @@ extension SettingsExport {
                 addSetting(
                     category: featuresCategory,
                     subcategory: treatmentsSubcategory,
-                    name: String(localized: "Enable Quick-Pick Boluses"),
-                    value: trioSettings.enableQuickBolus ? String(localized: "Enabled") : String(localized: "Disabled")
+                    name: String(localized: "Enable Quick-Pick Treatments"),
+                    value: trioSettings.enableQuickPickTreatments ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: featuresCategory,

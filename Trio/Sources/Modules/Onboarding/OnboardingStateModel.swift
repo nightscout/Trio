@@ -1,6 +1,5 @@
 import Combine
 import DanaKit
-import FirebaseCrashlytics
 import Foundation
 import LoopKit
 import MedtrumKit
@@ -22,35 +21,6 @@ extension Onboarding {
         @ObservationIgnored @Injected() var apsManager: APSManager!
 
         private let settingsProvider = PickerSettingsProvider.shared
-
-        // MARK: - App Diagnostics
-
-        var diagnosticsSharingOption: DiagnosticsSharingOption = .full
-        var hasAcceptedPrivacyPolicy: Bool = false
-
-        func syncDiagnosticsOptionFromStorage() {
-            // Onboarding *is* the consent decision point, so a fresh install
-            // sees `.full` (truly opt-out). If the user has already picked
-            // something — e.g. backed out of this step and returned — restore
-            // their saved selection so they see their current choice.
-            if PropertyPersistentFlags.shared.telemetryConsentDecisionMade == true {
-                let crashlytics = PropertyPersistentFlags.shared.diagnosticsSharingEnabled ?? true
-                let telemetry = PropertyPersistentFlags.shared.telemetryEnabled ?? false
-                diagnosticsSharingOption = DiagnosticsSharingOption(
-                    crashlyticsEnabled: crashlytics,
-                    telemetryEnabled: telemetry
-                )
-            } else {
-                diagnosticsSharingOption = .full
-            }
-        }
-
-        func updateDiagnosticsOption(to option: DiagnosticsSharingOption) {
-            diagnosticsSharingOption = option
-            PropertyPersistentFlags.shared.diagnosticsSharingEnabled = option.crashlyticsEnabled
-            PropertyPersistentFlags.shared.telemetryEnabled = option.telemetryEnabled
-            PropertyPersistentFlags.shared.telemetryConsentDecisionMade = true
-        }
 
         // MARK: - Determine Initial Build State
 
@@ -696,7 +666,6 @@ extension Onboarding {
 
         /// Persists all onboarding data by applying settings and saving therapy values.
         func saveOnboardingData() {
-            applyDiagnostics()
             applyToSettings()
             applyToPreferences()
             applyToPumpSettings()
@@ -704,18 +673,6 @@ extension Onboarding {
             saveBasalProfile()
             saveCarbRatios()
             saveISFValues()
-        }
-
-        /// Persists the current diagnostics sharing option and applies it to Crashlytics + telemetry.
-        func applyDiagnostics() {
-            PropertyPersistentFlags.shared.diagnosticsSharingEnabled = diagnosticsSharingOption.crashlyticsEnabled
-            PropertyPersistentFlags.shared.telemetryEnabled = diagnosticsSharingOption.telemetryEnabled
-            PropertyPersistentFlags.shared.telemetryConsentDecisionMade = true
-            Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(diagnosticsSharingOption.crashlyticsEnabled)
-            if diagnosticsSharingOption.telemetryEnabled {
-                TelemetryClient.shared.scheduleRecurring()
-                Task.detached { await TelemetryClient.shared.maybeSend() }
-            }
         }
 
         /// Applies the selected glucose units to the app's settings.

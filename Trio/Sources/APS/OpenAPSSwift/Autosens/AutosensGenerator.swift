@@ -38,7 +38,8 @@ struct AutosensGenerator {
         tempTargets: [TempTarget],
         maxDeviations: Int,
         clock: Date,
-        includeDeviationsForTesting: Bool = false
+        includeDeviationsForTesting: Bool = false,
+        precomputedTreatments: [ComputedPumpHistoryEvent]? = nil
     ) throws -> Autosens {
         // from prepare/autosens.js
         guard glucose.count >= 72 else {
@@ -47,7 +48,7 @@ struct AutosensGenerator {
 
         let lastSiteChange = determineLastSiteChange(pumpHistory: pumpHistory, profile: profile, clock: clock)
 
-        let treatments = try IobHistory.calcTempTreatments(
+        let treatments = try precomputedTreatments ?? IobHistory.calcTempTreatments(
             history: pumpHistory.map { $0.computedEvent() },
             profile: profile,
             clock: clock,
@@ -63,6 +64,11 @@ struct AutosensGenerator {
         var state = SimulationState(meals: meals)
         var deviations: [Decimal] = []
         var debugInfoList: [Autosens.DebugInfo] = []
+        // schedules are loop-invariant; nil isfProfile still throws inside the loop
+        let isfSchedule = profile.isfProfile.map(Isf.PreparedSchedule.init)
+        let basalSchedule = Basal.PreparedSchedule(basalProfile)
+        // built on first iteration so the dia-missing throw keeps its timing
+        var preparedIob: IobCalculation.PreparedIobInputs?
         // in JS the simulation loop starts at index 3 but checks for i-1 (prev)
         // and i-3 (old) values for computations
         for (oldGlucose, (prevGlucose, currGlucose)) in zip(
@@ -73,19 +79,21 @@ struct AutosensGenerator {
                 continue
             }
 
-            guard let isfProfile = profile.isfProfile?.toInsulinSensitivities() else {
+            guard let isfSchedule else {
                 throw AutosensError.missingIsfProfile
             }
-            let (sensitivity, _) = try Isf.isfLookup(isfDataInput: isfProfile, timestamp: currGlucose.date)
+            let sensitivity = try isfSchedule.sensitivity(at: currGlucose.date)
             // in JS the isfLookup function returns -1 on errors
             guard sensitivity > 0 else {
                 throw AutosensError.isfLookupError
             }
             let deltaGlucose = currGlucose.glucose - prevGlucose.glucose
             var simulationProfile = profile
-            simulationProfile.currentBasal = try Basal.basalLookup(basalProfile, now: currGlucose.date)
+            simulationProfile.currentBasal = try basalSchedule.rate(at: currGlucose.date)
             simulationProfile.temptargetSet = false
-            let iob = try IobCalculation.iobTotal(treatments: treatments, profile: simulationProfile, time: currGlucose.date)
+            let prepared = try preparedIob ?? IobCalculation.prepare(treatments: treatments, profile: simulationProfile)
+            preparedIob = prepared
+            let iob = try IobCalculation.iobTotal(prepared: prepared, profile: simulationProfile, time: currGlucose.date)
 
             // copying Javascript rounding
             let bgi = (-iob.activity * sensitivity * 5 * 100 + 0.5).rounded(scale: 0, roundingMode: .down) / 100
@@ -250,9 +258,9 @@ struct AutosensGenerator {
 
     /// Returns true if the time is within first 5 minutes of an even hour based on local timezone
     private static func everyOtherHourOnTheHour(glucoseDate: Date) -> Bool {
-        let calendar = Calendar.current
-        let minutes = calendar.component(.minute, from: glucoseDate)
-        let hours = calendar.component(.hour, from: glucoseDate)
+        guard let minutesSinceMidnight = glucoseDate.minutesSinceMidnight else { return false }
+        let minutes = minutesSinceMidnight % 60
+        let hours = minutesSinceMidnight / 60
 
         if minutes >= 0, minutes < 5 {
             if hours % 2 == 0 {

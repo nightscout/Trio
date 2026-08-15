@@ -2,7 +2,32 @@ import Charts
 import Foundation
 import SwiftUI
 
-struct SelectionPopoverView: ChartContent {
+/// Color of the selection marker/readout for a glucose value. Shared by the popover card
+/// and the shell's selection overlay dot.
+func selectionMarkColor(
+    for glucose: GlucoseStored,
+    highGlucose: Decimal,
+    lowGlucose: Decimal,
+    currentGlucoseTarget: Decimal,
+    glucoseColorScheme: GlucoseColorScheme
+) -> Color {
+    let hardCodedLow = Decimal(55)
+    let hardCodedHigh = Decimal(220)
+    let isDynamicColorScheme = glucoseColorScheme == .dynamicColor
+
+    return Trio.getDynamicGlucoseColor(
+        glucoseValue: Decimal(glucose.glucose),
+        highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
+        lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
+        targetGlucose: currentGlucoseTarget,
+        glucoseColorScheme: glucoseColorScheme
+    )
+}
+
+/// The selection detail card. Plain SwiftUI (no longer `ChartContent`): it is rendered by
+/// the shell's selection overlay in a fixed slot, so it can neither be clipped by the
+/// viewport nor force a canvas re-layout while scrubbing.
+struct SelectionPopoverView: View {
     let selectedGlucose: GlucoseStored
     let selectedIOBValue: OrefDetermination?
     let selectedCOBValue: OrefDetermination?
@@ -18,50 +43,16 @@ struct SelectionPopoverView: ChartContent {
     }
 
     private var pointMarkColor: Color {
-        let hardCodedLow = Decimal(55)
-        let hardCodedHigh = Decimal(220)
-        let isDynamicColorScheme = glucoseColorScheme == .dynamicColor
-
-        return Trio.getDynamicGlucoseColor(
-            glucoseValue: Decimal(selectedGlucose.glucose),
-            highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
-            lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
-            targetGlucose: currentGlucoseTarget,
+        selectionMarkColor(
+            for: selectedGlucose,
+            highGlucose: highGlucose,
+            lowGlucose: lowGlucose,
+            currentGlucoseTarget: currentGlucoseTarget,
             glucoseColorScheme: glucoseColorScheme
         )
     }
 
-    var body: some ChartContent {
-        RuleMark(x: .value("Selection", selectedGlucose.date ?? Date.now, unit: .minute))
-            .foregroundStyle(Color.tabBar)
-            .offset(yStart: isSmoothingEnabled ? 90 : 70)
-            .lineStyle(.init(lineWidth: 2))
-            .annotation(
-                position: .top,
-                alignment: .center,
-                overflowResolution: .init(x: .fit(to: .chart), y: .disabled)
-            ) {
-                selectionPopover
-            }
-
-        PointMark(
-            x: .value("Time", selectedGlucose.date ?? Date.now, unit: .minute),
-            y: .value("Value", glucoseToDisplay)
-        )
-        .zIndex(-1)
-        .symbolSize(CGSize(width: 15, height: 15))
-        .foregroundStyle(pointMarkColor)
-
-        PointMark(
-            x: .value("Time", selectedGlucose.date ?? Date.now, unit: .minute),
-            y: .value("Value", glucoseToDisplay)
-        )
-        .zIndex(-1)
-        .symbolSize(CGSize(width: 6, height: 6))
-        .foregroundStyle(Color.primary)
-    }
-
-    @ViewBuilder var selectionPopover: some View {
+    @ViewBuilder var body: some View {
         VStack(alignment: .leading) {
             HStack {
                 Image(systemName: "clock")

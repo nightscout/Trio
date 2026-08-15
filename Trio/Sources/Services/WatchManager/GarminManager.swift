@@ -54,6 +54,9 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Stores, retrieves, and updates insulin dose determinations in CoreData.
     @Injected() private var determinationStorage: DeterminationStorage!
 
+    /// JSON settings store, used here to read the glucose target profile.
+    @Injected() private var fileStorage: FileStorage!
+
     @Injected() private var iobService: IOBService!
     @Injected() private var trioAlertManager: TrioAlertManager!
 
@@ -80,6 +83,10 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
     /// Current glucose units, either mg/dL or mmol/L, read from user settings.
     private var units: GlucoseUnits = .mgdL
+
+    /// Glucose color scheme, read from user settings and forwarded to watch apps
+    /// that can color glucose themselves.
+    private var glucoseColorScheme: GlucoseColorScheme = .staticColor
 
     // MARK: - Debug Logging
 
@@ -190,9 +197,13 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
         subscribeToWatchState()
 
         units = settingsManager.settings.units
+        glucoseColorScheme = settingsManager.settings.glucoseColorScheme
         previousGarminSettings = settingsManager.settings.garminSettings
 
         broadcaster.register(SettingsObserver.self, observer: self)
+        // Glucose targets are not part of TrioSettings, so editing the target profile
+        // notifies this observer rather than firing settingsDidChange.
+        broadcaster.register(BGTargetsObserver.self, observer: self)
 
         coreDataPublisher =
             CoreDataStack.shared.entityChangePublisher
@@ -239,10 +250,14 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
         settingsManager.settings.garminSettings.isWatchfaceDataEnabled
     }
 
-    /// SwissAlpine watchface uses historical glucose data (24 entries)
-    /// Trio watchface only uses current reading
+    /// SwissAlpine watchface and the complication app use historical glucose data (24 entries).
+    /// Trio watchface only uses current reading.
+    ///
+    /// The complication app needs it for the 2 h graph in its own view; the complications
+    /// it publishes read only element 0 and work without history.
     private var needsHistoricalGlucoseData: Bool {
         currentWatchface == .swissalpine
+            || currentWatchface == .complication
     }
 
     /// Returns the display name for an app UUID (watchface or datafield).
@@ -550,12 +565,21 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
         let tempBasalIds = try await fetchTempBasals()
 
+        // Scheduled profile target only, matching the Home chart -- overrides and temp
+        // targets are not reflected.
+        let bgTargets = await fileStorage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
+            ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
+            ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
+        let targetGlucoseValue = bgTargets.currentTarget().map { Int16(truncating: $0 as NSDecimalNumber) }
+
         // Extract all needed values from self before entering perform block (Sendable compliance)
         let unitsValue = units
         let iobValue = formatIOB(iobService.currentIOB ?? Decimal(0))
         let basalProfile = settingsManager.preferences.basalProfile as? [BasalProfileEntry] ?? []
         let displayPrimaryChoice = settingsManager.settings.garminSettings.primaryAttributeChoice.rawValue
         let displaySecondaryChoice = settingsManager.settings.garminSettings.secondaryAttributeChoice.rawValue
+        // Short form, not the enum raw value: this is the wire format the watchface reads.
+        let colorSchemeValue = glucoseColorScheme == .dynamicColor ? "dynamic" : "static"
         let needsHistoricalData = needsHistoricalGlucoseData
         let shouldDebug = debugWatchState
         let previousHash = lastPreparedDataHash
@@ -672,6 +696,8 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                     watchState.sensRatio = sensRatioValue
                     watchState.displayPrimaryAttributeChoice = displayPrimaryChoice
                     watchState.displaySecondaryAttributeChoice = displaySecondaryChoice
+                    watchState.glucoseColorScheme = colorSchemeValue
+                    watchState.targetGlucose = targetGlucoseValue
                 }
 
                 watchStates.append(watchState)
@@ -691,9 +717,10 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                 let cobFormatted = String(format: "%.0f", watchStates.first?.cob ?? 0)
                 let tbrFormatted = String(format: "%.2f", watchStates.first?.tbr ?? 0)
                 let sensRatioFormatted = String(format: "%.2f", watchStates.first?.sensRatio ?? 0)
+                let targetFormatted = watchStates.first?.targetGlucose.map { "\($0)" } ?? "none"
                 debug(
                     .watchManager,
-                    "Garmin: Prepared \(watchStates.count) entries - sgv: \(watchStates.first?.sgv ?? 0), iob: \(iobFormatted), cob: \(cobFormatted), tbr: \(tbrFormatted), eventualBG: \(watchStates.first?.eventualBG ?? 0), sensRatio: \(sensRatioFormatted)"
+                    "Garmin: Prepared \(watchStates.count) entries - sgv: \(watchStates.first?.sgv ?? 0), iob: \(iobFormatted), cob: \(cobFormatted), tbr: \(tbrFormatted), eventualBG: \(watchStates.first?.eventualBG ?? 0), sensRatio: \(sensRatioFormatted), colorScheme: \(watchStates.first?.glucoseColorScheme ?? "none"), target: \(targetFormatted)"
                 )
             }
 
@@ -1067,9 +1094,11 @@ extension BaseGarminManager: SettingsObserver {
     func settingsDidChange(_: TrioSettings) {
         let currentGarminSettings = settingsManager.settings.garminSettings
         let currentUnits = settingsManager.settings.units
+        let currentColorScheme = settingsManager.settings.glucoseColorScheme
 
         // Detect what specifically changed
         let unitsChanged = currentUnits != units
+        let colorSchemeChanged = currentColorScheme != glucoseColorScheme
         let watchfaceChanged = currentGarminSettings.watchface != previousGarminSettings.watchface
         let datafieldChanged = currentGarminSettings.datafield != previousGarminSettings.datafield
         let watchfaceDataEnabledChanged = currentGarminSettings.isWatchfaceDataEnabled != previousGarminSettings
@@ -1080,6 +1109,7 @@ extension BaseGarminManager: SettingsObserver {
 
         // Update stored values
         units = currentUnits
+        glucoseColorScheme = currentColorScheme
 
         // Re-register devices only if watchface/datafield configuration changed
         if watchfaceChanged || datafieldChanged || watchfaceDataEnabledChanged {
@@ -1100,7 +1130,7 @@ extension BaseGarminManager: SettingsObserver {
                 debug(.watchManager, "Garmin: Watchface data enabled - sending update immediately")
             }
             triggerWatchStateUpdate(triggeredBy: "Settings")
-        } else if unitsChanged || displayAttributesChanged {
+        } else if unitsChanged || displayAttributesChanged || colorSchemeChanged {
             // Throttle other settings changes in case user makes multiple changes
             if debugWatchState {
                 debug(.watchManager, "Garmin: Settings changed - scheduling throttled update")
@@ -1110,5 +1140,16 @@ extension BaseGarminManager: SettingsObserver {
 
         // Store current Garmin settings for next comparison
         previousGarminSettings = currentGarminSettings
+    }
+}
+
+extension BaseGarminManager: BGTargetsObserver {
+    /// Called when the glucose target profile is edited.
+    /// - Parameter _: The updated targets, re-read from storage during preparation.
+    func bgTargetsDidChange(_: BGTargets) {
+        if debugWatchState {
+            debug(.watchManager, "Garmin: Glucose targets changed - scheduling throttled update")
+        }
+        sendSettingsUpdateThrottled()
     }
 }

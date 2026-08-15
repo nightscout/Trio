@@ -92,6 +92,12 @@ struct CurrentGlucoseView: View {
 
     @ViewBuilder private func bobbleAndTag(triangleColor: Color) -> some View {
         ZStack {
+            Circle()
+                .fill(triangleColor)
+                .frame(width: 124, height: 124)
+                .blur(radius: 24)
+                .opacity(colorScheme == .dark ? 0.32 : 0.20)
+
             if let progress = cgmProgress, shouldShowArc {
                 SensorLifecycleArcView(
                     progress: progress.percentComplete,

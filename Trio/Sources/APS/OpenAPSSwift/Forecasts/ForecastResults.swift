@@ -35,6 +35,7 @@ struct IndividualForecast {
     let minGuardGlucose: Decimal
     let rawForecasts: [Decimal]
     let duration: Decimal? // only set by UAM
+    var cobSeries: [Decimal]? = nil // only set by COB: remaining grams per step
 }
 
 struct AllForecasts {

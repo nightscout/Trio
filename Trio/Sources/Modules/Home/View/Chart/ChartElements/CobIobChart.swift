@@ -2,94 +2,45 @@ import Charts
 import Foundation
 import SwiftUI
 
-extension MainChartView {
+extension MainChartCanvas {
     var cobIobChart: some View {
         Chart {
             drawCurrentTimeMarker()
             drawCOBIOBChart()
-
-            if let selectedCOBValue {
-                drawSelectedInnerPoint(
-                    xValue: selectedCOBValue.deliverAt ?? Date.now,
-                    yValue: Double(selectedCOBValue.cob),
-                    axis: "COB"
-                )
-                drawSelectedOuterPoint(
-                    xValue: selectedCOBValue.deliverAt ?? Date.now,
-                    yValue: Double(selectedCOBValue.cob),
-                    axis: "IOB",
-                    color: Color.orange
-                )
-            }
-
-            if let selectedIOBValue {
-                let rawAmount = selectedIOBValue.iob?.doubleValue ?? 0
-                let amount: Double = rawAmount > 0 ? rawAmount * 8 : rawAmount * 9
-
-                drawSelectedInnerPoint(
-                    xValue: selectedIOBValue.deliverAt ?? Date.now,
-                    yValue: amount,
-                    axis: "COB"
-                )
-                drawSelectedOuterPoint(
-                    xValue: selectedIOBValue.deliverAt ?? Date.now,
-                    yValue: amount,
-                    axis: "IOB",
-                    color: Color.darkerBlue
-                )
-            }
+            drawIobProjection()
+            drawCobProjection()
         }
-        .chartForegroundStyleScale([
-            "COB": Color.orange,
-            "IOB": Color.darkerBlue
-        ])
         .chartLegend(.hidden)
-        .frame(minHeight: geo.size.height * 0.12)
-        .frame(width: fullWidth(viewWidth: screenSize.width))
-        .chartXScale(domain: state.startMarker ... state.endMarker)
-        .chartXSelection(value: $selection)
+        .frame(width: canvasWidth, height: cobIobHeight)
+        .chartXScale(domain: windowStart ... windowEnd)
         .chartXAxis { basalChartXAxis }
         .chartYAxis { cobIobChartYAxis }
         .chartYScale(domain: combinedYDomain())
+        // report the pane's true plot rect: the hour labels reserve space inside
+        // the pane frame, so the plot is shorter than cobIobHeight. The overlay
+        // (chart-sized, NOT plot-sized) resolves the plot anchor and rebases it
+        // into canvas coordinates for the shell's selection dots.
+        .chartOverlay { proxy in
+            GeometryReader { geo in
+                if let plotAnchor = proxy.plotFrame {
+                    let chartFrame = geo.frame(in: .named(MainChartCanvas.coordinateSpaceName))
+                    let plotLocal = geo[plotAnchor]
+                    Color.clear.preference(
+                        key: CobIobPlotFrameKey.self,
+                        value: plotLocal.offsetBy(dx: chartFrame.minX, dy: chartFrame.minY)
+                    )
+                }
+            }
+        }
     }
 
     func combinedYDomain() -> ClosedRange<Double> {
-        let iobMin = scaleIobAmountForChart(state.minValueIobChart)
-        let iobMax = scaleIobAmountForChart(state.maxValueIobChart)
-        let minValue = min(state.minValueCobChart, iobMin)
-        let maxValue = max(state.maxValueCobChart, iobMax)
-        return Double(minValue) ... Double(maxValue)
-    }
-
-    private func drawSelectedInnerPoint(xValue: Date, yValue: Double, axis: String) -> some ChartContent {
-        PointMark(
-            x: .value("Time", xValue, unit: .minute),
-            y: .value("Value", yValue)
+        MainChartHelper.cobIobYDomain(
+            minCob: state.minValueCobChart,
+            maxCob: state.maxValueCobChart,
+            minIob: state.minValueIobChart,
+            maxIob: state.maxValueIobChart
         )
-        .symbolSize(CGSize(width: 6, height: 6))
-        .foregroundStyle(Color.primary)
-        .position(by: .value("Axis", axis))
-    }
-
-    private func drawSelectedOuterPoint(xValue: Date, yValue: Double, axis: String, color: Color) -> some ChartContent {
-        PointMark(
-            x: .value("Time", xValue, unit: .minute),
-            y: .value("Value", yValue)
-        )
-        .symbolSize(CGSize(width: 15, height: 15))
-        .foregroundStyle(color.opacity(0.8))
-        .position(by: .value("Axis", axis))
-    }
-
-    /// Scales IOB amounts for chart display.
-    ///
-    /// As IOB and COB share the same Y axis and COB is usually >> IOB,
-    /// we need to visually weigh IOB by multiplying it by a scaling factor:
-    ///
-    /// - Parameter rawAmount: The unscaled IOB amount
-    /// - Returns: The scaled IOB amount for visual representation
-    private func scaleIobAmountForChart<T: Numeric & Comparable>(_ rawAmount: T) -> T where T: ExpressibleByIntegerLiteral {
-        rawAmount > 0 ? rawAmount * 8 : rawAmount * 9
     }
 
     func drawCOBIOBChart() -> some ChartContent {
@@ -97,7 +48,7 @@ extension MainChartView {
         // We sometimes get two determinations when editing carbs, one without the entry-to-be-edited and then another one after editing the entry.
         // We are fetching determinations in descending order, so the first one is the latter determination (with correct amounts), so keeping the first one encountered.
         var seenDates = Set<Date>()
-        let filteredDeterminations = state.enactedAndNonEnactedDeterminations.filter { item in
+        let filteredDeterminations = windowedDeterminations.filter { item in
             if let date = item.deliverAt {
                 if seenDates.contains(date) {
                     // Already seen this date – filter it out.
@@ -117,26 +68,106 @@ extension MainChartView {
             let amountCOB = Int(item.cob)
             let date: Date = item.deliverAt ?? Date()
 
-            LineMark(x: .value("Time", date), y: .value("Value", amountCOB))
-                .foregroundStyle(by: .value("Type", "COB"))
-                .position(by: .value("Axis", "COB"))
-            AreaMark(x: .value("Time", date), y: .value("Value", amountCOB))
-                .foregroundStyle(by: .value("Type", "COB"))
-                .position(by: .value("Axis", "COB"))
-                .opacity(0.2)
+            // Fixed styles + explicit series identity replace foregroundStyle(by:)/
+            // position(by:), which dragged every mark through scale resolution.
+            LineMark(x: .value("Time", date), y: .value("Value", amountCOB), series: .value("Series", "COB"))
+                .foregroundStyle(Color.orange)
+            AreaMark(
+                x: .value("Time", date),
+                y: .value("Value", amountCOB),
+                series: .value("Series", "COB"),
+                stacking: .unstacked
+            )
+            .foregroundStyle(Color.orange)
+            .opacity(0.2)
 
             // MARK: - IOB line and area mark
 
             let rawAmount = item.iob?.doubleValue ?? 0
-            let amountIOB: Double = scaleIobAmountForChart(rawAmount)
+            let amountIOB: Double = MainChartHelper.scaledIobAmount(rawAmount)
 
-            AreaMark(x: .value("Time", date), y: .value("Amount", amountIOB))
-                .foregroundStyle(by: .value("Type", "IOB"))
-                .position(by: .value("Axis", "IOB"))
-                .opacity(0.2)
-            LineMark(x: .value("Time", date), y: .value("Amount", amountIOB))
-                .foregroundStyle(by: .value("Type", "IOB"))
-                .position(by: .value("Axis", "IOB"))
+            AreaMark(
+                x: .value("Time", date),
+                y: .value("Amount", amountIOB),
+                series: .value("Series", "IOB"),
+                stacking: .unstacked
+            )
+            .foregroundStyle(Color.darkerBlue)
+            .opacity(0.2)
+            LineMark(x: .value("Time", date), y: .value("Amount", amountIOB), series: .value("Series", "IOB"))
+                .foregroundStyle(Color.darkerBlue)
+        }
+    }
+
+    // MARK: - Projected IOB/COB decay (dashed, from latest determination into the future)
+
+    /// stale projections (older than the newest determination) render nothing
+    private var projectionAnchor: Date {
+        state.enactedAndNonEnactedDeterminations.first?.deliverAt ?? state.timerDate
+    }
+
+    /// The projection files can be up to one cycle newer than the newest
+    /// determination (they are written before determineBasal); prepending the
+    /// determination's own value bridges the gap so the dashed curves connect
+    /// to the end of the historical lines.
+    private func bridged(_ points: [ProjectionPoint], anchor: Date, anchorValue: Double?) -> [ProjectionPoint] {
+        guard let first = points.first, first.date > anchor, let anchorValue else { return points }
+        return [ProjectionPoint(date: anchor, value: anchorValue)] + points
+    }
+
+    func drawIobProjection() -> some ChartContent {
+        let anchor = projectionAnchor
+        let points = bridged(
+            state.iobProjection.filter { $0.date >= anchor && $0.date <= windowEnd },
+            anchor: anchor,
+            anchorValue: state.enactedAndNonEnactedDeterminations.first?.iob?.doubleValue
+        )
+
+        return ForEach(points) { point in
+            let amount = MainChartHelper.scaledIobAmount(point.value)
+
+            AreaMark(
+                x: .value("Time", point.date),
+                y: .value("Amount", amount),
+                series: .value("Series", "IOBProjection"),
+                stacking: .unstacked
+            )
+            .foregroundStyle(Color.darkerBlue)
+            .opacity(0.1)
+            LineMark(
+                x: .value("Time", point.date),
+                y: .value("Amount", amount),
+                series: .value("Series", "IOBProjection")
+            )
+            .foregroundStyle(Color.darkerBlue.opacity(0.8))
+            .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+        }
+    }
+
+    func drawCobProjection() -> some ChartContent {
+        let anchor = projectionAnchor
+        let points = bridged(
+            state.cobProjection.filter { $0.date >= anchor && $0.date <= windowEnd },
+            anchor: anchor,
+            anchorValue: state.enactedAndNonEnactedDeterminations.first.map { Double($0.cob) }
+        )
+
+        return ForEach(points) { point in
+            AreaMark(
+                x: .value("Time", point.date),
+                y: .value("Value", point.value),
+                series: .value("Series", "COBProjection"),
+                stacking: .unstacked
+            )
+            .foregroundStyle(Color.orange)
+            .opacity(0.1)
+            LineMark(
+                x: .value("Time", point.date),
+                y: .value("Value", point.value),
+                series: .value("Series", "COBProjection")
+            )
+            .foregroundStyle(Color.orange.opacity(0.8))
+            .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
         }
     }
 }

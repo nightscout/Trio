@@ -32,6 +32,15 @@ enum ForecastGenerator {
         }
 
         let carbSensitivityFactor = adjustedSensitivity / adjustedCarbRatio
+
+        // Mirror MealCob's min_5m_carbimpact floor (raw profile ISF/CR at loop time) so
+        // the COB projection tracks the COB readout instead of drifting above it
+        let profileSensitivity = profile.sens ?? profile.sensitivityFor(time: currentTime)
+        let profileCarbSensitivityFactor = profileCarbRatio > 0 ? profileSensitivity / profileCarbRatio : 0
+        let minAbsorbedCarbsPerStep = profileCarbSensitivityFactor > 0
+            ? profile.min5mCarbImpact / profileCarbSensitivityFactor
+            : 0
+
         let minDelta = min(glucoseStatus.delta, glucoseStatus.shortAvgDelta)
         // this carbImpact is `ci` in JS
         var carbImpact = (minDelta - currentGlucoseImpact).jsRounded(scale: 1)
@@ -69,7 +78,10 @@ enum ForecastGenerator {
             startingGlucose: glucose,
             glucoseImpactSeries: glucoseImpactSeries,
             carbImpact: carbImpact,
-            carbImpactParams: carbImpactParams
+            carbImpactParams: carbImpactParams,
+            mealCOB: mealData.mealCOB,
+            carbSensitivityFactor: carbSensitivityFactor,
+            minAbsorbedCarbsPerStep: minAbsorbedCarbsPerStep
         )
 
         let uamResult = forecastUAM(
@@ -125,8 +137,10 @@ enum ForecastGenerator {
 
         var eventualGlucose = eventualGlucose
         var finalCobForecast: [Decimal]?
+        var cobProjection: [Decimal]?
         if mealData.mealCOB > 0, carbImpact > 0 || carbImpactParams.remainingCarbImpactPeak > 0 {
             finalCobForecast = cobResult.forecasts
+            cobProjection = cobResult.cobSeries
             if let lastCobGlucose = cobResult.forecasts.last {
                 eventualGlucose = max(eventualGlucose, lastCobGlucose.jsRounded())
             }
@@ -153,7 +167,8 @@ enum ForecastGenerator {
             minGuardGlucose: blendedForecasts.minGuardGlucose,
             carbImpact: carbImpact,
             remainingCarbImpactPeak: carbImpactParams.remainingCarbImpactPeak,
-            adjustedCarbRatio: adjustedCarbRatio
+            adjustedCarbRatio: adjustedCarbRatio,
+            cobProjection: cobProjection
         )
     }
 

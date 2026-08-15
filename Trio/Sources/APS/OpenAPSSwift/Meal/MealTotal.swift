@@ -123,6 +123,9 @@ enum MealTotal {
             $0.timestamp > $1.timestamp
         })
 
+        // pure per-event mapping, hoisted out of the per-carb-entry loop
+        let computedHistory = pumpHistory.map { $0.computedEvent() }
+
         var carbsToRemove = Decimal(0)
 
         for treatment in _treatments {
@@ -144,7 +147,7 @@ enum MealTotal {
                     let myCarbsAbsorbed = try MealCob.detectCarbAbsorption(
                         clock: &cobInputs.iobInputs.clock,
                         glucose: cobInputs.glucoseData,
-                        pumpHistory: cobInputs.iobInputs.history,
+                        computedHistory: computedHistory,
                         basalProfile: cobInputs.basalProfile,
                         profile: &cobInputs.iobInputs.profile,
                         mealDate: cobInputs.mealDate,
@@ -178,7 +181,7 @@ enum MealTotal {
         let finalCobResult = try MealCob.detectCarbAbsorption(
             clock: &cobInputs.iobInputs.clock,
             glucose: cobInputs.glucoseData,
-            pumpHistory: cobInputs.iobInputs.history,
+            computedHistory: computedHistory,
             basalProfile: cobInputs.basalProfile,
             profile: &cobInputs.iobInputs.profile,
             mealDate: cobInputs.mealDate,

@@ -11,6 +11,8 @@ protocol CarbsObserver {
 protocol CarbsStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
     func storeCarbs(_ carbs: [CarbsEntry], areFetchedFromRemote: Bool) async throws
+    /// Builds a single, real, locally-entered carb entry ready to pass to `storeCarbs`.
+    func makeCarbEntry(carbs: Decimal, date: Date) -> CarbsEntry
     func deleteCarbsEntryStored(_ treatmentObjectID: NSManagedObjectID) async
     func syncDate() -> Date
     func getCarbsForAlgorithm(additionalCarbs: Decimal?, carbsDate: Date?) async throws -> [CarbsEntry]
@@ -401,6 +403,23 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     static func additionalCarbsEntry(carbs: Decimal, date: Date, id: String = UUID().uuidString) -> CarbsEntry {
         CarbsEntry(
             id: id,
+            createdAt: date,
+            actualDate: date,
+            carbs: carbs,
+            fat: 0,
+            protein: 0,
+            note: nil,
+            enteredBy: CarbsEntry.local,
+            isFPU: false,
+            fpuID: nil
+        )
+    }
+
+    /// Builds a single, real, locally-entered carb entry ready to pass to `storeCarbs`. Kept separate from
+    /// `additionalCarbsEntry`, which is for the determine-basal flow's synthetic bolus-simulation input.
+    func makeCarbEntry(carbs: Decimal, date: Date) -> CarbsEntry {
+        CarbsEntry(
+            id: UUID().uuidString,
             createdAt: date,
             actualDate: date,
             carbs: carbs,

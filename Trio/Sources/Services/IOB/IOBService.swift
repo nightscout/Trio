@@ -6,6 +6,7 @@ import Swinject
 protocol IOBService {
     var iobPublisher: AnyPublisher<Decimal?, Never> { get }
     var currentIOB: Decimal? { get }
+    var iobProjection: [IOBEntry] { get }
     func updateIOB()
 }
 
@@ -29,6 +30,11 @@ final class BaseIOBService: IOBService, Injectable {
     // Query the current IOB syncrhonously
     var currentIOB: Decimal? {
         lookupIOB()
+    }
+
+    // Projected IOB series from the latest loop cycle (now → +4 h, 5 min steps)
+    var iobProjection: [IOBEntry] {
+        fileStorage.retrieve(OpenAPS.Monitor.iob, as: [IOBEntry].self) ?? []
     }
 
     private var subscriptions = Set<AnyCancellable>()

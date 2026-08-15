@@ -32,6 +32,10 @@ struct Determination: JSON, Equatable {
     var threshold: Decimal?
     let carbRatio: Decimal?
     let received: Bool?
+
+    /// Remaining COB per 5 min forecast step; display-only,
+    /// not part of CodingKeys so the serialized JSON is unchanged.
+    var cobProjection: [Decimal]? = nil
 }
 
 struct Predictions: JSON, Equatable {

@@ -34,6 +34,9 @@
    <FileRef
       location = "group:G7SensorKit/G7SensorKit.xcodeproj">
    </FileRef>
+    <FileRef
+      location = "group:AccuChekKit/AccuChekKit.xcodeproj">
+   </FileRef>
    <FileRef
       location = "group:EversenseKit/EversenseKit.xcodeproj">
    </FileRef>

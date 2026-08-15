@@ -50,6 +50,11 @@ enum GarminWatchface: String, JSON, CaseIterable, Identifiable, Codable, Hashabl
 
     case trio
     case swissalpine
+    /// Not a watchface but a Connect IQ watch app that republishes the payload as
+    /// complications, so any watchface with complication slots can show Trio data.
+    /// It takes the watchface slot because someone on complications is by definition
+    /// not running one of the Trio watchfaces, which leaves that slot free.
+    case complication
 
     var displayName: String {
         switch self {
@@ -57,10 +62,12 @@ enum GarminWatchface: String, JSON, CaseIterable, Identifiable, Codable, Hashabl
             return String(localized: "Trio", comment: "")
         case .swissalpine:
             return String(localized: "Swissalpine", comment: "")
+        case .complication:
+            return String(localized: "Complication", comment: "")
         }
     }
 
-    /// The UUID for the watchface application in Garmin Connect IQ
+    /// The UUID for the watchface applications in Garmin Connect IQ
     var watchfaceUUID: UUID? {
         switch self {
         case .trio:
@@ -70,6 +77,9 @@ enum GarminWatchface: String, JSON, CaseIterable, Identifiable, Codable, Hashabl
         case .swissalpine:
             // return UUID(uuidString: "5A643C13-D5A7-40D4-B809-84789FDF4A1F") // ConnectIQ test build
             return UUID(uuidString: "4cea4efd-4aaf-4db4-8891-ef36dde14303") // ConnectIQ live build
+        case .complication:
+            // return UUID(uuidString: "a897ce34-1135-4632-b855-1c75f1ec27bf") // ConnectIQ beta build
+            return UUID(uuidString: "0986fd19-604b-4bcb-a931-6f8621738682") // ConnectIQ live build
         }
     }
 }

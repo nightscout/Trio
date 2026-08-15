@@ -65,6 +65,10 @@ extension NSPredicate {
         return NSPredicate(format: "deliverAt >= %@", date as NSDate)
     }
 
+    static func determinationsForCobIobCharts(since date: Date) -> NSPredicate {
+        NSPredicate(format: "deliverAt >= %@", date as NSDate)
+    }
+
     static var enactedDeterminationsNotYetUploadedToNightscout: NSPredicate {
         NSPredicate(
             format: "deliverAt >= %@ AND isUploadedToNS == %@ AND enacted == %@",

@@ -8,8 +8,7 @@ import UIKit
 
 /// Opt-out anonymous usage check-in. Sends a small JSON payload to a self-hosted
 /// endpoint at most once every 24 hours, plus once after a new build is installed.
-/// Consent is collected during onboarding (or via a one-time migration sheet for
-/// existing users) and editable in Settings → App Diagnostics.
+/// Enabled by default; users can opt out in Settings → Features → App Diagnostics.
 ///
 /// No health data, credentials, or personally-identifying information is sent.
 /// See `buildPayload()` for the exact set of fields and `TelemetryPreviewView`
@@ -115,8 +114,8 @@ final class TelemetryClient: Injectable {
     }
 
     /// Arms (or re-arms) the 24h send timer. Idempotent. Bails out without
-    /// scheduling if the user hasn't decided on consent yet or has opted out
-    /// — there's nothing for the timer to do.
+    /// scheduling if the user has opted out — there's nothing for the timer
+    /// to do.
     ///
     /// Best-effort fallback only. GCD timers don't advance while the app is
     /// suspended, so on iOS this effectively means "fires only if the app
@@ -124,9 +123,7 @@ final class TelemetryClient: Injectable {
     /// `checkAndSendIfOverdue()` called on every foreground transition and
     /// cold launch.
     func scheduleRecurring() {
-        guard PropertyPersistentFlags.shared.telemetryConsentDecisionMade == true,
-              PropertyPersistentFlags.shared.telemetryEnabled == true
-        else {
+        guard PropertyPersistentFlags.shared.telemetrySharingEnabled != false else {
             return
         }
 
@@ -143,18 +140,16 @@ final class TelemetryClient: Injectable {
         }
     }
 
-    /// If consent is set and we haven't successfully sent within the last 24h
-    /// (or have never sent), fire a send. Called on foreground transitions
-    /// and from the cold-launch path so daily cadence is kept.
+    /// If telemetry isn't opted out and we haven't successfully sent within
+    /// the last 24h (or have never sent), fire a send. Called on foreground
+    /// transitions and from the cold-launch path so daily cadence is kept.
     ///
     /// Mirrors the pattern used by LoopFollow's `TaskScheduler.checkTasksNow()`:
     /// wall-clock comparison against `telemetryLastSentAt`, fire-and-forget
     /// if overdue. Safe to call repeatedly — if a send already fired within
     /// the window, this is a no-op.
     func checkAndSendIfOverdue() {
-        guard PropertyPersistentFlags.shared.telemetryConsentDecisionMade == true,
-              PropertyPersistentFlags.shared.telemetryEnabled == true
-        else {
+        guard PropertyPersistentFlags.shared.telemetrySharingEnabled != false else {
             return
         }
 
@@ -168,14 +163,12 @@ final class TelemetryClient: Injectable {
         Task.detached { await self.maybeSend() }
     }
 
-    /// Single entry point for all sends (scheduler tick, consent-yes, startup
-    /// SHA-change). Gated on consent + opt-in. *When* to send is the caller's
-    /// decision — startup handles the SHA-change shortcut, the timer handles
-    /// 24h cadence.
+    /// Single entry point for all sends (scheduler tick, settings opt-in,
+    /// startup SHA-change). Gated only on the opt-out flag. *When* to send is
+    /// the caller's decision — startup handles the SHA-change shortcut, the
+    /// timer handles 24h cadence.
     func maybeSend() async {
-        guard PropertyPersistentFlags.shared.telemetryConsentDecisionMade == true,
-              PropertyPersistentFlags.shared.telemetryEnabled == true
-        else {
+        guard PropertyPersistentFlags.shared.telemetrySharingEnabled != false else {
             return
         }
         await send()

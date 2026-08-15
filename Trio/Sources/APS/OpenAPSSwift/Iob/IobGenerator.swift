@@ -9,14 +9,7 @@ struct IobGenerator {
     ) throws -> [IobResult] {
         let pumpHistory = history.map { $0.computedEvent() }
 
-        let treatments = try IobHistory.calcTempTreatments(
-            history: pumpHistory,
-            profile: profile,
-            clock: clock,
-            autosens: autosens,
-            zeroTempDuration: nil
-        )
-        let treatmentsWithZeroTemp = try IobHistory.calcTempTreatments(
+        let (treatments, treatmentsWithZeroTemp) = try IobHistory.calcTempTreatmentsPair(
             history: pumpHistory,
             profile: profile,
             clock: clock,
@@ -33,10 +26,12 @@ struct IobGenerator {
             .last
 
         let iStop = 4 * 60 // look 4h into the future
+        let prepared = try IobCalculation.prepare(treatments: treatments, profile: profile)
+        let preparedWithZeroTemp = try IobCalculation.prepare(treatments: treatmentsWithZeroTemp, profile: profile)
         var iobArray = try stride(from: 0, to: iStop, by: 5).map { minutes in
             let time = clock + minutes.minutesToSeconds
-            let iob = try IobCalculation.iobTotal(treatments: treatments, profile: profile, time: time)
-            let iobWithZeroTemp = try IobCalculation.iobTotal(treatments: treatmentsWithZeroTemp, profile: profile, time: time)
+            let iob = try IobCalculation.iobTotal(prepared: prepared, profile: profile, time: time)
+            let iobWithZeroTemp = try IobCalculation.iobTotal(prepared: preparedWithZeroTemp, profile: profile, time: time)
             return IobResult.from(iob: iob, iobWithZeroTemp: iobWithZeroTemp)
         }
 

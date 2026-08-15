@@ -97,6 +97,20 @@ extension History {
                     .navigationTitle("History")
                     .navigationBarTitleDisplayMode(.large)
                     .toolbar {
+                        // fallback pathway: the home panel's stats face can be
+                        // displaced by higher-priority states
+                        ToolbarItem(placement: .topBarLeading, content: {
+                            Button(
+                                action: { state.showModal(for: .statistics) },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "chart.bar.xaxis")
+                                            .font(.title2)
+                                        Text("Statistics")
+                                    }
+                                }
+                            )
+                        })
                         ToolbarItem(placement: .topBarTrailing, content: {
                             addButton({
                                 showManualGlucose = true

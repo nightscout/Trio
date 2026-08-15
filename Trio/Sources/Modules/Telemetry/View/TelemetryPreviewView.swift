@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Renders the exact payload that would be sent right now, with a copy button.
-/// Linked to from Settings → App Diagnostics and from the migration sheet.
+/// Linked to from Settings → Features → App Diagnostics.
 struct TelemetryPreviewView: View {
     @State private var jsonText: String = ""
     @State private var showResetConfirm: Bool = false
