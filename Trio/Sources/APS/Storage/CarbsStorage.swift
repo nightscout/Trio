@@ -218,7 +218,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     }
 
                     let replacementAge = now.timeIntervalSince(replacement.date)
-                    guard replacementAge >= 0, replacementAge <= remoteMealMutationMaximumAge else {
+                    guard abs(replacementAge) <= remoteMealMutationMaximumAge else {
                         throw MealMutationError.replacementOutsideEditWindow
                     }
 
@@ -383,7 +383,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         }
 
         let age = now.timeIntervalSince(rootDate)
-        guard age >= 0, age <= remoteMealMutationMaximumAge else {
+        guard abs(age) <= remoteMealMutationMaximumAge else {
             throw MealMutationError.outsideEditWindow
         }
 

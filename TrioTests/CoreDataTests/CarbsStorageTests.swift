@@ -683,7 +683,7 @@ import Testing
     }
 
     @Test(
-        "Remote mutations reject stale values and enforce the closed 12-hour window"
+        "Remote mutations reject stale values and enforce the closed ±12-hour window"
     ) func testRemoteMealMutationSafetyChecks() async throws {
         let now = Date(timeIntervalSince1970: 1_800_200_000)
         let currentID = UUID()
@@ -703,17 +703,17 @@ import Testing
             #expect(error == .stale(current: current))
         }
 
-        let boundaryID = UUID()
-        let boundaryDate = now.addingTimeInterval(-remoteMealMutationMaximumAge)
-        let boundary = MealMutationValues(date: boundaryDate, carbs: 10, fat: 0, protein: 0)
-        try await insertMeal(id: boundaryID, date: boundaryDate, carbs: 10, fat: 0, protein: 0, note: nil)
-        let boundaryResult = try await mutationStorage.mutateMeal(
-            id: boundaryID,
-            expected: boundary,
+        let pastBoundaryID = UUID()
+        let pastBoundaryDate = now.addingTimeInterval(-remoteMealMutationMaximumAge)
+        let pastBoundary = MealMutationValues(date: pastBoundaryDate, carbs: 10, fat: 0, protein: 0)
+        try await insertMeal(id: pastBoundaryID, date: pastBoundaryDate, carbs: 10, fat: 0, protein: 0, note: nil)
+        let pastBoundaryResult = try await mutationStorage.mutateMeal(
+            id: pastBoundaryID,
+            expected: pastBoundary,
             mutation: .delete,
             now: now
         )
-        #expect(boundaryResult.disposition == .deleted)
+        #expect(pastBoundaryResult.disposition == .deleted)
 
         let oldID = UUID()
         let oldDate = now.addingTimeInterval(-remoteMealMutationMaximumAge - 0.001)
@@ -726,27 +726,81 @@ import Testing
             #expect(error == .outsideEditWindow)
         }
 
+        let futureBoundaryID = UUID()
+        let futureBoundaryDate = now.addingTimeInterval(remoteMealMutationMaximumAge)
+        let futureBoundary = MealMutationValues(date: futureBoundaryDate, carbs: 10, fat: 0, protein: 0)
+        try await insertMeal(
+            id: futureBoundaryID,
+            date: futureBoundaryDate,
+            carbs: 10,
+            fat: 0,
+            protein: 0,
+            note: nil
+        )
+        let futureBoundaryResult = try await mutationStorage.mutateMeal(
+            id: futureBoundaryID,
+            expected: futureBoundary,
+            mutation: .delete,
+            now: now
+        )
+        #expect(futureBoundaryResult.disposition == .deleted)
+
         let futureID = UUID()
-        let futureDate = now.addingTimeInterval(0.001)
+        let futureDate = now.addingTimeInterval(remoteMealMutationMaximumAge + 0.001)
         let future = MealMutationValues(date: futureDate, carbs: 10, fat: 0, protein: 0)
         try await insertMeal(id: futureID, date: futureDate, carbs: 10, fat: 0, protein: 0, note: nil)
         do {
             _ = try await mutationStorage.mutateMeal(id: futureID, expected: future, mutation: .delete, now: now)
-            Issue.record("A future meal should be rejected")
+            Issue.record("A meal more than 12 hours in the future should be rejected")
         } catch let error as MealMutationError {
             #expect(error == .outsideEditWindow)
         }
 
         let replacementID = UUID()
         try await insertMeal(id: replacementID, date: currentDate, carbs: 10, fat: 0, protein: 0, note: nil)
+        let initialReplacement = MealMutationValues(date: currentDate, carbs: 10, fat: 0, protein: 0)
+        let pastBoundaryReplacement = MealMutationValues(date: pastBoundaryDate, carbs: 11, fat: 0, protein: 0)
+        let pastBoundaryEdit = try await mutationStorage.mutateMeal(
+            id: replacementID,
+            expected: initialReplacement,
+            mutation: .edit(pastBoundaryReplacement),
+            now: now
+        )
+        #expect(pastBoundaryEdit.disposition == .edited)
+        #expect(pastBoundaryEdit.after?.values == pastBoundaryReplacement)
+
+        let futureBoundaryReplacement = MealMutationValues(date: futureBoundaryDate, carbs: 12, fat: 0, protein: 0)
+        let futureBoundaryEdit = try await mutationStorage.mutateMeal(
+            id: replacementID,
+            expected: pastBoundaryReplacement,
+            mutation: .edit(futureBoundaryReplacement),
+            now: now
+        )
+        #expect(futureBoundaryEdit.disposition == .edited)
+        #expect(futureBoundaryEdit.after?.values == futureBoundaryReplacement)
+
+        let pastOutsideReplacement = MealMutationValues(date: oldDate, carbs: 13, fat: 0, protein: 0)
         do {
             _ = try await mutationStorage.mutateMeal(
                 id: replacementID,
-                expected: MealMutationValues(date: currentDate, carbs: 10, fat: 0, protein: 0),
-                mutation: .edit(MealMutationValues(date: futureDate, carbs: 11, fat: 0, protein: 0)),
+                expected: futureBoundaryReplacement,
+                mutation: .edit(pastOutsideReplacement),
                 now: now
             )
-            Issue.record("A replacement time outside the window should be rejected")
+            Issue.record("A replacement more than 12 hours in the past should be rejected")
+        } catch let error as MealMutationError {
+            #expect(error == .replacementOutsideEditWindow)
+        }
+
+        let futureOutsideReplacement = MealMutationValues(date: futureDate, carbs: 13, fat: 0, protein: 0)
+        do {
+            _ = try await mutationStorage.mutateMeal(
+                id: replacementID,
+                expected: futureBoundaryReplacement,
+                mutation: .edit(futureOutsideReplacement),
+                now: now
+            )
+            Issue.record("A replacement more than 12 hours in the future should be rejected")
         } catch let error as MealMutationError {
             #expect(error == .replacementOutsideEditWindow)
         }
