@@ -951,7 +951,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     foodType: result.note,
                     targetTop: nil,
                     targetBottom: nil,
-                    id: result.id?.uuidString
+                    id: result.id?.uuidString,
+                    fpuID: result.fpuID?.uuidString
                 )
             }
         }
@@ -992,7 +993,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     foodType: result.note,
                     targetTop: nil,
                     targetBottom: nil,
-                    id: result.fpuID?.uuidString
+                    id: result.fpuID?.uuidString,
+                    fpuID: result.fpuID?.uuidString
                 )
             }
         }

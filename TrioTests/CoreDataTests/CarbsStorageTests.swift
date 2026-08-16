@@ -377,11 +377,22 @@ import Testing
 
         // When
         try await storage.storeCarbs([testEntry], areFetchedFromRemote: false)
+        let storedRoots = try await coreDataStack.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: testContext,
+            predicate: NSPredicate(format: "note == %@ AND isFPU == NO", "NS test"),
+            key: "date",
+            ascending: false
+        ) as? [CarbEntryStored]
+        let storedRootID = try #require(storedRoots?.first?.id?.uuidString)
         let notUploadedEntries = try await storage.getCarbsNotYetUploadedToNightscout()
 
         // Then
         #expect(!notUploadedEntries.isEmpty, "Should have entries not uploaded to NS")
-        #expect(notUploadedEntries[0].carbs == 40, "Carbs value should match")
+        let root = try #require(notUploadedEntries.first(where: { $0.id == storedRootID }))
+        #expect(root.id == storedRootID, "Root ID should match its Core Data UUID")
+        #expect(root.fpuID == nil, "Carb-only roots should not publish an FPU family ID")
+        #expect(root.carbs == 40, "Carbs value should match")
     }
 
     @Test("Get FPUs not yet uploaded to Nightscout") func testGetFPUsNotYetUploadedToNightscout() async throws {
@@ -422,20 +433,36 @@ import Testing
         #expect(carbNonFpuEntry?.carbs == 30, "Original carbs should match")
         #expect(carbNonFpuEntry?.protein == 10, "Original carbs should match")
         #expect(carbNonFpuEntry?.fat == 20, "Original carbs should match")
+        let storedRootID = try #require(carbNonFpuEntry?.id?.uuidString)
 
         // Additional carb-fpu entries should be created for fat/protein with isFPU set to true and the carbs set to the amount of each carbEquivalent
         let carbFpuEntry = allStoredEntries?.filter { $0.isFPU == true }
         #expect(carbFpuEntry?.isEmpty == false, "Should have additional carb-fpu entries")
 
         // Now test the Nightscout upload function
+        let notUploadedRoots = try await storage.getCarbsNotYetUploadedToNightscout()
         let notUploadedFPUs = try await storage.getFPUsNotYetUploadedToNightscout()
 
         // Then verify Nightscout entries
+        let root = try #require(notUploadedRoots.first(where: { $0.id == storedRootID }))
+        #expect(root.id == storedRootID, "Root ID should match its Core Data UUID")
+        #expect(root.fpuID == fpuID, "Root should publish its FPU family ID")
+        #expect(root.id != root.fpuID, "A family root should have distinct root and FPU IDs")
         #expect(!notUploadedFPUs.isEmpty, "Should have FPUs not uploaded to NS")
         let fpu = notUploadedFPUs[0]
         #expect(fpu.carbs ?? 0 < 30, "Original carbs value should match")
         #expect(fpu.protein == 0, "Protein value should match")
         #expect(fpu.fat == 0, "Fat value should match")
+        for treatment in notUploadedFPUs {
+            #expect(treatment.id == fpuID, "Generated FPU treatment ID should remain the family ID")
+            #expect(treatment.fpuID == fpuID, "Generated FPU treatment should publish the family ID")
+            #expect(treatment.id == treatment.fpuID, "Generated FPU treatment IDs should identify children")
+        }
+
+        let encodedFPU = try JSONCoding.encoder.encode([fpu])
+        let encodedTreatments = try #require(JSONSerialization.jsonObject(with: encodedFPU) as? [[String: Any]])
+        let encodedJSON = try #require(encodedTreatments.first)
+        #expect(encodedJSON["fpuID"] as? String == fpuID, "Nightscout JSON should encode the exact fpuID key")
 
         // Verify all entries share the same fpuID
         #expect(
@@ -553,19 +580,20 @@ import Testing
         #expect(result.before.id == rootID)
         #expect(result.before.fpuID == oldFPUID)
         #expect(Set(result.before.fpuEntries.map(\.id)) == Set(oldChildren.map(\.id)))
-        #expect(result.after?.id == rootID)
-        #expect(result.after?.values == replacement)
-        #expect(result.after?.note == "Keep this note")
-        #expect(result.after?.fpuID != nil)
-        #expect(result.after?.fpuID != oldFPUID)
-        #expect(result.after?.fpuEntries.isEmpty == false)
+        let editedSnapshot = try #require(result.after)
+        #expect(editedSnapshot.id == rootID)
+        #expect(editedSnapshot.values == replacement)
+        #expect(editedSnapshot.note == "Keep this note")
+        let replacementFPUID = try #require(editedSnapshot.fpuID)
+        #expect(replacementFPUID != oldFPUID)
+        #expect(!editedSnapshot.fpuEntries.isEmpty)
 
         let stored = try await loadMeal(id: rootID)
         #expect(stored.snapshot.id == rootID)
         #expect(stored.snapshot.values == replacement)
         #expect(stored.snapshot.note == "Keep this note")
-        #expect(stored.snapshot.fpuID == result.after?.fpuID)
-        #expect(stored.snapshot.fpuEntries == result.after?.fpuEntries)
+        #expect(stored.snapshot.fpuID == replacementFPUID)
+        #expect(stored.snapshot.fpuEntries == editedSnapshot.fpuEntries)
         let oldChildrenStillExist = try await entriesExist(ids: oldChildren.map(\.id))
         #expect(!oldChildrenStillExist)
 
@@ -595,8 +623,16 @@ import Testing
         let pendingHealth = try await mutationStorage.getCarbsNotYetUploadedToHealth()
         let pendingTidepool = try await mutationStorage.getCarbsNotYetUploadedToTidepool()
         #expect(pendingNightscoutRoots.map(\.id) == [rootID.uuidString])
-        #expect(pendingNightscoutFPUs.count == result.after?.fpuEntries.count)
-        #expect(pendingNightscoutFPUs.allSatisfy { $0.id == result.after?.fpuID?.uuidString })
+        let pendingNightscoutRoot = try #require(pendingNightscoutRoots.first)
+        #expect(pendingNightscoutRoot.id == rootID.uuidString)
+        #expect(pendingNightscoutRoot.fpuID == replacementFPUID.uuidString)
+        #expect(pendingNightscoutRoot.id != pendingNightscoutRoot.fpuID)
+        #expect(pendingNightscoutFPUs.count == editedSnapshot.fpuEntries.count)
+        #expect(pendingNightscoutFPUs.allSatisfy {
+            $0.id == replacementFPUID.uuidString &&
+                $0.fpuID == replacementFPUID.uuidString &&
+                $0.id == $0.fpuID
+        })
         #expect(pendingHealth.map(\.id) == [rootID.uuidString])
         #expect(pendingTidepool.map(\.id) == [rootID.uuidString])
     }
