@@ -8,6 +8,135 @@ protocol CarbsObserver {
     func carbsDidUpdate(_ carbs: [CarbsEntry])
 }
 
+let remoteMealMutationMaximumAge: TimeInterval = 12 * 60 * 60
+
+private struct RemoteMealImportSuppression: Codable {
+    let date: Date
+    let expiresAt: Date
+}
+
+private final class RemoteMealImportSuppressionStore: @unchecked Sendable {
+    private let lock = NSLock()
+    private let defaults = UserDefaults.standard
+    private let key = "trio.remoteMealImportSuppressions.v1"
+    private let maximumCount = 500
+
+    func record(dates: [Date], now: Date) {
+        lock.lock()
+        defer { lock.unlock() }
+
+        var suppressions = load().filter { $0.expiresAt >= now }
+        for date in dates {
+            suppressions.removeAll { abs($0.date.timeIntervalSince(date)) <= 1 }
+            suppressions.append(
+                RemoteMealImportSuppression(
+                    date: date,
+                    expiresAt: date.addingTimeInterval(24 * 60 * 60)
+                )
+            )
+        }
+        suppressions.sort { $0.expiresAt < $1.expiresAt }
+        save(Array(suppressions.suffix(maximumCount)))
+    }
+
+    func activeDates(now: Date) -> [Date] {
+        lock.lock()
+        defer { lock.unlock() }
+
+        let stored = load()
+        let active = stored.filter { $0.expiresAt >= now }
+        if active.count != stored.count {
+            save(active)
+        }
+        return active.map(\.date)
+    }
+
+    private func load() -> [RemoteMealImportSuppression] {
+        guard let data = defaults.data(forKey: key),
+              let suppressions = try? JSONDecoder().decode([RemoteMealImportSuppression].self, from: data)
+        else { return [] }
+        return suppressions
+    }
+
+    private func save(_ suppressions: [RemoteMealImportSuppression]) {
+        guard let data = try? JSONEncoder().encode(suppressions) else { return }
+        defaults.set(data, forKey: key)
+    }
+}
+
+struct MealMutationValues: Codable, Equatable, Sendable {
+    let date: Date
+    let carbs: Decimal
+    let fat: Decimal
+    let protein: Decimal
+}
+
+struct MealFPUEntrySnapshot: Codable, Equatable, Sendable {
+    let id: UUID
+    let date: Date
+    let carbs: Decimal
+}
+
+struct MealMutationSnapshot: Codable, Equatable, Sendable {
+    let id: UUID
+    let fpuID: UUID?
+    let values: MealMutationValues
+    let note: String?
+    let fpuEntries: [MealFPUEntrySnapshot]
+}
+
+enum MealMutation: Equatable, Sendable {
+    case edit(MealMutationValues)
+    case delete
+}
+
+enum MealMutationDisposition: String, Codable, Equatable, Sendable {
+    case unchanged
+    case edited
+    case deleted
+}
+
+struct MealMutationResult: Equatable, Sendable {
+    let disposition: MealMutationDisposition
+    let before: MealMutationSnapshot
+    let after: MealMutationSnapshot?
+}
+
+enum MealMutationError: LocalizedError, Equatable {
+    case invalidExpectedValues
+    case invalidReplacementValues
+    case notFound
+    case ambiguousIdentifier
+    case targetIsFPU
+    case invalidStoredEntry
+    case outsideEditWindow
+    case replacementOutsideEditWindow
+    case stale(current: MealMutationValues)
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidExpectedValues:
+            return "The expected meal values are incomplete or invalid."
+        case .invalidReplacementValues:
+            return "The replacement meal values are incomplete or invalid."
+        case .notFound:
+            return "The meal entry was not found."
+        case .ambiguousIdentifier:
+            return "The meal identifier matched more than one entry."
+        case .targetIsFPU:
+            return "Generated FPU entries cannot be edited directly."
+        case .invalidStoredEntry:
+            return "The stored meal entry is incomplete or invalid."
+        case .outsideEditWindow:
+            return "The meal entry is outside the 12-hour edit window."
+        case .replacementOutsideEditWindow:
+            return "The replacement meal time is outside the 12-hour edit window."
+        case .stale:
+            return "The meal entry changed after LoopFollow loaded it. Refresh the entry and try again."
+        }
+    }
+}
+
 protocol CarbsStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
     func storeCarbs(_ carbs: [CarbsEntry], areFetchedFromRemote: Bool) async throws
@@ -20,9 +149,19 @@ protocol CarbsStorage {
     func getFPUsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func getCarbsNotYetUploadedToHealth() async throws -> [CarbsEntry]
     func getCarbsNotYetUploadedToTidepool() async throws -> [CarbsEntry]
+    func mealSnapshot(id: UUID, now: Date) async throws -> MealMutationSnapshot
+    func mutateMeal(
+        id: UUID,
+        expected: MealMutationValues,
+        mutation: MealMutation,
+        now: Date
+    ) async throws -> MealMutationResult
+    func markMealForUpload(id: UUID) async throws
 }
 
 final class BaseCarbsStorage: CarbsStorage, Injectable {
+    private static let remoteImportSuppressions = RemoteMealImportSuppressionStore()
+
     private let processQueue = DispatchQueue(label: "BaseCarbsStorage.processQueue")
     @Injected() private var storage: FileStorage!
     @Injected() private var broadcaster: Broadcaster!
@@ -37,10 +176,291 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     private let makeContext: () -> NSManagedObjectContext
+    private let mutationContext: NSManagedObjectContext
 
     init(resolver: Resolver, contextProvider: (() -> NSManagedObjectContext)? = nil) {
-        makeContext = contextProvider ?? { CoreDataStack.shared.newTaskContext() }
+        let makeContext = contextProvider ?? { CoreDataStack.shared.newTaskContext() }
+        self.makeContext = makeContext
+        mutationContext = makeContext()
+        mutationContext.name = "mutateMeal"
+        mutationContext.mergePolicy = NSErrorMergePolicy
         injectServices(resolver)
+    }
+
+    func mealSnapshot(id: UUID, now: Date) async throws -> MealMutationSnapshot {
+        try await mutationContext.perform {
+            self.mutationContext.reset()
+            let (root, children) = try self.mutationTarget(id: id, now: now, in: self.mutationContext)
+            return try Self.snapshot(root: root, children: children)
+        }
+    }
+
+    func mutateMeal(
+        id: UUID,
+        expected: MealMutationValues,
+        mutation: MealMutation,
+        now: Date
+    ) async throws -> MealMutationResult {
+        guard Self.hasValidMacros(expected) else {
+            throw MealMutationError.invalidExpectedValues
+        }
+
+        let result = try await mutationContext.perform {
+            self.mutationContext.reset()
+            do {
+                let (root, children) = try self.mutationTarget(id: id, now: now, in: self.mutationContext)
+                let before = try Self.snapshot(root: root, children: children)
+
+                switch mutation {
+                case let .edit(replacement):
+                    guard Self.hasValidMacros(replacement) else {
+                        throw MealMutationError.invalidReplacementValues
+                    }
+
+                    let replacementAge = now.timeIntervalSince(replacement.date)
+                    guard replacementAge >= 0, replacementAge <= remoteMealMutationMaximumAge else {
+                        throw MealMutationError.replacementOutsideEditWindow
+                    }
+
+                    if Self.matches(before.values, replacement) {
+                        return MealMutationResult(
+                            disposition: .unchanged,
+                            before: before,
+                            after: before
+                        )
+                    }
+
+                    guard Self.matches(before.values, expected) else {
+                        throw MealMutationError.stale(current: before.values)
+                    }
+
+                    Self.suppressRemoteImports(for: before, now: now)
+                    children.forEach(self.mutationContext.delete)
+
+                    root.date = replacement.date
+                    root.carbs = Self.double(replacement.carbs)
+                    root.fat = Self.double(replacement.fat)
+                    root.protein = Self.double(replacement.protein)
+                    // Keep the replacement hidden from automatic upload observers until the
+                    // handler has requested deletion of the previous remote representation.
+                    root.isUploadedToNS = true
+                    root.isUploadedToHealth = true
+                    root.isUploadedToTidepool = true
+
+                    var replacementChildren: [CarbEntryStored] = []
+                    if replacement.fat > 0 || replacement.protein > 0 {
+                        let fpuID = UUID()
+                        root.fpuID = fpuID
+
+                        let entry = CarbsEntry(
+                            id: id.uuidString,
+                            createdAt: now,
+                            actualDate: replacement.date,
+                            carbs: replacement.carbs,
+                            fat: replacement.fat,
+                            protein: replacement.protein,
+                            note: root.note,
+                            enteredBy: CarbsEntry.local,
+                            isFPU: false,
+                            fpuID: fpuID.uuidString
+                        )
+                        let (futureEntries, _) = self.processFPU(
+                            entries: [entry],
+                            fat: replacement.fat,
+                            protein: replacement.protein,
+                            createdAt: now,
+                            actualDate: replacement.date
+                        )
+
+                        for futureEntry in futureEntries {
+                            guard let childID = futureEntry.id.flatMap(UUID.init(uuidString:)),
+                                  let childDate = futureEntry.actualDate
+                            else {
+                                throw MealMutationError.invalidStoredEntry
+                            }
+
+                            let child = CarbEntryStored(context: self.mutationContext)
+                            child.id = childID
+                            child.fpuID = fpuID
+                            child.date = childDate
+                            child.carbs = Self.double(futureEntry.carbs)
+                            child.fat = 0
+                            child.protein = 0
+                            child.isFPU = true
+                            child.isUploadedToNS = true
+                            // FPU carb equivalents are Nightscout-only. Leaving the Health and
+                            // Tidepool flags nil matches the existing batch-insert behavior.
+                            replacementChildren.append(child)
+                        }
+                    } else {
+                        root.fpuID = nil
+                    }
+
+                    try self.mutationContext.save()
+                    let after = try Self.snapshot(root: root, children: replacementChildren)
+                    return MealMutationResult(disposition: .edited, before: before, after: after)
+
+                case .delete:
+                    guard Self.matches(before.values, expected) else {
+                        throw MealMutationError.stale(current: before.values)
+                    }
+
+                    Self.suppressRemoteImports(for: before, now: now)
+                    children.forEach(self.mutationContext.delete)
+                    self.mutationContext.delete(root)
+                    try self.mutationContext.save()
+                    return MealMutationResult(disposition: .deleted, before: before, after: nil)
+                }
+            } catch {
+                self.mutationContext.rollback()
+                throw error
+            }
+        }
+
+        if result.disposition != .unchanged {
+            updateSubject.send(())
+        }
+        return result
+    }
+
+    func markMealForUpload(id: UUID) async throws {
+        try await mutationContext.perform {
+            self.mutationContext.reset()
+            do {
+                let request: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+                request.predicate = NSPredicate(format: "id == %@ AND isFPU == NO", id as CVarArg)
+                request.fetchLimit = 2
+
+                let matches = try self.mutationContext.fetch(request)
+                guard matches.isNotEmpty else {
+                    throw MealMutationError.notFound
+                }
+                guard matches.count == 1 else {
+                    throw MealMutationError.ambiguousIdentifier
+                }
+                let root = matches[0]
+
+                root.isUploadedToNS = false
+                root.isUploadedToHealth = false
+                root.isUploadedToTidepool = false
+                for child in try self.fpuEntries(for: root.fpuID, in: self.mutationContext) {
+                    child.isUploadedToNS = false
+                }
+
+                if self.mutationContext.hasChanges {
+                    try self.mutationContext.save()
+                }
+            } catch {
+                self.mutationContext.rollback()
+                throw error
+            }
+        }
+    }
+
+    private func mutationTarget(
+        id: UUID,
+        now: Date,
+        in context: NSManagedObjectContext
+    ) throws -> (root: CarbEntryStored, children: [CarbEntryStored]) {
+        let request: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.fetchLimit = 2
+
+        let matches = try context.fetch(request)
+        guard matches.isNotEmpty else {
+            throw MealMutationError.notFound
+        }
+        guard matches.count == 1 else {
+            throw MealMutationError.ambiguousIdentifier
+        }
+
+        let root = matches[0]
+        guard !root.isFPU else {
+            throw MealMutationError.targetIsFPU
+        }
+        guard root.id == id, let rootDate = root.date else {
+            throw MealMutationError.invalidStoredEntry
+        }
+
+        let age = now.timeIntervalSince(rootDate)
+        guard age >= 0, age <= remoteMealMutationMaximumAge else {
+            throw MealMutationError.outsideEditWindow
+        }
+
+        return (root, try fpuEntries(for: root.fpuID, in: context))
+    }
+
+    private func fpuEntries(
+        for fpuID: UUID?,
+        in context: NSManagedObjectContext
+    ) throws -> [CarbEntryStored] {
+        guard let fpuID else { return [] }
+
+        let request: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "fpuID == %@", fpuID as CVarArg),
+            NSPredicate(format: "isFPU == YES")
+        ])
+        request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        return try context.fetch(request)
+    }
+
+    private static func snapshot(
+        root: CarbEntryStored,
+        children: [CarbEntryStored]
+    ) throws -> MealMutationSnapshot {
+        guard let id = root.id, let date = root.date else {
+            throw MealMutationError.invalidStoredEntry
+        }
+
+        let childSnapshots = try children.map { child in
+            guard let childID = child.id, let childDate = child.date else {
+                throw MealMutationError.invalidStoredEntry
+            }
+            return MealFPUEntrySnapshot(
+                id: childID,
+                date: childDate,
+                carbs: Decimal(algorithmValue: child.carbs)
+            )
+        }
+
+        return MealMutationSnapshot(
+            id: id,
+            fpuID: root.fpuID,
+            values: MealMutationValues(
+                date: date,
+                carbs: Decimal(algorithmValue: root.carbs),
+                fat: Decimal(algorithmValue: root.fat),
+                protein: Decimal(algorithmValue: root.protein)
+            ),
+            note: root.note,
+            fpuEntries: childSnapshots
+        )
+    }
+
+    private static func hasValidMacros(_ values: MealMutationValues) -> Bool {
+        let macros = [values.carbs, values.fat, values.protein]
+        return values.date.timeIntervalSinceReferenceDate.isFinite &&
+            macros.allSatisfy { $0 >= 0 && NSDecimalNumber(decimal: $0).doubleValue.isFinite } &&
+            macros.contains(where: { $0 > 0 })
+    }
+
+    private static func suppressRemoteImports(for snapshot: MealMutationSnapshot, now: Date) {
+        remoteImportSuppressions.record(
+            dates: [snapshot.values.date] + snapshot.fpuEntries.map(\.date),
+            now: now
+        )
+    }
+
+    private static func matches(_ lhs: MealMutationValues, _ rhs: MealMutationValues) -> Bool {
+        lhs.carbs == rhs.carbs &&
+            lhs.fat == rhs.fat &&
+            lhs.protein == rhs.protein &&
+            abs(lhs.date.timeIntervalSince(rhs.date)) <= 1
+    }
+
+    private static func double(_ value: Decimal) -> Double {
+        Double(truncating: NSDecimalNumber(decimal: value))
     }
 
     func storeCarbs(_ entries: [CarbsEntry], areFetchedFromRemote: Bool) async throws {
@@ -95,12 +515,15 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         // Extract dates into a set for efficient lookup
         // Since we are not dealing with NSManagedObjects directly it is safe to pass properties between threads
         let existingTimestamps = Set(existing24hCarbEntries.compactMap { $0["date"] as? Date })
+        let suppressedTimestamps = Self.remoteImportSuppressions.activeDates(now: Date())
 
-        // Remove all entries that have a matching date in existingTimestamps
+        // A remote mutation can remove the old local timestamp before Nightscout has
+        // processed its deletion. Keep that stale treatment from being re-imported.
         var filteredEntries = entries
         filteredEntries.removeAll { entry in
             let entryDate = entry.actualDate ?? entry.createdAt
-            return existingTimestamps.contains(entryDate)
+            return existingTimestamps.contains(entryDate) ||
+                suppressedTimestamps.contains { abs($0.timeIntervalSince(entryDate)) <= 1 }
         }
 
         return filteredEntries
@@ -491,7 +914,15 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: context,
-            predicate: NSPredicate.carbsNotYetUploadedToNightscout,
+            // Include fat/protein-only roots so Nightscout (and therefore LoopFollow) exposes
+            // the stable Trio meal UUID needed for a later edit or deletion.
+            predicate: NSPredicate(
+                format: "date >= %@ AND isUploadedToNS == %@ AND isFPU == %@ AND " +
+                    "(carbs > 0 OR fat > 0 OR protein > 0)",
+                Date.oneDayAgo as NSDate,
+                false as NSNumber,
+                false as NSNumber
+            ),
             key: "date",
             ascending: false
         )

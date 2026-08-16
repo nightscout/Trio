@@ -1,5 +1,18 @@
 import Foundation
 
+enum MealMutationResponseResult: String, Codable, Sendable {
+    case updated
+    case deleted
+    case alreadyApplied = "already_applied"
+    case rejected
+    case inProgress = "in_progress"
+}
+
+enum MealMutationSyncStatus: String, Codable, Sendable {
+    case requested
+    case notRequested = "not_requested"
+}
+
 class RemoteNotificationResponseManager {
     static let shared = RemoteNotificationResponseManager()
 
@@ -10,18 +23,33 @@ class RemoteNotificationResponseManager {
         let commandStatus: String
         let commandType: String
         let timestamp: TimeInterval
+        let commandID: String?
+        let mealID: String?
+        let result: MealMutationResponseResult?
+        let syncStatus: MealMutationSyncStatus?
 
         enum CodingKeys: String, CodingKey {
             case aps
             case commandStatus = "command_status"
             case commandType = "command_type"
             case timestamp
+            case commandID = "command_id"
+            case mealID = "meal_id"
+            case result
+            case syncStatus = "sync_status"
         }
     }
 
     struct APSPayload: Encodable {
         let alert: Alert
         let sound: String = "default"
+        let contentAvailable: Int = 1
+
+        enum CodingKeys: String, CodingKey {
+            case alert
+            case sound
+            case contentAvailable = "content-available"
+        }
     }
 
     struct Alert: Encodable {
@@ -33,7 +61,11 @@ class RemoteNotificationResponseManager {
         to returnInfo: CommandPayload.ReturnNotificationInfo?,
         commandType: TrioRemoteControl.CommandType,
         success: Bool,
-        message: String
+        message: String,
+        commandID: String? = nil,
+        mealID: String? = nil,
+        result: MealMutationResponseResult? = nil,
+        syncStatus: MealMutationSyncStatus? = nil
     ) async {
         guard let returnInfo = returnInfo,
               !returnInfo.deviceToken.isEmpty
@@ -51,7 +83,11 @@ class RemoteNotificationResponseManager {
             ),
             commandStatus: success ? "success" : "failed",
             commandType: commandType.rawValue,
-            timestamp: Date().timeIntervalSince1970
+            timestamp: Date().timeIntervalSince1970,
+            commandID: commandID,
+            mealID: mealID,
+            result: result,
+            syncStatus: syncStatus
         )
 
         await sendPushNotification(
