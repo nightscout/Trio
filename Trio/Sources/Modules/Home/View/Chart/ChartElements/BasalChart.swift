@@ -168,36 +168,35 @@ extension MainChartCanvas {
         for (index, event) in events.enumerated() {
             let timestamp = event.timestamp ?? now
             let end = timestamp + event.duration.minutes
-            let isInsulinSuspended = suspensionTimes.contains { $0 >= timestamp && $0 <= end }
-            let rate = Double(truncating: event.rate ?? 0) * (isInsulinSuspended ? 0 : 1)
 
-            // pump-reported scheduled basal carries exact bounds; no clipping
-            if event.isScheduled {
-                prepared.append((timestamp, end, rate, true))
-                continue
-            }
-
-            // A bar ends where the next later-starting temp basal begins,
-            // else at its own scheduled end.
+            // Start of the next later-starting event, which supersedes this one.
             var next = index + 1
             while next < events.count {
                 if let nextStart = events[next].timestamp, nextStart > timestamp { break }
                 next += 1
             }
-            if next < events.count, let nextStart = events[next].timestamp {
-                prepared.append((timestamp, nextStart, rate, false))
+            let nextStart = next < events.count ? events[next].timestamp : nil
+
+            // A bar ends at its own scheduled end, or earlier where a later event
+            // superseded it. Stretching it to the next event would paint the temp
+            // rate over a span the pump ran its schedule; that span is inferred below.
+            // Pump-reported scheduled basal carries exact bounds, unless it is still
+            // open-ended: then it runs until superseded, else up to now.
+            let barEnd: Date = if event.isScheduled {
+                end > timestamp ? end : max(timestamp, nextStart ?? now)
             } else {
-                prepared.append((timestamp, end, rate, false))
+                nextStart.map { min(end, $0) } ?? end
             }
+
+            let isInsulinSuspended = suspensionTimes.contains { $0 >= timestamp && $0 <= barEnd }
+            let rate = Double(truncating: event.rate ?? 0) * (isInsulinSuspended ? 0 : 1)
+
+            prepared.append((timestamp, barEnd, rate, event.isScheduled))
         }
 
         // gaps no event covers ran the pump's schedule; inferred in memory, drawn dimmed
-        var timeline = events.map {
-            ScheduledBasalInference.TimelineEvent(
-                start: $0.timestamp ?? now,
-                end: ($0.timestamp ?? now) + $0.duration.minutes,
-                kind: .tempBasal
-            )
+        var timeline = prepared.map {
+            ScheduledBasalInference.TimelineEvent(start: $0.start, end: $0.end, kind: .tempBasal)
         }
         timeline += state.suspendAndResumeEvents.compactMap { event -> ScheduledBasalInference.TimelineEvent? in
             guard let timestamp = event.timestamp else { return nil }
@@ -208,7 +207,11 @@ extension MainChartCanvas {
             prepared.append((segment.start, segment.end, Double(truncating: segment.rate as NSNumber), true))
         }
 
+        // One line series strokes the whole outline: out-of-order bars backtrack across it,
+        // and a zero-length bar leaves a stray point it then connects diagonally.
         preparedTempBasals = prepared
+            .filter { $0.end > $0.start }
+            .sorted { $0.start < $1.start }
     }
 
     func findRegularBasalPoints(
