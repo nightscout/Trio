@@ -4,6 +4,11 @@ import Foundation
 import SwiftUI
 
 enum MainChartHelper {
+    struct SuspensionEvent {
+        let date: Date
+        let type: String
+    }
+
     struct TempBasalEvent {
         let start: Date
         let end: Date
@@ -16,6 +21,33 @@ enum MainChartHelper {
         let rate: Double
     }
 
+    static func suspensionIntervals(
+        events: [SuspensionEvent],
+        suspendType: String,
+        resumeType: String
+    ) -> [ClosedRange<Date>] {
+        let sortedEvents = events.sorted { $0.date < $1.date }
+        var intervals = [ClosedRange<Date>]()
+        var suspensionStart: Date?
+
+        for event in sortedEvents {
+            if event.type == suspendType, suspensionStart == nil {
+                suspensionStart = event.date
+            } else if event.type == resumeType, let start = suspensionStart {
+                if start < event.date {
+                    intervals.append(start ... event.date)
+                }
+                suspensionStart = nil
+            }
+        }
+
+        if let start = suspensionStart {
+            intervals.append(start ... .distantFuture)
+        }
+
+        return intervals
+    }
+
     static func tempBasalSegments(
         events: [TempBasalEvent],
         suspensions: [ClosedRange<Date>]
@@ -23,13 +55,23 @@ enum MainChartHelper {
         events.flatMap { event in
             var boundaries = [event.start]
 
-            // If a suspension occurs within this event, terminate the event at suspension start.
-            // The TBR does not resume after suspension; the scheduled basal takes over.
-            let firstSuspensionInEvent = suspensions.first { suspension in
-                suspension.lowerBound > event.start && suspension.lowerBound < event.end
+            let suspensionAtEventStart = suspensions.contains { suspension in
+                suspension.lowerBound <= event.start && suspension.upperBound > event.start
             }
+            let firstSuspensionInEvent = suspensions
+                .filter { suspension in
+                    suspension.lowerBound > event.start && suspension.lowerBound < event.end
+                }
+                .min { $0.lowerBound < $1.lowerBound }
 
-            let eventEnd = firstSuspensionInEvent?.lowerBound ?? event.end
+            // A TBR that starts during suspension never delivers. A later suspension
+            // terminates the TBR; scheduled basal takes over after the suspension.
+            let eventEnd: Date
+            if suspensionAtEventStart {
+                eventEnd = event.start
+            } else {
+                eventEnd = firstSuspensionInEvent?.lowerBound ?? event.end
+            }
             boundaries.append(eventEnd)
 
             // Add suspension boundaries only up to the event termination point.

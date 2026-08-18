@@ -113,14 +113,11 @@ extension MainChartCanvas {
             }
             .sorted { $0.date < $1.date }
 
-        return events.enumerated().compactMap { index, event in
-            guard event.type == EventType.pumpSuspend.rawValue else { return nil }
-            let resumeDate = events[(index + 1)...]
-                .first(where: { $0.type == EventType.pumpResume.rawValue })?
-                .date ?? .distantFuture
-            guard event.date < resumeDate else { return nil }
-            return event.date ... resumeDate
-        }
+        return MainChartHelper.suspensionIntervals(
+            events: events.map { MainChartHelper.SuspensionEvent(date: $0.date, type: $0.type) },
+            suspendType: EventType.pumpSuspend.rawValue,
+            resumeType: EventType.pumpResume.rawValue
+        )
     }
 
     /// Suspension→resume intervals resolved once, so the mark loop does no per-mark lookups.

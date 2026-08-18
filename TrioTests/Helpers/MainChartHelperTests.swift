@@ -20,7 +20,7 @@ import Testing
         ])
     }
 
-    @Test("Recalculation after resume restores the full temp basal") func tempBasalSegmentsAfterResume() {
+    @Test("Recalculation without suspension keeps the full temp basal") func tempBasalSegmentsAfterResume() {
         let start = Date(timeIntervalSince1970: 1000)
         let end = start.addingTimeInterval(900)
         let event = MainChartHelper.TempBasalEvent(start: start, end: end, rate: 2.5)
@@ -70,15 +70,53 @@ import Testing
         let resume = start.addingTimeInterval(400)
         let end = start.addingTimeInterval(900)
 
-        // TBR terminates at the first suspension; multiple suspensions that follow don't matter
+        let intervals = MainChartHelper.suspensionIntervals(
+            events: [
+                MainChartHelper.SuspensionEvent(date: suspend1, type: "suspend"),
+                MainChartHelper.SuspensionEvent(date: suspend2, type: "suspend"),
+                MainChartHelper.SuspensionEvent(date: resume, type: "resume")
+            ],
+            suspendType: "suspend",
+            resumeType: "resume"
+        )
+
+        #expect(intervals == [suspend1 ... resume])
+
         let segments = MainChartHelper.tempBasalSegments(
             events: [MainChartHelper.TempBasalEvent(start: start, end: end, rate: 2.5)],
-            suspensions: [suspend1 ... suspend2, suspend2 ... resume]
+            suspensions: intervals
         )
 
         #expect(segments == [
             MainChartHelper.TempBasalSegment(start: start, end: suspend1, rate: 2.5)
         ])
+    }
+
+    @Test("TBR starting during suspension produces no segment") func tempBasalStartsDuringSuspension() {
+        let suspensionStart = Date(timeIntervalSince1970: 1000)
+        let tbrStart = suspensionStart.addingTimeInterval(300)
+        let resume = suspensionStart.addingTimeInterval(600)
+        let end = suspensionStart.addingTimeInterval(900)
+
+        let segments = MainChartHelper.tempBasalSegments(
+            events: [MainChartHelper.TempBasalEvent(start: tbrStart, end: end, rate: 2.5)],
+            suspensions: [suspensionStart ... resume]
+        )
+
+        #expect(segments.isEmpty)
+    }
+
+    @Test("TBR starting at suspension produces no segment") func tempBasalStartsAtSuspension() {
+        let start = Date(timeIntervalSince1970: 1000)
+        let resume = start.addingTimeInterval(600)
+        let end = start.addingTimeInterval(900)
+
+        let segments = MainChartHelper.tempBasalSegments(
+            events: [MainChartHelper.TempBasalEvent(start: start, end: end, rate: 2.5)],
+            suspensions: [start ... resume]
+        )
+
+        #expect(segments.isEmpty)
     }
 
     @Test("Suspend at scheduled basal boundary terminates TBR") func suspendAtBasalBoundary() {
