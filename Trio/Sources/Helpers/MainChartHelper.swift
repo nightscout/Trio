@@ -21,15 +21,25 @@ enum MainChartHelper {
         suspensions: [ClosedRange<Date>]
     ) -> [TempBasalSegment] {
         events.flatMap { event in
-            var boundaries = [event.start, event.end]
+            var boundaries = [event.start]
 
+            // If a suspension occurs within this event, terminate the event at suspension start.
+            // The TBR does not resume after suspension; the scheduled basal takes over.
+            let firstSuspensionInEvent = suspensions.first { suspension in
+                suspension.lowerBound > event.start && suspension.lowerBound < event.end
+            }
+
+            let eventEnd = firstSuspensionInEvent?.lowerBound ?? event.end
+            boundaries.append(eventEnd)
+
+            // Add suspension boundaries only up to the event termination point.
             for suspension in suspensions {
-                guard suspension.upperBound > event.start, suspension.lowerBound < event.end else {
+                guard suspension.upperBound > event.start, suspension.lowerBound < eventEnd else {
                     continue
                 }
 
                 boundaries.append(max(suspension.lowerBound, event.start))
-                boundaries.append(min(suspension.upperBound, event.end))
+                boundaries.append(min(suspension.upperBound, eventEnd))
             }
 
             let sortedBoundaries = boundaries.sorted()
@@ -44,7 +54,7 @@ enum MainChartHelper {
         }
     }
 
-    // Calculates the glucose value thats the nearest to parameter 'time'
+    /// Calculates the glucose value thats the nearest to parameter 'time'
     /// -Returns: A NSManagedObject of GlucoseStored
     /// it is thread safe as everything is executed on the main thread
     static func timeToNearestGlucose(glucoseValues: [GlucoseStored], time: TimeInterval) -> GlucoseStored? {
@@ -132,9 +142,7 @@ enum MainChartHelper {
     /// Visual scaling applied to IOB values on the shared COB/IOB axis (COB is usually
     /// much larger than IOB). Single source of truth for the chart marks, the y-domain,
     /// and the shell's selection overlay.
-    static func scaledIobAmount<T: Numeric & Comparable>(_ rawAmount: T) -> T
-        where T: ExpressibleByIntegerLiteral
-    {
+    static func scaledIobAmount<T: Numeric & Comparable & ExpressibleByIntegerLiteral>(_ rawAmount: T) -> T {
         rawAmount > 0 ? rawAmount * 8 : rawAmount * 9
     }
 
@@ -247,8 +255,12 @@ extension MainChartCanvas {
     /// old presets: up to 6 h visible -> 1 h, up to 12 h -> 2 h, wider -> 4 h.
     var xAxisStrideHours: Int {
         let visibleHours = visibleSeconds / 3600
-        if visibleHours <= 6 { return 1 }
-        if visibleHours <= 12 { return 2 }
+        if visibleHours <= 6 {
+            return 1
+        }
+        if visibleHours <= 12 {
+            return 2
+        }
         return 4
     }
 

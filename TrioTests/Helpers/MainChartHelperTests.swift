@@ -3,7 +3,7 @@ import Testing
 @testable import Trio
 
 @Suite("Main Chart Helper Tests") struct MainChartHelperTests {
-    @Test("Suspension splits a temp basal and preserves delivery after resume") func tempBasalSegmentsAroundSuspension() {
+    @Test("Suspension terminates temp basal at suspend time") func tempBasalSegmentsAroundSuspension() {
         let start = Date(timeIntervalSince1970: 1000)
         let suspensionStart = start.addingTimeInterval(300)
         let resume = start.addingTimeInterval(600)
@@ -14,10 +14,9 @@ import Testing
             suspensions: [suspensionStart ... resume]
         )
 
+        // TBR terminates at suspension start; no segment continues after
         #expect(segments == [
             MainChartHelper.TempBasalSegment(start: start, end: suspensionStart, rate: 2.5),
-            MainChartHelper.TempBasalSegment(start: suspensionStart, end: resume, rate: 0),
-            MainChartHelper.TempBasalSegment(start: resume, end: end, rate: 2.5),
         ])
     }
 
@@ -66,29 +65,25 @@ import Testing
         ])
     }
 
-    @Test("Multiple suspends before a single resume") func multipleSuspendsBeforeResume() {
+    @Test("Multiple suspends before a single resume terminates at first suspension") func multipleSuspendsBeforeResume() {
         let start = Date(timeIntervalSince1970: 1000)
         let suspend1 = start.addingTimeInterval(100)
-        let resume1 = start.addingTimeInterval(200)
         let suspend2 = start.addingTimeInterval(300)
-        let resume2 = start.addingTimeInterval(400)
+        let resume = start.addingTimeInterval(400)
         let end = start.addingTimeInterval(900)
 
+        // TBR terminates at the first suspension; multiple suspensions that follow don't matter
         let segments = MainChartHelper.tempBasalSegments(
             events: [MainChartHelper.TempBasalEvent(start: start, end: end, rate: 2.5)],
-            suspensions: [suspend1 ... resume1, suspend2 ... resume2]
+            suspensions: [suspend1 ... suspend2, suspend2 ... resume]
         )
 
         #expect(segments == [
             MainChartHelper.TempBasalSegment(start: start, end: suspend1, rate: 2.5),
-            MainChartHelper.TempBasalSegment(start: suspend1, end: resume1, rate: 0),
-            MainChartHelper.TempBasalSegment(start: resume1, end: suspend2, rate: 2.5),
-            MainChartHelper.TempBasalSegment(start: suspend2, end: resume2, rate: 0),
-            MainChartHelper.TempBasalSegment(start: resume2, end: end, rate: 2.5),
         ])
     }
 
-    @Test("Suspend that overlaps scheduled basal boundary") func suspendAtBasalBoundary() {
+    @Test("Suspend at scheduled basal boundary terminates TBR") func suspendAtBasalBoundary() {
         let start = Date(timeIntervalSince1970: 1000)
         let suspend = start.addingTimeInterval(300)
         let resume = start.addingTimeInterval(600)
@@ -101,8 +96,6 @@ import Testing
 
         #expect(segments == [
             MainChartHelper.TempBasalSegment(start: start, end: suspend, rate: 2.5),
-            MainChartHelper.TempBasalSegment(start: suspend, end: resume, rate: 0),
-            MainChartHelper.TempBasalSegment(start: resume, end: end, rate: 2.5),
         ])
     }
 
