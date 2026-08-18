@@ -147,4 +147,28 @@ import Testing
             MainChartHelper.TempBasalSegment(start: start, end: end, rate: 2.5)
         ])
     }
+
+    @Test("Orphan resume yields no suspension interval") func orphanResumeYieldsNoInterval() {
+        let resume = Date(timeIntervalSince1970: 1000)
+
+        let intervals = MainChartHelper.suspensionIntervals(
+            events: [MainChartHelper.SuspensionEvent(date: resume, type: "resume")],
+            suspendType: "suspend",
+            resumeType: "resume"
+        )
+
+        #expect(intervals.isEmpty)
+    }
+
+    @Test("Unmatched suspend stays open ended") func unmatchedSuspendStaysOpen() {
+        let suspend = Date(timeIntervalSince1970: 1000)
+
+        let intervals = MainChartHelper.suspensionIntervals(
+            events: [MainChartHelper.SuspensionEvent(date: suspend, type: "suspend")],
+            suspendType: "suspend",
+            resumeType: "resume"
+        )
+
+        #expect(intervals == [suspend ... .distantFuture])
+    }
 }
