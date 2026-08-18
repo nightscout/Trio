@@ -111,7 +111,6 @@ extension MainChartCanvas {
                 guard let date = event.timestamp, let type = event.type else { return nil }
                 return (date, type)
             }
-            .sorted { $0.date < $1.date }
 
         return MainChartHelper.suspensionIntervals(
             events: events.map { MainChartHelper.SuspensionEvent(date: $0.date, type: $0.type) },
