@@ -73,7 +73,7 @@ extension MainChartCanvas {
                 .linearGradient(
                     colors: [
                         Color.insulin.opacity(0.6),
-                        Color.insulin.opacity(0.1),
+                        Color.insulin.opacity(0.1)
                     ],
                     startPoint: .top,
                     endPoint: .bottom

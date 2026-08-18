@@ -16,7 +16,7 @@ import Testing
 
         // TBR terminates at suspension start; no segment continues after
         #expect(segments == [
-            MainChartHelper.TempBasalSegment(start: start, end: suspensionStart, rate: 2.5),
+            MainChartHelper.TempBasalSegment(start: start, end: suspensionStart, rate: 2.5)
         ])
     }
 
@@ -28,7 +28,7 @@ import Testing
         let segments = MainChartHelper.tempBasalSegments(events: [event], suspensions: [])
 
         #expect(segments == [
-            MainChartHelper.TempBasalSegment(start: start, end: end, rate: 2.5),
+            MainChartHelper.TempBasalSegment(start: start, end: end, rate: 2.5)
         ])
     }
 
@@ -44,7 +44,7 @@ import Testing
 
         #expect(segments == [
             MainChartHelper.TempBasalSegment(start: start, end: suspensionStart, rate: 2.5),
-            MainChartHelper.TempBasalSegment(start: suspensionStart, end: end, rate: 0),
+            MainChartHelper.TempBasalSegment(start: suspensionStart, end: end, rate: 0)
         ])
     }
 
@@ -61,7 +61,7 @@ import Testing
 
         #expect(segments == [
             MainChartHelper.TempBasalSegment(start: start, end: suspensionStart, rate: 2.5),
-            MainChartHelper.TempBasalSegment(start: suspensionStart, end: end, rate: 0),
+            MainChartHelper.TempBasalSegment(start: suspensionStart, end: end, rate: 0)
         ])
     }
 
@@ -79,7 +79,7 @@ import Testing
         )
 
         #expect(segments == [
-            MainChartHelper.TempBasalSegment(start: start, end: suspend1, rate: 2.5),
+            MainChartHelper.TempBasalSegment(start: start, end: suspend1, rate: 2.5)
         ])
     }
 
@@ -95,7 +95,7 @@ import Testing
         )
 
         #expect(segments == [
-            MainChartHelper.TempBasalSegment(start: start, end: suspend, rate: 2.5),
+            MainChartHelper.TempBasalSegment(start: start, end: suspend, rate: 2.5)
         ])
     }
 
@@ -108,7 +108,7 @@ import Testing
         let segments = MainChartHelper.tempBasalSegments(events: [event], suspensions: [])
 
         #expect(segments == [
-            MainChartHelper.TempBasalSegment(start: start, end: end, rate: 2.5),
+            MainChartHelper.TempBasalSegment(start: start, end: end, rate: 2.5)
         ])
     }
 }
