@@ -73,7 +73,7 @@ extension MainChartCanvas {
                 .linearGradient(
                     colors: [
                         Color.insulin.opacity(0.6),
-                        Color.insulin.opacity(0.1)
+                        Color.insulin.opacity(0.1),
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -89,7 +89,7 @@ extension MainChartCanvas {
     }
 
     func drawBasalProfile() -> some ChartContent {
-        /// dashed profile line
+        // dashed profile line
         let visible = basalProfiles.filter { ($0.endDate ?? state.endMarker) >= windowStart && $0.startDate <= windowEnd }
         return ForEach(visible, id: \.self) { profile in
             LineMark(
@@ -123,20 +123,21 @@ extension MainChartCanvas {
         }
     }
 
-    /// Suspend→resume intervals resolved once, so the mark loop does no per-mark lookups.
+    /// Suspension→resume intervals resolved once, so the mark loop does no per-mark lookups.
     private func suspensionMarks() -> [(start: Date, end: Date, height: Double)] {
         let now = Date()
-        var intervals = [(start: Date, end: Date, height: Double)]()
+        let intervals = suspensionIntervals
+        var marks = [(start: Date, end: Date, height: Double)]()
 
-        for suspension in suspensionIntervals {
+        for suspension in intervals {
             let basalProfileDuringSuspension = basalProfiles.first(where: { $0.startDate <= suspension.lowerBound })
             // Clamp to the explicit y-domain: the fallback height of 1 U/hr can exceed
             // `basalDomainMax` when no profile data is available, and unlike the old
             // auto-scaled (flipped) plot, an explicit domain would clip the mark.
             let height = min(basalProfileDuringSuspension?.amount ?? 1, basalDomainMax)
-            intervals.append((suspension.lowerBound, min(suspension.upperBound, now), height))
+            marks.append((suspension.lowerBound, min(suspension.upperBound, now), height))
         }
-        return intervals
+        return marks
     }
 
     func drawSuspensions() -> some ChartContent {
@@ -171,13 +172,16 @@ extension MainChartCanvas {
             )
         }
 
+        // Compute suspension intervals once, then reuse in the loop below.
+        let suspensions = suspensionIntervals
+
         let prepared = tempBasals.enumerated().flatMap { index, event in
             let end = tempBasals[(index + 1)...]
                 .first(where: { $0.start > event.start })?
                 .start ?? event.end
             return MainChartHelper.tempBasalSegments(
                 events: [MainChartHelper.TempBasalEvent(start: event.start, end: end, rate: event.rate)],
-                suspensions: suspensionIntervals
+                suspensions: suspensions
             )
         }
 

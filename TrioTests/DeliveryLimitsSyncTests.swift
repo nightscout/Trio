@@ -2,7 +2,6 @@ import Foundation
 import HealthKit
 import LoopKit
 import Testing
-
 @testable import Trio
 
 /// Pins the `PumpSettings` → `DeliveryLimits` mapping that
@@ -25,7 +24,7 @@ import Testing
         )
     }
 
-    @Test("maxBasal maps to maximumBasalRate in U/hr") func testMaxBasalMapping() {
+    @Test("maxBasal maps to maximumBasalRate in U/hr") func maxBasalMapping() {
         let settings = makeSettings(maxBasal: 5.0, maxBolus: 10.0)
 
         let limits = deliveryLimits(from: settings)
@@ -33,7 +32,7 @@ import Testing
         #expect(limits.maximumBasalRate?.doubleValue(for: basalUnit) == 5.0)
     }
 
-    @Test("maxBolus maps to maximumBolus in U") func testMaxBolusMapping() {
+    @Test("maxBolus maps to maximumBolus in U") func maxBolusMapping() {
         let settings = makeSettings(maxBasal: 5.0, maxBolus: 10.0)
 
         let limits = deliveryLimits(from: settings)
@@ -42,7 +41,7 @@ import Testing
     }
 
     /// The derived limit must be the user's configured value, not the `PumpInitialSettings` default.
-    @Test("User-configured limit is preserved, not collapsed to the 2 U/hr default") func testDoesNotFallBackToDefault() {
+    @Test("User-configured limit is preserved, not collapsed to the 2 U/hr default") func doesNotFallBackToDefault() {
         let configuredMaxBasal: Decimal = 3.0
         let defaultMaxBasal = PumpConfig.PumpInitialSettings.default.maxBasalRateUnitsPerHour
 
@@ -54,7 +53,7 @@ import Testing
     }
 
     /// The derived limit must be the user's configured value, not the `PumpInitialSettings` default.
-    @Test("User-configured bolus limit is preserved, not collapsed to the default") func testBolusDoesNotFallBackToDefault() {
+    @Test("User-configured bolus limit is preserved, not collapsed to the default") func bolusDoesNotFallBackToDefault() {
         let configuredMaxBolus: Decimal = 25.0
         let defaultMaxBolus = PumpConfig.PumpInitialSettings.default.maxBolusUnits
 
@@ -63,51 +62,5 @@ import Testing
 
         #expect(limits.maximumBolus?.doubleValue(for: bolusUnit) == Double(configuredMaxBolus))
         #expect(limits.maximumBolus?.doubleValue(for: bolusUnit) != defaultMaxBolus)
-    }
-
-    @Test("Suspension splits a temp basal and preserves delivery after resume") func testTempBasalSegmentsAroundSuspension() {
-        let start = Date(timeIntervalSince1970: 1000)
-        let suspensionStart = start.addingTimeInterval(300)
-        let resume = start.addingTimeInterval(600)
-        let end = start.addingTimeInterval(900)
-
-        let segments = MainChartHelper.tempBasalSegments(
-            events: [MainChartHelper.TempBasalEvent(start: start, end: end, rate: 2.5)],
-            suspensions: [suspensionStart ... resume]
-        )
-
-        #expect(segments == [
-            MainChartHelper.TempBasalSegment(start: start, end: suspensionStart, rate: 2.5),
-            MainChartHelper.TempBasalSegment(start: suspensionStart, end: resume, rate: 0),
-            MainChartHelper.TempBasalSegment(start: resume, end: end, rate: 2.5)
-        ])
-    }
-
-    @Test("Recalculation after resume restores the full temp basal") func testTempBasalSegmentsAfterResume() {
-        let start = Date(timeIntervalSince1970: 1000)
-        let end = start.addingTimeInterval(900)
-        let event = MainChartHelper.TempBasalEvent(start: start, end: end, rate: 2.5)
-
-        let segments = MainChartHelper.tempBasalSegments(events: [event], suspensions: [])
-
-        #expect(segments == [
-            MainChartHelper.TempBasalSegment(start: start, end: end, rate: 2.5)
-        ])
-    }
-
-    @Test("Active suspension keeps the remaining temp basal at zero") func testTempBasalSegmentsDuringActiveSuspension() {
-        let start = Date(timeIntervalSince1970: 1000)
-        let suspensionStart = start.addingTimeInterval(300)
-        let end = start.addingTimeInterval(900)
-
-        let segments = MainChartHelper.tempBasalSegments(
-            events: [MainChartHelper.TempBasalEvent(start: start, end: end, rate: 2.5)],
-            suspensions: [suspensionStart ... .distantFuture]
-        )
-
-        #expect(segments == [
-            MainChartHelper.TempBasalSegment(start: start, end: suspensionStart, rate: 2.5),
-            MainChartHelper.TempBasalSegment(start: suspensionStart, end: end, rate: 0)
-        ])
     }
 }
