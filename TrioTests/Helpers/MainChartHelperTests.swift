@@ -32,7 +32,7 @@ import Testing
         ])
     }
 
-    @Test("Active suspension keeps the remaining temp basal at zero") func tempBasalSegmentsDuringActiveSuspension() {
+    @Test("Active suspension terminates the temp basal") func tempBasalSegmentsDuringActiveSuspension() {
         let start = Date(timeIntervalSince1970: 1000)
         let suspensionStart = start.addingTimeInterval(300)
         let end = start.addingTimeInterval(900)
@@ -43,13 +43,12 @@ import Testing
         )
 
         #expect(segments == [
-            MainChartHelper.TempBasalSegment(start: start, end: suspensionStart, rate: 2.5),
-            MainChartHelper.TempBasalSegment(start: suspensionStart, end: end, rate: 0)
+            MainChartHelper.TempBasalSegment(start: start, end: suspensionStart, rate: 2.5)
         ])
     }
 
     /// Edge cases
-    @Test("Suspend without resume (time cutoff) stops delivery until time limit") func suspendWithoutResume() {
+    @Test("Suspend without resume terminates the temp basal") func suspendWithoutResume() {
         let start = Date(timeIntervalSince1970: 1000)
         let suspensionStart = start.addingTimeInterval(300)
         let end = start.addingTimeInterval(900)
@@ -60,8 +59,7 @@ import Testing
         )
 
         #expect(segments == [
-            MainChartHelper.TempBasalSegment(start: start, end: suspensionStart, rate: 2.5),
-            MainChartHelper.TempBasalSegment(start: suspensionStart, end: end, rate: 0)
+            MainChartHelper.TempBasalSegment(start: start, end: suspensionStart, rate: 2.5)
         ])
     }
 
