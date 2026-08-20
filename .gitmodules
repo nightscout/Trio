@@ -48,3 +48,7 @@
 [submodule "LoopAlgorithm"]
 	path = LoopAlgorithm
 	url = https://github.com/loopandlearn/LoopAlgorithm.git
+[submodule "TandemKit"]
+	path = TandemKit
+	url = https://github.com/jwoglom/tandemkit
+

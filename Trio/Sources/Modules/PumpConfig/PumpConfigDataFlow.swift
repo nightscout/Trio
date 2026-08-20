@@ -10,6 +10,7 @@ enum PumpConfig {
         case omni
         case dana
         case medtrum
+        case tandem
         case simulator
 
         /// `Alert.Identifier.managerIdentifier` emitted by this plugin's
@@ -20,6 +21,7 @@ enum PumpConfig {
             case .omni: return "Omni"
             case .dana: return "Dana"
             case .medtrum: return "Medtrum"
+            case .tandem: return "TandemPumpManager"
             case .simulator: return nil
             }
         }

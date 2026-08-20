@@ -8,6 +8,7 @@ import MockKit
 import MockKitUI
 import OmnipodKit
 import SwiftUI
+import TandemKit
 import UIKit
 
 extension PumpConfig {
@@ -61,6 +62,15 @@ extension PumpConfig {
                 )
             case .medtrum:
                 setupViewController = MedtrumPumpManager.setupViewController(
+                    initialSettings: initialSettings,
+                    bluetoothProvider: bluetoothManager,
+                    colorPalette: .default,
+                    allowDebugFeatures: true,
+                    prefersToSkipUserInteraction: false,
+                    allowedInsulinTypes: [.apidra, .humalog, .novolog, .fiasp, .lyumjev]
+                )
+            case .tandem:
+                setupViewController = TandemPumpManager.setupViewController(
                     initialSettings: initialSettings,
                     bluetoothProvider: bluetoothManager,
                     colorPalette: .default,

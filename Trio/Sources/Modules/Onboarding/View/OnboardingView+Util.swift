@@ -475,6 +475,7 @@ enum PumpOptionForOnboardingUnits: String, Equatable, CaseIterable, Identifiable
     case omni
     case dana
     case medtrum
+    case tandem
 
     var id: String { rawValue }
 
@@ -488,6 +489,8 @@ enum PumpOptionForOnboardingUnits: String, Equatable, CaseIterable, Identifiable
             return "Dana (RS/-i)"
         case .medtrum:
             return "Medtrum Nano"
+        case .tandem:
+            return "Tandem"
         }
     }
 }
