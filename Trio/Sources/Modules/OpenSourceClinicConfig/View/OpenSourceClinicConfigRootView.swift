@@ -3,7 +3,7 @@ import Swinject
 
 struct OpenSourceClinicConfigRootView: BaseView {
     let resolver: Resolver
-    @StateObject var state: OpenSourceClinicConfigModule.StateModel
+    @StateObject var state = StateModel()
 
     @Environment(\.colorScheme) var colorScheme
     @Environment(AppState.self) var appState
@@ -107,6 +107,6 @@ struct OpenSourceClinicConfigRootView: BaseView {
         .background(appState.trioBackgroundColor(for: colorScheme))
         .navigationTitle("opensource.clinic")
         .navigationBarTitleDisplayMode(.automatic)
-        .onAppear(perform: state.subscribe)
+        .onAppear(perform: configureView)
     }
 }

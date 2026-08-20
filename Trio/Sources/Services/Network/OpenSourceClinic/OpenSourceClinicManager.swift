@@ -24,6 +24,10 @@ final class BaseOpenSourceClinicManager: OpenSourceClinicManager, Injectable {
 
     var lastSyncDate: Date?
 
+    init(resolver: Resolver) {
+        injectServices(resolver)
+    }
+
     var isEnabled: Bool {
         UserDefaults.standard.bool(forKey: OpenSourceClinicConfig.Keys.isEnabled) && !token.isEmpty
     }
@@ -35,7 +39,10 @@ final class BaseOpenSourceClinicManager: OpenSourceClinicManager, Injectable {
     }
 
     private var token: String {
-        keychain.getValue(String.self, forKey: OpenSourceClinicConfig.Keys.token).value ?? ""
+        if case .success(let value) = keychain.getValue(String.self, forKey: OpenSourceClinicConfig.Keys.token) {
+            return value ?? ""
+        }
+        return ""
     }
 
     // MARK: - Full Sync
@@ -64,10 +71,10 @@ final class BaseOpenSourceClinicManager: OpenSourceClinicManager, Injectable {
             let units = settingsManager.settings.units == .mgdL ? "mg/dL" : "mmol/L"
             let entries = glucoseEntries.map { entry -> GlucoseEntry in
                 let value: Decimal = settingsManager.settings.units == .mmolL
-                    ? entry.sgv.asMmolL
-                    : Decimal(entry.sgv)
+                    ? (entry.sgv ?? 0).asMmolL
+                    : Decimal(entry.sgv ?? 0)
                 return GlucoseEntry(
-                    date: entry.date.timeIntervalSince1970 * 1000,
+                    date: entry.dateString.timeIntervalSince1970 * 1000,
                     value: value,
                     direction: entry.direction?.rawValue ?? "None"
                 )
@@ -166,10 +173,10 @@ final class BaseOpenSourceClinicManager: OpenSourceClinicManager, Injectable {
             units: units,
             entries: glucoseEntries.map { entry in
                 let value: Decimal = settingsManager.settings.units == .mmolL
-                    ? entry.sgv.asMmolL
-                    : Decimal(entry.sgv)
+                    ? (entry.sgv ?? 0).asMmolL
+                    : Decimal(entry.sgv ?? 0)
                 return GlucoseEntry(
-                    date: entry.date.timeIntervalSince1970 * 1000,
+                    date: entry.dateString.timeIntervalSince1970 * 1000,
                     value: value,
                     direction: entry.direction?.rawValue ?? "None"
                 )

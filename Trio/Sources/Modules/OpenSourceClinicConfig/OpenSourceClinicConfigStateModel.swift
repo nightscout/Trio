@@ -14,7 +14,9 @@ extension OpenSourceClinicConfigModule {
         override func subscribe() {
             url = UserDefaults.standard.string(forKey: OpenSourceClinicConfig.Keys.url)
                 ?? OpenSourceClinicConfig.Defaults.url
-            token = provider.keychain.getValue(String.self, forKey: OpenSourceClinicConfig.Keys.token).value ?? ""
+            if case .success(let value) = provider.keychain.getValue(String.self, forKey: OpenSourceClinicConfig.Keys.token) {
+                token = value ?? ""
+            }
             isEnabled = UserDefaults.standard.bool(forKey: OpenSourceClinicConfig.Keys.isEnabled)
             syncInterval = UserDefaults.standard.double(forKey: OpenSourceClinicConfig.Keys.syncInterval)
             if syncInterval == 0 { syncInterval = OpenSourceClinicConfig.Defaults.syncInterval }
