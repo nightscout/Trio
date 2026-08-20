@@ -26,6 +26,16 @@ extension Treatments {
         @State private var debounce: DispatchWorkItem?
         @State private var showFatProteinOrderBanner = false
 
+        /// Whether the on-screen keyboard is currently up. Tracked from the real system
+        /// notifications rather than assumed, so we know whether a focus change means "keyboard
+        /// already visible, just switching fields" (no animation to wait for) vs. "keyboard about to
+        /// appear" (must wait for its animation before scrolling, see `scrollFocusedFieldIntoView`).
+        @State private var isKeyboardVisible = false
+
+        /// A scroll target queued up while waiting for `keyboardWillShowNotification` to fire, so the
+        /// scroll runs in lockstep with the keyboard's real animation instead of a guessed delay.
+        @State private var pendingScrollTarget: FocusedField?
+
         private enum Config {
             static let dividerHeight: CGFloat = 2
             static let spacing: CGFloat = 3
@@ -202,20 +212,185 @@ extension Treatments {
             }
         }
 
+        /// Scrolls the currently focused input row so it stays visible above the on-screen keyboard.
+        ///
+        /// The treatments list grows or shrinks depending on user settings (e.g. the Reduced Bolus /
+        /// Super Bolus toggles add an extra row), so relying on the system's default keyboard avoidance
+        /// is unreliable: on some devices/configurations the bolus field ends up hidden behind the
+        /// keyboard. Explicitly scrolling the focused row into view guarantees the user can always see
+        /// what they are entering, regardless of which optional rows are shown. See issue #1115.
+        ///
+        /// - Parameters:
+        ///   - field: The field that just gained focus, or `nil` when focus was cleared.
+        ///   - proxy: The enclosing `ScrollViewReader`'s proxy used to perform the scroll.
+        private func scrollFocusedFieldIntoView(_ field: FocusedField?, proxy: ScrollViewProxy) {
+            guard let field else {
+                // Focus was cleared before the keyboard ever showed for it (e.g. dismissed via the
+                // toolbar button) - drop any queued target so it can't be acted on later by an
+                // unrelated keyboard appearance.
+                pendingScrollTarget = nil
+                return
+            }
+
+            // Fat and Protein share a single row, which is tagged with `.fat`.
+            let targetID: FocusedField = (field == .protein) ? .fat : field
+
+            if isKeyboardVisible {
+                // The keyboard is already on screen (e.g. the user is tabbing between fields with the
+                // arrow buttons) - there's no animation to wait for, so scroll right away.
+                withAnimation {
+                    proxy.scrollTo(targetID, anchor: .center)
+                }
+            } else {
+                // The keyboard is about to animate in for the first time this screen. Queue the
+                // target and let `keyboardWillShowNotification` (below) trigger the actual scroll once
+                // the keyboard's real animation starts, instead of guessing at a delay.
+                pendingScrollTarget = targetID
+            }
+        }
+
+        /// Performs the scroll queued by `scrollFocusedFieldIntoView`, timed to the keyboard's own
+        /// presentation animation (duration/curve taken from the notification itself) rather than an
+        /// arbitrary constant, so the row settles into place in step with the keyboard sliding up.
+        private func handleKeyboardWillShow(_ notification: Notification, proxy: ScrollViewProxy) {
+            isKeyboardVisible = true
+
+            guard let target = pendingScrollTarget else { return }
+            pendingScrollTarget = nil
+
+            // `keyboardWillShowNotification` fires app-wide, not scoped to this view, so confirm the
+            // queued target still matches what's actually focused right now before acting on it -
+            // otherwise an unrelated keyboard appearance elsewhere could trigger a stale scroll here.
+            let currentTarget: FocusedField? = focusedField.map { $0 == .protein ? .fat : $0 }
+            guard currentTarget == target else { return }
+
+            let duration = (notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double) ?? 0.25
+            withAnimation(.easeInOut(duration: duration)) {
+                proxy.scrollTo(target, anchor: .center)
+            }
+        }
+
+        /// Reduced Bolus / Super Bolus toggles, the recommendation readout, the Bolus field, and the
+        /// External Insulin toggle. Pulled out of `body` into its own view so the type-checker can
+        /// solve it independently — inlined, this combined with the rest of `body` was large enough
+        /// to trip "unable to type-check this expression in reasonable time" once the ScrollViewReader
+        /// wrapper added another layer of nesting on top of it.
+        @ViewBuilder private var bolusSection: some View {
+            if state.fattyMeals || state.sweetMeals {
+                HStack(spacing: 10) {
+                    if state.fattyMeals {
+                        Toggle(isOn: $state.useFattyMealCorrectionFactor) {
+                            Text("Reduced Bolus")
+                        }
+                        .toggleStyle(RadioButtonToggleStyle())
+                        .font(.footnote)
+                        .onChange(of: state.useFattyMealCorrectionFactor) {
+                            Task {
+                                state.insulinCalculated = await state.calculateInsulin()
+                                if state.useFattyMealCorrectionFactor {
+                                    state.useSuperBolus = false
+                                }
+                            }
+                        }
+                    }
+                    if state.sweetMeals {
+                        Toggle(isOn: $state.useSuperBolus) {
+                            Text("Super Bolus")
+                        }
+                        .toggleStyle(RadioButtonToggleStyle())
+                        .font(.footnote)
+                        .onChange(of: state.useSuperBolus) {
+                            Task {
+                                state.insulinCalculated = await state.calculateInsulin()
+                                if state.useSuperBolus {
+                                    state.useFattyMealCorrectionFactor = false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            HStack {
+                HStack {
+                    Text("Recommendation")
+                    Button(action: {
+                        state.showInfo.toggle()
+                    }, label: {
+                        Image(systemName: "info.circle")
+                    })
+                        .foregroundStyle(.blue)
+                        .buttonStyle(PlainButtonStyle())
+                }
+                Spacer()
+                Button {
+                    state.amount = state.insulinCalculated
+                } label: {
+                    HStack {
+                        Text(
+                            formatter
+                                .string(from: Double(state.insulinCalculated) as NSNumber) ?? ""
+                        )
+
+                        Text(
+                            String(
+                                localized:
+                                " U",
+                                comment: "Unit in number of units delivered (keep the space character!)"
+                            )
+                        ).foregroundColor(.secondary)
+                    }
+                }
+                .disabled(state.insulinCalculated == 0 || state.amount == state.insulinCalculated)
+                .buttonStyle(.bordered).padding(.trailing, -10)
+            }
+
+            HStack {
+                Text("Bolus")
+                Spacer()
+                TextFieldWithToolBar(
+                    text: $state.amount,
+                    placeholder: "0",
+                    textColor: colorScheme == .dark ? .white : .blue,
+                    maxLength: 5,
+                    numberFormatter: formatter,
+                    showArrows: true,
+                    previousTextField: { focusedField = previousField(from: .bolus) },
+                    nextTextField: { focusedField = nextField(from: .bolus) },
+                    unitsText: String(localized: "U", comment: "Units for bolus amount")
+                ).focused($focusedField, equals: .bolus)
+                    .onChange(of: state.amount) {
+                        Task {
+                            await state.updateForecasts()
+                        }
+                    }
+            }
+            .id(FocusedField.bolus)
+
+            HStack {
+                Text("External Insulin")
+                Spacer()
+                Toggle("", isOn: $state.externalInsulin).toggleStyle(CheckboxToggleStyle())
+            }
+        }
+
         var body: some View {
             ZStack(alignment: .center) {
                 VStack {
-                    List {
-                        Section {
-                            ForecastChart(state: state)
-                                .padding(.vertical)
-                        }.listRowBackground(Color.chart)
+                    ScrollViewReader { proxy in
+                        List {
+                            Section {
+                                ForecastChart(state: state)
+                                    .padding(.vertical)
+                            }.listRowBackground(Color.chart)
 
-                        Section {
-                            carbsTextField()
+                            Section {
+                                carbsTextField()
+                                    .id(FocusedField.carbs)
 
-                            if state.useFPUconversion {
-                                proteinAndFat()
+                                if state.useFPUconversion {
+                                    proteinAndFat()
+                                        .id(FocusedField.fat)
 
                                 if showFatProteinOrderBanner {
                                     HStack {
@@ -286,106 +461,25 @@ extension Treatments {
                         }.listRowBackground(Color.chart)
 
                         Section {
-                            if state.fattyMeals || state.sweetMeals {
-                                HStack(spacing: 10) {
-                                    if state.fattyMeals {
-                                        Toggle(isOn: $state.useFattyMealCorrectionFactor) {
-                                            Text("Reduced Bolus")
-                                        }
-                                        .toggleStyle(RadioButtonToggleStyle())
-                                        .font(.footnote)
-                                        .onChange(of: state.useFattyMealCorrectionFactor) {
-                                            Task {
-                                                state.insulinCalculated = await state.calculateInsulin()
-                                                if state.useFattyMealCorrectionFactor {
-                                                    state.useSuperBolus = false
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if state.sweetMeals {
-                                        Toggle(isOn: $state.useSuperBolus) {
-                                            Text("Super Bolus")
-                                        }
-                                        .toggleStyle(RadioButtonToggleStyle())
-                                        .font(.footnote)
-                                        .onChange(of: state.useSuperBolus) {
-                                            Task {
-                                                state.insulinCalculated = await state.calculateInsulin()
-                                                if state.useSuperBolus {
-                                                    state.useFattyMealCorrectionFactor = false
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            HStack {
-                                HStack {
-                                    Text("Recommendation")
-                                    Button(action: {
-                                        state.showInfo.toggle()
-                                    }, label: {
-                                        Image(systemName: "info.circle")
-                                    })
-                                        .foregroundStyle(.blue)
-                                        .buttonStyle(PlainButtonStyle())
-                                }
-                                Spacer()
-                                Button {
-                                    state.amount = state.insulinCalculated
-                                } label: {
-                                    HStack {
-                                        Text(
-                                            formatter
-                                                .string(from: Double(state.insulinCalculated) as NSNumber) ?? ""
-                                        )
-
-                                        Text(
-                                            String(
-                                                localized:
-                                                " U",
-                                                comment: "Unit in number of units delivered (keep the space character!)"
-                                            )
-                                        ).foregroundColor(.secondary)
-                                    }
-                                }
-                                .disabled(state.insulinCalculated == 0 || state.amount == state.insulinCalculated)
-                                .buttonStyle(.bordered).padding(.trailing, -10)
-                            }
-
-                            HStack {
-                                Text("Bolus")
-                                Spacer()
-                                TextFieldWithToolBar(
-                                    text: $state.amount,
-                                    placeholder: "0",
-                                    textColor: colorScheme == .dark ? .white : .blue,
-                                    maxLength: 5,
-                                    numberFormatter: formatter,
-                                    showArrows: true,
-                                    previousTextField: { focusedField = previousField(from: .bolus) },
-                                    nextTextField: { focusedField = nextField(from: .bolus) },
-                                    unitsText: String(localized: "U", comment: "Units for bolus amount")
-                                ).focused($focusedField, equals: .bolus)
-                                    .onChange(of: state.amount) {
-                                        Task {
-                                            await state.updateForecasts()
-                                        }
-                                    }
-                            }
-
-                            HStack {
-                                Text("External Insulin")
-                                Spacer()
-                                Toggle("", isOn: $state.externalInsulin).toggleStyle(CheckboxToggleStyle())
-                            }
+                            bolusSection
                         }.listRowBackground(Color.chart)
 
                         treatmentButton
                     }
                     .listSectionSpacing(sectionSpacing)
+                    .onChange(of: focusedField) { _, newValue in
+                        scrollFocusedFieldIntoView(newValue, proxy: proxy)
+                    }
+                    .onReceive(Foundation.NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notification in
+                        handleKeyboardWillShow(notification, proxy: proxy)
+                    }
+                    .onReceive(Foundation.NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+                        isKeyboardVisible = false
+                        // Belt-and-suspenders alongside the staleness check in handleKeyboardWillShow:
+                        // if the keyboard went away before a queued target was ever consumed, drop it.
+                        pendingScrollTarget = nil
+                    }
+                    }
                 }
                 .blur(radius: state.isAwaitingDeterminationResult ? 5 : 0)
 
