@@ -2,6 +2,7 @@ import Combine
 import CoreData
 import Foundation
 import Swinject
+import UIKit
 
 protocol OpenSourceClinicManager {
     func syncAll() async
@@ -141,7 +142,7 @@ final class BaseOpenSourceClinicManager: OpenSourceClinicManager, Injectable {
             ascending: false
         )
 
-        return try await backgroundContext.perform {
+        return await backgroundContext.perform {
             guard let fetchedResults = results as? [GlucoseStored] else {
                 return []
             }

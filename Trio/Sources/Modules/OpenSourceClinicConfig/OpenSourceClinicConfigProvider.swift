@@ -1,3 +1,5 @@
+import Foundation
+
 extension OpenSourceClinicConfigModule {
     final class Provider: BaseProvider, OpenSourceClinicConfigProvider {
         @Injected() var openSourceClinicManager: OpenSourceClinicManager!
