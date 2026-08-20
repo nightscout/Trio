@@ -422,6 +422,15 @@ enum SettingItems {
             path: ["Services", "Nightscout", "Fetch and Remote Control"]
         ),
         SettingItem(title: "Tidepool", view: .serviceSettings, path: ["Services"]),
+        SettingItem(
+            title: "opensource.clinic",
+            view: .openSourceClinicConfig,
+            searchContents: [
+                "AI Therapy Analysis",
+                "Sync Trio Data"
+            ],
+            path: ["Services", "opensource.clinic"]
+        ),
         SettingItem(title: "Apple Health", view: .healthkit, path: ["Services"])
     ]
 
