@@ -116,7 +116,7 @@ final class BaseOpenSourceClinicManager: OpenSourceClinicManager, Injectable {
     // MARK: - Test Connection
 
     func testConnection() async throws {
-        let testURL = baseURL.appendingPathComponent("/v1/trio/sync")
+        let testURL = baseURL.appendingPathComponent("/api/v1/trio/sync")
         var request = URLRequest(url: testURL)
         request.httpMethod = "GET"
         request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")

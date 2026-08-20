@@ -29,7 +29,7 @@ class OpenSourceClinicAPI {
         let data = try encoder.encode(payload)
         let request = try buildRequest(
             baseURL: baseURL,
-            path: "/v1/trio/sync",
+            path: "/api/v1/trio/sync",
             token: token,
             body: data
         )
@@ -50,7 +50,7 @@ class OpenSourceClinicAPI {
         let data = try JSONSerialization.data(withJSONObject: body)
         let request = try buildRequest(
             baseURL: baseURL,
-            path: "/v1/trio/glucose",
+            path: "/api/v1/trio/glucose",
             token: token,
             body: data
         )
@@ -63,7 +63,7 @@ class OpenSourceClinicAPI {
         let data = try encoder.encode(preferences)
         let request = try buildRequest(
             baseURL: baseURL,
-            path: "/v1/trio/preferences",
+            path: "/api/v1/trio/preferences",
             token: token,
             body: data
         )
@@ -76,7 +76,7 @@ class OpenSourceClinicAPI {
         let data = try encoder.encode(profile)
         let request = try buildRequest(
             baseURL: baseURL,
-            path: "/v1/trio/therapy-profile",
+            path: "/api/v1/trio/therapy-profile",
             token: token,
             body: data
         )
