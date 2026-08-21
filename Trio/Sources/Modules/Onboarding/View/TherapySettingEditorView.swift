@@ -7,6 +7,10 @@ struct TherapySettingEditorView: View {
     var valueOptions: [Decimal]
     var validateOnDelete: (() -> Void)?
     var onItemAdded: (() -> Void)?
+    var chartColor: Color?
+    var chartDisplayValueSelector: (TherapySettingItem) -> Decimal = { $0.value }
+    var chartShowsArea: Bool = true
+    var chartYScale: ClosedRange<Decimal>?
 
     private let basalFormatter: NumberFormatter = {
         let numberFormatter = NumberFormatter()
@@ -21,6 +25,27 @@ struct TherapySettingEditorView: View {
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
+                if items.isNotEmpty {
+                    TherapySettingsChart(
+                        items: $items,
+                        color: chartColor ?? Color.purple,
+                        displayValueSelector: chartDisplayValueSelector,
+                        showsArea: chartShowsArea,
+                        yScale: chartYScale
+                    )
+                    .frame(height: 180)
+                    .padding()
+                    .background(Color.chart.opacity(0.65))
+                    .clipShape(
+                        .rect(
+                            topLeadingRadius: 10,
+                            bottomLeadingRadius: 0,
+                            bottomTrailingRadius: 0,
+                            topTrailingRadius: 10
+                        )
+                    )
+                }
+
                 HStack {
                     Text("Entries").bold()
                         .padding([.top, .bottom], 10)

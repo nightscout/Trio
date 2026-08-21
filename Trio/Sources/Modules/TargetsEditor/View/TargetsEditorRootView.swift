@@ -97,7 +97,12 @@ extension TargetsEditor {
                                         withAnimation {
                                             proxy.scrollTo(bottomID, anchor: .bottom)
                                         }
-                                    }
+                                    },
+                                    chartColor: Color.green,
+                                    chartDisplayValueSelector: { state.units == .mgdL ? $0.value : $0.value.asMmolL },
+                                    chartShowsArea: false,
+                                    chartYScale: (state.units == .mgdL ? Decimal(72) : Decimal(72).asMmolL) ...
+                                        (state.units == .mgdL ? Decimal(180) : Decimal(180).asMmolL)
                                 )
                                 .padding(.horizontal)
                                 .id(bottomID)

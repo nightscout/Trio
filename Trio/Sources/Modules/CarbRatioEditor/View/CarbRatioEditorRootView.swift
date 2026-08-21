@@ -99,7 +99,8 @@ extension CarbRatioEditor {
                                         withAnimation {
                                             proxy.scrollTo(bottomID, anchor: .bottom)
                                         }
-                                    }
+                                    },
+                                    chartColor: Color.orange
                                 )
                                 .padding(.horizontal)
 

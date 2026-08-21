@@ -200,7 +200,8 @@ extension BasalProfileEditor {
                                         withAnimation {
                                             proxy.scrollTo(bottomID, anchor: .bottom)
                                         }
-                                    }
+                                    },
+                                    chartColor: Color.purple
                                 )
                                 .padding(.horizontal)
 
