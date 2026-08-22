@@ -70,6 +70,9 @@
 		7A11AC0DE000000000000106 /* HomeRootView+Refresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000006 /* HomeRootView+Refresh.swift */; };
 		7A11AC0DE000000000000111 /* HomeLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000011 /* HomeLayout.swift */; };
 		7A11AC0DE000000000000113 /* MultiUsePanelState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000013 /* MultiUsePanelState.swift */; };
+		DB0BB002000000000000000C /* ReleaseNotes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB0BB002000000000000000B /* ReleaseNotes.swift */; };
+		DB0BB002000000000000000E /* ReleaseNotesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB0BB002000000000000000D /* ReleaseNotesService.swift */; };
+		DB0BB0020000000000000010 /* ReleaseNotesSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB0BB002000000000000000F /* ReleaseNotesSheetView.swift */; };
 		7A11AC0DE000000000000116 /* GlassChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000016 /* GlassChrome.swift */; };
 		7A11AC0DE000000000000110 /* HomeRootView+BottomControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000010 /* HomeRootView+BottomControls.swift */; };
 		7A11AC0DE00000000000010E /* HomeRootView+MealPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE00000000000000E /* HomeRootView+MealPanel.swift */; };
@@ -249,6 +252,10 @@
 		3B4BA7752D8DBD690069D5B8 /* LibreTransmitter.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7602D8DBD690069D5B8 /* LibreTransmitter.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3B4BA7762D8DBD690069D5B8 /* LibreTransmitterUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7612D8DBD690069D5B8 /* LibreTransmitterUI.framework */; };
 		3B4BA7772D8DBD690069D5B8 /* LibreTransmitterUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7612D8DBD690069D5B8 /* LibreTransmitterUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5E12FE0E2EBC0000000000B1 /* LibreLoop.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E12FE0E2EBC0000000000A1 /* LibreLoop.framework */; };
+		5E12FE0E2EBC0000000000C1 /* LibreLoop.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5E12FE0E2EBC0000000000A1 /* LibreLoop.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5E12FE0E2EBC0000000000B2 /* LibreLoopUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E12FE0E2EBC0000000000A2 /* LibreLoopUI.framework */; };
+		5E12FE0E2EBC0000000000C2 /* LibreLoopUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5E12FE0E2EBC0000000000A2 /* LibreLoopUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3B4BA7782D8DBD690069D5B8 /* MinimedKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7622D8DBD690069D5B8 /* MinimedKit.framework */; };
 		3B4BA7792D8DBD690069D5B8 /* MinimedKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7622D8DBD690069D5B8 /* MinimedKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3B4BA77A2D8DBD690069D5B8 /* MinimedKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7632D8DBD690069D5B8 /* MinimedKitUI.framework */; };
@@ -311,6 +318,8 @@
 		3BCE75B52D4B391F009E9453 /* Decimal+rounding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */; };
 		3BD6CE262DC24CFD00FA0472 /* pumphistory-24h-zoned.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BD6CE252DC24CFD00FA0472 /* pumphistory-24h-zoned.json */; };
 		3BD9687C2D8DDD4600899469 /* SlideButton in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687B2D8DDD4600899469 /* SlideButton */; };
+		5E12FE112EBC0000000000A2 /* LoopAlgorithm in Frameworks */ = {isa = PBXBuildFile; productRef = 5E12FE112EBC0000000000A1 /* LoopAlgorithm */; };
+		5E12FE112EBC0000000000B2 /* LibreCRKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5E12FE112EBC0000000000B1 /* LibreCRKit */; };
 		3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687E2D8DDD8800899469 /* CryptoSwift */; };
 		3BE2F1E82E030E2F009E2900 /* MealCobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE2F1E72E030E2F009E2900 /* MealCobTests.swift */; };
 		3BE2F1EA2E031951009E2900 /* MealCobBucketingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE2F1E92E031951009E2900 /* MealCobBucketingTests.swift */; };
@@ -843,6 +852,7 @@
 		DDC6CA6D2DD90A2A0060EE25 /* LocalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC6CA6C2DD90A2A0060EE25 /* LocalizationTests.swift */; };
 		DDCAE8332D78D4A800B1BB51 /* TherapySettingsUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCAE8322D78D49C00B1BB51 /* TherapySettingsUtil.swift */; };
 		DDCE790F2D6F97FC000A4D7A /* SubmodulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCE790E2D6F97F7000A4D7A /* SubmodulesView.swift */; };
+		DB0BB0030000000000000002 /* ReleaseNotesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB0BB0030000000000000001 /* ReleaseNotesListView.swift */; };
 		DDCEBF5B2CC1B76400DF4C36 /* LiveActivity+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */; };
 		DDD163122C4C689900CD525A /* AdjustmentsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163112C4C689900CD525A /* AdjustmentsStateModel.swift */; };
 		DDD163142C4C68D300CD525A /* AdjustmentsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163132C4C68D300CD525A /* AdjustmentsProvider.swift */; };
@@ -941,6 +951,7 @@
 		FA630397F76B582C8D8681A7 /* BasalProfileEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42369F66CF91F30624C0B3A6 /* BasalProfileEditorProvider.swift */; };
 		FA6B58486AE2496F9F8589C6 /* QuickPickTreatmentsConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EEC5C2927FA4C5DA61A1A40 /* QuickPickTreatmentsConfigProvider.swift */; };
 		FB9012AE66284A92A6531037 /* NightscoutUploadSerializerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C39FF1EC12CF4B1EBB13BE26 /* NightscoutUploadSerializerTests.swift */; };
+		782BE9AEFDD94938A6F3EFE9 /* NightscoutImportRoundTripTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EFF860E684B4C9488D438DD /* NightscoutImportRoundTripTests.swift */; };
 		FE41E4D629463EE20047FD55 /* NightscoutPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE41E4D529463EE20047FD55 /* NightscoutPreferences.swift */; };
 		FE66D16B291F74F8005D6F77 /* Bundle+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */; };
 		7A11AC0DE000000000000030 /* UIHostingController+KeyboardSafeArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000130 /* UIHostingController+KeyboardSafeArea.swift */; };
@@ -1005,6 +1016,8 @@
 				3B4BA7852D8DBD690069D5B8 /* RileyLinkKit.framework in Embed Frameworks */,
 				3B4BA7752D8DBD690069D5B8 /* LibreTransmitter.framework in Embed Frameworks */,
 				3B4BA7772D8DBD690069D5B8 /* LibreTransmitterUI.framework in Embed Frameworks */,
+				5E12FE0E2EBC0000000000C1 /* LibreLoop.framework in Embed Frameworks */,
+				5E12FE0E2EBC0000000000C2 /* LibreLoopUI.framework in Embed Frameworks */,
 				3B4BA77B2D8DBD690069D5B8 /* MinimedKitUI.framework in Embed Frameworks */,
 				3B4BA7832D8DBD690069D5B8 /* RileyLinkBLEKit.framework in Embed Frameworks */,
 				CE95BF642BA771BE00DC3DE3 /* LoopTestingKit.framework in Embed Frameworks */,
@@ -1120,6 +1133,9 @@
 		7A11AC0DE000000000000006 /* HomeRootView+Refresh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeRootView+Refresh.swift"; sourceTree = "<group>"; };
 		7A11AC0DE000000000000011 /* HomeLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeLayout.swift; sourceTree = "<group>"; };
 		7A11AC0DE000000000000013 /* MultiUsePanelState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiUsePanelState.swift; sourceTree = "<group>"; };
+		DB0BB002000000000000000B /* ReleaseNotes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotes.swift; sourceTree = "<group>"; };
+		DB0BB002000000000000000D /* ReleaseNotesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotesService.swift; sourceTree = "<group>"; };
+		DB0BB002000000000000000F /* ReleaseNotesSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotesSheetView.swift; sourceTree = "<group>"; };
 		7A11AC0DE000000000000016 /* GlassChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassChrome.swift; sourceTree = "<group>"; };
 		7A11AC0DE000000000000010 /* HomeRootView+BottomControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeRootView+BottomControls.swift"; sourceTree = "<group>"; };
 		7A11AC0DE00000000000000E /* HomeRootView+MealPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeRootView+MealPanel.swift"; sourceTree = "<group>"; };
@@ -1307,6 +1323,8 @@
 		3B4BA75F2D8DBD690069D5B8 /* G7SensorKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = G7SensorKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7602D8DBD690069D5B8 /* LibreTransmitter.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LibreTransmitter.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7612D8DBD690069D5B8 /* LibreTransmitterUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LibreTransmitterUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5E12FE0E2EBC0000000000A1 /* LibreLoop.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LibreLoop.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5E12FE0E2EBC0000000000A2 /* LibreLoopUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LibreLoopUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7622D8DBD690069D5B8 /* MinimedKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MinimedKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7632D8DBD690069D5B8 /* MinimedKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MinimedKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7672D8DBD690069D5B8 /* RileyLinkBLEKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RileyLinkBLEKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1672,6 +1690,7 @@
 		C2BA6B982F758E7600348E6A /* NotificationIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationIdentifiers.swift; sourceTree = "<group>"; };
 		C377490C77661D75E8C50649 /* ManualTempBasalRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualTempBasalRootView.swift; sourceTree = "<group>"; };
 		C39FF1EC12CF4B1EBB13BE26 /* NightscoutUploadSerializerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutUploadSerializerTests.swift; sourceTree = "<group>"; };
+		6EFF860E684B4C9488D438DD /* NightscoutImportRoundTripTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutImportRoundTripTests.swift; sourceTree = "<group>"; };
 		C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TreatmentsDataFlow.swift; sourceTree = "<group>"; };
 		CA01000000000000000010C1 /* AlertCatalogVendor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertCatalogVendor.swift; sourceTree = "<group>"; };
 		CA01000000000000000010C3 /* AlertCatalogRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertCatalogRegistry.swift; sourceTree = "<group>"; };
@@ -1890,6 +1909,7 @@
 		DDC6CA6C2DD90A2A0060EE25 /* LocalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationTests.swift; sourceTree = "<group>"; };
 		DDCAE8322D78D49C00B1BB51 /* TherapySettingsUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingsUtil.swift; sourceTree = "<group>"; };
 		DDCE790E2D6F97F7000A4D7A /* SubmodulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmodulesView.swift; sourceTree = "<group>"; };
+		DB0BB0030000000000000001 /* ReleaseNotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotesListView.swift; sourceTree = "<group>"; };
 		DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LiveActivity+Helper.swift"; sourceTree = "<group>"; };
 		DDD163112C4C689900CD525A /* AdjustmentsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustmentsStateModel.swift; sourceTree = "<group>"; };
 		DDD163132C4C68D300CD525A /* AdjustmentsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustmentsProvider.swift; sourceTree = "<group>"; };
@@ -1999,9 +2019,13 @@
 				CE95BF632BA771BE00DC3DE3 /* LoopTestingKit.framework in Frameworks */,
 				3B4BA7722D8DBD690069D5B8 /* G7SensorKitUI.framework in Frameworks */,
 				3B4BA7742D8DBD690069D5B8 /* LibreTransmitter.framework in Frameworks */,
+				5E12FE0E2EBC0000000000B1 /* LibreLoop.framework in Frameworks */,
+				5E12FE0E2EBC0000000000B2 /* LibreLoopUI.framework in Frameworks */,
 				3B4BA78C2D8DC0EC0069D5B8 /* ShareClientUI.framework in Frameworks */,
 				3B4BA77A2D8DBD690069D5B8 /* MinimedKitUI.framework in Frameworks */,
 				3BD9687C2D8DDD4600899469 /* SlideButton in Frameworks */,
+				5E12FE112EBC0000000000A2 /* LoopAlgorithm in Frameworks */,
+				5E12FE112EBC0000000000B2 /* LibreCRKit in Frameworks */,
 				3B4BA7782D8DBD690069D5B8 /* MinimedKit.framework in Frameworks */,
 				3B4BA7762D8DBD690069D5B8 /* LibreTransmitterUI.framework in Frameworks */,
 				3E54EF2C2E476DA40006F54D /* MedtrumKit.framework in Frameworks */,
@@ -2446,6 +2470,7 @@
 				7A11AC0DE000000000000006 /* HomeRootView+Refresh.swift */,
 				7A11AC0DE000000000000011 /* HomeLayout.swift */,
 				7A11AC0DE000000000000013 /* MultiUsePanelState.swift */,
+				DB0BB002000000000000000F /* ReleaseNotesSheetView.swift */,
 				7A11AC0DE000000000000016 /* GlassChrome.swift */,
 				7A11AC0DE000000000000010 /* HomeRootView+BottomControls.swift */,
 				7A11AC0DE00000000000000E /* HomeRootView+MealPanel.swift */,
@@ -2492,6 +2517,7 @@
 				3862CC2C2743F9DC00BF832C /* Calendar */,
 				E592A37E2CEEC046009A472C /* ContactImage */,
 				DB0BA0010000000000000001 /* DevelopmentBranchAlerter */,
+				DB0BB002000000000000000A /* ReleaseNotes */,
 				F90692A8274B7A980037068D /* HealthKit */,
 				3B506FD72E6352E9000740B9 /* IOB */,
 				6B1A8D2C2B156EC100E76752 /* LiveActivity */,
@@ -2646,6 +2672,8 @@
 				3B4BA75F2D8DBD690069D5B8 /* G7SensorKitUI.framework */,
 				3B4BA7602D8DBD690069D5B8 /* LibreTransmitter.framework */,
 				3B4BA7612D8DBD690069D5B8 /* LibreTransmitterUI.framework */,
+				5E12FE0E2EBC0000000000A1 /* LibreLoop.framework */,
+				5E12FE0E2EBC0000000000A2 /* LibreLoopUI.framework */,
 				3B4BA7622D8DBD690069D5B8 /* MinimedKit.framework */,
 				3B4BA7632D8DBD690069D5B8 /* MinimedKitUI.framework */,
 				3B4BA7672D8DBD690069D5B8 /* RileyLinkBLEKit.framework */,
@@ -3102,6 +3130,7 @@
 				B3919BBB515547118D684CA2 /* SettingsSearchTests.swift */,
 				BD8FC0532D66186000B95AED /* TestError.swift */,
 				C39FF1EC12CF4B1EBB13BE26 /* NightscoutUploadSerializerTests.swift */,
+				6EFF860E684B4C9488D438DD /* NightscoutImportRoundTripTests.swift */,
 				BD8FC0702D661B0000B95AED /* TidepoolTherapySettingsTests.swift */,
 				CA03000000000000000010C1 /* AlertCatalogRegistryOmniFaultTests.swift */,
 				CD1235A000000000000000F1 /* TidepoolUploadSerializerTests.swift */,
@@ -4061,6 +4090,7 @@
 			isa = PBXGroup;
 			children = (
 				DDCE790E2D6F97F7000A4D7A /* SubmodulesView.swift */,
+				DB0BB0030000000000000001 /* ReleaseNotesListView.swift */,
 				DD1745122C54169400211FAC /* DevicesView.swift */,
 				DD1745142C54388A00211FAC /* TherapySettingsView.swift */,
 				DD1745162C54389F00211FAC /* FeatureSettingsView.swift */,
@@ -4356,6 +4386,15 @@
 				DB0BA0010000000000000002 /* DevelopmentBranchAlerter.swift */,
 			);
 			path = DevelopmentBranchAlerter;
+			sourceTree = "<group>";
+		};
+		DB0BB002000000000000000A /* ReleaseNotes */ = {
+			isa = PBXGroup;
+			children = (
+				DB0BB002000000000000000B /* ReleaseNotes.swift */,
+				DB0BB002000000000000000D /* ReleaseNotesService.swift */,
+			);
+			path = ReleaseNotes;
 			sourceTree = "<group>";
 		};
 		DDA9AC072D67291600E6F1A9 /* AppVersionChecker */ = {
@@ -4668,6 +4707,7 @@
 				38E8753D27554D5900975559 /* Embed Watch Content */,
 				6B1A8D122B14D88E00E76752 /* Embed Foundation Extensions */,
 				DD88C8DF2C4D583900F2D558 /* Run Script: Capture Build Details */,
+				DB0BB0020000000000000011 /* Run Script: Capture Release Notes */,
 				3B47C6112DA0A52C00B0E5EF /* Run Script: Copy dSYM to Crashlytics */,
 			);
 			buildRules = (
@@ -4688,6 +4728,8 @@
 				3B47C60F2DA0A28F00B0E5EF /* FirebaseCrashlytics */,
 				DD17A0282E3FE0BD008E1BF0 /* SwiftJWT */,
 				3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */,
+				5E12FE112EBC0000000000A1 /* LoopAlgorithm */,
+				5E12FE112EBC0000000000B1 /* LibreCRKit */,
 			);
 			productName = Trio;
 			productReference = 388E595825AD948C0019842D /* Trio.app */;
@@ -4865,6 +4907,8 @@
 				3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				DD868FD92E381E1C005D3308 /* XCRemoteSwiftPackageReference "Swift-JWT" */,
 				3E28F2A92EB5337F00FB9EEB /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */,
+				5E12FE112EBC0000000000A0 /* XCLocalSwiftPackageReference "LoopAlgorithm" */,
+				5E12FE112EBC0000000000B0 /* XCLocalSwiftPackageReference "LibreCRKit" */,
 			);
 			productRefGroup = 388E595925AD948C0019842D /* Products */;
 			projectDirPath = "";
@@ -4990,6 +5034,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [ \"$CI\" = \"true\" ]; then echo \"CI detected - skipping Crashlytics dSYM upload.\"; exit 0; fi\n# Type a script or drag a script file from your workspace to insert its path.\n\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n";
+		};
+		DB0BB0020000000000000011 /* Run Script: Capture Release Notes */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Run Script: Capture Release Notes";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/scripts/capture-release-notes.sh\"\n";
 		};
 		DD88C8DF2C4D583900F2D558 /* Run Script: Capture Build Details */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -5277,6 +5340,9 @@
 				7A11AC0DE000000000000106 /* HomeRootView+Refresh.swift in Sources */,
 				7A11AC0DE000000000000111 /* HomeLayout.swift in Sources */,
 				7A11AC0DE000000000000113 /* MultiUsePanelState.swift in Sources */,
+				DB0BB002000000000000000C /* ReleaseNotes.swift in Sources */,
+				DB0BB002000000000000000E /* ReleaseNotesService.swift in Sources */,
+				DB0BB0020000000000000010 /* ReleaseNotesSheetView.swift in Sources */,
 				7A11AC0DE000000000000116 /* GlassChrome.swift in Sources */,
 				7A11AC0DE000000000000110 /* HomeRootView+BottomControls.swift in Sources */,
 				7A11AC0DE00000000000010E /* HomeRootView+MealPanel.swift in Sources */,
@@ -5654,6 +5720,7 @@
 				7F7B756BE8543965D9FDF1A2 /* HistoryDataFlow.swift in Sources */,
 				1D845DF2E3324130E1D95E67 /* HistoryProvider.swift in Sources */,
 				DDCE790F2D6F97FC000A4D7A /* SubmodulesView.swift in Sources */,
+				DB0BB0030000000000000002 /* ReleaseNotesListView.swift in Sources */,
 				19F95FFA29F1102A00314DDC /* StatRootView.swift in Sources */,
 				0D9A5E34A899219C5C4CDFAF /* HistoryStateModel.swift in Sources */,
 				6BCF84DD2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
@@ -5779,6 +5846,7 @@
 				3BBC22632DF5B94100169236 /* AutosensTests.swift in Sources */,
 				BD8FC0542D66186000B95AED /* TestError.swift in Sources */,
 				FB9012AE66284A92A6531037 /* NightscoutUploadSerializerTests.swift in Sources */,
+				782BE9AEFDD94938A6F3EFE9 /* NightscoutImportRoundTripTests.swift in Sources */,
 				DDDD0FFB2F4E22C000F9C645 /* GlucoseSmoothingTests.swift in Sources */,
 				DDDD0FFD2F4E22C000F9C645 /* GlucoseNativeConversionTests.swift in Sources */,
 				DDDD10A12F4E22C000F9C645 /* CarbsNativeConversionTests.swift in Sources */,
@@ -6611,6 +6679,17 @@
 		};
 /* End XCRemoteSwiftPackageReference section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		5E12FE112EBC0000000000A0 /* XCLocalSwiftPackageReference "LoopAlgorithm" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = LoopAlgorithm;
+		};
+		5E12FE112EBC0000000000B0 /* XCLocalSwiftPackageReference "LibreCRKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = LibreCRKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		3811DE0F25C9D37700A708ED /* Swinject */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -6661,6 +6740,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DD868FD92E381E1C005D3308 /* XCRemoteSwiftPackageReference "Swift-JWT" */;
 			productName = SwiftJWT;
+		};
+		5E12FE112EBC0000000000A1 /* LoopAlgorithm */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5E12FE112EBC0000000000A0 /* XCLocalSwiftPackageReference "LoopAlgorithm" */;
+			productName = LoopAlgorithm;
+		};
+		5E12FE112EBC0000000000B1 /* LibreCRKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5E12FE112EBC0000000000B0 /* XCLocalSwiftPackageReference "LibreCRKit" */;
+			productName = LibreCRKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 

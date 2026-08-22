@@ -13,6 +13,7 @@ struct QuickPickSample {
 func topQuickPickSuggestions(
     from samples: [QuickPickSample],
     roundingScale: Int,
+    roundingMode: NSDecimalNumber.RoundingMode = .plain,
     now: Date,
     limit: Int = 5
 ) -> [Decimal] {
@@ -24,7 +25,7 @@ func topQuickPickSuggestions(
 
     var groups: [Decimal: Double] = [:]
     for sample in samples {
-        let roundedKey = sample.amount.rounded(scale: roundingScale)
+        let roundedKey = sample.amount.rounded(scale: roundingScale, roundingMode: roundingMode)
 
         let entryMinute = cal.component(.hour, from: sample.timestamp) * 60 + cal.component(.minute, from: sample.timestamp)
         let entryDOW = cal.component(.weekday, from: sample.timestamp)
@@ -64,6 +65,7 @@ private func fetchQuickPickSuggestions<T: NSManagedObject>(
     predicate: (Date) -> NSPredicate,
     sortKey: String,
     roundingScale: Int,
+    roundingMode: NSDecimalNumber.RoundingMode = .plain,
     extractSample: @escaping (T) -> QuickPickSample?
 ) async -> [Decimal] {
     let cutoff = Calendar.current.date(byAdding: .day, value: -lookbackDays, to: Date()) ?? Date()
@@ -81,7 +83,7 @@ private func fetchQuickPickSuggestions<T: NSManagedObject>(
         return await fetchContext.perform {
             guard let entities = results as? [T] else { return [] }
             let samples = entities.compactMap(extractSample)
-            return topQuickPickSuggestions(from: samples, roundingScale: roundingScale, now: Date())
+            return topQuickPickSuggestions(from: samples, roundingScale: roundingScale, roundingMode: roundingMode, now: Date())
         }
     } catch {
         debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch quick-pick suggestions for \(type): \(error)")
@@ -115,7 +117,10 @@ extension Home.StateModel {
                 )
             },
             sortKey: "pumpEvent.timestamp",
-            roundingScale: 2
+            // Floor to one decimal place (e.g. 1.15 -> 1.1) rather than rounding to the nearest, so
+            // suggestions stay simple and the pill text never needs two fraction digits.
+            roundingScale: 1,
+            roundingMode: .down
         ) { bolus in
             guard let rawAmount = bolus.amount, rawAmount.doubleValue > 0, rawAmount.doubleValue <= maxBolusUnits,
                   let timestamp = bolus.pumpEvent?.timestamp else { return nil }

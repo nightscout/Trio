@@ -6,6 +6,7 @@ enum MultiUsePanelState: Equatable {
     case pumpTimeMismatch
     case cgmStale
     case maxIOBZero
+    case whatsNew
     case stats
 
     /// readings older than this offer manual glucose entry
@@ -16,12 +17,15 @@ enum MultiUsePanelState: Equatable {
         pumpTimeMismatch: Bool,
         lastGlucoseDate: Date?,
         maxIOB: Decimal,
+        hasUnacknowledgedReleaseNotes: Bool,
         now: Date
     ) -> MultiUsePanelState {
         if notificationsDisabled { return .notificationsDisabled }
         if pumpTimeMismatch { return .pumpTimeMismatch }
         if now.timeIntervalSince(lastGlucoseDate ?? .distantPast) > cgmStaleAfter { return .cgmStale }
         if maxIOB <= 0 { return .maxIOBZero }
+        // Informational, so it yields to every warning above but still displaces the stats.
+        if hasUnacknowledgedReleaseNotes { return .whatsNew }
         return .stats
     }
 }

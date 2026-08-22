@@ -119,8 +119,7 @@ extension Onboarding.StateModel {
             // Sensitivities
             let sensitivities = fetchedProfile.sens.map { sensitivity in
                 InsulinSensitivityEntry(
-                    sensitivity: shouldConvertToMgdL ? correctUnitParsingOffsets(sensitivity.value.asMgdL) : sensitivity
-                        .value,
+                    sensitivity: shouldConvertToMgdL ? sensitivity.value.asMgdL : sensitivity.value,
                     offset: offset(sensitivity.time) / 60,
                     start: sensitivity.time
                 )
@@ -143,8 +142,8 @@ extension Onboarding.StateModel {
             // Targets
             let targets = fetchedProfile.target_low.map { target in
                 BGTargetEntry(
-                    low: shouldConvertToMgdL ? correctUnitParsingOffsets(target.value.asMgdL) : target.value,
-                    high: shouldConvertToMgdL ? correctUnitParsingOffsets(target.value.asMgdL) : target.value,
+                    low: shouldConvertToMgdL ? target.value.asMgdL : target.value,
+                    high: shouldConvertToMgdL ? target.value.asMgdL : target.value,
                     start: target.time,
                     offset: offset(target.time) / 60
                 )
@@ -232,10 +231,6 @@ extension Onboarding.StateModel {
                 currentStep.wrappedValue = next
             }
         }
-    }
-
-    fileprivate func correctUnitParsingOffsets(_ parsedValue: Decimal) -> Decimal {
-        Int(parsedValue) % 2 == 0 ? parsedValue : parsedValue + 1
     }
 
     fileprivate func offset(_ string: String) -> Int {

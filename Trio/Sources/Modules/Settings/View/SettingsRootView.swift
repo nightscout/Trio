@@ -36,6 +36,7 @@ extension Settings {
         )
         @State private var closedLoopDisabled = true
         @State private var showCopiedToast = false
+        @ObservedObject private var releaseNotesService = ReleaseNotesService.shared
 
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
@@ -289,6 +290,46 @@ extension Settings {
                         }
                     ).listRowBackground(Color.chart)
 
+                    if !releaseNotesService.releases.isEmpty {
+                        Section(
+                            header: Text("Release Notes"),
+                            content: {
+                                if let current = releaseNotesService.notes {
+                                    NavigationLink(destination: ReleaseNotesDetailView(notes: current)) {
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(current.name)
+                                                    .foregroundColor(.primary)
+
+                                                Text(
+                                                    "Current release",
+                                                    comment: "Marks the release notes entry matching the running build"
+                                                )
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                            }
+
+                                            Spacer()
+
+                                            Text(current.publishedDateString)
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                }
+
+                                if !releaseNotesService.previousReleases.isEmpty {
+                                    NavigationLink(
+                                        destination: ReleaseNotesListView(releases: releaseNotesService.previousReleases)
+                                    ) {
+                                        Text("Previous Versions")
+                                            .foregroundColor(.primary)
+                                    }
+                                }
+                            }
+                        ).listRowBackground(Color.chart)
+                    }
+
                     Section(
                         header: Text("Trio Backup"),
                         content: {
@@ -357,6 +398,9 @@ extension Settings {
                 ShareSheet(activityItems: state.logItems())
             }
             .onAppear(perform: configureView)
+            .task {
+                await releaseNotesService.load()
+            }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar {
