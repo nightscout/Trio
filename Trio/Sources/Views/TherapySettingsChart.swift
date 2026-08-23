@@ -49,10 +49,10 @@ struct TherapySettingsChart: View {
                 }
 
                 LineMark(x: .value("End Date", startDate), y: .value("Rate", displayValue))
-                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(color)
+                    .lineStyle(.init(lineWidth: showsArea ? 1 : 2.5)).foregroundStyle(color)
 
                 LineMark(x: .value("Start Date", endDate), y: .value("Rate", displayValue))
-                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(color)
+                    .lineStyle(.init(lineWidth: showsArea ? 1 : 2.5)).foregroundStyle(color)
             }
         }
         .id(refreshUI) // Force chart update
