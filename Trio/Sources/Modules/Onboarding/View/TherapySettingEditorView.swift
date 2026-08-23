@@ -24,27 +24,25 @@ struct TherapySettingEditorView: View {
 
     var body: some View {
         ScrollViewReader { proxy in
-            VStack(spacing: 0) {
-                if items.isNotEmpty {
-                    TherapySettingsChart(
-                        items: $items,
-                        color: chartColor ?? Color.purple,
-                        displayValueSelector: chartDisplayValueSelector,
-                        showsArea: chartShowsArea,
-                        yScale: chartYScale
+            LazyVStack(spacing: 0) {
+                TherapySettingsChart(
+                    items: $items,
+                    color: chartColor ?? Color.purple,
+                    displayValueSelector: chartDisplayValueSelector,
+                    showsArea: chartShowsArea,
+                    yScale: chartYScale
+                )
+                .frame(height: 180)
+                .padding()
+                .background(Color.chart.opacity(0.65))
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 10,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 10
                     )
-                    .frame(height: 180)
-                    .padding()
-                    .background(Color.chart.opacity(0.65))
-                    .clipShape(
-                        .rect(
-                            topLeadingRadius: 10,
-                            bottomLeadingRadius: 0,
-                            bottomTrailingRadius: 0,
-                            topTrailingRadius: 10
-                        )
-                    )
-                }
+                )
 
                 HStack {
                     Text("Entries").bold()
@@ -167,7 +165,7 @@ struct TherapySettingEditorView: View {
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
                 // 55 for header row, item counts x 50 for every entry row + 230 for a visible picker row
-                .frame(height: (55 * CGFloat(items.count)) + (selectedItemID != nil ? 230 : 0))
+                .frame(height: (52 * CGFloat(items.count)) + (selectedItemID != nil ? 230 : 0))
                 .onAppear {
                     // ensure picker is closed when view appears
                     selectedItemID = nil
