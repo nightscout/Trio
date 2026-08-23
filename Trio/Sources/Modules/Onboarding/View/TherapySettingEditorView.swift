@@ -24,7 +24,7 @@ struct TherapySettingEditorView: View {
 
     var body: some View {
         ScrollViewReader { proxy in
-            ScrollView {
+            VStack(spacing: 0) {
                 if items.isNotEmpty {
                     TherapySettingsChart(
                         items: $items,
@@ -82,7 +82,6 @@ struct TherapySettingEditorView: View {
                     .disabled(cannotAddMoreEntries)
                 }
                 .background(Color.chart.opacity(0.65))
-                .padding(.bottom, -10)
 
                 List {
                     ForEach($items) { $item in
@@ -128,6 +127,16 @@ struct TherapySettingEditorView: View {
                                 .transition(.slide)
                             }
                         }
+                        .listRowBackground(
+                            UnevenRoundedRectangle(
+                                topLeadingRadius: 0,
+                                bottomLeadingRadius: item == items.last ? 10 : 0,
+                                bottomTrailingRadius: item == items.last ? 10 : 0,
+                                topTrailingRadius: 0
+                            )
+                            .fill(Color.chart.opacity(0.65))
+                        )
+                        .listRowSeparator(item == items.last ? .hidden : .visible)
                         .contextMenu {
                             if let index = items.firstIndex(where: { $0.id == item.id }), items.count > 1 {
                                 Button(role: .destructive) {
@@ -153,26 +162,12 @@ struct TherapySettingEditorView: View {
                             }
                         }
                     }
-                    .listRowBackground(Color.chart.opacity(0.65))
-
-                    Rectangle().fill(Color.chart.opacity(0.65)).frame(height: 10)
-                        .clipShape(
-                            .rect(
-                                topLeadingRadius: 0,
-                                bottomLeadingRadius: 10,
-                                bottomTrailingRadius: 10,
-                                topTrailingRadius: 0
-                            )
-                        )
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: -22, leading: 0, bottom: 0, trailing: 0))
-                        .listRowSeparator(.hidden)
                 }
                 .id(bottomID)
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
-                // 55 for header row, item counts x 45 for every entry row + 230 for a visible picker row
-                .frame(height: 55 + CGFloat(items.count) * 45 + (items.contains(where: { $0.id == selectedItemID }) ? 230 : 0))
+                // 55 for header row, item counts x 50 for every entry row + 230 for a visible picker row
+                .frame(height: (55 * CGFloat(items.count)) + (selectedItemID != nil ? 230 : 0))
                 .onAppear {
                     // ensure picker is closed when view appears
                     selectedItemID = nil
@@ -385,11 +380,13 @@ enum TherapySettingUnit: String, CaseIterable {
         TherapySettingItem(time: 1800, value: 1.2)
     ]
 
-    TherapySettingEditorView(
-        items: $previewItems,
-        unit: .unitPerHour,
-        timeOptions: stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 },
-        valueOptions: stride(from: 0.0, through: 10.0, by: 0.05).map { Decimal(round(100 * $0) / 100) },
-        onItemAdded: nil
-    )
+    ScrollView {
+        TherapySettingEditorView(
+            items: $previewItems,
+            unit: .unitPerHour,
+            timeOptions: stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 },
+            valueOptions: stride(from: 0.0, through: 10.0, by: 0.05).map { Decimal(round(100 * $0) / 100) },
+            onItemAdded: nil
+        )
+    }
 }
