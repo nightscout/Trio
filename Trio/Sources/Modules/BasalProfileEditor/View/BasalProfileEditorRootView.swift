@@ -93,7 +93,7 @@ extension BasalProfileEditor {
             .padding()
             .background(Color.chart.opacity(0.65))
             .cornerRadius(10)
-            .padding(.horizontal)
+            .padding([.horizontal, .vertical])
             .id(bottomID)
         }
 
