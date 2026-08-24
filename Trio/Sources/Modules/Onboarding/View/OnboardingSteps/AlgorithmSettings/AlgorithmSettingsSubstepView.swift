@@ -17,14 +17,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
     private let settingsProvider = PickerSettingsProvider.shared
 
     private var shouldDisableRewindResetsAutosens: Bool {
-        switch state.pumpOptionForOnboardingUnits {
-        case .dana,
-             .minimed:
-            return false
-        case .medtrum,
-             .omni:
-            return true
-        }
+        !state.pumpOptionForOnboardingUnits.reportsRewindEvents
     }
 
     var body: some View {

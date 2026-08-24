@@ -49,7 +49,9 @@ extension Home.StateModel {
         return GlucoseDailyDistributionStats.compute(
             date: startOfDay,
             readings: readings,
-            highLimit: highGlucose,
+            // fixed consensus TIR bound (StatStateModel.highLimit), not the user's
+            // chart threshold, so the banner always matches the Stats screen
+            highLimit: 180,
             timeInRangeType: timeInRangeType
         )
     }
