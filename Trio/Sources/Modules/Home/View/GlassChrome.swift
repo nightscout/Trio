@@ -9,6 +9,10 @@ enum GlassChrome {
     static var panelShape: RoundedRectangle {
         RoundedRectangle(cornerRadius: panelCornerRadius, style: .continuous)
     }
+
+    /// Stand-in for glass/material when Reduce Transparency is on: no blur, so
+    /// nothing behind the panel bleeds through.
+    static let opaqueFill = Color(.secondarySystemGroupedBackground)
 }
 
 /// Glass panel background with optional tint; pre-26 falls back to
@@ -20,9 +24,16 @@ struct GlassPanelBackground: ViewModifier {
     var strokeWidth: CGFloat = 1
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    /// Opaque when Reduce Transparency is on, blurred material otherwise.
+    private var baseFill: AnyShapeStyle {
+        reduceTransparency ? AnyShapeStyle(GlassChrome.opaqueFill) : AnyShapeStyle(.ultraThinMaterial)
+    }
 
     func body(content: Content) -> some View {
-        if #available(iOS 26.0, *) {
+        // Reduce Transparency skips the glass path entirely; it cannot be made opaque.
+        if !reduceTransparency, #available(iOS 26.0, *) {
             content
                 .glassEffect(
                     tint.map { Glass.regular.tint($0.opacity(tintOpacity)) } ?? .regular,
@@ -37,7 +48,7 @@ struct GlassPanelBackground: ViewModifier {
             content
                 .background(
                     GlassChrome.panelShape
-                        .fill(.ultraThinMaterial)
+                        .fill(baseFill)
                         .overlay(GlassChrome.panelShape.fill((tint ?? .clear).opacity(tintOpacity)))
                         .overlay(GlassChrome.panelShape.strokeBorder(
                             (tint ?? Color.primary).opacity(strokeOpacity),

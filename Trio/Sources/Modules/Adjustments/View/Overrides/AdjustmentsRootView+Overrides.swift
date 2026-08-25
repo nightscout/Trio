@@ -39,34 +39,33 @@ extension Adjustments.RootView {
     }
 
     func overrideDeleteConfirmation(_ content: some View) -> some View {
-        content.confirmationDialog(
-            "Delete the Override Preset \"\(overrideToDelete?.name ?? "")\"?",
+        let target = overrideToDelete
+        let isRunning = target != nil && state.currentActiveOverride == target
+
+        return content.glassActionSheet(
+            "Delete the Override Preset \"\(target?.name ?? "")\"?",
+            message: isRunning ? Text("This override preset is currently running. Deleting will stop it.") : nil,
             isPresented: Binding(
                 get: { overrideToDelete != nil },
                 set: { if !$0 { overrideToDelete = nil } }
             ),
-            titleVisibility: .visible,
-            presenting: overrideToDelete
-        ) { target in
-            Button(
-                state.currentActiveOverride == target ? "Stop and Delete" : "Delete",
-                role: .destructive
-            ) {
-                if state.currentActiveOverride == target {
+            actions: [
+                GlassSheetAction(
+                    isRunning ? "Stop and Delete" : "Delete",
+                    role: .destructive
+                ) {
+                    guard let target else { return }
+                    if isRunning {
+                        Task {
+                            await state.disableAllActiveOverrides(createOverrideRunEntry: true)
+                        }
+                    }
                     Task {
-                        await state.disableAllActiveOverrides(createOverrideRunEntry: true)
+                        await state.invokeOverridePresetDeletion(target.objectID)
                     }
                 }
-                Task {
-                    await state.invokeOverridePresetDeletion(target.objectID)
-                }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: { target in
-            if state.currentActiveOverride == target {
-                Text("This override preset is currently running. Deleting will stop it.")
-            }
-        }
+            ]
+        )
     }
 
     private func requestOverridePresetActivation(_ preset: OverrideStored) {

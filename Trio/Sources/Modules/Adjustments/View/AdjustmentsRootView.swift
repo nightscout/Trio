@@ -151,51 +151,52 @@ extension Adjustments {
                         EditTempTargetForm(tempTargetToEdit: tempTarget, state: state)
                     }
                 }
-                .confirmationDialog("Override to Stop", isPresented: $showCancelOverrideConfirmDialog) {
-                    Button("Stop", role: .destructive) {
-                        Task {
-                            // Save cancelled Override in OverrideRunStored Entity
-                            // Cancel ALL active Override
-                            await state.disableAllActiveOverrides(createOverrideRunEntry: true)
+                .glassActionSheet(
+                    "Override to Stop",
+                    message: Text("Stop the Override \"\(state.currentActiveOverride?.name ?? "")\"?"),
+                    isPresented: $showCancelOverrideConfirmDialog,
+                    actions: [
+                        GlassSheetAction("Stop", role: .destructive) {
+                            Task {
+                                // Save cancelled Override in OverrideRunStored Entity
+                                // Cancel ALL active Override
+                                await state.disableAllActiveOverrides(createOverrideRunEntry: true)
+                            }
                         }
-                    }
-                    Button("Cancel", role: .cancel) {}
-                } message: {
-                    Text("Stop the Override \"\(state.currentActiveOverride?.name ?? "")\"?")
-                }
-                .confirmationDialog("Temp Target to Stop", isPresented: $showCancelTempTargetConfirmDialog) {
-                    Button("Stop", role: .destructive) {
-                        Task {
-                            // Save cancelled Temp Targets in TempTargetRunStored Entity
-                            // Cancel ALL active Temp Targets
-                            await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
-                            // Update View
-                            state.updateLatestTempTargetConfiguration()
+                    ]
+                )
+                .glassActionSheet(
+                    "Temp Target to Stop",
+                    message: Text("Stop the Temp Target \"\(state.currentActiveTempTarget?.name ?? "")\"?"),
+                    isPresented: $showCancelTempTargetConfirmDialog,
+                    actions: [
+                        GlassSheetAction("Stop", role: .destructive) {
+                            Task {
+                                // Save cancelled Temp Targets in TempTargetRunStored Entity
+                                // Cancel ALL active Temp Targets
+                                await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
+                                // Update View
+                                state.updateLatestTempTargetConfiguration()
+                            }
                         }
-                    }
-                    Button("Cancel", role: .cancel) {}
-                } message: {
-                    Text("Stop the Temp Target \"\(state.currentActiveTempTarget?.name ?? "")\"?")
-                }
-                .confirmationDialog(
+                    ]
+                )
+                .glassActionSheet(
                     "Activate Preset",
-                    isPresented: presetActivationConfirmationBinding
-                ) {
-                    Button("Activate") {
-                        if let activation = pendingPresetActivation {
-                            activatePreset(activation)
+                    message: pendingPresetActivation.map { Text($0.confirmationMessage) },
+                    isPresented: presetActivationConfirmationBinding,
+                    actions: [
+                        GlassSheetAction("Activate") {
+                            if let activation = pendingPresetActivation {
+                                activatePreset(activation)
+                            }
                         }
-                    }
-
-                    Button("Cancel", role: .cancel) {
+                    ],
+                    onCancel: {
                         state.shouldDisplayPresetStartConfirmDialog = false
                         pendingPresetActivation = nil
                     }
-                } message: {
-                    if let activation = pendingPresetActivation {
-                        Text(activation.confirmationMessage)
-                    }
-                }
+                )
             }).background(appState.trioBackgroundColor(for: colorScheme))
         }
 

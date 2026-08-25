@@ -109,6 +109,7 @@ struct ContactImageDetailView: View {
 
                 // Font Settings Section
                 Section(header: Text("Font Settings")) {
+                    backgroundModePicker
                     colorModePicker
                     fontSizePicker
                     if contactImageEntry.layout == .split {
@@ -175,6 +176,14 @@ struct ContactImageDetailView: View {
                 .tint(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .padding(5)
+        }
+    }
+
+    private var backgroundModePicker: some View {
+        Picker("Background", selection: $contactImageEntry.backgroundMode) {
+            ForEach(ContactImageEntry.BackgroundMode.allCases, id: \.self) { mode in
+                Text(mode.displayName).tag(mode)
+            }
         }
     }
 

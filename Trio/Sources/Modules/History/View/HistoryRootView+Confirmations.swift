@@ -6,35 +6,34 @@ extension History.RootView {
     }
 
     @ViewBuilder func historyConfirmations(_ content: some View) -> some View {
+        let target = deletionTarget
+
         content
-            .confirmationDialog(
-                deletionTarget?.title(units: state.units) ?? "",
+            .glassActionSheet(
+                Text(target?.title(units: state.units) ?? ""),
+                message: target?.message(units: state.units).map { Text($0) },
                 isPresented: Binding(
                     get: { deletionTarget != nil },
                     set: { if !$0 { deletionTarget = nil } }
                 ),
-                titleVisibility: .visible,
-                presenting: deletionTarget
-            ) { target in
-                Button("Delete", role: .destructive) {
-                    switch target {
-                    case let .glucose(glucose):
-                        state.invokeGlucoseDeletionTask(glucose.objectID)
-                    case let .insulin(pumpEvent):
-                        state.invokeInsulinDeletionTask(pumpEvent.objectID)
-                    case let .carbs(carbEntry):
-                        state.invokeCarbDeletionTask(
-                            carbEntry.objectID,
-                            isFpuOrComplexMeal: carbEntry.isFPU || carbEntry.fat > 0 || carbEntry.protein > 0
-                        )
+                actions: [
+                    GlassSheetAction("Delete", role: .destructive) {
+                        switch target {
+                        case let .glucose(glucose):
+                            state.invokeGlucoseDeletionTask(glucose.objectID)
+                        case let .insulin(pumpEvent):
+                            state.invokeInsulinDeletionTask(pumpEvent.objectID)
+                        case let .carbs(carbEntry):
+                            state.invokeCarbDeletionTask(
+                                carbEntry.objectID,
+                                isFpuOrComplexMeal: carbEntry.isFPU || carbEntry.fat > 0 || carbEntry.protein > 0
+                            )
+                        case .none:
+                            break
+                        }
                     }
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: { target in
-                if let message = target.message(units: state.units) {
-                    Text(message)
-                }
-            }
+                ]
+            )
             .alert("Error", isPresented: $showErrorAlert) {
                 Button("OK", role: .cancel) {}
             } message: {

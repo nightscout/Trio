@@ -17,6 +17,7 @@ struct AddContactImageSheet: View {
     @State private var bottom: ContactImageValue = .trend
     @State private var ring: ContactImageLargeRing = .none
     @State private var colorMode: ContactImageEntry.ColorMode = .color
+    @State private var backgroundMode: ContactImageEntry.BackgroundMode = .transparent
     @State private var fontSize: ContactImageEntry.FontSize = .regular
     @State private var secondaryFontSize: ContactImageEntry.FontSize = .small
     @State private var fontWeight: Font.Weight = .medium
@@ -36,6 +37,7 @@ struct AddContactImageSheet: View {
             ringWidth: ringWidth,
             ringGap: ringGap,
             colorMode: colorMode,
+            backgroundMode: backgroundMode,
             fontSize: fontSize,
             secondaryFontSize: secondaryFontSize,
             fontWeight: fontWeight,
@@ -138,6 +140,7 @@ struct AddContactImageSheet: View {
 
                     // Font Settings Section
                     Section(header: Text("Font Settings")) {
+                        backgroundModePicker
                         colorModePicker
                         fontSizePicker
                         if layout == .split {
@@ -201,6 +204,14 @@ struct AddContactImageSheet: View {
                 .tint(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .padding(5)
+        }
+    }
+
+    private var backgroundModePicker: some View {
+        Picker("Background", selection: $backgroundMode) {
+            ForEach(ContactImageEntry.BackgroundMode.allCases, id: \.self) { mode in
+                Text(mode.displayName).tag(mode)
+            }
         }
     }
 
