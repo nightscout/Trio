@@ -512,27 +512,171 @@ import Testing
         #expect(history.contains { $0.type == .pumpResume }, "Resumes feed the inference timeline")
     }
 
-    @Test("Future-extending scheduled basal rows clamp to now in TDD") func testScheduledBasalClampsToNow() throws {
+    // MARK: - Scheduled basal
+
+    /// A driver's `.basal` report, with whatever end it claims: MinimedKit sends a 24 h
+    /// placeholder it expects the caller to reconcile; DanaKit, MedtrumKit and TandemKit send a
+    /// zero-length dose. OmnipodKit reports no `.basal` at all, so it has no shape to test here.
+    private func scheduledBasalEvent(
+        start: Date,
+        rate: Double,
+        claimedDuration: TimeInterval,
+        syncIdentifier: String
+    ) -> LoopKit.NewPumpEvent {
+        LoopKit.NewPumpEvent(
+            date: start,
+            dose: LoopKit.DoseEntry(
+                type: .basal,
+                startDate: start,
+                endDate: start.addingTimeInterval(claimedDuration),
+                value: rate,
+                unit: .unitsPerHour,
+                deliveredUnits: nil,
+                description: nil,
+                syncIdentifier: syncIdentifier,
+                scheduledBasalRate: nil,
+                insulinType: .lyumjev,
+                automatic: nil,
+                manuallyEntered: false,
+                isMutable: false
+            ),
+            raw: Data(syncIdentifier.utf8),
+            title: "Scheduled Basal",
+            type: .basal
+        )
+    }
+
+    @Test("Scheduled basal is stored open-ended, whatever span the driver claims") func testScheduledBasalStoredOpenEnded() async throws {
+        let start = Date().addingTimeInterval(-40.minutes.timeInterval)
+        try await storage.storePumpEvents([
+            // MinimedKit's 24 h placeholder, then the zero-length shape Dana, Medtrum and Tandem send
+            scheduledBasalEvent(start: start, rate: 1.0, claimedDuration: 24 * 60 * 60, syncIdentifier: "sbr-minimed"),
+            scheduledBasalEvent(start: start.addingTimeInterval(60), rate: 0.625, claimedDuration: 0, syncIdentifier: "sbr-dana"),
+            scheduledBasalEvent(start: start.addingTimeInterval(120), rate: 0.8, claimedDuration: 0, syncIdentifier: "sbr-tandem")
+        ], replacePendingEvents: false)
+
+        let rows = try await fetchAllEvents().compactMap(\.tempBasal)
+        let allTagged = rows.allSatisfy(\.isScheduledBasal)
+        let allOpenEnded = rows.allSatisfy { $0.duration == 0 && $0.startDate == $0.endDate }
+        #expect(rows.count == 3)
+        #expect(allTagged)
+        #expect(allOpenEnded, "A rate assertion carries no delivery span")
+    }
+
+    @Test(
+        "Overlapping scheduled-basal rows accrue delivery once, not once per row"
+    ) func testOverlappingScheduledBasalRowsDoNotMultiply() throws {
         let tddStorage = resolver.resolve(TDDStorage.self) as! BaseTDDStorage
         let now = Date()
-        let event = PumpHistoryEvent(
-            id: "sbr",
-            type: .tempBasal,
-            timestamp: now.addingTimeInterval(-30.minutes.timeInterval),
-            amount: 2.0,
-            duration: 60,
-            isScheduledBasal: true
-        )
+        let start = now.addingTimeInterval(-60.minutes.timeInterval)
+        // five 24 h rows a minute apart, as one basal-schedule edit produces on Medtronic
+        let history = (0 ..< 5).map { index in
+            PumpHistoryEvent(
+                id: "sbr-\(index)",
+                type: .tempBasal,
+                timestamp: start.addingTimeInterval(Double(index) * 60),
+                amount: 4.0,
+                duration: 1440,
+                isScheduledBasal: true
+            )
+        }
 
+        let segments = ScheduledBasalInference.segments(
+            events: BaseTDDStorage.timelineEvents(from: history),
+            profile: [BasalProfileEntry(start: "00:00", minutes: 0, rate: 1.0)],
+            now: now
+        )
         let insulin = tddStorage.calculateScheduledBasalInsulin(
-            [event],
-            inferredSegments: [],
-            now: now,
+            segments,
             roundToSupportedBasalRate: { $0 }
         )
 
-        // 2 U/hr for the 30 elapsed minutes, not the scheduled 60
-        #expect(abs(Double(truncating: insulin as NSNumber) - 1.0) < 0.001)
+        // one hour of the 1 U/hr profile, however many rows asserted it and whatever rate they claim
+        #expect(abs(Double(truncating: insulin as NSNumber) - 1.0) < 0.02)
+    }
+
+    @Test(
+        "A scheduled-basal row claims no coverage, so the sweep still sizes the gap"
+    ) func testScheduledBasalRowDoesNotMuteTheSweep() throws {
+        let now = Date()
+        let start = now.addingTimeInterval(-60.minutes.timeInterval)
+        let history = [
+            PumpHistoryEvent(
+                id: "sbr",
+                type: .tempBasal,
+                timestamp: start,
+                amount: 1.0,
+                duration: 1440,
+                isScheduledBasal: true
+            )
+        ]
+
+        let events = BaseTDDStorage.timelineEvents(from: history)
+        #expect(events.count == 1)
+        #expect(events[0].end == events[0].start, "A 24 h placeholder must not mark a day covered")
+
+        let segments = ScheduledBasalInference.segments(
+            events: events,
+            profile: [BasalProfileEntry(start: "00:00", minutes: 0, rate: 1.0)],
+            now: now
+        )
+        #expect(!segments.isEmpty, "The hour since the row was reported is still swept")
+    }
+
+    @Test("A temp basal covering the span leaves nothing for the sweep to bill") func testTempBasalCoverageLeavesNoScheduledBasal() throws {
+        let now = Date()
+        let start = now.addingTimeInterval(-30.minutes.timeInterval)
+        // Minimed reports a schedule boundary while a temp basal is running: the temp delivers
+        let history = [
+            PumpHistoryEvent(
+                id: "sbr",
+                type: .tempBasal,
+                timestamp: start,
+                amount: 1.0,
+                duration: 1440,
+                isScheduledBasal: true
+            ),
+            PumpHistoryEvent(
+                id: "temp",
+                type: .tempBasal,
+                timestamp: start,
+                amount: 0.5,
+                duration: 30
+            )
+        ]
+
+        let segments = ScheduledBasalInference.segments(
+            events: BaseTDDStorage.timelineEvents(from: history),
+            profile: [BasalProfileEntry(start: "00:00", minutes: 0, rate: 1.0)],
+            now: now
+        )
+
+        // the temp basal covers the whole window, so scheduled basal is not billed on top of it
+        let nothingSubstantial = segments.allSatisfy { $0.end.timeIntervalSince($0.start) < 60 }
+        #expect(nothingSubstantial)
+    }
+
+    @Test("A gap no row describes is still inferred from the profile") func testUncoveredGapStillInferred() throws {
+        let now = Date()
+        let start = now.addingTimeInterval(-60.minutes.timeInterval)
+        // a temp basal that expired half an hour ago, and nothing since: Omnipod's shape
+        let history = [
+            PumpHistoryEvent(
+                id: "temp",
+                type: .tempBasal,
+                timestamp: start,
+                amount: 0.5,
+                duration: 30
+            )
+        ]
+
+        let segments = ScheduledBasalInference.segments(
+            events: BaseTDDStorage.timelineEvents(from: history),
+            profile: [BasalProfileEntry(start: "00:00", minutes: 0, rate: 1.0)],
+            now: now
+        )
+
+        #expect(!segments.isEmpty, "No row covers the last half hour, so the profile fills it")
     }
 
     // MARK: - Suspension pairing

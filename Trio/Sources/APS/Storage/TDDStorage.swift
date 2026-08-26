@@ -66,15 +66,15 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         let groupedEvents = Dictionary(grouping: pumpHistory, by: { $0.type })
         let bolusEvents = groupedEvents[.bolus] ?? []
         let allBasalEvents = groupedEvents[.tempBasal] ?? []
-        // pump-reported scheduled basal counts as recorded delivery
-        let scheduledBasalEvents = allBasalEvents.filter { $0.isScheduledBasal == true }
         let tempBasalEvents = allBasalEvents.filter { $0.isScheduledBasal != true }
         let pumpSuspendEvents = groupedEvents[.pumpSuspend] ?? []
         let pumpResumeEvents = groupedEvents[.pumpResume] ?? []
 
         let now = Date()
-        // gaps no event covers ran the pump's schedule; inferred in memory, never persisted
-        let inferredSegments = ScheduledBasalInference.segments(
+        // Spans nothing else covers ran the pump's schedule, at the profile rate. The sweep owns
+        // *when*, so a span can never overlap a temp basal or a suspension; the profile owns the
+        // rate, because it is what Trio programmed into the pump.
+        let scheduledBasalSegments = ScheduledBasalInference.segments(
             events: Self.timelineEvents(from: pumpHistory),
             profile: basalProfile,
             now: now
@@ -90,9 +90,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         async let pumpDataHours = calculatePumpDataHours(pumpHistory)
         async let bolusInsulin = calculateBolusInsulin(bolusEvents)
         async let scheduledBasalInsulin = calculateScheduledBasalInsulin(
-            scheduledBasalEvents,
-            inferredSegments: inferredSegments,
-            now: now,
+            scheduledBasalSegments,
             roundToSupportedBasalRate: pumpManager.roundToSupportedBasalRate
         )
         async let tempBasalInsulin = calculateTempBasalInsulin(
@@ -305,28 +303,16 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         return reportedInsulin + totalInsulin
     }
 
-    /// Sums pump-reported scheduled-basal rows plus in-memory inferred gap segments.
+    /// Sums the scheduled-basal segments the sweep resolved.
     func calculateScheduledBasalInsulin(
-        _ scheduledBasalEvents: [PumpHistoryEvent],
-        inferredSegments: [ScheduledBasalInference.Segment],
-        now: Date,
+        _ segments: [ScheduledBasalInference.Segment],
         roundToSupportedBasalRate: @escaping (_ unitsPerHour: Double) -> Double
     ) -> Decimal {
-        let reported = scheduledBasalEvents.reduce(into: Decimal(0)) { totalInsulin, event in
-            guard let rate = event.amount, let duration = event.duration, duration > 0 else { return }
-            // clamp rows that extend into the future to what actually delivered
-            let end = min(event.timestamp.addingTimeInterval(TimeInterval(duration) * 60), now)
-            guard end > event.timestamp else { return }
-            let durationHours = Decimal(end.timeIntervalSince(event.timestamp) / 3600)
-            let insulin = Decimal(roundToSupportedBasalRate(Double(truncating: (rate * durationHours) as NSNumber)))
-            if insulin > 0 { totalInsulin += insulin }
-        }
-        let inferred = inferredSegments.reduce(into: Decimal(0)) { totalInsulin, segment in
+        segments.reduce(into: Decimal(0)) { totalInsulin, segment in
             let durationHours = Decimal(segment.end.timeIntervalSince(segment.start) / 3600)
             let insulin = Decimal(roundToSupportedBasalRate(Double(truncating: (segment.rate * durationHours) as NSNumber)))
             if insulin > 0 { totalInsulin += insulin }
         }
-        return reported + inferred
     }
 
     /// Maps pump history onto the inference timeline (temp basal intervals, suspend/resume points).
@@ -334,7 +320,12 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         pumpHistory.compactMap { event in
             switch event.type {
             case .tempBasal:
-                let end = event.timestamp.addingTimeInterval(TimeInterval(event.duration ?? 0) * 60)
+                // A scheduled-basal row asserts a rate, not a span: it covers nothing, so the
+                // sweep still sizes the gap. Its placeholder duration would otherwise mark up to
+                // 24 h covered and mute the very sweep that accounts for it. It stays in the
+                // timeline as a zero-width point so it can still anchor the window's start.
+                let minutes = event.isScheduledBasal == true ? 0 : (event.duration ?? 0)
+                let end = event.timestamp.addingTimeInterval(TimeInterval(minutes) * 60)
                 return ScheduledBasalInference.TimelineEvent(start: event.timestamp, end: end, kind: .tempBasal)
             case .pumpSuspend:
                 return ScheduledBasalInference.TimelineEvent(start: event.timestamp, kind: .suspend)

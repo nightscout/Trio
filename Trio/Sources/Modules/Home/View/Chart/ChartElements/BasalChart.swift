@@ -177,13 +177,13 @@ extension MainChartCanvas {
             }
             let nextStart = next < events.count ? events[next].timestamp : nil
 
-            // A bar ends at its own scheduled end, or earlier where a later event
-            // superseded it. Stretching it to the next event would paint the temp
-            // rate over a span the pump ran its schedule; that span is inferred below.
-            // Pump-reported scheduled basal carries exact bounds, unless it is still
-            // open-ended: then it runs until superseded, else up to now.
+            // A temp basal ends at its own scheduled end, or earlier where a later event
+            // superseded it. Stretching it to the next event would paint the temp rate over a
+            // span the pump ran its schedule; that span is inferred below.
+            // A scheduled-basal row asserts a rate, not a span — the duration a driver claims is
+            // a placeholder (24 h on Minimed, zero elsewhere) — so it runs until superseded.
             let barEnd: Date = if event.isScheduled {
-                end > timestamp ? end : max(timestamp, nextStart ?? now)
+                max(timestamp, nextStart ?? now)
             } else {
                 nextStart.map { min(end, $0) } ?? end
             }
