@@ -80,18 +80,6 @@ extension ISFEditor {
                                     chartDisplayValueSelector: { state.units == .mgdL ? $0.value : $0.value.asMmolL }
                                 )
                                 .padding(.horizontal)
-
-                                HStack {
-                                    Image(systemName: "hand.draw.fill")
-                                        .padding(.leading)
-
-                                    Text("Swipe to delete a single entry. Tap on it, to edit its time or value.")
-                                        .padding(.trailing)
-                                }
-                                .font(.subheadline)
-                                .fontWeight(.light)
-                                .foregroundStyle(.secondary)
-                                .padding()
                             }
                         }
                     }

@@ -13,7 +13,7 @@ struct InsulinSensitivityStepView: View {
     @Bindable var state: Onboarding.StateModel
     @State private var therapyItems: [TherapySettingItem] = []
     @Namespace private var bottomID
-    
+
     private var numberFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal

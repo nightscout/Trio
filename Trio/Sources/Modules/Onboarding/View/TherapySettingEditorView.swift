@@ -181,6 +181,16 @@ struct TherapySettingEditorView: View {
                 .onChange(of: items, { _, _ in
                     validateTherapySettingItems()
                 })
+
+                HStack {
+                    Image(systemName: "hand.draw.fill")
+                    Text("Swipe to delete a single entry. Tap on it, to edit its time or value.")
+                }
+                .font(.subheadline)
+                .fontWeight(.light)
+                .foregroundStyle(.secondary)
+                .padding(.vertical)
+                .padding(.horizontal, 10)
             }
         }
     }

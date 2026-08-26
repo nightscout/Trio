@@ -76,7 +76,7 @@ struct TherapySettingsChart: View {
     }
 }
 
-extension View {
+private extension View {
     @ViewBuilder func applyYScale(_ domain: ClosedRange<Decimal>?) -> some View {
         if let domain {
             chartYScale(domain: domain)

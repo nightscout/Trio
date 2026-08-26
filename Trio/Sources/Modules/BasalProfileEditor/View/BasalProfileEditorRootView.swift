@@ -125,18 +125,6 @@ extension BasalProfileEditor {
                                 if !state.items.isEmpty {
                                     totalBasalRow
                                 }
-
-                                HStack {
-                                    Image(systemName: "hand.draw.fill")
-                                        .padding(.leading)
-
-                                    Text("Swipe to delete a single entry. Tap on it, to edit its time or value.")
-                                        .padding(.trailing)
-                                }
-                                .font(.subheadline)
-                                .fontWeight(.light)
-                                .foregroundStyle(.secondary)
-                                .padding()
                             }
                         }
                     }
