@@ -165,8 +165,8 @@ extension TherapySettingsEditor {
                     .id(bottomID)
                     .listStyle(.plain)
                     .scrollContentBackground(.hidden)
-                    // 55 for header row, item counts x 50 for every entry row + 230 for a visible picker row
-                    .frame(height: (52 * CGFloat(items.count)) + (selectedItemID != nil ? 230 : 0))
+                    // Item counts x itemHeight for every entry row + 230 for a visible picker row
+                    .frame(height: (itemHeight() * CGFloat(items.count)) + (selectedItemID != nil ? 230 : 0))
                     .onAppear {
                         // ensure picker is closed when view appears
                         selectedItemID = nil
@@ -323,6 +323,14 @@ extension TherapySettingsEditor {
                  .mgdLPerUnit:
                 return decimalValue.description
             }
+        }
+
+        private func itemHeight() -> CGFloat {
+            if #available(iOS 26, *) {
+                return 52
+            }
+
+            return 45
         }
     }
 
