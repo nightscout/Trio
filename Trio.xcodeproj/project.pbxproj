@@ -2377,6 +2377,7 @@
 				19F95FF129F10F9C00314DDC /* Stat */,
 				DD17452C2C55AE3500211FAC /* TargetBehavoir */,
 				6517011F19F244F64E1FF14B /* TargetsEditor */,
+				E1CF97613042C8E100773071 /* TherapySettingsEditor */,
 				C2C98283C436DB934D7E7994 /* Treatments */,
 				190EBCC229FF134900BA767D /* UserInterfaceSettings */,
 				CE94597C29E9E1CD0047C9C6 /* WatchConfig */,
@@ -2774,7 +2775,6 @@
 				DD500A712807000000000100 /* SnoozeAlertsSheetView.swift */,
 				7A11AC0DE000000000000014 /* ManualGlucoseEntryView.swift */,
 				09C7754C2FF3C7FD004C6CF4 /* CapsuleSpinnerView.swift */,
-				E18A8C563038CFA600E5D838 /* TherapySettingsChart.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -3706,7 +3706,6 @@
 			children = (
 				DDB0E3722DB1BABB004B826F /* Animations */,
 				DD4A00202DAEEEC400AB7387 /* OnboardingView+AlgorithmUtil.swift */,
-				DD3F1F882D9E078300DCE7B3 /* TherapySettingEditorView.swift */,
 				DDC38E0F2D9B376900ADCB46 /* OnboardingView+Util.swift */,
 				BD47FD182D88AAF90043966B /* OnboardingRootView.swift */,
 				BD47FDD52D8B64AE0043966B /* OnboardingSteps */,
@@ -4586,6 +4585,23 @@
 				E00EEC0227368630002FF094 /* NetworkAssembly.swift */,
 			);
 			path = Assemblies;
+			sourceTree = "<group>";
+		};
+		E1CF97613042C8E100773071 /* TherapySettingsEditor */ = {
+			isa = PBXGroup;
+			children = (
+				E1CF97E03042CD8200773071 /* View */,
+			);
+			path = TherapySettingsEditor;
+			sourceTree = "<group>";
+		};
+		E1CF97E03042CD8200773071 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				DD3F1F882D9E078300DCE7B3 /* TherapySettingEditorView.swift */,
+				E18A8C563038CFA600E5D838 /* TherapySettingsChart.swift */,
+			);
+			path = View;
 			sourceTree = "<group>";
 		};
 		E42231DBF0DBE2B4B92D1B15 /* CarbRatioEditor */ = {
