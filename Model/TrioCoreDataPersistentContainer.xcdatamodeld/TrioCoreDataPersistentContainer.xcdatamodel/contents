@@ -28,6 +28,7 @@
     <entity name="ContactImageEntryStored" representedClassName="ContactImageEntryStored" syncable="YES" codeGenerationType="class">
         <attribute name="bottom" optional="YES" attributeType="String"/>
         <attribute name="colorMode" optional="YES" attributeType="String"/>
+        <attribute name="backgroundMode" optional="YES" attributeType="String"/>
         <attribute name="contactId" optional="YES" attributeType="String"/>
         <attribute name="fontSize" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="fontSizeSecondary" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>

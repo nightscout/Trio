@@ -87,37 +87,33 @@ extension Adjustments.RootView {
     }
 
     func tempTargetDeleteConfirmation(_ content: some View) -> some View {
-        content.confirmationDialog(
-            String(
-                localized: "Delete the Temp Target Preset \"\(tempTargetToDelete?.name ?? "")\"?",
-                comment: "Delete confirmation title for temporary target presets"
-            ),
+        let target = tempTargetToDelete
+        let isRunning = target != nil && state.currentActiveTempTarget == target
+
+        return content.glassActionSheet(
+            "Delete the Temp Target Preset \"\(target?.name ?? "")\"?",
+            message: isRunning ? Text("This Temp Target preset is currently running. Deleting will stop it.") : nil,
             isPresented: Binding(
                 get: { tempTargetToDelete != nil },
                 set: { if !$0 { tempTargetToDelete = nil } }
             ),
-            titleVisibility: .visible,
-            presenting: tempTargetToDelete
-        ) { target in
-            Button(
-                state.currentActiveTempTarget == target ? "Stop and Delete" : "Delete",
-                role: .destructive
-            ) {
-                if state.currentActiveTempTarget == target {
+            actions: [
+                GlassSheetAction(
+                    isRunning ? "Stop and Delete" : "Delete",
+                    role: .destructive
+                ) {
+                    guard let target else { return }
+                    if isRunning {
+                        Task {
+                            await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
+                        }
+                    }
                     Task {
-                        await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
+                        await state.invokeTempTargetPresetDeletion(target.objectID)
                     }
                 }
-                Task {
-                    await state.invokeTempTargetPresetDeletion(target.objectID)
-                }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: { target in
-            if state.currentActiveTempTarget == target {
-                Text("This Temp Target preset is currently running. Deleting will stop it.")
-            }
-        }
+            ]
+        )
     }
 
     var stickyStopTempTargetButton: some View {

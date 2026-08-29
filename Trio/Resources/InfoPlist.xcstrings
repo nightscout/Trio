@@ -7,25 +7,25 @@
       "localizations" : {
         "bg" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
@@ -37,97 +37,103 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "he" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "nb-NO" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
+            "value" : "Trio"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         }
@@ -139,26 +145,26 @@
       "localizations" : {
         "bg" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Trios"
+            "state" : "translated",
+            "value" : "Trio"
           }
         },
         "en" : {
@@ -169,97 +175,103 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "he" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "nb-NO" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "new",
             "value" : "Trio"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
+            "value" : "Trio"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "Trio"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Trio"
           }
         }
@@ -277,8 +289,8 @@
         },
         "cs" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NFC is used to scan Libre sensors."
+            "state" : "translated",
+            "value" : "NFC se používá ke skenování senzorů Libre."
           }
         },
         "da" : {
@@ -319,14 +331,14 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NFC is used to scan Libre sensors."
+            "state" : "translated",
+            "value" : "L'NFC è usato per scansionare i sensori Libre."
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NFC is used to scan Libre sensors."
+            "state" : "translated",
+            "value" : "리브레 센서를 스캔하는 데 NFC가 사용됩니다."
           }
         },
         "nb-NO" : {
@@ -337,8 +349,8 @@
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NFC is used to scan Libre sensors."
+            "state" : "translated",
+            "value" : "NFC wordt gebruikt voor het scannen van Libre sensoren."
           }
         },
         "pl" : {
@@ -389,6 +401,12 @@
             "value" : "NFC được sử dụng để quét cảm biến Libre."
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC 用于扫描 Libre 传感器。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -409,8 +427,8 @@
         },
         "cs" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+            "state" : "translated",
+            "value" : "Bluetooth se používá ke komunikaci s inzulínovou pumpou a zařízeními pro kontinuální monitorování glykémie."
           }
         },
         "da" : {
@@ -457,8 +475,8 @@
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+            "state" : "translated",
+            "value" : "인슐린 펌프 및 연속혈당측정기(CGM)와 통신하기 위해 블루투스가 사용됩니다."
           }
         },
         "nb-NO" : {
@@ -469,8 +487,8 @@
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+            "state" : "translated",
+            "value" : "Bluetooth wordt gebruikt om te communiceren met de insuline pomp en de continue glucose meter"
           }
         },
         "pl" : {
@@ -519,6 +537,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bluetooth được sử dụng để liên lạc với máy bơm insulin và các thiết bị theo dõi đường huyết liên tục"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蓝牙用于与胰岛素泵和动态血糖仪设备进行通信"
           }
         },
         "zh-Hant" : {
@@ -541,8 +565,8 @@
         },
         "cs" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+            "state" : "translated",
+            "value" : "Bluetooth se používá ke komunikaci s inzulínovou pumpou a zařízeními pro kontinuální monitorování glykémie."
           }
         },
         "da" : {
@@ -554,7 +578,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth wird verwendet, um mit Insulinpumpen und CGMs zu kommunizieren"
+            "value" : "Bluetooth wird verwendet, um mit Insulinpumpen und CGM zu kommunizieren"
           }
         },
         "en" : {
@@ -589,8 +613,8 @@
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+            "state" : "translated",
+            "value" : "인슐린 펌프 및 연속혈당측정기(CGM)와 통신하기 위해 블루투스가 사용됩니다."
           }
         },
         "nb-NO" : {
@@ -601,8 +625,8 @@
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+            "state" : "translated",
+            "value" : "Bluetooth wordt gebruikt om te communiceren met de insuline pomp en de continue glucose meter"
           }
         },
         "pl" : {
@@ -653,6 +677,12 @@
             "value" : "Bluetooth được sử dụng để liên lạc với máy bơm insulin và các thiết bị theo dõi đường huyết liên tục"
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蓝牙用于与胰岛素泵和动态血糖仪设备进行通信"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -673,8 +703,8 @@
         },
         "cs" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "To create events with glucose values, so they can be viewed on Apple Watch and CarPlay"
+            "state" : "translated",
+            "value" : "Vytvářejte události s hodnotami glykémie, aby bylo možné je zobrazit na Apple Watch a v systému CarPlay."
           }
         },
         "da" : {
@@ -721,8 +751,8 @@
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "To create events with glucose values, so they can be viewed on Apple Watch and CarPlay"
+            "state" : "translated",
+            "value" : "Apple Watch 및 CarPlay에서 확인할 수 있도록 혈당 값으로 캘린더 이벤트를 생성합니다."
           }
         },
         "nb-NO" : {
@@ -733,8 +763,8 @@
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "To create events with glucose values, so they can be viewed on Apple Watch and CarPlay"
+            "state" : "translated",
+            "value" : "Om 'gebeurtenissen' aan te maken met glucosewaarden, zodat ze kunnen worden bekeken op Apple Watch en CarPlay"
           }
         },
         "pl" : {
@@ -785,6 +815,12 @@
             "value" : "Tạo các sự kiện với giá trị đo đường huyết, để có thể xem trên Apple Watch và CarPlay"
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用于创建携带血糖数值的日历事件，以便可以在 Apple Watch 和 CarPlay 上查看血糖"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -805,8 +841,8 @@
         },
         "cs" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Calendar is used to create new glucose events."
+            "state" : "translated",
+            "value" : "Kalendář se používá k vytváření nových událostí s glykémií."
           }
         },
         "da" : {
@@ -853,8 +889,8 @@
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Calendar is used to create new glucose events."
+            "state" : "translated",
+            "value" : "새로운 혈당 일정을 생성하기 위해 캘린더가 사용됩니다."
           }
         },
         "nb-NO" : {
@@ -865,8 +901,8 @@
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Calendar is used to create new glucose events."
+            "state" : "translated",
+            "value" : "Agenda wordt gebruikt om nieuwe glucose gebeurtenissen aan te maken."
           }
         },
         "pl" : {
@@ -917,6 +953,12 @@
             "value" : "Lịch được sử dụng để tạo các sự kiện đo đường huyết mới."
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日历权限用于新建血糖事件记录。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -936,8 +978,8 @@
         },
         "cs" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allows Trio to access your contacts for live updates to your Apple Watch contact complication using the 'Contact Trick' feature."
+            "state" : "translated",
+            "value" : "Umožňuje aplikaci Trio přístup k vašim kontaktům pro živé aktualizace komplikace kontaktů na Apple Watch pomocí funkce „Contact Trick“."
           }
         },
         "da" : {
@@ -978,14 +1020,14 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allows Trio to access your contacts for live updates to your Apple Watch contact complication using the 'Contact Trick' feature."
+            "state" : "translated",
+            "value" : "Consenti a Trio di accedere ai tuoi contatti per aggiornare in tempo reale la complicazione dei contatti del tuo Apple Watch sfruttando la funzione 'Contact Trick'."
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allows Trio to access your contacts for live updates to your Apple Watch contact complication using the 'Contact Trick' feature."
+            "state" : "translated",
+            "value" : "Trio가 'Contact Trick' 기능을 사용하여 Apple Watch 연락처 컴플리케이션을 실시간으로 업데이트할 수 있도록 연락처 접근을 허용합니다."
           }
         },
         "nb-NO" : {
@@ -996,8 +1038,8 @@
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allows Trio to access your contacts for live updates to your Apple Watch contact complication using the 'Contact Trick' feature."
+            "state" : "translated",
+            "value" : "Geeft Trio toegang tot je contacten om via de functie ‘Contact Trick’ actuele gegevens te tonen in de contactcomplicatie op je Apple Watch."
           }
         },
         "pl" : {
@@ -1048,6 +1090,12 @@
             "value" : "Cho phép Trio truy cập danh bạ của bạn để cập nhật trực tiếp vào tiện ích danh bạ trên Apple Watch bằng tính năng ‘Contact Trick’."
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许 Trio 访问通讯录，使用 “Contact‑Trick 联系人技巧” 功能，实现 Apple Watch 表盘联系人组件实时刷新血糖。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1068,8 +1116,8 @@
         },
         "cs" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For authorized access to bolus"
+            "state" : "translated",
+            "value" : "Pro autorizovaný přístup k bolusu"
           }
         },
         "da" : {
@@ -1110,14 +1158,14 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For authorized access to bolus"
+            "state" : "translated",
+            "value" : "Per l'accesso autorizzato ai boli"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For authorized access to bolus"
+            "state" : "translated",
+            "value" : "볼루스 주입 승인을 위해 사용됩니다."
           }
         },
         "nb-NO" : {
@@ -1128,8 +1176,8 @@
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For authorized access to bolus"
+            "state" : "translated",
+            "value" : "Voor geautoriseerde toegang tot bolus"
           }
         },
         "pl" : {
@@ -1178,6 +1226,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Được cấp quyền truy cập vào bolus"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用于获得授权执行大剂量注射"
           }
         },
         "zh-Hant" : {
@@ -1241,14 +1295,14 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+            "state" : "translated",
+            "value" : "L'app Salute è usata per memorizzare glicemie, insulina e carboidrati"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+            "state" : "translated",
+            "value" : "혈당, 인슐린 및 탄수화물 데이터를 저장하기 위해 건강 앱이 사용됩니다."
           }
         },
         "nb-NO" : {
@@ -1259,8 +1313,8 @@
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+            "state" : "translated",
+            "value" : "Apple Gezondheid wordt gebruikt om bloedglucose, insuline en koolhydraten op te slaan"
           }
         },
         "pl" : {
@@ -1311,6 +1365,12 @@
             "value" : "Ứng dụng Health được sử dụng để lưu trữ dữ liệu đường huyết, insulin và carbohydrate"
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 健康App 存储血糖、胰岛素和碳水合物数据"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1330,8 +1390,8 @@
         },
         "cs" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+            "state" : "translated",
+            "value" : "Aplikace Zdraví se používá k ukládání dat o glykémii, inzulínu a sacharidech"
           }
         },
         "da" : {
@@ -1372,14 +1432,14 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+            "state" : "translated",
+            "value" : "L'app Salute è usata per memorizzare glicemie, insulina e carboidrati"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+            "state" : "translated",
+            "value" : "혈당, 인슐린 및 탄수화물 데이터를 저장하기 위해 건강 앱이 사용됩니다"
           }
         },
         "nb-NO" : {
@@ -1390,8 +1450,8 @@
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+            "state" : "translated",
+            "value" : "Apple Gezondheid wordt gebruikt om bloedglucose, insuline en koolhydraten op te slaan"
           }
         },
         "pl" : {
@@ -1440,6 +1500,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ứng dụng Health được dùng để lưu trữ dữ liệu đường huyết, insulin và carbohydrate"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 健康App 存储血糖、胰岛素和碳水合物数据"
           }
         },
         "zh-Hant" : {
@@ -1516,8 +1582,8 @@
         },
         "nb-NO" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : ""
+            "state" : "translated",
+            "value" : "Copyright (human-readable)"
           }
         },
         "nl" : {
@@ -1571,6 +1637,12 @@
         "vi" : {
           "stringUnit" : {
             "state" : "new",
+            "value" : ""
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : ""
           }
         },

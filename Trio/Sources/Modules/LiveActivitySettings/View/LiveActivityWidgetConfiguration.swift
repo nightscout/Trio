@@ -131,15 +131,17 @@ struct LiveActivityWidgetConfiguration: BaseView {
             }
             loadOrder() // Load the saved order when the view appears
         }
-        .confirmationDialog("Add Widget", isPresented: $showAddItemDialog, titleVisibility: .visible) {
-            ForEach(LiveActivityItem.allCases.filter { !selectedItems.contains($0) }, id: \.self) { item in
-                Button(item.displayName) {
+        .glassActionSheet(
+            "Add Widget",
+            isPresented: $showAddItemDialog,
+            actions: LiveActivityItem.allCases.filter { !selectedItems.contains($0) }.map { item in
+                GlassSheetAction(verbatim: item.displayName) {
                     if let index = buttonIndexToUpdate {
                         addItem(item, at: index)
                     }
                 }
             }
-        }
+        )
     }
 
     @ViewBuilder private func widgetButton(for index: Int) -> some View {
@@ -166,13 +168,16 @@ struct LiveActivityWidgetConfiguration: BaseView {
                         .font(.title3)
                 }
                 .offset(x: 10, y: -10)
-                .confirmationDialog("Remove Widget", isPresented: $isRemovalConfirmationPresented, titleVisibility: .hidden) {
-                    Button("Remove Widget", role: .destructive) {
-                        if let itemToRemove = itemToRemove {
-                            removeItem(itemToRemove)
+                .glassActionSheet(
+                    isPresented: $isRemovalConfirmationPresented,
+                    actions: [
+                        GlassSheetAction("Remove Widget", role: .destructive) {
+                            if let itemToRemove = itemToRemove {
+                                removeItem(itemToRemove)
+                            }
                         }
-                    }
-                }
+                    ]
+                )
             }
         } else {
             // Show "+" symbol for empty slots

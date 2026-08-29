@@ -30,6 +30,8 @@ extension Home {
         @State var showQuickPickTreatmentsNoHistory = false
         @State var showPumpSelection: Bool = false
         @State var showCGMSelection: Bool = false
+        @State var pendingPump: PumpCatalogEntry?
+        @State var pendingCGM: CGMCatalogEntry?
         @State var showSnoozeSheet: Bool = false
         @State var showManualGlucose: Bool = false
         @State var showReleaseNotes: Bool = false
@@ -137,6 +139,8 @@ extension Home {
             // viewport-sized content: rubber-bands for the pull-down, never scrolls
             ScrollView(.vertical, showsIndicators: false) {
                 dashboardContent(geo)
+                    .padding(.top, isForcingLoop ? HomeLayout.refreshIndicatorHeight : 0)
+                    .animation(.easeInOut(duration: 0.25), value: isForcingLoop)
                     .background(
                         GeometryReader { g in
                             Color.clear.preference(
@@ -246,14 +250,14 @@ extension Home {
                     state.addManualGlucose(amount)
                 }
             }
-            // PUMP RELATED
-            .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
-                Button("Medtronic") { state.addPump(.minimed) }
-                Button("All Omnipod Types") { state.addPump(.omni) }
-                Button("Dana(RS/-i)") { state.addPump(.dana) }
-                Button("Medtrum Nano") { state.addPump(.medtrum) }
-                Button("Pump Simulator") { state.addPump(.simulator) }
-            } message: { Text("Select Pump Model") }
+            // DEVICE SELECTION (pump + CGM)
+            .devicePickers(
+                showPumpSelection: $showPumpSelection,
+                showCGMSelection: $showCGMSelection,
+                pendingPump: $pendingPump,
+                pendingCGM: $pendingCGM,
+                state: state
+            )
             .sheet(isPresented: $state.shouldDisplayPumpSetupSheet) {
                 if let pumpManager = state.provider.apsManager.pumpManager {
                     PumpConfig.PumpSettingsView(
@@ -262,9 +266,9 @@ extension Home {
                         completionDelegate: state,
                         setupDelegate: state
                     )
-                } else {
+                } else if let pumpEntry = state.setupPumpEntry {
                     PumpConfig.PumpSetupView(
-                        pumpType: state.setupPumpType,
+                        pumpEntry: pumpEntry,
                         pumpInitialSettings: state.pumpInitialSettings,
                         bluetoothManager: state.provider.apsManager.bluetoothManager!,
                         completionDelegate: state,
@@ -273,11 +277,6 @@ extension Home {
                 }
             }
             // CGM RELATED
-            .confirmationDialog("CGM Model", isPresented: $showCGMSelection) {
-                cgmSelectionButtons
-            } message: {
-                Text("Select CGM Model")
-            }
             .sheet(isPresented: $state.shouldDisplayCGMSetupSheet) {
                 switch state.cgmCurrent.type {
                 case .enlite,

@@ -26,14 +26,14 @@ struct UnitSelectionStepView: View {
                 Text("Pump Model")
                 Spacer()
                 Picker("Pump Model", selection: $state.pumpOptionForOnboardingUnits) {
-                    ForEach(PumpOptionForOnboardingUnits.allCases, id: \.self) { pumpModel in
-                        Text(pumpModel.displayName).tag(pumpModel)
+                    ForEach(DeviceCatalog.onboardingPumps, id: \.self) { pumpModel in
+                        Text(pumpModel.name).tag(pumpModel)
                     }
                 }
                 .onChange(of: state.pumpOptionForOnboardingUnits, { _, newValue in
                     state.remapTherapyItemsForChangedPumpModel()
-                    // Conditionally set rewind setting, if pump model is Medtronic (.minimed) or Dana (i/RS)
-                    state.rewindResetsAutosens = (newValue == .minimed || newValue == .dana)
+                    // Only pumps that report a reservoir rewind can act on this setting
+                    state.rewindResetsAutosens = newValue.reportsRewindEvents
                 })
                 .onChange(of: state.units, { _, _ in
                     state.remapTherapyItemsForChangedUnits()

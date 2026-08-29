@@ -7,7 +7,7 @@ import SwiftUI
 extension PumpConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Published var setupPump = false
-        private(set) var setupPumpType: PumpType = .minimed
+        private(set) var setupPumpEntry: PumpCatalogEntry?
         @Published var pumpState: PumpDisplayState?
         private(set) var initialSettings: PumpInitialSettings = .default
         @Injected() var bluetoothManager: BluetoothStateManager!
@@ -36,8 +36,8 @@ extension PumpConfig {
             }
         }
 
-        func addPump(_ type: PumpType) {
-            setupPumpType = type
+        func addPump(_ entry: PumpCatalogEntry) {
+            setupPumpEntry = entry
             setupPump = true
         }
     }

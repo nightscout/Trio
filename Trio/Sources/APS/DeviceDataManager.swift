@@ -1,7 +1,6 @@
 import Algorithms
 import Combine
 import CoreData
-import DanaKit
 import Foundation
 import HealthKit
 import LoopKit
@@ -9,6 +8,7 @@ import LoopKitUI
 import MedtrumKit
 import MinimedKit
 import MockKit
+import MockKitUI
 import OmnipodKit
 import ShareClient
 import SwiftDate
@@ -36,22 +36,6 @@ protocol DeviceDataManager: GlucoseSource {
     func createBolusProgressReporter() -> DoseProgressReporter?
     var alertHistoryStorage: AlertHistoryStorage! { get }
 }
-
-private let staticPumpManagers: [PumpManagerUI.Type] = [
-    MinimedPumpManager.self,
-    OmniPumpManager.self,
-    DanaKitPumpManager.self,
-    MedtrumPumpManager.self,
-    MockPumpManager.self
-]
-
-private let staticPumpManagersByIdentifier: [String: PumpManagerUI.Type] = [
-    MinimedPumpManager.pluginIdentifier: MinimedPumpManager.self,
-    OmniPumpManager.pluginIdentifier: OmniPumpManager.self,
-    DanaKitPumpManager.pluginIdentifier: DanaKitPumpManager.self,
-    MedtrumPumpManager.pluginIdentifier: MedtrumPumpManager.self,
-    MockPumpManager.pluginIdentifier: MockPumpManager.self
-]
 
 private let accessLock = NSRecursiveLock(label: "BaseDeviceDataManager.accessLock")
 
@@ -356,7 +340,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     }
 
     public func pumpManagerTypeByIdentifier(_ identifier: String) -> PumpManagerUI.Type? {
-        staticPumpManagersByIdentifier[identifier]
+        DeviceCatalog.pumpManagersByIdentifier[identifier]
     }
 
     private func pumpManagerFromRawValue(_ rawValue: [String: Any]) -> PumpManagerUI? {
@@ -374,18 +358,9 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
             return nil
         }
 
-        if let pumpManager = pumpManagerTypeByIdentifier(managerIdentifier) {
-            return pumpManager
-        }
-
-        /// The pumpManager was not found for managerIdentifier. If this was for an "Omnipod" (OmniKit) or
-        /// "Omnipod-DASH" (OmniBLE), have the universal "Omni" pumpManager (OmnipodKit) handle instead.
-        let OmniStr = "Omni"
-        if managerIdentifier.hasPrefix(OmniStr) {
-            return pumpManagerTypeByIdentifier(OmniStr)
-        }
-
-        return nil
+        /// Falls back to `legacyIdentifierPrefixes`, which is how state persisted by the retired "Omnipod"
+        /// (OmniKit) and "Omnipod-DASH" (OmniBLE) managers still resolves to the universal OmnipodKit manager.
+        return DeviceCatalog.pumpEntry(forPersistedIdentifier: managerIdentifier)?.manager
     }
 
     // MARK: - GlucoseSource
