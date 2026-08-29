@@ -1,7 +1,7 @@
 import SwiftUI
 
 extension CarbRatioEditor {
-    final class StateModel: BaseStateModel<Provider> {
+    final class StateModel: BaseStateModel<Provider>, TherapySettingsEditor.StateModel {
         @Injected() private var nightscout: NightscoutManager!
         @Injected() private var tidepoolManager: TidepoolManager!
         @Injected() private var broadcaster: Broadcaster!
@@ -9,14 +9,16 @@ extension CarbRatioEditor {
         @Published var initialItems: [Item] = []
         @Published var therapyItems: [TherapySettingsEditor.Item] = []
         @Published var shouldDisplaySaving: Bool = false
+        var isSaving: Bool { shouldDisplaySaving }
+        let unit: TherapySettingsEditor.Unit = .gramPerUnit
 
-        let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+        let timeOptions = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
-        let rateValues = stride(from: 10.0, to: 501.0, by: 1.0).map { ($0.decimal ?? .zero) / 10 }
+        let valueOptions = stride(from: 10.0, to: 501.0, by: 1.0).map { ($0.decimal ?? .zero) / 10 }
 
         var canAdd: Bool {
             guard let lastItem = items.last else { return true }
-            return lastItem.timeIndex < timeValues.count - 1
+            return lastItem.timeIndex < timeOptions.count - 1
         }
 
         var hasChanges: Bool {
@@ -37,8 +39,8 @@ extension CarbRatioEditor {
         func getTherapyItems() -> [TherapySettingsEditor.Item] {
             items.map { item in
                 TherapySettingsEditor.Item(
-                    time: timeValues[item.timeIndex],
-                    value: rateValues[item.rateIndex]
+                    time: timeOptions[item.timeIndex],
+                    value: valueOptions[item.rateIndex]
                 )
             }
         }
@@ -46,16 +48,16 @@ extension CarbRatioEditor {
         // Update items from TherapySettingItem format
         func updateFromTherapyItems(_ therapyItems: [TherapySettingsEditor.Item]) {
             items = therapyItems.map { therapyItem in
-                let timeIndex = timeValues.firstIndex(where: { abs($0 - therapyItem.time) < 1 }) ?? 0
-                let rateIndex = rateValues.firstIndex(of: therapyItem.value) ?? 0
+                let timeIndex = timeOptions.firstIndex(where: { abs($0 - therapyItem.time) < 1 }) ?? 0
+                let rateIndex = valueOptions.firstIndex(of: therapyItem.value) ?? 0
                 return Item(rateIndex: rateIndex, timeIndex: timeIndex)
             }
         }
 
         override func subscribe() {
             items = provider.profile.schedule.map { value in
-                let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
-                let rateIndex = rateValues.firstIndex(of: value.ratio) ?? 0
+                let timeIndex = timeOptions.firstIndex(of: Double(value.offset * 60)) ?? 0
+                let rateIndex = valueOptions.firstIndex(of: value.ratio) ?? 0
                 return Item(rateIndex: rateIndex, timeIndex: timeIndex)
             }
 
@@ -83,9 +85,9 @@ extension CarbRatioEditor {
                 let fotmatter = DateFormatter()
                 fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
                 fotmatter.dateFormat = "HH:mm:ss"
-                let date = Date(timeIntervalSince1970: self.timeValues[item.timeIndex])
+                let date = Date(timeIntervalSince1970: self.timeOptions[item.timeIndex])
                 let minutes = Int(date.timeIntervalSince1970 / 60)
-                let rate = self.rateValues[item.rateIndex]
+                let rate = self.valueOptions[item.rateIndex]
                 return CarbRatioEntry(start: fotmatter.string(from: date), offset: minutes, ratio: rate)
             }
             let profile = CarbRatios(units: .grams, schedule: schedule)
@@ -109,6 +111,11 @@ extension CarbRatioEditor {
 
             Task.detached(priority: .low) {
                 await self.tidepoolManager.uploadSettings()
+            }
+
+            // deactivate saving display after 1.25 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.25) {
+                self.shouldDisplaySaving = false
             }
         }
 

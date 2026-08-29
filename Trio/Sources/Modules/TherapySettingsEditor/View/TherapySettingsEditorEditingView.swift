@@ -9,7 +9,6 @@ extension TherapySettingsEditor {
         var validateOnDelete: (() -> Void)?
         var onItemAdded: (() -> Void)?
         var chartColor: Color?
-        var chartDisplayValueSelector: (Item) -> Decimal = { $0.value }
         var chartShowsArea: Bool = true
         var chartYScale: ClosedRange<Decimal>?
 
@@ -29,7 +28,7 @@ extension TherapySettingsEditor {
                     ChartView(
                         items: $items,
                         color: chartColor ?? Color.purple,
-                        displayValueSelector: chartDisplayValueSelector,
+                        displayValueSelector: chartDisplayValue,
                         showsArea: chartShowsArea,
                         yScale: chartYScale
                     )
@@ -322,6 +321,16 @@ extension TherapySettingsEditor {
                  .mgdL,
                  .mgdLPerUnit:
                 return decimalValue.description
+            }
+        }
+
+        private func chartDisplayValue(item: Item) -> Decimal {
+            switch unit {
+            case .mmolL,
+                 .mmolLPerUnit:
+                return item.value.asMmolL
+            default:
+                return item.value
             }
         }
 

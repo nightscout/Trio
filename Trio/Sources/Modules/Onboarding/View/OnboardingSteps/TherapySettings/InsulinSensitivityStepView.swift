@@ -35,8 +35,7 @@ struct InsulinSensitivityStepView: View {
                             proxy.scrollTo(bottomID, anchor: .bottom)
                         }
                     },
-                    chartColor: Color.cyan,
-                    chartDisplayValueSelector: { state.units == .mgdL ? $0.value : $0.value.asMmolL }
+                    chartColor: Color.cyan
                 )
 
                 // Example calculation based on first ISF

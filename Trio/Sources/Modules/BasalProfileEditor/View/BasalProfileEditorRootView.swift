@@ -110,8 +110,8 @@ extension BasalProfileEditor {
                                 TherapySettingsEditor.EditingView(
                                     items: $state.therapyItems,
                                     unit: .unitPerHour,
-                                    timeOptions: state.timeValues,
-                                    valueOptions: state.rateValues,
+                                    timeOptions: state.timeOptions,
+                                    valueOptions: state.valueOptions,
                                     validateOnDelete: state.validate,
                                     onItemAdded: {
                                         withAnimation {

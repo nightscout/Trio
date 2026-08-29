@@ -772,7 +772,7 @@
 		DD3D60312F0377350021A33B /* ExportSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3D60302F0377350021A33B /* ExportSetting.swift */; };
 		DD3F1F832D9DC78800DCE7B3 /* UnitSelectionStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F822D9DC78300DCE7B3 /* UnitSelectionStepView.swift */; };
 		DD3F1F852D9DD84000DCE7B3 /* DeliveryLimitsStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F842D9DD83B00DCE7B3 /* DeliveryLimitsStepView.swift */; };
-		DD3F1F892D9E078D00DCE7B3 /* TherapySettingEditorEditingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F882D9E078300DCE7B3 /* TherapySettingEditorEditingView.swift */; };
+		DD3F1F892D9E078D00DCE7B3 /* TherapySettingsEditorEditingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F882D9E078300DCE7B3 /* TherapySettingsEditorEditingView.swift */; };
 		DD3F1F8B2D9E08B600DCE7B3 /* NightscoutLoginStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F8A2D9E08B200DCE7B3 /* NightscoutLoginStepView.swift */; };
 		DD3F1F8D2D9E0E0600DCE7B3 /* NightscoutSetupStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F8C2D9E0E0000DCE7B3 /* NightscoutSetupStepView.swift */; };
 		DD3F1F902D9E153F00DCE7B3 /* NightscoutImportStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F8F2D9E153A00DCE7B3 /* NightscoutImportStepView.swift */; };
@@ -934,6 +934,7 @@
 		E18A8C573038CFA600E5D838 /* TherapySettingsEditorChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18A8C563038CFA600E5D838 /* TherapySettingsEditorChartView.swift */; };
 		E1CF98463042D03E00773071 /* TherapySettingsEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CF98453042D02800773071 /* TherapySettingsEditorDataFlow.swift */; };
 		E1CF98483042D0A500773071 /* TherapySettingsEditorItem+Copying.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CF98473042D0A100773071 /* TherapySettingsEditorItem+Copying.swift */; };
+		E1CF98AE3042F85200773071 /* TherapySettingsEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CF98AD3042F84C00773071 /* TherapySettingsEditorRootView.swift */; };
 		E39E418C56A5A46B61D960EE /* ConfigEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D5B4F8B4194BB7E260EF251 /* ConfigEditorStateModel.swift */; };
 		E592A3702CEEC01E009A472C /* ContactTrickEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A36F2CEEC01E009A472C /* ContactTrickEntry.swift */; };
 		E592A3772CEEC038009A472C /* ContactImageStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3752CEEC038009A472C /* ContactImageStateModel.swift */; };
@@ -1831,7 +1832,7 @@
 		DD3D60302F0377350021A33B /* ExportSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportSetting.swift; sourceTree = "<group>"; };
 		DD3F1F822D9DC78300DCE7B3 /* UnitSelectionStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitSelectionStepView.swift; sourceTree = "<group>"; };
 		DD3F1F842D9DD83B00DCE7B3 /* DeliveryLimitsStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliveryLimitsStepView.swift; sourceTree = "<group>"; };
-		DD3F1F882D9E078300DCE7B3 /* TherapySettingEditorEditingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingEditorEditingView.swift; sourceTree = "<group>"; };
+		DD3F1F882D9E078300DCE7B3 /* TherapySettingsEditorEditingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingsEditorEditingView.swift; sourceTree = "<group>"; };
 		DD3F1F8A2D9E08B200DCE7B3 /* NightscoutLoginStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutLoginStepView.swift; sourceTree = "<group>"; };
 		DD3F1F8C2D9E0E0000DCE7B3 /* NightscoutSetupStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutSetupStepView.swift; sourceTree = "<group>"; };
 		DD3F1F8F2D9E153A00DCE7B3 /* NightscoutImportStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutImportStepView.swift; sourceTree = "<group>"; };
@@ -1991,6 +1992,7 @@
 		E18A8C563038CFA600E5D838 /* TherapySettingsEditorChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingsEditorChartView.swift; sourceTree = "<group>"; };
 		E1CF98453042D02800773071 /* TherapySettingsEditorDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingsEditorDataFlow.swift; sourceTree = "<group>"; };
 		E1CF98473042D0A100773071 /* TherapySettingsEditorItem+Copying.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TherapySettingsEditorItem+Copying.swift"; sourceTree = "<group>"; };
+		E1CF98AD3042F84C00773071 /* TherapySettingsEditorRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingsEditorRootView.swift; sourceTree = "<group>"; };
 		E592A36F2CEEC01E009A472C /* ContactTrickEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickEntry.swift; sourceTree = "<group>"; };
 		E592A3712CEEC038009A472C /* ContactImageRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageRootView.swift; sourceTree = "<group>"; };
 		E592A3732CEEC038009A472C /* ContactImageDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageDataFlow.swift; sourceTree = "<group>"; };
@@ -4618,7 +4620,8 @@
 		E1CF97E03042CD8200773071 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				DD3F1F882D9E078300DCE7B3 /* TherapySettingEditorEditingView.swift */,
+				E1CF98AD3042F84C00773071 /* TherapySettingsEditorRootView.swift */,
+				DD3F1F882D9E078300DCE7B3 /* TherapySettingsEditorEditingView.swift */,
 				E18A8C563038CFA600E5D838 /* TherapySettingsEditorChartView.swift */,
 			);
 			path = View;
@@ -5224,6 +5227,7 @@
 				3811DE4225C9D4A100A708ED /* SettingsDataFlow.swift in Sources */,
 				DDD5889D2DDDC9A900C8848D /* TimeAgoFormatter.swift in Sources */,
 				D7C5E1F4A7B91E2F3C5D6E70 /* TimeInterval+Convenience.swift in Sources */,
+				E1CF98AE3042F85200773071 /* TherapySettingsEditorRootView.swift in Sources */,
 				CEE9A6562BBB418300EB5194 /* CalibrationsRootView.swift in Sources */,
 				3B5CD2B72D4AEA6600CE213C /* ComputedBGTargets.swift in Sources */,
 				3B5CD2B82D4AEA6600CE213C /* ComputedInsulinSensitivities.swift in Sources */,
@@ -5750,7 +5754,7 @@
 				DD17A0322E3FEA1F008E1BF0 /* RemoteNotificationResponseManager.swift in Sources */,
 				3B2F77862D7E52ED005ED9FA /* TDD.swift in Sources */,
 				3BA8D1B32DDB87150006191F /* DecimalExtensions.swift in Sources */,
-				DD3F1F892D9E078D00DCE7B3 /* TherapySettingEditorEditingView.swift in Sources */,
+				DD3F1F892D9E078D00DCE7B3 /* TherapySettingsEditorEditingView.swift in Sources */,
 				DD1745132C54169400211FAC /* DevicesView.swift in Sources */,
 				7F7B756BE8543965D9FDF1A2 /* HistoryDataFlow.swift in Sources */,
 				1D845DF2E3324130E1D95E67 /* HistoryProvider.swift in Sources */,

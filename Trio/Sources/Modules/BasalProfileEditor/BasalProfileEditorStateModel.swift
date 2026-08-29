@@ -2,7 +2,7 @@ import Observation
 import SwiftUI
 
 extension BasalProfileEditor {
-    @Observable final class StateModel: BaseStateModel<Provider> {
+    @Observable final class StateModel: BaseStateModel<Provider>, @MainActor TherapySettingsEditor.StateModel {
         @ObservationIgnored @Injected() private var nightscout: NightscoutManager!
         @ObservationIgnored @Injected() private var tidepoolManager: TidepoolManager!
         @ObservationIgnored @Injected() private var broadcaster: Broadcaster!
@@ -13,15 +13,17 @@ extension BasalProfileEditor {
         var therapyItems: [TherapySettingsEditor.Item] = []
         var total: Decimal = 0.0
         var showAlert: Bool = false
-        var chartData: [BasalProfile]? = []
 
-        let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+        var isSaving: Bool { syncInProgress }
+        let unit: TherapySettingsEditor.Unit = .unitPerHour
 
-        private(set) var rateValues: [Decimal] = []
+        let timeOptions = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+
+        private(set) var valueOptions: [Decimal] = []
 
         var canAdd: Bool {
             guard let lastItem = items.last else { return true }
-            return lastItem.timeIndex < timeValues.count - 1
+            return lastItem.timeIndex < timeOptions.count - 1
         }
 
         var hasChanges: Bool {
@@ -32,8 +34,8 @@ extension BasalProfileEditor {
         func getTherapyItems() -> [TherapySettingsEditor.Item] {
             items.map { item in
                 TherapySettingsEditor.Item(
-                    time: timeValues[item.timeIndex],
-                    value: rateValues[item.rateIndex]
+                    time: timeOptions[item.timeIndex],
+                    value: valueOptions[item.rateIndex]
                 )
             }
         }
@@ -41,18 +43,18 @@ extension BasalProfileEditor {
         // Update items from TherapySettingItem format
         func updateFromTherapyItems(_ therapyItems: [TherapySettingsEditor.Item]) {
             items = therapyItems.map { therapyItem in
-                let timeIndex = timeValues.firstIndex(where: { abs($0 - therapyItem.time) < 1 }) ?? 0
-                let rateIndex = rateValues.firstIndex(of: therapyItem.value) ?? 0
+                let timeIndex = timeOptions.firstIndex(where: { abs($0 - therapyItem.time) < 1 }) ?? 0
+                let rateIndex = valueOptions.firstIndex(of: therapyItem.value) ?? 0
                 return Item(rateIndex: rateIndex, timeIndex: timeIndex)
             }
         }
 
         override func subscribe() {
-            rateValues = provider.supportedBasalRates ?? stride(from: 5.0, to: 1001.0, by: 5.0)
+            valueOptions = provider.supportedBasalRates ?? stride(from: 5.0, to: 1001.0, by: 5.0)
                 .map { ($0.decimal ?? .zero) / 100 }
             items = provider.profile.map { value in
-                let timeIndex = timeValues.firstIndex(of: Double(value.minutes * 60)) ?? 0
-                let rateIndex = rateValues.firstIndex(of: value.rate) ?? 0
+                let timeIndex = timeOptions.firstIndex(of: Double(value.minutes * 60)) ?? 0
+                let rateIndex = valueOptions.firstIndex(of: value.rate) ?? 0
                 return Item(rateIndex: rateIndex, timeIndex: timeIndex)
             }
 
@@ -66,9 +68,9 @@ extension BasalProfileEditor {
                 let fotmatter = DateFormatter()
                 fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
                 fotmatter.dateFormat = "HH:mm:ss"
-                let date = Date(timeIntervalSince1970: self.timeValues[item.timeIndex])
+                let date = Date(timeIntervalSince1970: self.timeOptions[item.timeIndex])
                 let minutes = Int(date.timeIntervalSince1970 / 60)
-                let rate = self.rateValues[item.rateIndex]
+                let rate = self.valueOptions[item.rateIndex]
                 return BasalProfileEntry(start: fotmatter.string(from: date), minutes: minutes, rate: rate)
             }
 
@@ -100,9 +102,9 @@ extension BasalProfileEditor {
                 let formatter = DateFormatter()
                 formatter.timeZone = TimeZone(secondsFromGMT: 0)
                 formatter.dateFormat = "HH:mm:ss"
-                let date = Date(timeIntervalSince1970: self.timeValues[item.timeIndex])
+                let date = Date(timeIntervalSince1970: self.timeOptions[item.timeIndex])
                 let minutes = Int(date.timeIntervalSince1970 / 60)
-                let rate = self.rateValues[item.rateIndex]
+                let rate = self.valueOptions[item.rateIndex]
                 return BasalProfileEntry(start: formatter.string(from: date), minutes: minutes, rate: rate)
             }
             provider.saveProfile(profile)
@@ -164,33 +166,7 @@ extension BasalProfileEditor {
                 .filter { $0.offset != itemIndex }
                 .map(\.element.timeIndex)
 
-            return (0 ..< timeValues.count).filter { !usedIndicesByOtherItems.contains($0) }
-        }
-
-        @MainActor func calculateChartData() {
-            var basals: [BasalProfile] = []
-            let tzOffset = TimeZone.current.secondsFromGMT() * -1
-
-            basals.append(contentsOf: items.enumerated().map { index, item in
-                let startDate = Date(timeIntervalSinceReferenceDate: self.timeValues[item.timeIndex])
-                var endDate = Date(timeIntervalSinceReferenceDate: self.timeValues.last!).addingTimeInterval(30 * 60)
-                if self.items.count > index + 1 {
-                    let nextItem = self.items[index + 1]
-                    endDate = Date(timeIntervalSinceReferenceDate: self.timeValues[nextItem.timeIndex])
-                }
-
-                return BasalProfile(
-                    amount: Double(self.rateValues[item.rateIndex]),
-                    isOverwritten: false,
-                    startDate: startDate.addingTimeInterval(TimeInterval(tzOffset)),
-                    endDate: endDate.addingTimeInterval(TimeInterval(tzOffset))
-                )
-            })
-            basals.sort(by: {
-                $0.startDate > $1.startDate
-            })
-
-            chartData = basals
+            return (0 ..< timeOptions.count).filter { !usedIndicesByOtherItems.contains($0) }
         }
     }
 }

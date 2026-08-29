@@ -48,4 +48,18 @@ enum TherapySettingsEditor {
             }
         }
     }
+
+    protocol StateModel: ObservableObject {
+        var therapyItems: [Item] { get set }
+        var unit: Unit { get }
+        var timeOptions: [TimeInterval] { get }
+        var valueOptions: [Decimal] { get }
+        var hasChanges: Bool { get }
+        var isSaving: Bool { get }
+
+        func validate()
+        func save()
+        func getTherapyItems() -> [Item]
+        func updateFromTherapyItems(_ therapyItems: [Item])
+    }
 }
