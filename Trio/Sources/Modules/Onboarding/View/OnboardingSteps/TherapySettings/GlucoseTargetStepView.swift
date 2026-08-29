@@ -12,13 +12,13 @@ import UIKit
 /// Glucose target step view for setting target glucose range.
 struct GlucoseTargetStepView: View {
     @Bindable var state: Onboarding.StateModel
-    @State private var therapyItems: [TherapySettingItem] = []
+    @State private var therapyItems: [TherapySettingsEditor.Item] = []
     @Namespace private var bottomID
 
     var body: some View {
         ScrollViewReader { proxy in
             LazyVStack {
-                TherapySettingEditorView(
+                TherapySettingsEditor.RootView(
                     items: $therapyItems,
                     unit: state.units == .mgdL ? .mgdL : .mmolL,
                     timeOptions: state.targetTimeValues,

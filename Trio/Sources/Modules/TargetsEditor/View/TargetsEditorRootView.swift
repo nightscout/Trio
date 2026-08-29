@@ -59,7 +59,7 @@ extension TargetsEditor {
                     ScrollView {
                         LazyVStack {
                             VStack(alignment: .leading, spacing: 0) {
-                                TherapySettingEditorView(
+                                TherapySettingsEditor.RootView(
                                     items: $state.therapyItems,
                                     unit: state.units == .mgdL ? .mgdL : .mmolL,
                                     timeOptions: state.timeValues,

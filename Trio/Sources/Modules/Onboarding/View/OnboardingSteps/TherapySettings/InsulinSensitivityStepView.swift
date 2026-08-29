@@ -11,7 +11,7 @@ import UIKit
 /// Insulin sensitivity step view for setting insulin sensitivity factor.
 struct InsulinSensitivityStepView: View {
     @Bindable var state: Onboarding.StateModel
-    @State private var therapyItems: [TherapySettingItem] = []
+    @State private var therapyItems: [TherapySettingsEditor.Item] = []
     @Namespace private var bottomID
 
     private var numberFormatter: NumberFormatter {
@@ -24,7 +24,7 @@ struct InsulinSensitivityStepView: View {
     var body: some View {
         ScrollViewReader { proxy in
             LazyVStack(alignment: .leading, spacing: 0) {
-                TherapySettingEditorView(
+                TherapySettingsEditor.RootView(
                     items: $therapyItems,
                     unit: state.units == .mgdL ? .mgdLPerUnit : .mmolLPerUnit,
                     timeOptions: state.isfTimeValues,

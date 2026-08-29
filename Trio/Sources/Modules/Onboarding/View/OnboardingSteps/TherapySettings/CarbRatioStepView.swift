@@ -11,7 +11,7 @@ import UIKit
 /// Carb ratio step view for setting insulin-to-carb ratio.
 struct CarbRatioStepView: View {
     @Bindable var state: Onboarding.StateModel
-    @State private var therapyItems: [TherapySettingItem] = []
+    @State private var therapyItems: [TherapySettingsEditor.Item] = []
     @Namespace private var bottomID
 
     private var formatter: NumberFormatter {
@@ -24,7 +24,7 @@ struct CarbRatioStepView: View {
     var body: some View {
         ScrollViewReader { proxy in
             LazyVStack(alignment: .leading, spacing: 0) {
-                TherapySettingEditorView(
+                TherapySettingsEditor.RootView(
                     items: $therapyItems,
                     unit: .gramPerUnit,
                     timeOptions: state.carbRatioTimeValues,

@@ -65,7 +65,7 @@ extension ISFEditor {
                     ScrollView {
                         LazyVStack {
                             VStack(alignment: .leading, spacing: 0) {
-                                TherapySettingEditorView(
+                                TherapySettingsEditor.RootView(
                                     items: $state.therapyItems,
                                     unit: state.units == .mgdL ? .mgdLPerUnit : .mmolLPerUnit,
                                     timeOptions: state.timeValues,

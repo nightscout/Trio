@@ -7,7 +7,7 @@ extension CarbRatioEditor {
         @Injected() private var broadcaster: Broadcaster!
         @Published var items: [Item] = []
         @Published var initialItems: [Item] = []
-        @Published var therapyItems: [TherapySettingItem] = []
+        @Published var therapyItems: [TherapySettingsEditor.Item] = []
         @Published var shouldDisplaySaving: Bool = false
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
@@ -34,9 +34,9 @@ extension CarbRatioEditor {
         }
 
         // Convert items to TherapySettingItem format
-        func getTherapyItems() -> [TherapySettingItem] {
+        func getTherapyItems() -> [TherapySettingsEditor.Item] {
             items.map { item in
-                TherapySettingItem(
+                TherapySettingsEditor.Item(
                     time: timeValues[item.timeIndex],
                     value: rateValues[item.rateIndex]
                 )
@@ -44,7 +44,7 @@ extension CarbRatioEditor {
         }
 
         // Update items from TherapySettingItem format
-        func updateFromTherapyItems(_ therapyItems: [TherapySettingItem]) {
+        func updateFromTherapyItems(_ therapyItems: [TherapySettingsEditor.Item]) {
             items = therapyItems.map { therapyItem in
                 let timeIndex = timeValues.firstIndex(where: { abs($0 - therapyItem.time) < 1 }) ?? 0
                 let rateIndex = rateValues.firstIndex(of: therapyItem.value) ?? 0

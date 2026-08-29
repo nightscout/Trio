@@ -12,7 +12,7 @@ import UIKit
 struct BasalProfileStepView: View {
     @Bindable var state: Onboarding.StateModel
     @State private var refreshUI = UUID() // to update chart when slider value changes
-    @State private var therapyItems: [TherapySettingItem] = []
+    @State private var therapyItems: [TherapySettingsEditor.Item] = []
     @Namespace private var bottomID
 
     private var rateFormatter: NumberFormatter {
@@ -24,7 +24,7 @@ struct BasalProfileStepView: View {
     var body: some View {
         ScrollViewReader { proxy in
             LazyVStack(alignment: .leading, spacing: 0) {
-                TherapySettingEditorView(
+                TherapySettingsEditor.RootView(
                     items: $therapyItems,
                     unit: .unitPerHour,
                     timeOptions: state.basalProfileTimeValues,

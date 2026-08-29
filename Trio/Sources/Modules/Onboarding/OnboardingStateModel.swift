@@ -416,15 +416,15 @@ extension Onboarding {
 
         // MARK: - Get Therapy Items
 
-        /// Converts ISF editor items to a list of `TherapySettingItem`.
+        /// Converts ISF editor items to a list of `TherapySettingsEditor.Item`.
         /// - Returns: Sorted list of therapy setting items based on ISF.
-        func getISFTherapyItems() -> [TherapySettingItem] {
+        func getISFTherapyItems() -> [TherapySettingsEditor.Item] {
             getTherapyItems(from: isfItems, rateValues: isfRateValues, timeValues: isfTimeValues)
         }
 
-        /// Converts basal profile editor items to a list of `TherapySettingItem`.
+        /// Converts basal profile editor items to a list of `TherapySettingsEditor.Item`.
         /// - Returns: Sorted list of therapy setting items based on basal rates.
-        func getBasalTherapyItems() -> [TherapySettingItem] {
+        func getBasalTherapyItems() -> [TherapySettingsEditor.Item] {
             getTherapyItems(
                 from: basalProfileItems,
                 rateValues: basalProfileRateValues,
@@ -432,17 +432,17 @@ extension Onboarding {
             )
         }
 
-        /// Converts carb ratio editor items to a list of `TherapySettingItem`.
+        /// Converts carb ratio editor items to a list of `TherapySettingsEditor.Item`.
         /// - Returns: Sorted list of therapy setting items based on carb ratios.
-        func getCarbRatioTherapyItems() -> [TherapySettingItem] {
+        func getCarbRatioTherapyItems() -> [TherapySettingsEditor.Item] {
             getTherapyItems(from: carbRatioItems, rateValues: carbRatioRateValues, timeValues: carbRatioTimeValues)
         }
 
-        /// Converts glucose target editor items to a list of `TherapySettingItem`.
+        /// Converts glucose target editor items to a list of `TherapySettingsEditor.Item`.
         /// - Returns: Sorted list of therapy setting items based on glucose targets.
-        func getTargetTherapyItems() -> [TherapySettingItem] {
+        func getTargetTherapyItems() -> [TherapySettingsEditor.Item] {
             targetItems.map {
-                TherapySettingItem(
+                TherapySettingsEditor.Item(
                     time: targetTimeValues[$0.timeIndex],
                     value: targetRateValues[$0.lowIndex]
                 )
@@ -454,14 +454,14 @@ extension Onboarding {
         ///   - items: An array of items conforming to `TherapyItemConvertible`.
         ///   - rateValues: The rate values to be used.
         ///   - timeValues: The time values to be used.
-        /// - Returns: A sorted array of `TherapySettingItem`.
+        /// - Returns: A sorted array of `TherapySettingsEditor.Item`.
         private func getTherapyItems<T: TherapyItemConvertible>(
             from items: [T],
             rateValues: [Decimal],
             timeValues: [TimeInterval]
-        ) -> [TherapySettingItem] {
+        ) -> [TherapySettingsEditor.Item] {
             items.map {
-                TherapySettingItem(
+                TherapySettingsEditor.Item(
                     time: timeValues[$0.timeIndex],
                     value: rateValues[$0.rateIndex]
                 )
@@ -472,7 +472,7 @@ extension Onboarding {
 
         /// Updates the ISF editor items based on the provided therapy setting items.
         /// - Parameter therapyItems: The list of therapy items to update from.
-        func updateISF(from therapyItems: [TherapySettingItem]) {
+        func updateISF(from therapyItems: [TherapySettingsEditor.Item]) {
             isfItems = therapyItems.map {
                 ISFEditor.Item(
                     rateIndex: closestIndex(for: $0.value, in: isfRateValues),
@@ -483,7 +483,7 @@ extension Onboarding {
 
         /// Updates the basal rate editor items based on the provided therapy setting items.
         /// - Parameter therapyItems: The list of therapy items to update from.
-        func updateBasal(from therapyItems: [TherapySettingItem]) {
+        func updateBasal(from therapyItems: [TherapySettingsEditor.Item]) {
             basalProfileItems = therapyItems.map {
                 BasalProfileEditor.Item(
                     rateIndex: closestIndex(for: $0.value, in: basalProfileRateValues),
@@ -494,7 +494,7 @@ extension Onboarding {
 
         /// Updates the carb ratio editor items based on the provided therapy setting items.
         /// - Parameter therapyItems: The list of therapy items to update from.
-        func updateCarbRatio(from therapyItems: [TherapySettingItem]) {
+        func updateCarbRatio(from therapyItems: [TherapySettingsEditor.Item]) {
             carbRatioItems = therapyItems.map {
                 CarbRatioEditor.Item(
                     rateIndex: closestIndex(for: $0.value, in: carbRatioRateValues),
@@ -505,7 +505,7 @@ extension Onboarding {
 
         /// Updates the glucose target editor items based on the provided therapy setting items.
         /// - Parameter therapyItems: The list of therapy items to update from.
-        func updateTargets(from therapyItems: [TherapySettingItem]) {
+        func updateTargets(from therapyItems: [TherapySettingsEditor.Item]) {
             targetItems = therapyItems.map {
                 let rateIndex = closestIndex(for: $0.value, in: targetRateValues)
                 let timeIndex = closestIndex(for: $0.time, in: targetTimeValues)

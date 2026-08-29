@@ -10,7 +10,7 @@ extension BasalProfileEditor {
         var syncInProgress: Bool = false
         var initialItems: [Item] = []
         var items: [Item] = []
-        var therapyItems: [TherapySettingItem] = []
+        var therapyItems: [TherapySettingsEditor.Item] = []
         var total: Decimal = 0.0
         var showAlert: Bool = false
         var chartData: [BasalProfile]? = []
@@ -29,9 +29,9 @@ extension BasalProfileEditor {
         }
 
         // Convert items to TherapySettingItem format
-        func getTherapyItems() -> [TherapySettingItem] {
+        func getTherapyItems() -> [TherapySettingsEditor.Item] {
             items.map { item in
-                TherapySettingItem(
+                TherapySettingsEditor.Item(
                     time: timeValues[item.timeIndex],
                     value: rateValues[item.rateIndex]
                 )
@@ -39,7 +39,7 @@ extension BasalProfileEditor {
         }
 
         // Update items from TherapySettingItem format
-        func updateFromTherapyItems(_ therapyItems: [TherapySettingItem]) {
+        func updateFromTherapyItems(_ therapyItems: [TherapySettingsEditor.Item]) {
             items = therapyItems.map { therapyItem in
                 let timeIndex = timeValues.firstIndex(where: { abs($0 - therapyItem.time) < 1 }) ?? 0
                 let rateIndex = rateValues.firstIndex(of: therapyItem.value) ?? 0

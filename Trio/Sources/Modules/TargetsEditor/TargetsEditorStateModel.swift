@@ -8,7 +8,7 @@ extension TargetsEditor {
 
         @Published var items: [Item] = []
         @Published var initialItems: [Item] = []
-        @Published var therapyItems: [TherapySettingItem] = []
+        @Published var therapyItems: [TherapySettingsEditor.Item] = []
         @Published var shouldDisplaySaving: Bool = false
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
@@ -31,9 +31,9 @@ extension TargetsEditor {
         private(set) var units: GlucoseUnits = .mgdL
 
         // Convert items to TherapySettingItem format
-        func getTherapyItems() -> [TherapySettingItem] {
+        func getTherapyItems() -> [TherapySettingsEditor.Item] {
             items.map { item in
-                TherapySettingItem(
+                TherapySettingsEditor.Item(
                     time: timeValues[item.timeIndex],
                     value: rateValues[item.lowIndex]
                 )
@@ -41,7 +41,7 @@ extension TargetsEditor {
         }
 
         // Update items from TherapySettingItem format
-        func updateFromTherapyItems(_ therapyItems: [TherapySettingItem]) {
+        func updateFromTherapyItems(_ therapyItems: [TherapySettingsEditor.Item]) {
             items = therapyItems.map { therapyItem in
                 let timeIndex = timeValues.firstIndex(where: { abs($0 - therapyItem.time) < 1 }) ?? 0
                 let lowIndex = rateValues.firstIndex(of: therapyItem.value) ?? 0

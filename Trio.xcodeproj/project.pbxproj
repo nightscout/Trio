@@ -930,6 +930,8 @@
 		E0D4F80527513ECF00BDF1FE /* HealthKitSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0D4F80427513ECF00BDF1FE /* HealthKitSample.swift */; };
 		E13B7DAB2A435F57066AF02E /* TargetsEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36F58DDD71F0E795464FA3F0 /* TargetsEditorStateModel.swift */; };
 		E18A8C573038CFA600E5D838 /* TherapySettingsChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18A8C563038CFA600E5D838 /* TherapySettingsChart.swift */; };
+		E1CF98463042D03E00773071 /* TherapySettingsEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CF98453042D02800773071 /* TherapySettingsEditorDataFlow.swift */; };
+		E1CF98483042D0A500773071 /* TherapySettingsEditorItem+Copying.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CF98473042D0A100773071 /* TherapySettingsEditorItem+Copying.swift */; };
 		E39E418C56A5A46B61D960EE /* ConfigEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D5B4F8B4194BB7E260EF251 /* ConfigEditorStateModel.swift */; };
 		E592A3702CEEC01E009A472C /* ContactTrickEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A36F2CEEC01E009A472C /* ContactTrickEntry.swift */; };
 		E592A3772CEEC038009A472C /* ContactImageStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3752CEEC038009A472C /* ContactImageStateModel.swift */; };
@@ -1983,6 +1985,8 @@
 		E0CC2C5B275B9DAE00A7BC71 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		E0D4F80427513ECF00BDF1FE /* HealthKitSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitSample.swift; sourceTree = "<group>"; };
 		E18A8C563038CFA600E5D838 /* TherapySettingsChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingsChart.swift; sourceTree = "<group>"; };
+		E1CF98453042D02800773071 /* TherapySettingsEditorDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingsEditorDataFlow.swift; sourceTree = "<group>"; };
+		E1CF98473042D0A100773071 /* TherapySettingsEditorItem+Copying.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TherapySettingsEditorItem+Copying.swift"; sourceTree = "<group>"; };
 		E592A36F2CEEC01E009A472C /* ContactTrickEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickEntry.swift; sourceTree = "<group>"; };
 		E592A3712CEEC038009A472C /* ContactImageRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageRootView.swift; sourceTree = "<group>"; };
 		E592A3732CEEC038009A472C /* ContactImageDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageDataFlow.swift; sourceTree = "<group>"; };
@@ -4590,6 +4594,8 @@
 		E1CF97613042C8E100773071 /* TherapySettingsEditor */ = {
 			isa = PBXGroup;
 			children = (
+				E1CF98473042D0A100773071 /* TherapySettingsEditorItem+Copying.swift */,
+				E1CF98453042D02800773071 /* TherapySettingsEditorDataFlow.swift */,
 				E1CF97E03042CD8200773071 /* View */,
 			);
 			path = TherapySettingsEditor;
@@ -5402,6 +5408,7 @@
 				BD1179522F4E22C100F90001 /* DayNightOptions.swift in Sources */,
 				BD1179542F4E22C100F90001 /* GlucoseAlert.swift in Sources */,
 				BD1179562F4E22C100F90001 /* GlucoseAlertConfiguration.swift in Sources */,
+				E1CF98483042D0A500773071 /* TherapySettingsEditorItem+Copying.swift in Sources */,
 				BD1179582F4E22C100F90001 /* GlucoseAlertType.swift in Sources */,
 				BD11795A2F4E22C100F90001 /* GlucoseAlertsStore.swift in Sources */,
 				BD11795C2F4E22C100F90001 /* GlucoseAlertCoordinator.swift in Sources */,
@@ -5488,6 +5495,7 @@
 				C2AA6CF72E1A734A00BF6C16 /* SettingsExportProvider.swift in Sources */,
 				C2AA6CF82E1A734A00BF6C16 /* SettingsExportDataFlow.swift in Sources */,
 				C2AA6CF92E1A734A00BF6C16 /* SettingsExportStateModel.swift in Sources */,
+				E1CF98463042D03E00773071 /* TherapySettingsEditorDataFlow.swift in Sources */,
 				3811DE4325C9D4A100A708ED /* SettingsProvider.swift in Sources */,
 				45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */,
 				CE7CA34E2A064973004BE681 /* AppShortcuts.swift in Sources */,

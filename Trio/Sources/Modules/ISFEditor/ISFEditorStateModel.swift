@@ -21,7 +21,7 @@ extension ISFEditor {
 
         var items: [Item] = []
         var initialItems: [Item] = []
-        var therapyItems: [TherapySettingItem] = []
+        var therapyItems: [TherapySettingsEditor.Item] = []
         var shouldDisplaySaving: Bool = false
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
@@ -44,9 +44,9 @@ extension ISFEditor {
         private(set) var units: GlucoseUnits = .mgdL
 
         // Convert items to TherapySettingItem format
-        func getTherapyItems() -> [TherapySettingItem] {
+        func getTherapyItems() -> [TherapySettingsEditor.Item] {
             items.map { item in
-                TherapySettingItem(
+                TherapySettingsEditor.Item(
                     time: timeValues[item.timeIndex],
                     value: rateValues[item.rateIndex]
                 )
@@ -54,7 +54,7 @@ extension ISFEditor {
         }
 
         // Update items from TherapySettingItem format
-        func updateFromTherapyItems(_ therapyItems: [TherapySettingItem]) {
+        func updateFromTherapyItems(_ therapyItems: [TherapySettingsEditor.Item]) {
             items = therapyItems.map { therapyItem in
                 let timeIndex = timeValues.firstIndex(where: { abs($0 - therapyItem.time) < 1 }) ?? 0
                 let rateIndex = rateValues.firstIndex(of: therapyItem.value) ?? 0
