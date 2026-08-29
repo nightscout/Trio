@@ -26,14 +26,10 @@ extension Treatments {
         @State private var debounce: DispatchWorkItem?
         @State private var showFatProteinOrderBanner = false
 
-        /// Whether the on-screen keyboard is currently up. Tracked from the real system
-        /// notifications rather than assumed, so we know whether a focus change means "keyboard
-        /// already visible, just switching fields" (no animation to wait for) vs. "keyboard about to
-        /// appear" (must wait for its animation before scrolling, see `scrollFocusedFieldIntoView`).
+        /// Check whether the on-screen keyboard is currently up.
         @State private var isKeyboardVisible = false
 
-        /// A scroll target queued up while waiting for `keyboardWillShowNotification` to fire, so the
-        /// scroll runs in lockstep with the keyboard's real animation instead of a guessed delay.
+        /// Que scroll target
         @State private var pendingScrollTarget: FocusedField?
 
         private enum Config {
@@ -168,12 +164,6 @@ extension Treatments {
         }
 
         /// Determines the next field to focus on based on the current focused field.
-        ///
-        /// This function handles the tab order navigation between input fields,
-        /// taking into account whether fat/protein fields are visible based on user settings.
-        ///
-        /// - Parameter current: The currently focused field
-        /// - Returns: The next field that should receive focus, or nil if there is no next field
         private func nextField(from current: FocusedField) -> FocusedField? {
             // If fat/protein fields are hidden, skip them in navigation
             let showFPU = state.useFPUconversion
@@ -191,12 +181,6 @@ extension Treatments {
         }
 
         /// Determines the previous field to focus on based on the current focused field.
-        ///
-        /// This function handles the reverse tab order navigation between input fields,
-        /// taking into account whether fat/protein fields are visible based on user settings.
-        ///
-        /// - Parameter current: The currently focused field
-        /// - Returns: The previous field that should receive focus, or nil if there is no previous field
         private func previousField(from current: FocusedField) -> FocusedField? {
             let showFPU = state.useFPUconversion
 
@@ -213,21 +197,9 @@ extension Treatments {
         }
 
         /// Scrolls the currently focused input row so it stays visible above the on-screen keyboard.
-        ///
-        /// The treatments list grows or shrinks depending on user settings (e.g. the Reduced Bolus /
-        /// Super Bolus toggles add an extra row), so relying on the system's default keyboard avoidance
-        /// is unreliable: on some devices/configurations the bolus field ends up hidden behind the
-        /// keyboard. Explicitly scrolling the focused row into view guarantees the user can always see
-        /// what they are entering, regardless of which optional rows are shown. See issue #1115.
-        ///
-        /// - Parameters:
-        ///   - field: The field that just gained focus, or `nil` when focus was cleared.
-        ///   - proxy: The enclosing `ScrollViewReader`'s proxy used to perform the scroll.
         private func scrollFocusedFieldIntoView(_ field: FocusedField?, proxy: ScrollViewProxy) {
             guard let field else {
-                // Focus was cleared before the keyboard ever showed for it (e.g. dismissed via the
-                // toolbar button) - drop any queued target so it can't be acted on later by an
-                // unrelated keyboard appearance.
+        // drop any queued target so it can't be acted on later by an unrelated keyboard appearance.
                 pendingScrollTarget = nil
                 return
             }
@@ -242,25 +214,19 @@ extension Treatments {
                     proxy.scrollTo(targetID, anchor: .center)
                 }
             } else {
-                // The keyboard is about to animate in for the first time this screen. Queue the
-                // target and let `keyboardWillShowNotification` (below) trigger the actual scroll once
-                // the keyboard's real animation starts, instead of guessing at a delay.
+                // Queue the target
                 pendingScrollTarget = targetID
             }
         }
 
-        /// Performs the scroll queued by `scrollFocusedFieldIntoView`, timed to the keyboard's own
-        /// presentation animation (duration/curve taken from the notification itself) rather than an
-        /// arbitrary constant, so the row settles into place in step with the keyboard sliding up.
+        /// Performs the scroll queued by `scrollFocusedFieldIntoView`
         private func handleKeyboardWillShow(_ notification: Notification, proxy: ScrollViewProxy) {
             isKeyboardVisible = true
 
             guard let target = pendingScrollTarget else { return }
             pendingScrollTarget = nil
 
-            // `keyboardWillShowNotification` fires app-wide, not scoped to this view, so confirm the
-            // queued target still matches what's actually focused right now before acting on it -
-            // otherwise an unrelated keyboard appearance elsewhere could trigger a stale scroll here.
+            // Confirm queued target is still in focus
             let currentTarget: FocusedField? = focusedField.map { $0 == .protein ? .fat : $0 }
             guard currentTarget == target else { return }
 
@@ -270,11 +236,7 @@ extension Treatments {
             }
         }
 
-        /// Reduced Bolus / Super Bolus toggles, the recommendation readout, the Bolus field, and the
-        /// External Insulin toggle. Pulled out of `body` into its own view so the type-checker can
-        /// solve it independently — inlined, this combined with the rest of `body` was large enough
-        /// to trip "unable to type-check this expression in reasonable time" once the ScrollViewReader
-        /// wrapper added another layer of nesting on top of it.
+        /// Own view for Reduced Bolus / Super Bolus toggles, the recommendation readout and the Bolus field
         @ViewBuilder private var bolusSection: some View {
             if state.fattyMeals || state.sweetMeals {
                 HStack(spacing: 10) {
