@@ -24,7 +24,7 @@ struct BasalProfileStepView: View {
     var body: some View {
         ScrollViewReader { proxy in
             LazyVStack(alignment: .leading, spacing: 0) {
-                TherapySettingsEditor.RootView(
+                TherapySettingsEditor.EditingView(
                     items: $therapyItems,
                     unit: .unitPerHour,
                     timeOptions: state.basalProfileTimeValues,

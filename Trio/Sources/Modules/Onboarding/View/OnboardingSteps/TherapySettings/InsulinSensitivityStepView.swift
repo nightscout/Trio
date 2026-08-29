@@ -24,7 +24,7 @@ struct InsulinSensitivityStepView: View {
     var body: some View {
         ScrollViewReader { proxy in
             LazyVStack(alignment: .leading, spacing: 0) {
-                TherapySettingsEditor.RootView(
+                TherapySettingsEditor.EditingView(
                     items: $therapyItems,
                     unit: state.units == .mgdL ? .mgdLPerUnit : .mmolLPerUnit,
                     timeOptions: state.isfTimeValues,

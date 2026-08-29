@@ -1,7 +1,7 @@
 import SwiftUI
 
 extension TherapySettingsEditor {
-    struct RootView: View {
+    struct EditingView: View {
         @Binding var items: [Item]
         var unit: Unit
         var timeOptions: [TimeInterval]
@@ -341,7 +341,7 @@ extension TherapySettingsEditor {
         ]
 
         ScrollView {
-            RootView(
+            EditingView(
                 items: $previewItems,
                 unit: .unitPerHour,
                 timeOptions: stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 },

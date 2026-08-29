@@ -18,7 +18,7 @@ struct GlucoseTargetStepView: View {
     var body: some View {
         ScrollViewReader { proxy in
             LazyVStack {
-                TherapySettingsEditor.RootView(
+                TherapySettingsEditor.EditingView(
                     items: $therapyItems,
                     unit: state.units == .mgdL ? .mgdL : .mmolL,
                     timeOptions: state.targetTimeValues,

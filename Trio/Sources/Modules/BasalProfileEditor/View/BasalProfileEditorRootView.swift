@@ -107,7 +107,7 @@ extension BasalProfileEditor {
                                     fullScheduleWarning
                                         .padding()
                                 }
-                                TherapySettingsEditor.RootView(
+                                TherapySettingsEditor.EditingView(
                                     items: $state.therapyItems,
                                     unit: .unitPerHour,
                                     timeOptions: state.timeValues,

@@ -61,7 +61,7 @@ extension CarbRatioEditor {
                     ScrollView {
                         LazyVStack {
                             VStack(alignment: .leading, spacing: 0) {
-                                TherapySettingsEditor.RootView(
+                                TherapySettingsEditor.EditingView(
                                     items: $state.therapyItems,
                                     unit: .gramPerUnit,
                                     timeOptions: state.timeValues,
