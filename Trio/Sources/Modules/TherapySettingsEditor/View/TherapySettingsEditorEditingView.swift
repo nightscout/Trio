@@ -189,7 +189,7 @@ extension TherapySettingsEditor {
                     .font(.subheadline)
                     .fontWeight(.light)
                     .foregroundStyle(.secondary)
-                    .padding(.vertical)
+                    .padding(.top)
                     .padding(.horizontal, 10)
                 }
             }

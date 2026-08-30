@@ -1,42 +1,66 @@
 import SwiftUI
 
 extension TherapySettingsEditor {
-    struct RootView<State: TherapySettingsEditor.StateModel>: View {
+    struct RootView<State: TherapySettingsEditor.StateModel, HeaderContent: View, FooterContent: View>: View {
         @ObservedObject var state: State
         var configureView: () -> Void
         var chartColor: Color
-        var chartShowsArea: Bool = true
+        var chartShowsArea: Bool
         var chartYScale: ClosedRange<Decimal>?
         @Namespace private var bottomID
 
+        let headerContent: HeaderContent
+        let footerContent: FooterContent
+
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
+
+        init(
+            state: State,
+            configureView: @escaping () -> Void,
+            chartColor: Color,
+            @ViewBuilder headerContent: () -> HeaderContent,
+            @ViewBuilder footerContent: () -> FooterContent,
+            chartShowsArea: Bool? = nil,
+            chartYScale: ClosedRange<Decimal>? = nil,
+        ) {
+            self.state = state
+            self.configureView = configureView
+            self.chartColor = chartColor
+            self.chartShowsArea = chartShowsArea ?? true
+            self.chartYScale = chartYScale
+            self.headerContent = headerContent()
+            self.footerContent = footerContent()
+        }
 
         var body: some View {
             ScrollViewReader { proxy in
                 VStack(spacing: 0) {
                     ScrollView {
                         LazyVStack {
-                            VStack(alignment: .leading, spacing: 0) {
-                                TherapySettingsEditor.EditingView(
-                                    items: $state.therapyItems,
-                                    unit: state.unit,
-                                    timeOptions: state.timeOptions,
-                                    valueOptions: state.valueOptions,
-                                    validateOnDelete: state.validate,
-                                    onItemAdded: {
-                                        withAnimation {
-                                            proxy.scrollTo(bottomID, anchor: .bottom)
-                                        }
-                                    },
-                                    chartColor: chartColor,
-                                    chartShowsArea: chartShowsArea,
-                                    chartYScale: chartYScale
-                                )
-                                .padding(.horizontal)
+                            headerContent
+
+                            TherapySettingsEditor.EditingView(
+                                items: $state.therapyItems,
+                                unit: state.unit,
+                                timeOptions: state.timeOptions,
+                                valueOptions: state.valueOptions,
+                                validateOnDelete: state.validate,
+                                onItemAdded: {
+                                    withAnimation {
+                                        proxy.scrollTo(bottomID, anchor: .bottom)
+                                    }
+                                },
+                                chartColor: chartColor,
+                                chartShowsArea: chartShowsArea,
+                                chartYScale: chartYScale
+                            )
+                            .padding(.horizontal)
+
+                            footerContent
                                 .id(bottomID)
-                            }
                         }
+                        .padding(.bottom)
                     }
 
                     saveButton
@@ -118,5 +142,29 @@ extension TherapySettingsEditor {
         private var shouldDisableSaveButton: Bool {
             state.isSaving || state.therapyItems.isEmpty || !state.hasChanges
         }
+    }
+}
+
+extension TherapySettingsEditor.RootView where HeaderContent == EmptyView, FooterContent == EmptyView {
+    init(
+        state: State,
+        configureView: @escaping () -> Void,
+        chartColor: Color,
+        chartShowsArea: Bool? = nil,
+        chartYScale: ClosedRange<Decimal>? = nil,
+    ) {
+        self.init(
+            state: state,
+            configureView: configureView,
+            chartColor: chartColor,
+            headerContent: {
+                EmptyView()
+            },
+            footerContent: {
+                EmptyView()
+            },
+            chartShowsArea: chartShowsArea,
+            chartYScale: chartYScale,
+        )
     }
 }
