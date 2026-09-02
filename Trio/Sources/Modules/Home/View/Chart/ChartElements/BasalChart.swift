@@ -162,41 +162,47 @@ extension MainChartCanvas {
             )
         }
 
-        var prepared = [(start: Date, end: Date, rate: Double, isScheduled: Bool)]()
-        prepared.reserveCapacity(events.count)
+        // A scheduled-basal row marks a schedule change, not a delivery change: the pump logs one
+        // whenever its schedule is reprogrammed, which Trio itself triggers on saving a basal
+        // profile — even mid temp basal. Such a row must neither draw a bar nor clip the temp basal
+        // that is actually delivering, so only real delivery events lay out bars. The sweep below
+        // paints what no temp basal covered.
+        let deliveryEvents = events.filter { !$0.isScheduled }
 
-        for (index, event) in events.enumerated() {
+        var prepared = [(start: Date, end: Date, rate: Double, isScheduled: Bool)]()
+        prepared.reserveCapacity(deliveryEvents.count)
+
+        for (index, event) in deliveryEvents.enumerated() {
             let timestamp = event.timestamp ?? now
             let end = timestamp + event.duration.minutes
 
-            // Start of the next later-starting event, which supersedes this one.
+            // Start of the next later-starting temp basal, which supersedes this one.
             var next = index + 1
-            while next < events.count {
-                if let nextStart = events[next].timestamp, nextStart > timestamp { break }
+            while next < deliveryEvents.count {
+                if let nextStart = deliveryEvents[next].timestamp, nextStart > timestamp { break }
                 next += 1
             }
-            let nextStart = next < events.count ? events[next].timestamp : nil
+            let nextStart = next < deliveryEvents.count ? deliveryEvents[next].timestamp : nil
 
-            // A temp basal ends at its own scheduled end, or earlier where a later event
-            // superseded it. Stretching it to the next event would paint the temp rate over a
-            // span the pump ran its schedule; that span is inferred below.
-            // A scheduled-basal row asserts a rate, not a span — the duration a driver claims is
-            // a placeholder (24 h on Minimed, zero elsewhere) — so it runs until superseded.
-            let barEnd: Date = if event.isScheduled {
-                max(timestamp, nextStart ?? now)
-            } else {
-                nextStart.map { min(end, $0) } ?? end
-            }
+            // A temp basal ends at its own scheduled end, or earlier where a later one superseded
+            // it. Stretching it to the next event would paint the temp rate over a span the pump
+            // ran its schedule; that span is swept below instead.
+            let barEnd = nextStart.map { min(end, $0) } ?? end
 
             let isInsulinSuspended = suspensionTimes.contains { $0 >= timestamp && $0 <= barEnd }
             let rate = Double(truncating: event.rate ?? 0) * (isInsulinSuspended ? 0 : 1)
 
-            prepared.append((timestamp, barEnd, rate, event.isScheduled))
+            prepared.append((timestamp, barEnd, rate, false))
         }
 
         // gaps no event covers ran the pump's schedule; inferred in memory, drawn dimmed
         var timeline = prepared.map {
             ScheduledBasalInference.TimelineEvent(start: $0.start, end: $0.end, kind: .tempBasal)
+        }
+        // A schedule change covers nothing, but it does tell us the pump was reporting: without it
+        // an open-loop window holding only scheduled rows would have no anchor and sweep to nothing.
+        timeline += events.filter(\.isScheduled).compactMap { event in
+            event.timestamp.map { ScheduledBasalInference.TimelineEvent(start: $0, kind: .tempBasal) }
         }
         timeline += state.suspendAndResumeEvents.compactMap { event -> ScheduledBasalInference.TimelineEvent? in
             guard let timestamp = event.timestamp else { return nil }

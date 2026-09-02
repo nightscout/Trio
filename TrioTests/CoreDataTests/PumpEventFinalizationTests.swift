@@ -564,6 +564,41 @@ import Testing
     }
 
     @Test(
+        "A schedule report at a cancel's exact second does not hijack its row"
+    ) func testScheduledBasalDoesNotHijackSameSecondCancel() async throws {
+        // Medtronic resumes the schedule the instant a temp basal is cancelled, so it reports both
+        // at the very same pump second: a still-mutable zero-value Cancel Temp Basal, and a
+        // Scheduled Basal carrying the 24 h placeholder.
+        let moment = Date().addingTimeInterval(-60.minutes.timeInterval)
+        try await storage.storePumpEvents([
+            tempBasalEvent(
+                start: moment,
+                end: moment,
+                rate: 0,
+                syncIdentifier: "cancel-temp",
+                isMutable: true
+            ),
+            scheduledBasalEvent(
+                start: moment,
+                rate: 1.0,
+                claimedDuration: 24 * 60 * 60,
+                syncIdentifier: "scheduled-basal"
+            )
+        ], replacePendingEvents: false)
+
+        let rows = try await fetchAllEvents().compactMap(\.tempBasal)
+        let scheduledCount = rows.filter(\.isScheduledBasal).count
+        // A hijacked row keeps the cancel's non-scheduled identity and inherits the 24 h
+        // placeholder as a real span: ~24 h read as temp-basal delivery, and as the earliest
+        // event it marks a whole day covered and mutes the gap sweep for that long.
+        let noneClaimsASpan = rows.allSatisfy { $0.duration == 0 }
+
+        #expect(rows.count == 2, "The schedule report must not overwrite the cancel")
+        #expect(scheduledCount == 1)
+        #expect(noneClaimsASpan)
+    }
+
+    @Test(
         "Overlapping scheduled-basal rows accrue delivery once, not once per row"
     ) func testOverlappingScheduledBasalRowsDoNotMultiply() throws {
         let tddStorage = resolver.resolve(TDDStorage.self) as! BaseTDDStorage
