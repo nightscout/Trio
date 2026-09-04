@@ -56,8 +56,8 @@ extension TargetsEditor {
 
             items = profile.targets.map { value in
                 let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
-                let lowIndex = rateValues.firstIndex(of: value.low) ?? 0
-                let highIndex = rateValues.firstIndex(of: value.high) ?? 0
+                let lowIndex = resolveRateIndex(rate: value.low) ?? 0
+                let highIndex = resolveRateIndex(rate: value.high) ?? 0
                 return Item(lowIndex: lowIndex, highIndex: highIndex, timeIndex: timeIndex)
             }
 
@@ -134,6 +134,22 @@ extension TargetsEditor {
                     self.units = self.settingsManager.settings.units
                 }
             }
+        }
+
+        func resolveRateIndex(rate: Decimal) -> Int? {
+            if let index = rateValues.firstIndex(of: rate) {
+                return index
+            }
+
+            // When using mmol/L, value 83mg/dL cannot be found because 82mg/dL and 83mg/dL both round to 4.6 mmol/L
+            // try to look up the closest value
+            if let min = rateValues.first, let max = rateValues.last {
+                if rate >= (min - 1), rate <= (max + 1) {
+                    return rateValues.findClosestIndex(to: rate)
+                }
+            }
+
+            return nil
         }
     }
 }
