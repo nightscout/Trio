@@ -146,8 +146,7 @@ extension CGMSettings {
                 .navigationBarItems(leading: displayClose ? Button("Close", action: state.hideModal) : nil)
                 .sheet(isPresented: $state.shouldDisplayCGMSetupSheet) {
                     switch state.cgmCurrent.type {
-                    case .enlite,
-                         .nightscout,
+                    case .nightscout,
                          .none,
                          .simulator,
                          .xdrip:
