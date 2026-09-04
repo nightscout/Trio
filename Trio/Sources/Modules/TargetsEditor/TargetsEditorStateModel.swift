@@ -1,19 +1,22 @@
 import SwiftUI
 
 extension TargetsEditor {
-    final class StateModel: BaseStateModel<Provider> {
+    final class StateModel: BaseStateModel<Provider>, TherapySettingsEditor.StateModel {
         @Injected() private var nightscout: NightscoutManager!
         @Injected() private var tidepoolManager: TidepoolManager!
         @Injected() private var broadcaster: Broadcaster!
 
         @Published var items: [Item] = []
         @Published var initialItems: [Item] = []
-        @Published var therapyItems: [TherapySettingItem] = []
+        @Published var therapyItems: [TherapySettingsEditor.Item] = []
         @Published var shouldDisplaySaving: Bool = false
 
-        let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+        var isSaving: Bool { shouldDisplaySaving }
+        var unit: TherapySettingsEditor.Unit { units == .mgdL ? .mgdL : .mmolL }
 
-        var rateValues: [Decimal] {
+        let timeOptions = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+
+        var valueOptions: [Decimal] {
             let settingsProvider = PickerSettingsProvider.shared
             let glucoseSetting = PickerSetting(value: 110, step: 1, min: 72, max: 180, type: .glucose)
             return settingsProvider.generatePickerValues(from: glucoseSetting, units: units)
@@ -21,7 +24,7 @@ extension TargetsEditor {
 
         var canAdd: Bool {
             guard let lastItem = items.last else { return true }
-            return lastItem.timeIndex < timeValues.count - 1
+            return lastItem.timeIndex < timeOptions.count - 1
         }
 
         var hasChanges: Bool {
@@ -31,20 +34,20 @@ extension TargetsEditor {
         private(set) var units: GlucoseUnits = .mgdL
 
         // Convert items to TherapySettingItem format
-        func getTherapyItems() -> [TherapySettingItem] {
+        func getTherapyItems() -> [TherapySettingsEditor.Item] {
             items.map { item in
-                TherapySettingItem(
-                    time: timeValues[item.timeIndex],
-                    value: rateValues[item.lowIndex]
+                TherapySettingsEditor.Item(
+                    time: timeOptions[item.timeIndex],
+                    value: valueOptions[item.lowIndex]
                 )
             }
         }
 
         // Update items from TherapySettingItem format
-        func updateFromTherapyItems(_ therapyItems: [TherapySettingItem]) {
+        func updateFromTherapyItems(_ therapyItems: [TherapySettingsEditor.Item]) {
             items = therapyItems.map { therapyItem in
-                let timeIndex = timeValues.firstIndex(where: { abs($0 - therapyItem.time) < 1 }) ?? 0
-                let lowIndex = rateValues.firstIndex(of: therapyItem.value) ?? 0
+                let timeIndex = timeOptions.firstIndex(where: { abs($0 - therapyItem.time) < 1 }) ?? 0
+                let lowIndex = valueOptions.firstIndex(of: therapyItem.value) ?? 0
                 return Item(lowIndex: lowIndex, highIndex: lowIndex, timeIndex: timeIndex)
             }
         }
@@ -55,9 +58,9 @@ extension TargetsEditor {
             let profile = provider.profile
 
             items = profile.targets.map { value in
-                let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
-                let lowIndex = rateValues.firstIndex(of: value.low) ?? 0
-                let highIndex = rateValues.firstIndex(of: value.high) ?? 0
+                let timeIndex = timeOptions.firstIndex(of: Double(value.offset * 60)) ?? 0
+                let lowIndex = valueOptions.firstIndex(of: value.low) ?? 0
+                let highIndex = valueOptions.firstIndex(of: value.high) ?? 0
                 return Item(lowIndex: lowIndex, highIndex: highIndex, timeIndex: timeIndex)
             }
 
@@ -87,9 +90,9 @@ extension TargetsEditor {
                 let formatter = DateFormatter()
                 formatter.timeZone = TimeZone(secondsFromGMT: 0)
                 formatter.dateFormat = "HH:mm:ss"
-                let date = Date(timeIntervalSince1970: self.timeValues[item.timeIndex])
+                let date = Date(timeIntervalSince1970: self.timeOptions[item.timeIndex])
                 let minutes = Int(date.timeIntervalSince1970 / 60)
-                let low = self.rateValues[item.lowIndex]
+                let low = self.valueOptions[item.lowIndex]
                 let high = low
                 return BGTargetEntry(low: low, high: high, start: formatter.string(from: date), offset: minutes)
             }
@@ -117,6 +120,10 @@ extension TargetsEditor {
 
             Task.detached(priority: .low) {
                 await self.tidepoolManager.uploadSettings()
+            }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.25) {
+                self.shouldDisplaySaving = false
             }
         }
 

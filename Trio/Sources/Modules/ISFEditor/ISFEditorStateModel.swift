@@ -13,7 +13,7 @@ extension [Decimal] {
 }
 
 extension ISFEditor {
-    @Observable final class StateModel: BaseStateModel<Provider> {
+    @Observable final class StateModel: BaseStateModel<Provider>, TherapySettingsEditor.StateModel {
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
         @ObservationIgnored @Injected() private var nightscout: NightscoutManager!
         @ObservationIgnored @Injected() private var tidepoolManager: TidepoolManager!
@@ -21,12 +21,13 @@ extension ISFEditor {
 
         var items: [Item] = []
         var initialItems: [Item] = []
-        var therapyItems: [TherapySettingItem] = []
+        var therapyItems: [TherapySettingsEditor.Item] = []
         var shouldDisplaySaving: Bool = false
+        var isSaving: Bool { shouldDisplaySaving }
 
-        let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+        let timeOptions = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
-        var rateValues: [Decimal] {
+        var valueOptions: [Decimal] {
             let settingsProvider = PickerSettingsProvider.shared
             let sensitivityPickerSetting = PickerSetting(value: 100, step: 1, min: 9, max: 540, type: .glucose)
             return settingsProvider.generatePickerValues(from: sensitivityPickerSetting, units: units)
@@ -34,7 +35,7 @@ extension ISFEditor {
 
         var canAdd: Bool {
             guard let lastItem = items.last else { return true }
-            return lastItem.timeIndex < timeValues.count - 1
+            return lastItem.timeIndex < timeOptions.count - 1
         }
 
         var hasChanges: Bool {
@@ -42,22 +43,23 @@ extension ISFEditor {
         }
 
         private(set) var units: GlucoseUnits = .mgdL
+        var unit: TherapySettingsEditor.Unit { units == .mgdL ? .mgdLPerUnit : .mmolLPerUnit }
 
         // Convert items to TherapySettingItem format
-        func getTherapyItems() -> [TherapySettingItem] {
+        func getTherapyItems() -> [TherapySettingsEditor.Item] {
             items.map { item in
-                TherapySettingItem(
-                    time: timeValues[item.timeIndex],
-                    value: rateValues[item.rateIndex]
+                TherapySettingsEditor.Item(
+                    time: timeOptions[item.timeIndex],
+                    value: valueOptions[item.rateIndex]
                 )
             }
         }
 
         // Update items from TherapySettingItem format
-        func updateFromTherapyItems(_ therapyItems: [TherapySettingItem]) {
+        func updateFromTherapyItems(_ therapyItems: [TherapySettingsEditor.Item]) {
             items = therapyItems.map { therapyItem in
-                let timeIndex = timeValues.firstIndex(where: { abs($0 - therapyItem.time) < 1 }) ?? 0
-                let rateIndex = rateValues.firstIndex(of: therapyItem.value) ?? 0
+                let timeIndex = timeOptions.firstIndex(where: { abs($0 - therapyItem.time) < 1 }) ?? 0
+                let rateIndex = valueOptions.firstIndex(of: therapyItem.value) ?? 0
                 return Item(rateIndex: rateIndex, timeIndex: timeIndex)
             }
         }
@@ -68,13 +70,13 @@ extension ISFEditor {
             let profile = provider.profile
 
             items = profile.sensitivities.map { value in
-                let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
-                var rateIndex = rateValues.firstIndex(of: value.sensitivity)
+                let timeIndex = timeOptions.firstIndex(of: Double(value.offset * 60)) ?? 0
+                var rateIndex = valueOptions.firstIndex(of: value.sensitivity)
                 if rateIndex == nil {
                     // try to look up the closest value
-                    if let min = rateValues.first, let max = rateValues.last {
+                    if let min = valueOptions.first, let max = valueOptions.last {
                         if value.sensitivity >= (min - 1), value.sensitivity <= (max + 1) {
-                            rateIndex = rateValues.findClosestIndex(to: value.sensitivity)
+                            rateIndex = valueOptions.findClosestIndex(to: value.sensitivity)
                         }
                     }
                 }
@@ -105,9 +107,9 @@ extension ISFEditor {
                 let fotmatter = DateFormatter()
                 fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
                 fotmatter.dateFormat = "HH:mm:ss"
-                let date = Date(timeIntervalSince1970: self.timeValues[item.timeIndex])
+                let date = Date(timeIntervalSince1970: self.timeOptions[item.timeIndex])
                 let minutes = Int(date.timeIntervalSince1970 / 60)
-                let rate = self.rateValues[item.rateIndex]
+                let rate = self.valueOptions[item.rateIndex]
                 return InsulinSensitivityEntry(sensitivity: rate, offset: minutes, start: fotmatter.string(from: date))
             }
             let profile = InsulinSensitivities(
@@ -138,6 +140,11 @@ extension ISFEditor {
 
             Task.detached(priority: .low) {
                 await self.tidepoolManager.uploadSettings()
+            }
+
+            // deactivate saving display after 1.25 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.25) {
+                self.shouldDisplaySaving = false
             }
         }
 
