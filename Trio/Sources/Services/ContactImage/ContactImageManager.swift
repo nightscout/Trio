@@ -213,6 +213,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
                 state.glucose = Formatter.glucoseFormatter(for: units).string(from: value as NSNumber)
                 state.trend = firstGlucoseValue.directionEnum?.symbol
                 state.direction = firstGlucoseValue.directionEnum
+                state.glucoseDate = firstGlucoseValue.date
 
                 let delta = glucoseObjects.count >= 2
                     ? Decimal(firstGlucoseValue.glucose) - Decimal(glucoseObjects.dropFirst().first?.glucose ?? 0)

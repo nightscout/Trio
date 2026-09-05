@@ -180,7 +180,7 @@ struct ContactPicture: View {
                 // `bobbleImage.size` stays at the native point size regardless of the renderer's
                 // `scale`, so the destination rect is sized from `bobbleSize`/`rect`, not the image.
                 let bobbleSize = min(rect.width, rect.height)
-                let bobbleImage = makeGlucoseBobbleImage(state: state, pixelSize: bobbleSize)
+                let bobbleImage = makeGlucoseBobbleImage(contact: contact, state: state, pixelSize: bobbleSize)
                 bobbleImage.draw(in: CGRect(
                     x: rect.midX - bobbleSize / 2,
                     y: rect.midY - bobbleSize / 2,
@@ -344,18 +344,23 @@ struct ContactPicture: View {
     /// Rasterizes `GlucoseBobbleContactView` — the SwiftUI recreation of the HUD bobble — at
     /// `pixelSize`. Rendered at a fixed native point size and scaled up via `ImageRenderer.scale`
     /// so the ring, arrow, and text stay crisp instead of being stretched after the fact.
-    private static func makeGlucoseBobbleImage(state: ContactImageState, pixelSize: CGFloat) -> UIImage {
-        // Keep in sync with `GlucoseBobbleContactView`'s outer `.frame`.
-        let nativeSize: CGFloat = 230
+    private static func makeGlucoseBobbleImage(
+        contact: ContactImageEntry,
+        state: ContactImageState,
+        pixelSize: CGFloat
+    ) -> UIImage {
+        let hasReading = state.glucose != nil
         let view = GlucoseBobbleContactView(
             glucoseText: state.glucose ?? "– –",
-            deltaText: state.glucose != nil ? state.delta : nil,
-            glucoseColor: state.glucose != nil ? dynamicGlucoseColor(for: state) : .loopGray,
+            minutesAgoText: hasReading && contact.bobbleShowMinutesAgo
+                ? TimeAgoFormatter.minutesAgo(from: state.glucoseDate) : nil,
+            deltaText: hasReading && contact.bobbleShowDelta ? state.delta : nil,
+            glucoseColor: hasReading ? dynamicGlucoseColor(for: state) : .loopGray,
             rotationDegrees: rotationDegrees(for: state.direction)
         )
 
         let renderer = ImageRenderer(content: view)
-        renderer.scale = pixelSize / nativeSize
+        renderer.scale = pixelSize / GlucoseBobbleContactView.Layout.nativeSize
         renderer.isOpaque = false
         return renderer.uiImage ?? UIImage()
     }

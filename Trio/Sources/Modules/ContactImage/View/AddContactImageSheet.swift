@@ -22,6 +22,8 @@ struct AddContactImageSheet: View {
     @State private var secondaryFontSize: ContactImageEntry.FontSize = .small
     @State private var fontWeight: Font.Weight = .medium
     @State private var fontWidth: Font.Width = .standard
+    @State private var bobbleShowMinutesAgo: Bool = true
+    @State private var bobbleShowDelta: Bool = true
 
     private var previewEntry: ContactImageEntry {
         ContactImageEntry(
@@ -41,7 +43,9 @@ struct AddContactImageSheet: View {
             fontSize: fontSize,
             secondaryFontSize: secondaryFontSize,
             fontWeight: fontWeight,
-            fontWidth: fontWidth
+            fontWidth: fontWidth,
+            bobbleShowMinutesAgo: bobbleShowMinutesAgo,
+            bobbleShowDelta: bobbleShowDelta
         )
     }
 
@@ -95,6 +99,13 @@ struct AddContactImageSheet: View {
                             Toggle("High Contrast Mode", isOn: $hasHighContrast)
                         }
                     }.listRowBackground(Color.chart)
+
+                    if layout == .bobble {
+                        Section(header: Text("Glucose Bobble Options")) {
+                            Toggle("Show Minutes Since Reading", isOn: $bobbleShowMinutesAgo)
+                            Toggle("Show Delta", isOn: $bobbleShowDelta)
+                        }.listRowBackground(Color.chart)
+                    }
 
                     if layout != .bobble {
                         // Primary Value Section

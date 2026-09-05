@@ -19,6 +19,10 @@ struct ContactImageEntry: Hashable, Equatable, Sendable {
     var secondaryFontSize: FontSize = .small
     var fontWeight: Font.Weight = .medium
     var fontWidth: Font.Width = .standard
+    /// Glucose Bobble-only: whether to show "X m" (time since the last reading) beneath the number.
+    var bobbleShowMinutesAgo: Bool = true
+    /// Glucose Bobble-only: whether to show the glucose delta beneath the number.
+    var bobbleShowDelta: Bool = true
     var managedObjectID: NSManagedObjectID?
 
     static func == (lhs: ContactImageEntry, rhs: ContactImageEntry) -> Bool {
@@ -38,7 +42,9 @@ struct ContactImageEntry: Hashable, Equatable, Sendable {
             lhs.fontSize == rhs.fontSize &&
             lhs.secondaryFontSize == rhs.secondaryFontSize &&
             lhs.fontWeight == rhs.fontWeight &&
-            lhs.fontWidth == rhs.fontWidth
+            lhs.fontWidth == rhs.fontWidth &&
+            lhs.bobbleShowMinutesAgo == rhs.bobbleShowMinutesAgo &&
+            lhs.bobbleShowDelta == rhs.bobbleShowDelta
     }
 
     // Convert `fontWeight` to a String for Core Data storage

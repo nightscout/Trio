@@ -65,6 +65,13 @@ struct ContactImageDetailView: View {
                     }
                 }.listRowBackground(Color.chart)
 
+                if contactImageEntry.layout == .bobble {
+                    Section(header: Text("Glucose Bobble Options")) {
+                        Toggle("Show Minutes Since Reading", isOn: $contactImageEntry.bobbleShowMinutesAgo)
+                        Toggle("Show Delta", isOn: $contactImageEntry.bobbleShowDelta)
+                    }.listRowBackground(Color.chart)
+                }
+
                 if contactImageEntry.layout != .bobble {
                     Section(header: Text("Display Values")) {
                         Picker("Top Value", selection: $contactImageEntry.top) {

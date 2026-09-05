@@ -26,6 +26,8 @@
         </fetchIndex>
     </entity>
     <entity name="ContactImageEntryStored" representedClassName="ContactImageEntryStored" syncable="YES" codeGenerationType="class">
+        <attribute name="bobbleShowDelta" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="bobbleShowMinutesAgo" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="bottom" optional="YES" attributeType="String"/>
         <attribute name="colorMode" optional="YES" attributeType="String"/>
         <attribute name="backgroundMode" optional="YES" attributeType="String"/>
