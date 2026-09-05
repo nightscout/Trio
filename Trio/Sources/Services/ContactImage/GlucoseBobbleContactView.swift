@@ -18,14 +18,19 @@ struct GlucoseBobbleContactView: View {
     /// `ContactPicture.makeGlucoseBobbleImage` reads `Layout.nativeSize` to size the
     /// `ImageRenderer`'s output, so the rendered canvas exactly matches this view's own layout.
     enum Layout {
-        static let nativeSize: CGFloat = 228
-        // The ring fills most of the canvas; only the small gap+arrow overhang is reserved as
-        // margin, so the bobble sits as close to the contact photo's edge as possible.
+        static let nativeSize: CGFloat = 256
+        // The ring fills most of the canvas; only the arrow overhang beyond the ring's own outer
+        // edge is reserved as margin, so the bobble sits as close to the contact photo's edge as
+        // possible.
         static let ringDiameter: CGFloat = 184
         static let ringLineWidth: CGFloat = 9
-        static let triangleSize: CGFloat = 30
-        static let triangleGap: CGFloat = 3
-        static var triangleOffset: CGFloat { ringDiameter / 2 + triangleGap }
+        static let triangleSize: CGFloat = 26
+        /// `Circle().stroke(lineWidth:)` centers its stroke on the path, so the ring's visible
+        /// outer edge sits `ringLineWidth / 2` beyond `ringDiameter / 2` — offsetting the arrow
+        /// from the bare radius (as before) put roughly half of it on top of the ring's stroke
+        /// instead of beside it.
+        static var ringOuterRadius: CGFloat { ringDiameter / 2 + ringLineWidth / 2 }
+        static var triangleOffset: CGFloat { ringOuterRadius + triangleSize / 2 }
         static let textWidth: CGFloat = ringDiameter * 0.74
     }
 
