@@ -189,6 +189,7 @@ enum ContactImageLayout: String, JSON, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
     case `default`
     case split
+    case bobble
 
     var displayName: String {
         switch self {
@@ -196,6 +197,8 @@ enum ContactImageLayout: String, JSON, CaseIterable, Identifiable, Codable {
             return String(localized: "Default", comment: "")
         case .split:
             return String(localized: "Split", comment: "")
+        case .bobble:
+            return String(localized: "Glucose Bobble", comment: "")
         }
     }
 }

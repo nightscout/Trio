@@ -27,6 +27,9 @@ struct ContactImageHelpView: View {
                     Text("Available Layouts:")
                     Text("• Default: Single 'primary' value with up to two smaller values ('Top', 'Bottom') above and below it.")
                     Text("• Split: Divides values into two separate areas of same size.")
+                    Text(
+                        "• Glucose Bobble: Recreates the glucose HUD from Trio's main screen — colored by glucose value, with a trend arrow and delta. Display Values, Ring Settings, and Font Settings are hidden for this style since it isn't customizable."
+                    )
                 }).listRowBackground(Color.gray.opacity(0.1))
 
                 DefinitionRow(term: String(localized: "Set Display Values"), definition: VStack(alignment: .leading) {

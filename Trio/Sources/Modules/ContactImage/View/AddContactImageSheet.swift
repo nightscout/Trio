@@ -87,68 +87,72 @@ struct AddContactImageSheet: View {
                         }.onChange(of: layout, { oldLayout, newLayout in
                             if oldLayout != newLayout, newLayout == .split {
                                 top = .glucose
-                            } else {
+                            } else if newLayout != .bobble {
                                 top = .none
                             }
                         })
-                        Toggle("High Contrast Mode", isOn: $hasHighContrast)
+                        if layout != .bobble {
+                            Toggle("High Contrast Mode", isOn: $hasHighContrast)
+                        }
                     }.listRowBackground(Color.chart)
 
-                    // Primary Value Section
-                    Section(header: Text("Display Values")) {
-                        Picker("Top Value", selection: $top) {
-                            ForEach(ContactImageValue.allCases, id: \.id) { value in
-                                Text(value.displayName).tag(value)
-                            }
-                        }
-                        if layout == .default {
-                            Picker("Primary", selection: $primary) {
+                    if layout != .bobble {
+                        // Primary Value Section
+                        Section(header: Text("Display Values")) {
+                            Picker("Top Value", selection: $top) {
                                 ForEach(ContactImageValue.allCases, id: \.id) { value in
                                     Text(value.displayName).tag(value)
                                 }
                             }
-                        }
-                        Picker("Bottom Value", selection: $bottom) {
-                            ForEach(ContactImageValue.allCases, id: \.id) { value in
-                                Text(value.displayName).tag(value)
-                            }
-                        }
-
-                    }.listRowBackground(Color.chart)
-
-                    // Ring Settings Section
-                    Section(header: Text("Ring Settings")) {
-                        Picker("Ring Type", selection: $ring) {
-                            ForEach(ContactImageLargeRing.allCases, id: \.self) { ring in
-                                Text(ring.displayName).tag(ring)
-                            }
-                        }
-
-                        if ring != .none {
-                            Picker("Ring Width", selection: $ringWidth) {
-                                ForEach(ContactImageEntry.RingWidth.allCases, id: \.self) { width in
-                                    Text(width.displayName).tag(width)
+                            if layout == .default {
+                                Picker("Primary", selection: $primary) {
+                                    ForEach(ContactImageValue.allCases, id: \.id) { value in
+                                        Text(value.displayName).tag(value)
+                                    }
                                 }
                             }
-                            Picker("Ring Gap", selection: $ringGap) {
-                                ForEach(ContactImageEntry.RingGap.allCases, id: \.self) { gap in
-                                    Text(gap.displayName).tag(gap)
+                            Picker("Bottom Value", selection: $bottom) {
+                                ForEach(ContactImageValue.allCases, id: \.id) { value in
+                                    Text(value.displayName).tag(value)
                                 }
                             }
-                        }
-                    }.listRowBackground(Color.chart)
 
-                    // Font Settings Section
-                    Section(header: Text("Font Settings")) {
-                        backgroundModePicker
-                        colorModePicker
-                        fontSizePicker
-                        if layout == .split {
-                            secondaryFontSizePicker
-                        }
-                        fontWeightPicker
-                        fontWidthPicker
-                    }.listRowBackground(Color.chart)
+                        }.listRowBackground(Color.chart)
+
+                        // Ring Settings Section
+                        Section(header: Text("Ring Settings")) {
+                            Picker("Ring Type", selection: $ring) {
+                                ForEach(ContactImageLargeRing.allCases, id: \.self) { ring in
+                                    Text(ring.displayName).tag(ring)
+                                }
+                            }
+
+                            if ring != .none {
+                                Picker("Ring Width", selection: $ringWidth) {
+                                    ForEach(ContactImageEntry.RingWidth.allCases, id: \.self) { width in
+                                        Text(width.displayName).tag(width)
+                                    }
+                                }
+                                Picker("Ring Gap", selection: $ringGap) {
+                                    ForEach(ContactImageEntry.RingGap.allCases, id: \.self) { gap in
+                                        Text(gap.displayName).tag(gap)
+                                    }
+                                }
+                            }
+                        }.listRowBackground(Color.chart)
+
+                        // Font Settings Section
+                        Section(header: Text("Font Settings")) {
+                            backgroundModePicker
+                            colorModePicker
+                            fontSizePicker
+                            if layout == .split {
+                                secondaryFontSizePicker
+                            }
+                            fontWeightPicker
+                            fontWidthPicker
+                        }.listRowBackground(Color.chart)
+                    }
                 }
 
                 stickySaveButton

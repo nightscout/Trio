@@ -176,6 +176,18 @@ struct ContactPicture: View {
                     )
                 }
 
+            case .bobble:
+                // `bobbleImage.size` stays at the native point size regardless of the renderer's
+                // `scale`, so the destination rect is sized from `bobbleSize`/`rect`, not the image.
+                let bobbleSize = min(rect.width, rect.height)
+                let bobbleImage = makeGlucoseBobbleImage(state: state, pixelSize: bobbleSize)
+                bobbleImage.draw(in: CGRect(
+                    x: rect.midX - bobbleSize / 2,
+                    y: rect.midY - bobbleSize / 2,
+                    width: bobbleSize,
+                    height: bobbleSize
+                ))
+
             case .split:
                 let centerX = rect.origin.x + rect.size.width / 2
                 let centerY = rect.origin.y + rect.size.height / 2
@@ -267,15 +279,7 @@ struct ContactPicture: View {
         default: nil
         }
 
-        let glucoseValue = Decimal(string: state.glucose ?? "100") ?? 100
-
-        let dynamicColor: Color = Trio.getDynamicGlucoseColor(
-            glucoseValue: glucoseValue,
-            highGlucoseColorValue: state.highGlucoseColorValue,
-            lowGlucoseColorValue: state.lowGlucoseColorValue,
-            targetGlucose: state.targetGlucose,
-            glucoseColorScheme: state.glucoseColorScheme
-        )
+        let dynamicColor = dynamicGlucoseColor(for: state)
 
         let textColor: Color = switch value {
         case .cob:
@@ -299,6 +303,61 @@ struct ContactPicture: View {
                 color: contact.colorMode == .color ? textColor : .white
             )
         }
+    }
+
+    /// Same color the HUD bobble uses for its glucose number: shifts with the reading relative to
+    /// the user's high/low/target thresholds (and the dynamic-vs-static color scheme setting).
+    private static func dynamicGlucoseColor(for state: ContactImageState) -> Color {
+        let glucoseValue = Decimal(string: state.glucose ?? "100") ?? 100
+        return Trio.getDynamicGlucoseColor(
+            glucoseValue: glucoseValue,
+            highGlucoseColorValue: state.highGlucoseColorValue,
+            lowGlucoseColorValue: state.lowGlucoseColorValue,
+            targetGlucose: state.targetGlucose,
+            glucoseColorScheme: state.glucoseColorScheme
+        )
+    }
+
+    /// Mirrors `CurrentGlucoseView`'s `onChange(of: glucose.last?.directionEnum)` mapping, so the
+    /// bobble's trend arrow points the same way on the contact photo as it does in the HUD.
+    private static func rotationDegrees(for direction: BloodGlucose.Direction?) -> Double {
+        switch direction {
+        case .doubleUp,
+             .singleUp,
+             .tripleUp:
+            return -90
+        case .fortyFiveUp:
+            return -45
+        case .flat:
+            return 0
+        case .fortyFiveDown:
+            return 45
+        case .doubleDown,
+             .singleDown,
+             .tripleDown:
+            return 90
+        default:
+            return 0
+        }
+    }
+
+    /// Rasterizes `GlucoseBobbleContactView` — the SwiftUI recreation of the HUD bobble — at
+    /// `pixelSize`. Rendered at a fixed native point size and scaled up via `ImageRenderer.scale`
+    /// so the ring, arrow, and text stay crisp instead of being stretched after the fact.
+    private static func makeGlucoseBobbleImage(state: ContactImageState, pixelSize: CGFloat) -> UIImage {
+        // Keep in sync with `GlucoseBobbleContactView`'s outer `.frame`.
+        let nativeSize: CGFloat = 230
+        let view = GlucoseBobbleContactView(
+            glucoseText: state.glucose ?? "– –",
+            deltaText: state.glucose != nil ? state.delta : nil,
+            glucoseColor: state.glucose != nil ? dynamicGlucoseColor(for: state) : .loopGray,
+            rotationDegrees: rotationDegrees(for: state.direction)
+        )
+
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = pixelSize / nativeSize
+        renderer.isOpaque = false
+        return renderer.uiImage ?? UIImage()
     }
 
     private static func drawText(
