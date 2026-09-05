@@ -46,7 +46,11 @@ struct GlucoseBobbleContactView: View {
 
     var body: some View {
         ZStack {
-            Group {
+            // `ZStack` (not `Group`) is required here: SwiftUI applies a modifier on a bare
+            // `Group` to each child individually rather than to the composited whole, so a
+            // `.rotationEffect` on a `Group` spins the triangle around its own off-center offset
+            // point instead of orbiting it around the ring's shared center.
+            ZStack {
                 Circle()
                     .stroke(angularGradient, lineWidth: Layout.ringLineWidth)
                     .frame(width: Layout.ringDiameter, height: Layout.ringDiameter)
