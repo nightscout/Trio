@@ -1,13 +1,8 @@
 import SwiftUI
 
-/// Renders the "Glucose Bobble" contact image style: the same ring, trend arrow, and glucose
-/// number as the HUD's `CurrentGlucoseView` bobble, reusing its `Triangle` shape so the trend
-/// arrow matches exactly. Deliberately does NOT reuse `TrendShape`/`CircleShape` — those bundle a
-/// `Color.chart` background fill and a drop shadow meant for the HUD's on-screen context, which
-/// showed up as an opaque (near-white) disc behind the ring on the transparent contact photo.
-///
-/// Sized for `ImageRenderer` at a fixed "native" point size — see
-/// `ContactPicture.makeGlucoseBobbleImage` for how it's scaled up to the final pixel resolution.
+/// The "Glucose Bobble" contact image style: same ring, trend arrow and glucose number as the
+/// HUD's `CurrentGlucoseView` bobble, reusing its `Triangle` shape. Rendered by `ContactPicture`
+/// via `ImageRenderer` at `Layout.nativeSize` and scaled up from there.
 struct GlucoseBobbleContactView: View {
     let glucoseText: String
     let minutesAgoText: String?
@@ -15,20 +10,15 @@ struct GlucoseBobbleContactView: View {
     let glucoseColor: Color
     let rotationDegrees: Double
 
-    /// `ContactPicture.makeGlucoseBobbleImage` reads `Layout.nativeSize` to size the
-    /// `ImageRenderer`'s output, so the rendered canvas exactly matches this view's own layout.
     enum Layout {
         static let nativeSize: CGFloat = 256
-        // The ring fills most of the canvas; only the arrow overhang beyond the ring's own outer
-        // edge is reserved as margin, so the bobble sits as close to the contact photo's edge as
-        // possible.
         static let ringDiameter: CGFloat = 184
         static let ringLineWidth: CGFloat = 9
         static let triangleSize: CGFloat = 26
-        /// `Circle().stroke(lineWidth:)` centers its stroke on the path, so the ring's visible
-        /// outer edge sits `ringLineWidth / 2` beyond `ringDiameter / 2` — offsetting the arrow
-        /// from the bare radius (as before) put roughly half of it on top of the ring's stroke
-        /// instead of beside it.
+
+        // Circle().stroke centers the stroke on the path, so the ring's outer edge sits
+        // ringLineWidth / 2 past ringDiameter / 2. Offset the triangle from there, not the bare
+        // radius, or it overlaps the ring.
         static var ringOuterRadius: CGFloat { ringDiameter / 2 + ringLineWidth / 2 }
         static var triangleOffset: CGFloat { ringOuterRadius + triangleSize / 2 }
         static let textWidth: CGFloat = ringDiameter * 0.74
@@ -51,10 +41,9 @@ struct GlucoseBobbleContactView: View {
 
     var body: some View {
         ZStack {
-            // `ZStack` (not `Group`) is required here: SwiftUI applies a modifier on a bare
-            // `Group` to each child individually rather than to the composited whole, so a
-            // `.rotationEffect` on a `Group` spins the triangle around its own off-center offset
-            // point instead of orbiting it around the ring's shared center.
+            // Must be a ZStack, not a Group: a modifier on a Group applies to each child
+            // separately, so rotationEffect would spin the triangle around its own offset
+            // instead of orbiting it around the ring.
             ZStack {
                 Circle()
                     .stroke(angularGradient, lineWidth: Layout.ringLineWidth)
@@ -68,8 +57,6 @@ struct GlucoseBobbleContactView: View {
             }
             .rotationEffect(.degrees(rotationDegrees))
 
-            // Numbers need to read clearly at contact-photo thumbnail size, so — unlike the HUD —
-            // they're sized to dominate the ring rather than sit delicately inside it.
             VStack(spacing: 4) {
                 Text(glucoseText)
                     .font(.system(size: 66, weight: .bold, design: .rounded))

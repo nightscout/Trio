@@ -177,8 +177,8 @@ struct ContactPicture: View {
                 }
 
             case .bobble:
-                // `bobbleImage.size` stays at the native point size regardless of the renderer's
-                // `scale`, so the destination rect is sized from `bobbleSize`/`rect`, not the image.
+                // bobbleImage.size stays at the native point size regardless of scale, so size the
+                // destination rect from bobbleSize/rect instead of the image itself.
                 let bobbleSize = min(rect.width, rect.height)
                 let bobbleImage = makeGlucoseBobbleImage(contact: contact, state: state, pixelSize: bobbleSize)
                 bobbleImage.draw(in: CGRect(
@@ -305,8 +305,6 @@ struct ContactPicture: View {
         }
     }
 
-    /// Same color the HUD bobble uses for its glucose number: shifts with the reading relative to
-    /// the user's high/low/target thresholds (and the dynamic-vs-static color scheme setting).
     private static func dynamicGlucoseColor(for state: ContactImageState) -> Color {
         let glucoseValue = Decimal(string: state.glucose ?? "100") ?? 100
         return Trio.getDynamicGlucoseColor(
@@ -318,8 +316,7 @@ struct ContactPicture: View {
         )
     }
 
-    /// Mirrors `CurrentGlucoseView`'s `onChange(of: glucose.last?.directionEnum)` mapping, so the
-    /// bobble's trend arrow points the same way on the contact photo as it does in the HUD.
+    // Matches CurrentGlucoseView's onChange(of: glucose.last?.directionEnum) mapping.
     private static func rotationDegrees(for direction: BloodGlucose.Direction?) -> Double {
         switch direction {
         case .doubleUp,
@@ -341,9 +338,6 @@ struct ContactPicture: View {
         }
     }
 
-    /// Rasterizes `GlucoseBobbleContactView` — the SwiftUI recreation of the HUD bobble — at
-    /// `pixelSize`. Rendered at a fixed native point size and scaled up via `ImageRenderer.scale`
-    /// so the ring, arrow, and text stay crisp instead of being stretched after the fact.
     private static func makeGlucoseBobbleImage(
         contact: ContactImageEntry,
         state: ContactImageState,
@@ -355,8 +349,6 @@ struct ContactPicture: View {
             minutesAgoText: hasReading && contact.bobbleShowMinutesAgo
                 ? TimeAgoFormatter.minutesAgo(from: state.glucoseDate) : nil,
             deltaText: hasReading && contact.bobbleShowDelta ? state.delta : nil,
-            // Same Color/Monochrome rule `displayPiece` uses below — Monochrome only flattens the
-            // text; the ring and arrow keep their fixed colors regardless of this setting.
             glucoseColor: hasReading
                 ? (contact.colorMode == .color ? dynamicGlucoseColor(for: state) : .white)
                 : .loopGray,
@@ -734,6 +726,17 @@ struct ContactPicture_Previews: PreviewProvider {
                     cobText: "25"
                 ))
             ).previewDisplayName("bg + trend + delta")
+
+            ContactPicturePreview(
+                contact: .constant(
+                    ContactImageEntry(layout: .bobble, colorMode: .color)
+                ),
+                state: .constant(ContactImageState(
+                    glucose: "6.8",
+                    direction: .fortyFiveUp,
+                    delta: "+0.2"
+                ))
+            ).previewDisplayName("glucose bobble")
 
 //            ContactPicturePreview(
 //                contact: .constant(

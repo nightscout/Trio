@@ -27,9 +27,14 @@ struct ContactImageHelpView: View {
                     Text("Available Layouts:")
                     Text("• Default: Single 'primary' value with up to two smaller values ('Top', 'Bottom') above and below it.")
                     Text("• Split: Divides values into two separate areas of same size.")
-                    Text(
-                        "• Glucose Bobble: Recreates the glucose HUD from Trio's main screen — colored by glucose value, with a trend arrow. Display Values, Ring Settings, and Font Settings are hidden for this style since it isn't customizable; instead, use 'Glucose Bobble Options' to show or hide minutes since reading and delta, and to choose Color or Monochrome for the text (the ring and arrow always stay colored)."
-                    )
+                    Text("• Glucose Bobble: Mirrors the glucose HUD, colored by glucose value with a trend arrow.")
+                }).listRowBackground(Color.gray.opacity(0.1))
+
+                DefinitionRow(term: String(localized: "Glucose Bobble Options"), definition: VStack(alignment: .leading) {
+                    Text("Only shown for the Glucose Bobble style, which replaces Display Values, Ring Settings, and Font Settings:")
+                    Text("• Color Mode: Color keeps the glucose number's dynamic color; Monochrome shows it in white. The ring and arrow stay colored either way.")
+                    Text("• Show Minutes Since Reading: Toggle the reading age beneath the glucose number.")
+                    Text("• Show Delta: Toggle the glucose delta beneath the glucose number.")
                 }).listRowBackground(Color.gray.opacity(0.1))
 
                 DefinitionRow(term: String(localized: "Set Display Values"), definition: VStack(alignment: .leading) {
