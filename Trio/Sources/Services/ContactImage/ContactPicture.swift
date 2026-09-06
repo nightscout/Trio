@@ -355,7 +355,11 @@ struct ContactPicture: View {
             minutesAgoText: hasReading && contact.bobbleShowMinutesAgo
                 ? TimeAgoFormatter.minutesAgo(from: state.glucoseDate) : nil,
             deltaText: hasReading && contact.bobbleShowDelta ? state.delta : nil,
-            glucoseColor: hasReading ? dynamicGlucoseColor(for: state) : .loopGray,
+            // Same Color/Monochrome rule `displayPiece` uses below — Monochrome only flattens the
+            // text; the ring and arrow keep their fixed colors regardless of this setting.
+            glucoseColor: hasReading
+                ? (contact.colorMode == .color ? dynamicGlucoseColor(for: state) : .white)
+                : .loopGray,
             rotationDegrees: rotationDegrees(for: state.direction)
         )
 

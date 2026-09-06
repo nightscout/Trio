@@ -102,6 +102,7 @@ struct AddContactImageSheet: View {
 
                     if layout == .bobble {
                         Section(header: Text("Glucose Bobble Options")) {
+                            colorModePicker
                             Toggle("Show Minutes Since Reading", isOn: $bobbleShowMinutesAgo)
                             Toggle("Show Delta", isOn: $bobbleShowDelta)
                         }.listRowBackground(Color.chart)

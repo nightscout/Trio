@@ -67,6 +67,7 @@ struct ContactImageDetailView: View {
 
                 if contactImageEntry.layout == .bobble {
                     Section(header: Text("Glucose Bobble Options")) {
+                        colorModePicker
                         Toggle("Show Minutes Since Reading", isOn: $contactImageEntry.bobbleShowMinutesAgo)
                         Toggle("Show Delta", isOn: $contactImageEntry.bobbleShowDelta)
                     }.listRowBackground(Color.chart)
