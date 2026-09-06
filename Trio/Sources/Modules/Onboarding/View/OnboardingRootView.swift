@@ -739,6 +739,11 @@ struct OnboardingNavigationButtons: View {
         case .notifications:
             currentTargetBehaviorSubstep = .halfBasalTarget
 
+            // AlarmKit is the audible channel for critical alarms on iOS 26+
+            // builds without the Critical Alerts entitlement — it's what lets
+            // them pierce Silent and Focus. No-ops below iOS 26 or once decided.
+            Task { await CriticalAlertAlarmScheduler.requestAuthorization() }
+
             if let next = currentStep.next {
                 state.notificationsManager.getNotificationSettings { notificationSettings in
                     switch notificationSettings.authorizationStatus {
