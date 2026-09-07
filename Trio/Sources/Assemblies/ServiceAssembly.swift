@@ -24,6 +24,7 @@ final class ServiceAssembly: Assembly {
         container.register(NotLoopingMonitor.self) { r in NotLoopingMonitor(resolver: r) }
             .inObjectScope(.container)
         container.register(UserNotificationsManager.self) { r in BaseUserNotificationsManager(resolver: r) }
+            .inObjectScope(.container)
         container.register(WatchManager.self) { r in BaseWatchManager(resolver: r) }
         container.register(BolusCalculationManager.self) { r in BaseBolusCalculationManager(resolver: r) }
         container.register(GarminManager.self) { r in BaseGarminManager(resolver: r) }
