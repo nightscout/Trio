@@ -6,7 +6,6 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
     case nightscout
     case xdrip
     case simulator
-    case enlite
     case plugin
 
     var displayName: String {
@@ -19,8 +18,6 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
             return "xDrip4iOS"
         case .simulator:
             return String(localized: "Glucose Simulator", comment: "Glucose Simulator CGM type")
-        case .enlite:
-            return "Medtronic Enlite"
         case .plugin:
             return "Plugin CGM"
         }
@@ -28,8 +25,7 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
 
     var appURL: URL? {
         switch self {
-        case .enlite,
-             .nightscout,
+        case .nightscout,
              .none:
             return nil
         case .xdrip:
@@ -63,8 +59,6 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
             )
         case .simulator:
             return String(localized: "Glucose Simulator for Demo Only", comment: "Simple simulator")
-        case .enlite:
-            return String(localized: "Minilink transmitter", comment: "Minilink transmitter")
         case .plugin:
             return String(localized: "Plugin CGM", comment: "Plugin CGM")
         }
