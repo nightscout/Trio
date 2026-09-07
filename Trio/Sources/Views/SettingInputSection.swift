@@ -247,6 +247,8 @@ struct SettingInputSection<VerboseHint: View>: View {
                 .font(.footnote)
                 .foregroundColor(miniHintColor)
                 .lineLimit(nil)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
             Spacer()
             Button(action: {
                 shouldDisplayHint.wrappedValue.toggle()

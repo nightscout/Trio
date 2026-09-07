@@ -181,20 +181,17 @@ extension Home {
                     {
                         BluetoothRequiredView()
                     } else {
-                        /// right panel with loop status and evBG
-                        HStack {
-                            Spacer()
-                            rightHeaderPanel()
-                        }.padding(.trailing, 20)
-
-                        /// glucose bobble
-                        glucoseView
-
-                        /// left panel with pump related info
-                        HStack {
+                        HStack(alignment: .center, spacing: 0) {
                             pumpView
-                            Spacer()
-                        }.padding(.leading, 20)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            glucoseView
+                                .frame(width: 130)
+
+                            rightHeaderPanel()
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                        }
+                        .padding(.horizontal, 20)
                     }
                 }
                 // fixed slot: header state changes never reflow the zones below

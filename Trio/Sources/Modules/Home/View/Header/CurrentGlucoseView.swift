@@ -85,6 +85,9 @@ struct CurrentGlucoseView: View {
                     }
                 HStack {
                     Text("Add CGM").font(.caption).bold()
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: 100)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }.frame(alignment: .top)
         }
