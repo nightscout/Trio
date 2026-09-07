@@ -111,7 +111,7 @@ extension Home {
                         .foregroundStyle(Color.insulin)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
-                        .background(Capsule().fill(.ultraThinMaterial))
+                        .glassMaterialFill(Capsule())
                         .frame(height: chartHeight * 0.10)
                         .padding(.trailing, 16)
                 }
@@ -138,6 +138,7 @@ extension Home {
                         Circle()
                             .stroke(Color.primary.opacity(0.4), lineWidth: 2)
                     )
+                    .accessibilityLabel(Text("Chart legend"))
             }
             .buttonStyle(.plain)
             .contentShape(Circle())
@@ -349,13 +350,11 @@ extension Home {
                     let carbsRequiredBadge: String? = carbsRequiredBadgeValue
 
                     NavigationStack { mainView() }
-                        .tabItem { Label("", systemImage: "chart.xyaxis.line") }
+                        .tabItem { Label("", systemImage: "chart.xyaxis.line").accessibilityLabel(Text("Main")) }
                         .badge(carbsRequiredBadge).tag(0)
-                        .accessibilityLabel(Text("Main"))
 
                     NavigationStack { History.RootView(resolver: resolver) }
-                        .tabItem { Label("", systemImage: historySFSymbol) }.tag(1)
-                        .accessibilityLabel(Text("History"))
+                        .tabItem { Label("", systemImage: historySFSymbol).accessibilityLabel(Text("History")) }.tag(1)
 
                     Spacer()
                         // nbsp title + empty image: invisible item that still
@@ -372,8 +371,7 @@ extension Home {
                             Label(
                                 "",
                                 systemImage: "slider.horizontal.2.gobackward"
-                            ) }.tag(2)
-                        .accessibilityLabel(Text("Adjustments"))
+                            ).accessibilityLabel(Text("Adjustments")) }.tag(2)
 
                     NavigationStack(path: self.$settingsPath) {
                         Settings.RootView(resolver: resolver) }
@@ -381,8 +379,7 @@ extension Home {
                         .tabItem { Label(
                             "",
                             systemImage: "gear"
-                        ) }.tag(3)
-                        .accessibilityLabel(Text("Settings"))
+                        ).accessibilityLabel(Text("Settings")) }.tag(3)
                 }
                 .tint(Color.tabBar)
 
@@ -445,6 +442,22 @@ extension Home {
                     }
                 }
                 .accessibilityLabel(Text("Add Treatment"))
+                .accessibilityAddTraits(.isButton)
+                // the tap/long-press gestures are invisible to VoiceOver; expose both
+                .accessibilityAction {
+                    state.showModal(for: .treatmentView)
+                }
+                .accessibilityAction(named: Text("Quick Pick Treatments")) {
+                    guard state.enableQuickPickTreatments else { return }
+                    Task {
+                        await state.loadQuickPickTreatmentSuggestions()
+                        if state.quickPickBolusSuggestions.isEmpty, state.quickPickCarbSuggestions.isEmpty {
+                            showQuickPickTreatmentsNoHistory = true
+                        } else {
+                            showQuickPickTreatmentsPicker = true
+                        }
+                    }
+                }
         }
 
         private var carbsRequiredBadgeValue: String? {
