@@ -12,6 +12,9 @@ extension History.RootView {
 
             if !glucoseStored.isEmpty {
                 ForEach(glucoseStored) { glucose in
+                    let manualOrTrend = glucose.isManual
+                        ? String(localized: "manual entry", comment: "Accessibility: manually entered glucose")
+                        : (glucose.directionEnum?.symbol ?? "--")
                     HStack {
                         Text(formatGlucose(Decimal(glucose.glucose), isManual: glucose.isManual))
 
@@ -43,6 +46,12 @@ extension History.RootView {
 
                         Text(Formatter.dateFormatter.string(from: glucose.date ?? Date()))
                     }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text(
+                        formatGlucose(Decimal(glucose.glucose), isManual: glucose.isManual)
+                            + ", " + manualOrTrend
+                            + ", " + Formatter.dateFormatter.string(from: glucose.date ?? Date())
+                    ))
                     .contextMenu {
                         Button(
                             "Delete",

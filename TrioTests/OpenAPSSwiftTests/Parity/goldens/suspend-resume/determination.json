@@ -118,7 +118,7 @@
     ]
   },
   "rate" : 3.6,
-  "reason" : "Autosens ratio: 1.2, ISF: 55→46, COB: 0, Dev: 29, BGI: 1, CR: 12, Target: 95, minPredBG 194, minGuardBG 155, IOBpredBG 207, UAMpredBG 195; Eventual BG 212 >= 95,  insulinReq 2.16; maxBolus 0.5. Microbolusing 0.5U. adj. req. rate: 5.4 to maxSafeBasal: 3.6, temp 0.75<3.6U/hr. ",
+  "reason" : "Autosens ratio: 1.2, ISF: 55→46, COB: 0, Dev: 29, BGI: 1, CR: 12, Target: 95, minPredBG 194, minGuardBG 155, IOBpredBG 207, UAMpredBG 195; Eventual BG 212 >= 95,  insulinReq 2.16; maxBolus 0.5. Microbolusing 0.5U. adj. req. rate: 5.35 to maxSafeBasal: 3.6, temp 0.75<3.6U/hr. ",
   "received" : false,
   "sensitivityRatio" : 1.2,
   "threshold" : 68,

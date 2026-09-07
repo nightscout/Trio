@@ -51,6 +51,48 @@ struct LoopView: View {
                     self.spinStart = nil
                 }
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(loopAccessibilityLabel))
+    }
+
+    /// Spoken description of loop state — mirrors the color/text logic so the
+    /// color-coded health (green/yellow/red) is conveyed in words, not just hue.
+    private var loopAccessibilityLabel: String {
+        let status: String
+        if manualTempBasal {
+            status = String(localized: "manual temporary basal running", comment: "Accessibility: loop status")
+        } else if determination.first?.timestamp == nil {
+            status = String(localized: "not looping", comment: "Accessibility: loop status")
+        } else if !closedLoop {
+            status = String(localized: "open loop", comment: "Accessibility: loop status")
+        } else {
+            let delta = timerDate.timeIntervalSince(lastLoopDate) - Config.lag
+            if delta <= 5.minutes.timeInterval {
+                status = String(localized: "looping normally", comment: "Accessibility: loop status")
+            } else if delta <= 10.minutes.timeInterval {
+                status = String(localized: "last loop delayed", comment: "Accessibility: loop status")
+            } else {
+                status = String(localized: "loop overdue", comment: "Accessibility: loop status")
+            }
+        }
+
+        let age: String
+        // `showLooping`, not `isLooping`: the label has to describe the pill that is on
+        // screen, which keeps the looping state up for a minimum of 2 seconds.
+        if showLooping {
+            age = String(localized: "in progress", comment: "Accessibility: loop currently running")
+        } else if determination.first?.deliverAt != nil, timeString != "--" {
+            age = String(
+                format: String(localized: "last loop %@", comment: "Accessibility: loop age"),
+                TimeAgoFormatter.minutesAgoAccessible(from: lastLoopDate)
+            )
+        } else {
+            age = ""
+        }
+
+        return [String(localized: "Loop", comment: "Accessibility: loop pill label"), status, age]
+            .filter { !$0.isEmpty }
+            .joined(separator: ", ")
     }
 
     private var loopStatusContent: some View {
