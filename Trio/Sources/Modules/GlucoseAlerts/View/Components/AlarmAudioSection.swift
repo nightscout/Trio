@@ -133,7 +133,7 @@ private struct TonePickerRow: View {
         stop()
         let resource = (filename as NSString).deletingPathExtension
         let ext = (filename as NSString).pathExtension.isEmpty ? "caf" : (filename as NSString).pathExtension
-        guard let url = Bundle.main.url(forResource: resource, withExtension: ext, subdirectory: "Sounds") else {
+        guard let url = Bundle.main.url(forResource: resource, withExtension: ext) else {
             return
         }
         do {

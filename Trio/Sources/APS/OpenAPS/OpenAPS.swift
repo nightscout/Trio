@@ -234,6 +234,7 @@ final class OpenAPS {
 
     func determineBasal(
         currentTemp: TempBasal,
+        supportedBasalRates: [Decimal],
         shouldSmoothGlucose: Bool,
         clock: Date = Date(),
         simulatedCarbsAmount: Decimal? = nil,
@@ -290,7 +291,9 @@ final class OpenAPS {
         )
 
         // Decode the JSON-at-rest inputs into native models at the call boundary.
-        let profile = try JSONBridge.profile(from: rawProfile)
+        var profile = try JSONBridge.profile(from: rawProfile)
+        // pump capability is injected here rather than persisted, so it can never go stale
+        profile.supportedBasalRates = supportedBasalRates
         let basalProfile = try JSONBridge.basalProfile(from: rawBasalProfile)
         let autosens = try JSONBridge.autosens(from: rawAutosens.isEmpty ? .null : rawAutosens)
         let reservoir = Decimal(string: rawReservoir) ?? 100
@@ -497,16 +500,14 @@ final class OpenAPS {
         async let getInsulinSensitivities = loadFileFromStorageAsync(name: Settings.insulinSensitivities)
         async let getCarbRatios = loadFileFromStorageAsync(name: Settings.carbRatios)
         async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
-        async let getModel = loadFileFromStorageAsync(name: Settings.model)
 
-        let (pumpSettings, bgTargets, basalProfile, insulinSensitivities, carbRatios, tempTargets, model) = await (
+        let (pumpSettings, bgTargets, basalProfile, insulinSensitivities, carbRatios, tempTargets) = await (
             getPumpSettings,
             getBGTargets,
             getBasalProfile,
             getInsulinSensitivities,
             getCarbRatios,
-            getTempTargets,
-            getModel
+            getTempTargets
         )
 
         // Retrieve user preferences, or set defaults if not available
@@ -569,7 +570,6 @@ final class OpenAPS {
                 preferences: adjustedPreferences,
                 carbRatios: carbRatios,
                 tempTargets: tempTargets,
-                model: model,
                 clock: clock
             )
 
@@ -581,7 +581,6 @@ final class OpenAPS {
                 preferences: adjustedPreferences,
                 carbRatios: carbRatios,
                 tempTargets: tempTargets,
-                model: model,
                 clock: clock
             )
 
