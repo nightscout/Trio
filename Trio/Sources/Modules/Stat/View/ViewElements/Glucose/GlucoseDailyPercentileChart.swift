@@ -344,6 +344,8 @@ struct GlucoseDailyPercentileChart: View {
             )
         )
         .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedInterval))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Daily glucose percentile chart"))
     }
 
     // MARK: - Chart Components

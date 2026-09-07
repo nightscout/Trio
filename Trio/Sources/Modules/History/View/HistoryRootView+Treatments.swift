@@ -52,6 +52,7 @@ extension History.RootView {
         HStack {
             if let bolus = item.bolus, let amount = bolus.amount {
                 Image(systemName: "circle.fill").foregroundColor(Color.insulin)
+                    .accessibilityHidden(true)
                 Text(bolus.isSMB ? "SMB" : item.type ?? "Bolus")
                 Text(
                     (Formatter.decimalFormatterWithThreeFractionDigits.string(from: amount) ?? "0") +
@@ -63,6 +64,7 @@ extension History.RootView {
                 }
             } else if let tempBasal = item.tempBasal, let rate = tempBasal.rate {
                 Image(systemName: "circle.fill").foregroundColor(Color.insulin.opacity(0.4))
+                    .accessibilityHidden(true)
                 Text("Temp Basal")
                 Text(
                     (Formatter.decimalFormatterWithThreeFractionDigits.string(from: rate) ?? "0") +
@@ -74,6 +76,7 @@ extension History.RootView {
                 }
             } else {
                 Image(systemName: "circle.fill").foregroundColor(Color.loopGray)
+                    .accessibilityHidden(true)
                 Text(item.type ?? "Pump Event")
             }
             Spacer()

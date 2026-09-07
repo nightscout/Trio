@@ -162,7 +162,7 @@ extension Adjustments.RootView {
         )
         let remainingTime = tempTarget.date?.timeIntervalSinceNow ?? 0
 
-        return ZStack(alignment: .trailing) {
+        let row = ZStack(alignment: .trailing) {
             HStack {
                 VStack(alignment: .leading) {
                     HStack {
@@ -209,6 +209,28 @@ extension Adjustments.RootView {
                 Image(systemName: "line.3.horizontal")
                     .imageScale(.medium)
                     .foregroundStyle(.secondary)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(tempTarget.name ?? ""))
+        .accessibilityValue(Text(
+            formattedGlucose(glucose: target as Decimal) + " "
+                + String(localized: "for", comment: "duration connector") + " "
+                + (Formatter.integerFormatter.string(from: (tempTarget.duration ?? 0) as NSNumber) ?? "0") + " "
+                + String(localized: "min", comment: "minutes abbreviation")
+                + (state.isAdjustSensEnabled(usingTarget: tempTargetValue) ? ", \(percentage)%" : "")
+        ))
+        // Only tappable rows (presets) are buttons; scheduled rows are read-only, so they get
+        // neither the button trait, an activation, nor a hint.
+        return Group {
+            if let onTap {
+                row
+                    .accessibilityHint(Text(String(localized: "Enables this temp target", comment: "Accessibility hint")))
+                    .accessibilityAddTraits(showCheckmark && isSelected ? [.isButton, .isSelected] : .isButton)
+                    .accessibilityAction { onTap() }
+            } else {
+                row
+                    .accessibilityAddTraits(showCheckmark && isSelected ? .isSelected : [])
             }
         }
     }

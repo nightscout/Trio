@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Swinject
+import UIKit
 
 /// The main onboarding view that manages navigation between onboarding steps.
 extension Onboarding {
@@ -239,6 +240,19 @@ struct OnboardingProgressBar: View {
                 }
             }
         }.padding(.horizontal)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(progressAccessibilityLabel))
+    }
+
+    private var progressAccessibilityLabel: String {
+        let chapterCount = OnboardingChapter.allCases.count
+        let chapter = String(
+            format: String(localized: "Chapter %1$d of %2$d, %3$@", comment: "Accessibility: onboarding progress"),
+            currentChapter.rawValue + 1,
+            chapterCount,
+            currentChapter.title
+        )
+        return chapter
     }
 
     private var renderedSteps: [(id: String, step: OnboardingStep, substeps: Int?)] {
@@ -392,14 +406,22 @@ struct OnboardingStepContent: View {
                 }
                 .padding(.bottom, 80)
             }
-            .onChange(of: currentStep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
-            .onChange(of: currentStartupSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
-            .onChange(of: currentNightscoutSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
-            .onChange(of: currentDeliverySubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
-            .onChange(of: currentAlgorithmSettingsOverviewSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
-            .onChange(of: currentAutosensSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
-            .onChange(of: currentSMBSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
-            .onChange(of: currentTargetBehaviorSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
+            .onChange(of: currentStep) { _, _ in scrollProxy.scrollTo("top", anchor: .top)
+                announceScreenChange() }
+            .onChange(of: currentStartupSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top)
+                announceScreenChange() }
+            .onChange(of: currentNightscoutSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top)
+                announceScreenChange() }
+            .onChange(of: currentDeliverySubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top)
+                announceScreenChange() }
+            .onChange(of: currentAlgorithmSettingsOverviewSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top)
+                announceScreenChange() }
+            .onChange(of: currentAutosensSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top)
+                announceScreenChange() }
+            .onChange(of: currentSMBSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top)
+                announceScreenChange() }
+            .onChange(of: currentTargetBehaviorSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top)
+                announceScreenChange() }
             .safeAreaInset(edge: .top) {
                 // avoid letting content scroll beneath the status bar / dynamic island for content views with not progress bar (which adds top spacing)
                 if currentStep == .startupInfo || currentStep == .completed {
@@ -409,32 +431,43 @@ struct OnboardingStepContent: View {
         }
     }
 
+    /// Move VoiceOver focus back to the top of the new step; otherwise focus stays on the
+    /// "Next" button and the user must navigate backwards to reach the new content.
+    private func announceScreenChange() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            UIAccessibility.post(notification: .screenChanged, argument: nil)
+        }
+    }
+
     private var contentHeader: some View {
         HStack {
-            if currentStep == .nightscout {
-                Image(currentStep.iconName)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 60, height: 60)
-            } else if currentStep == .bluetooth {
-                Image(currentStep.iconName)
-                    .font(.system(size: 40))
-                    .foregroundColor(currentStep.accentColor)
-                    .frame(width: 60, height: 60)
-                    .background(
-                        Circle()
-                            .fill(currentStep.accentColor.opacity(0.2))
-                    )
-            } else {
-                Image(systemName: currentStep.iconName)
-                    .font(.system(size: 40))
-                    .foregroundColor(currentStep.accentColor)
-                    .frame(width: 60, height: 60)
-                    .background(
-                        Circle()
-                            .fill(currentStep.accentColor.opacity(0.2))
-                    )
+            Group {
+                if currentStep == .nightscout {
+                    Image(currentStep.iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 60, height: 60)
+                } else if currentStep == .bluetooth {
+                    Image(currentStep.iconName)
+                        .font(.system(size: 40))
+                        .foregroundColor(currentStep.accentColor)
+                        .frame(width: 60, height: 60)
+                        .background(
+                            Circle()
+                                .fill(currentStep.accentColor.opacity(0.2))
+                        )
+                } else {
+                    Image(systemName: currentStep.iconName)
+                        .font(.system(size: 40))
+                        .foregroundColor(currentStep.accentColor)
+                        .frame(width: 60, height: 60)
+                        .background(
+                            Circle()
+                                .fill(currentStep.accentColor.opacity(0.2))
+                        )
+                }
             }
+            .accessibilityHidden(true)
 
             VStack(alignment: .leading) {
                 Text(currentStep.title)
@@ -449,6 +482,8 @@ struct OnboardingStepContent: View {
             }
         }
         .padding(.horizontal)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
     }
 }
 

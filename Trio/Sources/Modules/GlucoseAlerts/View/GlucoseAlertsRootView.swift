@@ -116,6 +116,7 @@ extension GlucoseAlerts {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button { sheet = .picker } label: { Image(systemName: "plus") }
+                        .accessibilityLabel(Text("Add glucose alarm"))
                 }
             }
             .sheet(item: $sheet, onDismiss: handleSheetDismiss) { which in
