@@ -90,6 +90,13 @@ struct CompletedStepView: View {
                 .padding(.vertical, 8)
                 .multilineTextAlignment(.leading)
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("\(title). \(description)"))
+        .accessibilityValue(Text(
+            isCompleted
+                ? String(localized: "complete", comment: "Accessibility: onboarding chapter complete")
+                : String(localized: "not complete", comment: "Accessibility: onboarding chapter not complete")
+        ))
     }
 
     @ViewBuilder private func stepCount(_ count: Int, isCompleted: Bool) -> some View {

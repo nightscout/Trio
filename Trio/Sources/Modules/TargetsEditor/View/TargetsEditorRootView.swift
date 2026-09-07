@@ -183,6 +183,8 @@ extension TargetsEditor {
                 domain: (state.units == .mgdL ? Decimal(72) : Decimal(72).asMmolL) ...
                     (state.units == .mgdL ? Decimal(180) : Decimal(180).asMmolL)
             )
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("Glucose target profile chart, 24 hours"))
         }
     }
 }

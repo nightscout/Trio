@@ -229,21 +229,16 @@ extension Adjustments {
                         Spacer()
                         Image(systemName: "square.and.pencil")
                             .foregroundStyle(Color.primary)
+                            .accessibilityHidden(true)
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        Task {
-                            /// To avoid editing the Preset when a Preset-Override is running we first duplicate the Preset-Override as a non-Preset Override
-                            /// The currentActiveOverride variable in the State will update automatically via MOC notification
-                            await state.duplicateOverridePresetAndCancelPreviousOverride()
-
-                            /// selectedOverride is used for passing the chosen Override to the EditSheet so we have to set the updated currentActiveOverride to be the selectedOverride
-                            selectedOverride = state.currentActiveOverride
-
-                            /// Now we can show the Edit sheet
-                            state.showOverrideEditSheet = true
-                        }
+                        editActiveOverride()
                     }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityHint(Text(String(localized: "Double tap to edit", comment: "Accessibility hint")))
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction { editActiveOverride() }
                 }
                 .listRowBackground(Color.purple.opacity(0.8))
             case .tempTargets:
@@ -254,23 +249,44 @@ extension Adjustments {
                         Spacer()
                         Image(systemName: "square.and.pencil")
                             .foregroundStyle(Color.primary)
+                            .accessibilityHidden(true)
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        Task {
-                            /// To avoid editing the Preset when a Preset-Override is running we first duplicate the Preset-Override as a non-Preset Override
-                            /// The currentActiveOverride variable in the State will update automatically via MOC notification
-                            await state.duplicateTempTargetPresetAndCancelPreviousTempTarget()
-
-                            /// selectedOverride is used for passing the chosen Override to the EditSheet so we have to set the updated currentActiveOverride to be the selectedOverride
-                            selectedTempTarget = state.currentActiveTempTarget
-
-                            /// Now we can show the Edit sheet
-                            state.showTempTargetEditSheet = true
-                        }
+                        editActiveTempTarget()
                     }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityHint(Text(String(localized: "Double tap to edit", comment: "Accessibility hint")))
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction { editActiveTempTarget() }
                 }
                 .listRowBackground(Color.loopGreen.opacity(0.8))
+            }
+        }
+
+        private func editActiveOverride() {
+            Task {
+                /// To avoid editing the Preset when a Preset-Override is running we first duplicate the Preset-Override as a non-Preset Override
+                /// The currentActiveOverride variable in the State will update automatically via MOC notification
+                await state.duplicateOverridePresetAndCancelPreviousOverride()
+
+                /// selectedOverride is used for passing the chosen Override to the EditSheet so we have to set the updated currentActiveOverride to be the selectedOverride
+                selectedOverride = state.currentActiveOverride
+
+                /// Now we can show the Edit sheet
+                state.showOverrideEditSheet = true
+            }
+        }
+
+        private func editActiveTempTarget() {
+            Task {
+                /// To avoid editing the Preset when a Preset-TempTarget is running we first duplicate it as a non-Preset TempTarget
+                await state.duplicateTempTargetPresetAndCancelPreviousTempTarget()
+
+                selectedTempTarget = state.currentActiveTempTarget
+
+                /// Now we can show the Edit sheet
+                state.showTempTargetEditSheet = true
             }
         }
 

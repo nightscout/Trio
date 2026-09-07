@@ -30,8 +30,8 @@ final class CriticalAlertAudioPlayer {
 
         let resource = (soundName as NSString).deletingPathExtension
         let ext = (soundName as NSString).pathExtension.isEmpty ? "caf" : (soundName as NSString).pathExtension
-        let url = Bundle.main.url(forResource: resource, withExtension: ext, subdirectory: "Sounds")
-            ?? Bundle.main.url(forResource: "critical", withExtension: "caf", subdirectory: "Sounds")
+        let url = Bundle.main.url(forResource: resource, withExtension: ext)
+            ?? Bundle.main.url(forResource: "critical", withExtension: "caf")
         guard let url else {
             os_log(
                 "Neither %{public}@ nor critical.caf found in main bundle; audio fallback unavailable",
