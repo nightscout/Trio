@@ -32,6 +32,8 @@ struct AppGroupSource: GlucoseSource {
 
     let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
     let cgmProgressHighlight = CurrentValueSubject<LoopKit.DeviceLifecycleProgress?, Never>(nil)
+    // Keep the decoded bridge information together so Settings always renders one matching snapshot.
+    let cgmInformation = CurrentValueSubject<AppGroupCGMInformation?, Never>(nil)
 
     func fetch(_ heartbeat: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
         guard let suiteName = Bundle.main.appGroupSuiteName,
@@ -48,30 +50,38 @@ struct AppGroupSource: GlucoseSource {
     }
 
     private func fetchLastBGs(_ count: Int, _ sharedDefaults: UserDefaults, _ heartbeat: DispatchTimer?) -> [BloodGlucose] {
-        guard let sharedData = sharedDefaults.data(forKey: "latestReadings") else {
-            return []
-        }
-
         HeartBeatManager.shared.checkCGMBluetoothTransmitter(sharedUserDefaults: sharedDefaults, heartbeat: heartbeat)
         debug(.deviceManager, "APPGROUP : START FETCH LAST BG ")
-        let decoded = try? JSONSerialization.jsonObject(with: sharedData, options: [])
 
-        // Two shapes accepted:
-        //   Legacy (xDrip4iOS today): top-level array of reading dicts.
-        //   Rich (xDrip4iOS extended for CGM lifecycle):
-        //   top-level dict carrying readings under
-        //   `recentReadings` plus sibling keys for CGM status, sensor
-        //   lifecycle, and transmitter info — see `applyRichState`.
+        // Metadata can still be useful during warmup or failure when xDrip4iOS intentionally publishes no readings.
+        let decoded = sharedDefaults.data(forKey: "latestReadings")
+            .flatMap { try? JSONSerialization.jsonObject(with: $0, options: []) }
+
+        // Keep accepting the released reading array and the experimental dictionary
+        // which placed readings under `recentReadings` — see `applyRichState`.
         let sgvs: [AnyObject]
+        // Keep the experimental dictionary payload as a fallback for older xDrip4iOS installations.
+        var legacyRichPayload: [String: Any]?
         if let dict = decoded as? [String: Any] {
-            applyRichState(dict)
+            legacyRichPayload = dict
             sgvs = (dict["recentReadings"] as? [AnyObject]) ?? []
         } else if let arr = decoded as? [AnyObject] {
-            applyRichState(nil)
             sgvs = arr
         } else {
-            return []
+            sgvs = []
         }
+
+        // The separate envelope is additive, so the legacy reading array remains unchanged for older Trio versions.
+        let metadata = AppGroupCGMMetadataDecoder.decode(
+            sharedDefaults: sharedDefaults,
+            readings: sgvs,
+            source: from,
+            parseDate: parseDate
+        )
+
+        cgmInformation.value = metadata
+        // The existing Home status continues to use the experimental payload when one was received.
+        applyRichState(legacyRichPayload)
 
         var results: [BloodGlucose] = []
 

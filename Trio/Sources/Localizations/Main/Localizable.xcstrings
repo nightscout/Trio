@@ -11941,6 +11941,9 @@
         }
       }
     },
+    "%lld readings" : {
+
+    },
     "%lld x" : {
       "localizations" : {
         "bg" : {
@@ -25521,6 +25524,7 @@
       }
     },
     "A heartbeat tells Trio to start a loop cycle. This is required for closed loop." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -26838,6 +26842,7 @@
     },
     "About this source" : {
       "comment" : "About this source",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -26966,6 +26971,9 @@
           }
         }
       }
+    },
+    "About xDrip4iOS" : {
+
     },
     "above" : {
       "comment" : "A comparison operator.",
@@ -65372,6 +65380,9 @@
         }
       }
     },
+    "Calibration" : {
+
+    },
     "Calibration unavailable" : {
       "localizations" : {
         "bg" : {
@@ -70773,7 +70784,11 @@
         }
       }
     },
+    "CGM Address" : {
+
+    },
     "CGM address :" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -126267,6 +126282,9 @@
         }
       }
     },
+    "Excess noise" : {
+
+    },
     "Exercise Mode" : {
       "comment" : "Headline \"Exercise Mode\"",
       "extractionState" : "manual",
@@ -126817,6 +126835,12 @@
           }
         }
       }
+    },
+    "Expired" : {
+
+    },
+    "Expires" : {
+
     },
     "Export Categories" : {
       "localizations" : {
@@ -129328,6 +129352,9 @@
           }
         }
       }
+    },
+    "Failed" : {
+
     },
     "Failed to create a new object in %@ from %@." : {
       "localizations" : {
@@ -134484,6 +134511,9 @@
           }
         }
       }
+    },
+    "Flatline" : {
+
     },
     "Follows the phone's current color scheme setting at that time" : {
       "localizations" : {
@@ -146050,6 +146080,12 @@
         }
       }
     },
+    "Grace" : {
+
+    },
+    "Grace period" : {
+
+    },
     "Gradient Purple = As readings approach and exceed above target, they become more purple." : {
       "localizations" : {
         "bg" : {
@@ -148047,6 +148083,9 @@
           }
         }
       }
+    },
+    "Heartbeat" : {
+
     },
     "Help" : {
       "comment" : "Help sheet title",
@@ -150950,6 +150989,9 @@
           }
         }
       }
+    },
+    "Historical Readings" : {
+
     },
     "History" : {
       "comment" : "Header",
@@ -167441,6 +167483,9 @@
           }
         }
       }
+    },
+    "Last Reading" : {
+
     },
     "Last run" : {
       "extractionState" : "manual",
@@ -202006,6 +202051,12 @@
         }
       }
     },
+    "Not started" : {
+
+    },
+    "Not used" : {
+
+    },
     "Note" : {
       "comment" : "Food Type / Meal Note",
       "extractionState" : "manual",
@@ -217437,6 +217488,9 @@
         }
       }
     },
+    "Persistent noise" : {
+
+    },
     "Phone NFC required!" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -226532,6 +226586,9 @@
         }
       }
     },
+    "Quality" : {
+
+    },
     "Quantity Carbs" : {
       "localizations" : {
         "bg" : {
@@ -231900,6 +231957,9 @@
         }
       }
     },
+    "Remaining" : {
+
+    },
     "Remaining Carbs Cap" : {
       "comment" : "Remaining Carbs Cap",
       "localizations" : {
@@ -233594,6 +233654,9 @@
           }
         }
       }
+    },
+    "Required" : {
+
     },
     "Reservoir Empty" : {
       "localizations" : {
@@ -243612,6 +243675,9 @@
         }
       }
     },
+    "Sensor" : {
+
+    },
     "Sensor Age" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -244297,6 +244363,9 @@
           }
         }
       }
+    },
+    "Sensor error" : {
+
     },
     "Sensor expires soon" : {
       "extractionState" : "manual",
@@ -245524,6 +245593,9 @@
           }
         }
       }
+    },
+    "Serial" : {
+
     },
     "Series" : {
       "localizations" : {
@@ -260644,6 +260716,9 @@
         }
       }
     },
+    "Started" : {
+
+    },
     "Started Override \"%@\" successfully." : {
       "comment" : "Start override with override name",
       "localizations" : {
@@ -262100,6 +262175,9 @@
         }
       }
     },
+    "Status" : {
+
+    },
     "Stay in open loop (no automated dosing) for a bit to help Trio catch up to keep you safe" : {
       "localizations" : {
         "bg" : {
@@ -263406,6 +263484,9 @@
           }
         }
       }
+    },
+    "Stopped" : {
+
     },
     "Stopped Override successfully." : {
       "comment" : "Stopped Override successfully",
@@ -271830,6 +271911,9 @@
           }
         }
       }
+    },
+    "Temporary sensor issue" : {
+
     },
     "Temporary Target" : {
       "localizations" : {
@@ -290874,6 +290958,9 @@
         }
       }
     },
+    "Timestamp" : {
+
+    },
     "Tip: Decreasing this value allows automatic adjustments of basal rates to be lower and ISF to be higher." : {
       "localizations" : {
         "bg" : {
@@ -296110,6 +296197,9 @@
           }
         }
       }
+    },
+    "Transmitter" : {
+
     },
     "Transmitter ID" : {
       "comment" : "CGM Transmitter ID",
@@ -313067,6 +313157,9 @@
         }
       }
     },
+    "Version %@" : {
+
+    },
     "Very High (>%@)" : {
       "localizations" : {
         "bg" : {
@@ -314246,6 +314339,12 @@
           }
         }
       }
+    },
+    "Warming up" : {
+
+    },
+    "Warmup" : {
+
     },
     "Warning when bolusing with a very low or forecasted very low glucose." : {
       "localizations" : {
@@ -323040,6 +323139,9 @@
           }
         }
       }
+    },
+    "xDrip4iOS is providing a CGM heartbeat to Trio." : {
+
     },
     "Yes" : {
       "comment" : "Button",

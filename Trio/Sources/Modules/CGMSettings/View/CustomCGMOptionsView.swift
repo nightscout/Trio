@@ -15,6 +15,8 @@ extension CGMSettings {
         @Environment(\.presentationMode) var presentationMode
 
         @State private var shouldDisplayDeletionConfirmation: Bool = false
+        // The heartbeat address is useful for troubleshooting but too long to keep in the main configuration list.
+        @State private var shouldDisplayCGMAddress: Bool = false
 
         // Simulator settings
         @State private var centerValue: Double = UserDefaults.standard.double(forKey: "GlucoseSimulator_CenterValue")
@@ -80,7 +82,15 @@ extension CGMSettings {
                         if cgmCurrent.type == .nightscout {
                             nightscoutSection
                         } else if cgmCurrent.type == .xdrip {
+                            // Older xDrip4iOS versions simply omit these optional rich-information views.
+                            if let producer = state.xDripCGMInformation?.producer {
+                                xDripProducerBanner(producer)
+                            }
                             xDripConfigurationSection
+                            if let information = state.xDripCGMInformation {
+                                xDripSensorSection(information)
+                                xDripReadingsSection(information)
+                            }
                         } else if cgmCurrent.type == .simulator {
                             simulatorConfigurationSection
                         }
@@ -140,6 +150,11 @@ extension CGMSettings {
                         }
                     ]
                 )
+                .alert("CGM Address", isPresented: $shouldDisplayCGMAddress) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text(state.cgmTransmitterDeviceAddress ?? "")
+                }
                 .onAppear {
                     if cgmCurrent.type == .simulator {
                         initializeSimulatorSettings()
@@ -201,44 +216,288 @@ extension CGMSettings {
         }
 
         var xDripConfigurationSection: some View {
-            Section(
-                header: Text("Configuration"),
-                content: {
-                    VStack(alignment: .leading) {
-                        if let cgmTransmitterDeviceAddress = UserDefaults.standard
-                            .cgmTransmitterDeviceAddress
-                        {
-                            Text("CGM address :").padding(.top)
-                            Text(cgmTransmitterDeviceAddress)
-                        } else {
-                            Text("CGM is not used as heartbeat.").padding(.top)
-                        }
-
-                        HStack(alignment: .center) {
-                            Text(
-                                "A heartbeat tells Trio to start a loop cycle. This is required for closed loop."
-                            )
-                            .font(.footnote)
-                            .foregroundStyle(Color.secondary)
-                            .lineLimit(nil)
+            Section {
+                if state.cgmTransmitterDeviceAddress != nil {
+                    // Keep the row neutral in appearance and reveal the full address only when requested.
+                    Button {
+                        shouldDisplayCGMAddress = true
+                    } label: {
+                        HStack {
+                            Text("Heartbeat")
+                                .foregroundStyle(.primary)
                             Spacer()
-                        }.padding(.vertical)
+                            Text("Enabled")
+                                .foregroundStyle(.secondary)
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(.secondary)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    HStack {
+                        Text("Heartbeat")
+                        Spacer()
+                        Text("Not used")
+                            .foregroundStyle(.secondary)
+                    }
+                }
 
-                        if let link = cgmCurrent.type.externalLink {
-                            Button {
-                                UIApplication.shared.open(link, options: [:], completionHandler: nil)
-                            } label: {
-                                HStack {
-                                    Text("About this source")
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                // The producer banner becomes the About link when app identity is available.
+                if !hasXDripProducerBanner, let link = cgmCurrent.type.externalLink {
+                    Button {
+                        UIApplication.shared.open(link, options: [:], completionHandler: nil)
+                    } label: {
+                        HStack {
+                            Text("About xDrip4iOS")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } header: {
+                Text("Configuration")
+            } footer: {
+                Text("xDrip4iOS is providing a CGM heartbeat to Trio.")
+            }
+            .listRowBackground(Color.chart)
+        }
+
+        @ViewBuilder private func xDripProducerBanner(_ producer: AppGroupCGMInformation.Producer) -> some View {
+            if producer.appName != nil || producer.version != nil {
+                Section {
+                    if let link = cgmCurrent.type.externalLink {
+                        Button {
+                            UIApplication.shared.open(link, options: [:], completionHandler: nil)
+                        } label: {
+                            xDripProducerBannerContent(producer, showsDisclosureIndicator: true)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        xDripProducerBannerContent(producer, showsDisclosureIndicator: false)
+                    }
+                }
+                .listRowBackground(Color.chart)
+            }
+        }
+
+        private func xDripProducerBannerContent(
+            _ producer: AppGroupCGMInformation.Producer,
+            showsDisclosureIndicator: Bool
+        ) -> some View {
+            HStack(spacing: 12) {
+                Image(systemName: "app.badge.fill")
+                    .font(.title2)
+                    .foregroundStyle(Color.accentColor)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    if let appName = producer.appName {
+                        Text(appName)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                    }
+                    if let version = producer.version {
+                        Text("Version \(version)")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Spacer()
+
+                if showsDisclosureIndicator {
+                    Image(systemName: "chevron.right")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
+        }
+
+        private var hasXDripProducerBanner: Bool {
+            guard let producer = state.xDripCGMInformation?.producer else { return false }
+            return producer.appName != nil || producer.version != nil
+        }
+
+        @ViewBuilder private func xDripSensorSection(_ information: AppGroupCGMInformation) -> some View {
+            let sensor = information.sensor
+            let calibration = information.calibration?.state
+            let quality = information.latestData?.qualityCode
+            let hasSensorInformation = sensor != nil || information.transmitter != nil ||
+                calibration == "required" || calibration == "error" ||
+                (quality != nil && quality != "reliable")
+            if hasSensorInformation {
+                Section("Sensor") {
+                    optionalValueRow("Status", value: sensor?.state.map(displayCode))
+                    optionalValueRow("Sensor", value: sensor?.model ?? sensor?.type.map(displayCode))
+                    optionalValueRow("Serial", value: sensor?.serialNumber)
+                    optionalDateRow("Started", date: sensor?.startedAt)
+
+                    // Warmup end is useful during warmup but becomes unnecessary once normal readings begin.
+                    if sensor?.state == "warmup" {
+                        optionalDateRow("Warmup", date: sensor?.warmupEndsAt)
+                    }
+
+                    optionalDateRow("Expires", date: sensor?.expiresAt)
+                    optionalDateRow("Grace", date: sensor?.graceEndsAt)
+
+                    if let end = information.lifecycleEnd {
+                        liveDurationRow("Remaining", target: end)
+                    }
+
+                    optionalValueRow("Transmitter", value: information.transmitter?.identifier)
+                    if let battery = information.transmitter?.battery {
+                        informationRow("Battery", value: batteryDescription(value: battery.value, unit: battery.unit))
+                    }
+
+                    // Normal calibration and quality states add noise, so only surface states requiring attention.
+                    if calibration == "required" || calibration == "error", let calibration {
+                        informationRow("Calibration", value: displayCode(calibration))
+                    }
+
+                    if let quality, quality != "reliable" {
+                        informationRow("Quality", value: displayCode(quality))
+                    }
+                }
+                .listRowBackground(Color.chart)
+            }
+        }
+
+        @ViewBuilder private func xDripReadingsSection(_ information: AppGroupCGMInformation) -> some View {
+            if let latestReading = information.recentReadings.first {
+                Section("Readings") {
+                    informationRow("Last Reading", value: latestReading.glucoseMgDl.formatted(withUnits: state.units))
+                    relativeDateRow("Timestamp", date: latestReading.date)
+
+                    // Keep the main screen compact while still making every shared recent reading available.
+                    NavigationLink {
+                        XDripHistoricalReadingsView(
+                            readings: information.recentReadings,
+                            units: state.units
+                        )
+                    } label: {
+                        HStack {
+                            Text("History")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            Text("\(information.recentReadings.count) readings")
+                                .foregroundStyle(.secondary)
                         }
                     }
                 }
-            ).listRowBackground(Color.chart)
+                .listRowBackground(Color.chart)
+            }
+        }
+
+        private struct XDripHistoricalReadingsView: View {
+            let readings: [AppGroupCGMInformation.RecentReading]
+            let units: GlucoseUnits
+
+            var body: some View {
+                List(readings) { reading in
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(reading.date.formatted(.dateTime.day().month(.abbreviated).hour().minute()))
+                        Spacer()
+                        Text(reading.glucoseMgDl.formatted(withUnits: units))
+                            .foregroundStyle(.secondary)
+                    }
+                    .listRowBackground(Color.chart)
+                }
+                .navigationTitle("Historical Readings")
+                .navigationBarTitleDisplayMode(.inline)
+            }
+        }
+
+        @ViewBuilder private func optionalValueRow(_ title: LocalizedStringKey, value: String?) -> some View {
+            if let value, !value.isEmpty { informationRow(title, value: value) }
+        }
+
+        @ViewBuilder private func optionalDateRow(_ title: LocalizedStringKey, date: Date?) -> some View {
+            if let date {
+                informationRow(title, value: date.formatted(.dateTime.day().month(.abbreviated).hour().minute()))
+            }
+        }
+
+        private func relativeDateRow(_ title: LocalizedStringKey, date: Date) -> some View {
+            HStack {
+                Text(title)
+                Spacer()
+                // Refresh relative text locally; xDrip4iOS does not need to republish metadata for display updates.
+                TimelineView(.periodic(from: .now, by: 30)) { context in
+                    Text(relativeDescription(for: date, relativeTo: context.date))
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+
+        private func liveDurationRow(_ title: LocalizedStringKey, target: Date) -> some View {
+            HStack {
+                Text(title)
+                Spacer()
+                // Lifecycle countdowns continue to move even when no new glucose arrives.
+                TimelineView(.periodic(from: .now, by: 30)) { context in
+                    Text(duration(from: context.date, to: target))
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+
+        private func informationRow(_ title: LocalizedStringKey, value: String) -> some View {
+            HStack(alignment: .firstTextBaseline) {
+                Text(title)
+                Spacer()
+                Text(value)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.trailing)
+                    .textSelection(.enabled)
+            }
+        }
+
+        private func displayCode(_ code: String) -> String {
+            // Stable bridge codes are converted to Trio-owned display text only at the UI boundary.
+            switch code {
+            case "not_started": return String(localized: "Not started")
+            case "warmup": return String(localized: "Warming up")
+            case "active": return String(localized: "Active")
+            case "grace": return String(localized: "Grace period")
+            case "expired": return String(localized: "Expired")
+            case "stopped": return String(localized: "Stopped")
+            case "failed": return String(localized: "Failed")
+            case "required": return String(localized: "Required")
+            case "error": return String(localized: "Error")
+            case "temporary_sensor_issue": return String(localized: "Temporary sensor issue")
+            case "excess_noise": return String(localized: "Excess noise")
+            case "persistent_noise": return String(localized: "Persistent noise")
+            case "flatline": return String(localized: "Flatline")
+            case "sensor_error": return String(localized: "Sensor error")
+            default: return code.replacingOccurrences(of: "_", with: " ").capitalized
+            }
+        }
+
+        private func batteryDescription(value: Double, unit: String?) -> String {
+            // Preserve unknown units as a plain numeric value instead of guessing.
+            switch unit {
+            case "percent": return "\(Int(value.rounded()))%"
+            case "millivolts": return "\(Int(value.rounded())) mV"
+            default: return value.formatted()
+            }
+        }
+
+        private func duration(from start: Date, to end: Date) -> String {
+            let seconds = max(0, end.timeIntervalSince(start))
+            let formatter = DateComponentsFormatter()
+            formatter.allowedUnits = seconds >= 24 * 60 * 60 ? [.day, .hour] : [.hour, .minute]
+            formatter.unitsStyle = .abbreviated
+            formatter.maximumUnitCount = 2
+            return formatter.string(from: seconds) ?? String(localized: "Unavailable")
+        }
+
+        private func relativeDescription(for date: Date, relativeTo referenceDate: Date) -> String {
+            let formatter = RelativeDateTimeFormatter()
+            formatter.dateTimeStyle = .named
+            formatter.unitsStyle = .abbreviated
+            return formatter.localizedString(for: date, relativeTo: referenceDate)
         }
 
         var simulatorConfigurationSection: some View {
