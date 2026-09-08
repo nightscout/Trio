@@ -71,6 +71,7 @@ extension PumpConfig {
                                             label: {
                                                 HStack {
                                                     Image(systemName: "questionmark.circle")
+                                                        .accessibilityLabel(Text("More information"))
                                                 }
                                             }
                                         ).buttonStyle(BorderlessButtonStyle())

@@ -73,11 +73,8 @@ enum ProfileGenerator {
         preferences: Preferences,
         carbRatios: CarbRatios,
         tempTargets: [TempTarget],
-        model: String,
         clock: Date
     ) throws -> Profile {
-        let model = model.replacingOccurrences(of: "\"", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
-
         guard !carbRatios.schedule.isEmpty else {
             throw ProfileError.invalidCarbRatio
         }
@@ -105,7 +102,6 @@ enum ProfileGenerator {
             preferences: preferences,
             carbRatios: carbRatios,
             tempTargets: tempTargets,
-            model: model,
             clock: clock
         )
     }
@@ -119,7 +115,6 @@ enum ProfileGenerator {
         preferences: Preferences,
         carbRatios: CarbRatios,
         tempTargets: [TempTarget],
-        model: String,
         clock: Date
     ) throws -> Profile {
         var profile = Profile() // start with the defaults
@@ -137,7 +132,6 @@ enum ProfileGenerator {
         }
         profile.dia = pumpSettings.insulinActionCurve
 
-        profile.model = model
         profile.skipNeutralTemps = preferences.skipNeutralTemps
 
         profile.currentBasal = try Basal.basalLookup(basalProfile, now: clock)

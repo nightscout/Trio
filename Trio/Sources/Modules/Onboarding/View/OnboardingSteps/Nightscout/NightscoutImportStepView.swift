@@ -46,6 +46,11 @@ struct NightscoutImportStepView: View {
                             .cornerRadius(10)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text(option.displayName))
+                        .accessibilityAddTraits(
+                            state.nightscoutImportOption == option ? [.isButton, .isSelected] : .isButton
+                        )
                     }
 
                     VStack(alignment: .leading, spacing: 10) {

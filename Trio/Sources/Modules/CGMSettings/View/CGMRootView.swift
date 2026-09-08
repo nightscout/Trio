@@ -70,6 +70,7 @@ extension CGMSettings {
                                                 label: {
                                                     HStack {
                                                         Image(systemName: "questionmark.circle")
+                                                            .accessibilityLabel(Text("More information"))
                                                     }
                                                 }
                                             ).buttonStyle(BorderlessButtonStyle())
@@ -146,8 +147,7 @@ extension CGMSettings {
                 .navigationBarItems(leading: displayClose ? Button("Close", action: state.hideModal) : nil)
                 .sheet(isPresented: $state.shouldDisplayCGMSetupSheet) {
                     switch state.cgmCurrent.type {
-                    case .enlite,
-                         .nightscout,
+                    case .nightscout,
                          .none,
                          .simulator,
                          .xdrip:
