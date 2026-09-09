@@ -34,6 +34,8 @@ struct ContactImageDetailView: View {
                         .foregroundColor(colorScheme == .dark ? .white : .black)
                         .frame(width: 100, height: 100)
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("Contact image preview"))
                 Spacer()
             }
             .padding(.top, 80)
@@ -135,7 +137,7 @@ struct ContactImageDetailView: View {
                         state.isHelpSheetPresented.toggle()
                     },
                     label: {
-                        Image(systemName: "questionmark.circle")
+                        Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
                     }
                 )
             }

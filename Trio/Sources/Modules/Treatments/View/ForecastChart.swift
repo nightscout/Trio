@@ -197,6 +197,27 @@ struct ForecastChart: View {
             "zt": Color.zt,
             "cob": Color.orange
         ])
+        // Custom chart VoiceOver cannot explore; give it a spoken summary.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(forecastChartAccessibilityLabel))
+    }
+
+    /// Spoken summary: latest glucose and the forecast eventual glucose.
+    private var forecastChartAccessibilityLabel: String {
+        let unitLabel = state.units == .mgdL ? String(localized: "mg/dL") : String(localized: "mmol/L")
+        func format(_ value: Int) -> String {
+            state.units == .mgdL ? Decimal(value).description : Decimal(value).formattedAsMmolL
+        }
+        var parts = [String(localized: "Glucose and forecast chart", comment: "Accessibility: chart summary")]
+        if let latest = state.latestGlucose {
+            parts.append(String(localized: "latest", comment: "Accessibility") + " \(format(Int(latest.glucose))) \(unitLabel)")
+        }
+        let eventual: Int? = state.simulatedDetermination?.eventualBG
+            ?? state.determination.first?.eventualBG.map { Int(truncating: $0) }
+        if let eventual {
+            parts.append(String(localized: "forecast eventually", comment: "Accessibility") + " \(format(eventual)) \(unitLabel)")
+        }
+        return parts.joined(separator: ", ")
     }
 
     @ViewBuilder var selectionPopover: some View {

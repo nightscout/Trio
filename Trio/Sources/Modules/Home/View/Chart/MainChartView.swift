@@ -201,6 +201,36 @@ struct MainChartView: View {
                 mainChartHasInitialized = true
             }
         }
+        // The chart is a custom gesture canvas VoiceOver cannot explore; give it a
+        // spoken summary. (A full AXChartDescriptor audio graph is a follow-up that
+        // needs on-device VoiceOver verification to avoid misrepresenting trends.)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(chartAccessibilitySummary))
+    }
+
+    /// Spoken summary of the visible glucose: latest value and the min–max range.
+    private var chartAccessibilitySummary: String {
+        let visible = state.glucoseFromPersistence.filter { ($0.date ?? .distantPast) >= renderWindowStart }
+        let sample = visible.isEmpty ? state.glucoseFromPersistence : visible
+        guard let latest = sample.last else {
+            return String(localized: "Glucose chart, no data", comment: "Accessibility: empty chart")
+        }
+        let unitLabel = units.spokenValue
+        func format(_ value: Int16) -> String {
+            units == .mgdL ? Decimal(value).description : Decimal(value).formattedAsMmolL
+        }
+        let latestString = format(latest.glucose)
+        let values = sample.map(\.glucose)
+        if let low = values.min(), let high = values.max(), low != high {
+            return String(
+                localized: "Glucose chart. Latest \(latestString) \(unitLabel). Visible range \(format(low)) to \(format(high)).",
+                comment: "Accessibility: chart summary with range"
+            )
+        }
+        return String(
+            localized: "Glucose chart. Latest \(latestString) \(unitLabel).",
+            comment: "Accessibility: chart summary"
+        )
     }
 }
 
@@ -929,16 +959,6 @@ extension MainChartCanvas {
                 viewContext: context
             )
 
-            GlucoseChartView(
-                glucoseData: glucose,
-                units: state.units,
-                highGlucose: state.highGlucose,
-                lowGlucose: state.lowGlucose,
-                currentGlucoseTarget: state.currentGlucoseTarget,
-                isSmoothingEnabled: state.isSmoothingEnabled,
-                glucoseColorScheme: state.glucoseColorScheme
-            )
-
             InsulinView(
                 glucoseData: glucose,
                 insulinData: insulin,
@@ -963,6 +983,16 @@ extension MainChartCanvas {
                 maxValue: state.maxYAxisValue,
                 forecastDisplayType: state.forecastDisplayType,
                 lastDeterminationDate: state.determinationsFromPersistence.first?.deliverAt ?? .distantPast
+            )
+
+            GlucoseChartView(
+                glucoseData: glucose,
+                units: state.units,
+                highGlucose: state.highGlucose,
+                lowGlucose: state.lowGlucose,
+                currentGlucoseTarget: state.currentGlucoseTarget,
+                isSmoothingEnabled: state.isSmoothingEnabled,
+                glucoseColorScheme: state.glucoseColorScheme
             )
         }
         .frame(width: canvasWidth, height: mainHeight)
