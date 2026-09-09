@@ -165,27 +165,26 @@ struct ChartSelectionRow: View {
     /// can't be misread as a second state. Each gets its own reserved box with the slack
     /// pushed outwards, so the pair stays welded together at every reading width.
     @ViewBuilder private var glucoseGroup: some View {
-        HStack(spacing: 4) {
-            item(
-                icon: "drop.fill",
-                tint: pointMarkColor,
-                value: Text(glucoseToDisplay.description).foregroundStyle(pointMarkColor),
-                template: Text(glucoseTemplate),
-                // Flush right when the smoothed pair follows, so the spare digit shows up
-                // where the row has slack, not between the reading and its bracket.
-                alignment: smoothedToDisplay == nil ? .leading : .trailing
-            )
+        // verbatim: brackets have nothing to translate, and Xcode would otherwise extract
+        // them into the string catalog
+        let open = Text(verbatim: "(")
+        let close = Text(verbatim: ")")
+        let reading = Text(glucoseToDisplay.description).foregroundStyle(pointMarkColor)
+        let smoothed = smoothedToDisplay.map { (open + Text($0.description) + close).foregroundStyle(.secondary) }
 
-            if let smoothedToDisplay {
-                // verbatim: nothing to translate, and Xcode would extract them into the catalog
-                let open = Text(verbatim: "(")
-                let close = Text(verbatim: ")")
-                item(
-                    value: (open + Text(smoothedToDisplay.description) + close).foregroundStyle(.secondary),
-                    template: open + Text(glucoseTemplate) + close
-                )
-            }
-        }
+        item(
+            icon: "drop.fill",
+            tint: pointMarkColor,
+            value: smoothed.map { reading + $0 } ?? reading,
+            // One box for the pair, not one each: separate boxes would park the reading's
+            // spare digits between it and its bracket. The setting decides the width, not
+            // the individual reading — with smoothing on the bracket's room is held even for
+            // a reading that has no smoothed value, so the row never reflows mid-scrub; with
+            // it off the box is just the reading and the row is that much tighter.
+            template: isSmoothingEnabled
+                ? Text(glucoseTemplate) + open + Text(glucoseTemplate) + close
+                : Text(glucoseTemplate)
+        )
     }
 
     /// The smoothed reading in display units, or nil with smoothing off or no smoothed value.
@@ -198,14 +197,17 @@ struct ChartSelectionRow: View {
     /// gains a digit mid-scrub can't resize its group and shove the row sideways. The template
     /// is hidden (hidden views are skipped by VoiceOver, which reads only the value) with the
     /// value drawn over it, and is a `Text` so a unit is measured inside the box at its own
-    /// weight. Leading alignment collects the slack at the trailing edge, tucking value and
-    /// unit against their glyph; a box labelled from the right passes `.trailing` instead.
+    /// weight.
+    ///
+    /// Every box is leading-aligned, so each value starts at a fixed offset from its glyph and
+    /// the slack a short number leaves collects at the end of its own box. Aligning from the
+    /// right would move the number itself as digits come and go — 9 → 10, 99 → 100 — which is
+    /// the wobble the reserved boxes exist to prevent.
     @ViewBuilder private func item(
         icon: String? = nil,
         tint: Color = .secondary,
         value: Text,
-        template: Text,
-        alignment: Alignment = .leading
+        template: Text
     ) -> some View {
         HStack(spacing: 4) {
             if let icon {
@@ -216,7 +218,7 @@ struct ChartSelectionRow: View {
             }
             template
                 .hidden()
-                .overlay(alignment: alignment) {
+                .overlay(alignment: .leading) {
                     value.fixedSize(horizontal: true, vertical: false)
                 }
         }
