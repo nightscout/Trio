@@ -102,6 +102,10 @@ struct ChartSelectionRow: View {
         Self.timeTemplateDate.formatted(.dateTime.hour().minute(.twoDigits))
     }
 
+    /// Stand-in for a value the selection resolves to nothing: the item keeps its place and
+    /// its width, and says so rather than vanishing.
+    private static let missingValue = Text(verbatim: "–").foregroundStyle(.secondary)
+
     /// Widest reading the unit can produce: three digits in mg/dL, `88.8` in mmol/L.
     private var glucoseTemplate: String { units == .mgdL ? "888" : "88.8" }
 
@@ -133,25 +137,31 @@ struct ChartSelectionRow: View {
 
             glucoseGroup
 
-            if let iob = determination?.iob {
-                let unit = Text(String(localized: " U", comment: "Insulin unit")).fontWeight(.regular)
-                item(
-                    icon: "syringe.fill",
-                    tint: Color.insulin,
-                    value: Text(Formatter.decimalFormatterWithTwoFractionDigits.string(from: iob) ?? "") + unit,
-                    template: Text(verbatim: "88.88") + unit
-                )
-            }
+            // Both stay in the row when the scrub lands where oref produced no determination
+            // — a gap in the data, or a loop that never ran — and show a dash instead. Letting
+            // them come and go would resize the row under the finger, which is the one thing
+            // the reserved boxes exist to prevent.
+            let iobUnit = Text(String(localized: " U", comment: "Insulin unit")).fontWeight(.regular)
+            let iobString = determination?.iob
+                .flatMap { Formatter.decimalFormatterWithTwoFractionDigits.string(from: $0) }
+            item(
+                icon: "syringe.fill",
+                tint: Color.insulin,
+                value: iobString.map { Text($0) + iobUnit } ?? Self.missingValue,
+                template: Text(verbatim: "88.88") + iobUnit,
+                alignment: iobString == nil ? .center : .leading
+            )
 
-            if let determination {
-                let unit = Text(String(localized: " g", comment: "gram of carbs")).fontWeight(.regular)
-                item(
-                    icon: "fork.knife",
-                    tint: .loopYellow,
-                    value: Text(Formatter.integerFormatter.string(from: determination.cob as NSNumber) ?? "") + unit,
-                    template: Text(verbatim: "888") + unit
-                )
-            }
+            let cobUnit = Text(String(localized: " g", comment: "gram of carbs")).fontWeight(.regular)
+            let cobString = determination
+                .flatMap { Formatter.integerFormatter.string(from: $0.cob as NSNumber) }
+            item(
+                icon: "fork.knife",
+                tint: .loopYellow,
+                value: cobString.map { Text($0) + cobUnit } ?? Self.missingValue,
+                template: Text(verbatim: "888") + cobUnit,
+                alignment: cobString == nil ? .center : .leading
+            )
         }
         .font(font).fontWeight(.bold).fontDesign(.rounded)
         // equal-width digits, so a value can't wobble inside its reserved box mid-scrub
@@ -199,15 +209,19 @@ struct ChartSelectionRow: View {
     /// value drawn over it, and is a `Text` so a unit is measured inside the box at its own
     /// weight.
     ///
-    /// Every box is leading-aligned, so each value starts at a fixed offset from its glyph and
-    /// the slack a short number leaves collects at the end of its own box. Aligning from the
-    /// right would move the number itself as digits come and go — 9 → 10, 99 → 100 — which is
-    /// the wobble the reserved boxes exist to prevent.
+    /// Values are leading-aligned, so each starts at a fixed offset from its glyph and the
+    /// slack a short number leaves collects at the end of its own box. Aligning from the right
+    /// would move the number itself as digits come and go — 9 → 10, 99 → 100 — which is the
+    /// wobble the reserved boxes exist to prevent.
+    ///
+    /// A missing-value dash passes `.center` instead: it stands for the whole box rather than
+    /// starting one, so it belongs in the middle of the room it holds.
     @ViewBuilder private func item(
         icon: String? = nil,
         tint: Color = .secondary,
         value: Text,
-        template: Text
+        template: Text,
+        alignment: Alignment = .leading
     ) -> some View {
         HStack(spacing: 4) {
             if let icon {
@@ -218,7 +232,7 @@ struct ChartSelectionRow: View {
             }
             template
                 .hidden()
-                .overlay(alignment: .leading) {
+                .overlay(alignment: alignment) {
                     value.fixedSize(horizontal: true, vertical: false)
                 }
         }
