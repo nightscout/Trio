@@ -24,8 +24,6 @@ struct BolusInputView: View {
 
     var body: some View {
         let bolusIncrement = Double(truncating: state.bolusIncrement as NSNumber)
-        // Snap to the increment grid so sub-increment floating-point residue left by
-        // dialing the crown up and back down doesn't read as a non-zero bolus.
         let adjustedBolusAmount = floor(bolusAmount / bolusIncrement) * bolusIncrement
 
         // In the "Meal & Bolus" flow the user can dial insulin down to zero (or the
@@ -33,7 +31,7 @@ struct BolusInputView: View {
         // offer a plain "Log Carbs" action instead of a dead-end disabled button.
         let isCarbsOnly = state.carbsAmount > 0 && adjustedBolusAmount <= 0
         let actionButtonLabel = isCarbsOnly
-            ? String(localized: "Log Carbs", comment: "Button Label to Log Carbs on Watch")
+            ? String(localized: "No Bolus, Log Carbs", comment: "Button Label to Log Carbs on Watch")
             : String(localized: "Enact Bolus")
 
         VStack {
@@ -133,7 +131,7 @@ struct BolusInputView: View {
                         }
                     }
                     .buttonStyle(.bordered)
-                    .tint(isCarbsOnly ? .orange : Color.insulin)
+                    .tint(Color.insulin)
                     .disabled(!isCarbsOnly && (!(bolusAmount > 0.0) || bolusAmount > effectiveBolusLimit))
 
                     Text(String(
