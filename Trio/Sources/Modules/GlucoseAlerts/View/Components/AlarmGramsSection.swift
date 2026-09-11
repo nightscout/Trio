@@ -28,6 +28,18 @@ struct AlarmGramsSection: View {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture { showPicker.toggle() }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(title))
+                .accessibilityValue(Text(
+                    "\(Int(NSDecimalNumber(decimal: valueGrams).intValue)) " + UnitSpelling.spoken("g")
+                ))
+                .accessibilityHint(Text(
+                    showPicker
+                        ? String(localized: "Closes the value picker", comment: "Accessibility hint")
+                        : String(localized: "Opens a picker to change this value", comment: "Accessibility hint")
+                ))
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { showPicker.toggle() }
 
                 if showPicker {
                     Picker(title, selection: Binding(

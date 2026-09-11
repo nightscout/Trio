@@ -62,6 +62,12 @@ extension Settings {
                         Image(systemName: versionIconName)
                             .foregroundColor(updateColor)
                     }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("Latest version: \(version), " + (
+                        versionInfo.isUpdateAvailable
+                            ? String(localized: "update available", comment: "Accessibility: version status")
+                            : String(localized: "up to date", comment: "Accessibility: version status")
+                    )))
                     if versionInfo.isBlacklisted {
                         HStack {
                             Text("Warning: Known issues. Update now.")
@@ -70,6 +76,7 @@ extension Settings {
                             Image(systemName: "exclamationmark.octagon.fill")
                                 .foregroundColor(.red)
                         }
+                        .accessibilityElement(children: .combine)
                     }
                 } else {
                     Text("Latest version: Fetching...")
@@ -92,6 +99,12 @@ extension Settings {
                                 .font(.footnote)
                                 .foregroundColor(devUpdateColor)
                         }
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text("Latest dev: \(devVersion), " + (
+                            versionInfo.isDevUpdateAvailable
+                                ? String(localized: "update available", comment: "Accessibility: version status")
+                                : String(localized: "up to date", comment: "Accessibility: version status")
+                        )))
                     } else {
                         Text("Latest dev: Fetching...")
                             .font(.footnote)
@@ -141,6 +154,7 @@ extension Settings {
                                 Image(systemName: "doc.on.doc.fill")
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel(Text("Copy version information"))
                             Text("BRANCH: \(buildDetails.branchAndSha)")
                         }.textCase(nil),
                         content: {
@@ -152,6 +166,7 @@ extension Settings {
                                         .frame(width: 50, height: 50)
                                         .cornerRadius(10)
                                         .padding(.trailing, 10)
+                                        .accessibilityHidden(true)
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text("Trio v\(devVersion) (\(buildNumber))")
                                             .font(.headline)

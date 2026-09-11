@@ -167,6 +167,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
                         .clipShape(Circle())
                         .font(.title3)
                 }
+                .accessibilityLabel(Text("Remove widget"))
                 .offset(x: 10, y: -10)
                 .glassActionSheet(
                     isPresented: $isRemovalConfirmationPresented,
@@ -199,6 +200,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
                 )
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(Text("Add widget"))
         }
     }
 

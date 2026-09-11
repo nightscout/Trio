@@ -200,6 +200,8 @@ extension ISFEditor {
                     AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
                 }
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("Insulin sensitivity profile chart, 24 hours"))
         }
     }
 }
