@@ -10280,7 +10280,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@. %2$@"
           }
         },
@@ -10809,8 +10809,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$d days %2$d hours"
+            "state" : "translated",
+            "value" : "%1$d jours %2$d heures"
           }
         },
         "he" : {
@@ -10940,8 +10940,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$d hours %2$d minutes"
+            "state" : "translated",
+            "value" : "%1$d heures %2$d minutes"
           }
         },
         "he" : {
@@ -11071,8 +11071,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%d calibration points"
+            "state" : "translated",
+            "value" : "%d points de calibration"
           }
         },
         "he" : {
@@ -11202,8 +11202,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%d hours"
+            "state" : "translated",
+            "value" : "%d heures"
           }
         },
         "he" : {
@@ -11333,7 +11333,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%d minutes"
           }
         },
@@ -73071,8 +73071,8 @@
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Carbs were logged. %@"
+            "state" : "translated",
+            "value" : "Węglowodany zostały zarejestrowane. %@"
           }
         },
         "pt-PT" : {
@@ -73113,14 +73113,14 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Carbs were logged. %@"
+            "state" : "translated",
+            "value" : "Đã ghi nhận Carbs. %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Carbs were logged. %@"
+            "state" : "translated",
+            "value" : "碳水已被记录。 %@"
           }
         },
         "zh-Hant" : {
@@ -207645,8 +207645,8 @@
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No Bolus, Log Carbs"
+            "state" : "translated",
+            "value" : "Bez bolusa, zarejestruj węglowodany"
           }
         },
         "pt-PT" : {
@@ -207687,14 +207687,14 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No Bolus, Log Carbs"
+            "state" : "translated",
+            "value" : "Không bolus, ghi nhận Carbs"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No Bolus, Log Carbs"
+            "state" : "translated",
+            "value" : "无大剂量，记录碳水"
           }
         },
         "zh-Hant" : {
@@ -338058,7 +338058,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "开启该功能后，当设置的临时目标血糖低于 %1$@ %2$@，系统会提高用于修正 ISF胰岛素敏感系数与基础率调节的自动敏感度系数，整体会输出更多胰岛素。该系数会跟随临时目标联动变化：临时目标设置得越低，使用的 自动敏感度系数 就越高。要让该功能生效，需要将「算法设置‑自动敏感度‑自动敏感度最大值」设置为大于 100%。"
+            "value" : "开启该功能后，当设置的临时目标血糖低于 %1$@ %2$@，系统会提高用于修正 ISF胰岛素敏感系数与基础率调节的自动敏感度系数，整体会输出更多胰岛素。该系数会跟随临时目标联动变化：临时目标设置得越低，使用的 自动敏感度系数 就越高。要让该功能生效，需要将「算法设置‑自动敏感度‑自动敏感度最大值」设置为大于 100%%。"
           }
         },
         "zh-Hant" : {
