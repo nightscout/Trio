@@ -196475,6 +196475,9 @@
         }
       }
     },
+    "No Bolus, Log Carbs" : {
+      "comment" : "Button Label to Log Carbs on Watch"
+    },
     "No confidence reminders are used." : {
       "comment" : "Description for BeepPreference.silent",
       "extractionState" : "manual",
