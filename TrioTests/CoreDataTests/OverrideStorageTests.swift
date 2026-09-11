@@ -222,4 +222,58 @@ import Testing
         #expect(notUploadedOverrides[0].duration == 90, "Duration should match")
         #expect(notUploadedOverrides[0].eventType == .nsExercise, "Event type should be exercise")
     }
+
+    @Test("Get override runs not yet uploaded to Nightscout") func testGetOverrideRunsNotYetUploadedToNightscout() async throws {
+        // Given
+        let now = Date()
+        let hour: TimeInterval = 60 * 60
+        let recentStart = now.addingTimeInterval(-2 * hour)
+        let longRunningStart = now.addingTimeInterval(-72 * hour)
+
+        await testContext.perform {
+            let recent = OverrideRunStored(context: self.testContext)
+            recent.id = UUID()
+            recent.name = "Recent"
+            recent.startDate = recentStart
+            recent.endDate = now.addingTimeInterval(-hour)
+            recent.isUploadedToNS = false
+
+            let longRunning = OverrideRunStored(context: self.testContext)
+            longRunning.id = UUID()
+            longRunning.name = "Long running"
+            longRunning.startDate = longRunningStart
+            longRunning.endDate = now.addingTimeInterval(-hour)
+            longRunning.isUploadedToNS = false
+
+            let stale = OverrideRunStored(context: self.testContext)
+            stale.id = UUID()
+            stale.name = "Stale"
+            stale.startDate = now.addingTimeInterval(-72 * hour)
+            stale.endDate = now.addingTimeInterval(-48 * hour)
+            stale.isUploadedToNS = false
+
+            let uploaded = OverrideRunStored(context: self.testContext)
+            uploaded.id = UUID()
+            uploaded.name = "Uploaded"
+            uploaded.startDate = recentStart
+            uploaded.endDate = now.addingTimeInterval(-hour)
+            uploaded.isUploadedToNS = true
+
+            try? self.testContext.save()
+        }
+
+        // When
+        let runs = try await storage.getOverrideRunsNotYetUploadedToNightscout()
+
+        // Then
+        #expect(
+            runs.compactMap(\.notes).sorted() == ["Long running", "Recent"],
+            "Runs that ended within the last day are uploaded, whenever they started"
+        )
+
+        let longRunning = try #require(runs.first { $0.notes == "Long running" })
+        #expect(longRunning.createdAt == longRunningStart, "created_at is the run's start")
+        #expect(longRunning.duration == 71 * 60, "Duration spans the whole run")
+        #expect(longRunning.eventType == .nsExercise, "Event type should be exercise")
+    }
 }
