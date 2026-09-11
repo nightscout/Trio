@@ -38,7 +38,7 @@ struct ChartLegendView: View {
                                     "Zooms continuously, between one hour and a full day on screen."
                                 ),
                                 color: Color.primary,
-                                iconString: "arrow.up.left.and.arrow.down.right"
+                                iconString: "hand.pinch"
                             )
 
                             DefinitionRow(
