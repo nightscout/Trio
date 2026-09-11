@@ -140,9 +140,6 @@ extension TargetsEditor {
             if let index = rateValues.firstIndex(of: rate) {
                 return index
             }
-
-            // When using mmol/L, value 83mg/dL cannot be found because 82mg/dL and 83mg/dL both round to 4.6 mmol/L
-            // try to look up the closest value
             if let min = rateValues.first, let max = rateValues.last {
                 if rate >= (min - 1), rate <= (max + 1) {
                     return rateValues.findClosestIndex(to: rate)
