@@ -8,8 +8,6 @@ import Swinject
 enum AdjustmentRef: Equatable {
     case objectID(NSManagedObjectID)
     case presetID(String)
-    /// The preset's display name, compared with surrounding whitespace trimmed on both sides.
-    /// Names are free text and may repeat, so the lowest order position wins.
     case presetName(String)
 }
 
