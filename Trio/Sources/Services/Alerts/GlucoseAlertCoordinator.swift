@@ -205,10 +205,12 @@ final class GlucoseAlertCoordinator: Injectable {
 
     private func evaluateForecast(_ determination: Determination) {
         guard !isInLaunchQuietWindow else { return }
-        guard effectiveTrioAlertsEnabled else {
-            retractAllFiringIfNeeded()
-            return
-        }
+        // No CGM-ownership guard here, unlike the reading path: a CGM app can
+        // alarm on the current reading, but it cannot compute Trio's oref
+        // forecast, so it can never cover this alarm. Same reasoning as
+        // `evaluateCarbsRequired`, and it matches what the settings screen
+        // shows the user — only reading-driven types move into the
+        // "Handled by CGM App" section.
         let snapshot = alertsSnapshot
         let configuration = configurationSnapshot
         let now = Date()

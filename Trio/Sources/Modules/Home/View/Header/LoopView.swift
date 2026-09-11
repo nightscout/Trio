@@ -18,19 +18,69 @@ struct LoopView: View {
 
     let determination: [OrefDetermination]
 
+    private let rect = CGRect(x: 0, y: 0, width: 18, height: 18)
+
     var body: some View {
-        CapsuleSpinnerView(isLooping: isLooping, color: color) { isSpinnerAnimating in
-            loopStatusContent(isAnimating: isSpinnerAnimating)
-        }
+        loopStatusWithMinutes
+            .padding(.vertical, 5)
+            .padding(.horizontal, 10)
+            .overlay(
+                Capsule()
+                    .stroke(color.opacity(0.4), lineWidth: 2)
+            )
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(loopAccessibilityLabel))
     }
 
-    private func loopStatusContent(isAnimating: Bool) -> some View {
+    /// Spoken description of loop state — mirrors the color/text logic so the
+    /// color-coded health (green/yellow/red) is conveyed in words, not just hue.
+    private var loopAccessibilityLabel: String {
+        let status: String
+        if manualTempBasal {
+            status = String(localized: "manual temporary basal running", comment: "Accessibility: loop status")
+        } else if determination.first?.timestamp == nil {
+            status = String(localized: "not looping", comment: "Accessibility: loop status")
+        } else if !closedLoop {
+            status = String(localized: "open loop", comment: "Accessibility: loop status")
+        } else {
+            let delta = timerDate.timeIntervalSince(lastLoopDate) - Config.lag
+            if delta <= 5.minutes.timeInterval {
+                status = String(localized: "looping normally", comment: "Accessibility: loop status")
+            } else if delta <= 10.minutes.timeInterval {
+                status = String(localized: "last loop delayed", comment: "Accessibility: loop status")
+            } else {
+                status = String(localized: "loop overdue", comment: "Accessibility: loop status")
+            }
+        }
+
+        let age: String
+        if isLooping {
+            age = String(localized: "in progress", comment: "Accessibility: loop currently running")
+        } else if determination.first?.deliverAt != nil, timeString != "--" {
+            age = String(
+                format: String(localized: "last loop %@", comment: "Accessibility: loop age"),
+                TimeAgoFormatter.minutesAgoAccessible(from: lastLoopDate)
+            )
+        } else {
+            age = ""
+        }
+
+        return [String(localized: "Loop", comment: "Accessibility: loop pill label"), status, age]
+            .filter { !$0.isEmpty }
+            .joined(separator: ", ")
+    }
+
+    private var loopStatusWithMinutes: some View {
         HStack(alignment: .center) {
             ZStack {
                 Image(systemName: (!closedLoop || manualTempBasal) ? "circle.and.line.horizontal" : "circle")
-                    .symbolEffect(.pulse, options: .repeating, isActive: isAnimating)
+                if isLooping {
+                    ProgressView()
+                }
             }
-            if manualTempBasal {
+            if isLooping {
+                Text("looping")
+            } else if manualTempBasal {
                 Text("Manual")
             } else if determination.first?
                 .deliverAt !=

@@ -283,6 +283,7 @@ extension Treatments {
                     })
                         .foregroundStyle(.blue)
                         .buttonStyle(PlainButtonStyle())
+                        .accessibilityLabel(Text("About the recommendation"))
                 }
                 Spacer()
                 Button {
@@ -305,6 +306,12 @@ extension Treatments {
                 }
                 .disabled(state.insulinCalculated == 0 || state.amount == state.insulinCalculated)
                 .buttonStyle(.bordered).padding(.trailing, -10)
+                .accessibilityLabel(Text(
+                    "Use recommended bolus, "
+                        + (formatter.string(from: Double(state.insulinCalculated) as NSNumber) ?? "")
+                        + " " + String(localized: "units", comment: "Insulin units, spoken")
+                ))
+                .accessibilityHint(Text("Copies the recommended amount into the bolus field"))
             }
 
             HStack {

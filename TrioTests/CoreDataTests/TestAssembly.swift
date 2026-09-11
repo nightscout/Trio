@@ -40,5 +40,10 @@ class TestAssembly: Assembly {
         container.register(OverrideStorage.self) { r in
             BaseOverrideStorage(resolver: r, contextProvider: { self.testContext })
         }.inObjectScope(.container)
+
+        // Override AdjustmentManager registration for tests
+        container.register(AdjustmentManager.self) { r in
+            BaseAdjustmentManager(resolver: r, contextProvider: { self.testContext }, recompute: {})
+        }.inObjectScope(.container)
     }
 }

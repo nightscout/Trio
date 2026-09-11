@@ -28,6 +28,22 @@ enum TimeAgoFormatter {
         }
     }
 
+    /// Spoken form of elapsed minutes for VoiceOver — spells out "minute(s) ago" so screen
+    /// readers don't voice the compact "m" as "meters".
+    static func minutesAgoAccessible(from date: Date?) -> String {
+        guard let date = date else {
+            return String(localized: "time unknown", comment: "Accessibility: elapsed time unavailable")
+        }
+        let minutesAgo = Int(floor(-date.timeIntervalSinceNow / 60))
+        if minutesAgo < 1 {
+            return String(localized: "less than a minute ago", comment: "Accessibility: elapsed time")
+        }
+        return String(
+            format: String(localized: "%d minutes ago", comment: "Accessibility: elapsed time"),
+            minutesAgo
+        )
+    }
+
     // Calculates the floored integer value of how many full minutes ago the given date occurred.
     ///
     /// - Parameter date: The past `Date` to compare against the current time.

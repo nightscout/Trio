@@ -14,6 +14,7 @@ import Swinject
     @Injected() var glucoseStorage: GlucoseStorage!
     @Injected() var apsManager: APSManager!
     @Injected() var overrideStorage: OverrideStorage!
+    @Injected() var adjustmentManager: AdjustmentManager!
     @Injected() var liveActivityManager: LiveActivityManager!
     @Injected() var pumpHistoryStorage: PumpHistoryStorage!
     @Injected() var iobService: IOBService!

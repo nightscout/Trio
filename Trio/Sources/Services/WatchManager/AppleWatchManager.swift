@@ -23,6 +23,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     @Injected() private var determinationStorage: DeterminationStorage!
     @Injected() private var overrideStorage: OverrideStorage!
     @Injected() private var tempTargetStorage: TempTargetsStorage!
+    @Injected() private var adjustmentManager: AdjustmentManager!
     @Injected() private var bolusCalculationManager: BolusCalculationManager!
     @Injected() private var iobService: IOBService!
     @Injected() private var notificationsManager: UserNotificationsManager!
@@ -691,7 +692,12 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     "📱 Received meal bolus combo request from watch: \(bolusAmount)U, \(carbsAmount)g at \(date)"
                 )
                 self.handleCombinedRequest(bolusAmount: Decimal(bolusAmount), carbsAmount: Decimal(carbsAmount), date: date)
-            } else {
+            } else if message[WatchMessageKeys.cancelOverride] == nil,
+                      message[WatchMessageKeys.activateOverride] == nil,
+                      message[WatchMessageKeys.cancelTempTarget] == nil,
+                      message[WatchMessageKeys.activateTempTarget] == nil,
+                      message[WatchMessageKeys.requestBolusRecommendation] == nil
+            {
                 debug(.watchManager, "📱 Invalid or incomplete data received from watch. Received:  \(message)")
                 // Acknowledge failure
                 self.sendAcknowledgment(
@@ -967,314 +973,106 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     private func handleCancelOverride() {
         Task {
-            let context = CoreDataStack.shared.newTaskContext()
+            do {
+                let outcome = try await adjustmentManager.cancelOverride(source: .watch)
+                debug(.watchManager, "📱 Successfully stopped override \"\(outcome.ended.first?.name ?? "Custom Override")\"")
 
-            if let overrideId = try await overrideStorage.fetchLatestActiveOverride() {
-                let override = await context.perform {
-                    context.object(with: overrideId) as? OverrideStored
-                }
-
-                await context.perform {
-                    if let activeOverride = override {
-                        activeOverride.enabled = false
-
-                        do {
-                            guard context.hasChanges else {
-                                // Acknowledge failure
-                                self.sendAcknowledgment(
-                                    toWatch: false,
-                                    message: "Error! Something went wrong when processing your request.",
-                                    ackCode: .genericFailure
-                                )
-                                return
-                            }
-                            try context.save()
-                            debug(.watchManager, "📱 Successfully stopped override")
-
-                            // Send notification to update Adjustments UI
-                            Foundation.NotificationCenter.default.post(
-                                name: .didUpdateOverrideConfiguration,
-                                object: nil
-                            )
-
-                            // Acknowledge cancellation success
-                            self.sendAcknowledgment(
-                                toWatch: true,
-                                message: String(
-                                    localized: "Stopped Override successfully.",
-                                    comment: "Stopped Override successfully"
-                                ),
-                                ackCode: .overrideStopped
-                            )
-                        } catch {
-                            debug(.watchManager, "❌ Error cancelling override: \(error)")
-                            // Acknowledge cancellation error
-                            self.sendAcknowledgment(toWatch: false, message: "Error stopping Override.", ackCode: .genericFailure)
-                        }
-                    }
-                }
-            } else {
-                debug(.watchManager, "❌ No active override found.")
+                self.sendAcknowledgment(
+                    toWatch: true,
+                    message: String(
+                        localized: "Stopped Override successfully.",
+                        comment: "Stopped Override successfully"
+                    ),
+                    ackCode: .overrideStopped
+                )
+            } catch {
+                debug(.watchManager, "❌ Error cancelling override: \(error)")
                 self.sendAcknowledgment(
                     toWatch: false,
-                    message: "No active override found.",
+                    message: (error as? AdjustmentError)?.errorDescription ?? "Error stopping Override.",
                     ackCode: .genericFailure
                 )
-                return
             }
         }
     }
 
     private func handleActivateOverride(_ presetName: String) {
         Task {
-            let context = CoreDataStack.shared.newTaskContext()
-
-            debug(.watchManager, "📱 Fetching all override presets...")
-
-            // Fetch all presets to find the one to activate
-            let presetIds = try await overrideStorage.fetchForOverridePresets()
-            let presets: [OverrideStored] = try await CoreDataStack.shared
-                .getNSManagedObject(with: presetIds, context: context)
-
-            debug(.watchManager, "📱 Checking for active override...")
-
             do {
-                // Check for active override
-                if let activeOverrideId = try await overrideStorage.fetchLatestActiveOverride() {
-                    let activeOverride = await context.perform {
-                        context.object(with: activeOverrideId) as? OverrideStored
-                    }
-
-                    // Deactivate, if necessary
-                    if let override = activeOverride {
-                        await context.perform {
-                            override.enabled = false
-                        }
-                    }
-                } else {
-                    debug(.watchManager, "📱 Currently no override is active... proceeding to activate override: \(presetName)")
+                let outcome = try await adjustmentManager.activateOverride(.presetName(presetName), source: .watch)
+                debug(.watchManager, "📱 Successfully activated override: \(presetName)")
+                if let ended = outcome.ended.first {
+                    debug(.watchManager, "📱 Recorded run for replaced override \"\(ended.name ?? "Custom Override")\"")
                 }
+
+                self.sendAcknowledgment(
+                    toWatch: true,
+                    message: String(
+                        localized: "Started Override \"\(presetName)\" successfully.",
+                        comment: "Start override with override name"
+                    ),
+                    ackCode: .overrideStarted
+                )
             } catch {
-                debug(.watchManager, "❌ Error while checking for active override: \(error)")
+                debug(.watchManager, "❌ Error activating override: \(error)")
                 self.sendAcknowledgment(
                     toWatch: false,
-                    message: "Failed to load active override.",
+                    message: (error as? AdjustmentError)?.errorDescription ?? "Error activating Override \"\(presetName)\".",
                     ackCode: .genericFailure
                 )
-                return
-            }
-
-            // Activate the selected preset
-            await context.perform {
-                guard let presetToActivate = presets
-                    .first(where: { $0.name?.trimmingCharacters(in: .whitespacesAndNewlines) == presetName })
-                else {
-                    debug(.watchManager, "❌ No matching preset found for name: \"\(presetName)\" in \(presets.map(\.name))")
-                    self.sendAcknowledgment(
-                        toWatch: false,
-                        message: String(
-                            localized: "Preset \"\(presetName)\" not found.",
-                            comment: "Preset not found"
-                        ),
-                        ackCode: .genericFailure
-                    )
-                    return
-                }
-
-                presetToActivate.enabled = true
-                presetToActivate.date = Date()
-
-                do {
-                    guard context.hasChanges else {
-                        // Acknowledge failure
-                        self.sendAcknowledgment(
-                            toWatch: false,
-                            message: String(
-                                localized: "Error! Something went wrong when processing your request.",
-                                comment: "Error message when activating override"
-                            ),
-                            ackCode: .genericFailure
-                        )
-                        return
-                    }
-                    try context.save()
-                    debug(.watchManager, "📱 Successfully activated override: \(presetName)")
-
-                    // Send notification to update Adjustments UI
-                    Foundation.NotificationCenter.default.post(
-                        name: .didUpdateOverrideConfiguration,
-                        object: nil
-                    )
-
-                    // Acknowledge activation success
-                    self.sendAcknowledgment(
-                        toWatch: true,
-                        message: String(
-                            localized: "Started Override \"\(presetName)\" successfully.",
-                            comment: "Start override with override name"
-                        ),
-                        ackCode: .overrideStarted
-                    )
-                } catch {
-                    debug(.watchManager, "❌ Error activating override: \(error)")
-                    // Acknowledge activation error
-                    self.sendAcknowledgment(
-                        toWatch: false,
-                        message: "Error activating Override \"\(presetName)\".",
-                        ackCode: .genericFailure
-                    )
-                }
             }
         }
     }
 
     private func handleActivateTempTarget(_ presetName: String) {
         Task {
-            let context = CoreDataStack.shared.newTaskContext()
-
-            // Fetch all presets to find the one to activate
-            let presetIds = try await tempTargetStorage.fetchForTempTargetPresets()
-            let presets: [TempTargetStored] = try await CoreDataStack.shared
-                .getNSManagedObject(with: presetIds, context: context)
-
-            // Check for active temp target
-            if let activeTempTargetId = try await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 1).first {
-                let activeTempTarget = await context.perform {
-                    context.object(with: activeTempTargetId) as? TempTargetStored
+            do {
+                let outcome = try await adjustmentManager.activateTempTarget(.presetName(presetName), source: .watch)
+                debug(.watchManager, "📱 Successfully activated temp target: \(presetName)")
+                if let ended = outcome.ended.first {
+                    debug(.watchManager, "📱 Recorded run for replaced temp target \"\(ended.name ?? "Temp Target")\"")
                 }
 
-                // Deactivate if exists
-                if let tempTarget = activeTempTarget {
-                    await context.perform {
-                        tempTarget.enabled = false
-                    }
-                }
-            }
-
-            // Activate the selected preset
-            await context.perform {
-                if let presetToActivate = presets.first(where: { $0.name == presetName }) {
-                    presetToActivate.enabled = true
-                    presetToActivate.date = Date()
-
-                    do {
-                        guard context.hasChanges else {
-                            // Acknowledge failure
-                            self.sendAcknowledgment(
-                                toWatch: false,
-                                message: "Error! Something went wrong when processing your request.",
-                                ackCode: .genericFailure
-                            )
-                            return
-                        }
-                        try context.save()
-                        debug(.watchManager, "📱 Successfully activated temp target: \(presetName)")
-
-                        let settingsHalfBasalTarget = self.settingsManager.preferences
-                            .halfBasalExerciseTarget
-
-                        let halfBasalTarget = presetToActivate.halfBasalTarget?.decimalValue
-
-                        // To activate the temp target also in oref
-                        let tempTarget = TempTarget(
-                            name: presetToActivate.name,
-                            createdAt: Date(),
-                            targetTop: presetToActivate.target?.decimalValue,
-                            targetBottom: presetToActivate.target?.decimalValue,
-                            duration: presetToActivate.duration?.decimalValue ?? 0,
-                            enteredBy: TempTarget.local,
-                            reason: TempTarget.custom,
-                            isPreset: true,
-                            enabled: true,
-                            halfBasalTarget: halfBasalTarget ?? settingsHalfBasalTarget
-                        )
-
-                        self.tempTargetStorage.saveTempTargetsToStorage([tempTarget])
-
-                        // Send notification to update Adjustments UI
-                        Foundation.NotificationCenter.default.post(
-                            name: .didUpdateTempTargetConfiguration,
-                            object: nil
-                        )
-
-                        // Acknowledge activation success
-                        self.sendAcknowledgment(
-                            toWatch: true,
-                            message: String(
-                                localized: "Started Temp Target \"\(presetName)\" successfully.",
-                                comment: "Started Temp Target successfully."
-                            ),
-                            ackCode: .tempTargetStarted
-                        )
-                    } catch {
-                        debug(.watchManager, "❌ Error activating temp target: \(error)")
-                        // Acknowledge activation error
-                        self.sendAcknowledgment(
-                            toWatch: false,
-                            message: "Error activating Temp Target \"\(presetName)\".",
-                            ackCode: .genericFailure
-                        )
-                    }
-                }
+                self.sendAcknowledgment(
+                    toWatch: true,
+                    message: String(
+                        localized: "Started Temp Target \"\(presetName)\" successfully.",
+                        comment: "Started Temp Target successfully."
+                    ),
+                    ackCode: .tempTargetStarted
+                )
+            } catch {
+                debug(.watchManager, "❌ Error activating temp target: \(error)")
+                self.sendAcknowledgment(
+                    toWatch: false,
+                    message: (error as? AdjustmentError)?.errorDescription ?? "Error activating Temp Target \"\(presetName)\".",
+                    ackCode: .genericFailure
+                )
             }
         }
     }
 
     private func handleCancelTempTarget() {
         Task {
-            let context = CoreDataStack.shared.newTaskContext()
+            do {
+                let outcome = try await adjustmentManager.cancelTempTarget(source: .watch)
+                debug(.watchManager, "📱 Successfully cancelled temp target \"\(outcome.ended.first?.name ?? "Temp Target")\"")
 
-            if let tempTargetId = try await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 1).first {
-                let tempTarget = await context.perform {
-                    context.object(with: tempTargetId) as? TempTargetStored
-                }
-
-                await context.perform {
-                    if let activeTempTarget = tempTarget {
-                        activeTempTarget.enabled = false
-
-                        do {
-                            guard context.hasChanges else {
-                                // Acknowledge failure
-                                self.sendAcknowledgment(
-                                    toWatch: false,
-                                    message: "Error! Something went wrong when processing your request.",
-                                    ackCode: .genericFailure
-                                )
-                                return
-                            }
-                            try context.save()
-                            debug(.watchManager, "📱 Successfully cancelled temp target")
-
-                            // To cancel the temp target also for oref
-                            self.tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date())])
-
-                            // Send notification to update Adjustments UI
-                            Foundation.NotificationCenter.default.post(
-                                name: .didUpdateTempTargetConfiguration,
-                                object: nil
-                            )
-
-                            // Acknowledge cancellation success
-                            self.sendAcknowledgment(
-                                toWatch: true,
-                                message: String(
-                                    localized: "Stopped Temp Target successfully.",
-                                    comment: "Stopped Temp Target successfully."
-                                ),
-                                ackCode: .tempTargetStopped
-                            )
-                        } catch {
-                            debug(.watchManager, "❌ Error stopping temp target: \(error)")
-                            // Acknowledge cancellation error
-                            self.sendAcknowledgment(
-                                toWatch: false,
-                                message: "Error stopping Temp Target.",
-                                ackCode: .genericFailure
-                            )
-                        }
-                    }
-                }
+                self.sendAcknowledgment(
+                    toWatch: true,
+                    message: String(
+                        localized: "Stopped Temp Target successfully.",
+                        comment: "Stopped Temp Target successfully."
+                    ),
+                    ackCode: .tempTargetStopped
+                )
+            } catch {
+                debug(.watchManager, "❌ Error stopping temp target: \(error)")
+                self.sendAcknowledgment(
+                    toWatch: false,
+                    message: (error as? AdjustmentError)?.errorDescription ?? "Error stopping Temp Target.",
+                    ackCode: .genericFailure
+                )
             }
         }
     }

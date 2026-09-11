@@ -101,6 +101,8 @@ struct GlucoseDistributionChart: View {
                 }
             }
             .frame(height: 200)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("Glucose distribution by time of day chart"))
         }
     }
 }

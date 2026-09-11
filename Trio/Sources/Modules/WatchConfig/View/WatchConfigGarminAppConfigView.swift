@@ -51,7 +51,7 @@ struct WatchConfigGarminAppConfigView: View {
                                 },
                                 label: {
                                     HStack {
-                                        Image(systemName: "questionmark.circle")
+                                        Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
                                     }
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
@@ -81,7 +81,7 @@ struct WatchConfigGarminAppConfigView: View {
                                 },
                                 label: {
                                     HStack {
-                                        Image(systemName: "questionmark.circle")
+                                        Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
                                     }
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
@@ -120,7 +120,7 @@ struct WatchConfigGarminAppConfigView: View {
                                 },
                                 label: {
                                     HStack {
-                                        Image(systemName: "questionmark.circle")
+                                        Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
                                     }
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
@@ -157,7 +157,7 @@ struct WatchConfigGarminAppConfigView: View {
                                 },
                                 label: {
                                     HStack {
-                                        Image(systemName: "questionmark.circle")
+                                        Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
                                     }
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
@@ -187,7 +187,7 @@ struct WatchConfigGarminAppConfigView: View {
                                 },
                                 label: {
                                     HStack {
-                                        Image(systemName: "questionmark.circle")
+                                        Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
                                     }
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
@@ -262,14 +262,17 @@ struct WatchConfigGarminAppConfigView: View {
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
         }
-        .confirmationDialog("Watchface Changed", isPresented: $shouldShowWatchfaceSwitchConfirmDialog) {
-            Button("Resume Data Transmission") {
-                state.resumeDataTransmission()
-            }
-        } message: {
-            Text(
+        .glassActionSheet(
+            "Watchface Changed",
+            message: Text(
                 "Data transmission has been disabled. Now select the new watchface on your Garmin device and resume data transmission once done."
-            )
-        }
+            ),
+            isPresented: $shouldShowWatchfaceSwitchConfirmDialog,
+            actions: [
+                GlassSheetAction("Resume Data Transmission") {
+                    state.resumeDataTransmission()
+                }
+            ]
+        )
     }
 }

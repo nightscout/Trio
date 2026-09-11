@@ -219,6 +219,8 @@ struct GlucoseDailyDistributionChart: View {
             )
         )
         .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedInterval))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Daily glucose distribution chart"))
     }
 
     /// Formats a short string with the glucose values of the requested range.

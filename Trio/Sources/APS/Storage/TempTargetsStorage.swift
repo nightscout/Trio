@@ -8,7 +8,7 @@ protocol TempTargetsObserver {
 }
 
 protocol TempTargetsStorage {
-    func storeTempTarget(tempTarget: TempTarget) async throws
+    @discardableResult func storeTempTarget(tempTarget: TempTarget) async throws -> NSManagedObjectID
     func saveTempTargetsToStorage(_ targets: [TempTarget])
     func fetchForTempTargetPresets() async throws -> [NSManagedObjectID]
     func fetchScheduledTempTargets() async throws -> [NSManagedObjectID]
@@ -131,7 +131,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         }
     }
 
-    func storeTempTarget(tempTarget: TempTarget) async throws {
+    @discardableResult func storeTempTarget(tempTarget: TempTarget) async throws -> NSManagedObjectID {
         let context = makeContext()
         context.name = "storeTempTarget"
 
@@ -141,7 +141,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             presetCount = presets.count
         }
 
-        try await context.perform {
+        return try await context.perform {
             let newTempTarget = TempTargetStored(context: context)
             newTempTarget.date = tempTarget.createdAt
             newTempTarget.id = UUID()
@@ -167,12 +167,15 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             }
 
             do {
-                guard context.hasChanges else { return }
-                try context.save()
+                if context.hasChanges {
+                    try context.save()
+                }
             } catch let error as NSError {
                 debug(.default, "\(DebuggingIdentifiers.failed) Failed to save new temp target with error: \(error.userInfo)")
                 throw error
             }
+
+            return newTempTarget.objectID
         }
     }
 
@@ -336,7 +339,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             ofType: TempTargetRunStored.self,
             onContext: context,
             predicate: NSPredicate(
-                format: "startDate >= %@ AND isUploadedToNS == %@",
+                format: "endDate >= %@ AND isUploadedToNS == %@",
                 Date.oneDayAgo as NSDate,
                 false as NSNumber
             ),
