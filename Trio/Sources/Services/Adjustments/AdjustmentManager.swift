@@ -311,14 +311,9 @@ final class BaseAdjustmentManager: AdjustmentManager, Injectable, @unchecked Sen
 
     // MARK: Shared
 
-    /// A determination is only recomputed while the loop is idle; a loop in flight produces one of
-    /// its own. Delivery follows the loop either way, so this refreshes the forecast and the
-    /// pills, not the pump.
     /// Refreshes the determination and the forecast in the background: a command's outcome does not
-    /// depend on it, so callers acknowledge as soon as the transaction has committed.
-    ///
-    /// `APSManager` owns the decision to run: it holds the loop guard, skips a recompute while a
-    /// loop is in flight, and enacts nothing — delivery follows the loop either way.
+    /// depend on it, so callers acknowledge as soon as the transaction has committed. The
+    /// determination enacts nothing; delivery follows the loop.
     private func recomputeDetermination() {
         Task { [weak self] in
             guard let self else { return }
@@ -326,7 +321,11 @@ final class BaseAdjustmentManager: AdjustmentManager, Injectable, @unchecked Sen
                 await recompute()
                 return
             }
-            await apsManager.recomputeDetermination()
+            do {
+                try await apsManager.determineBasalSync()
+            } catch {
+                debug(.service, "Determination after adjustment change failed: \(error)")
+            }
         }
     }
 

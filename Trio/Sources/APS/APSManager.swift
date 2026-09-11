@@ -29,11 +29,11 @@ protocol APSManager {
     var isSuspended: Bool { get }
     func enactTempBasal(rate: Double, duration: TimeInterval) async
     func determineBasal() async throws
+    /// Runs a determination outside the loop, after a treatment or adjustment changed what the
+    /// algorithm reads. Waits for a loop in flight to finish first, since that loop determined
+    /// before the change landed. Concurrent calls collapse into the one already running. Algorithm
+    /// errors propagate to the caller.
     func determineBasalSync() async throws
-    /// Recomputes the determination after something the algorithm reads has changed — an override,
-    /// a temp target. Skips itself while a loop is running, because that loop determines from the
-    /// same state, and never delays a loop start.
-    func recomputeDetermination() async
     func simulateDetermineBasal(
         simulatedCarbsAmount: Decimal,
         simulatedBolusAmount: Decimal,
@@ -80,7 +80,8 @@ enum APSError: LocalizedError {
 /// Ensures only one loop runs at a time via actor isolation
 private actor LoopGuard {
     private var isRunning = false
-    private var isRecomputing = false
+    private var isDeterminingStandalone = false
+    private var loopWaiters: [CheckedContinuation<Void, Never>] = []
 
     /// Atomically checks whether a new loop can start and marks it as running if so.
     func tryStart(minInterval: TimeInterval, lastLoopDate: Date, lastLoopStartDate: Date) -> Bool {
@@ -95,19 +96,28 @@ private actor LoopGuard {
 
     func finish() {
         isRunning = false
+        let waiters = loopWaiters
+        loopWaiters.removeAll()
+        waiters.forEach { $0.resume() }
     }
 
-    /// Claims the guard for a determination-only recompute. Refuses while a loop runs, and while
-    /// another recompute runs — a second one would compute the same state. `tryStart` ignores this
-    /// claim: a skipped loop has a therapy cost, an overlapping recompute only wastes work.
-    func tryStartRecompute() -> Bool {
-        guard !isRunning, !isRecomputing else { return false }
-        isRecomputing = true
+    /// Returns once no loop is running.
+    func waitForLoop() async {
+        guard isRunning else { return }
+        await withCheckedContinuation { loopWaiters.append($0) }
+    }
+
+    /// Claims the guard for a determination that runs outside the loop. Refuses while another one
+    /// runs, since it computes the same state. `tryStart` ignores this claim: a skipped loop has a
+    /// therapy cost, an overlapping determination only wastes work.
+    func tryStartStandaloneDetermination() -> Bool {
+        guard !isDeterminingStandalone else { return false }
+        isDeterminingStandalone = true
         return true
     }
 
-    func finishRecompute() {
-        isRecomputing = false
+    func finishStandaloneDetermination() {
+        isDeterminingStandalone = false
     }
 }
 
@@ -573,20 +583,18 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     func determineBasalSync() async throws {
-        _ = try await determineBasal()
-    }
-
-    func recomputeDetermination() async {
-        guard await loopGuard.tryStartRecompute() else {
-            debug(.apsManager, "Determination recompute skipped: loop or recompute in flight")
+        await loopGuard.waitForLoop()
+        guard await loopGuard.tryStartStandaloneDetermination() else {
+            debug(.apsManager, "Standalone determination skipped: one is already running")
             return
         }
         do {
             try await determineBasal()
         } catch {
-            debug(.apsManager, "Determination recompute failed: \(error)")
+            await loopGuard.finishStandaloneDetermination()
+            throw error
         }
-        await loopGuard.finishRecompute()
+        await loopGuard.finishStandaloneDetermination()
     }
 
     func simulateDetermineBasal(

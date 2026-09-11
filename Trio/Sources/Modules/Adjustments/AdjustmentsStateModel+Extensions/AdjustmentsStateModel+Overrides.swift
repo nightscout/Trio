@@ -233,7 +233,7 @@ extension Adjustments.StateModel {
                 await self.updateLatestOverrideConfigurationOfState(from: id)
                 await self.setCurrentOverride(from: id)
 
-                await apsManager.recomputeDetermination()
+                try await apsManager.determineBasalSync()
             } catch {
                 debug(
                     .default,
