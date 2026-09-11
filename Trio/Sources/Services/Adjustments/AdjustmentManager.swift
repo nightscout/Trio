@@ -53,8 +53,8 @@ enum AdjustmentError: LocalizedError, Equatable {
 
 /// Single writer for override and temp target activation.
 ///
-/// Every entry point — app UI, Shortcuts, remote control, watch, Nightscout import — routes
-/// activation and cancellation through this service, which performs the full sequence for each
+/// Shortcuts, remote control and the watch route activation and cancellation through this
+/// service, which performs the full sequence for each
 /// command: end every enabled adjustment and record each one as a run entry, enable the requested
 /// one, then apply the dependent side effects in a fixed order.
 ///
