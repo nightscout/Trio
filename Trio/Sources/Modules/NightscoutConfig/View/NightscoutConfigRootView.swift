@@ -48,7 +48,14 @@ extension NightscoutConfig {
                                             Image(systemName: "network.slash")
                                         }
                                     }
+                                    .accessibilityHidden(true)
                                 }
+                                .accessibilityElement(children: .combine)
+                                .accessibilityValue(Text(
+                                    state.isConnectedToNS
+                                        ? String(localized: "connected", comment: "Accessibility: connection state")
+                                        : String(localized: "not connected", comment: "Accessibility: connection state")
+                                ))
                             })
                             NavigationLink("Upload", destination: NightscoutUploadView(state: state))
                             NavigationLink("Fetch", destination: NightscoutFetchView(state: state))
@@ -102,6 +109,7 @@ extension NightscoutConfig {
                                         label: {
                                             HStack {
                                                 Image(systemName: "questionmark.circle")
+                                                    .accessibilityLabel(Text("More information"))
                                             }
                                         }
                                     ).buttonStyle(BorderlessButtonStyle())

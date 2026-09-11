@@ -29,6 +29,11 @@ struct NightscoutSetupStepView: View {
                     .cornerRadius(10)
                 }
                 .buttonStyle(.plain)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(option.displayName))
+                .accessibilityAddTraits(
+                    state.nightscoutSetupOption == option ? [.isButton, .isSelected] : .isButton
+                )
             }
 
             Text(

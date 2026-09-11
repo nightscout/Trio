@@ -52,6 +52,7 @@ extension History.RootView {
         HStack {
             if let bolus = item.bolus, let amount = bolus.amount {
                 Image(systemName: "circle.fill").foregroundColor(Color.insulin)
+                    .accessibilityHidden(true)
                 Text(bolus.isSMB ? "SMB" : item.type ?? "Bolus")
                 Text(
                     (Formatter.decimalFormatterWithThreeFractionDigits.string(from: amount) ?? "0") +
@@ -74,6 +75,7 @@ extension History.RootView {
                             comment: "Treatment label in history for temporary basal"
                         )
                 )
+                .accessibilityHidden(true)
                 Text(
                     (Formatter.decimalFormatterWithThreeFractionDigits.string(from: rate) ?? "0") +
                         String(localized: " U/hr", comment: "Unit insulin per hour")
@@ -84,6 +86,7 @@ extension History.RootView {
                 }
             } else {
                 Image(systemName: "circle.fill").foregroundColor(Color.loopGray)
+                    .accessibilityHidden(true)
                 Text(item.type ?? "Pump Event")
             }
             Spacer()

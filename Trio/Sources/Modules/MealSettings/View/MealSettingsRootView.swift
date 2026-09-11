@@ -59,9 +59,18 @@ extension MealSettings {
                                         Text(" g").foregroundColor(.secondary)
                                     }
                                 }
+                                .contentShape(Rectangle())
                                 .onTapGesture {
                                     displayPickerMaxCarbs.toggle()
                                 }
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(Text("Max Carbs"))
+                                .accessibilityValue(Text(
+                                    state.maxCarbs.description + " "
+                                        + String(localized: "grams", comment: "Gram unit, spoken")
+                                ))
+                                .accessibilityAddTraits(.isButton)
+                                .accessibilityAction { displayPickerMaxCarbs.toggle() }
                             }.padding(.top)
 
                             if displayPickerMaxCarbs {
@@ -92,9 +101,18 @@ extension MealSettings {
                                             Text(" g").foregroundColor(.secondary)
                                         }
                                     }
+                                    .contentShape(Rectangle())
                                     .onTapGesture {
                                         displayPickerMaxFat.toggle()
                                     }
+                                    .accessibilityElement(children: .ignore)
+                                    .accessibilityLabel(Text("Max Fat"))
+                                    .accessibilityValue(Text(
+                                        state.maxFat.description + " "
+                                            + String(localized: "grams", comment: "Gram unit, spoken")
+                                    ))
+                                    .accessibilityAddTraits(.isButton)
+                                    .accessibilityAction { displayPickerMaxFat.toggle() }
                                 }
                                 .padding(.top)
 
@@ -125,9 +143,18 @@ extension MealSettings {
                                             Text(" g").foregroundColor(.secondary)
                                         }
                                     }
+                                    .contentShape(Rectangle())
                                     .onTapGesture {
                                         displayPickerMaxProtein.toggle()
                                     }
+                                    .accessibilityElement(children: .ignore)
+                                    .accessibilityLabel(Text("Max Protein"))
+                                    .accessibilityValue(Text(
+                                        state.maxProtein.description + " "
+                                            + String(localized: "grams", comment: "Gram unit, spoken")
+                                    ))
+                                    .accessibilityAddTraits(.isButton)
+                                    .accessibilityAction { displayPickerMaxProtein.toggle() }
                                 }
                                 .padding(.top)
 
@@ -173,7 +200,7 @@ extension MealSettings {
                                     },
                                     label: {
                                         HStack {
-                                            Image(systemName: "questionmark.circle")
+                                            Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
                                         }
                                     }
                                 ).buttonStyle(BorderlessButtonStyle())

@@ -29,6 +29,10 @@ protocol APSManager {
     var isSuspended: Bool { get }
     func enactTempBasal(rate: Double, duration: TimeInterval) async
     func determineBasal() async throws
+    /// Runs a determination outside the loop, after a treatment or adjustment changed what the
+    /// algorithm reads. Waits for a loop in flight to finish first, since that loop determined
+    /// before the change landed. Concurrent calls collapse into the one already running. Algorithm
+    /// errors propagate to the caller.
     func determineBasalSync() async throws
     func simulateDetermineBasal(
         simulatedCarbsAmount: Decimal,
@@ -76,6 +80,8 @@ enum APSError: LocalizedError {
 /// Ensures only one loop runs at a time via actor isolation
 private actor LoopGuard {
     private var isRunning = false
+    private var isDeterminingStandalone = false
+    private var loopWaiters: [CheckedContinuation<Void, Never>] = []
 
     /// Atomically checks whether a new loop can start and marks it as running if so.
     func tryStart(minInterval: TimeInterval, lastLoopDate: Date, lastLoopStartDate: Date) -> Bool {
@@ -90,6 +96,28 @@ private actor LoopGuard {
 
     func finish() {
         isRunning = false
+        let waiters = loopWaiters
+        loopWaiters.removeAll()
+        waiters.forEach { $0.resume() }
+    }
+
+    /// Returns once no loop is running.
+    func waitForLoop() async {
+        guard isRunning else { return }
+        await withCheckedContinuation { loopWaiters.append($0) }
+    }
+
+    /// Claims the guard for a determination that runs outside the loop. Refuses while another one
+    /// runs, since it computes the same state. `tryStart` ignores this claim: a skipped loop has a
+    /// therapy cost, an overlapping determination only wastes work.
+    func tryStartStandaloneDetermination() -> Bool {
+        guard !isDeterminingStandalone else { return false }
+        isDeterminingStandalone = true
+        return true
+    }
+
+    func finishStandaloneDetermination() {
+        isDeterminingStandalone = false
     }
 }
 
@@ -200,7 +228,6 @@ final class BaseAPSManager: APSManager, Injectable {
                 self?.loop()
             }
             .store(in: &lifetime)
-        pumpManager?.addStatusObserver(self, queue: processQueue)
 
         deviceDataManager.errorSubject
             .receive(on: processQueue)
@@ -517,6 +544,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
             let determination = try await openAPS.determineBasal(
                 currentTemp: currentTemp,
+                supportedBasalRates: supportedBasalRates,
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
                 clock: now
             )
@@ -551,7 +579,18 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     func determineBasalSync() async throws {
-        _ = try await determineBasal()
+        await loopGuard.waitForLoop()
+        guard await loopGuard.tryStartStandaloneDetermination() else {
+            debug(.apsManager, "Standalone determination skipped: one is already running")
+            return
+        }
+        do {
+            try await determineBasal()
+        } catch {
+            await loopGuard.finishStandaloneDetermination()
+            throw error
+        }
+        await loopGuard.finishStandaloneDetermination()
     }
 
     func simulateDetermineBasal(
@@ -563,6 +602,7 @@ final class BaseAPSManager: APSManager, Injectable {
             let temp = try await fetchCurrentTempBasal(date: Date.now)
             return try await openAPS.determineBasal(
                 currentTemp: temp,
+                supportedBasalRates: supportedBasalRates,
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
                 clock: Date(),
                 simulatedCarbsAmount: simulatedCarbsAmount,
@@ -576,6 +616,13 @@ final class BaseAPSManager: APSManager, Injectable {
             )
             return nil
         }
+    }
+
+    /// The paired pump's deliverable basal rates, for the algorithm to round against.
+    /// Rounded to 3 dp because the kits build their tables as `Double(n) / 20` and similar, and the
+    /// resulting binary error would push an entry just above the clean rate it is meant to match.
+    private var supportedBasalRates: [Decimal] {
+        (pumpManager?.supportedBasalRates ?? []).map { Decimal($0).rounded(scale: 3) }
     }
 
     func roundBolus(amount: Decimal) -> Decimal {
@@ -800,11 +847,17 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func performBasal(pump: PumpManager, rate: NSDecimalNumber, duration: TimeInterval) async throws {
-        try await pump.enactTempBasal(unitsPerHour: Double(truncating: rate), for: duration)
+        // the algorithm already floored this against the pump's own table, so don't floor it
+        // again here: the Decimal -> Double hop can land a hair low and cost a whole increment
+        let unitsPerHour = rate.decimalValue.nearestDouble
+        if pump.roundToSupportedBasalRate(unitsPerHour: unitsPerHour) != unitsPerHour {
+            debug(.apsManager, "Temp basal \(unitsPerHour) U/hr is not on the pump's rate table")
+        }
+        try await pump.enactTempBasal(unitsPerHour: unitsPerHour, for: duration)
     }
 
     private func performBolus(pump: PumpManager, smbToDeliver: NSDecimalNumber) async throws {
-        try await pump.enactBolus(units: Double(truncating: smbToDeliver), automatic: true)
+        try await pump.enactBolus(units: smbToDeliver.decimalValue.nearestDouble, automatic: true)
         bolusProgress.send(0)
     }
 
@@ -1468,47 +1521,6 @@ private extension PumpManager {
                 }
             }
         }
-    }
-}
-
-extension BaseAPSManager: PumpManagerStatusObserver {
-    func pumpManager(_: PumpManager, didUpdate status: PumpManagerStatus, oldStatus _: PumpManagerStatus) {
-        let percent = Int((status.pumpBatteryChargeRemaining ?? 1) * 100)
-
-        let context = CoreDataStack.shared.newTaskContext()
-        context.name = "storeBatteryStatus"
-        context.perform {
-            /// only update the last item with the current battery infos instead of saving a new one each time
-            let fetchRequest: NSFetchRequest<OpenAPS_Battery> = OpenAPS_Battery.fetchRequest()
-            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
-            fetchRequest.predicate = NSPredicate.predicateFor30MinAgo
-            fetchRequest.fetchLimit = 1
-
-            do {
-                let results = try context.fetch(fetchRequest)
-                let batteryToStore: OpenAPS_Battery
-
-                if let existingBattery = results.first {
-                    batteryToStore = existingBattery
-                } else {
-                    batteryToStore = OpenAPS_Battery(context: context)
-                    batteryToStore.id = UUID()
-                }
-
-                batteryToStore.date = Date()
-                batteryToStore.percent = Double(percent)
-                batteryToStore.voltage = nil
-                batteryToStore.status = percent > 10 ? "normal" : "low"
-                batteryToStore.display = status.pumpBatteryChargeRemaining != nil
-
-                guard context.hasChanges else { return }
-                try context.save()
-            } catch {
-                debug(.apsManager, "Failed to fetch or save battery: \(error)")
-            }
-        }
-        // TODO: - remove this after ensuring that NS still gets the same infos from Core Data
-        storage.save(status.pumpStatus, as: OpenAPS.Monitor.status)
     }
 }
 

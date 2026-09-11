@@ -449,7 +449,8 @@ extension NightscoutAPI {
         components.port = url.port
         components.path = Config.treatmentsPath
         components.queryItems = [
-            URLQueryItem(name: "find[created_at][$eq]", value: createdAt)
+            URLQueryItem(name: "find[created_at][$eq]", value: createdAt),
+            URLQueryItem(name: "find[eventType][$eq]", value: OverrideStored.EventType.nsExercise.rawValue)
         ]
 
         guard let url = components.url else {

@@ -38,7 +38,7 @@ struct LoopStatusView: View {
                             isHelpSheetPresented.toggle()
                         },
                         label: {
-                            Image(systemName: "questionmark.circle")
+                            Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
                         }
                     )
                 }.padding(.top, 20)

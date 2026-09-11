@@ -49,6 +49,8 @@ struct LoopBarChartView: View {
             .chartXScale(domain: 0 ... 100)
             .frame(height: 200)
             .padding()
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("Looping performance bar chart"))
         }
     }
 
