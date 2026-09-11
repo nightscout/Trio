@@ -29,6 +29,10 @@ protocol APSManager {
     var isSuspended: Bool { get }
     func enactTempBasal(rate: Double, duration: TimeInterval) async
     func determineBasal() async throws
+    /// Runs a determination outside the loop, after a treatment or adjustment changed what the
+    /// algorithm reads. Waits for a loop in flight to finish first, since that loop determined
+    /// before the change landed. Concurrent calls collapse into the one already running. Algorithm
+    /// errors propagate to the caller.
     func determineBasalSync() async throws
     func simulateDetermineBasal(
         simulatedCarbsAmount: Decimal,
@@ -76,6 +80,8 @@ enum APSError: LocalizedError {
 /// Ensures only one loop runs at a time via actor isolation
 private actor LoopGuard {
     private var isRunning = false
+    private var isDeterminingStandalone = false
+    private var loopWaiters: [CheckedContinuation<Void, Never>] = []
 
     /// Atomically checks whether a new loop can start and marks it as running if so.
     func tryStart(minInterval: TimeInterval, lastLoopDate: Date, lastLoopStartDate: Date) -> Bool {
@@ -90,6 +96,28 @@ private actor LoopGuard {
 
     func finish() {
         isRunning = false
+        let waiters = loopWaiters
+        loopWaiters.removeAll()
+        waiters.forEach { $0.resume() }
+    }
+
+    /// Returns once no loop is running.
+    func waitForLoop() async {
+        guard isRunning else { return }
+        await withCheckedContinuation { loopWaiters.append($0) }
+    }
+
+    /// Claims the guard for a determination that runs outside the loop. Refuses while another one
+    /// runs, since it computes the same state. `tryStart` ignores this claim: a skipped loop has a
+    /// therapy cost, an overlapping determination only wastes work.
+    func tryStartStandaloneDetermination() -> Bool {
+        guard !isDeterminingStandalone else { return false }
+        isDeterminingStandalone = true
+        return true
+    }
+
+    func finishStandaloneDetermination() {
+        isDeterminingStandalone = false
     }
 }
 
@@ -555,7 +583,18 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     func determineBasalSync() async throws {
-        _ = try await determineBasal()
+        await loopGuard.waitForLoop()
+        guard await loopGuard.tryStartStandaloneDetermination() else {
+            debug(.apsManager, "Standalone determination skipped: one is already running")
+            return
+        }
+        do {
+            try await determineBasal()
+        } catch {
+            await loopGuard.finishStandaloneDetermination()
+            throw error
+        }
+        await loopGuard.finishStandaloneDetermination()
     }
 
     func simulateDetermineBasal(
