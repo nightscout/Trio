@@ -17,8 +17,6 @@ enum AdjustmentSource: String {
     case watch
 }
 
-/// What one command started or ended. Callers build their own acknowledgment, log line or toast
-/// from this.
 struct AdjustmentSummary: Equatable {
     let name: String?
     let startDate: Date
