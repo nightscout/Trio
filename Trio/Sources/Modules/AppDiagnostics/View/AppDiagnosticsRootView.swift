@@ -44,6 +44,12 @@ extension AppDiagnostics {
                                     .cornerRadius(10)
                                 }
                                 .buttonStyle(.plain)
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(Text(option.displayName))
+                                .accessibilityValue(Text(option.caption))
+                                .accessibilityAddTraits(
+                                    state.diagnosticsSharingOption == option ? [.isButton, .isSelected] : .isButton
+                                )
                             }
                             .padding()
                         }
