@@ -230,12 +230,21 @@ struct QuickPickTreatmentsView: View {
             isPresented = false
 
         case (.succeeded, .failed):
+            let message: String
+            if let bolusFailureMessage = outcome.bolusFailureMessage {
+                message = String(
+                    localized: "Carbs were logged. \(bolusFailureMessage)",
+                    comment: "Alert body when carbs saved but the bolus failed at the pump, with the pump's reason appended"
+                )
+            } else {
+                message = String(
+                    localized: "Carbs were logged, but the bolus could not be authenticated and was not enacted.",
+                    comment: "Alert body when carbs saved but bolus authentication failed"
+                )
+            }
             enactAlert = EnactAlert(
                 title: String(localized: "Bolus Not Enacted", comment: "Alert title when carbs saved but the bolus failed"),
-                message: String(
-                    localized: "Carbs were logged, but the bolus could not be authenticated and was not enacted.",
-                    comment: "Alert body when carbs saved but the bolus failed"
-                ),
+                message: message,
                 dismissesSheet: true
             )
 
@@ -263,17 +272,28 @@ struct QuickPickTreatmentsView: View {
             )
 
         case (nil, .failed):
-            enactAlert = EnactAlert(
-                title: String(
-                    localized: "Could Not Authenticate",
-                    comment: "Alert title when biometric auth fails for a quick-pick bolus"
-                ),
-                message: String(
-                    localized: "Face ID or Touch ID did not succeed. The bolus was not enacted.",
-                    comment: "Alert body when biometric auth fails for a quick-pick bolus"
-                ),
-                dismissesSheet: false
-            )
+            if let bolusFailureMessage = outcome.bolusFailureMessage {
+                enactAlert = EnactAlert(
+                    title: String(
+                        localized: "Bolus Not Enacted",
+                        comment: "Alert title when a bolus-only quick pick fails at the pump"
+                    ),
+                    message: bolusFailureMessage,
+                    dismissesSheet: false
+                )
+            } else {
+                enactAlert = EnactAlert(
+                    title: String(
+                        localized: "Could Not Authenticate",
+                        comment: "Alert title when biometric auth fails for a quick-pick bolus"
+                    ),
+                    message: String(
+                        localized: "Face ID or Touch ID did not succeed. The bolus was not enacted.",
+                        comment: "Alert body when biometric auth fails for a quick-pick bolus"
+                    ),
+                    dismissesSheet: false
+                )
+            }
 
         case (.failed, nil):
             enactAlert = EnactAlert(
