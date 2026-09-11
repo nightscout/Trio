@@ -6,8 +6,6 @@ import Swinject
 
 /// How a caller names the adjustment to activate.
 enum AdjustmentRef: Equatable {
-    /// A row the caller already holds. Saved rows only: a row that has never been saved carries a
-    /// temporary object ID, which resolves in no other context.
     case objectID(NSManagedObjectID)
     /// The preset's own identifier — `OverrideStored.id` / `TempTargetStored.id`.
     case presetID(String)
