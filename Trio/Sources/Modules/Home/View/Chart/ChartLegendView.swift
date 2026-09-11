@@ -20,6 +20,12 @@ struct ChartLegendView: View {
 
                 List {
                     VStack(alignment: .leading) {
+                        Text("Chart Gestures").bold().padding(.bottom, 5).textCase(.uppercase)
+
+                        legendGesturesView
+                    }.listRowBackground(Color.gray.opacity(0.1))
+
+                    VStack(alignment: .leading) {
                         Text("Forecasts").bold().padding(.bottom, 5).textCase(.uppercase)
                         Text(
                             "The oref algorithm determines insulin dosing based on a number of scenarios that it estimates with different types of forecasts."
@@ -185,6 +191,52 @@ struct ChartLegendView: View {
             .presentationDetents(
                 [.fraction(0.9), .large],
                 selection: $legendSheetDetent
+            )
+        }
+    }
+
+    /// The gestures the chart itself answers to. None of them are discoverable from the
+    /// chart — there is nothing on screen to hint at a pinch or a double tap — so the legend
+    /// is where they are written down.
+    var legendGesturesView: some View {
+        Group {
+            DefinitionRow(
+                term: String(localized: "Drag"),
+                definition: Text(
+                    "Pans the chart through time. Flick and let go to keep it gliding."
+                ),
+                color: Color.primary,
+                iconString: "hand.draw"
+            )
+
+            DefinitionRow(
+                term: String(localized: "Pinch"),
+                definition: Text(
+                    "Zooms continuously, between one hour and a full day on screen."
+                ),
+                color: Color.primary,
+                iconString: "arrow.up.left.and.arrow.down.right"
+            )
+
+            DefinitionRow(
+                term: String(localized: "Double-Tap"),
+                definition: Text(
+                    "Steps through the zoom presets — 6, 12 and 24 hours — keeping the right-hand edge of the window where it is."
+                ),
+                color: Color.primary,
+                iconString: "hand.tap"
+            )
+
+            DefinitionRow(
+                term: String(localized: "Press and Hold"),
+                definition: VStack(alignment: .leading, spacing: 10) {
+                    Text("Rest a finger on the chart to inspect a single reading with its IOB and COB.")
+                    Text(
+                        "Keep your finger down and slide to scrub along the curve; slide to either edge and the chart pans along with you."
+                    )
+                },
+                color: Color.primary,
+                iconString: "hand.point.up.left"
             )
         }
     }
