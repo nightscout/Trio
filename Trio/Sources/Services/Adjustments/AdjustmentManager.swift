@@ -11,8 +11,6 @@ enum AdjustmentRef: Equatable {
     case presetName(String)
 }
 
-/// The entry point a command came from. Travels into the log line and the Nightscout upload
-/// request, and is the only thing the manager knows about its caller.
 enum AdjustmentSource: String {
     case app
     case remote
