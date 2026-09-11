@@ -7,7 +7,6 @@ import Swinject
 /// How a caller names the adjustment to activate.
 enum AdjustmentRef: Equatable {
     case objectID(NSManagedObjectID)
-    /// The preset's own identifier — `OverrideStored.id` / `TempTargetStored.id`.
     case presetID(String)
     /// The preset's display name, compared with surrounding whitespace trimmed on both sides.
     /// Names are free text and may repeat, so the lowest order position wins.
