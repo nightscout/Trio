@@ -14,6 +14,7 @@ enum AdjustmentRef: Equatable {
 enum AdjustmentSource: String {
     case app
     case remote
+    case shortcut
     case watch
 }
 
