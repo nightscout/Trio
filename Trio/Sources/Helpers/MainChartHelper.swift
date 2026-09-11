@@ -79,6 +79,24 @@ enum MainChartHelper {
         /// Without this, every drag briefly triggered inspect on touch-down — and each
         /// selection change re-lays the canvas, stalling the pan as it starts.
         static let inspectHoldDelay: TimeInterval = 0.15
+        /// Vertical travel (pt) of a double-tap-and-drag that halves or doubles the visible
+        /// window *at the tightest zoom* — the slow end of the gesture.
+        static let doubleTapZoomPointsPerDoubling: CGFloat = 180
+        /// How much quicker the same travel zooms at the widest window than at the
+        /// tightest: the points-per-doubling shrinks linearly across the zoom range, down
+        /// to `doubleTapZoomPointsPerDoubling / doubleTapZoomAcceleration` at the wide end.
+        /// A flat rate makes the wide end feel like wading; much past this and it skids.
+        static let doubleTapZoomAcceleration: Double = 2.5
+        /// Longest gap (s) between a tap lifting and the next touch landing for the two to
+        /// count as a double tap — the gesture that arms the drag zoom.
+        static let doubleTapMaxInterval: TimeInterval = 0.35
+        /// How long the second tap of a double tap may rest before the touch gives up on the
+        /// drag zoom and becomes an inspect. Longer than `inspectHoldDelay`, because a double
+        /// tap that means to zoom often pauses a moment before it moves, and stealing that
+        /// touch is worse than making a deliberate hold wait.
+        static let doubleTapHoldToInspectDelay: TimeInterval = 0.5
+        /// How far apart (pt) the two taps of a double tap may land.
+        static let doubleTapSlop: CGFloat = 44
         static let bolusSize: CGFloat = 5
         static let bolusScale: CGFloat = 1.8
         static let carbsSize: CGFloat = 5

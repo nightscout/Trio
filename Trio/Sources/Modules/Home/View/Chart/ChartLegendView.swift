@@ -19,6 +19,14 @@ struct ChartLegendView: View {
                 .padding(.top, 50)
 
                 List {
+                    Section {
+                        VStack(alignment: .leading) {
+                            Text("Chart Gestures").bold().padding(.bottom, 5).textCase(.uppercase)
+
+                            legendGesturesView
+                        }.listRowBackground(Color.gray.opacity(0.1))
+                    }
+
                     VStack(alignment: .leading) {
                         Text("Forecasts").bold().padding(.bottom, 5).textCase(.uppercase)
                         Text(
@@ -221,6 +229,66 @@ struct ChartLegendView: View {
                     "Forecasts future glucose levels and insulin dosing needs for unexpected meals or other causes of glucose reading increases without prior notice."
                 ),
                 color: .uam
+            )
+        }
+    }
+
+    /// The gestures the chart itself answers to. None of them are discoverable from the
+    /// chart — there is nothing on screen to hint at a pinch or a double tap — so the legend
+    /// is where they are written down.
+    var legendGesturesView: some View {
+        Group {
+            DefinitionRow(
+                term: String(localized: "Drag"),
+                definition: Text(
+                    "Pans the chart through time. Flick and let go to keep it gliding, and it comes to rest on its own."
+                ),
+                color: Color.primary,
+                iconString: "hand.draw"
+            )
+
+            DefinitionRow(
+                term: String(localized: "Pinch"),
+                definition: Text(
+                    "Zooms continuously, between one hour and a full day on screen. The moment you pinch around stays put, so the chart grows out of the point you are looking at."
+                ),
+                color: Color.primary,
+                iconString: "arrow.up.left.and.arrow.down.right"
+            )
+
+            DefinitionRow(
+                term: String(localized: "Double-Tap"),
+                definition: Text(
+                    "Steps through the zoom presets — 6, 12 and 24 hours — anchored under your finger, the same way a pinch is."
+                ),
+                color: Color.primary,
+                iconString: "hand.tap"
+            )
+
+            DefinitionRow(
+                term: String(localized: "Double-Tap and Hold, then Drag"),
+                definition: VStack(alignment: .leading, spacing: 10) {
+                    Text(
+                        "Zooms with one hand: keep your finger down on the second tap and drag up to zoom in, down to zoom out."
+                    )
+                    Text(
+                        "It anchors under your finger like the other two, and the further you drag the faster it moves, so a whole day is a short pull away."
+                    )
+                },
+                color: Color.primary,
+                iconString: "hand.tap.fill"
+            )
+
+            DefinitionRow(
+                term: String(localized: "Press and Hold"),
+                definition: VStack(alignment: .leading, spacing: 10) {
+                    Text("Rest a finger on the chart to inspect a single reading with its IOB and COB.")
+                    Text(
+                        "Keep your finger down and slide to scrub along the curve; slide to either edge and the chart pans along with you."
+                    )
+                },
+                color: Color.primary,
+                iconString: "hand.point.up.left"
             )
         }
     }
