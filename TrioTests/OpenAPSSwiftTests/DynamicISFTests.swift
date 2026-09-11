@@ -176,6 +176,63 @@ import Testing
         #expect(result.ratio.rounded(scale: 2) == Decimal(string: "0.99"))
     }
 
+    // An autosens min of exactly 1 puts the sigmoid's floor at 1, and `fixOffset` (which
+    // shifts the curve so it passes through 1 at target) then has no finite solution: the
+    // log10 argument collapses to 0 and the offset is -infinity. JS silently flattens the
+    // curve to a constant 1, turning dynamicISF into a no-op; Swift used to trap in
+    // Decimal(Double) instead. Autosens Min is settable to exactly 1.0 in the UI (see
+    // DecimalPickerSettings.autosensMin), so this is reachable in production.
+    @Test("Sigmoid handles minLimit of 1 correctly") func sigmoidMinLimitOne() throws {
+        var (profile, preferences, glucose, trioVars) = createDependencies(minAutosens: 1.0)
+        preferences.sigmoid = true
+
+        let result = try #require(DynamicISF.calculate(
+            profile: profile,
+            preferences: preferences,
+            currentGlucose: glucose,
+            trioCustomOrefVariables: trioVars
+        ))
+
+        #expect(result.insulinFactor == 55)
+        #expect(result.tddRatio == 1.0)
+        // The sigmoid runs against a nudged floor of 0.99, so at BG 120 (20 above target)
+        // it lands just above neutral rather than pinning flat at 1.
+        #expect(result.ratio.rounded(scale: 2) == Decimal(string: "1.01"))
+    }
+
+    // The whole point of the minLimit nudge: with a floor of exactly 1 the curve must still
+    // respond to glucose. Before the fix this was a constant 1 at every BG.
+    @Test("Sigmoid with minLimit of 1 still responds to glucose") func sigmoidMinLimitOneVaries() throws {
+        var (profile, preferences, _, trioVars) = createDependencies(minAutosens: 1.0)
+        preferences.sigmoid = true
+
+        func ratio(at glucose: Decimal) throws -> Decimal {
+            let result = try #require(DynamicISF.calculate(
+                profile: profile,
+                preferences: preferences,
+                currentGlucose: glucose,
+                trioCustomOrefVariables: trioVars
+            ))
+            return result.ratio
+        }
+
+        // Below target the curve dips under 1 but the final clamp pins it to the user's floor.
+        #expect(try ratio(at: 40) == 1)
+        #expect(try ratio(at: 70) == 1)
+        // At target the curve is neutral. Only rounded: Decimal.exp round-trips through
+        // Double, so this lands a couple of 1e-18 off exactly 1.
+        #expect(try ratio(at: 100).rounded(scale: 2) == 1)
+
+        // Above target the ratio climbs toward maxLimit instead of staying pinned.
+        let at180 = try ratio(at: 180)
+        let at250 = try ratio(at: 250)
+        #expect(at180.rounded(scale: 2) == Decimal(string: "1.06"))
+        #expect(at250.rounded(scale: 2) == Decimal(string: "1.15"))
+        #expect(at180 > 1)
+        #expect(at250 > at180)
+        #expect(at250 <= 1.2)
+    }
+
     @Test("Override with sigmoid adjusts target and ratio correctly") func overrideWithSigmoid() throws {
         var (profile, preferences, glucose, trioVars) = createDependencies()
         preferences.sigmoid = true

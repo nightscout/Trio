@@ -12,7 +12,7 @@ import Testing
         skipNeutralTemps: Bool = false,
         maxDailySafetyMultiplier: Decimal = 3,
         currentBasalSafetyMultiplier: Decimal = 4,
-        model: String? = nil
+        supportedBasalRates: [Decimal] = PumpRateTables.flat
     ) -> Profile {
         var profile = Profile()
         profile.currentBasal = currentBasal
@@ -21,7 +21,7 @@ import Testing
         profile.skipNeutralTemps = skipNeutralTemps
         profile.maxDailySafetyMultiplier = maxDailySafetyMultiplier
         profile.currentBasalSafetyMultiplier = currentBasalSafetyMultiplier
-        profile.model = model
+        profile.supportedBasalRates = supportedBasalRates
         return profile
     }
 
@@ -246,7 +246,7 @@ import Testing
             maxDailyBasal: 1.3,
             maxBasal: 10.0,
             currentBasalSafetyMultiplier: 5,
-            model: "523"
+            supportedBasalRates: PumpRateTables.minimedGen23
         )
         let determination = createDetermination()
         let currentTemp = createCurrentTemp(rate: 0.025, duration: 24)
@@ -268,7 +268,7 @@ import Testing
             maxDailyBasal: 11.3,
             maxBasal: 50.0,
             currentBasalSafetyMultiplier: 5,
-            model: "523"
+            supportedBasalRates: PumpRateTables.minimedGen23
         )
         let determination = createDetermination()
         let currentTemp = createCurrentTemp(rate: 10.1, duration: 24)

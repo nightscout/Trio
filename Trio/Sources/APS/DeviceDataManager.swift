@@ -1,4 +1,3 @@
-import Algorithms
 import Combine
 import CoreData
 import Foundation
@@ -6,7 +5,6 @@ import HealthKit
 import LoopKit
 import LoopKitUI
 import MedtrumKit
-import MinimedKit
 import MockKit
 import MockKitUI
 import OmnipodKit
@@ -15,7 +13,7 @@ import SwiftDate
 import Swinject
 import UserNotifications
 
-protocol DeviceDataManager: GlucoseSource {
+protocol DeviceDataManager {
     var pumpManager: PumpManagerUI? { get set }
     var bluetoothManager: BluetoothStateManager { get }
     var loopInProgress: Bool { get set }
@@ -156,39 +154,9 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                             $0.pumpReservoirDidChange(Decimal(simulatorPump.state.reservoirUnitsRemaining))
                         }
                     }
-                    let batteryPercent = Int((simulatorPump.state.pumpBatteryChargeRemaining ?? 1) * 100)
-                    let battery = Battery(
-                        percent: batteryPercent,
-                        voltage: nil,
-                        string: batteryPercent >= 10 ? .normal : .low,
-                        display: simulatorPump.state.pumpBatteryChargeRemaining != nil
-                    )
-                    Task {
-                        let context = CoreDataStack.shared.newTaskContext()
-                        context.name = "storeSimulatorBattery"
-                        await context.perform {
-                            let saveBatteryToCoreData = OpenAPS_Battery(context: context)
-                            saveBatteryToCoreData.id = UUID()
-                            saveBatteryToCoreData.date = Date()
-                            saveBatteryToCoreData.percent = Double(batteryPercent)
-                            saveBatteryToCoreData.voltage = nil
-                            saveBatteryToCoreData.status = batteryPercent >= 10 ? BatteryState.normal.rawValue : BatteryState
-                                .low.rawValue
-                            saveBatteryToCoreData.display = simulatorPump.state.pumpBatteryChargeRemaining != nil
-
-                            do {
-                                guard context.hasChanges else { return }
-                                try context.save()
-                            } catch {
-                                print(error.localizedDescription)
-                            }
-                        }
-                    }
-                    DispatchQueue.main.async {
-                        self.broadcaster.notify(PumpBatteryObserver.self, on: .main) {
-                            $0.pumpBatteryDidChange(battery)
-                        }
-                    }
+                    // Seed the battery row so the simulator shows one before its first status
+                    // update; `pumpManager(_:didUpdate:oldStatus:)` keeps it current from here.
+                    storeBatteryStatus(simulatorPump.status)
                 }
             } else {
                 pumpDisplayState.value = nil
@@ -362,86 +330,6 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
         /// (OmniKit) and "Omnipod-DASH" (OmniBLE) managers still resolves to the universal OmnipodKit manager.
         return DeviceCatalog.pumpEntry(forPersistedIdentifier: managerIdentifier)?.manager
     }
-
-    // MARK: - GlucoseSource
-
-    @Persisted(key: "BaseDeviceDataManager.lastFetchGlucoseDate") private var lastFetchGlucoseDate: Date = .distantPast
-
-    var glucoseManager: FetchGlucoseManager?
-    var cgmManager: CGMManagerUI?
-    var cgmType: CGMType = .enlite
-
-    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
-    let cgmProgressHighlight = CurrentValueSubject<DeviceLifecycleProgress?, Never>(nil)
-
-    func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
-        fetch(nil)
-    }
-
-    func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
-        guard let medtronic = pumpManager as? MinimedPumpManager else {
-            warning(.deviceManager, "Fetch minilink glucose failed: Pump is not Medtronic")
-            return Just([]).eraseToAnyPublisher()
-        }
-
-        guard lastFetchGlucoseDate.addingTimeInterval(5.minutes.timeInterval) < Date() else {
-            return Just([]).eraseToAnyPublisher()
-        }
-
-        medtronic.cgmManagerDelegate = self
-
-        return Future<[BloodGlucose], Error> { promise in
-            self.processQueue.async {
-                medtronic.fetchNewDataIfNeeded { result in
-                    switch result {
-                    case .noData:
-                        debug(.deviceManager, "Minilink glucose is empty")
-                        promise(.success([]))
-                    case .unreliableData:
-                        debug(.deviceManager, "Unreliable data received")
-                        promise(.success([]))
-                    case let .newData(glucose):
-                        let directions: [BloodGlucose.Direction?] = [nil]
-                            + glucose.windows(ofCount: 2).map { window -> BloodGlucose.Direction? in
-                                let pair = Array(window)
-                                guard pair.count == 2 else { return nil }
-                                let firstValue = Int(pair[0].quantity.doubleValue(for: .milligramsPerDeciliter))
-                                let secondValue = Int(pair[1].quantity.doubleValue(for: .milligramsPerDeciliter))
-                                return .init(trend: secondValue - firstValue)
-                            }
-
-                        let results = glucose.enumerated().map { index, sample -> BloodGlucose in
-                            let value = Int(sample.quantity.doubleValue(for: .milligramsPerDeciliter))
-                            return BloodGlucose(
-                                id: sample.syncIdentifier,
-                                sgv: value,
-                                direction: directions[index],
-                                date: Decimal(Int(sample.date.timeIntervalSince1970 * 1000)),
-                                dateString: sample.date,
-                                unfiltered: Decimal(value),
-                                filtered: nil,
-                                noise: nil,
-                                glucose: value,
-                                type: "sgv"
-                            )
-                        }
-                        if let lastDate = results.last?.dateString {
-                            self.lastFetchGlucoseDate = lastDate
-                        }
-
-                        promise(.success(results))
-                    case let .error(error):
-                        warning(.deviceManager, "Fetch minilink glucose failed", error: error)
-                        promise(.failure(error))
-                    }
-                }
-            }
-        }
-        .timeout(60 * 3, scheduler: processQueue, options: nil, customError: nil)
-        .replaceError(with: [])
-        .replaceEmpty(with: [])
-        .eraseToAnyPublisher()
-    }
 }
 
 // MARK: - PumpManagerDelegate
@@ -489,10 +377,57 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         !cgmProvidesBLEHeartbeat
     }
 
+    /// Persists the pump's battery level for the home-screen battery pill.
+    ///
+    /// Updates the most recent row from the last 30 minutes rather than appending one per status
+    /// update. A pump that does not report a battery (e.g. a pod) still writes a row, with
+    /// `display` false, which is what hides the pill.
+    private func storeBatteryStatus(_ status: PumpManagerStatus) {
+        let percent = Int((status.pumpBatteryChargeRemaining ?? 1) * 100)
+        let display = status.pumpBatteryChargeRemaining != nil
+
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "storeBatteryStatus"
+        context.perform {
+            let fetchRequest: NSFetchRequest<OpenAPS_Battery> = OpenAPS_Battery.fetchRequest()
+            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+            fetchRequest.predicate = NSPredicate.predicateFor30MinAgo
+            fetchRequest.fetchLimit = 1
+
+            do {
+                let results = try context.fetch(fetchRequest)
+                let batteryToStore: OpenAPS_Battery
+
+                if let existingBattery = results.first {
+                    batteryToStore = existingBattery
+                } else {
+                    batteryToStore = OpenAPS_Battery(context: context)
+                    batteryToStore.id = UUID()
+                }
+
+                batteryToStore.date = Date()
+                batteryToStore.percent = Double(percent)
+                batteryToStore.voltage = nil
+                batteryToStore.status = percent > 10 ? BatteryState.normal.rawValue : BatteryState.low.rawValue
+                batteryToStore.display = display
+
+                guard context.hasChanges else { return }
+                try context.save()
+            } catch {
+                debug(.deviceManager, "Failed to fetch or save battery: \(error)")
+            }
+        }
+    }
+
     func pumpManager(_ pumpManager: PumpManager, didUpdate status: PumpManagerStatus, oldStatus: PumpManagerStatus) {
         dispatchPrecondition(condition: .onQueue(processQueue))
         debug(.deviceManager, "New pump status Bolus: \(status.bolusState)")
         debug(.deviceManager, "New pump status Basal: \(String(describing: status.basalDeliveryState))")
+
+        // Before any of the pump-specific branches below, which return early.
+        storeBatteryStatus(status)
+        // TODO: - remove this after ensuring that NS still gets the same infos from Core Data
+        storage.save(status.pumpStatus, as: OpenAPS.Monitor.status)
 
         switch status.bolusState {
         case .initiating:
@@ -707,26 +642,6 @@ extension BaseDeviceDataManager: DeviceManagerDelegate {
     }
 }
 
-// MARK: - CGMManagerDelegate
-
-extension BaseDeviceDataManager: CGMManagerDelegate {
-    func startDateToFilterNewData(for _: CGMManager) -> Date? {
-        glucoseStorage.syncDate().addingTimeInterval(-10.minutes.timeInterval) // additional time to calculate directions
-    }
-
-    func cgmManager(_: CGMManager, hasNew _: CGMReadingResult) {}
-
-    func cgmManager(_: LoopKit.CGMManager, hasNew _: [LoopKit.PersistedCgmEvent]) {}
-
-    func cgmManagerWantsDeletion(_: CGMManager) {}
-
-    func cgmManagerDidUpdateState(_: CGMManager) {}
-
-    func credentialStoragePrefix(for _: CGMManager) -> String { "BaseDeviceDataManager" }
-
-    func cgmManager(_: CGMManager, didUpdate _: CGMManagerStatus) {}
-}
-
 // extension BaseDeviceDataManager: AlertPresenter {
 //    func issueAlert(_: Alert) {}
 //    func retractAlert(identifier _: Alert.Identifier) {}
@@ -736,10 +651,6 @@ extension BaseDeviceDataManager: CGMManagerDelegate {
 
 protocol PumpReservoirObserver {
     func pumpReservoirDidChange(_ reservoir: Decimal)
-}
-
-protocol PumpBatteryObserver {
-    func pumpBatteryDidChange(_ battery: Battery)
 }
 
 protocol PumpDeactivatedObserver {

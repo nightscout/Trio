@@ -79,6 +79,8 @@ extension BasalProfileEditor {
                     AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
                 }
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("Basal rate profile chart, 24 hours"))
         }
 
         var saveButton: some View {

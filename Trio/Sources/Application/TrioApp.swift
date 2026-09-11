@@ -342,6 +342,9 @@ extension Notification.Name {
                         .onOpenURL(perform: handleURL)
                 }
             }
+            // Global upper bound on Dynamic Type: keep accessibility scaling but stop before the
+            // extreme sizes that shatter dense layouts. Fragile screens cap tighter (see Home, Statistics).
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1)
             .onReceive(Foundation.NotificationCenter.default.publisher(for: .onboardingCompleted)) { _ in
                 Task { @MainActor in
                     self.showOnboardingCompletedSplash = true
