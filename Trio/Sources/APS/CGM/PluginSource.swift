@@ -47,18 +47,18 @@ final class PluginSource: GlucoseSource {
         cgmProgressHighlight.value = cgmManager?.cgmLifecycleProgress
     }
 
-    /// Function that fetches blood glucose data
-    /// This function combines two data fetching mechanisms (`callBLEFetch` and `fetchIfNeeded`) into a single publisher.
-    /// It returns the first non-empty result from either of the sources within a 5-minute timeout period.
-    /// If no valid data is fetched within the timeout, it returns an empty array.
+    /// Returns the first fetch result, including an empty array, within five minutes.
+    /// Empty completion, timeout, or failure produces an empty array.
+    /// Plugin readings and backfill arrive separately through the CGM manager delegate;
+    /// the fetch callback is not a second source of glucose readings.
     ///
     /// - Parameter timer: An optional `DispatchTimer` (not used in the function but can be used to trigger fetch logic).
     /// - Returns: An `AnyPublisher` that emits an array of `BloodGlucose` values or an empty array if an error occurs or the timeout is reached.
     func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
         fetchIfNeeded()
-            .filter { !$0.isEmpty }
             .first()
             .timeout(60 * 5, scheduler: processQueue, options: nil, customError: nil)
+            .replaceEmpty(with: [])
             .replaceError(with: [])
             .eraseToAnyPublisher()
     }
