@@ -64,8 +64,18 @@ extension History.RootView {
                 }
             } else if let tempBasal = item.tempBasal, let rate = tempBasal.rate {
                 Image(systemName: "circle.fill").foregroundColor(Color.insulin.opacity(0.4))
-                    .accessibilityHidden(true)
-                Text("Temp Basal")
+                Text(
+                    tempBasal
+                        .isScheduledBasal ? String(
+                            localized: "Basal",
+                            comment: "Treatment label in history for scheduled basal"
+                        ) :
+                        String(
+                            localized: "Temp Basal",
+                            comment: "Treatment label in history for temporary basal"
+                        )
+                )
+                .accessibilityHidden(true)
                 Text(
                     (Formatter.decimalFormatterWithThreeFractionDigits.string(from: rate) ?? "0") +
                         String(localized: " U/hr", comment: "Unit insulin per hour")

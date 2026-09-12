@@ -259,7 +259,7 @@ final class TelemetryClient: Injectable {
         }
 
         if let settings = settings {
-            payload["closedLoop"] = settings.closedLoop
+            payload["dosingMode"] = settings.dosingMode.rawValue
             payload["units"] = settings.units.rawValue
             payload["useLiveActivity"] = settings.useLiveActivity
             payload["useCalendar"] = settings.useCalendar

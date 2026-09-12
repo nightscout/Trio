@@ -264,6 +264,19 @@ extension Stat.StateModel {
             // Convert duration from minutes to hours for insulin calculation
             let durationInHours = actualDurationInMinutes / 60.0
 
+            // A finalized row reports what the pump actually delivered (suspensions and
+            // pulse quantization included), so spread that total over the unsuspended
+            // time; the bars then sum to it instead of to rate x duration.
+            let unsuspendedHours = calculateEffectiveDuration(
+                from: timestamp,
+                to: timestamp.addingTimeInterval(durationInHours * 3600),
+                suspendResumePairs: suspendResumePairs
+            )
+            var effectiveRate = rate
+            if let delivered = tempBasal.deliveredUnits?.doubleValue, unsuspendedHours > 0 {
+                effectiveRate = delivered / unsuspendedHours
+            }
+
             // MARK: Distribute Insulin Across Hours
 
             // Handle temp basals that span multiple hours by distributing insulin appropriately
@@ -271,7 +284,7 @@ extension Stat.StateModel {
             distributeInsulinAcrossHours(
                 startTime: timestamp,
                 durationInHours: durationInHours,
-                rate: rate,
+                rate: effectiveRate,
                 suspendResumePairs: suspendResumePairs,
                 insulinByHour: &insulinByHour,
                 calendar: calendar
