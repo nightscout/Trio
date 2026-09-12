@@ -13,6 +13,8 @@ struct OpenAPSStatus: JSON {
     let enacted: Determination?
     let version: String
     let recommendedBolus: Decimal?
+    /// Raw value, not the localized name: followers parse this.
+    let dosingMode: String
 }
 
 struct NSPumpStatus: JSON {

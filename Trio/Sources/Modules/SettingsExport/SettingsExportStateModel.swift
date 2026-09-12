@@ -115,6 +115,12 @@ extension SettingsExport {
             debug(.default, "🔄 EXPORT: Settings managers initialized")
 
             // Helper function to add a setting
+            /// Marks a stored value the active dosing mode overrides, so an export reads true.
+            func overrideNote(stored: String, isOverridden: Bool, effective: String) -> String {
+                guard isOverridden else { return stored }
+                return String(localized: "\(stored) (mode is using \(effective))")
+            }
+
             func addSetting(category: String, subcategory: String = "", name: String, value: String, unit: String = "") {
                 exportSettings.append(ExportSetting(
                     category: category,
@@ -132,6 +138,11 @@ extension SettingsExport {
                     category: exportCategory,
                     name: String(localized: "Export Date"),
                     value: DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .medium)
+                )
+                addSetting(
+                    category: exportCategory,
+                    name: String(localized: "Dosing Mode"),
+                    value: trioSettings.dosingMode.displayName
                 )
                 addSetting(category: exportCategory, name: String(localized: "App Version"), value: versionNumber)
                 addSetting(category: exportCategory, name: String(localized: "Build Number"), value: buildNumber)
@@ -195,7 +206,12 @@ extension SettingsExport {
                     category: therapyCategory,
                     subcategory: unitsLimitsSubcategory,
                     name: String(localized: "Maximum Insulin on Board (IOB)"),
-                    value: String(describing: preferences.maxIOB),
+                    value: overrideNote(
+                        stored: String(describing: preferences.maxIOB),
+                        isOverridden: trioSettings.dosingMode.automation == .reductionsOnly ||
+                            trioSettings.dosingMode.automation == .hypoSuspendOnly,
+                        effective: "0"
+                    ),
                     unit: "U"
                 )
 
@@ -307,14 +323,22 @@ extension SettingsExport {
                     category: algorithmCategory,
                     subcategory: autosensSubcategory,
                     name: String(localized: "Autosens Max"),
-                    value: String(format: "%.0f", (preferences.autosensMax as NSDecimalNumber).doubleValue * 100),
+                    value: overrideNote(
+                        stored: String(format: "%.0f", (preferences.autosensMax as NSDecimalNumber).doubleValue * 100),
+                        isOverridden: trioSettings.dosingMode == .basalTesting,
+                        effective: "100"
+                    ),
                     unit: "%"
                 )
                 addSetting(
                     category: algorithmCategory,
                     subcategory: autosensSubcategory,
                     name: String(localized: "Autosens Min"),
-                    value: String(format: "%.0f", (preferences.autosensMin as NSDecimalNumber).doubleValue * 100),
+                    value: overrideNote(
+                        stored: String(format: "%.0f", (preferences.autosensMin as NSDecimalNumber).doubleValue * 100),
+                        isOverridden: trioSettings.dosingMode == .basalTesting,
+                        effective: "100"
+                    ),
                     unit: "%"
                 )
                 addSetting(
@@ -417,7 +441,11 @@ extension SettingsExport {
                     category: algorithmCategory,
                     subcategory: dynamicSubcategory,
                     name: String(localized: "Dynamic ISF"),
-                    value: dynamicISFValue
+                    value: overrideNote(
+                        stored: dynamicISFValue,
+                        isOverridden: trioSettings.dosingMode == .basalTesting,
+                        effective: String(localized: "Disabled")
+                    )
                 )
 
                 // Show adjustment factors as percentages with proper labels

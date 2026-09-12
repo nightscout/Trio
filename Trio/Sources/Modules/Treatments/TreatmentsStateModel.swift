@@ -36,7 +36,6 @@ extension Treatments {
         var maxCOB: Decimal = 0
         var errorString: Decimal = 0
         var evBG: Decimal = 0
-        var insulin: Decimal = 0
         var isf: Decimal = 0
         var error: Bool = false
         var minGuardBG: Decimal = 0
@@ -64,6 +63,16 @@ extension Treatments {
         var wholeCalc: Decimal = 0
         var factoredInsulin: Decimal = 0
         var insulinCalculated: Decimal = 0
+        var dosingMode: DosingMode = .open
+
+        /// What oref says is still needed on top of scheduled basal, discounted by the user's
+        /// Recommended Bolus Percentage and capped at Max Bolus. Never `smbToDeliver`, which oref
+        /// pairs with a compensating low temp that is not enacted here.
+        var algorithmSuggestedBolus: Decimal {
+            guard insulinRequired > 0 else { return 0 }
+            return min(insulinRequired * fraction, maxBolus)
+        }
+
         var fraction: Decimal = 0
         var basal: Decimal = 0
         var fattyMeals: Bool = false
@@ -345,6 +354,7 @@ extension Treatments {
         @MainActor private func setupSettings() async {
             units = settingsManager.settings.units
             fraction = settings.settings.overrideFactor
+            dosingMode = settings.settings.dosingMode
             fattyMeals = settings.settings.fattyMeals
             fattyMealFactor = settings.settings.fattyMealFactor
             sweetMeals = settings.settings.sweetMeals
@@ -886,7 +896,6 @@ extension Treatments.StateModel {
         evBG = (mostRecentDetermination.eventualBG ?? 0) as Decimal
         minPredBG = (mostRecentDetermination.minPredBGFromReason ?? 0) as Decimal
         lastLoopDate = apsManager.lastLoopDate as Date?
-        insulin = (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal
         target = (mostRecentDetermination.currentTarget ?? currentBGTarget as NSDecimalNumber) as Decimal
         isf = (mostRecentDetermination.insulinSensitivity ?? currentISF as NSDecimalNumber) as Decimal
         cob = mostRecentDetermination.cob as Int16

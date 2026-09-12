@@ -28,6 +28,7 @@ struct DeliveryLimitsStepView: View {
                     setting: settingsProvider.settings.maxIOB,
                     decimalValue: $state.maxIOB
                 )
+                .onAppear { state.seedMaxIOBIfUnset() }
             case .maxBolus:
                 deliveryLimitInputSection(
                     label: substep.title,

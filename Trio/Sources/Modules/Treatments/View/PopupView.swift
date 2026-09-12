@@ -903,6 +903,25 @@ struct PopupView: View {
                 }
             }
 
+            // What the algorithm itself asked for, shown because open loop never enacts it
+            if state.algorithmSuggestedBolus > 0 {
+                HStack(alignment: .firstTextBaseline) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Label(state.dosingMode.displayName, systemImage: state.dosingMode.icon)
+                            .font(.subheadline)
+                        Text("Trio would give").secondaryStyle()
+                    }
+                    Spacer()
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(insulinFormatter(state.algorithmSuggestedBolus, .down, true))
+                            .font(.headline)
+                        Text("U").font(.subheadline).foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+            }
+
             // Recommended Bolus card with accent-colored background
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
