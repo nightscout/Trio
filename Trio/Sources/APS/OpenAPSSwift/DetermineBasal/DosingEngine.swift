@@ -624,6 +624,33 @@ enum DosingEngine {
     /// - Returns: A tuple containing:
     ///   - `shouldSetTempBasal`: A `Bool` that is `true` if `determineBasal` should exit and apply the recommendation immediately.
     ///   - `determination`: The (potentially modified) determination object.
+    /// Basal Testing: past the low-glucose suspend, hold the scheduled rate and change nothing.
+    static func holdScheduledBasal(
+        currentTemp: TempBasal,
+        basal: Decimal,
+        profile: Profile,
+        determination: Determination
+    ) throws -> Determination {
+        var newDetermination = determination
+
+        let roundedBasal = TempBasalFunctions.roundBasal(profile: profile, basalRate: basal)
+        let roundedCurrentRate = TempBasalFunctions.roundBasal(profile: profile, basalRate: currentTemp.rate)
+
+        if currentTemp.duration > 15, roundedBasal == roundedCurrentRate {
+            newDetermination.reason += "basal testing, temp \(currentTemp.rate) ~ scheduled \(basal)U/hr. "
+            return newDetermination
+        }
+
+        newDetermination.reason += "basal testing; setting scheduled basal of \(basal) as temp. "
+        return try TempBasalFunctions.setTempBasal(
+            rate: basal,
+            duration: 30,
+            profile: profile,
+            determination: newDetermination,
+            currentTemp: currentTemp
+        )
+    }
+
     static func iobGreaterThanMax(
         iob: Decimal,
         maxIob: Decimal,

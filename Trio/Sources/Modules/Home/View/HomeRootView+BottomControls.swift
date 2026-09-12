@@ -661,6 +661,7 @@ extension Home.RootView {
             lastGlucoseDate: state.glucoseFromPersistence.last?.date,
             maxIOB: state.maxIOB,
             hasUnacknowledgedReleaseNotes: releaseNotesService.hasUnacknowledgedNotes,
+            dosingMode: state.dosingMode,
             now: state.timerDate
         )
     }
@@ -769,9 +770,23 @@ extension Home.RootView {
             ) {
                 showReleaseNotes = true
             }
+        case let .dosingModeLimited(mode):
+            panelBanner(
+                systemImage: "hand.raised.fill",
+                title: mode.displayName,
+                subtitle: String(localized: "Trio will not correct highs. Tap to review."),
+                tint: .orange
+            ) {
+                openDosingModeSetting()
+            }
         case .stats:
             statsBanner()
         }
+    }
+
+    /// The mode picker sits on the Settings root, so there is no sub-screen target to push.
+    func openDosingModeSetting() {
+        selectedTab = 3
     }
 
     func openMaxIOBSetting() {

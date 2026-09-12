@@ -99,8 +99,7 @@ struct LoopView: View {
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text(loopAccessibilityLabel))
         } else {
-            // No caption to enclose, so the capsule would frame empty space. The ring stands alone,
-            // drawn larger to hold the same visual weight.
+            // open loop, LGS and basal testing carry no caption; no capsule
             loopStatus
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text(loopAccessibilityLabel))
@@ -154,8 +153,7 @@ struct LoopView: View {
             .joined(separator: ", ")
     }
 
-    // @ScaledMetric so the ring grows with the user's text size; a fixed point size would leave
-    // it unreadable for anyone relying on larger type.
+    // @ScaledMetric so the ring grows with the user's text size
     @ScaledMetric(relativeTo: .callout) private var compactRingDiameter: CGFloat = 18
     @ScaledMetric(relativeTo: .callout) private var expandedRingDiameter: CGFloat = 26
 
@@ -165,7 +163,6 @@ struct LoopView: View {
     private var loopStatus: some View {
         HStack(alignment: .center) {
             ZStack {
-                // A manual temp basal blocks enactment, so closed loop does not get a closed ring.
                 if dosingMode == .closed, !manualTempBasal {
                     Image(systemName: "circle")
                 } else {
@@ -184,15 +181,14 @@ struct LoopView: View {
                 }
             }
             .frame(width: ringDiameter, height: ringDiameter)
-            // A caption would imply an action that did not happen in open loop, and overstates what
-            // the constrained modes do. The ring carries the state instead.
+            // A caption would imply an action that did not happen in open loop, LGS, or basal testing.
+            // Show timestamp only in closed loop, when determination is enacted.
             if showsCaption {
                 if isLooping {
                     Text("looping")
                 } else if manualTempBasal {
                     Text("Manual")
                 } else if determination.first?.deliverAt != nil {
-                    // .timestamp only updates when reportEnacted runs, so key the caption off deliverAt
                     Text(timeString)
                 } else {
                     Text("--")

@@ -210,7 +210,7 @@ final class BaseAPSManager: APSManager, Injectable {
             if wasParsed {
                 Task {
                     do {
-                        try await openAPS.createProfiles()
+                        try await openAPS.createProfiles(for: self.settingsManager.settings.dosingMode)
                     } catch {
                         debug(
                             .apsManager,
@@ -537,11 +537,12 @@ final class BaseAPSManager: APSManager, Injectable {
             let now = Date()
 
             // put profile creation up front since autosens needs it
-            try await openAPS.createProfiles()
+            try await openAPS.createProfiles(for: settingsManager.settings.dosingMode)
             let currentTemp = try await fetchCurrentTempBasal(date: now)
             _ = try await autosense()
 
             let determination = try await openAPS.determineBasal(
+                for: settingsManager.settings.dosingMode,
                 currentTemp: currentTemp,
                 supportedBasalRates: supportedBasalRates,
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,
@@ -600,6 +601,7 @@ final class BaseAPSManager: APSManager, Injectable {
         do {
             let temp = try await fetchCurrentTempBasal(date: Date.now)
             return try await openAPS.determineBasal(
+                for: settingsManager.settings.dosingMode,
                 currentTemp: temp,
                 supportedBasalRates: supportedBasalRates,
                 shouldSmoothGlucose: settingsManager.settings.smoothGlucose,

@@ -46,8 +46,8 @@ import Testing
         }
     }
 
-    @Test("Only fully implemented modes are selectable") func userSelectableModes() {
-        #expect(DosingMode.userSelectable == [.closed, .open])
+    @Test("Every mode is selectable now that the clamps exist") func userSelectableModes() {
+        #expect(DosingMode.userSelectable == DosingMode.allCases)
     }
 
     @Test("Bundled defaults ship in open loop") func bundledDefaultIsOpen() throws {
