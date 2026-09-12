@@ -17,7 +17,7 @@ protocol NightscoutManager: GlucoseSource {
     func uploadOverrides() async
     func uploadTempTargets() async
     func uploadProfiles() async throws
-    func uploadNoteTreatment(note: String) async
+    @discardableResult func uploadNoteTreatment(note: String) async -> Bool
     func importSettings() async -> ScheduledNightscoutProfile?
     var cgmURL: URL? { get }
 }
@@ -1006,9 +1006,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    private func uploadNonCoreDataTreatments(_ treatments: [NightscoutTreatment]) async {
+    /// - Returns: `true` only if every chunk reached Nightscout.
+    @discardableResult private func uploadNonCoreDataTreatments(_ treatments: [NightscoutTreatment]) async -> Bool {
         guard !treatments.isEmpty, let nightscout = nightscoutAPI, isUploadEnabled else {
-            return
+            return false
         }
 
         do {
@@ -1017,8 +1018,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
 
             debug(.nightscout, "Treatments uploaded")
+            return true
         } catch {
             debug(.nightscout, String(describing: error))
+            return false
         }
     }
 
@@ -1313,7 +1316,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     // TODO: have this checked; this has never actually written anything to file; the entire logic of this function seems broken
-    func uploadNoteTreatment(note: String) async {
+    /// - Returns: `true` if the note reached Nightscout.
+    @discardableResult func uploadNoteTreatment(note: String) async -> Bool {
         let uploadedNotes = storage.retrieve(OpenAPS.Nightscout.uploadedNotes, as: [NightscoutTreatment].self) ?? []
         let now = Date()
 
@@ -1326,10 +1330,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 targetTop: nil,
                 targetBottom: nil
             )
-            await uploadNonCoreDataTreatments([noteTreatment])
+            return await uploadNonCoreDataTreatments([noteTreatment])
             // TODO: fix/adjust, if necessary
 //            await uploadTreatments([noteTreatment], fileToSave: OpenAPS.Nightscout.uploadedNotes)
         }
+        return false
     }
 }
 

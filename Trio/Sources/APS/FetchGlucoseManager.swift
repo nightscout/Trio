@@ -13,6 +13,13 @@ protocol FetchGlucoseManager: SourceInfoProvider {
     func deleteGlucoseSource() async
     func removeCalibrations()
     func newGlucoseFromCgmManager(newGlucose: [BloodGlucose])
+    /// Reports abnormal sensor states to Nightscout as notes, one per episode
+    /// (see `CGMSensorStatusReportLog`). Call on every reading: a healthy one
+    /// is what closes an episode. Callable from any queue.
+    func reportCGMSensorObservation(_ observation: CGMSensorObservation)
+    /// Starts episode tracking for a sensor session, clearing the previous
+    /// session's episodes. Callable from any queue.
+    func startCGMSensorSession(startedAt: Date)
     var glucoseSource: GlucoseSource? { get }
     var cgmManager: CGMManagerUI? { get }
     var cgmGlucoseSourceType: CGMType { get set }
@@ -47,6 +54,15 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     @Injected() var pluginCGMManager: PluginManager!
     @Injected() var calibrationService: CalibrationService!
     @Injected() var trioAlertManager: TrioAlertManager!
+
+    /// Which sensor problems have already been reported to Nightscout. Access
+    /// under `sensorStatusLock`.
+    @Persisted(key: "cgmSensorStatusEpisodes") private var sensorEpisodes = CGMSensorEpisodes()
+    private let sensorStatusLock = NSRecursiveLock()
+
+    /// Problems whose note is uploading. Not persisted, so a relaunch
+    /// mid-upload retries.
+    private var sensorStatusUploadsInFlight: Set<String> = []
 
     private var lifetime = Lifetime()
     private let timer = DispatchTimer(timeInterval: 1.minutes.timeInterval)
@@ -177,6 +193,38 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
     func removeCalibrations() {
         calibrationService.removeAllCalibrations()
+    }
+
+    func reportCGMSensorObservation(_ observation: CGMSensorObservation) {
+        let pending: CGMSensorStatus? = sensorStatusLock.perform {
+            let status = sensorEpisodes.observe(observation)
+            guard let status, settingsManager.settings.isUploadEnabled else { return nil }
+            // Readings arrive in pairs, a live one and its backfill, and an
+            // upload already in flight opens the episode when it lands.
+            return sensorStatusUploadsInFlight.insert(status.key).inserted ? status : nil
+        }
+
+        guard let pending else { return }
+
+        Task {
+            let uploaded = await nightscoutManager.uploadNoteTreatment(note: pending.note)
+
+            self.sensorStatusLock.perform {
+                self.sensorStatusUploadsInFlight.remove(pending.key)
+                guard uploaded else { return }
+                self.sensorEpisodes.markReported(pending)
+            }
+
+            if uploaded {
+                debug(.deviceManager, "CGM sensor status uploaded to Nightscout: \(pending.note)")
+            } else {
+                debug(.deviceManager, "CGM sensor status upload failed, will retry: \(pending.note)")
+            }
+        }
+    }
+
+    func startCGMSensorSession(startedAt: Date) {
+        sensorStatusLock.perform { sensorEpisodes.startSensor(startedAt: startedAt) }
     }
 
     @MainActor func deleteGlucoseSource() async {
