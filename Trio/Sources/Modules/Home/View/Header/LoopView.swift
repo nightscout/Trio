@@ -6,7 +6,7 @@ import UIKit
 struct LoopView: View {
     @Environment(\.colorScheme) var colorScheme
 
-    private enum Config {
+    fileprivate enum Config {
         static let lag: TimeInterval = 30
     }
 
@@ -15,10 +15,55 @@ struct LoopView: View {
     let isLooping: Bool
     let lastLoopDate: Date
     let manualTempBasal: Bool
+    let lastGlucoseDate: Date?
+    let lastPumpCommsDate: Date?
+    let hasDeviceIssue: Bool
 
     let determination: [OrefDetermination]
 
-    private let rect = CGRect(x: 0, y: 0, width: 18, height: 18)
+    /// Fraction of the ring left open. Widens as Trio is allowed to do less.
+    static func ringGap(automation: AutomationLevel, manualTempBasal: Bool) -> CGFloat {
+        guard !manualTempBasal else { return 0.22 }
+        switch automation {
+        case .off: return 0.22
+        case .hypoSuspendOnly: return 0.16
+        case .reductionsOnly: return 0.1
+        case .full: return 0
+        }
+    }
+
+    /// Ring colour. Closed-loop freshness is meaningless when nothing is enacted, so open loop
+    /// reports device health instead: green while the devices talk to Trio, red when they do not.
+    static func ringColor(
+        automation: AutomationLevel,
+        manualTempBasal: Bool,
+        hasDeviceIssue: Bool,
+        hasEnactedDetermination: Bool,
+        secondsSinceLastLoop: TimeInterval
+    ) -> Color {
+        guard !manualTempBasal else { return .loopManualTemp }
+        guard automation != .off else { return hasDeviceIssue ? .loopRed : .loopGreen }
+        // .timestamp only updates when reportEnacted runs
+        guard hasEnactedDetermination else { return .secondary }
+
+        let delta = secondsSinceLastLoop - Config.lag
+        if delta <= 5.minutes.timeInterval {
+            return .loopGreen
+        } else if delta <= 10.minutes.timeInterval {
+            return .loopYellow
+        } else {
+            return .loopRed
+        }
+    }
+
+    private var ringGap: CGFloat {
+        Self.ringGap(automation: dosingMode.automation, manualTempBasal: manualTempBasal)
+    }
+
+    /// Newest sign of life from either device, which is what freshness means when nothing is enacted.
+    private var lastDeviceDate: Date? {
+        [lastGlucoseDate, lastPumpCommsDate].compactMap { $0 }.max()
+    }
 
     var body: some View {
         loopStatusWithMinutes
@@ -73,27 +118,43 @@ struct LoopView: View {
     private var loopStatusWithMinutes: some View {
         HStack(alignment: .center) {
             ZStack {
-                Image(systemName: (dosingMode.automation == .off || manualTempBasal) ? "circle.and.line.horizontal" : "circle")
+                Circle()
+                    .trim(from: ringGap, to: 1)
+                    .stroke(style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .frame(width: 18, height: 18)
                 if isLooping {
                     ProgressView()
                 }
             }
-            if isLooping {
-                Text("looping")
-            } else if manualTempBasal {
-                Text("Manual")
-            } else if determination.first?
-                .deliverAt !=
-                nil
-            {
-                // previously the .timestamp property was used here because this only gets updated when the reportenacted function in the aps manager gets called
-                Text(timeString)
-            } else {
-                Text("--")
+            // Open loop enacts nothing, so a "minutes since last loop" caption would imply
+            // an action that never happened. The ring alone carries the state.
+            if dosingMode.automation != .off {
+                if isLooping {
+                    Text("looping")
+                } else if manualTempBasal {
+                    Text("Manual")
+                } else if determination.first?.deliverAt != nil {
+                    // .timestamp only updates when reportEnacted runs, so key the caption off deliverAt
+                    Text(timeString)
+                } else {
+                    Text("--")
+                }
             }
         }
         .font(.callout).fontWeight(.bold).fontDesign(.rounded)
         .foregroundColor(color)
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var accessibilityLabel: Text {
+        guard dosingMode.automation == .off else {
+            return Text("\(dosingMode.displayName), last loop \(timeString)")
+        }
+        guard let lastDeviceDate else {
+            return Text("\(dosingMode.displayName), no recent device communication")
+        }
+        return Text("\(dosingMode.displayName), last device communication \(TimeAgoFormatter.minutesAgo(from: lastDeviceDate))")
     }
 
     private var timeString: String {
@@ -106,30 +167,13 @@ struct LoopView: View {
     }
 
     private var color: Color {
-        guard determination.first?.timestamp != nil
-        else {
-            // previously the .timestamp property was used here because this only gets updated when the reportenacted function in the aps manager gets called
-            return .secondary
-        }
-        guard manualTempBasal == false else {
-            return .loopManualTemp
-        }
-        guard dosingMode.automation != .off else {
-            return .secondary
-        }
-
-        let delta = timerDate.timeIntervalSince(lastLoopDate) - Config.lag
-
-        if delta <= 5.minutes.timeInterval {
-            guard determination.first?.timestamp != nil else {
-                return .loopYellow
-            }
-            return .loopGreen
-        } else if delta <= 10.minutes.timeInterval {
-            return .loopYellow
-        } else {
-            return .loopRed
-        }
+        Self.ringColor(
+            automation: dosingMode.automation,
+            manualTempBasal: manualTempBasal,
+            hasDeviceIssue: hasDeviceIssue,
+            hasEnactedDetermination: determination.first?.timestamp != nil,
+            secondsSinceLastLoop: timerDate.timeIntervalSince(lastLoopDate)
+        )
     }
 }
 
