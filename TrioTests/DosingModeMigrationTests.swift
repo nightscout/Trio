@@ -56,3 +56,32 @@ import Testing
         #expect(settings.dosingMode == .open)
     }
 }
+
+@Suite("Dosing Mode Reporting") struct DosingModeReportingTests {
+    @Test("Followers receive the raw value, which does not shift with locale") func rawValuesAreStable() {
+        #expect(DosingMode.closed.rawValue == "closed")
+        #expect(DosingMode.open.rawValue == "open")
+        #expect(DosingMode.lowGlucoseSuspend.rawValue == "lowGlucoseSuspend")
+        #expect(DosingMode.basalTesting.rawValue == "basalTesting")
+    }
+
+    @Test("Devicestatus carries the mode and drops enacted only in open loop") func deviceStatusPayload() throws {
+        func payload(for mode: DosingMode) throws -> [String: Any] {
+            let status = OpenAPSStatus(
+                iob: nil,
+                suggested: nil,
+                enacted: nil,
+                version: "1.0",
+                recommendedBolus: nil,
+                dosingMode: mode.rawValue
+            )
+            let data = try JSONEncoder().encode(status)
+            return try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        }
+
+        for mode in DosingMode.allCases {
+            let json = try payload(for: mode)
+            #expect(json["dosingMode"] as? String == mode.rawValue)
+        }
+    }
+}
