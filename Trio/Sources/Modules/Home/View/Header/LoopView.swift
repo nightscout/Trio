@@ -10,7 +10,7 @@ struct LoopView: View {
         static let lag: TimeInterval = 30
     }
 
-    let closedLoop: Bool
+    let dosingMode: DosingMode
     let timerDate: Date
     let isLooping: Bool
     let lastLoopDate: Date
@@ -40,7 +40,7 @@ struct LoopView: View {
             status = String(localized: "manual temporary basal running", comment: "Accessibility: loop status")
         } else if determination.first?.timestamp == nil {
             status = String(localized: "not looping", comment: "Accessibility: loop status")
-        } else if !closedLoop {
+        } else if dosingMode.automation == .off {
             status = String(localized: "open loop", comment: "Accessibility: loop status")
         } else {
             let delta = timerDate.timeIntervalSince(lastLoopDate) - Config.lag
@@ -73,7 +73,7 @@ struct LoopView: View {
     private var loopStatusWithMinutes: some View {
         HStack(alignment: .center) {
             ZStack {
-                Image(systemName: (!closedLoop || manualTempBasal) ? "circle.and.line.horizontal" : "circle")
+                Image(systemName: (dosingMode.automation == .off || manualTempBasal) ? "circle.and.line.horizontal" : "circle")
                 if isLooping {
                     ProgressView()
                 }
@@ -114,7 +114,7 @@ struct LoopView: View {
         guard manualTempBasal == false else {
             return .loopManualTemp
         }
-        guard closedLoop == true else {
+        guard dosingMode.automation != .off else {
             return .secondary
         }
 

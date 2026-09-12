@@ -17,7 +17,7 @@ enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
 
 struct TrioSettings: JSON, Equatable, Encodable {
     var units: GlucoseUnits = .mgdL
-    var closedLoop: Bool = false
+    var dosingMode: DosingMode = .open
     var isUploadEnabled: Bool = false
     var isDownloadEnabled: Bool = false
     var useLocalGlucoseSource: Bool = false
@@ -134,8 +134,11 @@ extension TrioSettings: Decodable {
             settings.units = units
         }
 
-        if let closedLoop = try? container.decode(Bool.self, forKey: .closedLoop) {
-            settings.closedLoop = closedLoop
+        if let dosingMode = try? container.decode(DosingMode.self, forKey: .dosingMode) {
+            settings.dosingMode = dosingMode
+        } else if let legacyClosedLoop = decodeLegacyBool(from: decoder, legacyKey: "closedLoop") {
+            // Migrate the pre-enum "closedLoop" key so existing users keep looping as before.
+            settings.dosingMode = legacyClosedLoop ? .closed : .open
         }
 
         if let isUploadEnabled = try? container.decode(Bool.self, forKey: .isUploadEnabled) {

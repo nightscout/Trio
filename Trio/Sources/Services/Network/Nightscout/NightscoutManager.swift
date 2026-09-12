@@ -654,7 +654,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         let openapsStatus = OpenAPSStatus(
             iob: iob?.first,
             suggested: suggestedToUpload,
-            enacted: settingsManager.settings.closedLoop ? enactedToUpload : nil,
+            enacted: settingsManager.settings.dosingMode.automation != .off ? enactedToUpload : nil,
             version: Bundle.main.releaseVersionNumber ?? "Unknown",
             recommendedBolus: recommendedBolus
         )
