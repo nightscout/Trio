@@ -12,7 +12,11 @@ final class CriticalAlertAudioPlayer {
     private var vibrationTimer: Timer?
 
     private let vibrationInterval: TimeInterval = 2.0
-    private let boostedVolume: Float = 1.0
+    /// System volume floor for critical alarms. The alarm has to be audible
+    /// with the ringer down, but forcing 100% wakes the whole household and
+    /// leaves the user no way to turn it down. Raise only up to this floor;
+    /// anything already louder is left alone.
+    private let minimumSystemVolume: Float = 0.5
     private let volumeBooster = SystemVolumeBooster()
 
     var isPlaying: Bool { player?.isPlaying ?? false }
@@ -54,7 +58,7 @@ final class CriticalAlertAudioPlayer {
             // silent switch.
             try session.setCategory(.playback, mode: .default, options: [.duckOthers, .mixWithOthers])
             try session.setActive(true, options: [])
-            volumeBooster.boost(to: boostedVolume)
+            volumeBooster.boost(to: minimumSystemVolume)
 
             let p = try AVAudioPlayer(contentsOf: url)
             p.numberOfLoops = -1
@@ -100,11 +104,13 @@ final class CriticalAlertAudioPlayer {
 /// without the Critical Alerts entitlement: without it an urgent-low alarm
 /// can be silent when the ringer is down overnight.
 ///
+/// Raises the system volume to a floor, never to maximum, and never lowers a
+/// user who is already louder than the floor.
+///
 /// Best-effort: the slider only populates once the hosting view is in an
 /// on-screen window, so it may no-op when the app is fully backgrounded. The
-/// alarm's audio and vibration run regardless — this only makes them louder
-/// when it can. Pre-boost level is restored on `restore()` unless the user
-/// manually changed the volume in the meantime.
+/// alarm's audio and vibration run regardless. Pre-boost level is restored on
+/// `restore()` unless the user manually changed the volume in the meantime.
 @MainActor private final class SystemVolumeBooster {
     private let volumeView = MPVolumeView(frame: CGRect(x: -2000, y: -2000, width: 1, height: 1))
     private var savedVolume: Float?
