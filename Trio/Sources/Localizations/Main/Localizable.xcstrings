@@ -57306,6 +57306,9 @@
         }
       }
     },
+    "Basal" : {
+      "comment" : "Treatment label in history for scheduled basal"
+    },
     "Basal Insulin and Sensitivity ratio" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -286984,7 +286987,7 @@
       }
     },
     "Temp Basal" : {
-      "comment" : "Treatment type",
+      "comment" : "Treatment label in history for temporary basal\nTreatment type",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
