@@ -114,7 +114,8 @@ extension Adjustments {
             units = settingsManager.settings.units
             defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
             defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
-            autosensMax = settingsManager.preferences.autosensMax
+            // clamped: drives predicted temp-target percentages, must match the algorithm
+            autosensMax = settingsManager.preferences.clamped(for: settingsManager.settings.dosingMode).autosensMax
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
@@ -230,7 +231,8 @@ extension Adjustments.StateModel: SettingsObserver, PreferencesObserver {
     func preferencesDidChange(_: Preferences) {
         defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
         defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
-        autosensMax = settingsManager.preferences.autosensMax
+        // clamped: drives predicted temp-target percentages, must match the algorithm
+        autosensMax = settingsManager.preferences.clamped(for: settingsManager.settings.dosingMode).autosensMax
         settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
         halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
         highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
