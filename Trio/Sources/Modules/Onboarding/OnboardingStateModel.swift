@@ -393,6 +393,16 @@ extension Onboarding {
             return (steps * setting.step).clamp(to: setting)
         }
 
+        /// Seeds Max IOB from the entered basal schedule when the user first reaches delivery limits.
+        /// Runs there, not in `subscribe()`: a fresh install has no basal profile yet at that point.
+        func seedMaxIOBIfUnset() {
+            guard maxIOB <= 0 else { return }
+            maxIOB = Self.suggestedMaxIOB(
+                totalDailyBasal: totalDailyBasal(),
+                setting: settingsProvider.settings.maxIOB
+            )
+        }
+
         /// Total insulin the entered basal profile delivers over 24 hours.
         func totalDailyBasal() -> Decimal {
             let segments = basalProfileItems.compactMap { item -> (startMinutes: Int, rate: Decimal)? in
@@ -424,10 +434,7 @@ extension Onboarding {
             }
 
             let preferences = settingsManager.preferences
-            // A stored 0 means Max IOB was never configured, so suggest a starting value instead.
-            maxIOB = preferences.maxIOB > 0
-                ? preferences.maxIOB.clamp(to: providedSettings.maxIOB)
-                : Self.suggestedMaxIOB(totalDailyBasal: totalDailyBasal(), setting: providedSettings.maxIOB)
+            maxIOB = preferences.maxIOB.clamp(to: providedSettings.maxIOB)
             maxCOB = preferences.maxCOB.clamp(to: providedSettings.maxCOB)
             minimumSafetyThreshold = preferences.threshold_setting
         }
