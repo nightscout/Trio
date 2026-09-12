@@ -145,7 +145,7 @@ extension Home.RootView {
     }
 
     @ViewBuilder func rightHeaderPanel() -> some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .center, spacing: 20) {
             /// Loop view at bottomLeading
             LoopView(
                 dosingMode: state.dosingMode,
@@ -178,8 +178,6 @@ extension Home.RootView {
                         .fontWeight(.bold)
                         .fontDesign(.rounded)
                 }
-                // aligns the evBG icon exactly with the first pixel of loop status icon
-                .padding(.leading, 12)
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text("Eventual glucose"))
                 .accessibilityValue(Text(

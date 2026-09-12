@@ -157,7 +157,7 @@ struct LoopView: View {
     // @ScaledMetric so the ring grows with the user's text size; a fixed point size would leave
     // it unreadable for anyone relying on larger type.
     @ScaledMetric(relativeTo: .callout) private var compactRingDiameter: CGFloat = 18
-    @ScaledMetric(relativeTo: .callout) private var expandedRingDiameter: CGFloat = 32
+    @ScaledMetric(relativeTo: .callout) private var expandedRingDiameter: CGFloat = 26
 
     private var ringDiameter: CGFloat { showsCaption ? compactRingDiameter : expandedRingDiameter }
     private var ringLineWidth: CGFloat { max(2, ringDiameter * 0.08) }
