@@ -228,16 +228,11 @@ extension Settings {
                                                         )
                                                         ForEach(DosingMode.userSelectable) { mode in
                                                             VStack(alignment: .leading, spacing: 5) {
-                                                                Text(mode.displayName + ":").bold()
-                                                                Text(mode.explanation)
+                                                                Label(mode.displayName, systemImage: mode.icon)
+                                                                    .bold()
+                                                                Text(mode.description)
                                                             }
                                                         }
-                                                        Text(
-                                                            "Before letting Trio dose for you, dial in your settings (basal / insulin sensitivity / carb ratio) and familiarize yourself with the app."
-                                                        )
-                                                        Text(
-                                                            "This is not medical advice. Discuss how you dose insulin with your diabetes care team."
-                                                        )
                                                     }
                                                 )
                                             shouldDisplayHint.toggle()

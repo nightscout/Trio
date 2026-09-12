@@ -37,7 +37,7 @@ struct LoopView: View {
         case .reductionsOnly:
             return "hand.raised.fill"
         case .hypoSuspendOnly:
-            return "hand.pinch.fill"
+            return "waveform"
         case .full,
              .off:
             return nil
@@ -177,7 +177,7 @@ struct LoopView: View {
                     ProgressView()
                 } else if let centerSymbol {
                     Image(systemName: centerSymbol)
-                        .font(.system(size: ringDiameter * 0.44, weight: .semibold))
+                        .font(.system(size: ringDiameter * 0.6, weight: .bold))
                 }
             }
             .frame(width: ringDiameter, height: ringDiameter)

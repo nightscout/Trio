@@ -74,7 +74,7 @@ import Testing
         #expect(LoopView.centerSymbol(automation: .full) == nil)
         #expect(LoopView.centerSymbol(automation: .off) == nil)
         #expect(LoopView.centerSymbol(automation: .reductionsOnly) == "hand.raised.fill")
-        #expect(LoopView.centerSymbol(automation: .hypoSuspendOnly) == "hand.pinch.fill")
+        #expect(LoopView.centerSymbol(automation: .hypoSuspendOnly) == "waveform")
     }
 }
 
