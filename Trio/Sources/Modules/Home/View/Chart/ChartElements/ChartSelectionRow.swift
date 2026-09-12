@@ -104,30 +104,18 @@ struct ChartSelectionRow: View {
         )
     }
 
-    /// A time wide enough to reserve room for any other the scrub can land on: two-digit hour
-    /// plus, where the locale writes one, an AM/PM marker. Formatted rather than hard-coded so
-    /// that holds in 12- and 24-hour locales alike.
-    private static let timeTemplateDate = Calendar.current
-        .date(from: DateComponents(year: 2000, month: 1, day: 1, hour: 22, minute: 38)) ?? .distantPast
-
     private var timeString: String {
         selectedGlucose.date?.formatted(.dateTime.hour().minute(.twoDigits)) ?? ""
     }
 
-    private var timeTemplate: String {
-        Self.timeTemplateDate.formatted(.dateTime.hour().minute(.twoDigits))
-    }
-
     /// Stand-in for a value the selection resolves to nothing: the item keeps its place and
-    /// its width, and says so rather than vanishing.
-    private static let missingValue = Text(verbatim: "–").foregroundStyle(.secondary)
-
-    /// Widest reading the unit can produce: three digits in mg/dL, `88.8` in mmol/L.
-    private var glucoseTemplate: String { units == .mgdL ? "888" : "88.8" }
+    /// says so rather than vanishing. The spaces are part of the string — the item takes a
+    /// `Text` — and keep the dash off its own glyph and off the next item.
+    private static let missingValue = Text(verbatim: " \u{2013} ").foregroundStyle(.secondary)
 
     var body: some View {
-        // Nothing may truncate — SwiftUI ellipsised the glucose value — so every group is
-        // `fixedSize` and the whole row steps down a type size until it fits.
+        // Nothing may truncate — SwiftUI ellipsised the glucose value — so the whole row
+        // steps down a type size until it fits.
         ViewThatFits(in: .horizontal) {
             row(font: .callout)
             row(font: .subheadline)
@@ -141,31 +129,24 @@ struct ChartSelectionRow: View {
     }
 
     /// Fixed spacing rather than `Spacer`s, so the row hugs its content: with no determination
-    /// it shrinks to time and glucose instead of stretching the slot around them.
+    /// it shrinks to time and glucose instead of stretching the slot around them. The items
+    /// are the plain strings — wide enough apart that a value growing a digit can't run into
+    /// its neighbour's glyph, and no reserved width behind them.
     @ViewBuilder private func row(font: Font) -> some View {
         HStack(spacing: 12) {
-            item(
-                icon: "clock",
-                tint: .secondary,
-                value: Text(timeString),
-                template: Text(timeTemplate)
-            )
+            item(icon: "clock", tint: .secondary, value: Text(timeString))
 
             glucoseGroup
 
             // Both stay in the row when the scrub lands where oref produced no determination
-            // — a gap in the data, or a loop that never ran — and show a dash instead. Letting
-            // them come and go would resize the row under the finger, which is the one thing
-            // the reserved boxes exist to prevent.
+            // — a gap in the data, or a loop that never ran — and show a dash instead.
             let iobUnit = Text(String(localized: " U", comment: "Insulin unit")).fontWeight(.regular)
             let iobString = determination?.iob
                 .flatMap { Formatter.decimalFormatterWithTwoFractionDigits.string(from: $0) }
             item(
                 icon: "syringe.fill",
                 tint: Color.insulin,
-                value: iobString.map { Text($0) + iobUnit } ?? Self.missingValue,
-                template: Text(verbatim: "88.88") + iobUnit,
-                alignment: iobString == nil ? .center : .leading
+                value: iobString.map { Text($0) + iobUnit } ?? Self.missingValue
             )
 
             let cobUnit = Text(String(localized: " g", comment: "gram of carbs")).fontWeight(.regular)
@@ -174,44 +155,37 @@ struct ChartSelectionRow: View {
             item(
                 icon: "fork.knife",
                 tint: .loopYellow,
-                value: cobString.map { Text($0) + cobUnit } ?? Self.missingValue,
-                template: Text(verbatim: "888") + cobUnit,
-                alignment: cobString == nil ? .center : .leading
+                value: cobString.map { Text($0) + cobUnit } ?? Self.missingValue
             )
         }
         .font(font).fontWeight(.bold).fontDesign(.rounded)
-        // equal-width digits, so a value can't wobble inside its reserved box mid-scrub
+        // equal-width digits, so a value can't wobble as its digits change mid-scrub
         .monospacedDigit()
         .lineLimit(1)
     }
 
     /// The reading under the drop and, with smoothing on, the smoothed value in brackets
-    /// behind it. The brackets are the whole label — a glyph there would read as another item
-    /// — and only the drop and the raw value take the glucose color, so the bracketed value
-    /// can't be misread as a second state. Each gets its own reserved box with the slack
-    /// pushed outwards, so the pair stays welded together at every reading width.
+    /// behind it — marked with the same sparkles glyph the History tab puts on a smoothed
+    /// reading. Only the drop and the raw value take the glucose color, so the bracketed
+    /// value can't be misread as a second state.
     @ViewBuilder private var glucoseGroup: some View {
         // verbatim: brackets have nothing to translate, and Xcode would otherwise extract
         // them into the string catalog
-        let open = Text(verbatim: "(")
-        let close = Text(verbatim: ")")
-        let gap = Text(verbatim: " ")
         let reading = Text(glucoseString(glucoseToDisplay)).foregroundStyle(pointMarkColor)
-        let smoothed = smoothedToDisplay
-            .map { (open + Text(glucoseString($0)) + close).foregroundStyle(.secondary) }
+        let smoothed = smoothedToDisplay.map {
+            (
+                Text(verbatim: "(")
+                    + Text(Image(systemName: "sparkles"))
+                    + Text(verbatim: " ")
+                    + Text(glucoseString($0))
+                    + Text(verbatim: ")")
+            ).foregroundStyle(.secondary)
+        }
 
         item(
             icon: "drop.fill",
             tint: pointMarkColor,
-            value: smoothed.map { reading + gap + $0 } ?? reading,
-            // One box for the pair, not one each: separate boxes would park the reading's
-            // spare digits between it and its bracket. The setting decides the width, not
-            // the individual reading — with smoothing on the bracket's room is held even for
-            // a reading that has no smoothed value, so the row never reflows mid-scrub; with
-            // it off the box is just the reading and the row is that much tighter.
-            template: isSmoothingEnabled
-                ? Text(glucoseTemplate) + gap + open + Text(glucoseTemplate) + close
-                : Text(glucoseTemplate)
+            value: smoothed.map { reading + Text(verbatim: " ") + $0 } ?? reading
         )
     }
 
@@ -221,26 +195,8 @@ struct ChartSelectionRow: View {
         return units == .mgdL ? smoothed.decimalValue : smoothed.decimalValue.asMmolL
     }
 
-    /// One value plus its glyph, laid out in the width `template` needs, so a reading that
-    /// gains a digit mid-scrub can't resize its group and shove the row sideways. The template
-    /// is hidden (hidden views are skipped by VoiceOver, which reads only the value) with the
-    /// value drawn over it, and is a `Text` so a unit is measured inside the box at its own
-    /// weight.
-    ///
-    /// Values are leading-aligned, so each starts at a fixed offset from its glyph and the
-    /// slack a short number leaves collects at the end of its own box. Aligning from the right
-    /// would move the number itself as digits come and go — 9 → 10, 99 → 100 — which is the
-    /// wobble the reserved boxes exist to prevent.
-    ///
-    /// A missing-value dash passes `.center` instead: it stands for the whole box rather than
-    /// starting one, so it belongs in the middle of the room it holds.
-    @ViewBuilder private func item(
-        icon: String? = nil,
-        tint: Color = .secondary,
-        value: Text,
-        template: Text,
-        alignment: Alignment = .leading
-    ) -> some View {
+    /// One value plus its glyph.
+    @ViewBuilder private func item(icon: String? = nil, tint: Color = .secondary, value: Text) -> some View {
         HStack(spacing: 4) {
             if let icon {
                 // scales with whichever step `ViewThatFits` settled on
@@ -248,11 +204,7 @@ struct ChartSelectionRow: View {
                     .imageScale(.small)
                     .foregroundStyle(tint)
             }
-            template
-                .hidden()
-                .overlay(alignment: alignment) {
-                    value.fixedSize(horizontal: true, vertical: false)
-                }
+            value
         }
         .fixedSize(horizontal: true, vertical: false)
     }
