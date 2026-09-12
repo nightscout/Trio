@@ -76431,6 +76431,9 @@
         }
       }
     },
+    "Chart Gestures" : {
+
+    },
     "Chart legend" : {
       "comment" : "A label for the chart legend button.",
       "localizations" : {
@@ -115161,6 +115164,12 @@
           }
         }
       }
+    },
+    "Double-Tap" : {
+
+    },
+    "Drag" : {
+
     },
     "Drives the outer-ring + tag on the home screen's glucose bobble." : {
       "localizations" : {
@@ -174637,6 +174646,9 @@
         }
       }
     },
+    "Keep your finger down and slide to scrub along the curve; slide to either edge and the chart pans along with you." : {
+
+    },
     "Largest basal rate allowed." : {
       "localizations" : {
         "bg" : {
@@ -228398,6 +228410,9 @@
         }
       }
     },
+    "Pans the chart through time. Flick and let go to keep it gliding." : {
+
+    },
     "Past 24 Hours " : {
       "comment" : "Duration displayed in statPanel",
       "extractionState" : "manual",
@@ -231712,6 +231727,9 @@
         }
       }
     },
+    "Pinch" : {
+
+    },
     "Play preview" : {
       "comment" : "Accessibility: play tone preview",
       "localizations" : {
@@ -234748,6 +234766,9 @@
           }
         }
       }
+    },
+    "Press and Hold" : {
+
     },
     "Preview Contact Image" : {
       "localizations" : {
@@ -249426,6 +249447,9 @@
           }
         }
       }
+    },
+    "Rest a finger on the chart to inspect a single reading with its IOB and COB." : {
+
     },
     "Restart Live Activity" : {
       "localizations" : {
@@ -278075,6 +278099,9 @@
           }
         }
       }
+    },
+    "Steps through the zoom presets — 6, 12 and 24 hours — keeping the right-hand edge of the window where it is." : {
+
     },
     "Stop" : {
       "localizations" : {
@@ -344249,6 +344276,9 @@
           }
         }
       }
+    },
+    "Zooms continuously, between one hour and a full day on screen." : {
+
     },
     "ZT" : {
       "localizations" : {
