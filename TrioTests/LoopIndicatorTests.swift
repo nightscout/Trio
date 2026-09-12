@@ -52,23 +52,29 @@ import Testing
         }
     }
 
-    @Test("The ring opens wider the less Trio may do") func ringGapWidensWithConstraint() {
-        let full = LoopView.ringGap(automation: .full, manualTempBasal: false)
-        let reductions = LoopView.ringGap(automation: .reductionsOnly, manualTempBasal: false)
-        let hypo = LoopView.ringGap(automation: .hypoSuspendOnly, manualTempBasal: false)
-        let off = LoopView.ringGap(automation: .off, manualTempBasal: false)
-
-        #expect(full == 0)
-        #expect(full < reductions)
-        #expect(reductions < hypo)
-        #expect(hypo < off)
+    @Test("Only full automation closes the ring") func onlyFullAutomationClosesRing() {
+        #expect(LoopView.ringGap(automation: .full, manualTempBasal: false) == 0)
+        for automation in [AutomationLevel.off, .reductionsOnly, .hypoSuspendOnly] {
+            #expect(LoopView.ringGap(automation: automation, manualTempBasal: false) == LoopView.openRingGap)
+        }
     }
 
-    @Test("A manual temp basal opens the ring fully") func manualTempBasalOpensRing() {
-        #expect(
-            LoopView.ringGap(automation: .full, manualTempBasal: true)
-                == LoopView.ringGap(automation: .off, manualTempBasal: false)
-        )
+    @Test("A manual temp basal opens the ring even in closed loop") func manualTempBasalOpensRing() {
+        #expect(LoopView.ringGap(automation: .full, manualTempBasal: true) == LoopView.openRingGap)
+    }
+
+    @Test("Only closed loop keeps the time caption") func captionOnlyInClosedLoop() {
+        #expect(LoopView.showsCaption(automation: .full))
+        for automation in [AutomationLevel.off, .reductionsOnly, .hypoSuspendOnly] {
+            #expect(LoopView.showsCaption(automation: automation) == false)
+        }
+    }
+
+    @Test("Constrained modes carry a centre symbol, plain open and closed loop do not") func centerSymbols() {
+        #expect(LoopView.centerSymbol(automation: .full) == nil)
+        #expect(LoopView.centerSymbol(automation: .off) == nil)
+        #expect(LoopView.centerSymbol(automation: .reductionsOnly) == "hand.raised.fill")
+        #expect(LoopView.centerSymbol(automation: .hypoSuspendOnly) == "hand.pinch.fill")
     }
 }
 

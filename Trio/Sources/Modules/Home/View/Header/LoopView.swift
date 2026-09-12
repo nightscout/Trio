@@ -21,14 +21,26 @@ struct LoopView: View {
 
     let determination: [OrefDetermination]
 
-    /// Fraction of the ring left open. Widens as Trio is allowed to do less.
+    /// Fraction of the ring removed at *each* of the two horizontal gaps (3 and 9 o'clock),
+    /// leaving a top and a bottom arc. Anything short of full automation reads as an open ring;
+    /// the centre symbol says why.
+    static let openRingGap: CGFloat = 0.12
+
     static func ringGap(automation: AutomationLevel, manualTempBasal: Bool) -> CGFloat {
-        guard !manualTempBasal else { return 0.22 }
+        guard !manualTempBasal else { return openRingGap }
+        return automation == .full ? 0 : openRingGap
+    }
+
+    /// Symbol inside the ring for the modes that still dose, but only under a constraint.
+    static func centerSymbol(automation: AutomationLevel) -> String? {
         switch automation {
-        case .off: return 0.22
-        case .hypoSuspendOnly: return 0.16
-        case .reductionsOnly: return 0.1
-        case .full: return 0
+        case .reductionsOnly:
+            return "hand.raised.fill"
+        case .hypoSuspendOnly:
+            return "hand.pinch.fill"
+        case .full,
+             .off:
+            return nil
         }
     }
 
@@ -60,21 +72,39 @@ struct LoopView: View {
         Self.ringGap(automation: dosingMode.automation, manualTempBasal: manualTempBasal)
     }
 
+    private var centerSymbol: String? {
+        manualTempBasal ? nil : Self.centerSymbol(automation: dosingMode.automation)
+    }
+
     /// Newest sign of life from either device, which is what freshness means when nothing is enacted.
     private var lastDeviceDate: Date? {
         [lastGlucoseDate, lastPumpCommsDate].compactMap { $0 }.max()
     }
 
-    var body: some View {
-        loopStatusWithMinutes
-            .padding(.vertical, 5)
-            .padding(.horizontal, 10)
-            .overlay(
-                Capsule()
-                    .stroke(color.opacity(0.4), lineWidth: 2)
-            )
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text(loopAccessibilityLabel))
+    /// Only full automation carries a "last loop" caption. The constrained modes drop it and show
+    /// the bare ring; their freshness still comes through in the ring colour.
+    static func showsCaption(automation: AutomationLevel) -> Bool { automation == .full }
+
+    private var showsCaption: Bool { Self.showsCaption(automation: dosingMode.automation) }
+
+    @ViewBuilder var body: some View {
+        if showsCaption {
+            loopStatus
+                .padding(.vertical, 5)
+                .padding(.horizontal, 10)
+                .overlay(
+                    Capsule()
+                        .stroke(color.opacity(0.4), lineWidth: 2)
+                )
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(loopAccessibilityLabel))
+        } else {
+            // No caption to enclose, so the capsule would frame empty space. The ring stands alone,
+            // drawn larger to hold the same visual weight.
+            loopStatus
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(loopAccessibilityLabel))
+        }
     }
 
     /// Spoken description of loop state — mirrors the color/text logic so the
@@ -83,10 +113,11 @@ struct LoopView: View {
         let status: String
         if manualTempBasal {
             status = String(localized: "manual temporary basal running", comment: "Accessibility: loop status")
+        } else if dosingMode.automation == .off {
+            // checked before the determination, which never carries a timestamp in open loop
+            status = String(localized: "not dosing", comment: "Accessibility: loop status")
         } else if determination.first?.timestamp == nil {
             status = String(localized: "not looping", comment: "Accessibility: loop status")
-        } else if dosingMode.automation == .off {
-            status = String(localized: "open loop", comment: "Accessibility: loop status")
         } else {
             let delta = timerDate.timeIntervalSince(lastLoopDate) - Config.lag
             if delta <= 5.minutes.timeInterval {
@@ -101,6 +132,14 @@ struct LoopView: View {
         let age: String
         if isLooping {
             age = String(localized: "in progress", comment: "Accessibility: loop currently running")
+        } else if dosingMode.automation == .off {
+            // loop age says nothing when nothing is enacted; report device contact instead
+            age = lastDeviceDate.map {
+                String(
+                    format: String(localized: "last device communication %@", comment: "Accessibility: device age"),
+                    TimeAgoFormatter.minutesAgoAccessible(from: $0)
+                )
+            } ?? ""
         } else if determination.first?.deliverAt != nil, timeString != "--" {
             age = String(
                 format: String(localized: "last loop %@", comment: "Accessibility: loop age"),
@@ -110,26 +149,44 @@ struct LoopView: View {
             age = ""
         }
 
-        return [String(localized: "Loop", comment: "Accessibility: loop pill label"), status, age]
+        return [dosingMode.displayName, status, age]
             .filter { !$0.isEmpty }
             .joined(separator: ", ")
     }
 
-    private var loopStatusWithMinutes: some View {
+    // @ScaledMetric so the ring grows with the user's text size; a fixed point size would leave
+    // it unreadable for anyone relying on larger type.
+    @ScaledMetric(relativeTo: .callout) private var compactRingDiameter: CGFloat = 18
+    @ScaledMetric(relativeTo: .callout) private var expandedRingDiameter: CGFloat = 32
+
+    private var ringDiameter: CGFloat { showsCaption ? compactRingDiameter : expandedRingDiameter }
+    private var ringLineWidth: CGFloat { max(2, ringDiameter * 0.08) }
+
+    private var loopStatus: some View {
         HStack(alignment: .center) {
             ZStack {
-                Circle()
-                    .trim(from: ringGap, to: 1)
-                    .stroke(style: StrokeStyle(lineWidth: 2, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                    .frame(width: 18, height: 18)
+                // A manual temp basal blocks enactment, so closed loop does not get a closed ring.
+                if dosingMode == .closed, !manualTempBasal {
+                    Image(systemName: "circle")
+                } else {
+                    Circle()
+                        .trim(from: ringGap / 2, to: 0.5 - ringGap / 2)
+                        .stroke(style: StrokeStyle(lineWidth: ringLineWidth, lineCap: .round))
+                    Circle()
+                        .trim(from: 0.5 + ringGap / 2, to: 1 - ringGap / 2)
+                        .stroke(style: StrokeStyle(lineWidth: ringLineWidth, lineCap: .round))
+                }
                 if isLooping {
                     ProgressView()
+                } else if let centerSymbol {
+                    Image(systemName: centerSymbol)
+                        .font(.system(size: ringDiameter * 0.44, weight: .semibold))
                 }
             }
-            // Open loop enacts nothing, so a "minutes since last loop" caption would imply
-            // an action that never happened. The ring alone carries the state.
-            if dosingMode.automation != .off {
+            .frame(width: ringDiameter, height: ringDiameter)
+            // A caption would imply an action that did not happen in open loop, and overstates what
+            // the constrained modes do. The ring carries the state instead.
+            if showsCaption {
                 if isLooping {
                     Text("looping")
                 } else if manualTempBasal {
@@ -144,17 +201,6 @@ struct LoopView: View {
         }
         .font(.callout).fontWeight(.bold).fontDesign(.rounded)
         .foregroundColor(color)
-        .accessibilityLabel(accessibilityLabel)
-    }
-
-    private var accessibilityLabel: Text {
-        guard dosingMode.automation == .off else {
-            return Text("\(dosingMode.displayName), last loop \(timeString)")
-        }
-        guard let lastDeviceDate else {
-            return Text("\(dosingMode.displayName), no recent device communication")
-        }
-        return Text("\(dosingMode.displayName), last device communication \(TimeAgoFormatter.minutesAgo(from: lastDeviceDate))")
     }
 
     private var timeString: String {
