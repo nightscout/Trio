@@ -18,6 +18,15 @@ struct LoopStatusHelpView: View {
                 .foregroundColor(.secondary)
                 .padding(.top, 50)
 
+                // basal testing switches dynamic ISF off, so those terms cannot appear
+                if state.dosingMode == .basalTesting {
+                    DosingModeOverrideNote(
+                        mode: .basalTesting,
+                        message: String(localized: "Dynamic ISF is off, so those terms will not show up.")
+                    )
+                    .padding(.top, 8)
+                }
+
                 List {
                     DefinitionRow(
                         term: String(localized: "Autosens Ratio"),

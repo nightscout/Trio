@@ -29,6 +29,18 @@ struct LoopStatusView: View {
                             .foregroundColor(statusBadgeTextColor)
                             .background(statusBadgeColor)
                             .clipShape(Capsule())
+
+                        Label(state.dosingMode.displayName, systemImage: state.dosingMode.icon)
+                            .font(.subheadline)
+                            .bold()
+
+                        // only meaningful next to an actual determination
+                        if state.determinationsFromPersistence.first != nil, let enactmentSummary {
+                            Text(enactmentSummary)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
 
                     Spacer()
@@ -128,6 +140,20 @@ struct LoopStatusView: View {
         .scrollContentBackground(.hidden)
     }
 
+    /// What the active mode did with this determination. Closed loop needs no caveat.
+    private var enactmentSummary: String? {
+        switch state.dosingMode {
+        case .closed:
+            return nil
+        case .open:
+            return String(localized: "Trio worked this out but did not send anything to your pump.")
+        case .lowGlucoseSuspend:
+            return String(localized: "Trio may only lower your basal. It will not correct a high.")
+        case .basalTesting:
+            return String(localized: "Trio leaves your basal alone unless your glucose goes low.")
+        }
+    }
+
     private var statusBadgeColor: Color {
         // Open loop enacts nothing, so loop freshness says nothing; report device health, as LoopView does.
         guard state.dosingMode.automation != .off else {
@@ -155,7 +181,8 @@ struct LoopStatusView: View {
 
     private var statusBadgeTextColor: Color {
         if statusBadgeColor == .secondary {
-            .black
+            // black on the grey badge is unreadable in dark mode
+            colorScheme == .dark ? .white : .black
         } else {
             colorScheme == .dark ? Color(red: 25.0 / 255.0, green: 39.0 / 255.0, blue: 53.0 / 255.0, opacity: 1.0) : .white
         }
