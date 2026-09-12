@@ -616,10 +616,12 @@ import Testing
         let normal = try run(suspendOnly: false)
         let basalTesting = try run(suspendOnly: true)
 
-        // Whatever the unconstrained algorithm decided, basal testing holds the scheduled rate.
-        #expect(basalTesting?.rate == defaultProfile.currentBasal)
+        // Basal testing recommends nothing at all, so no temp basal is ever commanded.
+        #expect(basalTesting?.rate == nil)
+        #expect(basalTesting?.duration == nil)
         #expect(basalTesting?.reason.contains("basal testing") == true)
-        #expect(normal?.rate != basalTesting?.rate)
+        // The unconstrained path really did want to act here, so this is not a vacuous pass.
+        #expect(normal?.rate != nil)
     }
 
     @Test("Basal testing still suspends for a genuine low") func basalTestingStillSuspends() throws {

@@ -135,6 +135,7 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var trioAlertManager: TrioAlertManager!
     @Persisted(key: "lastLoopStartDate") private var lastLoopStartDate: Date = .distantPast
+    private var lastDosingMode: DosingMode?
     @Persisted(key: "lastLoopDate") var lastLoopDate: Date = .distantPast {
         didSet {
             lastLoopDateSubject.send(lastLoopDate)
@@ -196,6 +197,8 @@ final class BaseAPSManager: APSManager, Injectable {
     init(resolver: Resolver) {
         injectServices(resolver)
         openAPS = OpenAPS(storage: storage, tddStorage: tddStorage, glucoseStorage: glucoseStorage, carbsStorage: carbsStorage)
+        lastDosingMode = settingsManager.settings.dosingMode
+        broadcaster.register(SettingsObserver.self, observer: self)
         subscribe()
         lastLoopDateSubject.send(lastLoopDate)
 
@@ -1495,6 +1498,77 @@ private extension PumpManager {
                 }
             }
         }
+    }
+}
+
+extension BaseAPSManager: SettingsObserver {
+    func settingsDidChange(_ settings: TrioSettings) {
+        let previous = lastDosingMode
+        lastDosingMode = settings.dosingMode
+
+        // Only basal testing clears a running temp. Elsewhere it may be protecting against a low,
+        // and dropping back to scheduled basal would remove that protection.
+        guard settings.dosingMode == .basalTesting, previous != .basalTesting else { return }
+
+        Task { await cancelAutomaticTempBasal() }
+    }
+
+    /// Clears a Trio-set temp so a basal test starts from the scheduled rate.
+    private func cancelAutomaticTempBasal() async {
+        guard let pump = pumpManager else { return }
+
+        // A temp the user set on the pump is theirs to cancel.
+        guard !isManualTempBasal else { return }
+        guard case let .tempBasal(dose) = pump.status.basalDeliveryState, dose.automatic ?? true else { return }
+
+        do {
+            try await pump.enactTempBasal(unitsPerHour: 0, for: 0)
+            debug(.apsManager, "Cancelled temp basal for basal testing")
+        } catch {
+            debug(.apsManager, "Failed to cancel temp basal for basal testing: \(error)")
+            processError(APSError.pumpError(error))
+        }
+    }
+}
+
+extension BaseAPSManager: PumpManagerStatusObserver {
+    func pumpManager(_: PumpManager, didUpdate status: PumpManagerStatus, oldStatus _: PumpManagerStatus) {
+        let percent = Int((status.pumpBatteryChargeRemaining ?? 1) * 100)
+
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "storeBatteryStatus"
+        context.perform {
+            /// only update the last item with the current battery infos instead of saving a new one each time
+            let fetchRequest: NSFetchRequest<OpenAPS_Battery> = OpenAPS_Battery.fetchRequest()
+            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+            fetchRequest.predicate = NSPredicate.predicateFor30MinAgo
+            fetchRequest.fetchLimit = 1
+
+            do {
+                let results = try context.fetch(fetchRequest)
+                let batteryToStore: OpenAPS_Battery
+
+                if let existingBattery = results.first {
+                    batteryToStore = existingBattery
+                } else {
+                    batteryToStore = OpenAPS_Battery(context: context)
+                    batteryToStore.id = UUID()
+                }
+
+                batteryToStore.date = Date()
+                batteryToStore.percent = Double(percent)
+                batteryToStore.voltage = nil
+                batteryToStore.status = percent > 10 ? "normal" : "low"
+                batteryToStore.display = status.pumpBatteryChargeRemaining != nil
+
+                guard context.hasChanges else { return }
+                try context.save()
+            } catch {
+                debug(.apsManager, "Failed to fetch or save battery: \(error)")
+            }
+        }
+        // TODO: - remove this after ensuring that NS still gets the same infos from Core Data
+        storage.save(status.pumpStatus, as: OpenAPS.Monitor.status)
     }
 }
 
