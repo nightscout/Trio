@@ -623,7 +623,7 @@
 		BDC531182D1062F200088832 /* ContactImageState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC531172D1062F200088832 /* ContactImageState.swift */; };
 		BDCAF2382C639F35002DC907 /* SettingItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCAF2372C639F35002DC907 /* SettingItems.swift */; };
 		BDCD47AF2C1F3F1700F8BCD5 /* OverrideStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCD47AE2C1F3F1700F8BCD5 /* OverrideStored+helper.swift */; };
-		BDDAF9EF2D00554500B34E7A /* SelectionPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDDAF9EE2D00553E00B34E7A /* SelectionPopoverView.swift */; };
+		BDDAF9EF2D00554500B34E7A /* ChartSelectionRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDDAF9EE2D00553E00B34E7A /* ChartSelectionRow.swift */; };
 		BDF34EBE2C0A31D100D51995 /* CustomNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF34EBD2C0A31D000D51995 /* CustomNotification.swift */; };
 		BDF34F832C10C5B600D51995 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF34F822C10C5B600D51995 /* DataManager.swift */; };
 		BDF34F852C10C62E00D51995 /* GlucoseData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF34F842C10C62E00D51995 /* GlucoseData.swift */; };
@@ -1693,7 +1693,7 @@
 		BDC531172D1062F200088832 /* ContactImageState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageState.swift; sourceTree = "<group>"; };
 		BDCAF2372C639F35002DC907 /* SettingItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingItems.swift; sourceTree = "<group>"; };
 		BDCD47AE2C1F3F1700F8BCD5 /* OverrideStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+helper.swift"; sourceTree = "<group>"; };
-		BDDAF9EE2D00553E00B34E7A /* SelectionPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionPopoverView.swift; sourceTree = "<group>"; };
+		BDDAF9EE2D00553E00B34E7A /* ChartSelectionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartSelectionRow.swift; sourceTree = "<group>"; };
 		BDF34EBD2C0A31D000D51995 /* CustomNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNotification.swift; sourceTree = "<group>"; };
 		BDF34F822C10C5B600D51995 /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 		BDF34F842C10C62E00D51995 /* GlucoseData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseData.swift; sourceTree = "<group>"; };
@@ -3923,7 +3923,7 @@
 			isa = PBXGroup;
 			children = (
 				DD2CC85B2D25D9CE00445446 /* GlucoseTargetsView.swift */,
-				BDDAF9EE2D00553E00B34E7A /* SelectionPopoverView.swift */,
+				BDDAF9EE2D00553E00B34E7A /* ChartSelectionRow.swift */,
 				582DF9742C8CDB92001F516D /* GlucoseChartView.swift */,
 				582DF9762C8CDBE7001F516D /* InsulinView.swift */,
 				582DF97A2C8CE209001F516D /* CarbView.swift */,
@@ -5881,7 +5881,7 @@
 				DDE1795B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift in Sources */,
 				DDE1795E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift in Sources */,
 				3BBB76AA2E01C70B0040977D /* MealCob.swift in Sources */,
-				BDDAF9EF2D00554500B34E7A /* SelectionPopoverView.swift in Sources */,
+				BDDAF9EF2D00554500B34E7A /* ChartSelectionRow.swift in Sources */,
 				3E705AFB2FF94FAB0007F96B /* BolusStatus.swift in Sources */,
 				DDE1795F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift in Sources */,
 				DDE179602C910127003CDDB7 /* StatsData+CoreDataClass.swift in Sources */,
