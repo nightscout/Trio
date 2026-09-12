@@ -75,7 +75,7 @@ import Testing
         ]
 
         // Store test event
-        try await storage.storePumpEvents(events)
+        try await storage.storePumpEvents(events, replacePendingEvents: false)
 
         // When - Fetch events with our generic fetch function
         let fetchedEvents = try await coreDataStack.fetchEntitiesAsync(
@@ -185,7 +185,7 @@ import Testing
 
         // When
         // Store in our in-memory PumphistoryStorage
-        try await storage.storePumpEvents(events)
+        try await storage.storePumpEvents(events, replacePendingEvents: false)
 
         // Then
         // Fetch all events after storing
@@ -254,7 +254,7 @@ import Testing
         ]
 
         // Store test event and wait for storage to complete the task
-        try await storage.storePumpEvents(events)
+        try await storage.storePumpEvents(events, replacePendingEvents: false)
 
         // When - Fetch events with our generic fetch function
         let fetchedEvents = try await coreDataStack.fetchEntitiesAsync(
@@ -332,7 +332,7 @@ import Testing
 
         // When
         // Store in our in-memory PumphistoryStorage
-        try await storage.storePumpEvents(events)
+        try await storage.storePumpEvents(events, replacePendingEvents: false)
 
         // Then
         // Fetch all events after storing

@@ -1045,12 +1045,24 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         context.name = "updatePumpEventStoredsAsUploaded"
         await context.perform {
             let ids = treatments.map(\.id) as NSArray
+            let treatmentsById = Dictionary(
+                treatments.compactMap { treatment in treatment.id.map { ($0, treatment) } },
+                uniquingKeysWith: { first, _ in first }
+            )
             let fetchRequest: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
                 let results = try context.fetch(fetchRequest)
                 for result in results {
+                    // stamp only if the row still holds what was sent; a mid-flight
+                    // finalization keeps the flag false and the next pass re-uploads
+                    guard let treatment = result.id.flatMap({ treatmentsById[$0] }),
+                          Self.uploadStillCurrent(result, treatment)
+                    else {
+                        debug(.nightscout, "Pump event \(result.id ?? "-") changed during upload, keeping it queued")
+                        continue
+                    }
                     result.isUploadedToNS = true
                 }
 
@@ -1061,6 +1073,19 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
                 )
             }
+        }
+    }
+
+    /// True when the stored row still matches the values that were sent to NS.
+    static func uploadStillCurrent(_ event: PumpEventStored, _ treatment: NightscoutTreatment) -> Bool {
+        switch event.type {
+        case PumpEventStored.EventType.bolus.rawValue:
+            return treatment.insulin == event.bolus?.amount as Decimal?
+        case PumpEventStored.EventType.tempBasal.rawValue:
+            return treatment.rate == event.tempBasal?.rate as Decimal?
+                && treatment.duration == Int(event.tempBasal?.duration ?? 0)
+        default:
+            return true
         }
     }
 
