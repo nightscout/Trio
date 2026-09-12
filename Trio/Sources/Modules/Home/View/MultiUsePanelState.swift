@@ -7,6 +7,7 @@ enum MultiUsePanelState: Equatable {
     case cgmStale
     case maxIOBZero
     case whatsNew
+    case dosingModeLimited(DosingMode)
     case stats
 
     /// readings older than this offer manual glucose entry
@@ -18,11 +19,16 @@ enum MultiUsePanelState: Equatable {
         lastGlucoseDate: Date?,
         maxIOB: Decimal,
         hasUnacknowledgedReleaseNotes: Bool,
+        dosingMode: DosingMode,
         now: Date
     ) -> MultiUsePanelState {
         if notificationsDisabled { return .notificationsDisabled }
         if pumpTimeMismatch { return .pumpTimeMismatch }
         if now.timeIntervalSince(lastGlucoseDate ?? .distantPast) > cgmStaleAfter { return .cgmStale }
+        // constrained modes clamp Max IOB to 0 without touching the stored value
+        if dosingMode.automation == .reductionsOnly || dosingMode.automation == .hypoSuspendOnly {
+            return .dosingModeLimited(dosingMode)
+        }
         if maxIOB <= 0 { return .maxIOBZero }
         // Informational, so it yields to every warning above but still displaces the stats.
         if hasUnacknowledgedReleaseNotes { return .whatsNew }

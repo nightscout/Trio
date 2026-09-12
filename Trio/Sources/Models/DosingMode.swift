@@ -35,9 +35,8 @@ enum DosingMode: String, JSON, CaseIterable, Identifiable, Codable, Hashable {
         }
     }
 
-    /// Modes offered in Settings. The constrained modes are withheld until their clamps and
-    /// their algorithm gating exist, so a selectable mode always does what it says.
-    static var userSelectable: [DosingMode] { [.closed, .open] }
+    /// Modes offered in Settings.
+    static var userSelectable: [DosingMode] { allCases }
 
     var displayName: String {
         switch self {

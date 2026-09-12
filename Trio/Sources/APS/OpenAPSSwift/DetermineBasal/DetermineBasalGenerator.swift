@@ -412,6 +412,16 @@ enum DeterminationGenerator {
             return determination
         }
 
+        // basal testing acts only on the low handled above; every stage below moves the curve
+        if profile.suspendOnly {
+            return try DosingEngine.holdScheduledBasal(
+                currentTemp: currentTemp,
+                basal: basal,
+                profile: profile,
+                determination: determination
+            )
+        }
+
         let (shouldSetTempBasalForSkipNeutralTemp, skipNeutralTempDetermination) = try DosingEngine.skipNeutralTempBasal(
             smbIsEnabled: smbIsEnabled,
             profile: profile,
