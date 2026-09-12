@@ -303,6 +303,24 @@ extension PluginSource: CGMManagerDelegate {
                 let quantity = newGlucoseSample.quantity
 
                 let value = Int(quantity.doubleValue(for: .milligramsPerDeciliter))
+
+                if newGlucoseSample.wasUserEntered {
+                    // Store the calibration for the sensor as manual glucose
+                    return BloodGlucose(
+                        id: UUID().uuidString,
+                        mbg: value,
+                        date: Decimal(Int(newGlucoseSample.date.timeIntervalSince1970 * 1000)),
+                        dateString: newGlucoseSample.date,
+                        filtered: nil,
+                        noise: nil,
+                        glucose: value,
+                        type: "mbg",
+                        activationDate: sensorActivatedAt,
+                        sessionStartDate: sensorStartDate,
+                        transmitterID: sensorTransmitterID
+                    )
+                }
+
                 return BloodGlucose(
                     id: UUID().uuidString,
                     sgv: value,
