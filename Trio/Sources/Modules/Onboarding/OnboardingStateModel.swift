@@ -370,6 +370,40 @@ extension Onboarding {
             initialISFItems = isfItems.map { ISFEditor.Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
         }
 
+        /// Total insulin a basal schedule delivers over 24 hours.
+        /// - Parameter segments: `(start minute of day, rate in U/hr)`, in any order.
+        static func totalDailyBasal(segments: [(startMinutes: Int, rate: Decimal)]) -> Decimal {
+            let sorted = segments.sorted { $0.startMinutes < $1.startMinutes }
+            guard !sorted.isEmpty else { return 0 }
+
+            return sorted.enumerated().reduce(Decimal(0)) { total, element in
+                let (index, segment) = element
+                let end = index + 1 < sorted.count ? sorted[index + 1].startMinutes : 24 * 60
+                let minutes = end - segment.startMinutes
+                guard minutes > 0 else { return total }
+                return total + segment.rate * Decimal(minutes) / 60
+            }
+        }
+
+        /// Starting Max IOB for a new user: a third of their total daily basal, snapped to the picker's step.
+        static func suggestedMaxIOB(totalDailyBasal: Decimal, setting: PickerSetting) -> Decimal {
+            let suggestion = totalDailyBasal / 3
+            guard setting.step > 0 else { return suggestion.clamp(to: setting) }
+            let steps = rounded(suggestion / setting.step, scale: 0, roundingMode: .plain)
+            return (steps * setting.step).clamp(to: setting)
+        }
+
+        /// Total insulin the entered basal profile delivers over 24 hours.
+        func totalDailyBasal() -> Decimal {
+            let segments = basalProfileItems.compactMap { item -> (startMinutes: Int, rate: Decimal)? in
+                guard item.timeIndex >= 0, item.timeIndex < basalProfileTimeValues.count,
+                      item.rateIndex >= 0, item.rateIndex < basalProfileRateValues.count
+                else { return nil }
+                return (Int(basalProfileTimeValues[item.timeIndex] / 60), basalProfileRateValues[item.rateIndex])
+            }
+            return Self.totalDailyBasal(segments: segments)
+        }
+
         /// Loads delivery limit settings (Units, Max IOB, Max COB, Max Bolus, Max Basal) from the provider.
         ///
         /// Retrieves pump-related safety and delivery limits from both the provider's
@@ -390,7 +424,10 @@ extension Onboarding {
             }
 
             let preferences = settingsManager.preferences
-            maxIOB = preferences.maxIOB.clamp(to: providedSettings.maxIOB)
+            // A stored 0 means Max IOB was never configured, so suggest a starting value instead.
+            maxIOB = preferences.maxIOB > 0
+                ? preferences.maxIOB.clamp(to: providedSettings.maxIOB)
+                : Self.suggestedMaxIOB(totalDailyBasal: totalDailyBasal(), setting: providedSettings.maxIOB)
             maxCOB = preferences.maxCOB.clamp(to: providedSettings.maxCOB)
             minimumSafetyThreshold = preferences.threshold_setting
         }
