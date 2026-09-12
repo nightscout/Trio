@@ -148,7 +148,7 @@ extension Home.RootView {
         VStack(alignment: .leading, spacing: 20) {
             /// Loop view at bottomLeading
             LoopView(
-                closedLoop: state.closedLoop,
+                dosingMode: state.dosingMode,
                 timerDate: state.timerDate,
                 isLooping: state.isLooping,
                 lastLoopDate: state.lastLoopDate,

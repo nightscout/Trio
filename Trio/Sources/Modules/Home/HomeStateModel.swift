@@ -48,7 +48,7 @@ extension Home {
             ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
         var targetProfiles: [TargetProfile] = []
         var timerDate = Date()
-        var closedLoop = false
+        var dosingMode: DosingMode = .open
         var isLooping = false
         var statusTitle = ""
         var lastLoopDate: Date = .distantPast
@@ -68,7 +68,6 @@ extension Home {
         var errorDate: Date?
         var bolusProgress: Decimal?
         var eventualBG: Int?
-        var allowManualTemp = false
         var units: GlucoseUnits = .mgdL
         var pumpDisplayState: PumpDisplayState?
         var alarm: GlucoseAlarm?
@@ -651,8 +650,7 @@ extension Home {
 
         @MainActor private func setupSettings() async {
             units = settingsManager.settings.units
-            allowManualTemp = !settingsManager.settings.closedLoop
-            closedLoop = settingsManager.settings.closedLoop
+            dosingMode = settingsManager.settings.dosingMode
             lastLoopDate = apsManager.lastLoopDate
             alarm = provider.glucoseStorage.alarm
             manualTempBasal = apsManager.isManualTempBasal
@@ -928,8 +926,7 @@ extension Home.StateModel:
     }
 
     func settingsDidChange(_ settings: TrioSettings) {
-        allowManualTemp = !settings.closedLoop
-        closedLoop = settingsManager.settings.closedLoop
+        dosingMode = settings.dosingMode
         units = settingsManager.settings.units
         manualTempBasal = apsManager.isManualTempBasal
         isSmoothingEnabled = settingsManager.settings.smoothGlucose
