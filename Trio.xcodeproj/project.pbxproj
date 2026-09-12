@@ -170,6 +170,7 @@
 		38E44522274E3DDC00EC9A94 /* NetworkReachabilityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E44521274E3DDC00EC9A94 /* NetworkReachabilityManager.swift */; };
 		38E44528274E401C00EC9A94 /* Protected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E44527274E401C00EC9A94 /* Protected.swift */; };
 		38E44534274E411700EC9A94 /* Disk+InternalHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E4452A274E411600EC9A94 /* Disk+InternalHelpers.swift */; };
+		A54000000000000000000001 /* MainChartHelperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A54000000000000000000002 /* MainChartHelperTests.swift */; };
 		38E44535274E411700EC9A94 /* Disk+Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E4452B274E411600EC9A94 /* Disk+Data.swift */; };
 		38E44536274E411700EC9A94 /* Disk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E4452C274E411600EC9A94 /* Disk.swift */; };
 		38E44537274E411700EC9A94 /* Disk+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E4452D274E411600EC9A94 /* Disk+Helpers.swift */; };
@@ -1268,6 +1269,7 @@
 		38E44521274E3DDC00EC9A94 /* NetworkReachabilityManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkReachabilityManager.swift; sourceTree = "<group>"; };
 		38E44527274E401C00EC9A94 /* Protected.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Protected.swift; sourceTree = "<group>"; };
 		38E4452A274E411600EC9A94 /* Disk+InternalHelpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Disk+InternalHelpers.swift"; sourceTree = "<group>"; };
+		A54000000000000000000002 /* MainChartHelperTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Helpers/MainChartHelperTests.swift"; sourceTree = "<group>"; };
 		38E4452B274E411600EC9A94 /* Disk+Data.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Disk+Data.swift"; sourceTree = "<group>"; };
 		38E4452C274E411600EC9A94 /* Disk.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Disk.swift; sourceTree = "<group>"; };
 		38E4452D274E411600EC9A94 /* Disk+Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Disk+Helpers.swift"; sourceTree = "<group>"; };
@@ -3208,6 +3210,7 @@
 				BD8FC0702D661B0000B95AED /* TidepoolTherapySettingsTests.swift */,
 				CA03000000000000000010C1 /* AlertCatalogRegistryOmniFaultTests.swift */,
 				CD1235A000000000000000F1 /* TidepoolUploadSerializerTests.swift */,
+				A54000000000000000000002 /* MainChartHelperTests.swift */,
 			);
 			path = TrioTests;
 			sourceTree = "<group>";
@@ -6020,6 +6023,7 @@
 				BD8FC0712D661B0000B95AED /* TidepoolTherapySettingsTests.swift in Sources */,
 				CA03000000000000000010C2 /* AlertCatalogRegistryOmniFaultTests.swift in Sources */,
 				CD1235B000000000000000F2 /* TidepoolUploadSerializerTests.swift in Sources */,
+				A54000000000000000000001 /* MainChartHelperTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

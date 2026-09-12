@@ -27,6 +27,9 @@ extension MainChartCanvas {
                 calculateBasals()
                 calculateTempBasals()
             }
+            .onChange(of: state.suspendAndResumeEvents) {
+                calculateTempBasals()
+            }
             .onChange(of: state.maxBasal) {
                 calculateBasals()
             }
@@ -60,7 +63,7 @@ extension MainChartCanvas {
     func drawTempBasals() -> some ChartContent {
         // only bars overlapping the render window; the rest clip invisibly but still cost layout
         let visible = preparedTempBasals.filter { $0.end >= windowStart && $0.start <= windowEnd }
-        return ForEach(visible, id: \.start) { basal in
+        return ForEach(Array(visible.enumerated()), id: \.offset) { _, basal in
             RectangleMark(
                 xStart: .value("start", basal.start),
                 xEnd: .value("end", basal.end),
@@ -86,7 +89,7 @@ extension MainChartCanvas {
     }
 
     func drawBasalProfile() -> some ChartContent {
-        /// dashed profile line
+        // dashed profile line
         let visible = basalProfiles.filter { ($0.endDate ?? state.endMarker) >= windowStart && $0.startDate <= windowEnd }
         return ForEach(visible, id: \.self) { profile in
             LineMark(
@@ -102,34 +105,39 @@ extension MainChartCanvas {
         }
     }
 
-    /// Suspend→resume intervals resolved once, so the mark loop does no per-mark lookups.
-    private func suspensionIntervals() -> [(start: Date, end: Date, height: Double)] {
-        let suspensions = state.suspendAndResumeEvents
-        let now = Date()
-        var intervals = [(start: Date, end: Date, height: Double)]()
-
-        for suspension in suspensions {
-            guard suspension.type == EventType.pumpSuspend.rawValue, let suspensionStart = suspension.timestamp else {
-                continue
+    private var suspensionIntervals: [ClosedRange<Date>] {
+        let events = state.suspendAndResumeEvents
+            .compactMap { event -> (date: Date, type: String)? in
+                guard let date = event.timestamp, let type = event.type else { return nil }
+                return (date, type)
             }
-            let suspensionEnd = min(
-                suspensions.first(where: {
-                    $0.timestamp ?? now > suspensionStart && $0.type == EventType.pumpResume.rawValue
-                })?.timestamp ?? now,
-                now
-            )
-            let basalProfileDuringSuspension = basalProfiles.first(where: { $0.startDate <= suspensionStart })
+
+        return MainChartHelper.suspensionIntervals(
+            events: events.map { MainChartHelper.SuspensionEvent(date: $0.date, type: $0.type) },
+            suspendType: EventType.pumpSuspend.rawValue,
+            resumeType: EventType.pumpResume.rawValue
+        )
+    }
+
+    /// Suspension→resume intervals resolved once, so the mark loop does no per-mark lookups.
+    private func suspensionMarks() -> [(start: Date, end: Date, height: Double)] {
+        let now = Date()
+        let intervals = suspensionIntervals
+        var marks = [(start: Date, end: Date, height: Double)]()
+
+        for suspension in intervals {
+            let basalProfileDuringSuspension = basalProfiles.first(where: { $0.startDate <= suspension.lowerBound })
             // Clamp to the explicit y-domain: the fallback height of 1 U/hr can exceed
             // `basalDomainMax` when no profile data is available, and unlike the old
             // auto-scaled (flipped) plot, an explicit domain would clip the mark.
             let height = min(basalProfileDuringSuspension?.amount ?? 1, basalDomainMax)
-            intervals.append((suspensionStart, suspensionEnd, height))
+            marks.append((suspension.lowerBound, min(suspension.upperBound, now), height))
         }
-        return intervals
+        return marks
     }
 
     func drawSuspensions() -> some ChartContent {
-        let visible = suspensionIntervals().filter { $0.end >= windowStart && $0.start <= windowEnd }
+        let visible = suspensionMarks().filter { $0.end >= windowStart && $0.start <= windowEnd }
         return ForEach(visible, id: \.start) { interval in
             RectangleMark(
                 xStart: .value("start", interval.start),
@@ -147,37 +155,33 @@ extension MainChartCanvas {
 extension MainChartCanvas {
     @MainActor func calculateTempBasals() {
         let now = Date()
-        let suspensionTimes = state.suspendAndResumeEvents.compactMap(\.timestamp)
 
         // Snapshot the managed-object fields once; plain values from here on.
         let events = state.tempBasals.map {
             (timestamp: $0.timestamp, duration: $0.tempBasal?.duration ?? 0, rate: $0.tempBasal?.rate)
         }
-
-        var prepared = [(start: Date, end: Date, rate: Double)]()
-        prepared.reserveCapacity(events.count)
-
-        for (index, event) in events.enumerated() {
-            let timestamp = event.timestamp ?? now
-            let end = timestamp + event.duration.minutes
-            let isInsulinSuspended = suspensionTimes.contains { $0 >= timestamp && $0 <= end }
-            let rate = Double(truncating: event.rate ?? 0) * (isInsulinSuspended ? 0 : 1)
-
-            // A bar ends where the next later-starting temp basal begins,
-            // else at its own scheduled end.
-            var next = index + 1
-            while next < events.count {
-                if let nextStart = events[next].timestamp, nextStart > timestamp { break }
-                next += 1
-            }
-            if next < events.count, let nextStart = events[next].timestamp {
-                prepared.append((timestamp, nextStart, rate))
-            } else {
-                prepared.append((timestamp, end, rate))
-            }
+        let tempBasals = events.map {
+            MainChartHelper.TempBasalEvent(
+                start: $0.timestamp ?? now,
+                end: ($0.timestamp ?? now) + $0.duration.minutes,
+                rate: Double(truncating: $0.rate ?? 0)
+            )
         }
 
-        preparedTempBasals = prepared
+        // Compute suspension intervals once, then reuse in the loop below.
+        let suspensions = suspensionIntervals
+
+        let prepared = tempBasals.enumerated().flatMap { index, event in
+            let end = tempBasals[(index + 1)...]
+                .first(where: { $0.start > event.start })?
+                .start ?? event.end
+            return MainChartHelper.tempBasalSegments(
+                events: [MainChartHelper.TempBasalEvent(start: event.start, end: end, rate: event.rate)],
+                suspensions: suspensions
+            )
+        }
+
+        preparedTempBasals = prepared.map { (start: $0.start, end: $0.end, rate: $0.rate) }
     }
 
     func findRegularBasalPoints(

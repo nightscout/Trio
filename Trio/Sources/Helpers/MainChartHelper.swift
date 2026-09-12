@@ -4,7 +4,99 @@ import Foundation
 import SwiftUI
 
 enum MainChartHelper {
-    // Calculates the glucose value thats the nearest to parameter 'time'
+    struct SuspensionEvent {
+        let date: Date
+        let type: String
+    }
+
+    struct TempBasalEvent {
+        let start: Date
+        let end: Date
+        let rate: Double
+    }
+
+    struct TempBasalSegment: Equatable {
+        let start: Date
+        let end: Date
+        let rate: Double
+    }
+
+    static func suspensionIntervals(
+        events: [SuspensionEvent],
+        suspendType: String,
+        resumeType: String
+    ) -> [ClosedRange<Date>] {
+        let sortedEvents = events.sorted { $0.date < $1.date }
+        var intervals = [ClosedRange<Date>]()
+        var suspensionStart: Date?
+
+        for event in sortedEvents {
+            if event.type == suspendType, suspensionStart == nil {
+                suspensionStart = event.date
+            } else if event.type == resumeType, let start = suspensionStart {
+                if start < event.date {
+                    intervals.append(start ... event.date)
+                }
+                suspensionStart = nil
+            }
+        }
+
+        if let start = suspensionStart {
+            intervals.append(start ... .distantFuture)
+        }
+
+        return intervals
+    }
+
+    static func tempBasalSegments(
+        events: [TempBasalEvent],
+        suspensions: [ClosedRange<Date>]
+    ) -> [TempBasalSegment] {
+        events.flatMap { event in
+            var boundaries = [event.start]
+
+            let suspensionAtEventStart = suspensions.contains { suspension in
+                suspension.lowerBound <= event.start && suspension.upperBound > event.start
+            }
+            let firstSuspensionInEvent = suspensions
+                .filter { suspension in
+                    suspension.lowerBound > event.start && suspension.lowerBound < event.end
+                }
+                .min { $0.lowerBound < $1.lowerBound }
+
+            // A TBR that starts during suspension never delivers. A later suspension
+            // terminates the TBR; scheduled basal takes over after the suspension.
+            let eventEnd: Date
+            if suspensionAtEventStart {
+                eventEnd = event.start
+            } else {
+                eventEnd = firstSuspensionInEvent?.lowerBound ?? event.end
+            }
+            boundaries.append(eventEnd)
+
+            // Add suspension boundaries only up to the event termination point.
+            for suspension in suspensions {
+                guard suspension.upperBound > event.start, suspension.lowerBound < eventEnd else {
+                    continue
+                }
+
+                boundaries.append(max(suspension.lowerBound, event.start))
+                boundaries.append(min(suspension.upperBound, eventEnd))
+            }
+
+            let sortedBoundaries = boundaries.sorted()
+            return zip(sortedBoundaries, sortedBoundaries.dropFirst()).compactMap { boundary -> TempBasalSegment? in
+                let (start, end) = boundary
+                guard start < end else { return nil }
+                let isSuspended = suspensions.contains {
+                    $0.lowerBound < end && $0.upperBound > start
+                }
+                return TempBasalSegment(start: start, end: end, rate: isSuspended ? 0 : event.rate)
+            }
+        }
+    }
+
+    /// Calculates the glucose value thats the nearest to parameter 'time'
     /// -Returns: A NSManagedObject of GlucoseStored
     /// it is thread safe as everything is executed on the main thread
     static func timeToNearestGlucose(glucoseValues: [GlucoseStored], time: TimeInterval) -> GlucoseStored? {
@@ -92,9 +184,7 @@ enum MainChartHelper {
     /// Visual scaling applied to IOB values on the shared COB/IOB axis (COB is usually
     /// much larger than IOB). Single source of truth for the chart marks, the y-domain,
     /// and the shell's selection overlay.
-    static func scaledIobAmount<T: Numeric & Comparable>(_ rawAmount: T) -> T
-        where T: ExpressibleByIntegerLiteral
-    {
+    static func scaledIobAmount<T: Numeric & Comparable & ExpressibleByIntegerLiteral>(_ rawAmount: T) -> T {
         rawAmount > 0 ? rawAmount * 8 : rawAmount * 9
     }
 
@@ -207,8 +297,12 @@ extension MainChartCanvas {
     /// old presets: up to 6 h visible -> 1 h, up to 12 h -> 2 h, wider -> 4 h.
     var xAxisStrideHours: Int {
         let visibleHours = visibleSeconds / 3600
-        if visibleHours <= 6 { return 1 }
-        if visibleHours <= 12 { return 2 }
+        if visibleHours <= 6 {
+            return 1
+        }
+        if visibleHours <= 12 {
+            return 2
+        }
         return 4
     }
 
