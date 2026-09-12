@@ -1,10 +1,8 @@
 import Foundation
 
 extension Preferences {
-    /// The user's preferences as the algorithm should see them under `mode`.
-    ///
-    /// Derived, never persisted. Clamping the stored values would also break manual dosing, since
-    /// `BolusSafetyValidator` and the bolus calculator read the same `maxIOB`.
+    /// Preferences as the algorithm should see them under `mode`. Derived, never persisted:
+    /// the bolus calculator and `BolusSafetyValidator` read the same `maxIOB`.
     func clamped(for mode: DosingMode) -> Preferences {
         var clamped = self
 

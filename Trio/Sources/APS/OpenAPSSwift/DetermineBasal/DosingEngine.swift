@@ -619,11 +619,8 @@ enum DosingEngine {
         return (shouldSetTempBasal: false, determination: determination)
     }
 
-    /// Basal Testing: past the low-glucose suspend, recommend nothing.
-    ///
-    /// Deliberately leaves `rate` and `duration` unset rather than commanding the scheduled rate as
-    /// a temp: an enacted neutral TBR would be recorded as a temp basal, not scheduled basal, and
-    /// litter the very history the test is meant to read.
+    /// Basal Testing: past the low-glucose suspend, recommend nothing. Leaves `rate` and
+    /// `duration` unset so no temp is enacted and the history stays scheduled basal.
     static func recommendNoChange(determination: Determination) -> Determination {
         var newDetermination = determination
         newDetermination.reason += "basal testing; no adjustment. "

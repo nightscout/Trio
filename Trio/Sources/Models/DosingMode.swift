@@ -64,23 +64,37 @@ enum DosingMode: String, JSON, CaseIterable, Identifiable, Codable, Hashable {
         }
     }
 
-    var explanation: String {
+    /// Symbol shown beside the name in the hint sheet.
+    var icon: String {
+        switch self {
+        case .closed:
+            return "circle"
+        case .open:
+            return "circle.dashed"
+        case .lowGlucoseSuspend:
+            return "hand.raised.fill"
+        case .basalTesting:
+            return "waveform"
+        }
+    }
+
+    var description: String {
         switch self {
         case .closed:
             return String(
-                localized: "Trio reviews your glucose about every five minutes and adjusts your insulin for you, using the settings you have entered. This requires an active CGM sensor session and a connected pump."
+                localized: "Trio checks your glucose every five minutes and changes your insulin for you. You need a working CGM and a connected pump."
             )
         case .open:
             return String(
-                localized: "Trio still calculates a forecast and a recommendation every few minutes, but it never sends anything to your pump. Your pump keeps delivering the basal rates you programmed, and every dose is your decision. Trio will not act to prevent a low or correct a high in this mode."
+                localized: "Trio still shows what it would do, but it never changes your insulin. Your pump keeps running the basal rates you set, and every dose is your choice. Trio is running in manual mode. It will not stop a low or fix a high for you."
             )
         case .lowGlucoseSuspend:
             return String(
-                localized: "Trio may reduce or stop your basal insulin when its forecast suggests you are heading low, but it will never give extra insulin to bring a high down. This is not a threshold-based suspend: Trio keeps adjusting basal from its forecast rather than cutting off at a set glucose value. While this mode is active your Maximum IOB is treated as 0 units. Your saved value is left untouched and returns when you change modes."
+                localized: "Trio may lower or stop your basal insulin when it forecasts you are heading low. It will never give extra insulin to bring a high down.\nTrio does not wait for one set glucose number. It watches your forecast and lowers basal early. While this mode is on, Trio acts as if your Max IOB is 0. Your saved setting does not change."
             )
         case .basalTesting:
             return String(
-                localized: "For checking whether your basal rates hold you steady. Trio makes no adjustments at all unless your glucose actually goes low, in which case it stops your basal insulin until you recover. It never adds insulin back afterwards, and it stops adapting to changes in your sensitivity, so what you see is your profile behaving as you entered it. Meant for short, planned periods. Plan basal testing with your diabetes care team."
+                localized: "Use this to check whether your basal rates hold you steady. Trio makes no changes unless your glucose goes low. Then it stops your basal until you come back up.\nTrio also stops adjusting for sensitivity, so you see your own settings at work. Turning this on cancels any temp basal Trio set. Use it for short, planned times."
             )
         }
     }
