@@ -20,6 +20,12 @@ struct CommandPayload: Decodable, Sendable {
     var fat: Int?
     var overrideName: String?
     var scheduledTime: TimeInterval?
+    var commandID: String?
+    var mealID: String?
+    var expectedCarbs: Int?
+    var expectedFat: Int?
+    var expectedProtein: Int?
+    var expectedMealTime: TimeInterval?
     var returnNotification: ReturnNotificationInfo?
 
     struct ReturnNotificationInfo: Decodable, Sendable {
@@ -52,6 +58,12 @@ struct CommandPayload: Decodable, Sendable {
         case commandType = "command_type"
         case bolusAmount = "bolus_amount"
         case scheduledTime = "scheduled_time"
+        case commandID = "command_id"
+        case mealID = "meal_id"
+        case expectedCarbs = "expected_carbs"
+        case expectedFat = "expected_fat"
+        case expectedProtein = "expected_protein"
+        case expectedMealTime = "expected_meal_time"
         case returnNotification = "return_notification"
     }
 
@@ -80,6 +92,10 @@ struct CommandPayload: Decodable, Sendable {
             let fatDesc = fat != nil ? "\(fat!)g fat" : "unknown fat"
             let proteinDesc = protein != nil ? "\(protein!)g protein" : "unknown protein"
             description += "Meal with \(carbsDesc), \(fatDesc), \(proteinDesc)."
+        case .editMeal:
+            description += "Edit meal \(mealID ?? "with unknown ID")."
+        case .deleteMeal:
+            description += "Delete meal \(mealID ?? "with unknown ID")."
         case .startOverride:
             if let override = overrideName {
                 description += "Start Override: \(override)."
@@ -109,6 +125,8 @@ extension TrioRemoteControl {
         case tempTarget = "temp_target"
         case cancelTempTarget = "cancel_temp_target"
         case meal
+        case editMeal = "edit_meal"
+        case deleteMeal = "delete_meal"
         case startOverride = "start_override"
         case cancelOverride = "cancel_override"
 
@@ -122,6 +140,10 @@ extension TrioRemoteControl {
                 return "Cancel Temporary Target"
             case .meal:
                 return "Meal"
+            case .editMeal:
+                return "Edit Meal"
+            case .deleteMeal:
+                return "Delete Meal"
             case .startOverride:
                 return "Start Override"
             case .cancelOverride:

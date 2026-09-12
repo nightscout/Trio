@@ -11,6 +11,9 @@ class TrioRemoteControl: Injectable {
     @Injected() internal var adjustmentManager: AdjustmentManager!
     @Injected() internal var settings: SettingsManager!
     @Injected() internal var bolusSafetyValidator: BolusSafetyValidator!
+    @Injected() internal var healthKitManager: HealthKitManager!
+    @Injected() internal var tidepoolManager: TidepoolManager!
+    @Injected() internal var apsManager: APSManager!
 
     private let timeWindow: TimeInterval = 600
 
@@ -77,6 +80,9 @@ class TrioRemoteControl: Injectable {
             await cancelTempTarget(commandPayload)
         case .meal:
             try await handleMealCommand(commandPayload)
+        case .deleteMeal,
+             .editMeal:
+            await handleMealMutationCommand(commandPayload)
         case .startOverride:
             await handleStartOverrideCommand(commandPayload)
         case .cancelOverride:
