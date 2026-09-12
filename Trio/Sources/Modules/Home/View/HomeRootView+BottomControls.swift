@@ -772,9 +772,9 @@ extension Home.RootView {
             }
         case let .dosingModeLimited(mode):
             panelBanner(
-                systemImage: "hand.raised.fill",
+                systemImage: mode.icon,
                 title: mode.displayName,
-                subtitle: String(localized: "Trio will not correct highs. Tap to review."),
+                subtitle: mode.miniHint,
                 tint: .orange
             ) {
                 openDosingModeSetting()
