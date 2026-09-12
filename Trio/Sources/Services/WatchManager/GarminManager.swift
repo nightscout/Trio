@@ -492,7 +492,9 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     private func fetchTempBasals() async throws -> [NSManagedObjectID] {
         let context = CoreDataStack.shared.newTaskContext()
         context.name = "fetchTempBasals"
-        let tempBasalPredicate = NSPredicate(format: "tempBasal != nil")
+        // a scheduled-basal row is a rate assertion, not a running temp basal: with fetchLimit 1
+        // it would otherwise become "the current temp basal" on the watch
+        let tempBasalPredicate = NSPredicate(format: "tempBasal != nil AND tempBasal.isScheduledBasal == NO")
         let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             NSPredicate.pumpHistoryLast24h,
             tempBasalPredicate

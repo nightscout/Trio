@@ -13,7 +13,8 @@ import Testing
         pumpTimeMismatch: Bool = false,
         lastGlucoseDate: Date?,
         maxIOB: Decimal = 10,
-        hasUnacknowledgedReleaseNotes: Bool = false
+        hasUnacknowledgedReleaseNotes: Bool = false,
+        dosingMode: DosingMode = .closed
     ) -> MultiUsePanelState {
         MultiUsePanelState.resolve(
             notificationsDisabled: notificationsDisabled,
@@ -21,8 +22,26 @@ import Testing
             lastGlucoseDate: lastGlucoseDate,
             maxIOB: maxIOB,
             hasUnacknowledgedReleaseNotes: hasUnacknowledgedReleaseNotes,
+            dosingMode: dosingMode,
             now: now
         )
+    }
+
+    @Test("Constrained modes announce themselves even with a non-zero stored Max IOB") func testDosingModeLimited() {
+        for mode in [DosingMode.lowGlucoseSuspend, .basalTesting] {
+            #expect(resolve(lastGlucoseDate: fresh, maxIOB: 10, dosingMode: mode) == .dosingModeLimited(mode))
+        }
+    }
+
+    @Test("Open and closed loop fall through to the stored Max IOB") func testUnconstrainedModes() {
+        for mode in [DosingMode.closed, .open] {
+            #expect(resolve(lastGlucoseDate: fresh, maxIOB: 10, dosingMode: mode) == .stats)
+            #expect(resolve(lastGlucoseDate: fresh, maxIOB: 0, dosingMode: mode) == .maxIOBZero)
+        }
+    }
+
+    @Test("A stale CGM still outranks the mode banner") func testCgmStaleOutranksMode() {
+        #expect(resolve(lastGlucoseDate: stale, dosingMode: .lowGlucoseSuspend) == .cgmStale)
     }
 
     @Test("All healthy shows stats") func testStatsDefault() {

@@ -27,6 +27,9 @@ struct Profile: JSON {
     var enableUAM: Bool = false
     var a52RiskEnable: Bool = false
     var smbInterval: Decimal = 3
+    /// Basal Testing: suspend on a genuine low only. Kept out of `CodingKeys` so profile.json,
+    /// which the parity goldens compare, is unchanged.
+    var suspendOnly: Bool = false
     var enableSMBWithCOB: Bool = false
     var enableSMBWithTemptarget: Bool = false
     var allowSMBWithHighTemptarget: Bool = false
