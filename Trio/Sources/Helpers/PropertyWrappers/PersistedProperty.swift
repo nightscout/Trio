@@ -127,6 +127,7 @@ enum FileProtectionFixer {
             "telemetrySharingEnabled.plist",
             "telemetryLastSentAt.plist",
             "telemetryLastSentSha.plist",
+            "telemetryLastFailureReason.plist",
             "telemetryColdLaunchTimes.plist",
             "telemetryInstallId.plist",
             "telemetryAttestForbidden.plist",

@@ -36,6 +36,7 @@ final class PropertyPersistentFlags {
     @PersistedProperty(key: "telemetrySharingEnabled") var telemetrySharingEnabled: Bool?
     @PersistedProperty(key: "telemetryLastSentAt") var telemetryLastSentAt: Date?
     @PersistedProperty(key: "telemetryLastSentSha") var telemetryLastSentSha: String?
+    @PersistedProperty(key: "telemetryLastFailureReason") var telemetryLastFailureReason: String?
     // Sliding 7-day window of cold-launch timestamps; count is sent as `coldLaunches7d`.
     @PersistedProperty(key: "telemetryColdLaunchTimes") var telemetryColdLaunchTimes: [Date]?
     // Stable per-install UUID. IDFV resets when the user removes all Trio-team apps;
