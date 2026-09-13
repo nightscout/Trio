@@ -57,69 +57,81 @@ struct ContactImageDetailView: View {
                     }.onChange(of: contactImageEntry.layout, { oldLayout, newLayout in
                         if oldLayout != newLayout, newLayout == .split {
                             contactImageEntry.top = .glucose
-                        } else {
+                        } else if newLayout != .bobble {
                             contactImageEntry.top = .none
                         }
                     })
 
-                    Toggle("High Contrast Mode", isOn: $contactImageEntry.hasHighContrast)
+                    if contactImageEntry.layout != .bobble {
+                        Toggle("High Contrast Mode", isOn: $contactImageEntry.hasHighContrast)
+                    }
                 }.listRowBackground(Color.chart)
 
-                Section(header: Text("Display Values")) {
-                    Picker("Top Value", selection: $contactImageEntry.top) {
-                        ForEach(ContactImageValue.allCases, id: \.id) { value in
-                            Text(value.displayName).tag(value)
-                        }
-                    }
+                if contactImageEntry.layout == .bobble {
+                    Section(header: Text("Glucose Bobble Options")) {
+                        colorModePicker
+                        Toggle("Show Minutes Since Reading", isOn: $contactImageEntry.bobbleShowMinutesAgo)
+                        Toggle("Show Delta", isOn: $contactImageEntry.bobbleShowDelta)
+                    }.listRowBackground(Color.chart)
+                }
 
-                    if contactImageEntry.layout == .default {
-                        Picker("Primary", selection: $contactImageEntry.primary) {
+                if contactImageEntry.layout != .bobble {
+                    Section(header: Text("Display Values")) {
+                        Picker("Top Value", selection: $contactImageEntry.top) {
                             ForEach(ContactImageValue.allCases, id: \.id) { value in
                                 Text(value.displayName).tag(value)
                             }
                         }
-                    }
 
-                    Picker("Bottom Value", selection: $contactImageEntry.bottom) {
-                        ForEach(ContactImageValue.allCases, id: \.id) { value in
-                            Text(value.displayName).tag(value)
-                        }
-                    }
-                }.listRowBackground(Color.chart)
-
-                // Ring Settings Section
-                Section(header: Text("Ring Settings")) {
-                    Picker("Ring Type", selection: $contactImageEntry.ring) {
-                        ForEach(ContactImageLargeRing.allCases, id: \.self) { ring in
-                            Text(ring.displayName).tag(ring)
-                        }
-                    }
-
-                    if contactImageEntry.ring != .none {
-                        Picker("Ring Width", selection: $contactImageEntry.ringWidth) {
-                            ForEach(ContactImageEntry.RingWidth.allCases, id: \.self) { width in
-                                Text(width.displayName).tag(width)
+                        if contactImageEntry.layout == .default {
+                            Picker("Primary", selection: $contactImageEntry.primary) {
+                                ForEach(ContactImageValue.allCases, id: \.id) { value in
+                                    Text(value.displayName).tag(value)
+                                }
                             }
                         }
-                        Picker("Ring Gap", selection: $contactImageEntry.ringGap) {
-                            ForEach(ContactImageEntry.RingGap.allCases, id: \.self) { gap in
-                                Text(gap.displayName).tag(gap)
+
+                        Picker("Bottom Value", selection: $contactImageEntry.bottom) {
+                            ForEach(ContactImageValue.allCases, id: \.id) { value in
+                                Text(value.displayName).tag(value)
                             }
                         }
-                    }
-                }.listRowBackground(Color.chart)
+                    }.listRowBackground(Color.chart)
 
-                // Font Settings Section
-                Section(header: Text("Font Settings")) {
-                    backgroundModePicker
-                    colorModePicker
-                    fontSizePicker
-                    if contactImageEntry.layout == .split {
-                        secondaryFontSizePicker
-                    }
-                    fontWeightPicker
-                    fontWidthPicker
-                }.listRowBackground(Color.chart)
+                    // Ring Settings Section
+                    Section(header: Text("Ring Settings")) {
+                        Picker("Ring Type", selection: $contactImageEntry.ring) {
+                            ForEach(ContactImageLargeRing.allCases, id: \.self) { ring in
+                                Text(ring.displayName).tag(ring)
+                            }
+                        }
+
+                        if contactImageEntry.ring != .none {
+                            Picker("Ring Width", selection: $contactImageEntry.ringWidth) {
+                                ForEach(ContactImageEntry.RingWidth.allCases, id: \.self) { width in
+                                    Text(width.displayName).tag(width)
+                                }
+                            }
+                            Picker("Ring Gap", selection: $contactImageEntry.ringGap) {
+                                ForEach(ContactImageEntry.RingGap.allCases, id: \.self) { gap in
+                                    Text(gap.displayName).tag(gap)
+                                }
+                            }
+                        }
+                    }.listRowBackground(Color.chart)
+
+                    // Font Settings Section
+                    Section(header: Text("Font Settings")) {
+                        backgroundModePicker
+                        colorModePicker
+                        fontSizePicker
+                        if contactImageEntry.layout == .split {
+                            secondaryFontSizePicker
+                        }
+                        fontWeightPicker
+                        fontWidthPicker
+                    }.listRowBackground(Color.chart)
+                }
             }
         }
         .navigationTitle("Edit Contact Items")
