@@ -40,9 +40,9 @@ Gemfile.lock         @trio-ci-codeowners @trio-codeowners-superusers
 
 # Translations
 # https://github.com/orgs/nightscout/teams/trio-translations-codeowners
-crowdin.yml          @trio-translations-codeowners @trio-codeowners-superusers
-*.strings            @trio-translations-codeowners @trio-codeowners-superusers
-
+crowdin.yml                  @trio-translations-codeowners @trio-codeowners-superusers
+*.strings                    @trio-translations-codeowners @trio-codeowners-superusers
+Trio/Sources/Localizations/* @trio-translations-codeowners @trio-codeowners-superusers
 
 # The CODEOWNERS file itself
 .github/CODEOWNERS   @trio-codeowners-superusers
