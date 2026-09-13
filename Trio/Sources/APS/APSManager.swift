@@ -27,7 +27,6 @@ protocol APSManager {
     var isManualTempBasal: Bool { get }
     var isScheduledBasal: Bool? { get }
     var isSuspended: Bool { get }
-    func enactTempBasal(rate: Double, duration: TimeInterval) async
     func determineBasal() async throws
     /// Runs a determination outside the loop, after a treatment or adjustment changed what the
     /// algorithm reads. Waits for a loop in flight to finish first, since that loop determined
@@ -377,7 +376,7 @@ final class BaseAPSManager: APSManager, Injectable {
         try await determineBasal()
 
         // Closed loop: also enact the determination.
-        if settings.closedLoop {
+        if settings.dosingMode.automation != .off {
             try await enactDetermination()
         }
 
@@ -431,7 +430,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
         loopStats(loopStatRecord: loopStatRecord)
 
-        if settings.closedLoop {
+        if settings.dosingMode.automation != .off {
             await reportEnacted(wasEnacted: error == nil)
         }
     }
@@ -722,33 +721,6 @@ final class BaseAPSManager: APSManager, Injectable {
             )
         }
         clearBolusReporter()
-    }
-
-    func enactTempBasal(rate: Double, duration: TimeInterval) async {
-        if let error = verifyStatus() {
-            processError(error)
-            return
-        }
-
-        guard let pump = pumpManager else { return }
-
-        // unable to do temp basal during manual temp basal 😁
-        if isManualTempBasal {
-            processError(APSError.manualBasalTemp(message: "Loop not possible during the manual basal temp"))
-            return
-        }
-
-        debug(.apsManager, "Enact temp basal \(rate) - \(duration)")
-
-        let roundedAmout = pump.roundToSupportedBasalRate(unitsPerHour: rate)
-
-        do {
-            try await pump.enactTempBasal(unitsPerHour: roundedAmout, for: duration)
-            debug(.apsManager, "Temp Basal succeeded")
-        } catch {
-            debug(.apsManager, "Temp Basal failed with error: \(error)")
-            processError(APSError.pumpError(error))
-        }
     }
 
     private func fetchCurrentTempBasal(date: Date) async throws -> TempBasal {

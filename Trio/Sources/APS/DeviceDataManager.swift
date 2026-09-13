@@ -341,7 +341,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
 
 extension BaseDeviceDataManager: PumpManagerDelegate {
     var automaticDosingEnabled: Bool {
-        settingsManager.settings.closedLoop // Take if close or open loop
+        settingsManager.settings.dosingMode.automation != .off // Trio may command the pump
     }
 
     func pumpManager(
