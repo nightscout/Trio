@@ -12,8 +12,8 @@
 # define the TRIO_PROJECTS used by Trio where for Trio the .gitmodules points
 #   to the downstream fork of loopandlearn in all cases
 #
-# The submodule LoopKit no longer needs a special trio branch
-# The submodule LibreLoop does need a special trio branch
+# LoopKit, LibreCRKit and LibreLoop each need their trio branch: those branches
+#   carry Trio-specific commits that are not on the upstream default branch
 #
 # There are scripts available in LoopWorkspace that update translations and make
 #   sure the loopandlearn branches are up to date
@@ -24,10 +24,10 @@ TRIO_PROJECTS=( \
     loopandlearn:dexcom-share-client-swift:dev \
     loopandlearn:EversenseKit:dev \
     loopandlearn:G7SensorKit:main \
-    loopandlearn:LibreCRKit:main \
+    loopandlearn:LibreCRKit:trio \
     loopandlearn:LibreLoop:trio \
     loopandlearn:LibreTransmitter:main \
-    loopandlearn:LoopKit:dev \
+    loopandlearn:LoopKit:trio \
     loopandlearn:MedtrumKit:dev \
     loopandlearn:MinimedKit:main \
     loopandlearn:OmnipodKit:main \
