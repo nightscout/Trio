@@ -109,6 +109,12 @@ struct LoopStatusView: View {
             .onAppear {
                 setStatusTitle()
             }
+            // the title is time-relative and the loop can finish while the sheet is open
+            .onChange(of: state.timerDate) { _, _ in setStatusTitle() }
+            .onChange(of: state.determinationsFromPersistence.first?.deliverAt) { _, _ in
+                lastDetermination = state.determinationsFromPersistence.first
+                setStatusTitle()
+            }
             .sheet(isPresented: $isHelpSheetPresented) {
                 LoopStatusHelpView(state: state, helpSheetDetent: $helpSheetDetent, isHelpSheetPresented: $isHelpSheetPresented)
             }
