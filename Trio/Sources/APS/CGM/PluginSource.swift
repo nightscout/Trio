@@ -245,17 +245,14 @@ extension PluginSource: CGMManagerDelegate {
         }
     }
 
-    /// What the sensor's latest reading says about it. `indeterminate` for
-    /// managers whose state Trio cannot interpret, and before a first reading.
+    // The live reading carries the sensor state; a backfill's .newData says nothing about it.
     private func currentSensorObservation() -> CGMSensorObservation {
         if let cgmTransmitterManager = cgmManager as? G7CGMManager {
-            return cgmTransmitterManager.latestReading?.algorithmState.observation ?? .indeterminate
+            return cgmTransmitterManager.latestReading?.algorithmState.observation ?? .unavailable
         } else if let cgmTransmitterManager = cgmManager as? G6CGMManager {
-            return cgmTransmitterManager.latestReading?.state.observation ?? .indeterminate
-        } else if let cgmTransmitterManager = cgmManager as? G5CGMManager {
-            return cgmTransmitterManager.latestReading?.state.observation ?? .indeterminate
+            return cgmTransmitterManager.latestReading?.state.observation ?? .unavailable
         }
-        return .indeterminate
+        return .unavailable
     }
 
     private func readCGMResult(readingResult: CGMReadingResult) -> Result<[BloodGlucose], Error> {

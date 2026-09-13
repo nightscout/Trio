@@ -1318,7 +1318,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     // TODO: have this checked; this has never actually written anything to file; the entire logic of this function seems broken
-    /// - Returns: `true` if the note reached Nightscout.
     @discardableResult func uploadNoteTreatment(note: String) async -> Bool {
         let uploadedNotes = storage.retrieve(OpenAPS.Nightscout.uploadedNotes, as: [NightscoutTreatment].self) ?? []
         let now = Date()
