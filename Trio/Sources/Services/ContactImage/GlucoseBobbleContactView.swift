@@ -14,7 +14,11 @@ struct GlucoseBobbleContactView: View {
         static let nativeSize: CGFloat = 256
         static let ringDiameter: CGFloat = 184
         static let ringLineWidth: CGFloat = 9
-        static let triangleSize: CGFloat = 26
+        // Bounded by nativeSize: ringOuterRadius + triangleSize must stay under nativeSize / 2
+        // (128) or the tip gets clipped by ImageRenderer, which snapshots exactly nativeSize.
+        // 30 is close to that ceiling — it's as close to the HUD bobble's proportions as this
+        // canvas allows without also resizing the ring.
+        static let triangleSize: CGFloat = 30
 
         // Circle().stroke centers the stroke on the path, so the ring's outer edge sits
         // ringLineWidth / 2 past ringDiameter / 2. Offset the triangle from there, not the bare
