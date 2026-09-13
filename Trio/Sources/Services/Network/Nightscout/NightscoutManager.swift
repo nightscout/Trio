@@ -1180,13 +1180,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     continue
                 }
 
-                /// Check for an existing stored override and delete if needed
-                /// This is neccessary when a running override is cancelled, or replaced with a new override, before its duration is over.
-                try await overridesStorage.checkIfShouldDeleteNightscoutOverrideEntry(
-                    forCreatedAt: createdAtString,
-                    newDuration: overrideRun.duration,
-                    using: nightscout
-                )
+                /// The entry Nightscout holds for this activation carries the placeholder duration
+                /// uploaded when the override started, under the same `created_at` the run derives
+                /// from its `startDate`. Nightscout re-renders a duration change only when the entry
+                /// is replaced, so the entry is deleted and the run re-posted in its place.
+                try await nightscout.deleteNightscoutOverride(withCreatedAt: createdAtString)
 
                 processedOverrideRuns.append(overrideRun)
             }
