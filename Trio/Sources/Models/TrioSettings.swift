@@ -71,6 +71,7 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var bolusShortcut: BolusShortcutLimit = .notAllowed
     var timeInRangeType: TimeInRangeType = .timeInTightRange
     var homeStatsPanelFace: HomeStatsPanelFace = .timeInRange
+    var homeStatsPanelRange: HomeStatsPanelRange = .today
     var requireAdjustmentsConfirmation: Bool = false
 
     /// Selected Garmin watchface (Trio or SwissAlpine)
@@ -351,6 +352,10 @@ extension TrioSettings: Decodable {
 
         if let homeStatsPanelFace = try? container.decode(HomeStatsPanelFace.self, forKey: .homeStatsPanelFace) {
             settings.homeStatsPanelFace = homeStatsPanelFace
+        }
+
+        if let homeStatsPanelRange = try? container.decode(HomeStatsPanelRange.self, forKey: .homeStatsPanelRange) {
+            settings.homeStatsPanelRange = homeStatsPanelRange
         }
 
         if let requireAdjustmentsConfirmation = try? container.decode(Bool.self, forKey: .requireAdjustmentsConfirmation) {

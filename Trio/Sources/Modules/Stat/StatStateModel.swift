@@ -80,16 +80,23 @@ extension Stat {
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {
-            setupGlucoseArray(for: .today)
-            setupTDDStats()
-            setupBolusStats()
-            setupLoopStatRecords()
-            setupMealStats()
-            setupGlucoseDailyStats()
             units = settingsManager.settings.units
             eA1cDisplayUnit = settingsManager.settings.eA1cDisplayUnit
             useFPUconversion = settingsManager.settings.useFPUconversion
             timeInRangeType = settingsManager.settings.timeInRangeType
+
+            // Open on the range the user picked for the home stats panel; their
+            // `didSet` observers kick off the glucose and loop fetches.
+            let range = settingsManager.settings.homeStatsPanelRange
+            selectedIntervalForInsulinStats = StatsTimeInterval(range)
+            selectedIntervalForMealStats = StatsTimeInterval(range)
+            selectedIntervalForGlucoseStats = StatsTimeIntervalWithToday(range)
+            selectedIntervalForLoopStats = StatsTimeIntervalWithToday(range)
+
+            setupTDDStats()
+            setupBolusStats()
+            setupMealStats()
+            setupGlucoseDailyStats()
         }
 
         func setupGlucoseArray(for interval: StatsTimeIntervalWithToday) {
@@ -307,6 +314,17 @@ extension Stat.StateModel {
 
         var id: Self { self }
 
+        /// Maps the persisted home stats panel range onto this picker's cases.
+        init(_ range: HomeStatsPanelRange) {
+            switch range {
+            case .today: self = .today
+            case .day: self = .day
+            case .week: self = .week
+            case .month: self = .month
+            case .threeMonths: self = .total
+            }
+        }
+
         var displayName: String {
             switch self {
             case .today:
@@ -335,6 +353,17 @@ extension Stat.StateModel {
         case total = "3 M"
 
         var id: Self { self }
+
+        /// Maps the persisted home stats panel range onto this picker's cases.
+        /// These charts have no "today" bucket, so it collapses onto the day view.
+        init(_ range: HomeStatsPanelRange) {
+            switch range {
+            case .today, .day: self = .day
+            case .week: self = .week
+            case .month: self = .month
+            case .threeMonths: self = .total
+            }
+        }
 
         var displayName: String {
             switch self {

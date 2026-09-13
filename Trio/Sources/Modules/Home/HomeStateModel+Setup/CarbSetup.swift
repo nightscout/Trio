@@ -22,6 +22,7 @@ extension Home.StateModel {
     @MainActor func updateCarbsFromController() {
         guard let objects = carbsController.fetchedObjects else { return }
         carbsFromPersistence = objects
+        refreshStatsPanelStats()
     }
 
     // MARK: - FPUs

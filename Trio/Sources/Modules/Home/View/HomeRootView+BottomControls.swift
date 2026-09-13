@@ -540,26 +540,21 @@ extension Home.RootView {
         }
     }
 
-    /// Mean glucose (mg/dL) of today's readings, nil without data.
-    private var todayMeanGlucose: Double? {
-        let startOfDay = Calendar.current.startOfDay(for: Date())
-        let values = state.glucoseFromPersistence
-            .filter { ($0.date ?? .distantPast) >= startOfDay }
-            .map { Double($0.glucose) }
-        guard !values.isEmpty else { return nil }
-        return values.reduce(0, +) / Double(values.count)
+    /// Range the stats panel reports on; drives both the numbers and the wording.
+    private var statsPanelRange: HomeStatsPanelRange {
+        state.settingsManager?.settings.homeStatsPanelRange ?? .today
     }
 
-    private var todayAverageString: String {
-        guard let mean = todayMeanGlucose else { return "--" }
+    private var rangeAverageString: String {
+        guard let mean = state.statsPanelStats.meanGlucose else { return "--" }
         if state.units == .mmolL {
             return Decimal(mean).asMmolL.formatted(.number.precision(.fractionLength(1))) + " " + GlucoseUnits.mmolL.rawValue
         }
         return "\(Int(mean.rounded())) " + GlucoseUnits.mgdL.rawValue
     }
 
-    private var todayGMIString: String {
-        guard let mean = todayMeanGlucose else { return "--" }
+    private var rangeGMIString: String {
+        guard let mean = state.statsPanelStats.meanGlucose else { return "--" }
         let gmiPercentage = 3.31 + 0.02392 * mean
         // settingsManager is injected after first render; default until then
         if state.settingsManager?.settings.eA1cDisplayUnit == .mmolMol {
@@ -569,21 +564,48 @@ extension Home.RootView {
         return gmiPercentage.formatted(.number.precision(.fractionLength(1))) + " %"
     }
 
+    private var rangeInsulinString: String {
+        state.statsPanelStats.totalInsulin.formatted(.number.precision(.fractionLength(1)))
+    }
+
+    private var rangeCarbsString: String {
+        state.statsPanelStats.totalCarbs.formatted(.number.precision(.fractionLength(1)))
+    }
+
+    /// Subtitle for the faces that read "Time in Range today".
+    @ViewBuilder private func statsScopeSubtitle(_ title: LocalizedStringKey) -> some View {
+        (
+            Text(title).fontWeight(.semibold)
+                + Text(" ")
+                + Text(statsPanelRange.scopeName)
+        )
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
+    }
+
     @ViewBuilder func statsBanner() -> some View {
         let face = state.settingsManager?.settings.homeStatsPanelFace ?? .timeInRange
-        let distribution = state.todayGlucoseDistribution
-        let coveragePct = distribution.veryLowPct + distribution.lowPct + distribution.inRangePct + distribution
-            .highPct + distribution.veryHighPct
-        let hasData = coveragePct > 0
+        let range = statsPanelRange
+        let stats = state.statsPanelStats
+        let hasData = stats.hasGlucoseData
         let tirString = hasData
-            ? distribution.inRangePct.formatted(.number.precision(.fractionLength(0 ... 1))) + " %"
+            ? stats.inRangePct.formatted(.number.precision(.fractionLength(0 ... 1))) + " %"
             : "-- %"
         let segments: [(color: Color, fraction: CGFloat)] = hasData ? [
-            (.red, CGFloat(distribution.veryLowPct / 100)),
-            (.orange, CGFloat(distribution.lowPct / 100)),
-            (.loopGreen, CGFloat(distribution.inRangePct / 100)),
-            (.purple, CGFloat((distribution.highPct + distribution.veryHighPct) / 100))
+            (.red, CGFloat(stats.veryLowPct / 100)),
+            (.orange, CGFloat(stats.lowPct / 100)),
+            (.loopGreen, CGFloat(stats.inRangePct / 100)),
+            (.purple, CGFloat((stats.highPct + stats.veryHighPct) / 100))
         ] : [(Color.secondary.opacity(0.3), 1)]
+        // Nil (no readings) renders as an empty track: the green segment falls below
+        // the bar's visibility floor and the grey remainder fills the width.
+        let loopFraction = CGFloat(stats.loopingPerformanceFraction ?? 0)
+        let loopSegments: [(color: Color, fraction: CGFloat)] = [
+            (.loopGreen, loopFraction),
+            (Color.secondary.opacity(0.3), 1 - loopFraction)
+        ]
 
         Button {
             state.showModal(for: .statistics)
@@ -597,16 +619,8 @@ extension Home.RootView {
                                 Text(tirString)
                                     .font(.title2).fontWeight(.bold).fontDesign(.rounded)
                                     .foregroundStyle(.primary)
-                                // chart shows 72h; make the daily scope explicit
-                                (
-                                    Text("Time in Range", comment: "Stats banner subtitle").fontWeight(.semibold)
-                                        + Text(" ")
-                                        + Text("today", comment: "Stats banner scope")
-                                )
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
+                                // chart shows 72h; make the reported scope explicit
+                                statsScopeSubtitle("Time in Range")
                             }
 
                             statsDistributionBar(segments)
@@ -614,28 +628,57 @@ extension Home.RootView {
                         }
                     case .distributionBar:
                         VStack(alignment: .leading, spacing: 6) {
-                            (
-                                Text("Time in Range", comment: "Stats banner subtitle").fontWeight(.semibold)
-                                    + Text(" ")
-                                    + Text("today", comment: "Stats banner scope")
-                            )
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
+                            statsScopeSubtitle("Time in Range")
 
                             statsDistributionBar(segments)
                                 .frame(height: 6)
                         }
                     case .averages:
                         VStack(alignment: .leading, spacing: 1) {
-                            Text("\u{2300} \(todayAverageString) \u{00B7} GMI \(todayGMIString)")
+                            Text("\u{2300} \(rangeAverageString) \u{00B7} GMI \(rangeGMIString)")
                                 .font(.subheadline).fontWeight(.semibold)
                                 .foregroundStyle(.primary)
-                            Text("Today's average", comment: "Stats banner subtitle")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            Text(String(
+                                localized: "\(range.possessiveName) average",
+                                comment: "Stats banner subtitle, e.g. Today's average"
+                            ))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         }
+                    case .loopingPerformance:
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(String(
+                                localized: "\(range.possessiveName) Looping Performance",
+                                comment: "Stats banner subtitle, e.g. Today's Looping Performance"
+                            ))
+                            .font(.subheadline).fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+
+                            statsDistributionBar(loopSegments)
+                                .frame(height: 6)
+                        }
+                    case .totalDailyDose:
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(
+                                "Insulin delivered: \(rangeInsulinString) U \u{00B7} Total carbs: \(rangeCarbsString) g"
+                            )
+                            .font(.subheadline).fontWeight(.semibold)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                            Text(String(
+                                localized: "\(range.possessiveName) total daily dose",
+                                comment: "Stats banner subtitle, e.g. Today's total daily dose"
+                            ))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        }
+                    case .none:
+                        Text("View Statistics", comment: "Stats banner title when statistics are hidden")
+                            .font(.subheadline).fontWeight(.semibold)
+                            .foregroundStyle(.primary)
                     }
 
                     Spacer(minLength: 8)
