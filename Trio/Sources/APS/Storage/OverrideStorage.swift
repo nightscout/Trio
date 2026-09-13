@@ -289,7 +289,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
             ofType: OverrideRunStored.self,
             onContext: context,
             predicate: NSPredicate(
-                format: "startDate >= %@ AND isUploadedToNS == %@",
+                format: "endDate >= %@ AND isUploadedToNS == %@",
                 Date.oneDayAgo as NSDate,
                 false as NSNumber
             ),

@@ -147,6 +147,63 @@ import Testing
         #expect(target.targetBottom == 120, "Target bottom should match target")
     }
 
+    @Test("Get temp target runs not yet uploaded to Nightscout") func testGetTempTargetRunsNotYetUploadedToNightscout() async throws {
+        // Given
+        let now = Date()
+        let hour: TimeInterval = 60 * 60
+        let recentStart = now.addingTimeInterval(-2 * hour)
+        let longRunningStart = now.addingTimeInterval(-72 * hour)
+
+        await testContext.perform {
+            let recent = TempTargetRunStored(context: self.testContext)
+            recent.id = UUID()
+            recent.name = "Recent"
+            recent.startDate = recentStart
+            recent.endDate = now.addingTimeInterval(-hour)
+            recent.target = 140
+            recent.isUploadedToNS = false
+
+            let longRunning = TempTargetRunStored(context: self.testContext)
+            longRunning.id = UUID()
+            longRunning.name = "Long running"
+            longRunning.startDate = longRunningStart
+            longRunning.endDate = now.addingTimeInterval(-hour)
+            longRunning.target = 140
+            longRunning.isUploadedToNS = false
+
+            let stale = TempTargetRunStored(context: self.testContext)
+            stale.id = UUID()
+            stale.name = "Stale"
+            stale.startDate = now.addingTimeInterval(-72 * hour)
+            stale.endDate = now.addingTimeInterval(-48 * hour)
+            stale.target = 140
+            stale.isUploadedToNS = false
+
+            let uploaded = TempTargetRunStored(context: self.testContext)
+            uploaded.id = UUID()
+            uploaded.name = "Uploaded"
+            uploaded.startDate = recentStart
+            uploaded.endDate = now.addingTimeInterval(-hour)
+            uploaded.target = 140
+            uploaded.isUploadedToNS = true
+
+            try? self.testContext.save()
+        }
+
+        // When
+        let runs = try await storage.getTempTargetRunsNotYetUploadedToNightscout()
+
+        // Then
+        #expect(
+            Set(runs.compactMap(\.createdAt)) == [recentStart, longRunningStart],
+            "Runs that ended within the last day are uploaded, whenever they started"
+        )
+
+        let longRunning = try #require(runs.first { $0.createdAt == longRunningStart })
+        #expect(longRunning.duration == 71 * 60, "Duration spans the whole run")
+        #expect(longRunning.eventType == .nsTempTarget, "Event type should be NS temp target")
+    }
+
     @Test(
         "Main chart predicate excludes presets saved after the predicate was built"
     ) func testMainChartPredicateExcludesNewPresets() async throws {

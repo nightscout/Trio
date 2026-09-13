@@ -96,6 +96,16 @@ extension Home.RootView {
             impactHeavy.impactOccurred()
             showSnoozeSheet = true
         }
+        .accessibilityAction {
+            if !state.cgmAvailable {
+                showCGMSelection.toggle()
+            } else {
+                state.shouldDisplayCGMSetupSheet.toggle()
+            }
+        }
+        .accessibilityAction(named: Text("Snooze alerts")) {
+            showSnoozeSheet = true
+        }
     }
 
     var pumpView: some View {
@@ -117,6 +127,21 @@ extension Home.RootView {
                 state.shouldDisplayPumpSetupSheet.toggle()
             }
         }
+        // group reservoir/battery/pod into one button so VO reads it as a single control
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityHint(Text(
+            state.pumpDisplayState == nil
+                ? String(localized: "Opens pump setup", comment: "Accessibility hint")
+                : String(localized: "Opens pump settings", comment: "Accessibility hint")
+        ))
+        .accessibilityAction {
+            if state.pumpDisplayState == nil {
+                showPumpSelection.toggle()
+            } else {
+                state.shouldDisplayPumpSetupSheet.toggle()
+            }
+        }
     }
 
     @ViewBuilder func rightHeaderPanel() -> some View {
@@ -133,6 +158,9 @@ extension Home.RootView {
             .onTapGesture {
                 state.isLoopStatusPresented = true
             }
+            .accessibilityAddTraits(.isButton)
+            .accessibilityHint(Text(String(localized: "Opens loop status", comment: "Accessibility hint")))
+            .accessibilityAction { state.isLoopStatusPresented = true }
             /// eventualBG string at bottomTrailing
 
             if let eventualBG = state.enactedAndNonEnactedDeterminations.first?.eventualBG {
@@ -149,6 +177,12 @@ extension Home.RootView {
                 }
                 // aligns the evBG icon exactly with the first pixel of loop status icon
                 .padding(.leading, 12)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("Eventual glucose"))
+                .accessibilityValue(Text(
+                    (state.units == .mgdL ? eventualGlucose.description : eventualGlucose.formattedAsMmolL)
+                        + " " + state.units.spokenValue
+                ))
             } else {
                 HStack {
                     Image(systemName: "arrow.right.circle")
@@ -156,6 +190,9 @@ extension Home.RootView {
                     Text("--")
                         .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("Eventual glucose"))
+                .accessibilityValue(Text(verbatim: "--"))
             }
         }
     }

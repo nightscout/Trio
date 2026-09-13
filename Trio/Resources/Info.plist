@@ -62,6 +62,8 @@
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
+	<key>NSAlarmKitUsageDescription</key>
+	<string>Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on.</string>
 	<key>NFCReaderUsageDescription</key>
 	<string>NFC is used to scan Libre sensors.</string>
 	<key>NSAppTransportSecurity</key>

@@ -22,6 +22,19 @@ struct TargetPicker: View {
                 displayPickerTarget = toggleScrollWheel(displayPickerTarget)
             }
         }
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(label))
+        .accessibilityValue(Text(
+            (units == .mgdL ? selection.description : selection.formattedAsMmolL) + " " + units.spokenValue
+        ))
+        .accessibilityHint(Text(
+            displayPickerTarget
+                ? String(localized: "Closes the value picker", comment: "Accessibility hint")
+                : String(localized: "Opens a picker to change the target", comment: "Accessibility hint")
+        ))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { displayPickerTarget = toggleScrollWheel(displayPickerTarget) }
         if displayPickerTarget {
             HStack {
                 // Radio buttons and text on the left side

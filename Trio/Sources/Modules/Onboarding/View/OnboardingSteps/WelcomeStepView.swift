@@ -5,6 +5,7 @@ struct WelcomeStepView: View {
     var body: some View {
         VStack(alignment: .center, spacing: 20) {
             PulsingLogoAnimation()
+                .accessibilityHidden(true)
 
             Spacer(minLength: 10)
 
@@ -13,6 +14,7 @@ struct WelcomeStepView: View {
                     .font(.title2)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
+                    .accessibilityAddTraits(.isHeader)
 
                 Text(
                     "Welcome to Trio — an automated insulin delivery system for iOS based on the OpenAPS algorithm with adaptations."

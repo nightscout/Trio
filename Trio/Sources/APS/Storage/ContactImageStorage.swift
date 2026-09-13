@@ -62,6 +62,8 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
                         secondaryFontSize: ContactImageEntry.FontSize(rawValue: Int(entry.fontSizeSecondary)) ?? .small,
                         fontWeight: Font.Weight.fromString(entry.fontWeight ?? "regular"),
                         fontWidth: Font.Width.fromString(entry.fontWidth ?? "standard"),
+                        bobbleShowMinutesAgo: entry.bobbleShowMinutesAgo,
+                        bobbleShowDelta: entry.bobbleShowDelta,
                         managedObjectID: entry.objectID
                     )
                 }
@@ -102,6 +104,8 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
             newContactImageEntry.fontSizeSecondary = Int16(contactImageEntry.secondaryFontSize.rawValue)
             newContactImageEntry.fontWidth = contactImageEntry.fontWidth.asString
             newContactImageEntry.fontWeight = contactImageEntry.fontWeight.asString
+            newContactImageEntry.bobbleShowMinutesAgo = contactImageEntry.bobbleShowMinutesAgo
+            newContactImageEntry.bobbleShowDelta = contactImageEntry.bobbleShowDelta
 
             do {
                 guard context.hasChanges else { return }
@@ -146,6 +150,8 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
                     existingEntry.fontSizeSecondary = Int16(contactImageEntry.secondaryFontSize.rawValue)
                     existingEntry.fontWeight = contactImageEntry.fontWeight.asString
                     existingEntry.fontWidth = contactImageEntry.fontWidth.asString
+                    existingEntry.bobbleShowMinutesAgo = contactImageEntry.bobbleShowMinutesAgo
+                    existingEntry.bobbleShowDelta = contactImageEntry.bobbleShowDelta
 
                     guard context.hasChanges else { return }
                     try context.save()

@@ -191,10 +191,23 @@ struct SettingInputSection<VerboseHint: View>: View {
                 Spacer()
                 displayText(for: setting, decimalValue: decimalValue.wrappedValue)
                     .foregroundColor(!displayPicker.wrappedValue ? .primary : .accentColor)
-                    .onTapGesture {
-                        displayPicker.wrappedValue.toggle()
-                    }
-            }.padding(.top)
+            }
+            .padding(.top)
+            // whole row is the tap target and reads as one element: "label, value, button"
+            .contentShape(Rectangle())
+            .onTapGesture {
+                displayPicker.wrappedValue.toggle()
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(label))
+            .accessibilityValue(Text(accessibilityValueString(for: setting, decimalValue: decimalValue.wrappedValue)))
+            .accessibilityHint(Text(
+                displayPicker.wrappedValue
+                    ? String(localized: "Closes the value picker", comment: "Accessibility hint")
+                    : String(localized: "Opens a picker to change the value", comment: "Accessibility hint")
+            ))
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { displayPicker.wrappedValue.toggle() }
 
             if displayPicker.wrappedValue {
                 Picker(selection: decimalValue, label: Text(label)) {
@@ -209,22 +222,49 @@ struct SettingInputSection<VerboseHint: View>: View {
     }
 
     private func displayText(for setting: PickerSetting, decimalValue: Decimal) -> Text {
+        Text(displayString(for: setting, decimalValue: decimalValue))
+    }
+
+    /// The value + unit as a plain string, for the visible label and the
+    /// row's `accessibilityValue` (so VoiceOver announces the value + unit).
+    private func displayString(for setting: PickerSetting, decimalValue: Decimal) -> String {
         switch setting.type {
         case .glucose:
             let displayValue = units == .mmolL ? decimalValue.asMmolL : decimalValue
-            return Text("\(displayValue.description) \(units.rawValue)")
+            return "\(displayValue.description) \(units.rawValue)"
         case .factor:
-            return Text("\(decimalValue * 100) \(String(localized: "%", comment: "Percentage symbol"))")
+            return "\(decimalValue * 100) \(String(localized: "%", comment: "Percentage symbol"))"
         case .insulinUnit:
-            return Text("\(decimalValue) \(String(localized: "U", comment: "Insulin unit abbreviation"))")
+            return "\(decimalValue) \(String(localized: "U", comment: "Insulin unit abbreviation"))"
         case .insulinUnitPerHour:
-            return Text("\(decimalValue) \(String(localized: "U/hr", comment: "Insulin unit per hour abbreviation"))")
+            return "\(decimalValue) \(String(localized: "U/hr", comment: "Insulin unit per hour abbreviation"))"
         case .gram:
-            return Text("\(decimalValue) \(String(localized: "g", comment: "Gram abbreviation"))")
+            return "\(decimalValue) \(String(localized: "g", comment: "Gram abbreviation"))"
         case .minute:
-            return Text("\(decimalValue) \(String(localized: "min", comment: "Minutes abbreviation"))")
+            return "\(decimalValue) \(String(localized: "min", comment: "Minutes abbreviation"))"
         case .hour:
-            return Text("\(decimalValue) \(String(localized: "hr", comment: "Hours abbreviation"))")
+            return "\(decimalValue) \(String(localized: "hr", comment: "Hours abbreviation"))"
+        }
+    }
+
+    /// Same value as `displayString` but with the unit spelled out for VoiceOver.
+    private func accessibilityValueString(for setting: PickerSetting, decimalValue: Decimal) -> String {
+        switch setting.type {
+        case .glucose:
+            let displayValue = units == .mmolL ? decimalValue.asMmolL : decimalValue
+            return "\(displayValue.description) \(units.spokenValue)"
+        case .factor:
+            return "\(decimalValue * 100) \(UnitSpelling.spoken("%"))"
+        case .insulinUnit:
+            return "\(decimalValue) \(UnitSpelling.spoken("U"))"
+        case .insulinUnitPerHour:
+            return "\(decimalValue) \(UnitSpelling.spoken("U/hr"))"
+        case .gram:
+            return "\(decimalValue) \(UnitSpelling.spoken("g"))"
+        case .minute:
+            return "\(decimalValue) \(UnitSpelling.spoken("min"))"
+        case .hour:
+            return "\(decimalValue) \(UnitSpelling.spoken("hr"))"
         }
     }
 
@@ -257,6 +297,7 @@ struct SettingInputSection<VerboseHint: View>: View {
                 }
             }
             .buttonStyle(BorderlessButtonStyle())
+            .accessibilityLabel(Text("More information about \(label)"))
         }.padding(.vertical)
     }
 }

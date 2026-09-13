@@ -255,6 +255,21 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                                     displayPicker.wrappedValue.toggle()
                                 }
                         }.disabled(disabled)
+                            .contentShape(Rectangle())
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(Text(label))
+                            .accessibilityValue(Text(accessibilityValueString(
+                                for: substep,
+                                decimalValue: decimalValue.wrappedValue,
+                                units: state.units
+                            )))
+                            .accessibilityHint(Text(
+                                displayPicker.wrappedValue
+                                    ? String(localized: "Closes the value picker", comment: "Accessibility hint")
+                                    : String(localized: "Opens a picker to change this value", comment: "Accessibility hint")
+                            ))
+                            .accessibilityAddTraits(.isButton)
+                            .accessibilityAction { if !disabled { displayPicker.wrappedValue.toggle() } }
 
                         if displayPicker.wrappedValue {
                             Picker(selection: decimalValue, label: Text(label)) {
@@ -281,24 +296,50 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
     }
 
     private func displayText(for substep: Substep, decimalValue: Decimal, units: GlucoseUnits) -> Text {
+        Text(displayString(for: substep, decimalValue: decimalValue, units: units))
+    }
+
+    private func displayString(for substep: Substep, decimalValue: Decimal, units: GlucoseUnits) -> String {
         guard let step = substep.toAlgorithmSubstep() else {
-            return Text(decimalValue.description)
+            return decimalValue.description
         }
 
         switch step {
         case .autosensMax,
              .autosensMin,
              .maxDeltaGlucoseThreshold:
-            return Text("\(decimalValue * 100) \(String(localized: "%"))")
+            return "\(decimalValue * 100) \(String(localized: "%"))"
         case .enableSMBWithHighGlucoseTarget,
              .halfBasalTarget:
             let displayValue = units == .mmolL ? decimalValue.asMmolL : decimalValue
-            return Text("\(displayValue.description) \(units.rawValue)")
+            return "\(displayValue.description) \(units.rawValue)"
         case .maxSMBMinutes,
              .maxUAMMinutes:
-            return Text("\(decimalValue) \(String(localized: "min"))")
+            return "\(decimalValue) \(String(localized: "min"))"
         default:
-            return Text("") // not needed, because input type is boolean
+            return "" // not needed, because input type is boolean
+        }
+    }
+
+    /// Same value as `displayString` but with the unit spelled out for VoiceOver.
+    private func accessibilityValueString(for substep: Substep, decimalValue: Decimal, units: GlucoseUnits) -> String {
+        guard let step = substep.toAlgorithmSubstep() else {
+            return decimalValue.description
+        }
+        switch step {
+        case .autosensMax,
+             .autosensMin,
+             .maxDeltaGlucoseThreshold:
+            return "\(decimalValue * 100) \(UnitSpelling.spoken("%"))"
+        case .enableSMBWithHighGlucoseTarget,
+             .halfBasalTarget:
+            let displayValue = units == .mmolL ? decimalValue.asMmolL : decimalValue
+            return "\(displayValue.description) \(units.spokenValue)"
+        case .maxSMBMinutes,
+             .maxUAMMinutes:
+            return "\(decimalValue) \(UnitSpelling.spoken("min"))"
+        default:
+            return ""
         }
     }
 }

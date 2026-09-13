@@ -32,6 +32,12 @@ struct InsulinView: ChartContent {
                 .symbol {
                     Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.insulin)
                 }
+
+                PointMark(
+                    x: .value("Time", bolusDate, unit: .second),
+                    y: .value("Value", yPosition)
+                )
+                .symbolSize(0)
                 .annotation(position: .top) {
                     if amount as Decimal >= bolusDisplayThreshold.rawValue {
                         Text(Formatter.bolusFormatter.string(from: amount) ?? "")

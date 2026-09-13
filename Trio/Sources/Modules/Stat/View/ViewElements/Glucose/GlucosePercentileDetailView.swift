@@ -41,30 +41,49 @@ struct GlucoseDailyPercentileDetailView: View {
         value: Double,
         type: GlucosePercentileType
     ) -> some View {
-        VStack(spacing: 2) {
-            Text(Decimal(value).formatted(for: units))
+        // Explicitly-typed locals: without them the repeated `type == selectedPercentile`
+        // ternaries (Color vs .primary/.secondary/.clear) across this modifier chain make the
+        // Swift type-checker time out on some build configurations.
+        let isSelected = type == selectedPercentile
+        let valueString = Decimal(value).formatted(for: units)
+        let valueColor: Color = isSelected ? .purple : .primary
+        let labelColor: Color = isSelected ? .purple : .secondary
+        let fillColor: Color = isSelected ? Color.purple.opacity(0.1) : .clear
+        let borderColor: Color = isSelected ? .purple : .clear
+
+        return VStack(spacing: 2) {
+            Text(valueString)
                 .font(.callout.monospacedDigit())
-                .foregroundStyle(type == selectedPercentile ? Color.purple : .primary)
+                .foregroundStyle(valueColor)
 
             Text(label)
                 .font(.caption2)
-                .foregroundStyle(type == selectedPercentile ? Color.purple : .secondary)
+                .foregroundStyle(labelColor)
         }
         .frame(maxWidth: .infinity)
         .padding(4)
         .background(
             RoundedRectangle(cornerRadius: 4)
-                .fill(type == selectedPercentile ? Color.purple.opacity(0.1) : Color.clear)
+                .fill(fillColor)
                 .overlay(
                     RoundedRectangle(cornerRadius: 4)
-                        .strokeBorder(type == selectedPercentile ? Color.purple : Color.clear, lineWidth: 1)
+                        .strokeBorder(borderColor, lineWidth: 1)
                 )
         )
         .contentShape(Rectangle())
         .onTapGesture {
             withAnimation {
                 // Toggle selection on tap
-                selectedPercentile = (selectedPercentile == type) ? nil : type
+                selectedPercentile = isSelected ? nil : type
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(label))
+        .accessibilityValue(Text(valueString))
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        .accessibilityAction {
+            withAnimation {
+                selectedPercentile = isSelected ? nil : type
             }
         }
     }

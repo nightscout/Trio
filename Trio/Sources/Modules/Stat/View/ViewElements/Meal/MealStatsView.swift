@@ -66,6 +66,7 @@ struct MealStatsView: View {
                 }
             }
             .font(.headline)
+            .accessibilityElement(children: .combine)
 
             Spacer()
 
@@ -282,6 +283,8 @@ struct MealStatsView: View {
         )
         .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedInterval))
         .frame(height: 250)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Meal macronutrients bar chart"))
     }
 }
 

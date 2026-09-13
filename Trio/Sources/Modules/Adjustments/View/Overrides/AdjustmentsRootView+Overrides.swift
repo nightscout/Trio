@@ -239,6 +239,12 @@ extension Adjustments.RootView {
                         .foregroundStyle(.secondary)
                 }
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(name))
+            .accessibilityValue(Text(labels.joined(separator: ", ")))
+            .accessibilityHint(Text(String(localized: "Double tap to enable this override", comment: "Accessibility hint")))
+            .accessibilityAddTraits(showOverrideCheckmark && isSelected ? [.isButton, .isSelected] : .isButton)
+            .accessibilityAction { onTap?() }
         }
     }
 }

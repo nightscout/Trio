@@ -16,22 +16,26 @@ enum IobCalculation {
         let iobContrib: Double
     }
 
-    /// logic to look up insulinPeakTime, taking into account `useCustomPeakTime`
-    private static func lookupPeak(from profile: Profile) throws -> Double {
-        switch (profile.curve, profile.useCustomPeakTime, profile.insulinPeakTime) {
-        case (.rapidActing, true, let insulinPeakTime):
-            let peakTime = Double(insulinPeakTime)
-            return peakTime.clamp(lowerBound: 50, upperBound: 120)
-        case (.rapidActing, false, _):
-            return 75
-        case (.ultraRapid, true, let insulinPeakTime):
-            let peakTime = Double(insulinPeakTime)
-            return peakTime.clamp(lowerBound: 35, upperBound: 100)
-        case (.ultraRapid, false, _):
-            return 55
-        case (.bilinear, _, _):
-            throw IobError.bilinearCurveNotSupported
+    /// Effective insulinPeakTime in minutes, taking into account `useCustomPeakTime`.
+    /// Bilinear has no exponential peak and yields nil.
+    /// - Note: defaults mirror LoopKit's `ExponentialInsulinModelPreset` (rapidActingAdult,
+    /// fiasp) and custom bounds come from oref0. Literals because the algorithm package
+    /// compiles this file without LoopKit; `testDefaultPeaksMatchLoopKit` pins them.
+    static func lookupPeak(curve: InsulinCurve, useCustomPeakTime: Bool, insulinPeakTime: Decimal) -> Double? {
+        let defaultPeak: Double
+        let customBounds: ClosedRange<Double>
+        switch curve {
+        case .rapidActing:
+            defaultPeak = 75
+            customBounds = 50 ... 120
+        case .ultraRapid:
+            defaultPeak = 55
+            customBounds = 35 ... 100
+        case .bilinear:
+            return nil
         }
+        guard useCustomPeakTime else { return defaultPeak }
+        return Double(insulinPeakTime).clamp(lowerBound: customBounds.lowerBound, upperBound: customBounds.upperBound)
     }
 
     /// Runs through the IoB calculation for a treatment.
@@ -49,7 +53,13 @@ enum IobCalculation {
 
         let bolusTime = treatment.timestamp
         let minsAgo = (time.timeIntervalSince(bolusTime) / 60.0).rounded()
-        let peak = try lookupPeak(from: profile)
+        guard let peak = lookupPeak(
+            curve: profile.curve,
+            useCustomPeakTime: profile.useCustomPeakTime,
+            insulinPeakTime: profile.insulinPeakTime
+        ) else {
+            throw IobError.bilinearCurveNotSupported
+        }
         let end = Double(dia) * 60
 
         guard minsAgo < end else {
@@ -91,9 +101,15 @@ enum IobCalculation {
         let c2: Double // tau * end * (1 - a)
     }
 
-    /// Only valid for exponential curves; `lookupPeak` cannot throw for them
+    /// Only valid for exponential curves; `lookupPeak` only returns nil for bilinear
     static func curveConstants(dia: Decimal, profile: Profile) throws -> CurveConstants {
-        let peak = try lookupPeak(from: profile)
+        guard let peak = lookupPeak(
+            curve: profile.curve,
+            useCustomPeakTime: profile.useCustomPeakTime,
+            insulinPeakTime: profile.insulinPeakTime
+        ) else {
+            throw IobError.bilinearCurveNotSupported
+        }
         let end = Double(dia) * 60
         let tau = peak * (1 - peak / end) / (1 - 2 * peak / end)
         let a = 2 * tau / end

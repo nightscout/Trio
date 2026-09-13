@@ -27,6 +27,7 @@ extension History.RootView {
             HStack {
                 if meal.isFPU {
                     Image(systemName: "circle.fill").foregroundColor(Color.orange.opacity(0.5))
+                        .accessibilityHidden(true)
                     Text("Fat / Protein")
                     Text(
                         (Formatter.decimalFormatterWithTwoFractionDigits.string(for: meal.carbs) ?? "0") +
@@ -34,6 +35,7 @@ extension History.RootView {
                     )
                 } else {
                     Image(systemName: "circle.fill").foregroundColor(Color.loopYellow)
+                        .accessibilityHidden(true)
                     Text("Carbs")
                     Text(
                         (Formatter.decimalFormatterWithTwoFractionDigits.string(for: meal.carbs) ?? "0") +
