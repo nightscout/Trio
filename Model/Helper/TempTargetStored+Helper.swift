@@ -26,6 +26,16 @@ extension NSPredicate {
             false as NSNumber
         )
     }
+
+    static func tempTargetsForMainChart(since date: Date) -> NSPredicate {
+        NSPredicate(
+            format: "(date >= %@ AND enabled == %@) OR (date >= %@ AND enabled == %@)",
+            date as NSDate,
+            true as NSNumber,
+            Date() as NSDate,
+            false as NSNumber
+        )
+    }
 }
 
 extension TempTargetStored {

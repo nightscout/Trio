@@ -1,0 +1,9 @@
+{
+  "ISF" : 55,
+  "id" : "00000000-0000-0000-0000-000000000000",
+  "minDelta" : 5.72,
+  "reason" : "If current system time Wed Jun 17 2026 14:30:00 GMT+0200 (Central European Summer Time) is correct, then BG data is too old. The last BG data was read 25m ago at Wed Jun 17 2026 14:05:00 GMT+0200 (Central European Summer Time). Temp 0 <= current basal 0.9U/hr; doing nothing. ",
+  "received" : false,
+  "temp" : "absolute",
+  "timestamp" : "2026-06-17T12:30:00.000Z"
+}

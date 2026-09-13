@@ -89,7 +89,7 @@ import UIKit
             if isBlacklisted {
                 let lastShown = self.lastBlacklistNotificationShown ?? .distantPast
                 if now.timeIntervalSince(lastShown) > 86400 { // 24 hours
-                    self.showAlert(
+                    let shown = self.showAlert(
                         on: viewController,
                         title: String(localized: "Update Required", comment: "Title for critical update alert"),
                         message: String(
@@ -97,8 +97,10 @@ import UIKit
                             comment: "Message for critical update alert"
                         )
                     )
-                    self.lastBlacklistNotificationShown = now
-                    self.lastVersionUpdateNotificationShown = now
+                    if shown {
+                        self.lastBlacklistNotificationShown = now
+                        self.lastVersionUpdateNotificationShown = now
+                    }
                 }
             }
             // Otherwise, if a newer version is available, show an update alert if not shown in the last 2 weeks.
@@ -106,7 +108,7 @@ import UIKit
                 let lastShown = self.lastVersionUpdateNotificationShown ?? .distantPast
                 if now.timeIntervalSince(lastShown) > 1_209_600 { // 2 weeks
                     let versionText = latestVersion ?? String(localized: "Unknown", comment: "Fallback text for unknown version")
-                    self.showAlert(
+                    let shown = self.showAlert(
                         on: viewController,
                         title: String(localized: "Update Available", comment: "Title for update available alert"),
                         message: String(
@@ -114,7 +116,9 @@ import UIKit
                             comment: "Message for update available alert"
                         )
                     )
-                    self.lastVersionUpdateNotificationShown = now
+                    if shown {
+                        self.lastVersionUpdateNotificationShown = now
+                    }
                 }
             }
         }
@@ -483,13 +487,24 @@ import UIKit
     //
     // The alert is dispatched to the main thread to ensure UI updates occur correctly.
     //
+    // Presentation is skipped when the view controller is already showing something - for example
+    // the non-release build warning from DevelopmentBranchAlerter, which runs just before this.
+    // UIKit drops a second presentation silently, so the caller is told whether the alert actually
+    // appeared and can leave its throttle untouched to retry on the next foreground.
+    //
     // - Parameters:
     // - viewController: The UIViewController on which the alert should be presented.
     // - title: The title text for the alert.
     // - message: The body message of the alert.
-    private func showAlert(on viewController: UIViewController, title: String, message: String) {
+    // - Returns: `true` if the alert was presented; `false` if another alert was already showing.
+    private func showAlert(on viewController: UIViewController, title: String, message: String) -> Bool {
+        guard viewController.presentedViewController == nil else {
+            return false
+        }
+
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         viewController.present(alert, animated: true)
+        return true
     }
 }

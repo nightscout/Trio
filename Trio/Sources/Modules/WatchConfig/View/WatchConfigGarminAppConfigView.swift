@@ -51,7 +51,7 @@ struct WatchConfigGarminAppConfigView: View {
                                 },
                                 label: {
                                     HStack {
-                                        Image(systemName: "questionmark.circle")
+                                        Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
                                     }
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
@@ -81,7 +81,7 @@ struct WatchConfigGarminAppConfigView: View {
                                 },
                                 label: {
                                     HStack {
-                                        Image(systemName: "questionmark.circle")
+                                        Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
                                     }
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
@@ -120,7 +120,7 @@ struct WatchConfigGarminAppConfigView: View {
                                 },
                                 label: {
                                     HStack {
-                                        Image(systemName: "questionmark.circle")
+                                        Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
                                     }
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
@@ -157,7 +157,7 @@ struct WatchConfigGarminAppConfigView: View {
                                 },
                                 label: {
                                     HStack {
-                                        Image(systemName: "questionmark.circle")
+                                        Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
                                     }
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
@@ -187,7 +187,7 @@ struct WatchConfigGarminAppConfigView: View {
                                 },
                                 label: {
                                     HStack {
-                                        Image(systemName: "questionmark.circle")
+                                        Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
                                     }
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
@@ -210,7 +210,8 @@ struct WatchConfigGarminAppConfigView: View {
                 hintText: Text(
                     "Choose which watchface on your Garmin device you wish to provide data for. You can independently select which datafield to use in the next section.\n\n" +
                         "• Trio – The original Trio watchface, developed by Ivan Valkou.\n" +
-                        "• Swissalpine – Originally developed for AAPS, adapted to work with Trio.\n\n" +
+                        "• Swissalpine – Originally developed for AAPS, adapted to work with Trio.\n" +
+                        "• Complication – Not a watchface. A watch app that publishes glucose, IOB, COB and sensitivity ratio as complications, so you can use any watchface that has Connect IQ complication slots. Pick this when you are not running a Trio watchface.\n\n" +
                         "You must use this configuration setting here BEFORE you switch the watchface on your Garmin device to another watchface.\n\n" +
                         "⚠️ Changing the watchface will automatically disable data transmission. You will be prompted to resume data transmission after you have changed the watchface on your Garmin device."
                 ),
@@ -261,14 +262,17 @@ struct WatchConfigGarminAppConfigView: View {
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
         }
-        .confirmationDialog("Watchface Changed", isPresented: $shouldShowWatchfaceSwitchConfirmDialog) {
-            Button("Resume Data Transmission") {
-                state.resumeDataTransmission()
-            }
-        } message: {
-            Text(
+        .glassActionSheet(
+            "Watchface Changed",
+            message: Text(
                 "Data transmission has been disabled. Now select the new watchface on your Garmin device and resume data transmission once done."
-            )
-        }
+            ),
+            isPresented: $shouldShowWatchfaceSwitchConfirmDialog,
+            actions: [
+                GlassSheetAction("Resume Data Transmission") {
+                    state.resumeDataTransmission()
+                }
+            ]
+        )
     }
 }

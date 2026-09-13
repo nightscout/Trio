@@ -34,6 +34,8 @@ struct ContactImageDetailView: View {
                         .foregroundColor(colorScheme == .dark ? .white : .black)
                         .frame(width: 100, height: 100)
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("Contact image preview"))
                 Spacer()
             }
             .padding(.top, 80)
@@ -109,6 +111,7 @@ struct ContactImageDetailView: View {
 
                 // Font Settings Section
                 Section(header: Text("Font Settings")) {
+                    backgroundModePicker
                     colorModePicker
                     fontSizePicker
                     if contactImageEntry.layout == .split {
@@ -134,7 +137,7 @@ struct ContactImageDetailView: View {
                         state.isHelpSheetPresented.toggle()
                     },
                     label: {
-                        Image(systemName: "questionmark.circle")
+                        Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
                     }
                 )
             }
@@ -175,6 +178,14 @@ struct ContactImageDetailView: View {
                 .tint(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .padding(5)
+        }
+    }
+
+    private var backgroundModePicker: some View {
+        Picker("Background", selection: $contactImageEntry.backgroundMode) {
+            ForEach(ContactImageEntry.BackgroundMode.allCases, id: \.self) { mode in
+                Text(mode.displayName).tag(mode)
+            }
         }
     }
 

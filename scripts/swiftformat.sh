@@ -1,5 +1,10 @@
 #! /bin/sh
 
+if [ "$CI" = "true" ]; then
+	echo "CI detected - skipping SwiftFormat."
+	exit 0
+fi
+
 function assertEnvironment {
 	if [ -z $1 ]; then 
 		echo $2
@@ -115,4 +120,5 @@ trailingClosures \
 --exclude OmnipodKit \
 --exclude LibreLoop \
 --exclude LibreCRKit \
---exclude LoopAlgorithm
+--exclude LoopAlgorithm \
+--exclude AccuChekKit

@@ -7,10 +7,10 @@ extension Home.StateModel {
      - Parameters:
         - rawTargets: The raw glucose target data containing offset and glucose values.
         - startMarker: The reference date to start the target profiles from.
-     - Returns: An array of `TargetProfile` objects, each representing a glucose target range starting from the day of the startMarker and ending two days later.
+     - Returns: An array of `TargetProfile` objects, each representing a glucose target range covering every day from the startMarker through the chart's endMarker.
 
      The function:
-     - Converts glucose targets into profiles covering three consecutive days (day of startMarker, day after startMarker and day after that).
+     - Converts glucose targets into profiles repeated for each day between startMarker and endMarker.
      - Calculates start and end times for each target based on the offsets provided.
      - Handles conversions between mg/dL and mmol/L as per user settings.
      - Ensures targets span across midnight to avoid data cutoff.
@@ -29,9 +29,13 @@ extension Home.StateModel {
         // Base date is the start of the day for the startMarker
         let baseDate = Calendar.current.startOfDay(for: startMarker)
 
-        // Process each target three times
-        for index in 0 ..< (targets.count * 3) {
-            // Calculate the day offset (0 for today, 1 for tomorrow, 2 for day after)
+        // Cover every day the chart can display; a fixed 3-day span ends at
+        // today's midnight once the history window grows to 72 h
+        // cf. https://github.com/nightscout/Trio/issues/1383
+        let daySpan = max(3, Int(ceil(endMarker.timeIntervalSince(baseDate) / (24 * 60 * 60))) + 1)
+
+        for index in 0 ..< (targets.count * daySpan) {
+            // Calculate the day offset from baseDate
             let dayOffset = index / targets.count
             let targetIndex = index % targets.count
 

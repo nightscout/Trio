@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Renders the exact payload that would be sent right now, with a copy button.
-/// Linked to from Settings → App Diagnostics and from the migration sheet.
+/// Linked to from Settings → Features → App Diagnostics.
 struct TelemetryPreviewView: View {
     @State private var jsonText: String = ""
     @State private var showResetConfirm: Bool = false
@@ -50,22 +50,20 @@ struct TelemetryPreviewView: View {
         .navigationTitle("What's sent")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { jsonText = Self.renderPayload() }
-        .confirmationDialog(
+        .glassActionSheet(
             "Reset App Attest state?",
-            isPresented: $showResetConfirm,
-            titleVisibility: .visible
-        ) {
-            Button("Reset and retry send", role: .destructive) {
-                TelemetryAttestor.shared.resetAttestState()
-                resetStatus = "Reset done — attempting a fresh send. Check logs for status."
-                Task { await TelemetryClient.shared.maybeSend() }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text(
+            message: Text(
                 "Clears the local App Attest key, registered flag, and forbidden flag. The next telemetry send will re-attest from scratch. Use only if telemetry is stuck."
-            )
-        }
+            ),
+            isPresented: $showResetConfirm,
+            actions: [
+                GlassSheetAction("Reset and retry send", role: .destructive) {
+                    TelemetryAttestor.shared.resetAttestState()
+                    resetStatus = "Reset done — attempting a fresh send. Check logs for status."
+                    Task { await TelemetryClient.shared.maybeSend() }
+                }
+            ]
+        )
     }
 
     private static func renderPayload() -> String {

@@ -1,5 +1,3 @@
-import FirebaseCore
-import FirebaseCrashlytics
 import SwiftUI
 import UIKit
 import UserNotifications
@@ -9,16 +7,11 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
         _: UIApplication,
         didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        FirebaseApp.configure()
-
-        // Default to `true` if the key doesn't exist
-        let crashReportingEnabled: Bool = PropertyPersistentFlags.shared.diagnosticsSharingEnabled ?? true
-
-        // The docs say that changes to this don't take effect until
-        // the next app boot, but this is fine since the app will need
-        // to boot after a crash
-        Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(crashReportingEnabled)
-        Crashlytics.crashlytics().setCustomValue(Bundle.main.appDevVersion ?? "unknown", forKey: "app_dev_version")
+        // Default to `true` if the key doesn't exist — Trio is opt-out, not opt-in.
+        // Read before touching Firebase: an explicit opt-out means we never
+        // configure it, so no component can queue or upload anything.
+        let crashReportingEnabled: Bool = PropertyPersistentFlags.shared.crashlyticsSharingEnabled ?? true
+        CrashReportingGate.configureAtLaunch(enabled: crashReportingEnabled)
 
         // Telemetry: record this cold launch into the sliding 7-day window,
         // then drive cadence via three layered triggers — listed below in

@@ -2,6 +2,34 @@ import Foundation
 
 // I removed the cache that the Javascript version has to help keep it simple
 struct Isf {
+    /// Sorted schedule for repeated per-bucket lookups; selection mirrors `isfLookup` exactly
+    struct PreparedSchedule {
+        private let sorted: [(offset: Int, sensitivity: Decimal)]
+
+        init(_ isfProfile: ComputedInsulinSensitivities) {
+            sorted = isfProfile.sensitivities
+                .sorted { $0.offset < $1.offset }
+                .map { ($0.offset, $0.sensitivity) }
+        }
+
+        /// Returns -1 on a bad schedule, matching the JS error value
+        func sensitivity(at timestamp: Date) throws -> Decimal {
+            guard sorted.first?.offset == 0, let last = sorted.last else {
+                return -1
+            }
+            guard sorted.count > 1 else {
+                return last.sensitivity
+            }
+            guard let minutes = timestamp.minutesSinceMidnight else {
+                throw CalendarError.invalidCalendar
+            }
+            for (curr, next) in zip(sorted, sorted.dropFirst()) where minutes >= curr.offset && minutes < next.offset {
+                return curr.sensitivity
+            }
+            return last.sensitivity
+        }
+    }
+
     static func isfLookup(
         isfDataInput: InsulinSensitivities,
         timestamp: Date

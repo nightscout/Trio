@@ -37,24 +37,25 @@ extension TrioRemoteControl {
 
         let payloadDate = Date(timeIntervalSince1970: payload.timestamp)
         let taskContext = CoreDataStack.shared.newTaskContext()
+        // Only entries already in the past can indicate a replay; equivalents and scheduled
+        // meals are dated ahead and would otherwise reject every command until their date passed.
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self, onContext: taskContext, predicate: NSPredicate(
-                format: "date > %@",
-                payloadDate as NSDate
+                format: "date > %@ AND date <= %@",
+                payloadDate as NSDate,
+                Date() as NSDate
             ), key: "date", ascending: false
         )
 
-        await taskContext.perform {
-            guard let recentCarbEntries = results as? [CarbEntryStored] else { return }
-            if !recentCarbEntries.isEmpty {
-                Task {
-                    await self.logError(
-                        "Command rejected: newer carb entries have been logged since the command was sent.",
-                        payload: payload
-                    )
-                    return
-                }
-            }
+        let hasNewerCarbEntries = await taskContext.perform {
+            (results as? [CarbEntryStored])?.isEmpty == false
+        }
+        if hasNewerCarbEntries {
+            await logError(
+                "Command rejected: newer carb entries have been logged since the command was sent.",
+                payload: payload
+            )
+            return
         }
 
         let actualDate = payload.scheduledTime.map { Date(timeIntervalSince1970: $0) }
@@ -62,7 +63,7 @@ extension TrioRemoteControl {
         let mealEntry = CarbsEntry(
             id: UUID().uuidString, createdAt: Date(), actualDate: actualDate,
             carbs: carbsDecimal ?? 0, fat: fatDecimal, protein: proteinDecimal,
-            note: "Remote meal command", enteredBy: CarbsEntry.local, isFPU: false,
+            note: "📡", enteredBy: CarbsEntry.local, isFPU: false,
             fpuID: fatDecimal ?? 0 > 0 || proteinDecimal ?? 0 > 0 ? UUID().uuidString : nil
         )
 

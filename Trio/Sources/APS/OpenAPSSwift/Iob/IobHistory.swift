@@ -402,7 +402,8 @@ struct IobHistory {
     private static func extractTempBoluses(
         from tempBasal: ComputedPumpHistoryEvent,
         profile: Profile,
-        autosens: Autosens?
+        autosens: Autosens?,
+        basalSchedule: Basal.PreparedSchedule
     ) throws -> [ComputedPumpHistoryEvent] {
         guard let duration = tempBasal.duration, duration > 0 else {
             return []
@@ -412,9 +413,7 @@ struct IobHistory {
             throw IobError.rateNotSetOnTempBasal(timestamp: tempBasal.timestamp)
         }
 
-        guard let profileCurrentRate = try Basal.basalLookup(profile.basalprofile ?? [], now: tempBasal.timestamp) ?? profile
-            .currentBasal
-        else {
+        guard let profileCurrentRate = try basalSchedule.rate(at: tempBasal.timestamp) ?? profile.currentBasal else {
             throw IobError.basalRateNotSet
         }
 
@@ -448,8 +447,9 @@ struct IobHistory {
         let profileBreaksMinutesSinceMidnight = profile.basalprofile?.map({ Decimal($0.minutes) }) ?? []
         let splitTempBasals = try tempHistory
             .flatMap { try splitTempBasal(tempBasal: $0, profileBreaks: profileBreaksMinutesSinceMidnight) }
+        let basalSchedule = Basal.PreparedSchedule(profile.basalprofile ?? [])
         return try splitTempBasals
-            .flatMap { try extractTempBoluses(from: $0, profile: profile, autosens: autosens) }
+            .flatMap { try extractTempBoluses(from: $0, profile: profile, autosens: autosens, basalSchedule: basalSchedule) }
     }
 
     static func calcTempTreatments(
@@ -481,5 +481,59 @@ struct IobHistory {
         tempHistory = tempHistory.filter { !$0.omitFromTempHistory }
 
         return (boluses + tempBoluses + tempHistory).sorted { $0.timestamp < $1.timestamp }
+    }
+
+    /// The standard and zero-temp variants differ only in the trailing synthetic
+    /// zero-temp basal (same timestamp, different duration), which no suspend can
+    /// overlap and which sorts strictly last. Everything before it is identical,
+    /// so its expensive bolus conversion runs once and is shared.
+    static func calcTempTreatmentsPair(
+        history: [ComputedPumpHistoryEvent],
+        profile: Profile,
+        clock: Date,
+        autosens: Autosens?,
+        zeroTempDuration: Decimal
+    ) throws -> (standard: [ComputedPumpHistoryEvent], withZeroTemp: [ComputedPumpHistoryEvent]) {
+        let pumpHistory = history.filter({ $0.timestamp <= clock }).sorted { $0.timestamp < $1.timestamp }
+        let suspends = try getSuspends(pumpHistory: pumpHistory, clock: clock)
+        let boluses = pumpHistory.filter({ $0.type == .bolus }).map { $0.copyWith(insulin: $0.amount) }
+
+        func assemble(_ duration: Decimal?) throws -> [ComputedPumpHistoryEvent] {
+            let tempBasals = try getTempBasals(pumpHistory: pumpHistory, clock: clock, zeroTempDuration: duration)
+            if profile.suspendZerosIob {
+                return splitAroundSuspends(tempBasals: tempBasals, suspends: suspends)
+            }
+            return tempBasals
+        }
+
+        let standardHistory = try assemble(nil)
+        let zeroTempHistory = try assemble(zeroTempDuration)
+
+        let profileBreaks = profile.basalprofile?.map({ Decimal($0.minutes) }) ?? []
+        let basalSchedule = Basal.PreparedSchedule(profile.basalprofile ?? [])
+
+        func convertToBoluses(_ tempHistory: ArraySlice<ComputedPumpHistoryEvent>) throws -> [ComputedPumpHistoryEvent] {
+            try tempHistory
+                .flatMap { try splitTempBasal(tempBasal: $0, profileBreaks: profileBreaks) }
+                .flatMap { try extractTempBoluses(from: $0, profile: profile, autosens: autosens, basalSchedule: basalSchedule) }
+        }
+
+        // shared prefix: everything but the trailing zero-temp
+        let sharedTempBoluses = try convertToBoluses(standardHistory.dropLast())
+        let standardTempBoluses = try sharedTempBoluses + convertToBoluses(standardHistory.suffix(1))
+        let zeroTempTempBoluses = try sharedTempBoluses + convertToBoluses(zeroTempHistory.suffix(1))
+
+        func finalize(
+            _ tempHistory: [ComputedPumpHistoryEvent],
+            _ tempBoluses: [ComputedPumpHistoryEvent]
+        ) -> [ComputedPumpHistoryEvent] {
+            let kept = tempHistory.filter { !$0.omitFromTempHistory }
+            return (boluses + tempBoluses + kept).sorted { $0.timestamp < $1.timestamp }
+        }
+
+        return (
+            standard: finalize(standardHistory, standardTempBoluses),
+            withZeroTemp: finalize(zeroTempHistory, zeroTempTempBoluses)
+        )
     }
 }

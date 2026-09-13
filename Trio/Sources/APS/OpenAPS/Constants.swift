@@ -11,7 +11,6 @@ extension OpenAPS {
         static let basalProfile = "settings/basal_profile.json"
         static let carbRatios = "settings/carb_ratios.json"
         static let tempTargets = "settings/temptargets.json"
-        static let model = "settings/model.json"
     }
 
     enum Monitor {
@@ -24,6 +23,7 @@ extension OpenAPS {
         static let meal = "monitor/meal.json"
         static let glucose = "monitor/glucose.json"
         static let iob = "monitor/iob.json"
+        static let cob = "monitor/cob.json"
         static let cgmState = "monitor/cgm-state.json"
         static let podAge = "monitor/pod-age.json"
         static let trio_custom_oref_variables = "monitor/trio_custom_oref_variables.json"

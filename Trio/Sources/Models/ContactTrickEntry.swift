@@ -14,6 +14,7 @@ struct ContactImageEntry: Hashable, Equatable, Sendable {
     var ringWidth: RingWidth = .regular
     var ringGap: RingGap = .small
     var colorMode: ColorMode = .color
+    var backgroundMode: BackgroundMode = .transparent
     var fontSize: FontSize = .regular
     var secondaryFontSize: FontSize = .small
     var fontWeight: Font.Weight = .medium
@@ -33,6 +34,7 @@ struct ContactImageEntry: Hashable, Equatable, Sendable {
             lhs.ringWidth == rhs.ringWidth &&
             lhs.ringGap == rhs.ringGap &&
             lhs.colorMode == rhs.colorMode &&
+            lhs.backgroundMode == rhs.backgroundMode &&
             lhs.fontSize == rhs.fontSize &&
             lhs.secondaryFontSize == rhs.secondaryFontSize &&
             lhs.fontWeight == rhs.fontWeight &&
@@ -70,6 +72,21 @@ struct ContactImageEntry: Hashable, Equatable, Sendable {
                 return String(localized: "Color", comment: "")
             case .monochrome:
                 return String(localized: "Monochrome", comment: "")
+            }
+        }
+    }
+
+    enum BackgroundMode: String, JSON, CaseIterable, Identifiable, Codable {
+        var id: String { rawValue }
+        case transparent
+        case black
+
+        var displayName: String {
+            switch self {
+            case .transparent:
+                return String(localized: "Transparent", comment: "")
+            case .black:
+                return String(localized: "Black", comment: "")
             }
         }
     }

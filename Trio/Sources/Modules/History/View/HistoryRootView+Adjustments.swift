@@ -108,6 +108,7 @@ extension History.RootView {
                     HStack {
                         Image(systemName: item.type.symbolName)
                             .foregroundStyle(item.type == .override ? Color.purple : Color.green)
+                            .accessibilityHidden(true)
                         Text(item.name)
                             .font(.headline)
                         Spacer()

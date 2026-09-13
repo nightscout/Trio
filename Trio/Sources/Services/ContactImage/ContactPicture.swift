@@ -26,200 +26,207 @@ struct ContactPicture: View {
         let secondaryTextColor: Color = .loopGray.opacity(contact.hasHighContrast ? 1 : 0.8)
         let fontWeight = contact.fontWeight
 
-        UIGraphicsBeginImageContext(rect.size)
-        if let context = UIGraphicsGetCurrentContext() {
-            context.setShouldAntialias(true)
-            context.setAllowsAntialiasing(true)
-        }
-
-        let ringWidth = Double(contact.ringWidth.rawValue) / 100.0
-        let ringGap = Double(contact.ringGap.rawValue) / 100.0
-        let outerGap = 0.03
-
-        if contact.ring != .none {
-            rect = CGRect(
-                x: rect.minX + width * outerGap,
-                y: rect.minY + height * outerGap,
-                width: rect.width - width * outerGap * 2,
-                height: rect.height - height * outerGap * 2
-            )
-
-            let ringRect = CGRect(
-                x: rect.minX + width * ringWidth * 0.5,
-                y: rect.minY + height * ringWidth * 0.5,
-                width: rect.width - width * ringWidth,
-                height: rect.height - height * ringWidth
-            )
-
-            drawRing(ring: contact.ring, contact: contact, state: state, rect: ringRect, strokeWidth: width * ringWidth)
-
-            rect = CGRect(
-                x: rect.minX + width * (ringWidth + ringGap),
-                y: rect.minY + height * (ringWidth + ringGap),
-                width: rect.width - width * (ringWidth + ringGap) * 2,
-                height: rect.height - height * (ringWidth + ringGap) * 2
-            )
-        }
-
-        switch contact.layout {
-        case .default:
-            let showTop = contact.top != .none
-            let showBottom = contact.bottom != .none
-
-            let centerX = rect.minX + rect.width / 2
-            let centerY = rect.minY + rect.height / 2
-            let radius = min(rect.width, rect.height) / 2
-
-            var primaryHeight = radius * 0.8
-            let topHeight = radius * 0.5
-            var bottomHeight = radius * 0.5
-
-            var primaryY = centerY - primaryHeight / 2
-
-            if contact.bottom == .none, contact.top != .none {
-                primaryY += radius * 0.2
+        let format = UIGraphicsImageRendererFormat()
+        format.opaque = false
+        let renderer = UIGraphicsImageRenderer(size: rect.size, format: format)
+        let image = renderer.image { ctx in
+            switch contact.backgroundMode {
+            case .transparent:
+                ctx.cgContext.clear(rect)
+            case .black:
+                UIColor.black.setFill()
+                UIRectFill(rect)
             }
-            if contact.bottom != .none, contact.top == .none {
-                primaryY -= radius * 0.2
+            ctx.cgContext.setShouldAntialias(true)
+            ctx.cgContext.setAllowsAntialiasing(true)
+
+            let ringWidth = Double(contact.ringWidth.rawValue) / 100.0
+            let ringGap = Double(contact.ringGap.rawValue) / 100.0
+            let outerGap = 0.03
+
+            if contact.ring != .none {
+                rect = CGRect(
+                    x: rect.minX + width * outerGap,
+                    y: rect.minY + height * outerGap,
+                    width: rect.width - width * outerGap * 2,
+                    height: rect.height - height * outerGap * 2
+                )
+
+                let ringRect = CGRect(
+                    x: rect.minX + width * ringWidth * 0.5,
+                    y: rect.minY + height * ringWidth * 0.5,
+                    width: rect.width - width * ringWidth,
+                    height: rect.height - height * ringWidth
+                )
+
+                drawRing(ring: contact.ring, contact: contact, state: state, rect: ringRect, strokeWidth: width * ringWidth)
+
+                rect = CGRect(
+                    x: rect.minX + width * (ringWidth + ringGap),
+                    y: rect.minY + height * (ringWidth + ringGap),
+                    width: rect.width - width * (ringWidth + ringGap) * 2,
+                    height: rect.height - height * (ringWidth + ringGap) * 2
+                )
             }
 
-            let topY = primaryY - topHeight
-            var bottomY = primaryY + primaryHeight
+            switch contact.layout {
+            case .default:
+                let showTop = contact.top != .none
+                let showBottom = contact.bottom != .none
 
-            let primaryWidth = 2 * sqrt(radius * radius - (primaryHeight * 0.5) * (primaryHeight * 0.5))
-            let topWidth = 2 *
-                sqrt(radius * radius - (topHeight + primaryHeight * 0.5) * (topHeight + primaryHeight * 0.5))
-            var bottomWidth = 2 *
-                sqrt(radius * radius - (bottomHeight + primaryHeight * 0.5) * (bottomHeight + primaryHeight * 0.5))
+                let centerX = rect.minX + rect.width / 2
+                let centerY = rect.minY + rect.height / 2
+                let radius = min(rect.width, rect.height) / 2
 
-            if contact.bottom != .none, contact.top == .none {
-                // move things around a little bit to give more space to the bottom area
+                var primaryHeight = radius * 0.8
+                let topHeight = radius * 0.5
+                var bottomHeight = radius * 0.5
 
-                // TODO: revisit rings for iob, cob and combined iob+cob with more user feedback
-                if contact.bottom == .trend, contact.ring == .loop {
+                var primaryY = centerY - primaryHeight / 2
+
+                if contact.bottom == .none, contact.top != .none {
+                    primaryY += radius * 0.2
+                }
+                if contact.bottom != .none, contact.top == .none {
+                    primaryY -= radius * 0.2
+                }
+
+                let topY = primaryY - topHeight
+                var bottomY = primaryY + primaryHeight
+
+                let primaryWidth = 2 * sqrt(radius * radius - (primaryHeight * 0.5) * (primaryHeight * 0.5))
+                let topWidth = 2 *
+                    sqrt(radius * radius - (topHeight + primaryHeight * 0.5) * (topHeight + primaryHeight * 0.5))
+                var bottomWidth = 2 *
+                    sqrt(radius * radius - (bottomHeight + primaryHeight * 0.5) * (bottomHeight + primaryHeight * 0.5))
+
+                if contact.bottom != .none, contact.top == .none {
+                    // move things around a little bit to give more space to the bottom area
+
+                    // TODO: revisit rings for iob, cob and combined iob+cob with more user feedback
+                    if contact.bottom == .trend, contact.ring == .loop {
 //                if contact.ring == .iob || contact.ring == .cob || contact.ring == .iobcob ||
 //                    (contact.bottom == .trend && contact.ring == .loop)
 //                {
-                    bottomHeight = bottomHeight + height * ringWidth * 2
-                    bottomWidth = bottomWidth + width * ringWidth * 2
-                } else if contact.ring == .loop {
-                    primaryHeight = primaryHeight - height * ringWidth
-                    bottomY = primaryY + primaryHeight
-                    bottomHeight = bottomHeight + height * ringWidth * 2
-                    bottomWidth = bottomWidth + width * ringWidth * 2
+                        bottomHeight = bottomHeight + height * ringWidth * 2
+                        bottomWidth = bottomWidth + width * ringWidth * 2
+                    } else if contact.ring == .loop {
+                        primaryHeight = primaryHeight - height * ringWidth
+                        bottomY = primaryY + primaryHeight
+                        bottomHeight = bottomHeight + height * ringWidth * 2
+                        bottomWidth = bottomWidth + width * ringWidth * 2
+                    }
                 }
-            }
 
-            let primaryRect = (showTop || showBottom) ? CGRect(
-                x: centerX - primaryWidth * 0.5,
-                y: primaryY,
-                width: primaryWidth,
-                height: primaryHeight
-            ) : rect
-            let topRect = CGRect(
-                x: centerX - topWidth * 0.5,
-                y: topY,
-                width: topWidth,
-                height: topHeight
-            )
-            let bottomRect = CGRect(
-                x: centerX - bottomWidth * 0.5,
-                y: bottomY,
-                width: bottomWidth,
-                height: bottomHeight
-            )
-            let secondaryFontSize = contact.secondaryFontSize
+                let primaryRect = (showTop || showBottom) ? CGRect(
+                    x: centerX - primaryWidth * 0.5,
+                    y: primaryY,
+                    width: primaryWidth,
+                    height: primaryHeight
+                ) : rect
+                let topRect = CGRect(
+                    x: centerX - topWidth * 0.5,
+                    y: topY,
+                    width: topWidth,
+                    height: topHeight
+                )
+                let bottomRect = CGRect(
+                    x: centerX - bottomWidth * 0.5,
+                    y: bottomY,
+                    width: bottomWidth,
+                    height: bottomHeight
+                )
+                let secondaryFontSize = contact.secondaryFontSize
 
-            displayPiece(
-                value: contact.primary,
-                contact: contact,
-                state: state,
-                rect: primaryRect,
-                fitHeigh: false,
-                fontSize: contact.fontSize.rawValue,
-                fontWeight: fontWeight,
-                fontWidth: contact.fontWidth,
-                color: textColor
-            )
-            if showTop {
+                displayPiece(
+                    value: contact.primary,
+                    contact: contact,
+                    state: state,
+                    rect: primaryRect,
+                    fitHeigh: false,
+                    fontSize: contact.fontSize.rawValue,
+                    fontWeight: fontWeight,
+                    fontWidth: contact.fontWidth,
+                    color: textColor
+                )
+                if showTop {
+                    displayPiece(
+                        value: contact.top,
+                        contact: contact,
+                        state: state,
+                        rect: topRect,
+                        fitHeigh: true,
+                        fontSize: secondaryFontSize.rawValue,
+                        fontWeight: fontWeight,
+                        fontWidth: contact.fontWidth,
+                        color: secondaryTextColor
+                    )
+                }
+                if showBottom {
+                    displayPiece(
+                        value: contact.bottom,
+                        contact: contact,
+                        state: state,
+                        rect: bottomRect,
+                        fitHeigh: true,
+                        fontSize: secondaryFontSize.rawValue,
+                        fontWeight: fontWeight,
+                        fontWidth: contact.fontWidth,
+                        color: secondaryTextColor
+                    )
+                }
+
+            case .split:
+                let centerX = rect.origin.x + rect.size.width / 2
+                let centerY = rect.origin.y + rect.size.height / 2
+                let radius = min(rect.size.width, rect.size.height) / 2
+
+                let rectangleHeight = radius * sqrt(2) / 2
+                let rectangleWidth = sqrt(2) * radius
+
+                let topY = centerY - rectangleHeight
+                let bottomY = centerY
+
+                let topRect = CGRect(
+                    x: centerX - rectangleWidth / 2,
+                    y: topY,
+                    width: rectangleWidth,
+                    height: rectangleHeight
+                )
+                let bottomRect = CGRect(
+                    x: centerX - rectangleWidth / 2,
+                    y: bottomY,
+                    width: rectangleWidth,
+                    height: rectangleHeight
+                )
+                let topFontSize = contact.fontSize
+                let bottomFontSize = contact.secondaryFontSize
+
                 displayPiece(
                     value: contact.top,
                     contact: contact,
                     state: state,
                     rect: topRect,
                     fitHeigh: true,
-                    fontSize: secondaryFontSize.rawValue,
+                    fontSize: topFontSize.rawValue,
                     fontWeight: fontWeight,
                     fontWidth: contact.fontWidth,
-                    color: secondaryTextColor
+                    color: textColor
                 )
-            }
-            if showBottom {
                 displayPiece(
                     value: contact.bottom,
                     contact: contact,
                     state: state,
                     rect: bottomRect,
                     fitHeigh: true,
-                    fontSize: secondaryFontSize.rawValue,
+                    fontSize: bottomFontSize.rawValue,
                     fontWeight: fontWeight,
                     fontWidth: contact.fontWidth,
-                    color: secondaryTextColor
+                    color: textColor
                 )
             }
-
-        case .split:
-            let centerX = rect.origin.x + rect.size.width / 2
-            let centerY = rect.origin.y + rect.size.height / 2
-            let radius = min(rect.size.width, rect.size.height) / 2
-
-            let rectangleHeight = radius * sqrt(2) / 2
-            let rectangleWidth = sqrt(2) * radius
-
-            let topY = centerY - rectangleHeight
-            let bottomY = centerY
-
-            let topRect = CGRect(
-                x: centerX - rectangleWidth / 2,
-                y: topY,
-                width: rectangleWidth,
-                height: rectangleHeight
-            )
-            let bottomRect = CGRect(
-                x: centerX - rectangleWidth / 2,
-                y: bottomY,
-                width: rectangleWidth,
-                height: rectangleHeight
-            )
-            let topFontSize = contact.fontSize
-            let bottomFontSize = contact.secondaryFontSize
-
-            displayPiece(
-                value: contact.top,
-                contact: contact,
-                state: state,
-                rect: topRect,
-                fitHeigh: true,
-                fontSize: topFontSize.rawValue,
-                fontWeight: fontWeight,
-                fontWidth: contact.fontWidth,
-                color: textColor
-            )
-            displayPiece(
-                value: contact.bottom,
-                contact: contact,
-                state: state,
-                rect: bottomRect,
-                fitHeigh: true,
-                fontSize: bottomFontSize.rawValue,
-                fontWeight: fontWeight,
-                fontWidth: contact.fontWidth,
-                color: textColor
-            )
         }
-        let image = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return image ?? UIImage()
+        return image
     }
 
     private static func displayPiece(

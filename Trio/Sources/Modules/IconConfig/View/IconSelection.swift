@@ -25,10 +25,23 @@ struct IconSelection: View {
                         } label: {
                             IconImage(icon: icon)
                         }
+                        .accessibilityLabel(Text(iconDisplayName(icon)))
+                        .accessibilityAddTraits(model.appIcon == icon ? [.isButton, .isSelected] : .isButton)
                     }
                 }
             }
         }
+    }
+
+    /// Splits the internal asset id (e.g. "trioColorBG") into spoken words so VoiceOver
+    /// announces a readable icon name instead of a run-together identifier.
+    private func iconDisplayName(_ icon: Icon_) -> String {
+        var result = ""
+        for character in icon.rawValue {
+            if character.isUppercase, !result.isEmpty { result.append(" ") }
+            result.append(character)
+        }
+        return result.prefix(1).capitalized + result.dropFirst()
     }
 }
 

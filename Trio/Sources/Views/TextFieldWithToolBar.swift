@@ -85,14 +85,17 @@ public struct TextFieldWithToolBar: View {
                             }) {
                                 Image(systemName: "trash")
                             }
+                            .accessibilityLabel(Text("Clear"))
 
                             if showArrows {
                                 Button(action: { previousTextField?() }) {
                                     Image(systemName: "chevron.up")
                                 }
+                                .accessibilityLabel(Text("Previous field"))
                                 Button(action: { nextTextField?() }) {
                                     Image(systemName: "chevron.down")
                                 }
+                                .accessibilityLabel(Text("Next field"))
                             }
 
                             Spacer()
@@ -101,6 +104,7 @@ public struct TextFieldWithToolBar: View {
                                 Button(action: { isFocused = false }) {
                                     Image(systemName: "keyboard.chevron.compact.down")
                                 }
+                                .accessibilityLabel(Text("Dismiss keyboard"))
                             }
                         }
                     }
@@ -365,12 +369,14 @@ public struct TextFieldWithToolBarString: UIViewRepresentable {
             target: textField,
             action: #selector(UITextField.resignFirstResponder)
         )
+        doneButton.accessibilityLabel = String(localized: "Dismiss keyboard", comment: "Accessibility label")
         let clearButton = UIBarButtonItem(
             image: UIImage(systemName: "trash"),
             style: .plain,
             target: context.coordinator,
             action: #selector(Coordinator.clearText)
         )
+        clearButton.accessibilityLabel = String(localized: "Clear", comment: "Accessibility label")
 
         toolbar.items = [clearButton, flexibleSpace, doneButton]
         toolbar.sizeToFit()

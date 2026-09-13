@@ -1,6 +1,38 @@
 import Foundation
 
 struct Basal {
+    /// Precomputed schedule for repeated lookups; selection mirrors `basalLookup` exactly
+    struct PreparedSchedule {
+        private let basalProfile: [BasalProfileEntry]
+        private let roundedRates: [Decimal]
+        private let lastRateIsValid: Bool
+
+        init(_ basalProfile: [BasalProfileEntry]) {
+            self.basalProfile = basalProfile
+            roundedRates = basalProfile.map { $0.rate.rounded(scale: 3) }
+            lastRateIsValid = (basalProfile.last?.rate ?? 0) != 0
+        }
+
+        func rate(at timestamp: Date) throws -> Decimal? {
+            guard lastRateIsValid else {
+                warning(.openAPS, "Warning: bad basal schedule \(basalProfile)")
+                return nil
+            }
+            guard basalProfile.count > 1 else {
+                return roundedRates.last
+            }
+            guard let minutes = timestamp.minutesSinceMidnight else {
+                throw CalendarError.invalidCalendar
+            }
+            for (index, pair) in zip(basalProfile, basalProfile.dropFirst()).enumerated()
+                where minutes >= pair.0.minutes && minutes < pair.1.minutes
+            {
+                return roundedRates[index]
+            }
+            return roundedRates.last
+        }
+    }
+
     static func basalLookup(_ basalProfile: [BasalProfileEntry], now: Date) throws -> Decimal? {
         let nowDate = now
 

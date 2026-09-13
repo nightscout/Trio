@@ -71,3 +71,20 @@ import Testing
         ))
     }
 }
+
+/// Guards the #1428 invariant: "Use CGM App Alerts" suppression applies to
+/// reading-driven alarms only. A CGM app can alarm on the current reading,
+/// but it cannot compute Trio's oref forecast or carbsReq, so those alarms
+/// must stay armed — which is also what the settings screen shows the user,
+/// since only reading-driven types move into the "Handled by CGM App" section.
+@Suite("Trio Alerts: CGM-ownership suppression scope") struct CGMOwnershipSuppressionScopeTests {
+    @Test("Forecast and carbs-required alarms are not reading-driven") func determinationDrivenTypes() {
+        #expect(!GlucoseAlertType.forecastedLow.isReadingDriven)
+        #expect(!GlucoseAlertType.carbsRequired.isReadingDriven)
+    }
+
+    @Test("Only high/low/urgentLow are reading-driven") func readingDrivenSetIsExact() {
+        let readingDriven = Set(GlucoseAlertType.allCases.filter(\.isReadingDriven))
+        #expect(readingDriven == [.high, .low, .urgentLow])
+    }
+}

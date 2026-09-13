@@ -84,6 +84,7 @@ struct EditTempTargetForm: View {
                         },
                         label: {
                             Image(systemName: "questionmark.circle")
+                                .accessibilityLabel(Text("Help"))
                         }
                     )
                 }

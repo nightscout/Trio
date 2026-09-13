@@ -75,6 +75,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 NSPredicate(format: "syncIdentifier IN %@", syncIdentifiers),
                 NSPredicate(format: "timestamp IN %@", timestamps)
             ])
+            request.relationshipKeyPathsForPrefetching = ["tempBasal"]
             let existingRows = try context.fetch(request)
 
             var bySyncIdentifier = Dictionary(
@@ -82,7 +83,16 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 uniquingKeysWith: { first, _ in first }
             )
             var byTimestampAndType = Dictionary(
-                existingRows.map { (TimestampAndType(timestamp: $0.timestamp ?? .distantPast, type: $0.type ?? ""), $0) },
+                existingRows.map { row in
+                    (
+                        TimestampAndType(
+                            timestamp: row.timestamp ?? .distantPast,
+                            type: row.type ?? "",
+                            isScheduledBasal: row.tempBasal?.isScheduledBasal ?? false
+                        ),
+                        row
+                    )
+                },
                 uniquingKeysWith: { first, _ in first }
             )
 
@@ -91,8 +101,16 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             for event in events {
                 guard let storedType = event.type?.storedEventType else { continue }
 
-                // type-aware key: same-timestamp bolus + TBR no longer shadow each other
-                let fallbackKey = TimestampAndType(timestamp: event.date, type: storedType.rawValue)
+                // Type-aware key: same-timestamp bolus + TBR no longer shadow each other. Scheduled
+                // basal needs its own dimension on top, because it also stores as a TBR row and a
+                // pump cancelling a temp basal reports both at the very same second — Medtronic
+                // resumes the schedule the instant a temp ends. Without this a schedule report
+                // hijacks the still-mutable cancel row and inherits its non-scheduled identity.
+                let fallbackKey = TimestampAndType(
+                    timestamp: event.date,
+                    type: storedType.rawValue,
+                    isScheduledBasal: event.type == .basal
+                )
                 let syncIdentifier = event.dose?.syncIdentifier.flatMap { $0.isEmpty ? nil : $0 }
                 let match = syncIdentifier.flatMap { bySyncIdentifier[$0] }
                     ?? byTimestampAndType[fallbackKey]
@@ -145,14 +163,16 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         continue
                     }
                     let newTempBasal = TempBasalStored(context: context)
+                    let isScheduledBasal = event.type == .basal
+                    let span = Self.storedSpan(of: dose, isScheduledBasal: isScheduledBasal)
                     newTempBasal.pumpEvent = newPumpEvent
-                    newTempBasal.duration = Int16(round((dose.endDate - dose.startDate).timeInterval / 60))
+                    newTempBasal.duration = span.duration
                     newTempBasal.rate = Decimal(dose.unitsPerHour) as NSDecimalNumber
-                    newTempBasal.startDate = dose.startDate
-                    newTempBasal.endDate = dose.endDate
+                    newTempBasal.startDate = span.start
+                    newTempBasal.endDate = span.end
                     newTempBasal.deliveredUnits = dose.deliveredUnits.map { Decimal($0) as NSDecimalNumber }
                     newTempBasal.tempType = TempType.absolute.rawValue
-                    newTempBasal.isScheduledBasal = event.type == .basal
+                    newTempBasal.isScheduledBasal = isScheduledBasal
 
                 case .pumpAlarm:
                     newPumpEvent.note = event.title
@@ -201,6 +221,26 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         }
     }
 
+    /// Span to persist for a basal dose.
+    ///
+    /// A pump-reported scheduled basal has no end: the pump asserts a rate that runs until
+    /// something supersedes it. Drivers spell that differently — DanaKit, MedtrumKit and
+    /// TandemKit report a zero-length dose, MinimedKit a 24 h placeholder whose "true duration
+    /// will be reconciled against other entries" (MinimedKit `DoseStore.swift`). Neither is a
+    /// delivery span, so scheduled basal is stored open-ended and consumers resolve it against
+    /// the next event.
+    private static func storedSpan(
+        of dose: DoseEntry,
+        isScheduledBasal: Bool
+    ) -> (duration: Int16, start: Date, end: Date) {
+        guard !isScheduledBasal else { return (0, dose.startDate, dose.startDate) }
+        return (
+            Int16(round((dose.endDate - dose.startDate).timeInterval / 60)),
+            dose.startDate,
+            dose.endDate
+        )
+    }
+
     /// Finalized reports freeze the row with delivered values. If NS-visible
     /// values changed on an already-uploaded row, the upload flag resets and
     /// the re-POST replaces the NS document in place.
@@ -228,10 +268,16 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             guard let tempBasal = event.tempBasal else { return }
             let previousRate = tempBasal.rate
             let previousDuration = tempBasal.duration
-            tempBasal.duration = Int16(round((dose.endDate - dose.startDate).timeInterval / 60))
+            // The dose says what this is; the row's own flag is stale exactly when it matters,
+            // and reading it back would let a schedule report keep a temp basal's identity —
+            // and with it a 24 h placeholder span read as delivery.
+            let isScheduledBasal = dose.type == .basal
+            let span = Self.storedSpan(of: dose, isScheduledBasal: isScheduledBasal)
+            tempBasal.isScheduledBasal = isScheduledBasal
+            tempBasal.duration = span.duration
             tempBasal.rate = Decimal(dose.unitsPerHour) as NSDecimalNumber
-            tempBasal.startDate = dose.startDate
-            tempBasal.endDate = dose.endDate
+            tempBasal.startDate = span.start
+            tempBasal.endDate = span.end
             tempBasal.deliveredUnits = dose.deliveredUnits.map { Decimal($0) as NSDecimalNumber }
             event.isMutable = dose.isMutable
             if event.isUploadedToNS, tempBasal.rate != previousRate || tempBasal.duration != previousDuration {
@@ -630,6 +676,7 @@ extension BasePumpHistoryStorage {
     struct TimestampAndType: Hashable {
         let timestamp: Date
         let type: String
+        let isScheduledBasal: Bool
     }
 }
 
