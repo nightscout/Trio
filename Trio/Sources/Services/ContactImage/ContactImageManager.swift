@@ -212,12 +212,21 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
 
                 state.glucose = Formatter.glucoseFormatter(for: units).string(from: value as NSNumber)
                 state.trend = firstGlucoseValue.directionEnum?.symbol
+                state.direction = firstGlucoseValue.directionEnum
+                state.glucoseDate = firstGlucoseValue.date
 
                 let delta = glucoseObjects.count >= 2
                     ? Decimal(firstGlucoseValue.glucose) - Decimal(glucoseObjects.dropFirst().first?.glucose ?? 0)
                     : 0
                 let deltaConverted = settingsManager.settings.units == .mgdL ? delta : delta.asMmolL
                 state.delta = deltaFormatter.string(from: deltaConverted as NSNumber)
+            } else {
+                // fetchGlucose() only looks back 20 minutes, so an empty result means dropout.
+                state.glucose = nil
+                state.trend = nil
+                state.direction = nil
+                state.glucoseDate = nil
+                state.delta = nil
             }
 
             state.lastLoopDate = lastDetermination?.timestamp

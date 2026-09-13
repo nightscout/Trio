@@ -19,6 +19,9 @@ struct ContactImageEntry: Hashable, Equatable, Sendable {
     var secondaryFontSize: FontSize = .small
     var fontWeight: Font.Weight = .medium
     var fontWidth: Font.Width = .standard
+    // Only used by the Glucose Bobble style.
+    var bobbleShowMinutesAgo: Bool = true
+    var bobbleShowDelta: Bool = true
     var managedObjectID: NSManagedObjectID?
 
     static func == (lhs: ContactImageEntry, rhs: ContactImageEntry) -> Bool {
@@ -38,7 +41,9 @@ struct ContactImageEntry: Hashable, Equatable, Sendable {
             lhs.fontSize == rhs.fontSize &&
             lhs.secondaryFontSize == rhs.secondaryFontSize &&
             lhs.fontWeight == rhs.fontWeight &&
-            lhs.fontWidth == rhs.fontWidth
+            lhs.fontWidth == rhs.fontWidth &&
+            lhs.bobbleShowMinutesAgo == rhs.bobbleShowMinutesAgo &&
+            lhs.bobbleShowDelta == rhs.bobbleShowDelta
     }
 
     // Convert `fontWeight` to a String for Core Data storage
@@ -189,6 +194,7 @@ enum ContactImageLayout: String, JSON, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
     case `default`
     case split
+    case bobble
 
     var displayName: String {
         switch self {
@@ -196,6 +202,8 @@ enum ContactImageLayout: String, JSON, CaseIterable, Identifiable, Codable {
             return String(localized: "Default", comment: "")
         case .split:
             return String(localized: "Split", comment: "")
+        case .bobble:
+            return String(localized: "Glucose Bobble", comment: "")
         }
     }
 }
