@@ -220,6 +220,13 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
                     : 0
                 let deltaConverted = settingsManager.settings.units == .mgdL ? delta : delta.asMmolL
                 state.delta = deltaFormatter.string(from: deltaConverted as NSNumber)
+            } else {
+                // fetchGlucose() only looks back 20 minutes, so an empty result means dropout.
+                state.glucose = nil
+                state.trend = nil
+                state.direction = nil
+                state.glucoseDate = nil
+                state.delta = nil
             }
 
             state.lastLoopDate = lastDetermination?.timestamp
