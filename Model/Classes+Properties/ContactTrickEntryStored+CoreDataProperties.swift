@@ -23,4 +23,6 @@ public extension ContactImageEntryStored {
     @NSManaged var fontSizeSecondary: Int16
     @NSManaged var fontWidth: String?
     @NSManaged var fontWeight: String?
+    @NSManaged var bobbleShowMinutesAgo: Bool
+    @NSManaged var bobbleShowDelta: Bool
 }

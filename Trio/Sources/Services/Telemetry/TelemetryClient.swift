@@ -4,6 +4,49 @@ import LoopKit
 import Swinject
 import UIKit
 
+/// Serializes telemetry eligibility decisions across foreground, timer, and
+/// background wake triggers. Actors are reentrant, so `isSending` must remain
+/// set while the operation is suspended on network work.
+actor TelemetrySendGate {
+    // Actor isolation provides the synchronization; an atomic wrapper would
+    // be redundant and would not protect the eligibility/send transaction.
+    private var isSending = false
+
+    func runIfEligible(
+        now: Date,
+        lastSentAt: Date?,
+        lastAttemptAt: Date?,
+        minimumInterval: TimeInterval,
+        retryInterval: TimeInterval,
+        force: Bool = false,
+        operation: () async -> Bool,
+        onAttempt: () -> Void = {},
+        onSuccess: () -> Void = {}
+    ) async -> Bool {
+        guard !isSending else { return false }
+        guard force || Self.isOverdue(now: now, lastSentAt: lastSentAt, minimumInterval: minimumInterval) else {
+            return false
+        }
+        guard Self.isOverdue(now: now, lastSentAt: lastAttemptAt, minimumInterval: retryInterval) else {
+            return false
+        }
+
+        isSending = true
+        defer { isSending = false }
+        onAttempt()
+        let succeeded = await operation()
+        if succeeded {
+            onSuccess()
+        }
+        return succeeded
+    }
+
+    nonisolated static func isOverdue(now: Date, lastSentAt: Date?, minimumInterval: TimeInterval) -> Bool {
+        guard let lastSentAt else { return true }
+        return now.timeIntervalSince(lastSentAt) >= minimumInterval
+    }
+}
+
 // MARK: - TelemetryClient
 
 /// Opt-out anonymous usage check-in. Sends a small JSON payload to a self-hosted
@@ -13,8 +56,21 @@ import UIKit
 /// No health data, credentials, or personally-identifying information is sent.
 /// See `buildPayload()` for the exact set of fields and `TelemetryPreviewView`
 /// for the in-app inspector that renders the same payload.
+/// Opted-out installs send only an empty daily `/anonymous` GET carrying the
+/// app version, install identifier, trigger reason, and prior failure category.
 final class TelemetryClient: Injectable {
-    static let shared = TelemetryClient()
+    // Container-scoped singleton; shared is a convenience accessor for AppDelegate/UI entry points
+    static var shared: TelemetryClient { TrioApp.resolver.resolve(TelemetryClient.self)! }
+
+    enum SendReason: String {
+        case backgroundActivity = "background_activity"
+        case buildChange = "build_change"
+        case coldLaunch = "cold_launch"
+        case foreground
+        case manual
+        case optIn = "opt_in"
+        case timer
+    }
 
     // MARK: Endpoint configuration
 
@@ -41,6 +97,7 @@ final class TelemetryClient: Injectable {
 
     private static let weeklyInterval: TimeInterval = 7 * 24 * 60 * 60
     private static let dailyInterval: TimeInterval = 24 * 60 * 60
+    private static let retryInterval: TimeInterval = 60 * 60
     private static let maxPayloadBytes = 4096
 
     private static let buildDateFormatter: DateFormatter = {
@@ -61,17 +118,11 @@ final class TelemetryClient: Injectable {
     @Injected() private var keychain: Keychain!
 
     private let lock = NSRecursiveLock()
-    private var didInjectServices = false
+    private let sendGate = TelemetrySendGate()
     private var timer: DispatchTimer?
 
-    private init() {}
-
-    private func injectIfNeeded() {
-        lock.lock()
-        defer { lock.unlock() }
-        guard !didInjectServices else { return }
-        injectServices(TrioApp.resolver)
-        didInjectServices = true
+    init(resolver: Resolver) {
+        injectServices(resolver)
     }
 
     // MARK: - Cold launches
@@ -102,6 +153,13 @@ final class TelemetryClient: Injectable {
         return new
     }
 
+    /// Materializes the per-install identifier regardless of the telemetry
+    /// sharing preference so both identified and anonymous cadence paths have
+    /// a stable installation header when they run.
+    func initializeInstallID() {
+        _ = installId()
+    }
+
     // MARK: - Cadence
 
     /// True when the running build's commit SHA differs from the SHA recorded
@@ -113,65 +171,96 @@ final class TelemetryClient: Injectable {
         return PropertyPersistentFlags.shared.telemetryLastSentSha != currentSha
     }
 
-    /// Arms (or re-arms) the 24h send timer. Idempotent. Bails out without
-    /// scheduling if the user has opted out — there's nothing for the timer
-    /// to do.
-    ///
-    /// Best-effort fallback only. GCD timers don't advance while the app is
+    /// Arms (or re-arms) the 24h send timer. Idempotent and active for both
+    /// full and anonymous telemetry. Best-effort fallback only: GCD timers
+    /// don't advance while the app is
     /// suspended, so on iOS this effectively means "fires only if the app
-    /// stays foregrounded for 24h." The reliable cadence driver is
-    /// `checkAndSendIfOverdue()` called on every foreground transition and
-    /// cold launch.
+    /// stays foregrounded for 24h." Daily cadence is instead driven by
+    /// overdue checks during cold launch, foreground transitions, and natural
+    /// CGM background activity.
     func scheduleRecurring() {
-        guard PropertyPersistentFlags.shared.telemetrySharingEnabled != false else {
-            return
-        }
-
         lock.lock()
         defer { lock.unlock() }
 
         if timer == nil {
             let t = DispatchTimer(timeInterval: Self.dailyInterval)
             t.eventHandler = { [weak self] in
-                Task.detached { await self?.maybeSend() }
+                Task.detached { await self?.sendIfOverdue(reason: .timer) }
             }
             t.resume()
             timer = t
         }
     }
 
-    /// If telemetry isn't opted out and we haven't successfully sent within
-    /// the last 24h (or have never sent), fire a send. Called on foreground
-    /// transitions and from the cold-launch path so daily cadence is kept.
-    ///
-    /// Mirrors the pattern used by LoopFollow's `TaskScheduler.checkTasksNow()`:
-    /// wall-clock comparison against `telemetryLastSentAt`, fire-and-forget
-    /// if overdue. Safe to call repeatedly — if a send already fired within
-    /// the window, this is a no-op.
-    func checkAndSendIfOverdue() {
-        guard PropertyPersistentFlags.shared.telemetrySharingEnabled != false else {
-            return
+    /// Fire-and-forget convenience for synchronous lifecycle callbacks.
+    func checkAndSendIfOverdue(reason: SendReason) {
+        Task.detached { await self.sendIfOverdue(reason: reason) }
+    }
+
+    /// Awaitable daily-cadence entry point. All trigger paths pass through the
+    /// actor gate, preventing overlapping requests and enforcing a one-hour
+    /// retry delay after an unsuccessful attempt.
+    @discardableResult
+    func sendIfOverdue(reason: SendReason, now: Date = Date()) async -> Bool {
+        let sharingEnabled = PropertyPersistentFlags.shared.telemetrySharingEnabled != false
+        let lastSentAt = sharingEnabled ?
+            PropertyPersistentFlags.shared.telemetryLastSentAt :
+            PropertyPersistentFlags.shared.telemetryAnonymousLastSentAt
+
+        return await sendGate.runIfEligible(
+            now: now,
+            lastSentAt: lastSentAt,
+            lastAttemptAt: PropertyPersistentFlags.shared.telemetryLastAttemptAt,
+            minimumInterval: Self.dailyInterval,
+            retryInterval: Self.retryInterval
+        ) { [weak self] in
+            guard let self else { return false }
+            return sharingEnabled ? await send(reason: reason) : await sendAnonymous(reason: reason)
+        } onAttempt: {
+            PropertyPersistentFlags.shared.telemetryLastAttemptAt = now
+        } onSuccess: {
+            if sharingEnabled {
+                self.recordSuccessfulSend()
+            } else {
+                self.recordSuccessfulAnonymousSend()
+            }
         }
+    }
 
-        let lastSent = PropertyPersistentFlags.shared.telemetryLastSentAt
-        let overdue: Bool = {
-            guard let lastSent else { return true }
-            return Date().timeIntervalSince(lastSent) >= Self.dailyInterval
-        }()
-        guard overdue else { return }
-
-        Task.detached { await self.maybeSend() }
+    /// Starts a separate, bounded UIKit background task for an opportunistic
+    /// overdue check. This keeps telemetry outside the critical glucose/loop
+    /// operation while allowing an already-running app enough time to finish
+    /// its daily request before iOS suspends it.
+    func checkAndSendIfOverdueInBackground() {
+        Task { @MainActor in
+            var backgroundTaskID = startBackgroundTask(withName: "Daily Telemetry Check-In")
+            await sendIfOverdue(reason: .backgroundActivity)
+            endBackgroundTaskSafely(&backgroundTaskID, taskName: "Daily Telemetry Check-In")
+        }
     }
 
     /// Single entry point for all sends (scheduler tick, settings opt-in,
     /// startup SHA-change). Gated only on the opt-out flag. *When* to send is
     /// the caller's decision — startup handles the SHA-change shortcut, the
     /// timer handles 24h cadence.
-    func maybeSend() async {
+    func maybeSend(reason: SendReason = .manual) async {
         guard PropertyPersistentFlags.shared.telemetrySharingEnabled != false else {
             return
         }
-        await send()
+        await sendGate.runIfEligible(
+            now: Date(),
+            lastSentAt: PropertyPersistentFlags.shared.telemetryLastSentAt,
+            lastAttemptAt: PropertyPersistentFlags.shared.telemetryLastAttemptAt,
+            minimumInterval: Self.dailyInterval,
+            retryInterval: Self.retryInterval,
+            force: true
+        ) { [weak self] in
+            await self?.send(reason: reason) ?? false
+        } onAttempt: {
+            PropertyPersistentFlags.shared.telemetryLastAttemptAt = Date()
+        } onSuccess: {
+            self.recordSuccessfulSend()
+        }
     }
 
     // MARK: - Payload
@@ -179,8 +268,6 @@ final class TelemetryClient: Injectable {
     /// The exact payload that would be POSTed right now. Pure function: shared
     /// by `send()` and `TelemetryPreviewView`.
     func buildPayload() -> [String: Any] {
-        injectIfNeeded()
-
         let bd = BuildDetails.shared
         let info = Bundle.main.infoDictionary ?? [:]
 
@@ -279,8 +366,69 @@ final class TelemetryClient: Injectable {
 
     // MARK: - Send
 
-    /// Build payload, attest it via App Attest, POST it, update last-sent state
-    /// on 2xx. Fire-and-forget; errors are logged at debug level only.
+    private func recordSuccessfulSend() {
+        PropertyPersistentFlags.shared.telemetryLastSentAt = Date()
+        PropertyPersistentFlags.shared.telemetryLastSentSha = BuildDetails.shared.trioCommitSHA
+        PropertyPersistentFlags.shared.telemetryLastAttemptAt = nil
+    }
+
+    private func recordSuccessfulAnonymousSend() {
+        PropertyPersistentFlags.shared.telemetryAnonymousLastSentAt = Date()
+        PropertyPersistentFlags.shared.telemetryLastAttemptAt = nil
+    }
+
+    private func requestContext(reason: SendReason) -> TelemetryRequestContext {
+        TelemetryRequestContext(
+            reason: reason.rawValue,
+            lastFailureReason: PropertyPersistentFlags.shared.telemetryLastFailureReason,
+            trioVersion: trioVersion(),
+            installID: installId()
+        )
+    }
+
+    /// Version string for the `X-Trio-Version` header. Prefers Trio's 4-component
+    /// dev counter (e.g. "0.8.4.102") since that identifies the exact build, and
+    /// falls back to the marketing version before giving up.
+    private func trioVersion() -> String {
+        Bundle.main.appDevVersion ??
+            (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ??
+            "unknown"
+    }
+
+    private func sendAnonymous(reason: SendReason) async -> Bool {
+        func failed(_ reason: String) -> Bool {
+            PropertyPersistentFlags.shared.telemetryLastFailureReason = reason
+            return false
+        }
+
+        let context = requestContext(reason: reason)
+        guard let baseURL = Self.baseURL,
+              var request = Self.anonymousRequest(baseURL: baseURL, context: context)
+        else { return failed("anonymous_request_url_failed") }
+
+        request.timeoutInterval = 15
+
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse else {
+                return failed("anonymous_non_http_response")
+            }
+            guard (200 ..< 300).contains(http.statusCode) else {
+                warning(.telemetry, "anonymous send non-2xx status=\(http.statusCode)")
+                return failed("anonymous_http_\(http.statusCode)")
+            }
+            PropertyPersistentFlags.shared.telemetryLastFailureReason = nil
+            debug(.telemetry, "anonymous send ok status=\(http.statusCode)")
+            return true
+        } catch {
+            warning(.telemetry, "anonymous send request failed", error: error)
+            return failed("anonymous_request_failed")
+        }
+    }
+
+    /// Build payload, attest it via App Attest, and POST it. Returns success on
+    /// 2xx so the send gate can update last-sent state; errors are logged at
+    /// debug level only.
     ///
     /// Flow:
     /// 1. Skip if `TelemetryAttestor.isSupported == false` (simulator, older
@@ -293,55 +441,81 @@ final class TelemetryClient: Injectable {
     /// 5. Ask the attestor for an assertion over `SHA256(payload || challenge)`.
     /// 6. POST `/checkin` with the three App Attest headers.
     ///
-    /// Backoff: failures don't update `telemetryLastSentAt`, so the next
-    /// scheduler tick / cold launch retries naturally. The 24h cadence is the
-    /// natural backoff floor; no per-attempt exponential timer is added.
-    func send() async {
+    /// Backoff: failures don't update `telemetryLastSentAt`; the separate
+    /// `telemetryLastAttemptAt` gate prevents another attempt for one hour.
+    /// Successful sends clear that failure-backoff timestamp and advance the
+    /// normal 24-hour cadence.
+    @discardableResult
+    func send(reason: SendReason) async -> Bool {
+        func failed(_ reason: String) -> Bool {
+            PropertyPersistentFlags.shared.telemetryLastFailureReason = reason
+            return false
+        }
+
         guard let baseURL = Self.baseURL else {
             debug(.telemetry, "skip send: server URL not configured")
-            return
+            return failed("server_url_not_configured")
         }
 
         let attestor = TelemetryAttestor.shared
         guard attestor.isSupported else {
             debug(.telemetry, "skip send: App Attest unsupported (simulator or older device)")
-            return
+            return failed("app_attest_unsupported")
         }
         guard !attestor.isForbidden else {
             debug(.telemetry, "skip send: app_id previously rejected (403)")
-            return
+            return failed("app_attest_forbidden")
         }
 
+        let context = requestContext(reason: reason)
+
         do {
-            try await attestor.registerIfNeeded(baseURL: baseURL)
+            try await attestor.registerIfNeeded(
+                baseURL: baseURL,
+                context: context
+            )
         } catch TelemetryAttestor.AttestError.forbidden {
             // Already logged + sticky-flagged in registerIfNeeded.
-            return
+            return failed("registration_forbidden")
         } catch {
             debug(.telemetry, "register failed: \(error) — will retry next cycle")
-            return
+            return failed("registration_failed")
         }
 
         let payload = buildPayload()
         guard let body = try? JSONSerialization.data(withJSONObject: payload, options: []) else {
             debug(.telemetry, "skip send: payload not JSON-serializable")
-            return
+            return failed("payload_serialization_failed")
         }
         guard body.count <= Self.maxPayloadBytes else {
             debug(.telemetry, "skip send: payload exceeds \(Self.maxPayloadBytes) bytes (\(body.count))")
-            return
+            return failed("payload_too_large")
         }
 
         let assertion: (assertion: String, keyID: String, challenge: String)
         do {
-            assertion = try await attestor.assertion(forPayload: body, baseURL: baseURL)
+            assertion = try await attestor.assertion(
+                forPayload: body,
+                baseURL: baseURL,
+                context: context
+            )
         } catch {
             debug(.telemetry, "assertion failed: \(error)")
-            return
+            return failed("assertion_failed")
         }
 
-        var request = URLRequest(url: baseURL.appendingPathComponent("checkin"))
+        let previousFailureReason = PropertyPersistentFlags.shared.telemetryLastFailureReason
+        guard let checkinURL = Self.checkinURL(
+            baseURL: baseURL,
+            reason: reason,
+            lastFailureReason: previousFailureReason
+        ) else {
+            return failed("request_url_failed")
+        }
+
+        var request = URLRequest(url: checkinURL)
         request.httpMethod = "POST"
+        context.applyHeaders(to: &request)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(assertion.keyID, forHTTPHeaderField: "X-AppAttest-KeyId")
         request.setValue(assertion.assertion, forHTTPHeaderField: "X-AppAttest-Assertion")
@@ -353,29 +527,59 @@ final class TelemetryClient: Injectable {
             let (_, response) = try await URLSession.shared.data(for: request)
             guard let http = response as? HTTPURLResponse else {
                 debug(.telemetry, "send: non-HTTP response")
-                return
+                return failed("non_http_response")
             }
             switch http.statusCode {
             case 200 ..< 300:
-                PropertyPersistentFlags.shared.telemetryLastSentAt = Date()
-                PropertyPersistentFlags.shared.telemetryLastSentSha = BuildDetails.shared.trioCommitSHA
+                PropertyPersistentFlags.shared.telemetryLastFailureReason = nil
                 debug(.telemetry, "send ok status=\(http.statusCode)")
+                return true
             case 401:
                 // Server doesn't recognize our registration (e.g. its registry
                 // was wiped). Drop the local keyID + registered flag so the
                 // next cycle generates a fresh key and re-attests — `attestKey`
                 // can't be re-run on the existing keyID (one-shot per Apple).
                 attestor.invalidateRegistration()
-                debug(.telemetry, "send 401: stale registration, will re-register next cycle")
+                warning(.telemetry, "send 401: stale registration, will re-register next cycle")
+                return failed("http_401")
             default:
-                debug(.telemetry, "send non-2xx status=\(http.statusCode)")
+                warning(.telemetry, "send non-2xx status=\(http.statusCode)")
+                return failed("http_\(http.statusCode)")
             }
         } catch {
-            debug(.telemetry, "send error: \(error.localizedDescription)")
+            warning(.telemetry, "send request failed", error: error)
+            return failed("request_failed")
         }
     }
 
     // MARK: - Helpers
+
+    static func checkinURL(
+        baseURL: URL,
+        reason: SendReason,
+        lastFailureReason: String?
+    ) -> URL? {
+        TelemetryAttestor.requestURL(
+            baseURL: baseURL,
+            path: "checkin",
+            reason: reason.rawValue,
+            lastFailureReason: lastFailureReason
+        )
+    }
+
+    static func anonymousRequest(baseURL: URL, context: TelemetryRequestContext) -> URLRequest? {
+        guard let url = TelemetryAttestor.requestURL(
+            baseURL: baseURL,
+            path: "anonymous",
+            reason: context.reason,
+            lastFailureReason: context.lastFailureReason
+        ) else { return nil }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        context.applyHeaders(to: &request)
+        return request
+    }
 
     /// `iPhone15,2`-style identifier from `utsname.machine`. Returns
     /// `Simulator <SIMULATOR_MODEL_IDENTIFIER>` on the simulator so analysis
