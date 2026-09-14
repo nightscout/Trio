@@ -16,6 +16,11 @@ extension NSPredicate {
         NSPredicate(format: "isFPU == false AND date >= %@ AND carbs > 0", date as NSDate)
     }
 
+    /// Chart entries plus fat/protein-only meals (stored with carbs == 0), for the home treatments banner.
+    static func mealEntries(since date: Date) -> NSPredicate {
+        NSPredicate(format: "isFPU == false AND date >= %@ AND (carbs > 0 OR fat > 0 OR protein > 0)", date as NSDate)
+    }
+
     static func fpusForChart(since date: Date) -> NSPredicate {
         NSPredicate(format: "isFPU == true AND date >= %@", date as NSDate)
     }
