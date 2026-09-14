@@ -59,7 +59,8 @@ actor TelemetrySendGate {
 /// Opted-out installs send only an empty daily `/anonymous` GET carrying the
 /// app version, install identifier, trigger reason, and prior failure category.
 final class TelemetryClient: Injectable {
-    static let shared = TelemetryClient()
+    // Container-scoped singleton; shared is a convenience accessor for AppDelegate/UI entry points
+    static var shared: TelemetryClient { TrioApp.resolver.resolve(TelemetryClient.self)! }
 
     enum SendReason: String {
         case backgroundActivity = "background_activity"
@@ -118,17 +119,10 @@ final class TelemetryClient: Injectable {
 
     private let lock = NSRecursiveLock()
     private let sendGate = TelemetrySendGate()
-    private var didInjectServices = false
     private var timer: DispatchTimer?
 
-    private init() {}
-
-    private func injectIfNeeded() {
-        lock.lock()
-        defer { lock.unlock() }
-        guard !didInjectServices else { return }
-        injectServices(TrioApp.resolver)
-        didInjectServices = true
+    init(resolver: Resolver) {
+        injectServices(resolver)
     }
 
     // MARK: - Cold launches
@@ -274,8 +268,6 @@ final class TelemetryClient: Injectable {
     /// The exact payload that would be POSTed right now. Pure function: shared
     /// by `send()` and `TelemetryPreviewView`.
     func buildPayload() -> [String: Any] {
-        injectIfNeeded()
-
         let bd = BuildDetails.shared
         let info = Bundle.main.infoDictionary ?? [:]
 
