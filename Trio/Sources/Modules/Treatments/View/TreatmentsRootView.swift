@@ -373,6 +373,7 @@ extension Treatments {
                                             Image(systemName: "xmark.circle.fill")
                                         }
                                         .buttonStyle(.plain)
+                                        .accessibilityLabel(Text("Dismiss"))
                                     }
                                     .listRowBackground(Color.orange.opacity(0.75))
                                     .transition(.opacity)
@@ -396,6 +397,7 @@ extension Treatments {
                                 } else {
                                     Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
                                     label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
+                                        .accessibilityLabel(Text("15 minutes earlier"))
 
                                     DatePicker(
                                         "Time",
@@ -415,6 +417,7 @@ extension Treatments {
                                         state.date = state.date.addingTimeInterval(15.minutes.timeInterval)
                                     }
                                     label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
+                                        .accessibilityLabel(Text("15 minutes later"))
                                 }
                             }
 
@@ -589,20 +592,20 @@ extension Treatments {
                     .listRowBackground(treatmentButtonBackground)
                     .shadow(radius: 3)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .confirmationDialog(
-                        bolusWarning.warningMessage + " Bolus \(state.amount.description) U?",
+                    .glassActionSheet(
+                        Text(bolusWarning.warningMessage + " Bolus \(state.amount.description) U?"),
                         isPresented: $showConfirmDialogForBolusing,
-                        titleVisibility: .visible
-                    ) {
-                        Button("Cancel", role: .cancel) {}
-                        Button(
-                            bolusWarning.warningMessage
-                                .isEmpty ? String(localized: "Enact Bolus") : String(localized: "Ignore Warning and Enact Bolus"),
-                            role: bolusWarning.warningMessage.isEmpty ? nil : .destructive
-                        ) {
-                            state.invokeTreatmentsTask()
-                        }
-                    }
+                        actions: [
+                            GlassSheetAction(
+                                verbatim: bolusWarning.warningMessage
+                                    .isEmpty ? String(localized: "Enact Bolus") :
+                                    String(localized: "Ignore Warning and Enact Bolus"),
+                                role: bolusWarning.warningMessage.isEmpty ? nil : .destructive
+                            ) {
+                                state.invokeTreatmentsTask()
+                            }
+                        ]
+                    )
                 }
             } header: {
                 if !bolusWarning.warningMessage.isEmpty {
