@@ -656,7 +656,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             suggested: suggestedToUpload,
             enacted: settingsManager.settings.dosingMode.automation != .off ? enactedToUpload : nil,
             version: Bundle.main.releaseVersionNumber ?? "Unknown",
-            recommendedBolus: recommendedBolus
+            recommendedBolus: recommendedBolus,
+            dosingMode: settingsManager.settings.dosingMode.rawValue
         )
 
         debug(.nightscout, "To be uploaded openapsStatus: \(openapsStatus)")
