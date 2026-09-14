@@ -164,7 +164,95 @@ import Testing
             TelemetryAttestor.appID(teamID: " ABC123 ", bundleID: "org.nightscout.user.trio") ==
                 "ABC123.org.nightscout.user.trio"
         )
+        #expect(
+            TelemetryAttestor.appID(teamID: "ABC123", bundleID: "com.example.custom-fork") ==
+                "ABC123.com.example.custom-fork"
+        )
         #expect(TelemetryAttestor.appID(teamID: "$(DEVELOPMENT_TEAM)", bundleID: "org.example.trio") == nil)
+        #expect(TelemetryAttestor.appID(teamID: "ABC123", bundleID: "com..example") == nil)
+    }
+
+    @Test("Provisioning profile returns the first valid application ID") func parsesProvisioningApplicationID() throws {
+        let profile: [String: Any] = [
+            "Entitlements": [
+                "application-identifier": "invalid",
+                "com.apple.application-identifier": "ABC123.org.nightscout.user.trio"
+            ]
+        ]
+        let plist = try PropertyListSerialization.data(fromPropertyList: profile, format: .xml, options: 0)
+        var cmsEnvelope = Data([0x00, 0xFF, 0x80, 0x01])
+        cmsEnvelope.append(plist)
+        cmsEnvelope.append(Data([0xFE, 0x00]))
+
+        #expect(
+            TelemetryAttestor.appID(
+                fromProvisioningProfile: cmsEnvelope,
+                bundleID: "org.nightscout.fallback.trio"
+            ) == "ABC123.org.nightscout.user.trio"
+        )
+    }
+
+    @Test("Provisioning profile derives app ID from signed team ID") func derivesProvisioningApplicationID() throws {
+        let profile: [String: Any] = [
+            "Entitlements": ["com.apple.developer.team-identifier": "TEAM123"],
+            "TeamIdentifier": ["OTHERTEAM"]
+        ]
+        let plist = try PropertyListSerialization.data(fromPropertyList: profile, format: .binary, options: 0)
+
+        #expect(
+            TelemetryAttestor.appID(
+                fromProvisioningProfile: plist,
+                bundleID: "org.nightscout.owner.trio"
+            ) == "TEAM123.org.nightscout.owner.trio"
+        )
+    }
+
+    @Test("Malformed provisioning profiles safely return nil") func malformedProvisioningProfileReturnsNil() {
+        let malformedInputs = [Data(), Data([0x00, 0xFF, 0x01]), Data("<?xml broken </plist>".utf8)]
+
+        for data in malformedInputs {
+            #expect(
+                TelemetryAttestor.appID(
+                    fromProvisioningProfile: data,
+                    bundleID: "org.nightscout.owner.trio"
+                ) == nil
+            )
+        }
+    }
+
+    @Test("Attestation endpoints include reason and prior failure") func attestationURLsIncludeTelemetryContext() throws {
+        for path in ["api/auth/ios/challenge", "api/attest/register"] {
+            let url = try #require(
+                TelemetryAttestor.requestURL(
+                    baseURL: URL(string: "https://telemetry.example")!,
+                    path: path,
+                    reason: "background_activity",
+                    lastFailureReason: "registration_failed"
+                )
+            )
+            let components = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false))
+
+            #expect(components.path == "/\(path)")
+            #expect(components.queryItems?.contains(URLQueryItem(name: "reason", value: "background_activity")) == true)
+            #expect(
+                components.queryItems?.contains(URLQueryItem(name: "lastFailureReason", value: "registration_failed")) == true
+            )
+        }
+    }
+
+    @Test("Telemetry context adds version and install headers") func telemetryContextHeaders() throws {
+        let context = TelemetryRequestContext(
+            reason: "background_activity",
+            lastFailureReason: "registration_failed",
+            trioVersion: "0.8.1",
+            installID: "install-123"
+        )
+        var request = URLRequest(url: URL(string: "https://telemetry.example/checkin")!)
+
+        context.applyHeaders(to: &request)
+
+        #expect(request.value(forHTTPHeaderField: "X-Trio-Version") == "0.8.1")
+        #expect(request.value(forHTTPHeaderField: "X-Trio-InstallId") == "install-123")
     }
 }
 

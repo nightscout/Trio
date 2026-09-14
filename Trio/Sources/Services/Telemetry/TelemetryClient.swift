@@ -410,8 +410,19 @@ final class TelemetryClient: Injectable {
             return failed("app_attest_forbidden")
         }
 
+        let context = TelemetryRequestContext(
+            reason: reason.rawValue,
+            lastFailureReason: PropertyPersistentFlags.shared.telemetryLastFailureReason,
+            trioVersion: (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ??
+                Bundle.main.appDevVersion ?? "unknown",
+            installID: installId()
+        )
+
         do {
-            try await attestor.registerIfNeeded(baseURL: baseURL)
+            try await attestor.registerIfNeeded(
+                baseURL: baseURL,
+                context: context
+            )
         } catch TelemetryAttestor.AttestError.forbidden {
             // Already logged + sticky-flagged in registerIfNeeded.
             return failed("registration_forbidden")
@@ -432,7 +443,11 @@ final class TelemetryClient: Injectable {
 
         let assertion: (assertion: String, keyID: String, challenge: String)
         do {
-            assertion = try await attestor.assertion(forPayload: body, baseURL: baseURL)
+            assertion = try await attestor.assertion(
+                forPayload: body,
+                baseURL: baseURL,
+                context: context
+            )
         } catch {
             debug(.telemetry, "assertion failed: \(error)")
             return failed("assertion_failed")
@@ -449,6 +464,7 @@ final class TelemetryClient: Injectable {
 
         var request = URLRequest(url: checkinURL)
         request.httpMethod = "POST"
+        context.applyHeaders(to: &request)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(assertion.keyID, forHTTPHeaderField: "X-AppAttest-KeyId")
         request.setValue(assertion.assertion, forHTTPHeaderField: "X-AppAttest-Assertion")
@@ -492,18 +508,12 @@ final class TelemetryClient: Injectable {
         reason: SendReason,
         lastFailureReason: String?
     ) -> URL? {
-        guard var components = URLComponents(
-            url: baseURL.appendingPathComponent("checkin"),
-            resolvingAgainstBaseURL: false
-        ) else { return nil }
-
-        var queryItems = components.queryItems ?? []
-        queryItems.append(URLQueryItem(name: "reason", value: reason.rawValue))
-        if let lastFailureReason, !lastFailureReason.isEmpty {
-            queryItems.append(URLQueryItem(name: "lastFailureReason", value: lastFailureReason))
-        }
-        components.queryItems = queryItems
-        return components.url
+        TelemetryAttestor.requestURL(
+            baseURL: baseURL,
+            path: "checkin",
+            reason: reason.rawValue,
+            lastFailureReason: lastFailureReason
+        )
     }
 
     /// `iPhone15,2`-style identifier from `utsname.machine`. Returns
