@@ -12,7 +12,9 @@ import Testing
         let sent = await gate.runIfEligible(
             now: now,
             lastSentAt: now.addingTimeInterval(-interval - 1),
-            minimumInterval: interval
+            lastAttemptAt: nil,
+            minimumInterval: interval,
+            retryInterval: 60 * 60
         ) { true }
 
         #expect(sent)
@@ -23,7 +25,36 @@ import Testing
         let sent = await gate.runIfEligible(
             now: now,
             lastSentAt: now.addingTimeInterval(-interval + 1),
-            minimumInterval: interval
+            lastAttemptAt: nil,
+            minimumInterval: interval,
+            retryInterval: 60 * 60
+        ) { true }
+
+        #expect(!sent)
+    }
+
+    @Test("Failed attempt backs off for one hour") func recentFailureBacksOff() async {
+        let gate = TelemetrySendGate()
+        let sent = await gate.runIfEligible(
+            now: now,
+            lastSentAt: nil,
+            lastAttemptAt: now.addingTimeInterval(-(60 * 60) + 1),
+            minimumInterval: interval,
+            retryInterval: 60 * 60
+        ) { true }
+
+        #expect(!sent)
+    }
+
+    @Test("Forced sends still honor failure backoff") func forcedSendHonorsBackoff() async {
+        let gate = TelemetrySendGate()
+        let sent = await gate.runIfEligible(
+            now: now,
+            lastSentAt: now,
+            lastAttemptAt: now,
+            minimumInterval: interval,
+            retryInterval: 60 * 60,
+            force: true
         ) { true }
 
         #expect(!sent)
@@ -38,7 +69,13 @@ import Testing
         await withTaskGroup(of: Bool.self) { group in
             for _ in 0 ..< 8 {
                 group.addTask {
-                    await gate.runIfEligible(now: testNow, lastSentAt: nil, minimumInterval: testInterval) {
+                    await gate.runIfEligible(
+                        now: testNow,
+                        lastSentAt: nil,
+                        lastAttemptAt: nil,
+                        minimumInterval: testInterval,
+                        retryInterval: 60 * 60
+                    ) {
                         await attempts.increment()
                         try? await Task.sleep(for: .milliseconds(50))
                         return true
@@ -58,7 +95,13 @@ import Testing
         let gate = TelemetrySendGate()
         let state = SuccessState()
 
-        let sent = await gate.runIfEligible(now: now, lastSentAt: nil, minimumInterval: interval) {
+        let sent = await gate.runIfEligible(
+            now: now,
+            lastSentAt: nil,
+            lastAttemptAt: nil,
+            minimumInterval: interval,
+            retryInterval: 60 * 60
+        ) {
             false
         } onSuccess: {
             state.record()
@@ -72,7 +115,13 @@ import Testing
         let gate = TelemetrySendGate()
         let state = SuccessState()
 
-        let sent = await gate.runIfEligible(now: now, lastSentAt: nil, minimumInterval: interval) {
+        let sent = await gate.runIfEligible(
+            now: now,
+            lastSentAt: nil,
+            lastAttemptAt: nil,
+            minimumInterval: interval,
+            retryInterval: 60 * 60
+        ) {
             true
         } onSuccess: {
             state.record()
@@ -108,6 +157,14 @@ import Testing
 
         #expect(components.queryItems?.contains(URLQueryItem(name: "reason", value: "foreground")) == true)
         #expect(components.queryItems?.contains(URLQueryItem(name: "lastFailureReason", value: "request_failed")) == true)
+    }
+
+    @Test("Application ID derives from build team and bundle IDs") func derivesApplicationID() {
+        #expect(
+            TelemetryAttestor.appID(teamID: " ABC123 ", bundleID: "org.nightscout.user.trio") ==
+                "ABC123.org.nightscout.user.trio"
+        )
+        #expect(TelemetryAttestor.appID(teamID: "$(DEVELOPMENT_TEAM)", bundleID: "org.example.trio") == nil)
     }
 }
 

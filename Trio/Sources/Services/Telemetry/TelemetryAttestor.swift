@@ -58,7 +58,8 @@ final class TelemetryAttestor: Injectable {
     // MARK: - Registration
 
     /// Idempotent: returns immediately if already registered. Otherwise
-    /// performs `generateKey` → fetch challenge → `attestKey` → POST register.
+    /// resolves app ID, then performs `generateKey` → fetch challenge →
+    /// `attestKey` → POST register.
     /// Throws on transport / server errors; sets the sticky "forbidden" flag
     /// on a 403 so future cycles short-circuit.
     func registerIfNeeded(baseURL: URL) async throws {
@@ -69,6 +70,12 @@ final class TelemetryAttestor: Injectable {
 
         if (keychain.getValue(Bool.self, forKey: Self.registeredStorageKey) ?? false) == true {
             return
+        }
+
+        // Resolve the signed application identity before consuming a server
+        // challenge or making the one-shot `attestKey` call.
+        guard let appID = Self.currentAppID() else {
+            throw AttestError.unknownAppID
         }
 
         // generateKey() returns a base64url-encoded key identifier (Apple's docs).
@@ -124,10 +131,6 @@ final class TelemetryAttestor: Injectable {
             }
             debug(.telemetry, "attestKey failed: \(error.localizedDescription)")
             throw AttestError.attestationFailed(error)
-        }
-
-        guard let appID = Self.currentAppID() else {
-            throw AttestError.unknownAppID
         }
 
         let body: [String: Any] = [
@@ -275,12 +278,17 @@ final class TelemetryAttestor: Injectable {
     /// `app_id` — matches the regex `^[A-Z0-9]+\.org\.nightscout\.[^.]+\.trio$`
     /// when the build is configured correctly.
     ///
-    /// Reads `application-identifier` from `embedded.mobileprovision`. On iOS
-    /// the SDK doesn't expose `SecTaskCopyValueForEntitlement` to Swift, and
-    /// parsing the mobile-provision file is the standard workaround. Returns
-    /// nil for App Store builds (no embedded.mobileprovision) — which Trio
-    /// doesn't ship, so this path is fine for sideload + TestFlight.
+    /// Uses Trio's build-expanded `TeamID` Info.plist value first. This remains
+    /// available in distribution packages where `embedded.mobileprovision` may
+    /// be absent or use a representation our fallback parser cannot scan.
     static func currentAppID() -> String? {
+        if let teamID = Bundle.main.object(forInfoDictionaryKey: "TeamID") as? String,
+           let bundleID = Bundle.main.bundleIdentifier,
+           let appID = appID(teamID: teamID, bundleID: bundleID)
+        {
+            return appID
+        }
+
         guard let url = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
               let raw = try? Data(contentsOf: url)
         else { return nil }
@@ -300,10 +308,18 @@ final class TelemetryAttestor: Injectable {
               let plist = try? PropertyListSerialization
               .propertyList(from: plistData, options: [], format: nil) as? [String: Any],
               let entitlements = plist["Entitlements"] as? [String: Any],
-              let appID = entitlements["application-identifier"] as? String
+              let appID = (entitlements["application-identifier"] ??
+                  entitlements["com.apple.application-identifier"]) as? String
         else { return nil }
 
         return appID
+    }
+
+    static func appID(teamID: String, bundleID: String) -> String? {
+        let teamID = teamID.trimmingCharacters(in: .whitespacesAndNewlines)
+        let bundleID = bundleID.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !teamID.isEmpty, !bundleID.isEmpty, !teamID.contains("$(") else { return nil }
+        return "\(teamID).\(bundleID)"
     }
 
     // MARK: - Errors

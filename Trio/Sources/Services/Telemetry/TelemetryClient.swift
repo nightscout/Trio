@@ -15,18 +15,25 @@ actor TelemetrySendGate {
     func runIfEligible(
         now: Date,
         lastSentAt: Date?,
+        lastAttemptAt: Date?,
         minimumInterval: TimeInterval,
+        retryInterval: TimeInterval,
         force: Bool = false,
         operation: () async -> Bool,
+        onAttempt: () -> Void = {},
         onSuccess: () -> Void = {}
     ) async -> Bool {
         guard !isSending else { return false }
         guard force || Self.isOverdue(now: now, lastSentAt: lastSentAt, minimumInterval: minimumInterval) else {
             return false
         }
+        guard Self.isOverdue(now: now, lastSentAt: lastAttemptAt, minimumInterval: retryInterval) else {
+            return false
+        }
 
         isSending = true
         defer { isSending = false }
+        onAttempt()
         let succeeded = await operation()
         if succeeded {
             onSuccess()
@@ -87,6 +94,7 @@ final class TelemetryClient: Injectable {
 
     private static let weeklyInterval: TimeInterval = 7 * 24 * 60 * 60
     private static let dailyInterval: TimeInterval = 24 * 60 * 60
+    private static let retryInterval: TimeInterval = 60 * 60
     private static let maxPayloadBytes = 4096
 
     private static let buildDateFormatter: DateFormatter = {
@@ -193,8 +201,8 @@ final class TelemetryClient: Injectable {
     }
 
     /// Awaitable daily-cadence entry point. All trigger paths pass through the
-    /// actor gate, preventing overlapping requests from observing the same old
-    /// `telemetryLastSentAt` value and both sending.
+    /// actor gate, preventing overlapping requests and enforcing a one-hour
+    /// retry delay after an unsuccessful attempt.
     @discardableResult
     func sendIfOverdue(reason: SendReason, now: Date = Date()) async -> Bool {
         guard PropertyPersistentFlags.shared.telemetrySharingEnabled != false else { return false }
@@ -202,9 +210,13 @@ final class TelemetryClient: Injectable {
         return await sendGate.runIfEligible(
             now: now,
             lastSentAt: PropertyPersistentFlags.shared.telemetryLastSentAt,
-            minimumInterval: Self.dailyInterval
+            lastAttemptAt: PropertyPersistentFlags.shared.telemetryLastAttemptAt,
+            minimumInterval: Self.dailyInterval,
+            retryInterval: Self.retryInterval
         ) { [weak self] in
             await self?.send(reason: reason) ?? false
+        } onAttempt: {
+            PropertyPersistentFlags.shared.telemetryLastAttemptAt = now
         } onSuccess: {
             self.recordSuccessfulSend()
         }
@@ -233,10 +245,14 @@ final class TelemetryClient: Injectable {
         await sendGate.runIfEligible(
             now: Date(),
             lastSentAt: PropertyPersistentFlags.shared.telemetryLastSentAt,
+            lastAttemptAt: PropertyPersistentFlags.shared.telemetryLastAttemptAt,
             minimumInterval: Self.dailyInterval,
+            retryInterval: Self.retryInterval,
             force: true
         ) { [weak self] in
             await self?.send(reason: reason) ?? false
+        } onAttempt: {
+            PropertyPersistentFlags.shared.telemetryLastAttemptAt = Date()
         } onSuccess: {
             self.recordSuccessfulSend()
         }
@@ -350,6 +366,7 @@ final class TelemetryClient: Injectable {
     private func recordSuccessfulSend() {
         PropertyPersistentFlags.shared.telemetryLastSentAt = Date()
         PropertyPersistentFlags.shared.telemetryLastSentSha = BuildDetails.shared.trioCommitSHA
+        PropertyPersistentFlags.shared.telemetryLastAttemptAt = nil
     }
 
     /// Build payload, attest it via App Attest, and POST it. Returns success on
@@ -367,9 +384,10 @@ final class TelemetryClient: Injectable {
     /// 5. Ask the attestor for an assertion over `SHA256(payload || challenge)`.
     /// 6. POST `/checkin` with the three App Attest headers.
     ///
-    /// Backoff: failures don't update `telemetryLastSentAt`, so the next
-    /// scheduler tick / cold launch retries naturally. The 24h cadence is the
-    /// natural backoff floor; no per-attempt exponential timer is added.
+    /// Backoff: failures don't update `telemetryLastSentAt`; the separate
+    /// `telemetryLastAttemptAt` gate prevents another attempt for one hour.
+    /// Successful sends clear that failure-backoff timestamp and advance the
+    /// normal 24-hour cadence.
     @discardableResult
     func send(reason: SendReason) async -> Bool {
         func failed(_ reason: String) -> Bool {
