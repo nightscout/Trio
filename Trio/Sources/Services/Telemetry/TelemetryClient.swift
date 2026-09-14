@@ -386,9 +386,13 @@ final class TelemetryClient: Injectable {
         )
     }
 
+    /// Version string for the `X-Trio-Version` header. Prefers Trio's 4-component
+    /// dev counter (e.g. "0.8.4.102") since that identifies the exact build, and
+    /// falls back to the marketing version before giving up.
     private func trioVersion() -> String {
-        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ??
-            Bundle.main.appDevVersion ?? "unknown"
+        Bundle.main.appDevVersion ??
+            (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ??
+            "unknown"
     }
 
     private func sendAnonymous(reason: SendReason) async -> Bool {
