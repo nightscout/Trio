@@ -86,30 +86,20 @@ extension Onboarding {
         // MARK: - Units and Pump Omboarding Option
 
         var units: GlucoseUnits = .mgdL
-        private var selectedPumpOption: PumpOptionForOnboardingUnits?
-        var pumpOptionForOnboardingUnits: PumpOptionForOnboardingUnits {
+        private var selectedPumpOption: PumpCatalogEntry?
+        var pumpOptionForOnboardingUnits: PumpCatalogEntry {
             get {
                 // let user edit selection and return user-selection, if present
                 if let selected = selectedPumpOption {
                     return selected
                 }
 
-                let defaultOption: PumpOptionForOnboardingUnits
-                if let pumpManager = apsManager?.pumpManager {
-                    if pumpManager is OmniPumpManager {
-                        defaultOption = .omni
-                    } else if pumpManager is MedtrumPumpManager {
-                        defaultOption = .medtrum
-                    } else if pumpManager is DanaKitPumpManager {
-                        defaultOption = .dana
-                    } else if pumpManager is MinimedPumpManager {
-                        defaultOption = .minimed
-                    } else {
-                        defaultOption = .omni
-                    }
-                } else {
-                    defaultOption = .omni
-                }
+                // Users upgrading from a pre-onboarding Trio already have a pump manager, so preselect it.
+                // Matching on pluginIdentifier also picks up the legacy Omnipod identifiers, which the old
+                // downcast cascade could not.
+                let defaultOption = apsManager?.pumpManager
+                    .map { DeviceCatalog.onboardingPump(forPersistedIdentifier: $0.pluginIdentifier) }
+                    ?? DeviceCatalog.defaultOnboardingPump
 
                 // cache it so picker can stay in sync
                 selectedPumpOption = defaultOption
@@ -136,25 +126,16 @@ extension Onboarding {
         // MARK: - Basal Profile
 
         var basalRatePickerSetting: PickerSetting {
-            switch selectedPumpOption {
-            case .dana:
-                return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 3, type: .insulinUnitPerHour)
-            case .minimed:
-                return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 35, type: .insulinUnitPerHour)
-            case .omni:
-                return PickerSetting(
-                    value: 0.1,
-                    step: 0.05,
-                    min: 0,
-                    max: 30,
-                    type: .insulinUnitPerHour
-                ) // FIXME: we need to be able to differentiate Eros here due to not allowing 0 basal rates
-            case .medtrum:
-                return PickerSetting(value: 0.1, step: 0.05, min: 0.05, max: 30, type: .insulinUnitPerHour)
-            case .none:
-                // same as dash, as that is the fallback
-                return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 30, type: .insulinUnitPerHour)
-            }
+            // Deliberately reads the stored value, not the getter: before the user picks anything this stays nil
+            // and falls back to the default pump's bounds, which is the pre-catalog behaviour.
+            let capability = (selectedPumpOption ?? DeviceCatalog.defaultOnboardingPump).basalCapability
+            return PickerSetting(
+                value: 0.1,
+                step: capability.step,
+                min: capability.minimum,
+                max: capability.maximum,
+                type: .insulinUnitPerHour
+            )
         }
 
         var basalProfileItems: [BasalProfileEditor.Item] = []
@@ -195,7 +176,7 @@ extension Onboarding {
         var rewindResetsAutosens: Bool = true
 
         var filteredAutosensSettingsSubsteps: [AutosensSettingsSubstep] {
-            if pumpOptionForOnboardingUnits == .minimed || pumpOptionForOnboardingUnits == .dana {
+            if pumpOptionForOnboardingUnits.reportsRewindEvents {
                 return AutosensSettingsSubstep.allCases
             } else {
                 return [AutosensSettingsSubstep.autosensMin, AutosensSettingsSubstep.autosensMax]

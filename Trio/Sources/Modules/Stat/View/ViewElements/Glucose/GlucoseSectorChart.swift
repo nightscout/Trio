@@ -179,6 +179,8 @@ struct GlucoseSectorChart: View {
                     }
                     .chartAngleSelection(value: $selectedCount)
                     .frame(height: 100)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("Time in range distribution chart"))
                 }
             }
             .onChange(of: selectedCount) { _, newValue in

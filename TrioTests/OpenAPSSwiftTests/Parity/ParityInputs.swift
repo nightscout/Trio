@@ -30,6 +30,13 @@ enum ParityInputs {
         ]
     }
 
+    /// The Minimed gen ≥23 table the goldens were originally recorded against. The only
+    /// remaining difference from oref's `round-basal.js` is that the algorithm now floors
+    /// instead of rounding to nearest.
+    static func supportedBasalRates() -> [Decimal] {
+        PumpRateTables.minimedGen23
+    }
+
     static func isf() -> InsulinSensitivities {
         InsulinSensitivities(
             units: .mgdL,

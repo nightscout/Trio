@@ -106,6 +106,10 @@ extension Treatments {
         var externalInsulin: Bool = false
         var showInfo: Bool = false
         var glucoseFromPersistence: [GlucoseStored] = []
+        /// Most recent reading. This model fetches glucose sorted `ascending: false`, so the
+        /// latest is `.first` — use this accessor instead of `.first`/`.last` at call sites,
+        /// since Home.StateModel sorts the opposite way under the same property name.
+        var latestGlucose: GlucoseStored? { glucoseFromPersistence.first }
         var determination: [OrefDetermination] = []
         var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         var predictionsForChart: Predictions?

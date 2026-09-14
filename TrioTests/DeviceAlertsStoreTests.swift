@@ -1,4 +1,5 @@
 import Foundation
+import LoopKit
 import Testing
 
 @testable import Trio
@@ -244,5 +245,217 @@ import Testing
         let store = Self.makeStore()
         store.snoozeTier(.critical, until: now.addingTimeInterval(600))
         #expect(store.isTierSnoozed(.critical, at: now))
+    }
+}
+
+/// Regression cover for issue #1371: device alarms fired without the tone the
+/// user picked, so no alarm sound played and the entitlement-less
+/// `CriticalAlertAudioPlayer` fallback (which needs a filename) never engaged.
+/// Pump plugins issue alerts with `sound: nil`, so the tier config is the only
+/// thing that can supply a sound.
+@Suite("Trio Alerts: device alarm tier config application", .serialized) struct DeviceAlarmTierConfigTests {
+    private static func makeStore(seed: [DeviceAlertSeverityConfig]? = nil) -> DeviceAlertsStore {
+        let suiteName = "DeviceAlarmTierConfigTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        let configsKey = "configs.\(suiteName)"
+        let snoozesKey = "snoozes.\(suiteName)"
+        if let seed {
+            defaults.set(try? JSONEncoder().encode(seed), forKey: configsKey)
+        }
+        return DeviceAlertsStore(defaults: defaults, configsKey: configsKey, snoozesKey: snoozesKey)
+    }
+
+    /// Mirrors what MedtrumKit emits: no sound, no interruption level.
+    private static func pluginAlert(_ identifier: Alert.Identifier) -> Alert {
+        let content = Alert.Content(title: "t", body: "b", acknowledgeActionButtonLabel: "OK")
+        return Alert(
+            identifier: identifier,
+            foregroundContent: content,
+            backgroundContent: content,
+            trigger: .immediate
+        )
+    }
+
+    private static let patchEmpty = Alert.Identifier(
+        managerIdentifier: "Medtrum",
+        alertIdentifier: "com.nightscout.medtrumkit.patch-empty"
+    )
+    private static let reservoirLow = Alert.Identifier(
+        managerIdentifier: "Medtrum",
+        alertIdentifier: "com.nightscout.medtrumkit.reservoir-low"
+    )
+
+    // MARK: - Tone
+
+    @Test("Critical device alarm carries the user's selected tone") func criticalGetsSelectedTone() throws {
+        let entry = try #require(AlertCatalogRegistry.lookup(Self.patchEmpty))
+        var config = DeviceAlertSeverityConfig(severity: .critical)
+        config.soundFilename = "synth.caf"
+        config.playsSound = true
+
+        let issued = Self.pluginAlert(Self.patchEmpty)
+        #expect(issued.sound == nil, "Precondition: plugins emit no sound")
+
+        let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(config, entry: entry, to: issued)
+        #expect(effective.sound == .sound(name: "synth.caf"))
+        // The critical-audio fallback keys off this filename.
+        #expect(effective.sound?.filename == "synth.caf")
+    }
+
+    @Test("Time-sensitive device alarm carries the user's selected tone") func timeSensitiveGetsSelectedTone() throws {
+        let entry = try #require(AlertCatalogRegistry.lookup(Self.reservoirLow))
+        var config = DeviceAlertSeverityConfig(severity: .timeSensitive)
+        config.soundFilename = "synth.caf"
+
+        let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(
+            config,
+            entry: entry,
+            to: Self.pluginAlert(Self.reservoirLow)
+        )
+        #expect(effective.sound == .sound(name: "synth.caf"))
+        #expect(effective.interruptionLevel == .timeSensitive)
+    }
+
+    @Test("Play Sound off yields a silent alarm") func playSoundOffSilences() throws {
+        let entry = try #require(AlertCatalogRegistry.lookup(Self.patchEmpty))
+        var config = DeviceAlertSeverityConfig(severity: .critical)
+        config.soundFilename = "synth.caf"
+        config.playsSound = false
+
+        let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(
+            config,
+            entry: entry,
+            to: Self.pluginAlert(Self.patchEmpty)
+        )
+        #expect(effective.sound == nil)
+    }
+
+    // MARK: - Override Silence & Focus
+
+    @Test("Override Silence & Focus escalates to .critical") func overrideEscalates() throws {
+        let entry = try #require(AlertCatalogRegistry.lookup(Self.reservoirLow))
+        #expect(entry.interruptionLevel == .timeSensitive, "Precondition: catalog level")
+        var config = DeviceAlertSeverityConfig(severity: .timeSensitive)
+        config.overridesSilenceAndDND = true
+
+        let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(
+            config,
+            entry: entry,
+            to: Self.pluginAlert(Self.reservoirLow)
+        )
+        #expect(effective.interruptionLevel == .critical)
+    }
+
+    @Test("Override off keeps the catalog level as the floor") func overrideOffKeepsCatalogLevel() throws {
+        let entry = try #require(AlertCatalogRegistry.lookup(Self.patchEmpty))
+        #expect(entry.interruptionLevel == .critical, "Precondition: catalog level")
+        var config = DeviceAlertSeverityConfig(severity: .critical)
+        config.overridesSilenceAndDND = false
+
+        // The toggle escalates only — it must not demote a critical alarm.
+        let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(
+            config,
+            entry: entry,
+            to: Self.pluginAlert(Self.patchEmpty)
+        )
+        #expect(effective.interruptionLevel == .critical)
+    }
+
+    @Test("Override off does not promote a Normal-tier alarm") func normalTierNotPromoted() throws {
+        let identifier = Alert.Identifier(managerIdentifier: "trio.aps", alertIdentifier: "algorithmError")
+        let entry = try #require(AlertCatalogRegistry.lookup(identifier))
+        #expect(entry.interruptionLevel == .active, "Precondition: catalog level")
+        var config = DeviceAlertSeverityConfig(severity: .normal)
+        config.overridesSilenceAndDND = false
+
+        let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(
+            config,
+            entry: entry,
+            to: Self.pluginAlert(identifier)
+        )
+        #expect(effective.interruptionLevel == .active)
+    }
+
+    // MARK: - Enabled / day-night gating
+
+    @Test("Disabled tier resolves to no config, so the alarm is dropped") func disabledTierDrops() {
+        var disabled = DeviceAlertSeverityConfig(severity: .timeSensitive, activeOption: .always)
+        disabled.isEnabled = false
+        let store = Self.makeStore(seed: [disabled])
+
+        #expect(store.config(for: .timeSensitive, at: Date(), isNight: false) == nil)
+    }
+
+    @Test("Night variant's tone wins at night") func nightVariantToneWins() throws {
+        var always = DeviceAlertSeverityConfig(severity: .critical, activeOption: .always)
+        always.soundFilename = "alarm.caf"
+        var night = DeviceAlertSeverityConfig(severity: .critical, activeOption: .night)
+        night.soundFilename = "synth.caf"
+        let store = Self.makeStore(seed: [always, night])
+
+        let config = try #require(store.config(for: .critical, at: Date(), isNight: true))
+        let entry = try #require(AlertCatalogRegistry.lookup(Self.patchEmpty))
+        let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(
+            config,
+            entry: entry,
+            to: Self.pluginAlert(Self.patchEmpty)
+        )
+        #expect(effective.sound == .sound(name: "synth.caf"))
+    }
+
+    @Test("Selected tones resolve to bundled sound files") func tonesExistInCatalog() {
+        #expect(AlarmSoundCatalog.allFilenames.contains("synth.caf"))
+        for severity in DeviceAlertSeverity.allCases {
+            #expect(
+                AlarmSoundCatalog.allFilenames.contains(severity.defaultSoundFilename),
+                "Default tone for \(severity) is not a bundled sound"
+            )
+        }
+    }
+
+    // MARK: - Identity preservation
+
+    @Test("Overlay preserves identifier, content and trigger") func overlayPreservesIdentity() throws {
+        let entry = try #require(AlertCatalogRegistry.lookup(Self.patchEmpty))
+        let issued = Self.pluginAlert(Self.patchEmpty)
+        let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(
+            DeviceAlertSeverityConfig(severity: .critical),
+            entry: entry,
+            to: issued
+        )
+        #expect(effective.identifier == issued.identifier)
+        #expect(effective.backgroundContent == issued.backgroundContent)
+        #expect(effective.foregroundContent == issued.foregroundContent)
+        #expect(effective.trigger == issued.trigger)
+    }
+}
+
+/// Guards the #1371 regression: alarm tones must be resolvable the way iOS
+/// resolves `UNNotificationSoundName` — from the flat top level of the main
+/// bundle (or `Library/Sounds`). Shipping them inside a `Sounds/` bundle
+/// subdirectory made every notification fall back to the default iOS sound.
+@Suite("Trio Alerts: alarm tone bundling") struct AlarmToneBundlingTests {
+    @Test("Every catalog tone resolves from the main bundle root") func tonesResolveAtBundleRoot() {
+        for filename in AlarmSoundCatalog.allFilenames {
+            let resource = (filename as NSString).deletingPathExtension
+            let ext = (filename as NSString).pathExtension
+            #expect(
+                Bundle.main.url(forResource: resource, withExtension: ext) != nil,
+                "\(filename) is not at the main bundle root — UNNotificationSound cannot resolve it"
+            )
+        }
+    }
+
+    @Test("critical.caf fallback tone is bundled") func criticalFallbackBundled() {
+        #expect(Bundle.main.url(forResource: "critical", withExtension: "caf") != nil)
+    }
+
+    @Test("Vendor sounds are namespaced flat, not nested") func vendorSoundsNamespaced() {
+        // iOS only looks at the top level of Library/Sounds, so a per-manager
+        // subdirectory would never resolve.
+        let name = AlertSoundLoader.namespaced("Omnipod", "beep.caf")
+        #expect(name == "Omnipod-beep.caf")
+        #expect(!name.contains("/"))
     }
 }

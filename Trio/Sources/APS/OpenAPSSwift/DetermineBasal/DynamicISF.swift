@@ -79,16 +79,21 @@ enum DynamicISF {
 
         var newRatio: Decimal
         if preferences.sigmoid {
-            let autosensInterval = maxLimit - minLimit
+            // BUG: A second fudge factor, mirroring the maxMinusOne
+            // copied from JS. This one prevents -Inf from log10 when
+            // minLimit == 1, which causes a crash loop
+            var sigmoidMin = minLimit
+            if minLimit == 1 { sigmoidMin = minLimit - 0.01 }
+            let autosensInterval = maxLimit - sigmoidMin
             let bgDev = (bg - profileTarget) * 0.0555
             let tddFactor = clampedTddRatio
             var maxMinusOne = maxLimit - 1
             // BUG: Note this fudge factor is to avoid a divide by zero but produces
             // unintuitive (and incorrect) results. See the unit tests for an example
             if maxLimit == 1 { maxMinusOne = maxLimit + 0.01 - 1 }
-            let fixOffset = Decimal.log10(1 / maxMinusOne - minLimit / maxMinusOne) / Decimal(Foundation.log10(M_E))
+            let fixOffset = Decimal.log10(1 / maxMinusOne - sigmoidMin / maxMinusOne) / Decimal(Foundation.log10(M_E))
             let exponent = bgDev * preferences.adjustmentFactorSigmoid * tddFactor + fixOffset
-            newRatio = autosensInterval / (1 + Decimal.exp(-exponent)) + minLimit
+            newRatio = autosensInterval / (1 + Decimal.exp(-exponent)) + sigmoidMin
         } else {
             newRatio = sensitivity * preferences.adjustmentFactor * tdd * (Decimal.log((bg / insulinFactor) + 1) / 1800)
         }

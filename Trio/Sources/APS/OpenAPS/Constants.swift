@@ -11,7 +11,6 @@ extension OpenAPS {
         static let basalProfile = "settings/basal_profile.json"
         static let carbRatios = "settings/carb_ratios.json"
         static let tempTargets = "settings/temptargets.json"
-        static let model = "settings/model.json"
     }
 
     enum Monitor {

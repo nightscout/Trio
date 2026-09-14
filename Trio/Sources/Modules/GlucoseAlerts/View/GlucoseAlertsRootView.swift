@@ -116,6 +116,7 @@ extension GlucoseAlerts {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button { sheet = .picker } label: { Image(systemName: "plus") }
+                        .accessibilityLabel(Text("Add glucose alarm"))
                 }
             }
             .sheet(item: $sheet, onDismiss: handleSheetDismiss) { which in
@@ -168,11 +169,13 @@ extension GlucoseAlerts {
 
         // MARK: - Sorted lists
 
-        /// Mirror of `GlucoseAlertCoordinator.shouldRespect(alarm:)`'s
-        /// CGM-ownership branch: when "Use CGM App Alerts" is ON and the
-        /// active CGM provides its own glucose alerts, the coordinator
-        /// silences reading-driven types. The view surfaces this by moving
-        /// those alarms into a dedicated section.
+        /// Mirror of the CGM-ownership guard in
+        /// `GlucoseAlertCoordinator.evaluateGlucoseAlarms()`: when "Use CGM
+        /// App Alerts" is ON and the active CGM provides its own glucose
+        /// alerts, the coordinator silences reading-driven types. Forecast
+        /// and carbs-required alarms are unaffected — the CGM app can't
+        /// compute those. The view surfaces this by moving the suppressed
+        /// alarms into a dedicated section.
         private var isCGMSuppressionActive: Bool {
             !store.configuration.forceTrioAlertsWhenCGMProvidesOwn && state.cgmProvidesOwnAlerts
         }

@@ -13,6 +13,7 @@ struct QuickPickSample {
 func topQuickPickSuggestions(
     from samples: [QuickPickSample],
     roundingScale: Int,
+    roundingMode: NSDecimalNumber.RoundingMode = .plain,
     now: Date,
     limit: Int = 5
 ) -> [Decimal] {
@@ -24,7 +25,7 @@ func topQuickPickSuggestions(
 
     var groups: [Decimal: Double] = [:]
     for sample in samples {
-        let roundedKey = sample.amount.rounded(scale: roundingScale)
+        let roundedKey = sample.amount.rounded(scale: roundingScale, roundingMode: roundingMode)
 
         let entryMinute = cal.component(.hour, from: sample.timestamp) * 60 + cal.component(.minute, from: sample.timestamp)
         let entryDOW = cal.component(.weekday, from: sample.timestamp)
@@ -64,6 +65,7 @@ private func fetchQuickPickSuggestions<T: NSManagedObject>(
     predicate: (Date) -> NSPredicate,
     sortKey: String,
     roundingScale: Int,
+    roundingMode: NSDecimalNumber.RoundingMode = .plain,
     extractSample: @escaping (T) -> QuickPickSample?
 ) async -> [Decimal] {
     let cutoff = Calendar.current.date(byAdding: .day, value: -lookbackDays, to: Date()) ?? Date()
@@ -81,7 +83,7 @@ private func fetchQuickPickSuggestions<T: NSManagedObject>(
         return await fetchContext.perform {
             guard let entities = results as? [T] else { return [] }
             let samples = entities.compactMap(extractSample)
-            return topQuickPickSuggestions(from: samples, roundingScale: roundingScale, now: Date())
+            return topQuickPickSuggestions(from: samples, roundingScale: roundingScale, roundingMode: roundingMode, now: Date())
         }
     } catch {
         debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch quick-pick suggestions for \(type): \(error)")
@@ -115,7 +117,10 @@ extension Home.StateModel {
                 )
             },
             sortKey: "pumpEvent.timestamp",
-            roundingScale: 2
+            // Floor to one decimal place (e.g. 1.15 -> 1.1) rather than rounding to the nearest, so
+            // suggestions stay simple and the pill text never needs two fraction digits.
+            roundingScale: 1,
+            roundingMode: .down
         ) { bolus in
             guard let rawAmount = bolus.amount, rawAmount.doubleValue > 0, rawAmount.doubleValue <= maxBolusUnits,
                   let timestamp = bolus.pumpEvent?.timestamp else { return nil }
@@ -163,25 +168,30 @@ extension Home.StateModel {
     }
 
     /// Authenticates and enacts a Quick-Pick bolus. Returns `nil` if no bolus was requested, `.failed`
-    /// if the amount was invalid or authentication was declined/failed, `.succeeded` otherwise.
-    private func enactQuickPickBolus(_ bolusAmount: Decimal?) async -> Home.QuickPickTreatmentOutcome.ActionResult? {
-        guard let bolusAmount else { return nil }
-        guard bolusAmount > 0 else { return .failed }
+    /// if the amount was invalid, authentication was declined/failed, or the pump rejected the bolus,
+    /// `.succeeded` otherwise. On a pump-level failure, `failureMessage` carries the pump's own reason.
+    private func enactQuickPickBolus(
+        _ bolusAmount: Decimal?
+    ) async -> (result: Home.QuickPickTreatmentOutcome.ActionResult?, failureMessage: String?) {
+        guard let bolusAmount else { return (nil, nil) }
+        guard bolusAmount > 0 else { return (.failed, nil) }
 
         let delivery = min(
             Double(truncating: bolusAmount as NSDecimalNumber),
             pumpInitialSettings.maxBolusUnits
         )
         do {
-            guard try await unlockmanager.unlock() else { return .failed }
+            guard try await unlockmanager.unlock() else { return (.failed, nil) }
             var bolusSucceeded = false
-            await apsManager.enactBolus(amount: delivery, isSMB: false) { success, _ in
+            var pumpMessage: String?
+            await apsManager.enactBolus(amount: delivery, isSMB: false) { success, message in
                 bolusSucceeded = success
+                pumpMessage = success ? nil : message
             }
-            return bolusSucceeded ? .succeeded : .failed
+            return bolusSucceeded ? (.succeeded, nil) : (.failed, pumpMessage)
         } catch {
             debug(.bolusState, "Quick-pick treatment bolus authentication error: \(error)")
-            return .failed
+            return (.failed, nil)
         }
     }
 
@@ -191,9 +201,12 @@ extension Home.StateModel {
     /// tell the user about a partial failure instead of silently losing one half of a combined pick.
     func enactQuickPickTreatment(bolusAmount: Decimal?, carbAmount: Decimal?) async -> Home.QuickPickTreatmentOutcome {
         async let carbsResult = storeQuickPickCarbs(carbAmount)
-        async let bolusResult = enactQuickPickBolus(bolusAmount)
+        async let bolusOutcome = enactQuickPickBolus(bolusAmount)
         var outcome = Home.QuickPickTreatmentOutcome()
-        (outcome.carbsResult, outcome.bolusResult) = await (carbsResult, bolusResult)
+        let (carbsResultValue, bolusOutcomeValue) = await (carbsResult, bolusOutcome)
+        outcome.carbsResult = carbsResultValue
+        outcome.bolusResult = bolusOutcomeValue.result
+        outcome.bolusFailureMessage = bolusOutcomeValue.failureMessage
 
         // A successful bolus already triggers its own determine-basal sync; sync here whenever carbs
         // were saved and the bolus (if any) wasn't successfully enacted, matching

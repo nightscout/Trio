@@ -172,10 +172,18 @@ private extension AlertCatalogRegistry {
     /// Manager identifier matches `LibreLoopCGMManager.pluginIdentifier`.
     /// Alert identifiers come from `LibreLoopExpiryAlerts` +
     /// `LibreLoopCGMManager.sensorAttentionAlertID` /
-    /// `needsReScanAlertID`. The 24 h warning is advance notice
-    /// (`.timeSensitive`); the 2 h warning, end-of-session, and replace-
-    /// needed escalate to `.critical`. Reconnect-needs-rescan is a user-
-    /// action prompt — `.timeSensitive`.
+    /// `needsReScanAlertID`.
+    ///
+    /// Levels track what LibreLoop itself issues: nothing here is `.critical`,
+    /// because none of these are act-immediately-or-be-harmed events — a sensor
+    /// ending or needing a re-scan pauses CGM, it doesn't dose insulin. Keeping
+    /// them `.timeSensitive` also leaves them snoozeable (`.critical` bypasses
+    /// snooze) and keeps genuine critical alarms meaningful.
+    ///
+    /// `sensorAttention` is one identifier covering three upstream states
+    /// (replace / ended / transient check), so a single level here is a
+    /// compromise — `.timeSensitive` fits replace + ended, and over-states the
+    /// transient case by one notch. Splitting it upstream is the real fix.
     static let libreLoopEntries: [Alert.CatalogEntry] = [
         addEntry(
             "LibreLoopCGMManager",
@@ -188,7 +196,7 @@ private extension AlertCatalogRegistry {
         addEntry(
             "LibreLoopCGMManager",
             "sensorExpiry.warning2h",
-            .critical,
+            .timeSensitive,
             "Sensor Expires in 2 Hours",
             "Sensor",
             .cgmExpiringSoon
@@ -196,7 +204,7 @@ private extension AlertCatalogRegistry {
         addEntry(
             "LibreLoopCGMManager",
             "sensorExpiry.sessionEnded",
-            .critical,
+            .timeSensitive,
             "Sensor Session Ended",
             "Sensor",
             .cgmExpired
@@ -204,8 +212,8 @@ private extension AlertCatalogRegistry {
         addEntry(
             "LibreLoopCGMManager",
             "sensorAttention",
-            .critical,
-            "Replace Sensor",
+            .timeSensitive,
+            "Sensor Attention",
             "Sensor",
             .cgmReplacementNeeded
         ),

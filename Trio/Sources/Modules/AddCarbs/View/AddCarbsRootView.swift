@@ -49,6 +49,11 @@ extension AddCarbs {
                             numberFormatter: formatter
                         )
                         Text(state.carbs > state.maxCarbs ? "⚠️" : "g").foregroundColor(.secondary)
+                            .accessibilityLabel(Text(
+                                state.carbs > state.maxCarbs
+                                    ? String(localized: "grams, over the maximum", comment: "Accessibility: value exceeds limit")
+                                    : String(localized: "grams", comment: "Gram unit, spoken")
+                            ))
                     }.padding(.vertical)
 
                     if state.useFPUconversion {
@@ -61,6 +66,7 @@ extension AddCarbs {
                             if isFocused {
                                 Button { isFocused = false } label: { Image(systemName: "keyboard.chevron.compact.down") }
                                     .controlSize(.mini)
+                                    .accessibilityLabel(Text("Dismiss keyboard"))
                             }
                         }.focused($isFocused)
 
@@ -246,6 +252,7 @@ extension AddCarbs {
                         if state.carbs == 0, state.fat == 0, state.protein == 0 { state.summation = [] }
                     }
                     label: { Text("[ -1 ]") }
+                        .accessibilityLabel(Text("Remove one serving"))
                         .disabled(
                             state
                                 .selection == nil ||
@@ -264,6 +271,7 @@ extension AddCarbs {
                         state.addPresetToNewMeal()
                     }
                     label: { Text("[ +1 ]") }
+                        .accessibilityLabel(Text("Add one serving"))
                         .disabled(state.selection == nil)
                         .buttonStyle(BorderlessButtonStyle())
                         .accentColor(.blue)
@@ -277,12 +285,22 @@ extension AddCarbs {
                 Spacer()
                 TextFieldWithToolBar(text: $state.fat, placeholder: "0", numberFormatter: formatter)
                 Text(state.fat > state.maxFat ? "⚠️" : "g").foregroundColor(.secondary)
+                    .accessibilityLabel(Text(
+                        state.fat > state.maxFat
+                            ? String(localized: "grams, over the maximum", comment: "Accessibility: value exceeds limit")
+                            : String(localized: "grams", comment: "Gram unit, spoken")
+                    ))
             }
             HStack {
                 Text("Protein").foregroundColor(.red) // .fontWeight(.thin)
                 Spacer()
                 TextFieldWithToolBar(text: $state.protein, placeholder: "0", numberFormatter: formatter)
                 Text(state.protein > state.maxProtein ? "⚠️" : "g").foregroundColor(.secondary)
+                    .accessibilityLabel(Text(
+                        state.protein > state.maxProtein
+                            ? String(localized: "grams, over the maximum", comment: "Accessibility: value exceeds limit")
+                            : String(localized: "grams", comment: "Gram unit, spoken")
+                    ))
             }
         }
     }

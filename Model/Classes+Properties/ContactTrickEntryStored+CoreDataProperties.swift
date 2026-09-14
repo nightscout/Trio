@@ -18,8 +18,11 @@ public extension ContactImageEntryStored {
     @NSManaged var ringGap: Int16
     @NSManaged var id: UUID?
     @NSManaged var colorMode: String?
+    @NSManaged var backgroundMode: String?
     @NSManaged var fontSize: Int16
     @NSManaged var fontSizeSecondary: Int16
     @NSManaged var fontWidth: String?
     @NSManaged var fontWeight: String?
+    @NSManaged var bobbleShowMinutesAgo: Bool
+    @NSManaged var bobbleShowDelta: Bool
 }

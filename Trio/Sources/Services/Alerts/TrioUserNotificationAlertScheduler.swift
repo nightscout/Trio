@@ -10,11 +10,9 @@ final class TrioUserNotificationAlertScheduler {
     weak var responder: TrioUserNotificationAlertResponder?
 
     private let notificationCenter: UNUserNotificationCenter
-    private let soundsRoot: URL
 
-    init(notificationCenter: UNUserNotificationCenter, soundsRoot: URL) {
+    init(notificationCenter: UNUserNotificationCenter) {
         self.notificationCenter = notificationCenter
-        self.soundsRoot = soundsRoot
     }
 
     func schedule(_ alert: Alert, muted: Bool, soundURL: URL?) {

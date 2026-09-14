@@ -4,6 +4,7 @@ import Combine
 import CoreData
 import Foundation
 import G7SensorKit
+import LibreLoop
 import LibreTransmitter
 import LoopKit
 import LoopKitUI
@@ -130,7 +131,7 @@ extension Home {
         var enableQuickPickTreatments: Bool = false
         var quickPickBolusSuggestions: [Decimal] = []
         var quickPickCarbSuggestions: [Decimal] = []
-        private(set) var setupPumpType: PumpConfig.PumpType = .minimed
+        private(set) var setupPumpEntry: PumpCatalogEntry?
         var minForecast: [Int] = []
         var maxForecast: [Int] = []
         var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
@@ -678,27 +679,7 @@ extension Home {
         @MainActor private func setupCGMSettings() async {
             cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
 
-            listOfCGM = (
-                CGMType.allCases.filter { $0 != CGMType.plugin }.map {
-                    CGMModel(id: $0.id, type: $0, displayName: $0.displayName, subtitle: $0.subtitle)
-                } +
-                    pluginCGMManager.availableCGMManagers.map {
-                        CGMModel(
-                            id: $0.identifier,
-                            type: CGMType.plugin,
-                            displayName: $0.localizedTitle,
-                            subtitle: $0.localizedTitle
-                        )
-                    }
-            ).sorted(by: { lhs, rhs in
-                if lhs.displayName == "None" {
-                    return true
-                } else if rhs.displayName == "None" {
-                    return false
-                } else {
-                    return lhs.displayName < rhs.displayName
-                }
-            })
+            listOfCGM = DeviceCatalog.cgmModels
 
             switch settingsManager.settings.cgm {
             case .plugin:
@@ -723,8 +704,8 @@ extension Home {
             }
         }
 
-        func addPump(_ type: PumpConfig.PumpType) {
-            setupPumpType = type
+        func addPump(_ entry: PumpCatalogEntry) {
+            setupPumpEntry = entry
             shouldDisplayPumpSetupSheet = true
         }
 
@@ -879,6 +860,14 @@ extension Home {
             if let g6 = manager as? G6CGMManager, let exp = g6.latestReading?.sessionExpDate { return exp }
             if let g5 = manager as? G5CGMManager, let exp = g5.latestReading?.sessionExpDate { return exp }
 
+            if let libreLoop = manager as? LibreLoopCGMManager {
+                if case let .active(remaining, _) = libreLoop.sensorLifecycle, remaining > 0 {
+                    return Date().addingTimeInterval(remaining)
+                }
+                // Warmup / initializing / expired — no meaningful expiry yet.
+                return nil
+            }
+
             let activatedAt: Date?
             if let g7 = manager as? G7CGMManager {
                 activatedAt = g7.sensorActivatedAt
@@ -912,6 +901,12 @@ extension Home {
             if let g5 = manager as? G5CGMManager, let start = g5.latestReading?.sessionStartDate {
                 let ends = start.addingTimeInterval(2 * 60 * 60)
                 return ends > Date() ? ends : nil
+            }
+            if let libreLoop = manager as? LibreLoopCGMManager {
+                if case let .warmup(_, remaining) = libreLoop.sensorLifecycle, remaining > 0 {
+                    return Date().addingTimeInterval(remaining)
+                }
+                return nil
             }
             return nil
         }

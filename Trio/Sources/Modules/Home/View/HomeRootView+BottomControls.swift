@@ -57,6 +57,7 @@ extension Home.RootView {
             .foregroundStyle(tint)
             .frame(width: 30, height: 30)
             .background(Circle().fill(tint.opacity(0.18)))
+            .accessibilityHidden(true)
     }
 
     var adjustmentTint: Color? {
@@ -228,26 +229,35 @@ extension Home.RootView {
             .onTapGesture {
                 cancelAction()
             }
+            .accessibilityLabel(Text("Stop adjustment"))
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { cancelAction() }
     }
 
     @ViewBuilder func adjustmentsCancelTempTargetView() -> some View {
         Image(systemName: "xmark.app")
             .font(.title)
-            .confirmationDialog(
+            .glassActionSheet(
                 "Stop the Temp Target \"\(latestTempTarget.first?.name ?? "")\"?",
                 isPresented: $isConfirmStopTempTargetShown,
-                titleVisibility: .visible
-            ) {
-                Button("Stop", role: .destructive) {
-                    Task {
-                        guard let objectID = latestTempTarget.first?.objectID else { return }
-                        await state.cancelTempTarget(withID: objectID)
+                actions: [
+                    GlassSheetAction("Stop", role: .destructive) {
+                        Task {
+                            guard let objectID = latestTempTarget.first?.objectID else { return }
+                            await state.cancelTempTarget(withID: objectID)
+                        }
                     }
-                }
-                Button("Cancel", role: .cancel) {}
-            }
+                ]
+            )
             .padding(.trailing, 8)
             .onTapGesture {
+                if !latestTempTarget.isEmpty {
+                    isConfirmStopTempTargetShown = true
+                }
+            }
+            .accessibilityLabel(Text("Stop temp target"))
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction {
                 if !latestTempTarget.isEmpty {
                     isConfirmStopTempTargetShown = true
                 }
@@ -257,21 +267,27 @@ extension Home.RootView {
     @ViewBuilder func adjustmentsCancelOverrideView() -> some View {
         Image(systemName: "xmark.app")
             .font(.title)
-            .confirmationDialog(
+            .glassActionSheet(
                 "Stop the Override \"\(latestOverride.first?.name ?? "")\"?",
                 isPresented: $isConfirmStopOverridePresented,
-                titleVisibility: .visible
-            ) {
-                Button("Stop", role: .destructive) {
-                    Task {
-                        guard let objectID = latestOverride.first?.objectID else { return }
-                        await state.cancelOverride(withID: objectID)
+                actions: [
+                    GlassSheetAction("Stop", role: .destructive) {
+                        Task {
+                            guard let objectID = latestOverride.first?.objectID else { return }
+                            await state.cancelOverride(withID: objectID)
+                        }
                     }
-                }
-                Button("Cancel", role: .cancel) {}
-            }
+                ]
+            )
             .padding(.trailing, 8)
             .onTapGesture {
+                if !latestOverride.isEmpty {
+                    isConfirmStopOverridePresented = true
+                }
+            }
+            .accessibilityLabel(Text("Stop override"))
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction {
                 if !latestOverride.isEmpty {
                     isConfirmStopOverridePresented = true
                 }
@@ -372,31 +388,34 @@ extension Home.RootView {
                     noActiveAdjustmentsView()
                 }
             }.padding(.horizontal, 10)
-                .confirmationDialog("Adjustment to Stop", isPresented: $showCancelConfirmDialog) {
-                    Button("Stop Override", role: .destructive) {
-                        Task {
-                            guard let objectID = latestOverride.first?.objectID else { return }
-                            await state.cancelOverride(withID: objectID)
-                        }
-                    }
-                    Button("Stop Temp Target", role: .destructive) {
-                        Task {
-                            guard let objectID = latestTempTarget.first?.objectID else { return }
-                            await state.cancelTempTarget(withID: objectID)
-                        }
-                    }
-                    Button("Stop All Adjustments", role: .destructive) {
-                        Task {
-                            guard let overrideObjectID = latestOverride.first?.objectID else { return }
-                            await state.cancelOverride(withID: overrideObjectID)
+                .glassActionSheet(
+                    "Adjustment to Stop",
+                    message: Text("Select Adjustment"),
+                    isPresented: $showCancelConfirmDialog,
+                    actions: [
+                        GlassSheetAction("Stop Override", role: .destructive) {
+                            Task {
+                                guard let objectID = latestOverride.first?.objectID else { return }
+                                await state.cancelOverride(withID: objectID)
+                            }
+                        },
+                        GlassSheetAction("Stop Temp Target", role: .destructive) {
+                            Task {
+                                guard let objectID = latestTempTarget.first?.objectID else { return }
+                                await state.cancelTempTarget(withID: objectID)
+                            }
+                        },
+                        GlassSheetAction("Stop All Adjustments", role: .destructive) {
+                            Task {
+                                guard let overrideObjectID = latestOverride.first?.objectID else { return }
+                                await state.cancelOverride(withID: overrideObjectID)
 
-                            guard let tempTargetObjectID = latestTempTarget.first?.objectID else { return }
-                            await state.cancelTempTarget(withID: tempTargetObjectID)
+                                guard let tempTargetObjectID = latestTempTarget.first?.objectID else { return }
+                                await state.cancelTempTarget(withID: tempTargetObjectID)
+                            }
                         }
-                    }
-                } message: {
-                    Text("Select Adjustment")
-                }
+                    ]
+                )
         }
         .frame(height: HomeLayout.bottomPanelHeight)
         .glassPanel(
@@ -437,6 +456,9 @@ extension Home.RootView {
         .onTapGesture {
             selectedTab = 2
         }
+        .accessibilityHint(Text(String(localized: "Opens adjustments", comment: "Accessibility hint")))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { selectedTab = 2 }
         .padding(.horizontal, 10)
     }
 
@@ -457,6 +479,7 @@ extension Home.RootView {
             HStack {
                 Image(systemName: "cross.vial.fill")
                     .font(.system(size: 25))
+                    .accessibilityHidden(true)
 
                 Spacer()
 
@@ -468,6 +491,9 @@ extension Home.RootView {
                         .font(.caption)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }.padding(.leading, 5)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text(bolusLabel))
+                    .accessibilityValue(Text(bolusString))
 
                 Spacer()
 
@@ -479,6 +505,7 @@ extension Home.RootView {
                         Image(systemName: "xmark.app")
                             .font(.system(size: 25))
                     }
+                    .accessibilityLabel(Text("Cancel bolus"))
                 } else if state.bolusStatus == .initiating {
                     ProgressView()
                 }
@@ -633,6 +660,7 @@ extension Home.RootView {
             pumpTimeMismatch: state.pumpStatusBadgeImage != nil,
             lastGlucoseDate: state.glucoseFromPersistence.last?.date,
             maxIOB: state.maxIOB,
+            hasUnacknowledgedReleaseNotes: releaseNotesService.hasUnacknowledgedNotes,
             now: state.timerDate
         )
     }
@@ -644,6 +672,9 @@ extension Home.RootView {
         subtitle: String,
         tint: Color,
         isCritical: Bool = false,
+        tintOpacity: Double? = nil,
+        strokeOpacity: Double? = nil,
+        strokeWidth: CGFloat? = nil,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -671,9 +702,9 @@ extension Home.RootView {
             .frame(height: HomeLayout.statsBannerHeight)
             .glassPanel(
                 tint: tint,
-                tintOpacity: isCritical ? 0.30 : 0.12,
-                strokeOpacity: isCritical ? 0.8 : 0.35,
-                strokeWidth: isCritical ? 1.5 : 1
+                tintOpacity: tintOpacity ?? (isCritical ? 0.30 : 0.12),
+                strokeOpacity: strokeOpacity ?? (isCritical ? 0.8 : 0.35),
+                strokeWidth: strokeWidth ?? (isCritical ? 1.5 : 1)
             )
             .padding(.horizontal, 10)
             .contentShape(Rectangle())
@@ -722,6 +753,21 @@ extension Home.RootView {
                 tint: .orange
             ) {
                 openMaxIOBSetting()
+            }
+        case .whatsNew:
+            panelBanner(
+                systemImage: "sparkles",
+                title: String(
+                    localized: "New Release v\(releaseNotesService.notes?.version ?? "")",
+                    comment: "Home panel title offering the release notes; the placeholder is a version number"
+                ),
+                subtitle: String(localized: "See what's new in this version."),
+                tint: .insulin,
+                tintOpacity: 0.24,
+                strokeOpacity: 0.7,
+                strokeWidth: 1.5
+            ) {
+                showReleaseNotes = true
             }
         case .stats:
             statsBanner()

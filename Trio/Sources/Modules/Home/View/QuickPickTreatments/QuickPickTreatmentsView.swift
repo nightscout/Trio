@@ -37,6 +37,7 @@ struct QuickPickTreatmentsView: View {
                             accentColor: Color.orange,
                             formatter: Formatter.integerFormatter,
                             unit: carbUnitLabel,
+                            unitSpoken: String(localized: "grams", comment: "Accessibility: carb unit spoken"),
                             select: toggleCarbSelection
                         )
                         .padding(.top)
@@ -49,6 +50,7 @@ struct QuickPickTreatmentsView: View {
                             accentColor: Color.accentColor,
                             formatter: Formatter.bolusFormatter,
                             unit: bolusUnitLabel,
+                            unitSpoken: String(localized: "units", comment: "Accessibility: insulin unit spoken"),
                             select: toggleBolusSelection
                         )
                         .padding(.top, displayedCarbSuggestions.isEmpty ? 0 : 12)
@@ -89,6 +91,7 @@ struct QuickPickTreatmentsView: View {
                         showInfo = true
                     } label: {
                         Image(systemName: "questionmark.circle")
+                            .accessibilityLabel(Text("More information"))
                     }
                 }
             }
@@ -129,6 +132,27 @@ struct QuickPickTreatmentsView: View {
         )
         .disabled(selectedBolusAmount == nil && selectedCarbAmount == nil)
         .padding(.horizontal)
+        // the slide gesture is invisible to VoiceOver; expose an equivalent activatable action
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(slideToConfirmAccessibilityLabel))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityHint(Text(String(localized: "Double tap to confirm", comment: "Accessibility hint")))
+        .accessibilityAction { Task { await enact() } }
+    }
+
+    /// Action-oriented label for VoiceOver — the visual "Slide to…" wording implies a gesture
+    /// screen-reader users cannot perform; they activate this with a double tap instead.
+    private var slideToConfirmAccessibilityLabel: String {
+        switch (selectedBolusAmount != nil, selectedCarbAmount != nil) {
+        case (true, true):
+            return String(localized: "Log carbs and enact bolus", comment: "Accessibility: quick-pick confirm")
+        case (true, false):
+            return String(localized: "Enact bolus", comment: "Accessibility: quick-pick confirm")
+        case (false, true):
+            return String(localized: "Log carbs", comment: "Accessibility: quick-pick confirm")
+        case (false, false):
+            return String(localized: "Confirm", comment: "Accessibility: quick-pick confirm")
+        }
     }
 
     private var displayedBolusSuggestions: [Decimal] { Self.displayedSuggestions(from: bolusSuggestions, limit: 3) }
@@ -206,12 +230,21 @@ struct QuickPickTreatmentsView: View {
             isPresented = false
 
         case (.succeeded, .failed):
+            let message: String
+            if let bolusFailureMessage = outcome.bolusFailureMessage {
+                message = String(
+                    localized: "Carbs were logged. \(bolusFailureMessage)",
+                    comment: "Alert body when carbs saved but the bolus failed at the pump, with the pump's reason appended"
+                )
+            } else {
+                message = String(
+                    localized: "Carbs were logged, but the bolus could not be authenticated and was not enacted.",
+                    comment: "Alert body when carbs saved but bolus authentication failed"
+                )
+            }
             enactAlert = EnactAlert(
                 title: String(localized: "Bolus Not Enacted", comment: "Alert title when carbs saved but the bolus failed"),
-                message: String(
-                    localized: "Carbs were logged, but the bolus could not be authenticated and was not enacted.",
-                    comment: "Alert body when carbs saved but the bolus failed"
-                ),
+                message: message,
                 dismissesSheet: true
             )
 
@@ -239,17 +272,28 @@ struct QuickPickTreatmentsView: View {
             )
 
         case (nil, .failed):
-            enactAlert = EnactAlert(
-                title: String(
-                    localized: "Could Not Authenticate",
-                    comment: "Alert title when biometric auth fails for a quick-pick bolus"
-                ),
-                message: String(
-                    localized: "Face ID or Touch ID did not succeed. The bolus was not enacted.",
-                    comment: "Alert body when biometric auth fails for a quick-pick bolus"
-                ),
-                dismissesSheet: false
-            )
+            if let bolusFailureMessage = outcome.bolusFailureMessage {
+                enactAlert = EnactAlert(
+                    title: String(
+                        localized: "Bolus Not Enacted",
+                        comment: "Alert title when a bolus-only quick pick fails at the pump"
+                    ),
+                    message: bolusFailureMessage,
+                    dismissesSheet: false
+                )
+            } else {
+                enactAlert = EnactAlert(
+                    title: String(
+                        localized: "Could Not Authenticate",
+                        comment: "Alert title when biometric auth fails for a quick-pick bolus"
+                    ),
+                    message: String(
+                        localized: "Face ID or Touch ID did not succeed. The bolus was not enacted.",
+                        comment: "Alert body when biometric auth fails for a quick-pick bolus"
+                    ),
+                    dismissesSheet: false
+                )
+            }
 
         case (.failed, nil):
             enactAlert = EnactAlert(
@@ -269,6 +313,7 @@ struct QuickPickTreatmentsView: View {
         accentColor: Color,
         formatter: NumberFormatter,
         unit: String,
+        unitSpoken: String,
         select: @escaping (Decimal) -> Void
     ) -> some View {
         let isCompact = amounts.count < 2
@@ -282,6 +327,7 @@ struct QuickPickTreatmentsView: View {
                     accentColor: accentColor,
                     formatter: formatter,
                     unit: unit,
+                    unitSpoken: unitSpoken,
                     action: { select(amount) }
                 )
                 .frame(maxWidth: isCompact ? 160 : .infinity)
@@ -298,6 +344,7 @@ struct QuickPickTreatmentsView: View {
         accentColor: Color,
         formatter: NumberFormatter,
         unit: String,
+        unitSpoken: String,
         action: @escaping () -> Void
     ) -> some View {
         let formatted = formatter.string(from: amount as NSDecimalNumber) ?? amount.description
@@ -327,5 +374,8 @@ struct QuickPickTreatmentsView: View {
         }
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: 0.15), value: isSelected)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("\(formatted) \(unitSpoken)"))
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 }

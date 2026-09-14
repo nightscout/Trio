@@ -67,6 +67,7 @@ extension ContactImage {
                                         .foregroundColor(colorScheme == .dark ? .white : .black)
                                         .frame(width: 40, height: 40)
                                 }
+                                .accessibilityHidden(true)
 
                                 Text("\(entry.name)")
                             }

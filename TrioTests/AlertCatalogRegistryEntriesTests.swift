@@ -34,9 +34,6 @@ import Testing
             ("Medtrum", "com.nightscout.medtrumkit.patch-occlusion"), // single-s (future MedtrumKit)
             ("Medtrum", "com.nightscout.medtrumkit.patch-fault"),
             ("Medtrum", "com.nightscout.medtrumkit.patch-empty"),
-            ("LibreLoopCGMManager", "sensorExpiry.warning2h"),
-            ("LibreLoopCGMManager", "sensorExpiry.sessionEnded"),
-            ("LibreLoopCGMManager", "sensorAttention"),
             ("trio.aps", "loop.notActive")
         ]
     ) func criticalEntries(manager: String, alertID: String) {
@@ -56,6 +53,11 @@ import Testing
             ("Medtrum", "com.nightscout.medtrumkit.patch-daily-limit"),
             ("LibreLoopCGMManager", "sensorExpiry.warning24h"),
             ("LibreLoopCGMManager", "reconnectNeedsReScan"),
+            // No LibreLoop alert is .critical: a sensor ending or needing a
+            // re-scan pauses CGM, it doesn't dose. Keeps them snoozeable.
+            ("LibreLoopCGMManager", "sensorExpiry.warning2h"),
+            ("LibreLoopCGMManager", "sensorExpiry.sessionEnded"),
+            ("LibreLoopCGMManager", "sensorAttention"),
             ("trio.aps", "glucoseDataStale")
         ]
     ) func timeSensitiveEntries(manager: String, alertID: String) {

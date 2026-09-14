@@ -1,11 +1,4 @@
-import AccuChekKit
-import CGMBLEKit
-import EversenseKit
 import Foundation
-import G7SensorKit
-import G7SensorKitUI
-import LibreTransmitter
-import LibreTransmitterUI
 import LoopKit
 import LoopKitUI
 import Swinject
@@ -15,55 +8,21 @@ protocol PluginManager {
     func getCGMManagerTypeByIdentifier(_ identifier: String) -> CGMManagerUI.Type?
 }
 
+/// Exposes the manager-backed CGMs from `DeviceCatalog` in LoopKit's descriptor vocabulary.
+///
+/// Named "plugin" for historical reasons only: Trio statically links every kit rather than loading bundles.
 class BasePluginManager: Injectable, PluginManager {
-    struct CgmPluginDescription {
-        let pluginIdentifier: String
-        let localizedTitle: String
-        let manager: CGMManagerUI.Type
-    }
-
-    static let cgms = [
-        CgmPluginDescription(
-            pluginIdentifier: G5CGMManager.pluginIdentifier,
-            localizedTitle: String(localized: "Dexcom G5"),
-            manager: G5CGMManager.self
-        ),
-        CgmPluginDescription(
-            pluginIdentifier: G6CGMManager.pluginIdentifier,
-            localizedTitle: String(localized: "Dexcom G6 / ONE"),
-            manager: G6CGMManager.self
-        ),
-        CgmPluginDescription(
-            pluginIdentifier: G7CGMManager.pluginIdentifier,
-            localizedTitle: String(localized: "Dexcom G7 / ONE+"),
-            manager: G7CGMManager.self
-        ),
-        CgmPluginDescription(
-            pluginIdentifier: LibreTransmitterManagerV3.pluginIdentifier,
-            localizedTitle: String(localized: "FreeStyle Libre"),
-            manager: LibreTransmitterManagerV3.self
-        ),
-        CgmPluginDescription(
-            pluginIdentifier: AccuChekCgmManager.pluginIdentifier,
-            localizedTitle: String(localized: "Accu-Chek SmartGuide"),
-            manager: AccuChekCgmManager.self
-        ),
-        CgmPluginDescription(
-            pluginIdentifier: EversenseCGMManager.pluginIdentifier,
-            localizedTitle: String(localized: "Eversense"),
-            manager: EversenseCGMManager.self
-        )
-    ]
-
     init(resolver: Resolver) {
         injectServices(resolver)
     }
 
     func getCGMManagerTypeByIdentifier(_ pluginIdentifier: String) -> CGMManagerUI.Type? {
-        BasePluginManager.cgms.filter({ $0.pluginIdentifier == pluginIdentifier }).first?.manager
+        DeviceCatalog.cgmEntry(id: pluginIdentifier)?.managerType
     }
 
     var availableCGMManagers: [CGMManagerDescriptor] {
-        BasePluginManager.cgms.map { CGMManagerDescriptor(identifier: $0.pluginIdentifier, localizedTitle: $0.localizedTitle) }
+        DeviceCatalog.cgmManagerEntries.map {
+            CGMManagerDescriptor(identifier: $0.id, localizedTitle: $0.name)
+        }
     }
 }

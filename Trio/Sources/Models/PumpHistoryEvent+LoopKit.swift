@@ -31,3 +31,22 @@ extension EventType {
         }
     }
 }
+
+extension InsulinType {
+    /// Stable string identity for persistence; raw Int values must not be stored.
+    var identifier: String {
+        switch self {
+        case .novolog: return "novolog"
+        case .humalog: return "humalog"
+        case .apidra: return "apidra"
+        case .fiasp: return "fiasp"
+        case .lyumjev: return "lyumjev"
+        case .afrezza: return "afrezza"
+        }
+    }
+
+    init?(identifier: String) {
+        guard let match = InsulinType.allCases.first(where: { $0.identifier == identifier }) else { return nil }
+        self = match
+    }
+}

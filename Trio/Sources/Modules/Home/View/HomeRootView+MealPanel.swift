@@ -21,7 +21,15 @@ extension Home.RootView {
                     .font(.callout)
                     .foregroundColor(.loopYellow)
                     .alignmentGuide(.leading) { $0.width + 5 }
+                    .accessibilityHidden(true)
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("Carbs on board"))
+            .accessibilityValue(Text(
+                (Formatter.decimalFormatterWithTwoFractionDigits.string(
+                    from: NSNumber(value: state.enactedAndNonEnactedDeterminations.first?.cob ?? 0)
+                ) ?? "0") + String(localized: " g", comment: "gram of carbs")
+            ))
 
             HStack {
                 HStack {
@@ -37,6 +45,15 @@ extension Home.RootView {
                     )
                     .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("Insulin on board"))
+                .accessibilityValue(Text(
+                    (
+                        Formatter.decimalFormatterWithTwoFractionDigits
+                            .string(from: state.currentIOB as NSNumber) ?? "0"
+                    )
+                        + String(localized: " U", comment: "Insulin unit")
+                ))
 
                 Spacer()
 
@@ -89,5 +106,17 @@ extension Home.RootView {
             }
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Alarms"))
+        .accessibilityValue(Text(
+            isSnoozed
+                ? String(
+                    format: String(localized: "snoozed, %d minutes remaining", comment: "Accessibility: alarm snooze"),
+                    remainingMinutes
+                )
+                : String(localized: "active", comment: "Accessibility: alarms active")
+        ))
+        .accessibilityHint(Text(String(localized: "Opens snooze options", comment: "Accessibility hint")))
+        .accessibilityAddTraits(.isButton)
     }
 }

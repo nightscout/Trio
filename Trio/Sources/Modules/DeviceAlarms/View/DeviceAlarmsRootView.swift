@@ -56,7 +56,7 @@ extension DeviceAlarms {
                                     sheet = .help(severity)
                                 }) {
                                     HStack {
-                                        Image(systemName: "questionmark.circle")
+                                        Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
                                     }
                                 }
                                 .buttonStyle(BorderlessButtonStyle())
@@ -83,6 +83,7 @@ extension DeviceAlarms {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button { sheet = .picker } label: { Image(systemName: "plus") }
+                        .accessibilityLabel(Text("Add device alarm"))
                 }
             }
             .sheet(item: $sheet, onDismiss: handleSheetDismiss) { which in
