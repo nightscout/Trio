@@ -90,6 +90,41 @@ extension Notification.Name {
         // Last: needs the pump manager's AlertResponder registration and the
         // seeded DeviceAlertsStore in place before re-presenting alerts.
         resolver.resolve(TrioAlertManager.self)!.replayUnacknowledgedAlerts()
+
+        startTelemetry()
+    }
+
+    /// Telemetry starts here, not in `AppDelegate.didFinishLaunching`: resolving
+    /// `TelemetryClient` constructs the APS/device graph, whose first pump/CGM
+    /// save crashes while the persistent stores are still loading.
+    ///
+    /// Materialize the install ID even when sharing is disabled, then record
+    /// this cold launch into the sliding 7-day window, then drive cadence via
+    /// layered triggers — listed below in priority of reliability:
+    ///
+    ///   1. SHA-change ping: build updated since last send. Awaited so
+    ///      the lastSentAt stamp is fresh before the overdue check.
+    ///   2. checkAndSendIfOverdue: covers the regular cold launch on the
+    ///      same build when >24h has passed since the last successful
+    ///      send. Together with the foreground-transition hook
+    ///      (`AppDelegate.applicationWillEnterForeground`), this keeps daily
+    ///      pings flowing on iOS. Fresh CGM processing performs the same check
+    ///      under its own bounded background task for background-heavy use.
+    ///   3. scheduleRecurring: best-effort fallback for the rare case
+    ///      where the app stays foregrounded for a full 24h.
+    private func startTelemetry() {
+        let telemetry = resolver.resolve(TelemetryClient.self)!
+        // hands the foreground-transition hook its reference; nil until now
+        appDelegate.telemetry = telemetry
+        telemetry.initializeInstallID()
+        telemetry.recordColdLaunch()
+        Task.detached {
+            if telemetry.buildShaChangedSinceLastSend() {
+                await telemetry.maybeSend(reason: .buildChange)
+            }
+            telemetry.scheduleRecurring()
+            telemetry.checkAndSendIfOverdue(reason: .coldLaunch)
+        }
     }
 
     init() {

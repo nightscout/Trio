@@ -59,7 +59,7 @@ actor TelemetrySendGate {
 /// Opted-out installs send only an empty daily `/anonymous` GET carrying the
 /// app version, install identifier, trigger reason, and prior failure category.
 final class TelemetryClient: Injectable {
-    // Container-scoped singleton; shared is a convenience accessor for AppDelegate/UI entry points
+    // Container-scoped singleton; resolving pulls the APS/device graph, so only touch after loadServices()
     static var shared: TelemetryClient { TrioApp.resolver.resolve(TelemetryClient.self)! }
 
     enum SendReason: String {
