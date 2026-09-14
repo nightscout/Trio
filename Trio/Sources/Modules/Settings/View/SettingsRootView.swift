@@ -21,10 +21,37 @@ extension Settings {
         @State private var showShareSheet = false
         @State private var searchText: String = ""
 
-        @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: AnyView?
-        @State var hintLabel: String?
+
+        /// The help sheet's content, presented with `.sheet(item:)`.
+        ///
+        /// Same fix as `DynamicSettingsRootView` and `NightscoutConfigRootView` (see "Fix empty
+        /// help sheet on first cold tap"): with `.sheet(isPresented:)` plus separate `@State`
+        /// for the label and body, the content closure is captured from a snapshot taken before
+        /// those writes are observed, so the first tap after a cold launch renders an empty
+        /// sheet — later taps work only because the state is still populated from the previous
+        /// one. Setting one payload delivers the data and triggers presentation atomically.
+        @State private var hintPayload: HintPayload?
+
+        private struct HintPayload: Identifiable {
+            let id = UUID()
+            let label: String
+            let content: AnyView
+        }
+
+        private var shouldDisplayHintBinding: Binding<Bool> {
+            Binding(
+                get: { hintPayload != nil },
+                set: { newValue in
+                    if !newValue {
+                        hintPayload = nil
+                    } else if hintPayload == nil {
+                        hintPayload = HintPayload(label: "", content: AnyView(EmptyView()))
+                    }
+                }
+            )
+        }
+
         @State private var versionInfo = VersionInfo(
             latestVersion: nil,
             isUpdateAvailable: false,
@@ -219,9 +246,9 @@ extension Settings {
                                     Spacer()
                                     Button(
                                         action: {
-                                            hintLabel = String(localized: "Dosing Mode")
-                                            selectedVerboseHint =
-                                                AnyView(
+                                            hintPayload = HintPayload(
+                                                label: String(localized: "Dosing Mode"),
+                                                content: AnyView(
                                                     VStack(alignment: .leading, spacing: 10) {
                                                         Text(
                                                             "Dosing Mode decides how much of Trio's insulin dosing decision is actually sent to your pump. Every mode still needs an active CGM sensor session and a connected pump."
@@ -235,7 +262,7 @@ extension Settings {
                                                         }
                                                     }
                                                 )
-                                            shouldDisplayHint.toggle()
+                                            )
                                         },
                                         label: {
                                             HStack {
@@ -425,12 +452,12 @@ extension Settings {
                 }
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
-            .sheet(isPresented: $shouldDisplayHint) {
+            .sheet(item: $hintPayload) { payload in
                 SettingInputHintView(
                     hintDetent: $hintDetent,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                    shouldDisplayHint: shouldDisplayHintBinding,
+                    hintLabel: payload.label,
+                    hintText: payload.content,
                     sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
