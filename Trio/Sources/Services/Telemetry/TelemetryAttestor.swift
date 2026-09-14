@@ -21,25 +21,18 @@ import Swinject
 ///   2. POST /api/attest/register          (once per install)
 ///   3. /checkin                           (per ping, headers below)
 final class TelemetryAttestor: Injectable {
-    static let shared = TelemetryAttestor()
+    // Container-scoped singleton; shared is a convenience accessor
+    static var shared: TelemetryAttestor { TrioApp.resolver.resolve(TelemetryAttestor.self)! }
 
     @Injected() private var keychain: Keychain!
 
     private let service = DCAppAttestService.shared
-    private let lock = NSRecursiveLock()
-    private var didInjectServices = false
 
     private static let keyIDStorageKey = "TelemetryAttest.keyID"
     private static let registeredStorageKey = "TelemetryAttest.registered"
 
-    private init() {}
-
-    private func injectIfNeeded() {
-        lock.lock()
-        defer { lock.unlock() }
-        guard !didInjectServices else { return }
-        injectServices(TrioApp.resolver)
-        didInjectServices = true
+    init(resolver: Resolver) {
+        injectServices(resolver)
     }
 
     /// True when the running device supports App Attest. Returns false on the
@@ -62,8 +55,6 @@ final class TelemetryAttestor: Injectable {
     /// Throws on transport / server errors; sets the sticky "forbidden" flag
     /// on a 403 so future cycles short-circuit.
     func registerIfNeeded(baseURL: URL) async throws {
-        injectIfNeeded()
-
         guard isSupported else { throw AttestError.unsupportedDevice }
         guard !isForbidden else { throw AttestError.forbidden }
 
@@ -174,7 +165,6 @@ final class TelemetryAttestor: Injectable {
     /// `DCError.invalidKey`. Use when `/checkin` returns 401 (server lost our
     /// registration).
     func invalidateRegistration() {
-        injectIfNeeded()
         keychain.removeObject(forKey: Self.keyIDStorageKey)
         keychain.removeObject(forKey: Self.registeredStorageKey)
     }
@@ -185,7 +175,6 @@ final class TelemetryAttestor: Injectable {
     /// to retry can do so without reinstalling. Exposed through a button in
     /// the telemetry inspector. Does not touch consent or installId.
     func resetAttestState() {
-        injectIfNeeded()
         keychain.removeObject(forKey: Self.keyIDStorageKey)
         keychain.removeObject(forKey: Self.registeredStorageKey)
         PropertyPersistentFlags.shared.telemetryAttestForbidden = false
@@ -202,8 +191,6 @@ final class TelemetryAttestor: Injectable {
     /// base64url string), and the challenge string — all three become headers
     /// on the outgoing request.
     func assertion(forPayload payload: Data, baseURL: URL) async throws -> (assertion: String, keyID: String, challenge: String) {
-        injectIfNeeded()
-
         guard isSupported else { throw AttestError.unsupportedDevice }
         guard !isForbidden else { throw AttestError.forbidden }
 
