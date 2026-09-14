@@ -153,7 +153,6 @@ struct LoopView: View {
             .joined(separator: ", ")
     }
 
-    // @ScaledMetric so the ring grows with the user's text size
     @ScaledMetric(relativeTo: .callout) private var compactRingDiameter: CGFloat = 18
     @ScaledMetric(relativeTo: .callout) private var expandedRingDiameter: CGFloat = 26
 
