@@ -3,6 +3,8 @@ import Foundation
 struct ContactImageState: Codable {
     var glucose: String?
     var trend: String?
+    var direction: BloodGlucose.Direction?
+    var glucoseDate: Date?
     var delta: String?
     var lastLoopDate: Date?
     var iob: Decimal?
