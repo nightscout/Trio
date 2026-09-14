@@ -13,7 +13,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
         let crashReportingEnabled: Bool = PropertyPersistentFlags.shared.crashlyticsSharingEnabled ?? true
         CrashReportingGate.configureAtLaunch(enabled: crashReportingEnabled)
 
-        // Telemetry: record this cold launch into the sliding 7-day window,
+        // Materialize the install ID even when sharing is disabled, then record
+        // this cold launch into the sliding 7-day window,
         // then drive cadence via layered triggers — listed below in
         // priority of reliability:
         //
@@ -27,6 +28,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
         //      under its own bounded background task for background-heavy use.
         //   3. scheduleRecurring: best-effort fallback for the rare case
         //      where the app stays foregrounded for a full 24h.
+        TelemetryClient.shared.initializeInstallID()
         TelemetryClient.shared.recordColdLaunch()
         Task.detached {
             if TelemetryClient.shared.buildShaChangedSinceLastSend() {

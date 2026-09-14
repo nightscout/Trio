@@ -128,6 +128,7 @@ enum FileProtectionFixer {
             "hasSeenFatProteinOrderChange.plist",
             "telemetrySharingEnabled.plist",
             "telemetryLastSentAt.plist",
+            "telemetryAnonymousLastSentAt.plist",
             "telemetryLastAttemptAt.plist",
             "telemetryLastSentSha.plist",
             "telemetryLastFailureReason.plist",

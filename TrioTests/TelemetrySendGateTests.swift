@@ -254,6 +254,33 @@ import Testing
         #expect(request.value(forHTTPHeaderField: "X-Trio-Version") == "0.8.1")
         #expect(request.value(forHTTPHeaderField: "X-Trio-InstallId") == "install-123")
     }
+
+    @Test("Anonymous request is an empty contextual GET") func anonymousRequest() throws {
+        let context = TelemetryRequestContext(
+            reason: "foreground",
+            lastFailureReason: "registration_failed",
+            trioVersion: "0.8.1",
+            installID: "install-123"
+        )
+        let request = try #require(
+            TelemetryClient.anonymousRequest(
+                baseURL: URL(string: "https://telemetry.example")!,
+                context: context
+            )
+        )
+        let components = try #require(URLComponents(url: request.url!, resolvingAgainstBaseURL: false))
+
+        #expect(request.httpMethod == "GET")
+        #expect(request.httpBody == nil)
+        #expect(request.value(forHTTPHeaderField: "Content-Type") == nil)
+        #expect(request.value(forHTTPHeaderField: "X-Trio-Version") == "0.8.1")
+        #expect(request.value(forHTTPHeaderField: "X-Trio-InstallId") == "install-123")
+        #expect(components.path == "/anonymous")
+        #expect(components.queryItems?.contains(URLQueryItem(name: "reason", value: "foreground")) == true)
+        #expect(
+            components.queryItems?.contains(URLQueryItem(name: "lastFailureReason", value: "registration_failed")) == true
+        )
+    }
 }
 
 private actor AttemptCounter {

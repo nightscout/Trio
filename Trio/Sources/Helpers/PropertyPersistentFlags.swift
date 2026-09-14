@@ -35,6 +35,7 @@ final class PropertyPersistentFlags {
     @PersistedProperty(key: "crashlyticsSharingEnabled") var crashlyticsSharingEnabled: Bool?
     @PersistedProperty(key: "telemetrySharingEnabled") var telemetrySharingEnabled: Bool?
     @PersistedProperty(key: "telemetryLastSentAt") var telemetryLastSentAt: Date?
+    @PersistedProperty(key: "telemetryAnonymousLastSentAt") var telemetryAnonymousLastSentAt: Date?
     @PersistedProperty(key: "telemetryLastAttemptAt") var telemetryLastAttemptAt: Date?
     @PersistedProperty(key: "telemetryLastSentSha") var telemetryLastSentSha: String?
     @PersistedProperty(key: "telemetryLastFailureReason") var telemetryLastFailureReason: String?
