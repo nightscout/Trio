@@ -90,6 +90,24 @@ the next launch or scheduler tick — there is no continued retry.
 - GPS coordinates or any precise location data
 - App logs — log sharing remains a separate, user-initiated flow under Settings
 
+### Anonymous Telemetry
+
+When Trio's additional telemetry is disabled, extremely minimal
+non-invasive telemetry is still sent every 24 hours. This "anonymous
+telemetry" is entirely used so that the Trio developers can track the
+number of active users of each version of Trio. It contains no health,
+device, pump, CGM, settings, or other pseudoanonymized data. The
+contents of the telemetry payload are:
+
+- The app version you are running
+- A randomly-generated app install identifier, a UUID which cannot be
+  tracked back to you which is used entirely for understanding the
+  number of active users
+- What triggered the request (for example: app launch, or the daily timer)
+- If any prior errors have occurred attempting to send telemetry, the
+  type of error occurred (no logs, error traceback, or personal
+  identifiers)
+
 ### Debug Symbols (dSYMs)
 
 When we build the Trio app, we create special files called debug
@@ -143,8 +161,9 @@ reporting:
 - Previously collected crash data will still be retained for approximately 90 days
 
 If you opt out of anonymous usage telemetry, no new telemetry data
-will be collected or sent. Previously sent telemetry rows are retained
-on the Trio team's telemetry endpoint per its own retention policy.
+will be collected or sent, apart from the "Anonymous Telemetry"
+described above. Previously sent telemetry rows are retained on the
+Trio team's telemetry endpoint per its own retention policy.
 
 To avoid sending dSYMs to Crashlytics, you can delete the Trio target
 Build Phase script, titled "Copy dSYMs to Crashlytics".
@@ -179,4 +198,4 @@ trio.diy.diabetes@gmail.com.
 
 ## Last Updated
 
-July 15, 2026
+September 14, 2026
