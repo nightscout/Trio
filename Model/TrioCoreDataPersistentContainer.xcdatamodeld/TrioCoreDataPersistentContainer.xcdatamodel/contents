@@ -131,7 +131,6 @@
         <attribute name="expectedDelta" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="glucose" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="insulinForManualBolus" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="insulinReq" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="insulinSensitivity" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="iob" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
