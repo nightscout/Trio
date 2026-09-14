@@ -126,6 +126,18 @@ extension Home {
         var pumpInitialSettings = PumpConfig.PumpInitialSettings.default
         var shouldRunDeleteOnSettingsChange = true
 
+        /// Newest CGM reading. `glucoseFromPersistence` is ascending, so the last entry is the newest.
+        var lastGlucoseDate: Date? { glucoseFromPersistence.last?.date }
+
+        /// Last time the pump reported status; the battery row is restamped on every status update.
+        var lastPumpCommsDate: Date? { batteryFromPersistence.first?.date }
+
+        /// A device has stopped reporting: the pump raised a status highlight, or readings have dried up.
+        var hasDeviceIssue: Bool {
+            if pumpStatusHighlightMessage != nil { return true }
+            return timerDate.timeIntervalSince(lastGlucoseDate ?? .distantPast) > MultiUsePanelState.cgmStaleAfter
+        }
+
         var showCarbsRequiredBadge: Bool = true
         var enableQuickPickTreatments: Bool = false
         var quickPickBolusSuggestions: [Decimal] = []
