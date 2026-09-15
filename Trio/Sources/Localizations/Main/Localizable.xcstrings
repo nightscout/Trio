@@ -9591,6 +9591,7 @@
     },
     "%@ carbs" : {
       "comment" : "Accessibility: treatments face",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -9853,6 +9854,7 @@
     },
     "%@ fat" : {
       "comment" : "Accessibility: treatments face",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -10114,6 +10116,7 @@
     },
     "%@ insulin" : {
       "comment" : "Accessibility: treatments face",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -10641,6 +10644,7 @@
     },
     "%@ protein" : {
       "comment" : "Accessibility: treatments face",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -81011,7 +81015,11 @@
         }
       }
     },
+    "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: today's time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nToday's Averages: today's average glucose and GMI (Glucose Management Index).\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut." : {
+
+    },
     "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: today's time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nToday's Averages: today's average glucose and GMI (Glucose Management Index).\n\nToday's Treatments: insulin delivered since midnight — no glucose statistics. Announced carbs (and fat and protein, if you log them) appear once logged that day.\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -136655,6 +136663,7 @@
     },
     "F" : {
       "comment" : "First letter of 'Fat' for stats banner label",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -231003,6 +231012,7 @@
     },
     "P" : {
       "comment" : "First letter of 'Protein' for stats banner label",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -315465,6 +315475,7 @@
     },
     "Today's Treatments" : {
       "comment" : "Home stats panel face option\nStats banner subtitle",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -322542,6 +322553,7 @@
       }
     },
     "Trio may lower or stop your basal insulin when it forecasts you are heading low. It will never give extra insulin to bring a high down.\nTrio does not wait for one set glucose number. It watches your forecast and lowers basal early. While this mode is on, Trio acts as if your Max IOB is 0. Your saved setting does not change." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -322670,6 +322682,9 @@
           }
         }
       }
+    },
+    "Trio may lower or stop your basal insulin when it forecasts you are heading low. It will never give extra insulin to bring a high down.\nTrio does not wait for one set glucose number. It watches your forecast and lowers basal early. While this mode is on, Trio acts as if your Max IOB is 0. Your saved setting does not change.\nIf IOB is negative from LGS lowering your basal, it may give additional insulin until IOB reaches 0." : {
+
     },
     "Trio may only lower basal insulin. It will not correct highs." : {
       "localizations" : {

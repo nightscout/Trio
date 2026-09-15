@@ -188,8 +188,7 @@ extension Home {
         @ObservationIgnored private(set) lazy var carbsController: NSFetchedResultsController<CarbEntryStored> = {
             let request = NSFetchRequest<CarbEntryStored>(entityName: "CarbEntryStored")
             request.sortDescriptors = [NSSortDescriptor(keyPath: \CarbEntryStored.date, ascending: false)]
-            // meal entries, not just chart carbs: the treatments banner also needs fat/protein-only meals
-            request.predicate = NSPredicate.mealEntries(since: chartHistoryStartDate)
+            request.predicate = NSPredicate.carbsForChart(since: chartHistoryStartDate)
             request.fetchBatchSize = 5
             let controller = NSFetchedResultsController(
                 fetchRequest: request,
@@ -386,7 +385,7 @@ extension Home {
                 // Re-sync the chart domain even if no new reading arrived while backgrounded.
                 self.updateStartEndMarkers()
             }
-            reanchor(carbsController, with: NSPredicate.mealEntries(since: chartHistoryStartDate)) {
+            reanchor(carbsController, with: NSPredicate.carbsForChart(since: chartHistoryStartDate)) {
                 self.updateCarbsFromController() }
             reanchor(fpuController, with: NSPredicate.fpusForChart(since: chartHistoryStartDate)) {
                 self.updateFPUsFromController() }

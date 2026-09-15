@@ -860,8 +860,7 @@ struct MainChartCanvas: View {
     var windowedCarbs: [CarbEntryStored] {
         state.carbsFromPersistence.filter { entry in
             guard let date = entry.date else { return false }
-            // the fetch includes fat/protein-only meals (banner); triangles are carbs only
-            return entry.carbs > 0 && date >= windowStart && date <= windowEnd
+            return date >= windowStart && date <= windowEnd
         }
     }
 
