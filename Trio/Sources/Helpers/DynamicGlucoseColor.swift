@@ -18,14 +18,14 @@ public func getDynamicGlucoseColor(
             targetGlucose: targetGlucose
         )
     }
-    // Otheriwse, use static (orange = high, red = low, green = range)
+    // Otherwise, use the static colors
     else {
         if glucoseValue >= highGlucoseColorValue {
-            return Color.orange
+            return Color.staticHigh
         } else if glucoseValue <= lowGlucoseColorValue {
-            return Color.red
+            return Color.staticLow
         } else {
-            return Color.green
+            return Color.staticInRange
         }
     }
 }
@@ -63,4 +63,20 @@ public func calculateHueBasedGlucoseColor(
     // Return the color with full saturation and brightness
     let color = Color(hue: hue, saturation: 0.6, brightness: 0.9)
     return color
+}
+
+// Discrete band colors sampled from the dynamic gradient above
+public extension Color {
+    static let dynamicRed = Color(hue: 0.0 / 360.0, saturation: 0.6, brightness: 0.9)
+    static let dynamicOrange = Color(hue: 30.0 / 360.0, saturation: 0.6, brightness: 0.9)
+    static let dynamicGreen = Color(hue: 120.0 / 360.0, saturation: 0.6, brightness: 0.9)
+    static let dynamicTeal = Color(hue: 165.0 / 360.0, saturation: 0.6, brightness: 0.9)
+    static let dynamicBlue = Color(hue: 200.0 / 360.0, saturation: 0.6, brightness: 0.9)
+    static let dynamicIndigo = Color(hue: 235.0 / 360.0, saturation: 0.6, brightness: 0.9)
+    static let dynamicPurple = Color(hue: 270.0 / 360.0, saturation: 0.6, brightness: 0.9)
+
+    // Colors used when the Static Glucose Color Scheme is selected
+    static let staticLow = Color.dynamicRed
+    static let staticInRange = Color.dynamicGreen
+    static let staticHigh = Color.dynamicPurple
 }

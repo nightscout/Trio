@@ -21,8 +21,7 @@ struct FeatureSettingsView: BaseView {
             Section(
                 header: Text("Trio Features"),
                 content: {
-                    Text("Bolus Calculator").navigationLink(to: .bolusCalculatorConfig, from: self)
-                    Text("Meal Settings").navigationLink(to: .mealSettings, from: self)
+                    Text("Treatments").navigationLink(to: .treatmentsSettings, from: self)
                     Text("Shortcuts").navigationLink(to: .shortcutsConfig, from: self)
                     Text("Remote Control").navigationLink(to: .remoteControlConfig, from: self)
                 }

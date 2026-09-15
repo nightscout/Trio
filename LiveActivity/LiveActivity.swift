@@ -126,7 +126,11 @@ private extension LiveActivityAttributes.ContentState {
             tempTargetDate: Date().addingTimeInterval(-1800),
             tempTargetDuration: 60,
             tempTargetTarget: 120,
-            widgetItems: LiveActivityAttributes.LiveActivityItem.defaultItems
+            widgetItems: LiveActivityAttributes.LiveActivityItem.defaultItems,
+            minForecast: [],
+            maxForecast: [],
+            forecastLines: [],
+            forecastDisplayType: "cone"
         )
 
     // 0 is the widest digit. Use this to get an upper bound on text width.

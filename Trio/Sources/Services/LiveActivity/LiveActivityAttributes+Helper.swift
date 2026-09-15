@@ -118,7 +118,16 @@ extension LiveActivityAttributes.ContentState {
             tempTargetDate: tempTarget?.date ?? Date(),
             tempTargetDuration: tempTarget?.duration ?? 0,
             tempTargetTarget: tempTarget?.target ?? 0,
-            widgetItems: widgetItems ?? [] // set empty array here to silence compiler; this can never be nil
+            widgetItems: widgetItems ?? [], // set empty array here to silence compiler; this can never be nil
+            minForecast: settings.displayGlucoseForecasts && settings.forecastDisplayType == .cone
+                ? (determination?.minForecast ?? []) : [],
+            maxForecast: settings.displayGlucoseForecasts && settings.forecastDisplayType == .cone
+                ? (determination?.maxForecast ?? []) : [],
+            forecastLines: settings.displayGlucoseForecasts && settings.forecastDisplayType == .lines
+                ? (determination?.forecastLines ?? [])
+                .map { LiveActivityAttributes.ForecastLine(type: $0.type, values: $0.values) }
+                : [],
+            forecastDisplayType: settings.forecastDisplayType.rawValue
         )
 
         self.init(

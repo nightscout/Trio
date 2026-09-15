@@ -115,6 +115,12 @@ extension SettingsExport {
             debug(.default, "🔄 EXPORT: Settings managers initialized")
 
             // Helper function to add a setting
+            /// Marks a stored value the active dosing mode overrides, so an export reads true.
+            func overrideNote(stored: String, isOverridden: Bool, effective: String) -> String {
+                guard isOverridden else { return stored }
+                return String(localized: "\(stored) (mode is using \(effective))")
+            }
+
             func addSetting(category: String, subcategory: String = "", name: String, value: String, unit: String = "") {
                 exportSettings.append(ExportSetting(
                     category: category,
@@ -132,6 +138,11 @@ extension SettingsExport {
                     category: exportCategory,
                     name: String(localized: "Export Date"),
                     value: DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .medium)
+                )
+                addSetting(
+                    category: exportCategory,
+                    name: String(localized: "Dosing Mode"),
+                    value: trioSettings.dosingMode.displayName
                 )
                 addSetting(category: exportCategory, name: String(localized: "App Version"), value: versionNumber)
                 addSetting(category: exportCategory, name: String(localized: "Build Number"), value: buildNumber)
@@ -195,7 +206,12 @@ extension SettingsExport {
                     category: therapyCategory,
                     subcategory: unitsLimitsSubcategory,
                     name: String(localized: "Maximum Insulin on Board (IOB)"),
-                    value: String(describing: preferences.maxIOB),
+                    value: overrideNote(
+                        stored: String(describing: preferences.maxIOB),
+                        isOverridden: trioSettings.dosingMode.automation == .reductionsOnly ||
+                            trioSettings.dosingMode.automation == .hypoSuspendOnly,
+                        effective: "0"
+                    ),
                     unit: "U"
                 )
 
@@ -307,14 +323,22 @@ extension SettingsExport {
                     category: algorithmCategory,
                     subcategory: autosensSubcategory,
                     name: String(localized: "Autosens Max"),
-                    value: String(format: "%.0f", (preferences.autosensMax as NSDecimalNumber).doubleValue * 100),
+                    value: overrideNote(
+                        stored: String(format: "%.0f", (preferences.autosensMax as NSDecimalNumber).doubleValue * 100),
+                        isOverridden: trioSettings.dosingMode == .basalTesting,
+                        effective: "100"
+                    ),
                     unit: "%"
                 )
                 addSetting(
                     category: algorithmCategory,
                     subcategory: autosensSubcategory,
                     name: String(localized: "Autosens Min"),
-                    value: String(format: "%.0f", (preferences.autosensMin as NSDecimalNumber).doubleValue * 100),
+                    value: overrideNote(
+                        stored: String(format: "%.0f", (preferences.autosensMin as NSDecimalNumber).doubleValue * 100),
+                        isOverridden: trioSettings.dosingMode == .basalTesting,
+                        effective: "100"
+                    ),
                     unit: "%"
                 )
                 addSetting(
@@ -417,7 +441,11 @@ extension SettingsExport {
                     category: algorithmCategory,
                     subcategory: dynamicSubcategory,
                     name: String(localized: "Dynamic ISF"),
-                    value: dynamicISFValue
+                    value: overrideNote(
+                        stored: dynamicISFValue,
+                        isOverridden: trioSettings.dosingMode == .basalTesting,
+                        effective: String(localized: "Disabled")
+                    )
                 )
 
                 // Show adjustment factors as percentages with proper labels
@@ -606,31 +634,31 @@ extension SettingsExport {
             if categoriesToExport.contains(.features) {
                 let featuresCategory = String(localized: "Features", comment: "Features menu item in the Settings main view.")
 
-                // Trio Features subcategory - Bolus Calculator
-                let bolusCalculatorSubcategory = String(localized: "Bolus Calculator")
+                // Trio Features subcategory - Treatments (Bolus Calculator, Quick-Pick Boluses, Meal Settings)
+                let treatmentsSubcategory = String(localized: "Treatments")
                 addSetting(
                     category: featuresCategory,
-                    subcategory: bolusCalculatorSubcategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Display Meal Presets"),
                     value: trioSettings.displayPresets ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: featuresCategory,
-                    subcategory: bolusCalculatorSubcategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Recommended Bolus Percentage"),
                     value: String(format: "%.0f", (trioSettings.overrideFactor as NSDecimalNumber).doubleValue * 100),
                     unit: "%"
                 )
                 addSetting(
                     category: featuresCategory,
-                    subcategory: bolusCalculatorSubcategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Enable Reduced Bolus Option"),
                     value: trioSettings.fattyMeals ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 if trioSettings.fattyMeals {
                     addSetting(
                         category: featuresCategory,
-                        subcategory: bolusCalculatorSubcategory,
+                        subcategory: treatmentsSubcategory,
                         name: String(localized: "Reduced Bolus Percentage"),
                         value: String(format: "%.0f", (trioSettings.fattyMealFactor as NSDecimalNumber).doubleValue * 100),
                         unit: "%"
@@ -638,14 +666,14 @@ extension SettingsExport {
                 }
                 addSetting(
                     category: featuresCategory,
-                    subcategory: bolusCalculatorSubcategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Enable Super Bolus Option"),
                     value: trioSettings.sweetMeals ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 if trioSettings.sweetMeals {
                     addSetting(
                         category: featuresCategory,
-                        subcategory: bolusCalculatorSubcategory,
+                        subcategory: treatmentsSubcategory,
                         name: String(localized: "Super Bolus Percentage"),
                         value: String(format: "%.0f", (trioSettings.sweetMealFactor as NSDecimalNumber).doubleValue * 100),
                         unit: "%"
@@ -653,64 +681,67 @@ extension SettingsExport {
                 }
                 addSetting(
                     category: featuresCategory,
-                    subcategory: bolusCalculatorSubcategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Very Low Glucose Warning"),
                     value: trioSettings.confirmBolus ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
-
-                // Trio Features subcategory - Meal Settings
-                let mealSettingsSubcategory = String(localized: "Meal Settings")
                 addSetting(
                     category: featuresCategory,
-                    subcategory: mealSettingsSubcategory,
+                    subcategory: treatmentsSubcategory,
+                    name: String(localized: "Enable Quick-Pick Treatments"),
+                    value: trioSettings.enableQuickPickTreatments ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Max Carbs"),
                     value: String(describing: trioSettings.maxCarbs),
                     unit: String(localized: "g", comment: "Units for carbs")
                 )
                 addSetting(
                     category: featuresCategory,
-                    subcategory: mealSettingsSubcategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Max Fat"),
                     value: String(describing: trioSettings.maxFat),
                     unit: String(localized: "g", comment: "Units for carbs")
                 )
                 addSetting(
                     category: featuresCategory,
-                    subcategory: mealSettingsSubcategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Max Protein"),
                     value: String(describing: trioSettings.maxProtein),
                     unit: String(localized: "g", comment: "Units for carbs")
                 )
                 addSetting(
                     category: featuresCategory,
-                    subcategory: mealSettingsSubcategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Max Meal Absorption Time"),
                     value: String(describing: preferences.maxMealAbsorptionTime),
                     unit: String(localized: "hours")
                 )
                 addSetting(
                     category: featuresCategory,
-                    subcategory: mealSettingsSubcategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Enable Fat and Protein Entries"),
                     value: trioSettings.useFPUconversion ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
                 addSetting(
                     category: featuresCategory,
-                    subcategory: mealSettingsSubcategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Fat and Protein Delay"),
                     value: String(describing: trioSettings.delay),
                     unit: String(localized: "minutes")
                 )
                 addSetting(
                     category: featuresCategory,
-                    subcategory: mealSettingsSubcategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Spread Interval"),
                     value: String(describing: trioSettings.minuteInterval),
                     unit: String(localized: "minutes")
                 )
                 addSetting(
                     category: featuresCategory,
-                    subcategory: mealSettingsSubcategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Fat and Protein Percentage"),
                     value: String(format: "%.0f", (trioSettings.individualAdjustmentFactor as NSDecimalNumber).doubleValue * 100),
                     unit: "%"
@@ -850,63 +881,8 @@ extension SettingsExport {
                 addSetting(
                     category: notificationsCategory,
                     subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "Always Notify Pump"),
-                    value: trioSettings.notificationsPump ? String(localized: "Enabled") : String(localized: "Disabled")
-                )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "Always Notify CGM"),
-                    value: trioSettings.notificationsCgm ? String(localized: "Enabled") : String(localized: "Disabled")
-                )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "Always Notify Carb"),
-                    value: trioSettings.notificationsCarb ? String(localized: "Enabled") : String(localized: "Disabled")
-                )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "Always Notify Algorithm"),
-                    value: trioSettings.notificationsAlgorithm ? String(localized: "Enabled") : String(localized: "Disabled")
-                )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
                     name: String(localized: "Show Glucose App Badge"),
                     value: trioSettings.glucoseBadge ? String(localized: "Enabled") : String(localized: "Disabled")
-                )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "Glucose Notifications"),
-                    value: trioSettings.glucoseNotificationsOption.rawValue
-                )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "Add Glucose Source to Alarm"),
-                    value: trioSettings
-                        .addSourceInfoToGlucoseNotifications ? String(localized: "Enabled") : String(localized: "Disabled")
-                )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "Low Glucose Alarm Limit"),
-                    value: trioSettings
-                        .units == .mgdL ? String(describing: trioSettings.lowGlucose) :
-                        String(describing: trioSettings.lowGlucose.asMmolL),
-                    unit: trioSettings.units.rawValue
-                )
-                addSetting(
-                    category: notificationsCategory,
-                    subcategory: trioNotificationsSubcategory,
-                    name: String(localized: "High Glucose Alarm Limit"),
-                    value: trioSettings
-                        .units == .mgdL ? String(describing: trioSettings.highGlucose) :
-                        String(describing: trioSettings.highGlucose.asMmolL),
-                    unit: trioSettings.units.rawValue
                 )
 
                 // Live Activity subcategory
@@ -922,6 +898,12 @@ extension SettingsExport {
                     subcategory: liveActivitySubcategory,
                     name: String(localized: "Lock Screen Widget Style"),
                     value: trioSettings.lockScreenView.rawValue
+                )
+                addSetting(
+                    category: notificationsCategory,
+                    subcategory: liveActivitySubcategory,
+                    name: String(localized: "Display Glucose Forecasts"),
+                    value: trioSettings.displayGlucoseForecasts ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
             }
 

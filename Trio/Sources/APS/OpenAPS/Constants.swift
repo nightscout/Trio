@@ -1,31 +1,4 @@
 extension OpenAPS {
-    enum Bundle {
-        static let iob = "bundle/iob.js"
-        static let meal = "bundle/meal.js"
-        static let autotunePrep = "bundle/autotune-prep.js"
-        static let autotuneCore = "bundle/autotune-core.js"
-        static let getLastGlucose = "bundle/glucose-get-last.js"
-        static let basalSetTemp = "bundle/basal-set-temp.js"
-        static let determineBasal = "bundle/determine-basal.js"
-        static let autosens = "bundle/autosens.js"
-        static let profile = "bundle/profile.js"
-    }
-
-    enum Prepare {
-        static let iob = "prepare/iob.js"
-        static let meal = "prepare/meal.js"
-        static let autotunePrep = "prepare/autotune-prep.js"
-        static let autotuneCore = "prepare/autotune-core.js"
-        static let determineBasal = "prepare/determine-basal.js"
-        static let autosens = "prepare/autosens.js"
-        static let profile = "prepare/profile.js"
-        static let log = "prepare/log.js"
-    }
-
-    enum Middleware {
-        static let determineBasal = "middleware/determine_basal.js"
-    }
-
     enum Settings {
         static let preferences = "preferences.json"
         static let autotune = "settings/autotune.json"
@@ -38,7 +11,6 @@ extension OpenAPS {
         static let basalProfile = "settings/basal_profile.json"
         static let carbRatios = "settings/carb_ratios.json"
         static let tempTargets = "settings/temptargets.json"
-        static let model = "settings/model.json"
     }
 
     enum Monitor {
@@ -51,6 +23,7 @@ extension OpenAPS {
         static let meal = "monitor/meal.json"
         static let glucose = "monitor/glucose.json"
         static let iob = "monitor/iob.json"
+        static let cob = "monitor/cob.json"
         static let cgmState = "monitor/cgm-state.json"
         static let podAge = "monitor/pod-age.json"
         static let trio_custom_oref_variables = "monitor/trio_custom_oref_variables.json"

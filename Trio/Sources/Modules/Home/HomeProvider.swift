@@ -13,6 +13,9 @@ extension Home {
         }
 
         func heartbeatNow() {
+            // User-initiated force-loop: bypass dwell suppression so transient
+            // errors surface immediately rather than waiting for count/dwell.
+            apsManager.markNextLoopUserInitiated()
             apsManager.heartbeat(date: Date())
         }
 

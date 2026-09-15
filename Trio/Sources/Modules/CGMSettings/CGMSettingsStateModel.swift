@@ -14,9 +14,10 @@ struct CGMModel: Identifiable, Hashable {
     var subtitle: String
 }
 
-struct CGMOption {
-    let name: String
-    let predicate: (CGMModel) -> Bool
+extension CGMModel {
+    init(_ entry: CGMCatalogEntry) {
+        self.init(id: entry.id, type: entry.cgmType, displayName: entry.name, subtitle: entry.subtitle)
+    }
 }
 
 let cgmDefaultModel = CGMModel(
@@ -58,28 +59,7 @@ extension CGMSettings {
             units = settingsManager.settings.units
             broadcaster.register(SettingsObserver.self, observer: self)
 
-            // collect the list of CGM available with plugins and CGMType defined manually
-            listOfCGM = (
-                CGMType.allCases.filter { $0 != CGMType.plugin }.map {
-                    CGMModel(id: $0.id, type: $0, displayName: $0.displayName, subtitle: $0.subtitle)
-                } +
-                    pluginCGMManager.availableCGMManagers.map {
-                        CGMModel(
-                            id: $0.identifier,
-                            type: CGMType.plugin,
-                            displayName: $0.localizedTitle,
-                            subtitle: $0.localizedTitle
-                        )
-                    }
-            ).sorted(by: { lhs, rhs in
-                if lhs.displayName == "None" {
-                    return true
-                } else if rhs.displayName == "None" {
-                    return false
-                } else {
-                    return lhs.displayName < rhs.displayName
-                }
-            })
+            listOfCGM = DeviceCatalog.cgmModels
 
             switch settingsManager.settings.cgm {
             case .plugin:
@@ -122,7 +102,9 @@ extension CGMSettings {
             cgmCurrent = cgm
             switch cgm.type {
             case .plugin:
-                shouldDisplayCGMSetupSheet.toggle()
+                // Not toggle(): addCGM is now invoked from a sheet's onDismiss, where a stale true would close
+                // the setup sheet instead of opening it.
+                shouldDisplayCGMSetupSheet = true
             default:
                 // non plugin CGM types should be considered onboarded right away
                 shouldDisplayCGMSetupSheet = true

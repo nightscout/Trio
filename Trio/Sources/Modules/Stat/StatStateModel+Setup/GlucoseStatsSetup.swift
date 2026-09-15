@@ -52,6 +52,46 @@ struct GlucoseDailyDistributionStats: Identifiable {
     }
 }
 
+extension GlucoseDailyDistributionStats {
+    /// Pure range-distribution computation shared by Stat and the Home stats banner.
+    static func compute(
+        date: Date,
+        readings: [GlucoseReading],
+        highLimit: Decimal,
+        timeInRangeType: TimeInRangeType
+    ) -> GlucoseDailyDistributionStats {
+        let totalReadings = Double(readings.count)
+
+        let veryHighReadings = readings.filter { $0.value > 250 }.count
+        let highReadings = readings.filter { $0.value > Int(highLimit) && $0.value <= 250 }.count
+        let inRangeReadings = readings.filter { $0.value >= timeInRangeType.bottomThreshold && $0.value <= Int(highLimit) }
+            .count
+        let inSmallRangeReadings = readings
+            .filter { $0.value >= timeInRangeType.bottomThreshold && $0.value <= timeInRangeType.topThreshold }.count
+        let lowReadings = readings.filter { $0.value < timeInRangeType.bottomThreshold && $0.value >= 54 }.count
+        let veryLowReadings = readings.filter { $0.value < 54 }.count
+
+        let veryLowPct = totalReadings > 0 ? Double(veryLowReadings) / totalReadings * 100 : 0
+        let lowPct = totalReadings > 0 ? Double(lowReadings) / totalReadings * 100 : 0
+        let inSmallRangePct = totalReadings > 0 ? Double(inSmallRangeReadings) / totalReadings * 100 : 0
+        let inRangePct = totalReadings > 0 ? Double(inRangeReadings) / totalReadings * 100 : 0
+        let highPct = totalReadings > 0 ? Double(highReadings) / totalReadings * 100 : 0
+        let veryHighPct = totalReadings > 0 ? Double(veryHighReadings) / totalReadings * 100 : 0
+
+        return GlucoseDailyDistributionStats(
+            date: date,
+            timeInRangeType: timeInRangeType,
+            readings: [],
+            veryLowPct: veryLowPct,
+            lowPct: lowPct,
+            inSmallRangePct: inSmallRangePct,
+            inRangePct: inRangePct,
+            highPct: highPct,
+            veryHighPct: veryHighPct
+        )
+    }
+}
+
 /// Represents percentile-based statistical data for daily glucose metrics
 struct GlucoseDailyPercentileStats: Identifiable {
     let id = UUID()
@@ -217,39 +257,11 @@ extension Stat.StateModel {
         highLimit: Decimal,
         timeInRangeType: TimeInRangeType
     ) -> GlucoseDailyDistributionStats {
-        let totalReadings = Double(readings.count)
-
-        // Count readings in each range
-        let veryHighReadings = readings.filter { $0.value > 250 }.count
-        let highReadings = readings.filter { $0.value > Int(highLimit) && $0.value <= 250 }.count
-        let inRangeReadings = readings.filter { $0.value >= timeInRangeType.bottomThreshold && $0.value <= Int(highLimit) }
-            .count
-        let inSmallRangeReadings = readings
-            .filter { $0.value >= timeInRangeType.bottomThreshold && $0.value <= timeInRangeType.topThreshold }.count
-        let lowReadings = readings.filter { $0.value < timeInRangeType.bottomThreshold && $0.value >= 54 }.count
-        let veryLowReadings = readings.filter { $0.value < 54 }.count
-
-        // Calculate percentages
-        let veryLowPct = totalReadings > 0 ? Double(veryLowReadings) / totalReadings * 100 : 0
-        let lowPct = totalReadings > 0 ? Double(lowReadings) / totalReadings * 100 : 0
-        let inSmallRangePct = totalReadings > 0 ? Double(inSmallRangeReadings) / totalReadings * 100 : 0
-        let inRangePct = totalReadings > 0 ? Double(inRangeReadings) / totalReadings * 100 : 0
-        let highPct = totalReadings > 0 ? Double(highReadings) / totalReadings * 100 : 0
-        let veryHighPct = totalReadings > 0 ? Double(veryHighReadings) / totalReadings * 100 : 0
-
-        // Create empty managed object array since we don't need the actual Core Data objects
-        let emptyStoredArray: [GlucoseStored] = []
-
-        return GlucoseDailyDistributionStats(
+        GlucoseDailyDistributionStats.compute(
             date: date,
-            timeInRangeType: timeInRangeType,
-            readings: emptyStoredArray,
-            veryLowPct: veryLowPct,
-            lowPct: lowPct,
-            inSmallRangePct: inSmallRangePct,
-            inRangePct: inRangePct,
-            highPct: highPct,
-            veryHighPct: veryHighPct
+            readings: readings,
+            highLimit: highLimit,
+            timeInRangeType: timeInRangeType
         )
     }
 

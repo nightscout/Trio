@@ -1,1 +1,48 @@
-*    @dnzxy @bjornoleh @MikePlante1 @AndreasStokholm @Sjoerd-Bo3 @t1dude @marv-out @kingst @marionbarker
+# CODEOWNERS file is evaluated top-to-bottom, later rules override earlier rules.
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default codeowners
+# https://github.com/orgs/nightscout/teams/trio-codeowners
+*                    @trio-codeowners @trio-codeowners-superusers
+
+# Core algorithm + oref codeowners
+# https://github.com/orgs/nightscout/teams/trio-oref-codeowners
+AlgorithmPackage/*       @trio-oref-codeowners @trio-codeowners-superusers
+trio-oref/*              @trio-oref-codeowners @trio-codeowners-superusers
+oref0_source_version.txt @trio-oref-codeowners @trio-codeowners-superusers
+
+# Insulin pump driver submodules
+# https://github.com/orgs/nightscout/teams/trio-pump-codeowners
+AccuChekKit          @trio-pump-codeowners @trio-codeowners-superusers
+DanaKit              @trio-pump-codeowners @trio-codeowners-superusers
+MedtrumKit           @trio-pump-codeowners @trio-codeowners-superusers
+MinimedKit           @trio-pump-codeowners @trio-codeowners-superusers
+OmnipodKit           @trio-pump-codeowners @trio-codeowners-superusers
+RileyLinkKit         @trio-pump-codeowners @trio-codeowners-superusers
+
+# CGM driver submodules
+# https://github.com/orgs/nightscout/teams/trio-cgm-codeowners
+CGMBLEKit            @trio-cgm-codeowners @trio-codeowners-superusers
+EversenseKit         @trio-cgm-codeowners @trio-codeowners-superusers
+LibreCRKit           @trio-cgm-codeowners @trio-codeowners-superusers
+LibreLoop            @trio-cgm-codeowners @trio-codeowners-superusers
+LibreTransmitter     @trio-cgm-codeowners @trio-codeowners-superusers
+G7SensorKit          @trio-cgm-codeowners @trio-codeowners-superusers
+
+# Github Actions CI / Browser Build
+# https://github.com/orgs/nightscout/teams/trio-ci-codeowners
+.github/workflows/*  @trio-ci-codeowners @trio-codeowners-superusers
+fastlane/*           @trio-ci-codeowners @trio-codeowners-superusers
+patches/*            @trio-ci-codeowners @trio-codeowners-superusers
+BuildTools/*         @trio-ci-codeowners @trio-codeowners-superusers
+Gemfile              @trio-ci-codeowners @trio-codeowners-superusers
+Gemfile.lock         @trio-ci-codeowners @trio-codeowners-superusers
+
+# Translations
+# https://github.com/orgs/nightscout/teams/trio-translations-codeowners
+crowdin.yml                  @trio-translations-codeowners @trio-codeowners-superusers
+*.strings                    @trio-translations-codeowners @trio-codeowners-superusers
+Trio/Sources/Localizations/* @trio-translations-codeowners @trio-codeowners-superusers
+
+# The CODEOWNERS file itself
+.github/CODEOWNERS   @trio-codeowners-superusers

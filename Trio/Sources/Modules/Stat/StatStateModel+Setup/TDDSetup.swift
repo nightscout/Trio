@@ -34,13 +34,21 @@ extension Stat.StateModel {
     /// - Returns: A tuple containing hourly and daily TDD statistics arrays
     /// - Note: Processes both hourly statistics for the last 10 days and complete daily statistics
     private func fetchTDDStats() async throws -> (hourly: [TDDStats], daily: [TDDStats]) {
+        let tddTaskContext = CoreDataStack.shared.newTaskContext()
+        tddTaskContext.name = "StatStateModel.fetchTDDStats"
+
         // MARK: - Fetch Required Data
 
         // Fetch data for daily statistics (TDDStored for week, month, total views)
-        let tddResults = try await fetchTDDStoredRecords()
+        let tddResults = try await fetchTDDStoredRecords(on: tddTaskContext)
 
         // Fetch data for hourly statistics (BolusStored and TempBasalStored for day view)
-        let (bolusResults, tempBasalResults, suspendEvents, resumeEvents) = try await fetchHourlyInsulinRecords()
+        let (
+            bolusResults,
+            tempBasalResults,
+            suspendEvents,
+            resumeEvents
+        ) = try await fetchHourlyInsulinRecords(on: tddTaskContext)
 
         // MARK: - Process Data on Background Context
 
@@ -77,7 +85,7 @@ extension Stat.StateModel {
     /// Fetches TDDStored records from CoreData for daily statistics
     /// - Returns: The results of the fetch request containing TDDStored records
     /// - Note: Fetches records from the last 3 months for week, month, and total views
-    private func fetchTDDStoredRecords() async throws -> Any {
+    private func fetchTDDStoredRecords(on tddTaskContext: NSManagedObjectContext) async throws -> Any {
         // Create a predicate to fetch TDD records from the last 3 months
         let threeMonthsAgo = Date().addingTimeInterval(-3.months.timeInterval)
         let predicate = NSPredicate(format: "date >= %@", threeMonthsAgo as NSDate)
@@ -96,7 +104,9 @@ extension Stat.StateModel {
     /// Fetches BolusStored and TempBasalStored records from CoreData for hourly statistics
     /// - Returns: A tuple containing the results of both fetch requests
     /// - Note: Fetches records from the last 20 days for detailed hourly view
-    private func fetchHourlyInsulinRecords() async throws -> (bolus: Any, tempBasal: Any, suspendEvents: Any, resumeEvents: Any) {
+    private func fetchHourlyInsulinRecords(on tddTaskContext: NSManagedObjectContext) async throws
+        -> (bolus: Any, tempBasal: Any, suspendEvents: Any, resumeEvents: Any)
+    {
         // Calculate date range for hourly statistics (last 20 days)
         let now = Date()
         let twentyDaysAgo = Calendar.current.date(byAdding: .day, value: -20, to: now) ?? now
@@ -254,6 +264,19 @@ extension Stat.StateModel {
             // Convert duration from minutes to hours for insulin calculation
             let durationInHours = actualDurationInMinutes / 60.0
 
+            // A finalized row reports what the pump actually delivered (suspensions and
+            // pulse quantization included), so spread that total over the unsuspended
+            // time; the bars then sum to it instead of to rate x duration.
+            let unsuspendedHours = calculateEffectiveDuration(
+                from: timestamp,
+                to: timestamp.addingTimeInterval(durationInHours * 3600),
+                suspendResumePairs: suspendResumePairs
+            )
+            var effectiveRate = rate
+            if let delivered = tempBasal.deliveredUnits?.doubleValue, unsuspendedHours > 0 {
+                effectiveRate = delivered / unsuspendedHours
+            }
+
             // MARK: Distribute Insulin Across Hours
 
             // Handle temp basals that span multiple hours by distributing insulin appropriately
@@ -261,7 +284,7 @@ extension Stat.StateModel {
             distributeInsulinAcrossHours(
                 startTime: timestamp,
                 durationInHours: durationInHours,
-                rate: rate,
+                rate: effectiveRate,
                 suspendResumePairs: suspendResumePairs,
                 insulinByHour: &insulinByHour,
                 calendar: calendar
@@ -498,6 +521,9 @@ extension Stat.StateModel {
     /// Calculates and caches the daily averages of Total Daily Dose (TDD) insulin values
     /// - Note: This function runs asynchronously and updates the tddAveragesCache on the main actor
     private func calculateAndCacheTDDAverages() async {
+        let tddTaskContext = CoreDataStack.shared.newTaskContext()
+        tddTaskContext.name = "StatStateModel.calculateAndCacheTDDAverages"
+
         // Get calendar for date calculations
         let calendar = Calendar.current
 

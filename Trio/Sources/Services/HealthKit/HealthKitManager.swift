@@ -55,12 +55,65 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
     @Injected() private var deviceDataManager: DeviceDataManager!
 
-    private var backgroundContext = CoreDataStack.shared.newTaskContext()
+    let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
-    // Queue for handling Core Data change notifications
-    private let queue = DispatchQueue(label: "BaseHealthKitManager.queue", qos: .background)
-    private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
-    private var subscriptions = Set<AnyCancellable>()
+    // MARK: - Upload triggers
+
+    //
+    // Each upload pipeline is driven by an NSFetchedResultsController whose predicate is the
+    // "not yet uploaded to Health" set. The controller fires whenever un-uploaded items appear
+    // (or drop out after a successful upload), which we use to (re-)trigger the matching upload.
+    // Bound to the viewContext, it also picks up batch-inserted glucose via the persistent history
+    // merge in CoreDataStack — replacing the previous changedObjects publisher plus the separate
+    // glucoseStorage.updatePublisher fallback.
+
+    let glucoseUploadControllerDelegate = FetchedResultsControllerDelegate()
+    private lazy var glucoseUploadController: NSFetchedResultsController<GlucoseStored> = {
+        let request = NSFetchRequest<GlucoseStored>(entityName: "GlucoseStored")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: true)]
+        request.predicate = NSPredicate.glucoseNotYetUploadedToHealth
+        request.fetchBatchSize = 50
+        let controller = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = glucoseUploadControllerDelegate
+        return controller
+    }()
+
+    let carbsUploadControllerDelegate = FetchedResultsControllerDelegate()
+    private lazy var carbsUploadController: NSFetchedResultsController<CarbEntryStored> = {
+        let request = NSFetchRequest<CarbEntryStored>(entityName: "CarbEntryStored")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \CarbEntryStored.date, ascending: true)]
+        request.predicate = NSPredicate.carbsNotYetUploadedToHealth
+        request.fetchBatchSize = 50
+        let controller = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = carbsUploadControllerDelegate
+        return controller
+    }()
+
+    let insulinUploadControllerDelegate = FetchedResultsControllerDelegate()
+    private lazy var insulinUploadController: NSFetchedResultsController<PumpEventStored> = {
+        let request = NSFetchRequest<PumpEventStored>(entityName: "PumpEventStored")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \PumpEventStored.timestamp, ascending: true)]
+        request.predicate = NSPredicate.pumpEventsNotYetUploadedToHealth
+        request.fetchBatchSize = 50
+        let controller = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = insulinUploadControllerDelegate
+        return controller
+    }()
 
     var isAvailableOnCurrentDevice: Bool {
         HKHealthStore.isHealthDataAvailable()
@@ -69,23 +122,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     init(resolver: Resolver) {
         injectServices(resolver)
 
-        coreDataPublisher =
-            changedObjectsOnManagedObjectContextDidSavePublisher()
-                .receive(on: queue)
-                .share()
-                .eraseToAnyPublisher()
-
-        glucoseStorage.updatePublisher
-            .receive(on: DispatchQueue.global(qos: .background))
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                Task {
-                    await self.uploadGlucose()
-                }
-            }
-            .store(in: &subscriptions)
-
-        registerHandlers()
+        registerUploadControllers()
 
         guard isAvailableOnCurrentDevice,
               AppleHealthConfig.healthBGObject != nil else { return }
@@ -93,31 +130,27 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         debug(.service, "HealthKitManager did create")
     }
 
-    private func registerHandlers() {
-        coreDataPublisher?.filteredByEntityName("PumpEventStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task { [weak self] in
-                guard let self = self else { return }
-                await self.uploadInsulin()
-            }
-        }.store(in: &subscriptions)
+    private func registerUploadControllers() {
+        glucoseUploadControllerDelegate.onContentChange = { [weak self] in
+            Task { await self?.uploadGlucose() }
+        }
+        carbsUploadControllerDelegate.onContentChange = { [weak self] in
+            Task { await self?.uploadCarbs() }
+        }
+        insulinUploadControllerDelegate.onContentChange = { [weak self] in
+            Task { await self?.uploadInsulin() }
+        }
 
-        coreDataPublisher?.filteredByEntityName("CarbEntryStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task { [weak self] in
-                guard let self = self else { return }
-                await self.uploadCarbs()
+        // performFetch must run on the viewContext's queue (main).
+        Task { @MainActor in
+            do {
+                try self.glucoseUploadController.performFetch()
+                try self.carbsUploadController.performFetch()
+                try self.insulinUploadController.performFetch()
+            } catch {
+                debug(.service, "\(DebuggingIdentifiers.failed) Failed to set up HealthKit upload controllers: \(error)")
             }
-        }.store(in: &subscriptions)
-
-        // This works only for manual Glucose
-        coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task { [weak self] in
-                guard let self = self else { return }
-                await self.uploadGlucose()
-            }
-        }.store(in: &subscriptions)
+        }
     }
 
     func checkWriteToHealthPermissions(objectTypeToHealthStore: HKObjectType) -> Bool {
@@ -214,19 +247,21 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     }
 
     private func updateGlucoseAsUploaded(_ glucose: [BloodGlucose]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateGlucoseAsUploaded"
+        await context.perform {
             let ids = glucose.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToHealth = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToHealth: \(error.userInfo)"
@@ -335,19 +370,21 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     }
 
     private func updateCarbsAsUploaded(_ carbs: [CarbsEntry]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateCarbsAsUploaded"
+        await context.perform {
             let ids = carbs.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToHealth = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToHealth: \(error.userInfo)"
@@ -377,9 +414,11 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
               insulinEvents.isNotEmpty else { return }
 
         do {
+            let context = CoreDataStack.shared.newTaskContext()
+            context.name = "uploadInsulin"
             let fetchedInsulinEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
                 ofType: PumpEventStored.self,
-                onContext: backgroundContext,
+                onContext: context,
                 predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
                     NSPredicate.pumpHistoryLast24h,
                     NSPredicate(format: "tempBasal != nil")
@@ -391,7 +430,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
             var insulinSamples: [HKQuantitySample] = []
 
-            try await backgroundContext.perform {
+            try await context.perform {
                 guard let existingTempBasalEntries = fetchedInsulinEntries as? [PumpEventStored] else {
                     throw CoreDataError.fetchError(function: #function, file: #file)
                 }
@@ -408,7 +447,8 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                         // For temp basal events, process them and adjust overlapping durations if necessary
                         guard let duration = event.duration, let amount = event.amount else { continue }
 
-                        let value = (Decimal(duration) / 60.0) * amount
+                        // pump-reported delivery wins; rate x duration is the fallback
+                        let value = event.deliveredUnits ?? (Decimal(duration) / 60.0) * amount
                         let valueRounded = self.deviceDataManager?.pumpManager?
                             .roundToSupportedBolusVolume(units: Double(value)) ?? Double(value)
 
@@ -486,6 +526,17 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         return nil
     }
 
+    /// Insulin type recorded with the dose; the pump's current type is only a
+    /// fallback for rows stored before it was persisted per event. External
+    /// doses are not the pump's insulin, so they get no fallback.
+    private func insulinTypeTitle(_ storedIdentifier: String?, isExternal: Bool = false) -> String {
+        if let storedIdentifier, let insulinType = InsulinType(identifier: storedIdentifier) {
+            return insulinType.title
+        }
+        guard !isExternal else { return "" }
+        return deviceDataManager?.pumpManager?.status.insulinType?.title ?? ""
+    }
+
     // Helper function to create a HealthKit sample from a PumpHistoryEvent
     private func createSample(
         for event: PumpHistoryEvent,
@@ -519,7 +570,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                 HKMetadataKeySyncIdentifier: event.id,
                 HKMetadataKeySyncVersion: 1,
                 HKMetadataKeyInsulinDeliveryReason: deliveryReason.rawValue,
-                AppleHealthConfig.TrioInsulinType: deviceDataManager?.pumpManager?.status.insulinType?.title ?? ""
+                AppleHealthConfig.TrioInsulinType: insulinTypeTitle(event.insulinType, isExternal: event.isExternal ?? false)
             ]
         )
 
@@ -549,9 +600,11 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             // Precise duration in hours
             let adjustedDurationHours = adjustedDuration / 3600
 
-            // Calculate the insulin rate and adjusted delivered units
+            // Calculate the insulin rate and adjusted delivered units;
+            // a finalized row already reports what the truncated span delivered
             let predecessorEntryRate = predecessorEntry.tempBasal?.rate?.doubleValue ?? 0
-            let adjustedDeliveredUnits = adjustedDurationHours * predecessorEntryRate
+            let adjustedDeliveredUnits = predecessorEntry.tempBasal?.deliveredUnits?.doubleValue
+                ?? adjustedDurationHours * predecessorEntryRate
             let adjustedDeliveredUnitsRounded = deviceDataManager?.pumpManager?
                 .roundToSupportedBolusVolume(units: adjustedDeliveredUnits) ?? adjustedDeliveredUnits
 
@@ -567,7 +620,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                     HKMetadataKeySyncIdentifier: predecessorEntryId,
                     HKMetadataKeySyncVersion: 2, // set the version # to 2, as we update an entry. initial version is 1.
                     HKMetadataKeyInsulinDeliveryReason: HKInsulinDeliveryReason.basal.rawValue,
-                    AppleHealthConfig.TrioInsulinType: deviceDataManager?.pumpManager?.status.insulinType?.title ?? ""
+                    AppleHealthConfig.TrioInsulinType: insulinTypeTitle(predecessorEntry.insulinType)
                 ]
             )
 
@@ -582,19 +635,21 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     }
 
     private func updateInsulinAsUploaded(_ insulin: [PumpHistoryEvent]) async {
-        await backgroundContext.perform {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "updateInsulinAsUploaded"
+        await context.perform {
             let ids = insulin.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest)
                 for result in results {
                     result.isUploadedToHealth = true
                 }
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToHealth: \(error.userInfo)"

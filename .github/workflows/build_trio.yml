@@ -148,6 +148,30 @@ jobs:
             echo "is_second_instance=false" >> "$GITHUB_OUTPUT"
           fi
 
+  # When a scheduled run finds nothing new to build, cancel the run so it shows
+  # as "cancelled" instead of "success" — a green check should always mean a
+  # new build was made.
+  cancel_when_no_build:
+    needs: check_status
+    name: Cancel run when there is nothing to build
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    if: |
+      github.event_name == 'schedule' &&
+        !(vars.SCHEDULED_BUILD != 'false' && needs.check_status.outputs.IS_SECOND_IN_MONTH == 'true') &&
+        !(vars.SCHEDULED_SYNC != 'false' && needs.check_status.outputs.NEW_COMMITS == 'true')
+    steps:
+      - name: Cancel the run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Repository is up to date and no monthly build is due — cancelling this run so it is not reported as a successful build." >> "$GITHUB_STEP_SUMMARY"
+          gh run cancel ${{ github.run_id }} --repo ${{ github.repository }}
+          # Keep the job alive until the cancellation lands, so the run ends as
+          # "cancelled" rather than completing successfully first.
+          sleep 300
+
   # Checks if Distribution certificate is present and valid, optionally nukes and
   # creates new certs if the repository variable ENABLE_NUKE_CERTS == 'true'
   # only run if a build is planned
@@ -175,7 +199,7 @@ jobs:
         (vars.SCHEDULED_SYNC != 'false' && needs.check_status.outputs.NEW_COMMITS == 'true' )
     steps:
       - name: Select Xcode version
-        run: "sudo xcode-select --switch /Applications/Xcode_26.2.app/Contents/Developer"
+        run: "sudo xcode-select --switch /Applications/Xcode_26.5.app/Contents/Developer"
       
       - name: Checkout Repo for building
         uses: actions/checkout@v5
@@ -213,6 +237,20 @@ jobs:
           # and make sure to specify the submodule by setting "--directory=(submodule_name)".
           # Several patches may be added per submodule.
           # Adding comments (#) is strongly recommended to easily tell the individual patches apart.
+
+      # Optional: silence the startup warning shown on builds made from a branch other
+      # than main. Off unless you deliberately set the repository variable
+      # DEV_BRANCH_WARNING_DISABLED to true (Settings > Secrets and variables > Actions
+      # > Variables). Intended for forks and redistributions that always build from
+      # their own branch - if you are testing dev, leave this alone and keep the warning.
+      - name: Configure Dev Branch Warning
+        if: vars.DEV_BRANCH_WARNING_DISABLED == 'true'
+        run: |
+          # ConfigOverride.xcconfig is gitignored and is included by Config.xcconfig,
+          # so writing it here feeds the flag into the Release build without touching
+          # any tracked file.
+          echo 'SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) DEV_BRANCH_WARNING_DISABLED' >> ConfigOverride.xcconfig
+          echo "::warning::Development branch warning disabled for this build."
 
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables

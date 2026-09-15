@@ -18,7 +18,6 @@ public extension OrefDetermination {
     @NSManaged var expectedDelta: NSDecimalNumber?
     @NSManaged var glucose: NSDecimalNumber?
     @NSManaged var id: UUID?
-    @NSManaged var insulinForManualBolus: NSDecimalNumber?
     @NSManaged var insulinReq: NSDecimalNumber?
     @NSManaged var insulinSensitivity: NSDecimalNumber?
     @NSManaged var iob: NSDecimalNumber?

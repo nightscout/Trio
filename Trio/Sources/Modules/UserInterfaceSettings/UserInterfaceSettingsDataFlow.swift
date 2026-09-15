@@ -2,4 +2,6 @@ enum UserInterfaceSettings {
     enum Config {}
 }
 
-protocol UserInterfaceSettingsProvider: Provider {}
+protocol UserInterfaceSettingsProvider: Provider {
+    func getBGTargets() async -> BGTargets
+}

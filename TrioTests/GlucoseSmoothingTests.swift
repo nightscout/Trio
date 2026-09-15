@@ -11,7 +11,7 @@ import Testing
     var coreDataStack: CoreDataStack!
     var testContext: NSManagedObjectContext!
     var fetchGlucoseManager: BaseFetchGlucoseManager!
-    var openAPS: OpenAPS!
+    var glucoseStorage: BaseGlucoseStorage!
 
     init() async throws {
         coreDataStack = try await CoreDataStack.createForTests()
@@ -32,8 +32,8 @@ import Testing
 
         fetchGlucoseManager = resolver.resolve(FetchGlucoseManager.self)! as? BaseFetchGlucoseManager
 
-        let fileStorage = resolver.resolve(FileStorage.self)!
-        openAPS = OpenAPS(storage: fileStorage, tddStorage: MockTDDStorage())
+        let context: NSManagedObjectContext = testContext
+        glucoseStorage = BaseGlucoseStorage(resolver: resolver, contextProvider: { context })
     }
 
     // MARK: - Exponential Smoothing Tests
@@ -289,43 +289,43 @@ import Testing
     @Test("Algorithm uses smoothed glucose when enabled") func testAlgorithmUsesSmoothedGlucose() async throws {
         await createGlucose(glucose: 150, smoothed: 140, isManual: false, date: Date())
 
-        let algorithmInput = try await runFetchAndProcessGlucose(smoothGlucose: true)
+        let algorithmInput = try await glucoseStorage.getGlucoseForAlgorithm(shouldSmoothGlucose: true, fetchHours: 24)
 
         #expect(algorithmInput.count == 1, "Expected to process one glucose entry.")
         #expect(
-            algorithmInput.first?.glucose == 140,
-            "Algorithm should have used the smoothed glucose value (140), but used \(algorithmInput.first?.glucose ?? 0)."
+            algorithmInput.first?.sgv == 140,
+            "Algorithm should have used the smoothed glucose value (140), but used \(algorithmInput.first?.sgv ?? 0)."
         )
     }
 
     @Test("Algorithm uses raw glucose when smoothing is disabled") func testAlgorithmUsesRawGlucose() async throws {
         await createGlucose(glucose: 150, smoothed: 140, isManual: false, date: Date())
 
-        let algorithmInput = try await runFetchAndProcessGlucose(smoothGlucose: false)
+        let algorithmInput = try await glucoseStorage.getGlucoseForAlgorithm(shouldSmoothGlucose: false, fetchHours: 24)
 
         #expect(algorithmInput.count == 1, "Expected to process one glucose entry.")
         #expect(
-            algorithmInput.first?.glucose == 150,
-            "Algorithm should have used the raw glucose value (150), but used \(algorithmInput.first?.glucose ?? 0)."
+            algorithmInput.first?.sgv == 150,
+            "Algorithm should have used the raw glucose value (150), but used \(algorithmInput.first?.sgv ?? 0)."
         )
     }
 
     @Test("Algorithm falls back to raw glucose if smoothed value is missing") func testAlgorithmFallbackToRawGlucose() async throws {
         await createGlucose(glucose: 150, smoothed: nil, isManual: false, date: Date())
 
-        let algorithmInput = try await runFetchAndProcessGlucose(smoothGlucose: true)
+        let algorithmInput = try await glucoseStorage.getGlucoseForAlgorithm(shouldSmoothGlucose: true, fetchHours: 24)
 
         #expect(algorithmInput.count == 1, "Expected to process one glucose entry.")
         #expect(
-            algorithmInput.first?.glucose == 150,
-            "Algorithm should have fallen back to the raw glucose value (150), but used \(algorithmInput.first?.glucose ?? 0)."
+            algorithmInput.first?.sgv == 150,
+            "Algorithm should have fallen back to the raw glucose value (150), but used \(algorithmInput.first?.sgv ?? 0)."
         )
     }
 
     @Test("Algorithm ignores smoothed value for manual glucose entries") func testAlgorithmIgnoresSmoothedManualGlucose() async throws {
         await createGlucose(glucose: 150, smoothed: 140, isManual: true, date: Date())
 
-        let algorithmInput = try await runFetchAndProcessGlucose(smoothGlucose: true)
+        let algorithmInput = try await glucoseStorage.getGlucoseForAlgorithm(shouldSmoothGlucose: true, fetchHours: 24)
 
         #expect(algorithmInput.count == 1, "Expected to process one glucose entry.")
         #expect(
@@ -335,24 +335,6 @@ import Testing
     }
 
     // MARK: - Helpers
-
-    private func runFetchAndProcessGlucose(smoothGlucose: Bool) async throws -> [AlgorithmGlucose] {
-        let jsonString = try await openAPS.fetchAndProcessGlucose(
-            context: testContext,
-            shouldSmoothGlucose: smoothGlucose,
-            fetchLimit: 10
-        )
-
-        let data = jsonString.data(using: .utf8)!
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .custom { decoder in
-            let container = try decoder.singleValueContainer()
-            let dateDouble = try container.decode(Double.self)
-            return Date(timeIntervalSince1970: dateDouble / 1000)
-        }
-
-        return try decoder.decode([AlgorithmGlucose].self, from: data)
-    }
 
     private func createGlucose(glucose: Int16, smoothed: Decimal?, isManual: Bool, date: Date) async {
         await testContext.perform {

@@ -9,6 +9,11 @@ import Foundation
 import SwiftUI
 import WidgetKit
 
+private enum ForecastDisplayTypeKey {
+    static let lines = "lines"
+    static let cone = "cone"
+}
+
 struct LiveActivityChartView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.isWatchOS) var isWatchOS
@@ -22,9 +27,13 @@ struct LiveActivityChartView: View {
 
         let maxThreshhold: Decimal = isWatchOS ? 220 : 300
 
-        // Determine scale
-        let minValue = min(additionalState.chart.min(by: { $0.value < $1.value })?.value ?? 39, 39)
-        let maxValue = max(additionalState.chart.max(by: { $0.value < $1.value })?.value ?? maxThreshhold, maxThreshhold)
+        // Determine scale, accounting for both glucose history and prediction values
+        let chartMin = additionalState.chart.min(by: { $0.value < $1.value })?.value ?? 39
+        let chartMax = additionalState.chart.max(by: { $0.value < $1.value })?.value ?? maxThreshhold
+        let forecastMin = additionalState.minForecast.min().map { Decimal($0) } ?? chartMin
+        let forecastMax = min(additionalState.maxForecast.max().map { Decimal($0) } ?? chartMax, maxThreshhold)
+        let minValue = min(min(chartMin, forecastMin), 39)
+        let maxValue = max(max(chartMax, forecastMax), maxThreshhold)
 
         let yAxisRuleMarkMin = isMgdL ? state.lowGlucose : state.lowGlucose
             .asMmolL
@@ -34,12 +43,22 @@ struct LiveActivityChartView: View {
 
         let isOverrideActive = additionalState.isOverrideActive == true
         let isTempTargetActive = additionalState.isTempTargetActive == true
+        let hasForecast = !additionalState.minForecast.isEmpty || !additionalState.forecastLines.isEmpty
 
         let calendar = Calendar.current
         let now = Date()
 
         let startDate = calendar.date(byAdding: .hour, value: isWatchOS ? -3 : -6, to: now) ?? now
-        let endDate = calendar.date(byAdding: .minute, value: isWatchOS ? 5 : 0, to: now) ?? now
+        let endDate: Date = {
+            let baseEnd = calendar.date(byAdding: .minute, value: isWatchOS ? 5 : 0, to: now) ?? now
+            guard hasForecast, let anchorDate = state.date else { return baseEnd }
+            let forecastCount = max(
+                additionalState.minForecast.count,
+                additionalState.forecastLines.max(by: { $0.values.count < $1.values.count })?.values.count ?? 0
+            )
+            let predictionEnd = anchorDate.addingTimeInterval(TimeInterval(forecastCount * 300))
+            return max(baseEnd, predictionEnd)
+        }()
 
         // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
         let hardCodedLow = isMgdL ? Decimal(55) : 55.asMmolL
@@ -81,6 +100,14 @@ struct LiveActivityChartView: View {
 
             if isTempTargetActive {
                 drawActiveTempTarget()
+            }
+
+            if hasForecast, let anchorDate = state.date {
+                if additionalState.forecastDisplayType == ForecastDisplayTypeKey.lines {
+                    drawForecastLines(anchorDate: anchorDate, isMgdL: isMgdL)
+                } else {
+                    drawForecastCone(anchorDate: anchorDate, isMgdL: isMgdL, maxValue: maxValue)
+                }
             }
 
             drawChart(yAxisRuleMarkMin: yAxisRuleMarkMin, yAxisRuleMarkMax: yAxisRuleMarkMax)
@@ -147,6 +174,72 @@ struct LiveActivityChartView: View {
         )
         .foregroundStyle(Color("LoopGreen").opacity(0.6))
         .lineStyle(.init(lineWidth: 8))
+    }
+
+    private func timeForIndex(_ index: Int, anchorDate: Date) -> Date {
+        anchorDate.addingTimeInterval(TimeInterval(index * 300))
+    }
+
+    private func drawForecastCone(anchorDate: Date, isMgdL: Bool, maxValue: Decimal) -> some ChartContent {
+        let minForecast = additionalState.minForecast
+        let maxForecast = additionalState.maxForecast
+        let cappedMax = isMgdL ? maxValue : maxValue.asMmolL
+        let count = min(minForecast.count, maxForecast.count)
+
+        // Pre-compute cone data to avoid conditionals inside the ForEach closure
+        let coneData: [(date: Date, yMin: Decimal, yMax: Decimal)] = (0 ..< count).map { index in
+            let xValue = timeForIndex(index, anchorDate: anchorDate)
+            let delta = minForecast[index] - maxForecast[index]
+            let yMin: Decimal
+            let yMax: Decimal
+            if delta == 0 {
+                let base = isMgdL ? Decimal(minForecast[index]) : Decimal(minForecast[index]).asMmolL
+                yMin = base - 1
+                yMax = base + 1
+            } else {
+                yMin = isMgdL ? Decimal(minForecast[index]) : Decimal(minForecast[index]).asMmolL
+                yMax = isMgdL ? Decimal(maxForecast[index]) : Decimal(maxForecast[index]).asMmolL
+            }
+            return (date: xValue, yMin: min(yMin, cappedMax), yMax: min(yMax, cappedMax))
+        }
+
+        return ForEach(coneData.indices, id: \.self) { i in
+            AreaMark(
+                x: .value("Time", coneData[i].date),
+                yStart: .value("Min", coneData[i].yMin),
+                yEnd: .value("Max", coneData[i].yMax)
+            )
+            .foregroundStyle(Color.blue.opacity(0.5))
+            .interpolationMethod(.linear)
+        }
+    }
+
+    private func drawForecastLines(anchorDate: Date, isMgdL: Bool) -> some ChartContent {
+        let colorMap: [String: Color] = [
+            "iob": Color(red: 0.118, green: 0.588, blue: 0.988),
+            "cob": Color.orange,
+            "uam": Color(red: 0.820, green: 0.169, blue: 0.969),
+            "zt": Color(red: 0.443, green: 0.380, blue: 0.937)
+        ]
+
+        let points: [(series: String, date: Date, value: Decimal)] = additionalState.forecastLines.flatMap { line in
+            line.values.enumerated().map { index, value in
+                let displayValue = isMgdL ? Decimal(value) : Decimal(value).asMmolL
+                return (series: line.type, date: timeForIndex(index, anchorDate: anchorDate), value: displayValue)
+            }
+        }
+
+        return ForEach(0 ..< points.count, id: \.self) { i in
+            let point = points[i]
+            LineMark(
+                x: .value("Time", point.date),
+                y: .value("Value", point.value),
+                series: .value("Type", point.series)
+            )
+            .foregroundStyle(colorMap[point.series] ?? Color.gray)
+            .lineStyle(.init(lineWidth: 1.5))
+            .interpolationMethod(.linear)
+        }
     }
 
     private func drawChart(yAxisRuleMarkMin _: Decimal, yAxisRuleMarkMax _: Decimal) -> some ChartContent {

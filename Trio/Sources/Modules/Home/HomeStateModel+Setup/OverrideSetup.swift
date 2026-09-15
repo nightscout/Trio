@@ -2,80 +2,51 @@ import CoreData
 import Foundation
 
 extension Home.StateModel {
-    // Setup Overrides
-    func setupOverrides() {
-        Task {
-            do {
-                let ids = try await self.fetchOverrides()
-                let overrideObjects: [OverrideStored] = try await CoreDataStack.shared
-                    .getNSManagedObject(with: ids, context: viewContext)
-                await updateOverrideArray(with: overrideObjects)
-            } catch let error as CoreDataError {
-                debug(.default, "Core Data error in setupOverrides: \(error)")
-            } catch {
-                debug(.default, "Unexpected error in setupOverrides: \(error)")
+    // MARK: - Overrides
+
+    @MainActor func setupOverrideController() {
+        overrideControllerDelegate.onContentChange = { [weak self] in
+            Task { @MainActor in
+                self?.updateOverridesFromController()
             }
+        }
+
+        do {
+            try overrideController.performFetch()
+            updateOverridesFromController()
+        } catch {
+            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform override fetch: \(error)")
         }
     }
 
-    private func fetchOverrides() async throws -> [NSManagedObjectID] {
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OverrideStored.self,
-            onContext: overrideFetchContext,
-            predicate: NSPredicate.lastActiveOverride, // this predicate filters for all Overrides within the last 24h
-            key: "date",
-            ascending: false
-        )
-
-        return try await overrideFetchContext.perform {
-            guard let fetchedResults = results as? [OverrideStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
-    @MainActor private func updateOverrideArray(with objects: [OverrideStored]) {
+    @MainActor private func updateOverridesFromController() {
+        guard let objects = overrideController.fetchedObjects else { return }
         overrides = objects
     }
 
-    // Setup expired Overrides
-    func setupOverrideRunStored() {
-        Task {
-            do {
-                let ids = try await self.fetchOverrideRunStored()
-                let overrideRunObjects: [OverrideRunStored] = try await CoreDataStack.shared
-                    .getNSManagedObject(with: ids, context: viewContext)
-                await updateOverrideRunStoredArray(with: overrideRunObjects)
-            } catch let error as CoreDataError {
-                debug(.default, "Core Data error in setupOverrideRunStored: \(error)")
-            } catch {
-                debug(.default, "Unexpected error in setupOverrideRunStored: \(error)")
+    // MARK: - Override Runs
+
+    @MainActor func setupOverrideRunController() {
+        overrideRunControllerDelegate.onContentChange = { [weak self] in
+            Task { @MainActor in
+                self?.updateOverrideRunsFromController()
             }
+        }
+
+        do {
+            try overrideRunController.performFetch()
+            updateOverrideRunsFromController()
+        } catch {
+            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform override run fetch: \(error)")
         }
     }
 
-    private func fetchOverrideRunStored() async throws -> [NSManagedObjectID] {
-        let predicate = NSPredicate(format: "startDate >= %@", Date.oneDayAgo as NSDate)
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OverrideRunStored.self,
-            onContext: overrideFetchContext,
-            predicate: predicate,
-            key: "startDate",
-            ascending: false
-        )
-
-        return try await overrideFetchContext.perform {
-            guard let fetchedResults = results as? [OverrideRunStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
-    @MainActor private func updateOverrideRunStoredArray(with objects: [OverrideRunStored]) {
+    @MainActor func updateOverrideRunsFromController() {
+        guard let objects = overrideRunController.fetchedObjects else { return }
         overrideRunStored = objects
     }
+
+    // MARK: - Override Actions
 
     /// Cancels the running Override, creates an entry in the OverrideRunStored Core Data entity and posts a custom notification so that the AdjustmentsView gets updated
     @MainActor func cancelOverride(withID id: NSManagedObjectID) async {

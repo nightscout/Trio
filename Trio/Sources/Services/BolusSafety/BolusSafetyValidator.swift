@@ -64,10 +64,7 @@ final class BaseBolusSafetyValidator: BolusSafetyValidator, Injectable {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var iobService: IOBService!
 
-    private let fetchContext: NSManagedObjectContext
-
     init(resolver: Resolver) {
-        fetchContext = CoreDataStack.shared.newTaskContext()
         injectServices(resolver)
     }
 
@@ -84,6 +81,8 @@ final class BaseBolusSafetyValidator: BolusSafetyValidator, Injectable {
     }
 
     func fetchTotalRecentBolusAmount(since date: Date) async throws -> Decimal {
+        let fetchContext = CoreDataStack.shared.newTaskContext()
+        fetchContext.name = "fetchTotalRecentBolusAmount"
         let predicate = NSPredicate(
             format: "type == %@ AND timestamp > %@",
             PumpEventStored.EventType.bolus.rawValue,

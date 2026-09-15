@@ -1,4 +1,5 @@
 import CoreData
+import LoopKit
 import Observation
 import SwiftDate
 import SwiftUI
@@ -7,6 +8,7 @@ extension Calibrations {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
         @ObservationIgnored @Injected() var calibrationService: CalibrationService!
+        @ObservationIgnored @Injected() var trioAlertManager: TrioAlertManager!
 
         var slope: Double = 1
         var intercept: Double = 1
@@ -77,12 +79,36 @@ extension Calibrations {
 
                     calibrationService.addCalibration(calibration)
                 } else {
-                    info(.service, "Glucose is stale for calibration")
+                    debug(.service, "Glucose is stale for calibration")
+                    issueStaleGlucoseAlert()
                     return
                 }
             } catch {
                 debug(.default, "\(DebuggingIdentifiers.failed) Failed to add calibration: \(error)")
             }
+        }
+
+        /// Surfaces the "glucose too stale to calibrate against" condition as
+        /// a one-shot info alert through `TrioAlertManager`. Mirrors the old
+        /// `info(.service, …)` banner path that ran via `router.alertMessage`.
+        private func issueStaleGlucoseAlert() {
+            let content = Alert.Content(
+                title: String(localized: "Calibration unavailable"),
+                body: String(localized: "Glucose is stale for calibration"),
+                acknowledgeActionButtonLabel: String(localized: "OK")
+            )
+            let alert = Alert(
+                identifier: Alert.Identifier(
+                    managerIdentifier: "trio.calibration",
+                    alertIdentifier: "glucose.stale"
+                ),
+                foregroundContent: content,
+                backgroundContent: content,
+                trigger: .immediate,
+                interruptionLevel: .active,
+                sound: nil
+            )
+            trioAlertManager?.issueAlert(alert)
         }
 
         func removeLast() {

@@ -1,5 +1,4 @@
 import Foundation
-import HealthKit
 
 enum Formatters {
     static func percent(for number: Double) -> String {
@@ -100,7 +99,7 @@ extension Formatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.locale = .current
-        formatter.minimumIntegerDigits = 0
+        formatter.minimumIntegerDigits = 1
         formatter.maximumFractionDigits = 2
         return formatter
     }()

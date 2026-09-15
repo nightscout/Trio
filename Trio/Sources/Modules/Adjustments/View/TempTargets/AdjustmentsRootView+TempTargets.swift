@@ -21,7 +21,7 @@ extension Adjustments.RootView {
             ForEach(state.scheduledTempTargets) { tempTarget in
                 tempTargetView(for: tempTarget)
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        actionButtonsForTempTargets(for: tempTarget)
+                        actionButtonsForTempTargets(for: tempTarget, deleteRole: nil)
                     }
             }
             .listRowBackground(Color.chart)
@@ -40,19 +40,10 @@ extension Adjustments.RootView {
                     actionButtonsForTempTargets(for: preset)
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    actionButtonsForTempTargets(for: preset)
+                    actionButtonsForTempTargets(for: preset, deleteRole: nil)
                 }
             }
             .onMove(perform: state.reorderTempTargets)
-            .confirmationDialog(
-                deleteConfirmationTitle,
-                isPresented: $isConfirmDeletePresented,
-                titleVisibility: .visible
-            ) {
-                deleteConfirmationButtons()
-            } message: {
-                deleteConfirmationMessage
-            }
             .listRowBackground(Color.chart)
         } header: {
             Text("Temporary Target Presets")
@@ -74,64 +65,55 @@ extension Adjustments.RootView {
         requestPresetActivation(activation)
     }
 
-    private func actionButtonsForTempTargets(for tempTarget: TempTargetStored) -> some View {
+    private func actionButtonsForTempTargets(
+        for tempTarget: TempTargetStored,
+        deleteRole: ButtonRole? = .destructive
+    ) -> some View {
         Group {
-            Button(role: .destructive) {
-                Task {
-                    selectedTempTarget = tempTarget
-                    isConfirmDeletePresented = true
-                }
+            Button(role: deleteRole) {
+                tempTargetToDelete = tempTarget
             } label: {
                 Label("Delete", systemImage: "trash.fill")
-                    .tint(.red)
             }
-            Button(action: {
+            .tint(.red)
+            Button {
                 selectedTempTarget = tempTarget
                 state.showTempTargetEditSheet = true
-            }, label: {
+            } label: {
                 Label("Edit", systemImage: "pencil")
-                    .tint(.blue)
-            })
+            }
+            .tint(.blue)
         }
     }
 
-    private var deleteConfirmationTitle: String {
-        let presetName = selectedTempTarget?.name ?? ""
-        return String(
-            localized: "Delete the Temp Target Preset \"\(presetName)\"?",
-            comment: "Delete confirmation title for temporary target presets"
-        )
-    }
+    func tempTargetDeleteConfirmation(_ content: some View) -> some View {
+        let target = tempTargetToDelete
+        let isRunning = target != nil && state.currentActiveTempTarget == target
 
-    private func deleteConfirmationButtons() -> some View {
-        Group {
-            if let itemToDelete = selectedTempTarget {
-                Button(
-                    state.currentActiveTempTarget == selectedTempTarget ? "Stop and Delete" : "Delete",
+        return content.glassActionSheet(
+            "Delete the Temp Target Preset \"\(target?.name ?? "")\"?",
+            message: isRunning ? Text("This Temp Target preset is currently running. Deleting will stop it.") : nil,
+            isPresented: Binding(
+                get: { tempTargetToDelete != nil },
+                set: { if !$0 { tempTargetToDelete = nil } }
+            ),
+            actions: [
+                GlassSheetAction(
+                    isRunning ? "Stop and Delete" : "Delete",
                     role: .destructive
                 ) {
-                    if state.currentActiveTempTarget == selectedTempTarget {
+                    guard let target else { return }
+                    if isRunning {
                         Task {
                             await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
                         }
                     }
                     Task {
-                        await state.invokeTempTargetPresetDeletion(itemToDelete.objectID)
+                        await state.invokeTempTargetPresetDeletion(target.objectID)
                     }
-                    selectedTempTarget = nil
                 }
-            }
-            Button("Cancel", role: .cancel) {
-                selectedTempTarget = nil
-            }
-        }
-    }
-
-    private var deleteConfirmationMessage: Text? {
-        if state.currentActiveTempTarget == selectedTempTarget {
-            return Text("This Temp Target preset is currently running. Deleting will stop it.")
-        }
-        return nil
+            ]
+        )
     }
 
     var stickyStopTempTargetButton: some View {
@@ -180,7 +162,7 @@ extension Adjustments.RootView {
         )
         let remainingTime = tempTarget.date?.timeIntervalSinceNow ?? 0
 
-        return ZStack(alignment: .trailing) {
+        let row = ZStack(alignment: .trailing) {
             HStack {
                 VStack(alignment: .leading) {
                     HStack {
@@ -227,6 +209,28 @@ extension Adjustments.RootView {
                 Image(systemName: "line.3.horizontal")
                     .imageScale(.medium)
                     .foregroundStyle(.secondary)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(tempTarget.name ?? ""))
+        .accessibilityValue(Text(
+            formattedGlucose(glucose: target as Decimal) + " "
+                + String(localized: "for", comment: "duration connector") + " "
+                + (Formatter.integerFormatter.string(from: (tempTarget.duration ?? 0) as NSNumber) ?? "0") + " "
+                + String(localized: "min", comment: "minutes abbreviation")
+                + (state.isAdjustSensEnabled(usingTarget: tempTargetValue) ? ", \(percentage)%" : "")
+        ))
+        // Only tappable rows (presets) are buttons; scheduled rows are read-only, so they get
+        // neither the button trait, an activation, nor a hint.
+        return Group {
+            if let onTap {
+                row
+                    .accessibilityHint(Text(String(localized: "Enables this temp target", comment: "Accessibility hint")))
+                    .accessibilityAddTraits(showCheckmark && isSelected ? [.isButton, .isSelected] : .isButton)
+                    .accessibilityAction { onTap() }
+            } else {
+                row
+                    .accessibilityAddTraits(showCheckmark && isSelected ? .isSelected : [])
             }
         }
     }

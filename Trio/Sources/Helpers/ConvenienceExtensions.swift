@@ -1,4 +1,5 @@
-import UIKit
+import CoreGraphics
+import Foundation
 
 protocol Occupiable {
     var isEmpty: Bool { get }

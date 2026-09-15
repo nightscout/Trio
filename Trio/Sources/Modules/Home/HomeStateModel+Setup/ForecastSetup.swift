@@ -15,6 +15,9 @@ extension Home.StateModel {
                 return []
             }
 
+            let taskContext = CoreDataStack.shared.newTaskContext()
+            taskContext.name = "HomeStateModel.preprocessForecastData"
+
             // Fetch complete forecast hierarchy with prefetched values
             return try await determinationStorage.fetchForecastHierarchy(
                 for: determination.objectID,
@@ -30,11 +33,27 @@ extension Home.StateModel {
     }
 
     // Update forecast data and UI on the main thread
+    //
+    // Runs inside `forecastUpdateTask`; cancellation is checked after every suspension
+    // point so a superseded run cannot overwrite fresher results.
     @MainActor func updateForecastData() async {
         let forecastDataIDs = await preprocessForecastData()
 
+        guard !Task.isCancelled else { return }
+
         var allForecastValues = [[Int]]()
         var preprocessedData = [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)]()
+
+        // Prefetch all Forecasts with their forecastValues into viewContext in a single IN-query
+        // to avoid N+1 individual SELECTs when materializing via existingObject below.
+        let forecastObjectIDs = forecastDataIDs.map(\.forecastID)
+        if !forecastObjectIDs.isEmpty {
+            let prefetchRequest = NSFetchRequest<Forecast>(entityName: "Forecast")
+            prefetchRequest.predicate = NSPredicate(format: "SELF IN %@", forecastObjectIDs)
+            prefetchRequest.relationshipKeyPathsForPrefetching = ["forecastValues"]
+            prefetchRequest.returnsObjectsAsFaults = false
+            _ = try? viewContext.fetch(prefetchRequest)
+        }
 
         // Process prefetched data directly
         for data in forecastDataIDs {
@@ -82,6 +101,8 @@ extension Home.StateModel {
 
             return (minForecast, maxForecast)
         }.value
+
+        guard !Task.isCancelled else { return }
 
         minForecast = minResult
         maxForecast = maxResult

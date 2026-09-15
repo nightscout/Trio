@@ -6,6 +6,7 @@ import Swinject
 protocol IOBService {
     var iobPublisher: AnyPublisher<Decimal?, Never> { get }
     var currentIOB: Decimal? { get }
+    var iobProjection: [IOBEntry] { get }
     func updateIOB()
 }
 
@@ -31,15 +32,19 @@ final class BaseIOBService: IOBService, Injectable {
         lookupIOB()
     }
 
+    // Projected IOB series from the latest loop cycle (now → +4 h, 5 min steps)
+    var iobProjection: [IOBEntry] {
+        fileStorage.retrieve(OpenAPS.Monitor.iob, as: [IOBEntry].self) ?? []
+    }
+
     private var subscriptions = Set<AnyCancellable>()
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private let queue = DispatchQueue(label: "BaseIOBService.queue", qos: .background)
-    private let context = CoreDataStack.shared.newTaskContext()
 
     init(resolver: Resolver) {
         injectServices(resolver)
         coreDataPublisher =
-            changedObjectsOnManagedObjectContextDidSavePublisher()
+            CoreDataStack.shared.entityChangePublisher
                 .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
@@ -64,6 +69,8 @@ final class BaseIOBService: IOBService, Injectable {
     private func fetchLatestDeterminationIOB() -> (iob: Decimal?, date: Date?) {
         var iob: Decimal?
         var date: Date?
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchLatestDeterminationIOB"
         context.performAndWait {
             let request = OrefDetermination.fetchRequest() as NSFetchRequest<OrefDetermination>
             request.sortDescriptors = [NSSortDescriptor(key: "deliverAt", ascending: false)]

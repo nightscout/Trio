@@ -17,6 +17,12 @@ final class ServiceAssembly: Assembly {
         container.register(CalendarManager.self) { r in BaseCalendarManager(resolver: r) }
         container.register(HKHealthStore.self) { _ in HKHealthStore() }
         container.register(HealthKitManager.self) { r in BaseHealthKitManager(resolver: r) }
+        container.register(TrioAlertManager.self) { r in BaseTrioAlertManager(resolver: r) }
+            .inObjectScope(.container)
+        container.register(GlucoseAlertCoordinator.self) { r in GlucoseAlertCoordinator(resolver: r) }
+            .inObjectScope(.container)
+        container.register(NotLoopingMonitor.self) { r in NotLoopingMonitor(resolver: r) }
+            .inObjectScope(.container)
         container.register(UserNotificationsManager.self) { r in BaseUserNotificationsManager(resolver: r) }
         container.register(WatchManager.self) { r in BaseWatchManager(resolver: r) }
         container.register(BolusCalculationManager.self) { r in BaseBolusCalculationManager(resolver: r) }
@@ -30,5 +36,13 @@ final class ServiceAssembly: Assembly {
         }
         container.register(IOBService.self) { r in BaseIOBService(resolver: r) }
         container.register(BolusSafetyValidator.self) { r in BaseBolusSafetyValidator(resolver: r) }
+        container.register(AdjustmentManager.self) { r in BaseAdjustmentManager(resolver: r) }
+            .inObjectScope(.container)
+        container.register(TrioRemoteControl.self) { r in TrioRemoteControl(resolver: r) }
+            .inObjectScope(.container)
+        container.register(TelemetryClient.self) { r in TelemetryClient(resolver: r) }
+            .inObjectScope(.container)
+        container.register(TelemetryAttestor.self) { r in TelemetryAttestor(resolver: r) }
+            .inObjectScope(.container)
     }
 }

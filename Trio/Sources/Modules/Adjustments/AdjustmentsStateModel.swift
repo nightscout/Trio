@@ -70,7 +70,6 @@ extension Adjustments {
         var didSaveSettings: Bool = false
 
         // Core Data
-        let coredataContext = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         // Help Sheet
@@ -101,50 +100,11 @@ extension Adjustments {
 
         /// Retrieves the current glucose target based on the time of day.
         func getCurrentGlucoseTarget() async {
-            let now = Date()
-            let calendar = Calendar.current
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "HH:mm:ss"
-            dateFormatter.timeZone = TimeZone.current
-
             let bgTargets = await provider.getBGTargets()
-            let entries: [(start: String, value: Decimal)] = bgTargets.targets.map { ($0.start, $0.low) }
-
-            for (index, entry) in entries.enumerated() {
-                guard let entryTime = dateFormatter.date(from: entry.start) else {
-                    print("Invalid entry start time: \(entry.start)")
-                    continue
-                }
-
-                let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
-                let entryStartTime = calendar.date(
-                    bySettingHour: entryComponents.hour!,
-                    minute: entryComponents.minute!,
-                    second: entryComponents.second!,
-                    of: now
-                )!
-
-                let entryEndTime: Date
-                if index < entries.count - 1,
-                   let nextEntryTime = dateFormatter.date(from: entries[index + 1].start)
-                {
-                    let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
-                    entryEndTime = calendar.date(
-                        bySettingHour: nextEntryComponents.hour!,
-                        minute: nextEntryComponents.minute!,
-                        second: nextEntryComponents.second!,
-                        of: now
-                    )!
-                } else {
-                    entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
-                }
-
-                if now >= entryStartTime, now < entryEndTime {
-                    await MainActor.run {
-                        currentGlucoseTarget = entry.value
-                        target = currentGlucoseTarget
-                    }
-                    return
+            if let currentTarget = bgTargets.currentTarget() {
+                await MainActor.run {
+                    currentGlucoseTarget = currentTarget
+                    target = currentGlucoseTarget
                 }
             }
         }
@@ -154,7 +114,8 @@ extension Adjustments {
             units = settingsManager.settings.units
             defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
             defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
-            autosensMax = settingsManager.preferences.autosensMax
+            // clamped: drives predicted temp-target percentages, must match the algorithm
+            autosensMax = settingsManager.preferences.clamped(for: settingsManager.settings.dosingMode).autosensMax
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
@@ -270,7 +231,8 @@ extension Adjustments.StateModel: SettingsObserver, PreferencesObserver {
     func preferencesDidChange(_: Preferences) {
         defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
         defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
-        autosensMax = settingsManager.preferences.autosensMax
+        // clamped: drives predicted temp-target percentages, must match the algorithm
+        autosensMax = settingsManager.preferences.clamped(for: settingsManager.settings.dosingMode).autosensMax
         settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
         halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
         highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity

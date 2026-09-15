@@ -131,15 +131,17 @@ struct LiveActivityWidgetConfiguration: BaseView {
             }
             loadOrder() // Load the saved order when the view appears
         }
-        .confirmationDialog("Add Widget", isPresented: $showAddItemDialog, titleVisibility: .visible) {
-            ForEach(LiveActivityItem.allCases.filter { !selectedItems.contains($0) }, id: \.self) { item in
-                Button(item.displayName) {
+        .glassActionSheet(
+            "Add Widget",
+            isPresented: $showAddItemDialog,
+            actions: LiveActivityItem.allCases.filter { !selectedItems.contains($0) }.map { item in
+                GlassSheetAction(verbatim: item.displayName) {
                     if let index = buttonIndexToUpdate {
                         addItem(item, at: index)
                     }
                 }
             }
-        }
+        )
     }
 
     @ViewBuilder private func widgetButton(for index: Int) -> some View {
@@ -165,14 +167,18 @@ struct LiveActivityWidgetConfiguration: BaseView {
                         .clipShape(Circle())
                         .font(.title3)
                 }
+                .accessibilityLabel(Text("Remove widget"))
                 .offset(x: 10, y: -10)
-                .confirmationDialog("Remove Widget", isPresented: $isRemovalConfirmationPresented, titleVisibility: .hidden) {
-                    Button("Remove Widget", role: .destructive) {
-                        if let itemToRemove = itemToRemove {
-                            removeItem(itemToRemove)
+                .glassActionSheet(
+                    isPresented: $isRemovalConfirmationPresented,
+                    actions: [
+                        GlassSheetAction("Remove Widget", role: .destructive) {
+                            if let itemToRemove = itemToRemove {
+                                removeItem(itemToRemove)
+                            }
                         }
-                    }
-                }
+                    ]
+                )
             }
         } else {
             // Show "+" symbol for empty slots
@@ -194,6 +200,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
                 )
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(Text("Add widget"))
         }
     }
 
@@ -220,9 +227,9 @@ struct LiveActivityWidgetConfiguration: BaseView {
                 let pointMarkColor = Trio.getDynamicGlucoseColor(
                     glucoseValue: Decimal(data.glucoseLevel),
                     highGlucoseColorValue: !(state.settingsManager.settings.glucoseColorScheme == .dynamicColor) ? state
-                        .settingsManager.settings.highGlucose : Decimal(220),
+                        .settingsManager.settings.high : Decimal(220),
                     lowGlucoseColorValue: !(state.settingsManager.settings.glucoseColorScheme == .dynamicColor) ? state
-                        .settingsManager.settings.lowGlucose : Decimal(55),
+                        .settingsManager.settings.low : Decimal(55),
                     targetGlucose: Decimal(100),
                     glucoseColorScheme: state.settingsManager.settings.glucoseColorScheme
                 )

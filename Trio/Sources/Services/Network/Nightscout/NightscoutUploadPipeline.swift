@@ -1,8 +1,8 @@
 import Foundation
 
 /// Logical upload “paths” handled by NightscoutManager.
-/// Each upload pipeline has its own throttled queue so we don’t double-upload
-/// when multiple sources trigger the same work close together.
+/// Runs are coalesced and serialized per pipeline (see `NightscoutUploadSerializer`)
+/// so we don’t double-upload when multiple sources trigger the same work close together.
 public enum NightscoutUploadPipeline: String, CaseIterable {
     case carbs
     case pumpHistory
@@ -28,7 +28,7 @@ public extension Foundation.Notification.Name {
 }
 
 /// Convenience helper any component (e.g. APSManager) can call to
-/// request uploads. The work is enqueued and deduped per upload pipeline via throttle,
+/// request uploads. The work is coalesced and serialized per upload pipeline,
 /// so rapid duplicate calls won’t double-upload.
 ///
 /// - Parameters:

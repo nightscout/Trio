@@ -48,6 +48,9 @@ extension Stat.StateModel {
     /// 3. Calculates total insulin for each time period
     /// 4. Returns the processed statistics as (hourly: [BolusStats], daily: [BolusStats])
     private func fetchBolusStats() async throws -> (hourly: [BolusStats], daily: [BolusStats]) {
+        let bolusTaskContext = CoreDataStack.shared.newTaskContext()
+        bolusTaskContext.name = "StatStateModel.fetchBolusStats"
+
         // Fetch PumpEventStored entries from Core Data
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: BolusStored.self,
@@ -155,6 +158,9 @@ extension Stat.StateModel {
     ///
     /// This only needs to be called once during subscribe.
     private func calculateAndCacheBolusAveragesAndTotals() async {
+        let bolusTaskContext = CoreDataStack.shared.newTaskContext()
+        bolusTaskContext.name = "StatStateModel.calculateAndCacheBolusAveragesAndTotals"
+
         let calendar = Calendar.current
 
         // Calculate averages in context

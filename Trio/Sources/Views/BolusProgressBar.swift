@@ -19,6 +19,7 @@ struct BolusProgressBar: View {
                         .mask(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 15)
                                 .frame(width: geo.size.width * CGFloat(progress))
+                                .animation(.easeInOut(duration: 0.25), value: progress)
                         }
                 )
         }

@@ -329,9 +329,9 @@ struct GlucoseDailyPercentileChart: View {
             "10-90%": .blue.opacity(0.3),
             "25-75%": .blue.opacity(0.5),
             "Median": .blue,
-            "\(timeInRangeType.bottomThreshold.formatted(withUnits: units))": .red,
-            "\(timeInRangeType.topThreshold.formatted(withUnits: units))": .mint,
-            "\(highLimit.formatted(withUnits: units))": .orange
+            "\(timeInRangeType.bottomThreshold.formatted(withUnits: units))": .staticLow,
+            "\(timeInRangeType.topThreshold.formatted(withUnits: units))": .staticInRange,
+            "\(highLimit.formatted(withUnits: units))": .staticHigh
         ])
         .chartScrollableAxes(.horizontal)
         .chartScrollPosition(x: $scrollPosition)
@@ -344,6 +344,8 @@ struct GlucoseDailyPercentileChart: View {
             )
         )
         .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedInterval))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Daily glucose percentile chart"))
     }
 
     // MARK: - Chart Components

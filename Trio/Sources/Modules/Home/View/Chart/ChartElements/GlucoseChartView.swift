@@ -15,42 +15,47 @@ struct GlucoseChartView: ChartContent {
         drawGlucoseChart()
     }
 
+    /// Dynamic point color for a CGM reading. Manual readings render red and skip this.
+    private func pointColor(for item: GlucoseStored) -> Color {
+        // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+        let hardCodedLow = Decimal(55)
+        let hardCodedHigh = Decimal(220)
+        let isDynamicColorScheme = glucoseColorScheme == .dynamicColor
+
+        return Trio.getDynamicGlucoseColor(
+            glucoseValue: Decimal(item.glucose),
+            highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
+            lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
+            targetGlucose: currentGlucoseTarget,
+            glucoseColorScheme: glucoseColorScheme
+        )
+    }
+
     private func drawGlucoseChart() -> some ChartContent {
         ForEach(glucoseData) { item in
             let glucoseToDisplay = units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
 
-            // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
-            let hardCodedLow = Decimal(55)
-            let hardCodedHigh = Decimal(220)
-            let isDynamicColorScheme = glucoseColorScheme == .dynamicColor
-
-            let pointMarkColor: Color = Trio.getDynamicGlucoseColor(
-                glucoseValue: Decimal(item.glucose),
-                highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
-                lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
-                targetGlucose: currentGlucoseTarget,
-                glucoseColorScheme: glucoseColorScheme
-            )
-
-            PointMark(
-                x: .value("Time", item.date ?? Date(), unit: .second),
-                y: .value("Value", glucoseToDisplay)
-            )
-            .foregroundStyle(pointMarkColor)
-            .symbolSize(20)
-            .symbol {
-                if item.isManual {
+            if item.isManual {
+                PointMark(
+                    x: .value("Time", item.date ?? Date(), unit: .second),
+                    y: .value("Value", glucoseToDisplay)
+                )
+                .symbolSize(20)
+                .symbol {
                     Image(systemName: "drop.fill")
                         .font(.caption2)
                         .symbolRenderingMode(.monochrome)
                         .bold()
                         .foregroundStyle(.red)
-                } else {
-                    Image(systemName: "circle.fill")
-                        .font(.system(size: 5))
-                        .bold()
-                        .foregroundStyle(pointMarkColor)
                 }
+            } else {
+                PointMark(
+                    x: .value("Time", item.date ?? Date(), unit: .second),
+                    y: .value("Value", glucoseToDisplay)
+                )
+                .foregroundStyle(pointColor(for: item))
+                .symbolSize(20)
+                .symbol(.circle)
             }
 
             if isSmoothingEnabled, let smoothedGlucose = item.smoothedGlucose, smoothedGlucose != 0 {

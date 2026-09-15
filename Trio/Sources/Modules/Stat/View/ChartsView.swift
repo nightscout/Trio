@@ -64,17 +64,17 @@ struct ChartsView: View {
                     PointMark(
                         x: .value("Time", item.date ?? Date(), unit: .second),
                         y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.orange.gradient).symbolSize(size).interpolationMethod(.cardinal)
+                    ).foregroundStyle(Color.staticHigh.gradient).symbolSize(size).interpolationMethod(.cardinal)
                 } else if item.glucose < Int(lowLimit) {
                     PointMark(
                         x: .value("Time", item.date ?? Date(), unit: .second),
                         y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.red.gradient).symbolSize(size).interpolationMethod(.cardinal)
+                    ).foregroundStyle(Color.staticLow.gradient).symbolSize(size).interpolationMethod(.cardinal)
                 } else {
                     PointMark(
                         x: .value("Time", item.date ?? Date(), unit: .second),
                         y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.green.gradient).symbolSize(size).interpolationMethod(.cardinal)
+                    ).foregroundStyle(Color.staticInRange.gradient).symbolSize(size).interpolationMethod(.cardinal)
                 }
             }
         }
@@ -88,6 +88,8 @@ struct ChartsView: View {
                 ]
             )
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Glucose readings scatter chart"))
     }
 
     var tirChartLaying: some View {
@@ -133,17 +135,19 @@ struct ChartsView: View {
                     localized:
                     "Low",
                     comment: ""
-                ) + " (<\(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))": .red,
-                String(localized: "In Range", comment: ""): .green,
+                ) + " (<\(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))": .staticLow,
+                String(localized: "In Range", comment: ""): .staticInRange,
                 String(
                     localized:
                     "High",
                     comment: ""
-                ) + " (>\(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))": .orange
+                ) + " (>\(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))": .staticHigh
             ]).frame(maxHeight: 25)
         }
         .frame(maxWidth: .infinity, alignment: .center) // Align the entire VStack to center
         .padding(.horizontal, 5)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Time in range bar chart"))
     }
 
     var tirChartStanding: some View {
@@ -194,14 +198,16 @@ struct ChartsView: View {
                 localized:
                 "Low",
                 comment: ""
-            ) + " (< \(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))": .red,
-            "\(low.formatted(.number.precision(.fractionLength(fraction)))) - \(high.formatted(.number.precision(.fractionLength(fraction))))": .green,
+            ) + " (< \(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))": .staticLow,
+            "\(low.formatted(.number.precision(.fractionLength(fraction)))) - \(high.formatted(.number.precision(.fractionLength(fraction))))": .staticInRange,
             String(
                 localized:
                 "High",
                 comment: ""
-            ) + " (> \(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))": .orange
+            ) + " (> \(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))": .staticHigh
         ])
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Time in range bar chart"))
     }
 
     var groupedGlucoseStatsStanding: some View {
@@ -218,7 +224,7 @@ struct ChartsView: View {
                         .foregroundColor(.secondary)
                     Text("\(value.formatted(.number.precision(.fractionLength(0 ... 1)))) %")
                         .frame(width: 45, alignment: .trailing)
-                        .foregroundColor(.orange)
+                        .foregroundColor(.staticHigh)
                 }.font(.caption)
                 HStack {
                     let value = 100.0 * Double(mapGlucoseNormal.count) / Double(mapGlucose.count)
@@ -227,7 +233,7 @@ struct ChartsView: View {
                         .foregroundColor(.secondary)
                     Text("\(value.formatted(.number.precision(.fractionLength(0 ... 1)))) %")
                         .frame(width: 45, alignment: .trailing)
-                        .foregroundColor(.green)
+                        .foregroundColor(.staticInRange)
                 }.font(.caption)
                 HStack {
                     let value = 100.0 * Double(mapGlucoseAcuteLow.count) / Double(mapGlucose.count)
@@ -236,7 +242,7 @@ struct ChartsView: View {
                         .foregroundColor(.secondary)
                     Text("\(value.formatted(.number.precision(.fractionLength(0 ... 1)))) %")
                         .frame(width: 45, alignment: .trailing)
-                        .foregroundColor(.red)
+                        .foregroundColor(.staticLow)
                 }.font(.caption)
             }
         }
@@ -254,14 +260,14 @@ struct ChartsView: View {
                     let value = 100.0 * Double(mapGlucoseLow.count) / Double(mapGlucose.count)
                     Text(units == .mmolL ? "< 3.3" : "< 59").font(.caption2).foregroundColor(.secondary)
                     Text(value.formatted(.number.precision(.fractionLength(0 ... 1)))).font(.caption)
-                        .foregroundColor(value == 0 ? .green : .red)
+                        .foregroundColor(value == 0 ? .staticInRange : .staticLow)
                     Text("%").font(.caption)
                 }
                 Spacer()
                 HStack {
                     let value = 100.0 * Double(mapGlucoseNormal.count) / Double(mapGlucose.count)
                     Text(units == .mmolL ? "3.9-7.8" : "70-140").foregroundColor(.secondary)
-                    Text(value.formatted(.number.precision(.fractionLength(0 ... 1)))).foregroundColor(.green)
+                    Text(value.formatted(.number.precision(.fractionLength(0 ... 1)))).foregroundColor(.staticInRange)
                     Text("%").foregroundColor(.secondary)
                 }.font(.caption)
                 Spacer()
@@ -269,7 +275,7 @@ struct ChartsView: View {
                     let value = 100.0 * Double(mapGlucoseAcuteHigh.count) / Double(mapGlucose.count)
                     Text(units == .mmolL ? "> 11.0" : "> 198").font(.caption).foregroundColor(.secondary)
                     Text(value.formatted(.number.precision(.fractionLength(0 ... 1)))).font(.caption)
-                        .foregroundColor(value == 0 ? .green : .orange)
+                        .foregroundColor(value == 0 ? .staticInRange : .staticHigh)
                     Text("%").font(.caption)
                 }
                 Spacer()

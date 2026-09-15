@@ -245,19 +245,11 @@ extension FileStorage {
         if var settings = retrieve(OpenAPS.Settings.settings, as: TrioSettings.self) {
             let initialHigh = settings.high
             let initialLow = settings.low
-            let initialHighGlucose = settings.highGlucose
-            let initialLowGlucose = settings.lowGlucose
 
             settings.high = parseSettingIfMmolL(value: settings.high)
             settings.low = parseSettingIfMmolL(value: settings.low)
-            settings.highGlucose = parseSettingIfMmolL(value: settings.highGlucose)
-            settings.lowGlucose = parseSettingIfMmolL(value: settings.lowGlucose)
 
-            if settings.high != initialHigh ||
-                settings.low != initialLow ||
-                settings.highGlucose != initialHighGlucose ||
-                settings.lowGlucose != initialLowGlucose
-            {
+            if settings.high != initialHigh || settings.low != initialLow {
                 debug(.businessLogic, "TrioSettings found in mmol/L. Parsing to mg/dL.")
                 save(settings, as: OpenAPS.Settings.settings)
                 wasParsed = true

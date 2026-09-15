@@ -14,7 +14,6 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
 
     private var lifetime = Lifetime()
     private let timer = DispatchTimer(timeInterval: 1.minutes.timeInterval)
-    private var backgroundContext = CoreDataStack.shared.newTaskContext()
 
     init(resolver: Resolver) {
         injectServices(resolver)

@@ -1,6 +1,5 @@
 import Combine
 import DanaKit
-import FirebaseCrashlytics
 import Foundation
 import LoopKit
 import MedtrumKit
@@ -22,35 +21,6 @@ extension Onboarding {
         @ObservationIgnored @Injected() var apsManager: APSManager!
 
         private let settingsProvider = PickerSettingsProvider.shared
-
-        // MARK: - App Diagnostics
-
-        var diagnosticsSharingOption: DiagnosticsSharingOption = .full
-        var hasAcceptedPrivacyPolicy: Bool = false
-
-        func syncDiagnosticsOptionFromStorage() {
-            // Onboarding *is* the consent decision point, so a fresh install
-            // sees `.full` (truly opt-out). If the user has already picked
-            // something — e.g. backed out of this step and returned — restore
-            // their saved selection so they see their current choice.
-            if PropertyPersistentFlags.shared.telemetryConsentDecisionMade == true {
-                let crashlytics = PropertyPersistentFlags.shared.diagnosticsSharingEnabled ?? true
-                let telemetry = PropertyPersistentFlags.shared.telemetryEnabled ?? false
-                diagnosticsSharingOption = DiagnosticsSharingOption(
-                    crashlyticsEnabled: crashlytics,
-                    telemetryEnabled: telemetry
-                )
-            } else {
-                diagnosticsSharingOption = .full
-            }
-        }
-
-        func updateDiagnosticsOption(to option: DiagnosticsSharingOption) {
-            diagnosticsSharingOption = option
-            PropertyPersistentFlags.shared.diagnosticsSharingEnabled = option.crashlyticsEnabled
-            PropertyPersistentFlags.shared.telemetryEnabled = option.telemetryEnabled
-            PropertyPersistentFlags.shared.telemetryConsentDecisionMade = true
-        }
 
         // MARK: - Determine Initial Build State
 
@@ -116,30 +86,20 @@ extension Onboarding {
         // MARK: - Units and Pump Omboarding Option
 
         var units: GlucoseUnits = .mgdL
-        private var selectedPumpOption: PumpOptionForOnboardingUnits?
-        var pumpOptionForOnboardingUnits: PumpOptionForOnboardingUnits {
+        private var selectedPumpOption: PumpCatalogEntry?
+        var pumpOptionForOnboardingUnits: PumpCatalogEntry {
             get {
                 // let user edit selection and return user-selection, if present
                 if let selected = selectedPumpOption {
                     return selected
                 }
 
-                let defaultOption: PumpOptionForOnboardingUnits
-                if let pumpManager = apsManager?.pumpManager {
-                    if pumpManager is OmniPumpManager {
-                        defaultOption = .omni
-                    } else if pumpManager is MedtrumPumpManager {
-                        defaultOption = .medtrum
-                    } else if pumpManager is DanaKitPumpManager {
-                        defaultOption = .dana
-                    } else if pumpManager is MinimedPumpManager {
-                        defaultOption = .minimed
-                    } else {
-                        defaultOption = .omni
-                    }
-                } else {
-                    defaultOption = .omni
-                }
+                // Users upgrading from a pre-onboarding Trio already have a pump manager, so preselect it.
+                // Matching on pluginIdentifier also picks up the legacy Omnipod identifiers, which the old
+                // downcast cascade could not.
+                let defaultOption = apsManager?.pumpManager
+                    .map { DeviceCatalog.onboardingPump(forPersistedIdentifier: $0.pluginIdentifier) }
+                    ?? DeviceCatalog.defaultOnboardingPump
 
                 // cache it so picker can stay in sync
                 selectedPumpOption = defaultOption
@@ -166,25 +126,16 @@ extension Onboarding {
         // MARK: - Basal Profile
 
         var basalRatePickerSetting: PickerSetting {
-            switch selectedPumpOption {
-            case .dana:
-                return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 3, type: .insulinUnitPerHour)
-            case .minimed:
-                return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 35, type: .insulinUnitPerHour)
-            case .omni:
-                return PickerSetting(
-                    value: 0.1,
-                    step: 0.05,
-                    min: 0,
-                    max: 30,
-                    type: .insulinUnitPerHour
-                ) // FIXME: we need to be able to differentiate Eros here due to not allowing 0 basal rates
-            case .medtrum:
-                return PickerSetting(value: 0.1, step: 0.05, min: 0.05, max: 30, type: .insulinUnitPerHour)
-            case .none:
-                // same as dash, as that is the fallback
-                return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 30, type: .insulinUnitPerHour)
-            }
+            // Deliberately reads the stored value, not the getter: before the user picks anything this stays nil
+            // and falls back to the default pump's bounds, which is the pre-catalog behaviour.
+            let capability = (selectedPumpOption ?? DeviceCatalog.defaultOnboardingPump).basalCapability
+            return PickerSetting(
+                value: 0.1,
+                step: capability.step,
+                min: capability.minimum,
+                max: capability.maximum,
+                type: .insulinUnitPerHour
+            )
         }
 
         var basalProfileItems: [BasalProfileEditor.Item] = []
@@ -225,7 +176,7 @@ extension Onboarding {
         var rewindResetsAutosens: Bool = true
 
         var filteredAutosensSettingsSubsteps: [AutosensSettingsSubstep] {
-            if pumpOptionForOnboardingUnits == .minimed || pumpOptionForOnboardingUnits == .dana {
+            if pumpOptionForOnboardingUnits.reportsRewindEvents {
                 return AutosensSettingsSubstep.allCases
             } else {
                 return [AutosensSettingsSubstep.autosensMin, AutosensSettingsSubstep.autosensMax]
@@ -417,6 +368,50 @@ extension Onboarding {
             }
 
             initialISFItems = isfItems.map { ISFEditor.Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+        }
+
+        /// Total insulin a basal schedule delivers over 24 hours.
+        /// - Parameter segments: `(start minute of day, rate in U/hr)`, in any order.
+        static func totalDailyBasal(segments: [(startMinutes: Int, rate: Decimal)]) -> Decimal {
+            let sorted = segments.sorted { $0.startMinutes < $1.startMinutes }
+            guard !sorted.isEmpty else { return 0 }
+
+            return sorted.enumerated().reduce(Decimal(0)) { total, element in
+                let (index, segment) = element
+                let end = index + 1 < sorted.count ? sorted[index + 1].startMinutes : 24 * 60
+                let minutes = end - segment.startMinutes
+                guard minutes > 0 else { return total }
+                return total + segment.rate * Decimal(minutes) / 60
+            }
+        }
+
+        /// Starting Max IOB for a new user: a third of their total daily basal, snapped to the picker's step.
+        static func suggestedMaxIOB(totalDailyBasal: Decimal, setting: PickerSetting) -> Decimal {
+            let suggestion = totalDailyBasal / 3
+            guard setting.step > 0 else { return suggestion.clamp(to: setting) }
+            let steps = rounded(suggestion / setting.step, scale: 0, roundingMode: .plain)
+            return (steps * setting.step).clamp(to: setting)
+        }
+
+        /// Seeds Max IOB from the entered basal schedule when the user first reaches delivery limits.
+        /// Runs there, not in `subscribe()`: a fresh install has no basal profile yet at that point.
+        func seedMaxIOBIfUnset() {
+            guard maxIOB <= 0 else { return }
+            maxIOB = Self.suggestedMaxIOB(
+                totalDailyBasal: totalDailyBasal(),
+                setting: settingsProvider.settings.maxIOB
+            )
+        }
+
+        /// Total insulin the entered basal profile delivers over 24 hours.
+        func totalDailyBasal() -> Decimal {
+            let segments = basalProfileItems.compactMap { item -> (startMinutes: Int, rate: Decimal)? in
+                guard item.timeIndex >= 0, item.timeIndex < basalProfileTimeValues.count,
+                      item.rateIndex >= 0, item.rateIndex < basalProfileRateValues.count
+                else { return nil }
+                return (Int(basalProfileTimeValues[item.timeIndex] / 60), basalProfileRateValues[item.rateIndex])
+            }
+            return Self.totalDailyBasal(segments: segments)
         }
 
         /// Loads delivery limit settings (Units, Max IOB, Max COB, Max Bolus, Max Basal) from the provider.
@@ -696,7 +691,6 @@ extension Onboarding {
 
         /// Persists all onboarding data by applying settings and saving therapy values.
         func saveOnboardingData() {
-            applyDiagnostics()
             applyToSettings()
             applyToPreferences()
             applyToPumpSettings()
@@ -704,18 +698,6 @@ extension Onboarding {
             saveBasalProfile()
             saveCarbRatios()
             saveISFValues()
-        }
-
-        /// Persists the current diagnostics sharing option and applies it to Crashlytics + telemetry.
-        func applyDiagnostics() {
-            PropertyPersistentFlags.shared.diagnosticsSharingEnabled = diagnosticsSharingOption.crashlyticsEnabled
-            PropertyPersistentFlags.shared.telemetryEnabled = diagnosticsSharingOption.telemetryEnabled
-            PropertyPersistentFlags.shared.telemetryConsentDecisionMade = true
-            Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(diagnosticsSharingOption.crashlyticsEnabled)
-            if diagnosticsSharingOption.telemetryEnabled {
-                TelemetryClient.shared.scheduleRecurring()
-                Task.detached { await TelemetryClient.shared.maybeSend() }
-            }
         }
 
         /// Applies the selected glucose units to the app's settings.
@@ -732,8 +714,6 @@ extension Onboarding {
             if !isFreshTrioInstall {
                 let providedSettings = settingsProvider.settings
 
-                settingsCopy.lowGlucose = settingsCopy.lowGlucose.clamp(to: providedSettings.lowGlucose)
-                settingsCopy.highGlucose = settingsCopy.highGlucose.clamp(to: providedSettings.highGlucose)
                 settingsCopy.carbsRequiredThreshold = settingsCopy.carbsRequiredThreshold
                     .clamp(to: providedSettings.carbsRequiredThreshold)
                 settingsCopy.individualAdjustmentFactor = settingsCopy.individualAdjustmentFactor

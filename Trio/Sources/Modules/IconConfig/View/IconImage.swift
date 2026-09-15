@@ -17,6 +17,7 @@ struct IconImage: View {
                 .padding()
         }
         .labelStyle(.iconOnly)
+        .accessibilityHidden(true)
     }
 }
 

@@ -20,8 +20,6 @@ final class PropertyPersistentFlags {
 
     @PersistedProperty(key: "onboardingCompleted") var onboardingCompleted: Bool?
 
-    @PersistedProperty(key: "diagnosticsSharing") var diagnosticsSharingEnabled: Bool?
-
     @PersistedProperty(key: "lastCleanupDate") var lastCleanupDate: Date?
 
     // TODO: This flag can be deleted in March 2027. Check the commit for other places to cleanup.
@@ -31,13 +29,16 @@ final class PropertyPersistentFlags {
 
     //
     // See Trio/Sources/Services/Telemetry/TelemetryClient.swift.
-    // `telemetryEnabled` gates the anonymous-usage POST. `diagnosticsSharingEnabled`
-    // remains the Crashlytics gate. Both flags `nil` means the user has not yet
-    // chosen — used to surface the one-time migration sheet to existing users.
-    @PersistedProperty(key: "telemetryEnabled") var telemetryEnabled: Bool?
-    @PersistedProperty(key: "telemetryConsentDecisionMade") var telemetryConsentDecisionMade: Bool?
+    // `telemetrySharingEnabled` gates the anonymous-usage POST;
+    // `crashlyticsSharingEnabled` is the Crashlytics gate. Both streams are on
+    // by default: `nil` means enabled; only an explicit `false` opts out.
+    @PersistedProperty(key: "crashlyticsSharingEnabled") var crashlyticsSharingEnabled: Bool?
+    @PersistedProperty(key: "telemetrySharingEnabled") var telemetrySharingEnabled: Bool?
     @PersistedProperty(key: "telemetryLastSentAt") var telemetryLastSentAt: Date?
+    @PersistedProperty(key: "telemetryAnonymousLastSentAt") var telemetryAnonymousLastSentAt: Date?
+    @PersistedProperty(key: "telemetryLastAttemptAt") var telemetryLastAttemptAt: Date?
     @PersistedProperty(key: "telemetryLastSentSha") var telemetryLastSentSha: String?
+    @PersistedProperty(key: "telemetryLastFailureReason") var telemetryLastFailureReason: String?
     // Sliding 7-day window of cold-launch timestamps; count is sent as `coldLaunches7d`.
     @PersistedProperty(key: "telemetryColdLaunchTimes") var telemetryColdLaunchTimes: [Date]?
     // Stable per-install UUID. IDFV resets when the user removes all Trio-team apps;

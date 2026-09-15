@@ -1,27 +1,25 @@
-import Algorithms
 import Combine
 import CoreData
-import DanaKit
 import Foundation
 import HealthKit
 import LoopKit
 import LoopKitUI
 import MedtrumKit
-import MinimedKit
 import MockKit
+import MockKitUI
 import OmnipodKit
 import ShareClient
 import SwiftDate
 import Swinject
 import UserNotifications
 
-protocol DeviceDataManager: GlucoseSource {
+protocol DeviceDataManager {
     var pumpManager: PumpManagerUI? { get set }
     var bluetoothManager: BluetoothStateManager { get }
     var loopInProgress: Bool { get set }
     var pumpDisplayState: CurrentValueSubject<PumpDisplayState?, Never> { get }
     var recommendsLoop: PassthroughSubject<Void, Never> { get }
-    var bolusTrigger: PassthroughSubject<Bool, Never> { get }
+    var bolusTrigger: CurrentValueSubject<BolusStatus, Never> { get }
     var manualTempBasal: PassthroughSubject<Bool, Never> { get }
     var scheduledBasal: PassthroughSubject<Bool?, Never> { get }
     var suspended: PassthroughSubject<Bool, Never> { get }
@@ -31,25 +29,11 @@ protocol DeviceDataManager: GlucoseSource {
     var pumpActivatedAtDate: CurrentValueSubject<Date?, Never> { get }
 
     func heartbeat(date: Date)
+    func updatePumpBLEHeartbeat(lastCGMReadingDate: Date?, expectedCGMReadingInterval: TimeInterval?)
+    func updateCGMHeartbeatCapability(providesBLEHeartbeat: Bool)
     func createBolusProgressReporter() -> DoseProgressReporter?
     var alertHistoryStorage: AlertHistoryStorage! { get }
 }
-
-private let staticPumpManagers: [PumpManagerUI.Type] = [
-    MinimedPumpManager.self,
-    OmniPumpManager.self,
-    DanaKitPumpManager.self,
-    MedtrumPumpManager.self,
-    MockPumpManager.self
-]
-
-private let staticPumpManagersByIdentifier: [String: PumpManagerUI.Type] = [
-    MinimedPumpManager.pluginIdentifier: MinimedPumpManager.self,
-    OmniPumpManager.pluginIdentifier: OmniPumpManager.self,
-    DanaKitPumpManager.pluginIdentifier: DanaKitPumpManager.self,
-    MedtrumPumpManager.pluginIdentifier: MedtrumPumpManager.self,
-    MockPumpManager.pluginIdentifier: MockPumpManager.self
-]
 
 private let accessLock = NSRecursiveLock(label: "BaseDeviceDataManager.accessLock")
 
@@ -62,30 +46,44 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var bluetoothProvider: BluetoothStateManager!
+    @Injected() private var trioAlertManager: TrioAlertManager!
+    // lazy to avoid circular dependency (NightscoutManager → PumpHistoryStorage)
+    private var resolver: Resolver?
+    // serializes event batches: a PM may report again before the prior store finished
+    private var pumpEventsTask: Task<Void, Never>?
 
     @Persisted(key: "BaseDeviceDataManager.lastEventDate") var lastEventDate: Date? = nil
     @SyncAccess(lock: accessLock) @Persisted(key: "BaseDeviceDataManager.lastHeartBeatTime") var lastHeartBeatTime: Date =
         .distantPast
 
     let recommendsLoop = PassthroughSubject<Void, Never>()
-    let bolusTrigger = PassthroughSubject<Bool, Never>()
+    let bolusTrigger = CurrentValueSubject<BolusStatus, Never>(.noBolus)
     let errorSubject = PassthroughSubject<Error, Never>()
     let pumpNewStatus = PassthroughSubject<Void, Never>()
     let manualTempBasal = PassthroughSubject<Bool, Never>()
     let scheduledBasal = PassthroughSubject<Bool?, Never>()
     let suspended = PassthroughSubject<Bool, Never>()
 
-    private let router = TrioApp.resolver.resolve(Router.self)!
     @SyncAccess private var pumpUpdateCancellable: AnyCancellable?
     private var pumpUpdatePromise: Future<Bool, Never>.Promise?
     @SyncAccess var loopInProgress: Bool = false
-    private let privateContext = CoreDataStack.shared.newTaskContext()
 
     var pumpManager: PumpManagerUI? {
         didSet {
+            if let oldValue = oldValue {
+                trioAlertManager?.unregister(managerIdentifier: oldValue.pluginIdentifier)
+            }
             if let pumpManager = pumpManager {
                 pumpManager.pumpManagerDelegate = self
                 pumpManager.delegateQueue = processQueue
+
+                // Re-apply the latest CGM-aligned heartbeat request to a freshly set pump
+                if let heartbeatRequest = lastPumpHeartbeatRequest {
+                    pumpManager.setBLEHeartbeatRequest(heartbeatRequest)
+                }
+
+                trioAlertManager?.register(responder: pumpManager, for: pumpManager.pluginIdentifier)
+                trioAlertManager?.register(soundVendor: pumpManager, for: pumpManager.pluginIdentifier)
 
                 /// Since the pump manager has been successfully instantiated from its saved state,
                 /// copy its rawValue to rawPumpManager which will be saved to persistant storage.
@@ -159,37 +157,9 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                             $0.pumpReservoirDidChange(Decimal(simulatorPump.state.reservoirUnitsRemaining))
                         }
                     }
-                    let batteryPercent = Int((simulatorPump.state.pumpBatteryChargeRemaining ?? 1) * 100)
-                    let battery = Battery(
-                        percent: batteryPercent,
-                        voltage: nil,
-                        string: batteryPercent >= 10 ? .normal : .low,
-                        display: simulatorPump.state.pumpBatteryChargeRemaining != nil
-                    )
-                    Task {
-                        await self.privateContext.perform {
-                            let saveBatteryToCoreData = OpenAPS_Battery(context: self.privateContext)
-                            saveBatteryToCoreData.id = UUID()
-                            saveBatteryToCoreData.date = Date()
-                            saveBatteryToCoreData.percent = Double(batteryPercent)
-                            saveBatteryToCoreData.voltage = nil
-                            saveBatteryToCoreData.status = batteryPercent >= 10 ? BatteryState.normal.rawValue : BatteryState
-                                .low.rawValue
-                            saveBatteryToCoreData.display = simulatorPump.state.pumpBatteryChargeRemaining != nil
-
-                            do {
-                                guard self.privateContext.hasChanges else { return }
-                                try self.privateContext.save()
-                            } catch {
-                                print(error.localizedDescription)
-                            }
-                        }
-                    }
-                    DispatchQueue.main.async {
-                        self.broadcaster.notify(PumpBatteryObserver.self, on: .main) {
-                            $0.pumpBatteryDidChange(battery)
-                        }
-                    }
+                    // Seed the battery row so the simulator shows one before its first status
+                    // update; `pumpManager(_:didUpdate:oldStatus:)` keeps it current from here.
+                    storeBatteryStatus(simulatorPump.status)
                 }
             } else {
                 pumpDisplayState.value = nil
@@ -202,18 +172,20 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 storage.save(modifiedPreferences, as: OpenAPS.Settings.preferences)
                 // Remove OpenAPS_Battery entries
                 Task {
-                    await self.privateContext.perform {
+                    let context = CoreDataStack.shared.newTaskContext()
+                    context.name = "deleteBatteryEntries"
+                    await context.perform {
                         let fetchRequest: NSFetchRequest<OpenAPS_Battery> = OpenAPS_Battery.fetchRequest()
 
                         do {
-                            let batteryEntries = try self.privateContext.fetch(fetchRequest)
+                            let batteryEntries = try context.fetch(fetchRequest)
 
                             for entry in batteryEntries {
-                                self.privateContext.delete(entry)
+                                context.delete(entry)
                             }
 
-                            guard self.privateContext.hasChanges else { return }
-                            try self.privateContext.save()
+                            guard context.hasChanges else { return }
+                            try context.save()
 
                         } catch {
                             debug(.deviceManager, "Failed to delete OpenAPS_Battery entries: \(error)")
@@ -225,6 +197,10 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     }
 
     @PersistedProperty(key: "PumpManagerState") var rawPumpManager: PumpManager.RawValue?
+
+    @SyncAccess private var lastPumpHeartbeatRequest: PumpHeartbeatRequest?
+    @SyncAccess private var cgmProvidesBLEHeartbeat = false
+    private var appActiveCancellable: AnyCancellable?
 
     var bluetoothManager: BluetoothStateManager { bluetoothProvider }
 
@@ -238,10 +214,21 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     let pumpName = CurrentValueSubject<String, Never>("Pump")
 
     init(resolver: Resolver) {
+        self.resolver = resolver
         injectServices(resolver)
         setupPumpManager()
         UIDevice.current.isBatteryMonitoringEnabled = true
-        broadcaster.register(AlertObserver.self, observer: self)
+
+        // Refresh the pump's heartbeat schedule on foreground, matching Loop's didBecomeActive
+        appActiveCancellable = Foundation.NotificationCenter.default
+            .publisher(for: UIApplication.didBecomeActiveNotification)
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.updatePumpBLEHeartbeat(
+                    lastCGMReadingDate: self.glucoseStorage.lastGlucoseDate(),
+                    expectedCGMReadingInterval: self.lastPumpHeartbeatRequest?.expectedCGMReadingInterval
+                )
+            }
     }
 
     func setupPumpManager() {
@@ -254,6 +241,30 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
 
     func createBolusProgressReporter() -> DoseProgressReporter? {
         pumpManager?.createBolusProgressReporter(reportingOn: processQueue)
+    }
+
+    func updateCGMHeartbeatCapability(providesBLEHeartbeat: Bool) {
+        cgmProvidesBLEHeartbeat = providesBLEHeartbeat
+        // A CGM with its own heartbeat relieves the pump; retract any standing request
+        if providesBLEHeartbeat {
+            lastPumpHeartbeatRequest = nil
+            pumpManager?.setBLEHeartbeatRequest(nil)
+        }
+    }
+
+    func updatePumpBLEHeartbeat(lastCGMReadingDate: Date?, expectedCGMReadingInterval: TimeInterval?) {
+        guard !cgmProvidesBLEHeartbeat else {
+            lastPumpHeartbeatRequest = nil
+            pumpManager?.setBLEHeartbeatRequest(nil)
+            return
+        }
+        // Tell the pump when the next CGM reading is due so it can align its BLE heartbeat (LoopKit#599)
+        let request = PumpHeartbeatRequest(
+            lastCGMReadingDate: lastCGMReadingDate,
+            expectedCGMReadingInterval: expectedCGMReadingInterval ?? .minutes(5)
+        )
+        lastPumpHeartbeatRequest = request
+        pumpManager?.setBLEHeartbeatRequest(request)
     }
 
     func heartbeat(date: Date) {
@@ -301,7 +312,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     }
 
     public func pumpManagerTypeByIdentifier(_ identifier: String) -> PumpManagerUI.Type? {
-        staticPumpManagersByIdentifier[identifier]
+        DeviceCatalog.pumpManagersByIdentifier[identifier]
     }
 
     private func pumpManagerFromRawValue(_ rawValue: [String: Any]) -> PumpManagerUI? {
@@ -319,95 +330,9 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
             return nil
         }
 
-        if let pumpManager = pumpManagerTypeByIdentifier(managerIdentifier) {
-            return pumpManager
-        }
-
-        /// The pumpManager was not found for managerIdentifier. If this was for an "Omnipod" (OmniKit) or
-        /// "Omnipod-DASH" (OmniBLE), have the universal "Omni" pumpManager (OmnipodKit) handle instead.
-        let OmniStr = "Omni"
-        if managerIdentifier.hasPrefix(OmniStr) {
-            return pumpManagerTypeByIdentifier(OmniStr)
-        }
-
-        return nil
-    }
-
-    // MARK: - GlucoseSource
-
-    @Persisted(key: "BaseDeviceDataManager.lastFetchGlucoseDate") private var lastFetchGlucoseDate: Date = .distantPast
-
-    var glucoseManager: FetchGlucoseManager?
-    var cgmManager: CGMManagerUI?
-    var cgmType: CGMType = .enlite
-
-    func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
-        fetch(nil)
-    }
-
-    func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
-        guard let medtronic = pumpManager as? MinimedPumpManager else {
-            warning(.deviceManager, "Fetch minilink glucose failed: Pump is not Medtronic")
-            return Just([]).eraseToAnyPublisher()
-        }
-
-        guard lastFetchGlucoseDate.addingTimeInterval(5.minutes.timeInterval) < Date() else {
-            return Just([]).eraseToAnyPublisher()
-        }
-
-        medtronic.cgmManagerDelegate = self
-
-        return Future<[BloodGlucose], Error> { promise in
-            self.processQueue.async {
-                medtronic.fetchNewDataIfNeeded { result in
-                    switch result {
-                    case .noData:
-                        debug(.deviceManager, "Minilink glucose is empty")
-                        promise(.success([]))
-                    case .unreliableData:
-                        debug(.deviceManager, "Unreliable data received")
-                        promise(.success([]))
-                    case let .newData(glucose):
-                        let directions: [BloodGlucose.Direction?] = [nil]
-                            + glucose.windows(ofCount: 2).map { window -> BloodGlucose.Direction? in
-                                let pair = Array(window)
-                                guard pair.count == 2 else { return nil }
-                                let firstValue = Int(pair[0].quantity.doubleValue(for: .milligramsPerDeciliter))
-                                let secondValue = Int(pair[1].quantity.doubleValue(for: .milligramsPerDeciliter))
-                                return .init(trend: secondValue - firstValue)
-                            }
-
-                        let results = glucose.enumerated().map { index, sample -> BloodGlucose in
-                            let value = Int(sample.quantity.doubleValue(for: .milligramsPerDeciliter))
-                            return BloodGlucose(
-                                id: sample.syncIdentifier,
-                                sgv: value,
-                                direction: directions[index],
-                                date: Decimal(Int(sample.date.timeIntervalSince1970 * 1000)),
-                                dateString: sample.date,
-                                unfiltered: Decimal(value),
-                                filtered: nil,
-                                noise: nil,
-                                glucose: value,
-                                type: "sgv"
-                            )
-                        }
-                        if let lastDate = results.last?.dateString {
-                            self.lastFetchGlucoseDate = lastDate
-                        }
-
-                        promise(.success(results))
-                    case let .error(error):
-                        warning(.deviceManager, "Fetch minilink glucose failed", error: error)
-                        promise(.failure(error))
-                    }
-                }
-            }
-        }
-        .timeout(60 * 3, scheduler: processQueue, options: nil, customError: nil)
-        .replaceError(with: [])
-        .replaceEmpty(with: [])
-        .eraseToAnyPublisher()
+        /// Falls back to `legacyIdentifierPrefixes`, which is how state persisted by the retired "Omnipod"
+        /// (OmniKit) and "Omnipod-DASH" (OmniBLE) managers still resolves to the universal OmnipodKit manager.
+        return DeviceCatalog.pumpEntry(forPersistedIdentifier: managerIdentifier)?.manager
     }
 }
 
@@ -415,7 +340,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
 
 extension BaseDeviceDataManager: PumpManagerDelegate {
     var automaticDosingEnabled: Bool {
-        settingsManager.settings.closedLoop // Take if close or open loop
+        settingsManager.settings.dosingMode.automation != .off // Trio may command the pump
     }
 
     func pumpManager(
@@ -453,7 +378,49 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
     }
 
     func pumpManagerMustProvideBLEHeartbeat(_: PumpManager) -> Bool {
-        true
+        !cgmProvidesBLEHeartbeat
+    }
+
+    /// Persists the pump's battery level for the home-screen battery pill.
+    ///
+    /// Updates the most recent row from the last 30 minutes rather than appending one per status
+    /// update. A pump that does not report a battery (e.g. a pod) still writes a row, with
+    /// `display` false, which is what hides the pill.
+    private func storeBatteryStatus(_ status: PumpManagerStatus) {
+        let percent = Int((status.pumpBatteryChargeRemaining ?? 1) * 100)
+        let display = status.pumpBatteryChargeRemaining != nil
+
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "storeBatteryStatus"
+        context.perform {
+            let fetchRequest: NSFetchRequest<OpenAPS_Battery> = OpenAPS_Battery.fetchRequest()
+            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+            fetchRequest.predicate = NSPredicate.predicateFor30MinAgo
+            fetchRequest.fetchLimit = 1
+
+            do {
+                let results = try context.fetch(fetchRequest)
+                let batteryToStore: OpenAPS_Battery
+
+                if let existingBattery = results.first {
+                    batteryToStore = existingBattery
+                } else {
+                    batteryToStore = OpenAPS_Battery(context: context)
+                    batteryToStore.id = UUID()
+                }
+
+                batteryToStore.date = Date()
+                batteryToStore.percent = Double(percent)
+                batteryToStore.voltage = nil
+                batteryToStore.status = percent > 10 ? BatteryState.normal.rawValue : BatteryState.low.rawValue
+                batteryToStore.display = display
+
+                guard context.hasChanges else { return }
+                try context.save()
+            } catch {
+                debug(.deviceManager, "Failed to fetch or save battery: \(error)")
+            }
+        }
     }
 
     func pumpManager(_ pumpManager: PumpManager, didUpdate status: PumpManagerStatus, oldStatus: PumpManagerStatus) {
@@ -461,10 +428,18 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         debug(.deviceManager, "New pump status Bolus: \(status.bolusState)")
         debug(.deviceManager, "New pump status Basal: \(String(describing: status.basalDeliveryState))")
 
-        if case .inProgress = status.bolusState {
-            bolusTrigger.send(true)
-        } else {
-            bolusTrigger.send(false)
+        // Before any of the pump-specific branches below, which return early.
+        storeBatteryStatus(status)
+        // TODO: - remove this after ensuring that NS still gets the same infos from Core Data
+        storage.save(status.pumpStatus, as: OpenAPS.Monitor.status)
+
+        switch status.bolusState {
+        case .initiating:
+            bolusTrigger.send(.initiating)
+        case let .inProgress(dose):
+            bolusTrigger.send(.inProgress)
+        default:
+            bolusTrigger.send(.noBolus)
         }
 
         switch status.basalDeliveryState {
@@ -486,6 +461,13 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         if status.insulinType != oldStatus.insulinType {
             settingsManager.updateInsulinCurve(status.insulinType)
         }
+
+        // Check if manual temp basal is active
+        let manualTempBasalActive = status.basalDeliveryState?.isManualTempBasal ?? false
+        if manualTempBasalActive {
+            debug(.deviceManager, "manual temp basal")
+        }
+        manualTempBasal.send(manualTempBasalActive)
 
         if let medtrumPump = pumpManager as? MedtrumPumpManager {
             storage.save(Decimal(medtrumPump.state.reservoir), as: OpenAPS.Monitor.reservoir)
@@ -518,18 +500,6 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
             storage.save(Decimal(reservoir), as: OpenAPS.Monitor.reservoir)
             broadcaster.notify(PumpReservoirObserver.self, on: processQueue) {
                 $0.pumpReservoirDidChange(Decimal(reservoir))
-            }
-
-            // manual temp basal on
-            if let tempBasal = omni.state.podState?.unfinalizedTempBasal, !tempBasal.isFinished(),
-               !tempBasal.automatic
-            {
-                // the manual basal temp is launch - block every thing
-                debug(.deviceManager, "manual temp basal")
-                manualTempBasal.send(true)
-            } else {
-                // no more manual Temp Basal !
-                manualTempBasal.send(false)
             }
 
             guard let endTime = omni.state.podState?.expiresAt else {
@@ -570,12 +540,13 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         _: PumpManager,
         hasNewPumpEvents events: [NewPumpEvent],
         lastReconciliation _: Date?,
-        replacePendingEvents _: Bool,
+        replacePendingEvents: Bool,
         completion: @escaping (_ error: Error?) -> Void
     ) {
         dispatchPrecondition(condition: .onQueue(processQueue))
 
-        Task {
+        pumpEventsTask = Task { [previousBatch = pumpEventsTask] in
+            await previousBatch?.value
             do {
                 // filter buggy TBRs > maxBasal from MDT
                 let events = events.filter {
@@ -584,11 +555,24 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
                     return $0.dose?.unitsPerHour ?? 0 <= Double(settingsManager.pumpSettings.maxBasal)
                 }
                 debug(.deviceManager, "Storing \(events.count) new pump events: \(events)")
-                try await pumpHistoryStorage.storePumpEvents(events)
+                let purgedUploadedIds = try await pumpHistoryStorage.storePumpEvents(
+                    events,
+                    replacePendingEvents: replacePendingEvents
+                )
                 lastEventDate = events.last?.date
                 completion(nil)
+                // the pump withdrew these events; remove their NS treatments
+                if !purgedUploadedIds.isEmpty, let nightscoutManager = resolver?.resolve(NightscoutManager.self) {
+                    // detached: remote cleanup must not delay the next event batch
+                    Task {
+                        for id in purgedUploadedIds {
+                            await nightscoutManager.deleteInsulin(withID: id)
+                        }
+                    }
+                }
             } catch {
                 debug(.deviceManager, "\(DebuggingIdentifiers.failed) Failed to store pump events: \(error)")
+                completion(error)
             }
         }
     }
@@ -635,22 +619,13 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
 
 extension BaseDeviceDataManager: DeviceManagerDelegate {
     func issueAlert(_ alert: Alert) {
-        alertHistoryStorage.addAlert(
-            AlertEntry(
-                alertIdentifier: alert.identifier.alertIdentifier,
-                primitiveInterruptionLevel: alert.interruptionLevel.storedValue as? Decimal,
-                issuedDate: Date(),
-                managerIdentifier: alert.identifier.managerIdentifier,
-                triggerType: alert.trigger.storedType,
-                triggerInterval: alert.trigger.storedInterval as? Decimal,
-                contentTitle: alert.foregroundContent?.title,
-                contentBody: alert.foregroundContent?.body
-            )
-        )
+        debug(.deviceManager, "issueAlert \(alert.identifier.value)")
+        trioAlertManager.issueAlert(alert)
     }
 
     func retractAlert(identifier: Alert.Identifier) {
-        alertHistoryStorage.removeAlert(identifier: identifier.alertIdentifier)
+        debug(.deviceManager, "retractAlert \(identifier.value)")
+        trioAlertManager.retractAlert(identifier: identifier)
     }
 
     func doesIssuedAlertExist(identifier _: Alert.Identifier, completion _: @escaping (Result<Bool, Error>) -> Void) {
@@ -685,57 +660,6 @@ extension BaseDeviceDataManager: DeviceManagerDelegate {
     }
 }
 
-// MARK: - CGMManagerDelegate
-
-extension BaseDeviceDataManager: CGMManagerDelegate {
-    func startDateToFilterNewData(for _: CGMManager) -> Date? {
-        glucoseStorage.syncDate().addingTimeInterval(-10.minutes.timeInterval) // additional time to calculate directions
-    }
-
-    func cgmManager(_: CGMManager, hasNew _: CGMReadingResult) {}
-
-    func cgmManager(_: LoopKit.CGMManager, hasNew _: [LoopKit.PersistedCgmEvent]) {}
-
-    func cgmManagerWantsDeletion(_: CGMManager) {}
-
-    func cgmManagerDidUpdateState(_: CGMManager) {}
-
-    func credentialStoragePrefix(for _: CGMManager) -> String { "BaseDeviceDataManager" }
-
-    func cgmManager(_: CGMManager, didUpdate _: CGMManagerStatus) {}
-}
-
-// MARK: - AlertPresenter
-
-extension BaseDeviceDataManager: AlertObserver {
-    func AlertDidUpdate(_ alerts: [AlertEntry]) {
-        alerts.forEach { alert in
-            if alert.acknowledgedDate == nil {
-                ackAlert(alert: alert)
-            }
-        }
-    }
-
-    private func ackAlert(alert: AlertEntry) {
-        let alertIssueDate = alert.issuedDate
-
-        processQueue.async {
-            self.pumpManager?.acknowledgeAlert(alertIdentifier: alert.alertIdentifier) { error in
-                if let error = error {
-                    self.alertHistoryStorage.acknowledgeAlert(alertIssueDate, error.localizedDescription)
-                    debug(.deviceManager, "acknowledge not succeeded with error \(error)")
-                } else {
-                    self.alertHistoryStorage.acknowledgeAlert(alertIssueDate, nil)
-                }
-            }
-
-            self.broadcaster.notify(pumpNotificationObserver.self, on: self.processQueue) {
-                $0.pumpNotification(alert: alert)
-            }
-        }
-    }
-}
-
 // extension BaseDeviceDataManager: AlertPresenter {
 //    func issueAlert(_: Alert) {}
 //    func retractAlert(identifier _: Alert.Identifier) {}
@@ -745,10 +669,6 @@ extension BaseDeviceDataManager: AlertObserver {
 
 protocol PumpReservoirObserver {
     func pumpReservoirDidChange(_ reservoir: Decimal)
-}
-
-protocol PumpBatteryObserver {
-    func pumpBatteryDidChange(_ battery: Battery)
 }
 
 protocol PumpDeactivatedObserver {

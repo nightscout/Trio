@@ -147,11 +147,11 @@ struct ForecastChart: View {
                 .zIndex(-1)
                 .symbolSize(CGSize(width: 15, height: 15))
                 .foregroundStyle(
-                    Decimal(selectedGlucose.glucose) > state.highGlucose ? Color.orange
+                    Decimal(selectedGlucose.glucose) > state.highGlucose ? Color.staticHigh
                         .opacity(0.8) :
                         (
-                            Decimal(selectedGlucose.glucose) < state.lowGlucose ? Color.red.opacity(0.8) : Color.green
-                                .opacity(0.8)
+                            Decimal(selectedGlucose.glucose) < state.lowGlucose ? Color.staticLow.opacity(0.8)
+                                : Color.staticInRange.opacity(0.8)
                         )
                 )
 
@@ -197,6 +197,27 @@ struct ForecastChart: View {
             "zt": Color.zt,
             "cob": Color.orange
         ])
+        // Custom chart VoiceOver cannot explore; give it a spoken summary.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(forecastChartAccessibilityLabel))
+    }
+
+    /// Spoken summary: latest glucose and the forecast eventual glucose.
+    private var forecastChartAccessibilityLabel: String {
+        let unitLabel = state.units == .mgdL ? String(localized: "mg/dL") : String(localized: "mmol/L")
+        func format(_ value: Int) -> String {
+            state.units == .mgdL ? Decimal(value).description : Decimal(value).formattedAsMmolL
+        }
+        var parts = [String(localized: "Glucose and forecast chart", comment: "Accessibility: chart summary")]
+        if let latest = state.latestGlucose {
+            parts.append(String(localized: "latest", comment: "Accessibility") + " \(format(Int(latest.glucose))) \(unitLabel)")
+        }
+        let eventual: Int? = state.simulatedDetermination?.eventualBG
+            ?? state.determination.first?.eventualBG.map { Int(truncating: $0) }
+        if let eventual {
+            parts.append(String(localized: "forecast eventually", comment: "Accessibility") + " \(format(eventual)) \(unitLabel)")
+        }
+        return parts.joined(separator: ", ")
     }
 
     @ViewBuilder var selectionPopover: some View {

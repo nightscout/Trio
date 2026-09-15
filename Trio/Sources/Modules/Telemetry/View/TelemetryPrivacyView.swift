@@ -26,7 +26,7 @@ struct TelemetryPrivacyView: View {
                     Text("What stays on your device")
                         .font(.headline)
                     Text(
-                        "All glucose, insulin, and carb data. All therapy settings (basal, ISF, carb ratio, glucose targets). Your Nightscout URL and API token. Your Tidepool credentials. Remote-command secrets and APNS keys. Time zone. Location data. Logs are never sent automatically; sharing them remains a user-initiated flow."
+                        "All glucose, insulin, and carb data. All therapy settings (basal, ISF, carb ratio, glucose targets). Your Nightscout URL and API token. Your Tidepool credentials. Remote-command secrets and APNS keys. Location data. Logs are never sent automatically; sharing them remains a user-initiated flow."
                     )
                 }
 
@@ -42,7 +42,15 @@ struct TelemetryPrivacyView: View {
                     Text("Opt out")
                         .font(.headline)
                     Text(
-                        "Use the diagnostics-sharing chooser above. Pick \"Crash Reports Only\" to keep crash reporting but disable telemetry, or \"Disable Sharing\" to turn off both. Changes take effect immediately."
+                        "Crash reporting and anonymous usage telemetry are enabled by default. Use the diagnostics-sharing chooser above to opt out: pick \"Crash Reports Only\" to keep crash reporting but disable telemetry, or \"Disable Sharing\" to turn off both. Changes take effect immediately."
+                    )
+                }
+
+                Group {
+                    Text("Anonymous telemetry")
+                        .font(.headline)
+                    Text(
+                        "When telemetry is disabled, Trio still sends a minimal request every 24 hours so developers can track the number of active users per version. It carries only the app version, a randomly-generated install UUID that cannot be traced back to you, what triggered the request, and the type of any prior telemetry send error."
                     )
                 }
             }

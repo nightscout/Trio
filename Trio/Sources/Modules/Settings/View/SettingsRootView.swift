@@ -3,6 +3,7 @@ import LoopKit
 import LoopKitUI
 import SwiftUI
 import Swinject
+import UIKit
 
 extension Settings {
     struct VersionInfo: Equatable {
@@ -19,13 +20,28 @@ extension Settings {
 
         @State private var showShareSheet = false
         @State private var searchText: String = ""
-
-        @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: AnyView?
-        @State var hintLabel: String?
-        @State private var decimalPlaceholder: Decimal = 0.0
-        @State private var booleanPlaceholder: Bool = false
+        @State private var hintPayload: HintPayload?
+
+        private struct HintPayload: Identifiable {
+            let id = UUID()
+            let label: String
+            let content: AnyView
+        }
+
+        private var shouldDisplayHintBinding: Binding<Bool> {
+            Binding(
+                get: { hintPayload != nil },
+                set: { newValue in
+                    if !newValue {
+                        hintPayload = nil
+                    } else if hintPayload == nil {
+                        hintPayload = HintPayload(label: "", content: AnyView(EmptyView()))
+                    }
+                }
+            )
+        }
+
         @State private var versionInfo = VersionInfo(
             latestVersion: nil,
             isUpdateAvailable: false,
@@ -33,7 +49,9 @@ extension Settings {
             latestDevVersion: nil,
             isDevUpdateAvailable: false
         )
-        @State private var closedLoopDisabled = true
+        @State private var dosingModeDisabled = true
+        @State private var showCopiedToast = false
+        @ObservedObject private var releaseNotesService = ReleaseNotesService.shared
 
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
@@ -59,6 +77,12 @@ extension Settings {
                         Image(systemName: versionIconName)
                             .foregroundColor(updateColor)
                     }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("Latest version: \(version), " + (
+                        versionInfo.isUpdateAvailable
+                            ? String(localized: "update available", comment: "Accessibility: version status")
+                            : String(localized: "up to date", comment: "Accessibility: version status")
+                    )))
                     if versionInfo.isBlacklisted {
                         HStack {
                             Text("Warning: Known issues. Update now.")
@@ -67,6 +91,7 @@ extension Settings {
                             Image(systemName: "exclamationmark.octagon.fill")
                                 .foregroundColor(.red)
                         }
+                        .accessibilityElement(children: .combine)
                     }
                 } else {
                     Text("Latest version: Fetching...")
@@ -89,6 +114,12 @@ extension Settings {
                                 .font(.footnote)
                                 .foregroundColor(devUpdateColor)
                         }
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text("Latest dev: \(devVersion), " + (
+                            versionInfo.isDevUpdateAvailable
+                                ? String(localized: "update available", comment: "Accessibility: version status")
+                                : String(localized: "up to date", comment: "Accessibility: version status")
+                        )))
                     } else {
                         Text("Latest dev: Fetching...")
                             .font(.footnote)
@@ -98,30 +129,50 @@ extension Settings {
             }
         }
 
+        private func copyVersionInfo(_ text: String) {
+            UIPasteboard.general.string = text
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            withAnimation { showCopiedToast = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation { showCopiedToast = false }
+            }
+        }
+
         var body: some View {
             List {
                 if searchText.isEmpty {
                     let buildDetails = BuildDetails.shared
 
+                    /// The current development version of the app.
+                    ///
+                    /// Follows a semantic pattern where release versions are like `0.5.0`, and
+                    /// development versions increment with a fourth component (e.g., `0.5.0.1`, `0.5.0.2`)
+                    /// after the base release. For example:
+                    /// - After release `0.5.0` → `0.5.0`
+                    /// - First dev push → `0.5.0.1`
+                    /// - Next dev push → `0.5.0.2`
+                    /// - Next release `0.6.0` → `0.6.0`
+                    /// - Next dev push → `0.6.0.1`
+                    ///
+                    /// If the dev version is unavailable, `"unknown"` is returned.
+                    let devVersion = Bundle.main.appDevVersion ?? "unknown"
+
+                    let buildNumber = Bundle.main.buildVersionNumber ?? String(localized: "Unknown")
+
                     Section(
-                        header: Text("BRANCH: \(buildDetails.branchAndSha)").textCase(nil),
+                        header: HStack(spacing: 4) {
+                            Button {
+                                copyVersionInfo(
+                                    "Trio v\(devVersion) (\(buildNumber)) \(buildDetails.branchAndSha)"
+                                )
+                            } label: {
+                                Image(systemName: "doc.on.doc.fill")
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(Text("Copy version information"))
+                            Text("BRANCH: \(buildDetails.branchAndSha)")
+                        }.textCase(nil),
                         content: {
-                            /// The current development version of the app.
-                            ///
-                            /// Follows a semantic pattern where release versions are like `0.5.0`, and
-                            /// development versions increment with a fourth component (e.g., `0.5.0.1`, `0.5.0.2`)
-                            /// after the base release. For example:
-                            /// - After release `0.5.0` → `0.5.0`
-                            /// - First dev push → `0.5.0.1`
-                            /// - Next dev push → `0.5.0.2`
-                            /// - Next release `0.6.0` → `0.6.0`
-                            /// - Next dev push → `0.6.0.1`
-                            ///
-                            /// If the dev version is unavailable, `"unknown"` is returned.
-                            let devVersion = Bundle.main.appDevVersion ?? "unknown"
-
-                            let buildNumber = Bundle.main.buildVersionNumber ?? String(localized: "Unknown")
-
                             NavigationLink(destination: SubmodulesView(buildDetails: buildDetails)) {
                                 HStack {
                                     Image(appIcons.appIcon.rawValue)
@@ -130,6 +181,7 @@ extension Settings {
                                         .frame(width: 50, height: 50)
                                         .cornerRadius(10)
                                         .padding(.trailing, 10)
+                                        .accessibilityHidden(true)
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text("Trio v\(devVersion) (\(buildNumber))")
                                             .font(.headline)
@@ -155,40 +207,67 @@ extension Settings {
                         }
                     ).listRowBackground(Color.chart)
 
-                    let miniHintText = closedLoopDisabled ?
-                        String(localized: "Add a CGM and pump to enable automated insulin delivery") :
-                        String(localized: "Enable automated insulin delivery.")
                     let miniHintTextColorForDisabled: Color = colorScheme == .dark ? .orange : .accentColor
-                    let miniHintTextColor: Color = closedLoopDisabled ? miniHintTextColorForDisabled : .secondary
-                    SettingInputSection(
-                        decimalValue: $decimalPlaceholder,
-                        booleanValue: $state.closedLoop,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        selectedVerboseHint: Binding(
-                            get: { selectedVerboseHint },
-                            set: {
-                                selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = String(localized: "Closed Loop")
-                            }
-                        ),
-                        units: state.units,
-                        type: .boolean,
-                        label: String(localized: "Closed Loop"),
-                        miniHint: miniHintText,
-                        verboseHint: VStack(alignment: .leading, spacing: 10) {
-                            Text(
-                                "Running Trio in closed loop mode requires an active CGM sensor session and a connected pump. This enables automated insulin delivery."
-                            )
-                            Text(
-                                "Before enabling, dial in your settings (basal / insulin sensitivity / carb ratio), and familiarize yourself with the app."
-                            )
-                        },
-                        headerText: String(localized: "Automated Insulin Delivery"),
-                        isToggleDisabled: closedLoopDisabled,
-                        miniHintColor: miniHintTextColor
+                    let miniHintTextColor: Color = dosingModeDisabled ? miniHintTextColorForDisabled : .secondary
+                    Section(
+                        header: Text("Automated Insulin Delivery"),
+                        content: {
+                            VStack {
+                                Picker(
+                                    selection: $state.dosingMode,
+                                    label: Text("Dosing Mode")
+                                ) {
+                                    ForEach(DosingMode.userSelectable) { mode in
+                                        Text(mode.displayName).tag(mode)
+                                    }
+                                }
+                                .padding(.top)
+                                .disabled(dosingModeDisabled)
+
+                                HStack(alignment: .center) {
+                                    Text(
+                                        dosingModeDisabled ?
+                                            String(localized: "Add a CGM and pump to enable automated insulin delivery") :
+                                            state.dosingMode.miniHint
+                                    )
+                                    .font(.footnote)
+                                    .foregroundColor(miniHintTextColor)
+                                    .lineLimit(nil)
+                                    Spacer()
+                                    Button(
+                                        action: {
+                                            hintPayload = HintPayload(
+                                                label: String(localized: "Dosing Mode"),
+                                                content: AnyView(
+                                                    VStack(alignment: .leading, spacing: 10) {
+                                                        Text(
+                                                            "Dosing Mode decides how much of Trio's insulin dosing decision is actually sent to your pump. Every mode still needs an active CGM sensor session and a connected pump."
+                                                        )
+                                                        ForEach(DosingMode.userSelectable) { mode in
+                                                            VStack(alignment: .leading, spacing: 5) {
+                                                                Label(mode.displayName, systemImage: mode.icon)
+                                                                    .bold()
+                                                                Text(mode.description)
+                                                            }
+                                                        }
+                                                    }
+                                                )
+                                            )
+                                        },
+                                        label: {
+                                            HStack {
+                                                Image(systemName: "questionmark.circle")
+                                            }
+                                        }
+                                    ).buttonStyle(BorderlessButtonStyle())
+                                }.padding(.top)
+                            }.padding(.bottom)
+                        }
                     )
+                    .listRowBackground(Color.chart)
+                    .settingsSearchTarget(label: String(localized: "Dosing Mode"))
                     .onAppear {
-                        closedLoopDisabled = !state.hasCgmAndPump()
+                        dosingModeDisabled = !state.hasCgmAndPump()
                     }
 
                     Section(
@@ -268,6 +347,46 @@ extension Settings {
                         }
                     ).listRowBackground(Color.chart)
 
+                    if !releaseNotesService.releases.isEmpty {
+                        Section(
+                            header: Text("Release Notes"),
+                            content: {
+                                if let current = releaseNotesService.notes {
+                                    NavigationLink(destination: ReleaseNotesDetailView(notes: current)) {
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(current.name)
+                                                    .foregroundColor(.primary)
+
+                                                Text(
+                                                    "Current release",
+                                                    comment: "Marks the release notes entry matching the running build"
+                                                )
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                            }
+
+                                            Spacer()
+
+                                            Text(current.publishedDateString)
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                }
+
+                                if !releaseNotesService.previousReleases.isEmpty {
+                                    NavigationLink(
+                                        destination: ReleaseNotesListView(releases: releaseNotesService.previousReleases)
+                                    ) {
+                                        Text("Previous Versions")
+                                            .foregroundColor(.primary)
+                                    }
+                                }
+                            }
+                        ).listRowBackground(Color.chart)
+                    }
+
                     Section(
                         header: Text("Trio Backup"),
                         content: {
@@ -310,13 +429,25 @@ extension Settings {
                     ).listRowBackground(Color.chart)
                 }
             }
+            .overlay(alignment: .bottom) {
+                if showCopiedToast {
+                    Label("Copied", systemImage: "checkmark.circle.fill")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .padding(.bottom, 32)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
-            .sheet(isPresented: $shouldDisplayHint) {
+            .sheet(item: $hintPayload) { payload in
                 SettingInputHintView(
                     hintDetent: $hintDetent,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                    shouldDisplayHint: shouldDisplayHintBinding,
+                    hintLabel: payload.label,
+                    hintText: payload.content,
                     sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
@@ -324,6 +455,9 @@ extension Settings {
                 ShareSheet(activityItems: state.logItems())
             }
             .onAppear(perform: configureView)
+            .task {
+                await releaseNotesService.load()
+            }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar {

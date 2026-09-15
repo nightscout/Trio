@@ -55,8 +55,6 @@ struct StateBGQuery: EntityQuery {
 }
 
 final class StateIntentRequest: BaseIntentsRequest {
-    let moc = CoreDataStack.shared.newTaskContext()
-
     func getLastGlucose(onContext: NSManagedObjectContext) throws
         -> (dateGlucose: Date, glucose: String, trend: String, delta: String)
     {

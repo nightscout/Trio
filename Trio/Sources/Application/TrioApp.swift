@@ -35,15 +35,11 @@ extension Notification.Name {
     let initState = InitState()
 
     @State private var appState = AppState()
+    @StateObject private var developmentBranchAlerter = DevelopmentBranchAlerter.shared
     @State private var showLoadingView = true
     @State private var showLoadingError = false
     @State private var showOnboardingCompletedSplash = false
     @State private var showMigrationError: Bool = false
-
-    // Telemetry: one-shot guard so the consent migration sheet is presented
-    // at most once per process even if scene activates repeatedly.
-    @State private var showTelemetryMigrationSheet = false
-    @State private var hasCheckedTelemetryMigration = false
 
     // Dependencies Assembler
     // contain all dependencies Assemblies
@@ -80,9 +76,7 @@ extension Notification.Name {
         _ = resolver.resolve(WatchManager.self)!
         _ = resolver.resolve(ContactImageManager.self)!
         _ = resolver.resolve(HealthKitManager.self)!
-        _ = resolver.resolve(WatchManager.self)!
         _ = resolver.resolve(GarminManager.self)!
-        _ = resolver.resolve(ContactImageManager.self)!
         _ = resolver.resolve(BluetoothStateManager.self)!
         _ = resolver.resolve(PluginManager.self)!
         _ = resolver.resolve(AlertPermissionsChecker.self)!
@@ -90,6 +84,47 @@ extension Notification.Name {
             _ = resolver.resolve(LiveActivityManager.self)!
         }
         _ = resolver.resolve(IOBService.self)!
+        _ = resolver.resolve(GlucoseAlertCoordinator.self)!
+        _ = resolver.resolve(NotLoopingMonitor.self)!
+        _ = DeviceAlertsStore.shared
+        // Last: needs the pump manager's AlertResponder registration and the
+        // seeded DeviceAlertsStore in place before re-presenting alerts.
+        resolver.resolve(TrioAlertManager.self)!.replayUnacknowledgedAlerts()
+
+        startTelemetry()
+    }
+
+    /// Telemetry starts here, not in `AppDelegate.didFinishLaunching`: resolving
+    /// `TelemetryClient` constructs the APS/device graph, whose first pump/CGM
+    /// save crashes while the persistent stores are still loading.
+    ///
+    /// Materialize the install ID even when sharing is disabled, then record
+    /// this cold launch into the sliding 7-day window, then drive cadence via
+    /// layered triggers — listed below in priority of reliability:
+    ///
+    ///   1. SHA-change ping: build updated since last send. Awaited so
+    ///      the lastSentAt stamp is fresh before the overdue check.
+    ///   2. checkAndSendIfOverdue: covers the regular cold launch on the
+    ///      same build when >24h has passed since the last successful
+    ///      send. Together with the foreground-transition hook
+    ///      (`AppDelegate.applicationWillEnterForeground`), this keeps daily
+    ///      pings flowing on iOS. Fresh CGM processing performs the same check
+    ///      under its own bounded background task for background-heavy use.
+    ///   3. scheduleRecurring: best-effort fallback for the rare case
+    ///      where the app stays foregrounded for a full 24h.
+    private func startTelemetry() {
+        let telemetry = resolver.resolve(TelemetryClient.self)!
+        // hands the foreground-transition hook its reference; nil until now
+        appDelegate.telemetry = telemetry
+        telemetry.initializeInstallID()
+        telemetry.recordColdLaunch()
+        Task.detached {
+            if telemetry.buildShaChangedSinceLastSend() {
+                await telemetry.maybeSend(reason: .buildChange)
+            }
+            telemetry.scheduleRecurring()
+            telemetry.checkAndSendIfOverdue(reason: .coldLaunch)
+        }
     }
 
     init() {
@@ -340,15 +375,30 @@ extension Notification.Name {
                         .onOpenURL(perform: handleURL)
                 }
             }
+            // Global upper bound on Dynamic Type: keep accessibility scaling but stop before the
+            // extreme sizes that shatter dense layouts. Fragile screens cap tighter (see Home, Statistics).
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1)
             .onReceive(Foundation.NotificationCenter.default.publisher(for: .onboardingCompleted)) { _ in
                 Task { @MainActor in
                     self.showOnboardingCompletedSplash = true
                 }
             }
-            .sheet(isPresented: $showTelemetryMigrationSheet) {
-                TelemetryMigrationSheetView()
-                    .interactiveDismissDisabled(true)
+            // The scene is already active by the time Core Data finishes loading, so the scene
+            // phase change below cannot carry the warning on a cold launch. Fire it here instead,
+            // as the loading screen gives way to the app itself.
+            .onChange(of: showLoadingView) { _, isLoading in
+                if !isLoading {
+                    presentDevelopmentBranchWarningIfNeeded()
+                }
             }
+            // A first-time user is still in onboarding when the loading screen goes away, so the
+            // warning is held back there. Raise it as the completion splash gives way to the app.
+            .onChange(of: showOnboardingCompletedSplash) { _, isShowingSplash in
+                if !isShowingSplash {
+                    presentDevelopmentBranchWarningIfNeeded()
+                }
+            }
+            .developmentBranchWarning(developmentBranchAlerter)
         }
         .onChange(of: scenePhase) { _, newScenePhase in
             debug(.default, "APPLICATION PHASE: \(newScenePhase)")
@@ -362,34 +412,27 @@ extension Notification.Name {
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let rootVC = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController
                 {
+                    rootVC.excludeKeyboardFromSafeAreaTree()
                     AppVersionChecker.shared.checkAndNotifyVersionStatus(in: rootVC)
                 }
+                presentDevelopmentBranchWarningIfNeeded()
                 if initState.complete {
                     performCleanupIfNecessary()
                 }
-                presentTelemetryMigrationSheetIfNeeded()
             }
         }
     }
 
-    /// Presents the one-time telemetry consent sheet for users who completed
-    /// onboarding before telemetry existed. The condition (`onboardingCompleted
-    /// == true` and no telemetry decision yet) is checked once per process —
-    /// the in-app dismiss handler sets `telemetryConsentDecisionMade`, so a
-    /// re-foreground after the user picks will no longer match.
-    private func presentTelemetryMigrationSheetIfNeeded() {
-        guard !hasCheckedTelemetryMigration else { return }
-        hasCheckedTelemetryMigration = true
-
-        let onboarded = PropertyPersistentFlags.shared.onboardingCompleted == true
-        let telemetryDecided = PropertyPersistentFlags.shared.telemetryConsentDecisionMade == true
-        guard onboarded, !telemetryDecided else { return }
-
-        // Defer one runloop so SwiftUI has finished settling on whatever root
-        // view was just shown (loading screen, splash, main view).
-        DispatchQueue.main.async {
-            showTelemetryMigrationSheet = true
+    /// Warns the user if this build did not come from the released `main` branch.
+    ///
+    /// Held back until Core Data has loaded and onboarding is behind us, so the warning never lands
+    /// on the launch splash or interrupts first-time setup.
+    @MainActor private func presentDevelopmentBranchWarningIfNeeded() {
+        guard initState.complete, !onboardingManager.shouldShowOnboarding else {
+            return
         }
+
+        developmentBranchAlerter.alertIfNeeded()
     }
 
     func configureTabBarAppearance() {

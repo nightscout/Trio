@@ -2,47 +2,57 @@ import CoreData
 import Foundation
 
 extension Home.StateModel {
-    func setupGlucoseArray() {
-        Task {
-            do {
-                let ids = try await self.fetchGlucose()
-                let glucoseObjects: [GlucoseStored] = try await CoreDataStack.shared
-                    .getNSManagedObject(with: ids, context: viewContext)
-                await updateGlucoseArray(with: glucoseObjects)
-            } catch {
-                debug(
-                    .default,
-                    "\(DebuggingIdentifiers.failed) Error setting up glucose array: \(error)"
-                )
+    @MainActor func setupGlucoseController() {
+        glucoseControllerDelegate.onContentChange = { [weak self] in
+            Task { @MainActor in
+                self?.updateGlucoseFromController()
             }
+        }
+
+        do {
+            try glucoseController.performFetch()
+            updateGlucoseFromController()
+        } catch {
+            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform glucose fetch: \(error)")
         }
     }
 
-    private func fetchGlucose() async throws -> [NSManagedObjectID] {
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: GlucoseStored.self,
-            onContext: glucoseFetchContext,
-            predicate: NSPredicate.glucose,
-            key: "date",
-            ascending: true,
-            batchSize: 50
-        )
-
-        return try await glucoseFetchContext.perform {
-            guard let fetchedResults = results as? [GlucoseStored] else {
-                throw CoreDataError.fetchError(function: #function, file: #file)
-            }
-
-            // Update Main Chart Y Axis Values
-            // Perform everything on "context" to be thread safe
-            self.yAxisChartData(glucoseValues: fetchedResults)
-
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
-    @MainActor private func updateGlucoseArray(with objects: [GlucoseStored]) {
+    @MainActor func updateGlucoseFromController() {
+        guard let objects = glucoseController.fetchedObjects else { return }
         glucoseFromPersistence = objects
         latestTwoGlucoseValues = Array(objects.suffix(2))
+        updateGlucoseChartYAxis(glucoseValues: objects)
+    }
+
+    /// Called from `MainChartView` on `.onChange(of: units)` to recompute the glucose-derived chart state.
+    func setupGlucoseArray() {
+        Task { @MainActor in
+            updateGlucoseFromController()
+        }
+    }
+}
+
+extension Home.StateModel {
+    func addManualGlucose(_ amount: Decimal) {
+        let glucose = units == .mmolL ? amount.asMgdL : amount
+        glucoseStorage.addManualGlucose(glucose: Int(glucose))
+    }
+
+    /// Today's glucose range distribution for the stats banner.
+    var todayGlucoseDistribution: GlucoseDailyDistributionStats {
+        let startOfDay = Calendar.current.startOfDay(for: Date())
+        let readings = glucoseFromPersistence
+            .filter { ($0.date ?? .distantPast) >= startOfDay }
+            .map { GlucoseReading(value: Int($0.glucose), date: $0.date ?? startOfDay) }
+        // first render happens before service injection
+        let timeInRangeType = settingsManager?.settings.timeInRangeType ?? .timeInTightRange
+        return GlucoseDailyDistributionStats.compute(
+            date: startOfDay,
+            readings: readings,
+            // fixed consensus TIR bound (StatStateModel.highLimit), not the user's
+            // chart threshold, so the banner always matches the Stats screen
+            highLimit: 180,
+            timeInRangeType: timeInRangeType
+        )
     }
 }

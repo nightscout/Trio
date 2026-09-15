@@ -4,15 +4,15 @@ import UIKit
 
 public enum GlucoseColorScheme: String, JSON, CaseIterable, Identifiable, Codable, Hashable {
     public var id: String { rawValue }
-    case staticColor
     case dynamicColor
+    case staticColor
 
     var displayName: String {
         switch self {
-        case .staticColor:
-            return String(localized: "Static")
         case .dynamicColor:
             return String(localized: "Dynamic")
+        case .staticColor:
+            return String(localized: "Static")
         }
     }
 }

@@ -5,14 +5,6 @@ import LoopKitUI
 enum PumpConfig {
     enum Config {}
 
-    enum PumpType: Equatable {
-        case minimed
-        case omni
-        case dana
-        case medtrum
-        case simulator
-    }
-
     struct PumpInitialSettings {
         var maxBolusUnits: Double
         var maxBasalRateUnitsPerHour: Double

@@ -106,6 +106,7 @@ struct EditOverrideForm: View {
                         },
                         label: {
                             Image(systemName: "questionmark.circle")
+                                .accessibilityLabel(Text("Help"))
                         }
                     )
                 }
@@ -185,7 +186,7 @@ struct EditOverrideForm: View {
                 }
 
                 // Picker for ISF/CR settings
-                Picker("Also Change", selection: $selectedIsfCrOption) {
+                Picker("Also Inversely Change", selection: $selectedIsfCrOption) {
                     ForEach(IsfAndOrCrOptions.allCases, id: \.self) { option in
                         Text(option.displayName).tag(option)
                     }

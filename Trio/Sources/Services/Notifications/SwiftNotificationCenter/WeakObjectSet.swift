@@ -41,11 +41,19 @@ struct WeakObjectSet<T: AnyObject>: Sequence {
     }
 
     mutating func add(_ object: T) {
+        // Registration doubles as the reaping hook — dead boxes are removed nowhere
+        // else, and most observers never unregister explicitly.
+        compact()
         // prevent ObjectIdentifier be reused
         if contains(object) {
             remove(object)
         }
         objects.insert(WeakObject(object))
+    }
+
+    /// Drops entries whose weakly-held object has been deallocated.
+    mutating func compact() {
+        objects = objects.filter { $0.object != nil }
     }
 
     mutating func add(_ objects: [T]) {

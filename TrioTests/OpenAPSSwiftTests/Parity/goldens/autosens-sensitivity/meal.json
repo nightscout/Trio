@@ -1,0 +1,18 @@
+{
+  "allDeviations" : [
+    4,
+    2,
+    4,
+    4,
+    4,
+    4
+  ],
+  "carbs" : 0,
+  "currentDeviation" : 4.18,
+  "lastCarbTime" : 0,
+  "maxDeviation" : 4.23,
+  "mealCOB" : 0,
+  "minDeviation" : 2.37,
+  "slopeFromMaxDeviation" : -0.012,
+  "slopeFromMinDeviation" : 0.905
+}

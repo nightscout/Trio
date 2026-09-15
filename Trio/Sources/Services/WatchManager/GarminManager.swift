@@ -2,6 +2,7 @@ import Combine
 import ConnectIQ
 import CoreData
 import Foundation
+import LoopKit
 import Swinject
 
 // MARK: - GarminManager Protocol
@@ -53,7 +54,11 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Stores, retrieves, and updates insulin dose determinations in CoreData.
     @Injected() private var determinationStorage: DeterminationStorage!
 
+    /// JSON settings store, used here to read the glucose target profile.
+    @Injected() private var fileStorage: FileStorage!
+
     @Injected() private var iobService: IOBService!
+    @Injected() private var trioAlertManager: TrioAlertManager!
 
     /// Persists the user's device list between app launches.
     @Persisted(key: "BaseGarminManager.persistedDevices") private var persistedDevices: [GarminDevice] = []
@@ -78,6 +83,10 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
     /// Current glucose units, either mg/dL or mmol/L, read from user settings.
     private var units: GlucoseUnits = .mgdL
+
+    /// Glucose color scheme, read from user settings and forwarded to watch apps
+    /// that can color glucose themselves.
+    private var glucoseColorScheme: GlucoseColorScheme = .staticColor
 
     // MARK: - Debug Logging
 
@@ -156,9 +165,6 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Additional local subscriptions (separate from `cancellables`) for CoreData events.
     private var subscriptions = Set<AnyCancellable>()
 
-    /// Represents the context for background tasks in CoreData.
-    let backgroundContext = CoreDataStack.shared.newTaskContext()
-
     /// Represents the main (view) context for CoreData, typically used on the main thread.
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
@@ -191,12 +197,16 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
         subscribeToWatchState()
 
         units = settingsManager.settings.units
+        glucoseColorScheme = settingsManager.settings.glucoseColorScheme
         previousGarminSettings = settingsManager.settings.garminSettings
 
         broadcaster.register(SettingsObserver.self, observer: self)
+        // Glucose targets are not part of TrioSettings, so editing the target profile
+        // notifies this observer rather than firing settingsDidChange.
+        broadcaster.register(BGTargetsObserver.self, observer: self)
 
         coreDataPublisher =
-            changedObjectsOnManagedObjectContextDidSavePublisher()
+            CoreDataStack.shared.entityChangePublisher
                 .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
@@ -240,10 +250,14 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
         settingsManager.settings.garminSettings.isWatchfaceDataEnabled
     }
 
-    /// SwissAlpine watchface uses historical glucose data (24 entries)
-    /// Trio watchface only uses current reading
+    /// SwissAlpine watchface and the complication app use historical glucose data (24 entries).
+    /// Trio watchface only uses current reading.
+    ///
+    /// The complication app needs it for the 2 h graph in its own view; the complications
+    /// it publishes read only element 0 and work without history.
     private var needsHistoricalGlucoseData: Bool {
         currentWatchface == .swissalpine
+            || currentWatchface == .complication
     }
 
     /// Returns the display name for an app UUID (watchface or datafield).
@@ -454,16 +468,18 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// - Parameter limit: Maximum number of glucose entries to fetch (default: 2)
     /// - Returns: An array of `NSManagedObjectID`s for glucose readings.
     private func fetchGlucose(limit: Int = 2) async throws -> [NSManagedObjectID] {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchGlucose"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.glucose,
             key: "date",
             ascending: false,
             fetchLimit: limit
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [GlucoseStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -474,7 +490,11 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Fetches the most recent temporary basal rate from CoreData pump history.
     /// - Returns: An array containing the NSManagedObjectID of the latest temp basal event, if any.
     private func fetchTempBasals() async throws -> [NSManagedObjectID] {
-        let tempBasalPredicate = NSPredicate(format: "tempBasal != nil")
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchTempBasals"
+        // a scheduled-basal row is a rate assertion, not a running temp basal: with fetchLimit 1
+        // it would otherwise become "the current temp basal" on the watch
+        let tempBasalPredicate = NSPredicate(format: "tempBasal != nil AND tempBasal.isScheduledBasal == NO")
         let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             NSPredicate.pumpHistoryLast24h,
             tempBasalPredicate
@@ -482,14 +502,15 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: compoundPredicate,
             key: "timestamp",
             ascending: false,
-            fetchLimit: 1
+            fetchLimit: 1,
+            relationshipKeyPathsForPrefetching: ["tempBasal"]
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let pumpEvents = results as? [PumpEventStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -501,16 +522,18 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Returns them sorted newest first, allowing us to find both enacted and suggested determinations.
     /// - Returns: An array of `NSManagedObjectID`s for all determinations in the 30-minute window.
     private func fetchDeterminations30Min() async throws -> [NSManagedObjectID] {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "fetchDeterminations30Min"
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.predicateFor30MinAgoForDetermination,
             key: "deliverAt",
             ascending: false,
             fetchLimit: 0 // No limit - get all determinations in 30min window
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [OrefDetermination] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -544,19 +567,29 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
         let tempBasalIds = try await fetchTempBasals()
 
+        // Scheduled profile target only, matching the Home chart -- overrides and temp
+        // targets are not reflected.
+        let bgTargets = await fileStorage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
+            ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
+            ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
+        let targetGlucoseValue = bgTargets.currentTarget().map { Int16(truncating: $0 as NSDecimalNumber) }
+
         // Extract all needed values from self before entering perform block (Sendable compliance)
         let unitsValue = units
         let iobValue = formatIOB(iobService.currentIOB ?? Decimal(0))
         let basalProfile = settingsManager.preferences.basalProfile as? [BasalProfileEntry] ?? []
         let displayPrimaryChoice = settingsManager.settings.garminSettings.primaryAttributeChoice.rawValue
         let displaySecondaryChoice = settingsManager.settings.garminSettings.secondaryAttributeChoice.rawValue
+        // Short form, not the enum raw value: this is the wire format the watchface reads.
+        let colorSchemeValue = glucoseColorScheme == .dynamicColor ? "dynamic" : "static"
         let needsHistoricalData = needsHistoricalGlucoseData
         let shouldDebug = debugWatchState
         let previousHash = lastPreparedDataHash
         let previousWatchState = lastPreparedWatchState
 
         // Capture context locally for use in perform block
-        let context = backgroundContext
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "setupGarminWatchState"
 
         let watchStates = await context.perform {
             // Fetch Core Data objects inside perform block
@@ -665,6 +698,8 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                     watchState.sensRatio = sensRatioValue
                     watchState.displayPrimaryAttributeChoice = displayPrimaryChoice
                     watchState.displaySecondaryAttributeChoice = displaySecondaryChoice
+                    watchState.glucoseColorScheme = colorSchemeValue
+                    watchState.targetGlucose = targetGlucoseValue
                 }
 
                 watchStates.append(watchState)
@@ -684,9 +719,10 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                 let cobFormatted = String(format: "%.0f", watchStates.first?.cob ?? 0)
                 let tbrFormatted = String(format: "%.2f", watchStates.first?.tbr ?? 0)
                 let sensRatioFormatted = String(format: "%.2f", watchStates.first?.sensRatio ?? 0)
+                let targetFormatted = watchStates.first?.targetGlucose.map { "\($0)" } ?? "none"
                 debug(
                     .watchManager,
-                    "Garmin: Prepared \(watchStates.count) entries - sgv: \(watchStates.first?.sgv ?? 0), iob: \(iobFormatted), cob: \(cobFormatted), tbr: \(tbrFormatted), eventualBG: \(watchStates.first?.eventualBG ?? 0), sensRatio: \(sensRatioFormatted)"
+                    "Garmin: Prepared \(watchStates.count) entries - sgv: \(watchStates.first?.sgv ?? 0), iob: \(iobFormatted), cob: \(cobFormatted), tbr: \(tbrFormatted), eventualBG: \(watchStates.first?.eventualBG ?? 0), sensRatio: \(sensRatioFormatted), colorScheme: \(watchStates.first?.glucoseColorScheme ?? "none"), target: \(targetFormatted)"
                 )
             }
 
@@ -962,13 +998,26 @@ extension BaseGarminManager: IQUIOverrideDelegate, IQDeviceEventDelegate, IQAppM
     /// Typically, you would show an alert or prompt the user to install the app from the store.
     func needsToInstallConnectMobile() {
         debug(.apsManager, "Garmin is not available")
-        let messageCont = MessageContent(
-            content: "The app Garmin Connect must be installed to use Trio.\nGo to the App Store to download it.",
-            type: .warning,
-            subtype: .misc,
-            title: "Garmin is not available"
+        let content = Alert.Content(
+            title: String(localized: "Garmin is not available"),
+            body: String(
+                localized:
+                "The app Garmin Connect must be installed to use Trio.\nGo to the App Store to download it."
+            ),
+            acknowledgeActionButtonLabel: String(localized: "OK")
         )
-        router.alertMessage.send(messageCont)
+        let alert = Alert(
+            identifier: Alert.Identifier(
+                managerIdentifier: "trio.garmin",
+                alertIdentifier: "connect.mobile.missing"
+            ),
+            foregroundContent: content,
+            backgroundContent: content,
+            trigger: .immediate,
+            interruptionLevel: .active,
+            sound: nil
+        )
+        trioAlertManager?.issueAlert(alert)
     }
 
     // MARK: - IQDeviceEventDelegate
@@ -1047,9 +1096,11 @@ extension BaseGarminManager: SettingsObserver {
     func settingsDidChange(_: TrioSettings) {
         let currentGarminSettings = settingsManager.settings.garminSettings
         let currentUnits = settingsManager.settings.units
+        let currentColorScheme = settingsManager.settings.glucoseColorScheme
 
         // Detect what specifically changed
         let unitsChanged = currentUnits != units
+        let colorSchemeChanged = currentColorScheme != glucoseColorScheme
         let watchfaceChanged = currentGarminSettings.watchface != previousGarminSettings.watchface
         let datafieldChanged = currentGarminSettings.datafield != previousGarminSettings.datafield
         let watchfaceDataEnabledChanged = currentGarminSettings.isWatchfaceDataEnabled != previousGarminSettings
@@ -1060,6 +1111,7 @@ extension BaseGarminManager: SettingsObserver {
 
         // Update stored values
         units = currentUnits
+        glucoseColorScheme = currentColorScheme
 
         // Re-register devices only if watchface/datafield configuration changed
         if watchfaceChanged || datafieldChanged || watchfaceDataEnabledChanged {
@@ -1080,7 +1132,7 @@ extension BaseGarminManager: SettingsObserver {
                 debug(.watchManager, "Garmin: Watchface data enabled - sending update immediately")
             }
             triggerWatchStateUpdate(triggeredBy: "Settings")
-        } else if unitsChanged || displayAttributesChanged {
+        } else if unitsChanged || displayAttributesChanged || colorSchemeChanged {
             // Throttle other settings changes in case user makes multiple changes
             if debugWatchState {
                 debug(.watchManager, "Garmin: Settings changed - scheduling throttled update")
@@ -1090,5 +1142,16 @@ extension BaseGarminManager: SettingsObserver {
 
         // Store current Garmin settings for next comparison
         previousGarminSettings = currentGarminSettings
+    }
+}
+
+extension BaseGarminManager: BGTargetsObserver {
+    /// Called when the glucose target profile is edited.
+    /// - Parameter _: The updated targets, re-read from storage during preparation.
+    func bgTargetsDidChange(_: BGTargets) {
+        if debugWatchState {
+            debug(.watchManager, "Garmin: Glucose targets changed - scheduling throttled update")
+        }
+        sendSettingsUpdateThrottled()
     }
 }

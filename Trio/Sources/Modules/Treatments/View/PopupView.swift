@@ -131,26 +131,34 @@ struct PopupView: View {
                 // List of calculation cards organized in sections.
                 // Each section represents a component of the final calculation.
                 List {
+                    // Each formula card reads as one grouped element rather than
+                    // dozens of separate grid cells; the section header gives context.
                     Section("Glucose Calculation") {
                         glucoseCardContent.listRowStyle()
+                            .accessibilityElement(children: .combine)
                     }
                     Section("Insulin On Board (IOB)") {
                         iobCardContent.listRowStyle()
+                            .accessibilityElement(children: .combine)
                     }
                     Section("Carbs On Board (COB)") {
                         cobCardContent.listRowStyle()
+                            .accessibilityElement(children: .combine)
                     }
                     Section("Glucose Trend (15 min)") {
                         deltaCardContent.listRowStyle()
+                            .accessibilityElement(children: .combine)
                     }
                     Section("Full Bolus") {
                         fullBolusCardContent.listRowStyle()
+                            .accessibilityElement(children: .combine)
                     }
 
                     // Conditional sections based on user's selection of the "Super Bolus" option.
                     if state.useSuperBolus {
                         Section("Super Bolus") {
                             superBolusCardContent.listRowStyle()
+                                .accessibilityElement(children: .combine)
                         }
                     }
 
@@ -159,6 +167,7 @@ struct PopupView: View {
                     if state.factoredInsulin > 0 {
                         Section("Applied Factors") {
                             factorsCardContent.listRowStyle()
+                                .accessibilityElement(children: .combine)
                         }
                     }
                 }
@@ -894,6 +903,25 @@ struct PopupView: View {
                 }
             }
 
+            // What the algorithm itself asked for, shown because open loop never enacts it
+            if state.algorithmSuggestedBolus > 0 {
+                HStack(alignment: .firstTextBaseline) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Label(state.dosingMode.displayName, systemImage: state.dosingMode.icon)
+                            .font(.subheadline)
+                        Text("Trio would give").secondaryStyle()
+                    }
+                    Spacer()
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(insulinFormatter(state.algorithmSuggestedBolus, .down, true))
+                            .font(.headline)
+                        Text("U").font(.subheadline).foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+            }
+
             // Recommended Bolus card with accent-colored background
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
@@ -928,6 +956,13 @@ struct PopupView: View {
                 .padding(.vertical, 12)
             }
             .fixedSize(horizontal: false, vertical: true)
+            // read the final dose as one element with a spoken unit
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("Recommended Bolus"))
+            .accessibilityValue(Text(
+                "\(insulinFormatter(state.insulinCalculated, .down, true)) "
+                    + String(localized: "units", comment: "Insulin units, spoken")
+            ))
         }
     }
 
