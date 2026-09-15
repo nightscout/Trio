@@ -1,6 +1,6 @@
 {
   "units" : "mg/dL",
-  "closedLoop" : false,
+  "dosingMode" : "open",
   "isUploadEnabled" : false,
   "isDownloadEnabled" : false,
   "useLocalGlucoseSource" : false,

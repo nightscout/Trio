@@ -25,8 +25,6 @@ extension Settings {
         @State var hintDetent = PresentationDetent.large
         @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
-        @State private var decimalPlaceholder: Decimal = 0.0
-        @State private var booleanPlaceholder: Bool = false
         @State private var versionInfo = VersionInfo(
             latestVersion: nil,
             isUpdateAvailable: false,
@@ -34,7 +32,7 @@ extension Settings {
             latestDevVersion: nil,
             isDevUpdateAvailable: false
         )
-        @State private var closedLoopDisabled = true
+        @State private var dosingModeDisabled = true
         @State private var showCopiedToast = false
         @ObservedObject private var releaseNotesService = ReleaseNotesService.shared
 
@@ -192,40 +190,67 @@ extension Settings {
                         }
                     ).listRowBackground(Color.chart)
 
-                    let miniHintText = closedLoopDisabled ?
-                        String(localized: "Add a CGM and pump to enable automated insulin delivery") :
-                        String(localized: "Enable automated insulin delivery.")
                     let miniHintTextColorForDisabled: Color = colorScheme == .dark ? .orange : .accentColor
-                    let miniHintTextColor: Color = closedLoopDisabled ? miniHintTextColorForDisabled : .secondary
-                    SettingInputSection(
-                        decimalValue: $decimalPlaceholder,
-                        booleanValue: $state.closedLoop,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        selectedVerboseHint: Binding(
-                            get: { selectedVerboseHint },
-                            set: {
-                                selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = String(localized: "Closed Loop")
-                            }
-                        ),
-                        units: state.units,
-                        type: .boolean,
-                        label: String(localized: "Closed Loop"),
-                        miniHint: miniHintText,
-                        verboseHint: VStack(alignment: .leading, spacing: 10) {
-                            Text(
-                                "Running Trio in closed loop mode requires an active CGM sensor session and a connected pump. This enables automated insulin delivery."
-                            )
-                            Text(
-                                "Before enabling, dial in your settings (basal / insulin sensitivity / carb ratio), and familiarize yourself with the app."
-                            )
-                        },
-                        headerText: String(localized: "Automated Insulin Delivery"),
-                        isToggleDisabled: closedLoopDisabled,
-                        miniHintColor: miniHintTextColor
+                    let miniHintTextColor: Color = dosingModeDisabled ? miniHintTextColorForDisabled : .secondary
+                    Section(
+                        header: Text("Automated Insulin Delivery"),
+                        content: {
+                            VStack {
+                                Picker(
+                                    selection: $state.dosingMode,
+                                    label: Text("Dosing Mode")
+                                ) {
+                                    ForEach(DosingMode.userSelectable) { mode in
+                                        Text(mode.displayName).tag(mode)
+                                    }
+                                }
+                                .padding(.top)
+                                .disabled(dosingModeDisabled)
+
+                                HStack(alignment: .center) {
+                                    Text(
+                                        dosingModeDisabled ?
+                                            String(localized: "Add a CGM and pump to enable automated insulin delivery") :
+                                            state.dosingMode.miniHint
+                                    )
+                                    .font(.footnote)
+                                    .foregroundColor(miniHintTextColor)
+                                    .lineLimit(nil)
+                                    Spacer()
+                                    Button(
+                                        action: {
+                                            hintLabel = String(localized: "Dosing Mode")
+                                            selectedVerboseHint =
+                                                AnyView(
+                                                    VStack(alignment: .leading, spacing: 10) {
+                                                        Text(
+                                                            "Dosing Mode decides how much of Trio's insulin dosing decision is actually sent to your pump. Every mode still needs an active CGM sensor session and a connected pump."
+                                                        )
+                                                        ForEach(DosingMode.userSelectable) { mode in
+                                                            VStack(alignment: .leading, spacing: 5) {
+                                                                Label(mode.displayName, systemImage: mode.icon)
+                                                                    .bold()
+                                                                Text(mode.description)
+                                                            }
+                                                        }
+                                                    }
+                                                )
+                                            shouldDisplayHint.toggle()
+                                        },
+                                        label: {
+                                            HStack {
+                                                Image(systemName: "questionmark.circle")
+                                            }
+                                        }
+                                    ).buttonStyle(BorderlessButtonStyle())
+                                }.padding(.top)
+                            }.padding(.bottom)
+                        }
                     )
+                    .listRowBackground(Color.chart)
+                    .settingsSearchTarget(label: String(localized: "Dosing Mode"))
                     .onAppear {
-                        closedLoopDisabled = !state.hasCgmAndPump()
+                        dosingModeDisabled = !state.hasCgmAndPump()
                     }
 
                     Section(

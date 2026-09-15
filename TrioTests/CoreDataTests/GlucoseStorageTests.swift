@@ -116,7 +116,7 @@ import Testing
         // Given
         let wholeSeconds = Int64(Date().timeIntervalSince1970)
         let date = Date(timeIntervalSince1970: TimeInterval(wholeSeconds) + 0.2038)
-        let expectedMilliseconds = Decimal(wholeSeconds * 1_000 + 204)
+        let expectedMilliseconds = Decimal(wholeSeconds * 1000 + 204)
         let testGlucose = [
             BloodGlucose(direction: BloodGlucose.Direction.flat, date: 123, dateString: date, glucose: 160)
         ]
