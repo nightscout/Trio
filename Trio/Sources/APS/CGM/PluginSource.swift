@@ -168,6 +168,8 @@ extension PluginSource: CGMManagerDelegate {
                 debug(.deviceManager, "CGM PLUGIN - unable to read CGM result")
             }
 
+            self.glucoseManager?.reportCGMSensorObservation(self.currentSensorObservation())
+
             self.publishCGMStatus()
 
             debug(.deviceManager, "CGM PLUGIN - Direct return done")
@@ -187,6 +189,7 @@ extension PluginSource: CGMManagerDelegate {
 
                 if event.type == .sensorStart {
                     self.glucoseManager?.removeCalibrations()
+                    self.glucoseManager?.startCGMSensorSession(startedAt: event.date)
                 }
             }
         }
@@ -240,6 +243,16 @@ extension PluginSource: CGMManagerDelegate {
                 self.cgmHasValidSensorSession = status.hasValidSensorSession
             }
         }
+    }
+
+    // The live reading carries the sensor state; a backfill's .newData says nothing about it.
+    private func currentSensorObservation() -> CGMSensorObservation {
+        if let cgmTransmitterManager = cgmManager as? G7CGMManager {
+            return cgmTransmitterManager.latestReading?.algorithmState.observation ?? .unavailable
+        } else if let cgmTransmitterManager = cgmManager as? G6CGMManager {
+            return cgmTransmitterManager.latestReading?.state.observation ?? .unavailable
+        }
+        return .unavailable
     }
 
     private func readCGMResult(readingResult: CGMReadingResult) -> Result<[BloodGlucose], Error> {
