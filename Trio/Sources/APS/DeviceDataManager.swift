@@ -64,7 +64,6 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     let scheduledBasal = PassthroughSubject<Bool?, Never>()
     let suspended = PassthroughSubject<Bool, Never>()
 
-    private let router = TrioApp.resolver.resolve(Router.self)!
     @SyncAccess private var pumpUpdateCancellable: AnyCancellable?
     private var pumpUpdatePromise: Future<Bool, Never>.Promise?
     @SyncAccess var loopInProgress: Bool = false
@@ -341,7 +340,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
 
 extension BaseDeviceDataManager: PumpManagerDelegate {
     var automaticDosingEnabled: Bool {
-        settingsManager.settings.closedLoop // Take if close or open loop
+        settingsManager.settings.dosingMode.automation != .off // Trio may command the pump
     }
 
     func pumpManager(

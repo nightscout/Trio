@@ -619,6 +619,14 @@ enum DosingEngine {
         return (shouldSetTempBasal: false, determination: determination)
     }
 
+    /// Basal Testing: past the low-glucose suspend, recommend nothing. Leaves `rate` and
+    /// `duration` unset so no temp is enacted and the history stays scheduled basal.
+    static func recommendNoChange(determination: Determination) -> Determination {
+        var newDetermination = determination
+        newDetermination.reason += "basal testing; no adjustment. "
+        return newDetermination
+    }
+
     /// Handles the case where IOB is greater than the max IOB.
     ///
     /// - Returns: A tuple containing:

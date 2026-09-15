@@ -60,7 +60,7 @@ final class NotLoopingMonitor: Injectable {
         // Looping" alarm would just be noise. nil injection (publisher-only
         // test seam) passes so the existing tests still exercise the
         // retract/reschedule plumbing.
-        guard settingsManager?.settings.closedLoop != false,
+        guard settingsManager?.settings.dosingMode.automation != AutomationLevel.off,
               apsManager?.isManualTempBasal != true,
               apsManager?.isSuspended != true
         else { return }
