@@ -38,6 +38,56 @@ enum MainChartHelper {
         return closestGlucose
     }
 
+    /// The slice of a date-sorted series covering `start ... end`, located by binary search.
+    ///
+    /// A linear `filter` was cheap while the series were culled once per render-window
+    /// re-anchor — a handful of times per session. Culling to the visible window re-runs the
+    /// cull on every pan step instead, and each pass touches a Core Data date on every one of
+    /// up to 72 h of entries, so the scan and not the marks would become the cost.
+    ///
+    /// Both sort directions are supported because the chart's series come from fetched-results
+    /// controllers with opposite sort descriptors: glucose and pump events ascend, carbs and
+    /// FPUs descend. Entries without a date are ordered outside the window and dropped, exactly
+    /// as the `filter` this replaces dropped them.
+    static func windowSlice<T>(
+        _ items: [T],
+        from start: Date,
+        through end: Date,
+        ascending: Bool,
+        date: (T) -> Date?
+    ) -> [T] {
+        guard !items.isEmpty, start <= end else { return [] }
+
+        let lower: Int
+        let upper: Int
+        if ascending {
+            lower = partitionPoint(items) { (date($0) ?? .distantPast) >= start }
+            upper = partitionPoint(items) { (date($0) ?? .distantPast) > end }
+        } else {
+            lower = partitionPoint(items) { (date($0) ?? .distantFuture) <= end }
+            upper = partitionPoint(items) { (date($0) ?? .distantFuture) < start }
+        }
+
+        guard lower < upper else { return [] }
+        return items[lower ..< upper].filter { date($0) != nil }
+    }
+
+    /// The first index at which `isSatisfied` becomes true, for a predicate that is false over
+    /// a prefix and true over the rest — `items.count` when it never does.
+    private static func partitionPoint<T>(_ items: [T], _ isSatisfied: (T) -> Bool) -> Int {
+        var low = 0
+        var high = items.count
+        while low < high {
+            let mid = low + (high - low) / 2
+            if isSatisfied(items[mid]) {
+                high = mid
+            } else {
+                low = mid + 1
+            }
+        }
+        return low
+    }
+
     enum Config {
         /// How far back the chart's `startMarker` is anchored — the fixed 24 h
         /// history window loaded on every open. Independent of the currently
@@ -58,6 +108,18 @@ enum MainChartHelper {
         static let followForecastPeekFraction: CGFloat = 0.55
         /// Render window extends this many visible-windows beyond each visible edge.
         static let renderWindowPadFactor = 1.5
+        /// The glucose readings and the bolus / carb / FPU markers are laid out only for
+        /// the visible window plus this fraction of it at each edge, rather than for the
+        /// whole render window. They are the densest marks on the chart — ~900 readings
+        /// alone at the widest zoom over 72 h of history — and the render window is four
+        /// visible windows wide, so three quarters of that layout work was being spent on
+        /// marks the user cannot see. The pad is what a mark straddling an edge, and the
+        /// smoothed curve running off one, need in order to still enter the viewport.
+        ///
+        /// It doubles as the pan tolerance: the window is re-anchored once the visible
+        /// window reaches the end of the pad, so panning re-lays the marks roughly every
+        /// 5 % of a viewport — each re-layout now being a fraction of the old one.
+        static let treatmentRenderPadFactor = 0.05
         /// Re-anchor when the visible edge gets within this fraction of a
         /// visible-window of the render window's edge.
         static let renderWindowMarginFactor = 0.5

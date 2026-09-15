@@ -64,6 +64,20 @@ struct MainChartView: View {
     @State private var renderWindowEnd = Date.now
         .addingTimeInterval(MainChartHelper.Config.defaultVisibleSeconds * 1.5)
 
+    /// Slice of the domain the glucose readings and the treatment markers are laid out for:
+    /// the visible window plus `Config.treatmentRenderPadFactor` of it at each edge, and so
+    /// a small fraction of the render window the rest of the canvas covers.
+    ///
+    /// These four series are the chart's densest marks by a wide margin, and the only ones
+    /// whose cost scales with how much history is loaded rather than with the zoom. Laying
+    /// them out for the whole render window meant three quarters of that work went to marks
+    /// off screen in either direction; this window keeps only what the user can actually see,
+    /// and marks fall out of the layout again as they leave it.
+    @State private var treatmentWindowStart = Date.now
+        .addingTimeInterval(-MainChartHelper.Config.defaultVisibleSeconds * 1.05)
+    @State private var treatmentWindowEnd = Date.now
+        .addingTimeInterval(MainChartHelper.Config.defaultVisibleSeconds * 0.05)
+
     /// Horizontal stretch applied while a pinch is live. The zoom itself is
     /// committed once, on release; between touch-down and release the canvas
     /// is only transformed, never re-laid.
@@ -121,6 +135,8 @@ struct MainChartView: View {
                 visibleSeconds: visibleSeconds,
                 windowStart: renderWindowStart,
                 windowEnd: renderWindowEnd,
+                treatmentWindowStart: treatmentWindowStart,
+                treatmentWindowEnd: treatmentWindowEnd,
                 canvasWidth: canvasWidth,
                 basalHeight: basalHeight,
                 mainHeight: mainHeight,
@@ -177,18 +193,29 @@ struct MainChartView: View {
         }
         .onChange(of: scrollPosition) {
             updateRenderWindow()
+            updateTreatmentWindow()
         }
         .onChange(of: visibleSeconds) {
             updateRenderWindow(force: true)
+            updateTreatmentWindow(force: true)
+        }
+        // A live pinch previews the zoom by stretching the canvas rather than re-laying it,
+        // so what is on screen is wider or narrower than `visibleSeconds` describes for the
+        // length of the gesture. The window takes its wider gesture-time pad when the pinch
+        // takes the touch, and its tight one back when the closing commit re-lays anyway.
+        .onChange(of: isPinching) {
+            updateTreatmentWindow(force: true)
         }
         .onChange(of: state.glucoseFromPersistence.last?.glucose) {
             state.updateStartEndMarkers()
             scrollToTrailingEdge()
             updateRenderWindow()
+            updateTreatmentWindow(force: true)
         }
         .onChange(of: state.enactedAndNonEnactedDeterminations.first?.deliverAt) {
             scrollToTrailingEdge()
             updateRenderWindow()
+            updateTreatmentWindow()
         }
         .onChange(of: units) {
             // TODO: - Refactor this to only update the Y Axis Scale
@@ -199,6 +226,7 @@ struct MainChartView: View {
                 state.updateStartEndMarkers()
                 scrollToTrailingEdge()
                 updateRenderWindow(force: true)
+                updateTreatmentWindow(force: true)
                 mainChartHasInitialized = true
             }
         }
@@ -286,6 +314,50 @@ extension MainChartView {
         guard newStart != renderWindowStart || newEnd != renderWindowEnd else { return }
         renderWindowStart = newStart
         renderWindowEnd = newEnd
+    }
+
+    /// Re-anchors the window the glucose readings and the treatment markers are laid out for.
+    ///
+    /// Where `updateRenderWindow` buys whole viewports of slack so that panning can stay a pure
+    /// offset transform, this one deliberately hugs the visible window: its pad *is* its
+    /// tolerance, so it follows the pan in steps of that pad. The trade is the point of it —
+    /// these marks re-lay more often, but each layout covers a little over one viewport instead
+    /// of four, and stops growing with the history behind it.
+    func updateTreatmentWindow(force: Bool = false) {
+        let pad = treatmentWindowPadFactor * visibleSeconds
+        let domainStart = state.startMarker
+        let domainEnd = max(state.endMarker, domainStart.addingTimeInterval(1))
+        // Trailing overscan can push the visible window past the domain; the window itself
+        // never exceeds the domain, so compare clamped edges — as `updateRenderWindow` does.
+        let visibleStart = max(scrollPosition, domainStart)
+        let visibleEnd = min(scrollPosition.addingTimeInterval(visibleSeconds), domainEnd)
+
+        // Anything on screen that the current window does not already cover. With no margin
+        // beyond the pad, this is what paces the re-anchors: one per pad's worth of panning.
+        let uncovered = visibleStart < treatmentWindowStart || visibleEnd > treatmentWindowEnd
+        guard force || uncovered else { return }
+
+        let newStart = max(visibleStart.addingTimeInterval(-pad), domainStart)
+        let newEnd = min(visibleEnd.addingTimeInterval(pad), domainEnd)
+        guard newStart != treatmentWindowStart || newEnd != treatmentWindowEnd else { return }
+        treatmentWindowStart = newStart
+        treatmentWindowEnd = newEnd
+    }
+
+    /// How far past each visible edge those marks are laid out, as a fraction of the visible
+    /// window.
+    ///
+    /// `Config.treatmentRenderPadFactor` in the steady state. While a pinch is live the canvas
+    /// is previewed with a `scaleEffect` instead of being re-laid, so a zoom-out puts *more*
+    /// chart time on screen than `visibleSeconds` describes — up to the commit drift, where a
+    /// commit re-lays and the stretch resets. The gesture-time pad covers that whole drift at
+    /// *either* edge, since the stretch is anchored under the pinch centroid and that can sit
+    /// at one of them. The newly exposed edges then come in populated, instead of the window
+    /// re-anchoring — and re-laying — on every step of the stretch.
+    private var treatmentWindowPadFactor: Double {
+        let base = MainChartHelper.Config.treatmentRenderPadFactor
+        guard isPinching else { return base }
+        return base + (MainChartHelper.Config.pinchCommitScaleDrift - 1)
     }
 
     /// Glucose y-domain padded above and below so values at the data extremes (and the carb
@@ -818,6 +890,12 @@ struct MainChartCanvas: View {
     /// Rendered slice of the domain; all panes share this x-scale.
     var windowStart: Date
     var windowEnd: Date
+    /// The narrower slice the glucose readings and the treatment markers are laid out for —
+    /// the visible window plus a small pad, re-anchored by the shell as it is panned. The
+    /// x-scale is still the render window's, so these marks simply occupy the middle of the
+    /// canvas and the rest of it draws unpopulated.
+    var treatmentWindowStart: Date
+    var treatmentWindowEnd: Date
     var canvasWidth: CGFloat
     var basalHeight: CGFloat
     var mainHeight: CGFloat
@@ -840,37 +918,62 @@ struct MainChartCanvas: View {
         units == .mgdL ? 400 : 22.2
     }
 
-    // The point series sliced to the render window: marks outside the window
-    // clip invisibly but still cost layout, so with 72h loaded an unfiltered
-    // re-layout (every pinch step) does 3x the work for nothing.
+    // The readings and the treatment markers, sliced to the treatment window: marks outside
+    // it clip invisibly but still cost layout, and these four series are the ones dense
+    // enough — and long-lived enough, spanning the whole 72 h history — for that to be most
+    // of a re-layout. Located by binary search rather than scanned, because with the window
+    // following the pan the slice is taken far more often than the render window's was.
+
+    /// One CGM reading at the usual cadence.
+    private static let glucoseEdgeSlack: TimeInterval = 300
+
     var windowedGlucose: [GlucoseStored] {
-        state.glucoseFromPersistence.filter { entry in
-            guard let date = entry.date else { return false }
-            return date >= windowStart && date <= windowEnd
-        }
+        // One CGM interval of extra reach at each edge. The readings anchor the bolus and
+        // carb markers (`timeToNearestGlucose`) and carry the smoothed curve, so a marker at
+        // the very edge keeps a reading to sit on and the curve runs off the edge rather than
+        // stopping a step short of it.
+        MainChartHelper.windowSlice(
+            state.glucoseFromPersistence,
+            from: treatmentWindowStart.addingTimeInterval(-Self.glucoseEdgeSlack),
+            through: treatmentWindowEnd.addingTimeInterval(Self.glucoseEdgeSlack),
+            ascending: true,
+            date: { $0.date }
+        )
     }
 
     var windowedInsulin: [PumpEventStored] {
-        state.insulinFromPersistence.filter { entry in
-            guard let date = entry.timestamp else { return false }
-            return date >= windowStart && date <= windowEnd
-        }
+        MainChartHelper.windowSlice(
+            state.insulinFromPersistence,
+            from: treatmentWindowStart,
+            through: treatmentWindowEnd,
+            ascending: true,
+            date: { $0.timestamp }
+        )
     }
 
     var windowedCarbs: [CarbEntryStored] {
-        state.carbsFromPersistence.filter { entry in
-            guard let date = entry.date else { return false }
-            return date >= windowStart && date <= windowEnd
-        }
+        MainChartHelper.windowSlice(
+            state.carbsFromPersistence,
+            from: treatmentWindowStart,
+            through: treatmentWindowEnd,
+            ascending: false,
+            date: { $0.date }
+        )
     }
 
     var windowedFPUs: [CarbEntryStored] {
-        state.fpusFromPersistence.filter { entry in
-            guard let date = entry.date else { return false }
-            return date >= windowStart && date <= windowEnd
-        }
+        MainChartHelper.windowSlice(
+            state.fpusFromPersistence,
+            from: treatmentWindowStart,
+            through: treatmentWindowEnd,
+            ascending: false,
+            date: { $0.date }
+        )
     }
 
+    // Still the render window: the COB/IOB pane's determinations are ~5 min apart and drawn
+    // as continuous lines, which have to be laid out across the whole canvas or they end
+    // mid-air at the edges of it.
     var windowedDeterminations: [OrefDetermination] {
         state.enactedAndNonEnactedDeterminations.filter { entry in
             guard let date = entry.deliverAt else { return false }
@@ -1009,6 +1112,8 @@ extension MainChartCanvas: Equatable {
             lhs.visibleSeconds == rhs.visibleSeconds &&
             lhs.windowStart == rhs.windowStart &&
             lhs.windowEnd == rhs.windowEnd &&
+            lhs.treatmentWindowStart == rhs.treatmentWindowStart &&
+            lhs.treatmentWindowEnd == rhs.treatmentWindowEnd &&
             lhs.canvasWidth == rhs.canvasWidth &&
             lhs.basalHeight == rhs.basalHeight &&
             lhs.mainHeight == rhs.mainHeight &&
