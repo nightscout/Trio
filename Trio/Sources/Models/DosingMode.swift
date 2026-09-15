@@ -90,7 +90,7 @@ enum DosingMode: String, JSON, CaseIterable, Identifiable, Codable, Hashable {
             )
         case .lowGlucoseSuspend:
             return String(
-                localized: "Trio may lower or stop your basal insulin when it forecasts you are heading low. It will never give extra insulin to bring a high down.\nTrio does not wait for one set glucose number. It watches your forecast and lowers basal early. While this mode is on, Trio acts as if your Max IOB is 0. Your saved setting does not change."
+                localized: "Trio may lower or stop your basal insulin when it forecasts you are heading low. It will never give extra insulin to bring a high down.\nTrio does not wait for one set glucose number. It watches your forecast and lowers basal early. While this mode is on, Trio acts as if your Max IOB is 0. Your saved setting does not change.\nIf IOB is negative from LGS lowering your basal, it may give additional insulin until IOB reaches 0."
             )
         case .basalTesting:
             return String(
