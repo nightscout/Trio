@@ -20,11 +20,28 @@ extension Settings {
 
         @State private var showShareSheet = false
         @State private var searchText: String = ""
-
-        @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: AnyView?
-        @State var hintLabel: String?
+        @State private var hintPayload: HintPayload?
+
+        private struct HintPayload: Identifiable {
+            let id = UUID()
+            let label: String
+            let content: AnyView
+        }
+
+        private var shouldDisplayHintBinding: Binding<Bool> {
+            Binding(
+                get: { hintPayload != nil },
+                set: { newValue in
+                    if !newValue {
+                        hintPayload = nil
+                    } else if hintPayload == nil {
+                        hintPayload = HintPayload(label: "", content: AnyView(EmptyView()))
+                    }
+                }
+            )
+        }
+
         @State private var versionInfo = VersionInfo(
             latestVersion: nil,
             isUpdateAvailable: false,
@@ -219,9 +236,9 @@ extension Settings {
                                     Spacer()
                                     Button(
                                         action: {
-                                            hintLabel = String(localized: "Dosing Mode")
-                                            selectedVerboseHint =
-                                                AnyView(
+                                            hintPayload = HintPayload(
+                                                label: String(localized: "Dosing Mode"),
+                                                content: AnyView(
                                                     VStack(alignment: .leading, spacing: 10) {
                                                         Text(
                                                             "Dosing Mode decides how much of Trio's insulin dosing decision is actually sent to your pump. Every mode still needs an active CGM sensor session and a connected pump."
@@ -235,7 +252,7 @@ extension Settings {
                                                         }
                                                     }
                                                 )
-                                            shouldDisplayHint.toggle()
+                                            )
                                         },
                                         label: {
                                             HStack {
@@ -425,12 +442,12 @@ extension Settings {
                 }
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
-            .sheet(isPresented: $shouldDisplayHint) {
+            .sheet(item: $hintPayload) { payload in
                 SettingInputHintView(
                     hintDetent: $hintDetent,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                    shouldDisplayHint: shouldDisplayHintBinding,
+                    hintLabel: payload.label,
+                    hintText: payload.content,
                     sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
