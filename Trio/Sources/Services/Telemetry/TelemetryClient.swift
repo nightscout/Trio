@@ -200,7 +200,7 @@ final class TelemetryClient: Injectable {
     /// Awaitable daily-cadence entry point. All trigger paths pass through the
     /// actor gate, preventing overlapping requests and enforcing a one-hour
     /// retry delay after an unsuccessful attempt.
-    @discardableResult  func sendIfOverdue(reason: SendReason, now: Date = Date()) async -> Bool {
+    @discardableResult func sendIfOverdue(reason: SendReason, now: Date = Date()) async -> Bool {
         let sharingEnabled = PropertyPersistentFlags.shared.telemetrySharingEnabled != false
         let lastSentAt = sharingEnabled ?
             PropertyPersistentFlags.shared.telemetryLastSentAt :
@@ -444,7 +444,7 @@ final class TelemetryClient: Injectable {
     /// `telemetryLastAttemptAt` gate prevents another attempt for one hour.
     /// Successful sends clear that failure-backoff timestamp and advance the
     /// normal 24-hour cadence.
-    @discardableResult  func send(reason: SendReason) async -> Bool {
+    @discardableResult func send(reason: SendReason) async -> Bool {
         func failed(_ reason: String) -> Bool {
             PropertyPersistentFlags.shared.telemetryLastFailureReason = reason
             return false
