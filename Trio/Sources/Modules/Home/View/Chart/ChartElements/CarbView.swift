@@ -8,10 +8,18 @@ struct CarbView: ChartContent {
     let carbData: [CarbEntryStored]
     let fpuData: [CarbEntryStored]
     let minValue: Decimal
+    /// Entries whose gram label is far enough from its neighbours' to be readable — see
+    /// `InsulinView.labelledEventIDs`. Empty means "label everything".
+    var labelledCarbIDs: Set<UUID> = []
 
     var body: some ChartContent {
         drawCarbs()
         drawFpus()
+    }
+
+    private func showsLabel(_ carb: CarbEntryStored) -> Bool {
+        guard !labelledCarbIDs.isEmpty else { return true }
+        return carb.id.map(labelledCarbIDs.contains) ?? false
     }
 
     private func drawCarbs() -> some ChartContent {
@@ -39,14 +47,16 @@ struct CarbView: ChartContent {
                         .rotationEffect(.degrees(180))
                 }
 
-                PointMark(
-                    x: .value("Time", carbDate, unit: .second),
-                    y: .value("Value", yPosition)
-                )
-                .symbolSize(0)
-                .annotation(position: .bottom) {
-                    Text(Formatter.integerFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
-                        .foregroundStyle(Color.primary)
+                if showsLabel(carb) {
+                    PointMark(
+                        x: .value("Time", carbDate, unit: .second),
+                        y: .value("Value", yPosition)
+                    )
+                    .symbolSize(0)
+                    .annotation(position: .bottom) {
+                        Text(Formatter.integerFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
+                            .foregroundStyle(Color.primary)
+                    }
                 }
             }
         }

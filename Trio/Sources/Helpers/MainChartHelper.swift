@@ -120,6 +120,90 @@ enum MainChartHelper {
         return low
     }
 
+    /// Drops entries that would land on top of one another, keeping the most significant of
+    /// each overlapping group.
+    ///
+    /// A mark closer than its own width to its neighbour cannot be told apart from it, but it
+    /// still costs a full mark: its own identity, scale and style resolution, layout pass, and —
+    /// for the treatment series — a SwiftUI view for its symbol or its label. Over a burst of
+    /// boluses at a wide zoom that is nearly all of the layout, spent on pixels no one can
+    /// read. At 24 h on a 390 pt viewport, doses a minute apart sit 0.27 pt from each other.
+    ///
+    /// Thinning is driven by on-screen distance rather than by time, so it is self-limiting:
+    /// zoom in far enough that the marks separate and everything comes back, untouched. Within
+    /// a group the entry with the highest `significance` survives, so the largest bolus in a
+    /// cluster is the one that stays rather than whichever happened to come first.
+    ///
+    /// - Parameters:
+    ///   - ascending: Whether `items` runs oldest-first. The chart's series come from
+    ///     fetched-results controllers with opposite sort descriptors; the result is always
+    ///     ascending.
+    ///   - minimumSpacing: How far apart two entries must be drawn, in points, to both be kept.
+    ///   - pointsPerSecond: The layout's horizontal scale, i.e. canvas width over its time span.
+    static func thinned<T>(
+        _ items: [T],
+        ascending: Bool,
+        minimumSpacing: CGFloat,
+        pointsPerSecond: Double,
+        date: (T) -> Date?,
+        significance: (T) -> Double
+    ) -> [T] {
+        guard items.count > 1, minimumSpacing > 0, pointsPerSecond > 0 else { return items }
+        let minimumSeconds = Double(minimumSpacing) / pointsPerSecond
+
+        var kept: [T] = []
+        kept.reserveCapacity(items.count)
+        var lastKeptTime = -Double.infinity
+        var lastKeptValue = -Double.infinity
+
+        /// Emits the winner of a group, holding the spacing against what was emitted before it.
+        /// Grouping alone does not: a group runs from its own first entry, so the winner of one
+        /// and the winner of the next can still land side by side at the seam. When that
+        /// happens the more significant of the two takes the slot.
+        func emit(_ item: T, at time: TimeInterval, value: Double) {
+            if time - lastKeptTime >= minimumSeconds {
+                kept.append(item)
+            } else if value > lastKeptValue, !kept.isEmpty {
+                kept[kept.count - 1] = item
+            } else {
+                return
+            }
+            lastKeptTime = time
+            lastKeptValue = value
+        }
+
+        var groupStart: TimeInterval?
+        var best: T?
+        var bestTime: TimeInterval = 0
+        var bestValue = -Double.infinity
+
+        let first = ascending ? 0 : items.count - 1
+        let last = ascending ? items.count - 1 : 0
+        let step = ascending ? 1 : -1
+
+        for index in stride(from: first, through: last, by: step) {
+            let item = items[index]
+            guard let time = date(item)?.timeIntervalSince1970 else { continue }
+            let value = significance(item)
+
+            if let start = groupStart, time - start < minimumSeconds {
+                if value > bestValue {
+                    best = item
+                    bestTime = time
+                    bestValue = value
+                }
+            } else {
+                if let best { emit(best, at: bestTime, value: bestValue) }
+                groupStart = time
+                best = item
+                bestTime = time
+                bestValue = value
+            }
+        }
+        if let best { emit(best, at: bestTime, value: bestValue) }
+        return kept
+    }
+
     enum Config {
         /// How far back the chart's `startMarker` is anchored — the fixed 24 h
         /// history window loaded on every open. Independent of the currently
@@ -155,6 +239,14 @@ enum MainChartHelper {
         /// Re-anchor when the visible edge gets within this fraction of a
         /// visible-window of the render window's edge.
         static let renderWindowMarginFactor = 0.5
+        /// Two marks drawn closer together than this cannot be told apart, so only the most
+        /// significant of them is laid out. Sized to the narrowest treatment symbol
+        /// (`bolusSize`), which is what "they overlap" means for this chart.
+        static let minMarkSpacing: CGFloat = 5
+        /// The same for the amount labels, which are far wider than the marks they belong to —
+        /// roughly what "0,48" occupies at `.caption2`. Below this they pile into an unreadable
+        /// smear, so all but one per group is layout spent on nothing.
+        static let minLabelSpacing: CGFloat = 28
         /// Geometric grid for pinch commits (~4 % per step). Every committed zoom step
         /// re-lays the full-width canvas, so this bounds a halving of the visible window
         /// to roughly 18 re-layouts instead of hundreds.

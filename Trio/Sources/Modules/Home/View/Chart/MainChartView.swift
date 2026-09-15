@@ -988,6 +988,47 @@ struct MainChartCanvas: View {
     /// shell's selection overlay match the charts' real plot areas.
     static let coordinateSpaceName = "mainChartCanvas"
 
+    /// The layout's horizontal scale: how many points one second of chart time occupies.
+    /// Everything on this canvas shares the render window's x-scale, so this is what decides
+    /// whether two marks land on top of each other.
+    var pointsPerSecond: Double {
+        let span = windowEnd.timeIntervalSince(windowStart)
+        guard span > 0, canvasWidth > 0 else { return 0 }
+        return Double(canvasWidth) / span
+    }
+
+    func thinnedForMarks<T>(
+        _ items: [T],
+        ascending: Bool,
+        date: (T) -> Date?,
+        significance: (T) -> Double
+    ) -> [T] {
+        MainChartHelper.thinned(
+            items,
+            ascending: ascending,
+            minimumSpacing: MainChartHelper.Config.minMarkSpacing,
+            pointsPerSecond: pointsPerSecond,
+            date: date,
+            significance: significance
+        )
+    }
+
+    func thinnedForLabels<T>(
+        _ items: [T],
+        ascending: Bool,
+        date: (T) -> Date?,
+        significance: (T) -> Double
+    ) -> [T] {
+        MainChartHelper.thinned(
+            items,
+            ascending: ascending,
+            minimumSpacing: MainChartHelper.Config.minLabelSpacing,
+            pointsPerSecond: pointsPerSecond,
+            date: date,
+            significance: significance
+        )
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             basalChart
@@ -1018,9 +1059,24 @@ extension MainChartCanvas {
         // slice each series once per layout; these were computed properties
         // re-evaluated on every reference (glucose alone was scanned 3x)
         let glucose = windowedGlucose
-        let insulin = windowedInsulin
-        let carbs = windowedCarbs
-        let fpus = windowedFPUs
+        // Thinned to what the current scale can actually show apart. A burst of doses at a
+        // wide zoom is otherwise hundreds of marks — each one a SwiftUI view — laid out into
+        // a few dozen points of screen, which is where panning over one loses its frame rate.
+        let insulin = thinnedForMarks(windowedInsulin, ascending: true, date: { $0.timestamp }) {
+            $0.bolus?.amount?.doubleValue ?? 0
+        }
+        let carbs = thinnedForMarks(windowedCarbs, ascending: false, date: { $0.date }) { $0.carbs }
+        let fpus = thinnedForMarks(windowedFPUs, ascending: false, date: { $0.date }) { $0.carbs }
+        // Labels are much wider than the marks they hang off, so they need their own, coarser
+        // pass — one label per label-width, rather than one per mark.
+        let labelledInsulin = Set(
+            thinnedForLabels(insulin, ascending: true, date: { $0.timestamp }) {
+                $0.bolus?.amount?.doubleValue ?? 0
+            }.compactMap(\.id)
+        )
+        let labelledCarbs = Set(
+            thinnedForLabels(carbs, ascending: true, date: { $0.date }) { $0.carbs }.compactMap(\.id)
+        )
 
         return Chart {
             drawCurrentTimeMarker()
@@ -1049,7 +1105,8 @@ extension MainChartCanvas {
                 glucoseData: glucose,
                 insulinData: insulin,
                 units: state.units,
-                bolusDisplayThreshold: state.bolusDisplayThreshold
+                bolusDisplayThreshold: state.bolusDisplayThreshold,
+                labelledEventIDs: labelledInsulin
             )
 
             CarbView(
@@ -1058,7 +1115,8 @@ extension MainChartCanvas {
                 carbData: carbs,
                 fpuData: fpus,
                 minValue: units == .mgdL ? state.minYAxisValue : state.minYAxisValue
-                    .asMmolL
+                    .asMmolL,
+                labelledCarbIDs: labelledCarbs
             )
 
             ForecastView(

@@ -7,9 +7,20 @@ struct InsulinView: ChartContent {
     let insulinData: [PumpEventStored]
     let units: GlucoseUnits
     let bolusDisplayThreshold: BolusDisplayThreshold
+    /// Events whose amount label is far enough from its neighbours' to be readable. A label is
+    /// several times wider than the marker it belongs to, so in a dense stretch most of them
+    /// would land on top of each other — and each one costs a laid-out SwiftUI view whether it
+    /// can be read or not. Empty means "label everything", which is what a caller that does not
+    /// thin gets.
+    var labelledEventIDs: Set<String> = []
 
     var body: some ChartContent {
         drawBoluses()
+    }
+
+    private func showsLabel(_ insulin: PumpEventStored) -> Bool {
+        guard !labelledEventIDs.isEmpty else { return true }
+        return insulin.id.map(labelledEventIDs.contains) ?? false
     }
 
     private func drawBoluses() -> some ChartContent {
@@ -33,13 +44,13 @@ struct InsulinView: ChartContent {
                     Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.insulin)
                 }
 
-                PointMark(
-                    x: .value("Time", bolusDate, unit: .second),
-                    y: .value("Value", yPosition)
-                )
-                .symbolSize(0)
-                .annotation(position: .top) {
-                    if amount as Decimal >= bolusDisplayThreshold.rawValue {
+                if amount as Decimal >= bolusDisplayThreshold.rawValue, showsLabel(insulin) {
+                    PointMark(
+                        x: .value("Time", bolusDate, unit: .second),
+                        y: .value("Value", yPosition)
+                    )
+                    .symbolSize(0)
+                    .annotation(position: .top) {
                         Text(Formatter.bolusFormatter.string(from: amount) ?? "")
                             .font(.caption2)
                             .foregroundStyle(Color.primary)
