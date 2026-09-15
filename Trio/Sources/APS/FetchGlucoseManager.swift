@@ -267,7 +267,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
     private func glucoseStoreAndHeartDecision(syncDate: Date, glucose: [BloodGlucose]) async throws {
         // calibration add if required only for sensor
-        let newGlucose = overcalibrate(entries: glucose)
+        let newGlucose = overcalibrate(entries: glucose.filter { $0.sgv != nil })
 
         var filteredByDate: [BloodGlucose] = []
         var filtered: [BloodGlucose] = []
@@ -275,6 +275,13 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         // Start background task
         var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
         backgroundTaskID = startBackgroundTask(withName: "Glucose Store and Heartbeat Decision")
+
+        // Check if sensor emitted calibrations
+        let calibrations = glucose.filter { $0.mbg != nil }
+        if calibrations.isNotEmpty {
+            debug(.deviceManager, "New calibration found")
+            try await glucoseStorage.storeGlucose(calibrations)
+        }
 
         guard newGlucose.isNotEmpty else {
             endBackgroundTaskSafely(&backgroundTaskID, taskName: "Glucose Store and Heartbeat Decision")
