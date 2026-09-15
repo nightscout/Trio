@@ -7,35 +7,54 @@ enum MainChartHelper {
     // Calculates the glucose value thats the nearest to parameter 'time'
     /// -Returns: A NSManagedObject of GlucoseStored
     /// it is thread safe as everything is executed on the main thread
+    ///
+    /// The search locates the insertion point and then picks whichever of the two readings
+    /// straddling it is closer. It used to track the best candidate inside the descent, but
+    /// the comparison it did that with was
+    /// `abs(midTime - time) < abs(closest.date?.timeIntervalSince1970 ?? 0 - time)` — and `-`
+    /// binds tighter than `??`, so the right-hand side was the candidate's raw epoch seconds
+    /// (~1.8e9), not its distance. Every real distance is smaller than that, so the candidate
+    /// was overwritten on every iteration and the function returned whatever the descent
+    /// happened to visit last.
+    ///
+    /// That is one of the two neighbours, but *which* one depends on the array's length — so
+    /// the answer changed as the caller's slice moved, even though neither the reading nor the
+    /// treatment had. Anchoring a marker through it therefore made it hop between two readings
+    /// 5 minutes apart while the chart was panned. Harmless while the series were sliced to the
+    /// render window and re-sliced a few times a session; not once they follow the visible
+    /// window.
     static func timeToNearestGlucose(glucoseValues: [GlucoseStored], time: TimeInterval) -> GlucoseStored? {
         guard !glucoseValues.isEmpty else {
             return nil
         }
 
+        // First reading at or after `time`.
         var low = 0
-        var high = glucoseValues.count - 1
-        var closestGlucose: GlucoseStored?
-
-        // binary search to find next glucose
-        while low <= high {
+        var high = glucoseValues.count
+        while low < high {
             let mid = low + (high - low) / 2
-            let midTime = glucoseValues[mid].date?.timeIntervalSince1970 ?? 0
-
-            if midTime == time {
-                return glucoseValues[mid]
-            } else if midTime < time {
+            if (glucoseValues[mid].date?.timeIntervalSince1970 ?? 0) < time {
                 low = mid + 1
             } else {
-                high = mid - 1
-            }
-
-            // update if necessary
-            if closestGlucose == nil || abs(midTime - time) < abs(closestGlucose!.date?.timeIntervalSince1970 ?? 0 - time) {
-                closestGlucose = glucoseValues[mid]
+                high = mid
             }
         }
 
-        return closestGlucose
+        let before = low > 0 ? glucoseValues[low - 1] : nil
+        let after = low < glucoseValues.count ? glucoseValues[low] : nil
+
+        switch (before, after) {
+        case let (before?, after?):
+            let toBefore = abs((before.date?.timeIntervalSince1970 ?? 0) - time)
+            let toAfter = abs((after.date?.timeIntervalSince1970 ?? 0) - time)
+            return toAfter < toBefore ? after : before
+        case let (before?, nil):
+            return before
+        case let (nil, after?):
+            return after
+        case (nil, nil):
+            return nil
+        }
     }
 
     /// The slice of a date-sorted series covering `start ... end`, located by binary search.
@@ -49,23 +68,36 @@ enum MainChartHelper {
     /// controllers with opposite sort descriptors: glucose and pump events ascend, carbs and
     /// FPUs descend. Entries without a date are ordered outside the window and dropped, exactly
     /// as the `filter` this replaces dropped them.
+    ///
+    /// - Parameter elementPadding: How many further entries to keep beyond each edge, counted
+    ///   in entries rather than in time. The glucose series needs at least one: the treatment
+    ///   markers anchor to the reading nearest their timestamp, so both readings straddling a
+    ///   marker at the very edge have to be in the slice or the anchor changes as the window
+    ///   moves — and a slack expressed in seconds cannot promise that across a CGM gap, where
+    ///   the neighbouring reading can be arbitrarily far away.
     static func windowSlice<T>(
         _ items: [T],
         from start: Date,
         through end: Date,
         ascending: Bool,
+        elementPadding: Int = 0,
         date: (T) -> Date?
     ) -> [T] {
         guard !items.isEmpty, start <= end else { return [] }
 
-        let lower: Int
-        let upper: Int
+        var lower: Int
+        var upper: Int
         if ascending {
             lower = partitionPoint(items) { (date($0) ?? .distantPast) >= start }
             upper = partitionPoint(items) { (date($0) ?? .distantPast) > end }
         } else {
             lower = partitionPoint(items) { (date($0) ?? .distantFuture) <= end }
             upper = partitionPoint(items) { (date($0) ?? .distantFuture) < start }
+        }
+
+        if elementPadding > 0 {
+            lower = Swift.max(0, lower - elementPadding)
+            upper = Swift.min(items.count, upper + elementPadding)
         }
 
         guard lower < upper else { return [] }

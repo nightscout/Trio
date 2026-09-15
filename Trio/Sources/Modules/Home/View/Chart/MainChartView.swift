@@ -924,19 +924,22 @@ struct MainChartCanvas: View {
     // of a re-layout. Located by binary search rather than scanned, because with the window
     // following the pan the slice is taken far more often than the render window's was.
 
-    /// One CGM reading at the usual cadence.
-    private static let glucoseEdgeSlack: TimeInterval = 300
+    /// How many readings beyond each edge of the treatment window stay in the layout.
+    ///
+    /// One is what correctness needs: the bolus and carb markers anchor to the reading nearest
+    /// their timestamp, so both readings straddling a marker at the very edge must be present
+    /// or the anchor — and with it the marker and its label — moves as the window does. The
+    /// second is for the smoothed curve, which then runs off the edge instead of stopping a
+    /// step short of it.
+    private static let glucoseEdgeReadings = 2
 
     var windowedGlucose: [GlucoseStored] {
-        // One CGM interval of extra reach at each edge. The readings anchor the bolus and
-        // carb markers (`timeToNearestGlucose`) and carry the smoothed curve, so a marker at
-        // the very edge keeps a reading to sit on and the curve runs off the edge rather than
-        // stopping a step short of it.
         MainChartHelper.windowSlice(
             state.glucoseFromPersistence,
-            from: treatmentWindowStart.addingTimeInterval(-Self.glucoseEdgeSlack),
-            through: treatmentWindowEnd.addingTimeInterval(Self.glucoseEdgeSlack),
+            from: treatmentWindowStart,
+            through: treatmentWindowEnd,
             ascending: true,
+            elementPadding: Self.glucoseEdgeReadings,
             date: { $0.date }
         )
     }
