@@ -3,6 +3,12 @@ import UIKit
 import UserNotifications
 
 class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNotificationCenterDelegate {
+    /// Assigned by `TrioApp.loadServices()` once the Core Data stack is up.
+    /// Resolving `TelemetryClient` constructs the APS/device graph, whose first
+    /// pump/CGM save crashes if the persistent stores are not loaded yet — so
+    /// this delegate never resolves it, and pre-init foreground transitions no-op.
+    var telemetry: TelemetryClient?
+
     func application(
         _: UIApplication,
         didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?
@@ -13,31 +19,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
         let crashReportingEnabled: Bool = PropertyPersistentFlags.shared.crashlyticsSharingEnabled ?? true
         CrashReportingGate.configureAtLaunch(enabled: crashReportingEnabled)
 
-        // Materialize the install ID even when sharing is disabled, then record
-        // this cold launch into the sliding 7-day window,
-        // then drive cadence via layered triggers — listed below in
-        // priority of reliability:
-        //
-        //   1. SHA-change ping: build updated since last send. Awaited so
-        //      the lastSentAt stamp is fresh before the overdue check.
-        //   2. checkAndSendIfOverdue: covers the regular cold launch on the
-        //      same build when >24h has passed since the last successful
-        //      send. Together with the foreground-transition hook below
-        //      (`applicationWillEnterForeground`), this keeps daily pings
-        //      flowing on iOS. Fresh CGM processing performs the same check
-        //      under its own bounded background task for background-heavy use.
-        //   3. scheduleRecurring: best-effort fallback for the rare case
-        //      where the app stays foregrounded for a full 24h.
-        TelemetryClient.shared.initializeInstallID()
-        TelemetryClient.shared.recordColdLaunch()
-        Task.detached {
-            if TelemetryClient.shared.buildShaChangedSinceLastSend() {
-                await TelemetryClient.shared.maybeSend(reason: .buildChange)
-            }
-            TelemetryClient.shared.scheduleRecurring()
-            TelemetryClient.shared.checkAndSendIfOverdue(reason: .coldLaunch)
-        }
-
         return true
     }
 
@@ -46,7 +27,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
     /// since `scheduleRecurring`'s GCD timer doesn't fire while suspended.
     /// No-op if a send already landed within the last 24h.
     func applicationWillEnterForeground(_: UIApplication) {
-        TelemetryClient.shared.checkAndSendIfOverdue(reason: .foreground)
+        telemetry?.checkAndSendIfOverdue(reason: .foreground)
     }
 
     func application(
