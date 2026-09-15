@@ -628,14 +628,24 @@ extension Home.RootView {
                                 .frame(height: 6)
                         }
                     case .averages:
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text("\u{2300} \(todayAverageString) \u{00B7} GMI \(todayGMIString)")
-                                .font(.subheadline).fontWeight(.semibold)
-                                .foregroundStyle(.primary)
-                            Text("Today's average", comment: "Stats banner subtitle")
+                        VStack(alignment: .leading, spacing: 6) {
+                            // "⌀" read as a diameter sign, so spell the label out (#1474)
+                            (
+                                Text("Avg. Glucose:", comment: "Stats banner label")
+                                    + Text(" \(todayAverageString) \u{00B7} GMI \(todayGMIString)")
+                            )
+                            .font(.subheadline).fontWeight(.semibold)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                            Text("Today's Average", comment: "Stats banner subtitle")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
+                    case .hidden:
+                        Text("View Statistics", comment: "Stats banner hidden face")
+                            .font(.subheadline).fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
                     }
 
                     Spacer(minLength: 8)
