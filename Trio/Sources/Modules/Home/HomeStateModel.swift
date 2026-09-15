@@ -101,6 +101,8 @@ extension Home {
         var determinationsFromPersistence: [OrefDetermination] = []
         var enactedAndNonEnactedDeterminations: [OrefDetermination] = []
         var fetchedTDDs: [TDD] = []
+        /// Backing data for the home stats panel, recomputed over the configured range.
+        var statsPanelStats = HomeStatsPanelStats()
         var insulinFromPersistence: [PumpEventStored] = []
         var tempBasals: [PumpEventStored] = []
         var suspendAndResumeEvents: [PumpEventStored] = []
@@ -462,6 +464,7 @@ extension Home {
                 await self.setupTempTargetRunController()
                 await self.setupBatteryController()
                 await self.setupTDDController()
+                self.refreshStatsPanelStats()
 
                 // The rest can be initialized concurrently
                 await withTaskGroup(of: Void.self) { group in
@@ -957,6 +960,8 @@ extension Home.StateModel:
         enableQuickPickTreatments = settingsManager.settings.enableQuickPickTreatments
         forecastDisplayType = settingsManager.settings.forecastDisplayType
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
+        // the panel's face and range both live in settings
+        refreshStatsPanelStats()
         displayPumpStatusHighlightMessage()
         displayPumpStatusBadge()
         setupBatteryArray()
