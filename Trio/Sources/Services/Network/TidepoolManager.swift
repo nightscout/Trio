@@ -14,6 +14,7 @@ protocol TidepoolManager {
     func getTidepoolServiceUI() -> ServiceUI?
     func getTidepoolPluginHost() -> PluginHost?
     func uploadCarbs() async
+    func waitForCarbUploads() async -> Bool
     func deleteCarbs(withSyncId id: UUID, carbs: Decimal, at: Date, enteredBy: String)
     func uploadInsulin() async
     func deleteInsulin(withSyncId id: String, amount: Decimal, at: Date)
@@ -267,6 +268,15 @@ extension BaseTidepoolManager {
         await uploadSerializer.enqueue(.carbs) { [weak self] generation in
             await self?.performCarbsUpload(generation: generation)
         }
+    }
+
+    func waitForCarbUploads() async -> Bool {
+        let result = await TidepoolUploadSerializer.awaitUpload("carbs-barrier") { completion in
+            Task { [uploadSerializer] in
+                await uploadSerializer.enqueue(.carbsDelete) { _ in completion(.success(true)) }
+            }
+        }
+        return (try? result.get()) == true
     }
 
     /// Runs inside the serializer; fetches pending carbs at run time so coalesced requests lose nothing.
