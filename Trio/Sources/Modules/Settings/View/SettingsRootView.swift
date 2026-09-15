@@ -20,17 +20,7 @@ extension Settings {
 
         @State private var showShareSheet = false
         @State private var searchText: String = ""
-
         @State var hintDetent = PresentationDetent.large
-
-        /// The help sheet's content, presented with `.sheet(item:)`.
-        ///
-        /// Same fix as `DynamicSettingsRootView` and `NightscoutConfigRootView` (see "Fix empty
-        /// help sheet on first cold tap"): with `.sheet(isPresented:)` plus separate `@State`
-        /// for the label and body, the content closure is captured from a snapshot taken before
-        /// those writes are observed, so the first tap after a cold launch renders an empty
-        /// sheet — later taps work only because the state is still populated from the previous
-        /// one. Setting one payload delivers the data and triggers presentation atomically.
         @State private var hintPayload: HintPayload?
 
         private struct HintPayload: Identifiable {
