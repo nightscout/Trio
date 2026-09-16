@@ -80,7 +80,7 @@ extension TargetBehavoir {
                         "Low Temp Target Lowers Sensitivity",
                         comment: "Low Temp Target Lowers Sensitivity"
                     ),
-                    miniHint: state.settingsManager.settings.dosingMode == .basalTesting
+                    miniHint: state.dosingMode == .basalTesting
                         ? String(localized: "Basal Testing is on. Low temp targets will not lower sensitivity.")
                         : String(
                             localized: "Decrease sensitivity when glucose is below target if a manual Temp Target < \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) is set."
