@@ -61,7 +61,7 @@ struct ChartViewport: Equatable {
     /// - Parameters:
     ///   - marginPoints: How far past each edge to reach, in points — a mark whose centre has
     ///     just gone by can still have pixels inside.
-    ///   - minimumSlack: A floor on that reach, in chart time. `GlucoseDotsOverlay` needs one
+    ///   - minimumSlack: A floor on that reach, in chart time. `GlucoseChartView` needs one
     ///     reading's worth (300 s) so its smoothed curve enters from off-screen rather than
     ///     stopping short of the edge.
     func cullRange(marginPoints: CGFloat, minimumSlack: TimeInterval = 0) -> ClosedRange<Date> {

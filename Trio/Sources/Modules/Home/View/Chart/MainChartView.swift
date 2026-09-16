@@ -120,13 +120,14 @@ struct MainChartView: View {
     /// Measured plot rect of the COB/IOB pane (canvas y-coords) for overlay alignment.
     @State private var cobIobPlotFrame: CGRect = .zero
 
-    /// The readings the treatment markers anchor to, read out of Core Data into values.
+    /// The glucose series, read out of Core Data into values: what `GlucoseChartView` draws
+    /// and what the treatment markers anchor to.
     ///
-    /// Cached rather than derived per frame: `TreatmentOverlay` redraws on every pan and pinch
-    /// frame, and at the widest zoom this is ~900 readings — that many KVC hits per frame is
-    /// exactly the cost the overlay exists to avoid. Rebuilt only when the readings or the
-    /// display unit change, which is what `rebuildGlucoseAnchors` is wired to below.
-    @State private var glucoseAnchors: [MainChartHelper.GlucoseAnchor] = []
+    /// Cached rather than derived per frame: both layers redraw on every pan and pinch frame,
+    /// and at the widest zoom this is ~900 readings — that many KVC hits per frame is exactly
+    /// the cost the overlays exist to avoid. Rebuilt only when the readings, the display unit
+    /// or a colour setting change, which is what `rebuildGlucoseDots` is wired to below.
+    @State private var glucoseDots: [MainChartHelper.GlucoseDot] = []
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -155,11 +156,23 @@ struct MainChartView: View {
             .offset(x: -canvasOffsetX)
             .scaleEffect(x: pinchScale, y: 1, anchor: pinchScaleAnchor)
 
+            // The readings themselves, drawn by the shell rather than as marks inside the
+            // canvas — see `GlucoseChartView`. Under the treatment markers, as they were
+            // when both were marks in one chart.
+            ChartOverlayLayer(viewport: chartViewport, height: stackHeight) { viewport in
+                GlucoseChartView(
+                    points: glucoseDots,
+                    isSmoothingEnabled: state.isSmoothingEnabled,
+                    viewport: viewport,
+                    yPosition: glucoseYPosition(forValue:)
+                )
+            }
+
             // Treatment markers, drawn by the shell rather than as marks inside the canvas —
             // see `TreatmentOverlay`.
             ChartOverlayLayer(viewport: chartViewport, height: stackHeight) { viewport in
                 TreatmentOverlay(
-                    anchors: glucoseAnchors,
+                    dots: glucoseDots,
                     insulin: state.insulinFromPersistence,
                     carbs: state.carbsFromPersistence,
                     fpus: state.fpusFromPersistence,
@@ -207,9 +220,14 @@ struct MainChartView: View {
         .clipped()
         .contentShape(Rectangle())
         .onPreferenceChange(CobIobPlotFrameKey.self) { cobIobPlotFrame = $0 }
-        .onChange(of: state.glucoseFromPersistence.count, initial: true) { rebuildGlucoseAnchors() }
-        .onChange(of: state.glucoseFromPersistence.last?.date) { rebuildGlucoseAnchors() }
-        .onChange(of: units) { rebuildGlucoseAnchors() }
+        .onChange(of: state.glucoseFromPersistence.count, initial: true) { rebuildGlucoseDots() }
+        .onChange(of: state.glucoseFromPersistence.last?.date) { rebuildGlucoseDots() }
+        .onChange(of: units) { rebuildGlucoseDots() }
+        // The dot colours are resolved at build time, so a colour setting has to rebuild too.
+        .onChange(of: highGlucose) { rebuildGlucoseDots() }
+        .onChange(of: lowGlucose) { rebuildGlucoseDots() }
+        .onChange(of: currentGlucoseTarget) { rebuildGlucoseDots() }
+        .onChange(of: glucoseColorScheme) { rebuildGlucoseDots() }
         .simultaneousGesture(panAndInspectGesture)
         .simultaneousGesture(magnifyGesture)
         .simultaneousGesture(TapGesture(count: 2).onEnded { cycleZoomPreset() })
@@ -451,10 +469,17 @@ extension MainChartView {
         )
     }
 
-    /// Reads the glucose series into `glucoseAnchors`. Cheap enough to do on any data change,
+    /// Reads the glucose series into `glucoseDots`. Cheap enough to do on any data change,
     /// and far too expensive to do per frame — see the property's own note.
-    private func rebuildGlucoseAnchors() {
-        glucoseAnchors = MainChartHelper.glucoseAnchors(state.glucoseFromPersistence, units: units)
+    private func rebuildGlucoseDots() {
+        glucoseDots = MainChartHelper.glucoseDots(
+            state.glucoseFromPersistence,
+            units: units,
+            highGlucose: highGlucose,
+            lowGlucose: lowGlucose,
+            currentGlucoseTarget: currentGlucoseTarget,
+            glucoseColorScheme: glucoseColorScheme
+        )
     }
 
     /// Where a glucose-pane value sits, in canvas y. Shared by the selection overlay and
@@ -936,6 +961,8 @@ struct StaticYAxisChart: View {
 struct MainChartCanvas: View {
     var state: Home.StateModel
     var units: GlucoseUnits
+    // Still needed although the readings moved out to `GlucoseChartView`: `drawThresholdLines`
+    // colours the high/low rules from them.
     var highGlucose: Decimal
     var lowGlucose: Decimal
     var currentGlucoseTarget: Decimal
@@ -975,32 +1002,12 @@ struct MainChartCanvas: View {
         units == .mgdL ? 400 : 22.2
     }
 
-    // The readings and the treatment markers, sliced to the treatment window: marks outside
-    // it clip invisibly but still cost layout, and these four series are the ones dense
-    // enough — and long-lived enough, spanning the whole 72 h history — for that to be most
-    // of a re-layout. Located by binary search rather than scanned, because with the window
-    // following the pan the slice is taken far more often than the render window's was.
-
-    /// How many readings beyond each edge of the treatment window stay in the layout.
-    ///
-    /// This is what lets the smoothed curve run off the edge instead of stopping a step short
-    /// of it. It used to also be what kept the treatment anchors stable — those markers look up
-    /// the reading nearest their timestamp, so both readings straddling an edge marker had to be
-    /// in the slice. `TreatmentOverlay` resolves its anchors against the whole series
-    /// (`glucoseAnchors`) rather than this slice, so that reason no longer applies to it.
-    private static let glucoseEdgeReadings = 2
-
-    var windowedGlucose: [GlucoseStored] {
-        MainChartHelper.windowSlice(
-            state.glucoseFromPersistence,
-            from: treatmentWindowStart,
-            through: treatmentWindowEnd,
-            ascending: true,
-            elementPadding: Self.glucoseEdgeReadings,
-            date: { $0.date }
-        )
-    }
-
+    // The treatment markers are sliced to the treatment window: marks outside it clip
+    // invisibly but still cost layout. The readings are no longer among them — they are
+    // drawn by `GlucoseChartView`, which culls inside its own draw loop, so nothing here
+    // slices them and no anchor can move with a window. Located by binary search rather
+    // than scanned, because with the window following the pan the slice is taken far more
+    // often than the render window's was.
     // Still the render window: the COB/IOB pane's determinations are ~5 min apart and drawn
     // as continuous lines, which have to be laid out across the whole canvas or they end
     // mid-air at the edges of it.
@@ -1042,11 +1049,7 @@ struct CobIobPlotFrameKey: PreferenceKey {
 
 extension MainChartCanvas {
     var mainChart: some View {
-        // slice each series once per layout; these were computed properties
-        // re-evaluated on every reference (glucose alone was scanned 3x)
-        let glucose = windowedGlucose
-
-        return Chart {
+        Chart {
             drawCurrentTimeMarker()
             drawThresholdLines()
 
@@ -1081,16 +1084,6 @@ extension MainChartCanvas {
                 maxValue: state.maxYAxisValue,
                 forecastDisplayType: state.forecastDisplayType,
                 lastDeterminationDate: state.determinationsFromPersistence.first?.deliverAt ?? .distantPast
-            )
-
-            GlucoseChartView(
-                glucoseData: glucose,
-                units: state.units,
-                highGlucose: state.highGlucose,
-                lowGlucose: state.lowGlucose,
-                currentGlucoseTarget: state.currentGlucoseTarget,
-                isSmoothingEnabled: state.isSmoothingEnabled,
-                glucoseColorScheme: state.glucoseColorScheme
             )
         }
         .frame(width: canvasWidth, height: mainHeight)

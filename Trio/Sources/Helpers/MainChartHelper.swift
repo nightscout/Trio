@@ -59,36 +59,23 @@ enum MainChartHelper {
     /// controllers with opposite sort descriptors: glucose and pump events ascend, carbs and
     /// FPUs descend. Entries without a date are ordered outside the window and dropped, exactly
     /// as the `filter` this replaces dropped them.
-    ///
-    /// - Parameter elementPadding: How many further entries to keep beyond each edge, counted
-    ///   in entries rather than in time. The glucose series needs at least one: the treatment
-    ///   markers anchor to the reading nearest their timestamp, so both readings straddling a
-    ///   marker at the very edge have to be in the slice or the anchor changes as the window
-    ///   moves — and a slack expressed in seconds cannot promise that across a CGM gap, where
-    ///   the neighbouring reading can be arbitrarily far away.
     static func windowSlice<T>(
         _ items: [T],
         from start: Date,
         through end: Date,
         ascending: Bool,
-        elementPadding: Int = 0,
         date: (T) -> Date?
     ) -> [T] {
         guard !items.isEmpty, start <= end else { return [] }
 
-        var lower: Int
-        var upper: Int
+        let lower: Int
+        let upper: Int
         if ascending {
             lower = partitionPoint(items) { (date($0) ?? .distantPast) >= start }
             upper = partitionPoint(items) { (date($0) ?? .distantPast) > end }
         } else {
             lower = partitionPoint(items) { (date($0) ?? .distantFuture) <= end }
             upper = partitionPoint(items) { (date($0) ?? .distantFuture) < start }
-        }
-
-        if elementPadding > 0 {
-            lower = Swift.max(0, lower - elementPadding)
-            upper = Swift.min(items.count, upper + elementPadding)
         }
 
         guard lower < upper else { return [] }
@@ -113,16 +100,24 @@ enum MainChartHelper {
 
     // MARK: - Resolved treatment marks
 
-    /// A glucose reading reduced to what anchoring a treatment marker needs: an epoch time and
-    /// a value already in display units.
+    /// One glucose reading, resolved once for both drawing and anchoring.
     ///
-    /// The markers hang off the curve, so every one of them searches this series. Doing that
-    /// over `GlucoseStored` meant a Core Data property access per comparison — ten or so per
-    /// marker, inside a `ChartContent` body that the layout may evaluate more than once. Read
-    /// out into values first, the whole search is contiguous `Double` and `Decimal` work.
-    struct GlucoseAnchor {
+    /// The treatment markers hang off the curve, so every one of them searches this series,
+    /// and `GlucoseChartView` walks it on every pan, pinch and scrub frame. Over
+    /// `GlucoseStored` either meant a Core Data property access per comparison — ten or so
+    /// per marker — plus a colour resolved per reading per layout. Read out into values
+    /// first, the search is contiguous `Double` and `Decimal` work and the draw loop touches
+    /// no Core Data at all.
+    struct GlucoseDot {
+        /// Epoch seconds, kept alongside `date` so the anchor search compares `Double`s.
         let time: TimeInterval
+        let date: Date
+        /// Already in display units.
         let value: Decimal
+        /// Smoothed value, in display units. `nil` when the reading carries none.
+        let smoothed: Decimal?
+        let isManual: Bool
+        let color: Color
     }
 
     /// A bolus resolved to everything needed to draw it, so that `TreatmentOverlay`'s draw loop
@@ -157,19 +152,52 @@ enum MainChartHelper {
         let area: CGFloat
     }
 
-    /// Reads a windowed glucose slice out of Core Data into anchors, once per layout.
-    static func glucoseAnchors(_ readings: [GlucoseStored], units: GlucoseUnits) -> [GlucoseAnchor] {
-        var anchors: [GlucoseAnchor] = []
-        anchors.reserveCapacity(readings.count)
+    /// Reads the glucose series out of Core Data into dots, once per data change.
+    ///
+    /// The colour is resolved here rather than per draw: `getDynamicGlucoseColor` used to run
+    /// once per reading per layout, inside `GlucoseChartView`'s mark body.
+    static func glucoseDots(
+        _ readings: [GlucoseStored],
+        units: GlucoseUnits,
+        highGlucose: Decimal,
+        lowGlucose: Decimal,
+        currentGlucoseTarget: Decimal,
+        glucoseColorScheme: GlucoseColorScheme
+    ) -> [GlucoseDot] {
+        let isMgdL = units == .mgdL
+        // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+        let hardCodedLow = Decimal(55)
+        let hardCodedHigh = Decimal(220)
+        let isDynamicColorScheme = glucoseColorScheme == .dynamicColor
+        let highColorValue = isDynamicColorScheme ? hardCodedHigh : highGlucose
+        let lowColorValue = isDynamicColorScheme ? hardCodedLow : lowGlucose
+
+        var dots: [GlucoseDot] = []
+        dots.reserveCapacity(readings.count)
         for reading in readings {
             guard let date = reading.date else { continue }
-            let value = Decimal(reading.glucose)
-            anchors.append(GlucoseAnchor(
+            let mgdl = Decimal(reading.glucose)
+            let smoothed = reading.smoothedGlucose.flatMap { value -> Decimal? in
+                let decimal = value.decimalValue
+                guard decimal != 0 else { return nil }
+                return isMgdL ? decimal : decimal.asMmolL
+            }
+            dots.append(GlucoseDot(
                 time: date.timeIntervalSince1970,
-                value: units == .mgdL ? value : value.asMmolL
+                date: date,
+                value: isMgdL ? mgdl : mgdl.asMmolL,
+                smoothed: smoothed,
+                isManual: reading.isManual,
+                color: Trio.getDynamicGlucoseColor(
+                    glucoseValue: mgdl,
+                    highGlucoseColorValue: highColorValue,
+                    lowGlucoseColorValue: lowColorValue,
+                    targetGlucose: currentGlucoseTarget,
+                    glucoseColorScheme: glucoseColorScheme
+                )
             ))
         }
-        return anchors
+        return dots
     }
 
     /// The anchor nearest `time`: locate the first entry at or after it, then take the closer
@@ -185,22 +213,22 @@ enum MainChartHelper {
     /// length. The series are re-sliced as the chart is panned, so the same bolus resolved to
     /// a different reading from one pan step to the next and its marker hopped a full CGM
     /// interval. Taking the insertion point makes the answer a function of `time` alone.
-    static func nearestAnchor(_ anchors: [GlucoseAnchor], time: TimeInterval) -> GlucoseAnchor? {
-        guard !anchors.isEmpty else { return nil }
+    static func nearestDot(_ dots: [GlucoseDot], time: TimeInterval) -> GlucoseDot? {
+        guard !dots.isEmpty else { return nil }
 
         var low = 0
-        var high = anchors.count
+        var high = dots.count
         while low < high {
             let mid = low + (high - low) / 2
-            if anchors[mid].time < time {
+            if dots[mid].time < time {
                 low = mid + 1
             } else {
                 high = mid
             }
         }
 
-        let before = low > 0 ? anchors[low - 1] : nil
-        let after = low < anchors.count ? anchors[low] : nil
+        let before = low > 0 ? dots[low - 1] : nil
+        let after = low < dots.count ? dots[low] : nil
 
         switch (before, after) {
         case let (before?, after?):
@@ -218,7 +246,7 @@ enum MainChartHelper {
     /// `ascending` stays true of the result and the draw order is unchanged.
     static func bolusMarks(
         _ events: [PumpEventStored],
-        anchors: [GlucoseAnchor],
+        dots: [GlucoseDot],
         units: GlucoseUnits,
         threshold: BolusDisplayThreshold
     ) -> [BolusMark] {
@@ -228,13 +256,13 @@ enum MainChartHelper {
         for event in events {
             guard let date = event.timestamp else { continue }
             let amount = event.bolus?.amount ?? 0 as NSDecimalNumber
-            guard amount != 0, let anchor = nearestAnchor(anchors, time: date.timeIntervalSince1970) else { continue }
+            guard amount != 0, let dot = nearestDot(dots, time: date.timeIntervalSince1970) else { continue }
 
             let decimalAmount = amount as Decimal
             marks.append(BolusMark(
                 id: event.id ?? "bolus-\(date.timeIntervalSince1970)",
                 date: date,
-                yPosition: anchor.value + offset,
+                yPosition: dot.value + offset,
                 size: Config.bolusSize + CGFloat(truncating: amount) * Config.bolusScale,
                 // The threshold hides the number, never the triangle — see the setting's own
                 // hint. Deciding it here means a dose below it costs no companion mark at all,
@@ -251,7 +279,7 @@ enum MainChartHelper {
     /// controller; that order is preserved here too.
     static func carbMarks(
         _ entries: [CarbEntryStored],
-        anchors: [GlucoseAnchor],
+        dots: [GlucoseDot],
         units: GlucoseUnits
     ) -> [CarbMark] {
         let offset = bolusOffset(units: units)
@@ -259,13 +287,13 @@ enum MainChartHelper {
         marks.reserveCapacity(entries.count)
         for entry in entries {
             guard let date = entry.date,
-                  let anchor = nearestAnchor(anchors, time: date.timeIntervalSince1970) else { continue }
+                  let dot = nearestDot(dots, time: date.timeIntervalSince1970) else { continue }
 
             let carbs = entry.carbs
             marks.append(CarbMark(
                 id: entry.id?.uuidString ?? "carb-\(date.timeIntervalSince1970)",
                 date: date,
-                yPosition: anchor.value - offset,
+                yPosition: dot.value - offset,
                 size: min(Config.carbsSize + CGFloat(carbs) * Config.carbsScale, Config.maxCarbSize),
                 label: Formatter.integerFormatter.string(from: carbs as NSNumber)
             ))

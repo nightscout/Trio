@@ -29,11 +29,12 @@ import SwiftUI
 /// `ChartOverlayLayer` this is drawn inside; everything here works off the `viewport` it is
 /// handed.
 struct TreatmentOverlay: View {
-    /// Ascending, and covering at least the visible window. Boluses and carbs hang off the
-    /// curve, so this is also what their y anchor is looked up in. Pre-resolved values rather
-    /// than `GlucoseStored`, so the per-frame lookups below touch no Core Data — ~900 readings
-    /// at the widest zoom would otherwise be that many KVC hits every frame.
-    let anchors: [MainChartHelper.GlucoseAnchor]
+    /// Ascending, and covering the whole domain. Boluses and carbs hang off the curve, so this
+    /// is also what their y anchor is looked up in — handed over whole rather than sliced,
+    /// because an anchor resolved against a moving slice moves with it. Pre-resolved values
+    /// rather than `GlucoseStored`, so the per-frame lookups below touch no Core Data — ~900
+    /// readings at the widest zoom would otherwise be that many KVC hits every frame.
+    let dots: [MainChartHelper.GlucoseDot]
     let insulin: [PumpEventStored]
     let carbs: [CarbEntryStored]
     let fpus: [CarbEntryStored]
@@ -105,7 +106,7 @@ struct TreatmentOverlay: View {
                 insulin, from: range.lowerBound, through: range.upperBound,
                 ascending: true, date: { $0.timestamp }
             ),
-            anchors: anchors,
+            dots: dots,
             units: units,
             threshold: bolusDisplayThreshold
         )
@@ -130,7 +131,7 @@ struct TreatmentOverlay: View {
                 carbs, from: range.lowerBound, through: range.upperBound,
                 ascending: false, date: { $0.date }
             ),
-            anchors: anchors,
+            dots: dots,
             units: units
         )
         for mark in marks {
