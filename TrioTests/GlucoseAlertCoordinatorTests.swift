@@ -87,4 +87,41 @@ import Testing
         let readingDriven = Set(GlucoseAlertType.allCases.filter(\.isReadingDriven))
         #expect(readingDriven == [.high, .low, .urgentLow])
     }
+
+    // Only reading-driven alarms are retracted when a CGM app owns glucose alerts;
+    // forecastedLow and carbsRequired keep their firing state.
+    @Test("CGM-owned retraction keeps determination-driven alarms firing") func retractsOnlyReadingDrivenAlarms() {
+        let urgentLow = GlucoseAlert(type: .urgentLow)
+        let low = GlucoseAlert(type: .low)
+        let forecastedLow = GlucoseAlert(type: .forecastedLow)
+        let high = GlucoseAlert(type: .high)
+        let carbsRequired = GlucoseAlert(type: .carbsRequired)
+        let alarms = [urgentLow, low, forecastedLow, high, carbsRequired]
+        let firing = Set(alarms.map(\.id))
+
+        let result = GlucoseAlertCoordinator.alarmsToRetractWhenCGMOwnsAlerts(firing: firing, in: alarms)
+
+        #expect(result.map(\.id) == [urgentLow.id, low.id, high.id])
+        #expect(!result.contains(forecastedLow))
+        #expect(!result.contains(carbsRequired))
+    }
+
+    // A reading-driven alarm that isn't currently firing has nothing to retract.
+    @Test("CGM-owned retraction skips reading-driven alarms that are not firing") func skipsNonFiringReadingDrivenAlarms() {
+        let low = GlucoseAlert(type: .low)
+        let high = GlucoseAlert(type: .high)
+
+        let result = GlucoseAlertCoordinator.alarmsToRetractWhenCGMOwnsAlerts(firing: [high.id], in: [low, high])
+
+        #expect(result == [high])
+    }
+
+    // Nothing firing means nothing to retract, regardless of alarm types present.
+    @Test("CGM-owned retraction with empty firing set returns nothing") func emptyFiringSetReturnsNothing() {
+        let alarms = [GlucoseAlert(type: .urgentLow), GlucoseAlert(type: .low), GlucoseAlert(type: .high)]
+
+        let result = GlucoseAlertCoordinator.alarmsToRetractWhenCGMOwnsAlerts(firing: [], in: alarms)
+
+        #expect(result.isEmpty)
+    }
 }
