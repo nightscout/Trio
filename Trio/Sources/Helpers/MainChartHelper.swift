@@ -3,58 +3,95 @@ import CoreData
 import Foundation
 import SwiftUI
 
+/// Shared triangle for the treatment markers: boluses point down at the glucose curve from
+/// above, carb entries point up at it from below. A `ChartSymbolShape` is rasterized as a
+/// path, unlike `.symbol { Image(...) }`, which instantiates a SwiftUI view per data point —
+/// the dominant cost of these series when SMBs land every few minutes.
+///
+/// Taken from `dev` unchanged, rounding included, so both branches draw the same marker.
+struct TreatmentTriangleSymbol: ChartSymbolShape {
+    let pointsDown: Bool
+
+    /// Corner radius as a fraction of the symbol's smaller dimension. Small enough that the
+    /// apex still reads as a point at the sizes these markers are drawn at.
+    private var cornerFraction: CGFloat { 0.11 }
+
+    func path(in rect: CGRect) -> Path {
+        let corners: [CGPoint] = pointsDown
+            ? [
+                CGPoint(x: rect.minX, y: rect.minY),
+                CGPoint(x: rect.maxX, y: rect.minY),
+                CGPoint(x: rect.midX, y: rect.maxY)
+            ]
+            : [
+                CGPoint(x: rect.minX, y: rect.maxY),
+                CGPoint(x: rect.maxX, y: rect.maxY),
+                CGPoint(x: rect.midX, y: rect.minY)
+            ]
+
+        let radius = min(rect.width, rect.height) * cornerFraction
+        var path = Path()
+        // Begin midway along the closing edge so the first arc has a straight run-up into
+        // the first corner, the same as every other corner gets.
+        let last = corners[corners.count - 1]
+        path.move(to: CGPoint(x: (last.x + corners[0].x) / 2, y: (last.y + corners[0].y) / 2))
+        for index in corners.indices {
+            path.addArc(
+                tangent1End: corners[index],
+                tangent2End: corners[(index + 1) % corners.count],
+                radius: radius
+            )
+        }
+        path.closeSubpath()
+        return path
+    }
+
+    var perceptualUnitRect: CGRect { CGRect(x: 0, y: 0, width: 1, height: 1) }
+}
+
 enum MainChartHelper {
-    // Calculates the glucose value thats the nearest to parameter 'time'
-    /// -Returns: A NSManagedObject of GlucoseStored
-    /// it is thread safe as everything is executed on the main thread
+    /// `upstream/dev`'s anchor lookup, kept verbatim for the legacy renderer — **including its
+    /// bug**, so that flipping the developer switch reproduces upstream exactly rather than a
+    /// tidied-up version of it.
     ///
-    /// The search locates the insertion point and then picks whichever of the two readings
-    /// straddling it is closer. It used to track the best candidate inside the descent, but
-    /// the comparison it did that with was
-    /// `abs(midTime - time) < abs(closest.date?.timeIntervalSince1970 ?? 0 - time)` — and `-`
-    /// binds tighter than `??`, so the right-hand side was the candidate's raw epoch seconds
-    /// (~1.8e9), not its distance. Every real distance is smaller than that, so the candidate
-    /// was overwritten on every iteration and the function returned whatever the descent
-    /// happened to visit last.
+    /// The bug: `abs(midTime - time) < abs(closestGlucose!.date?.timeIntervalSince1970 ?? 0 - time)`
+    /// parses as `?? (0 - time)`, because `-` binds tighter than `??`. With a non-nil date the
+    /// right-hand side is therefore the candidate's raw epoch seconds (~1.8e9), never a
+    /// distance — every real distance is smaller, so the candidate is overwritten on every
+    /// iteration and the result is whichever entry the descent visited last. That is one of the
+    /// two neighbours, but which one depends on the array's length, so the answer moves when
+    /// the caller's slice moves and a marker hops a full CGM interval while the chart is panned.
     ///
-    /// That is one of the two neighbours, but *which* one depends on the array's length — so
-    /// the answer changed as the caller's slice moved, even though neither the reading nor the
-    /// treatment had. Anchoring a marker through it therefore made it hop between two readings
-    /// 5 minutes apart while the chart was panned. Harmless while the series were sliced to the
-    /// render window and re-sliced a few times a session; not once they follow the visible
-    /// window.
-    static func timeToNearestGlucose(glucoseValues: [GlucoseStored], time: TimeInterval) -> GlucoseStored? {
+    /// `nearestAnchor` is the corrected search the current renderer uses.
+    static func legacyTimeToNearestGlucose(glucoseValues: [GlucoseStored], time: TimeInterval) -> GlucoseStored? {
         guard !glucoseValues.isEmpty else {
             return nil
         }
 
-        // First reading at or after `time`.
         var low = 0
-        var high = glucoseValues.count
-        while low < high {
+        var high = glucoseValues.count - 1
+        var closestGlucose: GlucoseStored?
+
+        // binary search to find next glucose
+        while low <= high {
             let mid = low + (high - low) / 2
-            if (glucoseValues[mid].date?.timeIntervalSince1970 ?? 0) < time {
+            let midTime = glucoseValues[mid].date?.timeIntervalSince1970 ?? 0
+
+            if midTime == time {
+                return glucoseValues[mid]
+            } else if midTime < time {
                 low = mid + 1
             } else {
-                high = mid
+                high = mid - 1
+            }
+
+            // update if necessary
+            if closestGlucose == nil || abs(midTime - time) < abs(closestGlucose!.date?.timeIntervalSince1970 ?? 0 - time) {
+                closestGlucose = glucoseValues[mid]
             }
         }
 
-        let before = low > 0 ? glucoseValues[low - 1] : nil
-        let after = low < glucoseValues.count ? glucoseValues[low] : nil
-
-        switch (before, after) {
-        case let (before?, after?):
-            let toBefore = abs((before.date?.timeIntervalSince1970 ?? 0) - time)
-            let toAfter = abs((after.date?.timeIntervalSince1970 ?? 0) - time)
-            return toAfter < toBefore ? after : before
-        case let (before?, nil):
-            return before
-        case let (nil, after?):
-            return after
-        case (nil, nil):
-            return nil
-        }
+        return closestGlucose
     }
 
     /// The slice of a date-sorted series covering `start ... end`, located by binary search.
@@ -120,88 +157,202 @@ enum MainChartHelper {
         return low
     }
 
-    /// Drops entries that would land on top of one another, keeping the most significant of
-    /// each overlapping group.
+    /// Whether the chart falls back to `upstream/dev`'s treatment behaviour wholesale.
     ///
-    /// A mark closer than its own width to its neighbour cannot be told apart from it, but it
-    /// still costs a full mark: its own identity, scale and style resolution, layout pass, and —
-    /// for the treatment series — a SwiftUI view for its symbol or its label. Over a burst of
-    /// boluses at a wide zoom that is nearly all of the layout, spent on pixels no one can
-    /// read. At 24 h on a 390 pt viewport, doses a minute apart sit 0.27 pt from each other.
+    /// Development switch, off by default. Off is this branch: the markers are drawn by the
+    /// shell in one `TreatmentOverlay` pass over the canvas, culled per frame against the
+    /// viewport. On restores upstream unchanged — every marker a Swift Charts mark carrying an
+    /// SF Symbol view, the render window filtered linearly on every reference
+    /// (`upstreamWindowedGlucose` and friends), `LegacyInsulinView` / `LegacyCarbView` reading
+    /// Core Data as they draw, and `legacyTimeToNearestGlucose` with the anchor bug still in it.
     ///
-    /// Thinning is driven by on-screen distance rather than by time, so it is self-limiting:
-    /// zoom in far enough that the marks separate and everything comes back, untouched. Within
-    /// a group the entry with the highest `significance` survives, so the largest bolus in a
-    /// cluster is the one that stays rather than whichever happened to come first.
+    /// The point is a like-for-like comparison on the same data, so the switch covers loading
+    /// and drawing together rather than one of them.
     ///
-    /// - Parameters:
-    ///   - ascending: Whether `items` runs oldest-first. The chart's series come from
-    ///     fetched-results controllers with opposite sort descriptors; the result is always
-    ///     ascending.
-    ///   - minimumSpacing: How far apart two entries must be drawn, in points, to both be kept.
-    ///   - pointsPerSecond: The layout's horizontal scale, i.e. canvas width over its time span.
-    static func thinned<T>(
-        _ items: [T],
-        ascending: Bool,
-        minimumSpacing: CGFloat,
-        pointsPerSecond: Double,
-        date: (T) -> Date?,
-        significance: (T) -> Double
-    ) -> [T] {
-        guard items.count > 1, minimumSpacing > 0, pointsPerSecond > 0 else { return items }
-        let minimumSeconds = Double(minimumSpacing) / pointsPerSecond
+    /// Lives in `UserDefaults` rather than in `TrioSettings`: it is a testing aid, not a
+    /// setting the app carries, so it should leave no trace in the settings model or its JSON.
+    /// The key is declared here, where the behaviour it gates lives, so the chart and the
+    /// switch cannot drift apart.
+    static let usesUpstreamChartBehaviorDefaultsKey = "dev.chartUsesUpstreamBehavior"
 
-        var kept: [T] = []
-        kept.reserveCapacity(items.count)
-        var lastKeptTime = -Double.infinity
-        var lastKeptValue = -Double.infinity
+    // MARK: - Resolved treatment marks
 
-        /// Emits the winner of a group, holding the spacing against what was emitted before it.
-        /// Grouping alone does not: a group runs from its own first entry, so the winner of one
-        /// and the winner of the next can still land side by side at the seam. When that
-        /// happens the more significant of the two takes the slot.
-        func emit(_ item: T, at time: TimeInterval, value: Double) {
-            if time - lastKeptTime >= minimumSeconds {
-                kept.append(item)
-            } else if value > lastKeptValue, !kept.isEmpty {
-                kept[kept.count - 1] = item
+    /// A glucose reading reduced to what anchoring a treatment marker needs: an epoch time and
+    /// a value already in display units.
+    ///
+    /// The markers hang off the curve, so every one of them searches this series. Doing that
+    /// over `GlucoseStored` meant a Core Data property access per comparison — ten or so per
+    /// marker, inside a `ChartContent` body that the layout may evaluate more than once. Read
+    /// out into values first, the whole search is contiguous `Double` and `Decimal` work.
+    struct GlucoseAnchor {
+        let time: TimeInterval
+        let value: Decimal
+    }
+
+    /// A bolus resolved to everything needed to draw it, so that `TreatmentOverlay`'s draw loop
+    /// does no Core Data work beyond reading the events themselves. `label` is `nil` when the
+    /// dose is below the display threshold, so a hidden number costs no text to lay out.
+    struct BolusMark: Identifiable {
+        let id: String
+        let date: Date
+        let yPosition: Decimal
+        /// Side of the marker's bounding box, in points. Was an SF Symbol point size; as a box
+        /// it keeps the same amount-driven growth the `Image` had.
+        let size: CGFloat
+        let label: String?
+    }
+
+    /// The same for a carb entry, which carries its gram label at every threshold setting.
+    struct CarbMark: Identifiable {
+        let id: String
+        let date: Date
+        let yPosition: Decimal
+        let size: CGFloat
+        let label: String?
+    }
+
+    /// An FPU dot. These sit on the baseline rather than on the curve and carry no label, and
+    /// they keep Swift Charts' default circle symbol — whose `symbolSize` is an *area* in
+    /// square points, not the bounding box the triangles use.
+    struct FPUMark: Identifiable {
+        let id: String
+        let date: Date
+        let yPosition: Decimal
+        let area: CGFloat
+    }
+
+    /// Reads a windowed glucose slice out of Core Data into anchors, once per layout.
+    static func glucoseAnchors(_ readings: [GlucoseStored], units: GlucoseUnits) -> [GlucoseAnchor] {
+        var anchors: [GlucoseAnchor] = []
+        anchors.reserveCapacity(readings.count)
+        for reading in readings {
+            guard let date = reading.date else { continue }
+            let value = Decimal(reading.glucose)
+            anchors.append(GlucoseAnchor(
+                time: date.timeIntervalSince1970,
+                value: units == .mgdL ? value : value.asMmolL
+            ))
+        }
+        return anchors
+    }
+
+    /// The anchor nearest `time`: locate the first entry at or after it, then take the closer
+    /// of the two straddling it.
+    ///
+    /// Written this way on purpose. The version this replaces tracked a best candidate inside
+    /// the binary descent and compared it with
+    /// `abs(midTime - time) < abs(closest.date?.timeIntervalSince1970 ?? 0 - time)` — where
+    /// `-` binds tighter than `??`, so the right-hand side was the candidate's raw epoch
+    /// seconds (~1.8e9) rather than its distance. Every real distance beat that, so the
+    /// candidate was overwritten on every iteration and the answer was whichever entry the
+    /// descent visited last — one of the two neighbours, but which one depended on the array's
+    /// length. The series are re-sliced as the chart is panned, so the same bolus resolved to
+    /// a different reading from one pan step to the next and its marker hopped a full CGM
+    /// interval. Taking the insertion point makes the answer a function of `time` alone.
+    static func nearestAnchor(_ anchors: [GlucoseAnchor], time: TimeInterval) -> GlucoseAnchor? {
+        guard !anchors.isEmpty else { return nil }
+
+        var low = 0
+        var high = anchors.count
+        while low < high {
+            let mid = low + (high - low) / 2
+            if anchors[mid].time < time {
+                low = mid + 1
             } else {
-                return
+                high = mid
             }
-            lastKeptTime = time
-            lastKeptValue = value
         }
 
-        var groupStart: TimeInterval?
-        var best: T?
-        var bestTime: TimeInterval = 0
-        var bestValue = -Double.infinity
+        let before = low > 0 ? anchors[low - 1] : nil
+        let after = low < anchors.count ? anchors[low] : nil
 
-        let first = ascending ? 0 : items.count - 1
-        let last = ascending ? items.count - 1 : 0
-        let step = ascending ? 1 : -1
-
-        for index in stride(from: first, through: last, by: step) {
-            let item = items[index]
-            guard let time = date(item)?.timeIntervalSince1970 else { continue }
-            let value = significance(item)
-
-            if let start = groupStart, time - start < minimumSeconds {
-                if value > bestValue {
-                    best = item
-                    bestTime = time
-                    bestValue = value
-                }
-            } else {
-                if let best { emit(best, at: bestTime, value: bestValue) }
-                groupStart = time
-                best = item
-                bestTime = time
-                bestValue = value
-            }
+        switch (before, after) {
+        case let (before?, after?):
+            return abs(after.time - time) < abs(before.time - time) ? after : before
+        case let (before?, nil):
+            return before
+        case let (nil, after?):
+            return after
+        case (nil, nil):
+            return nil
         }
-        if let best { emit(best, at: bestTime, value: bestValue) }
-        return kept
+    }
+
+    /// Resolves the windowed bolus events into marks. Input order is preserved, so the caller's
+    /// `ascending` stays true of the result and the draw order is unchanged.
+    static func bolusMarks(
+        _ events: [PumpEventStored],
+        anchors: [GlucoseAnchor],
+        units: GlucoseUnits,
+        threshold: BolusDisplayThreshold
+    ) -> [BolusMark] {
+        let offset = bolusOffset(units: units)
+        var marks: [BolusMark] = []
+        marks.reserveCapacity(events.count)
+        for event in events {
+            guard let date = event.timestamp else { continue }
+            let amount = event.bolus?.amount ?? 0 as NSDecimalNumber
+            guard amount != 0, let anchor = nearestAnchor(anchors, time: date.timeIntervalSince1970) else { continue }
+
+            let decimalAmount = amount as Decimal
+            marks.append(BolusMark(
+                id: event.id ?? "bolus-\(date.timeIntervalSince1970)",
+                date: date,
+                yPosition: anchor.value + offset,
+                size: Config.bolusSize + CGFloat(truncating: amount) * Config.bolusScale,
+                // The threshold hides the number, never the triangle — see the setting's own
+                // hint. Deciding it here means a dose below it costs no companion mark at all,
+                // where the test used to sit inside an annotation that then drew nothing.
+                label: decimalAmount >= threshold.rawValue
+                    ? Formatter.bolusFormatter.string(from: amount)
+                    : nil
+            ))
+        }
+        return marks
+    }
+
+    /// The same for carb entries. These arrive newest-first from their fetched-results
+    /// controller; that order is preserved here too.
+    static func carbMarks(
+        _ entries: [CarbEntryStored],
+        anchors: [GlucoseAnchor],
+        units: GlucoseUnits
+    ) -> [CarbMark] {
+        let offset = bolusOffset(units: units)
+        var marks: [CarbMark] = []
+        marks.reserveCapacity(entries.count)
+        for entry in entries {
+            guard let date = entry.date,
+                  let anchor = nearestAnchor(anchors, time: date.timeIntervalSince1970) else { continue }
+
+            let carbs = entry.carbs
+            marks.append(CarbMark(
+                id: entry.id?.uuidString ?? "carb-\(date.timeIntervalSince1970)",
+                date: date,
+                yPosition: anchor.value - offset,
+                size: min(Config.carbsSize + CGFloat(carbs) * Config.carbsScale, Config.maxCarbSize),
+                label: Formatter.integerFormatter.string(from: carbs as NSNumber)
+            ))
+        }
+        return marks
+    }
+
+    /// The same for FPUs, which need no anchor: they sit on `baseline`, already in display
+    /// units.
+    static func fpuMarks(_ entries: [CarbEntryStored], baseline: Decimal) -> [FPUMark] {
+        var marks: [FPUMark] = []
+        marks.reserveCapacity(entries.count)
+        for entry in entries {
+            guard let date = entry.date else { continue }
+            let carbs = entry.carbs
+            marks.append(FPUMark(
+                id: entry.id?.uuidString ?? "fpu-\(date.timeIntervalSince1970)",
+                date: date,
+                yPosition: baseline,
+                area: (Config.fpuSize + CGFloat(carbs) * Config.carbsScale) * 1.8
+            ))
+        }
+        return marks
     }
 
     enum Config {
@@ -239,14 +390,6 @@ enum MainChartHelper {
         /// Re-anchor when the visible edge gets within this fraction of a
         /// visible-window of the render window's edge.
         static let renderWindowMarginFactor = 0.5
-        /// Two marks drawn closer together than this cannot be told apart, so only the most
-        /// significant of them is laid out. Sized to the narrowest treatment symbol
-        /// (`bolusSize`), which is what "they overlap" means for this chart.
-        static let minMarkSpacing: CGFloat = 5
-        /// The same for the amount labels, which are far wider than the marks they belong to —
-        /// roughly what "0,48" occupies at `.caption2`. Below this they pile into an unreadable
-        /// smear, so all but one per group is layout spent on nothing.
-        static let minLabelSpacing: CGFloat = 28
         /// Geometric grid for pinch commits (~4 % per step). Every committed zoom step
         /// re-lays the full-width canvas, so this bounds a halving of the visible window
         /// to roughly 18 re-layouts instead of hundreds.

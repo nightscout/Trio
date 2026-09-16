@@ -62,6 +62,13 @@ extension Settings {
         @State private var mockDataBusy = false
         @State private var mockDataStatus: String?
 
+        // MARK: - Chart rendering (development aid; see `LegacyInsulinView`)
+
+        /// Mirrors the defaults key the chart reads, so the two cannot drift apart. Writing it
+        /// here re-lays the chart: the canvas takes the same value as a plain property and
+        /// compares it in its `==`.
+        @AppStorage(MainChartHelper.usesUpstreamChartBehaviorDefaultsKey) private var usesUpstreamChartBehavior = false
+
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
         @Environment(AppState.self) var appState
@@ -136,6 +143,40 @@ extension Settings {
                     }
                 }
             }
+        }
+
+        // MARK: - Chart rendering
+
+        /// Development aid: resets the chart's treatment markers to `upstream/dev` wholesale —
+        /// how they are loaded as well as how they are drawn — so the two can be compared on
+        /// the same data.
+        ///
+        /// Deliberately unlocalized — this section is a testing tool, not product surface.
+        @ViewBuilder private var chartRenderingSection: some View {
+            Section(
+                header: Text(verbatim: "Developer · Chart rendering"),
+                footer: Text(
+                    verbatim: """
+                    Off — this branch. The markers are drawn over the chart in one Canvas pass \
+                    rather than as chart marks, so culling them as you pan costs no re-layout and \
+                    the live pinch cannot skew them. Rounded triangles, carbs mirrored to point up.
+
+                    On — upstream/dev, unchanged. Every marker is a chart mark carrying an SF Symbol \
+                    image as a SwiftUI view, four viewports' worth filtered linearly out of the full \
+                    72 h on every reference, with Core Data read and the curve searched per marker \
+                    as it draws. The old anchor lookup comes back with it, so markers hopping \
+                    between readings while you pan is part of what you are switching on.
+
+                    Both draw every marker; nothing is hidden either way. Flip it while panning or \
+                    pinching a crowded stretch.
+                    """
+                ),
+                content: {
+                    Toggle(isOn: $usesUpstreamChartBehavior) {
+                        Text(verbatim: "Use upstream/dev marker behaviour")
+                    }
+                }
+            ).listRowBackground(Color.chart)
         }
 
         // MARK: - Mock chart data
@@ -521,6 +562,8 @@ extension Settings {
                                 .navigationLink(to: .settingsExport, from: self)
                         }
                     ).listRowBackground(Color.chart)
+
+                    chartRenderingSection
 
                     mockChartDataSection
 

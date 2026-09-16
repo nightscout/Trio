@@ -2,24 +2,19 @@ import Charts
 import Foundation
 import SwiftUI
 
-struct CarbView: ChartContent {
+/// `upstream/dev`'s carb and FPU renderer, kept verbatim alongside `LegacyInsulinView`. The
+/// carb triangle here is the bolus image rotated 180°, where `TreatmentTriangleSymbol`
+/// mirrors the shape instead.
+struct LegacyCarbView: ChartContent {
     let glucoseData: [GlucoseStored]
     let units: GlucoseUnits
     let carbData: [CarbEntryStored]
     let fpuData: [CarbEntryStored]
     let minValue: Decimal
-    /// Entries whose gram label is far enough from its neighbours' to be readable — see
-    /// `InsulinView.labelledEventIDs`. Empty means "label everything".
-    var labelledCarbIDs: Set<UUID> = []
 
     var body: some ChartContent {
         drawCarbs()
         drawFpus()
-    }
-
-    private func showsLabel(_ carb: CarbEntryStored) -> Bool {
-        guard !labelledCarbIDs.isEmpty else { return true }
-        return carb.id.map(labelledCarbIDs.contains) ?? false
     }
 
     private func drawCarbs() -> some ChartContent {
@@ -27,7 +22,7 @@ struct CarbView: ChartContent {
             let carbAmount = carb.carbs
             let carbDate = carb.date ?? Date()
 
-            if let glucose = MainChartHelper.timeToNearestGlucose(
+            if let glucose = MainChartHelper.legacyTimeToNearestGlucose(
                 glucoseValues: glucoseData,
                 time: carbDate.timeIntervalSince1970
             )?.glucose {
@@ -47,16 +42,14 @@ struct CarbView: ChartContent {
                         .rotationEffect(.degrees(180))
                 }
 
-                if showsLabel(carb) {
-                    PointMark(
-                        x: .value("Time", carbDate, unit: .second),
-                        y: .value("Value", yPosition)
-                    )
-                    .symbolSize(0)
-                    .annotation(position: .bottom) {
-                        Text(Formatter.integerFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
-                            .foregroundStyle(Color.primary)
-                    }
+                PointMark(
+                    x: .value("Time", carbDate, unit: .second),
+                    y: .value("Value", yPosition)
+                )
+                .symbolSize(0)
+                .annotation(position: .bottom) {
+                    Text(Formatter.integerFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
+                        .foregroundStyle(Color.primary)
                 }
             }
         }
