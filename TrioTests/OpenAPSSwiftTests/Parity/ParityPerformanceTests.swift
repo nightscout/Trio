@@ -41,7 +41,6 @@ import Testing
             preferences: scenario.preferences,
             carbRatios: scenario.carbRatios,
             tempTargets: scenario.tempTargets,
-            model: scenario.model,
             clock: scenario.clock
         )
         let dedupedHistory = scenario.pumpHistory.removingDuplicateSuspendResumeEvents()

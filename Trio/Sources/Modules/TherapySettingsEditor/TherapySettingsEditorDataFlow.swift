@@ -47,6 +47,26 @@ enum TherapySettingsEditor {
                 return "mg/dL"
             }
         }
+
+        /// Fully spoken unit for VoiceOver. Localizable per case (so translations stay correct)
+        /// and grammatical — the denominator "unit" is singular, unlike the tokenized speller,
+        /// which is fed English keys and would pass translated abbreviations through unchanged.
+        var spokenName: String {
+            switch self {
+            case .mmolLPerUnit:
+                return String(localized: "millimoles per liter per unit", comment: "Accessibility: spoken unit")
+            case .mgdLPerUnit:
+                return String(localized: "milligrams per deciliter per unit", comment: "Accessibility: spoken unit")
+            case .unitPerHour:
+                return String(localized: "units per hour", comment: "Accessibility: spoken unit")
+            case .gramPerUnit:
+                return String(localized: "grams per unit", comment: "Accessibility: spoken unit")
+            case .mmolL:
+                return String(localized: "millimoles per liter", comment: "Accessibility: spoken unit")
+            case .mgdL:
+                return String(localized: "milligrams per deciliter", comment: "Accessibility: spoken unit")
+            }
+        }
     }
 
     protocol StateModel: ObservableObject {

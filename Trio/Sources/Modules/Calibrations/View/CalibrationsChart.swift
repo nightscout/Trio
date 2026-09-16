@@ -55,6 +55,12 @@ struct CalibrationsChart: View {
             }
             .frame(height: geo.size.width)
             .clipped()
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("Calibration chart"))
+            .accessibilityValue(Text(String(
+                format: String(localized: "%d calibration points", comment: "Accessibility: calibration count"),
+                state.calibrations.count
+            )))
         }
     }
 }

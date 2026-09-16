@@ -59,8 +59,8 @@ extension TargetsEditor {
 
             items = profile.targets.map { value in
                 let timeIndex = timeOptions.firstIndex(of: Double(value.offset * 60)) ?? 0
-                let lowIndex = valueOptions.firstIndex(of: value.low) ?? 0
-                let highIndex = valueOptions.firstIndex(of: value.high) ?? 0
+                let lowIndex = resolveRateIndex(rate: value.low) ?? 0
+                let highIndex = resolveRateIndex(rate: value.high) ?? 0
                 return Item(lowIndex: lowIndex, highIndex: highIndex, timeIndex: timeIndex)
             }
 
@@ -141,6 +141,19 @@ extension TargetsEditor {
                     self.units = self.settingsManager.settings.units
                 }
             }
+        }
+
+        func resolveRateIndex(rate: Decimal) -> Int? {
+            if let index = valueOptions.firstIndex(of: rate) {
+                return index
+            }
+            if let min = valueOptions.first, let max = valueOptions.last {
+                if rate >= (min - 1), rate <= (max + 1) {
+                    return valueOptions.findClosestIndex(to: rate)
+                }
+            }
+
+            return nil
         }
     }
 }

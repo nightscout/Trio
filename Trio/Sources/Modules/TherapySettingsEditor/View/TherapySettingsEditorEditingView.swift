@@ -11,6 +11,7 @@ extension TherapySettingsEditor {
         var chartColor: Color?
         var chartShowsArea: Bool = true
         var chartYScale: ClosedRange<Decimal>?
+        var chartAccessibilityLabel: String
 
         private let basalFormatter: NumberFormatter = {
             let numberFormatter = NumberFormatter()
@@ -43,6 +44,8 @@ extension TherapySettingsEditor {
                             topTrailingRadius: 10
                         )
                     )
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text(chartAccessibilityLabel))
 
                     HStack {
                         Text("Entries").bold()
@@ -114,6 +117,18 @@ extension TherapySettingsEditor {
                                     .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
+                                .accessibilityLabel(Text(entryAccessibilityLabel(for: item, unit: unit)))
+                                .accessibilityHint(Text(
+                                    "Opens a picker to edit this entry",
+                                    comment: "Accessibility hint for a schedule entry"
+                                ))
+                                .accessibilityAction(named: Text("Delete")) {
+                                    if let index = items.firstIndex(where: { $0.id == item.id }), items.count > 1 {
+                                        items.remove(at: index)
+                                        selectedItemID = nil
+                                        validateTherapySettingItems()
+                                    }
+                                }
 
                                 if selectedItemID == item.id {
                                     timeValuePickerRow(
@@ -324,6 +339,13 @@ extension TherapySettingsEditor {
             }
         }
 
+        /// One spoken string per schedule entry, e.g. "1.2 U/hr, starts at 6:00 AM".
+        private func entryAccessibilityLabel(for item: TherapySettingsEditor.Item, unit: TherapySettingsEditor.Unit) -> String {
+            let timeString = timeFormatter.string(from: Date(timeIntervalSince1970: item.time))
+            return "\(displayText(for: unit, decimalValue: item.value)) \(unit.spokenName), " +
+                String(localized: "starts at", comment: "Accessibility: schedule entry start time") + " \(timeString)"
+        }
+
         private func chartDisplayValue(item: Item) -> Decimal {
             switch unit {
             case .mmolL,
@@ -355,7 +377,8 @@ extension TherapySettingsEditor {
                 unit: .unitPerHour,
                 timeOptions: stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 },
                 valueOptions: stride(from: 0.0, through: 10.0, by: 0.05).map { Decimal(round(100 * $0) / 100) },
-                onItemAdded: nil
+                onItemAdded: nil,
+                chartAccessibilityLabel: ""
             )
         }
     }

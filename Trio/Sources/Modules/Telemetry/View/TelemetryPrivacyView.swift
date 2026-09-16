@@ -45,6 +45,14 @@ struct TelemetryPrivacyView: View {
                         "Crash reporting and anonymous usage telemetry are enabled by default. Use the diagnostics-sharing chooser above to opt out: pick \"Crash Reports Only\" to keep crash reporting but disable telemetry, or \"Disable Sharing\" to turn off both. Changes take effect immediately."
                     )
                 }
+
+                Group {
+                    Text("Anonymous telemetry")
+                        .font(.headline)
+                    Text(
+                        "When telemetry is disabled, Trio still sends a minimal request every 24 hours so developers can track the number of active users per version. It carries only the app version, a randomly-generated install UUID that cannot be traced back to you, what triggered the request, and the type of any prior telemetry send error."
+                    )
+                }
             }
             .padding()
         }

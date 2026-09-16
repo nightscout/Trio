@@ -375,13 +375,6 @@ extension DeviceCatalog {
         ),
 
         CGMCatalogEntry(
-            .native(.enlite),
-            manufacturer: .medtronic,
-            name: "Medtronic Enlite",
-            supportedModels: ["MiniLink transmitter"]
-        ),
-
-        CGMCatalogEntry(
             .managed(AccuChekCgmManager.self),
             manufacturer: .roche,
             name: "Accu-Chek SmartGuide",

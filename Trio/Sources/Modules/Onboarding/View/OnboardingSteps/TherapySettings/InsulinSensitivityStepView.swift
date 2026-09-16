@@ -35,7 +35,8 @@ struct InsulinSensitivityStepView: View {
                             proxy.scrollTo(bottomID, anchor: .bottom)
                         }
                     },
-                    chartColor: Color.cyan
+                    chartColor: Color.cyan,
+                    chartAccessibilityLabel: String(localized: "Insulin sensitivity profile chart, 24 hours")
                 )
 
                 // Example calculation based on first ISF

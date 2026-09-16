@@ -42,6 +42,16 @@ extension Home {
         @State var isRefreshArmed = false
         @State var isForcingLoop = false
         @State var notificationsDisabled = false
+        /// Date under the finger while the chart is scrubbed, else nil. Owned here because the
+        /// readout lives in the meal slot, outside the chart.
+        @State var chartSelection: Date? = nil
+        /// Last scrub position that resolved to a reading / a determination. The readout renders
+        /// from these, so holes decay instead of flickering the slot (see `updateChartReadout`).
+        /// They outlive the readout itself — it needs values to fade out with.
+        @State var chartReadoutDate: Date? = nil
+        @State var chartReadoutDeterminationDate: Date? = nil
+        /// Whether the readout owns the meal slot. The one thing the fade is keyed on.
+        @State var isChartReadoutVisible = false
 
         @FetchRequest(fetchRequest: OverrideStored.fetch(
             NSPredicate.lastActiveOverride,
@@ -81,7 +91,8 @@ extension Home {
                     displayXgridLines: state.displayXgridLines,
                     displayYgridLines: state.displayYgridLines,
                     thresholdLines: state.thresholdLines,
-                    state: state
+                    state: state,
+                    selection: $chartSelection
                 )
             }
             // enforce the zone budget; panes flex within it
@@ -100,7 +111,7 @@ extension Home {
                         .foregroundStyle(Color.insulin)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
-                        .background(Capsule().fill(.ultraThinMaterial))
+                        .glassMaterialFill(Capsule())
                         .frame(height: chartHeight * 0.10)
                         .padding(.trailing, 16)
                 }
@@ -127,6 +138,7 @@ extension Home {
                         Circle()
                             .stroke(Color.primary.opacity(0.4), lineWidth: 2)
                     )
+                    .accessibilityLabel(Text("Chart legend"))
             }
             .buttonStyle(.plain)
             .contentShape(Circle())
@@ -200,7 +212,13 @@ extension Home {
                 // fixed slot: header state changes never reflow the zones below
                 .frame(height: HomeLayout.headerHeight)
 
-                mealPanel().frame(height: HomeLayout.mealSlotHeight)
+                mealPanel()
+                    .frame(height: HomeLayout.mealSlotHeight)
+                    // Fades the readout in and out. Keyed on visibility, not on the date: a
+                    // scrub step leaves the flag alone, so only the swap animates and the
+                    // values inside keep updating unanimated.
+                    .animation(ChartSelectionLookup.readoutFade, value: isChartReadoutVisible)
+                    .task(id: chartSelection) { await updateChartReadout() }
 
                 mainChart(geo: geo)
             }
@@ -279,8 +297,7 @@ extension Home {
             // CGM RELATED
             .sheet(isPresented: $state.shouldDisplayCGMSetupSheet) {
                 switch state.cgmCurrent.type {
-                case .enlite,
-                     .nightscout,
+                case .nightscout,
                      .none,
                      .simulator,
                      .xdrip:
@@ -290,6 +307,7 @@ extension Home {
                         cgmCurrent: state.cgmCurrent,
                         deleteCGM: state.deleteCGM
                     )
+                    .environment(settingsSearchHighlight)
                 case .plugin:
                     if let fetchGlucoseManager = state.fetchGlucoseManager,
                        let cgmManager = fetchGlucoseManager.cgmManager,
@@ -333,13 +351,11 @@ extension Home {
                     let carbsRequiredBadge: String? = carbsRequiredBadgeValue
 
                     NavigationStack { mainView() }
-                        .tabItem { Label("", systemImage: "chart.xyaxis.line") }
+                        .tabItem { Label("", systemImage: "chart.xyaxis.line").accessibilityLabel(Text("Main")) }
                         .badge(carbsRequiredBadge).tag(0)
-                        .accessibilityLabel(Text("Main"))
 
                     NavigationStack { History.RootView(resolver: resolver) }
-                        .tabItem { Label("", systemImage: historySFSymbol) }.tag(1)
-                        .accessibilityLabel(Text("History"))
+                        .tabItem { Label("", systemImage: historySFSymbol).accessibilityLabel(Text("History")) }.tag(1)
 
                     Spacer()
                         // nbsp title + empty image: invisible item that still
@@ -356,8 +372,7 @@ extension Home {
                             Label(
                                 "",
                                 systemImage: "slider.horizontal.2.gobackward"
-                            ) }.tag(2)
-                        .accessibilityLabel(Text("Adjustments"))
+                            ).accessibilityLabel(Text("Adjustments")) }.tag(2)
 
                     NavigationStack(path: self.$settingsPath) {
                         Settings.RootView(resolver: resolver) }
@@ -365,8 +380,7 @@ extension Home {
                         .tabItem { Label(
                             "",
                             systemImage: "gear"
-                        ) }.tag(3)
-                        .accessibilityLabel(Text("Settings"))
+                        ).accessibilityLabel(Text("Settings")) }.tag(3)
                 }
                 .tint(Color.tabBar)
 
@@ -429,6 +443,22 @@ extension Home {
                     }
                 }
                 .accessibilityLabel(Text("Add Treatment"))
+                .accessibilityAddTraits(.isButton)
+                // the tap/long-press gestures are invisible to VoiceOver; expose both
+                .accessibilityAction {
+                    state.showModal(for: .treatmentView)
+                }
+                .accessibilityAction(named: Text("Quick Pick Treatments")) {
+                    guard state.enableQuickPickTreatments else { return }
+                    Task {
+                        await state.loadQuickPickTreatmentSuggestions()
+                        if state.quickPickBolusSuggestions.isEmpty, state.quickPickCarbSuggestions.isEmpty {
+                            showQuickPickTreatmentsNoHistory = true
+                        } else {
+                            showQuickPickTreatmentsPicker = true
+                        }
+                    }
+                }
         }
 
         private var carbsRequiredBadgeValue: String? {

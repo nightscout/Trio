@@ -27,6 +27,9 @@ struct Profile: JSON {
     var enableUAM: Bool = false
     var a52RiskEnable: Bool = false
     var smbInterval: Decimal = 3
+    /// Basal Testing: suspend on a genuine low only. Kept out of `CodingKeys` so profile.json,
+    /// which the parity goldens compare, is unchanged.
+    var suspendOnly: Bool = false
     var enableSMBWithCOB: Bool = false
     var enableSMBWithTemptarget: Bool = false
     var allowSMBWithHighTemptarget: Bool = false
@@ -64,11 +67,12 @@ struct Profile: JSON {
     var weightPercentage: Decimal = 0.65
     var tddAdjBasal: Bool = false
     var thresholdSetting: Decimal = 60
-    var model: String?
     var basalprofile: [BasalProfileEntry]?
     var isfProfile: ComputedInsulinSensitivities?
     var bgTargets: ComputedBGTargets?
     var carbRatios: CarbRatios?
+    // rates the paired pump can deliver; injected per determination, never persisted; empty means no paired pump
+    var supportedBasalRates: [Decimal] = []
 
     private enum CodingKeys: String, CodingKey {
         case dia
@@ -129,7 +133,6 @@ struct Profile: JSON {
         case weightPercentage
         case tddAdjBasal
         case thresholdSetting = "threshold_setting"
-        case model
         case basalprofile
         case isfProfile
         case bgTargets = "bg_targets"

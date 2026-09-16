@@ -32,7 +32,8 @@ struct GlucoseTargetStepView: View {
                     chartColor: Color.green,
                     chartShowsArea: false,
                     chartYScale: (state.units == .mgdL ? Decimal(72) : Decimal(72).asMmolL) ...
-                        (state.units == .mgdL ? Decimal(180) : Decimal(180).asMmolL)
+                        (state.units == .mgdL ? Decimal(180) : Decimal(180).asMmolL),
+                    chartAccessibilityLabel: String(localized: "Glucose target profile chart, 24 hours")
                 ).id(bottomID)
             }
             .onAppear {

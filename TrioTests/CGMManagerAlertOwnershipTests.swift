@@ -23,8 +23,8 @@ import Testing
         #expect(CGMManagerAlertOwnership.providesOwnGlucoseAlerts(manager: nil, sourceType: .xdrip))
     }
 
-    @Test("nightscout / simulator / enlite sources → no owner") func nonOwnerSources() {
-        for source in [CGMType.nightscout, .simulator, .enlite] {
+    @Test("nightscout / simulator sources → no owner") func nonOwnerSources() {
+        for source in [CGMType.nightscout, .simulator] {
             #expect(CGMManagerAlertOwnership.owningApp(manager: nil, sourceType: source) == nil)
         }
     }

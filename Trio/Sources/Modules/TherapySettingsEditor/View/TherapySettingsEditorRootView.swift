@@ -5,6 +5,7 @@ extension TherapySettingsEditor {
         @ObservedObject var state: State
         var configureView: () -> Void
         var chartColor: Color
+        var chartAccessibilityLabel: String
         var chartShowsArea: Bool
         var chartYScale: ClosedRange<Decimal>?
         @Namespace private var bottomID
@@ -19,6 +20,7 @@ extension TherapySettingsEditor {
             state: State,
             configureView: @escaping () -> Void,
             chartColor: Color,
+            chartAccessibilityLabel: String,
             @ViewBuilder headerContent: () -> HeaderContent,
             @ViewBuilder footerContent: () -> FooterContent,
             chartShowsArea: Bool? = nil,
@@ -27,6 +29,7 @@ extension TherapySettingsEditor {
             self.state = state
             self.configureView = configureView
             self.chartColor = chartColor
+            self.chartAccessibilityLabel = chartAccessibilityLabel
             self.chartShowsArea = chartShowsArea ?? true
             self.chartYScale = chartYScale
             self.headerContent = headerContent()
@@ -53,7 +56,8 @@ extension TherapySettingsEditor {
                                 },
                                 chartColor: chartColor,
                                 chartShowsArea: chartShowsArea,
-                                chartYScale: chartYScale
+                                chartYScale: chartYScale,
+                                chartAccessibilityLabel: chartAccessibilityLabel
                             )
                             .padding(.horizontal)
 
@@ -150,6 +154,7 @@ extension TherapySettingsEditor.RootView where HeaderContent == EmptyView, Foote
         state: State,
         configureView: @escaping () -> Void,
         chartColor: Color,
+        chartAccessibilityLabel: String,
         chartShowsArea: Bool? = nil,
         chartYScale: ClosedRange<Decimal>? = nil,
     ) {
@@ -157,6 +162,7 @@ extension TherapySettingsEditor.RootView where HeaderContent == EmptyView, Foote
             state: state,
             configureView: configureView,
             chartColor: chartColor,
+            chartAccessibilityLabel: chartAccessibilityLabel,
             headerContent: {
                 EmptyView()
             },

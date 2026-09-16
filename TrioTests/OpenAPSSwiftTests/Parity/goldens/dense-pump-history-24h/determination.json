@@ -151,8 +151,8 @@
       95
     ]
   },
-  "rate" : 0.95,
-  "reason" : "Autosens ratio: 1, ISF: 55→55, COB: 0, Dev: 59, BGI: -4, CR: 12, Target: 95, minPredBG 96, minGuardBG 102, IOBpredBG 92, UAMpredBG 102; Eventual BG 102 >= 95,  insulinReq 0.02. temp 0.75<0.95U/hr. ",
+  "rate" : 0.925,
+  "reason" : "Autosens ratio: 1, ISF: 55→55, COB: 0, Dev: 59, BGI: -4, CR: 12, Target: 95, minPredBG 96, minGuardBG 102, IOBpredBG 92, UAMpredBG 102; Eventual BG 102 >= 95,  insulinReq 0.02. temp 0.75<0.925U/hr. ",
   "received" : false,
   "sensitivityRatio" : 1,
   "threshold" : 68,

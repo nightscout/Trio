@@ -11,7 +11,8 @@ extension CarbRatioEditor {
             TherapySettingsEditor.RootView(
                 state: state,
                 configureView: configureView,
-                chartColor: Color.orange
+                chartColor: Color.orange,
+                chartAccessibilityLabel: String(localized: "Carb ratio profile chart, 24 hours")
             )
             .navigationTitle("Carb Ratios")
         }

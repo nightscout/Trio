@@ -35,7 +35,8 @@ struct CarbRatioStepView: View {
                             proxy.scrollTo(bottomID, anchor: .bottom)
                         }
                     },
-                    chartColor: Color.orange
+                    chartColor: Color.orange,
+                    chartAccessibilityLabel: String(localized: "Carb ratio profile chart, 24 hours")
                 )
 
                 // Example calculation based on first carb ratio

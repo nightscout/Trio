@@ -176,6 +176,18 @@ struct ContactPicture: View {
                     )
                 }
 
+            case .bobble:
+                // bobbleImage.size stays at the native point size regardless of scale, so size the
+                // destination rect from bobbleSize/rect instead of the image itself.
+                let bobbleSize = min(rect.width, rect.height)
+                let bobbleImage = makeGlucoseBobbleImage(contact: contact, state: state, pixelSize: bobbleSize)
+                bobbleImage.draw(in: CGRect(
+                    x: rect.midX - bobbleSize / 2,
+                    y: rect.midY - bobbleSize / 2,
+                    width: bobbleSize,
+                    height: bobbleSize
+                ))
+
             case .split:
                 let centerX = rect.origin.x + rect.size.width / 2
                 let centerY = rect.origin.y + rect.size.height / 2
@@ -267,15 +279,7 @@ struct ContactPicture: View {
         default: nil
         }
 
-        let glucoseValue = Decimal(string: state.glucose ?? "100") ?? 100
-
-        let dynamicColor: Color = Trio.getDynamicGlucoseColor(
-            glucoseValue: glucoseValue,
-            highGlucoseColorValue: state.highGlucoseColorValue,
-            lowGlucoseColorValue: state.lowGlucoseColorValue,
-            targetGlucose: state.targetGlucose,
-            glucoseColorScheme: state.glucoseColorScheme
-        )
+        let dynamicColor = dynamicGlucoseColor(for: state)
 
         let textColor: Color = switch value {
         case .cob:
@@ -299,6 +303,62 @@ struct ContactPicture: View {
                 color: contact.colorMode == .color ? textColor : .white
             )
         }
+    }
+
+    private static func dynamicGlucoseColor(for state: ContactImageState) -> Color {
+        let glucoseValue = Decimal(string: state.glucose ?? "100") ?? 100
+        return Trio.getDynamicGlucoseColor(
+            glucoseValue: glucoseValue,
+            highGlucoseColorValue: state.highGlucoseColorValue,
+            lowGlucoseColorValue: state.lowGlucoseColorValue,
+            targetGlucose: state.targetGlucose,
+            glucoseColorScheme: state.glucoseColorScheme
+        )
+    }
+
+    // Matches CurrentGlucoseView's onChange(of: glucose.last?.directionEnum) mapping.
+    private static func rotationDegrees(for direction: BloodGlucose.Direction?) -> Double {
+        switch direction {
+        case .doubleUp,
+             .singleUp,
+             .tripleUp:
+            return -90
+        case .fortyFiveUp:
+            return -45
+        case .flat:
+            return 0
+        case .fortyFiveDown:
+            return 45
+        case .doubleDown,
+             .singleDown,
+             .tripleDown:
+            return 90
+        default:
+            return 0
+        }
+    }
+
+    private static func makeGlucoseBobbleImage(
+        contact: ContactImageEntry,
+        state: ContactImageState,
+        pixelSize: CGFloat
+    ) -> UIImage {
+        let hasReading = state.glucose != nil
+        let view = GlucoseBobbleContactView(
+            glucoseText: state.glucose ?? "– –",
+            minutesAgoText: hasReading && contact.bobbleShowMinutesAgo
+                ? TimeAgoFormatter.minutesAgo(from: state.glucoseDate) : nil,
+            deltaText: hasReading && contact.bobbleShowDelta ? state.delta : nil,
+            glucoseColor: hasReading
+                ? (contact.colorMode == .color ? dynamicGlucoseColor(for: state) : .white)
+                : .loopGray,
+            rotationDegrees: rotationDegrees(for: state.direction)
+        )
+
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = pixelSize / GlucoseBobbleContactView.Layout.nativeSize
+        renderer.isOpaque = false
+        return renderer.uiImage ?? UIImage()
     }
 
     private static func drawText(
@@ -666,6 +726,17 @@ struct ContactPicture_Previews: PreviewProvider {
                     cobText: "25"
                 ))
             ).previewDisplayName("bg + trend + delta")
+
+            ContactPicturePreview(
+                contact: .constant(
+                    ContactImageEntry(layout: .bobble, colorMode: .color)
+                ),
+                state: .constant(ContactImageState(
+                    glucose: "6.8",
+                    direction: .fortyFiveUp,
+                    delta: "+0.2"
+                ))
+            ).previewDisplayName("glucose bobble")
 
 //            ContactPicturePreview(
 //                contact: .constant(

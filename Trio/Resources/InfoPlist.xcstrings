@@ -55,7 +55,7 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
@@ -415,6 +415,144 @@
         }
       }
     },
+    "NSAlarmKitUsageDescription" : {
+      "comment" : "Privacy - Alarm Kit Usage Description",
+      "extractionState" : "stale",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "nb-NO" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trio bruker alarmer slik at viktige glukose- og pumpevarslinger kan høres, selv om telefonen er i stille- eller fokusmodus."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+          }
+        }
+      }
+    },
     "NSBluetoothAlwaysUsageDescription" : {
       "comment" : "Privacy - Bluetooth Always Usage Description",
       "extractionState" : "extracted_with_value",
@@ -469,8 +607,8 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+            "state" : "translated",
+            "value" : "Il Bluetooth viene utilizzato per comunicare con il microinfusore e i dispositivi di monitoraggio continuo del glucosio"
           }
         },
         "ko" : {
@@ -607,8 +745,8 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+            "state" : "translated",
+            "value" : "Il Bluetooth viene utilizzato per comunicare con il microinfusore e i dispositivi di monitoraggio continuo del glucosio"
           }
         },
         "ko" : {
@@ -745,8 +883,8 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "To create events with glucose values, so they can be viewed on Apple Watch and CarPlay"
+            "state" : "translated",
+            "value" : "Per creare eventi con valori di glucosio, in modo che possano essere visualizzati su Apple Watch e CarPlay"
           }
         },
         "ko" : {
@@ -883,8 +1021,8 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Calendar is used to create new glucose events."
+            "state" : "translated",
+            "value" : "Il calendario viene utilizzato per creare nuovi eventi di glucosio."
           }
         },
         "ko" : {
@@ -1582,8 +1720,8 @@
         },
         "nb-NO" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copyright (human-readable)"
+            "state" : "new",
+            "value" : ""
           }
         },
         "nl" : {

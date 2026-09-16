@@ -233,7 +233,9 @@ final class OpenAPS {
     }
 
     func determineBasal(
+        for dosingMode: DosingMode,
         currentTemp: TempBasal,
+        supportedBasalRates: [Decimal],
         shouldSmoothGlucose: Bool,
         clock: Date = Date(),
         simulatedCarbsAmount: Decimal? = nil,
@@ -252,7 +254,9 @@ final class OpenAPS {
             carbsDate: simulatedCarbsDate
         )
 
-        var preferences = await storage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
+        // second, independent read into the algorithm; needs the same clamp as the profile
+        var preferences = (await storage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences())
+            .clamped(for: dosingMode)
         let glucoseFetchHours = preferences.maxMealAbsorptionTime + 0.5 // MMAT + half hour buffer
         async let glucoseFetch = glucoseStorage.getGlucoseForAlgorithm(
             shouldSmoothGlucose: shouldSmoothGlucose,
@@ -290,7 +294,11 @@ final class OpenAPS {
         )
 
         // Decode the JSON-at-rest inputs into native models at the call boundary.
-        let profile = try JSONBridge.profile(from: rawProfile)
+        var profile = try JSONBridge.profile(from: rawProfile)
+        // pump capability is injected here rather than persisted, so it can never go stale
+        profile.supportedBasalRates = supportedBasalRates
+        // derived here, not baked into profile.json, which the JS parity goldens compare
+        profile.suspendOnly = dosingMode.automation == .hypoSuspendOnly
         let basalProfile = try JSONBridge.basalProfile(from: rawBasalProfile)
         let autosens = try JSONBridge.autosens(from: rawAutosens.isEmpty ? .null : rawAutosens)
         let reservoir = Decimal(string: rawReservoir) ?? 100
@@ -485,7 +493,7 @@ final class OpenAPS {
         return autosens
     }
 
-    func createProfiles() async throws {
+    func createProfiles(for dosingMode: DosingMode) async throws {
         debug(.openAPS, "Start creating pump profile and user profile")
 
         let context = newContext("createProfiles")
@@ -497,16 +505,14 @@ final class OpenAPS {
         async let getInsulinSensitivities = loadFileFromStorageAsync(name: Settings.insulinSensitivities)
         async let getCarbRatios = loadFileFromStorageAsync(name: Settings.carbRatios)
         async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
-        async let getModel = loadFileFromStorageAsync(name: Settings.model)
 
-        let (pumpSettings, bgTargets, basalProfile, insulinSensitivities, carbRatios, tempTargets, model) = await (
+        let (pumpSettings, bgTargets, basalProfile, insulinSensitivities, carbRatios, tempTargets) = await (
             getPumpSettings,
             getBGTargets,
             getBasalProfile,
             getInsulinSensitivities,
             getCarbRatios,
-            getTempTargets,
-            getModel
+            getTempTargets
         )
 
         // Retrieve user preferences, or set defaults if not available
@@ -549,6 +555,9 @@ final class OpenAPS {
             }
         }
 
+        // clamp after the HBT block above, which needs the user's real autosensMax
+        adjustedPreferences = adjustedPreferences.clamped(for: dosingMode)
+
         let clock = Date()
         do {
             // Decode the raw settings into native models. The bundled-defaults
@@ -569,7 +578,6 @@ final class OpenAPS {
                 preferences: adjustedPreferences,
                 carbRatios: carbRatios,
                 tempTargets: tempTargets,
-                model: model,
                 clock: clock
             )
 
@@ -581,7 +589,6 @@ final class OpenAPS {
                 preferences: adjustedPreferences,
                 carbRatios: carbRatios,
                 tempTargets: tempTargets,
-                model: model,
                 clock: clock
             )
 

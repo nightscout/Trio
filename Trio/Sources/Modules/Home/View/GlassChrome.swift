@@ -17,6 +17,10 @@ enum GlassChrome {
 
 /// Glass panel background with optional tint; pre-26 falls back to
 /// ultraThinMaterial + tint fill + stroke, matching the compat-mode look.
+///
+/// Accessibility: with Reduce Transparency or Increase Contrast enabled, both the
+/// glass and material paths are dropped for an opaque, higher-contrast fill so
+/// low-vision users get legible chrome instead of translucent panels.
 struct GlassPanelBackground: ViewModifier {
     var tint: Color?
     var tintOpacity: Double = 0.12
@@ -25,15 +29,19 @@ struct GlassPanelBackground: ViewModifier {
 
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
 
-    /// Opaque when Reduce Transparency is on, blurred material otherwise.
-    private var baseFill: AnyShapeStyle {
-        reduceTransparency ? AnyShapeStyle(GlassChrome.opaqueFill) : AnyShapeStyle(.ultraThinMaterial)
+    /// True when the user has asked for reduced transparency or increased contrast.
+    private var prefersOpaque: Bool {
+        reduceTransparency || colorSchemeContrast == .increased
     }
 
     func body(content: Content) -> some View {
-        // Reduce Transparency skips the glass path entirely; it cannot be made opaque.
-        if !reduceTransparency, #available(iOS 26.0, *) {
+        // Reduce Transparency / Increase Contrast skip the glass and material paths entirely
+        // for a fully opaque panel; the glass path in particular cannot be made opaque.
+        if prefersOpaque {
+            content.background(opaquePanel)
+        } else if #available(iOS 26.0, *) {
             content
                 .glassEffect(
                     tint.map { Glass.regular.tint($0.opacity(tintOpacity)) } ?? .regular,
@@ -48,7 +56,7 @@ struct GlassPanelBackground: ViewModifier {
             content
                 .background(
                     GlassChrome.panelShape
-                        .fill(baseFill)
+                        .fill(.ultraThinMaterial)
                         .overlay(GlassChrome.panelShape.fill((tint ?? .clear).opacity(tintOpacity)))
                         .overlay(GlassChrome.panelShape.strokeBorder(
                             (tint ?? Color.primary).opacity(strokeOpacity),
@@ -56,6 +64,35 @@ struct GlassPanelBackground: ViewModifier {
                         ))
                         .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.10), radius: 3, y: 1)
                 )
+        }
+    }
+
+    /// Opaque, higher-contrast panel used when transparency is reduced / contrast increased.
+    private var opaquePanel: some View {
+        GlassChrome.panelShape
+            .fill(Color(.secondarySystemBackground))
+            .overlay(GlassChrome.panelShape.fill((tint ?? .clear).opacity(min(tintOpacity * 1.5, 0.30))))
+            .overlay(GlassChrome.panelShape.strokeBorder(
+                (tint ?? Color.primary).opacity(max(strokeOpacity, 0.6)),
+                lineWidth: strokeWidth + 0.5
+            ))
+            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.10), radius: 3, y: 1)
+    }
+}
+
+/// Material fill for small glass affordances (rate capsule, chart-info circle) that
+/// becomes an opaque fill under Reduce Transparency / Increase Contrast.
+struct GlassMaterialFill<S: InsettableShape>: ViewModifier {
+    let shape: S
+
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
+
+    func body(content: Content) -> some View {
+        if reduceTransparency || colorSchemeContrast == .increased {
+            content.background(shape.fill(Color(.secondarySystemBackground)))
+        } else {
+            content.background(shape.fill(.ultraThinMaterial))
         }
     }
 }
@@ -73,5 +110,11 @@ extension View {
             strokeOpacity: strokeOpacity,
             strokeWidth: strokeWidth
         ))
+    }
+
+    /// Material fill for a small shape (capsule/circle) that turns opaque under
+    /// Reduce Transparency / Increase Contrast.
+    func glassMaterialFill(_ shape: some InsettableShape) -> some View {
+        modifier(GlassMaterialFill(shape: shape))
     }
 }

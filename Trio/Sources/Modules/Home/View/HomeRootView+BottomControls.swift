@@ -57,6 +57,7 @@ extension Home.RootView {
             .foregroundStyle(tint)
             .frame(width: 30, height: 30)
             .background(Circle().fill(tint.opacity(0.18)))
+            .accessibilityHidden(true)
     }
 
     var adjustmentTint: Color? {
@@ -228,6 +229,9 @@ extension Home.RootView {
             .onTapGesture {
                 cancelAction()
             }
+            .accessibilityLabel(Text("Stop adjustment"))
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { cancelAction() }
     }
 
     @ViewBuilder func adjustmentsCancelTempTargetView() -> some View {
@@ -251,6 +255,13 @@ extension Home.RootView {
                     isConfirmStopTempTargetShown = true
                 }
             }
+            .accessibilityLabel(Text("Stop temp target"))
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction {
+                if !latestTempTarget.isEmpty {
+                    isConfirmStopTempTargetShown = true
+                }
+            }
     }
 
     @ViewBuilder func adjustmentsCancelOverrideView() -> some View {
@@ -270,6 +281,13 @@ extension Home.RootView {
             )
             .padding(.trailing, 8)
             .onTapGesture {
+                if !latestOverride.isEmpty {
+                    isConfirmStopOverridePresented = true
+                }
+            }
+            .accessibilityLabel(Text("Stop override"))
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction {
                 if !latestOverride.isEmpty {
                     isConfirmStopOverridePresented = true
                 }
@@ -438,6 +456,9 @@ extension Home.RootView {
         .onTapGesture {
             selectedTab = 2
         }
+        .accessibilityHint(Text(String(localized: "Opens adjustments", comment: "Accessibility hint")))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { selectedTab = 2 }
         .padding(.horizontal, 10)
     }
 
@@ -458,6 +479,7 @@ extension Home.RootView {
             HStack {
                 Image(systemName: "cross.vial.fill")
                     .font(.system(size: 25))
+                    .accessibilityHidden(true)
 
                 Spacer()
 
@@ -469,6 +491,9 @@ extension Home.RootView {
                         .font(.caption)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }.padding(.leading, 5)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text(bolusLabel))
+                    .accessibilityValue(Text(bolusString))
 
                 Spacer()
 
@@ -480,6 +505,7 @@ extension Home.RootView {
                         Image(systemName: "xmark.app")
                             .font(.system(size: 25))
                     }
+                    .accessibilityLabel(Text("Cancel bolus"))
                 } else if state.bolusStatus == .initiating {
                     ProgressView()
                 }
@@ -602,14 +628,24 @@ extension Home.RootView {
                                 .frame(height: 6)
                         }
                     case .averages:
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text("\u{2300} \(todayAverageString) \u{00B7} GMI \(todayGMIString)")
-                                .font(.subheadline).fontWeight(.semibold)
-                                .foregroundStyle(.primary)
-                            Text("Today's average", comment: "Stats banner subtitle")
+                        VStack(alignment: .leading, spacing: 6) {
+                            // "⌀" read as a diameter sign, so spell the label out (#1474)
+                            (
+                                Text("Avg. Glucose:", comment: "Stats banner label")
+                                    + Text(" \(todayAverageString) \u{00B7} GMI \(todayGMIString)")
+                            )
+                            .font(.subheadline).fontWeight(.semibold)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                            Text("Today's Average", comment: "Stats banner subtitle")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
+                    case .hidden:
+                        Text("View Statistics", comment: "Stats banner hidden face")
+                            .font(.subheadline).fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
                     }
 
                     Spacer(minLength: 8)
@@ -635,6 +671,7 @@ extension Home.RootView {
             lastGlucoseDate: state.glucoseFromPersistence.last?.date,
             maxIOB: state.maxIOB,
             hasUnacknowledgedReleaseNotes: releaseNotesService.hasUnacknowledgedNotes,
+            dosingMode: state.dosingMode,
             now: state.timerDate
         )
     }
@@ -743,9 +780,23 @@ extension Home.RootView {
             ) {
                 showReleaseNotes = true
             }
+        case let .dosingModeLimited(mode):
+            panelBanner(
+                systemImage: mode.icon,
+                title: mode.displayName,
+                subtitle: mode.miniHint,
+                tint: .orange
+            ) {
+                openDosingModeSetting()
+            }
         case .stats:
             statsBanner()
         }
+    }
+
+    /// The mode picker sits on the Settings root, so there is no sub-screen target to push.
+    func openDosingModeSetting() {
+        selectedTab = 3
     }
 
     func openMaxIOBSetting() {

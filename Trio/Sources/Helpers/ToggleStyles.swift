@@ -19,6 +19,11 @@ struct RadioButtonToggleStyle: ToggleStyle {
                 }
             configuration.label
         }
+        // custom style has no built-in on/off semantics; expose them to VoiceOver
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityValue(configuration.isOn ? Text("On") : Text("Off"))
+        .accessibilityAction { withAnimation { configuration.isOn.toggle() } }
     }
 }
 
@@ -49,5 +54,9 @@ struct CheckboxToggleStyle: ToggleStyle {
         .onTapGesture {
             configuration.isOn.toggle()
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityValue(configuration.isOn ? Text("On") : Text("Off"))
+        .accessibilityAction { configuration.isOn.toggle() }
     }
 }

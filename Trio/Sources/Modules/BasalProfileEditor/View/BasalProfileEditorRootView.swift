@@ -58,6 +58,7 @@ extension BasalProfileEditor {
                 state: state,
                 configureView: configureView,
                 chartColor: Color.purple,
+                chartAccessibilityLabel: String(localized: "Basal rate profile chart, 24 hours"),
                 headerContent: {
                     if !state.canAdd {
                         fullScheduleWarning

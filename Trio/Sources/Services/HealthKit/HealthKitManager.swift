@@ -447,7 +447,8 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                         // For temp basal events, process them and adjust overlapping durations if necessary
                         guard let duration = event.duration, let amount = event.amount else { continue }
 
-                        let value = (Decimal(duration) / 60.0) * amount
+                        // pump-reported delivery wins; rate x duration is the fallback
+                        let value = event.deliveredUnits ?? (Decimal(duration) / 60.0) * amount
                         let valueRounded = self.deviceDataManager?.pumpManager?
                             .roundToSupportedBolusVolume(units: Double(value)) ?? Double(value)
 
@@ -525,6 +526,17 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         return nil
     }
 
+    /// Insulin type recorded with the dose; the pump's current type is only a
+    /// fallback for rows stored before it was persisted per event. External
+    /// doses are not the pump's insulin, so they get no fallback.
+    private func insulinTypeTitle(_ storedIdentifier: String?, isExternal: Bool = false) -> String {
+        if let storedIdentifier, let insulinType = InsulinType(identifier: storedIdentifier) {
+            return insulinType.title
+        }
+        guard !isExternal else { return "" }
+        return deviceDataManager?.pumpManager?.status.insulinType?.title ?? ""
+    }
+
     // Helper function to create a HealthKit sample from a PumpHistoryEvent
     private func createSample(
         for event: PumpHistoryEvent,
@@ -558,7 +570,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                 HKMetadataKeySyncIdentifier: event.id,
                 HKMetadataKeySyncVersion: 1,
                 HKMetadataKeyInsulinDeliveryReason: deliveryReason.rawValue,
-                AppleHealthConfig.TrioInsulinType: deviceDataManager?.pumpManager?.status.insulinType?.title ?? ""
+                AppleHealthConfig.TrioInsulinType: insulinTypeTitle(event.insulinType, isExternal: event.isExternal ?? false)
             ]
         )
 
@@ -588,9 +600,11 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             // Precise duration in hours
             let adjustedDurationHours = adjustedDuration / 3600
 
-            // Calculate the insulin rate and adjusted delivered units
+            // Calculate the insulin rate and adjusted delivered units;
+            // a finalized row already reports what the truncated span delivered
             let predecessorEntryRate = predecessorEntry.tempBasal?.rate?.doubleValue ?? 0
-            let adjustedDeliveredUnits = adjustedDurationHours * predecessorEntryRate
+            let adjustedDeliveredUnits = predecessorEntry.tempBasal?.deliveredUnits?.doubleValue
+                ?? adjustedDurationHours * predecessorEntryRate
             let adjustedDeliveredUnitsRounded = deviceDataManager?.pumpManager?
                 .roundToSupportedBolusVolume(units: adjustedDeliveredUnits) ?? adjustedDeliveredUnits
 
@@ -606,7 +620,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                     HKMetadataKeySyncIdentifier: predecessorEntryId,
                     HKMetadataKeySyncVersion: 2, // set the version # to 2, as we update an entry. initial version is 1.
                     HKMetadataKeyInsulinDeliveryReason: HKInsulinDeliveryReason.basal.rawValue,
-                    AppleHealthConfig.TrioInsulinType: deviceDataManager?.pumpManager?.status.insulinType?.title ?? ""
+                    AppleHealthConfig.TrioInsulinType: insulinTypeTitle(predecessorEntry.insulinType)
                 ]
             )
 

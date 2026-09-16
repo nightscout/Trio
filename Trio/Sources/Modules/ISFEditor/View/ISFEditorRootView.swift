@@ -11,7 +11,8 @@ extension ISFEditor {
             TherapySettingsEditor.RootView(
                 state: state,
                 configureView: configureView,
-                chartColor: Color.cyan
+                chartColor: Color.cyan,
+                chartAccessibilityLabel: String(localized: "Insulin sensitivity profile chart, 24 hours")
             )
             .navigationTitle("Insulin Sensitivities")
         }

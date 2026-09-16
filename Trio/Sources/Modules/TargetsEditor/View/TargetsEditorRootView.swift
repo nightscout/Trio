@@ -12,6 +12,7 @@ extension TargetsEditor {
                 state: state,
                 configureView: configureView,
                 chartColor: Color.green,
+                chartAccessibilityLabel: String(localized: "Glucose target profile chart, 24 hours"),
                 chartShowsArea: false,
                 chartYScale: (state.units == .mgdL ? Decimal(72) : Decimal(72).asMmolL) ...
                     (state.units == .mgdL ? Decimal(180) : Decimal(180).asMmolL)

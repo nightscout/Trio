@@ -215,6 +215,21 @@ extension WatchState {
             await WatchLogger.shared.log("⌚️ Requesting bolus recommendation for carbs: \(carbsAmount)")
         }
 
+        // Show a progress indicator until the phone replies. This keeps the user from
+        // tapping the (0 U) "Log Carbs" button before the recommendation has landed.
+        DispatchQueue.main.async {
+            self.showBolusCalculationProgress = true
+        }
+
+        // The phone drops the reply silently if its session is unreachable at reply
+        // time, so there is no guaranteed response to clear the flag. Fall back to a
+        // timeout that reveals the normal UI.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            if self.showBolusCalculationProgress {
+                self.showBolusCalculationProgress = false
+            }
+        }
+
         let message: [String: Any] = [
             WatchMessageKeys.requestBolusRecommendation: true,
             WatchMessageKeys.carbs: carbsAmount
@@ -225,6 +240,9 @@ extension WatchState {
                 await WatchLogger.shared.log("Error requesting bolus recommendation: \(error)")
                 await WatchLogger.shared.log("⌚️ Saving logs to disk as fallback!")
                 await WatchLogger.shared.persistLogsLocally()
+            }
+            DispatchQueue.main.async {
+                self.showBolusCalculationProgress = false
             }
         }
     }
