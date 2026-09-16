@@ -3,8 +3,8 @@ import SwiftUI
 
 /// Treatment markers — boluses, carb entries and FPUs — with their dose and gram labels.
 ///
-/// Ported from the `dev` branch. These used to be `PointMark`s inside the chart canvas; they
-/// are drawn by the shell now for two reasons.
+/// These used to be `PointMark`s inside the chart canvas; they are drawn by the shell now
+/// for two reasons.
 ///
 /// **Layout.** Swift Charts gives every mark its own identity, scale resolution, style
 /// resolution and layout pass, and there is no way to add or remove one without re-laying the

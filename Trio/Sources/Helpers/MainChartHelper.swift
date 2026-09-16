@@ -7,8 +7,6 @@ import SwiftUI
 /// above, carb entries point up at it from below. A `ChartSymbolShape` is rasterized as a
 /// path, unlike `.symbol { Image(...) }`, which instantiates a SwiftUI view per data point —
 /// the dominant cost of these series when SMBs land every few minutes.
-///
-/// Taken from `dev` unchanged, rounding included, so both branches draw the same marker.
 struct TreatmentTriangleSymbol: ChartSymbolShape {
     let pointsDown: Bool
 
@@ -50,50 +48,6 @@ struct TreatmentTriangleSymbol: ChartSymbolShape {
 }
 
 enum MainChartHelper {
-    /// `upstream/dev`'s anchor lookup, kept verbatim for the legacy renderer — **including its
-    /// bug**, so that flipping the developer switch reproduces upstream exactly rather than a
-    /// tidied-up version of it.
-    ///
-    /// The bug: `abs(midTime - time) < abs(closestGlucose!.date?.timeIntervalSince1970 ?? 0 - time)`
-    /// parses as `?? (0 - time)`, because `-` binds tighter than `??`. With a non-nil date the
-    /// right-hand side is therefore the candidate's raw epoch seconds (~1.8e9), never a
-    /// distance — every real distance is smaller, so the candidate is overwritten on every
-    /// iteration and the result is whichever entry the descent visited last. That is one of the
-    /// two neighbours, but which one depends on the array's length, so the answer moves when
-    /// the caller's slice moves and a marker hops a full CGM interval while the chart is panned.
-    ///
-    /// `nearestAnchor` is the corrected search the current renderer uses.
-    static func legacyTimeToNearestGlucose(glucoseValues: [GlucoseStored], time: TimeInterval) -> GlucoseStored? {
-        guard !glucoseValues.isEmpty else {
-            return nil
-        }
-
-        var low = 0
-        var high = glucoseValues.count - 1
-        var closestGlucose: GlucoseStored?
-
-        // binary search to find next glucose
-        while low <= high {
-            let mid = low + (high - low) / 2
-            let midTime = glucoseValues[mid].date?.timeIntervalSince1970 ?? 0
-
-            if midTime == time {
-                return glucoseValues[mid]
-            } else if midTime < time {
-                low = mid + 1
-            } else {
-                high = mid - 1
-            }
-
-            // update if necessary
-            if closestGlucose == nil || abs(midTime - time) < abs(closestGlucose!.date?.timeIntervalSince1970 ?? 0 - time) {
-                closestGlucose = glucoseValues[mid]
-            }
-        }
-
-        return closestGlucose
-    }
-
     /// The slice of a date-sorted series covering `start ... end`, located by binary search.
     ///
     /// A linear `filter` was cheap while the series were culled once per render-window
@@ -156,24 +110,6 @@ enum MainChartHelper {
         }
         return low
     }
-
-    /// Whether the chart falls back to `upstream/dev`'s treatment behaviour wholesale.
-    ///
-    /// Development switch, off by default. Off is this branch: the markers are drawn by the
-    /// shell in one `TreatmentOverlay` pass over the canvas, culled per frame against the
-    /// viewport. On restores upstream unchanged — every marker a Swift Charts mark carrying an
-    /// SF Symbol view, the render window filtered linearly on every reference
-    /// (`upstreamWindowedGlucose` and friends), `LegacyInsulinView` / `LegacyCarbView` reading
-    /// Core Data as they draw, and `legacyTimeToNearestGlucose` with the anchor bug still in it.
-    ///
-    /// The point is a like-for-like comparison on the same data, so the switch covers loading
-    /// and drawing together rather than one of them.
-    ///
-    /// Lives in `UserDefaults` rather than in `TrioSettings`: it is a testing aid, not a
-    /// setting the app carries, so it should leave no trace in the settings model or its JSON.
-    /// The key is declared here, where the behaviour it gates lives, so the chart and the
-    /// switch cannot drift apart.
-    static let usesUpstreamChartBehaviorDefaultsKey = "dev.chartUsesUpstreamBehavior"
 
     // MARK: - Resolved treatment marks
 

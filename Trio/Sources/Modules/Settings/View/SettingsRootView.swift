@@ -53,22 +53,6 @@ extension Settings {
         @State private var showCopiedToast = false
         @ObservedObject private var releaseNotesService = ReleaseNotesService.shared
 
-        // MARK: - Mock chart data (development aid; see `MockChartDataSeeder`)
-
-        /// Whether seeded records are currently in the store. Read from the store on appear
-        /// rather than remembered in `UserDefaults`, so the switch tells the truth even after
-        /// a reinstall, a restore, or a purge from somewhere else.
-        @State private var mockDataPresent = false
-        @State private var mockDataBusy = false
-        @State private var mockDataStatus: String?
-
-        // MARK: - Chart rendering (development aid; see `LegacyInsulinView`)
-
-        /// Mirrors the defaults key the chart reads, so the two cannot drift apart. Writing it
-        /// here re-lays the chart: the canvas takes the same value as a plain property and
-        /// compares it in its `==`.
-        @AppStorage(MainChartHelper.usesUpstreamChartBehaviorDefaultsKey) private var usesUpstreamChartBehavior = false
-
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
         @Environment(AppState.self) var appState
@@ -143,155 +127,6 @@ extension Settings {
                     }
                 }
             }
-        }
-
-        // MARK: - Chart rendering
-
-        /// Development aid: resets the chart's treatment markers to `upstream/dev` wholesale —
-        /// how they are loaded as well as how they are drawn — so the two can be compared on
-        /// the same data.
-        ///
-        /// Deliberately unlocalized — this section is a testing tool, not product surface.
-        @ViewBuilder private var chartRenderingSection: some View {
-            Section(
-                header: Text(verbatim: "Developer · Chart rendering"),
-                footer: Text(
-                    verbatim: """
-                    Off — this branch. The markers are drawn over the chart in one Canvas pass \
-                    rather than as chart marks, so culling them as you pan costs no re-layout and \
-                    the live pinch cannot skew them. Rounded triangles, carbs mirrored to point up.
-
-                    On — upstream/dev, unchanged. Every marker is a chart mark carrying an SF Symbol \
-                    image as a SwiftUI view, four viewports' worth filtered linearly out of the full \
-                    72 h on every reference, with Core Data read and the curve searched per marker \
-                    as it draws. The old anchor lookup comes back with it, so markers hopping \
-                    between readings while you pan is part of what you are switching on.
-
-                    Both draw every marker; nothing is hidden either way. Flip it while panning or \
-                    pinching a crowded stretch.
-                    """
-                ),
-                content: {
-                    Toggle(isOn: $usesUpstreamChartBehavior) {
-                        Text(verbatim: "Use upstream/dev marker behaviour")
-                    }
-                }
-            ).listRowBackground(Color.chart)
-        }
-
-        // MARK: - Mock chart data
-
-        /// Development aid: fills the chart's 72 h history with generated readings and
-        /// treatments, and takes them out again. Everything it writes is marked, so turning
-        /// the switch back off removes exactly what it added and nothing else.
-        ///
-        /// Deliberately unlocalized — this section is a testing tool, not product surface.
-        @ViewBuilder private var mockChartDataSection: some View {
-            Section(
-                header: Text(verbatim: "Developer"),
-                footer: Text(
-                    verbatim: """
-                    Writes generated CGM readings, boluses, SMBs, carbs and FPUs into the last 72 hours. \
-                    Each day gets two deliberately crowded stretches: one SMB on every reading from 13:00, \
-                    and a labelled bolus every minute from 09:00. They run 1 h, 2 h and 3 h — one length \
-                    per day, so a full seed holds one of each.
-
-                    Trio cannot tell these apart from real data: the loop will treat them as your glucose \
-                    history and dose on them. Only switch this on with no pump connected.
-                    """
-                ),
-                content: {
-                    Toggle(isOn: mockDataBinding) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(verbatim: "72 h of mock chart data")
-                            if let mockDataStatus {
-                                Text(verbatim: mockDataStatus)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                    .disabled(mockDataBusy)
-
-                    // Seeding is anchored to absolute time, so a later run adds only the hours
-                    // that have passed since — and anything a partial failure left missing.
-                    if mockDataPresent {
-                        Button {
-                            Task { await seedMockData() }
-                        } label: {
-                            HStack {
-                                Text(verbatim: "Fill in gaps since last run")
-                                    .foregroundColor(.primary)
-                                Spacer()
-                                if mockDataBusy {
-                                    ProgressView()
-                                }
-                            }
-                        }
-                        .disabled(mockDataBusy)
-                    }
-                }
-            ).listRowBackground(Color.chart)
-        }
-
-        private var mockDataBinding: Binding<Bool> {
-            Binding(
-                get: { mockDataPresent },
-                set: { wantsData in
-                    guard !mockDataBusy else { return }
-                    // Move the switch now and correct it if the work fails: seeding 72 h takes
-                    // long enough that leaving it sitting in its old position reads as a
-                    // control that did not respond.
-                    mockDataPresent = wantsData
-                    Task {
-                        if wantsData {
-                            await seedMockData()
-                        } else {
-                            await purgeMockData()
-                        }
-                    }
-                }
-            )
-        }
-
-        @MainActor private func seedMockData() async {
-            mockDataBusy = true
-            mockDataStatus = "Generating…"
-            defer { mockDataBusy = false }
-            do {
-                let summary = try await MockChartDataSeeder.seed()
-                mockDataPresent = true
-                mockDataStatus = summary.total == 0
-                    ? "Already complete — nothing to fill in"
-                    : "Added \(summary.glucose) readings, \(summary.boluses) boluses, "
-                    + "\(summary.smbs) SMBs, \(summary.carbs) carb entries, \(summary.fpus) FPUs"
-            } catch {
-                // Whatever was written before the failure is still marked, so the switch stays
-                // on and the purge can still reach it.
-                mockDataPresent = ((try? await MockChartDataSeeder.seededRecordCount()) ?? 0) > 0
-                mockDataStatus = "Failed: \(error.localizedDescription)"
-            }
-        }
-
-        @MainActor private func purgeMockData() async {
-            mockDataBusy = true
-            mockDataStatus = "Removing…"
-            defer { mockDataBusy = false }
-            do {
-                let deleted = try await MockChartDataSeeder.purge()
-                mockDataPresent = false
-                mockDataStatus = "Removed \(deleted) records"
-            } catch {
-                mockDataPresent = true
-                mockDataStatus = "Failed: \(error.localizedDescription)"
-            }
-        }
-
-        @MainActor private func refreshMockDataState() async {
-            guard !mockDataBusy else { return }
-            let count = (try? await MockChartDataSeeder.seededRecordCount()) ?? 0
-            mockDataPresent = count > 0
-            mockDataStatus = count > 0 ? "\(count) seeded records in the store" : nil
         }
 
         private func copyVersionInfo(_ text: String) {
@@ -563,10 +398,6 @@ extension Settings {
                         }
                     ).listRowBackground(Color.chart)
 
-                    chartRenderingSection
-
-                    mockChartDataSection
-
                 } else {
                     Section(
                         header: Text("Search Results"),
@@ -626,9 +457,6 @@ extension Settings {
             .onAppear(perform: configureView)
             .task {
                 await releaseNotesService.load()
-            }
-            .task {
-                await refreshMockDataState()
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.automatic)

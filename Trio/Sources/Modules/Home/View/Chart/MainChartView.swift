@@ -46,12 +46,6 @@ struct MainChartView: View {
 
     @State var mainChartHasInitialized = false
 
-    /// Developer switch selecting the treatment renderer, off by default — see
-    /// `MainChartHelper.usesUpstreamChartBehaviorDefaultsKey`. Read here and handed to the
-    /// canvas as a plain value, so it participates in the canvas's `==` and flipping it in
-    /// Settings re-lays the chart.
-    @AppStorage(MainChartHelper.usesUpstreamChartBehaviorDefaultsKey) var usesUpstreamChartBehavior = false
-
     // MARK: - Continuous zoom / pan state
 
     /// Length of the visible x-axis window in seconds. Driven exclusively by the pinch gesture.
@@ -152,7 +146,6 @@ struct MainChartView: View {
                 treatmentWindowStart: treatmentWindowStart,
                 treatmentWindowEnd: treatmentWindowEnd,
                 canvasWidth: canvasWidth,
-                usesUpstreamChartBehavior: usesUpstreamChartBehavior,
                 basalHeight: basalHeight,
                 mainHeight: mainHeight,
                 cobIobHeight: cobIobHeight,
@@ -163,22 +156,19 @@ struct MainChartView: View {
             .scaleEffect(x: pinchScale, y: 1, anchor: pinchScaleAnchor)
 
             // Treatment markers, drawn by the shell rather than as marks inside the canvas —
-            // see `TreatmentOverlay`. Suppressed under the upstream switch, which puts them
-            // back into the chart content as `LegacyInsulinView` / `LegacyCarbView`.
-            if !usesUpstreamChartBehavior {
-                ChartOverlayLayer(viewport: chartViewport, height: stackHeight) { viewport in
-                    TreatmentOverlay(
-                        anchors: glucoseAnchors,
-                        insulin: state.insulinFromPersistence,
-                        carbs: state.carbsFromPersistence,
-                        fpus: state.fpusFromPersistence,
-                        units: units,
-                        bolusDisplayThreshold: state.bolusDisplayThreshold,
-                        fpuBaseline: units == .mgdL ? state.minYAxisValue : state.minYAxisValue.asMmolL,
-                        viewport: viewport,
-                        yPosition: glucoseYPosition(forValue:)
-                    )
-                }
+            // see `TreatmentOverlay`.
+            ChartOverlayLayer(viewport: chartViewport, height: stackHeight) { viewport in
+                TreatmentOverlay(
+                    anchors: glucoseAnchors,
+                    insulin: state.insulinFromPersistence,
+                    carbs: state.carbsFromPersistence,
+                    fpus: state.fpusFromPersistence,
+                    units: units,
+                    bolusDisplayThreshold: state.bolusDisplayThreshold,
+                    fpuBaseline: units == .mgdL ? state.minYAxisValue : state.minYAxisValue.asMmolL,
+                    viewport: viewport,
+                    yPosition: glucoseYPosition(forValue:)
+                )
             }
 
             nowOffscreenGradient
@@ -964,10 +954,6 @@ struct MainChartCanvas: View {
     var treatmentWindowStart: Date
     var treatmentWindowEnd: Date
     var canvasWidth: CGFloat
-    /// Developer switch: draw the treatment markers the way `upstream/dev` does, rather than
-    /// with this branch's resolved marks and `TreatmentTriangleSymbol`. Part of `==` below, so
-    /// flipping it re-lays the canvas.
-    var usesUpstreamChartBehavior: Bool
     var basalHeight: CGFloat
     var mainHeight: CGFloat
     var cobIobHeight: CGFloat
@@ -1015,52 +1001,6 @@ struct MainChartCanvas: View {
         )
     }
 
-    // MARK: - Upstream culling (developer switch)
-
-    /// `upstream/dev`'s culling of the same four series, kept verbatim so the switch resets the
-    /// loading behaviour and not only the drawing.
-    ///
-    /// Three differences from the properties above, all of them deliberate:
-    ///
-    /// - the **render** window, not the treatment window — so at any zoom these carry roughly
-    ///   four viewports of marks rather than one, and every mark outside the screen is laid out
-    ///   and then clipped;
-    /// - a linear `filter` over the whole 72 h series, touching a Core Data date on every
-    ///   entry, rather than a binary search for the slice bounds;
-    /// - no edge padding, so a marker at the very edge of the window may not have both of the
-    ///   readings that straddle it — which, together with `legacyTimeToNearestGlucose`, is what
-    ///   makes a marker hop between readings while the chart is panned.
-    ///
-    /// They are computed properties, as upstream has them: each reference re-runs the filter.
-
-    var upstreamWindowedGlucose: [GlucoseStored] {
-        state.glucoseFromPersistence.filter { entry in
-            guard let date = entry.date else { return false }
-            return date >= windowStart && date <= windowEnd
-        }
-    }
-
-    var upstreamWindowedInsulin: [PumpEventStored] {
-        state.insulinFromPersistence.filter { entry in
-            guard let date = entry.timestamp else { return false }
-            return date >= windowStart && date <= windowEnd
-        }
-    }
-
-    var upstreamWindowedCarbs: [CarbEntryStored] {
-        state.carbsFromPersistence.filter { entry in
-            guard let date = entry.date else { return false }
-            return date >= windowStart && date <= windowEnd
-        }
-    }
-
-    var upstreamWindowedFPUs: [CarbEntryStored] {
-        state.fpusFromPersistence.filter { entry in
-            guard let date = entry.date else { return false }
-            return date >= windowStart && date <= windowEnd
-        }
-    }
-
     // Still the render window: the COB/IOB pane's determinations are ~5 min apart and drawn
     // as continuous lines, which have to be laid out across the whole canvas or they end
     // mid-air at the edges of it.
@@ -1104,7 +1044,7 @@ extension MainChartCanvas {
     var mainChart: some View {
         // slice each series once per layout; these were computed properties
         // re-evaluated on every reference (glucose alone was scanned 3x)
-        let glucose = usesUpstreamChartBehavior ? upstreamWindowedGlucose : windowedGlucose
+        let glucose = windowedGlucose
 
         return Chart {
             drawCurrentTimeMarker()
@@ -1129,24 +1069,9 @@ extension MainChartCanvas {
                 viewContext: context
             )
 
-            // Nothing here by default: the treatment markers are drawn by the shell, over the
-            // canvas, so that culling them costs no re-layout and the live pinch cannot skew
-            // them — see `TreatmentOverlay`. The upstream switch puts them back as marks.
-            if usesUpstreamChartBehavior {
-                LegacyInsulinView(
-                    glucoseData: glucose,
-                    insulinData: upstreamWindowedInsulin,
-                    units: state.units,
-                    bolusDisplayThreshold: state.bolusDisplayThreshold
-                )
-                LegacyCarbView(
-                    glucoseData: glucose,
-                    units: state.units,
-                    carbData: upstreamWindowedCarbs,
-                    fpuData: upstreamWindowedFPUs,
-                    minValue: units == .mgdL ? state.minYAxisValue : state.minYAxisValue.asMmolL
-                )
-            }
+            // The treatment markers are deliberately not chart marks: they are drawn by
+            // the shell, over the canvas, so that culling them costs no re-layout and the
+            // live pinch cannot skew them — see `TreatmentOverlay`.
 
             ForecastView(
                 preprocessedData: state.preprocessedData,
@@ -1205,7 +1130,6 @@ extension MainChartCanvas: Equatable {
             lhs.treatmentWindowStart == rhs.treatmentWindowStart &&
             lhs.treatmentWindowEnd == rhs.treatmentWindowEnd &&
             lhs.canvasWidth == rhs.canvasWidth &&
-            lhs.usesUpstreamChartBehavior == rhs.usesUpstreamChartBehavior &&
             lhs.basalHeight == rhs.basalHeight &&
             lhs.mainHeight == rhs.mainHeight &&
             lhs.cobIobHeight == rhs.cobIobHeight &&

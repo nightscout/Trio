@@ -4,10 +4,10 @@ import SwiftUI
 /// The mapping between chart time and viewport x — the one every layer the shell draws over
 /// the canvas shares.
 ///
-/// Ported from the `dev` branch, where it replaced five hand-written copies of `x(for:)`. The
-/// one form that cannot work is a *closure* over the shell's `scrollPosition`: it captures
-/// that value at its final position and so ignores the interpolation an animated scroll
-/// depends on — which is exactly why `ChartOverlayLayer` below passes a viewport instead.
+/// It replaces five hand-written copies of `x(for:)`. The one form that cannot work is a
+/// *closure* over the shell's `scrollPosition`: it captures that value at its final position
+/// and so ignores the interpolation an animated scroll depends on — which is exactly why
+/// `ChartOverlayLayer` below passes a viewport instead.
 ///
 /// `visibleStart` is a `var` because `ChartOverlayLayer` interpolates it; everything else about
 /// a viewport is fixed for the frame it describes.
