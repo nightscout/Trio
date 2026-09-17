@@ -140,6 +140,11 @@ struct GlucoseDailyPercentileChart: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            Text(units.rawValue)
+                .foregroundStyle(.secondary)
+                .font(.footnote)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+
             boxplotChart
                 .frame(height: 300)
 
