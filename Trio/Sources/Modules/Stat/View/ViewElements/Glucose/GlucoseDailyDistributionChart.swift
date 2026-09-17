@@ -161,35 +161,7 @@ struct GlucoseDailyDistributionChart: View {
         }
         .chartYScale(domain: 0 ... 100)
         .chartXAxis {
-            AxisMarks(preset: .aligned, values: .stride(by: .day)) { value in
-                if let date = value.as(Date.self) {
-                    let calendar = Calendar.current
-
-                    switch selectedInterval {
-                    case .month:
-                        // Mark the first day of the week
-                        let weekday = calendar.component(.weekday, from: date)
-                        if weekday == calendar.firstWeekday {
-                            AxisValueLabel(format: .dateTime.day(), centered: true)
-                                .font(.footnote)
-                            AxisGridLine()
-                        }
-                    case .total:
-                        // Mark the start of the month
-                        let day = calendar.component(.day, from: date)
-                        if day == 1 {
-                            AxisValueLabel(format: .dateTime.month(.abbreviated), centered: true)
-                                .font(.footnote)
-                            AxisGridLine()
-                        }
-                    default:
-                        // Mark every day
-                        AxisValueLabel(format: .dateTime.weekday(.abbreviated), centered: true)
-                            .font(.footnote)
-                        AxisGridLine()
-                    }
-                }
-            }
+            StatChartUtils.dateAxisMarks(for: selectedInterval)
         }
         .chartYAxis {
             AxisMarks(position: .trailing, values: [4, 25, 50, 75, 100]) { value in
