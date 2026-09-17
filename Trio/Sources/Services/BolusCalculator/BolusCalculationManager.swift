@@ -37,7 +37,6 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         var evBG: Decimal
         var minPredBG: Decimal
         var lastLoopDate: Date?
-        var insulin: Decimal
         var target: Decimal
         var isf: Decimal
         var cob: Int16
@@ -256,7 +255,6 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
                 evBG: 0,
                 minPredBG: 0,
                 lastLoopDate: nil,
-                insulin: 0,
                 target: currentBGTarget,
                 isf: currentISF,
                 cob: 0,
@@ -272,7 +270,6 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             evBG: (mostRecentDetermination.eventualBG ?? 0) as Decimal,
             minPredBG: (mostRecentDetermination.minPredBGFromReason ?? 0) as Decimal,
             lastLoopDate: apsManager.lastLoopDate as Date?,
-            insulin: (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal,
             target: (mostRecentDetermination.currentTarget ?? currentBGTarget as NSDecimalNumber) as Decimal,
             isf: (mostRecentDetermination.insulinSensitivity ?? NSDecimalNumber(decimal: currentISF)) as Decimal,
             cob: mostRecentDetermination.cob as Int16,

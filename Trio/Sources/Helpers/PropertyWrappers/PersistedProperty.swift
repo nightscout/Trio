@@ -71,6 +71,7 @@ import Foundation
 
     public var wrappedValue: Value? {
         get {
+            guard FileManager.default.fileExists(atPath: storageURL.path) else { return nil }
             do {
                 let data = try Data(contentsOf: storageURL)
 
@@ -87,6 +88,7 @@ import Foundation
         }
         set {
             guard let newValue = newValue else {
+                guard FileManager.default.fileExists(atPath: storageURL.path) else { return }
                 do {
                     try FileManager.default.removeItem(at: storageURL)
                     debug(.storage, "[PersistedProperty:\(key)] Removed value.")
@@ -126,7 +128,10 @@ enum FileProtectionFixer {
             "hasSeenFatProteinOrderChange.plist",
             "telemetrySharingEnabled.plist",
             "telemetryLastSentAt.plist",
+            "telemetryAnonymousLastSentAt.plist",
+            "telemetryLastAttemptAt.plist",
             "telemetryLastSentSha.plist",
+            "telemetryLastFailureReason.plist",
             "telemetryColdLaunchTimes.plist",
             "telemetryInstallId.plist",
             "telemetryAttestForbidden.plist",

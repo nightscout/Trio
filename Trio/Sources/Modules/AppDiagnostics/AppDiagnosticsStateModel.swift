@@ -39,7 +39,7 @@ extension AppDiagnostics {
             // point arrives immediately rather than 24h later.
             if diagnosticsSharingOption.telemetryEnabled, !wasTelemetryOn {
                 TelemetryClient.shared.scheduleRecurring()
-                Task.detached { await TelemetryClient.shared.maybeSend() }
+                Task.detached { await TelemetryClient.shared.maybeSend(reason: .optIn) }
             }
         }
     }

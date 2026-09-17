@@ -3,6 +3,18 @@ import DeviceCheck
 import Foundation
 import Swinject
 
+struct TelemetryRequestContext {
+    let reason: String
+    let lastFailureReason: String?
+    let trioVersion: String
+    let installID: String
+
+    func applyHeaders(to request: inout URLRequest) {
+        request.setValue(trioVersion, forHTTPHeaderField: "X-Trio-Version")
+        request.setValue(installID, forHTTPHeaderField: "X-Trio-InstallId")
+    }
+}
+
 // MARK: - TelemetryAttestor
 
 /// Apple App Attest wrapper for the telemetry uploader. Owns:
@@ -21,25 +33,18 @@ import Swinject
 ///   2. POST /api/attest/register          (once per install)
 ///   3. /checkin                           (per ping, headers below)
 final class TelemetryAttestor: Injectable {
-    static let shared = TelemetryAttestor()
+    // Container-scoped singleton; shared is a convenience accessor
+    static var shared: TelemetryAttestor { TrioApp.resolver.resolve(TelemetryAttestor.self)! }
 
     @Injected() private var keychain: Keychain!
 
     private let service = DCAppAttestService.shared
-    private let lock = NSRecursiveLock()
-    private var didInjectServices = false
 
     private static let keyIDStorageKey = "TelemetryAttest.keyID"
     private static let registeredStorageKey = "TelemetryAttest.registered"
 
-    private init() {}
-
-    private func injectIfNeeded() {
-        lock.lock()
-        defer { lock.unlock() }
-        guard !didInjectServices else { return }
-        injectServices(TrioApp.resolver)
-        didInjectServices = true
+    init(resolver: Resolver) {
+        injectServices(resolver)
     }
 
     /// True when the running device supports App Attest. Returns false on the
@@ -58,12 +63,11 @@ final class TelemetryAttestor: Injectable {
     // MARK: - Registration
 
     /// Idempotent: returns immediately if already registered. Otherwise
-    /// performs `generateKey` → fetch challenge → `attestKey` → POST register.
+    /// performs `generateKey` → fetch challenge → `attestKey`, resolves the
+    /// app ID, then POSTs the registration.
     /// Throws on transport / server errors; sets the sticky "forbidden" flag
     /// on a 403 so future cycles short-circuit.
-    func registerIfNeeded(baseURL: URL) async throws {
-        injectIfNeeded()
-
+    func registerIfNeeded(baseURL: URL, context: TelemetryRequestContext) async throws {
         guard isSupported else { throw AttestError.unsupportedDevice }
         guard !isForbidden else { throw AttestError.forbidden }
 
@@ -74,7 +78,10 @@ final class TelemetryAttestor: Injectable {
         // generateKey() returns a base64url-encoded key identifier (Apple's docs).
         // We persist it as-is for use in the assertion path below.
         let keyID = try await currentOrCreateKeyID()
-        let challenge = try await fetchChallenge(baseURL: baseURL)
+        let challenge = try await fetchChallenge(
+            baseURL: baseURL,
+            context: context
+        )
 
         // App Attest expects a SHA-256 of the "client data" — for the
         // attestation step, that's the challenge bytes alone.
@@ -137,8 +144,16 @@ final class TelemetryAttestor: Injectable {
             "app_id": appID
         ]
 
-        var request = URLRequest(url: baseURL.appendingPathComponent("api/attest/register"))
+        guard let registerURL = Self.requestURL(
+            baseURL: baseURL,
+            path: "api/attest/register",
+            reason: context.reason,
+            lastFailureReason: context.lastFailureReason
+        ) else { throw AttestError.invalidRequestURL }
+
+        var request = URLRequest(url: registerURL)
         request.httpMethod = "POST"
+        context.applyHeaders(to: &request)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         request.timeoutInterval = 15
@@ -174,7 +189,6 @@ final class TelemetryAttestor: Injectable {
     /// `DCError.invalidKey`. Use when `/checkin` returns 401 (server lost our
     /// registration).
     func invalidateRegistration() {
-        injectIfNeeded()
         keychain.removeObject(forKey: Self.keyIDStorageKey)
         keychain.removeObject(forKey: Self.registeredStorageKey)
     }
@@ -185,7 +199,6 @@ final class TelemetryAttestor: Injectable {
     /// to retry can do so without reinstalling. Exposed through a button in
     /// the telemetry inspector. Does not touch consent or installId.
     func resetAttestState() {
-        injectIfNeeded()
         keychain.removeObject(forKey: Self.keyIDStorageKey)
         keychain.removeObject(forKey: Self.registeredStorageKey)
         PropertyPersistentFlags.shared.telemetryAttestForbidden = false
@@ -201,14 +214,19 @@ final class TelemetryAttestor: Injectable {
     /// spec). Returns the base64-encoded assertion CBOR, the keyID (already a
     /// base64url string), and the challenge string — all three become headers
     /// on the outgoing request.
-    func assertion(forPayload payload: Data, baseURL: URL) async throws -> (assertion: String, keyID: String, challenge: String) {
-        injectIfNeeded()
-
+    func assertion(
+        forPayload payload: Data,
+        baseURL: URL,
+        context: TelemetryRequestContext
+    ) async throws -> (assertion: String, keyID: String, challenge: String) {
         guard isSupported else { throw AttestError.unsupportedDevice }
         guard !isForbidden else { throw AttestError.forbidden }
 
         let keyID = try await currentOrCreateKeyID()
-        let challenge = try await fetchChallenge(baseURL: baseURL)
+        let challenge = try await fetchChallenge(
+            baseURL: baseURL,
+            context: context
+        )
 
         var hasher = SHA256()
         hasher.update(data: payload)
@@ -246,9 +264,17 @@ final class TelemetryAttestor: Injectable {
         return newKey
     }
 
-    private func fetchChallenge(baseURL: URL) async throws -> String {
-        var request = URLRequest(url: baseURL.appendingPathComponent("api/auth/ios/challenge"))
+    private func fetchChallenge(baseURL: URL, context: TelemetryRequestContext) async throws -> String {
+        guard let challengeURL = Self.requestURL(
+            baseURL: baseURL,
+            path: "api/auth/ios/challenge",
+            reason: context.reason,
+            lastFailureReason: context.lastFailureReason
+        ) else { throw AttestError.invalidRequestURL }
+
+        var request = URLRequest(url: challengeURL)
         request.httpMethod = "POST"
+        context.applyHeaders(to: &request)
         request.timeoutInterval = 15
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -271,39 +297,118 @@ final class TelemetryAttestor: Injectable {
         }
     }
 
-    /// Produces the `<TEAMID>.<bundle-id>` string the server expects in
-    /// `app_id` — matches the regex `^[A-Z0-9]+\.org\.nightscout\.[^.]+\.trio$`
-    /// when the build is configured correctly.
+    /// Produces the signed `<TEAMID>.<bundle-id>` application identifier.
+    /// Bundle identifiers are intentionally not restricted to Trio's usual
+    /// naming convention because forks and alternate distributions may use a
+    /// different reverse-DNS identifier.
     ///
-    /// Reads `application-identifier` from `embedded.mobileprovision`. On iOS
-    /// the SDK doesn't expose `SecTaskCopyValueForEntitlement` to Swift, and
-    /// parsing the mobile-provision file is the standard workaround. Returns
-    /// nil for App Store builds (no embedded.mobileprovision) — which Trio
-    /// doesn't ship, so this path is fine for sideload + TestFlight.
+    /// Uses Trio's build-expanded `TeamID` Info.plist value first. This remains
+    /// available in distribution packages where `embedded.mobileprovision` may
+    /// be absent or use a representation our fallback parser cannot scan.
     static func currentAppID() -> String? {
+        if let teamID = Bundle.main.object(forInfoDictionaryKey: "TeamID") as? String,
+           let bundleID = Bundle.main.bundleIdentifier,
+           let appID = appID(teamID: teamID, bundleID: bundleID)
+        {
+            return appID
+        }
+
         guard let url = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
-              let raw = try? Data(contentsOf: url)
+              let raw = try? Data(contentsOf: url),
+              let bundleID = Bundle.main.bundleIdentifier
         else { return nil }
 
-        // The mobileprovision file is a CMS-signed envelope around a plist.
-        // Pull the plist substring between the XML prolog and `</plist>`.
-        // ISO Latin-1 maps every byte 0x00–0xFF 1:1, so the conversion never
-        // fails on the binary CMS bytes surrounding the plist — `.ascii` would
-        // return nil here.
-        guard let scanned = String(data: raw, encoding: .isoLatin1),
-              let start = scanned.range(of: "<?xml"),
-              let end = scanned.range(of: "</plist>")
+        return appID(fromProvisioningProfile: raw, bundleID: bundleID)
+    }
+
+    static func appID(teamID: String, bundleID: String) -> String? {
+        let teamID = teamID.trimmingCharacters(in: .whitespacesAndNewlines)
+        let bundleID = bundleID.trimmingCharacters(in: .whitespacesAndNewlines)
+        let candidate = "\(teamID).\(bundleID)"
+        return isValidAppID(candidate) ? candidate : nil
+    }
+
+    static func appID(fromProvisioningProfile data: Data, bundleID: String) -> String? {
+        guard let plist = provisioningPlist(from: data),
+              let entitlements = plist["Entitlements"] as? [String: Any]
         else { return nil }
 
-        let plistString = String(scanned[start.lowerBound ..< end.upperBound])
-        guard let plistData = plistString.data(using: .utf8),
-              let plist = try? PropertyListSerialization
-              .propertyList(from: plistData, options: [], format: nil) as? [String: Any],
-              let entitlements = plist["Entitlements"] as? [String: Any],
-              let appID = entitlements["application-identifier"] as? String
+        for key in ["application-identifier", "com.apple.application-identifier"] {
+            if let candidate = entitlements[key] as? String, isValidAppID(candidate) {
+                return candidate
+            }
+        }
+
+        let teamIDs = [
+            entitlements["com.apple.developer.team-identifier"] as? String,
+            (plist["TeamIdentifier"] as? [String])?.first,
+            (plist["ApplicationIdentifierPrefix"] as? [String])?.first
+        ]
+        for teamID in teamIDs.compactMap({ $0 }) {
+            if let candidate = appID(teamID: teamID, bundleID: bundleID) {
+                return candidate
+            }
+        }
+        return nil
+    }
+
+    private static func provisioningPlist(from data: Data) -> [String: Any]? {
+        if let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil),
+           let dictionary = plist as? [String: Any]
+        {
+            return dictionary
+        }
+
+        // A mobile provision is a CMS envelope containing an XML plist. Search
+        // the bytes directly so arbitrary binary CMS bytes are never decoded as
+        // text and cannot corrupt the plist's Unicode contents.
+        let xmlProlog = data.range(of: Data("<?xml".utf8))
+        let plistTag = data.range(of: Data("<plist".utf8))
+        let plistEnd = Data("</plist>".utf8)
+        guard let start = xmlProlog ?? plistTag,
+              let end = data.range(of: plistEnd, in: start.lowerBound ..< data.endIndex)
         else { return nil }
 
-        return appID
+        let plistData = data[start.lowerBound ..< end.upperBound]
+        guard let plist = try? PropertyListSerialization.propertyList(
+            from: Data(plistData),
+            options: [],
+            format: nil
+        ) else { return nil }
+        return plist as? [String: Any]
+    }
+
+    private static func isValidAppID(_ appID: String) -> Bool {
+        let parts = appID.split(separator: ".", omittingEmptySubsequences: false)
+        guard parts.count >= 2, !parts[0].isEmpty else { return false }
+
+        let teamIDIsValid = parts[0].allSatisfy { $0.isASCII && ($0.isUppercase || $0.isNumber) }
+        let bundleIDIsValid = parts.dropFirst().allSatisfy { component in
+            !component.isEmpty && component.allSatisfy {
+                $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-")
+            }
+        }
+        return teamIDIsValid && bundleIDIsValid
+    }
+
+    static func requestURL(
+        baseURL: URL,
+        path: String,
+        reason: String,
+        lastFailureReason: String?
+    ) -> URL? {
+        guard var components = URLComponents(
+            url: baseURL.appendingPathComponent(path),
+            resolvingAgainstBaseURL: false
+        ) else { return nil }
+
+        var queryItems = components.queryItems ?? []
+        queryItems.append(URLQueryItem(name: "reason", value: reason))
+        if let lastFailureReason, !lastFailureReason.isEmpty {
+            queryItems.append(URLQueryItem(name: "lastFailureReason", value: lastFailureReason))
+        }
+        components.queryItems = queryItems
+        return components.url
     }
 
     // MARK: - Errors
@@ -317,6 +422,7 @@ final class TelemetryAttestor: Injectable {
         case assertionFailed(Error)
         case transportError
         case malformedResponse
+        case invalidRequestURL
         case clientError(Int)
         case serverError(Int)
 
@@ -330,6 +436,7 @@ final class TelemetryAttestor: Injectable {
             case let .assertionFailed(e): return "generateAssertion failed: \(e.localizedDescription)"
             case .transportError: return "non-HTTP response"
             case .malformedResponse: return "malformed challenge response"
+            case .invalidRequestURL: return "unable to construct telemetry request URL"
             case let .clientError(code): return "client error \(code)"
             case let .serverError(code): return "server error \(code)"
             }
