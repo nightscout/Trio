@@ -28,7 +28,7 @@ struct ReleaseNotesListView: View {
         }
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))
-        .navigationTitle("Previous Versions")
+        .navigationTitle("Release Notes")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

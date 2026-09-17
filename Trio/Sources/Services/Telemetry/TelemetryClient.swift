@@ -59,7 +59,7 @@ actor TelemetrySendGate {
 /// Opted-out installs send only an empty daily `/anonymous` GET carrying the
 /// app version, install identifier, trigger reason, and prior failure category.
 final class TelemetryClient: Injectable {
-    // Container-scoped singleton; shared is a convenience accessor for AppDelegate/UI entry points
+    // Container-scoped singleton; resolving pulls the APS/device graph, so only touch after loadServices()
     static var shared: TelemetryClient { TrioApp.resolver.resolve(TelemetryClient.self)! }
 
     enum SendReason: String {
@@ -200,8 +200,7 @@ final class TelemetryClient: Injectable {
     /// Awaitable daily-cadence entry point. All trigger paths pass through the
     /// actor gate, preventing overlapping requests and enforcing a one-hour
     /// retry delay after an unsuccessful attempt.
-    @discardableResult
-    func sendIfOverdue(reason: SendReason, now: Date = Date()) async -> Bool {
+    @discardableResult func sendIfOverdue(reason: SendReason, now: Date = Date()) async -> Bool {
         let sharingEnabled = PropertyPersistentFlags.shared.telemetrySharingEnabled != false
         let lastSentAt = sharingEnabled ?
             PropertyPersistentFlags.shared.telemetryLastSentAt :
@@ -346,7 +345,7 @@ final class TelemetryClient: Injectable {
         }
 
         if let settings = settings {
-            payload["closedLoop"] = settings.closedLoop
+            payload["dosingMode"] = settings.dosingMode.rawValue
             payload["units"] = settings.units.rawValue
             payload["useLiveActivity"] = settings.useLiveActivity
             payload["useCalendar"] = settings.useCalendar
@@ -445,8 +444,7 @@ final class TelemetryClient: Injectable {
     /// `telemetryLastAttemptAt` gate prevents another attempt for one hour.
     /// Successful sends clear that failure-backoff timestamp and advance the
     /// normal 24-hour cadence.
-    @discardableResult
-    func send(reason: SendReason) async -> Bool {
+    @discardableResult func send(reason: SendReason) async -> Bool {
         func failed(_ reason: String) -> Bool {
             PropertyPersistentFlags.shared.telemetryLastFailureReason = reason
             return false
