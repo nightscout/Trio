@@ -11,9 +11,6 @@ struct GlucoseDistributionChart: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Glucose Distribution")
-                .font(.headline)
-
             Chart(glucoseRangeStats) { range in
                 ForEach(range.values, id: \.hour) { value in
                     AreaMark(
@@ -77,12 +74,6 @@ struct GlucoseDistributionChart: View {
                         AxisGridLine()
                     }
                 }
-            }
-            .chartYAxisLabel(alignment: .trailing) {
-                Text("Percentage")
-                    .foregroundStyle(.primary)
-                    .font(.footnote)
-                    .padding(.vertical, 3)
             }
             .chartXAxis {
                 AxisMarks(values: .stride(by: .hour, count: 3)) { value in

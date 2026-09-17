@@ -174,12 +174,6 @@ struct GlucoseDailyDistributionChart: View {
                 }
             }
         }
-        .chartYAxisLabel(alignment: .trailing) {
-            Text("Percentage")
-                .foregroundStyle(.primary)
-                .font(.footnote)
-                .padding(.vertical, 3)
-        }
         .chartScrollableAxes(.horizontal)
         .chartScrollPosition(x: $scrollPosition.animation(.easeInOut))
         .chartScrollTargetBehavior(
