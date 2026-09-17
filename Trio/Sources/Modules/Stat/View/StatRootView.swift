@@ -167,20 +167,22 @@ extension Stat {
 
                 Spacer()
 
-                Button {
-                    showDayPickerSheet = true
-                } label: {
-                    Text(selectedDayLabel)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(.primary)
-                        .frame(height: 28)
-                        .contentShape(Rectangle())
-                }
-                .accessibilityLabel(Text("Select day, \(selectedDayLabel)"))
-                // Long press is the shortcut back from a day deep in the past; the calendar
-                // sheet has a "Today" button for the same jump.
-                .onLongPressGesture { jumpToToday() }
-                .accessibilityAction(named: Text("Today")) { jumpToToday() }
+                // Gestures rather than a Button: a Button swallows the press, so a long press
+                // layered on one either never fires or fires and then opens the sheet anyway
+                // on release. Long press is the shortcut back from a day deep in the past;
+                // the calendar sheet has a "Today" button for the same jump.
+                Text(selectedDayLabel)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.primary)
+                    .frame(height: 28)
+                    .contentShape(Rectangle())
+                    .onLongPressGesture { jumpToToday() }
+                    .onTapGesture { showDayPickerSheet = true }
+                    .accessibilityElement()
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityLabel(Text("Select day, \(selectedDayLabel)"))
+                    .accessibilityAction { showDayPickerSheet = true }
+                    .accessibilityAction(named: Text("Today")) { jumpToToday() }
 
                 Spacer()
 
