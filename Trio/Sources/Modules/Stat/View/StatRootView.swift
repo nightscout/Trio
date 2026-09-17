@@ -55,6 +55,14 @@ extension Stat {
             // Dense charts and stat grids shatter at accessibility sizes; cap tighter than the global bound.
             .dynamicTypeSize(...DynamicTypeSize.xxLarge)
             .onAppear(perform: configureView)
+            .onChange(of: state.selectedGlucoseChartType) { _, newValue in
+                // The by-day charts need more than a single day of data, so leave a day interval behind.
+                if newValue == .percentileByDay || newValue == .distributionByDay,
+                   state.selectedIntervalForGlucoseStats == .day || state.selectedIntervalForGlucoseStats == .today
+                {
+                    state.selectedIntervalForGlucoseStats = .week
+                }
+            }
             .sheet(isPresented: $showDayPickerSheet) {
                 dayPickerSheet
             }
@@ -70,6 +78,55 @@ extension Stat {
             }
         }
 
+        // MARK: - Chart type
+
+        /// Chart type is a menu rather than a segmented control: the names are too long to
+        /// fit one. It sits at the trailing end of the control row, sharing that row with the
+        /// day picker whenever that one is on screen.
+        private var chartTypeMenu: some View {
+            Menu {
+                switch selectedView {
+                case .glucose:
+                    Picker("Chart Type", selection: $state.selectedGlucoseChartType) {
+                        ForEach(StateModel.GlucoseChartType.allCases, id: \.self) { Text($0.displayName) }
+                    }
+                case .insulin:
+                    Picker("Chart Type", selection: $state.selectedInsulinChartType) {
+                        ForEach(StateModel.InsulinChartType.allCases, id: \.self) { Text($0.displayName) }
+                    }
+                case .looping:
+                    Picker("Chart Type", selection: $state.selectedLoopingChartType) {
+                        ForEach(StateModel.LoopingChartType.allCases, id: \.self) { Text($0.displayName) }
+                    }
+                case .meals:
+                    Picker("Chart Type", selection: $state.selectedMealChartType) {
+                        ForEach(StateModel.MealChartType.allCases, id: \.self) { Text($0.displayName) }
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(selectedChartTypeName)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .imageScale(.small)
+                }
+                .font(.subheadline)
+                .lineLimit(1)
+                .foregroundColor(.tabBar)
+            }
+            .pickerStyle(.inline)
+            .accessibilityLabel(Text("Chart Type"))
+            .accessibilityValue(Text(selectedChartTypeName))
+        }
+
+        private var selectedChartTypeName: String {
+            switch selectedView {
+            case .glucose: return state.selectedGlucoseChartType.displayName
+            case .insulin: return state.selectedInsulinChartType.displayName
+            case .looping: return state.selectedLoopingChartType.displayName
+            case .meals: return state.selectedMealChartType.displayName
+            }
+        }
+
         // MARK: - Day picker
 
         /// Chooses which calendar day the `.today` interval reports on. Shown only while that
@@ -78,44 +135,76 @@ extension Stat {
         /// Chevrons for the common move — a day either side — and a tap on the date for a jump.
         /// Both ends are bounded: there is no data past the stats screen's own three-month
         /// horizon, and none in the future.
-        @ViewBuilder private func dayPicker(isVisible: Bool) -> some View {
-            if isVisible {
-                HStack {
-                    Button {
-                        shiftSelectedDay(by: -1)
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .frame(width: 44, height: 32)
-                            .contentShape(Rectangle())
-                    }
-                    .disabled(!canShiftSelectedDay(by: -1))
-                    .accessibilityLabel(Text("Previous day"))
-
+        @ViewBuilder private var controlRow: some View {
+            HStack(spacing: 0) {
+                if isDayPickerVisible {
+                    dayPicker
+                } else {
                     Spacer()
-
-                    Button {
-                        showDayPickerSheet = true
-                    } label: {
-                        Text(selectedDayLabel)
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                    }
-                    .accessibilityLabel(Text("Select day, \(selectedDayLabel)"))
-
-                    Spacer()
-
-                    Button {
-                        shiftSelectedDay(by: 1)
-                    } label: {
-                        Image(systemName: "chevron.right")
-                            .frame(width: 44, height: 32)
-                            .contentShape(Rectangle())
-                    }
-                    .disabled(!canShiftSelectedDay(by: 1))
-                    .accessibilityLabel(Text("Next day"))
                 }
-                .buttonStyle(.borderless)
-                .padding(.horizontal, 4)
+
+                chartTypeMenu
+                    .frame(height: 28)
+                    .padding(.leading, 8)
+            }
+            .buttonStyle(.borderless)
+            .padding(.horizontal, 4)
+            .padding(.top, -4)
+        }
+
+        @ViewBuilder private var dayPicker: some View {
+            Group {
+                Button {
+                    shiftSelectedDay(by: -1)
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.subheadline)
+                        .frame(width: 44, height: 28)
+                        .contentShape(Rectangle())
+                }
+                .disabled(!canShiftSelectedDay(by: -1))
+                .accessibilityLabel(Text("Previous day"))
+
+                Spacer()
+
+                Button {
+                    showDayPickerSheet = true
+                } label: {
+                    Text(selectedDayLabel)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.primary)
+                        .frame(height: 28)
+                        .contentShape(Rectangle())
+                }
+                .accessibilityLabel(Text("Select day, \(selectedDayLabel)"))
+                // Long press is the shortcut back from a day deep in the past; the calendar
+                // sheet has a "Today" button for the same jump.
+                .onLongPressGesture { jumpToToday() }
+                .accessibilityAction(named: Text("Today")) { jumpToToday() }
+
+                Spacer()
+
+                Button {
+                    shiftSelectedDay(by: 1)
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.subheadline)
+                        .frame(width: 44, height: 28)
+                        .contentShape(Rectangle())
+                }
+                .disabled(!canShiftSelectedDay(by: 1))
+                .accessibilityLabel(Text("Next day"))
+            }
+        }
+
+        /// The day picker only means something for the one-calendar-day interval, and only the
+        /// glucose and looping tabs offer it.
+        private var isDayPickerVisible: Bool {
+            switch selectedView {
+            case .glucose: return state.selectedIntervalForGlucoseStats == .today
+            case .looping: return state.selectedIntervalForLoopStats == .today
+            case .insulin,
+                 .meals: return false
             }
         }
 
@@ -141,6 +230,13 @@ extension Stat {
             let calendar = Calendar.current
             return shifted >= calendar.startOfDay(for: state.earliestSelectableStatsDay)
                 && shifted <= calendar.startOfDay(for: Date())
+        }
+
+        private func jumpToToday() {
+            let today = Calendar.current.startOfDay(for: Date())
+            guard state.selectedStatsDay != today else { return }
+            state.selectedStatsDay = today
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
         }
 
         private func shiftSelectedDay(by days: Int) {
@@ -185,28 +281,6 @@ extension Stat {
         // MARK: - Stats View
 
         @ViewBuilder var glucoseView: some View {
-            HStack {
-                Text("Chart Type")
-                    .font(.headline)
-
-                Spacer()
-
-                Picker("Glucose Chart Type", selection: $state.selectedGlucoseChartType) {
-                    ForEach(StateModel.GlucoseChartType.allCases, id: \.self) { type in
-                        Text(type.displayName)
-                    }
-                }
-                .pickerStyle(.menu)
-                .onChange(of: state.selectedGlucoseChartType) { _, newValue in
-                    // If switching to daily chart and day/today is selected, switch to week
-                    if newValue == .percentileByDay || newValue == .distributionByDay,
-                       state.selectedIntervalForGlucoseStats == .day || state.selectedIntervalForGlucoseStats == .today
-                    {
-                        state.selectedIntervalForGlucoseStats = .week
-                    }
-                }
-            }.padding(.horizontal)
-
             Picker("Duration", selection: $state.selectedIntervalForGlucoseStats) {
                 ForEach(intervalOptions, id: \.self) { timeInterval in
                     Text(timeInterval.displayName)
@@ -214,7 +288,7 @@ extension Stat {
             }
             .pickerStyle(.segmented)
 
-            dayPicker(isVisible: state.selectedIntervalForGlucoseStats == .today)
+            controlRow
 
             if state.glucoseFromPersistence.isEmpty {
                 ContentUnavailableView(
@@ -346,25 +420,14 @@ extension Stat {
         }
 
         @ViewBuilder var insulinView: some View {
-            HStack {
-                Text("Chart Type")
-                    .font(.headline)
-
-                Spacer()
-
-                Picker("Insulin Chart Type", selection: $state.selectedInsulinChartType) {
-                    ForEach(StateModel.InsulinChartType.allCases, id: \.self) { type in
-                        Text(type.displayName)
-                    }
-                }.pickerStyle(.menu)
-            }.padding(.horizontal)
-
             Picker("Duration", selection: $state.selectedIntervalForInsulinStats) {
                 ForEach(StateModel.StatsTimeInterval.allCases) { timeInterval in
                     Text(timeInterval.displayName).tag(timeInterval)
                 }
             }
             .pickerStyle(.segmented)
+
+            controlRow
 
             StatCard {
                 switch state.selectedInsulinChartType {
@@ -416,19 +479,6 @@ extension Stat {
         }
 
         @ViewBuilder var loopingView: some View {
-            HStack {
-                Text("Chart Type")
-                    .font(.headline)
-
-                Spacer()
-
-                Picker("Looping Chart Type", selection: $state.selectedLoopingChartType) {
-                    ForEach(StateModel.LoopingChartType.allCases, id: \.self) { type in
-                        Text(type.displayName)
-                    }
-                }.pickerStyle(.menu)
-            }.padding(.horizontal)
-
             Picker("Duration", selection: $state.selectedIntervalForLoopStats) {
                 ForEach(StateModel.StatsTimeIntervalWithToday.allCases, id: \.self) { interval in
                     Text(interval.displayName)
@@ -436,7 +486,7 @@ extension Stat {
             }
             .pickerStyle(.segmented)
 
-            dayPicker(isVisible: state.selectedIntervalForLoopStats == .today)
+            controlRow
 
             StatCard {
                 switch state.selectedLoopingChartType {
@@ -482,25 +532,14 @@ extension Stat {
         }
 
         @ViewBuilder var mealsView: some View {
-            HStack {
-                Text("Chart Type")
-                    .font(.headline)
-
-                Spacer()
-
-                Picker("Meal Chart Type", selection: $state.selectedMealChartType) {
-                    ForEach(StateModel.MealChartType.allCases, id: \.self) { type in
-                        Text(type.displayName)
-                    }
-                }.pickerStyle(.menu)
-            }.padding(.horizontal)
-
             Picker("Duration", selection: $state.selectedIntervalForMealStats) {
                 ForEach(StateModel.StatsTimeInterval.allCases, id: \.self) { timeInterval in
                     Text(timeInterval.displayName)
                 }
             }
             .pickerStyle(.segmented)
+
+            controlRow
 
             StatCard {
                 switch state.selectedMealChartType {
