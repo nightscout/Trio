@@ -76,15 +76,15 @@ struct GlucoseDistributionChart: View {
                 }
             }
             .chartXAxis {
-                AxisMarks(values: .stride(by: .hour, count: 3)) { value in
+                AxisMarks(preset: .aligned, values: .stride(by: .hour, count: 3)) { value in
                     if let date = value.as(Date.self) {
                         let hour = Calendar.current.component(.hour, from: date)
                         switch hour {
                         case 0,
                              12:
-                            AxisValueLabel(format: .dateTime.hour())
+                            AxisValueLabel(format: .dateTime.hour(), anchor: .top)
                         default:
-                            AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .omitted)))
+                            AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .omitted)), anchor: .top)
                         }
 
                         AxisGridLine()
