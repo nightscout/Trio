@@ -18,6 +18,7 @@ extension Stat {
         @State var state = StateModel()
         @State private var selectedView: StateModel.StatisticViewType = .glucose
         @State private var isGlucoseDaySelected: Bool = false
+        @State private var showDayPickerSheet = false
 
         private var intervalOptions: [Stat.StateModel.StatsTimeIntervalWithToday] {
             state.selectedGlucoseChartType == .percentileByDay || state.selectedGlucoseChartType == .distributionByDay
@@ -54,6 +55,9 @@ extension Stat {
             // Dense charts and stat grids shatter at accessibility sizes; cap tighter than the global bound.
             .dynamicTypeSize(...DynamicTypeSize.xxLarge)
             .onAppear(perform: configureView)
+            .sheet(isPresented: $showDayPickerSheet) {
+                dayPickerSheet
+            }
             .navigationBarTitleDisplayMode(.inline)
             .navigationTitle("Statistics")
             .toolbar {
@@ -64,6 +68,118 @@ extension Stat {
                     }
                 }
             }
+        }
+
+        // MARK: - Day picker
+
+        /// Chooses which calendar day the `.today` interval reports on. Shown only while that
+        /// interval is selected, since it means nothing for the rolling windows.
+        ///
+        /// Chevrons for the common move — a day either side — and a tap on the date for a jump.
+        /// Both ends are bounded: there is no data past the stats screen's own three-month
+        /// horizon, and none in the future.
+        @ViewBuilder private func dayPicker(isVisible: Bool) -> some View {
+            if isVisible {
+                HStack {
+                    Button {
+                        shiftSelectedDay(by: -1)
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .frame(width: 44, height: 32)
+                            .contentShape(Rectangle())
+                    }
+                    .disabled(!canShiftSelectedDay(by: -1))
+                    .accessibilityLabel(Text("Previous day"))
+
+                    Spacer()
+
+                    Button {
+                        showDayPickerSheet = true
+                    } label: {
+                        Text(selectedDayLabel)
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                    }
+                    .accessibilityLabel(Text("Select day, \(selectedDayLabel)"))
+
+                    Spacer()
+
+                    Button {
+                        shiftSelectedDay(by: 1)
+                    } label: {
+                        Image(systemName: "chevron.right")
+                            .frame(width: 44, height: 32)
+                            .contentShape(Rectangle())
+                    }
+                    .disabled(!canShiftSelectedDay(by: 1))
+                    .accessibilityLabel(Text("Next day"))
+                }
+                .buttonStyle(.borderless)
+                .padding(.horizontal, 4)
+            }
+        }
+
+        /// "Today" and "Yesterday" rather than their dates: on the two days people look at most,
+        /// the name answers "which day is this?" faster than a date does.
+        private var selectedDayLabel: String {
+            let calendar = Calendar.current
+            if calendar.isDateInToday(state.selectedStatsDay) {
+                return String(localized: "Today", comment: "Stats day picker: the current day")
+            }
+            if calendar.isDateInYesterday(state.selectedStatsDay) {
+                return String(localized: "Yesterday", comment: "Stats day picker: the previous day")
+            }
+            return state.selectedStatsDay.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
+        }
+
+        private func shiftedDay(by days: Int) -> Date? {
+            Calendar.current.date(byAdding: .day, value: days, to: state.selectedStatsDay)
+        }
+
+        private func canShiftSelectedDay(by days: Int) -> Bool {
+            guard let shifted = shiftedDay(by: days) else { return false }
+            let calendar = Calendar.current
+            return shifted >= calendar.startOfDay(for: state.earliestSelectableStatsDay)
+                && shifted <= calendar.startOfDay(for: Date())
+        }
+
+        private func shiftSelectedDay(by days: Int) {
+            guard canShiftSelectedDay(by: days), let shifted = shiftedDay(by: days) else { return }
+            state.selectedStatsDay = Calendar.current.startOfDay(for: shifted)
+        }
+
+        /// Calendar jump for a day further off than a chevron or two. Bounded to the range the
+        /// stats screen holds data for, so the calendar cannot land on a day with nothing in it.
+        @ViewBuilder private var dayPickerSheet: some View {
+            NavigationStack {
+                DatePicker(
+                    "Day",
+                    selection: Binding(
+                        get: { state.selectedStatsDay },
+                        set: { state.selectedStatsDay = Calendar.current.startOfDay(for: $0) }
+                    ),
+                    in: Calendar.current.startOfDay(for: state.earliestSelectableStatsDay) ...
+                        Calendar.current.startOfDay(for: Date()),
+                    displayedComponents: .date
+                )
+                .datePickerStyle(.graphical)
+                .padding()
+                .navigationTitle("Select Day")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Today") {
+                            state.selectedStatsDay = Calendar.current.startOfDay(for: Date())
+                            showDayPickerSheet = false
+                        }
+                        .disabled(Calendar.current.isDateInToday(state.selectedStatsDay))
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done") { showDayPickerSheet = false }
+                    }
+                }
+            }
+            .presentationDetents([.medium, .large])
         }
 
         // MARK: - Stats View
@@ -97,6 +213,8 @@ extension Stat {
                 }
             }
             .pickerStyle(.segmented)
+
+            dayPicker(isVisible: state.selectedIntervalForGlucoseStats == .today)
 
             if state.glucoseFromPersistence.isEmpty {
                 ContentUnavailableView(
@@ -317,6 +435,8 @@ extension Stat {
                 }
             }
             .pickerStyle(.segmented)
+
+            dayPicker(isVisible: state.selectedIntervalForLoopStats == .today)
 
             StatCard {
                 switch state.selectedLoopingChartType {

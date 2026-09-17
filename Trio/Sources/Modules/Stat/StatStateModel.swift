@@ -51,6 +51,59 @@ extension Stat {
             }
         }
 
+        /// The calendar day the `.today` interval reports on.
+        ///
+        /// That interval used to be today and nothing else. It is now a day picker: today by
+        /// default, and any day back to the edge of the stored history. Held once for the whole
+        /// screen rather than per tab, so moving through days on the glucose tab and switching
+        /// to looping shows the same day rather than silently jumping back to today.
+        var selectedStatsDay: Date = Calendar.current.startOfDay(for: Date()) {
+            didSet {
+                guard !Calendar.current.isDate(oldValue, inSameDayAs: selectedStatsDay) else { return }
+                if selectedIntervalForGlucoseStats == .today {
+                    setupGlucoseArray(for: selectedIntervalForGlucoseStats)
+                }
+                if selectedIntervalForLoopStats == .today {
+                    setupLoopStatRecords()
+                }
+            }
+        }
+
+        /// The earliest day worth offering: the stats screen itself never looks further back
+        /// than `.total`, so nothing before this has data to show.
+        var earliestSelectableStatsDay: Date {
+            Calendar.current.startOfDay(for: Date().addingTimeInterval(-Self.totalIntervalSeconds))
+        }
+
+        /// The window an interval covers.
+        ///
+        /// Ends at `now` for every interval except a calendar day already in the past, which
+        /// ends at its own midnight — otherwise a day selected last week would be reported as
+        /// running right up to the present. Single source of truth for the glucose predicate
+        /// and both loop-stat fetches, which each used to carry their own copy of this switch.
+        func dateRange(for interval: StatsTimeIntervalWithToday) -> (start: Date, end: Date) {
+            let now = Date()
+            switch interval {
+            case .today:
+                let start = Calendar.current.startOfDay(for: selectedStatsDay)
+                let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: start) ?? start
+                return (start, min(dayEnd, now))
+            case .day:
+                return (now.addingTimeInterval(-Self.dayIntervalSeconds), now)
+            case .week:
+                return (now.addingTimeInterval(-Self.weekIntervalSeconds), now)
+            case .month:
+                return (now.addingTimeInterval(-Self.monthIntervalSeconds), now)
+            case .total:
+                return (now.addingTimeInterval(-Self.totalIntervalSeconds), now)
+            }
+        }
+
+        static let dayIntervalSeconds: TimeInterval = 24 * 3600
+        static let weekIntervalSeconds: TimeInterval = 7 * 24 * 3600
+        static let monthIntervalSeconds: TimeInterval = 30 * 24 * 3600
+        static let totalIntervalSeconds: TimeInterval = 90 * 24 * 3600
+
         // Selected Duration for Insulin Stats
         var selectedIntervalForInsulinStats: StatsTimeInterval = .day
 
@@ -134,7 +187,10 @@ extension Stat {
                 case .week:
                     predicate = NSPredicate.glucoseForStatsWeek
                 case .today:
-                    predicate = NSPredicate.glucoseForStatsToday
+                    // The one interval whose bounds are not "the last N days": it reports on
+                    // whichever calendar day the picker is on, so it needs both edges.
+                    let range = dateRange(for: interval)
+                    predicate = NSPredicate.glucoseForStats(from: range.start, to: range.end)
                 case .month:
                     predicate = NSPredicate.glucoseForStatsMonth
                 case .total:
@@ -292,11 +348,13 @@ extension Stat.StateModel {
         }
     }
 
-    /// Defines the available time periods for duration-based statistics including 'Today' (time since midnight until now)
+    /// Defines the available time periods for duration-based statistics including a single
+    /// calendar day, which the stats screen's day picker chooses (today by default)
     enum StatsTimeIntervalWithToday: String, CaseIterable, Identifiable {
-        /// Current day
+        /// One calendar day — the one `StateModel.selectedStatsDay` is on, midnight to midnight
+        /// (or to now, for today).
         case today
-        /// Single day view
+        /// Rolling 24 hours ending now
         case day = "D"
         /// Week view
         case week = "W"
@@ -310,9 +368,13 @@ extension Stat.StateModel {
         var displayName: String {
             switch self {
             case .today:
-                return String(localized: "Today")
+                // Not "Today" any more: this interval reports on whichever day the picker is
+                // on. The picker underneath it names the day, so this only has to say what
+                // kind of window it is — and it has to be told apart from the rolling 24 h
+                // next to it, which is why that one stopped being "D" at the same time.
+                return String(localized: "Day", comment: "Stats interval: one calendar day")
             case .day:
-                return String(localized: "D", comment: "Abbreviation for day")
+                return String(localized: "24 h", comment: "Stats interval: the rolling last 24 hours")
             case .week:
                 return String(localized: "W", comment: "Abbreviation for week")
             case .month:
