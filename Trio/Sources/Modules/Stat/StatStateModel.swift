@@ -51,21 +51,55 @@ extension Stat {
             }
         }
 
-        /// The calendar day the `.today` interval reports on.
+        /// The days the `.today` interval reports on: a range of whole calendar days,
+        /// `lowerBound` and `upperBound` both inclusive and both normalised to midnight.
         ///
-        /// That interval used to be today and nothing else. It is now a day picker: today by
-        /// default, and any day back to the edge of the stored history. Held once for the whole
-        /// screen rather than per tab, so moving through days on the glucose tab and switching
-        /// to looping shows the same day rather than silently jumping back to today.
-        var selectedStatsDay: Date = Calendar.current.startOfDay(for: Date()) {
+        /// That interval used to be today and nothing else. It is now a range picker: today by
+        /// default, and any stretch back to the edge of the stored history. Held once for the
+        /// whole screen rather than per tab, so moving through days on the glucose tab and
+        /// switching to looping shows the same range rather than silently jumping back to today.
+        var selectedStatsRange: ClosedRange<Date> = {
+            let today = Calendar.current.startOfDay(for: Date())
+            return today ... today
+        }() {
             didSet {
-                guard !Calendar.current.isDate(oldValue, inSameDayAs: selectedStatsDay) else { return }
+                guard selectedStatsRange != oldValue else { return }
                 if selectedIntervalForGlucoseStats == .today {
                     setupGlucoseArray(for: selectedIntervalForGlucoseStats)
                 }
                 if selectedIntervalForLoopStats == .today {
                     setupLoopStatRecords()
                 }
+            }
+        }
+
+        /// Whole days covered by `selectedStatsRange`, both ends included. 1 for a single day.
+        var selectedStatsRangeDayCount: Int { Self.dayCount(of: selectedStatsRange) }
+
+        /// The bucket granularity the charts should draw the selected range at.
+        var selectedStatsRangeInterval: StatsTimeInterval { Self.chartInterval(for: selectedStatsRange) }
+
+        static func dayCount(of range: ClosedRange<Date>, calendar: Calendar = .current) -> Int {
+            let days = calendar.dateComponents(
+                [.day],
+                from: calendar.startOfDay(for: range.lowerBound),
+                to: calendar.startOfDay(for: range.upperBound)
+            ).day ?? 0
+            return max(1, days + 1)
+        }
+
+        /// The bucket granularity the charts should draw a custom range at.
+        ///
+        /// The chart layer (`StatChartUtils`) is built on the fixed intervals — visible domain
+        /// length, axis format, tick alignment — and a user-picked range is none of them. Rather
+        /// than teach every one of those an arbitrary span, a range borrows the granularity of
+        /// the fixed interval closest to its own length.
+        static func chartInterval(for range: ClosedRange<Date>, calendar: Calendar = .current) -> StatsTimeInterval {
+            switch dayCount(of: range, calendar: calendar) {
+            case ...1: return .day
+            case ...7: return .week
+            case ...30: return .month
+            default: return .total
             }
         }
 
@@ -85,9 +119,12 @@ extension Stat {
             let now = Date()
             switch interval {
             case .today:
-                let start = Calendar.current.startOfDay(for: selectedStatsDay)
-                let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: start) ?? start
-                return (start, min(dayEnd, now))
+                // Both bounds are midnights and the upper one is inclusive, so the window runs
+                // to the midnight *after* it — capped at now, since a range ending today has no
+                // readings past the present.
+                let start = selectedStatsRange.lowerBound
+                let end = Calendar.current.date(byAdding: .day, value: 1, to: selectedStatsRange.upperBound) ?? start
+                return (start, min(end, now))
             case .day:
                 return (now.addingTimeInterval(-Self.dayIntervalSeconds), now)
             case .week:
@@ -351,8 +388,8 @@ extension Stat.StateModel {
     /// Defines the available time periods for duration-based statistics including a single
     /// calendar day, which the stats screen's day picker chooses (today by default)
     enum StatsTimeIntervalWithToday: String, CaseIterable, Identifiable {
-        /// One calendar day — the one `StateModel.selectedStatsDay` is on, midnight to midnight
-        /// (or to now, for today).
+        /// The days `StateModel.selectedStatsRange` covers, midnight to midnight
+        /// (or to now, for a range ending today).
         case today
         /// Rolling 24 hours ending now
         case day = "D"
