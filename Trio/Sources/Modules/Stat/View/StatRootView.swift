@@ -353,10 +353,10 @@ extension Stat {
                         }
                     }.listRowBackground(Color.chart)
                 }
-                // Hidden Form background and none painted over it: the sheet keeps the
-                // system material it had before it became a Form, and only the rows carry
-                // Trio's card colour.
+                // Trio's own background instead of the Form's grouped one, matching every
+                // other sheet in the app.
                 .scrollContentBackground(.hidden)
+                .background(appState.trioBackgroundColor(for: colorScheme))
                 // Text, not a String ternary: a ternary of two literals is a plain String and
                 // would skip localization.
                 .navigationTitle(isRangeSelection ? Text("Select Days") : Text("Select Day"))
