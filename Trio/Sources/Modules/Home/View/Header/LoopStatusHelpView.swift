@@ -245,7 +245,7 @@ struct LoopStatusHelpView: View {
             term: String(localized: "Cone of Uncertainty"),
             definition: VStack(alignment: .leading, spacing: 10) {
                 Text(
-                    "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result."
+                    "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algorithm's result."
                 )
                 Text(
                     "To modify how the forecast is displayed, go to Settings > Features > User Interface > Forecast Display Type."

@@ -19,7 +19,7 @@ struct DevicesView: BaseView {
     var body: some View {
         Form {
             Section(
-                header: Text("Setup & Configuraton"),
+                header: Text("Setup & Configuration"),
                 content: {
                     Text("Insulin Pump").navigationLink(to: .pumpConfig, from: self)
                     Text("Continuous Glucose Monitor").navigationLink(to: .cgm, from: self)

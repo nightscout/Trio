@@ -115315,7 +115315,7 @@
         }
       }
     },
-    "Displays real-time glucose readings from your CGM that were smoothed using the Savatzky-Golay filter. The displayed glucose readings may not match the actual readings from your CGM." : {
+    "Displays real-time glucose readings from your CGM that were smoothed using the Savitzky-Golay filter. The displayed glucose readings may not match the actual readings from your CGM." : {
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -115356,7 +115356,7 @@
         "he" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Displays real-time glucose readings from your CGM that were smoothed using the Savatzky-Golay filter. The displayed glucose readings may not match the actual readings from your CGM."
+            "value" : "Displays real-time glucose readings from your CGM that were smoothed using the Savitzky-Golay filter. The displayed glucose readings may not match the actual readings from your CGM."
           }
         },
         "it" : {
@@ -115398,7 +115398,7 @@
         "ro" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Displays real-time glucose readings from your CGM that were smoothed using the Savatzky-Golay filter. The displayed glucose readings may not match the actual readings from your CGM."
+            "value" : "Displays real-time glucose readings from your CGM that were smoothed using the Savitzky-Golay filter. The displayed glucose readings may not match the actual readings from your CGM."
           }
         },
         "ru" : {
@@ -144314,7 +144314,7 @@
         }
       }
     },
-    "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result." : {
+    "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algorithm's result." : {
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -144355,7 +144355,7 @@
         "he" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result."
+            "value" : "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algorithm's result."
           }
         },
         "it" : {
@@ -144397,7 +144397,7 @@
         "ro" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result."
+            "value" : "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algorithm's result."
           }
         },
         "ru" : {
@@ -164611,7 +164611,7 @@
         }
       }
     },
-    "If carb entries decay too slowly, it is possible to set a lower than default setting. But this should typically be adressed by tuning ISF and CR settings instead, which in combination determines the rate of carb decay." : {
+    "If carb entries decay too slowly, it is possible to set a lower than default setting. But this should typically be addressed by tuning ISF and CR settings instead, which in combination determines the rate of carb decay." : {
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -164652,7 +164652,7 @@
         "he" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "If carb entries decay too slowly, it is possible to set a lower than default setting. But this should typically be adressed by tuning ISF and CR settings instead, which in combination determines the rate of carb decay."
+            "value" : "If carb entries decay too slowly, it is possible to set a lower than default setting. But this should typically be addressed by tuning ISF and CR settings instead, which in combination determines the rate of carb decay."
           }
         },
         "it" : {
@@ -164694,7 +164694,7 @@
         "ro" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "If carb entries decay too slowly, it is possible to set a lower than default setting. But this should typically be adressed by tuning ISF and CR settings instead, which in combination determines the rate of carb decay."
+            "value" : "If carb entries decay too slowly, it is possible to set a lower than default setting. But this should typically be addressed by tuning ISF and CR settings instead, which in combination determines the rate of carb decay."
           }
         },
         "ru" : {
@@ -267164,7 +267164,7 @@
         }
       }
     },
-    "Setup & Configuraton" : {
+    "Setup & Configuration" : {
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -267181,7 +267181,7 @@
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "de" : {
@@ -267193,7 +267193,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "fr" : {
@@ -267205,13 +267205,13 @@
         "he" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "ko" : {
@@ -267229,7 +267229,7 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "pl" : {
@@ -267241,19 +267241,19 @@
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "sv" : {
@@ -267271,7 +267271,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "vi" : {
@@ -326740,7 +326740,7 @@
         }
       }
     },
-    "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before injesting the suggested quanitity of carbs." : {
+    "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before ingesting the suggested quantity of carbs." : {
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -326769,7 +326769,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before injesting the suggested quanitity of carbs."
+            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before ingesting the suggested quantity of carbs."
           }
         },
         "fr" : {
@@ -326781,7 +326781,7 @@
         "he" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before injesting the suggested quanitity of carbs."
+            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before ingesting the suggested quantity of carbs."
           }
         },
         "it" : {
@@ -326823,13 +326823,13 @@
         "ro" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before injesting the suggested quanitity of carbs."
+            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before ingesting the suggested quantity of carbs."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before injesting the suggested quanitity of carbs."
+            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before ingesting the suggested quantity of carbs."
           }
         },
         "sv" : {
@@ -326847,7 +326847,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before injesting the suggested quanitity of carbs."
+            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before ingesting the suggested quantity of carbs."
           }
         },
         "vi" : {
