@@ -78,7 +78,7 @@ extension Stat.StateModel {
     /// Fetches loop statistics records for the specified duration
     /// - Parameter interval: The time period to fetch records for
     /// - Returns: A tuple containing arrays of NSManagedObjectIDs for (all loops, failed loops)
-    func fetchLoopStatRecords(for interval: StatsTimeIntervalWithToday) async throws
+    func fetchLoopStatRecords(for interval: StatsTimeIntervalWithCustom) async throws
         -> ([NSManagedObjectID], [NSManagedObjectID])
     {
         let loopTaskContext = CoreDataStack.shared.newTaskContext()
@@ -142,7 +142,7 @@ extension Stat.StateModel {
     func getLoopStats(
         allLoopIds: [NSManagedObjectID],
         failedLoopIds: [NSManagedObjectID],
-        interval: StatsTimeIntervalWithToday
+        interval: StatsTimeIntervalWithCustom
     ) async throws
         -> [LoopStatsProcessedData]
     {

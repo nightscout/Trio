@@ -45,13 +45,13 @@ extension Stat {
         var glucoseReadings: [GlucoseStored] = []
 
         // Selected Duration for Glucose Stats
-        var selectedIntervalForGlucoseStats: StatsTimeIntervalWithToday = .today {
+        var selectedIntervalForGlucoseStats: StatsTimeIntervalWithCustom = .custom {
             didSet {
                 setupGlucoseArray(for: selectedIntervalForGlucoseStats)
             }
         }
 
-        /// The days the `.today` interval reports on: a range of whole calendar days,
+        /// The days the `.custom` interval reports on: a range of whole calendar days,
         /// `lowerBound` and `upperBound` both inclusive and both normalised to midnight.
         ///
         /// That interval used to be today and nothing else. It is now a range picker: today by
@@ -64,10 +64,10 @@ extension Stat {
         }() {
             didSet {
                 guard selectedStatsRange != oldValue else { return }
-                if selectedIntervalForGlucoseStats == .today {
+                if selectedIntervalForGlucoseStats == .custom {
                     setupGlucoseArray(for: selectedIntervalForGlucoseStats)
                 }
-                if selectedIntervalForLoopStats == .today {
+                if selectedIntervalForLoopStats == .custom {
                     setupLoopStatRecords()
                 }
             }
@@ -115,10 +115,10 @@ extension Stat {
         /// ends at its own midnight — otherwise a day selected last week would be reported as
         /// running right up to the present. Single source of truth for the glucose predicate
         /// and both loop-stat fetches, which each used to carry their own copy of this switch.
-        func dateRange(for interval: StatsTimeIntervalWithToday) -> (start: Date, end: Date) {
+        func dateRange(for interval: StatsTimeIntervalWithCustom) -> (start: Date, end: Date) {
             let now = Date()
             switch interval {
-            case .today:
+            case .custom:
                 // Both bounds are midnights and the upper one is inclusive, so the window runs
                 // to the midnight *after* it — capped at now, since a range ending today has no
                 // readings past the present.
@@ -148,7 +148,7 @@ extension Stat {
         var selectedIntervalForMealStats: StatsTimeInterval = .day
 
         // Selected Duration for Loop Stats
-        var selectedIntervalForLoopStats: StatsTimeIntervalWithToday = .today {
+        var selectedIntervalForLoopStats: StatsTimeIntervalWithCustom = .custom {
             didSet {
                 setupLoopStatRecords()
             }
@@ -170,7 +170,7 @@ extension Stat {
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {
-            setupGlucoseArray(for: .today)
+            setupGlucoseArray(for: .custom)
             setupTDDStats()
             setupBolusStats()
             setupLoopStatRecords()
@@ -182,7 +182,7 @@ extension Stat {
             timeInRangeType = settingsManager.settings.timeInRangeType
         }
 
-        func setupGlucoseArray(for interval: StatsTimeIntervalWithToday) {
+        func setupGlucoseArray(for interval: StatsTimeIntervalWithCustom) {
             Task {
                 // Load data for current interval (existing code)
                 let ids = await fetchGlucose(for: interval)
@@ -211,7 +211,7 @@ extension Stat {
             }
         }
 
-        private func fetchGlucose(for interval: StatsTimeIntervalWithToday) async -> [NSManagedObjectID] {
+        private func fetchGlucose(for interval: StatsTimeIntervalWithCustom) async -> [NSManagedObjectID] {
             do {
                 let context = CoreDataStack.shared.newTaskContext()
                 context.name = "StatStateModel.fetchGlucose"
@@ -223,7 +223,7 @@ extension Stat {
                     predicate = NSPredicate.glucoseForStatsDay
                 case .week:
                     predicate = NSPredicate.glucoseForStatsWeek
-                case .today:
+                case .custom:
                     // The one interval whose bounds are not "the last N days": it reports on
                     // whichever calendar day the picker is on, so it needs both edges.
                     let range = dateRange(for: interval)
@@ -387,10 +387,10 @@ extension Stat.StateModel {
 
     /// Defines the available time periods for duration-based statistics including a single
     /// calendar day, which the stats screen's day picker chooses (today by default)
-    enum StatsTimeIntervalWithToday: String, CaseIterable, Identifiable {
-        /// The days `StateModel.selectedStatsRange` covers, midnight to midnight
-        /// (or to now, for a range ending today).
-        case today
+    enum StatsTimeIntervalWithCustom: String, CaseIterable, Identifiable {
+        /// A user-picked span of whole days — `StateModel.selectedStatsRange`, midnight to
+        /// midnight (or to now, for a range ending today).
+        case custom
         /// Rolling 24 hours ending now
         case day = "D"
         /// Week view
@@ -404,12 +404,13 @@ extension Stat.StateModel {
 
         var displayName: String {
             switch self {
-            case .today:
-                // Not "Today" any more: this interval reports on whichever day the picker is
-                // on. The picker underneath it names the day, so this only has to say what
-                // kind of window it is — and it has to be told apart from the rolling 24 h
-                // next to it, which is why that one stopped being "D" at the same time.
-                return String(localized: "Day", comment: "Stats interval: one calendar day")
+            case .custom:
+                // Neither "Today" nor "Day" any more: this interval reports on whichever span
+                // the picker underneath it is on, from a single day up to the whole stored
+                // history. That picker names the actual dates, so the segment only has to say
+                // what kind of window it is — and it has to be told apart from the rolling
+                // 24 h next to it, which is why that one stopped being "D" at the same time.
+                return String(localized: "Range", comment: "Stats interval: a user-picked span of days")
             case .day:
                 return String(localized: "24 h", comment: "Stats interval: the rolling last 24 hours")
             case .week:

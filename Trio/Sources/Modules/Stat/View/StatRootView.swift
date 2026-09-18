@@ -20,9 +20,12 @@ extension Stat {
         @State private var isGlucoseDaySelected: Bool = false
         @State private var showDayPickerSheet = false
 
-        private var intervalOptions: [Stat.StateModel.StatsTimeIntervalWithToday] {
+        /// The by-day charts draw one bar per day, so the rolling 24 h window has nothing to
+        /// show them. A picked range does — several days is exactly what they want — so
+        /// `.custom` stays on offer and only `.day` drops out.
+        private var intervalOptions: [Stat.StateModel.StatsTimeIntervalWithCustom] {
             state.selectedGlucoseChartType == .percentileByDay || state.selectedGlucoseChartType == .distributionByDay
-                ? [.week, .month, .total] : Stat.StateModel.StatsTimeIntervalWithToday.allCases
+                ? [.custom, .week, .month, .total] : Stat.StateModel.StatsTimeIntervalWithCustom.allCases
         }
 
         var body: some View {
@@ -60,7 +63,7 @@ extension Stat {
                 // several days qualifies, so only a one-day window has to be left behind.
                 guard newValue == .percentileByDay || newValue == .distributionByDay else { return }
                 let isSingleDay = state.selectedIntervalForGlucoseStats == .day
-                    || (state.selectedIntervalForGlucoseStats == .today && state.selectedStatsRangeDayCount == 1)
+                    || (state.selectedIntervalForGlucoseStats == .custom && state.selectedStatsRangeDayCount == 1)
                 if isSingleDay {
                     state.selectedIntervalForGlucoseStats = .week
                 }
@@ -131,7 +134,7 @@ extension Stat {
 
         // MARK: - Range picker
 
-        /// Chooses which days the `.today` interval reports on. Shown only while that interval
+        /// Chooses which days the `.custom` interval reports on. Shown only while that interval
         /// is selected, since it means nothing for the rolling windows.
         ///
         /// Chevrons for the common move — the window either side of this one — and a tap on
@@ -205,8 +208,8 @@ extension Stat {
         /// glucose and looping tabs offer it.
         private var isDayPickerVisible: Bool {
             switch selectedView {
-            case .glucose: return state.selectedIntervalForGlucoseStats == .today
-            case .looping: return state.selectedIntervalForLoopStats == .today
+            case .glucose: return state.selectedIntervalForGlucoseStats == .custom
+            case .looping: return state.selectedIntervalForLoopStats == .custom
             case .insulin,
                  .meals: return false
             }
@@ -412,7 +415,7 @@ extension Stat {
                          .percentileByDay:
                         let interval: Stat.StateModel.StatsTimeInterval = {
                             switch state.selectedIntervalForGlucoseStats {
-                            case .today:
+                            case .custom:
                                 // A picked range draws at the granularity closest to its own
                                 // length rather than being forced to a week.
                                 return state.selectedStatsRangeInterval
@@ -459,7 +462,7 @@ extension Stat {
                             // Only a range that is exactly today: the chart uses this to blank
                             // out hours that have not happened yet. On any past day, and on any
                             // multi-day range, every hour of the window already happened.
-                            isToday: state.selectedIntervalForGlucoseStats == .today
+                            isToday: state.selectedIntervalForGlucoseStats == .custom
                                 && state.selectedStatsRangeDayCount == 1
                                 && Calendar.current.isDateInToday(state.selectedStatsRange.lowerBound)
                         )
@@ -561,7 +564,7 @@ extension Stat {
 
         @ViewBuilder var loopingView: some View {
             Picker("Duration", selection: $state.selectedIntervalForLoopStats) {
-                ForEach(StateModel.StatsTimeIntervalWithToday.allCases, id: \.self) { interval in
+                ForEach(StateModel.StatsTimeIntervalWithCustom.allCases, id: \.self) { interval in
                     Text(interval.displayName)
                 }
             }
@@ -599,7 +602,8 @@ extension Stat {
                 LoopBarChartView(
                     loopStatRecords: state.loopStatRecords,
                     selectedInterval: state.selectedIntervalForLoopStats,
-                    statsData: state.loopStats
+                    statsData: state.loopStats,
+                    spansMultipleDays: state.selectedStatsRangeDayCount > 1
                 )
             }
         }
