@@ -109,7 +109,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
@@ -247,7 +247,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Trio"
           }
         },
@@ -385,8 +385,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NFC is used to scan Libre sensors."
+            "state" : "translated",
+            "value" : "NFC, Libre sensörlerini taramak için kullanılır."
           }
         },
         "uk" : {
@@ -523,8 +523,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio uses alarms so urgent glucose and pump alerts can reach you even when your phone is silenced or a Focus is on."
+            "state" : "translated",
+            "value" : "Trio, acil glukoz ve pompa uyarılarının telefonunuz sessizdeyken veya bir Odak etkinken bile size ulaşabilmesi için alarmları kullanır."
           }
         },
         "uk" : {
@@ -661,8 +661,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+            "state" : "translated",
+            "value" : "Bluetooth, insülin pompası ve sürekli glukoz izleme cihazlarıyla iletişim kurmak için kullanılır"
           }
         },
         "uk" : {
@@ -799,8 +799,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+            "state" : "translated",
+            "value" : "Bluetooth, insülin pompası ve sürekli glukoz izleme cihazlarıyla iletişim kurmak için kullanılır"
           }
         },
         "uk" : {
@@ -937,8 +937,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "To create events with glucose values, so they can be viewed on Apple Watch and CarPlay"
+            "state" : "translated",
+            "value" : "Glukoz değerlerini içeren etkinlikler oluşturup bunların Apple Watch ve CarPlay üzerinde görüntülenebilmesi için"
           }
         },
         "uk" : {
@@ -1075,8 +1075,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Calendar is used to create new glucose events."
+            "state" : "translated",
+            "value" : "Takvim, yeni glukoz etkinlikleri oluşturmak için kullanılır."
           }
         },
         "uk" : {
@@ -1212,8 +1212,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allows Trio to access your contacts for live updates to your Apple Watch contact complication using the 'Contact Trick' feature."
+            "state" : "translated",
+            "value" : "Trio'nun, 'Contact Trick' özelliğiyle Apple Watch kişi komplikasyonunuzu canlı olarak güncelleyebilmesi için kişilerinize erişmesine izin verir."
           }
         },
         "uk" : {
@@ -1350,8 +1350,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For authorized access to bolus"
+            "state" : "translated",
+            "value" : "Bolusa yetkili erişim için"
           }
         },
         "uk" : {
@@ -1487,8 +1487,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+            "state" : "translated",
+            "value" : "Sağlık uygulaması; kan glukozu, insülin ve karbonhidratları saklamak için kullanılır"
           }
         },
         "uk" : {
@@ -1624,8 +1624,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+            "state" : "translated",
+            "value" : "Sağlık uygulaması; kan glukozu, insülin ve karbonhidratları saklamak için kullanılır"
           }
         },
         "uk" : {
@@ -1762,7 +1762,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : ""
           }
         },
