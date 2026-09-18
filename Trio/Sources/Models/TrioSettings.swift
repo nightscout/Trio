@@ -26,6 +26,7 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var cgm: CGMType = .none
     var cgmPluginIdentifier: String = ""
     var uploadGlucose: Bool = true
+    var uploadCGMSensorStates: Bool = false
     var useCalendar: Bool = false
     var displayCalendarIOBandCOB: Bool = false
     var displayCalendarEmojis: Bool = false
@@ -168,6 +169,10 @@ extension TrioSettings: Decodable {
 
         if let uploadGlucose = try? container.decode(Bool.self, forKey: .uploadGlucose) {
             settings.uploadGlucose = uploadGlucose
+        }
+
+        if let uploadCGMSensorStates = try? container.decode(Bool.self, forKey: .uploadCGMSensorStates) {
+            settings.uploadCGMSensorStates = uploadCGMSensorStates
         }
 
         if let useCalendar = try? container.decode(Bool.self, forKey: .useCalendar) {

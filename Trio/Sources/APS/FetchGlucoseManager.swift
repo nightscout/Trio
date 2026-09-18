@@ -188,7 +188,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     }
 
     func reportCGMSensorObservation(_ observation: CGMSensorObservation) {
-        guard settingsManager.settings.isUploadEnabled else { return }
+        let settings = settingsManager.settings
+        guard settings.isUploadEnabled, settings.uploadCGMSensorStates else { return }
         let pending = sensorStateLock.perform { sensorStateLog.observe(observation) }
         guard let pending else { return }
 
