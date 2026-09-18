@@ -78,33 +78,21 @@ extension Stat.StateModel {
     /// Fetches loop statistics records for the specified duration
     /// - Parameter interval: The time period to fetch records for
     /// - Returns: A tuple containing arrays of NSManagedObjectIDs for (all loops, failed loops)
-    func fetchLoopStatRecords(for interval: StatsTimeIntervalWithToday) async throws
+    func fetchLoopStatRecords(for interval: StatsTimeIntervalWithCustom) async throws
         -> ([NSManagedObjectID], [NSManagedObjectID])
     {
         let loopTaskContext = CoreDataStack.shared.newTaskContext()
         loopTaskContext.name = "StatStateModel.fetchLoopStatRecords"
 
-        // Calculate the date range based on selected duration
-        let now = Date()
-        let startDate: Date
-        switch interval {
-        case .day:
-            startDate = now.addingTimeInterval(-24.hours.timeInterval)
-        case .today:
-            startDate = Calendar.current.startOfDay(for: now)
-        case .week:
-            startDate = now.addingTimeInterval(-7.days.timeInterval)
-        case .month:
-            startDate = now.addingTimeInterval(-30.days.timeInterval)
-        case .total:
-            startDate = now.addingTimeInterval(-90.days.timeInterval)
-        }
+        // Both edges, not just the start: the day interval can sit on a past day, which ends
+        // at its own midnight rather than at now.
+        let (startDate, endDate) = dateRange(for: interval)
 
         // Perform both fetches asynchronously
         async let allLoopsResult = CoreDataStack.shared.fetchEntitiesAsync(
             ofType: LoopStatRecord.self,
             onContext: loopTaskContext,
-            predicate: NSPredicate(format: "start > %@", startDate as NSDate),
+            predicate: NSPredicate(format: "start > %@ AND start < %@", startDate as NSDate, endDate as NSDate),
             key: "start",
             ascending: false
         )
@@ -113,8 +101,9 @@ extension Stat.StateModel {
             ofType: LoopStatRecord.self,
             onContext: loopTaskContext,
             predicate: NSPredicate(
-                format: "start > %@ AND loopStatus != %@",
+                format: "start > %@ AND start < %@ AND loopStatus != %@",
                 startDate as NSDate,
+                endDate as NSDate,
                 "Success"
             ),
             key: "start",
@@ -153,7 +142,7 @@ extension Stat.StateModel {
     func getLoopStats(
         allLoopIds: [NSManagedObjectID],
         failedLoopIds: [NSManagedObjectID],
-        interval: StatsTimeIntervalWithToday
+        interval: StatsTimeIntervalWithCustom
     ) async throws
         -> [LoopStatsProcessedData]
     {
@@ -161,23 +150,10 @@ extension Stat.StateModel {
         loopTaskContext.name = "StatStateModel.getLoopStats"
 
         // Calculate the date range for glucose readings
-        let now = Date()
-        let startDate: Date
-        switch interval {
-        case .day:
-            startDate = now.addingTimeInterval(-24.hours.timeInterval)
-        case .today:
-            startDate = Calendar.current.startOfDay(for: now)
-        case .week:
-            startDate = now.addingTimeInterval(-7.days.timeInterval)
-        case .month:
-            startDate = now.addingTimeInterval(-30.days.timeInterval)
-        case .total:
-            startDate = now.addingTimeInterval(-90.days.timeInterval)
-        }
+        let (startDate, endDate) = dateRange(for: interval)
 
         // Get glucose statistics (uses its own local context)
-        let totalGlucose = try await calculateGlucoseStats(from: startDate, to: now)
+        let totalGlucose = try await calculateGlucoseStats(from: startDate, to: endDate)
 
         // Get NSManagedObject
         let allLoops = try await CoreDataStack.shared
@@ -191,7 +167,7 @@ extension Stat.StateModel {
             let successfulLoops = totalLoopsCount - failedLoopsCount
             let maxLoopsPerDay = 288.0 // Maximum possible loops per day (every 5 minutes)
 
-            let numberOfDays = max(1, Calendar.current.dateComponents([.day], from: startDate, to: now).day ?? 1)
+            let numberOfDays = max(1, Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 1)
             let averageLoopsPerDay = Double(successfulLoops) / Double(numberOfDays)
             let averageGlucosePerDay = Double(totalGlucose) / Double(numberOfDays)
 
