@@ -329,9 +329,16 @@ extension Stat {
                     Image(systemName: "hand.draw.fill")
                         .foregroundStyle(Color.primary)
                         .padding(.leading)
-                    Text(hintText)
-                        .foregroundStyle(Color.secondary)
-                        .padding(.trailing)
+                    VStack(alignment: .leading) {
+                        Text(hintText)
+                        // Only while the day picker is on screen — it is the
+                        // thing the gesture acts on.
+                        if isDayPickerVisible {
+                            Text("Tap and hold the selected date to return to today.")
+                        }
+                    }
+                    .foregroundStyle(Color.secondary)
+                    .padding(.trailing)
                 }.font(.footnote)
             }
         }
