@@ -19,6 +19,9 @@ extension Stat {
         @State private var selectedView: StateModel.StatisticViewType = .glucose
         @State private var isGlucoseDaySelected: Bool = false
         @State private var showDayPickerSheet = false
+        /// Which shape the picker sheet is in. Seeded from the current selection each time
+        /// the sheet opens, so it reflects what the row above it is showing.
+        @State private var isRangeSelection = false
 
         /// The by-day charts draw one bar per day, so the rolling 24 h window has nothing to
         /// show them. A picked range does — several days is exactly what they want — so
@@ -182,7 +185,10 @@ extension Stat {
                     .frame(height: 28)
                     .contentShape(Rectangle())
                     .onLongPressGesture { jumpToToday() }
-                    .onTapGesture { showDayPickerSheet = true }
+                    .onTapGesture {
+                        isRangeSelection = state.selectedStatsRangeDayCount > 1
+                        showDayPickerSheet = true
+                    }
                     .accessibilityElement()
                     .accessibilityAddTraits(.isButton)
                     .accessibilityLabel(Text("Select days, \(selectedDayLabel)"))
@@ -268,12 +274,13 @@ extension Stat {
             state.selectedStatsRange = shifted
         }
 
-        /// Picks the window directly, for a stretch further off than a chevron or two. Two
-        /// bounded pickers rather than one calendar: SwiftUI has no range date picker, and each
-        /// end only ever needs to be a day.
+        /// Picks the window directly, for a stretch further off than a chevron or two. The
+        /// "Range" toggle chooses the shape: one day, or a From/To pair. Bounded pickers rather
+        /// than a calendar, because SwiftUI has no range date picker and each end is only ever
+        /// a day.
         ///
-        /// Both are clamped to the span the stats screen holds data for, and to each other, so
-        /// the range can never invert or land where there is nothing to show.
+        /// Every picker is clamped to the span the stats screen holds data for, and the pair is
+        /// clamped to itself, so the range can never invert or land where there is nothing.
         @ViewBuilder private var dayPickerSheet: some View {
             let earliest = Calendar.current.startOfDay(for: state.earliestSelectableStatsDay)
             let today = Calendar.current.startOfDay(for: Date())
@@ -281,46 +288,84 @@ extension Stat {
             NavigationStack {
                 Form {
                     Section {
-                        DatePicker(
-                            "From",
-                            selection: Binding(
-                                get: { state.selectedStatsRange.lowerBound },
-                                set: { newValue in
-                                    let start = Calendar.current.startOfDay(for: newValue)
-                                    // Dragging the start past the end takes the end with it
-                                    // rather than refusing the gesture.
-                                    let end = max(start, state.selectedStatsRange.upperBound)
-                                    state.selectedStatsRange = start ... end
+                        Toggle("Range", isOn: Binding(
+                            get: { isRangeSelection },
+                            set: { wantsRange in
+                                isRangeSelection = wantsRange
+                                // Leaving range mode keeps the most recent day of the window —
+                                // a range ending today collapses onto today, not onto whatever
+                                // its far end was.
+                                if !wantsRange {
+                                    let day = state.selectedStatsRange.upperBound
+                                    state.selectedStatsRange = day ... day
                                 }
-                            ),
-                            in: earliest ... today,
-                            displayedComponents: .date
-                        )
-                        DatePicker(
-                            "To",
-                            selection: Binding(
-                                get: { state.selectedStatsRange.upperBound },
-                                set: { newValue in
-                                    let end = Calendar.current.startOfDay(for: newValue)
-                                    let start = min(end, state.selectedStatsRange.lowerBound)
-                                    state.selectedStatsRange = start ... end
-                                }
-                            ),
-                            in: earliest ... today,
-                            displayedComponents: .date
-                        )
+                            }
+                        ))
+                    }.listRowBackground(Color.chart)
+
+                    Section {
+                        if isRangeSelection {
+                            DatePicker(
+                                "From",
+                                selection: Binding(
+                                    get: { state.selectedStatsRange.lowerBound },
+                                    set: { newValue in
+                                        let start = Calendar.current.startOfDay(for: newValue)
+                                        // Dragging the start past the end takes the end with it
+                                        // rather than refusing the gesture.
+                                        let end = max(start, state.selectedStatsRange.upperBound)
+                                        state.selectedStatsRange = start ... end
+                                    }
+                                ),
+                                in: earliest ... today,
+                                displayedComponents: .date
+                            )
+                            DatePicker(
+                                "To",
+                                selection: Binding(
+                                    get: { state.selectedStatsRange.upperBound },
+                                    set: { newValue in
+                                        let end = Calendar.current.startOfDay(for: newValue)
+                                        let start = min(end, state.selectedStatsRange.lowerBound)
+                                        state.selectedStatsRange = start ... end
+                                    }
+                                ),
+                                in: earliest ... today,
+                                displayedComponents: .date
+                            )
+                        } else {
+                            DatePicker(
+                                "Day",
+                                selection: Binding(
+                                    get: { state.selectedStatsRange.upperBound },
+                                    set: { newValue in
+                                        let day = Calendar.current.startOfDay(for: newValue)
+                                        state.selectedStatsRange = day ... day
+                                    }
+                                ),
+                                in: earliest ... today,
+                                displayedComponents: .date
+                            )
+                        }
                     } footer: {
-                        Text(rangeSummary)
+                        if isRangeSelection {
+                            Text(rangeSummary)
+                        }
                     }.listRowBackground(Color.chart)
                 }
+                // Hidden Form background and none painted over it: the sheet keeps the
+                // system material it had before it became a Form, and only the rows carry
+                // Trio's card colour.
                 .scrollContentBackground(.hidden)
-                .background(appState.trioBackgroundColor(for: colorScheme))
-                .navigationTitle("Select Days")
+                // Text, not a String ternary: a ternary of two literals is a plain String and
+                // would skip localization.
+                .navigationTitle(isRangeSelection ? Text("Select Days") : Text("Select Day"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button("Today") {
                             state.selectedStatsRange = today ... today
+                            isRangeSelection = false
                             showDayPickerSheet = false
                         }
                         .disabled(state.selectedStatsRange == today ... today)
@@ -330,8 +375,8 @@ extension Stat {
                     }
                 }
             }
-            // One height, no drag to full screen: two rows and a footer, so the extra detent
-            // only ever added blank space under them.
+            // One height, no drag to full screen: at most a toggle, two rows and a footer,
+            // so the extra detent only ever added blank space under them.
             .presentationDetents([.medium])
         }
 
