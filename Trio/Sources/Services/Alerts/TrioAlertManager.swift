@@ -579,13 +579,6 @@ final class AlertMuter: ObservableObject {
     @Published private(set) var startDate: Date?
     @Published private(set) var duration: TimeInterval = 0
 
-    static let allowedDurations: [TimeInterval] = [
-        30 * 60,
-        60 * 60,
-        2 * 60 * 60,
-        4 * 60 * 60
-    ]
-
     func mute(for duration: TimeInterval, from start: Date = Date()) {
         startDate = start
         self.duration = duration
