@@ -382,7 +382,11 @@ extension Stat {
                             timeInRangeType: state.timeInRangeType,
                             units: state.units,
                             hourlyStats: state.hourlyStats,
+                            // Only the real today: the chart uses this to blank out hours that
+                            // have not happened yet, and the day interval now reports on whichever
+                            // day the picker is on - on a past day every hour has already happened.
                             isToday: state.selectedIntervalForGlucoseStats == .today
+                                && Calendar.current.isDateInToday(state.selectedStatsDay)
                         )
 
                     case .distributionByTime:
