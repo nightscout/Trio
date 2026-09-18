@@ -1319,8 +1319,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "  ◦ A TBR higher than your scheduled rate will increase IOB"
+            "state" : "translated",
+            "value" : "  ◦ Planlanan hızınızdan yüksek bir TBR, IOB'yi artırır"
           }
         },
         "uk" : {
@@ -1449,8 +1449,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "  ◦ A TBR lower than your scheduled rate will decrease IOB"
+            "state" : "translated",
+            "value" : "  ◦ Planlanan hızınızdan düşük bir TBR, IOB'yi azaltır"
           }
         },
         "uk" : {
@@ -1983,7 +1983,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : " %1$@ · GMI %2$@"
           }
         },
@@ -2113,8 +2113,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : " Allow Trio to send you Notifications. These may include alerts, sounds, and icon badges."
+            "state" : "translated",
+            "value" : " Trio'nun size bildirim göndermesine izin verin. Bunlar uyarıları, sesleri ve simge rozetlerini içerebilir."
           }
         },
         "uk" : {
@@ -2243,8 +2243,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : " as a beginner."
+            "state" : "translated",
+            "value" : " yeni başlayan biri olarak."
           }
         },
         "uk" : {
@@ -3309,8 +3309,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : " of "
+            "state" : "translated",
+            "value" : " / "
           }
         },
         "uk" : {
@@ -3439,8 +3439,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : " of usage data and is not yet configurable."
+            "state" : "translated",
+            "value" : " günlük kullanım verisine dayanır ve henüz yapılandırılabilir değildir."
           }
         },
         "uk" : {
@@ -3570,7 +3570,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : " SMB"
           }
         },
@@ -3969,8 +3969,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : " U) - Current IOB ("
+            "state" : "translated",
+            "value" : " U) - Mevcut IOB ("
           }
         },
         "uk" : {
@@ -4099,7 +4099,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : " U) = "
           }
         },
@@ -4368,8 +4368,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : " without bolusing"
+            "state" : "translated",
+            "value" : " bolus yapmadan"
           }
         },
         "uk" : {
@@ -4505,8 +4505,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : " Your setting: "
+            "state" : "translated",
+            "value" : " Ayarınız: "
           }
         },
         "uk" : {
@@ -4635,7 +4635,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "-"
           }
         },
@@ -4765,7 +4765,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "--"
           }
         },
@@ -4895,7 +4895,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "---"
           }
         },
@@ -5025,7 +5025,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "-1"
           }
         },
@@ -5155,7 +5155,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "– –"
           }
         },
@@ -5285,7 +5285,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : ", %lld%%"
           }
         },
@@ -5423,8 +5423,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : ". Changing: "
+            "state" : "translated",
+            "value" : ". Değişiyor: "
           }
         },
         "uk" : {
@@ -5561,8 +5561,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : ". Climbing: "
+            "state" : "translated",
+            "value" : ". Yükseliyor: "
           }
         },
         "uk" : {
@@ -5699,8 +5699,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : ". Falling: "
+            "state" : "translated",
+            "value" : ". Düşüyor: "
           }
         },
         "uk" : {
@@ -5837,8 +5837,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "... When Blood Glucose Is Over (mg/dl):"
+            "state" : "translated",
+            "value" : "... Kan Glukozu Şu Değerin Üzerindeyken (mg/dl):"
           }
         },
         "uk" : {
@@ -5967,7 +5967,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "·"
           }
         },
@@ -6097,8 +6097,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "“Trio” Would Like to Use Bluetooth"
+            "state" : "translated",
+            "value" : "“Trio” Bluetooth'u Kullanmak İstiyor"
           }
         },
         "uk" : {
@@ -6227,7 +6227,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "("
           }
         },
@@ -6357,8 +6357,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "(50% current basal rate)"
+            "state" : "translated",
+            "value" : "(mevcut bazal hızın %50'si)"
           }
         },
         "uk" : {
@@ -6495,8 +6495,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "(Eventual Glucose - Target) / ISF"
+            "state" : "translated",
+            "value" : "(Öngörülen Glukoz - Hedef) / ISF"
           }
         },
         "uk" : {
@@ -6625,8 +6625,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "(Fat × 45%) + (Protein × 20%)"
+            "state" : "translated",
+            "value" : "(Yağ × 45%) + (Protein × 20%)"
           }
         },
         "uk" : {
@@ -6755,8 +6755,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "(Fat × 90%) + (Protein × 40%)"
+            "state" : "translated",
+            "value" : "(Yağ × 90%) + (Protein × 40%)"
           }
         },
         "uk" : {
@@ -6885,8 +6885,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "(Fat × 99%) + (Protein x 44%)"
+            "state" : "translated",
+            "value" : "(Yağ × 99%) + (Protein x 44%)"
           }
         },
         "uk" : {
@@ -7015,8 +7015,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "(Optional)"
+            "state" : "translated",
+            "value" : "(İsteğe bağlı)"
           }
         },
         "uk" : {
@@ -7145,8 +7145,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "(𝒳 / 60) × current basal rate"
+            "state" : "translated",
+            "value" : "(𝒳 / 60) × mevcut bazal hız"
           }
         },
         "uk" : {
@@ -7275,7 +7275,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : ")"
           }
         },
@@ -7413,7 +7413,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "[ -1 ]"
           }
         },
@@ -7551,7 +7551,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "[ +1 ]"
           }
         },
@@ -7681,7 +7681,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "/"
           }
         },
@@ -7812,7 +7812,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%"
           }
         },
@@ -7942,7 +7942,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%.0f%%"
           }
         },
@@ -8073,7 +8073,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@"
           }
         },
@@ -8203,7 +8203,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@ "
           }
         },
@@ -8339,7 +8339,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@  %2$@"
           }
         },
@@ -8475,7 +8475,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ - 0.5 × (%2$@ - %3$@) = %4$@"
           }
         },
@@ -8611,7 +8611,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ (%2$@-%3$@)"
           }
         },
@@ -8747,8 +8747,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ (mode is using %2$@)"
+            "state" : "translated",
+            "value" : "%1$@ (mod %2$@ kullanıyor)"
           }
         },
         "uk" : {
@@ -8883,7 +8883,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ %2$@"
           }
         },
@@ -9019,7 +9019,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ %2$@ / %3$@ %4$@/%5$@ = %6$@ %7$@"
           }
         },
@@ -9149,7 +9149,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@ %%"
           }
         },
@@ -9286,8 +9286,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ and %2$lld g fat"
+            "state" : "translated",
+            "value" : "%1$@ ve %2$lld g yağ"
           }
         },
         "uk" : {
@@ -9423,8 +9423,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ and %2$lld g protein"
+            "state" : "translated",
+            "value" : "%1$@ ve %2$lld g protein"
           }
         },
         "uk" : {
@@ -9559,8 +9559,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ at %2$@"
+            "state" : "translated",
+            "value" : "%2$@ saatinde %1$@"
           }
         },
         "uk" : {
@@ -9691,8 +9691,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%@ carbs"
+            "state" : "translated",
+            "value" : "%@ karbonhidrat"
           }
         },
         "uk" : {
@@ -9822,8 +9822,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%@ Device Alerts"
+            "state" : "translated",
+            "value" : "%@ Cihaz Uyarıları"
           }
         },
         "uk" : {
@@ -9954,8 +9954,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%@ fat"
+            "state" : "translated",
+            "value" : "%@ yağ"
           }
         },
         "uk" : {
@@ -10084,7 +10084,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@ g"
           }
         },
@@ -10216,8 +10216,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%@ insulin"
+            "state" : "translated",
+            "value" : "%@ insülin"
           }
         },
         "uk" : {
@@ -10352,8 +10352,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ is on. %2$@"
+            "state" : "translated",
+            "value" : "%1$@ açık. %2$@"
           }
         },
         "uk" : {
@@ -10482,8 +10482,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%@ is running"
+            "state" : "translated",
+            "value" : "%@ çalışıyor"
           }
         },
         "uk" : {
@@ -10612,7 +10612,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@ min"
           }
         },
@@ -10744,7 +10744,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@ protein"
           }
         },
@@ -10880,7 +10880,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@-%2$@"
           }
         },
@@ -11016,7 +11016,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@: %2$@"
           }
         },
@@ -11146,7 +11146,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@?"
           }
         },
@@ -11282,7 +11282,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@. %2$@"
           }
         },
@@ -11412,7 +11412,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@/U"
           }
         },
@@ -11542,8 +11542,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%@%% Insulin"
+            "state" : "translated",
+            "value" : "%@%% İnsülin"
           }
         },
         "uk" : {
@@ -11680,8 +11680,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ for %2$@"
+            "state" : "translated",
+            "value" : "%2$@ süreyle %1$@"
           }
         },
         "uk" : {
@@ -11811,8 +11811,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$d days %2$d hours"
+            "state" : "translated",
+            "value" : "%1$d gün %2$d saat"
           }
         },
         "uk" : {
@@ -11942,8 +11942,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$d hours %2$d minutes"
+            "state" : "translated",
+            "value" : "%1$d saat %2$d dakika"
           }
         },
         "uk" : {
@@ -12073,8 +12073,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%d calibration points"
+            "state" : "translated",
+            "value" : "%d kalibrasyon noktası"
           }
         },
         "uk" : {
@@ -12204,8 +12204,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%d hours"
+            "state" : "translated",
+            "value" : "%d saat"
           }
         },
         "uk" : {
@@ -12335,8 +12335,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%d minutes"
+            "state" : "translated",
+            "value" : "%d dakika"
           }
         },
         "uk" : {
@@ -12466,8 +12466,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%d minutes ago"
+            "state" : "translated",
+            "value" : "%d dakika önce"
           }
         },
         "uk" : {
@@ -12597,8 +12597,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%dh ago"
+            "state" : "translated",
+            "value" : "%d sa önce"
           }
         },
         "uk" : {
@@ -12728,8 +12728,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%dm ago"
+            "state" : "translated",
+            "value" : "%d dk önce"
           }
         },
         "uk" : {
@@ -12859,8 +12859,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%ds ago"
+            "state" : "translated",
+            "value" : "%d sn önce"
           }
         },
         "uk" : {
@@ -12989,7 +12989,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%lld"
           }
         },
@@ -13119,7 +13119,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%lld %%"
           }
         },
@@ -13249,7 +13249,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%lld g"
           }
         },
@@ -13379,8 +13379,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%lld h"
+            "state" : "translated",
+            "value" : "%lld sa"
           }
         },
         "uk" : {
@@ -13509,8 +13509,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%lld hr"
+            "state" : "translated",
+            "value" : "%lld sa"
           }
         },
         "uk" : {
@@ -13639,8 +13639,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%lld m"
+            "state" : "translated",
+            "value" : "%lld dk"
           }
         },
         "uk" : {
@@ -13769,8 +13769,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%lld min"
+            "state" : "translated",
+            "value" : "%lld dk"
           }
         },
         "uk" : {
@@ -13899,7 +13899,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%lld x"
           }
         },
@@ -14029,7 +14029,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%lld%%"
           }
         },
@@ -14159,7 +14159,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "•"
           }
         },
@@ -14289,7 +14289,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "• %@"
           }
         },
@@ -14419,8 +14419,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• A higher number means you need less insulin for the same amount of carbs"
+            "state" : "translated",
+            "value" : "• Daha yüksek bir sayı, aynı miktarda karbonhidrat için daha az insüline ihtiyacınız olduğu anlamına gelir"
           }
         },
         "uk" : {
@@ -14549,8 +14549,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• A higher number means you're more sensitive (less resistant) to insulin"
+            "state" : "translated",
+            "value" : "• Daha yüksek bir sayı, insüline karşı daha duyarlı (daha az dirençli) olduğunuz anlamına gelir"
           }
         },
         "uk" : {
@@ -14679,8 +14679,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• A lower number means you need more insulin for the same amount of carbs"
+            "state" : "translated",
+            "value" : "• Daha düşük bir sayı, aynı miktarda karbonhidrat için daha fazla insüline ihtiyacınız olduğu anlamına gelir"
           }
         },
         "uk" : {
@@ -14809,8 +14809,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• A lower number means you're less sensitive (more resistant) to insulin"
+            "state" : "translated",
+            "value" : "• Daha düşük bir sayı, insüline karşı daha az duyarlı (daha dirençli) olduğunuz anlamına gelir"
           }
         },
         "uk" : {
@@ -14939,8 +14939,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• A ratio of 10 g/U means 1 unit of insulin covers 10 g of carbs"
+            "state" : "translated",
+            "value" : "• 10 g/U'luk bir oran, 1 ünite insülinin 10 g karbonhidratı karşıladığı anlamına gelir"
           }
         },
         "uk" : {
@@ -15075,8 +15075,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• An ISF of %1$@ %2$@/U means 1 U lowers your glucose by %3$@ %4$@"
+            "state" : "translated",
+            "value" : "• %1$@ %2$@/U'luk bir ISF, 1 U insülinin glukozunuzu %3$@ %4$@ düşürdüğü anlamına gelir"
           }
         },
         "uk" : {
@@ -15205,8 +15205,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Basal Rate"
+            "state" : "translated",
+            "value" : "• Bazal Hız"
           }
         },
         "uk" : {
@@ -15335,8 +15335,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Boluses (including SMBs)"
+            "state" : "translated",
+            "value" : "• Boluslar (SMB'ler dahil)"
           }
         },
         "uk" : {
@@ -15465,8 +15465,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Carb Ratio"
+            "state" : "translated",
+            "value" : "• Karbonhidrat Oranı"
           }
         },
         "uk" : {
@@ -15595,8 +15595,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Carbs"
+            "state" : "translated",
+            "value" : "• Karbonhidrat"
           }
         },
         "uk" : {
@@ -15725,8 +15725,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• COB: Carbohydrates On Board"
+            "state" : "translated",
+            "value" : "• COB: Aktif Karbonhidrat"
           }
         },
         "uk" : {
@@ -15855,8 +15855,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• COB: Carbs on Board."
+            "state" : "translated",
+            "value" : "• COB: Aktif Karbonhidrat."
           }
         },
         "uk" : {
@@ -15985,8 +15985,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Color Mode: Color keeps the glucose number's dynamic color; Monochrome shows it in white. The ring and arrow stay colored either way."
+            "state" : "translated",
+            "value" : "• Renk Modu: Renkli seçeneği glukoz sayısının dinamik rengini korur, Tek Renk ise beyaz gösterir. Halka ve ok her iki durumda da renkli kalır."
           }
         },
         "uk" : {
@@ -16115,8 +16115,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Current Glucose Reading"
+            "state" : "translated",
+            "value" : "• Güncel Glukoz Ölçümü"
           }
         },
         "uk" : {
@@ -16245,8 +16245,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Default: Single 'primary' value with up to two smaller values ('Top', 'Bottom') above and below it."
+            "state" : "translated",
+            "value" : "• Varsayılan: Tek bir 'birincil' değer, üstünde ve altında en fazla iki küçük değer ('Üst', 'Alt')."
           }
         },
         "uk" : {
@@ -16375,8 +16375,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Device Status"
+            "state" : "translated",
+            "value" : "• Cihaz Durumu"
           }
         },
         "uk" : {
@@ -16505,8 +16505,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Different times of day may require different ratios"
+            "state" : "translated",
+            "value" : "• Günün farklı saatleri farklı oranlar gerektirebilir"
           }
         },
         "uk" : {
@@ -16635,8 +16635,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Eventual Glucose: Glucose value as forecasted by the oref algorithm."
+            "state" : "translated",
+            "value" : "• Öngörülen Glukoz: oref algoritmasının tahmin ettiği glukoz değeri."
           }
         },
         "uk" : {
@@ -16765,8 +16765,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Fat and Protein Delay"
+            "state" : "translated",
+            "value" : "• Yağ ve Protein Gecikmesi"
           }
         },
         "uk" : {
@@ -16895,8 +16895,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Fat and Protein Percentage"
+            "state" : "translated",
+            "value" : "• Yağ ve Protein Yüzdesi"
           }
         },
         "uk" : {
@@ -17025,8 +17025,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Font Size: Adjust the main text size."
+            "state" : "translated",
+            "value" : "• Yazı Tipi Boyutu: Ana metin boyutunu ayarlar."
           }
         },
         "uk" : {
@@ -17155,8 +17155,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Font Weight: Control how bold the text appears."
+            "state" : "translated",
+            "value" : "• Yazı Tipi Kalınlığı: Metnin ne kadar kalın görüneceğini denetler."
           }
         },
         "uk" : {
@@ -17285,8 +17285,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Font Width: Choose between standard or expanded text spacing."
+            "state" : "translated",
+            "value" : "• Yazı Tipi Genişliği: Standart veya geniş metin aralığı arasında seçim yapın."
           }
         },
         "uk" : {
@@ -17415,8 +17415,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Glucose Bobble: Mirrors the glucose HUD, colored by glucose value with a trend arrow."
+            "state" : "translated",
+            "value" : "• Glukoz Baloncuğu: Glukoz göstergesini yansıtır; glukoz değerine göre renklenir ve eğilim oku içerir."
           }
         },
         "uk" : {
@@ -17545,8 +17545,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Glucose Delta: Change in glucose value."
+            "state" : "translated",
+            "value" : "• Glukoz Farkı: Glukoz değerindeki değişim."
           }
         },
         "uk" : {
@@ -17675,8 +17675,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Glucose Reading: Current CGM provided glucose value."
+            "state" : "translated",
+            "value" : "• Glukoz Ölçümü: CGM'in sağladığı güncel glukoz değeri."
           }
         },
         "uk" : {
@@ -17805,8 +17805,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Glucose Target"
+            "state" : "translated",
+            "value" : "• Glukoz Hedefi"
           }
         },
         "uk" : {
@@ -17935,8 +17935,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Glucose Trend Chart"
+            "state" : "translated",
+            "value" : "• Glukoz Eğilim Grafiği"
           }
         },
         "uk" : {
@@ -18065,8 +18065,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Glucose Trend: Direction of glucose change."
+            "state" : "translated",
+            "value" : "• Glukoz Eğilimi: Glukoz değişiminin yönü."
           }
         },
         "uk" : {
@@ -18195,8 +18195,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Hidden: No ring displayed."
+            "state" : "translated",
+            "value" : "• Gizli: Halka gösterilmez."
           }
         },
         "uk" : {
@@ -18325,8 +18325,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• In Trio history, you will see the smoothed value next to the original reading."
+            "state" : "translated",
+            "value" : "• Trio geçmişinde, yumuşatılmış değeri özgün ölçümün yanında görürsünüz."
           }
         },
         "uk" : {
@@ -18455,8 +18455,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Insulin Sensitivity"
+            "state" : "translated",
+            "value" : "• İnsülin Duyarlılığı"
           }
         },
         "uk" : {
@@ -18585,8 +18585,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• IOB: Insulin On Board"
+            "state" : "translated",
+            "value" : "• IOB: Aktif İnsülin"
           }
         },
         "uk" : {
@@ -18715,8 +18715,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• IOB: Insulin on Board."
+            "state" : "translated",
+            "value" : "• IOB: Aktif İnsülin."
           }
         },
         "uk" : {
@@ -18845,8 +18845,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Last Loop Time: Time of the last algorithm run."
+            "state" : "translated",
+            "value" : "• Son Döngü Zamanı: Algoritmanın son çalıştığı zaman."
           }
         },
         "uk" : {
@@ -18975,8 +18975,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Last Updated: Time of Last Loop Cycle"
+            "state" : "translated",
+            "value" : "• Son Güncelleme: Son Döngü Turunun Zamanı"
           }
         },
         "uk" : {
@@ -19105,8 +19105,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Loop Status: Indicates current loop status (green, yellow, red)."
+            "state" : "translated",
+            "value" : "• Döngü Durumu: Güncel döngü durumunu gösterir (yeşil, sarı, kırmızı)."
           }
         },
         "uk" : {
@@ -19235,8 +19235,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Manual boluses you enter yourself"
+            "state" : "translated",
+            "value" : "• Kendi girdiğiniz manuel boluslar"
           }
         },
         "uk" : {
@@ -19365,8 +19365,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Manual temporary basal rates you set yourself"
+            "state" : "translated",
+            "value" : "• Kendi ayarladığınız manuel geçici bazal hızlar"
           }
         },
         "uk" : {
@@ -19495,8 +19495,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• None: No value displayed."
+            "state" : "translated",
+            "value" : "• Yok: Hiçbir değer gösterilmez."
           }
         },
         "uk" : {
@@ -19625,8 +19625,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Preferences"
+            "state" : "translated",
+            "value" : "• Tercihler"
           }
         },
         "uk" : {
@@ -19755,8 +19755,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Secondary Font Size: Adjust text size for values in split layouts."
+            "state" : "translated",
+            "value" : "• İkincil Yazı Tipi Boyutu: Bölünmüş düzenlerdeki değerlerin metin boyutunu ayarlar."
           }
         },
         "uk" : {
@@ -19885,8 +19885,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Settings"
+            "state" : "translated",
+            "value" : "• Ayarlar"
           }
         },
         "uk" : {
@@ -20015,8 +20015,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Show Delta: Toggle the glucose delta beneath the glucose number."
+            "state" : "translated",
+            "value" : "• Farkı Göster: Glukoz sayısının altındaki glukoz farkını açıp kapatır."
           }
         },
         "uk" : {
@@ -20145,8 +20145,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Show Minutes Since Reading: Toggle the reading age beneath the glucose number."
+            "state" : "translated",
+            "value" : "• Ölçümden Bu Yana Geçen Dakikayı Göster: Glukoz sayısının altındaki ölçüm yaşını açıp kapatır."
           }
         },
         "uk" : {
@@ -20275,8 +20275,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Split: Divides values into two separate areas of same size."
+            "state" : "translated",
+            "value" : "• Bölünmüş: Değerleri aynı boyutta iki ayrı alana böler."
           }
         },
         "uk" : {
@@ -20405,8 +20405,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Spread Interval"
+            "state" : "translated",
+            "value" : "• Yayılma Aralığı"
           }
         },
         "uk" : {
@@ -20535,8 +20535,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Temp Targets"
+            "state" : "translated",
+            "value" : "• Geçici Hedefler"
           }
         },
         "uk" : {
@@ -20665,8 +20665,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• Temporary Basal Rates (TBRs)"
+            "state" : "translated",
+            "value" : "• Geçici Bazal Hızlar (TBR)"
           }
         },
         "uk" : {
@@ -20795,8 +20795,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• The main chart and treatment chart show a light gray trend line for the smoothed values. The glucose dots always show your original CGM readings."
+            "state" : "translated",
+            "value" : "• Ana grafik ve tedavi grafiği, yumuşatılmış değerler için açık gri bir eğilim çizgisi gösterir. Glukoz noktaları her zaman özgün CGM ölçümlerinizi gösterir."
           }
         },
         "uk" : {
@@ -20925,8 +20925,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "• When you long-press a chart, the pop-up will show both the original and smoothed values."
+            "state" : "translated",
+            "value" : "• Bir grafiğe uzun bastığınızda açılan pencere hem özgün hem de yumuşatılmış değerleri gösterir."
           }
         },
         "uk" : {
@@ -21055,7 +21055,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "→"
           }
         },
@@ -21185,7 +21185,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "+"
           }
         },
@@ -21315,7 +21315,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "+6"
           }
         },
@@ -21445,7 +21445,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "±"
           }
         },
@@ -21575,7 +21575,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "×"
           }
         },
@@ -21705,7 +21705,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "< %@"
           }
         },
@@ -21835,7 +21835,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "="
           }
         },
@@ -21965,7 +21965,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "> %@"
           }
         },
@@ -22095,7 +22095,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "−"
           }
         },
@@ -22225,8 +22225,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "❗ Notifications are Required"
+            "state" : "translated",
+            "value" : "❗ Bildirimler Gereklidir"
           }
         },
         "uk" : {
@@ -22355,7 +22355,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "💉: IOB"
           }
         },
@@ -22485,8 +22485,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "🔴: Below-Range"
+            "state" : "translated",
+            "value" : "🔴: Aralık Altı"
           }
         },
         "uk" : {
@@ -22615,7 +22615,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "🥨: COB"
           }
         },
@@ -22745,8 +22745,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "🟠: Above-Range"
+            "state" : "translated",
+            "value" : "🟠: Aralık Üstü"
           }
         },
         "uk" : {
@@ -22875,8 +22875,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "🟢: In-Range"
+            "state" : "translated",
+            "value" : "🟢: Aralıkta"
           }
         },
         "uk" : {
@@ -23144,8 +23144,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "0.1 U and over"
+            "state" : "translated",
+            "value" : "0,1 U ve üzeri"
           }
         },
         "uk" : {
@@ -23275,8 +23275,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "0.5 U and over"
+            "state" : "translated",
+            "value" : "0,5 U ve üzeri"
           }
         },
         "uk" : {
@@ -23406,8 +23406,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "1 U and over"
+            "state" : "translated",
+            "value" : "1 U ve üzeri"
           }
         },
         "uk" : {
@@ -23536,8 +23536,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "1. Open the Settings app on your iOS device."
+            "state" : "translated",
+            "value" : "1. iOS cihazınızda Ayarlar uygulamasını açın."
           }
         },
         "uk" : {
@@ -23673,8 +23673,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "2 hours"
+            "state" : "translated",
+            "value" : "2 saat"
           }
         },
         "uk" : {
@@ -23803,7 +23803,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "2 U"
           }
         },
@@ -23933,8 +23933,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "2. Scroll down or type \"Health\" in the settings search bar and select the \"Health\" app."
+            "state" : "translated",
+            "value" : "2. Aşağı kaydırın veya ayarlar arama çubuğuna \"Sağlık\" yazıp \"Sağlık\" uygulamasını seçin."
           }
         },
         "uk" : {
@@ -24064,8 +24064,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "3 M"
+            "state" : "translated",
+            "value" : "3 A"
           }
         },
         "uk" : {
@@ -24194,8 +24194,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "3. Tap on \"Data Access & Devices\"."
+            "state" : "translated",
+            "value" : "3. \"Veri Erişimi ve Aygıtlar\" seçeneğine dokunun."
           }
         },
         "uk" : {
@@ -24331,8 +24331,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "4 hours"
+            "state" : "translated",
+            "value" : "4 saat"
           }
         },
         "uk" : {
@@ -24461,8 +24461,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "4. Find and select \"Trio\" from the list of apps."
+            "state" : "translated",
+            "value" : "4. Uygulama listesinden \"Trio\"yu bulup seçin."
           }
         },
         "uk" : {
@@ -24591,8 +24591,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "5. Ensure that the \"Write Data\" option is enabled for the desired health metrics."
+            "state" : "translated",
+            "value" : "5. İstediğiniz sağlık verileri için \"Veri Yaz\" seçeneğinin etkin olduğundan emin olun."
           }
         },
         "uk" : {
@@ -24728,8 +24728,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "6 hours"
+            "state" : "translated",
+            "value" : "6 saat"
           }
         },
         "uk" : {
@@ -24858,8 +24858,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "7 days"
+            "state" : "translated",
+            "value" : "7 gün"
           }
         },
         "uk" : {
@@ -24988,7 +24988,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "10-90"
           }
         },
@@ -25118,8 +25118,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "10%:"
+            "state" : "translated",
+            "value" : "%10:"
           }
         },
         "uk" : {
@@ -25248,8 +25248,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "10th Percentile"
+            "state" : "translated",
+            "value" : "10. Yüzdelik"
           }
         },
         "uk" : {
@@ -25385,8 +25385,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "12 hours"
+            "state" : "translated",
+            "value" : "12 saat"
           }
         },
         "uk" : {
@@ -25515,8 +25515,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "15 minutes earlier"
+            "state" : "translated",
+            "value" : "15 dakika önce"
           }
         },
         "uk" : {
@@ -25645,8 +25645,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "15 minutes later"
+            "state" : "translated",
+            "value" : "15 dakika sonra"
           }
         },
         "uk" : {
@@ -25775,7 +25775,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "19:05"
           }
         },
@@ -25912,8 +25912,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "24 hours"
+            "state" : "translated",
+            "value" : "24 saat"
           }
         },
         "uk" : {
@@ -26042,7 +26042,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "25 g"
           }
         },
@@ -26172,7 +26172,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "25-75"
           }
         },
@@ -26302,8 +26302,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "25%:"
+            "state" : "translated",
+            "value" : "%25:"
           }
         },
         "uk" : {
@@ -26432,8 +26432,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "25th Percentile"
+            "state" : "translated",
+            "value" : "25. Yüzdelik"
           }
         },
         "uk" : {
@@ -26562,8 +26562,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "43.21 U"
+            "state" : "translated",
+            "value" : "43,21 U"
           }
         },
         "uk" : {
@@ -26692,8 +26692,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "50% is half effect:"
+            "state" : "translated",
+            "value" : "%50 yarı etki demektir:"
           }
         },
         "uk" : {
@@ -26822,8 +26822,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "75%:"
+            "state" : "translated",
+            "value" : "%75:"
           }
         },
         "uk" : {
@@ -26952,8 +26952,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "75th Percentile"
+            "state" : "translated",
+            "value" : "75. Yüzdelik"
           }
         },
         "uk" : {
@@ -27082,8 +27082,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "90%:"
+            "state" : "translated",
+            "value" : "%90:"
           }
         },
         "uk" : {
@@ -27212,8 +27212,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "90th Percentile"
+            "state" : "translated",
+            "value" : "90. Yüzdelik"
           }
         },
         "uk" : {
@@ -27342,8 +27342,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "100% is full effect:"
+            "state" : "translated",
+            "value" : "%100 tam etki demektir:"
           }
         },
         "uk" : {
@@ -27472,8 +27472,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "110% makes fat-to-carbs ratio essentially equal:"
+            "state" : "translated",
+            "value" : "%110 yağ-karbonhidrat oranını neredeyse eşitler:"
           }
         },
         "uk" : {
@@ -27602,7 +27602,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "123"
           }
         },
@@ -27732,8 +27732,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "A bolus command of %@ U of insulin was sent."
+            "state" : "translated",
+            "value" : "%@ U insülin için bolus komutu gönderildi."
           }
         },
         "uk" : {
@@ -27862,8 +27862,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "A display of On/On indicates both Dynamic ISF and CR are enabled. On/Off indicates only Dynamic ISF is enabled. Dynamic CR cannot be enabled when Dynamic ISF is disabled."
+            "state" : "translated",
+            "value" : "Açık/Açık gösterimi hem Dinamik ISF'nin hem de Dinamik CR'nin etkin olduğunu belirtir. Açık/Kapalı yalnızca Dinamik ISF'nin etkin olduğunu belirtir. Dinamik ISF kapalıyken Dinamik CR etkinleştirilemez."
           }
         },
         "uk" : {
@@ -27992,8 +27992,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "A few important notes…"
+            "state" : "translated",
+            "value" : "Birkaç önemli not…"
           }
         },
         "uk" : {
@@ -28122,8 +28122,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "A heartbeat tells Trio to start a loop cycle. This is required for closed loop."
+            "state" : "translated",
+            "value" : "Kalp atışı (heartbeat), Trio'ya bir döngü turu başlatmasını söyler. Kapalı döngü için gereklidir."
           }
         },
         "uk" : {
@@ -28259,8 +28259,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "A lower 'Half Basal Target' setting will reduce the basal and raise the ISF earlier, at a lower target glucose."
+            "state" : "translated",
+            "value" : "Daha düşük bir 'Yarım Bazal Hedefi' ayarı, bazalı daha erken ve daha düşük bir hedef glukozda azaltır, ISF'yi ise yükseltir."
           }
         },
         "uk" : {
@@ -28389,8 +28389,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "A lower value smooths out these variations for more stability."
+            "state" : "translated",
+            "value" : "Daha düşük bir değer, bu dalgalanmaları yumuşatarak daha fazla kararlılık sağlar."
           }
         },
         "uk" : {
@@ -28520,8 +28520,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "A new version (%@) is available. It is recommended to update."
+            "state" : "translated",
+            "value" : "Yeni bir sürüm (%@) mevcut. Güncellemeniz önerilir."
           }
         },
         "uk" : {
@@ -28650,8 +28650,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "A pre-condition to have Temp Targets adjust Sensitivity is that the respective Target Behavior settings High Temp Target Raises Sensitivity or Low Temp Target Lowers Sensitivity are set to enabled."
+            "state" : "translated",
+            "value" : "Geçici Hedeflerin Duyarlılığı ayarlayabilmesi için ön koşul, ilgili Hedef Davranışı ayarlarından Yüksek Geçici Hedef Duyarlılığı Artırır veya Düşük Geçici Hedef Duyarlılığı Azaltır seçeneğinin etkin olmasıdır."
           }
         },
         "uk" : {
@@ -28780,8 +28780,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "A Temporary Target replaces the current Target Glucose specified in Therapy settings."
+            "state" : "translated",
+            "value" : "Geçici Hedef, Tedavi ayarlarında belirtilen güncel Hedef Glukoz değerinin yerine geçer."
           }
         },
         "uk" : {
@@ -28910,8 +28910,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Abbreviation for 'Deviation'. How much the actual glucose change deviated from the BGI."
+            "state" : "translated",
+            "value" : "'Deviation' (Sapma) kısaltması. Gerçek glukoz değişiminin BGI'den ne kadar saptığını gösterir."
           }
         },
         "uk" : {
@@ -29040,8 +29040,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Abbreviation for 'Total Daily Dose'. Last 24 hours of total insulin administered, both basal and bolus."
+            "state" : "translated",
+            "value" : "'Total Daily Dose' (Toplam Günlük Doz) kısaltması. Son 24 saatte verilen toplam insülin; bazal ve bolus dahil."
           }
         },
         "uk" : {
@@ -29171,8 +29171,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "About Quick-Pick Treatments"
+            "state" : "translated",
+            "value" : "Hızlı Seçim Tedavileri Hakkında"
           }
         },
         "uk" : {
@@ -29308,8 +29308,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "About the Process"
+            "state" : "translated",
+            "value" : "Süreç Hakkında"
           }
         },
         "uk" : {
@@ -29438,8 +29438,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "About the recommendation"
+            "state" : "translated",
+            "value" : "Öneri hakkında"
           }
         },
         "uk" : {
@@ -29569,8 +29569,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "About this source"
+            "state" : "translated",
+            "value" : "Bu kaynak hakkında"
           }
         },
         "uk" : {
@@ -29700,8 +29700,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "above"
+            "state" : "translated",
+            "value" : "üzerinde"
           }
         },
         "uk" : {
@@ -29831,8 +29831,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "above range"
+            "state" : "translated",
+            "value" : "aralık üstü"
           }
         },
         "uk" : {
@@ -29962,8 +29962,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Activate"
+            "state" : "translated",
+            "value" : "Etkinleştir"
           }
         },
         "uk" : {
@@ -30092,8 +30092,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Activate an override"
+            "state" : "translated",
+            "value" : "Bir geçersiz kılma etkinleştir"
           }
         },
         "uk" : {
@@ -30222,8 +30222,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Activate Override"
+            "state" : "translated",
+            "value" : "Geçersiz Kılmayı Etkinleştir"
           }
         },
         "uk" : {
@@ -30353,8 +30353,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Activate Preset"
+            "state" : "translated",
+            "value" : "Ön Ayarı Etkinleştir"
           }
         },
         "uk" : {
@@ -30484,8 +30484,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "active"
+            "state" : "translated",
+            "value" : "etkin"
           }
         },
         "uk" : {
@@ -30615,8 +30615,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Active"
+            "state" : "translated",
+            "value" : "Etkin"
           }
         },
         "uk" : {
@@ -30746,8 +30746,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Active During"
+            "state" : "translated",
+            "value" : "Etkin Olduğu Saatler"
           }
         },
         "uk" : {
@@ -30884,8 +30884,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Active Time"
+            "state" : "translated",
+            "value" : "Etkin Süre"
           }
         },
         "uk" : {
@@ -31284,8 +31284,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add %lld g carbs"
+            "state" : "translated",
+            "value" : "%lld g karbonhidrat ekle"
           }
         },
         "uk" : {
@@ -31414,8 +31414,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add a CGM and pump to enable automated insulin delivery"
+            "state" : "translated",
+            "value" : "Otomatik insülin vermeyi etkinleştirmek için bir CGM ve pompa ekleyin"
           }
         },
         "uk" : {
@@ -31544,8 +31544,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add a Garmin Device to Trio."
+            "state" : "translated",
+            "value" : "Trio'ya bir Garmin cihazı ekleyin."
           }
         },
         "uk" : {
@@ -31675,8 +31675,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Alarm"
+            "state" : "translated",
+            "value" : "Alarm Ekle"
           }
         },
         "uk" : {
@@ -31805,8 +31805,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add and set a bolus option for meals that absorb quickly."
+            "state" : "translated",
+            "value" : "Hızlı emilen öğünler için bir bolus seçeneği ekleyip ayarlayın."
           }
         },
         "uk" : {
@@ -31935,8 +31935,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add and set a bolus option for meals that absorb slowly."
+            "state" : "translated",
+            "value" : "Yavaş emilen öğünler için bir bolus seçeneği ekleyip ayarlayın."
           }
         },
         "uk" : {
@@ -32065,8 +32065,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add calibration"
+            "state" : "translated",
+            "value" : "Kalibrasyon ekle"
           }
         },
         "uk" : {
@@ -32195,8 +32195,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add carbs"
+            "state" : "translated",
+            "value" : "Karbonhidrat ekle"
           }
         },
         "uk" : {
@@ -32595,8 +32595,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add CGM"
+            "state" : "translated",
+            "value" : "CGM Ekle"
           }
         },
         "uk" : {
@@ -32725,8 +32725,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Contact"
+            "state" : "translated",
+            "value" : "Kişi Ekle"
           }
         },
         "uk" : {
@@ -32855,8 +32855,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Contact Items"
+            "state" : "translated",
+            "value" : "Kişi Öğeleri Ekle"
           }
         },
         "uk" : {
@@ -32985,8 +32985,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Device"
+            "state" : "translated",
+            "value" : "Cihaz Ekle"
           }
         },
         "uk" : {
@@ -33116,8 +33116,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add device alarm"
+            "state" : "translated",
+            "value" : "Cihaz alarmı ekle"
           }
         },
         "uk" : {
@@ -33253,8 +33253,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add devices"
+            "state" : "translated",
+            "value" : "Cihaz ekle"
           }
         },
         "uk" : {
@@ -33383,8 +33383,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add fat and protein macros to meal entries."
+            "state" : "translated",
+            "value" : "Öğün girişlerine yağ ve protein makrolarını ekleyin."
           }
         },
         "uk" : {
@@ -33513,8 +33513,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Garmin Device to Trio. This happens via Garmin Connect. If you have multiple phones with Garmin Connect and the same Garmin device, you will run into connectivity issue between watch and phone depending of proximity of the phones, which might also affect your watchface function."
+            "state" : "translated",
+            "value" : "Trio'ya Garmin cihazı ekleyin. Bu işlem Garmin Connect üzerinden yapılır. Garmin Connect yüklü birden fazla telefonunuz ve aynı Garmin cihazınız varsa, telefonların yakınlığına bağlı olarak saat ile telefon arasında bağlantı sorunları yaşarsınız; bu durum saat kadranınızın çalışmasını da etkileyebilir."
           }
         },
         "uk" : {
@@ -33643,8 +33643,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Glucose"
+            "state" : "translated",
+            "value" : "Glukoz Ekle"
           }
         },
         "uk" : {
@@ -33773,8 +33773,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add glucose alarm"
+            "state" : "translated",
+            "value" : "Glukoz alarmı ekle"
           }
         },
         "uk" : {
@@ -34049,8 +34049,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Meal"
+            "state" : "translated",
+            "value" : "Öğün Ekle"
           }
         },
         "uk" : {
@@ -34179,8 +34179,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Meal Preset"
+            "state" : "translated",
+            "value" : "Öğün Ön Ayarı Ekle"
           }
         },
         "uk" : {
@@ -34317,8 +34317,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Meal View settings "
+            "state" : "translated",
+            "value" : "Öğün Ekleme Ekranı ayarları "
           }
         },
         "uk" : {
@@ -34730,8 +34730,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Omnipod Dash"
+            "state" : "translated",
+            "value" : "Omnipod Dash Ekle"
           }
         },
         "uk" : {
@@ -34860,8 +34860,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add one or more contacts to your iOS Contacts to display real-time Trio metrics on your watch face. Be sure to grant Trio full access to your Contacts when prompted."
+            "state" : "translated",
+            "value" : "Saat kadranınızda gerçek zamanlı Trio verilerini göstermek için iOS Kişiler uygulamanıza bir veya daha fazla kişi ekleyin. İstendiğinde Trio'ya Kişileriniz için tam erişim verdiğinizden emin olun."
           }
         },
         "uk" : {
@@ -34990,8 +34990,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add one serving"
+            "state" : "translated",
+            "value" : "Bir porsiyon ekle"
           }
         },
         "uk" : {
@@ -35120,8 +35120,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Override"
+            "state" : "translated",
+            "value" : "Geçersiz Kılma Ekle"
           }
         },
         "uk" : {
@@ -35250,8 +35250,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Preset or Override by tapping 'Add Override +' in the top right-hand corner of the screen."
+            "state" : "translated",
+            "value" : "Ekranın sağ üst köşesindeki 'Geçersiz Kılma Ekle +' seçeneğine dokunarak Ön Ayar veya Geçersiz Kılma ekleyin."
           }
         },
         "uk" : {
@@ -35380,8 +35380,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Preset or Temp Target by tapping 'Add Temp Target +' in the top right-hand corner of the screen."
+            "state" : "translated",
+            "value" : "Ekranın sağ üst köşesindeki 'Geçici Hedef Ekle +' seçeneğine dokunarak Ön Ayar veya Geçici Hedef ekleyin."
           }
         },
         "uk" : {
@@ -35510,8 +35510,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add pump"
+            "state" : "translated",
+            "value" : "Pompa ekle"
           }
         },
         "uk" : {
@@ -35641,8 +35641,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Pump"
+            "state" : "translated",
+            "value" : "Pompa Ekle"
           }
         },
         "uk" : {
@@ -35909,8 +35909,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Temp Target"
+            "state" : "translated",
+            "value" : "Geçici Hedef Ekle"
           }
         },
         "uk" : {
@@ -36039,8 +36039,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add to Treatments"
+            "state" : "translated",
+            "value" : "Tedavilere Ekle"
           }
         },
         "uk" : {
@@ -36169,8 +36169,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Treatment"
+            "state" : "translated",
+            "value" : "Tedavi Ekle"
           }
         },
         "uk" : {
@@ -36299,8 +36299,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Variant"
+            "state" : "translated",
+            "value" : "Varyant Ekle"
           }
         },
         "uk" : {
@@ -36429,8 +36429,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add visual Rings around the contact image to highlight information."
+            "state" : "translated",
+            "value" : "Bilgileri vurgulamak için kişi resminin çevresine görsel halkalar ekleyin."
           }
         },
         "uk" : {
@@ -36560,8 +36560,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add widget"
+            "state" : "translated",
+            "value" : "Widget ekle"
           }
         },
         "uk" : {
@@ -36690,8 +36690,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add Widget"
+            "state" : "translated",
+            "value" : "Widget Ekle"
           }
         },
         "uk" : {
@@ -36821,8 +36821,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Added %lld g carbs"
+            "state" : "translated",
+            "value" : "%lld g karbonhidrat eklendi"
           }
         },
         "uk" : {
@@ -36958,8 +36958,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Additional notification types"
+            "state" : "translated",
+            "value" : "Ek bildirim türleri"
           }
         },
         "uk" : {
@@ -37088,8 +37088,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Additionals"
+            "state" : "translated",
+            "value" : "Ek Bilgiler"
           }
         },
         "uk" : {
@@ -37225,8 +37225,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Adds a lot of data to the Issue Report "
+            "state" : "translated",
+            "value" : "Sorun Raporuna çok sayıda veri ekler "
           }
         },
         "uk" : {
@@ -37362,8 +37362,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Adds Phone Battery"
+            "state" : "translated",
+            "value" : "Telefon Pilini Ekler"
           }
         },
         "uk" : {
@@ -37499,8 +37499,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Adds Transmitter Battery"
+            "state" : "translated",
+            "value" : "Verici Pilini Ekler"
           }
         },
         "uk" : {
@@ -37637,8 +37637,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Adjust basal"
+            "state" : "translated",
+            "value" : "Bazalı ayarla"
           }
         },
         "uk" : {
@@ -37767,8 +37767,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Adjust Basal"
+            "state" : "translated",
+            "value" : "Bazalı Ayarla"
           }
         },
         "uk" : {
@@ -37905,8 +37905,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Adjust Dynamic ISF constant"
+            "state" : "translated",
+            "value" : "Dinamik ISF sabitini ayarla"
           }
         },
         "uk" : {
@@ -38037,8 +38037,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users"
+            "state" : "translated",
+            "value" : "Dinamik oranları bir sabitle ayarlayın. Varsayılan değer 0,5'tir. Değer ne kadar yüksekse, yüksek veya düşük bir glukoz değeri için ISF'nizde yapılacak düzeltme o kadar büyük olur. Maksimum düzeltme, Autosens min/maks ayarlarınızla belirlenir. Sigmoid fonksiyonu için başlangıçta 0,4 - 0,5 arası bir ayar faktörü önerilir. Logaritmik formül için üzerinde daha az uzlaşı vardır, ancak çoğu kullanıcı için 0,5 - 0,8 ile başlamak daha uygundur"
           }
         },
         "uk" : {
@@ -38167,8 +38167,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Adjust Ring Settings"
+            "state" : "translated",
+            "value" : "Halka Ayarlarını Düzenle"
           }
         },
         "uk" : {
@@ -38297,8 +38297,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Adjust the Warsaw Method FPU Conversion rate."
+            "state" : "translated",
+            "value" : "Warsaw Yöntemi FPU dönüşüm oranını ayarlayın."
           }
         },
         "uk" : {
@@ -38427,8 +38427,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Adjusting this value not only can adjust how quickly your sensitivity will respond to changing glucose readings, but also at what glucose readings you reach your Autosens Max/Min limits."
+            "state" : "translated",
+            "value" : "Bu değeri değiştirmek, yalnızca duyarlılığınızın değişen glukoz ölçümlerine ne kadar hızlı tepki vereceğini değil, aynı zamanda hangi glukoz değerlerinde Autosens Maks/Min sınırlarınıza ulaşacağınızı da belirler."
           }
         },
         "uk" : {
@@ -38557,8 +38557,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Adjustment"
+            "state" : "translated",
+            "value" : "Ayarlama"
           }
         },
         "uk" : {
@@ -38687,8 +38687,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Adjustment Factor (AF)"
+            "state" : "translated",
+            "value" : "Ayar Faktörü (AF)"
           }
         },
         "uk" : {
@@ -38817,8 +38817,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Adjustment Tabs"
+            "state" : "translated",
+            "value" : "Ayarlama Sekmeleri"
           }
         },
         "uk" : {
@@ -38947,8 +38947,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Adjustment to Stop"
+            "state" : "translated",
+            "value" : "Durdurma Ayarlaması"
           }
         },
         "uk" : {
@@ -39078,8 +39078,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Adjustments"
+            "state" : "translated",
+            "value" : "Ayarlamalar"
           }
         },
         "uk" : {
@@ -39215,8 +39215,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Advanced"
+            "state" : "translated",
+            "value" : "Gelişmiş"
           }
         },
         "uk" : {
@@ -39353,8 +39353,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Advanced Target Adjustments"
+            "state" : "translated",
+            "value" : "Gelişmiş Hedef Ayarlamaları"
           }
         },
         "uk" : {
@@ -39483,7 +39483,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "AF"
           }
         },
@@ -39613,8 +39613,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "After completing onboarding, a red banner will appear on Trio's main screen to guide you to the iOS Settings app, where you can enable notifications."
+            "state" : "translated",
+            "value" : "Kurulum tamamlandıktan sonra, Trio'nun ana ekranında sizi bildirimleri etkinleştirebileceğiniz iOS Ayarlar uygulamasına yönlendiren kırmızı bir başlık görünecektir."
           }
         },
         "uk" : {
@@ -39881,7 +39881,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Alarm"
           }
         },
@@ -40018,8 +40018,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Alarms"
+            "state" : "translated",
+            "value" : "Alarmlar"
           }
         },
         "uk" : {
@@ -40148,8 +40148,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Alarms cannot alert you. Tap to fix."
+            "state" : "translated",
+            "value" : "Alarmlar sizi uyaramıyor. Düzeltmek için dokunun."
           }
         },
         "uk" : {
@@ -40279,8 +40279,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Alert Identifier"
+            "state" : "translated",
+            "value" : "Uyarı Tanımlayıcısı"
           }
         },
         "uk" : {
@@ -40410,8 +40410,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Alert Sound"
+            "state" : "translated",
+            "value" : "Uyarı Sesi"
           }
         },
         "uk" : {
@@ -40541,8 +40541,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Algorithm"
+            "state" : "translated",
+            "value" : "Algoritma"
           }
         },
         "uk" : {
@@ -40671,8 +40671,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Algorithm Error"
+            "state" : "translated",
+            "value" : "Algoritma Hatası"
           }
         },
         "uk" : {
@@ -40801,8 +40801,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Algorithm Settings"
+            "state" : "translated",
+            "value" : "Algoritma Ayarları"
           }
         },
         "uk" : {
@@ -40931,8 +40931,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Algorithmic Target Settings"
+            "state" : "translated",
+            "value" : "Algoritmik Hedef Ayarları"
           }
         },
         "uk" : {
@@ -41069,8 +41069,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "all"
+            "state" : "translated",
+            "value" : "tümü"
           }
         },
         "uk" : {
@@ -41207,8 +41207,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "All"
+            "state" : "translated",
+            "value" : "Tümü"
           }
         },
         "uk" : {
@@ -41337,8 +41337,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "All additional \"advanced settings\" have been reset."
+            "state" : "translated",
+            "value" : "Tüm ek \"gelişmiş ayarlar\" sıfırlandı."
           }
         },
         "uk" : {
@@ -41467,8 +41467,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "All entries you made during Onboarding will be saved automatically when you complete the wizard."
+            "state" : "translated",
+            "value" : "Kurulum sırasında yaptığınız tüm girişler, sihirbazı tamamladığınızda otomatik olarak kaydedilir."
           }
         },
         "uk" : {
@@ -41598,8 +41598,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "All FPUs and the carbs of the meal will be deleted."
+            "state" : "translated",
+            "value" : "Öğüne ait tüm FPU'lar ve karbonhidratlar silinecek."
           }
         },
         "uk" : {
@@ -41735,8 +41735,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "All FPUs of the meal will be deleted."
+            "state" : "translated",
+            "value" : "Öğüne ait tüm FPU'lar silinecek."
           }
         },
         "uk" : {
@@ -41866,8 +41866,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "All glucose, insulin, and carb data. All therapy settings (basal, ISF, carb ratio, glucose targets). Your Nightscout URL and API token. Your Tidepool credentials. Remote-command secrets and APNS keys. Location data. Logs are never sent automatically; sharing them remains a user-initiated flow."
+            "state" : "translated",
+            "value" : "Tüm glukoz, insülin ve karbonhidrat verileri. Tüm tedavi ayarları (bazal, ISF, karbonhidrat oranı, glukoz hedefleri). Nightscout adresiniz ve API belirteciniz. Tidepool kimlik bilgileriniz. Uzaktan komut gizli anahtarları ve APNS anahtarları. Konum verileri. Günlükler hiçbir zaman otomatik olarak gönderilmez; paylaşımları her zaman kullanıcının başlattığı bir işlemdir."
           }
         },
         "uk" : {
@@ -42004,8 +42004,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted."
+            "state" : "translated",
+            "value" : "Glukozunuzun güvenlik eşiğinin altına düşeceği tahmin edilirse tüm insülin verilmesi duraklatılır.\n\n60-120 mg/dL arasında ayarlanmalıdır.\nmmol/L'den dönüştürmek için 18 ile çarpın.\n\nNot: Negatif IOB varsa ve glukoz tahmin edilenden daha hızlı yükseliyorsa bazal yeniden başlatılabilir."
           }
         },
         "uk" : {
@@ -42142,8 +42142,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "All Past Days of Data "
+            "state" : "translated",
+            "value" : "Geçmişteki Tüm Günler "
           }
         },
         "uk" : {
@@ -42272,8 +42272,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "All Set!"
+            "state" : "translated",
+            "value" : "Her Şey Hazır!"
           }
         },
         "uk" : {
@@ -42402,8 +42402,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "All settings are at default values."
+            "state" : "translated",
+            "value" : "Tüm ayarlar varsayılan değerlerinde."
           }
         },
         "uk" : {
@@ -42532,8 +42532,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow"
+            "state" : "translated",
+            "value" : "İzin Ver"
           }
         },
         "uk" : {
@@ -42662,8 +42662,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow Bolusing with Shortcuts"
+            "state" : "translated",
+            "value" : "Kısayollar ile Bolus Yapmaya İzin Ver"
           }
         },
         "uk" : {
@@ -42792,8 +42792,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow Fetching from Nightscout"
+            "state" : "translated",
+            "value" : "Nightscout'tan Veri Almaya İzin Ver"
           }
         },
         "uk" : {
@@ -42922,8 +42922,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow Fetching From Nightscout"
+            "state" : "translated",
+            "value" : "Nightscout'tan Veri Almaya İzin Ver"
           }
         },
         "uk" : {
@@ -43052,8 +43052,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow Notifications"
+            "state" : "translated",
+            "value" : "Bildirimlere İzin Ver"
           }
         },
         "uk" : {
@@ -43182,8 +43182,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow SMB for 6 hrs after a carb entry."
+            "state" : "translated",
+            "value" : "Karbonhidrat girişinden sonra 6 saat boyunca SMB'ye izin ver."
           }
         },
         "uk" : {
@@ -43318,8 +43318,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow SMB when a manual Temporary Target is set greater than %1$@ %2$@."
+            "state" : "translated",
+            "value" : "Manuel Geçici Hedef %1$@ %2$@ değerinden büyük ayarlandığında SMB'ye izin ver."
           }
         },
         "uk" : {
@@ -43454,8 +43454,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow SMB when a manual Temporary Target is set under %1$@ %2$@."
+            "state" : "translated",
+            "value" : "Manuel Geçici Hedef %1$@ %2$@ değerinin altında ayarlandığında SMB'ye izin ver."
           }
         },
         "uk" : {
@@ -43584,8 +43584,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow SMB when carbs are on board."
+            "state" : "translated",
+            "value" : "Aktif karbonhidrat (COB) varken SMB'ye izin ver."
           }
         },
         "uk" : {
@@ -43714,8 +43714,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow SMB when glucose is above the High Glucose Target value."
+            "state" : "translated",
+            "value" : "Glukoz, Yüksek Glukoz Hedefi değerinin üzerindeyken SMB'ye izin ver."
           }
         },
         "uk" : {
@@ -43845,8 +43845,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow SMB With High Temptarget"
+            "state" : "translated",
+            "value" : "Yüksek Geçici Hedefte SMB'ye İzin Ver"
           }
         },
         "uk" : {
@@ -43975,8 +43975,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow SMBs at all times except when a high Temp Target is set."
+            "state" : "translated",
+            "value" : "Yüksek bir Geçici Hedef ayarlı olduğu durumlar dışında her zaman SMB'ye izin ver."
           }
         },
         "uk" : {
@@ -44105,8 +44105,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow the creation of saved, preset meals."
+            "state" : "translated",
+            "value" : "Kayıtlı öğün ön ayarları oluşturulmasına izin verin."
           }
         },
         "uk" : {
@@ -44235,8 +44235,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow to add carbs in Trio."
+            "state" : "translated",
+            "value" : "Trio'da karbonhidrat eklenmesine izin verin."
           }
         },
         "uk" : {
@@ -44365,8 +44365,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow to list the last glucose reading, trends, IOB and COB available in Trio"
+            "state" : "translated",
+            "value" : "Trio'daki son glukoz ölçümünün, eğilimlerin, IOB ve COB değerlerinin listelenmesine izin verin"
           }
         },
         "uk" : {
@@ -44495,8 +44495,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow to send a bolus to the app"
+            "state" : "translated",
+            "value" : "Uygulamaya bolus gönderilmesine izin verin"
           }
         },
         "uk" : {
@@ -44625,8 +44625,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow Trio to read from and write to Apple Health."
+            "state" : "translated",
+            "value" : "Trio'nun Apple Health'ten veri okumasına ve oraya veri yazmasına izin verin."
           }
         },
         "uk" : {
@@ -44755,8 +44755,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow Trio to receive commands from Loop Follow remotely."
+            "state" : "translated",
+            "value" : "Trio'nun Loop Follow'dan uzaktan komut almasına izin verin."
           }
         },
         "uk" : {
@@ -44885,8 +44885,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow Trio to use Bluetooth to communicate with your insulin pump and CGM."
+            "state" : "translated",
+            "value" : "Trio'nun insülin pompanız ve CGM'iniz ile iletişim kurmak için Bluetooth kullanmasına izin verin."
           }
         },
         "uk" : {
@@ -45023,8 +45023,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow Upload of Statistics to NS"
+            "state" : "translated",
+            "value" : "İstatistiklerin NS'e Yüklenmesine İzin Ver"
           }
         },
         "uk" : {
@@ -45153,8 +45153,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow Uploading to Nightscout"
+            "state" : "translated",
+            "value" : "Nightscout'a Yüklemeye İzin Ver"
           }
         },
         "uk" : {
@@ -45429,8 +45429,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow Uploads"
+            "state" : "translated",
+            "value" : "Yüklemelere İzin Ver"
           }
         },
         "uk" : {
@@ -45567,8 +45567,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min"
+            "state" : "translated",
+            "value" : "Yağ ve proteinin, kilokalorinin 10'a bölünmesi esasına dayanan Warsaw formülü ile gelecekteki karbonhidrat eşdeğerlerine dönüştürülmesini sağlar.\n\nKarbonhidrat eşdeğerleri, 5-12 saat arasında yapılandırılabilen bir maksimum süre ayarına yayılır.\n\nGecikme, şu andan ilk gelecek karbonhidrat girişine kadar geçen süredir.\n\nDakika cinsinden aralık, girişler arasında kaç dakika olduğudur. Aralık ne kadar kısa olursa sonuç o kadar yumuşak olur. 10, 15, 20, 30 veya 60 makul seçeneklerdir.\n\nAyar faktörü, yağ ve proteinin girişler üzerindeki etkisinin büyüklüğüdür. 1,0 tam etki (özgün Warsaw Yöntemi), 0,5 ise yarı etkidir. Yağ ve protein girişleri eklemeye başlarsanız, normal karbonhidrat oranınızın daha büyük bir sayıya çıkarılması gerektiğini fark edebilirsiniz. Bu nedenle, kademeli geçiş için yaklaşık 0,5'lik bir faktörle başlamak en iyisidir.\n\nVarsayılan ayarlar: Süre Sınırı: 8 sa, Aralık: 30 dk, Faktör: 0,5, Gecikme: 60 dk"
           }
         },
         "uk" : {
@@ -45697,8 +45697,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Already set for Day & Night. Change the alarm time window to add a second alarm for the same type."
+            "state" : "translated",
+            "value" : "Gündüz ve Gece için zaten ayarlı. Aynı tür için ikinci bir alarm eklemek üzere alarmın zaman aralığını değiştirin."
           }
         },
         "uk" : {
@@ -45827,8 +45827,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Already using Trio and updating from an older version?"
+            "state" : "translated",
+            "value" : "Trio'yu zaten kullanıyor ve eski bir sürümden mi güncelliyorsunuz?"
           }
         },
         "uk" : {
@@ -45964,8 +45964,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Also add source info"
+            "state" : "translated",
+            "value" : "Kaynak bilgisini de ekle"
           }
         },
         "uk" : {
@@ -46094,8 +46094,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Also Inversely Change"
+            "state" : "translated",
+            "value" : "Ayrıca Ters Yönde Değiştir"
           }
         },
         "uk" : {
@@ -46231,8 +46231,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Also play alert sound"
+            "state" : "translated",
+            "value" : "Uyarı sesini de çal"
           }
         },
         "uk" : {
@@ -46367,8 +46367,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Also triggered when the lowest forecasted glucose (minPredBG) is < %1$@ %2$@."
+            "state" : "translated",
+            "value" : "Ayrıca en düşük öngörülen glukoz (minPredBG) %1$@ %2$@ değerinden küçük olduğunda da tetiklenir."
           }
         },
         "uk" : {
@@ -46504,8 +46504,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Also vibrate"
+            "state" : "translated",
+            "value" : "Ayrıca titreşim ver"
           }
         },
         "uk" : {
@@ -46634,8 +46634,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Alter the rate of Dynamic ISF (Sensitivity) adjustments."
+            "state" : "translated",
+            "value" : "Dinamik ISF (Duyarlılık) ayarlamalarının hızını değiştirin."
           }
         },
         "uk" : {
@@ -46764,8 +46764,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Alter the rate of dynamic sensitivity adjustments for Sigmoid."
+            "state" : "translated",
+            "value" : "Sigmoid için dinamik duyarlılık ayarlamalarının hızını değiştirin."
           }
         },
         "uk" : {
@@ -46902,8 +46902,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Always Color Glucose Value (green, yellow etc)"
+            "state" : "translated",
+            "value" : "Glukoz Değerini Her Zaman Renklendir (yeşil, sarı vb.)"
           }
         },
         "uk" : {
@@ -47032,8 +47032,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Always in Dark mode"
+            "state" : "translated",
+            "value" : "Her zaman Koyu görünümde"
           }
         },
         "uk" : {
@@ -47162,8 +47162,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Always in Light mode"
+            "state" : "translated",
+            "value" : "Her zaman Açık görünümde"
           }
         },
         "uk" : {
@@ -47299,8 +47299,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Always Notify Glucose"
+            "state" : "translated",
+            "value" : "Glukozu Her Zaman Bildir"
           }
         },
         "uk" : {
@@ -47429,8 +47429,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Ambulatory Glucose Profile (AGP)"
+            "state" : "translated",
+            "value" : "Ambulatuvar Glukoz Profili (AGP)"
           }
         },
         "uk" : {
@@ -47826,8 +47826,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Amount of Carbs on Board (COB) used in the most recent automated dosing calculation."
+            "state" : "translated",
+            "value" : "En son otomatik doz hesaplamasında kullanılan Aktif Karbonhidrat (COB) miktarı."
           }
         },
         "uk" : {
@@ -47956,8 +47956,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Amplitude:"
+            "state" : "translated",
+            "value" : "Genlik:"
           }
         },
         "uk" : {
@@ -48086,8 +48086,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "An external bolus of %@ U of insulin was recorded."
+            "state" : "translated",
+            "value" : "%@ U insülinlik harici bir bolus kaydedildi."
           }
         },
         "uk" : {
@@ -48216,8 +48216,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "An unknown authentication error occurred. Please try again."
+            "state" : "translated",
+            "value" : "Bilinmeyen bir kimlik doğrulama hatası oluştu. Lütfen tekrar deneyin."
           }
         },
         "uk" : {
@@ -48346,8 +48346,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "An unknown biometric authentication error occurred. Please try again."
+            "state" : "translated",
+            "value" : "Bilinmeyen bir biyometrik kimlik doğrulama hatası oluştu. Lütfen tekrar deneyin."
           }
         },
         "uk" : {
@@ -48483,8 +48483,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Animated Background"
+            "state" : "translated",
+            "value" : "Hareketli Arka Plan"
           }
         },
         "uk" : {
@@ -48613,8 +48613,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymized Data Sharing"
+            "state" : "translated",
+            "value" : "Anonimleştirilmiş Veri Paylaşımı"
           }
         },
         "uk" : {
@@ -48743,8 +48743,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous telemetry"
+            "state" : "translated",
+            "value" : "Anonim telemetri"
           }
         },
         "uk" : {
@@ -48873,8 +48873,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous usage statistics include the app version and build, device and iOS version, which pump and CGM you have paired, and whether Nightscout, Tidepool, and Apple Health are configured (yes/no — no URLs or credentials). They are sent to a self-hosted Trio telemetry endpoint."
+            "state" : "translated",
+            "value" : "Anonim kullanım istatistikleri; uygulama sürümü ve derlemesi, cihaz ve iOS sürümü, eşleştirdiğiniz pompa ve CGM ile Nightscout, Tidepool ve Apple Health'in yapılandırılıp yapılandırılmadığı (evet/hayır — adres veya kimlik bilgisi içermez) bilgilerini kapsar. Bu veriler Trio'nun kendi barındırdığı telemetri sunucusuna gönderilir."
           }
         },
         "uk" : {
@@ -49134,8 +49134,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "App diagnostic insights — based on crash reports only — help us enhance app stability, ensure safety for all users, and quickly identify and resolve critical issues."
+            "state" : "translated",
+            "value" : "Yalnızca çökme raporlarına dayanan uygulama tanılama bilgileri; uygulamanın kararlılığını artırmamıza, tüm kullanıcılar için güvenliği sağlamamıza ve kritik sorunları hızla tespit edip çözmemize yardımcı olur."
           }
         },
         "uk" : {
@@ -49264,8 +49264,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "App Diagnostics"
+            "state" : "translated",
+            "value" : "Uygulama Tanılaması"
           }
         },
         "uk" : {
@@ -49394,8 +49394,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "App Expires"
+            "state" : "translated",
+            "value" : "Uygulamanın Sona Erme Tarihi"
           }
         },
         "uk" : {
@@ -49525,8 +49525,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "App Icons"
+            "state" : "translated",
+            "value" : "Uygulama Simgeleri"
           }
         },
         "uk" : {
@@ -49655,8 +49655,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "App Version"
+            "state" : "translated",
+            "value" : "Uygulama Sürümü"
           }
         },
         "uk" : {
@@ -49785,8 +49785,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "App version, build date, branch, and commit SHA; whether this is a TestFlight build; an Apple-supplied per-vendor identifier (IDFV) and a per-install UUID; hardware identifier (e.g. iPhone15,2); platform and iOS version; the paired pump model (when a pump is configured); the paired CGM type and model (when a CGM is configured); whether Nightscout, Tidepool, and Apple Health are configured (yes/no — no URLs, tokens, or credentials); and a few preference flags (units, closed-loop on/off, Live Activity, calendar integration). A rolling cold-launch count is included. The full JSON is visible under App Diagnostics → What's sent."
+            "state" : "translated",
+            "value" : "Uygulama sürümü, derleme tarihi, dal ve commit SHA'sı; bunun bir TestFlight derlemesi olup olmadığı; Apple'ın sağladığı satıcıya özel tanımlayıcı (IDFV) ve kuruluma özel bir UUID; donanım tanımlayıcısı (ör. iPhone15,2); platform ve iOS sürümü; eşleştirilen pompa modeli (bir pompa yapılandırılmışsa); eşleştirilen CGM türü ve modeli (bir CGM yapılandırılmışsa); Nightscout, Tidepool ve Apple Health'in yapılandırılıp yapılandırılmadığı (evet/hayır — adres, belirteç veya kimlik bilgisi içermez); ve birkaç tercih bayrağı (birimler, kapalı döngü açık/kapalı, Live Activity, takvim entegrasyonu). Ayrıca yenilenen bir soğuk başlatma sayacı da bulunur. JSON'un tamamı Uygulama Tanılaması → Gönderilenler altında görüntülenebilir."
           }
         },
         "uk" : {
@@ -49915,8 +49915,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Appearance"
+            "state" : "translated",
+            "value" : "Görünüm"
           }
         },
         "uk" : {
@@ -50045,7 +50045,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Apple Health"
           }
         },
@@ -50175,8 +50175,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Apple Health Integration"
+            "state" : "translated",
+            "value" : "Apple Health Entegrasyonu"
           }
         },
         "uk" : {
@@ -50305,7 +50305,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Apple Watch"
           }
         },
@@ -50435,8 +50435,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Apple Watch Configuration"
+            "state" : "translated",
+            "value" : "Apple Watch Yapılandırması"
           }
         },
         "uk" : {
@@ -50565,8 +50565,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Applied Factors"
+            "state" : "translated",
+            "value" : "Uygulanan Faktörler"
           }
         },
         "uk" : {
@@ -50695,8 +50695,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Applies To (Cannot be changed)"
+            "state" : "translated",
+            "value" : "Şuna Uygulanır (Değiştirilemez)"
           }
         },
         "uk" : {
@@ -50825,8 +50825,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Apply a Temporary Target"
+            "state" : "translated",
+            "value" : "Geçici Hedef Uygula"
           }
         },
         "uk" : {
@@ -50955,8 +50955,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Applying ${bolusQuantity} U"
+            "state" : "translated",
+            "value" : "${bolusQuantity} U uygulanıyor"
           }
         },
         "uk" : {
@@ -51085,8 +51085,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Applying ${preset}"
+            "state" : "translated",
+            "value" : "${preset} uygulanıyor"
           }
         },
         "uk" : {
@@ -51215,8 +51215,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Applying ${preset} override"
+            "state" : "translated",
+            "value" : "${preset} geçersiz kılması uygulanıyor"
           }
         },
         "uk" : {
@@ -51345,8 +51345,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Are you sure you want to delete %@?"
+            "state" : "translated",
+            "value" : "%@ ögesini silmek istediğinizden emin misiniz?"
           }
         },
         "uk" : {
@@ -51482,8 +51482,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Are you sure you want to delete this CGM?"
+            "state" : "translated",
+            "value" : "Bu CGM'i silmek istediğinizden emin misiniz?"
           }
         },
         "uk" : {
@@ -51619,8 +51619,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Are you sure you want to remove this cgm from loop?"
+            "state" : "translated",
+            "value" : "Bu CGM'i döngüden kaldırmak istediğinizden emin misiniz?"
           }
         },
         "uk" : {
@@ -51886,8 +51886,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "at least"
+            "state" : "translated",
+            "value" : "en az"
           }
         },
         "uk" : {
@@ -52016,8 +52016,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "At the default setting, 35% of the calculation is based on the last 24 hours of insulin use, with the remaining 65% considering the last 10 days of data."
+            "state" : "translated",
+            "value" : "Varsayılan ayarda, hesaplamanın %35'i son 24 saatteki insülin kullanımına, kalan %65'i ise son 10 günlük verilere dayanır."
           }
         },
         "uk" : {
@@ -52154,8 +52154,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Attach Pod"
+            "state" : "translated",
+            "value" : "Podu Tak"
           }
         },
         "uk" : {
@@ -52284,8 +52284,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authentication context is invalid. Please try again."
+            "state" : "translated",
+            "value" : "Kimlik doğrulama bağlamı geçersiz. Lütfen tekrar deneyin."
           }
         },
         "uk" : {
@@ -52414,8 +52414,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authentication failed. Please try again."
+            "state" : "translated",
+            "value" : "Kimlik doğrulama başarısız. Lütfen tekrar deneyin."
           }
         },
         "uk" : {
@@ -52544,8 +52544,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authentication requires a device passcode. Please set one in iOS Settings > Face ID & Passcode."
+            "state" : "translated",
+            "value" : "Kimlik doğrulama için cihaz parolası gerekir. Lütfen iOS Ayarlar > Face ID ve Parola bölümünden bir parola belirleyin."
           }
         },
         "uk" : {
@@ -52674,8 +52674,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authentication UI cannot be displayed. Try restarting the app."
+            "state" : "translated",
+            "value" : "Kimlik doğrulama arayüzü görüntülenemiyor. Uygulamayı yeniden başlatmayı deneyin."
           }
         },
         "uk" : {
@@ -52804,8 +52804,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authentication was canceled by the app."
+            "state" : "translated",
+            "value" : "Kimlik doğrulama uygulama tarafından iptal edildi."
           }
         },
         "uk" : {
@@ -52934,8 +52934,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authentication was canceled by the system. Try again."
+            "state" : "translated",
+            "value" : "Kimlik doğrulama sistem tarafından iptal edildi. Tekrar deneyin."
           }
         },
         "uk" : {
@@ -53064,8 +53064,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authentication was canceled by you."
+            "state" : "translated",
+            "value" : "Kimlik doğrulama sizin tarafınızdan iptal edildi."
           }
         },
         "uk" : {
@@ -53194,8 +53194,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authorize Trio to send notifications and use Bluetooth. You must allow both for Trio to work properly."
+            "state" : "translated",
+            "value" : "Trio'ya bildirim gönderme ve Bluetooth kullanma izni verin. Trio'nun düzgün çalışması için her ikisine de izin vermelisiniz."
           }
         },
         "uk" : {
@@ -53324,8 +53324,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Auto-sensitivity (Autosens) adjusts insulin delivery based on observed sensitivity or resistance."
+            "state" : "translated",
+            "value" : "Otomatik duyarlılık (Autosens), gözlemlenen duyarlılık veya dirence göre insülin verilmesini ayarlar."
           }
         },
         "uk" : {
@@ -53454,8 +53454,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Automate boluses using the iOS Shortcuts App."
+            "state" : "translated",
+            "value" : "iOS Kısayollar uygulamasını kullanarak boluslarınızı otomatikleştirin."
           }
         },
         "uk" : {
@@ -53584,8 +53584,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Automated dosing is limited. Tap to review."
+            "state" : "translated",
+            "value" : "Otomatik dozlama sınırlı. Gözden geçirmek için dokunun."
           }
         },
         "uk" : {
@@ -53714,8 +53714,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Automated Insulin Delivery"
+            "state" : "translated",
+            "value" : "Otomatik İnsülin Verme"
           }
         },
         "uk" : {
@@ -53852,8 +53852,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Automatic"
+            "state" : "translated",
+            "value" : "Otomatik"
           }
         },
         "uk" : {
@@ -54112,8 +54112,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Autosens automatically adjusts insulin delivery based on how sensitive or resistant you are to insulin at the time of the current loop cycle by analyzing past data to keep blood sugar levels stable."
+            "state" : "translated",
+            "value" : "Autosens, kan şekeri düzeylerini kararlı tutmak için geçmiş verileri analiz ederek, güncel döngü turu sırasında insüline ne kadar duyarlı veya dirençli olduğunuza göre insülin verilmesini otomatik olarak ayarlar."
           }
         },
         "uk" : {
@@ -54242,8 +54242,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Autosens functions alongside certain settings, like Super Micro Bolus (SMB). Other settings, like Dynamic ISF, alter portions of the Autosens formula. Please review the in-app hints for the Algorithm Settings prior to enabling them to understand how they may influence it."
+            "state" : "translated",
+            "value" : "Autosens, Super Micro Bolus (SMB) gibi belirli ayarlarla birlikte çalışır. Dinamik ISF gibi diğer ayarlar ise Autosens formülünün bazı bölümlerini değiştirir. Bu ayarların Autosens'i nasıl etkileyebileceğini anlamak için etkinleştirmeden önce lütfen Algoritma Ayarları'ndaki uygulama içi ipuçlarını inceleyin."
           }
         },
         "uk" : {
@@ -54372,8 +54372,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Autosens has safety limits determined by your Autosens Max and Autosens Min settings. These settings prevent over-adjusting."
+            "state" : "translated",
+            "value" : "Autosens'in, Autosens Maks ve Autosens Min ayarlarınızla belirlenen güvenlik sınırları vardır. Bu ayarlar aşırı ayarlamayı önler."
           }
         },
         "uk" : {
@@ -54503,8 +54503,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Autosens Max"
+            "state" : "translated",
+            "value" : "Autosens Maks"
           }
         },
         "uk" : {
@@ -54633,8 +54633,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
+            "state" : "translated",
+            "value" : "Autosens Maks; Autosens, Dinamik ISF ve Sigmoid Formülü tarafından kullanılan en yüksek Autosens Oranını belirler."
           }
         },
         "uk" : {
@@ -54763,8 +54763,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Autosens Max sets the maximum Sensitivity Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
+            "state" : "translated",
+            "value" : "Autosens Maks; Autosens, Dinamik ISF ve Sigmoid Formülü tarafından kullanılan en yüksek Duyarlılık Oranını belirler."
           }
         },
         "uk" : {
@@ -54894,8 +54894,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Autosens Maximum"
+            "state" : "translated",
+            "value" : "Autosens Maksimum"
           }
         },
         "uk" : {
@@ -55025,7 +55025,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Autosens Min"
           }
         },
@@ -55155,8 +55155,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
+            "state" : "translated",
+            "value" : "Autosens Min; Autosens, Dinamik ISF ve Sigmoid Formülü tarafından kullanılan en düşük Autosens Oranını belirler."
           }
         },
         "uk" : {
@@ -55285,8 +55285,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Autosens Min sets the minimum Sensitivity Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
+            "state" : "translated",
+            "value" : "Autosens Min; Autosens, Dinamik ISF ve Sigmoid Formülü tarafından kullanılan en düşük Duyarlılık Oranını belirler."
           }
         },
         "uk" : {
@@ -55416,7 +55416,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Autosens Minimum"
           }
         },
@@ -55546,8 +55546,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Autosens modifies Insulin Sensitivity Factor (ISF), basal rates, and target glucose. It doesn’t account for carbs but adjusts for insulin effectiveness based on patterns in your glucose data."
+            "state" : "translated",
+            "value" : "Autosens; İnsülin Duyarlılık Faktörünü (ISF), bazal hızları ve hedef glukozu değiştirir. Karbonhidratları hesaba katmaz, ancak glukoz verilerinizdeki örüntülere göre insülinin etkinliğine yönelik ayarlama yapar."
           }
         },
         "uk" : {
@@ -55676,8 +55676,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Autosens Ratio"
+            "state" : "translated",
+            "value" : "Autosens Oranı"
           }
         },
         "uk" : {
@@ -55806,8 +55806,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Autosens Ratio =\n(Weighted Average of TDD) / (10-day Average of TDD)"
+            "state" : "translated",
+            "value" : "Autosens Oranı =\n(TDD'nin Ağırlıklı Ortalaması) / (TDD'nin 10 Günlük Ortalaması)"
           }
         },
         "uk" : {
@@ -55936,8 +55936,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours."
+            "state" : "translated",
+            "value" : "Autosens, duyarlılığı geri sarma anından itibaren yeniden öğrenmeye başlar; bu 6 saati bulabilir."
           }
         },
         "uk" : {
@@ -56074,7 +56074,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Autosense"
           }
         },
@@ -56350,8 +56350,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Autotune ISF Adjustment Fraction"
+            "state" : "translated",
+            "value" : "Autotune ISF Ayarlama Oranı"
           }
         },
         "uk" : {
@@ -56480,8 +56480,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Available"
+            "state" : "translated",
+            "value" : "Kullanılabilir"
           }
         },
         "uk" : {
@@ -56610,8 +56610,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Available Layouts:"
+            "state" : "translated",
+            "value" : "Kullanılabilir Düzenler:"
           }
         },
         "uk" : {
@@ -56740,8 +56740,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Available Rings:"
+            "state" : "translated",
+            "value" : "Kullanılabilir Halkalar:"
           }
         },
         "uk" : {
@@ -56871,8 +56871,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Average"
+            "state" : "translated",
+            "value" : "Ortalama"
           }
         },
         "uk" : {
@@ -57001,8 +57001,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Average:"
+            "state" : "translated",
+            "value" : "Ortalama:"
           }
         },
         "uk" : {
@@ -57131,8 +57131,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Avg"
+            "state" : "translated",
+            "value" : "Ort."
           }
         },
         "uk" : {
@@ -57262,8 +57262,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Avg. Glucose:"
+            "state" : "translated",
+            "value" : "Ort. Glukoz:"
           }
         },
         "uk" : {
@@ -57392,8 +57392,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Back"
+            "state" : "translated",
+            "value" : "Geri"
           }
         },
         "uk" : {
@@ -57522,8 +57522,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Backdated carbs (%lld g) included in COB calculation"
+            "state" : "translated",
+            "value" : "Geriye dönük karbonhidratlar (%lld g) COB hesaplamasına dahil edildi"
           }
         },
         "uk" : {
@@ -57652,8 +57652,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Backfill Failed"
+            "state" : "translated",
+            "value" : "Geriye Dönük Doldurma Başarısız"
           }
         },
         "uk" : {
@@ -57789,8 +57789,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Backfill from history"
+            "state" : "translated",
+            "value" : "Geçmişten geriye dönük doldur"
           }
         },
         "uk" : {
@@ -57926,8 +57926,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Backfill from trend"
+            "state" : "translated",
+            "value" : "Eğilimden geriye dönük doldur"
           }
         },
         "uk" : {
@@ -58063,8 +58063,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Backfill glucose"
+            "state" : "translated",
+            "value" : "Glukozu geriye dönük doldur"
           }
         },
         "uk" : {
@@ -58193,8 +58193,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Backfill Glucose"
+            "state" : "translated",
+            "value" : "Glukozu Geriye Dönük Doldur"
           }
         },
         "uk" : {
@@ -58323,8 +58323,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Backfill Glucose from Nightscout"
+            "state" : "translated",
+            "value" : "Nightscout'tan Glukozu Geriye Dönük Doldur"
           }
         },
         "uk" : {
@@ -58453,8 +58453,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Backfill missing glucose data from Nightscout."
+            "state" : "translated",
+            "value" : "Eksik glukoz verilerini Nightscout'tan geriye dönük doldurun."
           }
         },
         "uk" : {
@@ -58590,8 +58590,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Backfill options"
+            "state" : "translated",
+            "value" : "Geriye dönük doldurma seçenekleri"
           }
         },
         "uk" : {
@@ -58727,8 +58727,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Backfilling from trend is currently not well supported by Loop"
+            "state" : "translated",
+            "value" : "Eğilimden geriye dönük doldurma şu anda Loop tarafından tam olarak desteklenmiyor"
           }
         },
         "uk" : {
@@ -58857,8 +58857,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Background"
+            "state" : "translated",
+            "value" : "Arka Plan"
           }
         },
         "uk" : {
@@ -58988,8 +58988,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Basal"
+            "state" : "translated",
+            "value" : "Bazal"
           }
         },
         "uk" : {
@@ -59125,8 +59125,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Basal Insulin and Sensitivity ratio"
+            "state" : "translated",
+            "value" : "Bazal İnsülin ve Duyarlılık oranı"
           }
         },
         "uk" : {
@@ -59392,8 +59392,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Basal profile covers 24 hours. You cannot add more rates. Please remove or adjust existing rates to make space."
+            "state" : "translated",
+            "value" : "Bazal profil 24 saati kapsıyor. Daha fazla hız ekleyemezsiniz. Lütfen yer açmak için mevcut hızları kaldırın veya değiştirin."
           }
         },
         "uk" : {
@@ -59522,8 +59522,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Basal Profile Mismatch"
+            "state" : "translated",
+            "value" : "Bazal Profil Uyuşmazlığı"
           }
         },
         "uk" : {
@@ -59652,8 +59652,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Basal Rate"
+            "state" : "translated",
+            "value" : "Bazal Hız"
           }
         },
         "uk" : {
@@ -59782,8 +59782,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Basal Rate (%@)"
+            "state" : "translated",
+            "value" : "Bazal Hız (%@)"
           }
         },
         "uk" : {
@@ -59912,8 +59912,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Basal Rate Adjustment"
+            "state" : "translated",
+            "value" : "Bazal Hız Ayarlaması"
           }
         },
         "uk" : {
@@ -60042,8 +60042,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Basal rate profile chart, 24 hours"
+            "state" : "translated",
+            "value" : "Bazal hız profili grafiği, 24 saat"
           }
         },
         "uk" : {
@@ -60172,8 +60172,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Basal Rates"
+            "state" : "translated",
+            "value" : "Bazal Hızlar"
           }
         },
         "uk" : {
@@ -60303,8 +60303,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Basal Testing"
+            "state" : "translated",
+            "value" : "Bazal Testi"
           }
         },
         "uk" : {
@@ -60433,8 +60433,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Basal Testing is on. Low temp targets will not lower sensitivity."
+            "state" : "translated",
+            "value" : "Bazal Testi açık. Düşük geçici hedefler duyarlılığı azaltmayacak."
           }
         },
         "uk" : {
@@ -60563,8 +60563,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Basic Insulin Rates & Targets"
+            "state" : "translated",
+            "value" : "Temel İnsülin Hızları ve Hedefleri"
           }
         },
         "uk" : {
@@ -60693,8 +60693,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Basic Settings"
+            "state" : "translated",
+            "value" : "Temel Ayarlar"
           }
         },
         "uk" : {
@@ -60830,8 +60830,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Battery"
+            "state" : "translated",
+            "value" : "Pil"
           }
         },
         "uk" : {
@@ -60968,8 +60968,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Battery is running low %@, consider charging your %@ device as soon as possible"
+            "state" : "translated",
+            "value" : "Pil azalıyor %@, %@ cihazınızı en kısa sürede şarj etmeyi düşünün"
           }
         },
         "uk" : {
@@ -61098,8 +61098,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Be warned of connectivity or looping issues."
+            "state" : "translated",
+            "value" : "Bağlantı veya döngü sorunlarından haberdar olun."
           }
         },
         "uk" : {
@@ -61228,8 +61228,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Because Trio utilizes SMBs and UAM SMBs to help you reach your target glucose and other AID systems do not bolus for COB the same way Trio does, this is initially set to below the full calculated amount (80%). When SMBs and UAM SMBs are enabled, you may find your current CR results in lows and needs to be increased before you increase this setting closer to or at 100%."
+            "state" : "translated",
+            "value" : "Trio, hedef glukozunuza ulaşmanıza yardımcı olmak için SMB ve UAM SMB kullandığından ve diğer AID sistemleri COB için Trio ile aynı şekilde bolus vermediğinden, bu değer başlangıçta hesaplanan tam miktarın altına (%80) ayarlanmıştır. SMB ve UAM SMB etkinken, mevcut CR'nizin düşüklere yol açtığını ve bu ayarı %100'e yaklaştırmadan ya da %100'e çıkarmadan önce artırılması gerektiğini fark edebilirsiniz."
           }
         },
         "uk" : {
@@ -61358,8 +61358,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Before you begin…"
+            "state" : "translated",
+            "value" : "Başlamadan önce…"
           }
         },
         "uk" : {
@@ -61488,8 +61488,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Before you can begin with configuring your therapy settings, Trio needs to know which units you use for your glucose and insulin measurements (based on your pump model)."
+            "state" : "translated",
+            "value" : "Tedavi ayarlarınızı yapılandırmaya başlamadan önce Trio'nun, glukoz ve insülin ölçümlerinizde hangi birimleri kullandığınızı (pompa modelinize göre) bilmesi gerekir."
           }
         },
         "uk" : {
@@ -61618,8 +61618,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Behavior"
+            "state" : "translated",
+            "value" : "Davranış"
           }
         },
         "uk" : {
@@ -61749,8 +61749,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "below"
+            "state" : "translated",
+            "value" : "altında"
           }
         },
         "uk" : {
@@ -61879,8 +61879,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Below is the exact JSON object Trio would send right now. No glucose, insulin, carbs, credentials, or settings values are included."
+            "state" : "translated",
+            "value" : "Aşağıda, Trio'nun şu anda göndereceği JSON nesnesinin tamamı yer alıyor. Hiçbir glukoz, insülin, karbonhidrat, kimlik bilgisi veya ayar değeri içermez."
           }
         },
         "uk" : {
@@ -62010,8 +62010,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "below range"
+            "state" : "translated",
+            "value" : "aralık altı"
           }
         },
         "uk" : {
@@ -62140,8 +62140,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Beta (TestFlight) Expires"
+            "state" : "translated",
+            "value" : "Beta (TestFlight) Sona Erme Tarihi"
           }
         },
         "uk" : {
@@ -62270,7 +62270,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "BGI"
           }
         },
@@ -62400,8 +62400,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Biometric accessory is missing or not connected. Please reconnect it and try again."
+            "state" : "translated",
+            "value" : "Biyometrik aksesuar eksik veya bağlı değil. Lütfen yeniden bağlayıp tekrar deneyin."
           }
         },
         "uk" : {
@@ -62530,8 +62530,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Biometric authentication is locked due to multiple failed attempts. Please unlock your device using your passcode."
+            "state" : "translated",
+            "value" : "Birden fazla başarısız deneme nedeniyle biyometrik kimlik doğrulama kilitlendi. Lütfen cihazınızı parolanızla açın."
           }
         },
         "uk" : {
@@ -62660,8 +62660,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Biometric authentication is not available on this device."
+            "state" : "translated",
+            "value" : "Bu cihazda biyometrik kimlik doğrulama kullanılamıyor."
           }
         },
         "uk" : {
@@ -62790,8 +62790,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Black"
+            "state" : "translated",
+            "value" : "Siyah"
           }
         },
         "uk" : {
@@ -62920,8 +62920,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Blood Glucose Reminder"
+            "state" : "translated",
+            "value" : "Kan Glukozu Hatırlatıcısı"
           }
         },
         "uk" : {
@@ -63058,8 +63058,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Blood Glucose Test"
+            "state" : "translated",
+            "value" : "Kan Glukozu Ölçümü"
           }
         },
         "uk" : {
@@ -63189,7 +63189,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Bloom"
           }
         },
@@ -63320,7 +63320,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Bloop"
           }
         },
@@ -63450,7 +63450,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Bluetooth"
           }
         },
@@ -63580,8 +63580,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices."
+            "state" : "translated",
+            "value" : "Bluetooth, insülin pompası ve sürekli glukoz izleme cihazlarıyla iletişim kurmak için kullanılır."
           }
         },
         "uk" : {
@@ -63718,8 +63718,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bluetooth Power Off"
+            "state" : "translated",
+            "value" : "Bluetooth Kapalı"
           }
         },
         "uk" : {
@@ -63848,8 +63848,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bluetooth Required"
+            "state" : "translated",
+            "value" : "Bluetooth Gerekli"
           }
         },
         "uk" : {
@@ -63986,8 +63986,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bluetooth State restored (APS restarted?). Found %d peripherals, and connected to %@ with identifier %@"
+            "state" : "translated",
+            "value" : "Bluetooth durumu geri yüklendi (APS yeniden mi başlatıldı?). %d çevre birim bulundu ve %@ cihazına bağlanıldı, tanımlayıcı: %@"
           }
         },
         "uk" : {
@@ -64123,8 +64123,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bluetooth Transmitters"
+            "state" : "translated",
+            "value" : "Bluetooth Vericileri"
           }
         },
         "uk" : {
@@ -64254,7 +64254,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Bolus"
           }
         },
@@ -64384,8 +64384,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bolus amount (units of insulin)?"
+            "state" : "translated",
+            "value" : "Bolus miktarı (insülin ünitesi)?"
           }
         },
         "uk" : {
@@ -64514,8 +64514,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bolus amount in U"
+            "state" : "translated",
+            "value" : "U cinsinden bolus miktarı"
           }
         },
         "uk" : {
