@@ -277,7 +277,9 @@ extension Stat {
                     }
                 }
             }
-            .presentationDetents([.medium, .large])
+            // One height, no drag to full screen: the calendar is a fixed-size control, so the
+            // extra detent only ever added blank space under it.
+            .presentationDetents([.medium])
         }
 
         // MARK: - Stats View
