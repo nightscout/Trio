@@ -583,7 +583,7 @@ struct PopupView: View {
 
             // Row 2: The super bolus calculation formula.
             GridRow {
-                Text("\(state.currentBasal)")
+                Text(insulinFormatter(state.currentBasal))
                     .valueStyle()
                 Text("×")
                     .operatorStyle()
