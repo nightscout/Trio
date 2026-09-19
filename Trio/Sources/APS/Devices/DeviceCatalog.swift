@@ -370,7 +370,7 @@ extension DeviceCatalog {
         CGMCatalogEntry(
             .managed(G7CGMManager.self),
             manufacturer: .dexcom,
-            name: "Dexcom G7 / ONE+",
+            name: "Dexcom G7 / ONE+ / Stelo",
             icon: .uiBundle(identifier: "org.loopkit.G7SensorKitUI", asset: "g7")
         ),
 
