@@ -68,6 +68,30 @@ struct NightscoutUploadView: View {
                     Text("Enabling this setting allows CGM readings from Trio to be used in Nightscout.")
                 }
             )
+
+            SettingInputSection(
+                decimalValue: $decimalPlaceholder,
+                booleanValue: $state.uploadCGMSensorStates,
+                shouldDisplayHint: $shouldDisplayHint,
+                selectedVerboseHint: Binding(
+                    get: { selectedVerboseHint },
+                    set: {
+                        selectedVerboseHint = $0.map { AnyView($0) }
+                        hintLabel = String(localized: "Upload CGM Sensor States")
+                        shouldDisplayHint = true
+                    }
+                ),
+                units: state.units,
+                type: .boolean,
+                label: String(localized: "Upload CGM Sensor States"),
+                miniHint: String(localized: "Upload sensor states without glucose, such as sensor failure or warmup, as notes."),
+                verboseHint: VStack(alignment: .leading, spacing: 10) {
+                    Text("Default: OFF").bold()
+                    Text(
+                        "When the sensor delivers no glucose, Trio uploads a Nightscout note with the sensor state reported by the CGM, for example a sensor failure, a signal problem or warmup. Each state is noted once until glucose returns. Requires Allow Uploading to Nightscout. Supported for Dexcom G6 and G7."
+                    )
+                }
+            )
         }
         .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHint) {
