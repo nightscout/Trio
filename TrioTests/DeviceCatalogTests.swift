@@ -1,5 +1,6 @@
 import DanaKit
 import Foundation
+import LibreTransmitter
 import LoopKitUI
 import MachO
 import MedtrumKit
@@ -296,5 +297,34 @@ import UIKit
             let entry = DeviceCatalog.pumps.first { $0.name == name }
             #expect(entry?.reportsRewindEvents == reports, "\(name) rewind behaviour changed")
         }
+    }
+
+    @Test("Libre warmup state covers the first 60 minutes") func testLibreWarmupState() {
+        let sensorInfo = SensorInfo()
+        sensorInfo.sensorMinutesSinceStart = 15
+
+        sensorInfo.updateWarmupState()
+
+        #expect(sensorInfo.isInWarmup)
+        #expect(sensorInfo.warmupMinutesRemaining == 45)
+        #expect(abs(sensorInfo.warmupProgress - 0.25) < 0.001)
+    }
+
+    @Test("Libre warmup finishes at minute 60") func testLibreWarmupCompletion() {
+        let sensorInfo = SensorInfo()
+        sensorInfo.sensorMinutesSinceStart = SensorInfo.warmupDurationMinutes
+
+        sensorInfo.updateWarmupState()
+
+        #expect(!sensorInfo.isInWarmup)
+        #expect(sensorInfo.warmupMinutesRemaining == 0)
+        #expect(sensorInfo.warmupProgress == 1)
+    }
+
+    @Test("Libre warmup calculation clamps sensor age") func testLibreWarmupClamping() {
+        #expect(
+            SensorInfo.warmupMinutesRemaining(sensorMinutesSinceStart: -1) == SensorInfo.warmupDurationMinutes
+        )
+        #expect(!SensorInfo.isInWarmup(sensorMinutesSinceStart: 61))
     }
 }

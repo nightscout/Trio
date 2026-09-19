@@ -12,11 +12,6 @@ import Observation
 import SwiftDate
 import SwiftUI
 
-private struct LibreWarmupLifecycleProgress: DeviceLifecycleProgress {
-    let percentComplete: Double
-    let progressState: DeviceLifecycleProgressState = .normalCGM
-}
-
 extension Home {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var broadcaster: Broadcaster!
@@ -533,18 +528,7 @@ extension Home {
                     let source = self.fetchGlucoseManager.glucoseSource
                     let progress: DeviceLifecycleProgress?
                     let displayState: CgmDisplayState?
-                    if let libre = manager as? LibreTransmitterManagerV3,
-                       libre.sensorInfoObservable.isInWarmup
-                    {
-                        progress = LibreWarmupLifecycleProgress(
-                            percentComplete: libre.sensorInfoObservable.warmupProgress
-                        )
-                        displayState = CgmDisplayState(
-                            localizedMessage: String(localized: "Sensor warming up"),
-                            imageName: "hourglass",
-                            status: .normal
-                        )
-                    } else if let manager {
+                    if let manager {
                         progress = manager.cgmLifecycleProgress
                         displayState = manager.cgmStatusHighlight.map {
                             CgmDisplayState(
@@ -935,12 +919,12 @@ extension Home {
                 return nil
             }
             if let libre = manager as? LibreTransmitterManagerV3,
-               libre.sensorInfoObservable.isInWarmup,
-               libre.sensorInfoObservable.warmupMinutesRemaining > 0
+               let activatedAt = libre.sensorInfoObservable.activatedAt
             {
-                return Date().addingTimeInterval(
-                    TimeInterval(libre.sensorInfoObservable.warmupMinutesRemaining * 60)
+                let ends = activatedAt.addingTimeInterval(
+                    TimeInterval(SensorInfo.warmupDurationMinutes * 60)
                 )
+                return ends > Date() ? ends : nil
             }
             return nil
         }
