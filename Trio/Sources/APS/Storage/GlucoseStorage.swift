@@ -256,6 +256,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         entry.glucose = Int16(glucose.glucose ?? 0)
         entry.date = glucose.dateString
         entry.direction = glucose.direction?.rawValue
+        entry.isManual = glucose.mbg != nil
         entry.isUploadedToNS = false
         entry.isUploadedToHealth = false
         entry.isUploadedToTidepool = false

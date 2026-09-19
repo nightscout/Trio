@@ -96,7 +96,7 @@ extension NightscoutAPI {
             let glucose = try JSONCoding.decoder.decode([BloodGlucose].self, from: data)
             return glucose.map {
                 var reading = $0
-                reading.glucose = $0.sgv
+                reading.glucose = $0.sgv ?? $0.mbg
                 return reading
             }
         } catch {
