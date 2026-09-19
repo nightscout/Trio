@@ -1,7 +1,21 @@
 name: 3. Create Certificates
 run-name: Create Certificates (${{ github.ref_name }})
 
-on: [workflow_call, workflow_dispatch]
+on:
+  workflow_call:
+    inputs:
+      force_profiles:
+        description: Recreate provisioning profiles after an identifier capability change
+        required: false
+        default: false
+        type: boolean
+  workflow_dispatch:
+    inputs:
+      force_profiles:
+        description: Recreate provisioning profiles after an identifier capability change
+        required: false
+        default: false
+        type: boolean
 
 env:
   TEAMID: ${{ secrets.TEAMID }}
@@ -11,6 +25,7 @@ env:
   FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
   FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
   FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
+  FORCE_PROFILES: ${{ inputs.force_profiles || false }}
 
 jobs:
   validate:
