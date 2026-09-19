@@ -58,6 +58,16 @@ final class SpyAlertManager: TrioAlertManager {
         Alert.Identifier(managerIdentifier: "trio.aps", alertIdentifier: "loop.notActive.w\(step)")
     }
 
+    /// Steps are anchored to the last loop date, so the armed interval is a
+    /// few milliseconds short of the nominal value by the time it is built.
+    private func expectDelay(_ trigger: Alert.Trigger, _ minutes: Int, sourceLocation: SourceLocation = #_sourceLocation) {
+        guard case let .delayed(interval) = trigger else {
+            Issue.record("expected a delayed trigger, got \(trigger)", sourceLocation: sourceLocation)
+            return
+        }
+        #expect(abs(interval - TimeInterval(minutes * 60)) < 5, sourceLocation: sourceLocation)
+    }
+
     private func armLadder() -> SpyAlertManager {
         let subject = PassthroughSubject<Date, Never>()
         let spy = SpyAlertManager()
@@ -76,7 +86,7 @@ final class SpyAlertManager: TrioAlertManager {
         for (index, minutes) in [20, 40, 60, 80, 100].enumerated() {
             let alert = warnings[index]
             #expect(alert.identifier == warningID(index + 1))
-            #expect(alert.trigger == .delayed(interval: TimeInterval(minutes * 60)))
+            expectDelay(alert.trigger, minutes)
             #expect(alert.interruptionLevel == .timeSensitive)
         }
     }
@@ -87,7 +97,7 @@ final class SpyAlertManager: TrioAlertManager {
             Issue.record("expected a critical escalation alert")
             return
         }
-        #expect(critical.trigger == .delayed(interval: 7200))
+        expectDelay(critical.trigger, 120)
         #expect(critical.interruptionLevel == .critical)
     }
 

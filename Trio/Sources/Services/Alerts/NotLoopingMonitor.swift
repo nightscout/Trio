@@ -25,6 +25,9 @@ final class NotLoopingMonitor: Injectable {
     @Injected() private var apsManager: APSManager!
     @Injected() private var trioAlertManager: TrioAlertManager!
     @Injected() private var settingsManager: SettingsManager!
+    @Injected() private var broadcaster: Broadcaster!
+
+    private var lastLoopDate = Date()
 
     /// Minutes of staleness for each Time-Sensitive warning step.
     private static let warningMinutes: [Int] = [20, 40, 60, 80, 100]
@@ -56,6 +59,7 @@ final class NotLoopingMonitor: Injectable {
     init(resolver: Resolver) {
         injectServices(resolver)
         subscribe(to: apsManager.lastLoopDateSubject.eraseToAnyPublisher())
+        broadcaster.register(SnoozeObserver.self, observer: self)
     }
 
     /// Publisher-only seam for tests: assigns the alert manager directly and
@@ -68,7 +72,10 @@ final class NotLoopingMonitor: Injectable {
 
     private func subscribe(to loopDates: AnyPublisher<Date, Never>) {
         loopDates
-            .sink { [weak self] _ in self?.rescheduleAlarm() }
+            .sink { [weak self] date in
+                self?.lastLoopDate = date
+                self?.rescheduleAlarm()
+            }
             .store(in: &subscriptions)
     }
 
@@ -90,15 +97,23 @@ final class NotLoopingMonitor: Injectable {
               apsManager?.isSuspended != true
         else { return }
 
+        let now = Date()
         for (index, minutes) in Self.warningMinutes.enumerated() {
-            issue(identifier: Self.warningID(index + 1), after: minutes, level: .timeSensitive)
+            issue(identifier: Self.warningID(index + 1), after: minutes, level: .timeSensitive, now: now)
         }
-        issue(identifier: Self.alertID, after: Self.criticalMinutes, level: .critical)
+        issue(identifier: Self.alertID, after: Self.criticalMinutes, level: .critical, now: now)
     }
 
     /// The catalog decides the interruption level for `trio.aps` alerts, so the
     /// level passed here only matters if the entry is ever removed.
-    private func issue(identifier: Alert.Identifier, after minutes: Int, level: Alert.InterruptionLevel) {
+    ///
+    /// Steps are measured from the last successful loop, not from `now`, so a
+    /// mid-window re-arm keeps the original schedule. A step whose moment has
+    /// already passed is skipped rather than fired late.
+    private func issue(identifier: Alert.Identifier, after minutes: Int, level: Alert.InterruptionLevel, now: Date) {
+        let fireDate = lastLoopDate.addingTimeInterval(TimeInterval(minutes * 60))
+        let remaining = fireDate.timeIntervalSince(now)
+        guard remaining > 0 else { return }
         let content = Alert.Content(
             title: String(localized: "Trio Not Active"),
             body: String(
@@ -111,10 +126,20 @@ final class NotLoopingMonitor: Injectable {
             identifier: identifier,
             foregroundContent: content,
             backgroundContent: content,
-            trigger: .delayed(interval: TimeInterval(minutes * 60)),
+            trigger: .delayed(interval: remaining),
             interruptionLevel: level,
             sound: .sound(name: "honk.caf")
         )
         trioAlertManager.issueAlert(alert)
+    }
+}
+
+extension NotLoopingMonitor: SnoozeObserver {
+    /// A snooze clears pending non-critical notifications wholesale, which
+    /// would drop ladder steps scheduled past the end of the window as well as
+    /// the ones inside it. Re-arm from the same anchor; `TrioAlertManager`
+    /// drops the steps that fall inside the window and keeps the rest.
+    @MainActor func snoozeDidChange(_: Date) {
+        rescheduleAlarm()
     }
 }
