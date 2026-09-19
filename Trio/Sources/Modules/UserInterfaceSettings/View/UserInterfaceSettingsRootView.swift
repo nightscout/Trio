@@ -509,16 +509,16 @@ extension UserInterfaceSettings {
                     VStack(alignment: .leading) {
                         Picker(
                             selection: $state.timeInRangeType,
-                            label: Text("Time in Range Type").multilineTextAlignment(.leading)
+                            label: Text("Lower Range Threshold").multilineTextAlignment(.leading)
                         ) {
                             ForEach(TimeInRangeType.allCases) { selection in
-                                Text(selection.displayName).tag(selection)
+                                Text(selection.displayName(for: state.units)).tag(selection)
                             }
                         }.padding(.top)
 
                         HStack(alignment: .center) {
                             Text(
-                                "Choose type of time in range to be used for Trio's statistics."
+                                "Choose the preferred lower threshold for Time in Range statistics."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -526,48 +526,41 @@ extension UserInterfaceSettings {
                             Spacer()
                             Button(
                                 action: {
-                                    hintLabel = String(localized: "Time in Range Type")
+                                    hintLabel = String(localized: "Lower Range Threshold")
                                     selectedVerboseHint =
                                         AnyView(
                                             VStack(
                                                 alignment: .leading,
                                                 spacing: 10
                                             ) {
-                                                Text(
-                                                    "Choose which type of time in range Trio should adopt for all its statistical charts and displays:"
-                                                )
+                                                let tirUpperThreshold = 180.formatted(withUnits: state.units)
+                                                let titrUpperThreshold = 140.formatted(withUnits: state.units)
+                                                Text(String(
+                                                    localized: "Choose the preferred lower threshold used for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR) with an upper threshold of \(tirUpperThreshold), and Time in Tight Range (TITR) with an upper threshold of \(titrUpperThreshold).",
+                                                    comment: "Explains that the lower threshold applies to both TIR and TITR"
+                                                ))
                                                 VStack(
                                                     alignment: .leading,
                                                     spacing: 5
                                                 ) {
-                                                    Text(
-                                                        "Time in Tight Range (TITR):"
-                                                    )
-                                                    .bold()
-                                                    let titrBottomThreshold =
-                                                        "\(state.units == .mgdL ? Decimal(70) : 70.asMmolL)"
-                                                    let titrTopThreshold =
-                                                        "\(state.units == .mgdL ? Decimal(140) : 140.asMmolL)"
+                                                    Text("Standard:").bold()
+                                                    let standardLowerThreshold = TimeInRangeType.timeInTightRange
+                                                        .bottomThreshold.formatted(withUnits: state.units)
                                                     Text(String(
-                                                        localized: "Uses the fairly established Time in Tight Range definition, which is defined as time between \(titrBottomThreshold) and \(titrTopThreshold)  \(state.units.rawValue).",
-                                                        comment: "Time in Tight Range (TITR) verbose hint description"
+                                                        localized: "Uses the established lower threshold of \(standardLowerThreshold).",
+                                                        comment: "Standard lower range threshold description"
                                                     ))
                                                 }
                                                 VStack(
                                                     alignment: .leading,
                                                     spacing: 5
                                                 ) {
-                                                    Text(
-                                                        "Time in Normoglycemia (TING):"
-                                                    )
-                                                    .bold()
-                                                    let tingBottomThreshold =
-                                                        "\(state.units == .mgdL ? Decimal(63) : 63.asMmolL)"
-                                                    let tingTopThreshold =
-                                                        "\(state.units == .mgdL ? Decimal(140) : 140.asMmolL)"
+                                                    Text("Extended:").bold()
+                                                    let extendedLowerThreshold = TimeInRangeType.timeInNormoglycemia
+                                                        .bottomThreshold.formatted(withUnits: state.units)
                                                     Text(String(
-                                                        localized: "Uses the very new – first discussed at ATTD 2025 in Amsterdam, NL – Time in Normoglycemia definition, which adopts its range as all values between the normoglycemic minimum threshold (\(tingBottomThreshold) \(state.units.rawValue)) and \(tingTopThreshold) \(state.units.rawValue).",
-                                                        comment: "Time in Normoglycemia (TING) verbose hint description"
+                                                        localized: "Uses the newer Time in Normoglycemia (TING) lower threshold of \(extendedLowerThreshold).",
+                                                        comment: "Extended lower range threshold description"
                                                     ))
                                                 }
                                             }
@@ -582,7 +575,7 @@ extension UserInterfaceSettings {
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
                     }.padding(.bottom)
-                }.settingsSearchTarget(label: String(localized: "Time in Range Type"))
+                }.settingsSearchTarget(label: String(localized: "Lower Range Threshold"))
 
                 Section {
                     VStack(alignment: .leading) {

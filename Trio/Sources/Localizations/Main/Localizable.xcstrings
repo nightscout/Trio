@@ -1089,6 +1089,149 @@
         }
       }
     },
+    "Choose the preferred lower threshold for Time in Range statistics." : {
+      "comment" : "Short description of the lower range threshold setting.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the preferred lower threshold for Time in Range statistics."
+          }
+        }
+      }
+    },
+    "Choose the preferred lower threshold used for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR) with an upper threshold of %@, and Time in Tight Range (TITR) with an upper threshold of %@." : {
+      "comment" : "Explains that the lower threshold applies to both TIR and TITR. Placeholders are the upper thresholds including units.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the preferred lower threshold used for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR) with an upper threshold of %@, and Time in Tight Range (TITR) with an upper threshold of %@."
+          }
+        }
+      }
+    },
+    "Extended (%@)" : {
+      "comment" : "Extended lower threshold for TIR and TITR statistics; placeholder includes glucose value and units.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extended (%@)"
+          }
+        }
+      }
+    },
+    "Extended Lower Threshold" : {
+      "comment" : "Search term for the extended lower range threshold setting.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extended Lower Threshold"
+          }
+        }
+      }
+    },
+    "Extended:" : {
+      "comment" : "Heading for the extended lower range threshold description.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extended:"
+          }
+        }
+      }
+    },
+    "Lower Range Threshold" : {
+      "comment" : "Setting for the lower glucose boundary shared by TIR and TITR statistics.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lower Range Threshold"
+          }
+        }
+      }
+    },
+    "Standard (%@)" : {
+      "comment" : "Standard lower threshold for TIR and TITR statistics; placeholder includes glucose value and units.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard (%@)"
+          }
+        }
+      }
+    },
+    "Standard Lower Threshold" : {
+      "comment" : "Search term for the standard lower range threshold setting.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard Lower Threshold"
+          }
+        }
+      }
+    },
+    "Standard:" : {
+      "comment" : "Heading for the standard lower range threshold description.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard:"
+          }
+        }
+      }
+    },
+    "TIR (%@-%@)" : {
+      "comment" : "Time in Range with the selected lower threshold and the upper threshold.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TIR (%@-%@)"
+          }
+        }
+      }
+    },
+    "TITR (%@-%@)" : {
+      "comment" : "Time in Tight Range with either the Standard or Extended lower threshold.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TITR (%@-%@)"
+          }
+        }
+      }
+    },
+    "Uses the established lower threshold of %@." : {
+      "comment" : "Standard lower range threshold description; placeholder includes glucose value and units.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses the established lower threshold of %@."
+          }
+        }
+      }
+    },
+    "Uses the newer Time in Normoglycemia (TING) lower threshold of %@." : {
+      "comment" : "Extended lower range threshold description; placeholder includes glucose value and units.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses the newer Time in Normoglycemia (TING) lower threshold of %@."
+          }
+        }
+      }
+    },
     " " : {
       "localizations" : {
         "bg" : {
