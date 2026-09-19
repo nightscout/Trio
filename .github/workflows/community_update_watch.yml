@@ -3,7 +3,7 @@ name: Community Update Watch
 on:
   workflow_dispatch:
   schedule:
-    - cron: "20 7 * * *"
+    - cron: "20 7 * * 1" # Monday at 07:20 UTC
 
 permissions:
   contents: read
@@ -25,57 +25,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check upstream
+      - name: Check upstream and local overlap
         id: upstream
         shell: bash
-        run: |
-          set -euo pipefail
-
-          git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
-          git fetch --no-tags upstream "${UPSTREAM_BRANCH}:refs/remotes/upstream/${UPSTREAM_BRANCH}"
-
-          local_sha="$(git rev-parse HEAD)"
-          upstream_ref="refs/remotes/upstream/${UPSTREAM_BRANCH}"
-          upstream_sha="$(git rev-parse "${upstream_ref}")"
-
-          echo "local_sha=${local_sha}" >> "$GITHUB_OUTPUT"
-          echo "upstream_sha=${upstream_sha}" >> "$GITHUB_OUTPUT"
-
-          if git merge-base --is-ancestor "${upstream_sha}" "${local_sha}"; then
-            echo "has_update=false" >> "$GITHUB_OUTPUT"
-            echo "Your fork already includes upstream ${upstream_sha}." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-
-          echo "has_update=true" >> "$GITHUB_OUTPUT"
-
-          {
-            echo "commits<<EOF"
-            git log --oneline --no-merges "${local_sha}..${upstream_ref}" | head -30
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
-          {
-            echo "watched_files<<EOF"
-            git diff --name-only "${local_sha}..${upstream_ref}" -- \
-              Trio/Sources/Application/TrioApp.swift \
-              Trio/Sources/Modules/Home/View/HomeRootView.swift \
-              Trio/Sources/Modules/Settings/View/Subviews/NotificationsView.swift \
-              Trio/Sources/Services/WatchManager/GarminManager.swift \
-              Trio/Sources/Services/WatchManager/AppleWatchManager.swift \
-              Trio/Sources/Localizations/Main/Localizable.xcstrings \
-              patches/medtrum-fill-indicator.patch
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
-          {
-            echo "## Community update available"
-            echo ""
-            echo "- Local fork: \`${local_sha}\`"
-            echo "- Upstream: \`${upstream_sha}\`"
-            echo ""
-            echo "Ask Codex to review and update the fork before building if you want to keep local patches intact."
-          } >> "$GITHUB_STEP_SUMMARY"
+        run: bash .github/scripts/community_update_overlap.sh
 
       - name: Create or update tracking issue
         if: steps.upstream.outputs.has_update == 'true'
@@ -84,7 +37,11 @@ jobs:
           UPSTREAM_SHA: ${{ steps.upstream.outputs.upstream_sha }}
           LOCAL_SHA: ${{ steps.upstream.outputs.local_sha }}
           UPSTREAM_COMMITS: ${{ steps.upstream.outputs.commits }}
-          WATCHED_FILES: ${{ steps.upstream.outputs.watched_files }}
+          LOCAL_CUSTOM_FILES: ${{ steps.upstream.outputs.local_custom_files }}
+          OVERLAP_FILES: ${{ steps.upstream.outputs.overlap_files }}
+          EQUIVALENT_COMMITS: ${{ steps.upstream.outputs.equivalent_commits }}
+          MEDTRUM_STATUS: ${{ steps.upstream.outputs.medtrum_status }}
+          LIBRE_STATUS: ${{ steps.upstream.outputs.libre_status }}
         with:
           script: |
             const owner = context.repo.owner;
@@ -92,7 +49,11 @@ jobs:
             const upstreamSha = process.env.UPSTREAM_SHA;
             const localSha = process.env.LOCAL_SHA;
             const commits = (process.env.UPSTREAM_COMMITS || '').trim();
-            const watchedFiles = (process.env.WATCHED_FILES || '').trim();
+            const localCustomFiles = (process.env.LOCAL_CUSTOM_FILES || '').trim();
+            const overlapFiles = (process.env.OVERLAP_FILES || '').trim();
+            const equivalentCommits = (process.env.EQUIVALENT_COMMITS || '').trim();
+            const medtrumStatus = (process.env.MEDTRUM_STATUS || '').trim();
+            const libreStatus = (process.env.LIBRE_STATUS || '').trim();
             const title = `Community update available: ${upstreamSha.slice(0, 7)}`;
 
             const body = [
@@ -101,23 +62,32 @@ jobs:
               `- Fork staat op: \`${localSha}\``,
               `- Community staat op: \`${upstreamSha}\``,
               '',
-              'Laat eerst meekijken voordat je deze update in je build meeneemt, zodat lokale patches behouden blijven.',
+              'De checker heeft de nieuwe upstream-wijzigingen vergeleken met de volledige eigen delta van de fork.',
               '',
-              'Belangrijke lokale patch-gebieden:',
-              '- Medtrum fill-scherm',
-              '- Nederlandse vertalingen',
-              '- batterij/performance startup optimalisaties',
-              '- notificatie-waarschuwingen',
+              '## Beslisregel voor de update-agent',
+              'Controleer overlap ook inhoudelijk en niet alleen op bestandsnaam. Als upstream dezelfde mogelijkheid inmiddels aanbiedt, gebruik dan de officiële upstream-implementatie en verwijder de dubbele lokale code, patch of workflow-hook. Behoud alleen de aantoonbaar ontbrekende lokale delta. Verwijder bij Libre of Medtrum nooit stilzwijgend veiligheidschecks; verifieer eerst dat upstream hetzelfde gedrag dekt.',
               '',
-              watchedFiles
-                ? `Bestanden uit onze patch-gebieden die upstream ook raakt:\n\n\`\`\`\n${watchedFiles}\n\`\`\``
-                : 'Upstream raakt geen bekende lokale patch-bestanden in deze snelle check.',
+              '## Componentcontrole',
+              `- Medtrum: ${medtrumStatus || 'geen resultaat'}`,
+              `- Libre: ${libreStatus || 'geen resultaat'}`,
+              '',
+              overlapFiles
+                ? `## Bestands-overlap\n\nDeze bestanden zijn zowel lokaal als upstream gewijzigd:\n\n\`\`\`\n${overlapFiles}\n\`\`\``
+                : '## Bestands-overlap\n\nGeen directe overlap op bestandsniveau gevonden; controleer functionele overlap nog steeds bij Libre, Medtrum en UI-workflows.',
+              '',
+              equivalentCommits
+                ? `## Exact equivalente lokale commits\n\nDeze wijzigingen bestaan al upstream en moeten tijdens het bijwerken uit de lokale delta verdwijnen:\n\n\`\`\`\n${equivalentCommits}\n\`\`\``
+                : '## Exact equivalente lokale commits\n\nGeen patch-equivalente commits gevonden.',
+              '',
+              localCustomFiles
+                ? `## Huidige eigen aanpassingsgebieden\n\n\`\`\`\n${localCustomFiles}\n\`\`\``
+                : '## Huidige eigen aanpassingsgebieden\n\nGeen lokale bestandsdelta gevonden.',
               '',
               commits
                 ? `Laatste upstream commits:\n\n\`\`\`\n${commits}\n\`\`\``
                 : 'Geen commitlijst beschikbaar.',
               '',
-              'Vraag bijvoorbeeld aan Codex: "werk mijn Trio fork bij met de community update en behoud mijn patches".'
+              'Laat de update-agent per eigen functie rapporteren: **behouden**, **vervangen door upstream** of **gedeeltelijk behouden**, inclusief de uitgevoerde build/testcontrole.'
             ].join('\n');
 
             const search = await github.rest.search.issuesAndPullRequests({
