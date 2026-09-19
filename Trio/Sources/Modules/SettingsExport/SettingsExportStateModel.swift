@@ -899,6 +899,27 @@ extension SettingsExport {
                     name: String(localized: "Lock Screen Widget Style"),
                     value: trioSettings.lockScreenView.rawValue
                 )
+                if trioSettings.lockScreenView == .simple {
+                    addSetting(
+                        category: notificationsCategory,
+                        subcategory: liveActivitySubcategory,
+                        name: String(localized: "Font Face"),
+                        value: trioSettings.liveActivitySimpleFontFace.displayName
+                    )
+                    addSetting(
+                        category: notificationsCategory,
+                        subcategory: liveActivitySubcategory,
+                        name: String(localized: "Font Size"),
+                        value: trioSettings.liveActivitySimpleFontSize.displayName
+                    )
+                    addSetting(
+                        category: notificationsCategory,
+                        subcategory: liveActivitySubcategory,
+                        name: String(localized: "Color Glucose Reading"),
+                        value: trioSettings.liveActivitySimpleUseGlucoseColor
+                            ? String(localized: "Enabled") : String(localized: "Disabled")
+                    )
+                }
                 addSetting(
                     category: notificationsCategory,
                     subcategory: liveActivitySubcategory,

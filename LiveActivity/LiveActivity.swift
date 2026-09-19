@@ -33,7 +33,7 @@ struct LiveActivity: Widget {
                 DynamicIslandExpandedRegion(.leading) {
                     LiveActivityExpandedLeadingView(
                         context: context,
-                        glucoseColor: glucoseColor
+                        glucoseColor: hasStaticColorScheme ? .primary : glucoseColor
                     )
                 }
                 DynamicIslandExpandedRegion(.trailing) {
@@ -51,7 +51,7 @@ struct LiveActivity: Widget {
             } compactLeading: {
                 LiveActivityCompactLeadingView(
                     context: context,
-                    glucoseColor: glucoseColor
+                    glucoseColor: hasStaticColorScheme ? .primary : glucoseColor
                 )
             } compactTrailing: {
                 LiveActivityCompactTrailingView(
@@ -61,7 +61,7 @@ struct LiveActivity: Widget {
             } minimal: {
                 LiveActivityMinimalView(
                     context: context,
-                    glucoseColor: glucoseColor
+                    glucoseColor: hasStaticColorScheme ? .primary : glucoseColor
                 )
             }
             .widgetURL(URL(string: "Trio://"))
@@ -149,6 +149,7 @@ private extension LiveActivityAttributes.ContentState {
             glucoseColorScheme: "staticColor",
             useDetailedViewIOS: false,
             useDetailedViewWatchOS: false,
+            simpleViewStyle: .default,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -167,6 +168,7 @@ private extension LiveActivityAttributes.ContentState {
             glucoseColorScheme: "staticColor",
             useDetailedViewIOS: false,
             useDetailedViewWatchOS: false,
+            simpleViewStyle: .default,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -185,6 +187,7 @@ private extension LiveActivityAttributes.ContentState {
             glucoseColorScheme: "staticColor",
             useDetailedViewIOS: false,
             useDetailedViewWatchOS: false,
+            simpleViewStyle: .default,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -204,6 +207,7 @@ private extension LiveActivityAttributes.ContentState {
             glucoseColorScheme: "staticColor",
             useDetailedViewIOS: false,
             useDetailedViewWatchOS: false,
+            simpleViewStyle: .default,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -222,6 +226,7 @@ private extension LiveActivityAttributes.ContentState {
             glucoseColorScheme: "staticColor",
             useDetailedViewIOS: false,
             useDetailedViewWatchOS: false,
+            simpleViewStyle: .default,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -240,6 +245,7 @@ private extension LiveActivityAttributes.ContentState {
             glucoseColorScheme: "staticColor",
             useDetailedViewIOS: false,
             useDetailedViewWatchOS: false,
+            simpleViewStyle: .default,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -259,6 +265,7 @@ private extension LiveActivityAttributes.ContentState {
             glucoseColorScheme: "staticColor",
             useDetailedViewIOS: true,
             useDetailedViewWatchOS: true,
+            simpleViewStyle: .default,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -279,6 +286,7 @@ private extension LiveActivityAttributes.ContentState {
             glucoseColorScheme: "staticColor",
             useDetailedViewIOS: true,
             useDetailedViewWatchOS: true,
+            simpleViewStyle: .default,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -299,6 +307,7 @@ private extension LiveActivityAttributes.ContentState {
             glucoseColorScheme: "staticColor",
             useDetailedViewIOS: true,
             useDetailedViewWatchOS: true,
+            simpleViewStyle: .default,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -320,6 +329,7 @@ private extension LiveActivityAttributes.ContentState {
             glucoseColorScheme: "staticColor",
             useDetailedViewIOS: true,
             useDetailedViewWatchOS: true,
+            simpleViewStyle: .default,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -340,6 +350,7 @@ private extension LiveActivityAttributes.ContentState {
             glucoseColorScheme: "staticColor",
             useDetailedViewIOS: true,
             useDetailedViewWatchOS: true,
+            simpleViewStyle: .default,
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -360,6 +371,7 @@ private extension LiveActivityAttributes.ContentState {
             glucoseColorScheme: "staticColor",
             useDetailedViewIOS: true,
             useDetailedViewWatchOS: true,
+            simpleViewStyle: .default,
             detailedViewState: detailedViewState,
             isInitialState: false
         )

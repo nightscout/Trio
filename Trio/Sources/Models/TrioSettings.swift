@@ -67,6 +67,12 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var useLiveActivity: Bool = false
     var lockScreenView: LockScreenView = .simple
     var smartStackView: LockScreenView = .simple
+    /// Typeface of the glucose reading in the Simple Lock Screen Live Activity layout.
+    var liveActivitySimpleFontFace: LiveActivityFontFace = .default
+    /// Size of the glucose reading in the Simple Lock Screen Live Activity layout.
+    var liveActivitySimpleFontSize: LiveActivityFontSize = .large
+    /// Whether the Simple Lock Screen Live Activity colors the glucose reading using Trio's glucose color scheme.
+    var liveActivitySimpleUseGlucoseColor: Bool = true
     var displayGlucoseForecasts: Bool = false
     var bolusShortcut: BolusShortcutLimit = .notAllowed
     var timeInRangeType: TimeInRangeType = .timeInTightRange
@@ -338,6 +344,25 @@ extension TrioSettings: Decodable {
 
         if let smartStackView = try? container.decode(LockScreenView.self, forKey: .smartStackView) {
             settings.smartStackView = smartStackView
+        }
+
+        if let liveActivitySimpleFontFace = try? container
+            .decode(LiveActivityFontFace.self, forKey: .liveActivitySimpleFontFace)
+        {
+            settings.liveActivitySimpleFontFace = liveActivitySimpleFontFace
+        }
+
+        if let liveActivitySimpleFontSize = try? container
+            .decode(LiveActivityFontSize.self, forKey: .liveActivitySimpleFontSize)
+        {
+            settings.liveActivitySimpleFontSize = liveActivitySimpleFontSize
+        }
+
+        if let liveActivitySimpleUseGlucoseColor = try? container.decode(
+            Bool.self,
+            forKey: .liveActivitySimpleUseGlucoseColor
+        ) {
+            settings.liveActivitySimpleUseGlucoseColor = liveActivitySimpleUseGlucoseColor
         }
 
         if let displayGlucoseForecasts = try? container.decode(Bool.self, forKey: .displayGlucoseForecasts) {

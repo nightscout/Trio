@@ -137,7 +137,7 @@ extension LiveActivitySettings {
                                                         VStack(alignment: .leading, spacing: 10) {
                                                             Text("Simple:").bold()
                                                             Text(
-                                                                "Trio's Simple Lock Screen Widget displays current glucose reading, trend arrow, delta and the timestamp of the current reading."
+                                                                "Trio's Simple Lock Screen Widget displays current glucose reading, trend arrow, delta and the timestamp of the current reading. Its Widget Configuration lets you set the typeface, size and coloring of the glucose reading."
                                                             )
                                                         }
                                                         VStack(alignment: .leading, spacing: 10) {
@@ -166,11 +166,19 @@ extension LiveActivitySettings {
                                 }.padding(.top)
                             }.padding(.bottom)
 
-                            if state.lockScreenView == .detailed {
-                                HStack {
+                            HStack {
+                                if state.lockScreenView == .detailed {
                                     NavigationLink(
                                         "Widget Configuration",
                                         destination: LiveActivityWidgetConfiguration(
+                                            resolver: resolver,
+                                            state: state
+                                        )
+                                    ).foregroundStyle(Color.accentColor)
+                                } else {
+                                    NavigationLink(
+                                        "Widget Configuration",
+                                        destination: LiveActivitySimpleWidgetConfiguration(
                                             resolver: resolver,
                                             state: state
                                         )

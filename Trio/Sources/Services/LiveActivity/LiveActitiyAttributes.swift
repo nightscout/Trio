@@ -14,6 +14,20 @@ struct LiveActivityAttributes: ActivityAttributes {
         static let defaultItems: [Self] = [.currentGlucoseLarge, .iob, .cob, .updatedLabel]
     }
 
+    /// Appearance of the glucose reading in the Simple Lock Screen layout.
+    ///
+    /// Mirrors the user's choices on the Simple style's Widget Configuration screen. The Detailed layout is
+    /// configured through `ContentAdditionalState.widgetItems` instead.
+    struct SimpleViewStyle: Codable, Hashable {
+        let fontFace: LiveActivityFontFace
+        let fontSize: LiveActivityFontSize
+        /// Whether the reading follows Trio's glucose color scheme instead of the default text color.
+        let useGlucoseColor: Bool
+
+        /// Matches the appearance the Simple layout had before it became configurable.
+        static let `default` = SimpleViewStyle(fontFace: .default, fontSize: .large, useGlucoseColor: true)
+    }
+
     struct ContentState: Codable, Hashable {
         let unit: String
         let bg: String
@@ -26,6 +40,7 @@ struct LiveActivityAttributes: ActivityAttributes {
         let glucoseColorScheme: String
         let useDetailedViewIOS: Bool
         let useDetailedViewWatchOS: Bool
+        let simpleViewStyle: SimpleViewStyle
         let detailedViewState: ContentAdditionalState
 
         /// true for the first state that is set on the activity

@@ -10,12 +10,26 @@ extension LiveActivitySettings {
         @Published var lockScreenView: LockScreenView = .simple
         @Published var smartStackView: LockScreenView = .simple
         @Published var displayGlucoseForecasts = false
+        @Published var simpleFontFace: LiveActivityFontFace = .default
+        @Published var simpleFontSize: LiveActivityFontSize = .large
+        @Published var simpleUseGlucoseColor = true
+
+        /// Glucose color scheme the app applies everywhere, used to preview the Simple widget's reading color.
+        var glucoseColorScheme: GlucoseColorScheme { settingsManager.settings.glucoseColorScheme }
+        /// User-set high glucose threshold, used to preview the Simple widget's reading color.
+        var highGlucose: Decimal { settingsManager.settings.high }
+        /// User-set low glucose threshold, used to preview the Simple widget's reading color.
+        var lowGlucose: Decimal { settingsManager.settings.low }
+
         override func subscribe() {
             units = settingsManager.settings.units
             subscribeSetting(\.useLiveActivity, on: $useLiveActivity) { useLiveActivity = $0 }
             subscribeSetting(\.lockScreenView, on: $lockScreenView) { lockScreenView = $0 }
             subscribeSetting(\.smartStackView, on: $smartStackView) { smartStackView = $0 }
             subscribeSetting(\.displayGlucoseForecasts, on: $displayGlucoseForecasts) { displayGlucoseForecasts = $0 }
+            subscribeSetting(\.liveActivitySimpleFontFace, on: $simpleFontFace) { simpleFontFace = $0 }
+            subscribeSetting(\.liveActivitySimpleFontSize, on: $simpleFontSize) { simpleFontSize = $0 }
+            subscribeSetting(\.liveActivitySimpleUseGlucoseColor, on: $simpleUseGlucoseColor) { simpleUseGlucoseColor = $0 }
         }
     }
 }

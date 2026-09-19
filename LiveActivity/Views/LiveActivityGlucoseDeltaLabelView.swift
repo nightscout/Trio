@@ -10,15 +10,14 @@ import WidgetKit
 
 struct LiveActivityGlucoseDeltaLabelView: View {
     var context: ActivityViewContext<LiveActivityAttributes>
+    /// Color to render the delta in. Callers resolve this, so that each layout can decide whether the delta
+    /// follows Trio's glucose color scheme or stays in the default text color.
     var glucoseColor: Color
 
     var body: some View {
         if !context.state.change.isEmpty {
             Text(context.state.change)
-                .foregroundStyle(
-                    context.isStale ? .secondary : context.state
-                        .glucoseColorScheme == "staticColor" ? .primary : glucoseColor
-                )
+                .foregroundStyle(context.isStale ? .secondary : glucoseColor)
                 .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
         } else {
             Text("--")

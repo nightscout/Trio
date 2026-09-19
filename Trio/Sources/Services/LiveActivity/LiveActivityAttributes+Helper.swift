@@ -19,6 +19,17 @@ extension UserDefaults {
     }
 }
 
+extension LiveActivityAttributes.SimpleViewStyle {
+    /// Builds the Simple layout's appearance from the user's Live Activity settings.
+    init(settings: TrioSettings) {
+        self.init(
+            fontFace: settings.liveActivitySimpleFontFace,
+            fontSize: settings.liveActivitySimpleFontSize,
+            useGlucoseColor: settings.liveActivitySimpleUseGlucoseColor
+        )
+    }
+}
+
 extension LiveActivityAttributes.ContentState {
     static func formatGlucose(_ value: Int, units: GlucoseUnits, forceSign: Bool) -> String {
         let formatter = NumberFormatter()
@@ -142,6 +153,7 @@ extension LiveActivityAttributes.ContentState {
             glucoseColorScheme: settings.glucoseColorScheme.rawValue,
             useDetailedViewIOS: settings.lockScreenView == .detailed,
             useDetailedViewWatchOS: settings.smartStackView == .detailed,
+            simpleViewStyle: LiveActivityAttributes.SimpleViewStyle(settings: settings),
             detailedViewState: detailedState,
             isInitialState: false
         )
