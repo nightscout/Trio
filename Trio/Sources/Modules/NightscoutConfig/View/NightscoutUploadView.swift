@@ -84,12 +84,16 @@ struct NightscoutUploadView: View {
                 units: state.units,
                 type: .boolean,
                 label: String(localized: "Upload CGM Sensor States"),
-                miniHint: String(localized: "Upload sensor states without glucose, such as sensor failure or warmup, as notes."),
+                miniHint: String(localized: "Enable uploading of sensor errors and other CGM states to Nightscout as notes."),
                 verboseHint: VStack(alignment: .leading, spacing: 10) {
                     Text("Default: OFF").bold()
                     Text(
-                        "When the sensor delivers no glucose, Trio uploads a Nightscout note with the sensor state reported by the CGM, for example a sensor failure, a signal problem or warmup. Each state is noted once until glucose returns. Requires Allow Uploading to Nightscout. Supported for Dexcom G6 and G7."
+                        "When your CGM reports a state where it cannot give a usable reading, such as a sensor error or warmup, Trio uploads that state to Nightscout as a note."
                     )
+                    Text(
+                        "Notes carry the state name the CGM itself uses, such as sensorFailed or warmup. Each state is noted once, and a state that returns after usable readings resume is noted again."
+                    )
+                    Text("Requires Allow Uploading to Nightscout. Supported for Dexcom G6 and G7.")
                 }
             )
         }

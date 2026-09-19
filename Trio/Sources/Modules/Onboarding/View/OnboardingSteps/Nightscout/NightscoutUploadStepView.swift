@@ -52,7 +52,7 @@ struct NightscoutUploadStepView: View {
             .disabled(!state.isUploadEnabled)
 
             Text(
-                "When the sensor delivers no glucose, Trio uploads a note with the sensor state reported by the CGM, such as a sensor failure or warmup. Supported for Dexcom G6 and G7."
+                "When your CGM reports a state where it cannot give a usable reading, such as a sensor error or warmup, Trio uploads that state to Nightscout as a note. Supported for Dexcom G6 and G7."
             )
             .padding(.horizontal)
             .font(.footnote)
