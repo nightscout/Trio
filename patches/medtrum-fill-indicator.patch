@@ -1,8 +1,8 @@
 diff --git a/Localization/Localizable.xcstrings b/Localization/Localizable.xcstrings
-index e20c576..08ce9c5 100644
+index 1877d18..a9a9f39 100644
 --- a/Localization/Localizable.xcstrings
 +++ b/Localization/Localizable.xcstrings
-@@ -11248,7 +11248,7 @@
+@@ -12378,7 +12378,7 @@
          "nl" : {
            "stringUnit" : {
              "state" : "translated",
@@ -11,7 +11,7 @@ index e20c576..08ce9c5 100644
            }
          },
          "pl" : {
-@@ -11410,7 +11410,7 @@
+@@ -12540,7 +12540,7 @@
          "nl" : {
            "stringUnit" : {
              "state" : "translated",
@@ -20,7 +20,7 @@ index e20c576..08ce9c5 100644
            }
          },
          "pl" : {
-@@ -35132,7 +35132,151 @@
+@@ -36906,7 +36906,151 @@
            }
          }
        }
@@ -175,10 +175,10 @@ index e20c576..08ce9c5 100644
 \ No newline at end of file
 +}
 diff --git a/MedtrumKit/PumpManager/MedtrumPumpManager.swift b/MedtrumKit/PumpManager/MedtrumPumpManager.swift
-index 20b3935..c46c270 100644
+index 482c069..d9b01a6 100644
 --- a/MedtrumKit/PumpManager/MedtrumPumpManager.swift
 +++ b/MedtrumKit/PumpManager/MedtrumPumpManager.swift
-@@ -654,6 +654,32 @@ public extension MedtrumPumpManager {
+@@ -724,6 +724,32 @@ public extension MedtrumPumpManager {
          }
      }
  
@@ -324,7 +324,7 @@ index a416fec..998f1f5 100644
                  if pumpManager.state.pumpState.rawValue > PatchState.priming.rawValue,
                     pumpManager.state.pumpState.rawValue < PatchState.active.rawValue
 diff --git a/MedtrumKitUI/ViewModels/Settings/MedtrumKitSettingsViewModel.swift b/MedtrumKitUI/ViewModels/Settings/MedtrumKitSettingsViewModel.swift
-index df5f59b..4f33d6d 100644
+index b115e82..4fa0017 100644
 --- a/MedtrumKitUI/ViewModels/Settings/MedtrumKitSettingsViewModel.swift
 +++ b/MedtrumKitUI/ViewModels/Settings/MedtrumKitSettingsViewModel.swift
 @@ -19,6 +19,7 @@ class MedtrumKitSettingsViewModel: PatchLifetimeFormatting, ObservableObject, Pu
@@ -335,7 +335,7 @@ index df5f59b..4f33d6d 100644
      @Published var maxReservoirLevel: Double = 1
      @Published var pumpTime = Date.distantPast
      @Published var pumpTimeSyncedAt = Date.distantPast
-@@ -60,6 +61,13 @@ class MedtrumKitSettingsViewModel: PatchLifetimeFormatting, ObservableObject, Pu
+@@ -73,6 +74,13 @@ class MedtrumKitSettingsViewModel: PatchLifetimeFormatting, ObservableObject, Pu
          return formatter
      }()
  
@@ -349,8 +349,8 @@ index df5f59b..4f33d6d 100644
      let basalRateFormatter: NumberFormatter = {
          let numberFormatter = NumberFormatter()
          numberFormatter.numberStyle = .decimal
-@@ -138,6 +146,11 @@ class MedtrumKitSettingsViewModel: PatchLifetimeFormatting, ObservableObject, Pu
-         reservoirVolumeFormatter.string(from: units as NSNumber) ?? ""
+@@ -185,6 +193,11 @@ class MedtrumKitSettingsViewModel: PatchLifetimeFormatting, ObservableObject, Pu
+         return Int((patchGracePeriodFrom.timeIntervalSince1970 - Date.now.timeIntervalSince1970).days.rounded(.towardZero))
      }
  
 +    func batteryText(for voltage: Double) -> String {
@@ -358,17 +358,17 @@ index df5f59b..4f33d6d 100644
 +        return batteryFormatter.string(from: quantity) ?? ""
 +    }
 +
-     var patchLifecycleDays: Int? {
+     var patchLifecycleHours: Int? {
          guard patchLifecycleState == .active || patchLifecycleState == .activeLast24h, let patchGracePeriodFrom else {
              return nil
-@@ -365,6 +378,7 @@ extension MedtrumKitSettingsViewModel {
+@@ -405,6 +418,7 @@ extension MedtrumKitSettingsViewModel {
          pumpTime = state.pumpTime
          pumpTimeSyncedAt = state.pumpTimeSyncedAt
          reservoirLevel = patchState != .reservoirEmpty ? state.reservoir : 0
 +        battery = state.battery
          basalType = state.basalDose.type
-         basalRate = basalType == .tempBasal ? state.basalDose.value : state.currentBaseBasalRate
-         lastSync = state.lastSync
+         basalRate = basalRateFormatter
+             .string(from: (basalType == .tempBasal ? state.basalDose.value : state.currentBaseBasalRate) as NSNumber) ?? ""
 diff --git a/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift b/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
 index b435d4a..0155f83 100644
 --- a/MedtrumKitUI/Views/Onboarding/PatchPrimingView.swift
@@ -670,7 +670,7 @@ index b435d4a..0155f83 100644
 +    }
 +}
 diff --git a/MedtrumKitUI/Views/Settings/MedtrumKitSettings.swift b/MedtrumKitUI/Views/Settings/MedtrumKitSettings.swift
-index 03fc3cb..00a68f4 100644
+index 35e915c..3d10d23 100644
 --- a/MedtrumKitUI/Views/Settings/MedtrumKitSettings.swift
 +++ b/MedtrumKitUI/Views/Settings/MedtrumKitSettings.swift
 @@ -64,7 +64,10 @@ struct MedtrumKitSettings: View {
@@ -685,7 +685,7 @@ index 03fc3cb..00a68f4 100644
                      }
                      .padding(.bottom, 5)
                  }
-@@ -507,6 +510,36 @@ struct MedtrumKitSettings: View {
+@@ -522,6 +525,36 @@ struct MedtrumKitSettings: View {
          }
      }
  
@@ -722,7 +722,7 @@ index 03fc3cb..00a68f4 100644
      var deliveryStatus: some View {
          VStack(alignment: .leading, spacing: 5) {
              Text(deliverySectionTitle)
-@@ -640,6 +673,18 @@ struct MedtrumKitSettings: View {
+@@ -657,6 +690,18 @@ struct MedtrumKitSettings: View {
          return guidanceColors.critical
      }
  

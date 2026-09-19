@@ -10,7 +10,10 @@ on:
 env:
   GH_PAT: ${{ secrets.GH_PAT }}
   UPSTREAM_REPO: nightscout/Trio
-  UPSTREAM_BRANCH: ${{ github.ref_name }} # branch on upstream repository to sync from (replace with specific branch name if needed)
+  # Custom branches are rebased on the released upstream line. Looking up the
+  # same branch name in nightscout/Trio fails because fork-only branches do not
+  # exist upstream.
+  UPSTREAM_BRANCH: main
   TARGET_BRANCH: ${{ github.ref_name }} # target branch on fork to be kept in sync
 
 jobs:
@@ -277,7 +280,11 @@ jobs:
 
       # Build signed Trio IPA file
       - name: Fastlane Build & Archive
-        run: bundle exec fastlane build_trio
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p buildlog
+          bundle exec fastlane build_trio 2>&1 | tee buildlog/fastlane.log
         env:
           TEAMID: ${{ secrets.TEAMID }}
           GH_PAT: ${{ secrets.GH_PAT }}
