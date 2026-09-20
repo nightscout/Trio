@@ -912,13 +912,6 @@ extension SettingsExport {
                         name: String(localized: "Font Size"),
                         value: trioSettings.liveActivitySimpleFontSize.displayName
                     )
-                    addSetting(
-                        category: notificationsCategory,
-                        subcategory: liveActivitySubcategory,
-                        name: String(localized: "Color Glucose Reading"),
-                        value: trioSettings.liveActivitySimpleUseGlucoseColor
-                            ? String(localized: "Enabled") : String(localized: "Disabled")
-                    )
                 }
                 addSetting(
                     category: notificationsCategory,

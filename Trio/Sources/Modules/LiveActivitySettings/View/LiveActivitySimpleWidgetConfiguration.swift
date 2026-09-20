@@ -69,11 +69,9 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
 
     @State private var previewGlucose: PreviewGlucose = .inRange
     @State private var shouldDisplayHintFont: Bool = false
-    @State private var shouldDisplayHintColor: Bool = false
     @State private var hintDetent = PresentationDetent.large
     @State private var selectedVerboseHint: AnyView?
     @State private var hintLabel: String?
-    @State private var decimalPlaceholder: Decimal = 0.0
 
     @Environment(\.colorScheme) var colorScheme
     @Environment(AppState.self) var appState
@@ -82,8 +80,7 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
     private var selectedStyle: LiveActivityAttributes.SimpleViewStyle {
         LiveActivityAttributes.SimpleViewStyle(
             fontFace: state.simpleFontFace,
-            fontSize: state.simpleFontSize,
-            useGlucoseColor: state.simpleUseGlucoseColor
+            fontSize: state.simpleFontSize
         )
     }
 
@@ -105,7 +102,7 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
                 Text("Preview")
             } footer: {
                 Text(
-                    "This is how the glucose reading will look on your Lock Screen. The sample reading only changes the preview."
+                    "This is how the glucose reading will look on your Lock Screen. The sample reading only changes the preview. Reading color follows your Glucose Color Scheme, under Features - User Interface."
                 )
             }.listRowBackground(Color.chart)
 
@@ -145,46 +142,12 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
             } header: {
                 Text("Glucose Reading Font")
             }.listRowBackground(Color.chart)
-
-            SettingInputSection(
-                decimalValue: $decimalPlaceholder,
-                booleanValue: $state.simpleUseGlucoseColor,
-                shouldDisplayHint: $shouldDisplayHintColor,
-                selectedVerboseHint: Binding(
-                    get: { selectedVerboseHint },
-                    set: {
-                        selectedVerboseHint = $0.map { AnyView($0) }
-                        hintLabel = String(localized: "Color Glucose Reading")
-                    }
-                ),
-                units: state.units,
-                type: .boolean,
-                label: String(localized: "Color Glucose Reading"),
-                miniHint: String(localized: "Color the reading by its glucose range."),
-                verboseHint: VStack(alignment: .leading, spacing: 10) {
-                    Text("Default: OFF").bold()
-                    Text(
-                        "When enabled, the glucose reading, trend arrow and delta are colored using the same rules as the rest of Trio: your Glucose Color Scheme and your Low and High Glucose thresholds, configurable under Features - User Interface."
-                    )
-                    Text("When disabled, they are shown in the standard text color.")
-                },
-                headerText: String(localized: "Glucose Reading Color")
-            )
         }
         .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHintFont) {
             SettingInputHintView(
                 hintDetent: $hintDetent,
                 shouldDisplayHint: $shouldDisplayHintFont,
-                hintLabel: hintLabel ?? "",
-                hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                sheetTitle: String(localized: "Help", comment: "Help sheet title")
-            )
-        }
-        .sheet(isPresented: $shouldDisplayHintColor) {
-            SettingInputHintView(
-                hintDetent: $hintDetent,
-                shouldDisplayHint: $shouldDisplayHintColor,
                 hintLabel: hintLabel ?? "",
                 hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
@@ -252,22 +215,23 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
     }
 
     /// Resolves the preview's reading color the same way the Live Activity does, so the preview stays truthful.
+    ///
+    /// Coloring is not configurable here: it follows the app-wide Glucose Color Scheme, which leaves the Simple
+    /// layout's reading in the default text color while the Static scheme is selected.
     private var previewReadingColor: Color {
-        guard state.simpleUseGlucoseColor else { return .primary }
+        guard state.glucoseColorScheme != .staticColor else { return .primary }
 
         let isMgdL = state.units == .mgdL
-        let hasStaticColorScheme = state.glucoseColorScheme == .staticColor
 
-        // Mirrors LiveActivityView: the dynamic scheme spreads its color shades between hard-coded bounds.
+        // Mirrors LiveActivityView: the dynamic scheme spreads its color shades between hard-coded bounds
+        // rather than the user's own low and high thresholds.
         let hardCodedLow = isMgdL ? Decimal(55) : 55.asMmolL
         let hardCodedHigh = isMgdL ? Decimal(220) : 220.asMmolL
 
         return Trio.getDynamicGlucoseColor(
             glucoseValue: isMgdL ? Decimal(previewGlucose.mgdL) : previewGlucose.mgdL.asMmolL,
-            highGlucoseColorValue: hasStaticColorScheme
-                ? (isMgdL ? state.highGlucose : state.highGlucose.asMmolL) : hardCodedHigh,
-            lowGlucoseColorValue: hasStaticColorScheme
-                ? (isMgdL ? state.lowGlucose : state.lowGlucose.asMmolL) : hardCodedLow,
+            highGlucoseColorValue: hardCodedHigh,
+            lowGlucoseColorValue: hardCodedLow,
             targetGlucose: isMgdL ? Decimal(100) : 100.asMmolL,
             glucoseColorScheme: state.glucoseColorScheme
         )

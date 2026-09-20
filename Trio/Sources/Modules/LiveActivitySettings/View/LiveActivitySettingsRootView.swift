@@ -137,7 +137,10 @@ extension LiveActivitySettings {
                                                         VStack(alignment: .leading, spacing: 10) {
                                                             Text("Simple:").bold()
                                                             Text(
-                                                                "Trio's Simple Lock Screen Widget displays current glucose reading, trend arrow, delta and the timestamp of the current reading. Its Widget Configuration lets you set the typeface, size and coloring of the glucose reading."
+                                                                "Trio's Simple Lock Screen Widget displays current glucose reading, trend arrow, delta and the timestamp of the current reading."
+                                                            )
+                                                            Text(
+                                                                "Its Widget Configuration lets you set the typeface and size of the glucose reading."
                                                             )
                                                         }
                                                         VStack(alignment: .leading, spacing: 10) {

@@ -170,14 +170,13 @@ struct LiveActivityView: View {
             .addLiveActivityModifiers(isWatchOS: false)
         } else {
             let simpleViewStyle = context.state.simpleViewStyle
-            let simpleViewColor = simpleViewStyle.readingColor(glucoseColor)
 
             Group {
                 if context.state.isInitialState {
                     Text("Live Activity Expired. Open Trio to Refresh").minimumScaleFactor(0.01)
                 } else {
                     HStack(spacing: 3) {
-                        LiveActivityBGAndTrendView(context: context, size: .expanded, glucoseColor: simpleViewColor)
+                        LiveActivityBGAndTrendView(context: context, size: .expanded, glucoseColor: glucoseColor)
                             .font(simpleViewStyle.glucoseFont)
                             // Keep the reading readable rather than truncated at the larger sizes and
                             // at accessibility text sizes.
@@ -187,7 +186,7 @@ struct LiveActivityView: View {
                         VStack(alignment: .trailing, spacing: 5) {
                             LiveActivityGlucoseDeltaLabelView(
                                 context: context,
-                                glucoseColor: simpleViewColor
+                                glucoseColor: hasStaticColorScheme ? .primary : glucoseColor
                             ).font(.title3)
                             LiveActivityUpdatedLabelView(context: context, isDetailedLayout: false)
                                 .font(.caption)

@@ -25,11 +25,9 @@ struct LiveActivityAttributes: ActivityAttributes {
     struct SimpleViewStyle: Codable, Hashable {
         let fontFace: LiveActivityFontFace
         let fontSize: LiveActivityFontSize
-        /// Whether the reading follows Trio's glucose color scheme instead of the default text color.
-        let useGlucoseColor: Bool
 
-        /// Fallback appearance: the size the Simple layout used before it became configurable, uncolored.
-        static let `default` = SimpleViewStyle(fontFace: .default, fontSize: .large, useGlucoseColor: false)
+        /// Fallback appearance: what the Simple layout used before it became configurable.
+        static let `default` = SimpleViewStyle(fontFace: .default, fontSize: .large)
     }
 
     struct ContentState: Codable, Hashable {

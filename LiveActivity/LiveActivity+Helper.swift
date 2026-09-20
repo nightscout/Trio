@@ -140,16 +140,13 @@ extension Color {
     }
 }
 
-/// Renders the glucose reading and its trend arrow.
-///
-/// The caller decides which color to pass in: the Dynamic Island keeps the reading uncolored while the static
-/// glucose color scheme is selected, whereas the Simple Lock Screen layout follows the user's
-/// `SimpleViewStyle.useGlucoseColor` choice.
 func bgAndTrend(
     context: ActivityViewContext<LiveActivityAttributes>,
     size: Size,
     glucoseColor: Color
 ) -> (some View, Int) {
+    let hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
+
     var characters = 0
 
     let bgText = context.state.bg
@@ -179,14 +176,14 @@ func bgAndTrend(
 
     let stack = HStack(spacing: spacing) {
         Text(bgText)
-            .foregroundStyle(glucoseColor)
+            .foregroundStyle(hasStaticColorScheme ? .primary : glucoseColor)
             .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
         if let direction = directionText {
             let text = Text(direction)
             switch size {
             case .minimal:
                 let scaledText = text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading)
-                scaledText.foregroundStyle(glucoseColor)
+                scaledText.foregroundStyle(hasStaticColorScheme ? .primary : glucoseColor)
 
             case .compact:
                 text.scaleEffect(x: 0.8, y: 0.8, anchor: .leading).padding(.trailing, -3)
@@ -195,7 +192,7 @@ func bgAndTrend(
                 text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading).padding(.trailing, -5)
             }
         }
-    }.foregroundStyle(glucoseColor)
+    }.foregroundStyle(hasStaticColorScheme ? .primary : glucoseColor)
         .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
 
     return (stack, characters)

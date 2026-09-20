@@ -24,8 +24,7 @@ extension LiveActivityAttributes.SimpleViewStyle {
     init(settings: TrioSettings) {
         self.init(
             fontFace: settings.liveActivitySimpleFontFace,
-            fontSize: settings.liveActivitySimpleFontSize,
-            useGlucoseColor: settings.liveActivitySimpleUseGlucoseColor
+            fontSize: settings.liveActivitySimpleFontSize
         )
     }
 }

@@ -71,8 +71,6 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var liveActivitySimpleFontFace: LiveActivityFontFace = .default
     /// Size of the glucose reading in the Simple Lock Screen Live Activity layout.
     var liveActivitySimpleFontSize: LiveActivityFontSize = .large
-    /// Whether the Simple Lock Screen Live Activity colors the glucose reading using Trio's glucose color scheme.
-    var liveActivitySimpleUseGlucoseColor: Bool = false
     var displayGlucoseForecasts: Bool = false
     var bolusShortcut: BolusShortcutLimit = .notAllowed
     var timeInRangeType: TimeInRangeType = .timeInTightRange
@@ -356,13 +354,6 @@ extension TrioSettings: Decodable {
             .decode(LiveActivityFontSize.self, forKey: .liveActivitySimpleFontSize)
         {
             settings.liveActivitySimpleFontSize = liveActivitySimpleFontSize
-        }
-
-        if let liveActivitySimpleUseGlucoseColor = try? container.decode(
-            Bool.self,
-            forKey: .liveActivitySimpleUseGlucoseColor
-        ) {
-            settings.liveActivitySimpleUseGlucoseColor = liveActivitySimpleUseGlucoseColor
         }
 
         if let displayGlucoseForecasts = try? container.decode(Bool.self, forKey: .displayGlucoseForecasts) {

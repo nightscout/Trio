@@ -33,7 +33,7 @@ struct LiveActivity: Widget {
                 DynamicIslandExpandedRegion(.leading) {
                     LiveActivityExpandedLeadingView(
                         context: context,
-                        glucoseColor: hasStaticColorScheme ? .primary : glucoseColor
+                        glucoseColor: glucoseColor
                     )
                 }
                 DynamicIslandExpandedRegion(.trailing) {
@@ -51,7 +51,7 @@ struct LiveActivity: Widget {
             } compactLeading: {
                 LiveActivityCompactLeadingView(
                     context: context,
-                    glucoseColor: hasStaticColorScheme ? .primary : glucoseColor
+                    glucoseColor: glucoseColor
                 )
             } compactTrailing: {
                 LiveActivityCompactTrailingView(
@@ -61,7 +61,7 @@ struct LiveActivity: Widget {
             } minimal: {
                 LiveActivityMinimalView(
                     context: context,
-                    glucoseColor: hasStaticColorScheme ? .primary : glucoseColor
+                    glucoseColor: glucoseColor
                 )
             }
             .widgetURL(URL(string: "Trio://"))

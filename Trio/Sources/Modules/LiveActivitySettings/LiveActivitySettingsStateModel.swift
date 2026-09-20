@@ -12,14 +12,9 @@ extension LiveActivitySettings {
         @Published var displayGlucoseForecasts = false
         @Published var simpleFontFace: LiveActivityFontFace = .default
         @Published var simpleFontSize: LiveActivityFontSize = .large
-        @Published var simpleUseGlucoseColor = false
 
         /// Glucose color scheme the app applies everywhere, used to preview the Simple widget's reading color.
         var glucoseColorScheme: GlucoseColorScheme { settingsManager.settings.glucoseColorScheme }
-        /// User-set high glucose threshold, used to preview the Simple widget's reading color.
-        var highGlucose: Decimal { settingsManager.settings.high }
-        /// User-set low glucose threshold, used to preview the Simple widget's reading color.
-        var lowGlucose: Decimal { settingsManager.settings.low }
 
         override func subscribe() {
             units = settingsManager.settings.units
@@ -29,7 +24,6 @@ extension LiveActivitySettings {
             subscribeSetting(\.displayGlucoseForecasts, on: $displayGlucoseForecasts) { displayGlucoseForecasts = $0 }
             subscribeSetting(\.liveActivitySimpleFontFace, on: $simpleFontFace) { simpleFontFace = $0 }
             subscribeSetting(\.liveActivitySimpleFontSize, on: $simpleFontSize) { simpleFontSize = $0 }
-            subscribeSetting(\.liveActivitySimpleUseGlucoseColor, on: $simpleUseGlucoseColor) { simpleUseGlucoseColor = $0 }
         }
     }
 }

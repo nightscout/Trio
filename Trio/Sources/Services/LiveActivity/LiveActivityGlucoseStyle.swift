@@ -83,12 +83,4 @@ extension LiveActivityAttributes.SimpleViewStyle {
     var glucoseFont: Font {
         .system(fontSize.textStyle, design: fontFace.design)
     }
-
-    /// Resolves the color of the glucose reading.
-    ///
-    /// - Parameter glucoseColor: The color derived from Trio's glucose color scheme for the current reading.
-    /// - Returns: `glucoseColor` if the user opted into colored readings, otherwise the default text color.
-    func readingColor(_ glucoseColor: Color) -> Color {
-        useGlucoseColor ? glucoseColor : .primary
-    }
 }
