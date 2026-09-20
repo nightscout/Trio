@@ -3,46 +3,46 @@
 
 # Default codeowners
 # https://github.com/orgs/nightscout/teams/trio-codeowners
-*                    @trio-codeowners @trio-codeowners-superusers
+*                    @nightscout/trio-codeowners @nightscout/trio-codeowners-superusers
 
 # Core algorithm + oref codeowners
 # https://github.com/orgs/nightscout/teams/trio-oref-codeowners
-AlgorithmPackage/*       @trio-oref-codeowners @trio-codeowners-superusers
-trio-oref/*              @trio-oref-codeowners @trio-codeowners-superusers
-oref0_source_version.txt @trio-oref-codeowners @trio-codeowners-superusers
+AlgorithmPackage/*       @nightscout/trio-oref-codeowners @nightscout/trio-codeowners-superusers
+trio-oref/*              @nightscout/trio-oref-codeowners @nightscout/trio-codeowners-superusers
+oref0_source_version.txt @nightscout/trio-oref-codeowners @nightscout/trio-codeowners-superusers
 
 # Insulin pump driver submodules
 # https://github.com/orgs/nightscout/teams/trio-pump-codeowners
-AccuChekKit          @trio-pump-codeowners @trio-codeowners-superusers
-DanaKit              @trio-pump-codeowners @trio-codeowners-superusers
-MedtrumKit           @trio-pump-codeowners @trio-codeowners-superusers
-MinimedKit           @trio-pump-codeowners @trio-codeowners-superusers
-OmnipodKit           @trio-pump-codeowners @trio-codeowners-superusers
-RileyLinkKit         @trio-pump-codeowners @trio-codeowners-superusers
+AccuChekKit          @nightscout/trio-pump-codeowners @nightscout/trio-codeowners-superusers
+DanaKit              @nightscout/trio-pump-codeowners @nightscout/trio-codeowners-superusers
+MedtrumKit           @nightscout/trio-pump-codeowners @nightscout/trio-codeowners-superusers
+MinimedKit           @nightscout/trio-pump-codeowners @nightscout/trio-codeowners-superusers
+OmnipodKit           @nightscout/trio-pump-codeowners @nightscout/trio-codeowners-superusers
+RileyLinkKit         @nightscout/trio-pump-codeowners @nightscout/trio-codeowners-superusers
 
 # CGM driver submodules
 # https://github.com/orgs/nightscout/teams/trio-cgm-codeowners
-CGMBLEKit            @trio-cgm-codeowners @trio-codeowners-superusers
-EversenseKit         @trio-cgm-codeowners @trio-codeowners-superusers
-LibreCRKit           @trio-cgm-codeowners @trio-codeowners-superusers
-LibreLoop            @trio-cgm-codeowners @trio-codeowners-superusers
-LibreTransmitter     @trio-cgm-codeowners @trio-codeowners-superusers
-G7SensorKit          @trio-cgm-codeowners @trio-codeowners-superusers
+CGMBLEKit            @nightscout/trio-cgm-codeowners @nightscout/trio-codeowners-superusers
+EversenseKit         @nightscout/trio-cgm-codeowners @nightscout/trio-codeowners-superusers
+LibreCRKit           @nightscout/trio-cgm-codeowners @nightscout/trio-codeowners-superusers
+LibreLoop            @nightscout/trio-cgm-codeowners @nightscout/trio-codeowners-superusers
+LibreTransmitter     @nightscout/trio-cgm-codeowners @nightscout/trio-codeowners-superusers
+G7SensorKit          @nightscout/trio-cgm-codeowners @nightscout/trio-codeowners-superusers
 
 # Github Actions CI / Browser Build
 # https://github.com/orgs/nightscout/teams/trio-ci-codeowners
-.github/workflows/*  @trio-ci-codeowners @trio-codeowners-superusers
-fastlane/*           @trio-ci-codeowners @trio-codeowners-superusers
-patches/*            @trio-ci-codeowners @trio-codeowners-superusers
-BuildTools/*         @trio-ci-codeowners @trio-codeowners-superusers
-Gemfile              @trio-ci-codeowners @trio-codeowners-superusers
-Gemfile.lock         @trio-ci-codeowners @trio-codeowners-superusers
+.github/workflows/*  @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
+fastlane/*           @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
+patches/*            @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
+BuildTools/*         @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
+Gemfile              @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
+Gemfile.lock         @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
 
 # Translations
 # https://github.com/orgs/nightscout/teams/trio-translations-codeowners
-crowdin.yml                  @trio-translations-codeowners @trio-codeowners-superusers
-*.strings                    @trio-translations-codeowners @trio-codeowners-superusers
-Trio/Sources/Localizations/* @trio-translations-codeowners @trio-codeowners-superusers
+crowdin.yml                  @nightscout/trio-translations-codeowners @nightscout/trio-codeowners-superusers
+*.strings                    @nightscout/trio-translations-codeowners @nightscout/trio-codeowners-superusers
+Trio/Sources/Localizations/* @nightscout/trio-translations-codeowners @nightscout/trio-codeowners-superusers
 
 # The CODEOWNERS file itself
-.github/CODEOWNERS   @trio-codeowners-superusers
+.github/CODEOWNERS   @nightscout/trio-codeowners-superusers

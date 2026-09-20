@@ -152067,6 +152067,7 @@
       }
     },
     "Glucose Distribution" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -239213,6 +239214,7 @@
       }
     },
     "Previous Versions" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
