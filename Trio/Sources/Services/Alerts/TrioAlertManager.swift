@@ -210,6 +210,12 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         )
 
         let now = Date()
+        let fireDate: Date
+        switch alert.trigger {
+        case .immediate: fireDate = now
+        case let .delayed(interval),
+             let .repeating(interval): fireDate = now.addingTimeInterval(interval)
+        }
 
         // Catalog-known alerts (pump, CGM lifecycle, Trio algorithm) get the
         // user's Device Alarms tier config applied — tone, Play Sound,
@@ -224,7 +230,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             guard let tier = DeviceAlertSeverity(level: entry.interruptionLevel) else { return }
 
             // Per-tier snooze. Critical tier ignores snooze.
-            if tier != .critical, DeviceAlertsStore.shared.isTierSnoozed(tier, at: now) {
+            if tier != .critical, DeviceAlertsStore.shared.isTierSnoozed(tier, at: fireDate) {
                 debug(.service, "TrioAlertManager dropped \(alert.identifier.value): tier \(tier) snoozed")
                 return
             }
@@ -245,7 +251,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         // Critical alerts pierce the snooze/mute window. Everything else is
         // suppressed entirely while muted (no modal, no UN sound, no critical
         // audio fallback).
-        if effective.interruptionLevel != .critical, muter.shouldMute(at: now) {
+        if effective.interruptionLevel != .critical, muter.shouldMute(at: fireDate) {
             debug(.service, "TrioAlertManager muted \(effective.identifier.value) (snooze window active)")
             return
         }
@@ -410,6 +416,25 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         }
     }
 
+    private func clearPendingNonCriticalNotificationsAndWait() async {
+        await withCheckedContinuation { continuation in
+            let center = UNUserNotificationCenter.current()
+            center.getPendingNotificationRequests { requests in
+                let ids = requests
+                    .filter { $0.content.interruptionLevel != .critical }
+                    .map(\.identifier)
+                if !ids.isEmpty { center.removePendingNotificationRequests(withIdentifiers: ids) }
+                center.getDeliveredNotifications { delivered in
+                    let ids = delivered
+                        .filter { $0.request.content.interruptionLevel != .critical }
+                        .map(\.request.identifier)
+                    if !ids.isEmpty { center.removeDeliveredNotifications(withIdentifiers: ids) }
+                    continuation.resume()
+                }
+            }
+        }
+    }
+
     func clearPendingNonCriticalNotifications() {
         let center = UNUserNotificationCenter.current()
         center.getPendingNotificationRequests { requests in
@@ -446,7 +471,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
 
         if duration > 0 {
             muter.mute(for: duration)
-            clearPendingNonCriticalNotifications()
+            await clearPendingNonCriticalNotificationsAndWait()
             modalScheduler.clearNonCriticalBanners()
         } else {
             muter.unmute()
@@ -513,6 +538,7 @@ extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAle
                   let tier = DeviceAlertSeverity(level: entry.interruptionLevel),
                   tier != .critical
         {
+            guard !entry.concept.isEscalationStep else { return }
             DeviceAlertsStore.shared.snoozeTier(tier, until: untilDate)
             dismissAlertsInTier(tier, excluding: identifier)
         } else {
@@ -530,6 +556,7 @@ extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAle
             liveAlerts.compactMap { id, _ in
                 guard id != excluding,
                       let entry = AlertCatalogRegistry.lookup(id),
+                      !entry.concept.isEscalationStep,
                       DeviceAlertSeverity(level: entry.interruptionLevel) == tier
                 else { return nil }
                 return id
@@ -578,13 +605,6 @@ enum AlertUserInfoKey: String {
 final class AlertMuter: ObservableObject {
     @Published private(set) var startDate: Date?
     @Published private(set) var duration: TimeInterval = 0
-
-    static let allowedDurations: [TimeInterval] = [
-        30 * 60,
-        60 * 60,
-        2 * 60 * 60,
-        4 * 60 * 60
-    ]
 
     func mute(for duration: TimeInterval, from start: Date = Date()) {
         startDate = start
