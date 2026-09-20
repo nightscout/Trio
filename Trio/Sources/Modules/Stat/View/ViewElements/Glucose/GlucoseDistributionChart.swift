@@ -11,9 +11,6 @@ struct GlucoseDistributionChart: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Glucose Distribution")
-                .font(.headline)
-
             Chart(glucoseRangeStats) { range in
                 ForEach(range.values, id: \.hour) { value in
                     AreaMark(
@@ -78,22 +75,16 @@ struct GlucoseDistributionChart: View {
                     }
                 }
             }
-            .chartYAxisLabel(alignment: .trailing) {
-                Text("Percentage")
-                    .foregroundStyle(.primary)
-                    .font(.footnote)
-                    .padding(.vertical, 3)
-            }
             .chartXAxis {
-                AxisMarks(values: .stride(by: .hour, count: 3)) { value in
+                AxisMarks(preset: .aligned, values: .stride(by: .hour, count: 3)) { value in
                     if let date = value.as(Date.self) {
                         let hour = Calendar.current.component(.hour, from: date)
                         switch hour {
                         case 0,
                              12:
-                            AxisValueLabel(format: .dateTime.hour())
+                            AxisValueLabel(format: .dateTime.hour(), anchor: .top)
                         default:
-                            AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .omitted)))
+                            AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .omitted)), anchor: .top)
                         }
 
                         AxisGridLine()

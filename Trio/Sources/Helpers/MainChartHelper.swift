@@ -247,7 +247,7 @@ extension MainChartCanvas {
     /// labels render exactly once for the whole stack; the basal and glucose panes use
     /// `mainChartXAxis` (grid lines only) at the same absolute-anchored mark dates.
     var basalChartXAxis: some AxisContent {
-        AxisMarks(values: hourAxisMarks(over: windowStart ... windowEnd)) { value in
+        AxisMarks(preset: .aligned, values: hourAxisMarks(over: windowStart ... windowEnd)) { value in
             if displayXgridLines {
                 AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
             } else {

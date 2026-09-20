@@ -236,39 +236,7 @@ struct MealStatsView: View {
             }
         }
         .chartXAxis {
-            AxisMarks(preset: .aligned, values: .stride(by: selectedInterval == .day ? .hour : .day)) { value in
-                if let date = value.as(Date.self) {
-                    let hour = Calendar.current.component(.hour, from: date)
-
-                    switch selectedInterval {
-                    case .day:
-                        if hour % 6 == 0 { // Show only every 6 hours
-                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
-                                .font(.footnote)
-                            AxisGridLine()
-                        }
-                    case .month:
-                        let weekday = calendar.component(.weekday, from: date)
-                        if weekday == calendar.firstWeekday { // Only show the first day of the week
-                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
-                                .font(.footnote)
-                            AxisGridLine()
-                        }
-                    case .total:
-                        // Show start of every month
-                        let day = Calendar.current.component(.day, from: date)
-                        if day == 1 {
-                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
-                                .font(.footnote)
-                            AxisGridLine()
-                        }
-                    default:
-                        AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
-                            .font(.footnote)
-                        AxisGridLine()
-                    }
-                }
-            }
+            StatChartUtils.dateAxisMarks(for: selectedInterval)
         }
         .chartScrollableAxes(.horizontal)
         .chartXSelection(value: $selectedDate.animation(.easeInOut))
