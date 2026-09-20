@@ -4,56 +4,32 @@ import Testing
 
 @testable import Trio
 
-/// Pins Trio's alert-routing behavior for the **TandemKit** pump plugin.
+/// Pins Trio's alert-routing behavior for the **TandemKit** pump plugin
+/// (pump: Tandem Mobi / t:slim X2).
 ///
-/// Rows are derived from the synthesis audit of the Tandem stack
-/// (`TandemCore` / `TandemKit` / `TandemKitUI` / `TandemKitPlugin`; pump:
-/// Tandem t:slim X2 / Mobi). The audit's central finding is STRUCTURAL:
-/// TandemKit issues **zero** LoopKit Alerts. There is no
-/// `issueAlert` / `retractAlert` / `Alert(identifier:)` / `DeviceAlert` /
-/// `UNUserNotificationCenter` usage anywhere in the shipping targets
-/// (audit.md:7-8, Notes:192), so TandemKit never constructs an
-/// `Alert.Identifier` and there is no `(managerIdentifier, alertIdentifier)`
-/// pair for Trio to route. The PRIMARY emitted-alert table is therefore empty
-/// and `AlertCatalogRegistry` has — and could match — no Tandem entries.
+/// This suite used to record a structural gap: the audited TandemKit issued no
+/// LoopKit Alerts at all, so no `Alert.Identifier` existed for Trio to route
+/// and every pump alarm lived only in TandemKit's in-app "Pump notifications"
+/// list. The vendored TandemKit closed that gap —
+/// `TandemPumpManager.reconcileLoopKitAlerts()` now issues and retracts
+/// LoopKit Alerts under `managerIdentifier` "Tandem" on every notification
+/// fetch, with `PumpNotificationSeverity` picking the interruption level.
 ///
-/// Every Tandem pump alarm the device surfaces (occlusion N1->Critical;
-/// empty/removed cartridge & "No Insulin" N4->Critical; battery-shutdown
-/// N5-pump->Critical; temperature/altitude/stuck-button/invalid-date/
-/// pump-reset & the non-dismissable Malfunction item N1->Critical;
-/// resume-pump / auto-off delivery-stopped N2->Critical; CGM-alert catalog
-/// N7->High) is rendered ONLY inside TandemKit's own in-app
-/// "Pump notifications" settings list
-/// (`NotificationBundle` -> `TandemKitNotificationsView`), which Trio never
-/// receives. The `AlertResponseType` description catalog is intercepted in
-/// `fetchNotifications` (audit:129,193) and is dead for display, and the lone
-/// `didError` call site (`TandemPumpManager.swift:218`) has no callers.
+/// Identifiers are `NotificationItem.stableIdentifier`:
+/// `<category>.<slug>.<bit>`, or `malfunction.<aamId>`. The trailing bit is
+/// firmware-specific, so `AlertCatalogRegistry` matches on the
+/// `<category>.<slug>` prefix — the resolver itself is pinned in
+/// `AlertCatalogRegistryTandemTests`; this suite pins the emissions.
 ///
-/// GAP SUMMARY: the effective interruption level of every taxonomy-Critical
-/// Tandem alarm is "never delivered" — strictly less severe than `.critical`.
-/// This is broader than a registry-key mismatch: no `Alert.Identifier` is
-/// ever issued, so no escalation is possible until upstream TandemKit issues
-/// LoopKit Alerts (and adopts `AlertCatalogVendor`, or Trio adds Tandem
-/// registry entries). The remediation gap is documented in this suite's prose
-/// rather than as table rows, because there are no emitted-alert rows to ratchet.
-///
-/// The only Tandem signals that DO reach Trio are `PumpManagerError`-wrapped
-/// `PumpCommError` / `TandemPumpManagerValidationError` values returned through
-/// `PumpManager` dosing/limit/time completion handlers (e.g. `enactTempBasal`
-/// -> `APSManager:703` `APSError.pumpError(error)` -> `processError` ->
-/// `TrioAlertClassifier.categorize`). These are error-STRING emissions, not
-/// Alerts. No classifier rows are pinned here: the TandemKit submodule is not
-/// present in Trio-dev and the audit recorded the rendered `errorDescription`
-/// text rather than the `String(describing:)` form, so the exact classifier
-/// input (a LoopKit `PumpManagerError` enum — not `CustomStringConvertible` —
-/// wrapping a `PumpCommError`/validation case) cannot be stated with
-/// certainty. Per the SCOPE rule those are omitted rather than guessed.
+/// Tandem's CGM alerts stay uncatalogued on purpose: forwarding is opt-in
+/// (`forwardCGMAlerts`), the glucose-threshold ones duplicate Trio's own
+/// glucose alarms, and they have no device concept to collapse onto. They are
+/// delivered at the level TandemKit set, without Device Alarms tier config.
 @Suite("Trio Alert Emission: TandemKit") struct TandemKitAlertEmissionTests {
-    /// TandemKit issues no LoopKit Alerts, so it carries no real
-    /// `managerIdentifier`. We keep the audit's verbatim placeholder string so
-    /// the (empty) registry-lookup pin documents exactly what was searched.
-    private static let managerIdentifier =
-        "(none — TandemKit issues no LoopKit Alerts; it uses no Alert.Identifier at all)"
+    /// `TandemPumpManager.managerIdentifier` — the string TandemKit stamps on
+    /// every alert it issues. Note it is not the plugin identifier
+    /// ("TandemPumpManager"), which is what `DeviceCatalog` keys on.
+    private static let managerIdentifier = "Tandem"
 
     private func id(_ manager: String, _ alertID: String) -> Alert.Identifier {
         Alert.Identifier(managerIdentifier: manager, alertIdentifier: alertID)
@@ -61,13 +37,40 @@ import Testing
 
     // MARK: - Emitted alerts (PRIMARY table)
 
-    /// `(alertIdentifier, expectedRegistryLevel)`.
-    ///
-    /// EMPTY: TandemKit issues no LoopKit Alerts (audit.md:7-8, Notes:192), so
-    /// there are no `(managerIdentifier, alertIdentifier)` pairs to pin. If this
-    /// table ever gains a row, the audit's structural finding has changed and
-    /// this suite's doc comment must be revisited.
-    static let alertRows: [(alertID: String, expectedLevel: Alert.InterruptionLevel?)] = []
+    /// `(alertIdentifier, expectedRegistryLevel)`, one row per condition the
+    /// taxonomy rates Critical or High. Slugs are TandemKit's
+    /// (`PumpNotificationAlert.swift`); the trailing bit is illustrative,
+    /// since routing ignores it. `nil` means the identifier resolves to no
+    /// catalog entry and passes through.
+    static let alertRows: [(alertID: String, expectedLevel: Alert.InterruptionLevel?)] = [
+        // N1 — occlusion, malfunction and the hardware alarms.
+        ("alarm.occlusion.2", .critical),
+        ("alarm.pumpReset.5", .critical),
+        ("alarm.temperature.7", .critical),
+        ("alarm.altitude.12", .critical),
+        ("alarm.stuckButton.13", .critical),
+        ("alarm.invalidDate.9", .critical),
+        ("malfunction.1", .critical),
+        // N2 — delivery stopped, user action required to resume.
+        ("alarm.resumePump.10", .critical),
+        ("alarm.autoOff.4", .critical),
+        // N4 — cartridge: empty, removed, or faulted.
+        ("alarm.emptyCartridge.6", .critical),
+        ("alarm.cartridgeRemoved.34", .critical),
+        ("alarm.cartridge.1", .critical),
+        // N5 — pump battery.
+        ("alarm.batteryShutdown.11", .critical),
+        ("alert.lowPower.3", .timeSensitive),
+        // Actionable alerts.
+        ("alert.lowInsulin.1", .timeSensitive),
+        ("alert.incompleteBolus.11", .timeSensitive),
+        ("alert.incompleteCartridgeChange.13", .timeSensitive),
+        ("alert.connectionError.10", .timeSensitive),
+        ("alert.devicePaired.63", .active),
+        // N7 — CGM alerts: opt-in forwarding, deliberately uncatalogued.
+        ("cgmAlert.sensorExpiring.18", nil),
+        ("cgmAlert.high.2", nil)
+    ]
 
     @Test(
         "registry behavior is pinned for every emitted alert",
@@ -77,48 +80,32 @@ import Testing
         #expect(AlertCatalogRegistry.lookup(identifier)?.interruptionLevel == row.expectedLevel)
     }
 
-    /// Backstop for the empty PRIMARY table: even the audit's verbatim
-    /// placeholder manager string resolves to no catalog entry. This pins the
-    /// structural fact that TandemKit has no escalatable surface in Trio today.
-    @Test("no Tandem alert identifier resolves in the catalog registry") func noTandemEntryInRegistry() {
-        #expect(Self.alertRows.isEmpty)
-        #expect(AlertCatalogRegistry.lookup(id(Self.managerIdentifier, "anything")) == nil)
-    }
-
     // MARK: - Documented escalation gaps (ratchet)
 
-    /// `alertIdentifier`s of emitted alerts whose EFFECTIVE current level is
-    /// less severe than their taxonomy level.
-    ///
-    /// EMPTY by construction: a gap row requires an emitted alert with an
-    /// `Alert.Identifier`, and TandemKit emits none. The Tandem alarms that the
-    /// taxonomy rates Critical (occlusion N1, empty/removed cartridge & "No
-    /// Insulin" N4, battery-shutdown N5-pump, Malfunction/temperature/altitude/
-    /// stuck-button/invalid-date/pump-reset N1, resume-pump / auto-off N2) and
-    /// High (CGM-alert catalog N7) never reach Trio at all — they live only in
-    /// TandemKit's in-app "Pump notifications" list (`NotificationBundle` ->
-    /// `TandemKitNotificationsView`; audit.md:7-8, 129, 192-193). That is a
-    /// STRUCTURAL gap (no `Alert.Identifier` is ever issued), strictly broader
-    /// than a registry-key mismatch, and is documented in the suite prose
-    /// rather than as a ratchetable row. The fix is upstream: TandemKit must
-    /// issue LoopKit Alerts and adopt `AlertCatalogVendor` (or Trio must add
-    /// Tandem registry entries) before any escalation is possible.
-    static let knownEscalationGaps: Set<String> = []
+    /// `alertIdentifier`s of emitted alerts whose EFFECTIVE level is less
+    /// severe than their taxonomy level. Only the opt-in CGM alerts remain:
+    /// they resolve to no entry, so Trio passes them through at TandemKit's
+    /// own level instead of applying the user's Device Alarms tier config.
+    static let knownEscalationGaps: Set<String> = [
+        "cgmAlert.sensorExpiring.18",
+        "cgmAlert.high.2"
+    ]
 
     @Test("known escalation gaps are exactly as documented") func knownEscalationGapsAreExactlyAsDocumented() {
-        // Recompute the gap set from the PRIMARY table: a row is a gap when its
-        // effective level (registry level if present, else unknown) is missing.
-        // With no rows this is empty and matches the documented (empty) set.
-        // Should TandemKit ever start issuing Alerts and a row be added with an
-        // unescalated level, this recomputed set will diverge from
-        // `knownEscalationGaps`, failing the test and prompting an update.
-        var computed = Set<String>()
-        for row in Self.alertRows where row.expectedLevel != .critical {
-            // Placeholder recompute: real gap math would compare against the
-            // row's taxonomy level. No rows exist, so the loop never executes.
-            computed.insert(row.alertID)
-        }
+        let computed = Set(
+            Self.alertRows
+                .filter { AlertCatalogRegistry.lookup(id(Self.managerIdentifier, $0.alertID)) == nil }
+                .map(\.alertID)
+        )
         #expect(computed == Self.knownEscalationGaps)
+    }
+
+    /// Every alarm TandemKit issues stops or compromises delivery, so no bit
+    /// may land below `.critical` — including bits no slug table knows yet.
+    @Test("no alarm bit resolves below critical") func alarmsNeverDowngrade() {
+        for row in Self.alertRows where row.alertID.hasPrefix("alarm.") || row.alertID.hasPrefix("malfunction.") {
+            #expect(AlertCatalogRegistry.lookup(id(Self.managerIdentifier, row.alertID))?.interruptionLevel == .critical)
+        }
     }
 }
 
@@ -133,11 +120,11 @@ import Testing
 /// wrapping a `PumpCommError` / `TandemPumpManagerValidationError`, and the
 /// classifier runs `String(describing:)` over THAT — i.e. it sees the Swift
 /// **case name** (e.g. `pumpError(...)` / `pumpNotConnected`), not the rendered
-/// display string. TandemKit also uses NONE of the LoopKit Alert / AlertIssuer
-/// machinery and never delivers a live `pumpManager(_:didError:)`, so there are
-/// no real LoopKit `Alert.alertIdentifier` values to attach (that structural
-/// finding is pinned by the registry-routing suite above). Every user-facing
-/// row here surfaces instead through one of: (1) `PumpCommError` /
+/// display string. The LoopKit Alerts TandemKit issues are a separate path,
+/// pinned by the registry-routing suite above; none of the strings below carry
+/// an `Alert.alertIdentifier`, so the `alertIdentifier` column here is the
+/// error enum case name / source symbol. Every user-facing row surfaces
+/// through one of: (1) `PumpCommError` /
 /// `TandemPumpManagerValidationError` wrapped in `PumpManagerError` returned to
 /// Loop completion handlers, (2) the in-app "Pump notifications" settings list
 /// (`NotificationBundle` items whose displayed string is the formatted enum
