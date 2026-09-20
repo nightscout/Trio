@@ -20,7 +20,25 @@ enum AlertCatalogRegistry {
         if let exact = entries.first(where: { $0.identifier == identifier }) {
             return exact
         }
+        if let warning = notLoopingWarningEntry(for: identifier) {
+            return warning
+        }
         return omniPodFaultEntry(for: identifier)
+    }
+
+    /// `NotLoopingMonitor` arms one warning per escalation step
+    /// (`loop.notActive.w1` … `w5`), each needing its own pending notification,
+    /// so they can't share a single identifier. They all resolve to the same
+    /// Time-Sensitive entry rather than being listed individually — the
+    /// Critical escalation keeps the bare `loop.notActive` identifier.
+    private static func notLoopingWarningEntry(for identifier: Alert.Identifier) -> Alert.CatalogEntry? {
+        guard identifier.managerIdentifier == "trio.aps",
+              identifier.alertIdentifier.hasPrefix("loop.notActive.")
+        else { return nil }
+        return Alert.CatalogEntry(
+            identifier: identifier, interruptionLevel: .timeSensitive,
+            title: "Trio Not Looping", category: "Algorithm", concept: .notLooping
+        )
     }
 
     /// Omni emits pod faults via `notifyPodFault` with a separate manager
