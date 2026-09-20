@@ -72,6 +72,57 @@ import Testing
     }
 }
 
+@Suite("Trio Alerts: GlucoseAlertCoordinator repeat") struct GlucoseAlertCoordinatorRepeatTests {
+    private let now = Date(timeIntervalSinceReferenceDate: 1_000_000)
+
+    private func lowAlarm(repeat interval: GlucoseAlertRepeatInterval, critical: Bool = false) -> GlucoseAlert {
+        var alarm = GlucoseAlert(type: .low)
+        alarm.repeatInterval = interval
+        alarm.overridesSilenceAndDND = critical
+        return alarm
+    }
+
+    @Test("Off never repeats, however long ago it fired") func offNeverRepeats() {
+        let alarm = lowAlarm(repeat: .off)
+        #expect(!GlucoseAlertCoordinator.shouldRepeat(alarm, lastIssuedAt: now.addingTimeInterval(-3600), now: now))
+    }
+
+    @Test("Critical alarms never repeat even with an interval set") func criticalNeverRepeats() {
+        let alarm = lowAlarm(repeat: .tenMinutes, critical: true)
+        #expect(!GlucoseAlertCoordinator.shouldRepeat(alarm, lastIssuedAt: now.addingTimeInterval(-3600), now: now))
+    }
+
+    @Test("No previous issue means nothing to repeat") func noLastIssueNoRepeat() {
+        let alarm = lowAlarm(repeat: .tenMinutes)
+        #expect(!GlucoseAlertCoordinator.shouldRepeat(alarm, lastIssuedAt: nil, now: now))
+    }
+
+    @Test("Repeats once the interval has elapsed") func repeatsAfterInterval() {
+        let alarm = lowAlarm(repeat: .tenMinutes)
+        #expect(GlucoseAlertCoordinator.shouldRepeat(alarm, lastIssuedAt: now.addingTimeInterval(-600), now: now))
+        #expect(GlucoseAlertCoordinator.shouldRepeat(alarm, lastIssuedAt: now.addingTimeInterval(-900), now: now))
+    }
+
+    @Test("Cadence tolerance: 9:58 counts as 10 min, 9:00 does not") func toleranceWindow() {
+        let alarm = lowAlarm(repeat: .tenMinutes)
+        #expect(GlucoseAlertCoordinator.shouldRepeat(alarm, lastIssuedAt: now.addingTimeInterval(-598), now: now))
+        #expect(!GlucoseAlertCoordinator.shouldRepeat(alarm, lastIssuedAt: now.addingTimeInterval(-540), now: now))
+    }
+
+    @Test("Tolerance is 30 s by default and overridable") func toleranceParameter() {
+        let alarm = lowAlarm(repeat: .tenMinutes)
+        #expect(GlucoseAlertCoordinator.repeatToleranceSeconds == 30)
+        #expect(!GlucoseAlertCoordinator.shouldRepeat(alarm, lastIssuedAt: now.addingTimeInterval(-598), now: now, tolerance: 0))
+    }
+
+    @Test("Every offered interval clears the 5-min throttle floor with room for cadence jitter") func intervalsClearThrottle() {
+        for option in GlucoseAlertRepeatInterval.allCases {
+            guard let interval = option.timeInterval else { continue }
+            #expect(interval - GlucoseAlertCoordinator.repeatToleranceSeconds > TimeInterval(5 * 60), "\(option)")
+        }
+    }
+}
+
 /// Guards the #1428 invariant: "Use CGM App Alerts" suppression applies to
 /// reading-driven alarms only. A CGM app can alarm on the current reading,
 /// but it cannot compute Trio's oref forecast or carbsReq, so those alarms
