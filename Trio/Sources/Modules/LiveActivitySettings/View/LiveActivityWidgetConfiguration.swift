@@ -1,4 +1,5 @@
 import Charts
+import CoreTransferable
 import Foundation
 import SwiftUI
 import Swinject
@@ -9,32 +10,32 @@ struct LiveActivityWidgetConfiguration: BaseView {
 
     @ObservedObject var state: LiveActivitySettings.StateModel
 
-    @State private var selectedItems: [LiveActivityItem?] = Array(repeating: nil, count: 4)
-    @State private var showAddItemDialog: Bool = false
-    @State private var buttonIndexToUpdate: Int?
-    @State private var itemToRemove: LiveActivityItem?
-    @State private var isRemovalConfirmationPresented: Bool = false
+    /// The widgets in the layout, in the order the Live Activity renders them.
+    ///
+    /// Held as an ordered list rather than as fixed slots: a drag is a move within this list, and the four
+    /// slots of the Detailed layout are a capacity budget that `usedSlots` spends.
+    @State private var placedItems: [LiveActivityItem] = []
     @State private var glucoseData: [DummyGlucoseData] = []
+    /// Layout position a drag is hovering over, so that position can be highlighted.
+    @State private var targetedSlot: Int?
+    /// Whether a drag is hovering over the palette, which takes the widget out of the layout.
+    @State private var isPaletteTargeted: Bool = false
 
     @Environment(\.colorScheme) var colorScheme
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @Environment(AppState.self) var appState
 
-    private var color: LinearGradient {
-        colorScheme == .dark ? LinearGradient(
-            gradient: Gradient(colors: [
-                Color.bgDarkBlue,
-                Color.bgDarkerDarkBlue
-            ]),
-            startPoint: .top,
-            endPoint: .bottom
-        )
-            :
-            LinearGradient(
-                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
+    /// The Detailed layout renders four slots. A double-width widget spends two of them.
+    private static let slotCount = 4
+    private static let slotSize: CGFloat = 50
+    private static let slotSpacing: CGFloat = 15
+    private static let slotPadding: CGFloat = 5
+
+    private var usedSlots: Int {
+        placedItems.reduce(0) { $0 + $1.slotWidth }
+    }
+
+    private var freeSlots: Int {
+        max(0, Self.slotCount - usedSlots)
     }
 
     private func generateDummyGlucoseData() -> [DummyGlucoseData] {
@@ -75,52 +76,41 @@ struct LiveActivityWidgetConfiguration: BaseView {
     }
 
     var body: some View {
-        VStack {
-            Group {
-                VStack(alignment: .trailing, spacing: 0) {
-                    Text(String(localized: "Live Activity Personalization").uppercased())
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .foregroundColor(.secondary)
-                        .font(.footnote)
-                        .padding(.leading)
-                }
-            }.padding(.bottom, -15)
-
-            GroupBox {
-                VStack {
-                    dummyChart(glucoseData)
-
-                    HStack(spacing: 15) {
-                        ForEach(visibleSlotIndices, id: \.self) { index in
-                            widgetButton(for: index)
-                        }
+        ScrollView {
+            VStack {
+                Group {
+                    VStack(alignment: .trailing, spacing: 0) {
+                        Text(String(localized: "Live Activity Personalization").uppercased())
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .foregroundColor(.secondary)
+                            .font(.footnote)
+                            .padding(.leading)
                     }
-                    .padding()
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(style: StrokeStyle(lineWidth: 2, dash: [5]))
-                            .foregroundColor(.gray)
-                    )
-                    .cornerRadius(12)
-                }
+                }.padding(.bottom, -15)
 
-            }.padding(.vertical).groupBoxStyle(.dummyChart)
+                GroupBox {
+                    VStack {
+                        dummyChart(glucoseData)
+                        layoutRow
+                    }
+                }.padding(.vertical).groupBoxStyle(.dummyChart)
 
-            Group {
-                HStack {
-                    Image(systemName: "info.circle")
-                    Text(
-                        "To re-order widgets, remove them and re-add them in the desired order."
-                    )
-                }
-            }.frame(maxWidth: .infinity, alignment: .leading)
-                .foregroundColor(.secondary)
-                .font(.footnote)
-                .padding(.horizontal)
+                Group {
+                    HStack(alignment: .top) {
+                        Image(systemName: "info.circle")
+                        Text(
+                            "Drag a widget to move it. Drag one up from Available Widgets to add it, or drop it back onto the list to remove it."
+                        )
+                    }
+                }.frame(maxWidth: .infinity, alignment: .leading)
+                    .foregroundColor(.secondary)
+                    .font(.footnote)
+                    .padding(.horizontal)
 
-            Spacer()
+                paletteSection.padding(.top)
+            }
+            .padding()
         }
-        .padding()
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))
         .navigationTitle("Widget Configuration")
@@ -131,99 +121,173 @@ struct LiveActivityWidgetConfiguration: BaseView {
             }
             loadOrder() // Load the saved order when the view appears
         }
-        .glassActionSheet(
-            "Add Widget",
-            isPresented: $showAddItemDialog,
-            actions: addableItems(at: buttonIndexToUpdate).map { item in
-                GlassSheetAction(verbatim: item.displayName) {
-                    if let index = buttonIndexToUpdate {
-                        addItem(item, at: index)
-                    }
-                }
-            }
-        )
     }
 
-    @ViewBuilder private func widgetButton(for index: Int) -> some View {
-        if index < selectedItems.count, let selectedItem = selectedItems[index] {
-            // Display selected item preview
-            ZStack(alignment: .topTrailing) {
-                getItemPreview(for: selectedItem)
-                    .frame(width: previewWidth(for: selectedItem), height: 50)
-                    .padding(5)
-                    .background(Color.clear)
-                    .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.primary, lineWidth: 1)
-                    )
-                Button(action: {
-                    isRemovalConfirmationPresented = true
-                    itemToRemove = selectedItem
-                }) {
-                    Image(systemName: "trash.circle.fill")
-                        .foregroundColor(Color(UIColor.systemGray2))
-                        .background(Color.white)
-                        .clipShape(Circle())
-                        .font(.title3)
-                }
-                .accessibilityLabel(Text("Remove widget"))
-                .offset(x: 10, y: -10)
-                .glassActionSheet(
-                    isPresented: $isRemovalConfirmationPresented,
-                    actions: [
-                        GlassSheetAction("Remove Widget", role: .destructive) {
-                            if let itemToRemove = itemToRemove {
-                                removeItem(itemToRemove)
-                            }
-                        }
-                    ]
-                )
+    // MARK: - Layout row
+
+    private var layoutRow: some View {
+        HStack(spacing: Self.slotSpacing) {
+            ForEach(placedItems, id: \.self) { item in
+                placedSlot(item)
             }
-        } else {
-            // Show "+" symbol for empty slots
-            Button(action: {
-                buttonIndexToUpdate = index
-                showAddItemDialog.toggle()
-            }) {
-                VStack {
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .foregroundColor(.accentColor)
-                }
-                .frame(width: 50, height: 50)
-                .padding(5)
+
+            ForEach(0 ..< freeSlots, id: \.self) { offset in
+                emptySlot(position: placedItems.count + offset)
+            }
+        }
+        .padding()
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(style: StrokeStyle(lineWidth: 2, dash: [5]))
+                .foregroundColor(.gray)
+        )
+        .cornerRadius(12)
+    }
+
+    private func placedSlot(_ item: LiveActivityItem) -> some View {
+        let index = placedItems.firstIndex(of: item) ?? placedItems.count
+        let isDropTarget = targetedSlot == index
+
+        return ZStack(alignment: .topTrailing) {
+            getItemPreview(for: item)
+                .frame(width: previewWidth(for: item), height: Self.slotSize)
+                .padding(Self.slotPadding)
+                .background(Color.clear)
+                .cornerRadius(12)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(style: StrokeStyle(lineWidth: 1, dash: [5]))
-                        .foregroundColor(.primary)
+                        .stroke(isDropTarget ? Color.accentColor : Color.primary, lineWidth: isDropTarget ? 2 : 1)
                 )
+
+            Button(action: { remove(item) }) {
+                Image(systemName: "trash.circle.fill")
+                    .foregroundColor(Color(UIColor.systemGray2))
+                    .background(Color.white)
+                    .clipShape(Circle())
+                    .font(.title3)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text("Add widget"))
+            .accessibilityLabel(Text("Remove \(item.displayName)"))
+            .offset(x: 10, y: -10)
+        }
+        .draggable(item) { dragPreview(item) }
+        .dropDestination(for: LiveActivityItem.self) { dropped, _ in
+            targetedSlot = nil
+            guard let dropped = dropped.first else { return false }
+            return place(dropped, at: index)
+        } isTargeted: { hovering in
+            targetedSlot = hovering ? index : nil
+        }
+        .accessibilityLabel(Text(item.displayName))
+        .accessibilityValue(Text("Position \(index + 1) of \(placedItems.count)"))
+    }
+
+    private func emptySlot(position: Int) -> some View {
+        let isDropTarget = targetedSlot == position
+
+        return Image(systemName: "plus")
+            .font(.title2)
+            .foregroundColor(.secondary)
+            .frame(width: Self.slotSize, height: Self.slotSize)
+            .padding(Self.slotPadding)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(
+                        style: StrokeStyle(lineWidth: isDropTarget ? 2 : 1, dash: isDropTarget ? [] : [5])
+                    )
+                    .foregroundColor(isDropTarget ? Color.accentColor : Color.primary)
+            )
+            .dropDestination(for: LiveActivityItem.self) { dropped, _ in
+                targetedSlot = nil
+                guard let dropped = dropped.first else { return false }
+                return place(dropped, at: placedItems.count)
+            } isTargeted: { hovering in
+                targetedSlot = hovering ? position : nil
+            }
+            .accessibilityLabel(Text("Empty widget slot"))
+    }
+
+    private func dragPreview(_ item: LiveActivityItem) -> some View {
+        getItemPreview(for: item)
+            .frame(width: previewWidth(for: item), height: Self.slotSize)
+            .padding(Self.slotPadding)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color.chart))
+    }
+
+    /// Width of a slot's content. A double-width widget spans two slots, the gap between them, and the padding
+    /// each of those two slots would have had facing that gap, so the row keeps its overall width.
+    private func previewWidth(for item: LiveActivityItem) -> CGFloat {
+        item.slotWidth > 1
+            ? Self.slotSize * 2 + Self.slotSpacing + Self.slotPadding * 2
+            : Self.slotSize
+    }
+
+    // MARK: - Palette
+
+    private var paletteSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(String(localized: "Available Widgets").uppercased())
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .foregroundColor(.secondary)
+                .font(.footnote)
+
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 10)], spacing: 10) {
+                ForEach(LiveActivityItem.selectableItems) { item in
+                    paletteCell(item)
+                }
+            }
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.gray.opacity(isPaletteTargeted ? 0.25 : 0.1))
+        )
+        .dropDestination(for: LiveActivityItem.self) { dropped, _ in
+            isPaletteTargeted = false
+            guard let dropped = dropped.first else { return false }
+            return remove(dropped)
+        } isTargeted: { isPaletteTargeted = $0 }
+    }
+
+    @ViewBuilder private func paletteCell(_ item: LiveActivityItem) -> some View {
+        let isPlaced = placedItems.contains(item)
+        let canPlace = !isPlaced && freeSlots >= item.slotWidth
+        let unavailableReason: LocalizedStringKey = isPlaced ? "Already in the layout" : "Not enough room"
+
+        let cell = VStack(spacing: 6) {
+            getItemPreview(for: item)
+                .frame(height: 34)
+
+            Text(item.displayName)
+                .font(.caption2)
+                .multilineTextAlignment(.center)
+                .foregroundColor(.secondary)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity, minHeight: 76)
+        .padding(8)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color.chart))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.primary.opacity(0.2), lineWidth: 1)
+        )
+        .opacity(canPlace ? 1 : 0.4)
+
+        if canPlace {
+            cell
+                .contentShape(RoundedRectangle(cornerRadius: 12))
+                .onTapGesture { place(item, at: placedItems.count) }
+                .draggable(item) { dragPreview(item) }
+                .accessibilityAddTraits(.isButton)
+                .accessibilityLabel(Text(item.displayName))
+                .accessibilityHint(Text("Adds this widget to the layout"))
+        } else {
+            cell
+                .accessibilityLabel(Text(item.displayName))
+                .accessibilityValue(Text(unavailableReason))
         }
     }
 
-    private func getItemPreview(for item: LiveActivityItem) -> some View {
-        switch item {
-        case .currentGlucoseLarge:
-            return AnyView(currentGlucoseLargePreview)
-        case .currentGlucose:
-            return AnyView(currentGlucosePreview)
-        case .currentGlucoseWide:
-            return AnyView(currentGlucoseWidePreview)
-        case .wideContinuation:
-            return AnyView(EmptyView())
-        case .cob:
-            return AnyView(cobPreview)
-        case .iob:
-            return AnyView(iobPreview)
-        case .updatedLabel:
-            return AnyView(updatedLabelPreview)
-        case .totalDailyDose:
-            return AnyView(totalDailyDosePreview)
-        }
-    }
+    // MARK: - Previews
 
     @ViewBuilder private func dummyChart(_ glucoseData: [DummyGlucoseData]) -> some View {
         Chart {
@@ -266,6 +330,27 @@ struct LiveActivityWidgetConfiguration: BaseView {
             }
         }
         .frame(height: 100)
+    }
+
+    private func getItemPreview(for item: LiveActivityItem) -> some View {
+        switch item {
+        case .currentGlucoseLarge:
+            return AnyView(currentGlucoseLargePreview)
+        case .currentGlucose:
+            return AnyView(currentGlucosePreview)
+        case .currentGlucoseWide:
+            return AnyView(currentGlucoseWidePreview)
+        case .wideContinuation:
+            return AnyView(EmptyView())
+        case .cob:
+            return AnyView(cobPreview)
+        case .iob:
+            return AnyView(iobPreview)
+        case .updatedLabel:
+            return AnyView(updatedLabelPreview)
+        case .totalDailyDose:
+            return AnyView(totalDailyDosePreview)
+        }
     }
 
     private var currentGlucoseLargePreview: some View {
@@ -340,99 +425,97 @@ struct LiveActivityWidgetConfiguration: BaseView {
         }
     }
 
-    /// Slots that start an item. The second slot of a double-width item is covered by that item's button,
-    /// so it is not drawn on its own.
-    private var visibleSlotIndices: [Int] {
-        selectedItems.indices.filter { selectedItems[$0] != .wideContinuation }
+    // MARK: - Layout changes
+
+    /// Moves an already-placed widget to `index`, or brings a new one in from the palette there.
+    /// - Returns: Whether the layout changed, which is also whether a drop should be accepted.
+    @discardableResult private func place(_ item: LiveActivityItem, at index: Int) -> Bool {
+        guard item != .wideContinuation else { return false }
+
+        var items = placedItems
+
+        if let currentIndex = items.firstIndex(of: item) {
+            guard currentIndex != index else { return false }
+            items.remove(at: currentIndex)
+        } else {
+            guard freeSlots >= item.slotWidth else { return false }
+        }
+
+        items.insert(item, at: min(index, items.count))
+        apply(items)
+        return true
     }
 
-    /// Width of a slot button's content. A double-width item spans two 50pt slots, the 15pt gap between them,
-    /// and the 5pt of padding each of those two buttons would have had facing that gap, so the row of slots
-    /// keeps its overall width.
-    private func previewWidth(for item: LiveActivityItem) -> CGFloat {
-        item.slotWidth > 1 ? 50 * 2 + 15 + 10 : 50
+    @discardableResult private func remove(_ item: LiveActivityItem) -> Bool {
+        guard let index = placedItems.firstIndex(of: item) else { return false }
+
+        var items = placedItems
+        items.remove(at: index)
+        apply(items)
+        return true
     }
 
-    /// Items still available for the tapped slot: not already placed, and wide enough to fit from there on.
-    private func addableItems(at index: Int?) -> [LiveActivityItem] {
-        LiveActivityItem.selectableItems.filter { !selectedItems.contains($0) && fits($0, at: index) }
+    private func apply(_ items: [LiveActivityItem]) {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            placedItems = items
+        }
+        saveOrder(items)
     }
 
-    /// Whether `item` can start at `index` without running past the last slot or over an occupied one.
-    private func fits(_ item: LiveActivityItem, at index: Int?) -> Bool {
-        guard let index, selectedItems.indices.contains(index) else { return false }
-        guard item.slotWidth > 1 else { return true }
-
-        let lastSlot = index + item.slotWidth - 1
-        guard lastSlot < selectedItems.count else { return false }
-        // The slot the user tapped is empty by definition; only the ones a wide item would swallow matter.
-        return (index + 1 ... lastSlot).allSatisfy { selectedItems[$0] == nil }
-    }
+    // MARK: - Persistence
 
     private func loadOrder() {
-        if let savedItems = UserDefaults.standard.loadLiveActivityOrder() {
-            var items = Array(savedItems.prefix(4))
-            items += Array(repeating: nil, count: 4 - items.count)
-            selectedItems = normalized(items)
-        } else {
-            selectedItems = LiveActivityItem.defaultItems
-            saveOrder()
-        }
-    }
-
-    /// Repairs a saved order so every double-width item is followed by its continuation placeholder, and no
-    /// placeholder is left stranded. Guards against orders written by another app version or an interrupted edit.
-    private func normalized(_ items: [LiveActivityItem?]) -> [LiveActivityItem?] {
-        var result = items
-        var index = 0
-
-        while index < result.count {
-            let item = result[index]
-
-            if let item, item.slotWidth > 1 {
-                let lastSlot = index + item.slotWidth - 1
-                if lastSlot < result.count {
-                    for slot in (index + 1) ... lastSlot {
-                        result[slot] = .wideContinuation
-                    }
-                    index = lastSlot + 1
-                    continue
-                }
-                // Not enough room left for the item's other slot, so drop it.
-                result[index] = nil
-            } else if item == .wideContinuation {
-                // Not preceded by a double-width item.
-                result[index] = nil
-            }
-
-            index += 1
+        guard let savedItems = UserDefaults.standard.loadLiveActivityOrder() else {
+            let defaults = LiveActivityItem.defaultItems
+            placedItems = defaults
+            saveOrder(defaults)
+            return
         }
 
-        return result
+        placedItems = layoutItems(from: savedItems)
     }
 
-    private func saveOrder() {
-        UserDefaults.standard.saveLiveActivityOrder(selectedItems)
+    private func saveOrder(_ items: [LiveActivityItem]) {
+        UserDefaults.standard.saveLiveActivityOrder(slotArray(from: items))
         Foundation.NotificationCenter.default.post(name: .liveActivityOrderDidChange, object: nil)
     }
 
-    private func addItem(_ item: LiveActivityItem, at index: Int) {
-        guard fits(item, at: index) else { return }
+    /// Expands the ordered layout into the fixed four-slot array the Live Activity reads, following each
+    /// double-width widget with the placeholder that holds its second slot.
+    private func slotArray(from items: [LiveActivityItem]) -> [LiveActivityItem?] {
+        var slots: [LiveActivityItem?] = []
 
-        selectedItems[index] = item
-        for slot in stride(from: index + 1, to: index + item.slotWidth, by: 1) {
-            selectedItems[slot] = .wideContinuation
+        for item in items {
+            slots.append(item)
+
+            let continuations: [LiveActivityItem?] = Array(
+                repeating: .wideContinuation,
+                count: item.slotWidth - 1
+            )
+            slots.append(contentsOf: continuations)
         }
-        saveOrder()
+
+        let padding: [LiveActivityItem?] = Array(repeating: nil, count: max(0, Self.slotCount - slots.count))
+        slots.append(contentsOf: padding)
+
+        return Array(slots.prefix(Self.slotCount))
     }
 
-    private func removeItem(_ item: LiveActivityItem) {
-        guard let index = selectedItems.firstIndex(of: item) else { return }
+    /// Reads a saved slot array back into the ordered layout, dropping anything it cannot honour: gaps,
+    /// stranded placeholders, repeats, and widgets that would overrun the four slots.
+    private func layoutItems(from slots: [LiveActivityItem?]) -> [LiveActivityItem] {
+        var items: [LiveActivityItem] = []
+        var used = 0
 
-        for slot in stride(from: index, to: index + item.slotWidth, by: 1) where selectedItems.indices.contains(slot) {
-            selectedItems[slot] = nil
+        for slot in slots.prefix(Self.slotCount) {
+            guard let slot, slot != .wideContinuation, !items.contains(slot) else { continue }
+            guard used + slot.slotWidth <= Self.slotCount else { continue }
+
+            items.append(slot)
+            used += slot.slotWidth
         }
-        saveOrder()
+
+        return items
     }
 }
 
@@ -456,7 +539,7 @@ extension UserDefaults {
 }
 
 // Enum to represent each live activity item
-enum LiveActivityItem: String, CaseIterable, Identifiable {
+enum LiveActivityItem: String, CaseIterable, Identifiable, Codable, Transferable {
     case currentGlucoseLarge
     case currentGlucose
     case currentGlucoseWide
@@ -464,10 +547,18 @@ enum LiveActivityItem: String, CaseIterable, Identifiable {
     case cob
     case updatedLabel
     case totalDailyDose
-    /// Holds the second slot of the preceding double-width item. Never offered in the "Add Widget" sheet.
+    /// Holds the second slot of the preceding double-width item. Never offered in the palette.
     case wideContinuation
 
     var id: String { rawValue }
+
+    /// Drag payload for moving a widget between the layout and the palette.
+    ///
+    /// Carried as JSON rather than an app-specific exported type, which would have to be declared in
+    /// Info.plist. Anything dropped from outside simply fails to decode, so the drop is refused.
+    static var transferRepresentation: some TransferRepresentation {
+        CodableRepresentation(contentType: .json)
+    }
 
     static var defaultItems: [LiveActivityItem] {
         [.currentGlucose, .iob, .cob, .updatedLabel]
