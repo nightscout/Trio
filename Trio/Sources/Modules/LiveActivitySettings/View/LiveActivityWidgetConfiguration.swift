@@ -91,7 +91,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
                     dummyChart(glucoseData)
 
                     HStack(spacing: 15) {
-                        ForEach(0 ..< 4, id: \.self) { index in
+                        ForEach(visibleSlotIndices, id: \.self) { index in
                             widgetButton(for: index)
                         }
                     }
@@ -134,7 +134,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
         .glassActionSheet(
             "Add Widget",
             isPresented: $showAddItemDialog,
-            actions: LiveActivityItem.allCases.filter { !selectedItems.contains($0) }.map { item in
+            actions: addableItems(at: buttonIndexToUpdate).map { item in
                 GlassSheetAction(verbatim: item.displayName) {
                     if let index = buttonIndexToUpdate {
                         addItem(item, at: index)
@@ -149,7 +149,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
             // Display selected item preview
             ZStack(alignment: .topTrailing) {
                 getItemPreview(for: selectedItem)
-                    .frame(width: 50, height: 50)
+                    .frame(width: previewWidth(for: selectedItem), height: 50)
                     .padding(5)
                     .background(Color.clear)
                     .cornerRadius(12)
@@ -210,6 +210,10 @@ struct LiveActivityWidgetConfiguration: BaseView {
             return AnyView(currentGlucoseLargePreview)
         case .currentGlucose:
             return AnyView(currentGlucosePreview)
+        case .currentGlucoseWide:
+            return AnyView(currentGlucoseWidePreview)
+        case .wideContinuation:
+            return AnyView(EmptyView())
         case .cob:
             return AnyView(cobPreview)
         case .iob:
@@ -274,6 +278,16 @@ struct LiveActivityWidgetConfiguration: BaseView {
         .font(.subheadline)
     }
 
+    private var currentGlucoseWidePreview: some View {
+        HStack(alignment: .center, spacing: 4) {
+            (Text("123") + Text("\u{2192}"))
+                .foregroundStyle(Color.loopGreen)
+            Text("+6").foregroundStyle(.primary)
+        }
+        .fontWeight(.bold)
+        .font(.subheadline)
+    }
+
     private var currentGlucosePreview: some View {
         VStack {
             HStack(alignment: .center) {
@@ -326,13 +340,75 @@ struct LiveActivityWidgetConfiguration: BaseView {
         }
     }
 
+    /// Slots that start an item. The second slot of a double-width item is covered by that item's button,
+    /// so it is not drawn on its own.
+    private var visibleSlotIndices: [Int] {
+        selectedItems.indices.filter { selectedItems[$0] != .wideContinuation }
+    }
+
+    /// Width of a slot button's content. A double-width item spans two 50pt slots, the 15pt gap between them,
+    /// and the 5pt of padding each of those two buttons would have had facing that gap, so the row of slots
+    /// keeps its overall width.
+    private func previewWidth(for item: LiveActivityItem) -> CGFloat {
+        item.slotWidth > 1 ? 50 * 2 + 15 + 10 : 50
+    }
+
+    /// Items still available for the tapped slot: not already placed, and wide enough to fit from there on.
+    private func addableItems(at index: Int?) -> [LiveActivityItem] {
+        LiveActivityItem.selectableItems.filter { !selectedItems.contains($0) && fits($0, at: index) }
+    }
+
+    /// Whether `item` can start at `index` without running past the last slot or over an occupied one.
+    private func fits(_ item: LiveActivityItem, at index: Int?) -> Bool {
+        guard let index, selectedItems.indices.contains(index) else { return false }
+        guard item.slotWidth > 1 else { return true }
+
+        let lastSlot = index + item.slotWidth - 1
+        guard lastSlot < selectedItems.count else { return false }
+        // The slot the user tapped is empty by definition; only the ones a wide item would swallow matter.
+        return (index + 1 ... lastSlot).allSatisfy { selectedItems[$0] == nil }
+    }
+
     private func loadOrder() {
         if let savedItems = UserDefaults.standard.loadLiveActivityOrder() {
-            selectedItems = savedItems.count == 4 ? savedItems : savedItems + Array(repeating: nil, count: 4 - savedItems.count)
+            var items = Array(savedItems.prefix(4))
+            items += Array(repeating: nil, count: 4 - items.count)
+            selectedItems = normalized(items)
         } else {
             selectedItems = LiveActivityItem.defaultItems
             saveOrder()
         }
+    }
+
+    /// Repairs a saved order so every double-width item is followed by its continuation placeholder, and no
+    /// placeholder is left stranded. Guards against orders written by another app version or an interrupted edit.
+    private func normalized(_ items: [LiveActivityItem?]) -> [LiveActivityItem?] {
+        var result = items
+        var index = 0
+
+        while index < result.count {
+            let item = result[index]
+
+            if let item, item.slotWidth > 1 {
+                let lastSlot = index + item.slotWidth - 1
+                if lastSlot < result.count {
+                    for slot in (index + 1) ... lastSlot {
+                        result[slot] = .wideContinuation
+                    }
+                    index = lastSlot + 1
+                    continue
+                }
+                // Not enough room left for the item's other slot, so drop it.
+                result[index] = nil
+            } else if item == .wideContinuation {
+                // Not preceded by a double-width item.
+                result[index] = nil
+            }
+
+            index += 1
+        }
+
+        return result
     }
 
     private func saveOrder() {
@@ -341,15 +417,22 @@ struct LiveActivityWidgetConfiguration: BaseView {
     }
 
     private func addItem(_ item: LiveActivityItem, at index: Int) {
+        guard fits(item, at: index) else { return }
+
         selectedItems[index] = item
+        for slot in stride(from: index + 1, to: index + item.slotWidth, by: 1) {
+            selectedItems[slot] = .wideContinuation
+        }
         saveOrder()
     }
 
     private func removeItem(_ item: LiveActivityItem) {
-        if let index = selectedItems.firstIndex(of: item) {
-            selectedItems[index] = nil
-            saveOrder()
+        guard let index = selectedItems.firstIndex(of: item) else { return }
+
+        for slot in stride(from: index, to: index + item.slotWidth, by: 1) where selectedItems.indices.contains(slot) {
+            selectedItems[slot] = nil
         }
+        saveOrder()
     }
 }
 
@@ -376,15 +459,28 @@ extension UserDefaults {
 enum LiveActivityItem: String, CaseIterable, Identifiable {
     case currentGlucoseLarge
     case currentGlucose
+    case currentGlucoseWide
     case iob
     case cob
     case updatedLabel
     case totalDailyDose
+    /// Holds the second slot of the preceding double-width item. Never offered in the "Add Widget" sheet.
+    case wideContinuation
 
     var id: String { rawValue }
 
     static var defaultItems: [LiveActivityItem] {
         [.currentGlucose, .iob, .cob, .updatedLabel]
+    }
+
+    /// Items a user can pick, i.e. everything but the internal continuation placeholder.
+    static var selectableItems: [LiveActivityItem] {
+        allCases.filter { $0 != .wideContinuation }
+    }
+
+    /// Number of the four configuration slots this item occupies.
+    var slotWidth: Int {
+        self == .currentGlucoseWide ? 2 : 1
     }
 
     var displayName: String {
@@ -398,6 +494,16 @@ enum LiveActivityItem: String, CaseIterable, Identifiable {
             return String(
                 localized: "Glucose, Trend, Delta",
                 comment: "Live Activity widget icon label for Glucose, Trend, Delta"
+            )
+        case .currentGlucoseWide:
+            return String(
+                localized: "Glucose, Trend, Delta (Double Width)",
+                comment: "Live Activity widget icon label for the double-width Glucose, Trend, Delta item"
+            )
+        case .wideContinuation:
+            return String(
+                localized: "Reserved",
+                comment: "Live Activity widget icon label for the slot taken by a double-width item"
             )
         case .iob:
             return String(

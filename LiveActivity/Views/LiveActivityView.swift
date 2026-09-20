@@ -89,11 +89,15 @@ struct LiveActivityView: View {
                         }
                     }
 
+                // A double-width item's continuation slot draws nothing, so drop it before laying the row
+                // out; otherwise it would earn its own divider and gap.
+                let widgetItems = context.state.detailedViewState.widgetItems.filter { $0 != .wideContinuation }
+
                 HStack {
-                    if context.state.detailedViewState.widgetItems.contains(where: { $0 != .empty }) {
+                    if widgetItems.contains(where: { $0 != .empty }) {
                         ForEach(
-                            Array(context.state.detailedViewState.widgetItems.enumerated()),
-                            id: \.element
+                            Array(widgetItems.enumerated()),
+                            id: \.offset
                         ) { index, widgetItem in
                             switch widgetItem {
                             case .currentGlucose:
@@ -118,6 +122,17 @@ struct LiveActivityView: View {
                                     context: context,
                                     glucoseColor: glucoseColor
                                 )
+                            case .currentGlucoseWide:
+                                HStack(spacing: 4) {
+                                    LiveActivityBGLabelLargeView(
+                                        context: context,
+                                        glucoseColor: glucoseColor
+                                    )
+                                    LiveActivityGlucoseDeltaLabelView(
+                                        context: context,
+                                        glucoseColor: .primary
+                                    ).font(.headline)
+                                }
                             case .iob:
                                 LiveActivityIOBLabelView(context: context, additionalState: context.state.detailedViewState)
                             case .cob:
@@ -131,12 +146,15 @@ struct LiveActivityView: View {
                                 )
                             case .empty:
                                 Text("").frame(width: 50, height: 50)
+                            case .wideContinuation:
+                                // Filtered out above; here only to keep the switch exhaustive.
+                                EmptyView()
                             }
 
                             /// Check if the next item is also non-empty to determine if a divider should be shown
-                            if index < context.state.detailedViewState.widgetItems.count - 1 {
-                                let currentItem = context.state.detailedViewState.widgetItems[index]
-                                let nextItem = context.state.detailedViewState.widgetItems[index + 1]
+                            if index < widgetItems.count - 1 {
+                                let currentItem = widgetItems[index]
+                                let nextItem = widgetItems[index + 1]
 
                                 if currentItem != .empty, nextItem != .empty {
                                     Divider()

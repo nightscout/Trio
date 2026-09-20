@@ -162,7 +162,7 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
                 label: String(localized: "Color Glucose Reading"),
                 miniHint: String(localized: "Color the reading by its glucose range."),
                 verboseHint: VStack(alignment: .leading, spacing: 10) {
-                    Text("Default: ON").bold()
+                    Text("Default: OFF").bold()
                     Text(
                         "When enabled, the glucose reading, trend arrow and delta are colored using the same rules as the rest of Trio: your Glucose Color Scheme and your Low and High Glucose thresholds, configurable under Features - User Interface."
                     )

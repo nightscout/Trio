@@ -12,7 +12,7 @@ extension LiveActivitySettings {
         @Published var displayGlucoseForecasts = false
         @Published var simpleFontFace: LiveActivityFontFace = .default
         @Published var simpleFontSize: LiveActivityFontSize = .large
-        @Published var simpleUseGlucoseColor = true
+        @Published var simpleUseGlucoseColor = false
 
         /// Glucose color scheme the app applies everywhere, used to preview the Simple widget's reading color.
         var glucoseColorScheme: GlucoseColorScheme { settingsManager.settings.glucoseColorScheme }

@@ -5,11 +5,15 @@ struct LiveActivityAttributes: ActivityAttributes {
     enum LiveActivityItem: String, Hashable, Codable, Equatable {
         case currentGlucoseLarge
         case currentGlucose
+        /// Glucose, trend arrow and delta on a single line. Occupies two of the four configuration slots.
+        case currentGlucoseWide
         case iob
         case cob
         case updatedLabel
         case totalDailyDose
         case empty
+        /// Holds the second slot of the preceding double-width item. Renders nothing.
+        case wideContinuation
 
         static let defaultItems: [Self] = [.currentGlucoseLarge, .iob, .cob, .updatedLabel]
     }
@@ -24,8 +28,8 @@ struct LiveActivityAttributes: ActivityAttributes {
         /// Whether the reading follows Trio's glucose color scheme instead of the default text color.
         let useGlucoseColor: Bool
 
-        /// Matches the appearance the Simple layout had before it became configurable.
-        static let `default` = SimpleViewStyle(fontFace: .default, fontSize: .large, useGlucoseColor: true)
+        /// Fallback appearance: the size the Simple layout used before it became configurable, uncolored.
+        static let `default` = SimpleViewStyle(fontFace: .default, fontSize: .large, useGlucoseColor: false)
     }
 
     struct ContentState: Codable, Hashable {
