@@ -271,6 +271,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				OpenAPSSwiftTests/Parity/goldens,
 			);
 			target = 38FCF3EC25E9028E0078B0D1 /* TrioTests */;
 		};
