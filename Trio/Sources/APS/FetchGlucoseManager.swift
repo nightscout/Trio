@@ -39,8 +39,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     @Injected() var broadcaster: Broadcaster!
     @Injected() var glucoseStorage: GlucoseStorage!
     @Injected() var nightscoutManager: NightscoutManager!
-    @Injected() var tidepoolService: TidepoolManager!
-    @Injected() var apsManager: APSManager!
     @Injected() var settingsManager: SettingsManager!
     @Injected() var healthKitManager: HealthKitManager!
     @Injected() var deviceDataManager: DeviceDataManager!
@@ -324,6 +322,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         )
 
         deviceDataManager.heartbeat(date: Date())
+
+        TelemetryClient.shared.checkAndSendIfOverdueInBackground()
 
         endBackgroundTaskSafely(&backgroundTaskID, taskName: "Glucose Store and Heartbeat Decision")
     }

@@ -145,14 +145,17 @@ extension Home.RootView {
     }
 
     @ViewBuilder func rightHeaderPanel() -> some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .center, spacing: 20) {
             /// Loop view at bottomLeading
             LoopView(
-                closedLoop: state.closedLoop,
+                dosingMode: state.dosingMode,
                 timerDate: state.timerDate,
                 isLooping: state.isLooping,
                 lastLoopDate: state.lastLoopDate,
                 manualTempBasal: state.manualTempBasal,
+                lastGlucoseDate: state.lastGlucoseDate,
+                lastPumpCommsDate: state.lastPumpCommsDate,
+                hasDeviceIssue: state.hasDeviceIssue,
                 determination: state.determinationsFromPersistence
             )
             .onTapGesture {
@@ -175,8 +178,6 @@ extension Home.RootView {
                         .fontWeight(.bold)
                         .fontDesign(.rounded)
                 }
-                // aligns the evBG icon exactly with the first pixel of loop status icon
-                .padding(.leading, 12)
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text("Eventual glucose"))
                 .accessibilityValue(Text(

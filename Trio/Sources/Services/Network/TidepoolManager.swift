@@ -54,7 +54,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
 
     /// Last-seen therapy-relevant TrioSettings values.
     /// Used to filter `settingsDidChange` so UI-only changes don't trigger uploads.
-    private var lastClosedLoop: Bool?
+    private var lastDosingMode: DosingMode?
     private var lastUnits: GlucoseUnits?
     private var tidepoolService: RemoteDataService? {
         didSet {
@@ -420,16 +420,18 @@ extension BaseTidepoolManager {
                                 )
                         case .bolus:
                             guard let amount = event.amount else { return result }
+                            // an interrupted bolus programmed more than it delivered
+                            let programmed = event.programmedAmount ?? amount
                             let bolusDoseEntry = DoseEntry(
                                 type: .bolus,
                                 startDate: event.timestamp,
                                 endDate: event.timestamp,
-                                value: Double(amount),
+                                value: Double(programmed),
                                 unit: .units,
-                                deliveredUnits: nil,
+                                deliveredUnits: Double(amount),
                                 syncIdentifier: event.id,
                                 scheduledBasalRate: nil,
-                                insulinType: self.apsManager.pumpManager?.status.insulinType ?? nil,
+                                insulinType: self.insulinType(for: event),
                                 automatic: event.isSMB ?? true,
                                 manuallyEntered: event.isExternal ?? false
                             )
@@ -557,6 +559,21 @@ extension BaseTidepoolManager {
 
 /// Insulin Helper Functions
 extension BaseTidepoolManager {
+    /// Insulin type recorded with the dose; the pump's current type is only a
+    /// fallback for rows stored before it was persisted per event.
+    private func insulinType(for storedIdentifier: String?) -> InsulinType? {
+        if let storedIdentifier, let insulinType = InsulinType(identifier: storedIdentifier) {
+            return insulinType
+        }
+        return apsManager.pumpManager?.status.insulinType
+    }
+
+    private func insulinType(for event: PumpHistoryEvent) -> InsulinType? {
+        // external doses are not the pump's insulin, so don't fall back to its type
+        guard event.isExternal != true else { return nil }
+        return insulinType(for: event.insulinType)
+    }
+
     private func processTempBasalEvent(
         _ event: PumpHistoryEvent,
         existingTempBasalEntries: [PumpEventStored]
@@ -569,7 +586,8 @@ extension BaseTidepoolManager {
         else {
             return insulinDoseEvents
         }
-        let value = (Decimal(duration) / 60.0) * amount
+        // pump-reported delivery wins; rate x duration is the fallback
+        let value = event.deliveredUnits ?? (Decimal(duration) / 60.0) * amount
 
         // Find the corresponding temp basal entry in existingTempBasalEntries
         if let matchingEntryIndex = existingTempBasalEntries.firstIndex(where: { $0.timestamp == event.timestamp }) {
@@ -590,8 +608,10 @@ extension BaseTidepoolManager {
                     if predecessorEndDate > event.timestamp {
                         let adjustedEndDate = event.timestamp
                         let adjustedDuration = adjustedEndDate.timeIntervalSince(predecessorTimestamp)
-                        let adjustedDeliveredUnits = (adjustedDuration / 3600) *
-                            Double(truncating: predecessorEntry.tempBasal?.rate ?? 0)
+                        // a finalized row already reports what the truncated span delivered
+                        let adjustedDeliveredUnits = predecessorEntry.tempBasal?.deliveredUnits
+                            .map { Double(truncating: $0) }
+                            ?? (adjustedDuration / 3600) * Double(truncating: predecessorEntry.tempBasal?.rate ?? 0)
 
                         // Create updated predecessor dose entry
                         let updatedPredecessorEntry = DoseEntry(
@@ -602,7 +622,7 @@ extension BaseTidepoolManager {
                             unit: .units,
                             deliveredUnits: adjustedDeliveredUnits,
                             syncIdentifier: predecessorEntrySyncIdentifier,
-                            insulinType: apsManager.pumpManager?.status.insulinType ?? nil,
+                            insulinType: insulinType(for: predecessorEntry.insulinType),
                             automatic: true,
                             manuallyEntered: false,
                             isMutable: false
@@ -627,7 +647,7 @@ extension BaseTidepoolManager {
                     unit: .internationalUnitsPerHour,
                     doubleValue: Double(currentBasalRate.rate)
                 ),
-                insulinType: apsManager.pumpManager?.status.insulinType ?? nil,
+                insulinType: insulinType(for: event),
                 automatic: true,
                 manuallyEntered: false,
                 isMutable: false
@@ -819,13 +839,13 @@ extension BaseTidepoolManager: SettingsObserver {
     func settingsDidChange(_ settings: TrioSettings) {
         // Only trigger upload when therapy-relevant properties change.
         // TrioSettings has ~56 properties, most are UI-only (badges, colors, etc.).
-        let closedLoopChanged = lastClosedLoop != settings.closedLoop
+        let dosingModeChanged = lastDosingMode != settings.dosingMode
         let unitsChanged = lastUnits != settings.units
 
-        lastClosedLoop = settings.closedLoop
+        lastDosingMode = settings.dosingMode
         lastUnits = settings.units
 
-        guard closedLoopChanged || unitsChanged else { return }
+        guard dosingModeChanged || unitsChanged else { return }
         scheduleSettingsUpload()
     }
 }
@@ -884,7 +904,7 @@ extension BaseTidepoolManager {
         return StoredSettings(
             date: Date(),
             controllerTimeZone: TimeZone.current,
-            dosingEnabled: settingsManager.settings.closedLoop,
+            dosingEnabled: settingsManager.settings.dosingMode.automation != .off,
             glucoseTargetRangeSchedule: glucoseTargetRangeSchedule,
             preMealTargetRange: nil,
             workoutTargetRange: nil,
@@ -911,7 +931,7 @@ extension BaseTidepoolManager {
                 bgTargets: bgTargets,
                 pumpSettings: pumpSettings,
                 preferences: preferences,
-                dosingEnabled: settingsManager.settings.closedLoop
+                dosingMode: settingsManager.settings.dosingMode
             )
         )
     }
@@ -1000,7 +1020,7 @@ extension BaseTidepoolManager {
         bgTargets: BGTargets,
         pumpSettings: PumpSettings,
         preferences: Preferences?,
-        dosingEnabled: Bool
+        dosingMode: DosingMode
     ) -> UUID {
         var hasher = SHA256()
 
@@ -1024,7 +1044,7 @@ extension BaseTidepoolManager {
             hasher.update(data: Data("threshold:\(prefs.threshold_setting)".utf8))
         }
 
-        hasher.update(data: Data("dosingEnabled:\(dosingEnabled)".utf8))
+        hasher.update(data: Data("dosingMode:\(dosingMode.rawValue)".utf8))
 
         let digest = hasher.finalize()
         let bytes = Array(digest.prefix(16))

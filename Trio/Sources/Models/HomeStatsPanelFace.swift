@@ -5,6 +5,7 @@ enum HomeStatsPanelFace: String, JSON, CaseIterable, Identifiable, Codable, Hash
     case timeInRange
     case distributionBar
     case averages
+    case hidden
 
     var displayName: String {
         switch self {
@@ -14,6 +15,8 @@ enum HomeStatsPanelFace: String, JSON, CaseIterable, Identifiable, Codable, Hash
             return String(localized: "Distribution Bar Only", comment: "Home stats panel face option")
         case .averages:
             return String(localized: "Today's Averages", comment: "Home stats panel face option")
+        case .hidden:
+            return String(localized: "Hide Statistics", comment: "Home stats panel face option")
         }
     }
 }
