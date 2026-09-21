@@ -856,7 +856,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     isAPNSProduction: isAPNSProduction,
                     overridePresets: presetOverrides,
                     teamID: teamID,
-                    expirationDate: expireDate
+                    expirationDate: expireDate,
+                    remoteCommands: TrioRemoteControl.CommandType.supported.map(\.rawValue)
                 )
 
                 guard let nightscout = nightscoutAPI, isNetworkReachable else {

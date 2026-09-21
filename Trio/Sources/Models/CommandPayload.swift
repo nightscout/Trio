@@ -112,6 +112,9 @@ extension TrioRemoteControl {
         case startOverride = "start_override"
         case cancelOverride = "cancel_override"
 
+        /// Every command type this build can execute.
+        static let supported: [CommandType] = [.bolus, .tempTarget, .cancelTempTarget, .meal, .startOverride, .cancelOverride]
+
         var description: String {
             switch self {
             case .bolus:

@@ -20,6 +20,12 @@ protocol CarbsStorage {
     func getFPUsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func getCarbsNotYetUploadedToHealth() async throws -> [CarbsEntry]
     func getCarbsNotYetUploadedToTidepool() async throws -> [CarbsEntry]
+    /// Resolves a meal root by its own `id` or by the family's `fpuID`, which is the Nightscout `id` of every carb equivalent.
+    func fetchMealRoot(handle: UUID) async throws -> (objectID: NSManagedObjectID, snapshot: MealSnapshot)?
+}
+
+enum CarbsStorageError: Error, Equatable {
+    case ambiguousMealHandle(UUID)
 }
 
 final class BaseCarbsStorage: CarbsStorage, Injectable {
@@ -502,6 +508,37 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         }
     }
 
+    func fetchMealRoot(handle: UUID) async throws -> (objectID: NSManagedObjectID, snapshot: MealSnapshot)? {
+        let context = makeContext()
+        context.name = "fetchMealRoot"
+        let request: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "(id == %@ OR fpuID == %@) AND isFPU == NO",
+            handle as CVarArg,
+            handle as CVarArg
+        )
+        request.fetchLimit = 2
+
+        return try await context.perform {
+            let rows = try context.fetch(request)
+            guard let row = rows.first else { return nil }
+            guard rows.count == 1 else { throw CarbsStorageError.ambiguousMealHandle(handle) }
+            guard let id = row.id, let date = row.date else { return nil }
+            return (
+                row.objectID,
+                MealSnapshot(
+                    id: id,
+                    fpuID: row.fpuID,
+                    date: date,
+                    carbs: Decimal(row.carbs),
+                    fat: Decimal(row.fat),
+                    protein: Decimal(row.protein),
+                    note: row.note
+                )
+            )
+        }
+    }
+
     func getCarbsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
         let context = makeContext()
         context.name = "getCarbsNotYetUploadedToNightscout"
@@ -537,7 +574,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     foodType: result.note,
                     targetTop: nil,
                     targetBottom: nil,
-                    id: result.id?.uuidString
+                    id: result.id?.uuidString,
+                    fpuID: result.fpuID?.uuidString
                 )
             }
         }
@@ -578,7 +616,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     foodType: result.note,
                     targetTop: nil,
                     targetBottom: nil,
-                    id: result.fpuID?.uuidString
+                    id: result.fpuID?.uuidString,
+                    fpuID: result.fpuID?.uuidString
                 )
             }
         }
