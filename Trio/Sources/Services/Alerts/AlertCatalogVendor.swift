@@ -47,6 +47,12 @@ extension Alert {
         /// Plugin-unique alarm that doesn't merge with anything else.
         case unspecified
 
+        /// True for alerts emitted as an escalation ladder.
+        /// Exempt from tier-wide dismissal.
+        var isEscalationStep: Bool {
+            self == .notLooping
+        }
+
         var displayTitle: String {
             switch self {
             case .occlusion: return String(localized: "Occlusion")
