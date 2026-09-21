@@ -1,5 +1,8 @@
 import Foundation
 import SwiftUI
+#if canImport(UIKit)
+    import UIKit
+#endif
 
 /// Typeface of the glucose reading shown by the Simple Lock Screen Live Activity.
 ///
@@ -51,18 +54,53 @@ enum LiveActivityFontSize: String, Codable, Hashable, CaseIterable, Identifiable
 
     var id: String { rawValue }
 
-    var textStyle: Font.TextStyle {
+    /// Point size of the reading at the default text size. Each step is clearly larger than the last, and
+    /// Extra Large fills the widget. Scaled with the user's text size via `UIFontMetrics` (see `glucoseFont`).
+    var basePointSize: CGFloat {
         switch self {
         case .small:
-            return .title3
+            return 30
         case .medium:
-            return .title2
+            return 40
         case .large:
-            return .title
+            return 50
         case .extraLarge:
-            return .largeTitle
+            return 64
         }
     }
+
+    /// Vertical padding the Simple Live Activity row should use around the reading; nil = the layout's default.
+    /// Extra Large drops it so the reading can use the whole height of the Live Activity.
+    var verticalPadding: CGFloat? {
+        self == .extraLarge ? 0 : nil
+    }
+
+    #if canImport(UIKit)
+        /// Text style whose Dynamic Type scaling `basePointSize` follows.
+        var uiTextStyle: UIFont.TextStyle {
+            switch self {
+            case .small:
+                return .title2
+            case .medium:
+                return .title1
+            case .large,
+                 .extraLarge:
+                return .largeTitle
+            }
+        }
+    #else
+        var textStyle: Font.TextStyle {
+            switch self {
+            case .small:
+                return .title2
+            case .medium:
+                return .title
+            case .large,
+                 .extraLarge:
+                return .largeTitle
+            }
+        }
+    #endif
 
     var displayName: String {
         switch self {
@@ -81,6 +119,14 @@ enum LiveActivityFontSize: String, Codable, Hashable, CaseIterable, Identifiable
 extension LiveActivityAttributes.SimpleViewStyle {
     /// Font applied to the glucose reading and its trend arrow in the Simple Lock Screen Live Activity.
     var glucoseFont: Font {
-        .system(fontSize.textStyle, design: fontFace.design)
+        #if canImport(UIKit)
+            // SwiftUI's `.system(size:design:)` reliably renders the design (SF Rounded, New York, SF Mono); the
+            // earlier UIFontDescriptor route silently dropped `.rounded`. `UIFontMetrics` keeps the size following the
+            // user's text size setting.
+            let scaled = UIFontMetrics(forTextStyle: fontSize.uiTextStyle).scaledValue(for: fontSize.basePointSize)
+            return .system(size: scaled, weight: .bold, design: fontFace.design)
+        #else
+            return .system(fontSize.textStyle, design: fontFace.design).weight(.bold)
+        #endif
     }
 }

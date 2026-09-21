@@ -123,16 +123,23 @@ struct LiveActivityView: View {
                                     glucoseColor: glucoseColor
                                 )
                             case .currentGlucoseWide:
-                                HStack(spacing: 4) {
+                                // Two slots of room: draw the reading much larger than the single-slot items.
+                                HStack(alignment: .firstTextBaseline, spacing: 6) {
                                     LiveActivityBGLabelLargeView(
                                         context: context,
-                                        glucoseColor: glucoseColor
+                                        glucoseColor: glucoseColor,
+                                        glucoseFont: isWatchOS ? .title : .largeTitle,
+                                        arrowFont: isWatchOS ? .title3 : .title2
                                     )
                                     LiveActivityGlucoseDeltaLabelView(
                                         context: context,
                                         glucoseColor: .primary
-                                    ).font(.headline)
+                                    )
+                                    .fontWeight(.bold)
+                                    .font(isWatchOS ? .title3 : .title2)
                                 }
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.6)
                             case .iob:
                                 LiveActivityIOBLabelView(context: context, additionalState: context.state.detailedViewState)
                             case .cob:
@@ -195,7 +202,7 @@ struct LiveActivityView: View {
                     }
                 }
             }
-            .addLiveActivityModifiers(isWatchOS: false)
+            .addLiveActivityModifiers(isWatchOS: false, verticalPadding: simpleViewStyle.fontSize.verticalPadding)
         }
     }
 }

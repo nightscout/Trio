@@ -363,14 +363,19 @@ struct LiveActivityWidgetConfiguration: BaseView {
         .font(.subheadline)
     }
 
+    /// The double-width item has two slots of room, so its reading is drawn much larger than the single-slot previews.
     private var currentGlucoseWidePreview: some View {
-        HStack(alignment: .center, spacing: 4) {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
             (Text("123") + Text("\u{2192}"))
+                .font(.largeTitle)
                 .foregroundStyle(Color.loopGreen)
-            Text("+6").foregroundStyle(.primary)
+            Text("+6")
+                .font(.title2)
+                .foregroundStyle(.primary)
         }
         .fontWeight(.bold)
-        .font(.subheadline)
+        .lineLimit(1)
+        .minimumScaleFactor(0.6)
     }
 
     private var currentGlucosePreview: some View {

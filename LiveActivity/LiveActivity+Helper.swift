@@ -227,17 +227,22 @@ extension View {
         }
     }
 
-    @ViewBuilder func addLiveActivityModifiers(isWatchOS: Bool) -> some View {
-        modifier(LiveActivityModifiers(isWatchOS: isWatchOS))
+    /// - Parameter verticalPadding: overrides the default top/bottom padding (e.g. 0 so an Extra Large glucose
+    ///   reading can use the full height of the Live Activity).
+    @ViewBuilder func addLiveActivityModifiers(isWatchOS: Bool, verticalPadding: CGFloat? = nil) -> some View {
+        modifier(LiveActivityModifiers(isWatchOS: isWatchOS, verticalPadding: verticalPadding))
     }
 }
 
 struct LiveActivityModifiers: ViewModifier {
     let isWatchOS: Bool
+    var verticalPadding: CGFloat? = nil
 
     func body(content: Content) -> some View {
+        let defaultPadding: CGFloat = isWatchOS ? 10 : 14
         content
-            .padding(.all, isWatchOS ? 10 : 14)
+            .padding(.horizontal, defaultPadding)
+            .padding(.vertical, verticalPadding ?? defaultPadding)
             .frame(minHeight: 0, maxHeight: .infinity)
             .privacySensitive()
             // Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark

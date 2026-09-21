@@ -11,67 +11,8 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
 
     @ObservedObject var state: LiveActivitySettings.StateModel
 
-    /// Sample readings the preview can show, so the effect of the color setting is visible for each band.
-    private enum PreviewGlucose: String, CaseIterable, Identifiable {
-        case low
-        case inRange
-        case high
-
-        var id: String { rawValue }
-
-        /// Sample reading in mg/dL.
-        var mgdL: Int {
-            switch self {
-            case .low:
-                return 58
-            case .inRange:
-                return 112
-            case .high:
-                return 232
-            }
-        }
-
-        /// Sample 5-minute delta in mg/dL, matching the direction the sample reading is heading.
-        var deltaMgdL: Int {
-            switch self {
-            case .low:
-                return -6
-            case .inRange:
-                return 2
-            case .high:
-                return 7
-            }
-        }
-
-        /// Trend arrow matching the sample delta.
-        var direction: String {
-            switch self {
-            case .low:
-                return "↘︎"
-            case .inRange:
-                return "→"
-            case .high:
-                return "↗︎"
-            }
-        }
-
-        var displayName: String {
-            switch self {
-            case .low:
-                return String(localized: "Low", comment: "Sample glucose reading for the Live Activity preview")
-            case .inRange:
-                return String(localized: "In Range", comment: "Sample glucose reading for the Live Activity preview")
-            case .high:
-                return String(localized: "High", comment: "Sample glucose reading for the Live Activity preview")
-            }
-        }
-    }
-
-    @State private var previewGlucose: PreviewGlucose = .inRange
     @State private var shouldDisplayHintFont: Bool = false
     @State private var hintDetent = PresentationDetent.large
-    @State private var selectedVerboseHint: AnyView?
-    @State private var hintLabel: String?
 
     @Environment(\.colorScheme) var colorScheme
     @Environment(AppState.self) var appState
@@ -88,22 +29,8 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
         List {
             Section {
                 previewCard
-
-                Picker(selection: $previewGlucose) {
-                    ForEach(PreviewGlucose.allCases) { sample in
-                        Text(sample.displayName).tag(sample)
-                    }
-                } label: {
-                    Text("Sample Reading")
-                }
-                .pickerStyle(.segmented)
-                .padding(.top, 4)
             } header: {
                 Text("Preview")
-            } footer: {
-                Text(
-                    "This is how the glucose reading will look on your Lock Screen. The sample reading only changes the preview. Reading color follows your Glucose Color Scheme, under Features - User Interface."
-                )
             }.listRowBackground(Color.chart)
 
             Section {
@@ -123,22 +50,7 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
                     Text("Font Size")
                 }
 
-                hintRow(
-                    miniHint: String(localized: "Set the typeface and size of the glucose reading."),
-                    shouldDisplayHint: $shouldDisplayHintFont,
-                    label: String(localized: "Glucose Reading Font"),
-                    verboseHint: AnyView(
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Default: Default typeface, Large").bold()
-                            Text(
-                                "Changes the typeface and size of the current glucose reading and its trend arrow on the Simple Lock Screen widget. The delta and the time of the last reading are not affected."
-                            )
-                            Text(
-                                "Sizes follow your iPhone's text size setting, so the reading keeps scaling if you change the text size in iOS Settings."
-                            )
-                        }
-                    )
-                )
+                hintRow
             } header: {
                 Text("Glucose Reading Font")
             }.listRowBackground(Color.chart)
@@ -148,8 +60,8 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
             SettingInputHintView(
                 hintDetent: $hintDetent,
                 shouldDisplayHint: $shouldDisplayHintFont,
-                hintLabel: hintLabel ?? "",
-                hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                hintLabel: String(localized: "Glucose Reading Font"),
+                hintText: AnyView(fontHintText),
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
         }
@@ -159,12 +71,13 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
         .navigationBarTitleDisplayMode(.automatic)
     }
 
-    /// Mirrors the layout of the Simple Lock Screen Live Activity so changes can be judged without locking the phone.
+    /// Mirrors the layout of the Simple Lock Screen Live Activity, showing the real current reading so the preview
+    /// matches what the Lock Screen widget displays right now.
     private var previewCard: some View {
         HStack(spacing: 3) {
             HStack(spacing: 3) {
                 Text(previewGlucoseText)
-                Text(previewGlucose.direction)
+                Text(previewDirectionSymbol)
                     .scaleEffect(x: 0.7, y: 0.7, anchor: .leading)
                     .padding(.trailing, -5)
             }
@@ -188,7 +101,8 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
                 .font(.caption)
             }
         }
-        .padding(.all, 14)
+        .padding(.horizontal, 14)
+        .padding(.vertical, selectedStyle.fontSize.verticalPadding ?? 14)
         .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -200,11 +114,17 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
     }
 
     private var previewGlucoseText: String {
-        LiveActivityAttributes.ContentState.formatGlucose(previewGlucose.mgdL, units: state.units, forceSign: false)
+        guard let glucose = state.currentGlucose else { return "--" }
+        return LiveActivityAttributes.ContentState.formatGlucose(glucose, units: state.units, forceSign: false)
+    }
+
+    private var previewDirectionSymbol: String {
+        state.currentDirection?.symbol ?? ""
     }
 
     private var previewDeltaText: String {
-        LiveActivityAttributes.ContentState.formatGlucose(previewGlucose.deltaMgdL, units: state.units, forceSign: true)
+        guard let delta = state.currentDelta else { return "" }
+        return LiveActivityAttributes.ContentState.formatGlucose(delta, units: state.units, forceSign: true)
     }
 
     private var previewTimeText: String {
@@ -219,7 +139,7 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
     /// Coloring is not configurable here: it follows the app-wide Glucose Color Scheme, which leaves the Simple
     /// layout's reading in the default text color while the Static scheme is selected.
     private var previewReadingColor: Color {
-        guard state.glucoseColorScheme != .staticColor else { return .primary }
+        guard state.glucoseColorScheme != .staticColor, let glucose = state.currentGlucose else { return .primary }
 
         let isMgdL = state.units == .mgdL
 
@@ -229,7 +149,7 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
         let hardCodedHigh = isMgdL ? Decimal(220) : 220.asMmolL
 
         return Trio.getDynamicGlucoseColor(
-            glucoseValue: isMgdL ? Decimal(previewGlucose.mgdL) : previewGlucose.mgdL.asMmolL,
+            glucoseValue: isMgdL ? Decimal(glucose) : glucose.asMmolL,
             highGlucoseColorValue: hardCodedHigh,
             lowGlucoseColorValue: hardCodedLow,
             targetGlucose: isMgdL ? Decimal(100) : 100.asMmolL,
@@ -237,28 +157,32 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
         )
     }
 
-    /// Mini hint row matching `SettingInputSection`'s, for sections that build their own controls.
-    private func hintRow(
-        miniHint: String,
-        shouldDisplayHint: Binding<Bool>,
-        label: String,
-        verboseHint: AnyView
-    ) -> some View {
+    /// Verbose help shown for the Glucose Reading Font section.
+    private var fontHintText: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Default: Default typeface, Large").bold()
+            Text(
+                "Changes the typeface and size of the current glucose reading and its trend arrow on the Simple Lock Screen widget. The delta and the time of the last reading are not affected."
+            )
+            Text(
+                "Sizes follow your iPhone's text size setting, so the reading keeps scaling if you change the text size in iOS Settings."
+            )
+        }
+    }
+
+    /// Mini hint row matching `SettingInputSection`'s, for the Glucose Reading Font section.
+    private var hintRow: some View {
         HStack(alignment: .center) {
-            Text(miniHint)
+            Text("Set the typeface and size of the glucose reading.")
                 .font(.footnote)
                 .foregroundColor(.secondary)
                 .lineLimit(nil)
             Spacer()
-            Button(action: {
-                hintLabel = label
-                selectedVerboseHint = verboseHint
-                shouldDisplayHint.wrappedValue.toggle()
-            }) {
+            Button(action: { shouldDisplayHintFont.toggle() }) {
                 Image(systemName: "questionmark.circle")
             }
             .buttonStyle(BorderlessButtonStyle())
-            .accessibilityLabel(Text("More information about \(label)"))
+            .accessibilityLabel(Text("More information about Glucose Reading Font"))
         }.padding(.vertical)
     }
 }
