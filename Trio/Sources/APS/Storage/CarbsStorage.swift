@@ -50,6 +50,23 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             entriesToStore = try await filterRemoteEntries(entries: entriesToStore)
         }
 
+        // A meal with fat or protein shares one fpuID between the parent and its carb equivalents.
+        entriesToStore = entriesToStore.map { entry in
+            guard entry.fpuID == nil, (entry.fat ?? 0) > 0 || (entry.protein ?? 0) > 0 else { return entry }
+            return CarbsEntry(
+                id: entry.id,
+                createdAt: entry.createdAt,
+                actualDate: entry.actualDate,
+                carbs: entry.carbs,
+                fat: entry.fat,
+                protein: entry.protein,
+                note: entry.note,
+                enteredBy: entry.enteredBy,
+                isFPU: entry.isFPU,
+                fpuID: UUID().uuidString
+            )
+        }
+
         // Check for FPU-only entries (fat/protein without carbs)
         let fpuOnlyEntries = entriesToStore.filter { entry in
             entry.carbs == 0 && (entry.fat ?? 0 > 0 || entry.protein ?? 0 > 0)
@@ -267,7 +284,9 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     private func saveCarbEquivalents(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
         guard let lastEntry = entries.last else { return }
 
-        if let fat = lastEntry.fat, let protein = lastEntry.protein, fat > 0 || protein > 0 {
+        let fat = lastEntry.fat ?? 0
+        let protein = lastEntry.protein ?? 0
+        if fat > 0 || protein > 0 {
             let (futureCarbEquivalents, carbEquivalentCount) = processFPU(
                 entries: entries,
                 fat: fat,
@@ -294,15 +313,13 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             newItem.fat = Double(truncating: NSDecimalNumber(decimal: entry.fat ?? 0))
             newItem.protein = Double(truncating: NSDecimalNumber(decimal: entry.protein ?? 0))
             newItem.note = entry.note
-            newItem.id = UUID()
+            // Nightscout imports carry a Mongo `_id` here; it is not a UUID and gets replaced.
+            newItem.id = entry.id.flatMap(UUID.init(uuidString:)) ?? UUID()
             newItem.isFPU = false
             newItem.isUploadedToNS = areFetchedFromRemote ? true : false
             newItem.isUploadedToHealth = false
             newItem.isUploadedToTidepool = false
-
-            if entry.fat != nil, entry.protein != nil, let fpuId = entry.fpuID {
-                newItem.fpuID = UUID(uuidString: fpuId)
-            }
+            newItem.fpuID = entry.fpuID.flatMap(UUID.init(uuidString:))
 
             do {
                 guard context.hasChanges else { return }

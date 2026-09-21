@@ -440,4 +440,68 @@ import Testing
             "All entries should share the same fpuID"
         )
     }
+
+    @Test("Meal without fpuID gets one fpuID shared by parent and carb equivalents") func testStoreAssignsSharedFPUID() async throws {
+        let entryID = UUID().uuidString
+        let mealEntry = CarbsEntry(
+            id: entryID,
+            createdAt: Date(),
+            actualDate: Date(),
+            carbs: 30,
+            fat: 50,
+            protein: 100,
+            note: "Shared fpuID test",
+            enteredBy: "Test",
+            isFPU: false,
+            fpuID: nil
+        )
+
+        try await storage.storeCarbs([mealEntry], areFetchedFromRemote: false)
+
+        let storedEntries = try await coreDataStack.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: testContext,
+            predicate: NSPredicate(format: "TRUEPREDICATE"),
+            key: "date",
+            ascending: true
+        ) as? [CarbEntryStored]
+
+        guard let storedEntries else { throw TestError("Failed to fetch entries") }
+
+        let parent = storedEntries.first(where: { $0.isFPU == false })
+        let children = storedEntries.filter { $0.isFPU == true }
+        #expect(parent?.id?.uuidString == entryID, "Parent keeps the supplied UUID id")
+        #expect(parent?.fpuID != nil, "Parent gets an fpuID")
+        #expect(children.count == 2, "Fat/protein produce carb equivalents")
+        #expect(children.allSatisfy { $0.fpuID == parent?.fpuID }, "Carb equivalents share the parent's fpuID")
+    }
+
+    @Test("Non-UUID entry id is replaced by a fresh UUID") func testStoreReplacesNonUUIDID() async throws {
+        let mealEntry = CarbsEntry(
+            id: "66f1c4c8a1b2c3d4e5f60718",
+            createdAt: Date(),
+            actualDate: Date(),
+            carbs: 15,
+            fat: nil,
+            protein: nil,
+            note: nil,
+            enteredBy: "Test",
+            isFPU: false,
+            fpuID: nil
+        )
+
+        try await storage.storeCarbs([mealEntry], areFetchedFromRemote: true)
+
+        let storedEntries = try await coreDataStack.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: testContext,
+            predicate: NSPredicate(format: "TRUEPREDICATE"),
+            key: "date",
+            ascending: true
+        ) as? [CarbEntryStored]
+
+        #expect(storedEntries?.count == 1)
+        #expect(storedEntries?.first?.id != nil, "Entry has a UUID id")
+        #expect(storedEntries?.first?.fpuID == nil, "Carb-only entry has no fpuID")
+    }
 }
