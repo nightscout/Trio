@@ -14,11 +14,6 @@ struct MealSnapshot: Equatable, Sendable {
     let note: String?
 }
 
-/// Per-service failures collected while syncing a meal change. Empty when every service succeeded or was not configured.
-struct MealSyncReport: Sendable {
-    var failures: [String] = []
-}
-
 enum CarbEntryMutationError: Error, Equatable {
     case rootNotFound
     case notARoot
@@ -27,12 +22,12 @@ enum CarbEntryMutationError: Error, Equatable {
 
 /// Deletes and replaces a meal family (root plus FPU carb equivalents) in Core Data, Nightscout, Apple Health and Tidepool.
 /// Remote deletes are awaited before the local rows go away. Callers run `determineBasalSync()` afterwards.
+/// Returned failure messages are per-service; the list is empty when every service succeeded or is not configured.
 protocol CarbEntryMutationService {
-    func deleteMeal(rootObjectID: NSManagedObjectID) async throws -> MealSyncReport
+    func deleteMeal(rootObjectID: NSManagedObjectID) async throws -> [String]
     /// Returns the new root id, which is `replacement.id`.
     func replaceMeal(rootObjectID: NSManagedObjectID, with replacement: CarbsEntry) async throws
-        -> (newID: UUID, report: MealSyncReport)
-    func syncMealsWithServices() async
+        -> (newID: UUID, failures: [String])
 }
 
 final class BaseCarbEntryMutationService: CarbEntryMutationService, Injectable {
@@ -48,26 +43,26 @@ final class BaseCarbEntryMutationService: CarbEntryMutationService, Injectable {
         injectServices(resolver)
     }
 
-    func deleteMeal(rootObjectID: NSManagedObjectID) async throws -> MealSyncReport {
+    func deleteMeal(rootObjectID: NSManagedObjectID) async throws -> [String] {
         let snapshot = try await snapshotRoot(rootObjectID)
-        let report = await deleteFromServices(snapshot)
+        let failures = await deleteFromServices(snapshot)
         await carbsStorage.deleteCarbsEntryStored(rootObjectID)
-        return report
+        return failures
     }
 
     func replaceMeal(rootObjectID: NSManagedObjectID, with replacement: CarbsEntry) async throws
-        -> (newID: UUID, report: MealSyncReport)
+        -> (newID: UUID, failures: [String])
     {
         guard let idString = replacement.id, let newID = UUID(uuidString: idString) else {
             throw CarbEntryMutationError.invalidReplacementID
         }
-        let report = try await deleteMeal(rootObjectID: rootObjectID)
+        let failures = try await deleteMeal(rootObjectID: rootObjectID)
         try await carbsStorage.storeCarbs([replacement], areFetchedFromRemote: false)
         await syncMealsWithServices()
-        return (newID, report)
+        return (newID, failures)
     }
 
-    func syncMealsWithServices() async {
+    private func syncMealsWithServices() async {
         async let nightscoutUpload: () = nightscoutManager.uploadCarbs()
         async let healthKitUpload: () = healthkitManager.uploadCarbs()
         async let tidepoolUpload: () = tidepoolManager.uploadCarbs()
@@ -98,12 +93,12 @@ final class BaseCarbEntryMutationService: CarbEntryMutationService, Injectable {
         }
     }
 
-    private func deleteFromServices(_ snapshot: MealSnapshot) async -> MealSyncReport {
-        var report = MealSyncReport()
+    private func deleteFromServices(_ snapshot: MealSnapshot) async -> [String] {
+        var failures: [String] = []
 
         if let fpuID = snapshot.fpuID {
             if await !nightscoutManager.deleteCarbs(withID: fpuID.uuidString) {
-                report.failures.append("Nightscout: carb equivalents not deleted")
+                failures.append("Nightscout: carb equivalents not deleted")
             }
             for sampleType in [AppleHealthConfig.healthFatObject, AppleHealthConfig.healthProteinObject].compactMap({ $0 }) {
                 await healthkitManager.deleteMealData(byID: fpuID.uuidString, sampleType: sampleType)
@@ -111,7 +106,7 @@ final class BaseCarbEntryMutationService: CarbEntryMutationService, Injectable {
         }
 
         if await !nightscoutManager.deleteCarbs(withID: snapshot.id.uuidString) {
-            report.failures.append("Nightscout: meal not deleted")
+            failures.append("Nightscout: meal not deleted")
         }
         if let sampleType = AppleHealthConfig.healthCarbObject {
             await healthkitManager.deleteMealData(byID: snapshot.id.uuidString, sampleType: sampleType)
@@ -123,6 +118,6 @@ final class BaseCarbEntryMutationService: CarbEntryMutationService, Injectable {
             enteredBy: CarbsEntry.local
         )
 
-        return report
+        return failures
     }
 }

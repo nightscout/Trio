@@ -72,9 +72,9 @@ import Testing
         try await storage.storeCarbs([meal], areFetchedFromRemote: false)
         #expect(try await allRows().count == 3)
 
-        let report = try await service.deleteMeal(rootObjectID: try await rootObjectID(id: meal.id!))
+        let failures = try await service.deleteMeal(rootObjectID: try await rootObjectID(id: meal.id!))
 
-        #expect(report.failures.isEmpty)
+        #expect(failures.isEmpty)
         #expect(try await allRows().isEmpty)
     }
 
@@ -107,13 +107,13 @@ import Testing
         try await storage.storeCarbs([meal], areFetchedFromRemote: false)
         let replacement = makeMeal(carbs: 15, fat: 20, protein: 40)
 
-        let (newID, report) = try await service.replaceMeal(
+        let (newID, failures) = try await service.replaceMeal(
             rootObjectID: try await rootObjectID(id: meal.id!),
             with: replacement
         )
 
         #expect(newID.uuidString == replacement.id)
-        #expect(report.failures.isEmpty)
+        #expect(failures.isEmpty)
 
         let rows = try await allRows()
         #expect(rows.contains(where: { $0.id?.uuidString == meal.id }) == false, "Old root is gone")

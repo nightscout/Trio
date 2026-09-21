@@ -122,7 +122,7 @@ struct CommandPayload: Decodable, Sendable {
 }
 
 extension TrioRemoteControl {
-    enum CommandType: String, Codable {
+    enum CommandType: String, CaseIterable, Codable {
         case bolus
         case tempTarget = "temp_target"
         case cancelTempTarget = "cancel_temp_target"
@@ -135,9 +135,7 @@ extension TrioRemoteControl {
         case unknown
 
         /// Every command type this build can execute.
-        static let supported: [CommandType] = [
-            .bolus, .tempTarget, .cancelTempTarget, .meal, .startOverride, .cancelOverride, .deleteMeal, .editMeal
-        ]
+        static var supported: [CommandType] { allCases.filter { $0 != .unknown } }
 
         init(from decoder: Decoder) throws {
             let rawValue = try decoder.singleValueContainer().decode(String.self)

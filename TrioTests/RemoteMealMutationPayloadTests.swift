@@ -112,6 +112,16 @@ import Testing
         #expect(TrioRemoteControl.validateMealAge(now.addingTimeInterval(13 * 3600), now: now) != nil)
     }
 
+    @Test("Meals with unlinked fat/protein are rejected") func testMealLinkValidation() {
+        func snapshot(fat: Decimal, protein: Decimal, fpuID: UUID?) -> MealSnapshot {
+            MealSnapshot(id: UUID(), fpuID: fpuID, date: Date(), carbs: 20, fat: fat, protein: protein, note: nil)
+        }
+        #expect(TrioRemoteControl.validateMealLink(snapshot(fat: 0, protein: 0, fpuID: nil)) == nil)
+        #expect(TrioRemoteControl.validateMealLink(snapshot(fat: 10, protein: 5, fpuID: UUID())) == nil)
+        #expect(TrioRemoteControl.validateMealLink(snapshot(fat: 10, protein: 0, fpuID: nil)) != nil)
+        #expect(TrioRemoteControl.validateMealLink(snapshot(fat: 0, protein: 5, fpuID: nil)) != nil)
+    }
+
     @Test("Edit input validation") func testEditInputValidation() {
         func validate(_ carbs: Int, _ fat: Int, _ protein: Int) -> String? {
             TrioRemoteControl.validateEditMealInput(

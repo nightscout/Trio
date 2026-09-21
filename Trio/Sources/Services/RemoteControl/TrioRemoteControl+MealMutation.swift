@@ -44,6 +44,12 @@ extension TrioRemoteControl {
         return nil
     }
 
+    /// Carb equivalents are tied to their meal by `fpuID`; a meal with fat or protein and no `fpuID` cannot be changed as one family.
+    static func validateMealLink(_ snapshot: MealSnapshot) -> String? {
+        guard snapshot.fpuID == nil, snapshot.fat > 0 || snapshot.protein > 0 else { return nil }
+        return "Command rejected: this meal's fat/protein entries are not linked and it cannot be changed remotely."
+    }
+
     func handleDeleteMealCommand(_ payload: CommandPayload) async throws {
         guard payload.carbs == nil, payload.fat == nil, payload.protein == nil, payload.scheduledTime == nil,
               payload.bolusAmount == nil, payload.target == nil, payload.duration == nil, payload.overrideName == nil
@@ -56,18 +62,27 @@ extension TrioRemoteControl {
             return
         }
         guard let target = try await resolveMealRoot(handle, payload: payload) else { return }
-        if let message = Self.validateMealAge(target.snapshot.date) {
+        if let message = Self.validateMealAge(target.snapshot.date) ?? Self.validateMealLink(target.snapshot) {
             await rejectMealMutation(payload, message)
             return
         }
 
-        let report = try await carbEntryMutationService.deleteMeal(rootObjectID: target.objectID)
+        let failures: [String]
+        do {
+            failures = try await carbEntryMutationService.deleteMeal(rootObjectID: target.objectID)
+        } catch {
+            await rejectMealMutation(
+                payload,
+                "Command rejected: the meal could not be changed: \(error.localizedDescription)"
+            )
+            return
+        }
         await recalculateAfterMealMutation()
 
         await logSuccess(
             "Remote command processed successfully. \(payload.humanReadableDescription())",
             payload: payload,
-            customNotificationMessage: Self.mealMutationMessage("Meal deleted", report: report),
+            customNotificationMessage: Self.mealMutationMessage("Meal deleted", failures: failures),
             ack: RemoteCommandAck(commandId: payload.commandId, mealId: handle.uuidString, result: .deleted)
         )
     }
@@ -108,7 +123,7 @@ extension TrioRemoteControl {
         }
 
         guard let target = try await resolveMealRoot(handle, payload: payload) else { return }
-        if let message = Self.validateMealAge(target.snapshot.date) {
+        if let message = Self.validateMealAge(target.snapshot.date) ?? Self.validateMealLink(target.snapshot) {
             await rejectMealMutation(payload, message)
             return
         }
@@ -127,13 +142,26 @@ extension TrioRemoteControl {
             fpuID: fat > 0 || protein > 0 ? UUID().uuidString : nil
         )
 
-        let (newID, report) = try await carbEntryMutationService.replaceMeal(rootObjectID: target.objectID, with: replacement)
+        let newID: UUID
+        let failures: [String]
+        do {
+            (newID, failures) = try await carbEntryMutationService.replaceMeal(
+                rootObjectID: target.objectID,
+                with: replacement
+            )
+        } catch {
+            await rejectMealMutation(
+                payload,
+                "Command rejected: the meal could not be changed: \(error.localizedDescription)"
+            )
+            return
+        }
         await recalculateAfterMealMutation()
 
         await logSuccess(
             "Remote command processed successfully. \(payload.humanReadableDescription())",
             payload: payload,
-            customNotificationMessage: Self.mealMutationMessage("Meal updated", report: report),
+            customNotificationMessage: Self.mealMutationMessage("Meal updated", failures: failures),
             ack: RemoteCommandAck(commandId: payload.commandId, mealId: newID.uuidString, result: .updated)
         )
     }
@@ -175,8 +203,8 @@ extension TrioRemoteControl {
         }
     }
 
-    private static func mealMutationMessage(_ base: String, report: MealSyncReport) -> String {
-        guard !report.failures.isEmpty else { return base }
-        return "\(base). \(report.failures.joined(separator: "; ")); the entry may still show in Nightscout."
+    private static func mealMutationMessage(_ base: String, failures: [String]) -> String {
+        guard !failures.isEmpty else { return base }
+        return "\(base). \(failures.joined(separator: "; ")); the entry may still show in Nightscout."
     }
 }
