@@ -122,12 +122,38 @@ struct LiveActivityView: View {
                                     context: context,
                                     glucoseColor: glucoseColor
                                 )
-                            case .currentGlucoseWide:
+                            case .currentGlucoseLargeUncolored:
+                                LiveActivityBGLabelLargeView(
+                                    context: context,
+                                    glucoseColor: .primary
+                                )
+                            case .currentGlucoseColored:
+                                VStack {
+                                    LiveActivityBGLabelView(
+                                        context: context,
+                                        additionalState: context.state.detailedViewState,
+                                        glucoseColor: glucoseColor
+                                    )
+
+                                    HStack {
+                                        LiveActivityGlucoseDeltaLabelView(
+                                            context: context,
+                                            glucoseColor: glucoseColor
+                                        )
+                                        if !context.isStale, let direction = context.state.direction {
+                                            Text(direction).font(.headline).foregroundStyle(glucoseColor)
+                                        }
+                                    }
+                                }
+                            case .currentGlucoseWide,
+                                 .currentGlucoseWideUncolored:
                                 // Two slots of room: draw the reading much larger than the single-slot items.
+                                // The uncolored variant uses the default text color instead of the glucose color.
+                                let wideColor: Color = widgetItem == .currentGlucoseWideUncolored ? .primary : glucoseColor
                                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                                     LiveActivityBGLabelLargeView(
                                         context: context,
-                                        glucoseColor: glucoseColor,
+                                        glucoseColor: wideColor,
                                         glucoseFont: isWatchOS ? .title : .largeTitle,
                                         arrowFont: isWatchOS ? .title3 : .title2
                                     )

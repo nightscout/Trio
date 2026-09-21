@@ -4,9 +4,15 @@ import Foundation
 struct LiveActivityAttributes: ActivityAttributes {
     enum LiveActivityItem: String, Hashable, Codable, Equatable {
         case currentGlucoseLarge
+        /// Glucose and trend, no delta, in the default text color rather than the glucose color.
+        case currentGlucoseLargeUncolored
         case currentGlucose
+        /// Glucose, trend and delta with the reading in the glucose color.
+        case currentGlucoseColored
         /// Glucose, trend arrow and delta on a single line. Occupies two of the four configuration slots.
         case currentGlucoseWide
+        /// Double-width glucose, trend and delta in the default text color rather than the glucose color.
+        case currentGlucoseWideUncolored
         case iob
         case cob
         case updatedLabel

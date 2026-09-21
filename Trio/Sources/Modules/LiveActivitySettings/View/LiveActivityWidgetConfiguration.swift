@@ -223,6 +223,18 @@ struct LiveActivityWidgetConfiguration: BaseView {
 
     // MARK: - Palette
 
+    /// Single-width palette items shown, in order, below the two double-width rows.
+    private static let paletteRest: [LiveActivityItem] = [
+        .currentGlucoseLarge, .currentGlucoseLargeUncolored, .iob, .cob, .updatedLabel, .totalDailyDose,
+    ]
+
+    /// `paletteRest` grouped into rows of three columns.
+    private static var paletteRestRows: [[LiveActivityItem]] {
+        stride(from: 0, to: paletteRest.count, by: 3).map {
+            Array(paletteRest[$0 ..< min($0 + 3, paletteRest.count)])
+        }
+    }
+
     private var paletteSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(String(localized: "Available Widgets").uppercased())
@@ -230,9 +242,23 @@ struct LiveActivityWidgetConfiguration: BaseView {
                 .foregroundColor(.secondary)
                 .font(.footnote)
 
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 10)], spacing: 10) {
-                ForEach(LiveActivityItem.selectableItems) { item in
-                    paletteCell(item)
+            // Three columns: each double-width widget spans two of them and shares its line with the matching
+            // single-width widget, so double-width items actually read as double-width in the palette.
+            Grid(alignment: .top, horizontalSpacing: 10, verticalSpacing: 10) {
+                GridRow {
+                    paletteCell(.currentGlucoseWideUncolored).gridCellColumns(2)
+                    paletteCell(.currentGlucose)
+                }
+                GridRow {
+                    paletteCell(.currentGlucoseWide).gridCellColumns(2)
+                    paletteCell(.currentGlucoseColored)
+                }
+                ForEach(Self.paletteRestRows, id: \.self) { row in
+                    GridRow {
+                        ForEach(row, id: \.self) { item in
+                            paletteCell(item)
+                        }
+                    }
                 }
             }
         }
@@ -261,9 +287,10 @@ struct LiveActivityWidgetConfiguration: BaseView {
                 .font(.caption2)
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
-                .lineLimit(2)
+                // Show the full title however many lines it needs, rather than truncating at two lines.
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, minHeight: 76)
+        .frame(maxWidth: .infinity, minHeight: 76, alignment: .top)
         .padding(8)
         .background(RoundedRectangle(cornerRadius: 12).fill(Color.chart))
         .overlay(
@@ -335,11 +362,17 @@ struct LiveActivityWidgetConfiguration: BaseView {
     private func getItemPreview(for item: LiveActivityItem) -> some View {
         switch item {
         case .currentGlucoseLarge:
-            return AnyView(currentGlucoseLargePreview)
+            return AnyView(currentGlucoseLargePreview(colored: true))
+        case .currentGlucoseLargeUncolored:
+            return AnyView(currentGlucoseLargePreview(colored: false))
         case .currentGlucose:
-            return AnyView(currentGlucosePreview)
+            return AnyView(currentGlucosePreview(colored: false))
+        case .currentGlucoseColored:
+            return AnyView(currentGlucosePreview(colored: true))
         case .currentGlucoseWide:
-            return AnyView(currentGlucoseWidePreview)
+            return AnyView(currentGlucoseWidePreview(colored: true))
+        case .currentGlucoseWideUncolored:
+            return AnyView(currentGlucoseWidePreview(colored: false))
         case .wideContinuation:
             return AnyView(EmptyView())
         case .cob:
@@ -353,22 +386,24 @@ struct LiveActivityWidgetConfiguration: BaseView {
         }
     }
 
-    private var currentGlucoseLargePreview: some View {
+    /// - Parameter colored: draw the reading in the glucose color; otherwise the default text color.
+    private func currentGlucoseLargePreview(colored: Bool) -> some View {
         HStack(alignment: .center) {
             Text("123")
                 + Text("\u{2192}")
         }
-        .foregroundStyle(Color.loopGreen)
+        .foregroundStyle(colored ? Color.loopGreen : Color.primary)
         .fontWeight(.bold)
         .font(.subheadline)
     }
 
     /// The double-width item has two slots of room, so its reading is drawn much larger than the single-slot previews.
-    private var currentGlucoseWidePreview: some View {
+    /// - Parameter colored: draw the reading in the glucose color; otherwise the default text color.
+    private func currentGlucoseWidePreview(colored: Bool) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             (Text("123") + Text("\u{2192}"))
                 .font(.largeTitle)
-                .foregroundStyle(Color.loopGreen)
+                .foregroundStyle(colored ? Color.loopGreen : Color.primary)
             Text("+6")
                 .font(.title2)
                 .foregroundStyle(.primary)
@@ -378,18 +413,20 @@ struct LiveActivityWidgetConfiguration: BaseView {
         .minimumScaleFactor(0.6)
     }
 
-    private var currentGlucosePreview: some View {
+    /// - Parameter colored: draw the reading and trend in the glucose color; otherwise the default text color.
+    private func currentGlucosePreview(colored: Bool) -> some View {
         VStack {
             HStack(alignment: .center) {
                 Text("123")
                     .fontWeight(.bold)
                     .font(.caption)
+                    .foregroundStyle(colored ? Color.loopGreen : Color.primary)
             }
             HStack(spacing: -5) {
                 HStack {
                     Text("\u{2192}")
                     Text("+6")
-                }.foregroundStyle(.primary).font(.caption2)
+                }.foregroundStyle(colored ? Color.loopGreen : Color.primary).font(.caption2)
             }
         }
     }
@@ -546,8 +583,14 @@ extension UserDefaults {
 // Enum to represent each live activity item
 enum LiveActivityItem: String, CaseIterable, Identifiable, Codable, Transferable {
     case currentGlucoseLarge
+    /// Glucose and trend, no delta, in the default text color rather than the glucose color.
+    case currentGlucoseLargeUncolored
     case currentGlucose
+    /// Glucose, trend and delta with the reading in the glucose color.
+    case currentGlucoseColored
     case currentGlucoseWide
+    /// Double-width glucose, trend and delta in the default text color rather than the glucose color.
+    case currentGlucoseWideUncolored
     case iob
     case cob
     case updatedLabel
@@ -576,25 +619,40 @@ enum LiveActivityItem: String, CaseIterable, Identifiable, Codable, Transferable
 
     /// Number of the four configuration slots this item occupies.
     var slotWidth: Int {
-        self == .currentGlucoseWide ? 2 : 1
+        (self == .currentGlucoseWide || self == .currentGlucoseWideUncolored) ? 2 : 1
     }
 
     var displayName: String {
         switch self {
         case .currentGlucoseLarge:
             return String(
-                localized: "Glucose and Trend, no Delta",
-                comment: "Live Activity widget icon label for Glucose and Trend, no Delta"
+                localized: "Glucose and Trend (Colored)",
+                comment: "Live Activity widget icon label for Glucose and Trend in the glucose color"
+            )
+        case .currentGlucoseLargeUncolored:
+            return String(
+                localized: "Glucose and Trend",
+                comment: "Live Activity widget icon label for Glucose and Trend in the default text color"
             )
         case .currentGlucose:
             return String(
                 localized: "Glucose, Trend, Delta",
                 comment: "Live Activity widget icon label for Glucose, Trend, Delta"
             )
+        case .currentGlucoseColored:
+            return String(
+                localized: "Glucose, Trend, Delta (Colored)",
+                comment: "Live Activity widget icon label for Glucose, Trend, Delta in the glucose color"
+            )
         case .currentGlucoseWide:
             return String(
+                localized: "Glucose, Trend, Delta (Double Width, Colored)",
+                comment: "Live Activity widget icon label for the double-width Glucose, Trend, Delta item in the glucose color"
+            )
+        case .currentGlucoseWideUncolored:
+            return String(
                 localized: "Glucose, Trend, Delta (Double Width)",
-                comment: "Live Activity widget icon label for the double-width Glucose, Trend, Delta item"
+                comment: "Live Activity widget icon label for the double-width Glucose, Trend, Delta item in the default text color"
             )
         case .wideContinuation:
             return String(
