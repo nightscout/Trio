@@ -61,6 +61,43 @@ struct StatChartUtils {
         }
     }
 
+    /// Returns the x-axis marks shared by the scrollable, date-based stat charts.
+    ///
+    /// - Parameter selectedInterval: The selected time interval for statistics.
+    /// - Returns: The configured `AxisMarks` for the chart's x-axis.
+    @AxisContentBuilder static func dateAxisMarks(
+        for selectedInterval: Stat.StateModel.StatsTimeInterval
+    ) -> some AxisContent {
+        let calendar = Calendar.current
+        let domainEnd = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: Date()))!
+
+        AxisMarks(preset: .aligned, values: .stride(by: selectedInterval == .day ? .hour : .day)) { value in
+            if let date = value.as(Date.self) {
+                let showsLabel = date < domainEnd && {
+                    switch selectedInterval {
+                    case .day:
+                        return calendar.component(.hour, from: date) % 6 == 0
+                    case .week:
+                        return true
+                    case .month:
+                        return calendar.component(.weekday, from: date) == calendar.firstWeekday
+                    case .total:
+                        return calendar.component(.day, from: date) == 1
+                    }
+                }()
+
+                AxisValueLabel(centered: true) {
+                    if showsLabel {
+                        Text(date, format: dateFormat(for: selectedInterval)).font(.footnote)
+                    }
+                }
+                if showsLabel {
+                    AxisGridLine()
+                }
+            }
+        }
+    }
+
     /// Returns DateComponents for aligning dates based on the selected duration.
     /// - Parameter selectedInterval: The selected time interval for statistics.
     /// - Returns: DateComponents configured for the appropriate alignment.
