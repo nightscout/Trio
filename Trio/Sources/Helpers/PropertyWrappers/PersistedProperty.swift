@@ -100,6 +100,17 @@ import Foundation
 
             do {
                 let data = try PropertyListSerialization.data(fromPropertyList: newValue, format: .binary, options: 0)
+
+                // Pump/CGM states are re-saved on every status update, usually unchanged.
+                // Skip the write unless the bytes or the file protection differ.
+                if let existing = try? Data(contentsOf: storageURL),
+                   existing == data,
+                   let attributes = try? FileManager.default.attributesOfItem(atPath: storageURL.path),
+                   attributes[.protectionKey] as? FileProtectionType == FileProtectionType.none
+                {
+                    return
+                }
+
                 try data.write(to: storageURL, options: .atomic)
 
                 // Ensure appropriate protection level
