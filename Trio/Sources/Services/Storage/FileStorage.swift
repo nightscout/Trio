@@ -21,6 +21,15 @@ protocol FileStorage {
 final class BaseFileStorage: FileStorage {
     private let processQueue = DispatchQueue.markedQueue(label: "BaseFileStorage.processQueue", qos: .utility)
 
+    /// A missing file is normal for optional state, so only log other failures.
+    private func logRetrieveFailure(_ name: String, _ error: Error) {
+        let error = error as NSError
+        guard !(error.domain == Disk.errorDomain && error.code == Disk.ErrorCode.noFileFound.rawValue) else {
+            return
+        }
+        debug(.storage, "Failed to retrieve file '\(name)': \(error)")
+    }
+
     func save<Value: JSON>(_ value: Value, as name: String) {
         processQueue.safeSync {
             do {
@@ -57,7 +66,7 @@ final class BaseFileStorage: FileStorage {
             do {
                 return try Disk.retrieve(name, from: .documents, as: type, decoder: JSONCoding.decoder)
             } catch {
-                debug(.storage, "Failed to retrieve file '\(name)': \(error)")
+                logRetrieveFailure(name, error)
                 return nil
             }
         }
@@ -70,7 +79,7 @@ final class BaseFileStorage: FileStorage {
                     let result = try Disk.retrieve(name, from: .documents, as: type, decoder: JSONCoding.decoder)
                     continuation.resume(returning: result)
                 } catch {
-                    debug(.storage, "Failed to retrieve file '\(name)': \(error)")
+                    logRetrieveFailure(name, error)
                     continuation.resume(returning: nil)
                 }
             }
@@ -87,7 +96,7 @@ final class BaseFileStorage: FileStorage {
                 }
                 return string
             } catch {
-                debug(.storage, "Failed to retrieve file '\(name)': \(error)")
+                logRetrieveFailure(name, error)
                 return nil
             }
         }
@@ -105,7 +114,7 @@ final class BaseFileStorage: FileStorage {
                     }
                     continuation.resume(returning: string)
                 } catch {
-                    debug(.storage, "Failed to retrieve file '\(name)': \(error)")
+                    logRetrieveFailure(name, error)
                     continuation.resume(returning: nil)
                 }
             }
