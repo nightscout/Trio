@@ -560,13 +560,25 @@ extension Home {
                     self.cgmWarmupEndsAt = Self.resolveWarmupEndsAt(manager: manager)
                 }
             }
-            timer.resume()
+            // The timer only drives on-screen state, so run it in the foreground only.
+            // `DispatchTimer` isn't thread-safe: suspend/resume on the main thread.
+            Task { @MainActor [weak self] in
+                guard let self, UIApplication.shared.applicationState != .background else { return }
+                self.timer.resume()
+            }
+
+            Foundation.NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)
+                .sink { [weak self] _ in self?.timer.suspend() }
+                .store(in: &lifetime)
 
             Foundation.NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
                 .sink { [weak self] _ in
                     Task { @MainActor in
                         self?.reanchorFetchWindows()
                     }
+                    // Tick now instead of showing stale countdowns for up to 30 s.
+                    self?.timer.resume()
+                    self?.timer.fire()
                 }
                 .store(in: &lifetime)
 
