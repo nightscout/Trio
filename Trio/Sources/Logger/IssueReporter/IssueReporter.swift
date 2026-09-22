@@ -10,5 +10,14 @@ protocol IssueReporter: AnyObject {
 
     func reportNonFatalIssue(withError: NSError)
 
-    func log(_ category: String, _ message: String, file: String, function: String, line: UInt)
+    /// `date` is when the line was logged; reporters run later on the logger queue.
+    func log(_ category: String, _ message: String, date: Date, file: String, function: String, line: UInt)
+
+    /// Writes out anything the reporter has buffered and returns once it is persisted.
+    func flush()
+}
+
+extension IssueReporter {
+    /// Reporters that write through have nothing to flush.
+    func flush() {}
 }

@@ -6,7 +6,42 @@ var LoggerTestMode = false
 
 private let baseReporter = TrioApp.resolver.resolve(GroupedIssueReporter.self)!
 
-let loggerLock = NSRecursiveLock()
+/// Moves logging off the calling thread and serializes the reporters.
+/// Never `sync` onto it from work it runs.
+private let loggerQueue = DispatchQueue(label: "Trio.loggerQueue", qos: .utility)
+
+/// Writes all pending log lines to disk and returns once they are persisted.
+func flushLogs() {
+    loggerQueue.sync {}
+    baseReporter.flush()
+    SimpleLogReporter.flushWatchLog()
+}
+
+/// Runs `flushLogs()` off the calling thread, under a background task.
+func flushLogsInBackgroundTask() {
+    let application = UIApplication.shared
+    let taskLock = NSLock(label: "Trio.flushLogsTaskLock")
+    var taskID = UIBackgroundTaskIdentifier.invalid
+
+    // Ends the task once, whether the flush finishes or the task expires first.
+    func endTask() {
+        let id: UIBackgroundTaskIdentifier = taskLock.perform {
+            let id = taskID
+            taskID = .invalid
+            return id
+        }
+        guard id != .invalid else { return }
+        DispatchQueue.main.async { application.endBackgroundTask(id) }
+    }
+
+    let startedID = application.beginBackgroundTask(withName: "Trio.flushLogs") { endTask() }
+    taskLock.perform { taskID = startedID }
+
+    DispatchQueue.global(qos: .utility).async {
+        flushLogs()
+        endTask()
+    }
+}
 
 func debug(
     _ category: Logger.Category,
@@ -17,11 +52,10 @@ func debug(
     line: UInt = #line
 ) {
     let msg = message()
-    DispatchWorkItem(qos: .background, flags: .enforceQoS) {
-        loggerLock.perform {
-            category.logger.debug(msg, printToConsole: printToConsole, file: file, function: function, line: line)
-        }
-    }.perform()
+    let date = Date()
+    loggerQueue.async {
+        category.logger.debug(msg, printToConsole: printToConsole, date: date, file: file, function: function, line: line)
+    }
 }
 
 func info(
@@ -31,11 +65,10 @@ func info(
     function: String = #function,
     line: UInt = #line
 ) {
-    DispatchWorkItem(qos: .background, flags: .enforceQoS) {
-        loggerLock.perform {
-            category.logger.info(message, file: file, function: function, line: line)
-        }
-    }.perform()
+    let date = Date()
+    loggerQueue.async {
+        category.logger.info(message, date: date, file: file, function: function, line: line)
+    }
 }
 
 func warning(
@@ -47,18 +80,18 @@ func warning(
     function: String = #function,
     line: UInt = #line
 ) {
-    DispatchWorkItem(qos: .background, flags: .enforceQoS) {
-        loggerLock.perform {
-            category.logger.warning(
-                message,
-                description: description,
-                error: maybeError,
-                file: file,
-                function: function,
-                line: line
-            )
-        }
-    }.perform()
+    let date = Date()
+    loggerQueue.async {
+        category.logger.warning(
+            message,
+            description: description,
+            error: maybeError,
+            date: date,
+            file: file,
+            function: function,
+            line: line
+        )
+    }
 }
 
 func error(
@@ -70,20 +103,24 @@ func error(
     function: String = #function,
     line: UInt = #line
 ) -> Never {
-    loggerLock.perform {
+    // Get everything to disk before the process dies.
+    let date = Date()
+    loggerQueue.sync {
         category.logger.errorWithoutFatalError(
             message,
             description: description,
             error: maybeError,
+            date: date,
             file: file,
             function: function,
             line: line
         )
-
-        fatalError(
-            "\(message) @ \(String(describing: description)) @ \(String(describing: maybeError)) @ \(file) @ \(function) @ \(line)"
-        )
     }
+    baseReporter.flush()
+
+    fatalError(
+        "\(message) @ \(String(describing: description)) @ \(String(describing: maybeError)) @ \(file) @ \(function) @ \(line)"
+    )
 }
 
 func check(
@@ -97,9 +134,7 @@ func check(
     guard !condition() else { return }
     let msg = message()
     let descr = description()
-    loggerLock.perform {
-        warning(.default, msg, description: descr, file: file.file, function: function, line: line)
-    }
+    warning(.default, msg, description: descr, file: file.file, function: function, line: line)
 }
 
 final class Logger {
@@ -222,14 +257,13 @@ final class Logger {
     }
 
     static func setup() {
-        loggerLock.perform {
-            baseReporter.setup()
-        }
+        baseReporter.setup()
     }
 
     func debug(
         _ message: @autoclosure () -> String,
         printToConsole: Bool = true,
+        date: Date = Date(),
         file: String = #file,
         function: String = #function,
         line: UInt = #line
@@ -238,24 +272,26 @@ final class Logger {
         if printToConsole {
             os_log("%@ - %@ - %d %{public}@", log: log, type: .debug, file.file, function, line, message)
         }
-        reporter.log(category.name, message, file: file, function: function, line: line)
+        reporter.log(category.name, message, date: date, file: file, function: function, line: line)
     }
 
     func info(
         _ message: String,
+        date: Date = Date(),
         file: String = #file,
         function: String = #function,
         line: UInt = #line
     ) {
         let printedMessage = "INFO: \(message)"
         os_log("%@ - %@ - %d %{public}@", log: log, type: .info, file.file, function, line, printedMessage)
-        reporter.log(category.name, printedMessage, file: file, function: function, line: line)
+        reporter.log(category.name, printedMessage, date: date, file: file, function: function, line: line)
     }
 
     func warning(
         _ message: String,
         description: String? = nil,
         error maybeError: Swift.Error? = nil,
+        date: Date = Date(),
         file: String = #file,
         function: String = #function,
         line: UInt = #line
@@ -264,7 +300,7 @@ final class Logger {
         let message = "WARN: \(String(describing: loggerError))"
 
         os_log("%@ - %@ - %d %{public}@", log: log, type: .default, file.file, function, line, message)
-        reporter.log(category.name, message, file: file, function: function, line: line)
+        reporter.log(category.name, message, date: date, file: file, function: function, line: line)
         if !LoggerTestMode, maybeError?.shouldReportNonFatalIssue ?? true {
             reporter.reportNonFatalIssue(withError: loggerError.asNSError())
         }
@@ -279,6 +315,7 @@ final class Logger {
         line: UInt = #line
     ) -> Never {
         errorWithoutFatalError(message, description: description, error: maybeError, file: file, function: function, line: line)
+        reporter.flush()
 
         fatalError(
             "\(message) @ \(String(describing: description)) @ \(String(describing: maybeError)) @ \(file) @ \(function) @ \(line)"
@@ -289,6 +326,7 @@ final class Logger {
         _ message: String,
         description: String? = nil,
         error maybeError: Swift.Error? = nil,
+        date: Date = Date(),
         file: String = #file,
         function: String = #function,
         line: UInt = #line
@@ -297,7 +335,7 @@ final class Logger {
         let message = "ERR: \(String(describing: loggerError))"
 
         os_log("%@ - %@ - %d %{public}@", log: log, type: .error, file.file, function, line, message)
-        reporter.log(category.name, message, file: file, function: function, line: line)
+        reporter.log(category.name, message, date: date, file: file, function: function, line: line)
         reporter.reportNonFatalIssue(withError: loggerError.asNSError())
     }
 }

@@ -34,9 +34,15 @@ final class CollectionIssueReporter: GroupedIssueReporter {
         }
     }
 
-    func log(_ category: String, _ message: String, file: String, function: String, line: UInt) {
+    func log(_ category: String, _ message: String, date: Date, file: String, function: String, line: UInt) {
         reportersLock.perform {
-            reporters.forEach { $0.log(category, message, file: file, function: function, line: line) }
+            reporters.forEach { $0.log(category, message, date: date, file: file, function: function, line: line) }
+        }
+    }
+
+    func flush() {
+        reportersLock.perform {
+            reporters.forEach { $0.flush() }
         }
     }
 

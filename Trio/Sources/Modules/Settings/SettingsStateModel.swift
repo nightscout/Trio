@@ -45,6 +45,9 @@ extension Settings {
         }
 
         func logItems() -> [URL] {
+            // Write buffered lines to disk before sharing.
+            flushLogs()
+
             var items: [URL] = []
 
             if fileManager.fileExists(atPath: SimpleLogReporter.logFile) {

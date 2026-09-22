@@ -406,6 +406,8 @@ extension Notification.Name {
             /// If the App goes to the background we should ensure that all the changes are saved from the viewContext to the Persistent Container
             if newScenePhase == .background {
                 coreDataStack.save()
+                // Persist buffered logs before iOS can suspend or kill the app.
+                flushLogsInBackgroundTask()
             }
 
             if newScenePhase == .active {
