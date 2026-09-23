@@ -15,7 +15,11 @@ extension Adjustments.RootView {
 
     var overridePresets: some View {
         Section {
-            ForEach(state.overridePresets) { preset in
+            // Identify rows by Core Data's own objectID, not the `id` field on OverrideStored --
+            // that field is optional and can be nil (or, in principle, shared) on presets saved
+            // by an older build, and SwiftUI hard-crashes if two rows in a ForEach report the same
+            // (or a nil) id. objectID is always present and always unique per managed object.
+            ForEach(state.overridePresets, id: \.objectID) { preset in
                 overridesView(for: preset, showCheckMark: showOverrideCheckmark) {
                     requestOverridePresetActivation(preset)
                 }
@@ -151,7 +155,17 @@ extension Adjustments.RootView {
 
         let targetString = target.isEmpty ? "" : "\(target) \(state.units.rawValue)"
 
-        let durationString = indefinite ? "" : "\(state.formatHoursAndMinutes(Int(duration)))"
+        // `Int(_: Decimal)` traps -- not just returns something odd -- if the Decimal is NaN or
+        // outside Int's range. A preset saved with a corrupted duration would otherwise hard-crash
+        // this whole screen every time it's opened. Route through Double (whose isFinite/range
+        // checks are well defined) rather than trust Decimal's own conversion, then fall back to
+        // not showing a duration at all instead of trapping.
+        let durationString: String = {
+            guard !indefinite else { return "" }
+            let durationMinutes = NSDecimalNumber(decimal: duration).doubleValue
+            guard durationMinutes.isFinite, durationMinutes.magnitude <= Double(Int.max) else { return "" }
+            return state.formatHoursAndMinutes(Int(durationMinutes))
+        }()
 
         let scheduledSMBString: String = {
             guard preset.smbIsScheduledOff, preset.start != preset.end else { return "" }
@@ -189,7 +203,13 @@ extension Adjustments.RootView {
             }
         }()
 
-        let percentageString = percentage != 100 ? "\(Int(percentage))%\(isfAndCrString)" : ""
+        // Same trap risk as duration above: `Int(_: Double)` crashes on NaN/infinite/out-of-range,
+        // which a corrupted saved percentage would trigger on every single render of this row.
+        let percentageString: String = {
+            guard percentage != 100 else { return "" }
+            guard percentage.isFinite, percentage.magnitude <= Double(Int.max) else { return "" }
+            return "\(Int(percentage))%\(isfAndCrString)"
+        }()
 
         // Combine all labels into a single array, filtering out empty strings
         let labels: [String] = [
