@@ -64,6 +64,20 @@ struct MainChartView: View {
     @State private var renderWindowEnd = Date.now
         .addingTimeInterval(MainChartHelper.Config.defaultVisibleSeconds * 1.5)
 
+    /// Slice of the domain the glucose readings and the treatment markers are laid out for:
+    /// the visible window plus `Config.treatmentRenderPadFactor` of it at each edge, and so
+    /// a small fraction of the render window the rest of the canvas covers.
+    ///
+    /// These four series are the chart's densest marks by a wide margin, and the only ones
+    /// whose cost scales with how much history is loaded rather than with the zoom. Laying
+    /// them out for the whole render window meant three quarters of that work went to marks
+    /// off screen in either direction; this window keeps only what the user can actually see,
+    /// and marks fall out of the layout again as they leave it.
+    @State private var treatmentWindowStart = Date.now
+        .addingTimeInterval(-MainChartHelper.Config.defaultVisibleSeconds * 1.05)
+    @State private var treatmentWindowEnd = Date.now
+        .addingTimeInterval(MainChartHelper.Config.defaultVisibleSeconds * 0.05)
+
     /// Horizontal stretch applied while a pinch is live. The zoom itself is
     /// committed once, on release; between touch-down and release the canvas
     /// is only transformed, never re-laid.
@@ -106,6 +120,15 @@ struct MainChartView: View {
     /// Measured plot rect of the COB/IOB pane (canvas y-coords) for overlay alignment.
     @State private var cobIobPlotFrame: CGRect = .zero
 
+    /// The glucose series, read out of Core Data into values: what `GlucoseChartView` draws
+    /// and what the treatment markers anchor to.
+    ///
+    /// Cached rather than derived per frame: both layers redraw on every pan and pinch frame,
+    /// and at the widest zoom this is ~900 readings — that many KVC hits per frame is exactly
+    /// the cost the overlays exist to avoid. Rebuilt only when the readings, the display unit
+    /// or a colour setting change, which is what `rebuildGlucoseDots` is wired to below.
+    @State private var glucoseDots: [MainChartHelper.GlucoseDot] = []
+
     var body: some View {
         ZStack(alignment: .topLeading) {
             MainChartCanvas(
@@ -121,6 +144,8 @@ struct MainChartView: View {
                 visibleSeconds: visibleSeconds,
                 windowStart: renderWindowStart,
                 windowEnd: renderWindowEnd,
+                treatmentWindowStart: treatmentWindowStart,
+                treatmentWindowEnd: treatmentWindowEnd,
                 canvasWidth: canvasWidth,
                 basalHeight: basalHeight,
                 mainHeight: mainHeight,
@@ -130,6 +155,34 @@ struct MainChartView: View {
             .equatable()
             .offset(x: -canvasOffsetX)
             .scaleEffect(x: pinchScale, y: 1, anchor: pinchScaleAnchor)
+
+            // The readings themselves, drawn by the shell rather than as marks inside the
+            // canvas — see `GlucoseChartView`. Under the treatment markers, as they were
+            // when both were marks in one chart.
+            ChartOverlayLayer(viewport: chartViewport, height: stackHeight) { viewport in
+                GlucoseChartView(
+                    points: glucoseDots,
+                    isSmoothingEnabled: state.isSmoothingEnabled,
+                    viewport: viewport,
+                    yPosition: glucoseYPosition(forValue:)
+                )
+            }
+
+            // Treatment markers, drawn by the shell rather than as marks inside the canvas —
+            // see `TreatmentOverlay`.
+            ChartOverlayLayer(viewport: chartViewport, height: stackHeight) { viewport in
+                TreatmentOverlay(
+                    dots: glucoseDots,
+                    insulin: state.insulinFromPersistence,
+                    carbs: state.carbsFromPersistence,
+                    fpus: state.fpusFromPersistence,
+                    units: units,
+                    bolusDisplayThreshold: state.bolusDisplayThreshold,
+                    fpuBaseline: units == .mgdL ? state.minYAxisValue : state.minYAxisValue.asMmolL,
+                    viewport: viewport,
+                    yPosition: glucoseYPosition(forValue:)
+                )
+            }
 
             nowOffscreenGradient
 
@@ -167,6 +220,14 @@ struct MainChartView: View {
         .clipped()
         .contentShape(Rectangle())
         .onPreferenceChange(CobIobPlotFrameKey.self) { cobIobPlotFrame = $0 }
+        .onChange(of: state.glucoseFromPersistence.count, initial: true) { rebuildGlucoseDots() }
+        .onChange(of: state.glucoseFromPersistence.last?.date) { rebuildGlucoseDots() }
+        .onChange(of: units) { rebuildGlucoseDots() }
+        // The dot colours are resolved at build time, so a colour setting has to rebuild too.
+        .onChange(of: highGlucose) { rebuildGlucoseDots() }
+        .onChange(of: lowGlucose) { rebuildGlucoseDots() }
+        .onChange(of: currentGlucoseTarget) { rebuildGlucoseDots() }
+        .onChange(of: glucoseColorScheme) { rebuildGlucoseDots() }
         .simultaneousGesture(panAndInspectGesture)
         .simultaneousGesture(magnifyGesture)
         .simultaneousGesture(TapGesture(count: 2).onEnded { cycleZoomPreset() })
@@ -177,18 +238,29 @@ struct MainChartView: View {
         }
         .onChange(of: scrollPosition) {
             updateRenderWindow()
+            updateTreatmentWindow()
         }
         .onChange(of: visibleSeconds) {
             updateRenderWindow(force: true)
+            updateTreatmentWindow(force: true)
+        }
+        // A live pinch previews the zoom by stretching the canvas rather than re-laying it,
+        // so what is on screen is wider or narrower than `visibleSeconds` describes for the
+        // length of the gesture. The window takes its wider gesture-time pad when the pinch
+        // takes the touch, and its tight one back when the closing commit re-lays anyway.
+        .onChange(of: isPinching) {
+            updateTreatmentWindow(force: true)
         }
         .onChange(of: state.glucoseFromPersistence.last?.glucose) {
             state.updateStartEndMarkers()
             scrollToTrailingEdge()
             updateRenderWindow()
+            updateTreatmentWindow(force: true)
         }
         .onChange(of: state.enactedAndNonEnactedDeterminations.first?.deliverAt) {
             scrollToTrailingEdge()
             updateRenderWindow()
+            updateTreatmentWindow()
         }
         .onChange(of: units) {
             // TODO: - Refactor this to only update the Y Axis Scale
@@ -199,6 +271,7 @@ struct MainChartView: View {
                 state.updateStartEndMarkers()
                 scrollToTrailingEdge()
                 updateRenderWindow(force: true)
+                updateTreatmentWindow(force: true)
                 mainChartHasInitialized = true
             }
         }
@@ -288,8 +361,52 @@ extension MainChartView {
         renderWindowEnd = newEnd
     }
 
+    /// Re-anchors the window the glucose readings and the treatment markers are laid out for.
+    ///
+    /// Where `updateRenderWindow` buys whole viewports of slack so that panning can stay a pure
+    /// offset transform, this one deliberately hugs the visible window: its pad *is* its
+    /// tolerance, so it follows the pan in steps of that pad. The trade is the point of it —
+    /// these marks re-lay more often, but each layout covers a little over one viewport instead
+    /// of four, and stops growing with the history behind it.
+    func updateTreatmentWindow(force: Bool = false) {
+        let pad = treatmentWindowPadFactor * visibleSeconds
+        let domainStart = state.startMarker
+        let domainEnd = max(state.endMarker, domainStart.addingTimeInterval(1))
+        // Trailing overscan can push the visible window past the domain; the window itself
+        // never exceeds the domain, so compare clamped edges — as `updateRenderWindow` does.
+        let visibleStart = max(scrollPosition, domainStart)
+        let visibleEnd = min(scrollPosition.addingTimeInterval(visibleSeconds), domainEnd)
+
+        // Anything on screen that the current window does not already cover. With no margin
+        // beyond the pad, this is what paces the re-anchors: one per pad's worth of panning.
+        let uncovered = visibleStart < treatmentWindowStart || visibleEnd > treatmentWindowEnd
+        guard force || uncovered else { return }
+
+        let newStart = max(visibleStart.addingTimeInterval(-pad), domainStart)
+        let newEnd = min(visibleEnd.addingTimeInterval(pad), domainEnd)
+        guard newStart != treatmentWindowStart || newEnd != treatmentWindowEnd else { return }
+        treatmentWindowStart = newStart
+        treatmentWindowEnd = newEnd
+    }
+
+    /// How far past each visible edge those marks are laid out, as a fraction of the visible
+    /// window.
+    ///
+    /// `Config.treatmentRenderPadFactor` in the steady state. While a pinch is live the canvas
+    /// is previewed with a `scaleEffect` instead of being re-laid, so a zoom-out puts *more*
+    /// chart time on screen than `visibleSeconds` describes — up to the commit drift, where a
+    /// commit re-lays and the stretch resets. The gesture-time pad covers that whole drift at
+    /// *either* edge, since the stretch is anchored under the pinch centroid and that can sit
+    /// at one of them. The newly exposed edges then come in populated, instead of the window
+    /// re-anchoring — and re-laying — on every step of the stretch.
+    private var treatmentWindowPadFactor: Double {
+        let base = MainChartHelper.Config.treatmentRenderPadFactor
+        guard isPinching else { return base }
+        return base + (MainChartHelper.Config.pinchCommitScaleDrift - 1)
+    }
+
     /// Glucose y-domain padded above and below so values at the data extremes (and the carb
-    /// markers `CarbView` pins to the old baseline) render fully instead of straddling the
+    /// markers `TreatmentOverlay` pins to the old baseline) render fully instead of straddling the
     /// plot edge. Also gives the plot visual breathing room at top and bottom.
     var paddedGlucoseYDomain: ClosedRange<Decimal> {
         let padding: Decimal = 25 // mg/dL
@@ -337,13 +454,50 @@ extension MainChartView {
         CGFloat(date.timeIntervalSince(scrollPosition) / visibleSeconds) * viewportWidth
     }
 
-    private func glucoseYPosition(for glucose: GlucoseStored) -> CGFloat {
-        let value = units == .mgdL ? Decimal(glucose.glucose) : Decimal(glucose.glucose).asMmolL
+    /// The time-to-x mapping the shell's overlay layers share, including the live-pinch stretch.
+    ///
+    /// It agrees with the canvas by construction: the canvas spans the render window over
+    /// `canvasWidth` and is then offset by `-canvasOffsetX`, and those two cancel down to
+    /// `(date - scrollPosition) / visibleSeconds * viewportWidth` — which is `x(for:)`.
+    var chartViewport: ChartViewport {
+        ChartViewport(
+            visibleStart: scrollPosition,
+            visibleSeconds: visibleSeconds,
+            viewportWidth: viewportWidth,
+            pinchScale: pinchScale,
+            pinchAnchorFraction: pinchAnchor?.anchorFraction
+        )
+    }
+
+    /// Reads the glucose series into `glucoseDots`. Cheap enough to do on any data change,
+    /// and far too expensive to do per frame — see the property's own note.
+    private func rebuildGlucoseDots() {
+        glucoseDots = MainChartHelper.glucoseDots(
+            state.glucoseFromPersistence,
+            units: units,
+            highGlucose: highGlucose,
+            lowGlucose: lowGlucose,
+            currentGlucoseTarget: currentGlucoseTarget,
+            glucoseColorScheme: glucoseColorScheme
+        )
+    }
+
+    /// Where a glucose-pane value sits, in canvas y. Shared by the selection overlay and
+    /// `TreatmentOverlay`, so the markers and the readout can never disagree about a reading.
+    ///
+    /// The main pane's x-axis is grid lines only — the hour labels render once, on the bottom
+    /// pane — so the plot fills the pane's frame and no measured plot rect is needed here, the
+    /// way `cobIobYPosition` needs one.
+    func glucoseYPosition(forValue value: Decimal) -> CGFloat {
         let domain = paddedGlucoseYDomain
         let span = domain.upperBound - domain.lowerBound
         let fraction = span == 0 ? 0.5 :
             Double(truncating: ((value - domain.lowerBound) / span) as NSDecimalNumber)
         return basalHeight + mainHeight * CGFloat(1 - min(max(fraction, 0), 1))
+    }
+
+    private func glucoseYPosition(for glucose: GlucoseStored) -> CGFloat {
+        glucoseYPosition(forValue: units == .mgdL ? Decimal(glucose.glucose) : Decimal(glucose.glucose).asMmolL)
     }
 
     private func cobIobYPosition(forChartValue value: Double) -> CGFloat {
@@ -807,6 +961,8 @@ struct StaticYAxisChart: View {
 struct MainChartCanvas: View {
     var state: Home.StateModel
     var units: GlucoseUnits
+    // Still needed although the readings moved out to `GlucoseChartView`: `drawThresholdLines`
+    // colours the high/low rules from them.
     var highGlucose: Decimal
     var lowGlucose: Decimal
     var currentGlucoseTarget: Decimal
@@ -818,6 +974,12 @@ struct MainChartCanvas: View {
     /// Rendered slice of the domain; all panes share this x-scale.
     var windowStart: Date
     var windowEnd: Date
+    /// The narrower slice the glucose readings and the treatment markers are laid out for —
+    /// the visible window plus a small pad, re-anchored by the shell as it is panned. The
+    /// x-scale is still the render window's, so these marks simply occupy the middle of the
+    /// canvas and the rest of it draws unpopulated.
+    var treatmentWindowStart: Date
+    var treatmentWindowEnd: Date
     var canvasWidth: CGFloat
     var basalHeight: CGFloat
     var mainHeight: CGFloat
@@ -840,37 +1002,15 @@ struct MainChartCanvas: View {
         units == .mgdL ? 400 : 22.2
     }
 
-    // The point series sliced to the render window: marks outside the window
-    // clip invisibly but still cost layout, so with 72h loaded an unfiltered
-    // re-layout (every pinch step) does 3x the work for nothing.
-    var windowedGlucose: [GlucoseStored] {
-        state.glucoseFromPersistence.filter { entry in
-            guard let date = entry.date else { return false }
-            return date >= windowStart && date <= windowEnd
-        }
-    }
-
-    var windowedInsulin: [PumpEventStored] {
-        state.insulinFromPersistence.filter { entry in
-            guard let date = entry.timestamp else { return false }
-            return date >= windowStart && date <= windowEnd
-        }
-    }
-
-    var windowedCarbs: [CarbEntryStored] {
-        state.carbsFromPersistence.filter { entry in
-            guard let date = entry.date else { return false }
-            return date >= windowStart && date <= windowEnd
-        }
-    }
-
-    var windowedFPUs: [CarbEntryStored] {
-        state.fpusFromPersistence.filter { entry in
-            guard let date = entry.date else { return false }
-            return date >= windowStart && date <= windowEnd
-        }
-    }
-
+    // The treatment markers are sliced to the treatment window: marks outside it clip
+    // invisibly but still cost layout. The readings are no longer among them — they are
+    // drawn by `GlucoseChartView`, which culls inside its own draw loop, so nothing here
+    // slices them and no anchor can move with a window. Located by binary search rather
+    // than scanned, because with the window following the pan the slice is taken far more
+    // often than the render window's was.
+    // Still the render window: the COB/IOB pane's determinations are ~5 min apart and drawn
+    // as continuous lines, which have to be laid out across the whole canvas or they end
+    // mid-air at the edges of it.
     var windowedDeterminations: [OrefDetermination] {
         state.enactedAndNonEnactedDeterminations.filter { entry in
             guard let date = entry.deliverAt else { return false }
@@ -911,14 +1051,7 @@ struct CobIobPlotFrameKey: PreferenceKey {
 
 extension MainChartCanvas {
     var mainChart: some View {
-        // slice each series once per layout; these were computed properties
-        // re-evaluated on every reference (glucose alone was scanned 3x)
-        let glucose = windowedGlucose
-        let insulin = windowedInsulin
-        let carbs = windowedCarbs
-        let fpus = windowedFPUs
-
-        return Chart {
+        Chart {
             drawCurrentTimeMarker()
             drawThresholdLines()
 
@@ -941,21 +1074,9 @@ extension MainChartCanvas {
                 viewContext: context
             )
 
-            InsulinView(
-                glucoseData: glucose,
-                insulinData: insulin,
-                units: state.units,
-                bolusDisplayThreshold: state.bolusDisplayThreshold
-            )
-
-            CarbView(
-                glucoseData: glucose,
-                units: state.units,
-                carbData: carbs,
-                fpuData: fpus,
-                minValue: units == .mgdL ? state.minYAxisValue : state.minYAxisValue
-                    .asMmolL
-            )
+            // The treatment markers are deliberately not chart marks: they are drawn by
+            // the shell, over the canvas, so that culling them costs no re-layout and the
+            // live pinch cannot skew them — see `TreatmentOverlay`.
 
             ForecastView(
                 preprocessedData: state.preprocessedData,
@@ -965,16 +1086,6 @@ extension MainChartCanvas {
                 maxValue: state.maxYAxisValue,
                 forecastDisplayType: state.forecastDisplayType,
                 lastDeterminationDate: state.determinationsFromPersistence.first?.deliverAt ?? .distantPast
-            )
-
-            GlucoseChartView(
-                glucoseData: glucose,
-                units: state.units,
-                highGlucose: state.highGlucose,
-                lowGlucose: state.lowGlucose,
-                currentGlucoseTarget: state.currentGlucoseTarget,
-                isSmoothingEnabled: state.isSmoothingEnabled,
-                glucoseColorScheme: state.glucoseColorScheme
             )
         }
         .frame(width: canvasWidth, height: mainHeight)
@@ -1011,6 +1122,8 @@ extension MainChartCanvas: Equatable {
             lhs.visibleSeconds == rhs.visibleSeconds &&
             lhs.windowStart == rhs.windowStart &&
             lhs.windowEnd == rhs.windowEnd &&
+            lhs.treatmentWindowStart == rhs.treatmentWindowStart &&
+            lhs.treatmentWindowEnd == rhs.treatmentWindowEnd &&
             lhs.canvasWidth == rhs.canvasWidth &&
             lhs.basalHeight == rhs.basalHeight &&
             lhs.mainHeight == rhs.mainHeight &&
