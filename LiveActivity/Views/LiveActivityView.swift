@@ -89,8 +89,6 @@ struct LiveActivityView: View {
                         }
                     }
 
-                // A double-width item's continuation slot draws nothing, so drop it before laying the row
-                // out; otherwise it would earn its own divider and gap.
                 let widgetItems = context.state.detailedViewState.widgetItems.filter { $0 != .wideContinuation }
 
                 HStack {
@@ -147,14 +145,13 @@ struct LiveActivityView: View {
                                 }
                             case .currentGlucoseWide,
                                  .currentGlucoseWideUncolored:
-                                // Two slots of room: draw the reading much larger than the single-slot items.
-                                // The uncolored variant uses the default text color instead of the glucose color.
                                 let wideColor: Color = widgetItem == .currentGlucoseWideUncolored ? .primary : glucoseColor
+                                let wideFont: Font = isWatchOS ? .title : .largeTitle
                                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                                     LiveActivityBGLabelLargeView(
                                         context: context,
                                         glucoseColor: wideColor,
-                                        glucoseFont: isWatchOS ? .title : .largeTitle,
+                                        glucoseFont: wideFont,
                                         arrowFont: isWatchOS ? .title3 : .title2
                                     )
                                     LiveActivityGlucoseDeltaLabelView(
@@ -162,7 +159,7 @@ struct LiveActivityView: View {
                                         glucoseColor: .primary
                                     )
                                     .fontWeight(.bold)
-                                    .font(isWatchOS ? .title3 : .title2)
+                                    .font(wideFont)
                                 }
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.6)
@@ -180,7 +177,6 @@ struct LiveActivityView: View {
                             case .empty:
                                 Text("").frame(width: 50, height: 50)
                             case .wideContinuation:
-                                // Filtered out above; here only to keep the switch exhaustive.
                                 EmptyView()
                             }
 
@@ -211,8 +207,6 @@ struct LiveActivityView: View {
                     HStack(spacing: 3) {
                         LiveActivityBGAndTrendView(context: context, size: .expanded, glucoseColor: glucoseColor)
                             .font(simpleViewStyle.glucoseFont)
-                            // Keep the reading readable rather than truncated at the larger sizes and
-                            // at accessibility text sizes.
                             .lineLimit(1)
                             .minimumScaleFactor(0.6)
                         Spacer()

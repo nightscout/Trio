@@ -149,15 +149,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
         let isDropTarget = targetedSlot == index
 
         return ZStack(alignment: .topTrailing) {
-            getItemPreview(for: item)
-                .frame(width: previewWidth(for: item), height: Self.slotSize)
-                .padding(Self.slotPadding)
-                .background(Color.clear)
-                .cornerRadius(12)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(isDropTarget ? Color.accentColor : Color.primary, lineWidth: isDropTarget ? 2 : 1)
-                )
+            widgetTile(item, highlighted: isDropTarget)
 
             Button(action: { remove(item) }) {
                 Image(systemName: "trash.circle.fill")
@@ -169,7 +161,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
             .accessibilityLabel(Text("Remove \(item.displayName)"))
             .offset(x: 10, y: -10)
         }
-        .draggable(item) { dragPreview(item) }
+        .draggable(item) { widgetTile(item) }
         .dropDestination(for: LiveActivityItem.self) { dropped, _ in
             targetedSlot = nil
             guard let dropped = dropped.first else { return false }
@@ -206,11 +198,17 @@ struct LiveActivityWidgetConfiguration: BaseView {
             .accessibilityLabel(Text("Empty widget slot"))
     }
 
-    private func dragPreview(_ item: LiveActivityItem) -> some View {
+    /// A widget drawn as it sits in a layout slot. The layout row, the palette and the drag preview all use it, so a
+    /// widget looks the same wherever it appears.
+    private func widgetTile(_ item: LiveActivityItem, highlighted: Bool = false) -> some View {
         getItemPreview(for: item)
             .frame(width: previewWidth(for: item), height: Self.slotSize)
             .padding(Self.slotPadding)
             .background(RoundedRectangle(cornerRadius: 12).fill(Color.chart))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(highlighted ? Color.accentColor : Color.primary, lineWidth: highlighted ? 2 : 1)
+            )
     }
 
     /// Width of a slot's content. A double-width widget spans two slots, the gap between them, and the padding
@@ -280,30 +278,22 @@ struct LiveActivityWidgetConfiguration: BaseView {
         let unavailableReason: LocalizedStringKey = isPlaced ? "Already in the layout" : "Not enough room"
 
         let cell = VStack(spacing: 6) {
-            getItemPreview(for: item)
-                .frame(height: 34)
+            widgetTile(item)
 
             Text(item.displayName)
                 .font(.caption2)
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
-                // Show the full title however many lines it needs, rather than truncating at two lines.
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, minHeight: 76, alignment: .top)
-        .padding(8)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.chart))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.primary.opacity(0.2), lineWidth: 1)
-        )
+        .frame(maxWidth: .infinity, alignment: .top)
         .opacity(canPlace ? 1 : 0.4)
 
         if canPlace {
             cell
-                .contentShape(RoundedRectangle(cornerRadius: 12))
+                .contentShape(Rectangle())
                 .onTapGesture { place(item, at: placedItems.count) }
-                .draggable(item) { dragPreview(item) }
+                .draggable(item) { widgetTile(item) }
                 .accessibilityAddTraits(.isButton)
                 .accessibilityLabel(Text(item.displayName))
                 .accessibilityHint(Text("Adds this widget to the layout"))
@@ -405,7 +395,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
                 .font(.largeTitle)
                 .foregroundStyle(colored ? Color.loopGreen : Color.primary)
             Text("+6")
-                .font(.title2)
+                .font(.largeTitle)
                 .foregroundStyle(.primary)
         }
         .fontWeight(.bold)

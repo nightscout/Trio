@@ -903,12 +903,6 @@ extension SettingsExport {
                     addSetting(
                         category: notificationsCategory,
                         subcategory: liveActivitySubcategory,
-                        name: String(localized: "Font Face"),
-                        value: trioSettings.liveActivitySimpleFontFace.displayName
-                    )
-                    addSetting(
-                        category: notificationsCategory,
-                        subcategory: liveActivitySubcategory,
                         name: String(localized: "Font Size"),
                         value: trioSettings.liveActivitySimpleFontSize.displayName
                     )

@@ -29,11 +29,10 @@ struct LiveActivityAttributes: ActivityAttributes {
     /// Mirrors the user's choices on the Simple style's Widget Configuration screen. The Detailed layout is
     /// configured through `ContentAdditionalState.widgetItems` instead.
     struct SimpleViewStyle: Codable, Hashable {
-        let fontFace: LiveActivityFontFace
         let fontSize: LiveActivityFontSize
 
-        /// Fallback appearance: what the Simple layout used before it became configurable.
-        static let `default` = SimpleViewStyle(fontFace: .default, fontSize: .large)
+        /// Appearance used where no settings are available, such as SwiftUI previews.
+        static let `default` = SimpleViewStyle(fontSize: .large)
     }
 
     struct ContentState: Codable, Hashable {

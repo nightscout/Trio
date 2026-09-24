@@ -67,8 +67,6 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var useLiveActivity: Bool = false
     var lockScreenView: LockScreenView = .simple
     var smartStackView: LockScreenView = .simple
-    /// Typeface of the glucose reading in the Simple Lock Screen Live Activity layout.
-    var liveActivitySimpleFontFace: LiveActivityFontFace = .default
     /// Size of the glucose reading in the Simple Lock Screen Live Activity layout.
     var liveActivitySimpleFontSize: LiveActivityFontSize = .large
     var displayGlucoseForecasts: Bool = false
@@ -342,12 +340,6 @@ extension TrioSettings: Decodable {
 
         if let smartStackView = try? container.decode(LockScreenView.self, forKey: .smartStackView) {
             settings.smartStackView = smartStackView
-        }
-
-        if let liveActivitySimpleFontFace = try? container
-            .decode(LiveActivityFontFace.self, forKey: .liveActivitySimpleFontFace)
-        {
-            settings.liveActivitySimpleFontFace = liveActivitySimpleFontFace
         }
 
         if let liveActivitySimpleFontSize = try? container

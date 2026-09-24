@@ -19,10 +19,7 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
 
     /// Appearance currently selected in this screen, i.e. what the Live Activity will use.
     private var selectedStyle: LiveActivityAttributes.SimpleViewStyle {
-        LiveActivityAttributes.SimpleViewStyle(
-            fontFace: state.simpleFontFace,
-            fontSize: state.simpleFontSize
-        )
+        LiveActivityAttributes.SimpleViewStyle(fontSize: state.simpleFontSize)
     }
 
     var body: some View {
@@ -34,14 +31,6 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
             }.listRowBackground(Color.chart)
 
             Section {
-                Picker(selection: $state.simpleFontFace) {
-                    ForEach(LiveActivityFontFace.allCases) { face in
-                        Text(face.displayName).fontDesign(face.design).tag(face)
-                    }
-                } label: {
-                    Text("Font Face")
-                }
-
                 Picker(selection: $state.simpleFontSize) {
                     ForEach(LiveActivityFontSize.allCases) { size in
                         Text(size.displayName).tag(size)
@@ -160,9 +149,9 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
     /// Verbose help shown for the Glucose Reading Font section.
     private var fontHintText: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Default: Default typeface, Large").bold()
+            Text("Default: Large").bold()
             Text(
-                "Changes the typeface and size of the current glucose reading and its trend arrow on the Simple Lock Screen widget. The delta and the time of the last reading are not affected."
+                "Changes the size of the current glucose reading and its trend arrow on the Simple Lock Screen widget. The delta and the time of the last reading are not affected."
             )
             Text(
                 "Sizes follow your iPhone's text size setting, so the reading keeps scaling if you change the text size in iOS Settings."
@@ -173,7 +162,7 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
     /// Mini hint row matching `SettingInputSection`'s, for the Glucose Reading Font section.
     private var hintRow: some View {
         HStack(alignment: .center) {
-            Text("Set the typeface and size of the glucose reading.")
+            Text("Set the size of the glucose reading.")
                 .font(.footnote)
                 .foregroundColor(.secondary)
                 .lineLimit(nil)
