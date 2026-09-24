@@ -928,6 +928,12 @@ extension SettingsExport {
                 addSetting(
                     category: servicesCategory,
                     subcategory: nightscoutSubcategory,
+                    name: String(localized: "Upload CGM Sensor States"),
+                    value: trioSettings.uploadCGMSensorStates ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+                addSetting(
+                    category: servicesCategory,
+                    subcategory: nightscoutSubcategory,
                     name: String(localized: "Allow Fetching From Nightscout"),
                     value: trioSettings.isDownloadEnabled ? String(localized: "Enabled") : String(localized: "Disabled")
                 )

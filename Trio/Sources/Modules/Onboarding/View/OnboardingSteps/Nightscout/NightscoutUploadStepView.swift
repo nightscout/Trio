@@ -40,6 +40,24 @@ struct NightscoutUploadStepView: View {
             .font(.footnote)
             .foregroundStyle(Color.secondary)
             .multilineTextAlignment(.leading)
+
+            HStack {
+                Toggle(isOn: $state.uploadCGMSensorStates) {
+                    Text("Upload CGM Sensor States")
+                }.tint(Color.accentColor)
+            }
+            .padding()
+            .background(Color.chart.opacity(0.65))
+            .cornerRadius(10)
+            .disabled(!state.isUploadEnabled)
+
+            Text(
+                "When your CGM reports a state where it cannot give a usable reading, such as a sensor error or warmup, Trio uploads that state to Nightscout as a note. Supported for Dexcom G6 and G7."
+            )
+            .padding(.horizontal)
+            .font(.footnote)
+            .foregroundStyle(Color.secondary)
+            .multilineTextAlignment(.leading)
         }
     }
 }
