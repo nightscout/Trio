@@ -837,7 +837,7 @@ extension SettingsExport {
                 addSetting(
                     category: featuresCategory,
                     subcategory: userInterfaceSubcategory,
-                    name: String(localized: "Lower Range Threshold"),
+                    name: String(localized: "TIR Lower Threshold"),
                     value: trioSettings.timeInRangeType.displayName(for: trioSettings.units)
                 )
                 addSetting(

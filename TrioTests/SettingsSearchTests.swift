@@ -4,10 +4,10 @@ import Testing
 
 @Suite("Settings Search Navigation") struct SettingsSearchTests {
     @Test("Lower threshold names and legacy aliases navigate to the renamed setting") func searchLowerRangeThreshold() {
-        for query in ["Lower Range Threshold", "Standard", "Extended", "Time in Range Type", "TITR", "TING"] {
+        for query in ["TIR Lower Threshold", "Standard", "Extended", "Time in Range Type", "TITR", "TING"] {
             let results = SettingItems.filteredItems(searchText: query)
             #expect(results.contains {
-                $0.settingItem.view == .userInterfaceSettings && $0.scrollLabel == "Lower Range Threshold"
+                $0.settingItem.view == .userInterfaceSettings && $0.scrollLabel == "TIR Lower Threshold"
             }, "No lower threshold search target for \(query)")
         }
     }

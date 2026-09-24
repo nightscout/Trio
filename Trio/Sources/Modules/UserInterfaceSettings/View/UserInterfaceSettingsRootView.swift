@@ -509,7 +509,7 @@ extension UserInterfaceSettings {
                     VStack(alignment: .leading) {
                         Picker(
                             selection: $state.timeInRangeType,
-                            label: Text("Lower Range Threshold").multilineTextAlignment(.leading)
+                            label: Text("TIR Lower Threshold").multilineTextAlignment(.leading)
                         ) {
                             ForEach(TimeInRangeType.allCases) { selection in
                                 Text(selection.displayName(for: state.units)).tag(selection)
@@ -526,7 +526,7 @@ extension UserInterfaceSettings {
                             Spacer()
                             Button(
                                 action: {
-                                    hintLabel = String(localized: "Lower Range Threshold")
+                                    hintLabel = String(localized: "TIR Lower Threshold")
                                     selectedVerboseHint =
                                         AnyView(
                                             VStack(
@@ -536,7 +536,7 @@ extension UserInterfaceSettings {
                                                 let tirUpperThreshold = 180.formatted(withUnits: state.units)
                                                 let titrUpperThreshold = 140.formatted(withUnits: state.units)
                                                 Text(String(
-                                                    localized: "Choose the preferred lower threshold used for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR) with an upper threshold of \(tirUpperThreshold), and Time in Tight Range (TITR) with an upper threshold of \(titrUpperThreshold).",
+                                                    localized: "Choose the preferred lower threshold for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR, upper threshold of \(tirUpperThreshold)) and Time in Tight Range (TITR, upper threshold of \(titrUpperThreshold)).",
                                                     comment: "Explains that the lower threshold applies to both TIR and TITR"
                                                 ))
                                                 VStack(
@@ -575,7 +575,7 @@ extension UserInterfaceSettings {
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
                     }.padding(.bottom)
-                }.settingsSearchTarget(label: String(localized: "Lower Range Threshold"))
+                }.settingsSearchTarget(label: String(localized: "TIR Lower Threshold"))
 
                 Section {
                     VStack(alignment: .leading) {
