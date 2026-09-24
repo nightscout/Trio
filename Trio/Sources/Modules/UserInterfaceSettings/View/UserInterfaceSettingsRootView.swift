@@ -172,7 +172,7 @@ extension UserInterfaceSettings {
                     content: {
                         VStack {
                             Toggle("Show X-Axis Grid Lines", isOn: $state.xGridLines)
-                            Toggle("Show Y-Axis Grid Lines", isOn: $state.yGridLines)
+                            Toggle("Show Y-Axis Grid Lines", isOn: $state.yGridLines).padding(.top)
 
                             HStack(alignment: .center) {
                                 Text(
