@@ -30645,6 +30645,9 @@
         }
       }
     },
+    "Active Alarm Thresholds" : {
+
+    },
     "Active During" : {
       "comment" : "A section header for the active glucose alert.",
       "localizations" : {
@@ -147339,7 +147342,7 @@
       }
     },
     "g" : {
-      "comment" : "Abbreviation for grams\nAbbreviation for grams shown next to a quick-pick carb amount\nGram abbreviation\nThe short unit display string for grams\nUnits for carbs\ngram of carbs",
+      "comment" : "Abbreviation for grams\nAbbreviation for grams shown next to a quick-pick carb amount\nGram abbreviation\nThe short unit display string for grams\nUnits for carbs\ngram of carbs\ngram unit",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -246174,6 +246177,9 @@
           }
         }
       }
+    },
+    "Quickly move the thresholds of the alarms active in the current day/night window. Changes apply immediately and stay until you change them back." : {
+
     },
     "Raise target glucose when Autosens Ratio is less than 1." : {
       "localizations" : {
