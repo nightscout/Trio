@@ -7,6 +7,9 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
 
     @ObservedObject var state: LiveActivitySettings.StateModel
 
+    private static let previewGlucose = 123
+    private static let previewDelta = 6
+
     @State private var shouldDisplayHintFont: Bool = false
     @State private var hintDetent = PresentationDetent.large
 
@@ -59,7 +62,7 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
         HStack(spacing: 3) {
             HStack(spacing: 3) {
                 Text(previewGlucoseText)
-                Text(previewDirectionSymbol)
+                Text("\u{2192}")
                     .scaleEffect(x: 0.7, y: 0.7, anchor: .leading)
                     .padding(.trailing, -5)
             }
@@ -96,17 +99,11 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
     }
 
     private var previewGlucoseText: String {
-        guard let glucose = state.currentGlucose else { return "--" }
-        return LiveActivityAttributes.ContentState.formatGlucose(glucose, units: state.units, forceSign: false)
-    }
-
-    private var previewDirectionSymbol: String {
-        state.currentDirection?.symbol ?? ""
+        LiveActivityAttributes.ContentState.formatGlucose(Self.previewGlucose, units: state.units, forceSign: false)
     }
 
     private var previewDeltaText: String {
-        guard let delta = state.currentDelta else { return "" }
-        return LiveActivityAttributes.ContentState.formatGlucose(delta, units: state.units, forceSign: true)
+        LiveActivityAttributes.ContentState.formatGlucose(Self.previewDelta, units: state.units, forceSign: true)
     }
 
     private var previewTimeText: String {
@@ -117,7 +114,7 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
     }
 
     private var previewReadingColor: Color {
-        guard state.glucoseColorScheme != .staticColor, let glucose = state.currentGlucose else { return .primary }
+        guard state.glucoseColorScheme != .staticColor else { return .primary }
 
         let isMgdL = state.units == .mgdL
 
@@ -125,7 +122,7 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
         let hardCodedHigh = isMgdL ? Decimal(220) : 220.asMmolL
 
         return Trio.getDynamicGlucoseColor(
-            glucoseValue: isMgdL ? Decimal(glucose) : glucose.asMmolL,
+            glucoseValue: isMgdL ? Decimal(Self.previewGlucose) : Self.previewGlucose.asMmolL,
             highGlucoseColorValue: hardCodedHigh,
             lowGlucoseColorValue: hardCodedLow,
             targetGlucose: isMgdL ? Decimal(100) : 100.asMmolL,

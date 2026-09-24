@@ -561,7 +561,6 @@ enum LiveActivityItem: String, CaseIterable, Identifiable, Codable, Transferable
 
     var id: String { rawValue }
 
-    /// JSON rather than a custom exported UTType, which would need an Info.plist declaration.
     static var transferRepresentation: some TransferRepresentation {
         CodableRepresentation(contentType: .json)
     }

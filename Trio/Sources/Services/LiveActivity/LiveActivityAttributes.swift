@@ -14,7 +14,6 @@ struct LiveActivityAttributes: ActivityAttributes {
         case updatedLabel
         case totalDailyDose
         case empty
-        /// Second slot of the preceding double-width item.
         case wideContinuation
 
         static let defaultItems: [Self] = [.currentGlucoseLarge, .iob, .cob, .updatedLabel]
