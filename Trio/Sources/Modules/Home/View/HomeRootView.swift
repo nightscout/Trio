@@ -104,24 +104,61 @@ extension Home {
             .overlay(alignment: .topTrailing) {
                 // borderless capsule (not a control); centered in the basal
                 // pane band so it clears the y-axis labels on every device size
-                if let rate = currentBasalRateLabel {
-                    Text(rate)
-                        .font(.system(size: 14, weight: .semibold))
-                        .fontDesign(.rounded)
-                        .foregroundStyle(Color.insulin)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .glassMaterialFill(Capsule())
-                        .frame(height: chartHeight * 0.10)
-                        .padding(.trailing, 16)
+                if let basal = currentBasalReadout {
+                    HStack(spacing: 3) {
+                        if basal.isManual {
+                            Image(systemName: "hand.raised.fill")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        Text(basal.label)
+                            .font(.system(size: 14, weight: .semibold))
+                            .fontDesign(.rounded)
+                    }
+                    .foregroundStyle(basal.isManual ? Color.loopManualTemp : Color.insulin)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .glassMaterialFill(Capsule())
+                    .frame(height: chartHeight * 0.10)
+                    .padding(.trailing, 16)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text(basal.accessibilityLabel))
                 }
             }
         }
 
-        private var currentBasalRateLabel: String? {
-            guard let rate = state.tempBasals.last?.tempBasal?.rate else { return nil }
-            let value = Formatter.decimalFormatterWithTwoFractionDigits.string(from: rate) ?? "\(rate)"
+        /// Rate pill: what the pump delivers, and whether the temp is the user's own.
+        private var currentBasalReadout: (label: String, accessibilityLabel: String, isManual: Bool)? {
+            switch state.activeBasalDelivery {
+            case .none:
+                return nil
+            case .suspended:
+                let label = String(localized: "Suspended", comment: "Basal delivery suspended on the pump")
+                return (label, label, false)
+            case let .temp(rate):
+                let manual = state.manualTempBasal
+                let label = basalRateLabel(rate)
+                let spoken = manual
+                    ? String(
+                        localized: "Manual basal \(basalRateAccessibilityLabel(rate))",
+                        comment: "Accessibility: manual temp basal rate the user set on the pump"
+                    )
+                    : basalRateAccessibilityLabel(rate)
+                return (label, spoken, manual)
+            case let .scheduled(rate):
+                return (basalRateLabel(rate), basalRateAccessibilityLabel(rate), false)
+            }
+        }
+
+        private func basalRateLabel(_ rate: Decimal) -> String {
+            let value = Formatter.decimalFormatterWithTwoFractionDigits
+                .string(from: NSDecimalNumber(decimal: rate)) ?? "\(rate)"
             return value + String(localized: " U/hr", comment: "Unit per hour with space")
+        }
+
+        private func basalRateAccessibilityLabel(_ rate: Decimal) -> String {
+            let value = Formatter.decimalFormatterWithTwoFractionDigits
+                .string(from: NSDecimalNumber(decimal: rate)) ?? "\(rate)"
+            return value + " " + UnitSpelling.spoken("U/hr")
         }
 
         @ViewBuilder private var chartInfoButton: some View {
@@ -193,20 +230,17 @@ extension Home {
                     {
                         BluetoothRequiredView()
                     } else {
-                        /// right panel with loop status and evBG
-                        HStack {
-                            Spacer()
-                            rightHeaderPanel()
-                        }.padding(.trailing, 20)
-
-                        /// glucose bobble
-                        glucoseView
-
-                        /// left panel with pump related info
-                        HStack {
+                        HStack(alignment: .center, spacing: 0) {
                             pumpView
-                            Spacer()
-                        }.padding(.leading, 20)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            glucoseView
+                                .frame(width: 130)
+
+                            rightHeaderPanel()
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                        }
+                        .padding(.horizontal, 20)
                     }
                 }
                 // fixed slot: header state changes never reflow the zones below
