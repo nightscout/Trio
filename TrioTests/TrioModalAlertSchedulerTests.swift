@@ -66,6 +66,41 @@ import Testing
     }
 }
 
+/// Re-issued alerts (same identifier, e.g. a repeating glucose alarm with
+/// the current reading in its body) must replace their banner in place.
+@Suite("Trio Alerts: TrioModalAlertScheduler upsert") struct TrioModalAlertSchedulerUpsertTests {
+    private func makeAlert(identifier: String, body: String) -> LoopKit.Alert {
+        let content = LoopKit.Alert.Content(title: "Title", body: body, acknowledgeActionButtonLabel: "OK")
+        return LoopKit.Alert(
+            identifier: LoopKit.Alert.Identifier(managerIdentifier: "trio.test", alertIdentifier: identifier),
+            foregroundContent: content,
+            backgroundContent: content,
+            trigger: .immediate,
+            interruptionLevel: .timeSensitive,
+            sound: nil
+        )
+    }
+
+    @Test("New identifier is appended") func newIdentifierAppends() {
+        let active = [makeAlert(identifier: "a", body: "1")]
+        let result = TrioModalAlertScheduler.upserting(makeAlert(identifier: "b", body: "2"), into: active)
+        #expect(result.map(\.identifier.alertIdentifier) == ["a", "b"])
+    }
+
+    @Test("Same identifier replaces content in place, count unchanged") func sameIdentifierReplacesInPlace() {
+        let active = [makeAlert(identifier: "a", body: "old"), makeAlert(identifier: "b", body: "2")]
+        let result = TrioModalAlertScheduler.upserting(makeAlert(identifier: "a", body: "new"), into: active)
+        #expect(result.count == 2)
+        #expect(result.map(\.identifier.alertIdentifier) == ["a", "b"])
+        #expect(result[0].foregroundContent?.body == "new")
+    }
+
+    @Test("Empty queue gets the alert") func emptyQueueAppends() {
+        let result = TrioModalAlertScheduler.upserting(makeAlert(identifier: "a", body: "1"), into: [])
+        #expect(result.map(\.identifier.alertIdentifier) == ["a"])
+    }
+}
+
 @Suite("Trio Alerts: TrioModalAlertScheduler fire-gate") struct TrioModalAlertSchedulerFireGateTests {
     @Test("Critical, active, snoozed -> insert") func criticalActiveSnoozedInserts() {
         #expect(

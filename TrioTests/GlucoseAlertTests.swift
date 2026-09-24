@@ -145,6 +145,35 @@ import Testing
         #expect(decoded.soundFilename == GlucoseAlertType.urgentLow.defaultSoundFilename)
     }
 
+    @Test("Omitted repeatInterval defaults to off (fire-once behavior preserved)") func decodeOmittedRepeatIntervalDefaultsOff() throws {
+        let json = """
+        {
+            "id": "55555555-5555-5555-5555-555555555555",
+            "type": "low",
+            "name": "Low Glucose",
+            "thresholdMgDL": 70
+        }
+        """
+        let decoded = try JSONDecoder().decode(GlucoseAlert.self, from: Data(json.utf8))
+        #expect(decoded.repeatInterval == .off)
+        #expect(decoded.repeatInterval.timeInterval == nil)
+    }
+
+    @Test("repeatInterval decodes from its minute raw value") func decodeRepeatIntervalMinutes() throws {
+        let json = """
+        {
+            "id": "66666666-6666-6666-6666-666666666666",
+            "type": "low",
+            "name": "Low Glucose",
+            "thresholdMgDL": 70,
+            "repeatInterval": 15
+        }
+        """
+        let decoded = try JSONDecoder().decode(GlucoseAlert.self, from: Data(json.utf8))
+        #expect(decoded.repeatInterval == .fifteenMinutes)
+        #expect(decoded.repeatInterval.timeInterval == TimeInterval(15 * 60))
+    }
+
     // MARK: - Group C: round-trip
 
     @Test("Fully-populated value survives encode/decode round-trip") func roundTrip() throws {
@@ -156,6 +185,7 @@ import Testing
         original.playsSound = false
         original.overridesSilenceAndDND = true
         original.activeOption = .night
+        original.repeatInterval = .thirtyMinutes
         original.snoozedUntil = Date(timeIntervalSinceReferenceDate: 1_000_000)
 
         let data = try JSONEncoder().encode(original)

@@ -164,9 +164,18 @@ final class TrioModalAlertScheduler: ObservableObject {
     }
 
     private func insert(_ alert: LoopKit.Alert) {
-        guard !active.contains(where: { $0.identifier == alert.identifier }) else { return }
-        active.append(alert)
+        active = Self.upserting(alert, into: active)
         sortByPriority()
+    }
+
+    static func upserting(_ alert: LoopKit.Alert, into active: [LoopKit.Alert]) -> [LoopKit.Alert] {
+        var result = active
+        if let index = result.firstIndex(where: { $0.identifier == alert.identifier }) {
+            result[index] = alert
+        } else {
+            result.append(alert)
+        }
+        return result
     }
 
     private func remove(identifier: LoopKit.Alert.Identifier) {
