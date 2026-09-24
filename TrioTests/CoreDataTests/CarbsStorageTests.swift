@@ -10,6 +10,7 @@ import Testing
     let resolver: Resolver
     var coreDataStack: CoreDataStack!
     var testContext: NSManagedObjectContext!
+    var mutationStorage: CarbsStorage!
 
     init() async throws {
         // Create test context
@@ -29,6 +30,8 @@ import Testing
 
         resolver = assembler.resolver
         injectServices(resolver)
+        let testStack = coreDataStack!
+        mutationStorage = BaseCarbsStorage(resolver: resolver, contextProvider: { testStack.newTaskContext() })
     }
 
     @Test("Storage is correctly initialized") func testStorageInitialization() {
@@ -374,11 +377,22 @@ import Testing
 
         // When
         try await storage.storeCarbs([testEntry], areFetchedFromRemote: false)
+        let storedRoots = try await coreDataStack.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: testContext,
+            predicate: NSPredicate(format: "note == %@ AND isFPU == NO", "NS test"),
+            key: "date",
+            ascending: false
+        ) as? [CarbEntryStored]
+        let storedRootID = try #require(storedRoots?.first?.id?.uuidString)
         let notUploadedEntries = try await storage.getCarbsNotYetUploadedToNightscout()
 
         // Then
         #expect(!notUploadedEntries.isEmpty, "Should have entries not uploaded to NS")
-        #expect(notUploadedEntries[0].carbs == 40, "Carbs value should match")
+        let root = try #require(notUploadedEntries.first(where: { $0.id == storedRootID }))
+        #expect(root.id == storedRootID, "Root ID should match its Core Data UUID")
+        #expect(root.fpuID == nil, "Carb-only roots should not publish an FPU family ID")
+        #expect(root.carbs == 40, "Carbs value should match")
     }
 
     @Test("Get FPUs not yet uploaded to Nightscout") func testGetFPUsNotYetUploadedToNightscout() async throws {
@@ -419,25 +433,559 @@ import Testing
         #expect(carbNonFpuEntry?.carbs == 30, "Original carbs should match")
         #expect(carbNonFpuEntry?.protein == 10, "Original carbs should match")
         #expect(carbNonFpuEntry?.fat == 20, "Original carbs should match")
+        let storedRootID = try #require(carbNonFpuEntry?.id?.uuidString)
 
         // Additional carb-fpu entries should be created for fat/protein with isFPU set to true and the carbs set to the amount of each carbEquivalent
         let carbFpuEntry = allStoredEntries?.filter { $0.isFPU == true }
         #expect(carbFpuEntry?.isEmpty == false, "Should have additional carb-fpu entries")
 
         // Now test the Nightscout upload function
+        let notUploadedRoots = try await storage.getCarbsNotYetUploadedToNightscout()
         let notUploadedFPUs = try await storage.getFPUsNotYetUploadedToNightscout()
 
         // Then verify Nightscout entries
+        let root = try #require(notUploadedRoots.first(where: { $0.id == storedRootID }))
+        #expect(root.id == storedRootID, "Root ID should match its Core Data UUID")
+        #expect(root.fpuID == fpuID, "Root should publish its FPU family ID")
+        #expect(root.id != root.fpuID, "A family root should have distinct root and FPU IDs")
         #expect(!notUploadedFPUs.isEmpty, "Should have FPUs not uploaded to NS")
         let fpu = notUploadedFPUs[0]
         #expect(fpu.carbs ?? 0 < 30, "Original carbs value should match")
         #expect(fpu.protein == 0, "Protein value should match")
         #expect(fpu.fat == 0, "Fat value should match")
+        for treatment in notUploadedFPUs {
+            #expect(treatment.id == fpuID, "Generated FPU treatment ID should remain the family ID")
+            #expect(treatment.fpuID == fpuID, "Generated FPU treatment should publish the family ID")
+            #expect(treatment.id == treatment.fpuID, "Generated FPU treatment IDs should identify children")
+        }
+
+        let encodedFPU = try JSONCoding.encoder.encode([fpu])
+        let encodedTreatments = try #require(JSONSerialization.jsonObject(with: encodedFPU) as? [[String: Any]])
+        let encodedJSON = try #require(encodedTreatments.first)
+        #expect(encodedJSON["fpuID"] as? String == fpuID, "Nightscout JSON should encode the exact fpuID key")
 
         // Verify all entries share the same fpuID
         #expect(
             allStoredEntries?.allSatisfy { $0.fpuID?.uuidString == fpuID } == true,
             "All entries should share the same fpuID"
         )
+    }
+
+    @Test(
+        "Remote meal command payload and response metadata use the correlated contract"
+    ) func testRemoteMealMutationContract() throws {
+        let commandID = UUID()
+        let mealID = UUID()
+        let editJSON = """
+        {
+          "user": "LoopFollow",
+          "command_type": "edit_meal",
+          "timestamp": 1800000000,
+          "command_id": "\(commandID.uuidString)",
+          "meal_id": "\(mealID.uuidString)",
+          "expected_carbs": 30,
+          "expected_fat": 10,
+          "expected_protein": 5,
+          "expected_meal_time": 1799996400,
+          "carbs": 25,
+          "fat": 12,
+          "protein": 6,
+          "scheduled_time": 1799996700
+        }
+        """
+
+        let edit = try JSONDecoder().decode(CommandPayload.self, from: Data(editJSON.utf8))
+        #expect(edit.commandType == .editMeal)
+        #expect(edit.commandID == commandID.uuidString)
+        #expect(edit.mealID == mealID.uuidString)
+        #expect(edit.expectedCarbs == 30)
+        #expect(edit.expectedFat == 10)
+        #expect(edit.expectedProtein == 5)
+        #expect(edit.expectedMealTime == 1_799_996_400)
+        #expect(edit.carbs == 25)
+        #expect(edit.scheduledTime == 1_799_996_700)
+
+        let deleteJSON = """
+        {
+          "user": "LoopFollow",
+          "command_type": "delete_meal",
+          "timestamp": 1800000000,
+          "command_id": "\(UUID().uuidString)",
+          "meal_id": "\(mealID.uuidString)",
+          "expected_carbs": 30,
+          "expected_fat": 10,
+          "expected_protein": 5,
+          "expected_meal_time": 1799996400
+        }
+        """
+
+        let delete = try JSONDecoder().decode(CommandPayload.self, from: Data(deleteJSON.utf8))
+        #expect(delete.commandType == .deleteMeal)
+        #expect(delete.carbs == nil)
+        #expect(delete.scheduledTime == nil)
+
+        let response = RemoteNotificationResponseManager.NotificationPayload(
+            aps: .init(alert: .init(title: "Command Successful", body: "Meal updated")),
+            commandStatus: "success",
+            commandType: TrioRemoteControl.CommandType.editMeal.rawValue,
+            timestamp: 1_800_000_000,
+            commandID: commandID.uuidString,
+            mealID: mealID.uuidString,
+            result: .updated,
+            syncStatus: .requested
+        )
+        let responseData = try JSONEncoder().encode(response)
+        let responseJSON = try #require(JSONSerialization.jsonObject(with: responseData) as? [String: Any])
+        let aps = try #require(responseJSON["aps"] as? [String: Any])
+        #expect(responseJSON["command_id"] as? String == commandID.uuidString)
+        #expect(responseJSON["meal_id"] as? String == mealID.uuidString)
+        #expect(responseJSON["result"] as? String == "updated")
+        #expect(responseJSON["sync_status"] as? String == "requested")
+        #expect(aps["content-available"] as? Int == 1)
+    }
+
+    @Test(
+        "Remote edit preserves the root identity and replaces its FPU family atomically"
+    ) func testRemoteMealEditPreservesRootAndRebuildsFPUFamily() async throws {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let originalDate = now.addingTimeInterval(-60 * 60)
+        let replacementDate = now.addingTimeInterval(-30 * 60)
+        let rootID = UUID()
+        let oldFPUID = UUID()
+        let oldChildren = [
+            MealFPUEntrySnapshot(id: UUID(), date: originalDate.addingTimeInterval(60 * 60), carbs: 12),
+            MealFPUEntrySnapshot(id: UUID(), date: originalDate.addingTimeInterval(90 * 60), carbs: 12)
+        ]
+        try await insertMeal(
+            id: rootID,
+            date: originalDate,
+            carbs: 30,
+            fat: 20,
+            protein: 10,
+            note: "Keep this note",
+            fpuID: oldFPUID,
+            children: oldChildren
+        )
+
+        let expected = MealMutationValues(date: originalDate, carbs: 30, fat: 20, protein: 10)
+        let replacement = MealMutationValues(date: replacementDate, carbs: 25, fat: 200, protein: 200)
+        let result = try await mutationStorage.mutateMeal(
+            id: rootID,
+            expected: expected,
+            mutation: .edit(replacement),
+            now: now
+        )
+
+        #expect(result.disposition == .edited)
+        #expect(result.before.id == rootID)
+        #expect(result.before.fpuID == oldFPUID)
+        #expect(Set(result.before.fpuEntries.map(\.id)) == Set(oldChildren.map(\.id)))
+        let editedSnapshot = try #require(result.after)
+        #expect(editedSnapshot.id == rootID)
+        #expect(editedSnapshot.values == replacement)
+        #expect(editedSnapshot.note == "Keep this note")
+        let replacementFPUID = try #require(editedSnapshot.fpuID)
+        #expect(replacementFPUID != oldFPUID)
+        #expect(!editedSnapshot.fpuEntries.isEmpty)
+
+        let stored = try await loadMeal(id: rootID)
+        #expect(stored.snapshot.id == rootID)
+        #expect(stored.snapshot.values == replacement)
+        #expect(stored.snapshot.note == "Keep this note")
+        #expect(stored.snapshot.fpuID == replacementFPUID)
+        #expect(stored.snapshot.fpuEntries == editedSnapshot.fpuEntries)
+        let oldChildrenStillExist = try await entriesExist(ids: oldChildren.map(\.id))
+        #expect(!oldChildrenStillExist)
+
+        let staleRemoteEntry = CarbsEntry(
+            id: rootID.uuidString,
+            createdAt: originalDate,
+            actualDate: originalDate,
+            carbs: 30,
+            fat: 20,
+            protein: 10,
+            note: "Stale Nightscout copy",
+            enteredBy: CarbsEntry.local,
+            isFPU: false,
+            fpuID: oldFPUID.uuidString
+        )
+        try await mutationStorage.storeCarbs([staleRemoteEntry], areFetchedFromRemote: true)
+        #expect(!(try await entriesExist(at: originalDate)))
+
+        #expect(try await mutationStorage.getCarbsNotYetUploadedToNightscout().isEmpty)
+        #expect(try await mutationStorage.getFPUsNotYetUploadedToNightscout().isEmpty)
+        #expect(try await mutationStorage.getCarbsNotYetUploadedToHealth().isEmpty)
+        #expect(try await mutationStorage.getCarbsNotYetUploadedToTidepool().isEmpty)
+
+        try await mutationStorage.markMealForUpload(id: rootID)
+        let pendingNightscoutRoots = try await mutationStorage.getCarbsNotYetUploadedToNightscout()
+        let pendingNightscoutFPUs = try await mutationStorage.getFPUsNotYetUploadedToNightscout()
+        let pendingHealth = try await mutationStorage.getCarbsNotYetUploadedToHealth()
+        let pendingTidepool = try await mutationStorage.getCarbsNotYetUploadedToTidepool()
+        #expect(pendingNightscoutRoots.map(\.id) == [rootID.uuidString])
+        let pendingNightscoutRoot = try #require(pendingNightscoutRoots.first)
+        #expect(pendingNightscoutRoot.id == rootID.uuidString)
+        #expect(pendingNightscoutRoot.fpuID == replacementFPUID.uuidString)
+        #expect(pendingNightscoutRoot.id != pendingNightscoutRoot.fpuID)
+        #expect(pendingNightscoutFPUs.count == editedSnapshot.fpuEntries.count)
+        #expect(pendingNightscoutFPUs.allSatisfy {
+            $0.id == replacementFPUID.uuidString &&
+                $0.fpuID == replacementFPUID.uuidString &&
+                $0.id == $0.fpuID
+        })
+        #expect(pendingHealth.map(\.id) == [rootID.uuidString])
+        #expect(pendingTidepool.map(\.id) == [rootID.uuidString])
+    }
+
+    @Test(
+        "An already-applied edit succeeds before stale expected-value checking"
+    ) func testRemoteMealEditIsIdempotent() async throws {
+        let now = Date(timeIntervalSince1970: 1_800_100_000)
+        let mealDate = now.addingTimeInterval(-60 * 60)
+        let rootID = UUID()
+        try await insertMeal(id: rootID, date: mealDate, carbs: 20, fat: 0, protein: 0, note: "Original")
+
+        let staleExpected = MealMutationValues(date: mealDate, carbs: 99, fat: 0, protein: 0)
+        let current = MealMutationValues(date: mealDate, carbs: 20, fat: 0, protein: 0)
+        let result = try await mutationStorage.mutateMeal(
+            id: rootID,
+            expected: staleExpected,
+            mutation: .edit(current),
+            now: now
+        )
+
+        #expect(result.disposition == .unchanged)
+        #expect(result.before == result.after)
+        let stored = try await loadMeal(id: rootID)
+        #expect(stored.snapshot.note == "Original")
+    }
+
+    @Test(
+        "Fat/protein-only roots expose their stable meal ID to Nightscout"
+    ) func testRemoteMealMutationFatProteinOnlyRootIsDiscoverable() async throws {
+        let now = Date()
+        let rootID = UUID()
+        try await insertMeal(
+            id: rootID,
+            date: now.addingTimeInterval(-60),
+            carbs: 0,
+            fat: 20,
+            protein: 10,
+            note: "FPU only"
+        )
+
+        try await mutationStorage.markMealForUpload(id: rootID)
+        let treatments = try await mutationStorage.getCarbsNotYetUploadedToNightscout()
+        let treatment = try #require(treatments.first { $0.id == rootID.uuidString })
+        #expect(treatment.carbs == 0)
+        #expect(treatment.fat == 20)
+        #expect(treatment.protein == 10)
+    }
+
+    @Test(
+        "Remote mutations reject stale values and enforce the closed ±12-hour window"
+    ) func testRemoteMealMutationSafetyChecks() async throws {
+        let now = Date(timeIntervalSince1970: 1_800_200_000)
+        let currentID = UUID()
+        let currentDate = now.addingTimeInterval(-60 * 60)
+        let current = MealMutationValues(date: currentDate, carbs: 15, fat: 0, protein: 0)
+        try await insertMeal(id: currentID, date: currentDate, carbs: 15, fat: 0, protein: 0, note: nil)
+
+        do {
+            _ = try await mutationStorage.mutateMeal(
+                id: currentID,
+                expected: MealMutationValues(date: currentDate, carbs: 14, fat: 0, protein: 0),
+                mutation: .edit(MealMutationValues(date: currentDate, carbs: 16, fat: 0, protein: 0)),
+                now: now
+            )
+            Issue.record("A stale expected value should not mutate the meal")
+        } catch let error as MealMutationError {
+            #expect(error == .stale(current: current))
+        }
+
+        let pastBoundaryID = UUID()
+        let pastBoundaryDate = now.addingTimeInterval(-remoteMealMutationMaximumAge)
+        let pastBoundary = MealMutationValues(date: pastBoundaryDate, carbs: 10, fat: 0, protein: 0)
+        try await insertMeal(id: pastBoundaryID, date: pastBoundaryDate, carbs: 10, fat: 0, protein: 0, note: nil)
+        let pastBoundaryResult = try await mutationStorage.mutateMeal(
+            id: pastBoundaryID,
+            expected: pastBoundary,
+            mutation: .delete,
+            now: now
+        )
+        #expect(pastBoundaryResult.disposition == .deleted)
+
+        let oldID = UUID()
+        let oldDate = now.addingTimeInterval(-remoteMealMutationMaximumAge - 0.001)
+        let old = MealMutationValues(date: oldDate, carbs: 10, fat: 0, protein: 0)
+        try await insertMeal(id: oldID, date: oldDate, carbs: 10, fat: 0, protein: 0, note: nil)
+        do {
+            _ = try await mutationStorage.mutateMeal(id: oldID, expected: old, mutation: .delete, now: now)
+            Issue.record("A meal older than 12 hours should be rejected")
+        } catch let error as MealMutationError {
+            #expect(error == .outsideEditWindow)
+        }
+
+        let futureBoundaryID = UUID()
+        let futureBoundaryDate = now.addingTimeInterval(remoteMealMutationMaximumAge)
+        let futureBoundary = MealMutationValues(date: futureBoundaryDate, carbs: 10, fat: 0, protein: 0)
+        try await insertMeal(
+            id: futureBoundaryID,
+            date: futureBoundaryDate,
+            carbs: 10,
+            fat: 0,
+            protein: 0,
+            note: nil
+        )
+        let futureBoundaryResult = try await mutationStorage.mutateMeal(
+            id: futureBoundaryID,
+            expected: futureBoundary,
+            mutation: .delete,
+            now: now
+        )
+        #expect(futureBoundaryResult.disposition == .deleted)
+
+        let futureID = UUID()
+        let futureDate = now.addingTimeInterval(remoteMealMutationMaximumAge + 0.001)
+        let future = MealMutationValues(date: futureDate, carbs: 10, fat: 0, protein: 0)
+        try await insertMeal(id: futureID, date: futureDate, carbs: 10, fat: 0, protein: 0, note: nil)
+        do {
+            _ = try await mutationStorage.mutateMeal(id: futureID, expected: future, mutation: .delete, now: now)
+            Issue.record("A meal more than 12 hours in the future should be rejected")
+        } catch let error as MealMutationError {
+            #expect(error == .outsideEditWindow)
+        }
+
+        let replacementID = UUID()
+        try await insertMeal(id: replacementID, date: currentDate, carbs: 10, fat: 0, protein: 0, note: nil)
+        let initialReplacement = MealMutationValues(date: currentDate, carbs: 10, fat: 0, protein: 0)
+        let pastBoundaryReplacement = MealMutationValues(date: pastBoundaryDate, carbs: 11, fat: 0, protein: 0)
+        let pastBoundaryEdit = try await mutationStorage.mutateMeal(
+            id: replacementID,
+            expected: initialReplacement,
+            mutation: .edit(pastBoundaryReplacement),
+            now: now
+        )
+        #expect(pastBoundaryEdit.disposition == .edited)
+        #expect(pastBoundaryEdit.after?.values == pastBoundaryReplacement)
+
+        let futureBoundaryReplacement = MealMutationValues(date: futureBoundaryDate, carbs: 12, fat: 0, protein: 0)
+        let futureBoundaryEdit = try await mutationStorage.mutateMeal(
+            id: replacementID,
+            expected: pastBoundaryReplacement,
+            mutation: .edit(futureBoundaryReplacement),
+            now: now
+        )
+        #expect(futureBoundaryEdit.disposition == .edited)
+        #expect(futureBoundaryEdit.after?.values == futureBoundaryReplacement)
+
+        let pastOutsideReplacement = MealMutationValues(date: oldDate, carbs: 13, fat: 0, protein: 0)
+        do {
+            _ = try await mutationStorage.mutateMeal(
+                id: replacementID,
+                expected: futureBoundaryReplacement,
+                mutation: .edit(pastOutsideReplacement),
+                now: now
+            )
+            Issue.record("A replacement more than 12 hours in the past should be rejected")
+        } catch let error as MealMutationError {
+            #expect(error == .replacementOutsideEditWindow)
+        }
+
+        let futureOutsideReplacement = MealMutationValues(date: futureDate, carbs: 13, fat: 0, protein: 0)
+        do {
+            _ = try await mutationStorage.mutateMeal(
+                id: replacementID,
+                expected: futureBoundaryReplacement,
+                mutation: .edit(futureOutsideReplacement),
+                now: now
+            )
+            Issue.record("A replacement more than 12 hours in the future should be rejected")
+        } catch let error as MealMutationError {
+            #expect(error == .replacementOutsideEditWindow)
+        }
+    }
+
+    @Test(
+        "Concurrent edits serialize so only one stale expectation can commit"
+    ) func testRemoteMealMutationSerializesConcurrentEdits() async throws {
+        let now = Date(timeIntervalSince1970: 1_800_250_000)
+        let mealDate = now.addingTimeInterval(-60 * 60)
+        let rootID = UUID()
+        let original = MealMutationValues(date: mealDate, carbs: 20, fat: 0, protein: 0)
+        let firstReplacement = MealMutationValues(date: mealDate, carbs: 21, fat: 0, protein: 0)
+        let secondReplacement = MealMutationValues(date: mealDate, carbs: 22, fat: 0, protein: 0)
+        try await insertMeal(id: rootID, date: mealDate, carbs: 20, fat: 0, protein: 0, note: nil)
+
+        async let first: MealMutationResult? = try? mutationStorage.mutateMeal(
+            id: rootID,
+            expected: original,
+            mutation: .edit(firstReplacement),
+            now: now
+        )
+        async let second: MealMutationResult? = try? mutationStorage.mutateMeal(
+            id: rootID,
+            expected: original,
+            mutation: .edit(secondReplacement),
+            now: now
+        )
+        let (firstResult, secondResult) = await (first, second)
+        let results = [firstResult, secondResult].compactMap { $0 }
+
+        #expect(results.count == 1)
+        #expect(results.first?.disposition == .edited)
+        let stored = try await loadMeal(id: rootID)
+        #expect(stored.snapshot.values == firstReplacement || stored.snapshot.values == secondReplacement)
+    }
+
+    @Test(
+        "Remote delete removes the root and every generated FPU child"
+    ) func testRemoteMealDeleteRemovesFamily() async throws {
+        let now = Date(timeIntervalSince1970: 1_800_300_000)
+        let mealDate = now.addingTimeInterval(-60 * 60)
+        let rootID = UUID()
+        let fpuID = UUID()
+        let children = [
+            MealFPUEntrySnapshot(id: UUID(), date: mealDate.addingTimeInterval(60 * 60), carbs: 15),
+            MealFPUEntrySnapshot(id: UUID(), date: mealDate.addingTimeInterval(90 * 60), carbs: 15)
+        ]
+        try await insertMeal(
+            id: rootID,
+            date: mealDate,
+            carbs: 35,
+            fat: 30,
+            protein: 20,
+            note: "Delete family",
+            fpuID: fpuID,
+            children: children
+        )
+
+        let result = try await mutationStorage.mutateMeal(
+            id: rootID,
+            expected: MealMutationValues(date: mealDate, carbs: 35, fat: 30, protein: 20),
+            mutation: .delete,
+            now: now
+        )
+
+        #expect(result.disposition == .deleted)
+        #expect(result.after == nil)
+        #expect(Set(result.before.fpuEntries.map(\.id)) == Set(children.map(\.id)))
+        let familyStillExists = try await entriesExist(ids: [rootID] + children.map(\.id))
+        #expect(!familyStillExists)
+    }
+
+    private struct StoredMeal: Sendable {
+        let snapshot: MealMutationSnapshot
+    }
+
+    private func insertMeal(
+        id: UUID,
+        date: Date,
+        carbs: Double,
+        fat: Double,
+        protein: Double,
+        note: String?,
+        fpuID: UUID? = nil,
+        children: [MealFPUEntrySnapshot] = []
+    ) async throws {
+        try await testContext.perform {
+            let root = CarbEntryStored(context: self.testContext)
+            root.id = id
+            root.date = date
+            root.carbs = carbs
+            root.fat = fat
+            root.protein = protein
+            root.note = note
+            root.fpuID = fpuID
+            root.isFPU = false
+            root.isUploadedToNS = true
+            root.isUploadedToHealth = true
+            root.isUploadedToTidepool = true
+
+            for snapshot in children {
+                let child = CarbEntryStored(context: self.testContext)
+                child.id = snapshot.id
+                child.date = snapshot.date
+                child.carbs = Double(truncating: NSDecimalNumber(decimal: snapshot.carbs))
+                child.fat = 0
+                child.protein = 0
+                child.fpuID = fpuID
+                child.isFPU = true
+                child.isUploadedToNS = true
+                child.isUploadedToHealth = true
+                child.isUploadedToTidepool = true
+            }
+            try self.testContext.save()
+        }
+    }
+
+    private func loadMeal(id: UUID) async throws -> StoredMeal {
+        try await testContext.perform {
+            self.testContext.reset()
+            let rootRequest: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+            rootRequest.predicate = NSPredicate(format: "id == %@ AND isFPU == NO", id as CVarArg)
+            guard let root = try self.testContext.fetch(rootRequest).first,
+                  let rootID = root.id,
+                  let rootDate = root.date
+            else {
+                throw TestError("Failed to load stored meal")
+            }
+
+            var children: [CarbEntryStored] = []
+            if let fpuID = root.fpuID {
+                let childRequest: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+                childRequest.predicate = NSPredicate(format: "fpuID == %@ AND isFPU == YES", fpuID as CVarArg)
+                childRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+                children = try self.testContext.fetch(childRequest)
+            }
+
+            let childSnapshots = try children.map { child in
+                guard let childID = child.id, let childDate = child.date else {
+                    throw TestError("Failed to load stored FPU entry")
+                }
+                return MealFPUEntrySnapshot(
+                    id: childID,
+                    date: childDate,
+                    carbs: Decimal(algorithmValue: child.carbs)
+                )
+            }
+            let snapshot = MealMutationSnapshot(
+                id: rootID,
+                fpuID: root.fpuID,
+                values: MealMutationValues(
+                    date: rootDate,
+                    carbs: Decimal(algorithmValue: root.carbs),
+                    fat: Decimal(algorithmValue: root.fat),
+                    protein: Decimal(algorithmValue: root.protein)
+                ),
+                note: root.note,
+                fpuEntries: childSnapshots
+            )
+            return StoredMeal(snapshot: snapshot)
+        }
+    }
+
+    private func entriesExist(ids: [UUID]) async throws -> Bool {
+        try await testContext.perform {
+            self.testContext.reset()
+            let request: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+            request.predicate = NSPredicate(format: "id IN %@", ids)
+            request.fetchLimit = 1
+            return try self.testContext.count(for: request) > 0
+        }
+    }
+
+    private func entriesExist(at date: Date) async throws -> Bool {
+        try await testContext.perform {
+            self.testContext.reset()
+            let request: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+            request.predicate = NSPredicate(
+                format: "date >= %@ AND date <= %@",
+                date.addingTimeInterval(-1) as NSDate,
+                date.addingTimeInterval(1) as NSDate
+            )
+            request.fetchLimit = 1
+            return try self.testContext.count(for: request) > 0
+        }
     }
 }
