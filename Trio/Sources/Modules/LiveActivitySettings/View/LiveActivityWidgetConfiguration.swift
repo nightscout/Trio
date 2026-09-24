@@ -373,11 +373,13 @@ struct LiveActivityWidgetConfiguration: BaseView {
 
     private func currentGlucoseWidePreview(colored: Bool) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
-            (Text("123") + Text("\u{2192}"))
-                .font(.largeTitle)
-                .foregroundStyle(colored ? Color.loopGreen : Color.primary)
+            HStack(alignment: .center) {
+                Text("123").font(.largeTitle)
+                Text("\u{2192}").font(.title2)
+            }
+            .foregroundStyle(colored ? Color.loopGreen : Color.primary)
             Text("+6")
-                .font(.largeTitle)
+                .font(.title2)
                 .foregroundStyle(.primary)
         }
         .fontWeight(.bold)

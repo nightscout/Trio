@@ -147,19 +147,20 @@ struct LiveActivityView: View {
                                  .currentGlucoseWideUncolored:
                                 let wideColor: Color = widgetItem == .currentGlucoseWideUncolored ? .primary : glucoseColor
                                 let wideFont: Font = isWatchOS ? .title : .largeTitle
+                                let secondaryFont: Font = isWatchOS ? .title3 : .title2
                                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                                     LiveActivityBGLabelLargeView(
                                         context: context,
                                         glucoseColor: wideColor,
                                         glucoseFont: wideFont,
-                                        arrowFont: isWatchOS ? .title3 : .title2
+                                        arrowFont: secondaryFont
                                     )
                                     LiveActivityGlucoseDeltaLabelView(
                                         context: context,
                                         glucoseColor: .primary
                                     )
                                     .fontWeight(.bold)
-                                    .font(wideFont)
+                                    .font(secondaryFont)
                                 }
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.6)
