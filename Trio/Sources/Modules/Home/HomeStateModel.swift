@@ -48,6 +48,8 @@ extension Home {
             ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
         var targetProfiles: [TargetProfile] = []
         var timerDate = Date()
+        var alarmsSnoozeUntil: Date = UserDefaults.standard
+            .object(forKey: "UserNotificationsManager.snoozeUntilDate") as? Date ?? .distantPast
         var dosingMode: DosingMode = .open
         var isLooping = false
         var statusTitle = ""
@@ -541,6 +543,7 @@ extension Home {
             broadcaster.register(BGTargetsObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
             broadcaster.register(PumpDeactivatedObserver.self, observer: self)
+            broadcaster.register(SnoozeObserver.self, observer: self)
 
             timer.eventHandler = {
                 DispatchQueue.main.async { [weak self] in
@@ -964,8 +967,13 @@ extension Home.StateModel:
     BasalProfileObserver,
     BGTargetsObserver,
     PumpReservoirObserver,
-    PumpDeactivatedObserver
+    PumpDeactivatedObserver,
+    SnoozeObserver
 {
+    @MainActor func snoozeDidChange(_ untilDate: Date) {
+        alarmsSnoozeUntil = untilDate
+    }
+
     func determinationDidUpdate(_: Determination) {
         waitForSuggestion = false
     }

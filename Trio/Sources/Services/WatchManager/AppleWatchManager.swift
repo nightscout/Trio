@@ -58,6 +58,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
         broadcaster.register(SettingsObserver.self, observer: self)
         broadcaster.register(PumpSettingsObserver.self, observer: self)
+        broadcaster.register(SnoozeObserver.self, observer: self)
 
         // Observer for OrefDetermination and adjustments
         coreDataPublisher =
@@ -207,6 +208,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
             return await context.perform {
                 var watchState = WatchState(date: Date())
+                watchState.snoozeUntilDate = UserDefaults.standard
+                    .object(forKey: "UserNotificationsManager.snoozeUntilDate") as? Date ?? .distantPast
 
                 // Set lastLoopDate
                 let lastLoopMinutes = Int((Date().timeIntervalSince(self.apsManager.lastLoopDate) - 30) / 60) + 1
@@ -546,7 +549,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.confirmBolusFaster: state.confirmBolusFaster,
             WatchMessageKeys.units: state.units.rawValue,
             WatchMessageKeys.showForecastWatch: state.showForecast,
-            WatchMessageKeys.isForecastCone: state.isForecastCone
+            WatchMessageKeys.isForecastCone: state.isForecastCone,
+            WatchMessageKeys.snoozeUntilDate: state.snoozeUntilDate.timeIntervalSince1970
         ]
 
         var forecastData: [String: Any] = [
@@ -1100,6 +1104,16 @@ extension BaseWatchManager: SettingsObserver, PumpSettingsObserver {
         // Skip if no watch is paired or app not installed
         guard let session = self.session, session.isPaired, session.isReachable, session.isWatchAppInstalled else { return }
 
+        Task {
+            let state = await self.setupWatchState()
+            await self.sendDataToWatch(state)
+        }
+    }
+}
+
+extension BaseWatchManager: SnoozeObserver {
+    @MainActor func snoozeDidChange(_: Date) {
+        guard let session = self.session, session.isPaired, session.isReachable, session.isWatchAppInstalled else { return }
         Task {
             let state = await self.setupWatchState()
             await self.sendDataToWatch(state)
