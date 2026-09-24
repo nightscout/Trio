@@ -14,13 +14,10 @@ extension LiveActivitySettings {
         @Published var displayGlucoseForecasts = false
         @Published var simpleFontSize: LiveActivityFontSize = .large
 
-        /// Latest CGM reading (mg/dL), its 5-minute delta and trend, so the Simple widget preview mirrors the real
-        /// Lock Screen widget instead of a canned sample. `nil` until the first reading is loaded / when none is fresh.
         @Published var currentGlucose: Int?
         @Published var currentDelta: Int?
         @Published var currentDirection: BloodGlucose.Direction?
 
-        /// Glucose color scheme the app applies everywhere, used to preview the Simple widget's reading color.
         var glucoseColorScheme: GlucoseColorScheme { settingsManager.settings.glucoseColorScheme }
 
         override func subscribe() {
@@ -38,7 +35,6 @@ extension LiveActivitySettings {
                 .store(in: &lifetime)
         }
 
-        /// Fetches the two most recent glucose readings and publishes the current value, its delta and trend for the preview.
         private func loadCurrentGlucose() {
             Task {
                 let context = CoreDataStack.shared.newTaskContext()

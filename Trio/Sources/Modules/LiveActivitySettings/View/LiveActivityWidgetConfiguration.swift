@@ -10,21 +10,14 @@ struct LiveActivityWidgetConfiguration: BaseView {
 
     @ObservedObject var state: LiveActivitySettings.StateModel
 
-    /// The widgets in the layout, in the order the Live Activity renders them.
-    ///
-    /// Held as an ordered list rather than as fixed slots: a drag is a move within this list, and the four
-    /// slots of the Detailed layout are a capacity budget that `usedSlots` spends.
     @State private var placedItems: [LiveActivityItem] = []
     @State private var glucoseData: [DummyGlucoseData] = []
-    /// Layout position a drag is hovering over, so that position can be highlighted.
     @State private var targetedSlot: Int?
-    /// Whether a drag is hovering over the palette, which takes the widget out of the layout.
     @State private var isPaletteTargeted: Bool = false
 
     @Environment(\.colorScheme) var colorScheme
     @Environment(AppState.self) var appState
 
-    /// The Detailed layout renders four slots. A double-width widget spends two of them.
     private static let slotCount = 4
     private static let slotSize: CGFloat = 50
     private static let slotSpacing: CGFloat = 15
@@ -198,8 +191,6 @@ struct LiveActivityWidgetConfiguration: BaseView {
             .accessibilityLabel(Text("Empty widget slot"))
     }
 
-    /// A widget drawn as it sits in a layout slot. The layout row, the palette and the drag preview all use it, so a
-    /// widget looks the same wherever it appears.
     private func widgetTile(_ item: LiveActivityItem, highlighted: Bool = false) -> some View {
         getItemPreview(for: item)
             .frame(width: previewWidth(for: item), height: Self.slotSize)
@@ -211,8 +202,6 @@ struct LiveActivityWidgetConfiguration: BaseView {
             )
     }
 
-    /// Width of a slot's content. A double-width widget spans two slots, the gap between them, and the padding
-    /// each of those two slots would have had facing that gap, so the row keeps its overall width.
     private func previewWidth(for item: LiveActivityItem) -> CGFloat {
         item.slotWidth > 1
             ? Self.slotSize * 2 + Self.slotSpacing + Self.slotPadding * 2
@@ -221,12 +210,10 @@ struct LiveActivityWidgetConfiguration: BaseView {
 
     // MARK: - Palette
 
-    /// Single-width palette items shown, in order, below the two double-width rows.
     private static let paletteRest: [LiveActivityItem] = [
         .currentGlucoseLarge, .currentGlucoseLargeUncolored, .iob, .cob, .updatedLabel, .totalDailyDose,
     ]
 
-    /// `paletteRest` grouped into rows of three columns.
     private static var paletteRestRows: [[LiveActivityItem]] {
         stride(from: 0, to: paletteRest.count, by: 3).map {
             Array(paletteRest[$0 ..< min($0 + 3, paletteRest.count)])
@@ -240,8 +227,6 @@ struct LiveActivityWidgetConfiguration: BaseView {
                 .foregroundColor(.secondary)
                 .font(.footnote)
 
-            // Three columns: each double-width widget spans two of them and shares its line with the matching
-            // single-width widget, so double-width items actually read as double-width in the palette.
             Grid(alignment: .top, horizontalSpacing: 10, verticalSpacing: 10) {
                 GridRow {
                     paletteCell(.currentGlucoseWideUncolored).gridCellColumns(2)
@@ -376,7 +361,6 @@ struct LiveActivityWidgetConfiguration: BaseView {
         }
     }
 
-    /// - Parameter colored: draw the reading in the glucose color; otherwise the default text color.
     private func currentGlucoseLargePreview(colored: Bool) -> some View {
         HStack(alignment: .center) {
             Text("123")
@@ -387,8 +371,6 @@ struct LiveActivityWidgetConfiguration: BaseView {
         .font(.subheadline)
     }
 
-    /// The double-width item has two slots of room, so its reading is drawn much larger than the single-slot previews.
-    /// - Parameter colored: draw the reading in the glucose color; otherwise the default text color.
     private func currentGlucoseWidePreview(colored: Bool) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             (Text("123") + Text("\u{2192}"))
@@ -403,7 +385,6 @@ struct LiveActivityWidgetConfiguration: BaseView {
         .minimumScaleFactor(0.6)
     }
 
-    /// - Parameter colored: draw the reading and trend in the glucose color; otherwise the default text color.
     private func currentGlucosePreview(colored: Bool) -> some View {
         VStack {
             HStack(alignment: .center) {
@@ -459,8 +440,6 @@ struct LiveActivityWidgetConfiguration: BaseView {
 
     // MARK: - Layout changes
 
-    /// Moves an already-placed widget to `index`, or brings a new one in from the palette there.
-    /// - Returns: Whether the layout changed, which is also whether a drop should be accepted.
     @discardableResult private func place(_ item: LiveActivityItem, at index: Int) -> Bool {
         guard item != .wideContinuation else { return false }
 
@@ -512,8 +491,6 @@ struct LiveActivityWidgetConfiguration: BaseView {
         Foundation.NotificationCenter.default.post(name: .liveActivityOrderDidChange, object: nil)
     }
 
-    /// Expands the ordered layout into the fixed four-slot array the Live Activity reads, following each
-    /// double-width widget with the placeholder that holds its second slot.
     private func slotArray(from items: [LiveActivityItem]) -> [LiveActivityItem?] {
         var slots: [LiveActivityItem?] = []
 
@@ -533,8 +510,6 @@ struct LiveActivityWidgetConfiguration: BaseView {
         return Array(slots.prefix(Self.slotCount))
     }
 
-    /// Reads a saved slot array back into the ordered layout, dropping anything it cannot honour: gaps,
-    /// stranded placeholders, repeats, and widgets that would overrun the four slots.
     private func layoutItems(from slots: [LiveActivityItem?]) -> [LiveActivityItem] {
         var items: [LiveActivityItem] = []
         var used = 0
@@ -573,27 +548,20 @@ extension UserDefaults {
 // Enum to represent each live activity item
 enum LiveActivityItem: String, CaseIterable, Identifiable, Codable, Transferable {
     case currentGlucoseLarge
-    /// Glucose and trend, no delta, in the default text color rather than the glucose color.
     case currentGlucoseLargeUncolored
     case currentGlucose
-    /// Glucose, trend and delta with the reading in the glucose color.
     case currentGlucoseColored
     case currentGlucoseWide
-    /// Double-width glucose, trend and delta in the default text color rather than the glucose color.
     case currentGlucoseWideUncolored
     case iob
     case cob
     case updatedLabel
     case totalDailyDose
-    /// Holds the second slot of the preceding double-width item. Never offered in the palette.
     case wideContinuation
 
     var id: String { rawValue }
 
-    /// Drag payload for moving a widget between the layout and the palette.
-    ///
-    /// Carried as JSON rather than an app-specific exported type, which would have to be declared in
-    /// Info.plist. Anything dropped from outside simply fails to decode, so the drop is refused.
+    /// JSON rather than a custom exported UTType, which would need an Info.plist declaration.
     static var transferRepresentation: some TransferRepresentation {
         CodableRepresentation(contentType: .json)
     }
@@ -602,12 +570,10 @@ enum LiveActivityItem: String, CaseIterable, Identifiable, Codable, Transferable
         [.currentGlucose, .iob, .cob, .updatedLabel]
     }
 
-    /// Items a user can pick, i.e. everything but the internal continuation placeholder.
     static var selectableItems: [LiveActivityItem] {
         allCases.filter { $0 != .wideContinuation }
     }
 
-    /// Number of the four configuration slots this item occupies.
     var slotWidth: Int {
         (self == .currentGlucoseWide || self == .currentGlucoseWideUncolored) ? 2 : 1
     }

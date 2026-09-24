@@ -227,8 +227,6 @@ extension View {
         }
     }
 
-    /// - Parameter verticalPadding: overrides the default top/bottom padding (e.g. 0 so an Extra Large glucose
-    ///   reading can use the full height of the Live Activity).
     @ViewBuilder func addLiveActivityModifiers(isWatchOS: Bool, verticalPadding: CGFloat? = nil) -> some View {
         modifier(LiveActivityModifiers(isWatchOS: isWatchOS, verticalPadding: verticalPadding))
     }

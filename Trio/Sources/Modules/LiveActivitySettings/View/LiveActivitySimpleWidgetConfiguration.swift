@@ -2,10 +2,6 @@ import Foundation
 import SwiftUI
 import Swinject
 
-/// Lets the user tune how the glucose reading is rendered by the Simple Lock Screen Live Activity.
-///
-/// The counterpart for the Detailed style is `LiveActivityWidgetConfiguration`, which configures which data
-/// points that layout shows instead.
 struct LiveActivitySimpleWidgetConfiguration: BaseView {
     let resolver: Resolver
 
@@ -17,7 +13,6 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
     @Environment(\.colorScheme) var colorScheme
     @Environment(AppState.self) var appState
 
-    /// Appearance currently selected in this screen, i.e. what the Live Activity will use.
     private var selectedStyle: LiveActivityAttributes.SimpleViewStyle {
         LiveActivityAttributes.SimpleViewStyle(fontSize: state.simpleFontSize)
     }
@@ -60,8 +55,6 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
         .navigationBarTitleDisplayMode(.automatic)
     }
 
-    /// Mirrors the layout of the Simple Lock Screen Live Activity, showing the real current reading so the preview
-    /// matches what the Lock Screen widget displays right now.
     private var previewCard: some View {
         HStack(spacing: 3) {
             HStack(spacing: 3) {
@@ -123,17 +116,11 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
         return formatter.string(from: Date())
     }
 
-    /// Resolves the preview's reading color the same way the Live Activity does, so the preview stays truthful.
-    ///
-    /// Coloring is not configurable here: it follows the app-wide Glucose Color Scheme, which leaves the Simple
-    /// layout's reading in the default text color while the Static scheme is selected.
     private var previewReadingColor: Color {
         guard state.glucoseColorScheme != .staticColor, let glucose = state.currentGlucose else { return .primary }
 
         let isMgdL = state.units == .mgdL
 
-        // Mirrors LiveActivityView: the dynamic scheme spreads its color shades between hard-coded bounds
-        // rather than the user's own low and high thresholds.
         let hardCodedLow = isMgdL ? Decimal(55) : 55.asMmolL
         let hardCodedHigh = isMgdL ? Decimal(220) : 220.asMmolL
 
@@ -146,7 +133,6 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
         )
     }
 
-    /// Verbose help shown for the Glucose Reading Font section.
     private var fontHintText: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Default: Large").bold()
@@ -159,7 +145,6 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
         }
     }
 
-    /// Mini hint row matching `SettingInputSection`'s, for the Glucose Reading Font section.
     private var hintRow: some View {
         HStack(alignment: .center) {
             Text("Set the size of the glucose reading.")

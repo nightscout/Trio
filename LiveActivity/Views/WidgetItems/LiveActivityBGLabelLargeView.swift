@@ -7,7 +7,6 @@ struct LiveActivityBGLabelLargeView: View {
 
     var context: ActivityViewContext<LiveActivityAttributes>
     var glucoseColor: Color
-    /// Overrides for the double-width item, which has two slots of room; nil = the single-slot sizes.
     var glucoseFont: Font? = nil
     var arrowFont: Font? = nil
 

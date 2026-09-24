@@ -5,7 +5,6 @@ import WidgetKit
 struct LiveActivityBGLabelView: View {
     var context: ActivityViewContext<LiveActivityAttributes>
     var additionalState: LiveActivityAttributes.ContentAdditionalState
-    /// Color of the reading; defaults to the primary text color, the colored variant passes the glucose color.
     var glucoseColor: Color = .primary
 
     var body: some View {

@@ -4,34 +4,25 @@ import Foundation
 struct LiveActivityAttributes: ActivityAttributes {
     enum LiveActivityItem: String, Hashable, Codable, Equatable {
         case currentGlucoseLarge
-        /// Glucose and trend, no delta, in the default text color rather than the glucose color.
         case currentGlucoseLargeUncolored
         case currentGlucose
-        /// Glucose, trend and delta with the reading in the glucose color.
         case currentGlucoseColored
-        /// Glucose, trend arrow and delta on a single line. Occupies two of the four configuration slots.
         case currentGlucoseWide
-        /// Double-width glucose, trend and delta in the default text color rather than the glucose color.
         case currentGlucoseWideUncolored
         case iob
         case cob
         case updatedLabel
         case totalDailyDose
         case empty
-        /// Holds the second slot of the preceding double-width item. Renders nothing.
+        /// Second slot of the preceding double-width item.
         case wideContinuation
 
         static let defaultItems: [Self] = [.currentGlucoseLarge, .iob, .cob, .updatedLabel]
     }
 
-    /// Appearance of the glucose reading in the Simple Lock Screen layout.
-    ///
-    /// Mirrors the user's choices on the Simple style's Widget Configuration screen. The Detailed layout is
-    /// configured through `ContentAdditionalState.widgetItems` instead.
     struct SimpleViewStyle: Codable, Hashable {
         let fontSize: LiveActivityFontSize
 
-        /// Appearance used where no settings are available, such as SwiftUI previews.
         static let `default` = SimpleViewStyle(fontSize: .large)
     }
 

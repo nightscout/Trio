@@ -20,7 +20,6 @@ extension UserDefaults {
 }
 
 extension LiveActivityAttributes.SimpleViewStyle {
-    /// Builds the Simple layout's appearance from the user's Live Activity settings.
     init(settings: TrioSettings) {
         self.init(fontSize: settings.liveActivitySimpleFontSize)
     }
