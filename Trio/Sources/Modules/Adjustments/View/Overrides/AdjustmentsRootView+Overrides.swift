@@ -15,10 +15,8 @@ extension Adjustments.RootView {
 
     var overridePresets: some View {
         Section {
-            // Identify rows by Core Data's own objectID, not the `id` field on OverrideStored --
-            // that field is optional and can be nil (or, in principle, shared) on presets saved
-            // by an older build, and SwiftUI hard-crashes if two rows in a ForEach report the same
-            // (or a nil) id. objectID is always present and always unique per managed object.
+            // objectID instead of the optional `id` field, which can be nil/duplicated and
+            // crashes SwiftUI's ForEach.
             ForEach(state.overridePresets, id: \.objectID) { preset in
                 overridesView(for: preset, showCheckMark: showOverrideCheckmark) {
                     requestOverridePresetActivation(preset)
@@ -155,11 +153,8 @@ extension Adjustments.RootView {
 
         let targetString = target.isEmpty ? "" : "\(target) \(state.units.rawValue)"
 
-        // `Int(_: Decimal)` traps -- not just returns something odd -- if the Decimal is NaN or
-        // outside Int's range. A preset saved with a corrupted duration would otherwise hard-crash
-        // this whole screen every time it's opened. Route through Double (whose isFinite/range
-        // checks are well defined) rather than trust Decimal's own conversion, then fall back to
-        // not showing a duration at all instead of trapping.
+        // Int(_: Decimal) traps on NaN/out-of-range values, so a corrupted preset would crash
+        // this screen on every open. Guard via Double instead.
         let durationString: String = {
             guard !indefinite else { return "" }
             let durationMinutes = NSDecimalNumber(decimal: duration).doubleValue
@@ -203,8 +198,7 @@ extension Adjustments.RootView {
             }
         }()
 
-        // Same trap risk as duration above: `Int(_: Double)` crashes on NaN/infinite/out-of-range,
-        // which a corrupted saved percentage would trigger on every single render of this row.
+        // Same trap risk as duration above.
         let percentageString: String = {
             guard percentage != 100 else { return "" }
             guard percentage.isFinite, percentage.magnitude <= Double(Int.max) else { return "" }
