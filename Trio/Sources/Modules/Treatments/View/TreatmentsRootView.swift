@@ -524,13 +524,10 @@ extension Treatments {
                             state.invokeTreatmentsTask()
                         }
                     } label: {
-                        HStack {
-                            taskButtonLabel
-                        }
-                        .font(.headline)
-                        .foregroundStyle(Color.white)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .frame(height: 35)
+                        taskButtonLabel
+                            .font(.headline)
+                            .foregroundStyle(Color.white)
+                            .frame(maxWidth: .infinity, alignment: .center)
                     }
                     .disabled(disableTaskButton)
                     .listRowBackground(treatmentButtonBackground)
