@@ -88,8 +88,6 @@ import Testing
         #expect(readingDriven == [.high, .low, .urgentLow])
     }
 
-    // Only reading-driven alarms are retracted when a CGM app owns glucose alerts;
-    // forecastedLow and carbsRequired keep their firing state.
     @Test("CGM-owned retraction keeps determination-driven alarms firing") func retractsOnlyReadingDrivenAlarms() {
         let urgentLow = GlucoseAlert(type: .urgentLow)
         let low = GlucoseAlert(type: .low)
@@ -106,7 +104,6 @@ import Testing
         #expect(!result.contains(carbsRequired))
     }
 
-    // A reading-driven alarm that isn't currently firing has nothing to retract.
     @Test("CGM-owned retraction skips reading-driven alarms that are not firing") func skipsNonFiringReadingDrivenAlarms() {
         let low = GlucoseAlert(type: .low)
         let high = GlucoseAlert(type: .high)
@@ -116,7 +113,6 @@ import Testing
         #expect(result == [high])
     }
 
-    // Nothing firing means nothing to retract, regardless of alarm types present.
     @Test("CGM-owned retraction with empty firing set returns nothing") func emptyFiringSetReturnsNothing() {
         let alarms = [GlucoseAlert(type: .urgentLow), GlucoseAlert(type: .low), GlucoseAlert(type: .high)]
 

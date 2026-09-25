@@ -75,11 +75,6 @@ final class GlucoseAlertCoordinator: Injectable {
         }
     }
 
-    /// Alarms to hand off when a CGM app owns glucose alerts. Only the
-    /// reading-driven alarms (low/urgentLow/high) are covered by the CGM app;
-    /// forecast and carbs-required alarms are determination-driven and keep
-    /// their firing state so the next determination doesn't re-fire them.
-    /// Preserves the order of `alarms`. Extracted for unit testing.
     static func alarmsToRetractWhenCGMOwnsAlerts(firing: Set<UUID>, in alarms: [GlucoseAlert]) -> [GlucoseAlert] {
         alarms.filter { firing.contains($0.id) && $0.type.isReadingDriven }
     }
@@ -139,9 +134,6 @@ final class GlucoseAlertCoordinator: Injectable {
     private func evaluateGlucoseAlarms() async {
         guard !isInLaunchQuietWindow else { return }
         guard effectiveTrioAlertsEnabled else {
-            // Only reading-driven alarms are retracted here: the CGM app can't
-            // cover forecast or carbs-required alarms, so those must keep their
-            // firing state across reading updates or they re-fire on every determination.
             retractReadingDrivenFiringAlarms()
             return
         }
