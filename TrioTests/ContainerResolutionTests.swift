@@ -36,6 +36,7 @@ import Testing
         #expect(resolver.resolve(PluginManager.self) != nil)
         #expect(resolver.resolve(AlertPermissionsChecker.self) != nil)
         #expect(resolver.resolve(IOBService.self) != nil)
+        #expect(resolver.resolve(CarbEntryMutationService.self) != nil)
         #expect(resolver.resolve(GlucoseAlertCoordinator.self) != nil)
         #expect(resolver.resolve(NotLoopingMonitor.self) != nil)
         #expect(resolver.resolve(TrioAlertManager.self) != nil)

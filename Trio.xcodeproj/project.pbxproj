@@ -145,6 +145,7 @@
 		38AEE73D25F0200C0013F05B /* TrioSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38AEE73C25F0200C0013F05B /* TrioSettings.swift */; };
 		38AEE75225F022080013F05B /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38AEE75125F022080013F05B /* SettingsManager.swift */; };
 		38AEE75725F0F18E0013F05B /* CarbsStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38AEE75625F0F18E0013F05B /* CarbsStorage.swift */; };
+		E73259BE7A7D1AFB93D6B8DF /* CarbEntryMutationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2F107674CF1D9C0A2A9ACF /* CarbEntryMutationService.swift */; };
 		38B17B6625DD90E0005CAE3D /* SwiftDate in Frameworks */ = {isa = PBXBuildFile; productRef = 38B17B6525DD90E0005CAE3D /* SwiftDate */; };
 		38B4F3AF25E2979F00E76A18 /* IndexedCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B4F3AE25E2979F00E76A18 /* IndexedCollection.swift */; };
 		38B4F3C325E2A20B00E76A18 /* PumpSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B4F3C225E2A20B00E76A18 /* PumpSetupView.swift */; };
@@ -602,6 +603,7 @@
 		BD8FC05B2D6618AF00B95AED /* DeterminationStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC05A2D6618AF00B95AED /* DeterminationStorageTests.swift */; };
 		BD8FC05E2D6618CE00B95AED /* BolusCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC05D2D6618CE00B95AED /* BolusCalculatorTests.swift */; };
 		BD8FC0602D6619DB00B95AED /* CarbsStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC05F2D6619DB00B95AED /* CarbsStorageTests.swift */; };
+		36BDB3927CB9ABFB548ED2B0 /* CarbEntryMutationServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A19B7FC1E8CD873546B563CB /* CarbEntryMutationServiceTests.swift */; };
 		BD8FC0622D6619E600B95AED /* OverrideStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0612D6619E600B95AED /* OverrideStorageTests.swift */; };
 		BD8FC0642D6619EF00B95AED /* TempTargetStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0632D6619EF00B95AED /* TempTargetStorageTests.swift */; };
 		BD8FC0662D661A0000B95AED /* GlucoseStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0652D661A0000B95AED /* GlucoseStorageTests.swift */; };
@@ -680,6 +682,7 @@
 		CE1F6DD92BADF4620064EB8D /* PluginManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */; };
 		DC01A00E2E9F100000000005 /* DeviceCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC01A00D2E9F100000000004 /* DeviceCatalogTests.swift */; };
 		10DAA318F47843A4B894173D /* ContainerResolutionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98546920BB7247B0AC73449A /* ContainerResolutionTests.swift */; };
+		940584C38CB62676214A2107 /* RemoteMealMutationPayloadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AF74BBFE9F7B8CA9187C4DB /* RemoteMealMutationPayloadTests.swift */; };
 		CE1F6DDB2BAE08B60064EB8D /* TidepoolManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1F6DDA2BAE08B60064EB8D /* TidepoolManager.swift */; };
 		CD1235D000000000000000F4 /* TidepoolUploadSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD1235C000000000000000F3 /* TidepoolUploadSerializer.swift */; };
 		CE1F6DE72BAF1A180064EB8D /* BuildDetails.plist in Resources */ = {isa = PBXBuildFile; fileRef = CE1F6DE62BAF1A180064EB8D /* BuildDetails.plist */; };
@@ -793,6 +796,7 @@
 		DD30BA1A2E08AB9F00DA677C /* CarbImpactParams.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA192E08AB9F00DA677C /* CarbImpactParams.swift */; };
 		DD32CF982CC82463003686D6 /* TrioRemoteControl+Bolus.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */; };
 		DD32CF9A2CC8247B003686D6 /* TrioRemoteControl+Meal.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */; };
+		FF0425EA9C0AFF6A6DF0B10D /* TrioRemoteControl+MealMutation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0480CC863D1BBC71668F34B3 /* TrioRemoteControl+MealMutation.swift */; };
 		DD32CF9C2CC82499003686D6 /* TrioRemoteControl+TempTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF9B2CC82495003686D6 /* TrioRemoteControl+TempTarget.swift */; };
 		DD32CF9E2CC824C5003686D6 /* TrioRemoteControl+Override.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF9D2CC824C2003686D6 /* TrioRemoteControl+Override.swift */; };
 		DD32CFA02CC824D6003686D6 /* TrioRemoteControl+APNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF9F2CC824D3003686D6 /* TrioRemoteControl+APNS.swift */; };
@@ -1255,6 +1259,7 @@
 		38AEE73C25F0200C0013F05B /* TrioSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioSettings.swift; sourceTree = "<group>"; };
 		38AEE75125F022080013F05B /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
 		38AEE75625F0F18E0013F05B /* CarbsStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbsStorage.swift; sourceTree = "<group>"; };
+		3A2F107674CF1D9C0A2A9ACF /* CarbEntryMutationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbEntryMutationService.swift; sourceTree = "<group>"; };
 		38B4F3AE25E2979F00E76A18 /* IndexedCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexedCollection.swift; sourceTree = "<group>"; };
 		38B4F3C225E2A20B00E76A18 /* PumpSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpSetupView.swift; sourceTree = "<group>"; };
 		38B4F3C525E5017E00E76A18 /* NotificationCenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationCenter.swift; sourceTree = "<group>"; };
@@ -1683,6 +1688,7 @@
 		BD8FC05A2D6618AF00B95AED /* DeterminationStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterminationStorageTests.swift; sourceTree = "<group>"; };
 		BD8FC05D2D6618CE00B95AED /* BolusCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorTests.swift; sourceTree = "<group>"; };
 		BD8FC05F2D6619DB00B95AED /* CarbsStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbsStorageTests.swift; sourceTree = "<group>"; };
+		A19B7FC1E8CD873546B563CB /* CarbEntryMutationServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbEntryMutationServiceTests.swift; sourceTree = "<group>"; };
 		BD8FC0612D6619E600B95AED /* OverrideStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideStorageTests.swift; sourceTree = "<group>"; };
 		BD8FC0632D6619EF00B95AED /* TempTargetStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetStorageTests.swift; sourceTree = "<group>"; };
 		BD8FC0652D661A0000B95AED /* GlucoseStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseStorageTests.swift; sourceTree = "<group>"; };
@@ -1767,6 +1773,7 @@
 		CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginManagerTests.swift; sourceTree = "<group>"; };
 		DC01A00D2E9F100000000004 /* DeviceCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceCatalogTests.swift; sourceTree = "<group>"; };
 		98546920BB7247B0AC73449A /* ContainerResolutionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerResolutionTests.swift; sourceTree = "<group>"; };
+		7AF74BBFE9F7B8CA9187C4DB /* RemoteMealMutationPayloadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteMealMutationPayloadTests.swift; sourceTree = "<group>"; };
 		CE1F6DDA2BAE08B60064EB8D /* TidepoolManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TidepoolManager.swift; sourceTree = "<group>"; };
 		CD1235C000000000000000F3 /* TidepoolUploadSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TidepoolUploadSerializer.swift; sourceTree = "<group>"; };
 		CE1F6DE62BAF1A180064EB8D /* BuildDetails.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = BuildDetails.plist; sourceTree = "<group>"; };
@@ -1883,6 +1890,7 @@
 		DD30BA192E08AB9F00DA677C /* CarbImpactParams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbImpactParams.swift; sourceTree = "<group>"; };
 		DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Bolus.swift"; sourceTree = "<group>"; };
 		DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Meal.swift"; sourceTree = "<group>"; };
+		0480CC863D1BBC71668F34B3 /* TrioRemoteControl+MealMutation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+MealMutation.swift"; sourceTree = "<group>"; };
 		DD32CF9B2CC82495003686D6 /* TrioRemoteControl+TempTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+TempTarget.swift"; sourceTree = "<group>"; };
 		DD32CF9D2CC824C2003686D6 /* TrioRemoteControl+Override.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Override.swift"; sourceTree = "<group>"; };
 		DD32CF9F2CC824D3003686D6 /* TrioRemoteControl+APNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+APNS.swift"; sourceTree = "<group>"; };
@@ -3055,6 +3063,7 @@
 			isa = PBXGroup;
 			children = (
 				38AEE75625F0F18E0013F05B /* CarbsStorage.swift */,
+				3A2F107674CF1D9C0A2A9ACF /* CarbEntryMutationService.swift */,
 				DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */,
 				38A0363A25ECF07E00FCBB52 /* GlucoseStorage.swift */,
 				38FCF3FC25E997A80078B0D1 /* PumpHistoryStorage.swift */,
@@ -3227,6 +3236,7 @@
 				CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */,
 				DC01A00D2E9F100000000004 /* DeviceCatalogTests.swift */,
 				98546920BB7247B0AC73449A /* ContainerResolutionTests.swift */,
+				7AF74BBFE9F7B8CA9187C4DB /* RemoteMealMutationPayloadTests.swift */,
 				3B5CD2C72D4AECD500CE213C /* OpenAPSSwiftTests */,
 				B3919BBB515547118D684CA2 /* SettingsSearchTests.swift */,
 				B3919BBB515547118D684CF2 /* AlgorithmSuggestedBolusTests.swift */,
@@ -3901,6 +3911,7 @@
 				BD8FC0582D66189700B95AED /* TestAssembly.swift */,
 				BD8FC05A2D6618AF00B95AED /* DeterminationStorageTests.swift */,
 				BD8FC05F2D6619DB00B95AED /* CarbsStorageTests.swift */,
+				A19B7FC1E8CD873546B563CB /* CarbEntryMutationServiceTests.swift */,
 				BD8FC0612D6619E600B95AED /* OverrideStorageTests.swift */,
 				BD8FC0632D6619EF00B95AED /* TempTargetStorageTests.swift */,
 				BD8FC0652D661A0000B95AED /* GlucoseStorageTests.swift */,
@@ -4461,6 +4472,7 @@
 				DD32CF9D2CC824C2003686D6 /* TrioRemoteControl+Override.swift */,
 				DD32CF9B2CC82495003686D6 /* TrioRemoteControl+TempTarget.swift */,
 				DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */,
+				0480CC863D1BBC71668F34B3 /* TrioRemoteControl+MealMutation.swift */,
 				DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */,
 				DD9ECB672CA99F4500AA7C45 /* TrioRemoteControl.swift */,
 			);
@@ -5240,6 +5252,7 @@
 				1967DFC229D053D300759F30 /* IconImage.swift in Sources */,
 				382C134B25F14E3700715CE1 /* BGTargets.swift in Sources */,
 				38AEE75725F0F18E0013F05B /* CarbsStorage.swift in Sources */,
+				E73259BE7A7D1AFB93D6B8DF /* CarbEntryMutationService.swift in Sources */,
 				38B4F3CA25E502E200E76A18 /* SwiftNotificationCenter.swift in Sources */,
 				38AEE75225F022080013F05B /* SettingsManager.swift in Sources */,
 				3894873A2614928B004DF424 /* DispatchTimer.swift in Sources */,
@@ -5353,6 +5366,7 @@
 				BD249D942D42FC5E00412DEB /* TotalDailyDoseChart.swift in Sources */,
 				BD249D902D42FC4500412DEB /* MealStatsView.swift in Sources */,
 				DD32CF9A2CC8247B003686D6 /* TrioRemoteControl+Meal.swift in Sources */,
+				FF0425EA9C0AFF6A6DF0B10D /* TrioRemoteControl+MealMutation.swift in Sources */,
 				BDF34F832C10C5B600D51995 /* DataManager.swift in Sources */,
 				38B4F3C625E5017E00E76A18 /* NotificationCenter.swift in Sources */,
 				19D466A729AA2C22004D5F33 /* MealSettingsStateModel.swift in Sources */,
@@ -5997,6 +6011,7 @@
 				CE1F6DD92BADF4620064EB8D /* PluginManagerTests.swift in Sources */,
 				DC01A00E2E9F100000000005 /* DeviceCatalogTests.swift in Sources */,
 				10DAA318F47843A4B894173D /* ContainerResolutionTests.swift in Sources */,
+				940584C38CB62676214A2107 /* RemoteMealMutationPayloadTests.swift in Sources */,
 				3B1C5C432D68E269004E9273 /* Extensions.swift in Sources */,
 				3BC26E552D7418830066ACD6 /* IobSuspendTests.swift in Sources */,
 				DD758EDE2ECC656500EF5D54 /* DetermineBasalSmbMicroBolusTests.swift in Sources */,
@@ -6035,6 +6050,7 @@
 				3B8221B22E5882E300585156 /* DetermineBasalEarlyExitTests.swift in Sources */,
 				3BA643EA2ED9FAD8007BC31F /* DetermineBasalAggressiveDosingTests.swift in Sources */,
 				BD8FC0602D6619DB00B95AED /* CarbsStorageTests.swift in Sources */,
+				36BDB3927CB9ABFB548ED2B0 /* CarbEntryMutationServiceTests.swift in Sources */,
 				DD30BA002E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift in Sources */,
 				BD8FC05E2D6618CE00B95AED /* BolusCalculatorTests.swift in Sources */,
 				41740E936552456AAC0EDAC3 /* SettingsSearchTests.swift in Sources */,
