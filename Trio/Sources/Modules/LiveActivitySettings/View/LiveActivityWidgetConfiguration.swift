@@ -227,7 +227,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
                 .foregroundColor(.secondary)
                 .font(.footnote)
 
-            Grid(alignment: .top, horizontalSpacing: 10, verticalSpacing: 10) {
+            Grid(alignment: .top, horizontalSpacing: 16, verticalSpacing: 14) {
                 GridRow {
                     paletteCell(.currentGlucoseWideUncolored).gridCellColumns(2)
                     paletteCell(.currentGlucose)
@@ -262,16 +262,16 @@ struct LiveActivityWidgetConfiguration: BaseView {
         let canPlace = !isPlaced && freeSlots >= item.slotWidth
         let unavailableReason: LocalizedStringKey = isPlaced ? "Already in the layout" : "Not enough room"
 
-        let cell = VStack(spacing: 6) {
+        let cell = VStack(alignment: .leading, spacing: 6) {
             widgetTile(item)
 
             Text(item.displayName)
                 .font(.caption2)
-                .multilineTextAlignment(.center)
+                .multilineTextAlignment(.leading)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
         .opacity(canPlace ? 1 : 0.4)
 
         if canPlace {
