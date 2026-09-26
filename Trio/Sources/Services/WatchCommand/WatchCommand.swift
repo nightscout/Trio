@@ -95,6 +95,17 @@ struct WatchCommandResult: Equatable {
 struct WatchCommandPresets: Equatable {
     let overridePresets: [OverridePresetWatch]
     let tempTargetPresets: [TempTargetPresetWatch]
+    var capabilities = WatchCommandCapabilities()
+}
+
+/// Switches and limits the watch uses to offer only what the phone would accept; the phone still
+/// enforces every one of them. The defaults describe a phone that accepts nothing.
+struct WatchCommandCapabilities: Equatable {
+    var isCommandControlEnabled = false
+    var isBolusCommandEnabled = false
+    var maxBolus: Decimal = 0
+    var maxCarbs: Decimal = 0
+    var bolusIncrement: Decimal = 0
 }
 
 /// An adjustment preset as the watch names it, plus the reference that activates exactly that row.

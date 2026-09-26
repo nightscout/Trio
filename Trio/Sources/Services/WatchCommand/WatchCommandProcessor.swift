@@ -7,7 +7,8 @@ protocol WatchCommandProcessor {
     /// a duplicate gets the cached result back without executing again.
     func process(_ request: WatchCommandRequest) async -> WatchCommandResult
 
-    /// Override and temp target presets, sorted by display name.
+    /// Override and temp target presets, sorted by display name, with the current command switches
+    /// and limits.
     func presets() async throws -> WatchCommandPresets
 }
 
@@ -157,7 +158,21 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
 
         return try await WatchCommandPresets(
             overridePresets: sortedByName(overrides).map { OverridePresetWatch(name: $0.name, isEnabled: $0.isActive) },
-            tempTargetPresets: sortedByName(tempTargets).map { TempTargetPresetWatch(name: $0.name, isEnabled: $0.isActive) }
+            tempTargetPresets: sortedByName(tempTargets).map { TempTargetPresetWatch(name: $0.name, isEnabled: $0.isActive) },
+            capabilities: capabilities()
+        )
+    }
+
+    /// Same sources as the Apple Watch state, read at call time so a switch turned off is reported
+    /// off in the very next reply.
+    private func capabilities() -> WatchCommandCapabilities {
+        let settings = settingsManager.settings
+        return WatchCommandCapabilities(
+            isCommandControlEnabled: settings.isGarminCommandControlEnabled,
+            isBolusCommandEnabled: settings.isGarminBolusCommandEnabled,
+            maxBolus: settingsManager.pumpSettings.maxBolus,
+            maxCarbs: settings.maxCarbs,
+            bolusIncrement: settingsManager.preferences.bolusIncrement
         )
     }
 

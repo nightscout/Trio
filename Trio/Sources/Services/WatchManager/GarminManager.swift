@@ -189,6 +189,9 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Track previous Garmin settings to detect what specifically changed
     private var previousGarminSettings = GarminWatchSettings()
 
+    /// Max carbs at the last settings notification; the complication caps its carbs picker with it.
+    private var previousMaxCarbs: Decimal = 0
+
     /// Revocation epoch at the last settings notification; a newer one means a command setting was
     /// switched off since, even if the notification's settings show it back on.
     private var lastSeenCommandRevocation: UInt64 = 0
@@ -258,6 +261,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
         units = settingsManager.settings.units
         glucoseColorScheme = settingsManager.settings.glucoseColorScheme
         previousGarminSettings = settingsManager.settings.garminSettings
+        previousMaxCarbs = settingsManager.settings.maxCarbs
         lastSeenCommandRevocation = watchCommandAuthorization.current
 
         broadcaster.register(SettingsObserver.self, observer: self)
@@ -1232,6 +1236,8 @@ extension BaseGarminManager: SettingsObserver {
             currentGarminSettings.isBolusCommandEnabled != previousGarminSettings.isBolusCommandEnabled ||
             commandRevocation != lastSeenCommandRevocation
         lastSeenCommandRevocation = commandRevocation
+        let maxCarbsChanged = settingsManager.settings.maxCarbs != previousMaxCarbs
+        previousMaxCarbs = settingsManager.settings.maxCarbs
 
         // Update stored values
         units = currentUnits
@@ -1264,6 +1270,12 @@ extension BaseGarminManager: SettingsObserver {
                 debug(.watchManager, "Garmin: Settings changed - scheduling throttled update")
             }
             sendSettingsUpdateThrottled()
+        }
+
+        // the complication builds its menu and pickers from these, so it gets them without asking;
+        // max bolus and bolus increment live outside TrioSettings and reach it on the next app open
+        if commandSettingsChanged || maxCarbsChanged {
+            pushPresetsToComplications(triggeredBy: "CommandSettings")
         }
 
         // Store current Garmin settings for next comparison

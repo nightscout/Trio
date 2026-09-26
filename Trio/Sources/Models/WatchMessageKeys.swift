@@ -73,4 +73,6 @@ enum WatchMessageKeys {
     static let mealBolus = "mealBolus"
     static let presetName = "name"
     static let presetIsEnabled = "isEnabled"
+    static let isCommandControlEnabled = "isCommandControlEnabled"
+    static let isBolusCommandEnabled = "isBolusCommandEnabled"
 }

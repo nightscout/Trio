@@ -84,9 +84,11 @@ enum GarminCommandEnvelope {
     }
 
     /// Lists every configured preset; `isEnabled` reports whether it is running now, not whether
-    /// the watch may activate it.
+    /// the watch may activate it. The switches and limits let the watch hide what the phone would
+    /// refuse; amounts go out as doubles in U and g.
     static func presetsResponse(_ presets: WatchCommandPresets) -> [String: Any] {
-        [
+        let capabilities = presets.capabilities
+        return [
             WatchMessageKeys.protocolVersion: protocolVersion,
             WatchMessageKeys.request: Request.presets.rawValue,
             WatchMessageKeys.overridePresets: presets.overridePresets.map {
@@ -94,7 +96,12 @@ enum GarminCommandEnvelope {
             },
             WatchMessageKeys.tempTargetPresets: presets.tempTargetPresets.map {
                 [WatchMessageKeys.presetName: $0.name, WatchMessageKeys.presetIsEnabled: $0.isEnabled] as [String: Any]
-            }
+            },
+            WatchMessageKeys.isCommandControlEnabled: capabilities.isCommandControlEnabled,
+            WatchMessageKeys.isBolusCommandEnabled: capabilities.isBolusCommandEnabled,
+            WatchMessageKeys.maxBolus: NSDecimalNumber(decimal: capabilities.maxBolus).doubleValue,
+            WatchMessageKeys.maxCarbs: NSDecimalNumber(decimal: capabilities.maxCarbs).doubleValue,
+            WatchMessageKeys.bolusIncrement: NSDecimalNumber(decimal: capabilities.bolusIncrement).doubleValue
         ]
     }
 

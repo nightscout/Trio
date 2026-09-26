@@ -397,6 +397,26 @@ import Testing
         #expect(try await processor.presets().overridePresets.count == 1)
     }
 
+    @Test("Presets carry the command switches and limits as they are at call time") func testPresetsCapabilities(
+    ) async throws {
+        settings.settings.isGarminCommandControlEnabled = true
+        settings.settings.isGarminBolusCommandEnabled = true
+        settings.settings.maxCarbs = 120
+        settings.pumpSettings = PumpSettings(insulinActionCurve: 10, maxBolus: 5, maxBasal: 2)
+        settings.preferences.bolusIncrement = 0.1
+
+        #expect(try await processor.presets().capabilities == WatchCommandCapabilities(
+            isCommandControlEnabled: true,
+            isBolusCommandEnabled: true,
+            maxBolus: 5,
+            maxCarbs: 120,
+            bolusIncrement: 0.1
+        ))
+
+        settings.settings.isGarminCommandControlEnabled = false
+        #expect(try await processor.presets().capabilities.isCommandControlEnabled == false)
+    }
+
     // MARK: - Revocation
 
     @Test(

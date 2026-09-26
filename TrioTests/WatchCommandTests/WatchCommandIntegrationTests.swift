@@ -368,6 +368,20 @@ final class SpyConnectIQClient: GarminConnectIQClient, @unchecked Sendable {
         #expect(processor.processed.isEmpty)
     }
 
+    @Test("Command switch and max carbs changes push presets to Complication apps only") func testSettingsPushPresets() async {
+        settings.settings.garminSettings.isBolusCommandEnabled = true
+
+        #expect(await eventually { self.sent("presets").count == 2 })
+        #expect(sent("presets").allSatisfy { $0.appUUID == complicationUUID })
+
+        settings.settings.maxCarbs = 99
+        #expect(await eventually { self.sent("presets").count == 4 })
+
+        settings.settings.garminSettings.primaryAttributeChoice = .isf
+        try? await Task.sleep(nanoseconds: 200_000_000)
+        #expect(sent("presets").count == 4, "Display settings do not push presets")
+    }
+
     @Test("A message from an unregistered device is ignored") func testUnregisteredDevice() async throws {
         let stranger = try #require(IQDevice(id: UUID(), modelName: "fenix 8", friendlyName: "C"))
         manager.receivedMessage(

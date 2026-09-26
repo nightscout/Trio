@@ -204,14 +204,30 @@ import Testing
         let processor = SpyWatchCommandProcessor()
         processor.presetsResult = WatchCommandPresets(
             overridePresets: [OverridePresetWatch(name: "Sport", isEnabled: true)],
-            tempTargetPresets: [TempTargetPresetWatch(name: "Walk", isEnabled: false)]
+            tempTargetPresets: [TempTargetPresetWatch(name: "Walk", isEnabled: false)],
+            capabilities: WatchCommandCapabilities(
+                isCommandControlEnabled: true,
+                isBolusCommandEnabled: false,
+                maxBolus: 5,
+                maxCarbs: 120,
+                bolusIncrement: 0.05
+            )
         )
         let router = GarminCommandRouter(processor: processor)
 
         let outcome = await router.route(["v": 1, "req": "presets"], from: appUUID, isRegistered: true, appName: "test")
 
         let reply = try #require(outcome.reply)
-        #expect(Set(reply.keys) == ["v", "req", "overridePresets", "tempTargetPresets"])
+        #expect(Set(reply.keys) == [
+            "v", "req", "overridePresets", "tempTargetPresets",
+            "isCommandControlEnabled", "isBolusCommandEnabled", "maxBolus", "maxCarbs", "bolusIncrement"
+        ])
+        #expect(reply["isCommandControlEnabled"] as? Bool == true)
+        #expect(reply["isBolusCommandEnabled"] as? Bool == false)
+        #expect(reply["maxBolus"] as? Double == 5)
+        #expect(reply["maxCarbs"] as? Double == 120)
+        // a Decimal float literal is not exact, so compare with a tolerance
+        #expect(abs((reply["bolusIncrement"] as? Double ?? 0) - 0.05) < 1e-9)
         #expect(reply["req"] as? String == "presets")
         let overrides = try #require(reply["overridePresets"] as? [[String: Any]])
         #expect(overrides.first?["name"] as? String == "Sport")
