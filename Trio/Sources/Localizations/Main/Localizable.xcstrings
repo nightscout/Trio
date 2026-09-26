@@ -244738,6 +244738,9 @@
         }
       }
     },
+    "Pump UI" : {
+      "comment" : "Bolus programmed on the pump itself"
+    },
     "Purple = Above Range" : {
       "localizations" : {
         "bg" : {

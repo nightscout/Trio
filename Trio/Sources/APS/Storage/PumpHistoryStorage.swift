@@ -155,6 +155,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         toIncrement: Double(self.settings.preferences.bolusIncrement)
                     ))
                     newBolusEntry.isExternal = dose.manuallyEntered
+                    newBolusEntry.isPumpUI = dose.wasProgrammedByPumpUI
                     newBolusEntry.isSMB = dose.automatic ?? true
 
                 case .tempBasal:
@@ -256,6 +257,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 bolus.amount = finalAmount as NSDecimalNumber
             }
             bolus.isSMB = dose.automatic ?? true
+            bolus.isPumpUI = dose.wasProgrammedByPumpUI
             event.isMutable = dose.isMutable
             if event.isUploadedToNS, bolus.amount != previousAmount {
                 event.isUploadedToNS = false

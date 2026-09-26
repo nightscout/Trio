@@ -62,6 +62,10 @@ extension History.RootView {
                 if bolus.isExternal {
                     Text(String(localized: "External", comment: "External Insulin")).foregroundColor(.secondary)
                 }
+                if bolus.isPumpUI {
+                    Text(String(localized: "Pump UI", comment: "Bolus programmed on the pump itself"))
+                        .foregroundColor(.secondary)
+                }
             } else if let tempBasal = item.tempBasal, let rate = tempBasal.rate {
                 Image(systemName: "circle.fill").foregroundColor(Color.insulin.opacity(0.4))
                 Text(
