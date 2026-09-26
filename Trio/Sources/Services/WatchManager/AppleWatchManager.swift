@@ -1168,5 +1168,7 @@ extension BaseWatchManager {
         case tempTargetStopped = "temp_target_stopped"
         case genericSuccess = "success"
         case genericFailure = "failure"
+        /// Meal logged but its bolus was not delivered.
+        case partialFailure = "partial_failure"
     }
 }

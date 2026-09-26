@@ -131,4 +131,42 @@ struct GarminWatchSettings: Codable, Hashable {
     var primaryAttributeChoice: GarminPrimaryAttributeChoice = .cob
     var secondaryAttributeChoice: GarminSecondaryAttributeChoice = .tbr
     var isWatchfaceDataEnabled: Bool = false
+    /// Master switch for state-changing watch commands; status and preset reads ignore it.
+    var isCommandControlEnabled: Bool = false
+    /// Allows bolus and meal+bolus commands; only effective while `isCommandControlEnabled` is on.
+    var isBolusCommandEnabled: Bool = false
+}
+
+extension GarminWatchSettings {
+    /// Keys missing from settings written by older versions keep their defaults, so commands stay off.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init()
+        if let watchface = try? container.decode(GarminWatchface.self, forKey: .watchface) {
+            self.watchface = watchface
+        }
+        if let datafield = try? container.decode(GarminDatafield.self, forKey: .datafield) {
+            self.datafield = datafield
+        }
+        if let primaryAttributeChoice = try? container
+            .decode(GarminPrimaryAttributeChoice.self, forKey: .primaryAttributeChoice)
+        {
+            self.primaryAttributeChoice = primaryAttributeChoice
+        }
+        if let secondaryAttributeChoice = try? container.decode(
+            GarminSecondaryAttributeChoice.self,
+            forKey: .secondaryAttributeChoice
+        ) {
+            self.secondaryAttributeChoice = secondaryAttributeChoice
+        }
+        if let isWatchfaceDataEnabled = try? container.decode(Bool.self, forKey: .isWatchfaceDataEnabled) {
+            self.isWatchfaceDataEnabled = isWatchfaceDataEnabled
+        }
+        if let isCommandControlEnabled = try? container.decode(Bool.self, forKey: .isCommandControlEnabled) {
+            self.isCommandControlEnabled = isCommandControlEnabled
+        }
+        if let isBolusCommandEnabled = try? container.decode(Bool.self, forKey: .isBolusCommandEnabled) {
+            self.isBolusCommandEnabled = isBolusCommandEnabled
+        }
+    }
 }

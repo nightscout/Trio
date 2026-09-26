@@ -699,6 +699,16 @@
 		CE7CA3582A064E2F004BE681 /* ListStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CA3572A064E2F004BE681 /* ListStateView.swift */; };
 		CE82E02528E867BA00473A9C /* AlertStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE82E02428E867BA00473A9C /* AlertStorage.swift */; };
 		CE94597E29E9E1EE0047C9C6 /* GarminManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94597D29E9E1EE0047C9C6 /* GarminManager.swift */; };
+		9A3C0DE10000000000000B01 /* WatchCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3C0DE10000000000000A01 /* WatchCommand.swift */; };
+		9A3C0DE10000000000000B02 /* WatchCommandRequestCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3C0DE10000000000000A02 /* WatchCommandRequestCache.swift */; };
+		9A3C0DE10000000000000B03 /* WatchCommandActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3C0DE10000000000000A03 /* WatchCommandActions.swift */; };
+		9A3C0DE10000000000000B04 /* WatchCommandProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3C0DE10000000000000A04 /* WatchCommandProcessor.swift */; };
+		9A3C0DE10000000000000B05 /* GarminCommandRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3C0DE10000000000000A05 /* GarminCommandRouter.swift */; };
+		9A3C0DE10000000000000B06 /* WatchCommandTestDoubles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3C0DE10000000000000A06 /* WatchCommandTestDoubles.swift */; };
+		9A3C0DE10000000000000B07 /* WatchCommandRequestCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3C0DE10000000000000A07 /* WatchCommandRequestCacheTests.swift */; };
+		9A3C0DE10000000000000B08 /* WatchCommandProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3C0DE10000000000000A08 /* WatchCommandProcessorTests.swift */; };
+		9A3C0DE10000000000000B09 /* GarminCommandRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3C0DE10000000000000A09 /* GarminCommandRouterTests.swift */; };
+		9A3C0DE10000000000000B0A /* WatchCommandIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3C0DE10000000000000A0A /* WatchCommandIntegrationTests.swift */; };
 		CE94598029E9E3BD0047C9C6 /* WatchConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94597F29E9E3BD0047C9C6 /* WatchConfigDataFlow.swift */; };
 		CE94598229E9E3D30047C9C6 /* WatchConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94598129E9E3D30047C9C6 /* WatchConfigProvider.swift */; };
 		CE94598429E9E3E60047C9C6 /* WatchConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94598329E9E3E60047C9C6 /* WatchConfigStateModel.swift */; };
@@ -1795,6 +1805,16 @@
 		CE82E02428E867BA00473A9C /* AlertStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertStorage.swift; sourceTree = "<group>"; };
 		CE94597929E9DF7B0047C9C6 /* ConnectIQ.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ConnectIQ.framework; path = "Dependencies/ios-armv7_arm64/ConnectIQ.framework"; sourceTree = "<group>"; };
 		CE94597D29E9E1EE0047C9C6 /* GarminManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminManager.swift; sourceTree = "<group>"; };
+		9A3C0DE10000000000000A01 /* WatchCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCommand.swift; sourceTree = "<group>"; };
+		9A3C0DE10000000000000A02 /* WatchCommandRequestCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCommandRequestCache.swift; sourceTree = "<group>"; };
+		9A3C0DE10000000000000A03 /* WatchCommandActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCommandActions.swift; sourceTree = "<group>"; };
+		9A3C0DE10000000000000A04 /* WatchCommandProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCommandProcessor.swift; sourceTree = "<group>"; };
+		9A3C0DE10000000000000A05 /* GarminCommandRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminCommandRouter.swift; sourceTree = "<group>"; };
+		9A3C0DE10000000000000A06 /* WatchCommandTestDoubles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCommandTestDoubles.swift; sourceTree = "<group>"; };
+		9A3C0DE10000000000000A07 /* WatchCommandRequestCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCommandRequestCacheTests.swift; sourceTree = "<group>"; };
+		9A3C0DE10000000000000A08 /* WatchCommandProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCommandProcessorTests.swift; sourceTree = "<group>"; };
+		9A3C0DE10000000000000A09 /* GarminCommandRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminCommandRouterTests.swift; sourceTree = "<group>"; };
+		9A3C0DE10000000000000A0A /* WatchCommandIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCommandIntegrationTests.swift; sourceTree = "<group>"; };
 		CE94597F29E9E3BD0047C9C6 /* WatchConfigDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigDataFlow.swift; sourceTree = "<group>"; };
 		CE94598129E9E3D30047C9C6 /* WatchConfigProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigProvider.swift; sourceTree = "<group>"; };
 		CE94598329E9E3E60047C9C6 /* WatchConfigStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigStateModel.swift; sourceTree = "<group>"; };
@@ -2596,6 +2616,7 @@
 				DD7E1E30000000000000000A /* Telemetry */,
 				3811DEA525C9D88300A708ED /* UnlockManager */,
 				38E87406274F9AA500975559 /* UserNotifications */,
+				9A3C0DE10000000000000C01 /* WatchCommand */,
 				38E8754D275556E100975559 /* WatchManager */,
 			);
 			path = Services;
@@ -3149,6 +3170,7 @@
 			isa = PBXGroup;
 			children = (
 				BDA25EE32D260CCF00035F34 /* AppleWatchManager.swift */,
+				9A3C0DE10000000000000A05 /* GarminCommandRouter.swift */,
 				CE94597D29E9E1EE0047C9C6 /* GarminManager.swift */,
 			);
 			path = WatchManager;
@@ -3197,6 +3219,7 @@
 				B015AFF62E600000000D7351 /* AdjustmentsTests */,
 				B015AFE62E500000000D7351 /* BolusSafetyTests */,
 				BD8FC0552D66187700B95AED /* CoreDataTests */,
+				9A3C0DE10000000000000C02 /* WatchCommandTests */,
 				38FCF3F125E9028E0078B0D1 /* Info.plist */,
 				CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */,
 				CA02000000000000000010C1 /* DeliveryLimitsSyncTests.swift */,
@@ -3604,6 +3627,29 @@
 				B015AFF42E600000000D7351 /* AdjustmentManagerTests.swift */,
 			);
 			path = AdjustmentsTests;
+			sourceTree = "<group>";
+		};
+		9A3C0DE10000000000000C01 /* WatchCommand */ = {
+			isa = PBXGroup;
+			children = (
+				9A3C0DE10000000000000A01 /* WatchCommand.swift */,
+				9A3C0DE10000000000000A02 /* WatchCommandRequestCache.swift */,
+				9A3C0DE10000000000000A03 /* WatchCommandActions.swift */,
+				9A3C0DE10000000000000A04 /* WatchCommandProcessor.swift */,
+			);
+			path = WatchCommand;
+			sourceTree = "<group>";
+		};
+		9A3C0DE10000000000000C02 /* WatchCommandTests */ = {
+			isa = PBXGroup;
+			children = (
+				9A3C0DE10000000000000A06 /* WatchCommandTestDoubles.swift */,
+				9A3C0DE10000000000000A07 /* WatchCommandRequestCacheTests.swift */,
+				9A3C0DE10000000000000A08 /* WatchCommandProcessorTests.swift */,
+				9A3C0DE10000000000000A09 /* GarminCommandRouterTests.swift */,
+				9A3C0DE10000000000000A0A /* WatchCommandIntegrationTests.swift */,
+			);
+			path = WatchCommandTests;
 			sourceTree = "<group>";
 		};
 		B015AFE22E500000000D7351 /* BolusSafety */ = {
@@ -5283,6 +5329,11 @@
 				E00EEC0527368630002FF094 /* StorageAssembly.swift in Sources */,
 				DD1745552C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift in Sources */,
 				CE94597E29E9E1EE0047C9C6 /* GarminManager.swift in Sources */,
+				9A3C0DE10000000000000B01 /* WatchCommand.swift in Sources */,
+				9A3C0DE10000000000000B02 /* WatchCommandRequestCache.swift in Sources */,
+				9A3C0DE10000000000000B03 /* WatchCommandActions.swift in Sources */,
+				9A3C0DE10000000000000B04 /* WatchCommandProcessor.swift in Sources */,
+				9A3C0DE10000000000000B05 /* GarminCommandRouter.swift in Sources */,
 				3883583425EEB38000E024B2 /* PumpSettings.swift in Sources */,
 				38DAB280260CBB7F00F74C1A /* PumpView.swift in Sources */,
 				DDD1631C2C4C697400CD525A /* AddOverrideForm.swift in Sources */,
@@ -6045,6 +6096,11 @@
 				41740E936552456AAC0EDCC3 /* MaxIOBSuggestionTests.swift in Sources */,
 				41740E936552456AAC0EDBC3 /* DosingModeMigrationTests.swift in Sources */,
 				B015AFE52E500000000D7351 /* BolusSafetyValidatorTests.swift in Sources */,
+				9A3C0DE10000000000000B06 /* WatchCommandTestDoubles.swift in Sources */,
+				9A3C0DE10000000000000B07 /* WatchCommandRequestCacheTests.swift in Sources */,
+				9A3C0DE10000000000000B08 /* WatchCommandProcessorTests.swift in Sources */,
+				9A3C0DE10000000000000B09 /* GarminCommandRouterTests.swift in Sources */,
+				9A3C0DE10000000000000B0A /* WatchCommandIntegrationTests.swift in Sources */,
 				BD8FC0712D661B0000B95AED /* TidepoolTherapySettingsTests.swift in Sources */,
 				CA03000000000000000010C2 /* AlertCatalogRegistryOmniFaultTests.swift in Sources */,
 				CD1235B000000000000000F2 /* TidepoolUploadSerializerTests.swift in Sources */,

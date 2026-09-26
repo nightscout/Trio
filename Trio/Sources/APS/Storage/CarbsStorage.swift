@@ -11,6 +11,9 @@ protocol CarbsObserver {
 protocol CarbsStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
     func storeCarbs(_ carbs: [CarbsEntry], areFetchedFromRemote: Bool) async throws
+    /// Stores one locally entered carb row without fat/protein equivalents and, unlike `storeCarbs`,
+    /// throws when Core Data fails to save it.
+    func storeVerifiedCarbs(_ entry: CarbsEntry) async throws
     /// Builds a single, real, locally-entered carb entry ready to pass to `storeCarbs`.
     func makeCarbEntry(carbs: Decimal, date: Date) -> CarbsEntry
     func deleteCarbsEntryStored(_ treatmentObjectID: NSManagedObjectID) async
@@ -282,12 +285,24 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         }
     }
 
+    func storeVerifiedCarbs(_ entry: CarbsEntry) async throws {
+        try await insertCarbEntry(entry, areFetchedFromRemote: false)
+    }
+
     private func saveCarbsToCoreData(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
         guard let entry = entries.last else { return }
 
+        do {
+            try await insertCarbEntry(entry, areFetchedFromRemote: areFetchedFromRemote)
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
+
+    private func insertCarbEntry(_ entry: CarbsEntry, areFetchedFromRemote: Bool) async throws {
         let context = makeContext()
         context.name = "saveCarbsToCoreData"
-        await context.perform {
+        try await context.perform {
             let newItem = CarbEntryStored(context: context)
             newItem.date = entry.actualDate ?? entry.createdAt
             newItem.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
@@ -304,11 +319,13 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 newItem.fpuID = UUID(uuidString: fpuId)
             }
 
+            guard context.hasChanges else { return }
             do {
-                guard context.hasChanges else { return }
                 try context.save()
             } catch {
-                print(error.localizedDescription)
+                // an injected long-lived context would otherwise save the failed row later
+                context.rollback()
+                throw error
             }
         }
     }

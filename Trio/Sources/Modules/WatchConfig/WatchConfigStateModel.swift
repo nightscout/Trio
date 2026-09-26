@@ -51,6 +51,14 @@ extension WatchConfig {
         func resumeDataTransmission() {
             garminSettings.isWatchfaceDataEnabled = true
         }
+
+        /// Turning commands off also turns bolus off, so re-enabling commands never re-arms insulin silently.
+        func setCommandControlEnabled(_ isEnabled: Bool) {
+            garminSettings.isCommandControlEnabled = isEnabled
+            if !isEnabled {
+                garminSettings.isBolusCommandEnabled = false
+            }
+        }
     }
 }
 
