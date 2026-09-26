@@ -5,10 +5,12 @@ import Swinject
 /// Pump, Core Data and preset side effects of watch commands, kept behind a protocol so the
 /// processor's validation and sequencing can be tested without a pump.
 protocol WatchCommandActions {
-    /// Throws unless the carb row was actually saved.
-    func storeCarbs(_ grams: Int, date: Date) async throws
+    /// Throws unless the carb row was actually saved. `authorize` runs inside the save transaction
+    /// before the row is inserted; whatever it throws is rethrown with nothing written.
+    func storeCarbs(_ grams: Int, date: Date, authorize: @escaping () throws -> Void) async throws
     /// Returns once the pump accepted or refused the bolus, without waiting for the follow-up loop run.
-    func enactBolus(_ units: Decimal) async -> Bool
+    /// Throws only what `authorize` threw, run right before issuance; nothing reached the pump then.
+    func enactBolus(_ units: Decimal, authorize: @escaping () throws -> Void) async throws -> Bool
     func overridePresets() async throws -> [WatchPresetEntry]
     func tempTargetPresets() async throws -> [WatchPresetEntry]
 }
@@ -23,7 +25,7 @@ final class BaseWatchCommandActions: WatchCommandActions, Injectable {
         injectServices(resolver)
     }
 
-    func storeCarbs(_ grams: Int, date: Date) async throws {
+    func storeCarbs(_ grams: Int, date: Date, authorize: @escaping () throws -> Void) async throws {
         let entry = CarbsEntry(
             id: UUID().uuidString,
             createdAt: date,
@@ -36,16 +38,25 @@ final class BaseWatchCommandActions: WatchCommandActions, Injectable {
             isFPU: false,
             fpuID: nil
         )
-        try await carbsStorage.storeVerifiedCarbs(entry)
+        try await carbsStorage.storeVerifiedCarbs(entry, authorize: authorize)
     }
 
-    func enactBolus(_ units: Decimal) async -> Bool {
+    /// `authorize` runs in the task that issues the request, immediately before `APSManager.enactBolus`
+    /// and with nothing awaited in between, so a revocation or expiry cannot land between the final
+    /// check and issuance. The task lets the ack return before the determination `enactBolus` runs
+    /// after a manual bolus.
+    func enactBolus(_ units: Decimal, authorize: @escaping () throws -> Void) async throws -> Bool {
         // enactBolus returns without calling back for non-positive amounts, which would never resume
-        guard units > 0 else { return false }
-        let apsManager = self.apsManager
-        return await withCheckedContinuation { continuation in
+        guard units > 0, let apsManager = self.apsManager else { return false }
+        return try await withCheckedThrowingContinuation { continuation in
             Task {
-                await apsManager?.enactBolus(amount: Double(truncating: units as NSNumber), isSMB: false) { success, _ in
+                do {
+                    try authorize()
+                } catch {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                await apsManager.enactBolus(amount: Double(truncating: units as NSNumber), isSMB: false) { success, _ in
                     continuation.resume(returning: success)
                 }
             }

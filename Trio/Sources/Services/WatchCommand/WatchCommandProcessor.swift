@@ -9,26 +9,45 @@ protocol WatchCommandProcessor {
 
     /// Override and temp target presets, sorted by display name.
     func presets() async throws -> WatchCommandPresets
-
-    /// Withdraws the authorization of every command already admitted, so none of them reaches
-    /// another side effect even if the settings are switched back before it resumes.
-    func revokeAuthorizations()
 }
 
-/// Counts command-setting changes; an operation admitted under an older count was revoked.
+/// Revocation epoch for watch commands; a command admitted under an older epoch was revoked.
+///
+/// `BaseSettingsManager` advances it synchronously from the settings setter, on whatever queue
+/// writes the settings, before a Garmin command setting that turns off is stored. The settings
+/// notification is asynchronous and carries only the latest value, so an off-then-on sequence
+/// that lands before the main queue drains would otherwise revoke nothing.
 final class WatchCommandAuthorization {
     private let lock = NSLock()
     private var epoch: UInt64 = 0
 
     var current: UInt64 { lock.withLock { epoch } }
 
-    func revoke() {
+    /// Call before `new` is stored. Turning either setting off always revokes, even when it is
+    /// switched back on right after; turning one on never does.
+    func settingsWillChange(from old: TrioSettings, to new: TrioSettings) {
+        let masterTurnedOff = old.isGarminCommandControlEnabled && !new.isGarminCommandControlEnabled
+        let bolusTurnedOff = old.isGarminBolusCommandEnabled && !new.isGarminBolusCommandEnabled
+        guard masterTurnedOff || bolusTurnedOff else { return }
         lock.withLock { epoch += 1 }
+        debug(.watchManager, "⌚️🔐 Garmin: Command setting switched off - pending commands revoked")
     }
+}
+
+/// Thrown by the final check a side effect runs right before it writes or issues anything;
+/// nothing was saved or sent to the pump.
+struct WatchCommandRejection: Error {
+    let result: WatchCommandResult
 }
 
 /// Admits one watch insulin command at a time across all request IDs, so each validation sees the
 /// previous command's delivery. Waiters suspend on a continuation and never hold the actor.
+///
+/// Phase 1 policy, deliberately stricter than the shared 20% recent-bolus threshold: once a watch
+/// bolus was handed to `APSManager`, the next watch insulin command is rejected for
+/// `BolusSafetyEvaluator.recentBolusWindowMinutes`, even when the pump or status check refused it,
+/// since pump history may not show it yet and a refusal can still mean partial delivery. Only a
+/// final-check rejection, which never reached `APSManager`, withdraws the record.
 actor WatchCommandInsulinLane {
     private var isOccupied = false
     private var waiters: [CheckedContinuation<Void, Never>] = []
@@ -57,6 +76,11 @@ actor WatchCommandInsulinLane {
     func recordEnactment(at date: Date) {
         lastEnactment = date
     }
+
+    /// Puts back what `recordEnactment` replaced when the request never reached the pump.
+    func restoreEnactment(_ date: Date?) {
+        lastEnactment = date
+    }
 }
 
 /// Garmin is the only caller in phase 1, so the command gates read the Garmin settings.
@@ -69,11 +93,11 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var bolusSafetyValidator: BolusSafetyValidator!
     @Injected() private var adjustmentManager: AdjustmentManager!
+    @Injected() private var authorization: WatchCommandAuthorization!
 
     private let actions: WatchCommandActions
     private let cache: WatchCommandRequestCache
     private let insulinLane: WatchCommandInsulinLane
-    private let authorization = WatchCommandAuthorization()
     private let now: () -> Date
     private let log: (String) -> Void
 
@@ -137,11 +161,6 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
         )
     }
 
-    func revokeAuthorizations() {
-        authorization.revoke()
-        log("⌚️🔐 Garmin: Command settings changed - pending commands revoked")
-    }
-
     // MARK: - Validation
 
     private func execute(_ request: WatchCommandRequest, grant: UInt64) async -> WatchCommandResult {
@@ -169,13 +188,7 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
 
     /// Checks that need no side effects: freshness, feature gates and amount limits.
     private func rejection(for request: WatchCommandRequest, grant: UInt64) -> WatchCommandResult? {
-        let age = now().timeIntervalSince(request.date)
-        guard age <= Self.maximumCommandAge, age >= -Self.maximumCommandLead else {
-            log("⌚️⏱️ Garmin: \(request.command.name) timestamp outside the freshness window - rejected")
-            return .failure(String(localized: "Command expired. Please try again.", comment: "Watch command ack"))
-        }
-
-        if let rejection = authorizationRejection(for: request, grant: grant) {
+        if let rejection = expiryRejection(for: request) ?? authorizationRejection(for: request, grant: grant) {
             return rejection
         }
 
@@ -196,15 +209,29 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
         return nil
     }
 
+    /// Re-checked for insulin after every wait: queueing in the lane or waiting for validation can
+    /// outlast the window the request was admitted in.
+    private func expiryRejection(for request: WatchCommandRequest) -> WatchCommandResult? {
+        let age = now().timeIntervalSince(request.date)
+        guard age <= Self.maximumCommandAge, age >= -Self.maximumCommandLead else {
+            log("⌚️⏱️ Garmin: \(request.command.name) timestamp outside the freshness window - rejected")
+            return .failure(String(localized: "Command expired. Please try again.", comment: "Watch command ack"))
+        }
+        return nil
+    }
+
     /// Re-read at every side-effect boundary: settings can change while a command is suspended.
+    ///
+    /// Settings are read before the epoch. The epoch advances before a switch-off is stored, so
+    /// a check that still sees the setting on after an off-then-on sequence also sees the new epoch.
     private func authorizationRejection(for request: WatchCommandRequest, grant: UInt64) -> WatchCommandResult? {
         let name = request.command.name
+        let garminSettings = settingsManager.settings.garminSettings
         guard authorization.current == grant else {
             log("⌚️🔐 Garmin: \(name) rejected - command settings changed while pending")
             return .failure(String(localized: "Watch command settings changed.", comment: "Watch command ack"))
         }
 
-        let garminSettings = settingsManager.settings.garminSettings
         guard garminSettings.isCommandControlEnabled else {
             log("⌚️🔐 Garmin: \(name) rejected - watch commands disabled")
             return .failure(String(localized: "Watch commands are disabled.", comment: "Watch command ack"))
@@ -214,6 +241,21 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
             return .failure(String(localized: "Bolus from watch is disabled.", comment: "Watch command ack"))
         }
         return nil
+    }
+
+    /// The linearization point of a command: side effects run this synchronously in their last
+    /// serialized hop, inside the Core Data transaction or in the task that calls
+    /// `APSManager.enactBolus`, with nothing awaited between the check and the write or issuance.
+    /// Insulin re-checks the freshness window as well.
+    private func finalCheck(for request: WatchCommandRequest, grant: UInt64) -> @Sendable () throws -> Void {
+        { [self] in
+            if request.command.isInsulin, let rejection = expiryRejection(for: request) {
+                throw WatchCommandRejection(result: rejection)
+            }
+            if let rejection = authorizationRejection(for: request, grant: grant) {
+                throw WatchCommandRejection(result: rejection)
+            }
+        }
     }
 
     // MARK: - Treatments
@@ -242,8 +284,10 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
             return rejection
         }
         do {
-            try await actions.storeCarbs(grams, date: request.date)
+            try await actions.storeCarbs(grams, date: request.date, authorize: finalCheck(for: request, grant: grant))
             return .success(.carbsLogged, String(localized: "Carbs logged.", comment: "Watch command ack"))
+        } catch let rejection as WatchCommandRejection {
+            return rejection.result
         } catch {
             log("⌚️❌ Garmin: Storing carbs failed (\(WatchCommandErrorCategory.name(for: error)))")
             return .failure(String(localized: "Could not log carbs.", comment: "Watch command ack"))
@@ -260,7 +304,9 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
             return rejection
         }
         do {
-            try await actions.storeCarbs(grams, date: request.date)
+            try await actions.storeCarbs(grams, date: request.date, authorize: finalCheck(for: request, grant: grant))
+        } catch let rejection as WatchCommandRejection {
+            return rejection.result
         } catch {
             log("⌚️❌ Garmin: Storing meal carbs failed (\(WatchCommandErrorCategory.name(for: error)))")
             return .failure(String(localized: "Could not log carbs. No bolus was delivered.", comment: "Watch command ack"))
@@ -297,12 +343,13 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
     /// Only runs while holding the insulin lane; everything is re-checked because the wait for the
     /// lane can take as long as another command's validation and pump request.
     private func deliverBolusInLane(_ units: Decimal, request: WatchCommandRequest, grant: UInt64) async -> BolusOutcome {
-        if let rejection = authorizationRejection(for: request, grant: grant) {
+        if let rejection = expiryRejection(for: request) ?? authorizationRejection(for: request, grant: grant) {
             return .rejected(rejection.message)
         }
 
         let recentWindow = Double(BolusSafetyEvaluator.recentBolusWindowMinutes * 60)
-        if let lastEnactment = await insulinLane.lastEnactment, now().timeIntervalSince(lastEnactment) < recentWindow {
+        let previousEnactment = await insulinLane.lastEnactment
+        if let previousEnactment, now().timeIntervalSince(previousEnactment) < recentWindow {
             log("⌚️❌ Garmin: Bolus rejected - previous watch bolus may not be in pump history yet")
             return .rejected(BolusSafetyRejection.recentBolusWithinWindow(totalRecent: 0).watchMessage)
         }
@@ -323,13 +370,20 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
             return .rejected(String(localized: "Could not verify bolus safety.", comment: "Watch command ack"))
         }
 
-        // last check before insulin: validation awaited, so settings may have changed meanwhile
-        if let rejection = authorizationRejection(for: request, grant: grant) {
+        // validation awaited, so the request may have expired or been revoked meanwhile
+        if let rejection = expiryRejection(for: request) ?? authorizationRejection(for: request, grant: grant) {
             return .rejected(rejection.message)
         }
         // recorded before the request, since a pump error can still mean partial delivery
         await insulinLane.recordEnactment(at: now())
-        return await actions.enactBolus(units) ? .delivered : .failed
+        do {
+            return try await actions.enactBolus(units, authorize: finalCheck(for: request, grant: grant)) ? .delivered : .failed
+        } catch {
+            // the final check stopped it before `APSManager`, so nothing reached the pump
+            await insulinLane.restoreEnactment(previousEnactment)
+            let message = (error as? WatchCommandRejection)?.result.message
+            return .rejected(message ?? String(localized: "Could not verify bolus safety.", comment: "Watch command ack"))
+        }
     }
 
     // MARK: - Adjustments
@@ -344,8 +398,14 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
             if let rejection = authorizationRejection(for: request, grant: grant) {
                 return rejection
             }
-            try await adjustmentManager.activateOverride(preset.ref, source: .watch)
+            try await adjustmentManager.activateOverride(
+                preset.ref,
+                source: .watch,
+                authorize: finalCheck(for: request, grant: grant)
+            )
             return .success(.overrideStarted, String(localized: "Override started.", comment: "Watch command ack"))
+        } catch let rejection as WatchCommandRejection {
+            return rejection.result
         } catch {
             log("⌚️❌ Garmin: Activating override failed (\(WatchCommandErrorCategory.name(for: error)))")
             return .failure(String(localized: "Could not start override.", comment: "Watch command ack"))
@@ -357,7 +417,9 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
             return rejection
         }
         do {
-            try await adjustmentManager.cancelOverride(source: .watch)
+            try await adjustmentManager.cancelOverride(source: .watch, authorize: finalCheck(for: request, grant: grant))
+        } catch let rejection as WatchCommandRejection {
+            return rejection.result
         } catch AdjustmentError.nothingActive {
             // cancelling an inactive override already has the requested outcome
         } catch {
@@ -377,8 +439,14 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
             if let rejection = authorizationRejection(for: request, grant: grant) {
                 return rejection
             }
-            try await adjustmentManager.activateTempTarget(preset.ref, source: .watch)
+            try await adjustmentManager.activateTempTarget(
+                preset.ref,
+                source: .watch,
+                authorize: finalCheck(for: request, grant: grant)
+            )
             return .success(.tempTargetStarted, String(localized: "Temp target started.", comment: "Watch command ack"))
+        } catch let rejection as WatchCommandRejection {
+            return rejection.result
         } catch {
             log("⌚️❌ Garmin: Activating temp target failed (\(WatchCommandErrorCategory.name(for: error)))")
             return .failure(String(localized: "Could not start temp target.", comment: "Watch command ack"))
@@ -390,7 +458,9 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
             return rejection
         }
         do {
-            try await adjustmentManager.cancelTempTarget(source: .watch)
+            try await adjustmentManager.cancelTempTarget(source: .watch, authorize: finalCheck(for: request, grant: grant))
+        } catch let rejection as WatchCommandRejection {
+            return rejection.result
         } catch AdjustmentError.nothingActive {
             // cancelling an inactive temp target already has the requested outcome
         } catch {

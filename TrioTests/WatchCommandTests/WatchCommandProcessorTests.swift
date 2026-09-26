@@ -8,6 +8,7 @@ import Testing
 /// limits, deduplication and the meal sequencing. Pump, Core Data and presets are stubbed.
 @Suite("Watch Command Processor Tests") struct WatchCommandProcessorTests {
     let now = Date(timeIntervalSince1970: 1_800_000_000)
+    let clock = TestClock(Date(timeIntervalSince1970: 1_800_000_000))
     let appUUID = UUID()
 
     let settings = StubSettingsManager()
@@ -27,8 +28,9 @@ import Testing
         container.register(SettingsManager.self) { [settings] _ in settings }
         container.register(BolusSafetyValidator.self) { [validator] _ in validator }
         container.register(AdjustmentManager.self) { [adjustments] _ in adjustments }
+        container.register(WatchCommandAuthorization.self) { [settings] _ in settings.authorization }
 
-        processor = Self.makeProcessor(container: container, actions: actions, cache: cache, now: now, logs: logs)
+        processor = Self.makeProcessor(container: container, actions: actions, cache: cache, clock: clock, logs: logs)
     }
 
     private static func makeProcessor(
@@ -36,7 +38,7 @@ import Testing
         actions: WatchCommandActions,
         cache: WatchCommandRequestCache = WatchCommandRequestCache(),
         insulinLane: WatchCommandInsulinLane = WatchCommandInsulinLane(),
-        now: Date,
+        clock: TestClock,
         logs: LogCapture
     ) -> BaseWatchCommandProcessor {
         BaseWatchCommandProcessor(
@@ -44,7 +46,7 @@ import Testing
             actions: actions,
             cache: cache,
             insulinLane: insulinLane,
-            now: { now },
+            now: { clock.now },
             log: logs.record
         )
     }
@@ -197,7 +199,7 @@ import Testing
 
         // separate processors: a second bolus through one lane is stopped before validation
         _ = await processor.process(request(.bolus(1), age: 60))
-        let second = Self.makeProcessor(container: container, actions: StubWatchCommandActions(), now: now, logs: logs)
+        let second = Self.makeProcessor(container: container, actions: StubWatchCommandActions(), clock: clock, logs: logs)
         _ = await second.process(request(.bolus(1), age: 9 * 60))
 
         #expect(validator.lookbackStarts == [standardWindowStart, now.addingTimeInterval(-9 * 60)])
@@ -432,16 +434,22 @@ import Testing
         #expect(actions.enactedBoluses.isEmpty, "No insulin after the bolus switch went off")
     }
 
-    @Test("Switching commands off and on again while pending still revokes") func testRevokedAndReenabled() async {
+    @Test(
+        "Switching either setting off and on again while pending still revokes",
+        arguments: [false, true]
+    ) func testRevokedAndReenabled(bolusSwitch: Bool) async {
         validator.gate = TestGate()
         let pending = Task { await processor.process(request(.bolus(2))) }
         await validator.gate.waitForArrivals()
 
-        // what BaseGarminManager does on each settings change
-        settings.settings.isGarminCommandControlEnabled = false
-        processor.revokeAuthorizations()
-        settings.settings.isGarminCommandControlEnabled = true
-        processor.revokeAuthorizations()
+        // the setter revokes; nothing else is called
+        if bolusSwitch {
+            settings.settings.isGarminBolusCommandEnabled = false
+            settings.settings.isGarminBolusCommandEnabled = true
+        } else {
+            settings.settings.isGarminCommandControlEnabled = false
+            settings.settings.isGarminCommandControlEnabled = true
+        }
         validator.gate.open()
         let result = await pending.value
 
@@ -451,17 +459,186 @@ import Testing
         #expect(await processor.process(request(.carbs(10))).acknowledged, "New commands run under the new settings")
     }
 
+    @Test("Turning a setting on revokes nothing") func testEnablingKeepsGrant() {
+        settings.settings.isGarminCommandControlEnabled = false
+        let epoch = settings.authorization.current
+
+        settings.settings.isGarminCommandControlEnabled = true
+        settings.settings.maxCarbs = 80
+
+        #expect(settings.authorization.current == epoch)
+    }
+
     @Test("Disabling commands while presets load stops the activation") func testRevokedDuringPresetLoad() async {
         actions.overrides = [WatchPresetEntry(name: "Sport", isActive: false, ref: .presetID("sport"))]
         actions.presetsGate = TestGate()
         let pending = Task { await processor.process(request(.activateOverride(name: "Sport"))) }
         await actions.presetsGate.waitForArrivals()
 
-        processor.revokeAuthorizations()
+        settings.settings.isGarminCommandControlEnabled = false
+        settings.settings.isGarminCommandControlEnabled = true
         actions.presetsGate.open()
 
         #expect(await pending.value.acknowledged == false)
         #expect(adjustments.calls.isEmpty)
+    }
+
+    // MARK: - Final Boundary
+
+    @Test(
+        "A revocation while an adjustment waits for the serializer stops it before the write",
+        arguments: [
+            WatchCommand.activateOverride(name: "Sport"), .cancelOverride,
+            .activateTempTarget(name: "Walk"), .cancelTempTarget
+        ]
+    ) func testAdjustmentRevokedWhileQueued(command: WatchCommand) async {
+        actions.overrides = [WatchPresetEntry(name: "Sport", isActive: false, ref: .presetID("sport"))]
+        actions.tempTargets = [WatchPresetEntry(name: "Walk", isActive: false, ref: .presetID("walk"))]
+        adjustments.gate = TestGate()
+        let pending = Task { await processor.process(request(command)) }
+        await adjustments.gate.waitForArrivals()
+
+        settings.settings.isGarminCommandControlEnabled = false
+        settings.settings.isGarminCommandControlEnabled = true
+        adjustments.gate.open()
+        let result = await pending.value
+
+        #expect(result.acknowledged == false)
+        #expect(result.ackCode == .genericFailure)
+        #expect(adjustments.calls.isEmpty)
+    }
+
+    @Test(
+        "A revocation while carbs wait for their transaction stores nothing",
+        arguments: [false, true]
+    ) func testCarbsRevokedBeforeTransaction(isMeal: Bool) async {
+        actions.carbsTransactionGate = TestGate()
+        let command: WatchCommand = isMeal ? .mealBolus(carbs: 40, bolus: 3) : .carbs(40)
+        let pending = Task { await processor.process(request(command)) }
+        await actions.carbsTransactionGate.waitForArrivals()
+
+        settings.settings.isGarminCommandControlEnabled = false
+        settings.settings.isGarminCommandControlEnabled = true
+        actions.carbsTransactionGate.open()
+        let result = await pending.value
+
+        #expect(result.ackCode == .genericFailure, "Nothing was logged, so this is no partial failure")
+        #expect(actions.events.isEmpty)
+        #expect(validator.validatedAmounts.isEmpty)
+    }
+
+    @Test(
+        "A revocation after validation but before issuance sends nothing to the pump",
+        arguments: [false, true]
+    ) func testRevokedBeforeIssuance(isMeal: Bool) async {
+        actions.issueGate = TestGate()
+        let command: WatchCommand = isMeal ? .mealBolus(carbs: 40, bolus: 3) : .bolus(3)
+        let pending = Task { await processor.process(request(command)) }
+        await actions.issueGate.waitForArrivals()
+        #expect(validator.validatedAmounts == [3], "Validation already passed")
+
+        settings.settings.isGarminBolusCommandEnabled = false
+        settings.settings.isGarminBolusCommandEnabled = true
+        actions.issueGate.open()
+        let result = await pending.value
+
+        #expect(result.acknowledged == false)
+        #expect(result.ackCode == (isMeal ? .partialFailure : .genericFailure))
+        #expect(actions.storedCarbs.map(\.grams) == (isMeal ? [40] : []))
+        #expect(actions.enactedBoluses.isEmpty)
+    }
+
+    @Test("A bolus stopped before issuance does not hold the lane") func testFinalCheckWithdrawsLaneHold() async {
+        actions.issueGate = TestGate()
+        let pending = Task { await processor.process(request(.bolus(3))) }
+        await actions.issueGate.waitForArrivals()
+        settings.settings.isGarminBolusCommandEnabled = false
+        settings.settings.isGarminBolusCommandEnabled = true
+        actions.issueGate.open()
+        #expect(await pending.value.acknowledged == false)
+
+        #expect(await processor.process(request(.bolus(1))).acknowledged, "Nothing reached the pump, so no hold")
+        #expect(actions.enactedBoluses == [1])
+    }
+
+    // MARK: - Freshness After Waiting
+
+    @Test(
+        "A request that expires while it waits in the lane is rejected before validation",
+        arguments: [false, true]
+    ) func testExpiredInLane(isMeal: Bool) async {
+        validator.gate = TestGate()
+        // the first bolus is refused, so the lane hold cannot be what stops the second
+        validator.queuedResults = [.rejected(.exceedsMaxIOB(currentIOB: 4, maxIOB: 5)), .allowed]
+        let lane = WatchCommandInsulinLane()
+        let processor = Self.makeProcessor(container: container, actions: actions, insulinLane: lane, clock: clock, logs: logs)
+
+        let first = Task { await processor.process(request(.bolus(2))) }
+        await validator.gate.waitForArrivals()
+        let command: WatchCommand = isMeal ? .mealBolus(carbs: 30, bolus: 1) : .bolus(1)
+        let second = Task { await processor.process(request(command, age: 590)) }
+        #expect(await eventually { await lane.waitingCount == 1 })
+
+        clock.advance(by: 20)
+        validator.gate.open()
+        #expect(await first.value.acknowledged == false)
+        let result = await second.value
+
+        #expect(result.acknowledged == false)
+        #expect(result.ackCode == (isMeal ? .partialFailure : .genericFailure))
+        #expect(validator.validatedAmounts == [2], "The expired request never validates")
+        #expect(actions.enactedBoluses.isEmpty)
+        #expect(logs.lines.contains { $0.contains("outside the freshness window") })
+    }
+
+    @Test(
+        "A request that expires during validation is not enacted",
+        arguments: [false, true]
+    ) func testExpiredDuringValidation(isMeal: Bool) async {
+        validator.gate = TestGate()
+        let command: WatchCommand = isMeal ? .mealBolus(carbs: 30, bolus: 1) : .bolus(1)
+        let pending = Task { await processor.process(request(command, age: 595)) }
+        await validator.gate.waitForArrivals()
+
+        clock.advance(by: 10)
+        validator.gate.open()
+        let result = await pending.value
+
+        #expect(result.ackCode == (isMeal ? .partialFailure : .genericFailure))
+        #expect(actions.storedCarbs.count == (isMeal ? 1 : 0))
+        #expect(actions.enactedBoluses.isEmpty)
+    }
+
+    @Test(
+        "A request that expires right before issuance is not enacted",
+        arguments: [false, true]
+    ) func testExpiredBeforeIssuance(isMeal: Bool) async {
+        actions.issueGate = TestGate()
+        let command: WatchCommand = isMeal ? .mealBolus(carbs: 30, bolus: 1) : .bolus(1)
+        let pending = Task { await processor.process(request(command, age: 599)) }
+        await actions.issueGate.waitForArrivals()
+
+        clock.advance(by: 2)
+        actions.issueGate.open()
+        let result = await pending.value
+
+        #expect(result.ackCode == (isMeal ? .partialFailure : .genericFailure))
+        #expect(actions.enactedBoluses.isEmpty)
+    }
+
+    @Test("An expired request replays its cached result without re-running") func testExpiredReplay() async {
+        validator.gate = TestGate()
+        let request = request(.bolus(1), age: 595)
+        let pending = Task { await processor.process(request) }
+        await validator.gate.waitForArrivals()
+        clock.advance(by: 10)
+        validator.gate.open()
+        let first = await pending.value
+
+        let replay = await processor.process(request)
+
+        #expect(replay == first)
+        #expect(validator.validatedAmounts.count == 1)
     }
 
     // MARK: - Insulin Lane
@@ -472,7 +649,7 @@ import Testing
         actions.probe = probe
         validator.gate = TestGate()
         let lane = WatchCommandInsulinLane()
-        let processor = Self.makeProcessor(container: container, actions: actions, insulinLane: lane, now: now, logs: logs)
+        let processor = Self.makeProcessor(container: container, actions: actions, insulinLane: lane, clock: clock, logs: logs)
 
         let first = Task { await processor.process(request(.bolus(2))) }
         await validator.gate.waitForArrivals()
@@ -498,7 +675,7 @@ import Testing
         validator.gate = TestGate()
         validator.queuedResults = [.rejected(.exceedsMaxIOB(currentIOB: 4, maxIOB: 5)), .allowed]
         let lane = WatchCommandInsulinLane()
-        let processor = Self.makeProcessor(container: container, actions: actions, insulinLane: lane, now: now, logs: logs)
+        let processor = Self.makeProcessor(container: container, actions: actions, insulinLane: lane, clock: clock, logs: logs)
 
         let first = Task { await processor.process(request(.bolus(2))) }
         await validator.gate.waitForArrivals()
@@ -512,6 +689,37 @@ import Testing
         #expect(actions.enactedBoluses == [1])
         #expect(probe.maximumInFlight == 1)
         #expect(probe.recordedEvents == ["validate", "validate", "enact"])
+    }
+
+    /// Phase 1 keeps the lane hold even when the pump refused the first bolus: a refusal can still
+    /// mean partial delivery, and pump history may not show it yet.
+    @Test(
+        "A second insulin request waits while the pump works on the first, then is held back",
+        arguments: [true, false]
+    ) func testInsulinWaitsForPump(pumpSucceeds: Bool) async {
+        let probe = InsulinConcurrencyProbe()
+        validator.probe = probe
+        actions.probe = probe
+        actions.bolusGate = TestGate()
+        actions.bolusSucceeds = pumpSucceeds
+        let lane = WatchCommandInsulinLane()
+        let processor = Self.makeProcessor(container: container, actions: actions, insulinLane: lane, clock: clock, logs: logs)
+
+        let first = Task { await processor.process(request(.bolus(2))) }
+        await actions.bolusGate.waitForArrivals()
+        let second = Task { await processor.process(request(.bolus(1))) }
+        #expect(await eventually { await lane.waitingCount == 1 }, "Parked while the pump request is open")
+        #expect(validator.validatedAmounts == [2])
+
+        actions.bolusGate.open()
+        #expect(await first.value.acknowledged == pumpSucceeds)
+        let secondResult = await second.value
+
+        #expect(secondResult.acknowledged == false)
+        #expect(logs.lines.contains { $0.contains("previous watch bolus may not be in pump history yet") })
+        #expect(validator.validatedAmounts == [2], "Held back before validation")
+        #expect(actions.enactedBoluses == [2])
+        #expect(probe.maximumInFlight == 1)
     }
 
     // MARK: - Safe Logging

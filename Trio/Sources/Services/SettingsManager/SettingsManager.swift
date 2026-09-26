@@ -20,8 +20,15 @@ protocol PreferencesObserver {
 final class BaseSettingsManager: SettingsManager, Injectable {
     @Injected() var broadcaster: Broadcaster!
     @Injected() var storage: FileStorage!
+    @Injected() private var watchCommandAuthorization: WatchCommandAuthorization!
 
+    /// Watch command revocation happens in `willSet`, on the writing queue: the observer
+    /// notification below is asynchronous and delivers only the latest value, so it cannot tell
+    /// that a command setting was switched off and back on in between.
     @SyncAccess var settings: TrioSettings {
+        willSet {
+            watchCommandAuthorization.settingsWillChange(from: settings, to: newValue)
+        }
         didSet {
             if oldValue != settings {
                 saveSettings()

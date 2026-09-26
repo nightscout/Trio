@@ -92,6 +92,9 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Validates and executes watch commands; shared so its request-ID cache sees every request.
     @Injected() private var watchCommandProcessor: WatchCommandProcessor!
 
+    /// Revoked by `BaseSettingsManager` itself; read here only to refresh the watch after a revocation.
+    @Injected() private var watchCommandAuthorization: WatchCommandAuthorization!
+
     /// Persists the user's device list between app launches.
     @Persisted(key: "BaseGarminManager.persistedDevices") private var persistedDevices: [GarminDevice] = []
 
@@ -118,6 +121,9 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
     /// Subject for debouncing watch state updates
     private let watchStateSubject = PassthroughSubject<Data, Never>()
+
+    /// Publishes the trigger name of every watch state refresh that is started.
+    let stateRefreshTriggers = PassthroughSubject<String, Never>()
 
     /// Current glucose units, either mg/dL or mmol/L, read from user settings.
     private var units: GlucoseUnits = .mgdL
@@ -182,6 +188,10 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
     /// Track previous Garmin settings to detect what specifically changed
     private var previousGarminSettings = GarminWatchSettings()
+
+    /// Revocation epoch at the last settings notification; a newer one means a command setting was
+    /// switched off since, even if the notification's settings show it back on.
+    private var lastSeenCommandRevocation: UInt64 = 0
 
     /// Pending settings update task - waits for user to finish making changes
     private var pendingSettingsUpdate: DispatchWorkItem?
@@ -248,6 +258,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
         units = settingsManager.settings.units
         glucoseColorScheme = settingsManager.settings.glucoseColorScheme
         previousGarminSettings = settingsManager.settings.garminSettings
+        lastSeenCommandRevocation = watchCommandAuthorization.current
 
         broadcaster.register(SettingsObserver.self, observer: self)
         // Glucose targets are not part of TrioSettings, so editing the target profile
@@ -456,6 +467,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// If triggered by Determination, cancels pending glucose fallback timer
     private func triggerWatchStateUpdate(triggeredBy trigger: String) {
         guard !devices.isEmpty else { return }
+        stateRefreshTriggers.send(trigger)
 
         // If determination arrived, cancel the glucose fallback timer
         // Determination includes both fresh glucose and loop data
@@ -1214,14 +1226,12 @@ extension BaseGarminManager: SettingsObserver {
         let displayAttributesChanged = currentGarminSettings.primaryAttributeChoice != previousGarminSettings
             .primaryAttributeChoice ||
             currentGarminSettings.secondaryAttributeChoice != previousGarminSettings.secondaryAttributeChoice
+        let commandRevocation = watchCommandAuthorization.current
         let commandSettingsChanged = currentGarminSettings.isCommandControlEnabled != previousGarminSettings
             .isCommandControlEnabled ||
-            currentGarminSettings.isBolusCommandEnabled != previousGarminSettings.isBolusCommandEnabled
-
-        if commandSettingsChanged {
-            // any flip, even one switched back, voids what was admitted under the old settings
-            watchCommandProcessor.revokeAuthorizations()
-        }
+            currentGarminSettings.isBolusCommandEnabled != previousGarminSettings.isBolusCommandEnabled ||
+            commandRevocation != lastSeenCommandRevocation
+        lastSeenCommandRevocation = commandRevocation
 
         // Update stored values
         units = currentUnits
