@@ -101,6 +101,10 @@ extension Home {
         var determinationsFromPersistence: [OrefDetermination] = []
         var enactedAndNonEnactedDeterminations: [OrefDetermination] = []
         var fetchedTDDs: [TDD] = []
+        var homeStatsPanelRange: HomeStatsPanelRange = .today
+        /// Stats panel figures for ranges longer than the chart's glucose window, tagged with
+        /// the range they were computed for; see `refreshExtendedStatsPanel(force:)`.
+        var extendedStatsPanel: (range: HomeStatsPanelRange, stats: HomeStatsPanelStats)?
         var insulinFromPersistence: [PumpEventStored] = []
         var tempBasals: [PumpEventStored] = []
         var suspendAndResumeEvents: [PumpEventStored] = []
@@ -455,6 +459,10 @@ extension Home {
         /// which a manual re-determine fires twice in quick succession.
         @ObservationIgnored var forecastUpdateTask: Task<Void, Never>?
 
+        /// In-flight fetch for `extendedStatsPanel`; a newer refresh cancels it so results land in order.
+        @ObservationIgnored var extendedStatsPanelTask: Task<Void, Never>?
+        @ObservationIgnored var extendedStatsPanelRefreshedAt: Date?
+
         typealias PumpEvent = PumpEventStored.EventType
 
         override init() {
@@ -717,6 +725,7 @@ extension Home {
             lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             maxIOB = settingsManager.preferences.maxIOB
+            homeStatsPanelRange = settingsManager.settings.homeStatsPanelRange
         }
 
         @MainActor private func setupCGMSettings() async {
@@ -989,6 +998,11 @@ extension Home.StateModel:
         showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
         enableQuickPickTreatments = settingsManager.settings.enableQuickPickTreatments
         forecastDisplayType = settingsManager.settings.forecastDisplayType
+        homeStatsPanelRange = settingsManager.settings.homeStatsPanelRange
+        // range, face or time-in-range type may have changed
+        Task { @MainActor in
+            refreshExtendedStatsPanel(force: true)
+        }
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()
         displayPumpStatusBadge()

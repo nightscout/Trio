@@ -627,7 +627,7 @@ extension UserInterfaceSettings {
                                     selectedVerboseHint =
                                         AnyView(
                                             Text(
-                                                "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: today's time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nToday's Averages: today's average glucose and GMI (Glucose Management Index).\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut."
+                                                "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: your time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nAverages: your average glucose and GMI (Glucose Management Index).\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut.\n\nThe numbers cover the time span set in Statistics Range."
                                             )
                                         )
                                     shouldDisplayHint.toggle()
@@ -641,6 +641,48 @@ extension UserInterfaceSettings {
                         }.padding(.top)
                     }.padding(.bottom)
                 }.settingsSearchTarget(label: String(localized: "Home Statistics Panel"))
+
+                Section {
+                    VStack(alignment: .leading) {
+                        Picker(
+                            selection: $state.homeStatsPanelRange,
+                            label: Text("Statistics Range").multilineTextAlignment(.leading)
+                        ) {
+                            ForEach(HomeStatsPanelRange.allCases) { selection in
+                                Text(selection.displayName).tag(selection)
+                            }
+                        }.padding(.top)
+
+                        HStack(alignment: .center) {
+                            Text(
+                                "Choose the time span the home statistics panel covers."
+                            )
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                            Spacer()
+                            Button(
+                                action: {
+                                    hintLabel = String(localized: "Statistics Range")
+                                    selectedVerboseHint =
+                                        AnyView(
+                                            Text(
+                                                "Choose how far back the statistics panel on the home screen looks. The full statistics view opens on the same time span.\n\nToday: from midnight until now.\n\nLast 24 Hours: the past 24 hours.\n\nLast 7 Days: the past 7 days.\n\nLast Month: the past month.\n\nLast 3 Months: the past 3 months.\n\nThe panel's wording follows your choice, for example \"Time in Range last 7 days\"."
+                                            )
+                                        )
+                                    shouldDisplayHint.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                    }.padding(.bottom)
+                }.settingsSearchTarget(label: String(localized: "Statistics Range"))
 
                 SettingInputSection(
                     decimalValue: $state.carbsRequiredThreshold,
