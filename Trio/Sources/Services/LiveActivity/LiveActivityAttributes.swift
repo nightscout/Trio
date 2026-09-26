@@ -2,21 +2,79 @@ import ActivityKit
 import Foundation
 
 struct LiveActivityAttributes: ActivityAttributes {
+    enum LiveActivityItem: String, Hashable, Codable, Equatable {
+        case currentGlucoseLarge
+        case currentGlucoseLargeUncolored
+        case currentGlucose
+        case currentGlucoseColored
+        case currentGlucoseWide
+        case currentGlucoseWideUncolored
+        case iob
+        case cob
+        case updatedLabel
+        case totalDailyDose
+        case empty
+        case wideContinuation
+
+        static let defaultItems: [Self] = [.currentGlucoseLarge, .iob, .cob, .updatedLabel]
+    }
+
+    struct SimpleViewStyle: Codable, Hashable {
+        let fontSize: LiveActivityFontSize
+
+        static let `default` = SimpleViewStyle(fontSize: .large)
+    }
+
     struct ContentState: Codable, Hashable {
+        let unit: String
         let bg: String
         let direction: String?
         let change: String
-        let date: Date
-        let chart: [Double]
-        let chartDate: [Date?]
+        let date: Date?
+        let highGlucose: Decimal
+        let lowGlucose: Decimal
+        let target: Decimal
+        let glucoseColorScheme: String
+        let useDetailedViewIOS: Bool
+        let useDetailedViewWatchOS: Bool
+        let simpleViewStyle: SimpleViewStyle
+        let detailedViewState: ContentAdditionalState
+
+        /// true for the first state that is set on the activity
+        let isInitialState: Bool
+    }
+
+    struct ContentAdditionalState: Codable, Hashable {
+        let chart: [ChartItem]
         let rotationDegrees: Double
-        let highGlucose: Double
-        let lowGlucose: Double
         let cob: Decimal
         let iob: Decimal
-        let lockScreenView: String
-        let unit: String
+        let tdd: Decimal
         let isOverrideActive: Bool
+        let overrideName: String
+        let overrideDate: Date
+        let overrideDuration: Decimal
+        let overrideTarget: Decimal
+        let isTempTargetActive: Bool
+        let tempTargetName: String
+        let tempTargetDate: Date
+        let tempTargetDuration: Decimal
+        let tempTargetTarget: Decimal
+        let widgetItems: [LiveActivityItem]
+        let minForecast: [Int]
+        let maxForecast: [Int]
+        let forecastLines: [ForecastLine]
+        let forecastDisplayType: String
+    }
+
+    struct ChartItem: Codable, Hashable {
+        let value: Decimal
+        let date: Date
+    }
+
+    struct ForecastLine: Codable, Hashable {
+        let type: String
+        let values: [Int]
     }
 
     let startDate: Date

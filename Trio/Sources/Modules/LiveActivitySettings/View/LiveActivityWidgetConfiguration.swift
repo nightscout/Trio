@@ -1,4 +1,5 @@
 import Charts
+import CoreTransferable
 import Foundation
 import SwiftUI
 import Swinject
@@ -9,32 +10,25 @@ struct LiveActivityWidgetConfiguration: BaseView {
 
     @ObservedObject var state: LiveActivitySettings.StateModel
 
-    @State private var selectedItems: [LiveActivityItem?] = Array(repeating: nil, count: 4)
-    @State private var showAddItemDialog: Bool = false
-    @State private var buttonIndexToUpdate: Int?
-    @State private var itemToRemove: LiveActivityItem?
-    @State private var isRemovalConfirmationPresented: Bool = false
+    @State private var placedItems: [LiveActivityItem] = []
     @State private var glucoseData: [DummyGlucoseData] = []
+    @State private var targetedSlot: Int?
+    @State private var isPaletteTargeted: Bool = false
 
     @Environment(\.colorScheme) var colorScheme
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @Environment(AppState.self) var appState
 
-    private var color: LinearGradient {
-        colorScheme == .dark ? LinearGradient(
-            gradient: Gradient(colors: [
-                Color.bgDarkBlue,
-                Color.bgDarkerDarkBlue
-            ]),
-            startPoint: .top,
-            endPoint: .bottom
-        )
-            :
-            LinearGradient(
-                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
+    private static let slotCount = 4
+    private static let slotSize: CGFloat = 50
+    private static let slotSpacing: CGFloat = 15
+    private static let slotPadding: CGFloat = 5
+
+    private var usedSlots: Int {
+        placedItems.reduce(0) { $0 + $1.slotWidth }
+    }
+
+    private var freeSlots: Int {
+        max(0, Self.slotCount - usedSlots)
     }
 
     private func generateDummyGlucoseData() -> [DummyGlucoseData] {
@@ -75,52 +69,41 @@ struct LiveActivityWidgetConfiguration: BaseView {
     }
 
     var body: some View {
-        VStack {
-            Group {
-                VStack(alignment: .trailing, spacing: 0) {
-                    Text(String(localized: "Live Activity Personalization").uppercased())
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .foregroundColor(.secondary)
-                        .font(.footnote)
-                        .padding(.leading)
-                }
-            }.padding(.bottom, -15)
-
-            GroupBox {
-                VStack {
-                    dummyChart(glucoseData)
-
-                    HStack(spacing: 15) {
-                        ForEach(0 ..< 4, id: \.self) { index in
-                            widgetButton(for: index)
-                        }
+        ScrollView {
+            VStack {
+                Group {
+                    VStack(alignment: .trailing, spacing: 0) {
+                        Text(String(localized: "Live Activity Personalization").uppercased())
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .foregroundColor(.secondary)
+                            .font(.footnote)
+                            .padding(.leading)
                     }
-                    .padding()
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(style: StrokeStyle(lineWidth: 2, dash: [5]))
-                            .foregroundColor(.gray)
-                    )
-                    .cornerRadius(12)
-                }
+                }.padding(.bottom, -15)
 
-            }.padding(.vertical).groupBoxStyle(.dummyChart)
+                GroupBox {
+                    VStack {
+                        dummyChart(glucoseData)
+                        layoutRow
+                    }
+                }.padding(.vertical).groupBoxStyle(.dummyChart)
 
-            Group {
-                HStack {
-                    Image(systemName: "info.circle")
-                    Text(
-                        "To re-order widgets, remove them and re-add them in the desired order."
-                    )
-                }
-            }.frame(maxWidth: .infinity, alignment: .leading)
-                .foregroundColor(.secondary)
-                .font(.footnote)
-                .padding(.horizontal)
+                Group {
+                    HStack(alignment: .top) {
+                        Image(systemName: "info.circle")
+                        Text(
+                            "Drag a widget to move it. Drag one up from Available Widgets to add it, or drop it back onto the list to remove it."
+                        )
+                    }
+                }.frame(maxWidth: .infinity, alignment: .leading)
+                    .foregroundColor(.secondary)
+                    .font(.footnote)
+                    .padding(.horizontal)
 
-            Spacer()
+                paletteSection.padding(.top)
+            }
+            .padding()
         }
-        .padding()
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))
         .navigationTitle("Widget Configuration")
@@ -131,95 +114,182 @@ struct LiveActivityWidgetConfiguration: BaseView {
             }
             loadOrder() // Load the saved order when the view appears
         }
-        .glassActionSheet(
-            "Add Widget",
-            isPresented: $showAddItemDialog,
-            actions: LiveActivityItem.allCases.filter { !selectedItems.contains($0) }.map { item in
-                GlassSheetAction(verbatim: item.displayName) {
-                    if let index = buttonIndexToUpdate {
-                        addItem(item, at: index)
+    }
+
+    // MARK: - Layout row
+
+    private var layoutRow: some View {
+        HStack(spacing: Self.slotSpacing) {
+            ForEach(placedItems, id: \.self) { item in
+                placedSlot(item)
+            }
+
+            ForEach(0 ..< freeSlots, id: \.self) { offset in
+                emptySlot(position: placedItems.count + offset)
+            }
+        }
+        .padding()
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(style: StrokeStyle(lineWidth: 2, dash: [5]))
+                .foregroundColor(.gray)
+        )
+        .cornerRadius(12)
+    }
+
+    private func placedSlot(_ item: LiveActivityItem) -> some View {
+        let index = placedItems.firstIndex(of: item) ?? placedItems.count
+        let isDropTarget = targetedSlot == index
+
+        return ZStack(alignment: .topTrailing) {
+            widgetTile(item, highlighted: isDropTarget)
+
+            Button(action: { remove(item) }) {
+                Image(systemName: "trash.circle.fill")
+                    .foregroundColor(Color(UIColor.systemGray2))
+                    .background(Color.white)
+                    .clipShape(Circle())
+                    .font(.title3)
+            }
+            .accessibilityLabel(Text("Remove \(item.displayName)"))
+            .offset(x: 10, y: -10)
+        }
+        .draggable(item) { widgetTile(item) }
+        .dropDestination(for: LiveActivityItem.self) { dropped, _ in
+            targetedSlot = nil
+            guard let dropped = dropped.first else { return false }
+            return place(dropped, at: index)
+        } isTargeted: { hovering in
+            targetedSlot = hovering ? index : nil
+        }
+        .accessibilityLabel(Text(item.displayName))
+        .accessibilityValue(Text("Position \(index + 1) of \(placedItems.count)"))
+    }
+
+    private func emptySlot(position: Int) -> some View {
+        let isDropTarget = targetedSlot == position
+
+        return Image(systemName: "plus")
+            .font(.title2)
+            .foregroundColor(.secondary)
+            .frame(width: Self.slotSize, height: Self.slotSize)
+            .padding(Self.slotPadding)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(
+                        style: StrokeStyle(lineWidth: isDropTarget ? 2 : 1, dash: isDropTarget ? [] : [5])
+                    )
+                    .foregroundColor(isDropTarget ? Color.accentColor : Color.primary)
+            )
+            .dropDestination(for: LiveActivityItem.self) { dropped, _ in
+                targetedSlot = nil
+                guard let dropped = dropped.first else { return false }
+                return place(dropped, at: placedItems.count)
+            } isTargeted: { hovering in
+                targetedSlot = hovering ? position : nil
+            }
+            .accessibilityLabel(Text("Empty widget slot"))
+    }
+
+    private func widgetTile(_ item: LiveActivityItem, highlighted: Bool = false) -> some View {
+        getItemPreview(for: item)
+            .frame(width: previewWidth(for: item), height: Self.slotSize)
+            .padding(Self.slotPadding)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color.chart))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(highlighted ? Color.accentColor : Color.primary, lineWidth: highlighted ? 2 : 1)
+            )
+    }
+
+    private func previewWidth(for item: LiveActivityItem) -> CGFloat {
+        item.slotWidth > 1
+            ? Self.slotSize * 2 + Self.slotSpacing + Self.slotPadding * 2
+            : Self.slotSize
+    }
+
+    // MARK: - Palette
+
+    private static let paletteRest: [LiveActivityItem] = [
+        .currentGlucoseLarge, .currentGlucoseLargeUncolored, .iob, .cob, .updatedLabel, .totalDailyDose,
+    ]
+
+    private static var paletteRestRows: [[LiveActivityItem]] {
+        stride(from: 0, to: paletteRest.count, by: 3).map {
+            Array(paletteRest[$0 ..< min($0 + 3, paletteRest.count)])
+        }
+    }
+
+    private var paletteSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(String(localized: "Available Widgets").uppercased())
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .foregroundColor(.secondary)
+                .font(.footnote)
+
+            Grid(alignment: .top, horizontalSpacing: 12, verticalSpacing: 12) {
+                GridRow {
+                    paletteCell(.currentGlucoseWideUncolored).gridCellColumns(2)
+                    paletteCell(.currentGlucose)
+                }
+                GridRow {
+                    paletteCell(.currentGlucoseWide).gridCellColumns(2)
+                    paletteCell(.currentGlucoseColored)
+                }
+                ForEach(Self.paletteRestRows, id: \.self) { row in
+                    GridRow {
+                        ForEach(row, id: \.self) { item in
+                            paletteCell(item)
+                        }
                     }
                 }
             }
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.gray.opacity(isPaletteTargeted ? 0.25 : 0.1))
         )
+        .dropDestination(for: LiveActivityItem.self) { dropped, _ in
+            isPaletteTargeted = false
+            guard let dropped = dropped.first else { return false }
+            return remove(dropped)
+        } isTargeted: { isPaletteTargeted = $0 }
     }
 
-    @ViewBuilder private func widgetButton(for index: Int) -> some View {
-        if index < selectedItems.count, let selectedItem = selectedItems[index] {
-            // Display selected item preview
-            ZStack(alignment: .topTrailing) {
-                getItemPreview(for: selectedItem)
-                    .frame(width: 50, height: 50)
-                    .padding(5)
-                    .background(Color.clear)
-                    .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.primary, lineWidth: 1)
-                    )
-                Button(action: {
-                    isRemovalConfirmationPresented = true
-                    itemToRemove = selectedItem
-                }) {
-                    Image(systemName: "trash.circle.fill")
-                        .foregroundColor(Color(UIColor.systemGray2))
-                        .background(Color.white)
-                        .clipShape(Circle())
-                        .font(.title3)
-                }
-                .accessibilityLabel(Text("Remove widget"))
-                .offset(x: 10, y: -10)
-                .glassActionSheet(
-                    isPresented: $isRemovalConfirmationPresented,
-                    actions: [
-                        GlassSheetAction("Remove Widget", role: .destructive) {
-                            if let itemToRemove = itemToRemove {
-                                removeItem(itemToRemove)
-                            }
-                        }
-                    ]
-                )
-            }
+    @ViewBuilder private func paletteCell(_ item: LiveActivityItem) -> some View {
+        let isPlaced = placedItems.contains(item)
+        let canPlace = !isPlaced && freeSlots >= item.slotWidth
+        let unavailableReason: LocalizedStringKey = isPlaced ? "Already in the layout" : "Not enough room"
+
+        let cell = VStack(spacing: 6) {
+            widgetTile(item)
+
+            Text(item.displayName)
+                .font(.caption2)
+                .multilineTextAlignment(.leading)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .top)
+        .opacity(canPlace ? 1 : 0.4)
+
+        if canPlace {
+            cell
+                .contentShape(Rectangle())
+                .onTapGesture { place(item, at: placedItems.count) }
+                .draggable(item) { widgetTile(item) }
+                .accessibilityAddTraits(.isButton)
+                .accessibilityLabel(Text(item.displayName))
+                .accessibilityHint(Text("Adds this widget to the layout"))
         } else {
-            // Show "+" symbol for empty slots
-            Button(action: {
-                buttonIndexToUpdate = index
-                showAddItemDialog.toggle()
-            }) {
-                VStack {
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .foregroundColor(.accentColor)
-                }
-                .frame(width: 50, height: 50)
-                .padding(5)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(style: StrokeStyle(lineWidth: 1, dash: [5]))
-                        .foregroundColor(.primary)
-                )
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text("Add widget"))
+            cell
+                .accessibilityLabel(Text(item.displayName))
+                .accessibilityValue(Text(unavailableReason))
         }
     }
 
-    private func getItemPreview(for item: LiveActivityItem) -> some View {
-        switch item {
-        case .currentGlucoseLarge:
-            return AnyView(currentGlucoseLargePreview)
-        case .currentGlucose:
-            return AnyView(currentGlucosePreview)
-        case .cob:
-            return AnyView(cobPreview)
-        case .iob:
-            return AnyView(iobPreview)
-        case .updatedLabel:
-            return AnyView(updatedLabelPreview)
-        case .totalDailyDose:
-            return AnyView(totalDailyDosePreview)
-        }
-    }
+    // MARK: - Previews
 
     @ViewBuilder private func dummyChart(_ glucoseData: [DummyGlucoseData]) -> some View {
         Chart {
@@ -264,28 +334,72 @@ struct LiveActivityWidgetConfiguration: BaseView {
         .frame(height: 100)
     }
 
-    private var currentGlucoseLargePreview: some View {
+    private func getItemPreview(for item: LiveActivityItem) -> some View {
+        switch item {
+        case .currentGlucoseLarge:
+            return AnyView(currentGlucoseLargePreview(colored: true))
+        case .currentGlucoseLargeUncolored:
+            return AnyView(currentGlucoseLargePreview(colored: false))
+        case .currentGlucose:
+            return AnyView(currentGlucosePreview(colored: false))
+        case .currentGlucoseColored:
+            return AnyView(currentGlucosePreview(colored: true))
+        case .currentGlucoseWide:
+            return AnyView(currentGlucoseWidePreview(colored: true))
+        case .currentGlucoseWideUncolored:
+            return AnyView(currentGlucoseWidePreview(colored: false))
+        case .wideContinuation:
+            return AnyView(EmptyView())
+        case .cob:
+            return AnyView(cobPreview)
+        case .iob:
+            return AnyView(iobPreview)
+        case .updatedLabel:
+            return AnyView(updatedLabelPreview)
+        case .totalDailyDose:
+            return AnyView(totalDailyDosePreview)
+        }
+    }
+
+    private func currentGlucoseLargePreview(colored: Bool) -> some View {
         HStack(alignment: .center) {
             Text("123")
                 + Text("\u{2192}")
         }
-        .foregroundStyle(Color.loopGreen)
+        .foregroundStyle(colored ? Color.loopGreen : Color.primary)
         .fontWeight(.bold)
         .font(.subheadline)
     }
 
-    private var currentGlucosePreview: some View {
+    private func currentGlucoseWidePreview(colored: Bool) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            HStack(alignment: .center) {
+                Text("123").font(.largeTitle)
+                Text("\u{2192}").font(.title2)
+            }
+            .foregroundStyle(colored ? Color.loopGreen : Color.primary)
+            Text("+6")
+                .font(.title2)
+                .foregroundStyle(.primary)
+        }
+        .fontWeight(.bold)
+        .lineLimit(1)
+        .minimumScaleFactor(0.6)
+    }
+
+    private func currentGlucosePreview(colored: Bool) -> some View {
         VStack {
             HStack(alignment: .center) {
                 Text("123")
                     .fontWeight(.bold)
                     .font(.caption)
+                    .foregroundStyle(colored ? Color.loopGreen : Color.primary)
             }
             HStack(spacing: -5) {
                 HStack {
                     Text("\u{2192}")
                     Text("+6")
-                }.foregroundStyle(.primary).font(.caption2)
+                }.foregroundStyle(colored ? Color.loopGreen : Color.primary).font(.caption2)
             }
         }
     }
@@ -326,30 +440,91 @@ struct LiveActivityWidgetConfiguration: BaseView {
         }
     }
 
-    private func loadOrder() {
-        if let savedItems = UserDefaults.standard.loadLiveActivityOrder() {
-            selectedItems = savedItems.count == 4 ? savedItems : savedItems + Array(repeating: nil, count: 4 - savedItems.count)
+    // MARK: - Layout changes
+
+    @discardableResult private func place(_ item: LiveActivityItem, at index: Int) -> Bool {
+        guard item != .wideContinuation else { return false }
+
+        var items = placedItems
+
+        if let currentIndex = items.firstIndex(of: item) {
+            guard currentIndex != index else { return false }
+            items.remove(at: currentIndex)
         } else {
-            selectedItems = LiveActivityItem.defaultItems
-            saveOrder()
+            guard freeSlots >= item.slotWidth else { return false }
         }
+
+        items.insert(item, at: min(index, items.count))
+        apply(items)
+        return true
     }
 
-    private func saveOrder() {
-        UserDefaults.standard.saveLiveActivityOrder(selectedItems)
+    @discardableResult private func remove(_ item: LiveActivityItem) -> Bool {
+        guard let index = placedItems.firstIndex(of: item) else { return false }
+
+        var items = placedItems
+        items.remove(at: index)
+        apply(items)
+        return true
+    }
+
+    private func apply(_ items: [LiveActivityItem]) {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            placedItems = items
+        }
+        saveOrder(items)
+    }
+
+    // MARK: - Persistence
+
+    private func loadOrder() {
+        guard let savedItems = UserDefaults.standard.loadLiveActivityOrder() else {
+            let defaults = LiveActivityItem.defaultItems
+            placedItems = defaults
+            saveOrder(defaults)
+            return
+        }
+
+        placedItems = layoutItems(from: savedItems)
+    }
+
+    private func saveOrder(_ items: [LiveActivityItem]) {
+        UserDefaults.standard.saveLiveActivityOrder(slotArray(from: items))
         Foundation.NotificationCenter.default.post(name: .liveActivityOrderDidChange, object: nil)
     }
 
-    private func addItem(_ item: LiveActivityItem, at index: Int) {
-        selectedItems[index] = item
-        saveOrder()
+    private func slotArray(from items: [LiveActivityItem]) -> [LiveActivityItem?] {
+        var slots: [LiveActivityItem?] = []
+
+        for item in items {
+            slots.append(item)
+
+            let continuations: [LiveActivityItem?] = Array(
+                repeating: .wideContinuation,
+                count: item.slotWidth - 1
+            )
+            slots.append(contentsOf: continuations)
+        }
+
+        let padding: [LiveActivityItem?] = Array(repeating: nil, count: max(0, Self.slotCount - slots.count))
+        slots.append(contentsOf: padding)
+
+        return Array(slots.prefix(Self.slotCount))
     }
 
-    private func removeItem(_ item: LiveActivityItem) {
-        if let index = selectedItems.firstIndex(of: item) {
-            selectedItems[index] = nil
-            saveOrder()
+    private func layoutItems(from slots: [LiveActivityItem?]) -> [LiveActivityItem] {
+        var items: [LiveActivityItem] = []
+        var used = 0
+
+        for slot in slots.prefix(Self.slotCount) {
+            guard let slot, slot != .wideContinuation, !items.contains(slot) else { continue }
+            guard used + slot.slotWidth <= Self.slotCount else { continue }
+
+            items.append(slot)
+            used += slot.slotWidth
         }
+
+        return items
     }
 }
 
@@ -373,31 +548,73 @@ extension UserDefaults {
 }
 
 // Enum to represent each live activity item
-enum LiveActivityItem: String, CaseIterable, Identifiable {
+enum LiveActivityItem: String, CaseIterable, Identifiable, Codable, Transferable {
     case currentGlucoseLarge
+    case currentGlucoseLargeUncolored
     case currentGlucose
+    case currentGlucoseColored
+    case currentGlucoseWide
+    case currentGlucoseWideUncolored
     case iob
     case cob
     case updatedLabel
     case totalDailyDose
+    case wideContinuation
 
     var id: String { rawValue }
 
+    static var transferRepresentation: some TransferRepresentation {
+        CodableRepresentation(contentType: .json)
+    }
+
     static var defaultItems: [LiveActivityItem] {
         [.currentGlucose, .iob, .cob, .updatedLabel]
+    }
+
+    static var selectableItems: [LiveActivityItem] {
+        allCases.filter { $0 != .wideContinuation }
+    }
+
+    var slotWidth: Int {
+        (self == .currentGlucoseWide || self == .currentGlucoseWideUncolored) ? 2 : 1
     }
 
     var displayName: String {
         switch self {
         case .currentGlucoseLarge:
             return String(
-                localized: "Glucose and Trend, no Delta",
-                comment: "Live Activity widget icon label for Glucose and Trend, no Delta"
+                localized: "Glucose and Trend (Colored)",
+                comment: "Live Activity widget icon label for Glucose and Trend in the glucose color"
+            )
+        case .currentGlucoseLargeUncolored:
+            return String(
+                localized: "Glucose and Trend",
+                comment: "Live Activity widget icon label for Glucose and Trend in the default text color"
             )
         case .currentGlucose:
             return String(
                 localized: "Glucose, Trend, Delta",
                 comment: "Live Activity widget icon label for Glucose, Trend, Delta"
+            )
+        case .currentGlucoseColored:
+            return String(
+                localized: "Glucose, Trend, Delta (Colored)",
+                comment: "Live Activity widget icon label for Glucose, Trend, Delta in the glucose color"
+            )
+        case .currentGlucoseWide:
+            return String(
+                localized: "Glucose, Trend, Delta (Double Width, Colored)",
+                comment: "Live Activity widget icon label for the double-width Glucose, Trend, Delta item in the glucose color"
+            )
+        case .currentGlucoseWideUncolored:
+            return String(
+                localized: "Glucose, Trend, Delta (Double Width)",
+                comment: "Live Activity widget icon label for the double-width Glucose, Trend, Delta item in the default text color"
+            )
+        case .wideContinuation:
+            return String(
+                localized: "Reserved",
+                comment: "Live Activity widget icon label for the slot taken by a double-width item"
             )
         case .iob:
             return String(

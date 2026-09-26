@@ -36461,6 +36461,7 @@
     },
     "Add widget" : {
       "comment" : "A label displayed as a button to add a widget.",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -36591,6 +36592,7 @@
       }
     },
     "Add Widget" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -149963,6 +149965,7 @@
     },
     "Glucose and Trend, no Delta" : {
       "comment" : "Live Activity widget icon label for Glucose and Trend, no Delta",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -251545,6 +251548,7 @@
       }
     },
     "Remove widget" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -251675,6 +251679,7 @@
       }
     },
     "Remove Widget" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -314562,6 +314567,7 @@
       }
     },
     "To re-order widgets, remove them and re-add them in the desired order." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -351319,6 +351325,94 @@
           }
         }
       }
+    },
+    "Adds this widget to the layout" : {
+
+    },
+    "Already in the layout" : {
+
+    },
+    "Available Widgets" : {
+
+    },
+    "Changes the size of the current glucose reading and its trend arrow on the Simple Lock Screen widget. The delta and the time of the last reading are not affected." : {
+
+    },
+    "Default: Large" : {
+
+    },
+    "Drag a widget to move it. Drag one up from Available Widgets to add it, or drop it back onto the list to remove it." : {
+
+    },
+    "Empty widget slot" : {
+
+    },
+    "Extra Large" : {
+      "comment" : "Live Activity glucose reading font size"
+    },
+    "Glucose Reading Font" : {
+
+    },
+    "Glucose and Trend" : {
+      "comment" : "Live Activity widget icon label for Glucose and Trend in the default text color"
+    },
+    "Glucose and Trend (Colored)" : {
+      "comment" : "Live Activity widget icon label for Glucose and Trend in the glucose color"
+    },
+    "Glucose, Trend, Delta (Colored)" : {
+      "comment" : "Live Activity widget icon label for Glucose, Trend, Delta in the glucose color"
+    },
+    "Glucose, Trend, Delta (Double Width)" : {
+      "comment" : "Live Activity widget icon label for the double-width Glucose, Trend, Delta item in the default text color"
+    },
+    "Glucose, Trend, Delta (Double Width, Colored)" : {
+      "comment" : "Live Activity widget icon label for the double-width Glucose, Trend, Delta item in the glucose color"
+    },
+    "Its Widget Configuration lets you set the size of the glucose reading." : {
+
+    },
+    "Large" : {
+      "comment" : "Live Activity glucose reading font size"
+    },
+    "Lock Screen widget preview" : {
+
+    },
+    "Medium" : {
+      "comment" : "Live Activity glucose reading font size"
+    },
+    "More information about Glucose Reading Font" : {
+
+    },
+    "Not enough room" : {
+
+    },
+    "Position %lld of %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Position %1$lld of %2$lld"
+          }
+        }
+      }
+    },
+    "Preview" : {
+
+    },
+    "Remove %@" : {
+
+    },
+    "Reserved" : {
+      "comment" : "Live Activity widget icon label for the slot taken by a double-width item"
+    },
+    "Set the size of the glucose reading." : {
+
+    },
+    "Sizes follow your iPhone's text size setting, so the reading keeps scaling if you change the text size in iOS Settings." : {
+
+    },
+    "Small" : {
+      "comment" : "Live Activity glucose reading font size"
     }
   },
   "version" : "1.1"
