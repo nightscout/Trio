@@ -278,7 +278,7 @@ import Testing
         let result = await processor.process(request)
 
         #expect(result.acknowledged == false)
-        #expect(result.ackCode == .genericFailure)
+        #expect(result.ackCode == .inProgress, "Watches tell a running duplicate apart by code, not by text")
         #expect(validator.validatedAmounts.isEmpty)
         #expect(actions.enactedBoluses.isEmpty)
     }

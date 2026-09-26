@@ -132,7 +132,11 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
             return result
         case .inProgress:
             log("⌚️⏱️ Garmin: Duplicate \(name) request still in progress - rejected")
-            return .failure(String(localized: "Request is already in progress.", comment: "Watch command ack"))
+            return WatchCommandResult(
+                acknowledged: false,
+                ackCode: .inProgress,
+                message: String(localized: "Request is already in progress.", comment: "Watch command ack")
+            )
         case .conflict:
             log("⌚️⏱️ Garmin: Request ID reused for a different command (\(name)) - rejected")
             return .failure(String(localized: "Request ID was already used.", comment: "Watch command ack"))
