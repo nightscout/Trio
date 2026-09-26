@@ -62,7 +62,7 @@ extension History.RootView {
                 if bolus.isExternal {
                     Text(String(localized: "External", comment: "External Insulin")).foregroundColor(.secondary)
                 }
-                if bolus.isPumpUI {
+                if bolus.isProgrammedByPumpUI {
                     Text(String(localized: "Pump UI", comment: "Bolus programmed on the pump itself"))
                         .foregroundColor(.secondary)
                 }
