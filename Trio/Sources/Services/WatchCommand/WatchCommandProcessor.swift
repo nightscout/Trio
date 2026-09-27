@@ -86,8 +86,9 @@ actor WatchCommandInsulinLane {
 
 /// Garmin is the only caller in phase 1, so the command gates read the Garmin settings.
 final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
-    /// Matches the remote-control freshness window and leaves room for the Connect IQ relay.
-    static let maximumCommandAge: TimeInterval = 10 * 60
+    /// The watch talks to the phone directly over Bluetooth (ConnectIQ SDK) and a command arrives within
+    /// seconds, so two minutes only keeps a late or replayed command from executing long after it was confirmed.
+    static let maximumCommandAge: TimeInterval = 2 * 60
     /// Clock skew tolerance for watches that run slightly ahead of the phone.
     static let maximumCommandLead: TimeInterval = 60
 
@@ -529,7 +530,7 @@ private extension BolusSafetyRejection {
         case .exceedsMaxIOB:
             return String(localized: "Bolus would exceed max IOB.", comment: "Watch command ack")
         case .recentBolusWithinWindow:
-            return String(localized: "A bolus was given in the last few minutes.", comment: "Watch command ack")
+            return String(localized: "A bolus was given in the last 6 minutes.", comment: "Watch command ack")
         }
     }
 }

@@ -304,7 +304,7 @@ struct WatchConfigGarminAppConfigView: View {
                         "Lets a supported Garmin app log carbs and start or stop override and temp target presets. Status and the preset list stay available with this switch off."
                     )
                     Text(
-                        "Commands are only accepted from the Garmin apps selected above, must reach the phone within 10 minutes, and carbs are limited by your Max Carbs setting."
+                        "Commands are only accepted from the Garmin apps selected above, must reach the phone within 2 minutes of being confirmed on the watch, and carbs are limited by your Max Carbs setting."
                     )
                 },
                 sheetTitle: String(localized: "Help", comment: "Help sheet title")
@@ -321,7 +321,7 @@ struct WatchConfigGarminAppConfigView: View {
                         "Lets the Garmin app deliver a bolus, alone or together with carbs, without any confirmation on this phone."
                     )
                     Text(
-                        "Every bolus is checked against your Max Bolus and Max IOB and rejected if another bolus was given in the last minutes. These checks cannot tell who pressed the button on the watch: anyone with access to your watch can deliver insulin up to those limits."
+                        "Every bolus is checked against your Max Bolus and Max IOB. A watch bolus is refused for 6 minutes after the previous watch bolus, and any watch bolus is refused if the boluses of the last 6 minutes (SMBs included) add up to 20% or more of it. These checks cannot tell who pressed the button on the watch: anyone with access to your watch can deliver insulin up to those limits."
                     )
                     Text("Only enable this if you keep your watch locked and under your control.").bold()
                 },

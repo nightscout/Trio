@@ -73,10 +73,10 @@ import Testing
     // MARK: - Freshness
 
     @Test(
-        "Timestamps are accepted from 10 minutes old to 60 seconds ahead",
+        "Timestamps are accepted from 2 minutes old to 60 seconds ahead",
         arguments: [
-            (TimeInterval(600), true),
-            (TimeInterval(600.001), false),
+            (TimeInterval(120), true),
+            (TimeInterval(120.001), false),
             (TimeInterval(-60), true),
             (TimeInterval(-60.001), false),
             (TimeInterval(0), true)
@@ -194,15 +194,17 @@ import Testing
         #expect(result.ackCode == .genericFailure)
     }
 
-    @Test("Recent-bolus lookback covers the standard window and everything since the command") func testLookbackStart() async {
+    @Test("Recent-bolus lookback covers the standard window for every fresh command") func testLookbackStart() async {
         let standardWindowStart = now.addingTimeInterval(-Double(BolusSafetyEvaluator.recentBolusWindowMinutes * 60))
 
-        // separate processors: a second bolus through one lane is stopped before validation
-        _ = await processor.process(request(.bolus(1), age: 60))
+        // separate processors: a second bolus through one lane is stopped before validation.
+        // The freshness window is shorter than the recent-bolus window, so even the oldest
+        // accepted command looks back over the full standard window.
+        _ = await processor.process(request(.bolus(1), age: 0))
         let second = Self.makeProcessor(container: container, actions: StubWatchCommandActions(), clock: clock, logs: logs)
-        _ = await second.process(request(.bolus(1), age: 9 * 60))
+        _ = await second.process(request(.bolus(1), age: BaseWatchCommandProcessor.maximumCommandAge))
 
-        #expect(validator.lookbackStarts == [standardWindowStart, now.addingTimeInterval(-9 * 60)])
+        #expect(validator.lookbackStarts == [standardWindowStart, standardWindowStart])
     }
 
     // MARK: - Meal Bolus
@@ -596,7 +598,7 @@ import Testing
         let first = Task { await processor.process(request(.bolus(2))) }
         await validator.gate.waitForArrivals()
         let command: WatchCommand = isMeal ? .mealBolus(carbs: 30, bolus: 1) : .bolus(1)
-        let second = Task { await processor.process(request(command, age: 590)) }
+        let second = Task { await processor.process(request(command, age: BaseWatchCommandProcessor.maximumCommandAge - 10)) }
         #expect(await eventually { await lane.waitingCount == 1 })
 
         clock.advance(by: 20)
@@ -617,7 +619,7 @@ import Testing
     ) func testExpiredDuringValidation(isMeal: Bool) async {
         validator.gate = TestGate()
         let command: WatchCommand = isMeal ? .mealBolus(carbs: 30, bolus: 1) : .bolus(1)
-        let pending = Task { await processor.process(request(command, age: 595)) }
+        let pending = Task { await processor.process(request(command, age: BaseWatchCommandProcessor.maximumCommandAge - 5)) }
         await validator.gate.waitForArrivals()
 
         clock.advance(by: 10)
@@ -635,7 +637,7 @@ import Testing
     ) func testExpiredBeforeIssuance(isMeal: Bool) async {
         actions.issueGate = TestGate()
         let command: WatchCommand = isMeal ? .mealBolus(carbs: 30, bolus: 1) : .bolus(1)
-        let pending = Task { await processor.process(request(command, age: 599)) }
+        let pending = Task { await processor.process(request(command, age: BaseWatchCommandProcessor.maximumCommandAge - 1)) }
         await actions.issueGate.waitForArrivals()
 
         clock.advance(by: 2)
@@ -648,7 +650,7 @@ import Testing
 
     @Test("An expired request replays its cached result without re-running") func testExpiredReplay() async {
         validator.gate = TestGate()
-        let request = request(.bolus(1), age: 595)
+        let request = request(.bolus(1), age: BaseWatchCommandProcessor.maximumCommandAge - 5)
         let pending = Task { await processor.process(request) }
         await validator.gate.waitForArrivals()
         clock.advance(by: 10)
