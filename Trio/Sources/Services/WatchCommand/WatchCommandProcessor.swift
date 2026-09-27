@@ -266,7 +266,7 @@ final class BaseWatchCommandProcessor: WatchCommandProcessor, Injectable {
     /// serialized hop, inside the Core Data transaction or in the task that calls
     /// `APSManager.enactBolus`, with nothing awaited between the check and the write or issuance.
     /// Insulin re-checks the freshness window as well.
-    private func finalCheck(for request: WatchCommandRequest, grant: UInt64) -> @Sendable () throws -> Void {
+    private func finalCheck(for request: WatchCommandRequest, grant: UInt64) -> @Sendable() throws -> Void {
         { [self] in
             if request.command.isInsulin, let rejection = expiryRejection(for: request) {
                 throw WatchCommandRejection(result: rejection)

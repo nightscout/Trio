@@ -205,7 +205,7 @@ final class StubAdjustmentManager: AdjustmentManager {
     private func guarded(
         _ call: Call,
         source: AdjustmentSource,
-        authorize: @Sendable () throws -> Void
+        authorize: @Sendable() throws -> Void
     ) async throws -> AdjustmentOutcome {
         await gate.pass()
         try authorize()
@@ -215,12 +215,12 @@ final class StubAdjustmentManager: AdjustmentManager {
     func activateOverride(
         _ preset: AdjustmentRef,
         source: AdjustmentSource,
-        authorize: @escaping @Sendable () throws -> Void
+        authorize: @escaping @Sendable() throws -> Void
     ) async throws -> AdjustmentOutcome {
         try await guarded(.activateOverride(preset), source: source, authorize: authorize)
     }
 
-    func cancelOverride(source: AdjustmentSource, authorize: @escaping @Sendable () throws -> Void) async throws
+    func cancelOverride(source: AdjustmentSource, authorize: @escaping @Sendable() throws -> Void) async throws
         -> AdjustmentOutcome
     {
         try await guarded(.cancelOverride, source: source, authorize: authorize)
@@ -229,12 +229,12 @@ final class StubAdjustmentManager: AdjustmentManager {
     func activateTempTarget(
         _ preset: AdjustmentRef,
         source: AdjustmentSource,
-        authorize: @escaping @Sendable () throws -> Void
+        authorize: @escaping @Sendable() throws -> Void
     ) async throws -> AdjustmentOutcome {
         try await guarded(.activateTempTarget(preset), source: source, authorize: authorize)
     }
 
-    func cancelTempTarget(source: AdjustmentSource, authorize: @escaping @Sendable () throws -> Void) async throws
+    func cancelTempTarget(source: AdjustmentSource, authorize: @escaping @Sendable() throws -> Void) async throws
         -> AdjustmentOutcome
     {
         try await guarded(.cancelTempTarget, source: source, authorize: authorize)

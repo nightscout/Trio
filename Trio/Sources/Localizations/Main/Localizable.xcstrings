@@ -27762,6 +27762,9 @@
         }
       }
     },
+    "A bolus was given in the last few minutes." : {
+      "comment" : "Watch command ack"
+    },
     "A display of On/On indicates both Dynamic ISF and CR are enabled. On/Off indicates only Dynamic ISF is enabled. Dynamic CR cannot be enabled when Dynamic ISF is disabled." : {
       "localizations" : {
         "bg" : {
@@ -42562,6 +42565,9 @@
         }
       }
     },
+    "Allow Bolus Commands" : {
+
+    },
     "Allow Bolusing with Shortcuts" : {
       "localizations" : {
         "bg" : {
@@ -44134,6 +44140,12 @@
           }
         }
       }
+    },
+    "Allow the Garmin app to deliver insulin. Requires watch commands to be enabled." : {
+
+    },
+    "Allow the Garmin app to log carbs and start or stop overrides and temp targets." : {
+
     },
     "Allow to add carbs in Trio." : {
       "localizations" : {
@@ -65856,6 +65868,9 @@
         }
       }
     },
+    "Bolus exceeds max bolus." : {
+      "comment" : "Watch command ack"
+    },
     "Bolus failed" : {
       "comment" : "Bolus failed",
       "localizations" : {
@@ -65986,6 +66001,12 @@
           }
         }
       }
+    },
+    "Bolus failed. Check pump history before repeating." : {
+      "comment" : "Watch command ack"
+    },
+    "Bolus from watch is disabled." : {
+      "comment" : "Watch command ack"
     },
     "Bolus In Progress..." : {
       "localizations" : {
@@ -67182,6 +67203,9 @@
         }
       }
     },
+    "Bolus started." : {
+      "comment" : "Watch command ack"
+    },
     "Bolus statistics will appear here once data is available." : {
       "localizations" : {
         "bg" : {
@@ -67449,6 +67473,9 @@
           }
         }
       }
+    },
+    "Bolus would exceed max IOB." : {
+      "comment" : "Watch command ack"
     },
     "Bolus/Basal %" : {
       "localizations" : {
@@ -73134,6 +73161,9 @@
         }
       }
     },
+    "Carbs exceed the maximum allowed." : {
+      "comment" : "Watch command ack"
+    },
     "Carbs Limit Reached!" : {
       "localizations" : {
         "bg" : {
@@ -73263,6 +73293,9 @@
           }
         }
       }
+    },
+    "Carbs logged and bolus started." : {
+      "comment" : "Watch command ack"
     },
     "Carbs logged successfully." : {
       "comment" : "Success message sent to watch when carbs are logged successfully",
@@ -73394,6 +73427,15 @@
           }
         }
       }
+    },
+    "Carbs logged." : {
+      "comment" : "Watch command ack"
+    },
+    "Carbs logged. Bolus failed, check pump history before repeating." : {
+      "comment" : "Watch command ack"
+    },
+    "Carbs logged. No bolus was delivered." : {
+      "comment" : "Watch command ack"
     },
     "Carbs Not Logged" : {
       "comment" : "Alert title when a carbs-only quick pick fails to save\nAlert title when the bolus was enacted but carbs failed to save",
@@ -83637,6 +83679,15 @@
         }
       }
     },
+    "Command expired. Please try again." : {
+      "comment" : "Watch command ack"
+    },
+    "Commands" : {
+
+    },
+    "Commands are only accepted from the Garmin apps selected above, must reach the phone within 10 minutes, and carbs are limited by your Max Carbs setting." : {
+
+    },
     "complete" : {
       "comment" : "Accessibility: onboarding chapter complete",
       "localizations" : {
@@ -90366,6 +90417,12 @@
         }
       }
     },
+    "Could not log carbs." : {
+      "comment" : "Watch command ack"
+    },
+    "Could not log carbs. No bolus was delivered." : {
+      "comment" : "Watch command ack"
+    },
     "Could not save the change." : {
       "comment" : "Adjustment could not be saved",
       "localizations" : {
@@ -90496,6 +90553,21 @@
           }
         }
       }
+    },
+    "Could not start override." : {
+      "comment" : "Watch command ack"
+    },
+    "Could not start temp target." : {
+      "comment" : "Watch command ack"
+    },
+    "Could not stop override." : {
+      "comment" : "Watch command ack"
+    },
+    "Could not stop temp target." : {
+      "comment" : "Watch command ack"
+    },
+    "Could not verify bolus safety." : {
+      "comment" : "Watch command ack"
     },
     "Count" : {
       "localizations" : {
@@ -126076,6 +126148,9 @@
         }
       }
     },
+    "Enable Watch Commands" : {
+
+    },
     "Enabled" : {
       "comment" : "Title string for BeepPreference.manualCommands",
       "extractionState" : "manual",
@@ -133728,6 +133803,9 @@
           }
         }
       }
+    },
+    "Every bolus is checked against your Max Bolus and Max IOB and rejected if another bolus was given in the last minutes. These checks cannot tell who pressed the button on the watch: anyone with access to your watch can deliver insulin up to those limits." : {
+
     },
     "Everything you enter here can be adjusted later in the app." : {
       "localizations" : {
@@ -174498,6 +174576,15 @@
         }
       }
     },
+    "Invalid bolus amount." : {
+      "comment" : "Watch command ack"
+    },
+    "Invalid carbs amount." : {
+      "comment" : "Watch command ack"
+    },
+    "Invalid command." : {
+      "comment" : "Watch command ack"
+    },
     "Invalid Glucose (%@)." : {
       "localizations" : {
         "bg" : {
@@ -175705,6 +175792,9 @@
           }
         }
       }
+    },
+    "IOB unavailable. Bolus not delivered." : {
+      "comment" : "Watch command ack"
     },
     "IOBpredBG" : {
       "localizations" : {
@@ -180545,6 +180635,12 @@
           }
         }
       }
+    },
+    "Lets a supported Garmin app log carbs and start or stop override and temp target presets. Status and the preset list stay available with this switch off." : {
+
+    },
+    "Lets the Garmin app deliver a bolus, alone or together with carbs, without any confirmation on this phone." : {
+
     },
     "Libre 2 Direct" : {
       "comment" : "Libre 2 Direct",
@@ -224165,6 +224261,9 @@
         }
       }
     },
+    "Only enable this if you keep your watch locked and under your control." : {
+
+    },
     "Only shown for the Glucose Bobble style, which replaces Display Values, Ring Settings, and Font Settings:" : {
       "localizations" : {
         "bg" : {
@@ -229286,6 +229385,9 @@
         }
       }
     },
+    "Override preset not found." : {
+      "comment" : "Watch command ack"
+    },
     "Override Presets" : {
       "localizations" : {
         "bg" : {
@@ -229957,6 +230059,12 @@
           }
         }
       }
+    },
+    "Override started." : {
+      "comment" : "Watch command ack"
+    },
+    "Override stopped." : {
+      "comment" : "Watch command ack"
     },
     "Override Target" : {
       "localizations" : {
@@ -252195,6 +252303,12 @@
           }
         }
       }
+    },
+    "Request ID was already used." : {
+      "comment" : "Watch command ack"
+    },
+    "Request is already in progress." : {
+      "comment" : "Watch command ack"
     },
     "Require Adjustments Confirmation" : {
       "localizations" : {
@@ -291714,6 +291828,9 @@
         }
       }
     },
+    "Temp target preset not found." : {
+      "comment" : "Watch command ack"
+    },
     "Temp Target Presets" : {
       "localizations" : {
         "bg" : {
@@ -291843,6 +291960,12 @@
           }
         }
       }
+    },
+    "Temp target started." : {
+      "comment" : "Watch command ack"
+    },
+    "Temp target stopped." : {
+      "comment" : "Watch command ack"
     },
     "Temp Target to Stop" : {
       "localizations" : {
@@ -315874,6 +315997,9 @@
         }
       }
     },
+    "Too many requests in progress. Please try again." : {
+      "comment" : "Watch command ack"
+    },
     "Top target" : {
       "comment" : "Upper temp target limit",
       "extractionState" : "manual",
@@ -339641,6 +339767,12 @@
           }
         }
       }
+    },
+    "Watch command settings changed." : {
+      "comment" : "Watch command ack"
+    },
+    "Watch commands are disabled." : {
+      "comment" : "Watch command ack"
     },
     "Watch Configuration" : {
       "extractionState" : "manual",

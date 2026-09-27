@@ -227,7 +227,7 @@ import Testing
         #expect(reply["maxBolus"] as? Double == 5)
         #expect(reply["maxCarbs"] as? Double == 120)
         // a Decimal float literal is not exact, so compare with a tolerance
-        #expect(abs((reply["bolusIncrement"] as? Double ?? 0) - 0.05) < 1e-9)
+        #expect(abs((reply["bolusIncrement"] as? Double ?? 0) - 0.05) < 1E-9)
         #expect(reply["req"] as? String == "presets")
         let overrides = try #require(reply["overridePresets"] as? [[String: Any]])
         #expect(overrides.first?["name"] as? String == "Sport")

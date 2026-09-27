@@ -88,23 +88,23 @@ protocol AdjustmentManager {
     @discardableResult func activateOverride(
         _ preset: AdjustmentRef,
         source: AdjustmentSource,
-        authorize: @escaping @Sendable () throws -> Void
+        authorize: @escaping @Sendable() throws -> Void
     ) async throws -> AdjustmentOutcome
 
     @discardableResult func cancelOverride(
         source: AdjustmentSource,
-        authorize: @escaping @Sendable () throws -> Void
+        authorize: @escaping @Sendable() throws -> Void
     ) async throws -> AdjustmentOutcome
 
     @discardableResult func activateTempTarget(
         _ preset: AdjustmentRef,
         source: AdjustmentSource,
-        authorize: @escaping @Sendable () throws -> Void
+        authorize: @escaping @Sendable() throws -> Void
     ) async throws -> AdjustmentOutcome
 
     @discardableResult func cancelTempTarget(
         source: AdjustmentSource,
-        authorize: @escaping @Sendable () throws -> Void
+        authorize: @escaping @Sendable() throws -> Void
     ) async throws -> AdjustmentOutcome
 }
 
@@ -172,14 +172,14 @@ final class BaseAdjustmentManager: AdjustmentManager, Injectable, @unchecked Sen
     @discardableResult func activateOverride(
         _ preset: AdjustmentRef,
         source: AdjustmentSource,
-        authorize: @escaping @Sendable () throws -> Void
+        authorize: @escaping @Sendable() throws -> Void
     ) async throws -> AdjustmentOutcome {
         try await runOverride(activating: preset, source: source, waitForUpload: false, authorize: authorize)
     }
 
     @discardableResult func cancelOverride(
         source: AdjustmentSource,
-        authorize: @escaping @Sendable () throws -> Void
+        authorize: @escaping @Sendable() throws -> Void
     ) async throws -> AdjustmentOutcome {
         try await runOverride(activating: nil, source: source, waitForUpload: false, authorize: authorize)
     }
@@ -188,7 +188,7 @@ final class BaseAdjustmentManager: AdjustmentManager, Injectable, @unchecked Sen
         activating preset: AdjustmentRef?,
         source: AdjustmentSource,
         waitForUpload: Bool,
-        authorize: (@Sendable () throws -> Void)?
+        authorize: (@Sendable() throws -> Void)?
     ) async throws -> AdjustmentOutcome {
         let outcome = try await serializer.run { try await self.commitOverride(activating: preset, authorize: authorize) }
         let action = preset == nil ? "cancelled" : "activated"
@@ -202,7 +202,7 @@ final class BaseAdjustmentManager: AdjustmentManager, Injectable, @unchecked Sen
     /// or with two adjustments enabled at once.
     private func commitOverride(
         activating preset: AdjustmentRef?,
-        authorize: (@Sendable () throws -> Void)?
+        authorize: (@Sendable() throws -> Void)?
     ) async throws -> AdjustmentOutcome {
         let context = makeContext()
         context.name = "commitOverride"
@@ -276,14 +276,14 @@ final class BaseAdjustmentManager: AdjustmentManager, Injectable, @unchecked Sen
     @discardableResult func activateTempTarget(
         _ preset: AdjustmentRef,
         source: AdjustmentSource,
-        authorize: @escaping @Sendable () throws -> Void
+        authorize: @escaping @Sendable() throws -> Void
     ) async throws -> AdjustmentOutcome {
         try await runTempTarget(activating: preset, source: source, waitForUpload: false, authorize: authorize)
     }
 
     @discardableResult func cancelTempTarget(
         source: AdjustmentSource,
-        authorize: @escaping @Sendable () throws -> Void
+        authorize: @escaping @Sendable() throws -> Void
     ) async throws -> AdjustmentOutcome {
         try await runTempTarget(activating: nil, source: source, waitForUpload: false, authorize: authorize)
     }
@@ -292,7 +292,7 @@ final class BaseAdjustmentManager: AdjustmentManager, Injectable, @unchecked Sen
         activating preset: AdjustmentRef?,
         source: AdjustmentSource,
         waitForUpload: Bool,
-        authorize: (@Sendable () throws -> Void)?
+        authorize: (@Sendable() throws -> Void)?
     ) async throws -> AdjustmentOutcome {
         let (outcome, orefTarget) = try await serializer.run {
             try await self.commitTempTarget(activating: preset, authorize: authorize)
@@ -307,7 +307,7 @@ final class BaseAdjustmentManager: AdjustmentManager, Injectable, @unchecked Sen
     /// transaction while the row is still safe to read on this context.
     private func commitTempTarget(
         activating preset: AdjustmentRef?,
-        authorize: (@Sendable () throws -> Void)?
+        authorize: (@Sendable() throws -> Void)?
     ) async throws -> (AdjustmentOutcome, TempTarget?) {
         let context = makeContext()
         context.name = "commitTempTarget"
