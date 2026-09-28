@@ -1,6 +1,7 @@
 import AccuChekKit
 import CGMBLEKit
 import Combine
+import EversenseKit
 import Foundation
 import G7SensorKit
 import LibreLoop
@@ -288,6 +289,10 @@ extension PluginSource: CGMManagerDelegate {
                 sensorActivatedAt = cgmTransmitterManager.state.cgmStartTime
                 sensorStartDate = cgmTransmitterManager.state.cgmStartTime
                 sensorTransmitterID = cgmTransmitterManager.state.sensorInfo?.serialNumber
+            } else if let cgmTransmitterManager = cgmManager as? EversenseCGMManager {
+                sensorActivatedAt = cgmTransmitterManager.state.activatedAt
+                sensorStartDate = cgmTransmitterManager.state.activatedAt
+                sensorTransmitterID = cgmTransmitterManager.state.bleNameString
             }
 
             // isDisplayOnly means "shifted for visual consistency after calibration"

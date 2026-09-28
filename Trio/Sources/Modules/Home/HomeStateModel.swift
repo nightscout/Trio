@@ -3,6 +3,7 @@ import CGMBLEKit
 import CGMBLEKitUI
 import Combine
 import CoreData
+import EversenseKit
 import Foundation
 import G7SensorKit
 import LibreLoop
@@ -915,6 +916,9 @@ extension Home {
                 }
                 // Warmup / initializing / expired: no meaningful expiry yet.
                 return nil
+                
+            case let eversense as EversenseCGMManager:
+                return eversense.state.expiresAt
 
             case let accuChek as AccuChekCgmManager:
                 return accuChek.state.cgmEndTime
@@ -925,6 +929,7 @@ extension Home {
         }
 
         /// Wall-clock end of the sensor's warmup window; `nil` when not warming up.
+        /// Note: Libre 2 & Eversense do not emit/have warming up periods
         private static func resolveWarmupEndsAt(manager: CGMManagerUI?) -> Date? {
             switch manager {
             case let g7 as G7CGMManager:
