@@ -77,9 +77,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         broadcaster.register(SettingsObserver.self, observer: self)
         broadcaster.register(PumpSettingsObserver.self, observer: self)
 
-        // Observer for OrefDetermination and adjustments
+        // Observer for OrefDetermination and adjustments. Upload flags change nothing the watch shows.
         coreDataPublisher =
-            CoreDataStack.shared.entityChangePublisher
+            CoreDataStack.shared.contentChangePublisher
                 .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
