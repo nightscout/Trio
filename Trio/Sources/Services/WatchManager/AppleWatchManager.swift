@@ -41,6 +41,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     /// Only accessed on `queue`.
     private var pendingWatchStatePush: DispatchWorkItem?
+    private var pendingWatchStatePushSince: Date?
+    /// A slow pump can keep the loop running; the glucose value must not wait on it longer than this.
+    private static let maxLoopWait: TimeInterval = 30
 
     // Glucose history sync. Only accessed on the main actor.
     /// The last payload sent: the base of the next delta.
@@ -54,6 +57,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     private var lastContextUpdate: Date?
     /// Resends an unchanged context before the watch sees it as stale (15 minutes).
     private static let unchangedContextRefreshInterval: TimeInterval = 5 * 60
+    /// The watch goes stale by the age of its newest reading, so an unchanged message is never resent.
+    private var lastMessageContent: NSDictionary?
     private var transferredBytes: [String: Int] = [:]
 
     typealias PumpEvent = PumpEventStored.EventType
@@ -98,22 +103,34 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     }
 
     /// A new reading, the loop's determination and the IOB update usually land together: send them as one push.
-    /// Longer than a typical loop cycle (median 0.7–1.3 s, measured in #1377), so the determination makes it in.
     private func scheduleWatchStatePush() {
         guard let session = session, session.isPaired, session.isWatchAppInstalled else { return }
 
         queue.async { [weak self] in
             guard let self = self else { return }
-            self.pendingWatchStatePush?.cancel()
-            let workItem = DispatchWorkItem { [weak self] in
-                guard let self = self else { return }
-                Task {
-                    await self.pushWatchState()
-                }
+            if self.pendingWatchStatePushSince == nil {
+                self.pendingWatchStatePushSince = Date()
             }
-            self.pendingWatchStatePush = workItem
-            self.queue.asyncAfter(deadline: .now() + 2, execute: workItem)
+            self.schedulePendingWatchStatePush(after: 0.5)
         }
+    }
+
+    /// While a loop runs, holds the push until its result is in, measured from the first trigger. Only called on `queue`.
+    private func schedulePendingWatchStatePush(after delay: TimeInterval) {
+        pendingWatchStatePush?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self, let since = self.pendingWatchStatePushSince else { return }
+            if self.apsManager.isLooping.value, Date().timeIntervalSince(since) < Self.maxLoopWait {
+                self.schedulePendingWatchStatePush(after: 1)
+                return
+            }
+            self.pendingWatchStatePushSince = nil
+            Task {
+                await self.pushWatchState()
+            }
+        }
+        pendingWatchStatePush = workItem
+        queue.asyncAfter(deadline: .now() + delay, execute: workItem)
     }
 
     private func pushWatchState() async {
@@ -599,14 +616,22 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         // if session is reachable, it means watch App is in the foreground -> also send watchState as message for immediate delivery
         guard session.isReachable else { return }
 
+        let content = Self.contextContent(of: payload)
+        if let lastContent = lastMessageContent, lastContent.isEqual(content) {
+            debug(.watchManager, "📦 Skipping unchanged watch message")
+            return
+        }
+        lastMessageContent = content
+
         var message = payload
         if watchSupportsGlucoseDelta, let base = previousGlucoseNewest, previousGlucoseSignature == state.glucoseSignature {
             message = WatchGlucoseSync.delta(of: payload, since: base)
         }
         logTransfer("message", [WatchMessageKeys.watchState: message])
 
-        session.sendMessage([WatchMessageKeys.watchState: message], replyHandler: nil) { error in
+        session.sendMessage([WatchMessageKeys.watchState: message], replyHandler: nil) { [weak self] error in
             debug(.watchManager, "❌ Error sending watch state: \(error)")
+            Task { @MainActor in self?.lastMessageContent = nil }
         }
     }
 
@@ -627,6 +652,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         watchSupportsGlucoseDelta = false
         lastContextContent = nil
         lastContextUpdate = nil
+        lastMessageContent = nil
     }
 
     /// Without the stamps that change with every build.
