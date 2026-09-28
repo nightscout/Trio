@@ -23,9 +23,6 @@ extension Stat {
         /// the sheet opens, so it reflects what the row above it is showing.
         @State private var isRangeSelection = false
 
-        /// The by-day charts draw one bar per day, so the rolling 24 h window has nothing to
-        /// show them. A picked range does — several days is exactly what they want — so
-        /// `.custom` stays on offer and only `.day` drops out.
         private var intervalOptions: [Stat.StateModel.StatsTimeIntervalWithCustom] {
             state.selectedGlucoseChartType == .percentileByDay || state.selectedGlucoseChartType == .distributionByDay
                 ? [.custom, .week, .month, .total] : Stat.StateModel.StatsTimeIntervalWithCustom.allCases
@@ -139,10 +136,6 @@ extension Stat {
 
         /// Chooses which days the `.custom` interval reports on. Shown only while that interval
         /// is selected, since it means nothing for the rolling windows.
-        ///
-        /// Chevrons for the common move — the window either side of this one — and a tap on
-        /// the dates to pick both ends. Both are bounded: there is no data past the stats
-        /// screen's own three-month horizon, and none in the future.
         @ViewBuilder private var controlRow: some View {
             HStack(spacing: 0) {
                 if isDayPickerVisible {
@@ -221,9 +214,7 @@ extension Stat {
             }
         }
 
-        /// "Today" and "Yesterday" rather than their dates: on the two days people look at most,
-        /// the name answers "which day is this?" faster than a date does. A range spanning more
-        /// than one day names both its ends instead.
+        /// always show titles of "Today" and "Yesterday" instead of their absolute dates
         private var selectedDayLabel: String {
             let calendar = Calendar.current
             let range = state.selectedStatsRange
@@ -274,13 +265,6 @@ extension Stat {
             state.selectedStatsRange = shifted
         }
 
-        /// Picks the window directly, for a stretch further off than a chevron or two. The
-        /// "Range" toggle chooses the shape: one day, or a From/To pair. Bounded pickers rather
-        /// than a calendar, because SwiftUI has no range date picker and each end is only ever
-        /// a day.
-        ///
-        /// Every picker is clamped to the span the stats screen holds data for, and the pair is
-        /// clamped to itself, so the range can never invert or land where there is nothing.
         @ViewBuilder private var dayPickerSheet: some View {
             let earliest = Calendar.current.startOfDay(for: state.earliestSelectableStatsDay)
             let today = Calendar.current.startOfDay(for: Date())
@@ -353,12 +337,8 @@ extension Stat {
                         }
                     }.listRowBackground(Color.chart)
                 }
-                // Trio's own background instead of the Form's grouped one, matching every
-                // other sheet in the app.
                 .scrollContentBackground(.hidden)
                 .background(appState.trioBackgroundColor(for: colorScheme))
-                // Text, not a String ternary: a ternary of two literals is a plain String and
-                // would skip localization.
                 .navigationTitle(isRangeSelection ? Text("Select Days") : Text("Select Day"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -375,8 +355,6 @@ extension Stat {
                     }
                 }
             }
-            // One height, no drag to full screen: at most a toggle, two rows and a footer,
-            // so the extra detent only ever added blank space under them.
             .presentationDetents([.medium])
         }
 

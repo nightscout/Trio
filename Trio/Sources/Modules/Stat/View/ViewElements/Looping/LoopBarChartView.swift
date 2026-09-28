@@ -5,11 +5,8 @@ struct LoopBarChartView: View {
     let loopStatRecords: [LoopStatRecord]
     let selectedInterval: Stat.StateModel.StatsTimeIntervalWithCustom
     let statsData: [LoopStatsProcessedData]
-    /// Whether the window covers more than one day. `.custom` can be either, and the numbers
-    /// behind these bars are always per-day averages — only the label has to say so.
     let spansMultipleDays: Bool
 
-    /// A one-day window's per-day average *is* its count, so the bare label is honest there.
     private var showsPerDayAverages: Bool {
         switch selectedInterval {
         case .day: return false

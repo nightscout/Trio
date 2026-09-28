@@ -53,11 +53,6 @@ extension Stat {
 
         /// The days the `.custom` interval reports on: a range of whole calendar days,
         /// `lowerBound` and `upperBound` both inclusive and both normalised to midnight.
-        ///
-        /// That interval used to be today and nothing else. It is now a range picker: today by
-        /// default, and any stretch back to the edge of the stored history. Held once for the
-        /// whole screen rather than per tab, so moving through days on the glucose tab and
-        /// switching to looping shows the same range rather than silently jumping back to today.
         var selectedStatsRange: ClosedRange<Date> = {
             let today = Calendar.current.startOfDay(for: Date())
             return today ... today
@@ -89,11 +84,6 @@ extension Stat {
         }
 
         /// The bucket granularity the charts should draw a custom range at.
-        ///
-        /// The chart layer (`StatChartUtils`) is built on the fixed intervals — visible domain
-        /// length, axis format, tick alignment — and a user-picked range is none of them. Rather
-        /// than teach every one of those an arbitrary span, a range borrows the granularity of
-        /// the fixed interval closest to its own length.
         static func chartInterval(for range: ClosedRange<Date>, calendar: Calendar = .current) -> StatsTimeInterval {
             switch dayCount(of: range, calendar: calendar) {
             case ...1: return .day
@@ -110,11 +100,6 @@ extension Stat {
         }
 
         /// The window an interval covers.
-        ///
-        /// Ends at `now` for every interval except a calendar day already in the past, which
-        /// ends at its own midnight — otherwise a day selected last week would be reported as
-        /// running right up to the present. Single source of truth for the glucose predicate
-        /// and both loop-stat fetches, which each used to carry their own copy of this switch.
         func dateRange(for interval: StatsTimeIntervalWithCustom) -> (start: Date, end: Date) {
             let now = Date()
             switch interval {
@@ -405,11 +390,6 @@ extension Stat.StateModel {
         var displayName: String {
             switch self {
             case .custom:
-                // Neither "Today" nor "Day" any more: this interval reports on whichever span
-                // the picker underneath it is on, from a single day up to the whole stored
-                // history. That picker names the actual dates, so the segment only has to say
-                // what kind of window it is — and it has to be told apart from the rolling
-                // 24 h next to it, which is why that one stopped being "D" at the same time.
                 return String(localized: "Range", comment: "Stats interval: a user-picked span of days")
             case .day:
                 return String(localized: "24 h", comment: "Stats interval: the rolling last 24 hours")
