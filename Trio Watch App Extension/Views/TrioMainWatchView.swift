@@ -3,7 +3,7 @@ import SwiftUI
 import WatchKit
 
 struct TrioMainWatchView: View {
-    @State private var state = WatchState()
+    @State private var state = WatchState.shared
 
     // misc
     @State private var currentPage: Int = 0

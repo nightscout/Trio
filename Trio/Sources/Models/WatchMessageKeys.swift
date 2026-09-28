@@ -1,3 +1,5 @@
+import Foundation
+
 enum WatchMessageKeys {
     // Request/Response Keys
     static let date = "date"
@@ -63,4 +65,95 @@ enum WatchMessageKeys {
     static let forecastConeMin = "forecastConeMin"
     static let forecastConeMax = "forecastConeMax"
     static let forecastLines = "forecastLines"
+
+    // Glucose history sync
+    /// Only set on deltas: the newest reading the delta builds on.
+    static let glucoseSyncBase = "glucoseSyncBase"
+    static let glucoseWindowStart = "glucoseWindowStart"
+    static let glucoseCount = "glucoseCount"
+    static let glucoseChecksum = "glucoseChecksum"
+    /// Units and color settings the readings were converted with.
+    static let glucoseSignature = "glucoseSignature"
+    static let supportsGlucoseDelta = "supportsGlucoseDelta"
+    static let glucoseSince = "glucoseSince"
+}
+
+enum WatchGlucoseSync {
+    static let readingTimestampKey = "date"
+    static let readingGlucoseKey = "glucose"
+    static let readingColorKey = "color"
+
+    static func annotateFullHistory(
+        _ payload: inout [String: Any],
+        readings: [[String: Any]],
+        windowStart: TimeInterval?,
+        signature: String
+    ) {
+        var checksum = WatchGlucoseChecksum()
+        for reading in readings {
+            guard let timestamp = reading[readingTimestampKey] as? TimeInterval,
+                  let glucose = reading[readingGlucoseKey] as? Double
+            else { continue }
+            checksum.add(timestamp: timestamp, glucose: glucose)
+        }
+
+        payload[WatchMessageKeys.glucoseValues] = readings
+        payload[WatchMessageKeys.glucoseCount] = checksum.count
+        payload[WatchMessageKeys.glucoseChecksum] = checksum.transportValue
+        payload[WatchMessageKeys.glucoseSignature] = signature
+        if let windowStart = windowStart {
+            payload[WatchMessageKeys.glucoseWindowStart] = windowStart
+        }
+    }
+
+    /// Count and checksum keep describing the whole window.
+    static func delta(of payload: [String: Any], since base: TimeInterval) -> [String: Any] {
+        let readings = payload[WatchMessageKeys.glucoseValues] as? [[String: Any]] ?? []
+
+        var delta = payload
+        delta[WatchMessageKeys.glucoseValues] = readings.filter { reading in
+            guard let timestamp = reading[readingTimestampKey] as? TimeInterval else { return false }
+            return timestamp > base
+        }
+        delta[WatchMessageKeys.glucoseSyncBase] = base
+        return delta
+    }
+
+    /// `nil` when no reading is older than `cutoff`.
+    static func recentTail(of payload: [String: Any], after cutoff: TimeInterval) -> [String: Any]? {
+        let readings = payload[WatchMessageKeys.glucoseValues] as? [[String: Any]] ?? []
+        let base = readings
+            .compactMap { $0[readingTimestampKey] as? TimeInterval }
+            .filter { $0 <= cutoff }
+            .max()
+        guard let base = base else { return nil }
+        return delta(of: payload, since: base)
+    }
+
+    static func newestTimestamp(in payload: [String: Any]) -> TimeInterval? {
+        let readings = payload[WatchMessageKeys.glucoseValues] as? [[String: Any]] ?? []
+        return readings.compactMap { $0[readingTimestampKey] as? TimeInterval }.max()
+    }
+}
+
+/// Order-independent checksum over the raw values sent, so phone and watch match bit for bit.
+struct WatchGlucoseChecksum {
+    private(set) var count = 0
+    private var sum: UInt64 = 0
+
+    mutating func add(timestamp: TimeInterval, glucose: Double) {
+        count += 1
+        sum &+= Self.mix(timestamp.bitPattern ^ Self.mix(glucose.bitPattern))
+    }
+
+    /// Property lists only hold signed integers.
+    var transportValue: Int64 { Int64(bitPattern: sum) }
+
+    /// SplitMix64 finalizer: spreads every input bit over the whole result.
+    private static func mix(_ input: UInt64) -> UInt64 {
+        var value = input &+ 0x9E37_79B9_7F4A_7C15
+        value = (value ^ (value >> 30)) &* 0xBF58_476D_1CE4_E5B9
+        value = (value ^ (value >> 27)) &* 0x94D0_49BB_1331_11EB
+        return value ^ (value >> 31)
+    }
 }
