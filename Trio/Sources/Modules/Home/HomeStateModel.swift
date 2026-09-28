@@ -920,7 +920,7 @@ extension Home {
                 return nil
 
             case let accuChek as AccuChekCgmManager:
-                return accuChek.state.expiresAt
+                return accuChek.state.cgmEndTime
 
             default:
                 return nil
@@ -961,8 +961,8 @@ extension Home {
                 return nil
 
             case let accuChek as AccuChekCgmManager:
-                if accuChek.state.calibrationPhase != .done, let startTime = accuChek.state.cgmStartTime {
-                    return startTime.addingTimeInterval(.hours(1))
+                if accuChek.state.calibrationPhase != .done, let warmupCompleted = accuChek.state.cgmWarmupCompleted {
+                    return warmupCompleted
                 }
                 return nil
 
