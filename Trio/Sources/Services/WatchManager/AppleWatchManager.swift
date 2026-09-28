@@ -32,7 +32,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     private var glucoseColorScheme: GlucoseColorScheme = .staticColor
     private var lowGlucose: Decimal = 70.0
     private var highGlucose: Decimal = 180.0
-    private var currentGlucoseTarget: Decimal = 100.0
     private var activeBolusAmount: Double = 0.0
 
     // Queue for handling Core Data change notifications
@@ -70,9 +69,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         glucoseColorScheme = settingsManager.settings.glucoseColorScheme
         lowGlucose = settingsManager.settings.low
         highGlucose = settingsManager.settings.high
-        Task {
-            currentGlucoseTarget = await getCurrentGlucoseTarget() ?? Decimal(100)
-        }
         broadcaster.register(SettingsObserver.self, observer: self)
         broadcaster.register(PumpSettingsObserver.self, observer: self)
 
@@ -202,6 +198,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             )
             let overridePresetIds = try await overrideStorage.fetchForOverridePresets()
             let tempTargetPresetIds = try await tempTargetStorage.fetchForTempTargetPresets()
+            // Read per build: it follows the time of day and is part of the sync signature.
+            let currentGlucoseTarget = await getCurrentGlucoseTarget() ?? Decimal(100)
 
             // Get NSManagedObjects
             let glucoseObjects: [GlucoseStored] = try await CoreDataStack.shared
@@ -249,7 +247,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 let lowGlucoseValue = isDynamicColorScheme ? hardCodedLow : self.lowGlucose
                 let highGlucoseColorValue = highGlucoseValue
                 let lowGlucoseColorValue = lowGlucoseValue
-                let targetGlucose = self.currentGlucoseTarget
+                let targetGlucose = currentGlucoseTarget
 
                 watchState.glucoseWindowStart = glucoseWindowStart
                 watchState.glucoseSignature = [
@@ -257,7 +255,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     self.glucoseColorScheme.rawValue,
                     "\(lowGlucoseColorValue)",
                     "\(highGlucoseColorValue)",
-                    "\(targetGlucose)"
+                    isDynamicColorScheme ? "\(targetGlucose)" : ""
                 ].joined(separator: "|")
 
                 guard let latestGlucose = glucoseObjects.first else {
