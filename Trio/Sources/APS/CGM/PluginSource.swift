@@ -1,3 +1,4 @@
+import AccuChekKit
 import CGMBLEKit
 import Combine
 import Foundation
@@ -283,6 +284,10 @@ extension PluginSource: CGMManagerDelegate {
                 sensorActivatedAt = cgmTransmitterManager.state.activatedAt
                 sensorStartDate = cgmTransmitterManager.state.activatedAt
                 sensorTransmitterID = cgmTransmitterManager.state.sensorSerial
+            } else if let cgmTransmitterManager = cgmManager as? AccuChekCgmManager {
+                sensorActivatedAt = cgmTransmitterManager.state.cgmStartTime
+                sensorStartDate = cgmTransmitterManager.state.cgmStartTime
+                sensorTransmitterID = cgmTransmitterManager.state.sensorInfo?.serialNumber
             }
 
             // isDisplayOnly means "shifted for visual consistency after calibration"
