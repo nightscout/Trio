@@ -48,10 +48,10 @@ struct LoopBarChartView: View {
                 }
             }
             .chartXAxis {
-                AxisMarks(position: .bottom) { value in
+                AxisMarks(preset: .aligned, position: .bottom) { value in
                     if let percentage = value.as(Double.self) {
                         if selectedInterval != .custom || spansMultipleDays {
-                            AxisValueLabel {
+                            AxisValueLabel(anchor: .top) {
                                 Text("\(Int(percentage))%")
                                     .font(.footnote)
                             }

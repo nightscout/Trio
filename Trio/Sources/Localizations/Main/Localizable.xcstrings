@@ -152070,6 +152070,7 @@
       }
     },
     "Glucose Distribution" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -192545,6 +192546,9 @@
           }
         }
       }
+    },
+    "Manual basal %@" : {
+      "comment" : "Accessibility: manual temp basal rate the user set on the pump"
     },
     "manual entry" : {
       "comment" : "Accessibility: manually entered glucose",
@@ -287117,6 +287121,9 @@
           }
         }
       }
+    },
+    "Suspended" : {
+      "comment" : "Basal delivery suspended on the pump"
     },
     "Suspending insulin delivery..." : {
       "comment" : "Text for suspend resume button when insulin delivery is suspending",

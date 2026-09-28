@@ -7,8 +7,8 @@
 
 # Core algorithm + oref codeowners
 # https://github.com/orgs/nightscout/teams/trio-oref-codeowners
-AlgorithmPackage/*       @nightscout/trio-oref-codeowners @nightscout/trio-codeowners-superusers
-trio-oref/*              @nightscout/trio-oref-codeowners @nightscout/trio-codeowners-superusers
+AlgorithmPackage         @nightscout/trio-oref-codeowners @nightscout/trio-codeowners-superusers
+trio-oref                @nightscout/trio-oref-codeowners @nightscout/trio-codeowners-superusers
 oref0_source_version.txt @nightscout/trio-oref-codeowners @nightscout/trio-codeowners-superusers
 
 # Insulin pump driver submodules
@@ -31,10 +31,10 @@ G7SensorKit          @nightscout/trio-cgm-codeowners @nightscout/trio-codeowners
 
 # Github Actions CI / Browser Build
 # https://github.com/orgs/nightscout/teams/trio-ci-codeowners
-.github/workflows/*  @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
-fastlane/*           @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
-patches/*            @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
-BuildTools/*         @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
+.github/workflows/   @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
+fastlane/            @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
+patches/             @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
+BuildTools/          @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
 Gemfile              @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
 Gemfile.lock         @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-superusers
 
@@ -42,7 +42,7 @@ Gemfile.lock         @nightscout/trio-ci-codeowners @nightscout/trio-codeowners-
 # https://github.com/orgs/nightscout/teams/trio-translations-codeowners
 crowdin.yml                  @nightscout/trio-translations-codeowners @nightscout/trio-codeowners-superusers
 *.strings                    @nightscout/trio-translations-codeowners @nightscout/trio-codeowners-superusers
-Trio/Sources/Localizations/* @nightscout/trio-translations-codeowners @nightscout/trio-codeowners-superusers
+Trio/Sources/Localizations/  @nightscout/trio-translations-codeowners @nightscout/trio-codeowners-superusers
 
 # The CODEOWNERS file itself
 .github/CODEOWNERS   @nightscout/trio-codeowners-superusers

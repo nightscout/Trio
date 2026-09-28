@@ -180,6 +180,8 @@ extension MealSettings {
                                 .lineLimit(nil)
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
 
                                 Spacer()
                                 Button(
