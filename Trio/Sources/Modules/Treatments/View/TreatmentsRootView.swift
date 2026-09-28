@@ -524,10 +524,13 @@ extension Treatments {
                             state.invokeTreatmentsTask()
                         }
                     } label: {
-                        taskButtonLabel
-                            .font(.headline)
-                            .foregroundStyle(Color.white)
-                            .frame(maxWidth: .infinity, alignment: .center)
+                        HStack {
+                            taskButtonLabel
+                        }
+                        .font(.headline)
+                        .foregroundStyle(Color.white)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .frame(height: 35)
                     }
                     .disabled(disableTaskButton)
                     .listRowBackground(treatmentButtonBackground)
@@ -650,7 +653,7 @@ extension Treatments {
             let hasInsulin = state.amount > 0
             let hasCarbs = state.carbs > 0
             let hasFatOrProtein = state.fat > 0 || state.protein > 0
-            let bolusString = state.externalInsulin ? String(localized: "External Insulin") : String(localized: "Enact Bolus")
+            let bolusString = state.externalInsulin ? String(localized: "External Insulin") : String(localized: "Bolus")
 
             // Note: when a pump bolus is in progress, the row is rendered by `bolusInProgressView`
             // (Home-style card), so this label's in-progress branch is intentionally absent.
