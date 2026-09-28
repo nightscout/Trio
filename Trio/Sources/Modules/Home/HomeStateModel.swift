@@ -588,8 +588,7 @@ extension Home {
                     self.cgmDisplayState = displayState
                     self.cgmSensorExpiresAt = Self.resolveSensorExpiresAt(
                         manager: manager,
-                        glucoseSource: source,
-                        lifecycle: progress
+                        glucoseSource: source
                     )
                     self.cgmWarmupEndsAt = Self.resolveWarmupEndsAt(manager: manager)
                 }
@@ -615,8 +614,7 @@ extension Home {
                     self.cgmProgressHighlight = progress
                     self.cgmSensorExpiresAt = Self.resolveSensorExpiresAt(
                         manager: self.fetchGlucoseManager.cgmManager,
-                        glucoseSource: self.fetchGlucoseManager.glucoseSource,
-                        lifecycle: progress
+                        glucoseSource: self.fetchGlucoseManager.glucoseSource
                     )
                     self.cgmWarmupEndsAt = Self.resolveWarmupEndsAt(
                         manager: self.fetchGlucoseManager.cgmManager
@@ -884,8 +882,7 @@ extension Home {
         /// `activatedAt` must be session start, not transmitter activation.
         private static func resolveSensorExpiresAt(
             manager: CGMManagerUI?,
-            glucoseSource: GlucoseSource?,
-            lifecycle _: DeviceLifecycleProgress?
+            glucoseSource: GlucoseSource?
         ) -> Date? {
             if let sim = glucoseSource as? GlucoseSimulatorSource {
                 return sim.simulatedSensorExpiresAt
