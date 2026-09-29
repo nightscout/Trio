@@ -4,6 +4,28 @@ struct GlucoseTrendView: View {
     let state: WatchState
     let rotationDegrees: Double
     let isWatchStateDated: Bool
+    /// Advanced by the main view's timer, so the reading's age keeps counting.
+    let now: Date
+
+    /// Like the phone's home screen: the last reading stays on screen with its age until it is 12 minutes old
+    /// (one missed CGM transmission, the loop's own freshness gate), even while no new data arrives.
+    private static let readingDisplayLimit: TimeInterval = 12 * 60
+
+    private var readingAge: TimeInterval? {
+        state.glucoseValues.last.map { now.timeIntervalSince($0.date) }
+    }
+
+    private var isReadingShown: Bool {
+        guard let readingAge = readingAge else { return false }
+        return readingAge < Self.readingDisplayLimit
+    }
+
+    /// "6 m", or "< 1 m" for a reading younger than a minute, as on the phone.
+    private var readingAgeText: String {
+        let minutes = Int(floor((readingAge ?? 0) / 60))
+        let unit = String(localized: "m", comment: "Abbreviation for Minutes")
+        return minutes >= 1 ? "\(minutes)\u{00A0}\(unit)" : "<\u{00A0}1\u{00A0}\(unit)"
+    }
 
     /// Determines the status color based on the time elapsed since the last loop
     /// - Parameter timeString: The time string representing minutes since last loop (format: "X min")
@@ -124,7 +146,7 @@ struct GlucoseTrendView: View {
                     .shadow(color: statusColor(for: state.lastLoopTime), radius: shadowRadius)
 
                 TrendShape(
-                    isWatchStateDated: isWatchStateDated,
+                    isWatchStateDated: !isReadingShown,
                     rotationDegrees: rotationDegrees,
                     deviceType: state.deviceType
                 )
@@ -132,13 +154,24 @@ struct GlucoseTrendView: View {
                 .shadow(color: Color.black.opacity(0.5), radius: 5)
 
                 VStack(alignment: .center) {
-                    Text(isWatchStateDated ? "--" : state.currentGlucose)
+                    Text(isReadingShown ? state.currentGlucose : "--")
                         .fontWeight(.semibold)
                         .font(currentGlucoseFontSize)
-                        .foregroundStyle(isWatchStateDated ? Color.secondary : state.currentGlucoseColorString.toColor())
+                        .foregroundStyle(isReadingShown ? state.currentGlucoseColorString.toColor() : Color.secondary)
 
-                    if let delta = state.delta {
-                        Text(isWatchStateDated ? "--" : delta)
+                    if isReadingShown {
+                        // Age and delta side by side, as in the phone's glucose bobble.
+                        HStack(spacing: 4) {
+                            Text(readingAgeText)
+                            if let delta = state.delta {
+                                Text(delta)
+                            }
+                        }
+                        .fontWeight(.semibold)
+                        .font(.system(.caption))
+                        .foregroundStyle(.secondary)
+                    } else if state.delta != nil {
+                        Text("--")
                             .fontWeight(.semibold)
                             .font(.system(.caption))
                             .foregroundStyle(.secondary)
