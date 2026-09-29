@@ -70,8 +70,7 @@ struct TrioMainWatchView: View {
                     GlucoseTrendView(
                         state: state,
                         rotationDegrees: rotationDegrees,
-                        isWatchStateDated: isWatchStateDated || isSessionUnreachable,
-                        now: now
+                        isWatchStateDated: isWatchStateDated || isSessionUnreachable
                     )
 
                     if state.showSyncingAnimation {
