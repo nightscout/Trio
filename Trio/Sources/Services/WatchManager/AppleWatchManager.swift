@@ -637,8 +637,16 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     private func replyPayload(_ payload: [String: Any], for request: [String: Any], state: WatchState) -> [String: Any] {
         guard request[WatchMessageKeys.supportsGlucoseDelta] as? Bool == true,
-              let since = request[WatchMessageKeys.glucoseSince] as? TimeInterval,
-              request[WatchMessageKeys.glucoseSignature] as? String == state.glucoseSignature,
+              request[WatchMessageKeys.glucoseSignature] as? String == state.glucoseSignature
+        else { return payload }
+
+        if let bucketStart = request[WatchMessageKeys.glucoseBucketStart] as? Int,
+           let checksums = request[WatchMessageKeys.glucoseBucketChecksums] as? [Int]
+        {
+            return WatchGlucoseSync.repair(of: payload, watchBucketStart: bucketStart, watchChecksums: checksums)
+        }
+
+        guard let since = request[WatchMessageKeys.glucoseSince] as? TimeInterval,
               let windowStart = state.glucoseWindowStart,
               since >= windowStart.timeIntervalSince1970
         else { return payload }

@@ -88,7 +88,8 @@ import WatchConnectivity
     // MARK: - Glucose history sync
 
     enum GlucoseResync: Int, Comparable {
-        case backfill
+        /// Sends the watch's bucket checksums: the phone answers with the buckets that differ.
+        case repair
         case full
 
         static func < (lhs: GlucoseResync, rhs: GlucoseResync) -> Bool {
@@ -350,7 +351,8 @@ import WatchConnectivity
     }
 
     private func applyGlucoseHistory(from payload: [String: Any]) {
-        let isDelta = payload[WatchMessageKeys.glucoseSyncBase] != nil
+        let isRepair = payload[WatchMessageKeys.glucoseBuckets] != nil
+        let isDelta = isRepair || payload[WatchMessageKeys.glucoseSyncBase] != nil
 
         if isDelta, isGlucoseDeltaSyncDisabled {
             requestGlucoseResync(.full, reason: "delta received while delta sync is disabled")
@@ -375,12 +377,14 @@ import WatchConnectivity
             saveGlucoseHistory()
 
         case .mismatch:
-            // Keep showing the merged readings while the full window is on its way.
+            // Keep showing and saving the merged readings: the repair only sends the buckets that differ.
             hasPendingGlucoseHistoryUpdate = true
-            requestGlucoseResync(.full, reason: "merged glucose history does not match the phone's")
-
-        case .needsBackfill:
-            requestGlucoseResync(.backfill, reason: "glucose delta does not connect to the newest local reading")
+            saveGlucoseHistory()
+            if isRepair {
+                requestGlucoseResync(.full, reason: "repaired glucose history does not match the phone's")
+            } else {
+                requestGlucoseResync(.repair, reason: "merged glucose history does not match the phone's")
+            }
 
         case let .needsFullHistory(reason):
             requestGlucoseResync(.full, reason: reason)
@@ -474,6 +478,10 @@ import WatchConnectivity
 
         fields[WatchMessageKeys.glucoseSince] = since
         fields[WatchMessageKeys.glucoseSignature] = signature
+        if pendingGlucoseResync == .repair, let buckets = glucoseHistory.bucketChecksumList {
+            fields[WatchMessageKeys.glucoseBucketStart] = buckets.start
+            fields[WatchMessageKeys.glucoseBucketChecksums] = buckets.checksums
+        }
         return fields
     }
 

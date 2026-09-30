@@ -13,8 +13,8 @@ struct WatchGlucoseHistory {
         case updated
         /// A full history that fails its own checksum: deltas can't be trusted.
         case updatedUnverified
+        /// Also a delta that doesn't connect: the gap is repaired by bucket.
         case mismatch
-        case needsBackfill
         case needsFullHistory(reason: String)
     }
 
@@ -52,7 +52,9 @@ struct WatchGlucoseHistory {
         let incoming = Self.decode(encoded)
         let payloadSignature = payload[WatchMessageKeys.glucoseSignature] as? String
 
-        guard let base = payload[WatchMessageKeys.glucoseSyncBase] as? TimeInterval else {
+        let repairedBuckets = payload[WatchMessageKeys.glucoseBuckets] as? [Int]
+
+        guard repairedBuckets != nil || payload[WatchMessageKeys.glucoseSyncBase] != nil else {
             readings = incoming
             signature = payloadSignature
             trim(to: payload)
@@ -62,17 +64,24 @@ struct WatchGlucoseHistory {
         guard let signature = signature, payloadSignature == signature else {
             return .needsFullHistory(reason: "glucose settings changed")
         }
-        guard let newest = newestTimestamp else {
-            return .needsFullHistory(reason: "no local history")
-        }
-        guard base <= newest else {
-            return .needsBackfill
-        }
 
-        // The delta may overlap readings the watch already has.
-        readings.append(contentsOf: incoming.filter { $0.timestamp > newest })
+        if let repairedBuckets = repairedBuckets {
+            let buckets = Set(repairedBuckets)
+            readings.removeAll { buckets.contains(WatchGlucoseSync.bucket(of: $0.timestamp)) }
+            readings = (readings + incoming).sorted { $0.timestamp < $1.timestamp }
+        } else {
+            guard let newest = newestTimestamp else {
+                return .needsFullHistory(reason: "no local history")
+            }
+            // The delta may overlap readings the watch already has, or leave a gap before them.
+            readings.append(contentsOf: incoming.filter { $0.timestamp > newest })
+        }
         trim(to: payload)
         return verify(against: payload) ? .updated : .mismatch
+    }
+
+    var bucketChecksumList: (start: Int, checksums: [Int])? {
+        WatchGlucoseSync.bucketChecksumList(of: readings.map { (timestamp: $0.timestamp, glucose: $0.glucose) })
     }
 
     /// Uses the phone's window start, not the watch's clock, so both sides count the same readings.
