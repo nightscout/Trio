@@ -61,10 +61,10 @@ extension MainChartCanvas {
         basalDomainMax - rate
     }
 
-    /// Both basal series extend to "now", and a continuously moving value would make every recompute
-    /// differ, so redundant updates could never be dropped. Minute resolution is below what the chart draws.
-    static func minuteAnchoredNow() -> Date {
-        Date(timeIntervalSince1970: (Date().timeIntervalSince1970 / 60).rounded(.down) * 60)
+    /// Both basal series extend to "now"; an unquantized value differs on every recompute, so the equality
+    /// guards below could never drop a redundant update. A second is far coarser than a render pass.
+    static func secondAnchoredNow() -> Date {
+        Date(timeIntervalSince1970: Date().timeIntervalSince1970.rounded(.down))
     }
 }
 
@@ -163,7 +163,7 @@ extension MainChartCanvas {
 
 extension MainChartCanvas {
     @MainActor func calculateTempBasals() {
-        let now = Self.minuteAnchoredNow()
+        let now = Self.secondAnchoredNow()
         let suspensionTimes = state.suspendAndResumeEvents.compactMap(\.timestamp)
 
         // Snapshot the managed-object fields once; plain values from here on.
@@ -293,7 +293,7 @@ extension MainChartCanvas {
 
     func calculateBasals() {
         Task {
-            let dayAgoTime = Self.minuteAnchoredNow().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
+            let dayAgoTime = Self.secondAnchoredNow().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
 
             async let getRegularBasalPoints = findRegularBasalPoints(
                 timeBegin: dayAgoTime,
