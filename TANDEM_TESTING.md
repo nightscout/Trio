@@ -33,21 +33,34 @@ whichever you prefer.
 
 ### In the browser
 
-1. On your Trio fork, create a branch named `feat/tandem-closed-beta`. GitHub
-   always branches from an existing branch, so start it from your `dev`.
-2. Open this link, replacing `YOUR-USERNAME` (and the repo name, if your fork
-   isn't called `Trio`):
+This assumes you have already done the one-time browser-build setup for Trio —
+fork, secrets, certificates. If you haven't, do that with `dev` first and come
+back once a normal build works.
 
-   ```
-   https://github.com/YOUR-USERNAME/Trio/compare/feat/tandem-closed-beta...nightscout:Trio:feat/tandem-closed-beta?expand=1
-   ```
+1. Open your Trio fork on GitHub. Next to the branch drop-down is a branch icon
+   with a branch count beside it ("13 Branches"). Click that — not the
+   drop-down — to open the **Branches** page. On a phone you may see only the
+   icon. (If you already opened the drop-down, **View all branches** at the
+   bottom of it goes to the same page.)
+2. Click the green **New branch** button, top right.
+3. In the dialog, under **Source**, open the first drop-down and choose
+   **nightscout/Trio**. It offers your fork and the repository it was forked
+   from; you want the upstream one.
+4. In the second drop-down, choose the branch **feat/tandem-closed-beta**.
+5. Name your new branch `feat/tandem-closed-beta` as well. Use exactly that
+   name: the build workflow syncs your branch from the upstream branch of the
+   *same name*, so a branch called anything else will never pick up later
+   changes.
+6. Click **Create new branch**.
 
-   That opens a pull request **into your own fork's branch** — not into
-   nightscout/Trio.
-3. Create the pull request, then merge it.
+Then build it: **Actions** → **4. Build Trio** → **Run workflow**, and pick
+`feat/tandem-closed-beta` in the branch selector. The run starts by syncing
+your branch from `nightscout/Trio`'s branch of the same name, so re-running it
+later is how you pick up updates to this branch — you don't have to recreate
+it.
 
-If the pull request shows conflicts, your branch started from something other
-than an up-to-date `dev`. The local route below avoids that.
+Remember the `GH_PAT` caveat above: the token in your fork's secrets has to be
+able to read TandemKit, or the checkout fails at the submodule.
 
 ### Locally
 
