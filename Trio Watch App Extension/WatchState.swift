@@ -527,6 +527,12 @@ import WatchConnectivity
     ///
     /// it will request a new watch state update from the iPhone app and, if the request could be sent, show a syncing animation.
     private func forceConditionalWatchStateUpdate() {
+        // A running resync request brings the current state too.
+        guard !isGlucoseResyncInFlight else {
+            Task { await WatchLogger.shared.log("⌚️ Glucose resync in flight — not requesting another WatchState") }
+            return
+        }
+
         guard let lastUpdateTimestamp = lastWatchStateUpdate else {
             Task {
                 await WatchLogger.shared.log("Forcing initial WatchState update")
