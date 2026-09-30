@@ -605,15 +605,16 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         return dictionary
     }
 
+    // MARK: - Watch state payloads
+
+    // Every route is cut from one full payload per build: count and checksum describe the whole window, so the
+    // readings of a delta, tail or repair always come from the same snapshot as their checksum.
+
     /// Sends the state of type WatchState to the connected Watch
     /// - Parameter state: Current WatchState containing glucose data to be sent
     @MainActor func sendDataToWatch(_ state: WatchState) async {
-        guard let session = session else { return }
-
-        let previousGlucoseNewest = lastSentGlucoseNewest
-        let previousGlucoseSignature = lastSentGlucoseSignature
-
-        guard let payload = prepareWatchStatePayload(state) else { return }
+        guard let session = session, let payload = buildWatchStatePayload(state) else { return }
+        updateApplicationContext(with: payload)
 
         // if session is reachable, it means watch App is in the foreground -> also send watchState as message for immediate delivery
         guard session.isReachable else { return }
@@ -625,15 +626,13 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
         lastMessageContent = content
 
-        var message = payload
-        if watchSupportsGlucoseDelta, let base = previousGlucoseNewest, previousGlucoseSignature == state.glucoseSignature {
-            message = WatchGlucoseSync.delta(of: payload, since: base)
-        }
+        let message = messagePayload(payload, state: state)
         logTransfer("message", [WatchMessageKeys.watchState: message])
 
-        let sentGlucoseNewest = WatchGlucoseSync.newestTimestamp(in: payload)
-        lastSentGlucoseNewest = sentGlucoseNewest
-        lastSentGlucoseSignature = state.glucoseSignature
+        let previousGlucoseNewest = lastSentGlucoseNewest
+        let previousGlucoseSignature = lastSentGlucoseSignature
+        markGlucoseSent(payload, state: state)
+        let sentGlucoseNewest = lastSentGlucoseNewest
 
         session.sendMessage([WatchMessageKeys.watchState: message], replyHandler: nil) { [weak self] error in
             debug(.watchManager, "❌ Error sending watch state: \(error)")
@@ -649,6 +648,78 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
     }
 
+    /// The full payload, stamped with the send time. No side effects.
+    /// - Returns: `nil` if there is no usable watch session.
+    @MainActor private func buildWatchStatePayload(_ state: WatchState) -> [String: Any]? {
+        guard let session = session else { return nil }
+
+        guard session.isPaired else {
+            debug(.watchManager, "⌚️❌ No Watch is paired")
+            return nil
+        }
+
+        guard session.isWatchAppInstalled else {
+            debug(.watchManager, "⌚️❌ Trio Watch app is not installed")
+            return nil
+        }
+
+        guard session.activationState == .activated else {
+            let activationStateString = "\(session.activationState)"
+            debug(.watchManager, "⌚️ Watch session activationState = \(activationStateString). Reactivating...")
+            session.activate()
+            return nil
+        }
+
+        // Stamp the snapshot with send time. Each push gets a strictly newer
+        // `date` than the previous one, which is what the watch's monotonicity
+        // dedup relies on — including watch-requested re-pushes when no CGM
+        // tick has bumped the build-time date.
+        var state = state
+        state.date = Date()
+
+        return watchStateToDictionary(from: state)
+    }
+
+    /// Sends the context, unless it is unchanged and was sent less than `unchangedContextRefreshInterval` ago.
+    @MainActor private func updateApplicationContext(with payload: [String: Any]) {
+        guard let session = session, let sentAt = payload[WatchMessageKeys.date] as? TimeInterval else { return }
+
+        let context = contextPayload(payload, sentAt: sentAt)
+        let content = Self.contextContent(of: context)
+        if let lastContent = lastContextContent, lastContent.isEqual(content),
+           let lastUpdate = lastContextUpdate, sentAt - lastUpdate.timeIntervalSince1970 < Self.unchangedContextRefreshInterval
+        {
+            debug(.watchManager, "📦 Skipping unchanged watch application context")
+            return
+        }
+
+        do {
+            try session.updateApplicationContext([WatchMessageKeys.watchState: context])
+            lastContextContent = content
+            lastContextUpdate = Date(timeIntervalSince1970: sentAt)
+            logTransfer("context", [WatchMessageKeys.watchState: context])
+        } catch {
+            debug(.watchManager, "❌ Error updating watch application context: \(error)")
+        }
+    }
+
+    /// The context: the watch keeps its history saved, so the last 2 h are enough, for when it wakes without the phone.
+    @MainActor private func contextPayload(_ payload: [String: Any], sentAt: TimeInterval) -> [String: Any] {
+        guard watchSupportsGlucoseDelta,
+              let tail = WatchGlucoseSync.recentTail(of: payload, after: sentAt - Self.contextGlucoseTail)
+        else { return payload }
+        return tail
+    }
+
+    /// The push message: a delta on what the watch last got in a message or reply.
+    @MainActor private func messagePayload(_ payload: [String: Any], state: WatchState) -> [String: Any] {
+        guard watchSupportsGlucoseDelta, let base = lastSentGlucoseNewest,
+              lastSentGlucoseSignature == state.glucoseSignature
+        else { return payload }
+        return WatchGlucoseSync.delta(of: payload, since: base)
+    }
+
+    /// The reply to a watch request: its missing buckets, a delta since its newest reading, or the full payload.
     private func replyPayload(_ payload: [String: Any], for request: [String: Any], state: WatchState) -> [String: Any] {
         guard request[WatchMessageKeys.supportsGlucoseDelta] as? Bool == true,
               request[WatchMessageKeys.glucoseSignature] as? String == state.glucoseSignature
@@ -666,6 +737,12 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         else { return payload }
 
         return WatchGlucoseSync.delta(of: payload, since: since)
+    }
+
+    /// The base of the next message's delta. Only a message or reply counts: whether the context arrived is never known.
+    @MainActor private func markGlucoseSent(_ payload: [String: Any], state: WatchState) {
+        lastSentGlucoseNewest = WatchGlucoseSync.newestTimestamp(in: payload)
+        lastSentGlucoseSignature = state.glucoseSignature
     }
 
     @MainActor private func resetGlucoseSync() {
@@ -698,66 +775,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             .watchManager,
             "📦 \(route): \(data.count) B, \(readings) glucose readings; since launch: \(transferredBytes[route] ?? 0) B"
         )
-    }
-
-    /// - Returns: The payload with the full glucose history, or `nil` if there is no usable watch session.
-    @MainActor private func prepareWatchStatePayload(_ state: WatchState) -> [String: Any]? {
-        guard let session = session else { return nil }
-
-        guard session.isPaired else {
-            debug(.watchManager, "⌚️❌ No Watch is paired")
-            return nil
-        }
-
-        guard session.isWatchAppInstalled else {
-            debug(.watchManager, "⌚️❌ Trio Watch app is not installed")
-            return nil
-        }
-
-        guard session.activationState == .activated else {
-            let activationStateString = "\(session.activationState)"
-            debug(.watchManager, "⌚️ Watch session activationState = \(activationStateString). Reactivating...")
-            session.activate()
-            return nil
-        }
-
-        // Stamp the snapshot with send time. Each push gets a strictly newer
-        // `date` than the previous one, which is what the watch's monotonicity
-        // dedup relies on — including watch-requested re-pushes when no CGM
-        // tick has bumped the build-time date.
-        var state = state
-        state.date = Date()
-
-        let message: [String: Any] = watchStateToDictionary(from: state)
-
-        // The watch keeps its history saved, so the context only needs the recent readings.
-        var context = message
-        if watchSupportsGlucoseDelta,
-           let tail = WatchGlucoseSync.recentTail(
-               of: message,
-               after: state.date.timeIntervalSince1970 - Self.contextGlucoseTail
-           )
-        {
-            context = tail
-        }
-
-        let content = Self.contextContent(of: context)
-        if let lastContent = lastContextContent, lastContent.isEqual(content),
-           let lastUpdate = lastContextUpdate, state.date.timeIntervalSince(lastUpdate) < Self.unchangedContextRefreshInterval
-        {
-            debug(.watchManager, "📦 Skipping unchanged watch application context")
-        } else {
-            do {
-                try session.updateApplicationContext([WatchMessageKeys.watchState: context])
-                lastContextContent = content
-                lastContextUpdate = state.date
-                logTransfer("context", [WatchMessageKeys.watchState: context])
-            } catch {
-                debug(.watchManager, "❌ Error updating watch application context: \(error)")
-            }
-        }
-
-        return message
     }
 
     func sendAcknowledgment(toWatch success: Bool, message: String = "", ackCode: AcknowledgmentCode) {
@@ -819,16 +836,18 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             self.watchSupportsGlucoseDelta = message[WatchMessageKeys.supportsGlucoseDelta] as? Bool == true
 
             guard let state = await self.setupWatchState(),
-                  let payload = self.prepareWatchStatePayload(state)
+                  let payload = self.buildWatchStatePayload(state)
             else {
                 replyHandler([:])
                 return
             }
+            // Keeps the context as fresh as the reply, for a watch app closed before the next push.
+            self.updateApplicationContext(with: payload)
+
             let reply = [WatchMessageKeys.watchState: self.replyPayload(payload, for: message, state: state)]
             self.logTransfer("reply", reply)
             replyHandler(reply)
-            self.lastSentGlucoseNewest = WatchGlucoseSync.newestTimestamp(in: payload)
-            self.lastSentGlucoseSignature = state.glucoseSignature
+            self.markGlucoseSent(payload, state: state)
         }
     }
 
