@@ -61,7 +61,10 @@ struct WatchGlucoseHistory {
             return verify(against: payload) ? .updated : .updatedUnverified
         }
 
-        guard let signature = signature, payloadSignature == signature else {
+        guard let signature = signature else {
+            return .needsFullHistory(reason: "no local history")
+        }
+        guard payloadSignature == signature else {
             return .needsFullHistory(reason: "glucose settings changed")
         }
 

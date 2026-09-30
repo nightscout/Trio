@@ -646,6 +646,7 @@
 		BDFF7A882D25F97D0016C40C /* TrioMainWatchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A842D25F97D0016C40C /* TrioMainWatchView.swift */; };
 		BDFF7A892D25F97D0016C40C /* TrioWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A852D25F97D0016C40C /* TrioWatchApp.swift */; };
 		BDFF7A8B2D25F97D0016C40C /* Unit Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A8A2D25F97D0016C40C /* Unit Tests.swift */; };
+		5A7C0E5F2FB0000100D1E0A2 /* WatchGlucoseSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A7C0E5F2FB0000100D1E0A1 /* WatchGlucoseSyncTests.swift */; };
 		C1A0DE000000000000000000 /* BloodGlucose+LoopKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0DE000000000000000001 /* BloodGlucose+LoopKit.swift */; };
 		C1A0DE000000000000000002 /* PumpHistoryEvent+LoopKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0DE000000000000000003 /* PumpHistoryEvent+LoopKit.swift */; };
 		C1A0DE000000000000000004 /* CarbsEntry+LoopKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0DE000000000000000005 /* CarbsEntry+LoopKit.swift */; };
@@ -1727,6 +1728,7 @@
 		BDFF7A842D25F97D0016C40C /* TrioMainWatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioMainWatchView.swift; sourceTree = "<group>"; };
 		BDFF7A852D25F97D0016C40C /* TrioWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatchApp.swift; sourceTree = "<group>"; };
 		BDFF7A8A2D25F97D0016C40C /* Unit Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Unit Tests.swift"; sourceTree = "<group>"; };
+		5A7C0E5F2FB0000100D1E0A1 /* WatchGlucoseSyncTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchGlucoseSyncTests.swift; sourceTree = "<group>"; };
 		BDFF7A902D25F97D0016C40C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BDFF7A912D25F97D0016C40C /* TrioWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatchApp.swift; sourceTree = "<group>"; };
 		BDFF7A922D25F97D0016C40C /* TrioWatchAppExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatchAppExtension.swift; sourceTree = "<group>"; };
@@ -3981,6 +3983,7 @@
 			isa = PBXGroup;
 			children = (
 				BDFF7A8A2D25F97D0016C40C /* Unit Tests.swift */,
+				5A7C0E5F2FB0000100D1E0A1 /* WatchGlucoseSyncTests.swift */,
 			);
 			path = "Trio Watch App Tests";
 			sourceTree = "<group>";
@@ -6103,6 +6106,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BDFF7A8B2D25F97D0016C40C /* Unit Tests.swift in Sources */,
+				5A7C0E5F2FB0000100D1E0A2 /* WatchGlucoseSyncTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
