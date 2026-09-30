@@ -105,7 +105,7 @@ import Testing
     @Test(
         "Prefix templates are themselves catalog entries",
         arguments: ["alarm.occlusion", "malfunction"]
-    )  func templatesResolveDirectly(alertID: String) {
+    ) func templatesResolveDirectly(alertID: String) {
         #expect(AlertCatalogRegistry.lookup(tandemID(alertID))?.interruptionLevel == .critical)
     }
 

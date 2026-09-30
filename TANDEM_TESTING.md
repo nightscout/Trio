@@ -3,7 +3,7 @@
 This branch is `nightscout/Trio` `dev` plus the wiring that makes Trio offer
 **Tandem Mobi** when you add a pump. It adds
 [TandemKit](https://github.com/jwoglom/TandemKit) as a submodule, pinned to
-commit `50cb9f9` of its `main` branch, and touches four things in Trio itself:
+commit `960556c` of its `main` branch, and touches four things in Trio itself:
 the device catalog entry, the alert catalog, the Xcode workspace/project, and
 the tests that cover those. Every other submodule stays at the revision `dev`
 pins.
