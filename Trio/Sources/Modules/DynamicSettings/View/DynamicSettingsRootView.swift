@@ -102,6 +102,8 @@ extension DynamicSettings {
                                     .font(.footnote)
                                     .foregroundColor(miniHintTextColor)
                                     .lineLimit(nil)
+                                    .multilineTextAlignment(.leading)
+                                    .fixedSize(horizontal: false, vertical: true)
 
                                 Spacer()
                                 Button(
