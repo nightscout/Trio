@@ -60,7 +60,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BDFF797B2D25AA870016C40C"
             BuildableName = "Trio Watch App.app"
-            BlueprintName = "Trio Watch App"
             ReferencedContainer = "container:Trio.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -77,7 +76,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BDFF797B2D25AA870016C40C"
             BuildableName = "Trio Watch App.app"
-            BlueprintName = "Trio Watch App"
             ReferencedContainer = "container:Trio.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

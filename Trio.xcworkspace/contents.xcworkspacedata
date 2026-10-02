@@ -29,9 +29,6 @@
       location = "group:LibreLoop/LibreLoop.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:LibreCRKit">
-   </FileRef>
-   <FileRef
       location = "group:LoopAlgorithm">
    </FileRef>
    <FileRef
@@ -43,7 +40,7 @@
    <FileRef
       location = "group:G7SensorKit/G7SensorKit.xcodeproj">
    </FileRef>
-    <FileRef
+   <FileRef
       location = "group:AccuChekKit/AccuChekKit.xcodeproj">
    </FileRef>
    <FileRef
