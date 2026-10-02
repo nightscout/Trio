@@ -184,7 +184,7 @@ struct GlucoseDailyDistributionChart: View {
                 )
             )
         )
-        .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedInterval))
+        .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedInterval, at: scrollPosition))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Daily glucose distribution chart"))
     }

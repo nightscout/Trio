@@ -3,16 +3,28 @@ import Foundation
 import SwiftUI
 
 struct StatChartUtils {
+    static let hourlyWindowDays = 20
+
+    static func dayCount(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> Int {
+        switch selectedInterval {
+        case .day: return 1
+        case .week: return 7
+        case .month: return 30
+        case .total: return 90
+        }
+    }
+
     /// Returns the time interval length for the visible domain based on the selected duration.
     /// - Parameter selectedInterval: The selected time interval for statistics.
     /// - Returns: The time interval in seconds.
-    static func visibleDomainLength(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> TimeInterval {
-        switch selectedInterval {
-        case .day: return 24 * 3600
-        case .week: return 7 * 24 * 3600
-        case .month: return 30 * 24 * 3600
-        case .total: return 90 * 24 * 3600
-        }
+    static func visibleDomainLength(
+        for selectedInterval: Stat.StateModel.StatsTimeInterval,
+        at date: Date,
+        calendar: Calendar = .current
+    ) -> TimeInterval {
+        let start = calendar.startOfDay(for: date)
+        let end = calendar.date(byAdding: .day, value: dayCount(for: selectedInterval), to: start)!
+        return end.timeIntervalSince(start)
     }
 
     /// Computes the visible date range based on the scroll position and selected duration.
@@ -26,33 +38,20 @@ struct StatChartUtils {
     ) -> (start: Date, end: Date) {
         let calendar = Calendar.current
 
-        if selectedInterval == .day {
-            // For day view, don't modify the scroll position
-            let end = scrollPosition.addingTimeInterval(visibleDomainLength(for: selectedInterval) - 1)
-            return (scrollPosition, end)
-        } else {
-            // For week and longer intervals, we need smart alignment
-            // Find the nearest day boundary
-            let startOfDay = calendar.startOfDay(for: scrollPosition)
-            let components = calendar.dateComponents([.hour, .minute, .second], from: scrollPosition)
-            let totalSeconds = Double(components.hour ?? 0) * 3600 + Double(components.minute ?? 0) * 60 +
-                Double(components.second ?? 0)
+        let start = calendar.startOfDay(for: scrollPosition)
+        let end = calendar.date(byAdding: .day, value: dayCount(for: selectedInterval), to: start)!
 
-            // Align start end to midnight
-            let alignedStart = totalSeconds > 12 * 3600 ?
-                calendar.date(byAdding: .day, value: 1, to: startOfDay)! : startOfDay
-            let intervalLength = visibleDomainLength(for: selectedInterval)
-            let end = alignedStart.addingTimeInterval(intervalLength + (2 * 3600))
-            let alignedEnd = calendar.startOfDay(for: end).addingTimeInterval(-1)
+        return (start, end)
+    }
 
-            return (alignedStart, alignedEnd)
-        }
+    static func isStatInRange(_ date: Date, in range: (start: Date, end: Date)) -> Bool {
+        date >= range.start && date < range.end
     }
 
     /// Returns the appropriate date format style based on the selected time interval.
     /// - Parameter selectedInterval: The selected time interval for statistics.
     /// - Returns: A Date.FormatStyle configured for the current time interval.
-    static func dateFormat(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> Date.FormatStyle {
+    private static func dateFormat(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> Date.FormatStyle {
         switch selectedInterval {
         case .day: return .dateTime.hour()
         case .week: return .dateTime.weekday(.abbreviated)
@@ -116,23 +115,10 @@ struct StatChartUtils {
     /// - Parameter selectedInterval: The selected time interval for statistics.
     /// - Returns: A Date representing the initial scroll position.
     static func getInitialScrollPosition(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> Date {
-        let calendar = Calendar.current
-        let now = Date()
-        let today = calendar.startOfDay(for: now)
+        let daysBack = dayCount(for: selectedInterval) - 1
+        let today = Calendar.current.startOfDay(for: Date())
 
-        let baseDate: Date
-        switch selectedInterval {
-        case .day:
-            baseDate = today
-        case .week:
-            baseDate = calendar.date(byAdding: .day, value: -6, to: today)!
-        case .month:
-            baseDate = calendar.date(byAdding: .day, value: -29, to: today)!
-        case .total:
-            baseDate = calendar.date(byAdding: .day, value: -89, to: today)!
-        }
-
-        return calendar.date(byAdding: .second, value: 1, to: baseDate)!
+        return Calendar.current.date(byAdding: .day, value: -daysBack, to: today)!
     }
 
     /// Checks if two dates belong to the same time unit based on the selected duration.
@@ -168,38 +154,55 @@ struct StatChartUtils {
     ) -> String {
         let calendar = Calendar.current
 
-        // If not .day, we just return "startText - endText", e.g. "Jan 1 - Jan 8"
-        guard selectedInterval == .day else {
-            let formatDate: (Date) -> String = { date in
-                date.formatted(.dateTime.day().month())
+        let startDay = calendar.startOfDay(for: start)
+
+        if selectedInterval == .day {
+            return startDay.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
+        }
+
+        let formatDate: (Date) -> String = { date in
+            date.formatted(.dateTime.day().month())
+        }
+        let inclusiveEnd = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: end))!
+
+        return "\(formatDate(startDay)) - \(formatDate(inclusiveEnd))"
+    }
+
+    static func fullDayDomainAnchor() -> some ChartContent {
+        let calendar = Calendar.current
+        let midnight = calendar.startOfDay(for: Date())
+        let nextMidnight = calendar.date(byAdding: .day, value: 1, to: midnight)!
+
+        return PointMark(
+            x: .value("Time", nextMidnight),
+            y: .value("Dummy", 0)
+        )
+        .opacity(0) // ensures dummy ChartContent is hidden
+    }
+
+    static func popoverRow(label: LocalizedStringKey, value: Double, unit: LocalizedStringKey) -> some View {
+        GridRow {
+            Text(label)
+            Text(value.formatted(.number.precision(.fractionLength(1))))
+                .gridColumnAlignment(.trailing).bold()
+            Text(unit).foregroundStyle(Color.secondary)
+        }
+    }
+
+    static func statRow(
+        label: LocalizedStringKey,
+        value: Double,
+        unit: LocalizedStringKey,
+        showAverageSymbol: Bool
+    ) -> some View {
+        GridRow {
+            if showAverageSymbol {
+                Text("ø") + Text("\u{00A0}") + Text(label)
+            } else {
+                Text(label)
             }
-            let startText = formatDate(start)
-            let endText = formatDate(end)
-            return "\(startText) - \(endText)"
-        }
-
-        // For .day mode, we figure out if we are near the boundaries for a "full day" (00:00 - 23:59)
-        let dayStart = calendar.startOfDay(for: start)
-        let nextDayStart = calendar.date(byAdding: .day, value: 1, to: dayStart)!
-
-        // Allow +/- 15 minutes from midnight as buffer, so slow scrolling doesn't break the "full day"
-        let tolerance: TimeInterval = 60 * 15
-
-        let isStartNearMidnight = abs(start.timeIntervalSince(dayStart)) < tolerance
-        let isEndNearNextMidnight = abs(end.timeIntervalSince(nextDayStart)) < tolerance
-
-        let formatDay: (Date) -> String = { date in
-            date.formatted(.dateTime.day().month(.abbreviated))
-        }
-
-        if isStartNearMidnight, isEndNearNextMidnight {
-            // Full day: show just start as "Mon, Jan 1"
-            return dayStart.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
-        } else {
-            // Partial day: show start and end
-            let startText = formatDay(start)
-            let endText = formatDay(end)
-            return "\(startText) - \(endText)"
+            Text(value.formatted(.number.precision(.fractionLength(1))))
+                + Text("\u{00A0}") + Text(unit)
         }
     }
 

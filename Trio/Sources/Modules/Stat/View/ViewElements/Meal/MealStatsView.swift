@@ -17,12 +17,12 @@ struct MealStatsView: View {
     @State private var scrollPosition = Date()
     /// The currently selected date in the chart.
     @State private var selectedDate: Date?
-    /// The calculated macronutrient averages for the visible range.
-    @State private var currentAverages: (carbs: Double, fat: Double, protein: Double) = (0, 0, 0)
-    /// Timer to throttle updates when scrolling.
-    @State private var updateTimer = Stat.UpdateTimer()
-    /// The actual chart plot's width in pixel
-    @State private var chartWidth: CGFloat = 0
+
+    private var headlineValues: (carbs: Double, fat: Double, protein: Double) {
+        selectedInterval == .day
+            ? state.calculateMealTotals(for: visibleDateRange)
+            : state.calculateMealAverages(for: visibleDateRange)
+    }
 
     /// Computes the visible date range based on the current scroll position.
     private var visibleDateRange: (start: Date, end: Date) {
@@ -38,31 +38,29 @@ struct MealStatsView: View {
         }
     }
 
-    /// Updates the macronutrient averages based on the visible date range.
-    private func updateAverages() {
-        currentAverages = state.getCachedMealAverages(for: visibleDateRange)
-    }
-
     /// A view displaying the statistics summary including macronutrient averages.
     private var statsView: some View {
         HStack {
             Grid(alignment: .leading) {
-                GridRow {
-                    Text("Carbs:")
-                    Text(currentAverages.carbs.formatted(.number.precision(.fractionLength(1))))
-                        + Text("\u{00A0}") + Text("g")
-                }
+                StatChartUtils.statRow(
+                    label: "Carbs:",
+                    value: headlineValues.carbs,
+                    unit: "g",
+                    showAverageSymbol: selectedInterval != .day
+                )
                 if state.useFPUconversion {
-                    GridRow {
-                        Text("Fat:")
-                        Text(currentAverages.fat.formatted(.number.precision(.fractionLength(1))))
-                            + Text("\u{00A0}") + Text("g")
-                    }
-                    GridRow {
-                        Text("Protein:")
-                        Text(currentAverages.protein.formatted(.number.precision(.fractionLength(1))))
-                            + Text("\u{00A0}") + Text("g")
-                    }
+                    StatChartUtils.statRow(
+                        label: "Fat:",
+                        value: headlineValues.fat,
+                        unit: "g",
+                        showAverageSymbol: selectedInterval != .day
+                    )
+                    StatChartUtils.statRow(
+                        label: "Protein:",
+                        value: headlineValues.protein,
+                        unit: "g",
+                        showAverageSymbol: selectedInterval != .day
+                    )
                 }
             }
             .font(.headline)
@@ -90,35 +88,13 @@ struct MealStatsView: View {
                     .padding(.bottom, 4)
 
                 chartsView
-                    .background(
-                        GeometryReader { geo in
-                            Color.clear
-                                .onAppear { chartWidth = geo.size.width }
-                                .onChange(of: geo.size.width) { _, newValue in chartWidth = newValue }
-                        }
-                    )
             }
         }
         .onAppear {
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-            // Delay the initial update to ensure scroll position has been processed
-            DispatchQueue.main.async {
-                updateAverages()
-            }
-        }
-        .onChange(of: scrollPosition) {
-            updateTimer.scheduleUpdate {
-                updateAverages()
-            }
         }
         .onChange(of: selectedInterval) {
-            Task {
-                scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-                // Use async dispatch to ensure scroll position is updated before calculating averages
-                await MainActor.run {
-                    updateAverages()
-                }
-            }
+            scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
         }
     }
 
@@ -179,29 +155,29 @@ struct MealStatsView: View {
                     spacing: 0,
                     overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
                 ) {
-                    MealSelectionPopover(
+                    StatSelectionPopover(
                         selectedDate: selectedDate,
-                        selectedMeal: selectedMeal,
                         selectedInterval: selectedInterval,
-                        isFpuEnabled: state.useFPUconversion,
-                        domain: visibleDateRange,
-                        chartWidth: chartWidth
-                    )
+                        tint: .orange
+                    ) {
+                        Divider()
+
+                        Grid(alignment: .leading) {
+                            StatChartUtils.popoverRow(label: "Carbs:", value: selectedMeal.carbs, unit: "g")
+                            if state.useFPUconversion {
+                                StatChartUtils.popoverRow(label: "Fat:", value: selectedMeal.fat, unit: "g")
+                                StatChartUtils.popoverRow(label: "Protein:", value: selectedMeal.protein, unit: "g")
+                            }
+                        }
+                        .font(.headline)
+                    }
                 }
             }
 
             // Dummy PointMark to force SwiftCharts to render a visible domain of 00:00-23:59
             // i.e. single day from midnight to midnight
             if selectedInterval == .day {
-                let calendar = Calendar.current
-                let midnight = calendar.startOfDay(for: Date())
-                let nextMidnight = calendar.date(byAdding: .day, value: 1, to: midnight)!
-
-                PointMark(
-                    x: .value("Time", nextMidnight),
-                    y: .value("Dummy", 0)
-                )
-                .opacity(0) // ensures dummy ChartContent is hidden
+                StatChartUtils.fullDayDomainAnchor()
             }
         }
         .chartForegroundStyleScale([
@@ -243,141 +219,13 @@ struct MealStatsView: View {
         .chartScrollPosition(x: $scrollPosition)
         .chartScrollTargetBehavior(
             .valueAligned(
-                matching: selectedInterval == .day ?
-                    DateComponents(minute: 0) :
-                    DateComponents(hour: 0),
+                matching: DateComponents(hour: 0),
                 majorAlignment: .matching(StatChartUtils.alignmentComponents(for: selectedInterval))
             )
         )
-        .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedInterval))
+        .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedInterval, at: scrollPosition))
         .frame(height: 250)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Meal macronutrients bar chart"))
-    }
-}
-
-/// A view that displays detailed meal information in a popover
-///
-/// This view shows a formatted display of meal macronutrients including:
-/// - Date of the meal
-/// - Carbohydrates in grams
-/// - Fat in grams
-/// - Protein in grams
-private struct MealSelectionPopover: View {
-    // The date when the meal was logged
-    let selectedDate: Date
-    // The meal statistics to display
-    let selectedMeal: MealStats
-    // The selected duration in the time picker
-    let selectedInterval: Stat.StateModel.StatsTimeInterval
-    // Setting controlling whether to display fat and protein
-    let isFpuEnabled: Bool
-    let domain: (start: Date, end: Date)
-    let chartWidth: CGFloat
-
-    @State private var popoverSize: CGSize = .zero
-
-    @Environment(\.colorScheme) var colorScheme
-
-    private var timeText: String {
-        if selectedInterval == .day {
-            let hour = Calendar.current.component(.hour, from: selectedDate)
-            return selectedDate.formatted(.dateTime.month().day().weekday()) + "\n" + "\(hour):00-\(hour + 1):00"
-        } else {
-            return selectedDate.formatted(.dateTime.month().day().weekday())
-        }
-    }
-
-    private func xOffset() -> CGFloat {
-        // If the selected date is outside the visible domain, hide the popover
-        guard selectedDate >= domain.start && selectedDate <= domain.end else { return 0 }
-
-        let domainDuration = domain.end.timeIntervalSince(domain.start)
-        guard domainDuration > 0, chartWidth > 0 else { return 0 }
-
-        let popoverWidth = popoverSize.width
-        let padding: CGFloat = 10 // Padding from screen edges
-
-        // Convert dates to pixel'd x-position
-        let dateFraction = selectedDate.timeIntervalSince(domain.start) / domainDuration
-        let x_selected = dateFraction * chartWidth
-
-        // Calculate popover edges
-        let x_left = x_selected - (popoverWidth / 2)
-        let x_right = x_selected + (popoverWidth / 2)
-
-        var offset: CGFloat = 0
-
-        // Ensure the popover stays within screen bounds
-        if x_left < padding {
-            // Popover would extend past left edge, shift it right
-            offset = padding - x_left
-        } else if x_right > chartWidth - padding {
-            // Popover would extend past right edge, shift it left
-            offset = (chartWidth - padding) - x_right
-        }
-
-        return offset
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(timeText)
-                .font(.subheadline)
-                .bold()
-                .foregroundStyle(Color.secondary)
-
-            Divider()
-
-            // Grid layout for macronutrient values
-            Grid(alignment: .leading) {
-                // Carbohydrates row
-                GridRow {
-                    Text("Carbs:")
-                    Text(selectedMeal.carbs.formatted(.number.precision(.fractionLength(1))))
-                        .gridColumnAlignment(.trailing)
-                    Text("g").foregroundStyle(Color.secondary)
-                }
-                if isFpuEnabled {
-                    // Fat row
-                    GridRow {
-                        Text("Fat:")
-                        Text(selectedMeal.fat.formatted(.number.precision(.fractionLength(1))))
-                            .gridColumnAlignment(.trailing)
-                        Text("g").foregroundStyle(Color.secondary)
-                    }
-                    // Protein row
-                    GridRow {
-                        Text("Protein:")
-                        Text(selectedMeal.protein.formatted(.number.precision(.fractionLength(1))))
-                            .gridColumnAlignment(.trailing)
-                        Text("g").foregroundStyle(Color.secondary)
-                    }
-                }
-            }
-            .font(.headline.bold())
-        }
-        .padding(20)
-        .background {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(colorScheme == .dark ? Color.bgDarkBlue.opacity(0.9) : Color.white.opacity(0.95))
-                .shadow(color: Color.secondary, radius: 2)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 4)
-                        .stroke(Color.orange, lineWidth: 2)
-                )
-        }
-        .frame(minWidth: 100, maxWidth: .infinity) // Ensures proper width
-        .background(
-            GeometryReader { geo in
-                Color.clear
-                    .onAppear { popoverSize = geo.size }
-                    .onChange(of: geo.size) { _, newValue in popoverSize = newValue }
-            }
-        )
-        // Apply calculated xOffset to keep within bounds
-        .offset(x: xOffset(), y: 0)
-        // Hide popover if selected date is outside visible domain
-        .opacity(selectedDate >= domain.start && selectedDate <= domain.end ? 1 : 0)
     }
 }

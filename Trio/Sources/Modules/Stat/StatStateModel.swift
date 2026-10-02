@@ -17,25 +17,20 @@ extension Stat {
         var loopStatRecords: [LoopStatRecord] = []
         var loopStats: [LoopStatsProcessedData] = []
         var groupedLoopStats: [LoopStatsByPeriod] = []
-        var bolusStats: [BolusStats] = []
         var hourlyStats: [HourlyStats] = []
         var glucoseRangeStats: [GlucoseRangeStats] = []
 
         // Cache for Meal Stats
         var hourlyMealStats: [MealStats] = []
         var dailyMealStats: [MealStats] = []
-        var dailyMealTotalsCache: [Date: (carbs: Double, fat: Double, protein: Double)] = [:]
 
         // Cache for TDD Stats
         var hourlyTDDStats: [TDDStats] = []
         var dailyTDDStats: [TDDStats] = []
-        var tddAveragesCache: [Date: Double] = [:]
 
         // Cache for Bolus Stats
         var hourlyBolusStats: [BolusStats] = []
         var dailyBolusStats: [BolusStats] = []
-        var bolusAveragesCache: [Date: (manual: Double, smb: Double, external: Double)] = [:]
-        var bolusTotalsCache: [(Date, total: Double)] = []
 
         // Cache for Glucose Daily Stats
         var dailyGlucosePercentileStats: [GlucoseDailyPercentileStats] = []
