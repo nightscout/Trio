@@ -60,6 +60,20 @@ struct StatChartUtils {
         }
     }
 
+    static func popoverAlignment(
+        for selected: Date,
+        scrollPosition: Date,
+        in interval: Stat.StateModel.StatsTimeInterval
+    ) -> Alignment {
+        let length = visibleDomainLength(for: interval, at: scrollPosition)
+        let pos = selected.timeIntervalSince(scrollPosition) / length
+
+        if pos < 0.25 { return .leading }
+        else if pos > 0.75 { return .trailing }
+
+        return .center
+    }
+
     /// Returns the x-axis marks shared by the scrollable, date-based stat charts.
     ///
     /// - Parameter selectedInterval: The selected time interval for statistics.

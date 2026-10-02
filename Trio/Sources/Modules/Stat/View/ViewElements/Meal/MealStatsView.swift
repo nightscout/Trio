@@ -152,8 +152,13 @@ struct MealStatsView: View {
                 .foregroundStyle(Color.orange.opacity(0.5))
                 .annotation(
                     position: .top,
+                    alignment: StatChartUtils.popoverAlignment(
+                        for: selectedDate,
+                        scrollPosition: scrollPosition,
+                        in: selectedInterval
+                    ),
                     spacing: 0,
-                    overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
+                    overflowResolution: .init(x: .fit(to: .plot), y: .fit(to: .plot))
                 ) {
                     StatSelectionPopover(
                         selectedDate: selectedDate,
