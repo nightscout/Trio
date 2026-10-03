@@ -88,6 +88,7 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
+          submodules: recursive
 
       - name: Sync all three tracks
         if: steps.workflow-permission.outputs.has_permission == 'true'
