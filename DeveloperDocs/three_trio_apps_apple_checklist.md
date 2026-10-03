@@ -62,8 +62,22 @@ See [Enable Time Sensitive Notifications](../fastlane/testflight.md#enable-time-
 In App Store Connect, open each extra app and add it to **TestFlight → Internal
 Testing**. Add the same testers you already use for Trio.
 
-## 6. GitHub default branch
+## 6. GitHub default branch and Sunday updates
 
-Set the repository default branch to `upgrade/trio-1.0`. Scheduled “Build Trio”
-runs use the default branch; leaving `main` as default would build the clean
-Trio Main app instead of the daily TestFlight app.
+GitHub runs scheduled workflows from the repository **default branch** only.
+`Sunday Sync All Tracks` (`.github/workflows/sunday_sync_all_tracks.yml`)
+must exist on whichever branch is default. The same file is kept on `main`,
+`dev`, and `upgrade/trio-1.0` so changing the default does not break Sunday.
+
+Sunday 06:43 UTC (cron `43 6 * * 0`):
+
+| Track | Branch | When Nightscout moved | How it updates | Then |
+| --- | --- | --- | --- | --- |
+| Trio | `upgrade/trio-1.0` | `nightscout/Trio` `main` is not in this branch | Rebase custom commits onto upstream `main`. Force-with-lease only after a clean rebase that still has clinic/overlay files. Conflicts open a GitHub issue and do **not** push. | Dispatch **4. Build Trio** on this branch |
+| Trio Main | `main` | `nightscout/Trio` `main` is not in this branch | Fast-forward, or merge if the flavor overlay commit blocks ff. Never force-push. | Dispatch **4. Build Trio** on `main` |
+| Trio Dev | `dev` | `nightscout/Trio` `dev` is not in this branch | Same as `main`, against upstream `dev`. | Dispatch **4. Build Trio** on `dev` |
+
+A track with no new upstream is left alone and is not built.
+
+Manual **4. Build Trio** (`workflow_dispatch`) still builds the selected
+branch only and does not sync Nightscout.

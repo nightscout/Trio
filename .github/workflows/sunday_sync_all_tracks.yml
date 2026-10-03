@@ -1,0 +1,172 @@
+name: Sunday Sync All Tracks
+
+# GitHub only runs `schedule` using the workflow file on the repository
+# DEFAULT branch. Keep this file identical on main, dev, and
+# upgrade/trio-1.0 so whichever branch is default still updates all three
+# TestFlight tracks. workflow_dispatch always uses the file on the branch
+# you select in the Actions UI.
+on:
+  workflow_dispatch:
+  schedule:
+    # Sunday 06:43 UTC — same slot as the former Build Trio weekly check.
+    - cron: "43 6 * * 0"
+
+concurrency:
+  group: sunday-sync-all-tracks
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  actions: write
+
+env:
+  GH_PAT: ${{ secrets.GH_PAT }}
+  GH_TOKEN: ${{ secrets.GH_PAT }}
+  UPSTREAM_REPO: nightscout/Trio
+
+jobs:
+  sync:
+    name: Update main, dev, and custom
+    if: github.repository_owner != 'nightscout'
+    runs-on: ubuntu-latest
+    outputs:
+      MAIN_UPDATED: ${{ steps.sync.outputs.MAIN_UPDATED }}
+      DEV_UPDATED: ${{ steps.sync.outputs.DEV_UPDATED }}
+      CUSTOM_UPDATED: ${{ steps.sync.outputs.CUSTOM_UPDATED }}
+      CUSTOM_FAILED: ${{ steps.sync.outputs.CUSTOM_FAILED }}
+      CUSTOM_CONFLICT_FILES: ${{ steps.sync.outputs.CUSTOM_CONFLICT_FILES }}
+      CUSTOM_BEFORE_SHA: ${{ steps.sync.outputs.CUSTOM_BEFORE_SHA }}
+      UPSTREAM_MAIN_SHA: ${{ steps.sync.outputs.UPSTREAM_MAIN_SHA }}
+    steps:
+      - name: Access
+        id: workflow-permission
+        run: |
+          set -o pipefail
+          GH_PAT_CLASSIC_PATTERN='^ghp_[a-zA-Z0-9]{36}$'
+          GH_PAT_FINE_GRAINED_PATTERN='^github_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{59}$'
+
+          if [ -z "$GH_PAT" ]; then
+            echo "::error::The GH_PAT secret is unset or empty. Set it and try again."
+            exit 2
+          fi
+
+          if [[ $GH_PAT =~ $GH_PAT_CLASSIC_PATTERN ]]; then
+            provides_scopes=true
+            echo "The GH_PAT secret is a structurally valid classic token."
+          elif [[ $GH_PAT =~ $GH_PAT_FINE_GRAINED_PATTERN ]]; then
+            echo "The GH_PAT secret is a structurally valid fine-grained token."
+          else
+            unknown_format=true
+            echo "The GH_PAT secret does not have a known token format."
+          fi
+
+          if ! scopes=$(curl -sS -f -I -H "Authorization: token $GH_PAT" https://api.github.com | { grep -i '^x-oauth-scopes:' || true; } | cut -d ' ' -f2- | tr -d '\r'); then
+            if [ "${unknown_format:-}" = true ]; then
+              echo "::error::Unable to connect to GitHub using the GH_PAT secret."
+            else
+              echo "::error::Unable to connect to GitHub using the GH_PAT secret. Verify the token at https://github.com/settings/tokens."
+            fi
+            exit 2
+          elif [[ $scopes =~ workflow ]]; then
+            echo "The GH_PAT secret has repo and workflow permissions."
+            echo "has_permission=true" >> "$GITHUB_OUTPUT"
+          elif [[ $scopes =~ repo ]]; then
+            echo "::error::The GH_PAT secret has repo but not workflow permission. Sunday sync must trigger Build Trio."
+            exit 2
+          elif [ "${provides_scopes:-}" = true ]; then
+            echo "::error::The GH_PAT secret needs the 'repo' and 'workflow' scopes."
+            exit 2
+          else
+            echo "Fine-grained token scopes are not inspectable; assuming repo and workflow are present."
+            echo "has_permission=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout default branch
+        if: steps.workflow-permission.outputs.has_permission == 'true'
+        uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GH_PAT }}
+          fetch-depth: 0
+
+      - name: Sync all three tracks
+        if: steps.workflow-permission.outputs.has_permission == 'true'
+        id: sync
+        run: bash .github/scripts/sunday_sync_all_tracks.sh
+
+      - name: Open issue when custom rebase fails
+        if: always() && steps.sync.outputs.CUSTOM_FAILED == 'true'
+        env:
+          CUSTOM_BEFORE_SHA: ${{ steps.sync.outputs.CUSTOM_BEFORE_SHA }}
+          UPSTREAM_MAIN_SHA: ${{ steps.sync.outputs.UPSTREAM_MAIN_SHA }}
+          CUSTOM_CONFLICT_FILES: ${{ steps.sync.outputs.CUSTOM_CONFLICT_FILES }}
+        run: |
+          set -euo pipefail
+          title="Sunday rebase failed: upgrade/trio-1.0 onto nightscout/Trio main"
+          body="$(cat <<EOF
+          Automatische Sunday-rebase van \`upgrade/trio-1.0\` op \`nightscout/Trio\` main is gestopt.
+
+          - Custom stond op: \`${CUSTOM_BEFORE_SHA}\`
+          - Nightscout main: \`${UPSTREAM_MAIN_SHA}\`
+
+          De branch is **niet** geforceerd gepusht. Los de rebase lokaal op:
+
+          \`\`\`
+          git fetch upstream
+          git checkout upgrade/trio-1.0
+          git rebase upstream/main
+          # fix conflicts, then:
+          git rebase --continue
+          git push --force-with-lease origin upgrade/trio-1.0
+          \`\`\`
+
+          Conflicted files:
+
+          \`\`\`
+          ${CUSTOM_CONFLICT_FILES:-"(not listed)"}
+          \`\`\`
+          EOF
+          )"
+
+          existing="$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --search "in:title Sunday rebase failed: upgrade/trio-1.0" --json number --jq '.[0].number' || true)"
+          if [[ -n "${existing}" && "${existing}" != "null" ]]; then
+            gh issue comment "${existing}" --repo "${GITHUB_REPOSITORY}" --body "${body}"
+          else
+            gh issue create --repo "${GITHUB_REPOSITORY}" --title "${title}" --body "${body}"
+          fi
+
+  trigger_builds:
+    name: Build updated TestFlight tracks
+    needs: sync
+    if: |
+      always() &&
+      !cancelled() &&
+      (needs.sync.outputs.MAIN_UPDATED == 'true' ||
+       needs.sync.outputs.DEV_UPDATED == 'true' ||
+       needs.sync.outputs.CUSTOM_UPDATED == 'true')
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Dispatch Build Trio for updated branches
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          MAIN_UPDATED: ${{ needs.sync.outputs.MAIN_UPDATED }}
+          DEV_UPDATED: ${{ needs.sync.outputs.DEV_UPDATED }}
+          CUSTOM_UPDATED: ${{ needs.sync.outputs.CUSTOM_UPDATED }}
+        run: |
+          set -euo pipefail
+          dispatch() {
+            local branch="$1"
+            echo "Triggering Build Trio on ${branch}"
+            gh workflow run "4. Build Trio" --repo "${GITHUB_REPOSITORY}" --ref "${branch}"
+          }
+          if [[ "${MAIN_UPDATED}" == "true" ]]; then
+            dispatch main
+          fi
+          if [[ "${DEV_UPDATED}" == "true" ]]; then
+            dispatch dev
+          fi
+          if [[ "${CUSTOM_UPDATED}" == "true" ]]; then
+            dispatch upgrade/trio-1.0
+          fi

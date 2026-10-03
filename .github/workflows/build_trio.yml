@@ -2,16 +2,18 @@ name: 4. Build Trio
 run-name: Build Trio (${{ github.ref_name }})
 on:
   workflow_dispatch:
-  schedule:
-    # Check for updates every Sunday
-    #   Later logic builds if there are updates or if it is the 2nd Sunday of the month
-    - cron: "43 6 * * 0" # Sunday at UTC 06:43
+
+# Nightscout updates for all three tracks live in sunday_sync_all_tracks.yml
+# (Sunday 06:43 UTC). That workflow then dispatches this build for each
+# branch that actually moved. Do not re-add a schedule here: GitHub only
+# runs cron from the default branch, so this file would only ever build
+# one track.
 
 env:
   GH_PAT: ${{ secrets.GH_PAT }}
   UPSTREAM_REPO: nightscout/Trio
   # apply_app_flavor.sh overwrites these from .github/app-flavors.yml.
-  # main tracks nightscout/main, dev tracks nightscout/dev.
+  # Sunday Sync All Tracks owns Nightscout updates. Build Trio only builds.
   UPSTREAM_BRANCH: ${{ github.ref_name }}
   TARGET_BRANCH: ${{ github.ref_name }} # target branch on fork to be kept in sync
 
@@ -103,13 +105,11 @@ jobs:
         id: flavor
         run: bash .github/scripts/apply_app_flavor.sh "${{ env.TARGET_BRANCH }}"
 
-      # This syncs any target branch to the flavor's upstream branch
+      # Disabled: Sunday Sync All Tracks updates main, dev, and
+      # upgrade/trio-1.0. Fork-Sync-With-Upstream rebases a single branch
+      # and must not run here (it would rewrite custom history unsafely).
       - name: Sync upstream changes
-        if: | # do not run the upstream sync action on the upstream repository
-          steps.workflow-permission.outputs.has_permission == 'true' &&
-          vars.SCHEDULED_SYNC != 'false' &&
-          env.FLAVOR_SCHEDULED_SYNC != 'false' &&
-          github.repository_owner != 'nightscout'
+        if: false
         id: sync
         uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.2
         with:
