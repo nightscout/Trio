@@ -239,6 +239,9 @@ sync_custom() {
 
   git branch -f sync/custom "refs/remotes/origin/${CUSTOM_BRANCH}"
   git switch sync/custom
+  # Submodule pointer commits (LibreTransmitter, etc.) conflict as
+  # "not checked out" unless the submodule is present before rebase.
+  git submodule update --init --recursive
 
   if git rebase refs/remotes/upstream/main; then
     if ! custom_files_present; then
