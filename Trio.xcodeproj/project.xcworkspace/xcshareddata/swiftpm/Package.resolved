@@ -1,5 +1,5 @@
 {
-  "originHash" : "b271d5de8862534ec5ccf9ccfd7ce226afa7ed4c799b7066ccbe2281782402a1",
+  "originHash" : "39a8d96f84e7a0625f815dbcbc16a5c61526466156444cbff5d65cbf5ad53b49",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -191,6 +191,14 @@
       }
     },
     {
+      "identity" : "roundwhitedisckit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/airedev326/RoundWhiteDiscKit",
+      "state" : {
+        "revision" : "f5be7c7903d84967d728933a869465a1cae0f6be"
+      }
+    },
+    {
       "identity" : "slidebutton",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/no-comment/SlideButton",
@@ -260,15 +268,6 @@
       "state" : {
         "revision" : "6190d0cefff3013e77ed567e6b074f324e5c5bf5",
         "version" : "6.3.1"
-      }
-    },
-    {
-      "identity" : "swiftmessages",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/SwiftKickMobile/SwiftMessages",
-      "state" : {
-        "revision" : "62e12e138fc3eedf88c7553dd5d98712aa119f40",
-        "version" : "9.0.9"
       }
     },
     {
