@@ -1,5 +1,5 @@
 {
-  "originHash" : "1e87d0c8f2eaea68e9a0835f9ebbb6b63eeb2727874133141cb5e51b0af6c496",
+  "originHash" : "6d3f0826544382737f750d1295286c33373e6ba223f5f42aede9c8f208a1c3f0",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -211,9 +211,9 @@
     {
       "identity" : "roundwhitedisckit",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/airedev326/RoundWhiteDiscKit.git",
+      "location" : "https://github.com/airedev326/RoundWhiteDiscKit",
       "state" : {
-        "revision" : "f5be7c7903d84967d728933a869465a1cae0f6be"
+        "revision" : "e4092162bc051a168f0a209288c6903b655d2e6a"
       }
     },
     {
