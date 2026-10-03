@@ -6779,8 +6779,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airedev326/RoundWhiteDiscKit";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = revision;
+				revision = f5be7c7903d84967d728933a869465a1cae0f6be;
 			};
 		};
 		3BD9687A2D8DDD4600899469 /* XCRemoteSwiftPackageReference "SlideButton" */ = {
