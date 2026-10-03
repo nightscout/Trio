@@ -17,6 +17,8 @@ flavors:
     bundle_identifier: org.nightscout.$(DEVELOPMENT_TEAM).trio
     url_scheme: Trio
     app_group_id: group.org.nightscout.$(DEVELOPMENT_TEAM).trio.trio-app-group
+    # Sunday Sync All Tracks rebases this branch onto nightscout/Trio main.
+    # Keep scheduled_sync false so Build Trio never Fork-Sync/rebases here.
     upstream_branch: ""
     scheduled_sync: false
     disable_dev_branch_warning: true
@@ -25,6 +27,7 @@ flavors:
     bundle_identifier: org.nightscout.$(DEVELOPMENT_TEAM).trio.main
     url_scheme: TrioMain
     app_group_id: group.org.nightscout.$(DEVELOPMENT_TEAM).trio.main.trio-app-group
+    # Sunday Sync All Tracks fast-forwards or merges nightscout/Trio main.
     upstream_branch: main
     scheduled_sync: true
     disable_dev_branch_warning: false
@@ -33,6 +36,7 @@ flavors:
     bundle_identifier: org.nightscout.$(DEVELOPMENT_TEAM).trio.dev
     url_scheme: TrioDev
     app_group_id: group.org.nightscout.$(DEVELOPMENT_TEAM).trio.dev.trio-app-group
+    # Sunday Sync All Tracks fast-forwards or merges nightscout/Trio dev.
     upstream_branch: dev
     scheduled_sync: true
     disable_dev_branch_warning: false
