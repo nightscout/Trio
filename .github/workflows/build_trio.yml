@@ -10,7 +10,9 @@ on:
 env:
   GH_PAT: ${{ secrets.GH_PAT }}
   UPSTREAM_REPO: nightscout/Trio
-  UPSTREAM_BRANCH: ${{ github.ref_name }} # branch on upstream repository to sync from (replace with specific branch name if needed)
+  # apply_app_flavor.sh overwrites these from .github/app-flavors.yml.
+  # main tracks nightscout/main, dev tracks nightscout/dev.
+  UPSTREAM_BRANCH: ${{ github.ref_name }}
   TARGET_BRANCH: ${{ github.ref_name }} # target branch on fork to be kept in sync
 
 jobs:
@@ -94,11 +96,20 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
 
-      # This syncs any target branch to upstream branch of the same name
+      - name: Apply app flavor
+        if: |
+          steps.workflow-permission.outputs.has_permission == 'true' &&
+          (vars.SCHEDULED_BUILD != 'false' || vars.SCHEDULED_SYNC != 'false')
+        id: flavor
+        run: bash .github/scripts/apply_app_flavor.sh "${{ env.TARGET_BRANCH }}"
+
+      # This syncs any target branch to the flavor's upstream branch
       - name: Sync upstream changes
         if: | # do not run the upstream sync action on the upstream repository
           steps.workflow-permission.outputs.has_permission == 'true' &&
-          vars.SCHEDULED_SYNC != 'false' && github.repository_owner != 'nightscout'
+          vars.SCHEDULED_SYNC != 'false' &&
+          env.FLAVOR_SCHEDULED_SYNC != 'false' &&
+          github.repository_owner != 'nightscout'
         id: sync
         uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.2
         with:
@@ -112,17 +123,24 @@ jobs:
       - name: New commits found
         if: |
           steps.workflow-permission.outputs.has_permission == 'true' &&
-          vars.SCHEDULED_SYNC != 'false' && steps.sync.outputs.has_new_commits == 'true'
+          vars.SCHEDULED_SYNC != 'false' &&
+          env.FLAVOR_SCHEDULED_SYNC != 'false' &&
+          steps.sync.outputs.has_new_commits == 'true'
         run: echo "New commits were found to sync."
 
       - name: No new commits
         if: |
           steps.workflow-permission.outputs.has_permission == 'true' &&
-          vars.SCHEDULED_SYNC != 'false' && steps.sync.outputs.has_new_commits == 'false'
+          vars.SCHEDULED_SYNC != 'false' &&
+          env.FLAVOR_SCHEDULED_SYNC != 'false' &&
+          steps.sync.outputs.has_new_commits == 'false'
         run: echo "There were no new commits."
 
       - name: Show value of 'has_new_commits'
-        if: steps.workflow-permission.outputs.has_permission == 'true' && vars.SCHEDULED_SYNC != 'false'
+        if: |
+          steps.workflow-permission.outputs.has_permission == 'true' &&
+          vars.SCHEDULED_SYNC != 'false' &&
+          env.FLAVOR_SCHEDULED_SYNC != 'false'
         run: |
           echo ${{ steps.sync.outputs.has_new_commits }}
           echo "NEW_COMMITS=${{ steps.sync.outputs.has_new_commits }}" >> $GITHUB_OUTPUT
@@ -238,13 +256,19 @@ jobs:
           # Several patches may be added per submodule.
           # Adding comments (#) is strongly recommended to easily tell the individual patches apart.
 
+      # Fastlane parses Config.xcconfig line-by-line and skips #include, so the
+      # flavor must rewrite APP_DISPLAY_NAME / BUNDLE_IDENTIFIER / APP_URL_SCHEME /
+      # TRIO_APP_GROUP_ID in Config.xcconfig itself before any Fastlane lane.
+      - name: Apply app flavor
+        run: bash .github/scripts/apply_app_flavor.sh "${{ env.TARGET_BRANCH }}"
+
       # Optional: silence the startup warning shown on builds made from a branch other
       # than main. Off unless you deliberately set the repository variable
       # DEV_BRANCH_WARNING_DISABLED to true (Settings > Secrets and variables > Actions
-      # > Variables). Intended for forks and redistributions that always build from
-      # their own branch - if you are testing dev, leave this alone and keep the warning.
+      # > Variables). The custom TestFlight flavor also disables it. Leave the
+      # warning on for the Nightscout-dev line.
       - name: Configure Dev Branch Warning
-        if: vars.DEV_BRANCH_WARNING_DISABLED == 'true'
+        if: vars.DEV_BRANCH_WARNING_DISABLED == 'true' || env.FLAVOR_DISABLE_DEV_WARNING == 'true'
         run: |
           # ConfigOverride.xcconfig is gitignored and is included by Config.xcconfig,
           # so writing it here feeds the flag into the Release build without touching
