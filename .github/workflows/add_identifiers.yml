@@ -18,6 +18,11 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v5
 
+      # Fastlane reads Config.xcconfig and skips #include, so rewrite identity
+      # keys for this branch before provisioning Apple identifiers.
+      - name: Apply app flavor
+        run: bash .github/scripts/apply_app_flavor.sh "${{ github.ref_name }}"
+
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables
         run: |

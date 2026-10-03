@@ -1,0 +1,38 @@
+# Maps git branches to a distinct iPhone app identity.
+# Fastlane reads Config.xcconfig line-by-line and skips #include, so
+# .github/scripts/apply_app_flavor.sh rewrites these keys in Config.xcconfig
+# itself before Fastlane runs. The checked-in Config.xcconfig stays on the
+# custom TestFlight identity (org.nightscout.$(DEVELOPMENT_TEAM).trio).
+
+default_flavor: custom
+
+branches:
+  upgrade/trio-1.0: custom
+  main: main
+  dev: dev
+
+flavors:
+  custom:
+    display_name: Trio
+    bundle_identifier: org.nightscout.$(DEVELOPMENT_TEAM).trio
+    url_scheme: Trio
+    app_group_id: group.org.nightscout.$(DEVELOPMENT_TEAM).trio.trio-app-group
+    upstream_branch: ""
+    scheduled_sync: false
+    disable_dev_branch_warning: true
+  main:
+    display_name: Trio Main
+    bundle_identifier: org.nightscout.$(DEVELOPMENT_TEAM).trio.main
+    url_scheme: TrioMain
+    app_group_id: group.org.nightscout.$(DEVELOPMENT_TEAM).trio.main.trio-app-group
+    upstream_branch: main
+    scheduled_sync: true
+    disable_dev_branch_warning: false
+  dev:
+    display_name: Trio Dev
+    bundle_identifier: org.nightscout.$(DEVELOPMENT_TEAM).trio.dev
+    url_scheme: TrioDev
+    app_group_id: group.org.nightscout.$(DEVELOPMENT_TEAM).trio.dev.trio-app-group
+    upstream_branch: dev
+    scheduled_sync: true
+    disable_dev_branch_warning: false
