@@ -26,20 +26,14 @@ extension History.StateModel {
                 guard let originalEntry = await getOriginalEntryValues(treatmentObjectID) else { return }
 
                 // Deletion logic for carb and FPU entries
-                // The old entry is gone once this returns, so a failed algorithm run must not skip the
-                // re-creation below — that would drop the entry the user was editing.
-                do {
-                    try await deleteOldEntries(
-                        treatmentObjectID,
-                        originalEntry: originalEntry,
-                        newCarbs: newCarbs,
-                        newFat: newFat,
-                        newProtein: newProtein,
-                        newNote: newNote
-                    )
-                } catch {
-                    debug(.default, "\(DebuggingIdentifiers.failed) determine basal after delete failed: \(error)")
-                }
+                try await deleteOldEntries(
+                    treatmentObjectID,
+                    originalEntry: originalEntry,
+                    newCarbs: newCarbs,
+                    newFat: newFat,
+                    newProtein: newProtein,
+                    newNote: newNote
+                )
 
                 try await createNewEntries(
                     originalDate: newDate,
