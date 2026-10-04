@@ -116,6 +116,10 @@ import WatchConnectivity
     /// Work item to schedule finalizing the pending data.
     private var finalizeWorkItem: DispatchWorkItem?
 
+    /// Whether the app is in the foreground. Only there is the debounce reliable: in the background the app
+    /// is suspended within moments of a delivery.
+    private var isAppActive = false
+
     /// A flag to tell the UI we’re still updating.
     var showSyncingAnimation: Bool = false
 
@@ -625,22 +629,27 @@ import WatchConnectivity
             return
         }
 
+        Task {
+            await WatchLogger.shared.log("Merging new WatchState data with keys: \(newData.keys.joined(separator: ", "))")
+        }
+
+        pendingData.merge(newData) { _, newVal in newVal }
+        finalizeWorkItem?.cancel()
+        finalizeWorkItem = nil
+
+        // In the background watchOS suspends the app right after a delivery, before a delayed work item
+        // runs; the state would only show on the next wake, one push late. Apply it right away there.
+        guard isAppActive else {
+            finalizePendingData()
+            return
+        }
+
         // 1) Mark as syncing
         DispatchQueue.main.async {
             self.showSyncingAnimation = true
         }
 
-        Task {
-            await WatchLogger.shared.log("Merging new WatchState data with keys: \(newData.keys.joined(separator: ", "))")
-        }
-
-        // 2) Merge data into our pendingData
-        pendingData.merge(newData) { _, newVal in newVal }
-
-        // 3) Cancel any previous finalization
-        finalizeWorkItem?.cancel()
-
-        // 4) Create and schedule a new finalization
+        // 2) Create and schedule a new finalization
         let workItem = DispatchWorkItem { [self] in
             Task {
                 await WatchLogger.shared.log("⏳ Debounced update fired")
@@ -651,8 +660,18 @@ import WatchConnectivity
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: workItem)
     }
 
+    /// Tracks the scene phase; on leaving the foreground, applies a debounced state before the app is suspended.
+    func setAppActive(_ isActive: Bool) {
+        isAppActive = isActive
+        guard !isActive, finalizeWorkItem != nil else { return }
+        finalizeWorkItem?.cancel()
+        finalizeWorkItem = nil
+        finalizePendingData()
+    }
+
     /// Applies all pending data to the watch state in one shot
     private func finalizePendingData() {
+        finalizeWorkItem = nil
         guard !pendingData.isEmpty else {
             Task {
                 await WatchLogger.shared.log("⚠️ finalizePendingData called with empty data")

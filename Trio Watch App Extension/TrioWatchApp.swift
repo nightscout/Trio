@@ -14,6 +14,7 @@ import UserNotifications
             TrioMainWatchView()
         }
         .onChange(of: scenePhase) { _, newScenePhase in
+            WatchState.shared.setAppActive(newScenePhase == .active)
             if newScenePhase == .background {
                 Task {
                     await WatchLogger.shared.flushPersistedLogs()
