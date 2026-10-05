@@ -5,6 +5,9 @@ Dit document beschrijft de actuele inrichting van de fork
 branchnaam bepaalt zowel de broncode als de Apple-appidentiteit; wissel die
 identiteiten nooit tussen branches.
 
+Voor de praktische stappen in eenvoudige taal, inclusief conflict-herstel, zie
+de [handleiding voor de zondagse Trio-update](handleiding_zondagse_trio_update.md).
+
 ## Overzicht
 ```text
 nightscout/Trio main ──> main                 ──> Trio Main

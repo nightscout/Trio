@@ -136,9 +136,10 @@ jobs:
 
           existing="$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --search "in:title Sunday rebase failed: upgrade/trio-1.0" --json number --jq '.[0].number' || true)"
           if [[ -n "${existing}" && "${existing}" != "null" ]]; then
+            gh issue edit "${existing}" --repo "${GITHUB_REPOSITORY}" --add-assignee "${GITHUB_REPOSITORY_OWNER}"
             gh issue comment "${existing}" --repo "${GITHUB_REPOSITORY}" --body "${body}"
           else
-            gh issue create --repo "${GITHUB_REPOSITORY}" --title "${title}" --body "${body}"
+            gh issue create --repo "${GITHUB_REPOSITORY}" --title "${title}" --body "${body}" --assignee "${GITHUB_REPOSITORY_OWNER}"
           fi
 
   trigger_builds:
