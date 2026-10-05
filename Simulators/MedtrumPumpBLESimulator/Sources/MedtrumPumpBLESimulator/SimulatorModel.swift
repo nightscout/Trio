@@ -16,6 +16,7 @@ final class SimulatorModel: NSObject, ObservableObject {
     @Published var isAdvertising = false
     @Published var bluetoothState = "Initializing"
     @Published var subscribers = 0
+    @Published var safetyConfirmed = false
     @Published var identity: Identity = .nano200
     @Published var reservoir = 200.0
     @Published var battery = 2.80
@@ -48,6 +49,10 @@ final class SimulatorModel: NSObject, ObservableObject {
     }
 
     func start() {
+        guard safetyConfirmed else {
+            appendLog("SAFETY BLOCK: training isolation has not been confirmed")
+            return
+        }
         guard peripheralManager.state == .poweredOn else {
             appendLog("Cannot start: Bluetooth is \(bluetoothState)")
             return
@@ -63,6 +68,7 @@ final class SimulatorModel: NSObject, ObservableObject {
     func stop() {
         peripheralManager.stopAdvertising()
         isAdvertising = false
+        safetyConfirmed = false
         appendLog("Advertisement stopped")
     }
 

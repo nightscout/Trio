@@ -13,6 +13,9 @@ struct ContentView: View {
                 Text("Medtrum Pump Simulator — NEVER A REAL PUMP")
                     .font(.headline)
                     .foregroundStyle(.white)
+                Text("Do not test near an active production pump")
+                    .font(.title3.bold())
+                    .foregroundStyle(.white)
             }
             .frame(maxWidth: .infinity)
             .padding()
@@ -29,6 +32,27 @@ struct ContentView: View {
 
     private var controls: some View {
         Form {
+            Section("Mandatory safety isolation") {
+                Label(
+                    "Use a separate training iPhone and separate Trio installation.",
+                    systemImage: "iphone.gen3"
+                )
+                Label(
+                    "Keep every real Medtrum pump powered off and physically out of BLE range.",
+                    systemImage: "wave.3.right.slash"
+                )
+                Label(
+                    "Close the production pump app. This Mac app never scans for or controls pumps.",
+                    systemImage: "exclamationmark.shield.fill"
+                )
+                Toggle(
+                    "I confirm this isolated training setup contains no active real pump",
+                    isOn: $model.safetyConfirmed
+                )
+                .fontWeight(.bold)
+                .disabled(model.isAdvertising)
+            }
+
             Section("Peripheral") {
                 LabeledContent("Bluetooth", value: model.bluetoothState)
                 LabeledContent("Advertising", value: model.isAdvertising ? "ON" : "OFF")
@@ -36,7 +60,7 @@ struct ContentView: View {
                 HStack {
                     Button("Start") { model.start() }
                         .buttonStyle(.borderedProminent)
-                        .disabled(model.isAdvertising)
+                        .disabled(model.isAdvertising || !model.safetyConfirmed)
                     Button("Stop") { model.stop() }
                         .disabled(!model.isAdvertising)
                     Button("Reset") { model.reset() }
@@ -50,7 +74,15 @@ struct ContentView: View {
                     }
                 }
                 .onChange(of: model.identity) { model.identityChanged() }
-                LabeledContent("Serial to enter in Trio", value: model.identity.serial)
+                Text("SIMULATOR SERIAL")
+                    .font(.caption.bold())
+                    .foregroundStyle(.secondary)
+                Text(model.identity.serial)
+                    .font(.system(size: 30, weight: .black, design: .monospaced))
+                    .textSelection(.enabled)
+                Text("Stock Trio cannot select a macOS advertisement because macOS cannot publish Medtrum manufacturer data.")
+                    .font(.caption)
+                    .foregroundStyle(.red)
                 LabeledContent("BLE local name", value: "MT-SIM")
             }
 
