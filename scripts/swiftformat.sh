@@ -119,6 +119,6 @@ trailingClosures \
 --exclude MedtrumKit \
 --exclude OmnipodKit \
 --exclude LibreLoop \
---exclude LibreCRKit \
+--exclude RoundWhiteDiscKit \
 --exclude LoopAlgorithm \
 --exclude AccuChekKit

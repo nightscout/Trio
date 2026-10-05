@@ -10,10 +10,11 @@
 #   source scripts/define_commont_trio.sh
 
 # define the TRIO_PROJECTS used by Trio where for Trio the .gitmodules points
-#   to the downstream fork of loopandlearn in all cases
+#   to the downstream fork of loopandlearn, except LibreLoop (LoopKit) and
+#   RoundWhiteDiscKit (airedev326)
 #
-# LoopKit, LibreCRKit and LibreLoop each need their trio branch: those branches
-#   carry Trio-specific commits that are not on the upstream default branch
+# LoopKit needs its trio branch, and LibreLoop its legacy-loopkit-compat branch,
+#   which builds against that LoopKit
 #
 # There are scripts available in LoopWorkspace that update translations and make
 #   sure the loopandlearn branches are up to date
@@ -24,14 +25,14 @@ TRIO_PROJECTS=( \
     loopandlearn:dexcom-share-client-swift:dev \
     loopandlearn:EversenseKit:dev \
     loopandlearn:G7SensorKit:main \
-    loopandlearn:LibreCRKit:trio \
-    loopandlearn:LibreLoop:trio \
+    LoopKit:LibreLoop:legacy-loopkit-compat \
     loopandlearn:LibreTransmitter:main \
     loopandlearn:LoopKit:trio \
     loopandlearn:MedtrumKit:dev \
     loopandlearn:MinimedKit:main \
     loopandlearn:OmnipodKit:main \
     loopandlearn:RileyLinkKit:dev \
+    airedev326:RoundWhiteDiscKit:main \
     loopandlearn:TidepoolService:dev \
     loopandlearn:LoopAlgorithm:main \
 )
