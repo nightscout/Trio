@@ -129,6 +129,11 @@ jobs:
           EOF
           )"
 
+          if ! gh api "repos/${GITHUB_REPOSITORY}" --jq '.has_issues' | grep -qx true; then
+            echo "::warning::Issues are disabled on ${GITHUB_REPOSITORY}. Enable them under Settings → General → Features to file Sunday rebase alerts. The rebase conflict is still in the job log and summary."
+            exit 0
+          fi
+
           existing="$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --search "in:title Sunday rebase failed: upgrade/trio-1.0" --json number --jq '.[0].number' || true)"
           if [[ -n "${existing}" && "${existing}" != "null" ]]; then
             gh issue comment "${existing}" --repo "${GITHUB_REPOSITORY}" --body "${body}"
