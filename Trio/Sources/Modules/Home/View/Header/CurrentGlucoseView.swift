@@ -21,6 +21,8 @@ struct CurrentGlucoseView: View {
     var cgmSensorExpiresAt: Date?
     /// Wall-clock end of the warmup window. Drives the warmup countdown tag.
     var cgmWarmupEndsAt: Date?
+    /// Activation-time-based warmup state for a production Libre sensor.
+    var libreWarmupState: LibreWarmupDisplayState?
 
     @State private var rotationDegrees: Double = 0.0
     @State private var angularGradient = AngularGradient(colors: [
@@ -103,14 +105,19 @@ struct CurrentGlucoseView: View {
                 .blur(radius: 24)
                 .opacity(colorScheme == .dark ? 0.32 : 0.20)
 
-            if let progress = cgmProgress, shouldShowArc {
+            if let warmup = libreWarmupState, warmup.isActive(at: timerDate) {
+                SensorLifecycleArcView(
+                    progress: warmup.progress(at: timerDate),
+                    progressState: .warning
+                )
+            } else if libreWarmupState == nil, let progress = cgmProgress, shouldShowArc {
                 SensorLifecycleArcView(
                     progress: progress.percentComplete,
                     progressState: progress.progressState
                 )
             }
 
-            TrendShape(gradient: angularGradient, color: triangleColor, showArrow: true)
+            TrendShape(gradient: angularGradient, color: triangleColor, showArrow: !isInWarmup)
                 .rotationEffect(.degrees(rotationDegrees))
 
             VStack(alignment: .center) {
@@ -211,6 +218,13 @@ struct CurrentGlucoseView: View {
     /// One combined VoiceOver description for the bobble, e.g.
     /// "Glucose 79 mg/dL, in range, falling, delta -2, 1 minute ago".
     private var bobbleAccessibilityLabel: String {
+        if isInWarmup {
+            var parts = [String(localized: "Sensor warming up", comment: "Accessibility: Libre sensor warmup")]
+            if let endsAt = warmupEndsAt {
+                parts.append(SensorRemainingTimeFormatter.format(until: endsAt, now: timerDate))
+            }
+            return parts.joined(separator: ", ")
+        }
         guard let glucoseValue = glucose.last?.glucose, isReadingFresh else {
             return String(localized: "Glucose unavailable", comment: "Accessibility: no fresh glucose")
         }
@@ -233,31 +247,43 @@ struct CurrentGlucoseView: View {
     }
 
     @ViewBuilder private func bobbleContent() -> some View {
-        HStack {
-            if let glucoseValue = glucose.last?.glucose, isReadingFresh {
-                let displayGlucose = units == .mgdL
-                    ? Decimal(glucoseValue).description
-                    : Decimal(glucoseValue).formattedAsMmolL
-                Text(glucoseValue == 400 ? "HIGH" : displayGlucose)
-                    .font(.system(size: 40, weight: .bold, design: .rounded))
-                    .foregroundStyle(glucoseColor(for: glucoseValue))
-            } else {
-                Text("– –")
-                    .font(.system(size: 40, weight: .bold, design: .rounded))
-                    .foregroundStyle(.secondary)
+        if isInWarmup {
+            VStack(spacing: 4) {
+                Image(systemName: "hourglass")
+                    .font(.title2)
+                    .foregroundStyle(.orange)
+                Text("Warming up")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.orange)
             }
-        }
-        if isReadingFresh {
+        } else {
             HStack {
-                let minutesAgoString = TimeAgoFormatter.minutesAgo(from: glucose.last?.date)
-                Group {
-                    Text(minutesAgoString)
-                    Text(delta)
+                if let glucoseValue = glucose.last?.glucose, isReadingFresh {
+                    let displayGlucose = units == .mgdL
+                        ? Decimal(glucoseValue).description
+                        : Decimal(glucoseValue).formattedAsMmolL
+                    Text(glucoseValue == 400 ? "HIGH" : displayGlucose)
+                        .font(.system(size: 40, weight: .bold, design: .rounded))
+                        .foregroundStyle(glucoseColor(for: glucoseValue))
+                } else {
+                    Text("– –")
+                        .font(.system(size: 40, weight: .bold, design: .rounded))
+                        .foregroundStyle(.secondary)
                 }
-                .font(.callout).fontWeight(.bold)
-                .foregroundStyle(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
             }
-            .frame(alignment: .top)
+            if isReadingFresh {
+                HStack {
+                    let minutesAgoString = TimeAgoFormatter.minutesAgo(from: glucose.last?.date)
+                    Group {
+                        Text(minutesAgoString)
+                        Text(delta)
+                    }
+                    .font(.callout).fontWeight(.bold)
+                    .foregroundStyle(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
+                }
+                .frame(alignment: .top)
+            }
         }
     }
 
@@ -281,6 +307,7 @@ struct CurrentGlucoseView: View {
     private var stalenessState: (imageName: String, label: String, color: Color)? {
         guard !isReadingFresh,
               !isInWarmup,
+              libreWarmupState == nil,
               let status = cgmStatus,
               !status.imageName.isEmpty
         else { return nil }
@@ -299,6 +326,7 @@ struct CurrentGlucoseView: View {
     /// Arc shown for warmup, the last 48 h of a time-based sensor (incl.
     /// grace period), or any non-normal state from a battery-based manager.
     private var shouldShowArc: Bool {
+        if libreWarmupState != nil { return isInWarmup }
         if isInWarmup { return true }
         if let expiresAt = cgmSensorExpiresAt {
             return expiresAt.timeIntervalSinceNow <= 48 * 60 * 60
@@ -306,8 +334,13 @@ struct CurrentGlucoseView: View {
         return cgmProgress?.progressState != .normalCGM
     }
 
-    /// String sniff — loopandlearn LoopKit has no structural warmup flag.
+    /// Libre uses activation time, not a localized status string. Other
+    /// managers retain the legacy fallback because LoopKit exposes no common
+    /// structural warmup state.
     private var isInWarmup: Bool {
+        if let libreWarmupState {
+            return libreWarmupState.isActive(at: timerDate)
+        }
         guard let message = cgmStatus?.localizedMessage else { return false }
         let lowered = message.lowercased()
         return lowered.contains("warming up") || lowered.contains("warmup")
@@ -323,8 +356,8 @@ struct CurrentGlucoseView: View {
     private var tagLabel: (text: String, theme: SensorStatusTagTheme, icon: String?)? {
         if isInWarmup {
             let text: String
-            if let endsAt = cgmWarmupEndsAt {
-                text = SensorRemainingTimeFormatter.format(until: endsAt)
+            if let endsAt = warmupEndsAt {
+                text = SensorRemainingTimeFormatter.format(until: endsAt, now: timerDate)
             } else {
                 text = "Warming up"
             }
@@ -352,6 +385,10 @@ struct CurrentGlucoseView: View {
             return (text, theme, nil)
         }
         return nil
+    }
+
+    private var warmupEndsAt: Date? {
+        libreWarmupState?.endsAt ?? cgmWarmupEndsAt
     }
 
     private func theme(for status: CgmDisplayStatus) -> SensorStatusTagTheme {

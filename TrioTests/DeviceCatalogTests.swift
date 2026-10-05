@@ -327,4 +327,32 @@ import UIKit
         )
         #expect(!SensorInfo.isInWarmup(sensorMinutesSinceStart: 61))
     }
+
+    @Test("Home Libre warmup starts at activation") func testHomeLibreWarmupAtStart() {
+        let activatedAt = Date(timeIntervalSinceReferenceDate: 1_000_000)
+        let state = LibreWarmupDisplayState(activatedAt: activatedAt, duration: 60 * 60)
+
+        #expect(state.isActive(at: activatedAt))
+        #expect(state.progress(at: activatedAt) == 0)
+    }
+
+    @Test("Home Libre warmup remains visible through 59:59") func testHomeLibreWarmupBeforeBoundary() {
+        let activatedAt = Date(timeIntervalSinceReferenceDate: 1_000_000)
+        let state = LibreWarmupDisplayState(activatedAt: activatedAt, duration: 60 * 60)
+        let justBeforeCompletion = activatedAt.addingTimeInterval(60 * 60 - 1)
+
+        #expect(state.isActive(at: justBeforeCompletion))
+        #expect(state.progress(at: justBeforeCompletion) > 0.999)
+        #expect(state.progress(at: justBeforeCompletion) < 1)
+    }
+
+    @Test("Home Libre warmup clears exactly at 60 minutes") func testHomeLibreWarmupAtBoundary() {
+        let activatedAt = Date(timeIntervalSinceReferenceDate: 1_000_000)
+        let state = LibreWarmupDisplayState(activatedAt: activatedAt, duration: 60 * 60)
+        let completion = activatedAt.addingTimeInterval(60 * 60)
+
+        #expect(!state.isActive(at: completion))
+        #expect(state.progress(at: completion) == 1)
+        #expect(!state.isActive(at: completion.addingTimeInterval(5 * 60)))
+    }
 }

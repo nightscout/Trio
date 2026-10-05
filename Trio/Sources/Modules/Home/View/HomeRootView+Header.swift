@@ -82,7 +82,8 @@ extension Home.RootView {
             cgmProgress: state.cgmProgressHighlight,
             cgmStatus: state.cgmDisplayState,
             cgmSensorExpiresAt: state.cgmSensorExpiresAt,
-            cgmWarmupEndsAt: state.cgmWarmupEndsAt
+            cgmWarmupEndsAt: state.cgmWarmupEndsAt,
+            libreWarmupState: state.libreWarmupState
         )
         .onTapGesture {
             if !state.cgmAvailable {

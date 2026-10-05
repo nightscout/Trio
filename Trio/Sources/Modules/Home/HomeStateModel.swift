@@ -121,6 +121,7 @@ extension Home {
         var cgmProgressHighlight: DeviceLifecycleProgress?
         var cgmSensorExpiresAt: Date?
         var cgmWarmupEndsAt: Date?
+        var libreWarmupState: LibreWarmupDisplayState?
         var listOfCGM: [CGMModel] = []
         var cgmCurrent = cgmDefaultModel
         var pumpInitialSettings = PumpConfig.PumpInitialSettings.default
@@ -558,6 +559,7 @@ extension Home {
                         lifecycle: progress
                     )
                     self.cgmWarmupEndsAt = Self.resolveWarmupEndsAt(manager: manager)
+                    self.libreWarmupState = Self.resolveLibreWarmupState(manager: manager)
                 }
             }
             timer.resume()
@@ -585,6 +587,9 @@ extension Home {
                         lifecycle: progress
                     )
                     self.cgmWarmupEndsAt = Self.resolveWarmupEndsAt(
+                        manager: self.fetchGlucoseManager.cgmManager
+                    )
+                    self.libreWarmupState = Self.resolveLibreWarmupState(
                         manager: self.fetchGlucoseManager.cgmManager
                     )
                 }
@@ -927,6 +932,29 @@ extension Home {
                 return ends > Date() ? ends : nil
             }
             return nil
+        }
+
+        /// Typed, clock-driven warmup state for the production LibreTransmitter path.
+        ///
+        /// Keep an expired state while the manager still reports warmup so Home can
+        /// suppress a stale warmup ring between the 60-minute boundary and the next
+        /// sensor packet.
+        private static func resolveLibreWarmupState(
+            manager: CGMManagerUI?,
+            now: Date = Date()
+        ) -> LibreWarmupDisplayState? {
+            guard let libre = manager as? LibreTransmitterManagerV3,
+                  let activatedAt = libre.sensorInfoObservable.activatedAt
+            else { return nil }
+
+            let state = LibreWarmupDisplayState(
+                activatedAt: activatedAt,
+                duration: TimeInterval(SensorInfo.warmupDurationMinutes * 60)
+            )
+            guard state.isActive(at: now) || libre.sensorInfoObservable.isInWarmup else {
+                return nil
+            }
+            return state
         }
     }
 }

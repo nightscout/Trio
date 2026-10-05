@@ -1,5 +1,30 @@
 import Foundation
 
+/// Home's clock-driven representation of a real Libre sensor warmup.
+///
+/// The manager's published warmup flag advances when a sensor packet arrives.
+/// Keeping the authoritative activation date here lets the Home ring advance
+/// continuously and leave warmup exactly at the 60-minute boundary.
+struct LibreWarmupDisplayState: Equatable {
+    let activatedAt: Date
+    let endsAt: Date
+
+    init(activatedAt: Date, duration: TimeInterval) {
+        self.activatedAt = activatedAt
+        endsAt = activatedAt.addingTimeInterval(duration)
+    }
+
+    func isActive(at date: Date) -> Bool {
+        date >= activatedAt && date < endsAt
+    }
+
+    func progress(at date: Date) -> Double {
+        let duration = endsAt.timeIntervalSince(activatedAt)
+        guard duration > 0 else { return 1 }
+        return min(max(date.timeIntervalSince(activatedAt) / duration, 0), 1)
+    }
+}
+
 /// Compact `5d 14h` / `22h` / `45m` remaining-time formatter. Used as a
 /// fallback tag label when the CGM doesn't surface a `cgmStatusHighlight`
 /// but the lifecycle progress lets us derive an expiration date.
