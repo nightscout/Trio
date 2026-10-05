@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleExecutable</key>
+    <string>Libre2BLESimulator</string>
+    <key>CFBundleIdentifier</key>
+    <string>org.trioopensource.Libre2BLESimulator</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>Libre 2 BLE Simulator</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Advertises a synthetic Libre 2 training peripheral to an iPhone running Trio.</string>
+    <key>NSBluetoothPeripheralUsageDescription</key>
+    <string>Advertises a synthetic Libre 2 training peripheral to an iPhone running Trio.</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+</dict>
+</plist>
