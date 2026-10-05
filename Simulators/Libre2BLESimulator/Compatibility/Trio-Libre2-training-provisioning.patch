@@ -1,10 +1,70 @@
+diff --git a/LibreTransmitter/LibreTransmitter.xcodeproj/project.pbxproj b/LibreTransmitter/LibreTransmitter.xcodeproj/project.pbxproj
+--- a/LibreTransmitter/LibreTransmitter.xcodeproj/project.pbxproj
++++ b/LibreTransmitter/LibreTransmitter.xcodeproj/project.pbxproj
+@@ -1264,1 +1264,2 @@
++				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+ 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+diff --git a/LibreTransmitter/Bluetooth/Transmitter/Libre2DirectTransmitter.swift b/LibreTransmitter/Bluetooth/Transmitter/Libre2DirectTransmitter.swift
+--- a/LibreTransmitter/Bluetooth/Transmitter/Libre2DirectTransmitter.swift
++++ b/LibreTransmitter/Bluetooth/Transmitter/Libre2DirectTransmitter.swift
+@@ -9,3 +9,16 @@
+ class Libre2DirectTransmitter: LibreTransmitterProxyProtocol {
++    static let trainingSimulatorName = "ABBOTTTRIOSIM01"
++
++    static var trainingSimulatorAllowed: Bool {
++        #if DEBUG
++        true
++        #else
++        false
++        #endif
++    }
++
++    static func isTrainingSimulator(_ peripheral: PeripheralProtocol) -> Bool {
++        peripheral.name == trainingSimulatorName
++    }
+ 
+     fileprivate lazy var logger = Logger(forType: Self.self)
+@@ -58,1 +71,7 @@
++        if isTrainingSimulator(peripheral) {
++            // A persisted Debug pairing must never become usable when the same
++            // bundle is subsequently installed as Release/TestFlight.
++            return trainingSimulatorAllowed
++        }
++
+         if name.lowercased().starts(with: "abbott") == true {
+diff --git a/LibreTransmitter/Bluetooth/Transmitter/LibreTransmitterProxyManager.swift b/LibreTransmitter/Bluetooth/Transmitter/LibreTransmitterProxyManager.swift
+--- a/LibreTransmitter/Bluetooth/Transmitter/LibreTransmitterProxyManager.swift
++++ b/LibreTransmitter/Bluetooth/Transmitter/LibreTransmitterProxyManager.swift
+@@ -479,3 +479,10 @@
+         logger.debug("Did discover peripheral while state \(String(describing: self.state.rawValue)) with name: \(String(describing: peripheral.name)), wantstoterminate?: \(self.wantsToTerminate)")
+ 
++        guard !Libre2DirectTransmitter.isTrainingSimulator(peripheral)
++            || Libre2DirectTransmitter.trainingSimulatorAllowed
++        else {
++            logger.error("Ignoring Libre 2 training simulator outside a DEBUG build")
++            return
++        }
++
+         // Libre2:
+@@ -552,2 +559,11 @@
+         logger.debug("Did connect peripheral while state \(String(describing: self.state.rawValue)) with name: \(String(describing: peripheral.name))")
++        guard !Libre2DirectTransmitter.isTrainingSimulator(peripheral)
++            || Libre2DirectTransmitter.trainingSimulatorAllowed
++        else {
++            logger.error("Disconnecting persisted Libre 2 training simulator outside a DEBUG build")
++            state = .UnknownDevice
++            central.cancelPeripheralConnection(peripheral)
++            return
++        }
++
+         if central.isScanning {
 diff --git a/LibreTransmitter/LibreTransmitterUI/Views/Setup/Libre2DirectSetup.swift b/LibreTransmitter/LibreTransmitterUI/Views/Setup/Libre2DirectSetup.swift
 --- a/LibreTransmitter/LibreTransmitterUI/Views/Setup/Libre2DirectSetup.swift
 +++ b/LibreTransmitter/LibreTransmitterUI/Views/Setup/Libre2DirectSetup.swift
-@@ -89,0 +90,33 @@ struct Libre2DirectSetup: View {
+@@ -90,1 +90,34 @@
 +    #if DEBUG
 +    /// Provisions only the fixed profile advertised by Libre2BLESimulator.
-+    /// This bypasses NFC; it never changes production/Release behavior.
++    /// This bypasses NFC and is unavailable in Release/TestFlight builds.
 +    func pairTrainingSimulator() {
 +        let uid = Data([0xD6, 0xF1, 0x0F, 0x01, 0x00, 0xA4, 0x07, 0xE0])
 +        let patchInfo = Data([0x9D, 0x08, 0x30, 0x01, 0x9C, 0x16])
@@ -35,11 +95,14 @@ diff --git a/LibreTransmitter/LibreTransmitterUI/Views/Setup/Libre2DirectSetup.s
 +    }
 +    #endif
 +
-@@ -130,0 +164,7 @@ struct Libre2DirectSetup: View {
+     var cancelButton: some View {
+@@ -131,1 +164,9 @@
 +                #if DEBUG
 +                Button("Use Libre 2 Training Simulator") {
 +                    pairTrainingSimulator()
 +                }
 +                .actionButtonStyle(.secondary)
 +                .disabled(isPairing)
++                .accessibilityHint("Connects only to the TRAINING Libre 2 simulator")
 +                #endif
+             }.padding()

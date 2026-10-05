@@ -38,9 +38,12 @@ real eight-byte manufacturer field or the NFC-returned name/MAC.
 
 `Compatibility/Trio-Libre2-training-provisioning.patch` adds one DEBUG-only
 button that installs a fixed synthetic UID, patch info, calibration, and local
-name. Release behavior is unchanged. The simulator then works through the
-existing real Libre 2 driver without changing its UUIDs, crypto, parser, or BLE
-transport. The patch is supplied but is **not applied** by this directory.
+name. The integration is applied in this repository; the patch remains as a
+portable record for other checkouts. Release/TestFlight builds both omit the
+button and explicitly reject/disconnect the simulator identity, including a
+pairing persisted from a prior Debug install. Real Libre authentication is
+unchanged. The simulator uses the existing driver UUIDs, crypto, parser, and BLE
+transport.
 
 LibreLoop and LibreCRKit use the newer `0898...` Libre 3 services, certificate
 pairing, AES data plane, and framed characteristics. Those are intentionally
@@ -68,31 +71,15 @@ The package can also be opened directly in Xcode. Select the
 ## Pair with Trio
 
 1. Stop other apps that may be testing this synthetic identity.
-2. Apply the compatibility patch from the repository root:
-
-   ```sh
-   git apply --check Simulators/Libre2BLESimulator/Compatibility/Trio-Libre2-training-provisioning.patch
-   git apply Simulators/Libre2BLESimulator/Compatibility/Trio-Libre2-training-provisioning.patch
-   ```
-
-3. Build and install Trio with the **Debug** configuration. The button is
+2. Build and install Trio with the **Debug** configuration. The button is
    compiled out of Release builds.
-4. Launch the Mac simulator and click **Start Advertising**.
-5. In Trio, add/select Libre 2 and tap **Use Libre 2 Training Simulator**.
-6. Keep Trio in the foreground for initial discovery. It should discover
+3. Launch the Mac simulator and click **Start Advertising**.
+4. In Trio, add/select Libre 2 and tap **Use Libre 2 Training Simulator**.
+5. Keep Trio in the foreground for initial discovery. It should discover
    `ABBOTTTRIOSIM01`, connect to FDE3, subscribe to F002, and write the normal
    F001 unlock. The Mac log shows each stage.
-7. Choose a glucose/trend/scenario and click **Send Packet Now**, or use the
+6. Choose a glucose/trend/scenario and click **Send Packet Now**, or use the
    periodic timer.
-
-To remove the temporary driver change:
-
-```sh
-git apply -R Simulators/Libre2BLESimulator/Compatibility/Trio-Libre2-training-provisioning.patch
-```
-
-Do not apply or reverse the patch over unrelated edits to the same setup file;
-use normal source control conflict review in that case.
 
 ## Controls
 
