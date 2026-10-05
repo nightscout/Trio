@@ -7,40 +7,36 @@ creates a `CBCentralManager`, scans for, or connects to any Libre sensor.
 
 ## Compatibility status
 
-The app implements the protocol used by this repository's selected **Libre 2
-direct** driver:
+The app uses the stock **MiaoMiao bridge** protocol already supported by Trio:
 
-- advertisement service: `FDE3`
-- local name: `ABBOTTTRIOSIM01`
-- primary GATT service: `FDE3`
-- unlock write characteristic: `F001` (`write` with response)
-- encrypted notification characteristic: `F002`
-- the repository's 12-byte streaming-unlock calculation and validation
-- the repository's Libre 2 stream cipher, 46-byte encrypted packets, 44-byte
-  plaintext, CRC-16, ten packed trend/history records, and sensor-age field
-- notifications split as 20 + 20 + 6 bytes, with
+- local name: `miaomiao-sim`
+- Nordic UART service: `6E400001-B5A3-F393-E0A9-E50E24DCCA9E`
+- write characteristic: `6E400002-B5A3-F393-E0A9-E50E24DCCA9E`
+- notification characteristic: `6E400003-B5A3-F393-E0A9-E50E24DCCA9E`
+- stock `D3 01` sensor-confirmation and `F0` data-request handling
+- 363-byte MiaoMiao responses containing a synthetic, activated 344-byte Libre
+  FRAM image with valid header/body/footer CRCs, calibration, age, and
+  trend/history records
+- notifications split for the connected central, with
   `peripheralManagerIsReady(toUpdateSubscribers:)` flow control
 
-There is no separate BLE alarm flag in the direct driver's packet parser.
+There is no separate BLE alarm flag in the bridge packet parser.
 Low/high scenarios therefore send low/high glucose records. Likewise, the
 driver timestamps records relative to receipt time; the BLE payload carries
 sensor age and record slots, not absolute timestamps.
 
-### Why stock Trio cannot initially pair
+### Why this uses the bridge path
 
-This is not a missing cryptographic implementation. Trio's Libre 2 setup first
-uses phone NFC to activate a physical sensor, read UID/patch/calibration data,
-and obtain its BLE name/MAC. The simulator cannot emulate an ISO 15693 NFC tag.
-Also, macOS `CBPeripheralManager` accepts local-name and service-UUID
-advertisement keys but does not expose manufacturer-data advertising. Stock
-Trio's first-discovery path requires NFC-provisioned identity plus either the
-real eight-byte manufacturer field or the NFC-returned name/MAC.
+Stock Libre 2 Direct setup requires phone NFC to activate the sensor and persist
+its UID, patch info, calibration, and BLE identity before the FDE3 connection.
+A BLE-only Mac cannot emulate the ISO 15693 NFC provisioning step, and stock
+Trio has no manual provisioning-data import UI. macOS also cannot advertise the
+arbitrary Abbott manufacturer bytes through public `CBPeripheralManager` APIs.
 
-`Compatibility/Trio-Libre2-training-provisioning.patch` adds one DEBUG-only
-button that installs a fixed synthetic UID, patch info, calibration, and local
-name. Release behavior is unchanged. The simulator then works through the
-existing real Libre 2 driver without changing its UUIDs, crypto, parser, or BLE
-transport. The patch is supplied but is **not applied** by this directory.
+The stock MiaoMiao path has none of those requirements: Trio selects the bridge
+by its name, then receives sensor identity, calibration, lifecycle, and glucose
+inside the bridge's FRAM response. No Trio, LibreTransmitter, or Medtrum code
+changes are required.
 
 LibreLoop and LibreCRKit use the newer `0898...` Libre 3 services, certificate
 pairing, AES data plane, and framed characteristics. Those are intentionally
@@ -68,31 +64,15 @@ The package can also be opened directly in Xcode. Select the
 ## Pair with Trio
 
 1. Stop other apps that may be testing this synthetic identity.
-2. Apply the compatibility patch from the repository root:
-
-   ```sh
-   git apply --check Simulators/Libre2BLESimulator/Compatibility/Trio-Libre2-training-provisioning.patch
-   git apply Simulators/Libre2BLESimulator/Compatibility/Trio-Libre2-training-provisioning.patch
-   ```
-
-3. Build and install Trio with the **Debug** configuration. The button is
-   compiled out of Release builds.
-4. Launch the Mac simulator and click **Start Advertising**.
-5. In Trio, add/select Libre 2 and tap **Use Libre 2 Training Simulator**.
-6. Keep Trio in the foreground for initial discovery. It should discover
-   `ABBOTTTRIOSIM01`, connect to FDE3, subscribe to F002, and write the normal
-   F001 unlock. The Mac log shows each stage.
-7. Choose a glucose/trend/scenario and click **Send Packet Now**, or use the
+2. Launch the Mac simulator and click **Start Advertising**.
+3. In stock Trio, open the Libre Transmitter CGM setup, tap **Authenticate**,
+   choose **Bluetooth Transmitters**, and select
+   **miaomiao-sim**. Do not choose **Libre 2 Direct**.
+4. Save/finish setup. No NFC scan or Libre Direct activation is needed.
+5. Keep Trio in the foreground for the first connection. The Mac log should
+   show subscription, `D301`, and `F0`, followed by a 363-byte response.
+6. Choose a glucose/trend/scenario and click **Send Packet Now**, or use the
    periodic timer.
-
-To remove the temporary driver change:
-
-```sh
-git apply -R Simulators/Libre2BLESimulator/Compatibility/Trio-Libre2-training-provisioning.patch
-```
-
-Do not apply or reverse the patch over unrelated edits to the same setup file;
-use normal source control conflict review in that case.
 
 ## Controls
 
@@ -104,33 +84,29 @@ use normal source control conflict review in that case.
 - low/high glucose scenarios
 - deterministic every-N-packets dropout
 - packet interval and immediate send
-- central subscription, unlock status, and protocol log
+- central subscription, MiaoMiao request status, and protocol log
 
 ## Protocol source audit
 
 The implementation was derived from, and tested against:
 
-- `LibreTransmitter/Bluetooth/Transmitter/Libre2DirectTransmitter.swift`
+- `LibreTransmitter/Bluetooth/Transmitter/MiaomiaoTransmitter.swift`
 - `LibreTransmitter/Bluetooth/Transmitter/LibreTransmitterProxyManager.swift`
-- `LibreTransmitter/LibreSensor/SensorContents/PreLibre2.swift`
+- `LibreTransmitter/LibreSensor/SensorContents/SensorData.swift`
 - `LibreTransmitter/LibreSensor/SensorContents/CRC.swift`
-- `LibreTransmitter/LibreSensor/SensorPairing/SensorPairingService.swift`
-- `LibreTransmitter/LibreTransmitter/LibreTransmitterManager+Libre2EU.swift`
-- `LibreCRKit/Sources/LibreCRKit/BLE/LibreSensorGATT.swift`
-- `LibreCRKit/Sources/LibreCRKit/Pairing/PairingFlow.swift`
-- `LibreLoop/LibreLoop/Pairing/LibreLoopPairingService.swift`
+- `LibreTransmitter/LibreTransmitter/LibreTransmitterManager+Transmitters.swift`
 
-The hardware-independent test suite includes the encrypted packet captured in
-`Libre2.Example.BLEExample`, round-trip crypto, CRC, age/record encoding, unlock
-validation, and all trend modes.
+The hardware-independent test suite includes stock MiaoMiao packet shape,
+synthetic FRAM CRC/lifecycle/age/measurement checks, Libre 2 stream crypto test
+vectors retained for protocol reference, and all trend modes.
 
 ## Limitations
 
-- The optional DEBUG provisioning path is required for first pairing; NFC
-  activation itself cannot be simulated by a BLE-only Mac app.
-- macOS cannot provide the Libre 2 manufacturer advertisement bytes through
-  public `CBPeripheralManager` APIs. Name/MAC matching is used by the repository
-  driver's existing 2025+ path.
+- Trio identifies this as a MiaoMiao bridge, not as Libre 2 Direct. The bridge
+  transports synthetic Libre-format training data through Trio's stock
+  external-transmitter path.
+- Direct FDE3 pairing remains impossible without first provisioning stock Trio
+  through NFC; there is no manual import path.
 - An ad-hoc signature is valid for local execution. Distribution to another
   Mac requires signing/notarization with your Apple Developer identity.
 - CoreBluetooth peripheral mode requires compatible powered-on Mac Bluetooth

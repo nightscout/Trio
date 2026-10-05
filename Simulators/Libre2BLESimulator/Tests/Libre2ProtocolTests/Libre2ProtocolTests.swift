@@ -3,6 +3,33 @@ import Testing
 @testable import Libre2Protocol
 
 @Suite struct Libre2ProtocolTests {
+    @Test func stockMiaoMiaoPacketContainsValidSyntheticFRAM() throws {
+        let packet = try Libre2Codec.makeMiaoMiaoPacket(
+            glucoseMGDL: 123,
+            trend: .rising,
+            ageMinutes: 90
+        )
+        #expect(packet.count == 363)
+        #expect(packet.first == 0x28)
+        #expect(packet.last == 0x29)
+        #expect(packet.subdata(in: 5..<13) == Libre2Profile.sensorUID)
+
+        let fram = packet.subdata(in: 18..<362)
+        #expect(Libre2Codec.libreFRAMHasValidCRCs(fram))
+        #expect(fram[4] == 0x03)
+        #expect(fram[26] == 1)
+        #expect(fram[27] == 1)
+        #expect(Int(fram[316]) | Int(fram[317]) << 8 == 90)
+        #expect(Int(fram[326]) | Int(fram[327]) << 8 == Libre2Profile.maximumAgeMinutes)
+        let newestRaw = Int(fram[28]) | Int(fram[29] & 0x3F) << 8
+        #expect(newestRaw == Libre2Codec.rawGlucose(forMGDL: 123))
+    }
+
+    @Test func stockBridgeMarksWarmupAndReadyStates() {
+        #expect(Libre2Codec.makeLibreFRAM(glucoseMGDL: 100, trend: .stable, ageMinutes: 59)[4] == 0x02)
+        #expect(Libre2Codec.makeLibreFRAM(glucoseMGDL: 100, trend: .stable, ageMinutes: 60)[4] == 0x03)
+    }
+
     @Test func generatedPacketRoundTripsAndMatchesDriverShape() throws {
         let packet = try Libre2Codec.makePacket(
             glucoseMGDL: 123,

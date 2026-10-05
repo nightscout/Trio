@@ -38,7 +38,6 @@ final class SimulatorModel: NSObject, ObservableObject, @unchecked Sendable {
     private var timer: Timer?
     private var pendingChunks: [Data] = []
     private var maximumChunkLength = 20
-    private var sequence: UInt16 = 1
     private var transmissionCount = 0
     private var curvePhase = 0.0
 
@@ -73,7 +72,6 @@ final class SimulatorModel: NSObject, ObservableObject, @unchecked Sendable {
         dropoutEvery = 0
         intervalSeconds = 60
         sensorAgeMinutes = 90
-        sequence = 1
         transmissionCount = 0
         curvePhase = 0
         isUnlocked = false
@@ -88,7 +86,7 @@ final class SimulatorModel: NSObject, ObservableObject, @unchecked Sendable {
             return
         }
         guard isUnlocked else {
-            appendLog("Send skipped: waiting for valid F001 unlock")
+            appendLog("Send skipped: waiting for stock MiaoMiao F0 request")
             return
         }
         transmissionCount += 1
@@ -110,16 +108,14 @@ final class SimulatorModel: NSObject, ObservableObject, @unchecked Sendable {
         }
 
         do {
-            let packet = try Libre2Codec.makePacket(
+            let packet = try Libre2Codec.makeMiaoMiaoPacket(
                 glucoseMGDL: outputGlucose,
                 trend: trend,
-                ageMinutes: sensorAgeMinutes,
-                sequence: sequence
+                ageMinutes: sensorAgeMinutes
             )
-            sequence &+= 1
             sensorAgeMinutes = min(65_535, sensorAgeMinutes + max(1, Int(intervalSeconds / 60)))
             pendingChunks += packet.chunked(maximumLength: maximumChunkLength)
-            appendLog("Queued 46-byte packet: \(Int(outputGlucose)) mg/dL, \(trend.rawValue), age \(sensorAgeMinutes)m")
+            appendLog("Queued 363-byte MiaoMiao packet: \(Int(outputGlucose)) mg/dL, \(trend.rawValue), age \(sensorAgeMinutes)m")
             flushNotifications()
         } catch {
             appendLog("Packet generation failed: \(error)")
@@ -141,7 +137,7 @@ final class SimulatorModel: NSObject, ObservableObject, @unchecked Sendable {
 
         let write = CBMutableCharacteristic(
             type: CBUUID(string: Libre2Profile.writeUUID),
-            properties: [.write, .read],
+            properties: [.write, .writeWithoutResponse, .read],
             value: nil,
             permissions: [.writeable, .readable]
         )
@@ -155,7 +151,7 @@ final class SimulatorModel: NSObject, ObservableObject, @unchecked Sendable {
         let service = CBMutableService(type: CBUUID(string: Libre2Profile.serviceUUID), primary: true)
         service.characteristics = [write, notify]
         peripheralManager.add(service)
-        appendLog("Adding FDE3 service with F001/F002")
+        appendLog("Adding stock MiaoMiao Nordic UART service")
     }
 
     private func beginAdvertising() {
@@ -173,7 +169,7 @@ final class SimulatorModel: NSObject, ObservableObject, @unchecked Sendable {
         while let chunk = pendingChunks.first {
             if peripheralManager.updateValue(chunk, for: notifyCharacteristic, onSubscribedCentrals: nil) {
                 pendingChunks.removeFirst()
-                appendLog("Notified F002 with \(chunk.count) bytes")
+                appendLog("Notified Nordic UART RX with \(chunk.count) bytes")
             } else {
                 appendLog("Notification flow-controlled; waiting for ready callback")
                 return
@@ -219,7 +215,7 @@ extension SimulatorModel: CBPeripheralManagerDelegate {
             appendLog("Advertising failed: \(error.localizedDescription)")
         } else {
             isAdvertising = true
-            appendLog("Advertising \(localName), service FDE3")
+            appendLog("Advertising \(localName), stock MiaoMiao service")
         }
     }
 
@@ -249,11 +245,16 @@ extension SimulatorModel: CBPeripheralManagerDelegate {
                 peripheral.respond(to: request, withResult: .requestNotSupported)
                 continue
             }
-            let valid = Libre2Codec.validateUnlock(value)
-            isUnlocked = valid
-            appendLog(valid ? "Accepted valid 12-byte Libre 2 unlock" : "Rejected invalid F001 write (\(value.count) bytes)")
-            peripheral.respond(to: request, withResult: valid ? .success : .unlikelyError)
-            if valid { sendNow() }
+            peripheral.respond(to: request, withResult: .success)
+            if value == Data([0xF0]) {
+                isUnlocked = true
+                appendLog("Accepted stock MiaoMiao F0 data request")
+                sendNow()
+            } else if value == Data([0xD3, 0x01]) {
+                appendLog("Accepted stock MiaoMiao sensor confirmation")
+            } else {
+                appendLog("Accepted MiaoMiao control write: \(value.map { String(format: "%02X", $0) }.joined())")
+            }
         }
     }
 

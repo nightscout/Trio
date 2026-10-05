@@ -44,9 +44,9 @@ private struct ContentView: View {
     private var statusPanel: some View {
         HStack {
             VStack(alignment: .leading, spacing: 5) {
-                Text("Libre 2 BLE Peripheral").font(.title.bold())
+                Text("Libre Training Bridge Peripheral").font(.title.bold())
                 Text("Bluetooth: \(model.bluetoothState)")
-                Text(model.isAdvertising ? "Advertising FDE3" : "Not advertising")
+                Text(model.isAdvertising ? "Advertising stock MiaoMiao service" : "Not advertising")
                     .foregroundStyle(model.isAdvertising ? .green : .secondary)
             }
             Spacer()
@@ -146,7 +146,7 @@ private struct ContentView: View {
                 HStack {
                     Label("\(model.subscriberCount) subscribed central(s)", systemImage: "iphone")
                     Spacer()
-                    Text(model.isUnlocked ? "Session unlocked" : "Waiting for F001 unlock")
+                    Text(model.isUnlocked ? "Streaming requested" : "Waiting for MiaoMiao F0 request")
                         .foregroundStyle(model.isUnlocked ? .green : .orange)
                 }
                 ScrollView {

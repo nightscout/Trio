@@ -1,12 +1,12 @@
 import Foundation
 
 public enum Libre2Profile {
-    public static let serviceUUID = "FDE3"
-    public static let writeUUID = "F001"
-    public static let notifyUUID = "F002"
+    public static let serviceUUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
+    public static let writeUUID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
+    public static let notifyUUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 
-    // Shared by the DEBUG-only Trio provisioning patch in Compatibility/.
-    public static let localName = "ABBOTTTRIOSIM01"
+    // Stock Trio recognizes names beginning with "miaomiao" without NFC.
+    public static let localName = "miaomiao-sim"
     public static let serial = "3MH000GUR5W"
     public static let sensorUID = Data([0xD6, 0xF1, 0x0F, 0x01, 0x00, 0xA4, 0x07, 0xE0])
     public static let patchInfo = Data([0x9D, 0x08, 0x30, 0x01, 0x9C, 0x16])
@@ -17,7 +17,7 @@ public enum Libre2Profile {
     public static let calibrationI2 = 1
     public static let calibrationI3 = 0.0
     public static let calibrationI4 = 6500.0
-    public static let calibrationI6 = 1066.0
+    public static let calibrationI6 = 1064.0
     public static let rawTemperature = 1000
     public static let rawTemperatureAdjustment = 0
 }
@@ -51,6 +51,82 @@ public enum Libre2ProtocolError: Error, Equatable {
 }
 
 public enum Libre2Codec {
+    /// Builds the stock MiaoMiao response consumed by Trio's unmodified
+    /// MiaoMiaoTransmitter: 18-byte bridge header, 344-byte FRAM, terminator.
+    public static func makeMiaoMiaoPacket(
+        glucoseMGDL: Double,
+        trend: Libre2Trend,
+        ageMinutes: Int,
+        sensorUID: Data = Libre2Profile.sensorUID
+    ) throws -> Data {
+        guard sensorUID.count == 8 else { throw Libre2ProtocolError.invalidUID }
+        let fram = makeLibreFRAM(
+            glucoseMGDL: glucoseMGDL,
+            trend: trend,
+            ageMinutes: ageMinutes
+        )
+        var packet = Data(repeating: 0, count: 363)
+        packet[0] = 0x28
+        packet[1] = 0x01
+        packet[2] = 0x6B
+        packet[3] = UInt8(truncatingIfNeeded: ageMinutes)
+        packet[4] = UInt8(truncatingIfNeeded: ageMinutes >> 8)
+        packet.replaceSubrange(5..<13, with: sensorUID)
+        packet[13] = 100
+        packet[14] = 0x00
+        packet[15] = 0x34
+        packet[16] = 0x00
+        packet[17] = 0x01
+        packet.replaceSubrange(18..<362, with: fram)
+        packet[362] = 0x29
+        return packet
+    }
+
+    public static func makeLibreFRAM(
+        glucoseMGDL: Double,
+        trend: Libre2Trend,
+        ageMinutes: Int
+    ) -> Data {
+        var fram = Data(repeating: 0, count: 344)
+        fram[4] = ageMinutes < 60 ? 0x02 : 0x03
+        fram[26] = 1 // next trend block
+        fram[27] = 1 // next history block
+
+        for index in 0..<16 {
+            let value = glucoseMGDL - trend.deltaPerMinute * Double(index)
+            writeFRAMMeasurement(into: &fram, offset: 28 + index * 6, glucoseMGDL: value)
+        }
+        for index in 0..<32 {
+            let value = glucoseMGDL - trend.deltaPerMinute * Double((index + 1) * 15)
+            writeFRAMMeasurement(into: &fram, offset: 124 + index * 6, glucoseMGDL: value)
+        }
+
+        let age = UInt16(clamping: ageMinutes)
+        fram[316] = UInt8(truncatingIfNeeded: age)
+        fram[317] = UInt8(truncatingIfNeeded: age >> 8)
+        let maximumAge = UInt16(Libre2Profile.maximumAgeMinutes)
+        fram[326] = UInt8(truncatingIfNeeded: maximumAge)
+        fram[327] = UInt8(truncatingIfNeeded: maximumAge >> 8)
+
+        writeBits(into: &fram, byteOffset: 2, bitOffset: 3, bitCount: 10, value: 1)
+        writeBits(into: &fram, byteOffset: 336, bitOffset: 8, bitCount: 14, value: 6500)
+        writeBits(into: &fram, byteOffset: 336, bitOffset: 52, bitCount: 12, value: 266)
+
+        applyCRC(to: &fram, range: 0..<24)
+        applyCRC(to: &fram, range: 24..<320)
+        applyCRC(to: &fram, range: 320..<344)
+        return fram
+    }
+
+    public static func libreFRAMHasValidCRCs(_ fram: Data) -> Bool {
+        guard fram.count == 344 else { return false }
+        return [0..<24, 24..<320, 320..<344].allSatisfy { range in
+            let section = fram.subdata(in: range)
+            let enclosed = UInt16(section[0]) << 8 | UInt16(section[1])
+            return enclosed == crc16(Array(section.dropFirst(2)), seed: 0xFFFF)
+        }
+    }
+
     /// Creates the exact 46-byte encrypted packet consumed by
     /// LibreTransmitter's `Libre2DirectTransmitter`.
     public static func makePacket(
@@ -225,6 +301,53 @@ public enum Libre2Codec {
         for byte in 0..<4 {
             data[offset + byte] = UInt8(truncatingIfNeeded: value >> UInt32(byte * 8))
         }
+    }
+
+    private static func writeFRAMMeasurement(
+        into data: inout Data,
+        offset: Int,
+        glucoseMGDL: Double
+    ) {
+        writeBits(
+            into: &data,
+            byteOffset: offset,
+            bitOffset: 0,
+            bitCount: 14,
+            value: rawGlucose(forMGDL: glucoseMGDL)
+        )
+        writeBits(
+            into: &data,
+            byteOffset: offset,
+            bitOffset: 26,
+            bitCount: 12,
+            value: Libre2Profile.rawTemperature / 4
+        )
+    }
+
+    private static func writeBits(
+        into data: inout Data,
+        byteOffset: Int,
+        bitOffset: Int,
+        bitCount: Int,
+        value: Int
+    ) {
+        for index in 0..<bitCount {
+            let absoluteBit = byteOffset * 8 + bitOffset + index
+            let byte = absoluteBit / 8
+            let bit = absoluteBit % 8
+            let mask = UInt8(1 << bit)
+            if value & (1 << index) == 0 {
+                data[byte] &= ~mask
+            } else {
+                data[byte] |= mask
+            }
+        }
+    }
+
+    private static func applyCRC(to data: inout Data, range: Range<Int>) {
+        let crc = crc16(Array(data[(range.lowerBound + 2)..<range.upperBound]), seed: 0xFFFF)
+        data[range.lowerBound] = UInt8(truncatingIfNeeded: crc >> 8)
+        data[range.lowerBound + 1] = UInt8(truncatingIfNeeded: crc)
     }
 
     private static let cryptoKey: [UInt16] = [0xA0C5, 0x6860, 0x0000, 0x14C6]
