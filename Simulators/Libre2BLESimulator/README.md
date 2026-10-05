@@ -67,11 +67,16 @@ The package can also be opened directly in Xcode. Select the
 1. Stop other apps that may be testing this synthetic identity.
 2. Launch the Mac simulator and click **Start Advertising**.
 3. In stock Trio, open the Libre Transmitter CGM setup, tap **Authenticate**,
-   choose **Bluetooth Transmitters**, and select
-   **miaomiao-sim**. Do not choose **Libre 2 Direct**.
-4. Save/finish setup. No NFC scan or Libre Direct activation is needed.
+   tap **Disconnect & Continue Setup**, then choose
+   **Bluetooth Transmitters**. Do not choose **Libre 2 Direct**.
+4. Under **Libre Transmitters**, tap the body of the **miaomiao-sim** row once.
+   The row turns pale orange and the top-right **Save** button becomes enabled.
+   Tap **Save**. The “Found devices: 1” count is only a scan result; it does
+   not select the row automatically.
 5. Keep Trio in the foreground for the first connection. The Mac log should
-   show subscription, `D301`, and `F0`, followed by a 363-byte response.
+   show `CENTRAL CONNECTED`, `NOTIFICATIONS SUBSCRIBED`,
+   `D3 01 SENSOR CONFIRMATION RECEIVED`, and `F0 DATA REQUEST RECEIVED`,
+   followed by a queued 363-byte response.
 6. Choose a glucose/trend/scenario and click **Send Packet Now**, or use the
    periodic timer.
 
@@ -97,9 +102,11 @@ The implementation was derived from, and tested against:
 - `LibreTransmitter/LibreSensor/SensorContents/CRC.swift`
 - `LibreTransmitter/LibreTransmitter/LibreTransmitterManager+Transmitters.swift`
 
-The hardware-independent test suite includes stock MiaoMiao packet shape,
-synthetic FRAM CRC/lifecycle/age/measurement checks, Libre 2 stream crypto test
-vectors retained for protocol reference, and all trend modes.
+The hardware-independent test suite includes stock name classification, exact
+Nordic UART UUID/capability direction, the `D3 01` then `F0` initial exchange,
+stock MiaoMiao packet shape, synthetic FRAM CRC/lifecycle/age/measurement
+checks, Libre 2 stream crypto test vectors retained for protocol reference,
+and all trend modes.
 
 ## Limitations
 

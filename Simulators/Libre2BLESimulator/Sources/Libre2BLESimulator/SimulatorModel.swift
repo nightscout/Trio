@@ -136,22 +136,24 @@ final class SimulatorModel: NSObject, ObservableObject, @unchecked Sendable {
         peripheralManager.removeAllServices()
 
         let write = CBMutableCharacteristic(
-            type: CBUUID(string: Libre2Profile.writeUUID),
-            properties: [.write, .writeWithoutResponse, .read],
+            type: CBUUID(string: MiaoMiaoGATTProfile.writeUUID),
+            properties: [.write, .writeWithoutResponse],
             value: nil,
-            permissions: [.writeable, .readable]
+            permissions: [.writeable]
         )
         let notify = CBMutableCharacteristic(
-            type: CBUUID(string: Libre2Profile.notifyUUID),
-            properties: [.notify, .read],
+            type: CBUUID(string: MiaoMiaoGATTProfile.notifyUUID),
+            properties: [.notify],
             value: nil,
             permissions: [.readable]
         )
         notifyCharacteristic = notify
-        let service = CBMutableService(type: CBUUID(string: Libre2Profile.serviceUUID), primary: true)
+        let service = CBMutableService(type: CBUUID(string: MiaoMiaoGATTProfile.serviceUUID), primary: true)
         service.characteristics = [write, notify]
         peripheralManager.add(service)
-        appendLog("Adding stock MiaoMiao Nordic UART service")
+        appendLog("Adding Nordic UART service \(Libre2Profile.serviceUUID)")
+        appendLog("GATT TX \(Libre2Profile.writeUUID): write + writeWithoutResponse")
+        appendLog("GATT RX \(Libre2Profile.notifyUUID): notify")
     }
 
     private func beginAdvertising() {
@@ -215,7 +217,8 @@ extension SimulatorModel: CBPeripheralManagerDelegate {
             appendLog("Advertising failed: \(error.localizedDescription)")
         } else {
             isAdvertising = true
-            appendLog("Advertising \(localName), stock MiaoMiao service")
+            appendLog("READY FOR TRIO: advertising name \(localName)")
+            appendLog("Trio must tap the \(localName) row, then Save")
         }
     }
 
@@ -226,7 +229,8 @@ extension SimulatorModel: CBPeripheralManagerDelegate {
     ) {
         subscriberCount += 1
         maximumChunkLength = max(1, min(20, central.maximumUpdateValueLength))
-        appendLog("Central \(central.identifier.uuidString) subscribed to \(characteristic.uuid)")
+        appendLog("CENTRAL CONNECTED: \(central.identifier.uuidString)")
+        appendLog("NOTIFICATIONS SUBSCRIBED: \(characteristic.uuid), chunk \(maximumChunkLength) bytes")
     }
 
     func peripheralManager(
@@ -246,13 +250,14 @@ extension SimulatorModel: CBPeripheralManagerDelegate {
                 continue
             }
             peripheral.respond(to: request, withResult: .success)
-            if value == Data([0xF0]) {
+            switch MiaoMiaoCompatibility.response(to: value) {
+            case .sendSensorData:
                 isUnlocked = true
-                appendLog("Accepted stock MiaoMiao F0 data request")
+                appendLog("F0 DATA REQUEST RECEIVED: streaming enabled")
                 sendNow()
-            } else if value == Data([0xD3, 0x01]) {
-                appendLog("Accepted stock MiaoMiao sensor confirmation")
-            } else {
+            case .sensorConfirmed:
+                appendLog("D3 01 SENSOR CONFIRMATION RECEIVED")
+            case .acceptedUnknown:
                 appendLog("Accepted MiaoMiao control write: \(value.map { String(format: "%02X", $0) }.joined())")
             }
         }

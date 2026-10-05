@@ -3,6 +3,31 @@ import Testing
 @testable import Libre2Protocol
 
 @Suite struct Libre2ProtocolTests {
+    @Test func simulatorIdentityPassesStockDriverClassification() {
+        #expect(Libre2Profile.localName == "miaomiao-sim")
+        #expect(MiaoMiaoCompatibility.stockDriverSupports(peripheralName: Libre2Profile.localName))
+        #expect(MiaoMiaoCompatibility.stockDriverSupports(peripheralName: "MiaoMiao"))
+        #expect(!MiaoMiaoCompatibility.stockDriverSupports(peripheralName: "Libre2BLESimulator"))
+        #expect(!MiaoMiaoCompatibility.stockDriverSupports(peripheralName: nil))
+    }
+
+    @Test func gattProfileMatchesStockMiaoMiaoNordicUART() {
+        #expect(MiaoMiaoGATTProfile.serviceUUID == "6E400001-B5A3-F393-E0A9-E50E24DCCA9E")
+        #expect(MiaoMiaoGATTProfile.writeUUID == "6E400002-B5A3-F393-E0A9-E50E24DCCA9E")
+        #expect(MiaoMiaoGATTProfile.notifyUUID == "6E400003-B5A3-F393-E0A9-E50E24DCCA9E")
+        #expect(MiaoMiaoGATTProfile.writeCapabilities == [.write, .writeWithoutResponse])
+        #expect(MiaoMiaoGATTProfile.notifyCapabilities == [.notify])
+    }
+
+    @Test func stockInitialExchangeConfirmsThenRequestsData() {
+        #expect(MiaoMiaoCompatibility.response(to: Data([0xD3, 0x01])) == .sensorConfirmed)
+        #expect(MiaoMiaoCompatibility.response(to: Data([0xF0])) == .sendSensorData)
+        #expect(
+            MiaoMiaoCompatibility.response(to: Data([0xD1, 0x05]))
+                == .acceptedUnknown(Data([0xD1, 0x05]))
+        )
+    }
+
     @Test func stockMiaoMiaoPacketContainsValidSyntheticFRAM() throws {
         let packet = try Libre2Codec.makeMiaoMiaoPacket(
             glucoseMGDL: 123,

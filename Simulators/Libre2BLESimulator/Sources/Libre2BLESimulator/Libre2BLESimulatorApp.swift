@@ -144,7 +144,13 @@ private struct ContentView: View {
         GroupBox("Connection and Protocol Log") {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Label("\(model.subscriberCount) subscribed central(s)", systemImage: "iphone")
+                    Label(
+                        model.subscriberCount > 0
+                            ? "Central connected — notifications subscribed"
+                            : "No central connected",
+                        systemImage: "iphone"
+                    )
+                    .foregroundStyle(model.subscriberCount > 0 ? .green : .secondary)
                     Spacer()
                     Text(model.isUnlocked ? "Streaming requested" : "Waiting for MiaoMiao F0 request")
                         .foregroundStyle(model.isUnlocked ? .green : .orange)

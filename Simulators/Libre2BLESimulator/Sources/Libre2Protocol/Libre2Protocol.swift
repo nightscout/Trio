@@ -22,6 +22,52 @@ public enum Libre2Profile {
     public static let rawTemperatureAdjustment = 0
 }
 
+/// Hardware-independent description of the stock MiaoMiao identity and
+/// initial control exchange used by LibreTransmitter.
+public enum MiaoMiaoCompatibility {
+    public static let supportedNamePrefix = "miaomiao"
+    public static let requestData = Data([0xF0])
+    public static let confirmSensor = Data([0xD3, 0x01])
+
+    public static func stockDriverSupports(peripheralName: String?) -> Bool {
+        peripheralName?.lowercased().hasPrefix(supportedNamePrefix) ?? false
+    }
+
+    public static func response(to controlWrite: Data) -> MiaoMiaoControlResponse {
+        switch controlWrite {
+        case confirmSensor:
+            return .sensorConfirmed
+        case requestData:
+            return .sendSensorData
+        default:
+            return .acceptedUnknown(controlWrite)
+        }
+    }
+}
+
+public enum MiaoMiaoCharacteristicCapability: String, Hashable, Sendable {
+    case write
+    case writeWithoutResponse
+    case notify
+}
+
+public enum MiaoMiaoGATTProfile {
+    public static let serviceUUID = Libre2Profile.serviceUUID
+    public static let writeUUID = Libre2Profile.writeUUID
+    public static let notifyUUID = Libre2Profile.notifyUUID
+    public static let writeCapabilities: Set<MiaoMiaoCharacteristicCapability> = [
+        .write,
+        .writeWithoutResponse
+    ]
+    public static let notifyCapabilities: Set<MiaoMiaoCharacteristicCapability> = [.notify]
+}
+
+public enum MiaoMiaoControlResponse: Equatable, Sendable {
+    case sensorConfirmed
+    case sendSensorData
+    case acceptedUnknown(Data)
+}
+
 public enum Libre2Trend: String, CaseIterable, Identifiable, Sendable {
     case rapidlyFalling = "↓↓"
     case falling = "↓"
