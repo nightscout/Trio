@@ -53,7 +53,7 @@ Requirements: macOS 14+, Bluetooth enabled, and the Apple Swift toolchain.
 
 ```sh
 cd Simulators/Libre2BLESimulator
-swift test
+swift test --scratch-path .build/swiftpm-tests
 zsh build-app.sh
 open ".build/Libre 2 BLE Simulator.app"
 ```

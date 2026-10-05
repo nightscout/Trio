@@ -4,11 +4,12 @@ set -euo pipefail
 ROOT="${0:A:h}"
 CONFIGURATION="${CONFIGURATION:-release}"
 APP="$ROOT/.build/Libre 2 BLE Simulator.app"
+SCRATCH="$ROOT/.build/swiftpm-app"
 
 cd "$ROOT"
-swift build -c "$CONFIGURATION" --product Libre2BLESimulator
+swift build --scratch-path "$SCRATCH" -c "$CONFIGURATION" --product Libre2BLESimulator
 
-BIN_DIR="$(swift build -c "$CONFIGURATION" --show-bin-path)"
+BIN_DIR="$(swift build --scratch-path "$SCRATCH" -c "$CONFIGURATION" --show-bin-path)"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/Libre2BLESimulator" "$APP/Contents/MacOS/Libre2BLESimulator"
