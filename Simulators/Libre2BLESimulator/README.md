@@ -51,12 +51,13 @@ Requirements: macOS 14+, Bluetooth enabled, and the Apple Swift toolchain.
 cd Simulators/Libre2BLESimulator
 swift test --scratch-path .build/swiftpm-tests
 zsh build-app.sh
-open ".build/Libre 2 BLE Simulator.app"
+open "../Apps/Libre 2 BLE Simulator.app"
 ```
 
 `build-app.sh` builds Release, assembles a normal `.app`, applies an ad-hoc
-code signature, and verifies it. The Bluetooth usage strings are in
-`Resources/Info.plist`. On first launch, allow Bluetooth access.
+code signature, verifies it, and copies it to the visible `Simulators/Apps`
+directory. The Bluetooth usage strings are in `Resources/Info.plist`. On first
+launch, allow Bluetooth access.
 
 The package can also be opened directly in Xcode. Select the
 `Libre2BLESimulator` executable scheme and run it on **My Mac**.

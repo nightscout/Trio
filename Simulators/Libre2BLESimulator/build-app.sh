@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="${0:A:h}"
 CONFIGURATION="${CONFIGURATION:-release}"
 APP="$ROOT/.build/Libre 2 BLE Simulator.app"
+VISIBLE_APP="$ROOT/../Apps/Libre 2 BLE Simulator.app"
 SCRATCH="$ROOT/.build/swiftpm-app"
 
 cd "$ROOT"
@@ -18,4 +19,10 @@ cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 # Produces a locally signed bundle without requiring a paid Apple team.
 codesign --force --deep --sign - "$APP"
 codesign --verify --deep --strict --verbose=2 "$APP"
-echo "$APP"
+
+mkdir -p "${VISIBLE_APP:h}"
+rm -rf "$VISIBLE_APP"
+ditto "$APP" "$VISIBLE_APP"
+codesign --verify --deep --strict --verbose=2 "$VISIBLE_APP"
+
+echo "$VISIBLE_APP"
