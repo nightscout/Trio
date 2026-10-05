@@ -9,7 +9,7 @@ creates a `CBCentralManager`, scans for, or connects to any Libre sensor.
 
 The app uses the stock **MiaoMiao bridge** protocol already supported by Trio:
 
-- local name: `miaomiao-sim`
+- local name: `miaomiao` (the exact eight-byte stock identifier)
 - Nordic UART service: `6E400001-B5A3-F393-E0A9-E50E24DCCA9E`
 - write characteristic: `6E400002-B5A3-F393-E0A9-E50E24DCCA9E`
 - notification characteristic: `6E400003-B5A3-F393-E0A9-E50E24DCCA9E`
@@ -37,6 +37,16 @@ The stock MiaoMiao path has none of those requirements: Trio selects the bridge
 by its name, then receives sensor identity, calibration, lifecycle, and glucose
 inside the bridge's FRAM response. No Trio, LibreTransmitter, or Medtrum code
 changes are required.
+
+The eight-byte name is intentional. `CBPeripheralManager` can advertise only a
+local name and service UUIDs; it cannot provide manufacturer data or set the
+system GAP name. With the 128-bit Nordic UART UUID present, macOS can omit a
+longer local name such as `miaomiao-sim`. Trio classifies `CBPeripheral.name`,
+not the advertisement dictionary's local-name field, so the omitted name can
+leave Trio seeing the prior `ABBOTTTRIOSIM01` identity. Stock Trio counts that
+as Libre 2 Direct but hides its row in this third-party list because it requires
+NFC setup. App/bundle names and Core Bluetooth restoration identifiers do not
+control the remote `CBPeripheral.name`.
 
 LibreLoop and LibreCRKit use the newer `0898...` Libre 3 services, certificate
 pairing, AES data plane, and framed characteristics. Those are intentionally
@@ -69,7 +79,7 @@ The package can also be opened directly in Xcode. Select the
 3. In stock Trio, open the Libre Transmitter CGM setup, tap **Authenticate**,
    tap **Disconnect & Continue Setup**, then choose
    **Bluetooth Transmitters**. Do not choose **Libre 2 Direct**.
-4. Under **Libre Transmitters**, tap the body of the **miaomiao-sim** row once.
+4. Under **Libre Transmitters**, tap the body of the **miaomiao** row once.
    The row turns pale orange and the top-right **Save** button becomes enabled.
    Tap **Save**. The “Found devices: 1” count is only a scan result; it does
    not select the row automatically.

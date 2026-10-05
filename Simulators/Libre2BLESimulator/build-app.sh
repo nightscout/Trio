@@ -20,6 +20,9 @@ cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 codesign --force --deep --sign - "$APP"
 codesign --verify --deep --strict --verbose=2 "$APP"
 
+# A running copy keeps the old executable mapped even after its bundle is
+# replaced. Stop it before replacing the visible app.
+pkill -x Libre2BLESimulator 2>/dev/null || true
 mkdir -p "${VISIBLE_APP:h}"
 rm -rf "$VISIBLE_APP"
 ditto "$APP" "$VISIBLE_APP"

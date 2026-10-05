@@ -4,11 +4,28 @@ import Testing
 
 @Suite struct Libre2ProtocolTests {
     @Test func simulatorIdentityPassesStockDriverClassification() {
-        #expect(Libre2Profile.localName == "miaomiao-sim")
+        #expect(Libre2Profile.localName == "miaomiao")
+        #expect(Libre2Profile.localName.utf8.count == 8)
         #expect(MiaoMiaoCompatibility.stockDriverSupports(peripheralName: Libre2Profile.localName))
         #expect(MiaoMiaoCompatibility.stockDriverSupports(peripheralName: "MiaoMiao"))
         #expect(!MiaoMiaoCompatibility.stockDriverSupports(peripheralName: "Libre2BLESimulator"))
         #expect(!MiaoMiaoCompatibility.stockDriverSupports(peripheralName: nil))
+    }
+
+    @Test func simulatorAdvertisementProducesVisibleStockSelectorRow() {
+        #expect(
+            MiaoMiaoCompatibility.stockThirdPartySelectorDisposition(
+                peripheralName: Libre2Profile.localName
+            ) == .visibleRow
+        )
+
+        // This is the exact screenshot failure mode: the old direct simulator
+        // identity is counted as supported, but DeviceItem hides its row.
+        #expect(
+            MiaoMiaoCompatibility.stockThirdPartySelectorDisposition(
+                peripheralName: "ABBOTTTRIOSIM01"
+            ) == .hiddenRequiresSetup
+        )
     }
 
     @Test func gattProfileMatchesStockMiaoMiaoNordicUART() {

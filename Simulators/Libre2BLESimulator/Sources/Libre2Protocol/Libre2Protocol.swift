@@ -5,8 +5,10 @@ public enum Libre2Profile {
     public static let writeUUID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
     public static let notifyUUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 
-    // Stock Trio recognizes names beginning with "miaomiao" without NFC.
-    public static let localName = "miaomiao-sim"
+    // Keep this at the real eight-byte MiaoMiao name. With a 128-bit service
+    // UUID, macOS may omit longer local names from the advertisement, leaving
+    // CoreBluetooth clients with a stale CBPeripheral.name.
+    public static let localName = "miaomiao"
     public static let serial = "3MH000GUR5W"
     public static let sensorUID = Data([0xD6, 0xF1, 0x0F, 0x01, 0x00, 0xA4, 0x07, 0xE0])
     public static let patchInfo = Data([0x9D, 0x08, 0x30, 0x01, 0x9C, 0x16])
@@ -33,6 +35,22 @@ public enum MiaoMiaoCompatibility {
         peripheralName?.lowercased().hasPrefix(supportedNamePrefix) ?? false
     }
 
+    /// Mirrors the stock plugin order and the selector's `requiresSetup` gate.
+    public static func stockThirdPartySelectorDisposition(
+        peripheralName: String?,
+        preselectedSensorMAC: String? = nil
+    ) -> StockThirdPartySelectorDisposition {
+        guard let name = peripheralName?.lowercased() else { return .ignored }
+        if name.hasPrefix(supportedNamePrefix) || name.hasPrefix("bubble") {
+            return .visibleRow
+        }
+        if name.hasPrefix("abbott")
+            || preselectedSensorMAC.map({ name.contains($0.lowercased()) }) == true {
+            return .hiddenRequiresSetup
+        }
+        return .ignored
+    }
+
     public static func response(to controlWrite: Data) -> MiaoMiaoControlResponse {
         switch controlWrite {
         case confirmSensor:
@@ -43,6 +61,12 @@ public enum MiaoMiaoCompatibility {
             return .acceptedUnknown(controlWrite)
         }
     }
+}
+
+public enum StockThirdPartySelectorDisposition: Equatable, Sendable {
+    case ignored
+    case visibleRow
+    case hiddenRequiresSetup
 }
 
 public enum MiaoMiaoCharacteristicCapability: String, Hashable, Sendable {
