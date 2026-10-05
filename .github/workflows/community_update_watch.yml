@@ -90,6 +90,12 @@ jobs:
               'Laat de update-agent per eigen functie rapporteren: **behouden**, **vervangen door upstream** of **gedeeltelijk behouden**, inclusief de uitgevoerde build/testcontrole.'
             ].join('\n');
 
+            const repoInfo = await github.rest.repos.get({ owner, repo });
+            if (!repoInfo.data.has_issues) {
+              core.warning(`Issues are disabled on ${owner}/${repo}. Enable them under Settings → General → Features so Community Update Watch can open a tracking issue. The overlap result is in this job's summary.`);
+              return;
+            }
+
             const search = await github.rest.search.issuesAndPullRequests({
               q: `repo:${owner}/${repo} is:issue is:open in:title "Community update available"`
             });
