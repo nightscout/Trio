@@ -87,8 +87,6 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
 
                 /// Since the pump manager has been successfully instantiated from its saved state,
                 /// copy its rawValue to rawPumpManager which will be saved to persistant storage.
-                // On processQueue, where `pumpManagerDidUpdateState` already writes it now the delegate is attached:
-                // written from here it raced that, and could replace the pump's newer state with an older snapshot.
                 processQueue.async {
                     self.rawPumpManager = pumpManager.rawValue
                     UserDefaults.standard.clearLegacyPumpManagerRawValue()
