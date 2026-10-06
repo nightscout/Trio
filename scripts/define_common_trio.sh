@@ -25,7 +25,7 @@ TRIO_PROJECTS=( \
     loopandlearn:dexcom-share-client-swift:dev \
     loopandlearn:EversenseKit:dev \
     loopandlearn:G7SensorKit:main \
-    LoopKit:LibreLoop:legacy-loopkit-compat \
+    loopandlearn:LibreLoop:legacy-loopkit-compat \
     loopandlearn:LibreTransmitter:main \
     loopandlearn:LoopKit:trio \
     loopandlearn:MedtrumKit:dev \
