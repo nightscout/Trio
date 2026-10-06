@@ -24,13 +24,12 @@ TRIO_PROJECTS=( \
     loopandlearn:dexcom-share-client-swift:dev \
     loopandlearn:EversenseKit:dev \
     loopandlearn:G7SensorKit:main \
-    loopandlearn:LibreCRKit:trio \
     loopandlearn:LibreLoop:trio \
     loopandlearn:LibreTransmitter:main \
     loopandlearn:LoopKit:trio \
     loopandlearn:MedtrumKit:dev \
     loopandlearn:MinimedKit:main \
-    loopandlearn:OmnipodKit:main \
+    loopandlearn:OmnipodKit:dev \
     loopandlearn:RileyLinkKit:dev \
     loopandlearn:TidepoolService:dev \
     loopandlearn:LoopAlgorithm:main \
