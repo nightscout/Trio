@@ -682,6 +682,12 @@ extension SettingsExport {
                 addSetting(
                     category: featuresCategory,
                     subcategory: treatmentsSubcategory,
+                    name: String(localized: "Enable Pre-Bolus Option"),
+                    value: trioSettings.preBolusEnabled ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Very Low Glucose Warning"),
                     value: trioSettings.confirmBolus ? String(localized: "Enabled") : String(localized: "Disabled")
                 )

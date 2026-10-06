@@ -157,6 +157,37 @@ extension BolusCalculatorConfig {
 
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.preBolusEnabled,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = String(localized: "Pre-Bolus")
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: String(localized: "Enable Pre-Bolus Option"),
+                    miniHint: String(
+                        localized: "Suggest a lead time between bolusing and eating, with an alarm when it is time to eat."
+                    ),
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text(
+                            "Enabling this setting adds a \"Pre-Bolus Recommendation\" row and a \"Pre-Bolus\" lead time field to the bolus calculator."
+                        )
+                        Text(
+                            "The recommendation is derived from your current glucose, its trend, and the meal: meals with only fast carbs and glucose above target get a longer lead time, while low or falling glucose means bolusing with the first bite."
+                        )
+                        Text(
+                            "When a lead time is set and the bolus is enacted, an alarm counts down until it is time to eat. Enabling this option asks for the alarm permission if it has not been granted yet."
+                        )
+                    }
+                )
+
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
                     booleanValue: $state.confirmBolusWhenVeryLowGlucose,
                     shouldDisplayHint: $shouldDisplayHint,
                     selectedVerboseHint: Binding(

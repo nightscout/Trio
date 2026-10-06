@@ -2,12 +2,15 @@ import SwiftUI
 
 extension BolusCalculatorConfig {
     final class StateModel: BaseStateModel<Provider> {
+        @Injected() var preBolusAlarmService: PreBolusAlarmService!
+
         @Published var units: GlucoseUnits = .mgdL
         @Published var overrideFactor: Decimal = 0
         @Published var fattyMeals: Bool = false
         @Published var fattyMealFactor: Decimal = 0
         @Published var sweetMeals: Bool = false
         @Published var sweetMealFactor: Decimal = 0
+        @Published var preBolusEnabled: Bool = false
         @Published var displayPresets: Bool = true
         @Published var confirmBolusWhenVeryLowGlucose: Bool = false
 
@@ -21,6 +24,10 @@ extension BolusCalculatorConfig {
             subscribeSetting(\.sweetMeals, on: $sweetMeals) { sweetMeals = $0 }
             subscribeSetting(\.sweetMealFactor, on: $sweetMealFactor) { sweetMealFactor = $0 }
             subscribeSetting(\.confirmBolus, on: $confirmBolusWhenVeryLowGlucose) { confirmBolusWhenVeryLowGlucose = $0 }
+            subscribeSetting(\.preBolusEnabled, on: $preBolusEnabled) { preBolusEnabled = $0 } didSet: { [weak self] enabled in
+                guard enabled, let self else { return }
+                Task { await self.preBolusAlarmService.requestAuthorization() }
+            }
         }
     }
 }

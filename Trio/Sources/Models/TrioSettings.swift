@@ -62,6 +62,7 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var fattyMealFactor: Decimal = 0.7
     var sweetMeals: Bool = false
     var sweetMealFactor: Decimal = 1
+    var preBolusEnabled: Bool = false
     var displayPresets: Bool = true
     var confirmBolus: Bool = false
     var enableQuickPickTreatments: Bool = false
@@ -220,6 +221,10 @@ extension TrioSettings: Decodable {
 
         if let sweetMealFactor = try? container.decode(Decimal.self, forKey: .sweetMealFactor) {
             settings.sweetMealFactor = sweetMealFactor
+        }
+
+        if let preBolusEnabled = try? container.decode(Bool.self, forKey: .preBolusEnabled) {
+            settings.preBolusEnabled = preBolusEnabled
         }
 
         if let overrideFactor = try? container.decode(Decimal.self, forKey: .overrideFactor) {
