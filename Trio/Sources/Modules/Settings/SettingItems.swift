@@ -409,7 +409,8 @@ enum SettingItems {
             view: .nighscoutConfig,
             searchContents: [
                 "Allow Uploading to Nightscout",
-                "Upload Glucose"
+                "Upload Glucose",
+                "Upload CGM Sensor States"
             ],
             path: ["Services", "Nightscout", "Upload"]
         ),

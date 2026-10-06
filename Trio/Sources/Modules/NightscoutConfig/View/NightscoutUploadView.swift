@@ -68,6 +68,34 @@ struct NightscoutUploadView: View {
                     Text("Enabling this setting allows CGM readings from Trio to be used in Nightscout.")
                 }
             )
+
+            SettingInputSection(
+                decimalValue: $decimalPlaceholder,
+                booleanValue: $state.uploadCGMSensorStates,
+                shouldDisplayHint: $shouldDisplayHint,
+                selectedVerboseHint: Binding(
+                    get: { selectedVerboseHint },
+                    set: {
+                        selectedVerboseHint = $0.map { AnyView($0) }
+                        hintLabel = String(localized: "Upload CGM Sensor States")
+                        shouldDisplayHint = true
+                    }
+                ),
+                units: state.units,
+                type: .boolean,
+                label: String(localized: "Upload CGM Sensor States"),
+                miniHint: String(localized: "Enable uploading of sensor errors and other CGM states to Nightscout as notes."),
+                verboseHint: VStack(alignment: .leading, spacing: 10) {
+                    Text("Default: OFF").bold()
+                    Text(
+                        "When your CGM reports a state where it cannot give a usable reading, such as a sensor error or warmup, Trio uploads that state to Nightscout as a note."
+                    )
+                    Text(
+                        "Notes carry the state name the CGM itself uses, such as sensorFailed or warmup. Each state is noted once, and a state that returns after usable readings resume is noted again."
+                    )
+                    Text("Requires Allow Uploading to Nightscout. Supported for Dexcom G6 and G7.")
+                }
+            )
         }
         .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHint) {
