@@ -1,7 +1,9 @@
+import AccuChekKit
 import CGMBLEKit
 import CGMBLEKitUI
 import Combine
 import CoreData
+import EversenseKit
 import Foundation
 import G7SensorKit
 import LibreLoop
@@ -136,6 +138,35 @@ extension Home {
         var hasDeviceIssue: Bool {
             if pumpStatusHighlightMessage != nil { return true }
             return timerDate.timeIntervalSince(lastGlucoseDate ?? .distantPast) > MultiUsePanelState.cgmStaleAfter
+        }
+
+        /// What the pump is delivering right now.
+        var activeBasalDelivery: ScheduledBasalInference.Delivery? {
+            // no pump, no delivery to report
+            guard !pumpName.isEmpty else { return nil }
+
+            // the tick only drives re-evaluation; the real clock decides
+            let now = max(timerDate, Date())
+
+            return ScheduledBasalInference.delivery(
+                events: tempBasals.map { event in
+                    let start = event.timestamp ?? .distantPast
+                    // stored duration is whole minutes, rounded
+                    let end = event.tempBasal?.endDate
+                        ?? start.addingTimeInterval(Double(event.tempBasal?.duration ?? 0) * 60)
+                    return ScheduledBasalInference.BasalEvent(
+                        start: start,
+                        end: end,
+                        rate: event.tempBasal?.rate?.decimalValue ?? 0,
+                        isScheduled: event.tempBasal?.isScheduledBasal ?? false
+                    )
+                },
+                suspensions: suspendAndResumeEvents.compactMap { event in
+                    event.timestamp.map { ($0, event.type == EventType.pumpSuspend.rawValue) }
+                },
+                profile: basalProfile,
+                now: now
+            )
         }
 
         var showCarbsRequiredBadge: Bool = true
@@ -517,6 +548,10 @@ extension Home {
                 DispatchQueue.main.async { [weak self] in
                     guard let self else { return }
                     self.timerDate = Date()
+                    // pump status is not observable; a status-only change writes no event
+                    if self.manualTempBasal != self.apsManager.isManualTempBasal {
+                        self.manualTempBasal = self.apsManager.isManualTempBasal
+                    }
                     // The publisher only re-emits on state changes; re-pull
                     // so the arc + countdowns + status text advance during
                     // warmup / stabilizing / expiry. Simulator has no
@@ -554,8 +589,7 @@ extension Home {
                     self.cgmDisplayState = displayState
                     self.cgmSensorExpiresAt = Self.resolveSensorExpiresAt(
                         manager: manager,
-                        glucoseSource: source,
-                        lifecycle: progress
+                        glucoseSource: source
                     )
                     self.cgmWarmupEndsAt = Self.resolveWarmupEndsAt(manager: manager)
                 }
@@ -581,8 +615,7 @@ extension Home {
                     self.cgmProgressHighlight = progress
                     self.cgmSensorExpiresAt = Self.resolveSensorExpiresAt(
                         manager: self.fetchGlucoseManager.cgmManager,
-                        glucoseSource: self.fetchGlucoseManager.glucoseSource,
-                        lifecycle: progress
+                        glucoseSource: self.fetchGlucoseManager.glucoseSource
                     )
                     self.cgmWarmupEndsAt = Self.resolveWarmupEndsAt(
                         manager: self.fetchGlucoseManager.cgmManager
@@ -850,75 +883,94 @@ extension Home {
         /// `activatedAt` must be session start, not transmitter activation.
         private static func resolveSensorExpiresAt(
             manager: CGMManagerUI?,
-            glucoseSource: GlucoseSource?,
-            lifecycle: DeviceLifecycleProgress?
+            glucoseSource: GlucoseSource?
         ) -> Date? {
             if let sim = glucoseSource as? GlucoseSimulatorSource {
                 return sim.simulatedSensorExpiresAt
             }
-            guard let manager else { return nil }
-            // Once a G7 enters grace period, `sensorExpiresAt` is in the past
-            // and would collapse the bobble countdown to "<1m" while the arc
-            // (driven by lifecycle.percentComplete against `sensorEndsAt`) is
-            // still mid-progress. Fall back to `sensorEndsAt` so bobble and
-            // arc agree, and the user sees grace-period time remaining.
-            if let g7 = manager as? G7CGMManager {
-                let now = Date()
-                if let exp = g7.sensorExpiresAt, exp > now { return exp }
-                return g7.sensorEndsAt ?? g7.sensorExpiresAt
-            }
-            if let g6 = manager as? G6CGMManager, let exp = g6.latestReading?.sessionExpDate { return exp }
-            if let g5 = manager as? G5CGMManager, let exp = g5.latestReading?.sessionExpDate { return exp }
 
-            if let libreLoop = manager as? LibreLoopCGMManager {
+            switch manager {
+            case let g7 as G7CGMManager:
+                // Once a G7 enters grace period, `sensorExpiresAt` is in the past
+                // and would collapse the bobble countdown to "<1m" while the arc
+                // (driven by lifecycle.percentComplete against `sensorEndsAt`) is
+                // still mid-progress. Fall back to `sensorEndsAt` so bobble and
+                // arc agree, and the user sees grace-period time remaining.
+                if let exp = g7.sensorExpiresAt, exp > Date.now {
+                    return exp
+                }
+                return g7.sensorEndsAt ?? g7.sensorExpiresAt
+
+            case let g6 as G6CGMManager:
+                return g6.latestReading?.sessionExpDate
+
+            case let g5 as G5CGMManager:
+                return g5.latestReading?.sessionExpDate
+
+            case let libreTransmitter as LibreTransmitterManagerV3:
+                return libreTransmitter.sensorInfoObservable.expiresAt
+
+            case let libreLoop as LibreLoopCGMManager:
                 if case let .active(remaining, _) = libreLoop.sensorLifecycle, remaining > 0 {
                     return Date().addingTimeInterval(remaining)
                 }
-                // Warmup / initializing / expired — no meaningful expiry yet.
+                // Warmup / initializing / expired: no meaningful expiry yet.
+                return nil
+
+            case let eversense as EversenseCGMManager:
+                return eversense.state.expiresAt
+
+            case let accuChek as AccuChekCgmManager:
+                return accuChek.state.cgmEndTime
+
+            default:
                 return nil
             }
-
-            let activatedAt: Date?
-            if let g7 = manager as? G7CGMManager {
-                activatedAt = g7.sensorActivatedAt
-            } else if let libre = manager as? LibreTransmitterManagerV3 {
-                activatedAt = libre.sensorInfoObservable.activatedAt
-            } else {
-                activatedAt = nil
-            }
-
-            guard let activatedAt,
-                  let lifecycle,
-                  lifecycle.percentComplete > 0.001
-            else { return nil }
-            let elapsed = Date().timeIntervalSince(activatedAt)
-            guard elapsed > 0 else { return nil }
-            return activatedAt.addingTimeInterval(elapsed / lifecycle.percentComplete)
         }
 
         /// Wall-clock end of the sensor's warmup window; `nil` when not warming up.
+        /// Note: Libre 2 & Eversense do not emit/have warming up periods
         private static func resolveWarmupEndsAt(manager: CGMManagerUI?) -> Date? {
-            guard let manager else { return nil }
-            if let g7 = manager as? G7CGMManager {
-                guard let ends = g7.sensorFinishesWarmupAt, ends > Date() else { return nil }
+            switch manager {
+            case let g7 as G7CGMManager:
+                guard let ends = g7.sensorFinishesWarmupAt, ends > Date.now else {
+                    return nil
+                }
+
                 return ends
-            }
-            if let g6 = manager as? G6CGMManager, let start = g6.latestReading?.sessionStartDate {
+
+            case let g6 as G6CGMManager:
+                guard let start = g6.latestReading?.sessionStartDate else {
+                    return nil
+                }
+
                 let window: TimeInterval = g6.isAnubis ? 50 * 60 : 2 * 60 * 60
                 let ends = start.addingTimeInterval(window)
-                return ends > Date() ? ends : nil
-            }
-            if let g5 = manager as? G5CGMManager, let start = g5.latestReading?.sessionStartDate {
+                return ends > Date.now ? ends : nil
+
+            case let g5 as G5CGMManager:
+                guard let start = g5.latestReading?.sessionStartDate else {
+                    return nil
+                }
+
                 let ends = start.addingTimeInterval(2 * 60 * 60)
-                return ends > Date() ? ends : nil
-            }
-            if let libreLoop = manager as? LibreLoopCGMManager {
+                return ends > Date.now ? ends : nil
+
+            case let libreLoop as LibreLoopCGMManager:
                 if case let .warmup(_, remaining) = libreLoop.sensorLifecycle, remaining > 0 {
-                    return Date().addingTimeInterval(remaining)
+                    return Date.now.addingTimeInterval(remaining)
                 }
                 return nil
+
+            case let accuChek as AccuChekCgmManager:
+                if accuChek.state.calibrationPhase != .done, let warmupCompleted = accuChek.state.cgmWarmupCompleted {
+                    return warmupCompleted
+                }
+                return nil
+
+            default:
+                return nil
             }
-            return nil
         }
     }
 }

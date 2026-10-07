@@ -82,6 +82,7 @@ extension Onboarding {
         var nightscoutImportStatus: ImportStatus = .none
         var isUploadEnabled: Bool = true
         var uploadGlucose: Bool = true
+        var uploadCGMSensorStates: Bool = true
 
         // MARK: - Units and Pump Omboarding Option
 
@@ -708,6 +709,7 @@ extension Onboarding {
             if nightscoutSetupOption == .setupNightscout {
                 settingsCopy.isUploadEnabled = isUploadEnabled
                 settingsCopy.uploadGlucose = uploadGlucose
+                settingsCopy.uploadCGMSensorStates = uploadCGMSensorStates
             }
 
             // ensure existing values cannot exceed new guardrails

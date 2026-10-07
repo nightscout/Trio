@@ -57,6 +57,8 @@ extension AlarmWindows {
                         HStack(alignment: .center) {
                             Text("Decides when each alarm's Day or Night setting applies.")
                                 .lineLimit(nil)
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
 
