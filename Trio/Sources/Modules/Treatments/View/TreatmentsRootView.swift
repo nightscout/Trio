@@ -199,7 +199,7 @@ extension Treatments {
         /// Scrolls the currently focused input row so it stays visible above the on-screen keyboard.
         private func scrollFocusedFieldIntoView(_ field: FocusedField?, proxy: ScrollViewProxy) {
             guard let field else {
-        // drop any queued target so it can't be acted on later by an unrelated keyboard appearance.
+                // drop any queued target so it can't be acted on later by an unrelated keyboard appearance.
                 pendingScrollTarget = nil
                 return
             }
@@ -361,96 +361,102 @@ extension Treatments {
                                     proteinAndFat()
                                         .id(FocusedField.fat)
 
-                                if showFatProteinOrderBanner {
-                                    HStack {
-                                        Image(systemName: "arrow.left.arrow.right")
-                                        Text("The order of Fat and Protein inputs has changed.").font(.callout)
-                                        Spacer()
-                                        Button {
-                                            PropertyPersistentFlags.shared.hasSeenFatProteinOrderChange = true
-                                            withAnimation { showFatProteinOrderBanner = false }
-                                        } label: {
-                                            Image(systemName: "xmark.circle.fill")
-                                        }
-                                        .buttonStyle(.plain)
-                                        .accessibilityLabel(Text("Dismiss"))
-                                    }
-                                    .listRowBackground(Color.orange.opacity(0.75))
-                                    .transition(.opacity)
-                                }
-                            }
-
-                            // Time
-                            HStack {
-                                // Semi-hacky workaround to make sure the List renders the horizontal divider properly between the `Time` and `Note` rows within the Section
-                                HStack {
-                                    Text("")
-                                    Image(systemName: "clock").padding(.leading, -7)
-                                }
-
-                                Spacer()
-                                if !pushed {
-                                    Button {
-                                        pushed = true
-                                    } label: { Text("Now") }.buttonStyle(.borderless).foregroundColor(.secondary)
-                                        .padding(.trailing, 5)
-                                } else {
-                                    Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
-                                    label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
-                                        .accessibilityLabel(Text("15 minutes earlier"))
-
-                                    DatePicker(
-                                        "Time",
-                                        selection: $state.date,
-                                        displayedComponents: [.hourAndMinute]
-                                    ).controlSize(.mini)
-                                        .labelsHidden()
-                                        .onChange(of: state.date) { _, _ in
-                                            // Trigger simulation when date changes to update forecasts for backdated carbs
-                                            Task {
-                                                // `updateForecasts()` does update the `simulatedDetermination` of type `Determination?` var on the main thread, so I can use this to pass its cob value into the bolus calc manager
-                                                await state.updateForecasts()
-                                                state.insulinCalculated = await state.calculateInsulin()
+                                    if showFatProteinOrderBanner {
+                                        HStack {
+                                            Image(systemName: "arrow.left.arrow.right")
+                                            Text("The order of Fat and Protein inputs has changed.").font(.callout)
+                                            Spacer()
+                                            Button {
+                                                PropertyPersistentFlags.shared.hasSeenFatProteinOrderChange = true
+                                                withAnimation { showFatProteinOrderBanner = false }
+                                            } label: {
+                                                Image(systemName: "xmark.circle.fill")
                                             }
+                                            .buttonStyle(.plain)
+                                            .accessibilityLabel(Text("Dismiss"))
                                         }
-                                    Button {
-                                        state.date = state.date.addingTimeInterval(15.minutes.timeInterval)
+                                        .listRowBackground(Color.orange.opacity(0.75))
+                                        .transition(.opacity)
                                     }
-                                    label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
-                                        .accessibilityLabel(Text("15 minutes later"))
                                 }
-                            }
 
-                            // Notes
-                            HStack {
-                                Image(systemName: "square.and.pencil")
-                                TextFieldWithToolBarString(
-                                    text: $state.note,
-                                    placeholder: String(localized: "Note..."),
-                                    maxLength: 25
-                                )
-                            }
-                        }.listRowBackground(Color.chart)
+                                // Time
+                                HStack {
+                                    // Semi-hacky workaround to make sure the List renders the horizontal divider properly between the `Time` and `Note` rows within the Section
+                                    HStack {
+                                        Text("")
+                                        Image(systemName: "clock").padding(.leading, -7)
+                                    }
 
-                        Section {
-                            bolusSection
-                        }.listRowBackground(Color.chart)
+                                    Spacer()
+                                    if !pushed {
+                                        Button {
+                                            pushed = true
+                                        } label: { Text("Now") }.buttonStyle(.borderless).foregroundColor(.secondary)
+                                            .padding(.trailing, 5)
+                                    } else {
+                                        Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
+                                        label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
+                                            .accessibilityLabel(Text("15 minutes earlier"))
 
-                        treatmentButton
-                    }
-                    .listSectionSpacing(sectionSpacing)
-                    .onChange(of: focusedField) { _, newValue in
-                        scrollFocusedFieldIntoView(newValue, proxy: proxy)
-                    }
-                    .onReceive(Foundation.NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notification in
-                        handleKeyboardWillShow(notification, proxy: proxy)
-                    }
-                    .onReceive(Foundation.NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-                        isKeyboardVisible = false
-                        // Belt-and-suspenders alongside the staleness check in handleKeyboardWillShow:
-                        // if the keyboard went away before a queued target was ever consumed, drop it.
-                        pendingScrollTarget = nil
-                    }
+                                        DatePicker(
+                                            "Time",
+                                            selection: $state.date,
+                                            displayedComponents: [.hourAndMinute]
+                                        ).controlSize(.mini)
+                                            .labelsHidden()
+                                            .onChange(of: state.date) { _, _ in
+                                                // Trigger simulation when date changes to update forecasts for backdated carbs
+                                                Task {
+                                                    // `updateForecasts()` does update the `simulatedDetermination` of type `Determination?` var on the main thread, so I can use this to pass its cob value into the bolus calc manager
+                                                    await state.updateForecasts()
+                                                    state.insulinCalculated = await state.calculateInsulin()
+                                                }
+                                            }
+                                        Button {
+                                            state.date = state.date.addingTimeInterval(15.minutes.timeInterval)
+                                        }
+                                        label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
+                                            .accessibilityLabel(Text("15 minutes later"))
+                                    }
+                                }
+
+                                // Notes
+                                HStack {
+                                    Image(systemName: "square.and.pencil")
+                                    TextFieldWithToolBarString(
+                                        text: $state.note,
+                                        placeholder: String(localized: "Note..."),
+                                        maxLength: 25
+                                    )
+                                }
+                            }.listRowBackground(Color.chart)
+
+                            Section {
+                                bolusSection
+                            }.listRowBackground(Color.chart)
+
+                            treatmentButton
+                        }
+                        .listSectionSpacing(sectionSpacing)
+                        .onChange(of: focusedField) { _, newValue in
+                            scrollFocusedFieldIntoView(newValue, proxy: proxy)
+                        }
+                        .onReceive(
+                            Foundation.NotificationCenter.default
+                                .publisher(for: UIResponder.keyboardWillShowNotification)
+                        ) { notification in
+                            handleKeyboardWillShow(notification, proxy: proxy)
+                        }
+                        .onReceive(
+                            Foundation.NotificationCenter.default
+                                .publisher(for: UIResponder.keyboardWillHideNotification)
+                        ) { _ in
+                            isKeyboardVisible = false
+                            // Belt-and-suspenders alongside the staleness check in handleKeyboardWillShow:
+                            // if the keyboard went away before a queued target was ever consumed, drop it.
+                            pendingScrollTarget = nil
+                        }
                     }
                 }
                 .blur(radius: state.isAwaitingDeterminationResult ? 5 : 0)
