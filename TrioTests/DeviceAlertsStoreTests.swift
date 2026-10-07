@@ -307,6 +307,7 @@ import Testing
         let entry = try #require(AlertCatalogRegistry.lookup(Self.reservoirLow))
         var config = DeviceAlertSeverityConfig(severity: .timeSensitive)
         config.soundFilename = "synth.caf"
+        config.playsSound = true // tier default is now silent; this test is about tone carriage
 
         let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(
             config,
@@ -457,5 +458,36 @@ import Testing
         let name = AlertSoundLoader.namespaced("Omnipod", "beep.caf")
         #expect(name == "Omnipod-beep.caf")
         #expect(!name.contains("/"))
+    }
+}
+
+/// Device alarms default to silent except Critical: most are informational
+/// (reservoir low, pod expiring, time change) and sounding every one of them
+/// is what users described as constant sirens. Glucose alarms are a separate
+/// model and keep sound on by default.
+@Suite("Trio Alerts: device alarm sound defaults") struct DeviceAlarmSoundDefaultsTests {
+    @Test("Only the Critical tier plays sound out of the box") func onlyCriticalSoundsByDefault() {
+        #expect(DeviceAlertSeverityConfig(severity: .critical).playsSound)
+        #expect(!DeviceAlertSeverityConfig(severity: .timeSensitive).playsSound)
+        #expect(!DeviceAlertSeverityConfig(severity: .normal).playsSound)
+    }
+
+    @Test("Critical default tone is High Chimes, not the siren") func criticalDefaultTone() {
+        #expect(DeviceAlertSeverityConfig(severity: .critical).soundFilename == "high_chimes.caf")
+        #expect(AlarmSoundCatalog.allFilenames.contains("high_chimes.caf"))
+    }
+
+    @Test("A stored config without playsSound falls back to the tier default") func decodeFallbackMatchesDefault() throws {
+        for severity in DeviceAlertSeverity.allCases {
+            let json = #"{"severity":"\#(severity.rawValue)","activeOption":"always"}"#
+            let decoded = try JSONDecoder().decode(DeviceAlertSeverityConfig.self, from: Data(json.utf8))
+            #expect(decoded.playsSound == severity.defaultPlaysSound)
+        }
+    }
+
+    @Test("Glucose alarms still default to sound on") func glucoseAlarmsKeepSound() {
+        for type in GlucoseAlertType.allCases {
+            #expect(GlucoseAlert(type: type).playsSound)
+        }
     }
 }

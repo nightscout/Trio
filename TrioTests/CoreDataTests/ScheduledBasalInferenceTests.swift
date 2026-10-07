@@ -199,3 +199,148 @@ import Testing
         #expect(near(segments[0].end, time(12)))
     }
 }
+
+/// Pure-function tests for what the pump is delivering at one instant.
+@Suite("Active Basal Delivery Tests") struct ActiveBasalDeliveryTests {
+    typealias BasalEvent = ScheduledBasalInference.BasalEvent
+
+    // MARK: - Fixtures
+
+    private var flatProfile: [BasalProfileEntry] {
+        [BasalProfileEntry(start: "00:00", minutes: 0, rate: 0.5)]
+    }
+
+    private var steppedProfile: [BasalProfileEntry] {
+        [
+            BasalProfileEntry(start: "00:00", minutes: 0, rate: 0.5),
+            BasalProfileEntry(start: "18:00", minutes: 1080, rate: 0.8)
+        ]
+    }
+
+    private func time(_ hour: Int, _ minute: Int = 0) -> Date {
+        Calendar.current.startOfDay(for: Date()).addingTimeInterval(TimeInterval(hour * 3600 + minute * 60))
+    }
+
+    private func temp(_ start: Date, minutes: Double, rate: Decimal) -> BasalEvent {
+        BasalEvent(start: start, end: start.addingTimeInterval(minutes * 60), rate: rate, isScheduled: false)
+    }
+
+    private func scheduleReport(_ start: Date, rate: Decimal) -> BasalEvent {
+        BasalEvent(start: start, end: start, rate: rate, isScheduled: true)
+    }
+
+    private func delivery(
+        _ events: [BasalEvent],
+        suspensions: [(date: Date, isSuspend: Bool)] = [],
+        profile: [BasalProfileEntry]? = nil,
+        now: Date
+    ) -> ScheduledBasalInference.Delivery? {
+        ScheduledBasalInference.delivery(
+            events: events,
+            suspensions: suspensions,
+            profile: profile ?? flatProfile,
+            now: now
+        )
+    }
+
+    // MARK: - Temp basal
+
+    @Test("A running temp basal is what is delivering") func testRunningTempBasal() {
+        let result = delivery([temp(time(12), minutes: 30, rate: 1.1)], now: time(12, 10))
+
+        #expect(result == .temp(1.1))
+    }
+
+    @Test("An expired temp basal hands delivery back to the schedule") func testExpiredTempBasal() {
+        let result = delivery([temp(time(12), minutes: 30, rate: 1.1)], now: time(13))
+
+        #expect(result == .scheduled(0.5), "Nothing covers the instant, so the schedule runs")
+    }
+
+    @Test("A cancelled temp basal stops at its shortened end") func testCancelledTempBasal() {
+        // 30 min programmed, not quite 2 min delivered
+        let cancelled = BasalEvent(start: time(12), end: time(12, 1).addingTimeInterval(54), rate: 0.3, isScheduled: false)
+
+        let result = delivery([cancelled], now: time(12, 2))
+
+        #expect(result == .scheduled(0.5), "Cancelling ends the temp before its programmed duration")
+    }
+
+    @Test("A later temp basal supersedes one still inside its span") func testSupersededTempBasal() {
+        let result = delivery(
+            [
+                temp(time(12), minutes: 120, rate: 1.1),
+                temp(time(12, 30), minutes: 30, rate: 0.2)
+            ],
+            now: time(12, 40)
+        )
+
+        #expect(result == .temp(0.2))
+    }
+
+    @Test("A schedule report is not a delivery span") func testScheduleReport() {
+        let result = delivery(
+            [
+                temp(time(12), minutes: 30, rate: 1.1),
+                scheduleReport(time(12, 10), rate: 0.9)
+            ],
+            now: time(12, 20)
+        )
+
+        #expect(result == .scheduled(0.5), "The report ends the temp basal; the rate comes from the profile")
+    }
+
+    // MARK: - Schedule
+
+    @Test("The scheduled rate follows the time of day") func testScheduledRateFollowsProfile() {
+        let result = delivery(
+            [temp(time(12), minutes: 30, rate: 1.1)],
+            profile: steppedProfile,
+            now: time(19)
+        )
+
+        #expect(result == .scheduled(0.8))
+    }
+
+    @Test("An empty history still runs the schedule") func testNoEvents() {
+        #expect(delivery([], now: time(12)) == .scheduled(0.5), "A fresh pod runs its schedule")
+    }
+
+    @Test("No profile means no readout") func testNoProfile() {
+        let result = delivery([temp(time(12), minutes: 30, rate: 1.1)], profile: [], now: time(13))
+
+        #expect(result == nil)
+    }
+
+    // MARK: - Suspension
+
+    @Test("A suspended pump delivers nothing") func testSuspended() {
+        let result = delivery(
+            [temp(time(12), minutes: 120, rate: 1.1)],
+            suspensions: [(time(12, 30), true)],
+            now: time(12, 40)
+        )
+
+        #expect(result == .suspended)
+    }
+
+    @Test("A temp basal does not resume with the pump") func testTempBasalDoesNotSurviveSuspension() {
+        let result = delivery(
+            [temp(time(12), minutes: 120, rate: 1.1)],
+            suspensions: [(time(12, 30), true), (time(13), false)],
+            now: time(13, 10)
+        )
+
+        #expect(result == .scheduled(0.5), "Suspending cancels the temp basal")
+    }
+
+    @Test("A temp basal set after a resume is delivering") func testTempBasalAfterResume() {
+        let result = delivery(
+            [temp(time(13, 5), minutes: 30, rate: 1.1)],
+            suspensions: [(time(12, 30), true), (time(13), false)],
+            now: time(13, 10)
+        )
+
+        #expect(result == .temp(1.1))
+    }
+}

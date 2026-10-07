@@ -24,6 +24,7 @@ extension NightscoutConfig {
         @Published var isUploadEnabled = false // Allow uploads
         @Published var isDownloadEnabled = false // Allow downloads
         @Published var uploadGlucose = true // Upload Glucose
+        @Published var uploadCGMSensorStates = false // Upload CGM Sensor States
         @Published var useLocalSource = false
         @Published var localPort: Decimal = 0
         @Published var units: GlucoseUnits = .mgdL
@@ -45,6 +46,7 @@ extension NightscoutConfig {
             subscribeSetting(\.useLocalGlucoseSource, on: $useLocalSource) { useLocalSource = $0 }
             subscribeSetting(\.localGlucosePort, on: $localPort.map(Int.init)) { localPort = Decimal($0) }
             subscribeSetting(\.uploadGlucose, on: $uploadGlucose, initial: { uploadGlucose = $0 })
+            subscribeSetting(\.uploadCGMSensorStates, on: $uploadCGMSensorStates) { uploadCGMSensorStates = $0 }
 
             isConnectedToNS = nightscoutAPI != nil
 
