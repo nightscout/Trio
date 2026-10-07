@@ -29,7 +29,7 @@ TRIO_PROJECTS=( \
     loopandlearn:LoopKit:trio \
     loopandlearn:MedtrumKit:dev \
     loopandlearn:MinimedKit:main \
-    loopandlearn:OmnipodKit:main \
+    loopandlearn:OmnipodKit:dev \
     loopandlearn:RileyLinkKit:dev \
     loopandlearn:RoundWhiteDiscKit:main \
     loopandlearn:TidepoolService:dev \
