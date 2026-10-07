@@ -15,7 +15,6 @@ struct BasalProfile: Hashable {
     }
 }
 
-/// `Equatable` is load-bearing: it lets a redundant recompute be dropped instead of re-invalidating the chart body.
 struct PreparedTempBasal: Equatable {
     let start: Date
     let end: Date
@@ -61,8 +60,8 @@ extension MainChartCanvas {
         basalDomainMax - rate
     }
 
-    /// Both basal series extend to "now"; an unquantized value differs on every recompute, so the equality
-    /// guards below could never drop a redundant update. A second is far coarser than a render pass.
+    /// To be used instead of "now" for basal calculations so we can skip
+    /// redundant updates happening within the same second.
     static func secondAnchoredNow() -> Date {
         Date(timeIntervalSince1970: Date().timeIntervalSince1970.rounded(.down))
     }
