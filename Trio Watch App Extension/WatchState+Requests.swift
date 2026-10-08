@@ -247,12 +247,14 @@ extension WatchState {
         }
     }
 
-    func requestWatchStateUpdate() {
+    /// - Parameter completion: Called on the main queue with `true` if the phone answered.
+    /// - Returns: `true` if the request was sent.
+    @discardableResult func requestWatchStateUpdate(completion: ((_ answered: Bool) -> Void)? = nil) -> Bool {
         guard let session = session else {
             Task {
                 await WatchLogger.shared.log("⌚️ No session available for state update")
             }
-            return
+            return false
         }
 
         guard session.activationState == .activated else {
@@ -260,7 +262,7 @@ extension WatchState {
                 await WatchLogger.shared.log("⌚️ Session not activated. Activating...")
             }
             session.activate()
-            return
+            return false
         }
 
         if session.isReachable {
@@ -268,19 +270,34 @@ extension WatchState {
                 await WatchLogger.shared.log("⌚️ Requesting WatchState update from iPhone")
             }
 
-            let message = [WatchMessageKeys.requestWatchUpdate: WatchMessageKeys.watchState]
+            var message: [String: Any] = [WatchMessageKeys.requestWatchUpdate: WatchMessageKeys.watchState]
+            message.merge(glucoseSyncRequestFields()) { _, new in new }
 
-            session.sendMessage(message, replyHandler: nil) { error in
+            session.sendMessage(message, replyHandler: { reply in
+                DispatchQueue.main.async {
+                    // Empty reply: the phone could not build a state.
+                    if reply.isEmpty || !self.acceptWatchStatePayload(reply) {
+                        self.showSyncingAnimation = false
+                    }
+                    completion?(true)
+                }
+            }, errorHandler: { error in
                 Task {
                     await WatchLogger.shared.log("⌚️ Error requesting WatchState update: \(error)")
                     await WatchLogger.shared.log("⌚️ Saving logs to disk as fallback!")
                     await WatchLogger.shared.persistLogsLocally()
                 }
-            }
+                DispatchQueue.main.async {
+                    self.showSyncingAnimation = false
+                    completion?(false)
+                }
+            })
+            return true
         } else {
             Task {
                 await WatchLogger.shared.log("⌚️ Phone not reachable for WatchState update")
             }
+            return false
         }
     }
 }

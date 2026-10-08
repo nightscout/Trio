@@ -8,6 +8,8 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
     var trend: String?
     var delta: String?
     var glucoseValues: [WatchGlucoseObject] = []
+    var glucoseWindowStart: Date? = nil
+    var glucoseSignature: String = ""
     var minYAxisValue: Decimal = 39.0
     var maxYAxisValue: Decimal = 200.0
     var units: GlucoseUnits = .mgdL

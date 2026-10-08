@@ -5,6 +5,10 @@ import WatchConnectivity
 /// WatchState manages the communication between the Watch app and the iPhone app using WatchConnectivity.
 /// It handles glucose data synchronization and sending treatment requests (bolus, carbs) to the phone.
 @Observable final class WatchState: NSObject, WCSessionDelegate {
+    /// Shared, not created in a view: every throwaway instance from a view re-init would take over the
+    /// (weak) session delegate and then be released, leaving nothing to receive from the phone.
+    static let shared = WatchState()
+
     // MARK: - Properties
 
     /// The WatchConnectivity session instance used for communication
@@ -75,6 +79,35 @@ import WatchConnectivity
     /// `didReceiveUserInfo`.
     private static let maxAcceptableMessageAgeInMinutes: TimeInterval = 15 * 60
 
+    /// In memory only: the UI starts empty on every launch, so a payload must never be dropped as a
+    /// duplicate of one a previous launch displayed.
+    private var lastAcceptedStateDate: Date?
+
+    private static let syncingAnimationTimeout: TimeInterval = 10
+
+    // MARK: - Glucose history sync
+
+    enum GlucoseResync: Int, Comparable {
+        /// Sends the watch's bucket checksums: the phone answers with the buckets that differ.
+        case repair
+        case full
+
+        static func < (lhs: GlucoseResync, rhs: GlucoseResync) -> Bool {
+            lhs.rawValue < rhs.rawValue
+        }
+    }
+
+    /// Only accessed on the main queue, like everything below.
+    private var glucoseHistory = WatchGlucoseHistory()
+    private var hasPendingGlucoseHistoryUpdate = false
+    private var pendingGlucoseResync: GlucoseResync?
+    private var isGlucoseResyncInFlight = false
+    private var glucoseResyncAttempts = 0
+    private static let maxGlucoseResyncAttempts = 3
+    /// Set once a full history fails its own checksum. A delta that doesn't verify is no such sign:
+    /// readings deleted or backfilled on the phone cause that too.
+    private var isGlucoseDeltaSyncDisabled = false
+
     // MARK: - Debouncing and batch processing helpers
 
     /// Temporary storage for new data arriving via WatchConnectivity.
@@ -83,6 +116,10 @@ import WatchConnectivity
     /// Work item to schedule finalizing the pending data.
     private var finalizeWorkItem: DispatchWorkItem?
 
+    /// Whether the app is in the foreground. Only there is the debounce reliable: in the background the app
+    /// is suspended within moments of a delivery.
+    private var isAppActive = false
+
     /// A flag to tell the UI we’re still updating.
     var showSyncingAnimation: Bool = false
 
@@ -90,6 +127,7 @@ import WatchConnectivity
 
     override init() {
         super.init()
+        restoreGlucoseHistory()
         setupSession()
     }
 
@@ -98,8 +136,15 @@ import WatchConnectivity
         if WCSession.isSupported() {
             let session = WCSession.default
             session.delegate = self
-            session.activate()
             self.session = session
+            if session.activationState == .activated {
+                // Activated before this delegate was installed: the activation callback won't come.
+                DispatchQueue.main.async {
+                    self.handleSessionActivated(session)
+                }
+            } else {
+                session.activate()
+            }
             Task {
                 await WatchLogger.shared.log("⌚️ WCSession setup complete.")
             }
@@ -176,14 +221,30 @@ import WatchConnectivity
                     await WatchLogger.shared.log("⌚️ Watch session activated with state: \(activationState.rawValue)")
                 }
 
-                self.forceConditionalWatchStateUpdate()
-
-                self.isReachable = session.isReachable
-
-                Task {
-                    await WatchLogger.shared.log("⌚️ Watch isReachable after activation: \(session.isReachable)")
-                }
+                self.handleSessionActivated(session)
             }
+        }
+    }
+
+    private func handleSessionActivated(_ session: WCSession) {
+        isReachable = session.isReachable
+
+        Task {
+            await WatchLogger.shared.log("⌚️ Watch isReachable after activation: \(session.isReachable)")
+        }
+
+        let context = session.receivedApplicationContext
+        if !context.isEmpty {
+            acceptWatchStatePayload(context)
+        }
+
+        forceConditionalWatchStateUpdate()
+    }
+
+    func refreshIfNeeded() {
+        DispatchQueue.main.async {
+            guard let session = self.session, session.activationState == .activated else { return }
+            self.forceConditionalWatchStateUpdate()
         }
     }
 
@@ -228,16 +289,24 @@ import WatchConnectivity
         handleIncomingWatchStatePayload(userInfo)
     }
 
-    /// Shared path for watch-state payloads from either delegate method.
-    /// Enforces the freshness contract in one place so the two delivery paths
-    /// can't drift.
+    func session(_: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
+        handleIncomingWatchStatePayload(applicationContext)
+    }
+
     private func handleIncomingWatchStatePayload(_ dictionary: [String: Any]) {
+        DispatchQueue.main.async {
+            self.acceptWatchStatePayload(dictionary)
+        }
+    }
+
+    /// Doesn't end the syncing animation when a payload is rejected: a stale or duplicate payload can
+    /// arrive while a request is still in flight.
+    @discardableResult func acceptWatchStatePayload(_ dictionary: [String: Any]) -> Bool {
         guard let payload = dictionary[WatchMessageKeys.watchState] as? [String: Any],
               let timestamp = payload[WatchMessageKeys.date] as? TimeInterval
         else {
             Task { await WatchLogger.shared.log("⌚️ Faulty watch state payload — skipping", force: true) }
-            DispatchQueue.main.async { self.showSyncingAnimation = false }
-            return
+            return false
         }
         let date = Date(timeIntervalSince1970: timestamp)
 
@@ -246,21 +315,178 @@ import WatchConnectivity
         // schedules merge + UI work.
         guard date >= Date().addingTimeInterval(-Self.maxAcceptableMessageAgeInMinutes) else {
             Task { await WatchLogger.shared.log("⌚️ Skipping stale watch state (\(date))") }
-            DispatchQueue.main.async { self.showSyncingAnimation = false }
-            return
+            adoptGlucoseHistory(fromStale: payload)
+            return false
         }
 
-        // Monotonicity dedup.
-        let lastProcessed = WatchStateSnapshot.loadLatestDateFromDisk()
-        guard date > lastProcessed else {
+        // The same state can arrive both as a message and as the application context.
+        if let lastAccepted = lastAcceptedStateDate, date <= lastAccepted {
             Task { await WatchLogger.shared.log("⌚️ Skipping duplicate watch state (\(date))") }
+            if date == lastAccepted {
+                // A request's full reply shares its stamp with the context, which only carries recent readings.
+                applyGlucoseHistory(from: payload)
+                if hasPendingGlucoseHistoryUpdate {
+                    publishGlucoseHistory()
+                }
+            }
+            return false
+        }
+
+        lastAcceptedStateDate = date
+        applyGlucoseHistory(from: payload)
+
+        var uiPayload = payload
+        uiPayload.removeValue(forKey: WatchMessageKeys.glucoseValues)
+        scheduleUIUpdate(with: uiPayload)
+        return true
+    }
+
+    /// A stale payload's IOB, COB and trend are outdated, but its glucose readings are not.
+    private func adoptGlucoseHistory(fromStale payload: [String: Any]) {
+        guard let newest = WatchGlucoseSync.newestTimestamp(in: payload),
+              newest > glucoseHistory.newestTimestamp ?? -.infinity
+        else { return }
+
+        Task { await WatchLogger.shared.log("⌚️ Taking over glucose readings from stale watch state") }
+        applyGlucoseHistory(from: payload)
+        if hasPendingGlucoseHistoryUpdate {
+            publishGlucoseHistory()
+        }
+    }
+
+    private func applyGlucoseHistory(from payload: [String: Any]) {
+        let isRepair = payload[WatchMessageKeys.glucoseBuckets] != nil
+        let isDelta = isRepair || payload[WatchMessageKeys.glucoseSyncBase] != nil
+
+        if isDelta, isGlucoseDeltaSyncDisabled {
+            requestGlucoseResync(.full, reason: "delta received while delta sync is disabled")
             return
         }
 
-        WatchStateSnapshot.saveLatestDateToDisk(date)
-        DispatchQueue.main.async {
-            self.scheduleUIUpdate(with: payload)
+        switch glucoseHistory.merge(payload) {
+        case .unchanged:
+            return
+
+        case .updated:
+            hasPendingGlucoseHistoryUpdate = true
+            pendingGlucoseResync = nil
+            glucoseResyncAttempts = 0
+            saveGlucoseHistory()
+
+        case .updatedUnverified:
+            hasPendingGlucoseHistoryUpdate = true
+            pendingGlucoseResync = nil
+            glucoseResyncAttempts = 0
+            disableGlucoseDeltaSync(reason: "full glucose history does not match its own checksum")
+            saveGlucoseHistory()
+
+        case .mismatch:
+            // Keep showing and saving the merged readings: the repair only sends the buckets that differ.
+            hasPendingGlucoseHistoryUpdate = true
+            saveGlucoseHistory()
+            if isRepair {
+                requestGlucoseResync(.full, reason: "repaired glucose history does not match the phone's")
+            } else {
+                requestGlucoseResync(.repair, reason: "merged glucose history does not match the phone's")
+            }
+
+        case let .needsFullHistory(reason):
+            requestGlucoseResync(.full, reason: reason)
         }
+    }
+
+    // MARK: - Glucose history persistence
+
+    private static let glucoseHistoryFileURL: URL? = FileManager.default
+        .urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
+        .appendingPathComponent("GlucoseHistory.plist")
+    private static let glucoseHistoryFileQueue = DispatchQueue(label: "WatchState.glucoseHistoryFile", qos: .utility)
+
+    private func saveGlucoseHistory() {
+        guard let url = Self.glucoseHistoryFileURL, let data = glucoseHistory.encoded() else { return }
+        Self.glucoseHistoryFileQueue.async {
+            do {
+                try FileManager.default.createDirectory(
+                    at: url.deletingLastPathComponent(),
+                    withIntermediateDirectories: true
+                )
+                try data.write(to: url, options: .atomic)
+            } catch {
+                Task { await WatchLogger.shared.log("⌚️ Saving glucose history failed: \(error)") }
+            }
+        }
+    }
+
+    private func restoreGlucoseHistory() {
+        guard let url = Self.glucoseHistoryFileURL,
+              let data = try? Data(contentsOf: url),
+              let restored = WatchGlucoseHistory(data: data)
+        else { return }
+
+        glucoseHistory = restored
+        publishGlucoseHistory()
+        Task { await WatchLogger.shared.log("⌚️ Restored \(restored.readings.count) saved glucose readings") }
+    }
+
+    private func publishGlucoseHistory() {
+        glucoseValues = glucoseHistory.readings.map { reading in
+            (
+                date: Date(timeIntervalSince1970: reading.timestamp),
+                glucose: reading.glucose,
+                color: reading.color.toColor() // Convert colorString to Color
+            )
+        }
+        hasPendingGlucoseHistoryUpdate = false
+    }
+
+    private func disableGlucoseDeltaSync(reason: String) {
+        guard !isGlucoseDeltaSyncDisabled else { return }
+        isGlucoseDeltaSyncDisabled = true
+        Task { await WatchLogger.shared.log("⌚️ Glucose delta sync disabled: \(reason)", force: true) }
+    }
+
+    private func requestGlucoseResync(_ resync: GlucoseResync, reason: String) {
+        Task { await WatchLogger.shared.log("⌚️ Glucose history resync (\(resync)): \(reason)") }
+        pendingGlucoseResync = max(pendingGlucoseResync ?? resync, resync)
+        sendPendingGlucoseResync()
+    }
+
+    /// One request at a time. A request that couldn't be delivered waits for the next regular update
+    /// request, which carries the pending resync too.
+    private func sendPendingGlucoseResync() {
+        guard pendingGlucoseResync != nil, !isGlucoseResyncInFlight else { return }
+        guard glucoseResyncAttempts < Self.maxGlucoseResyncAttempts else {
+            Task { await WatchLogger.shared.log("⌚️ Glucose history resync attempts exhausted; waiting for the next update") }
+            return
+        }
+
+        glucoseResyncAttempts += 1
+        isGlucoseResyncInFlight = true
+        let sent = requestWatchStateUpdate { answered in
+            self.isGlucoseResyncInFlight = false
+            if answered {
+                self.sendPendingGlucoseResync()
+            }
+        }
+        if !sent {
+            isGlucoseResyncInFlight = false
+        }
+    }
+
+    func glucoseSyncRequestFields() -> [String: Any] {
+        var fields: [String: Any] = [WatchMessageKeys.supportsGlucoseDelta: !isGlucoseDeltaSyncDisabled]
+        guard !isGlucoseDeltaSyncDisabled, pendingGlucoseResync != .full,
+              let since = glucoseHistory.newestTimestamp,
+              let signature = glucoseHistory.signature
+        else { return fields }
+
+        fields[WatchMessageKeys.glucoseSince] = since
+        fields[WatchMessageKeys.glucoseSignature] = signature
+        if pendingGlucoseResync == .repair, let buckets = glucoseHistory.bucketChecksumList {
+            fields[WatchMessageKeys.glucoseBucketStart] = buckets.start
+            fields[WatchMessageKeys.glucoseBucketChecksums] = buckets.checksums
+        }
+        return fields
     }
 
     func session(_: WCSession, didFinish _: WCSessionUserInfoTransfer, error: (any Error)?) {
@@ -280,6 +506,8 @@ import WatchConnectivity
             Task {
                 await WatchLogger.shared.log("⌚️ Watch reachability changed: \(session.isReachable)")
             }
+
+            self.isReachable = session.isReachable
 
             if session.isReachable {
                 self.forceConditionalWatchStateUpdate()
@@ -301,16 +529,21 @@ import WatchConnectivity
     ///  - If `lastWatchStateUpdate` is `nil` (meaning there has never been an update), or
     ///  - If more than 15 seconds have passed,
     ///
-    /// it will show a syncing animation and request a new watch state update from the iPhone app.
+    /// it will request a new watch state update from the iPhone app and, if the request could be sent, show a syncing animation.
     private func forceConditionalWatchStateUpdate() {
+        // A running resync request brings the current state too.
+        guard !isGlucoseResyncInFlight else {
+            Task { await WatchLogger.shared.log("⌚️ Glucose resync in flight — not requesting another WatchState") }
+            return
+        }
+
         guard let lastUpdateTimestamp = lastWatchStateUpdate else {
             Task {
                 await WatchLogger.shared.log("Forcing initial WatchState update")
             }
 
             // If there's no recorded timestamp, we must force a fresh update immediately.
-            showSyncingAnimation = true
-            requestWatchStateUpdate()
+            requestWatchStateUpdateWithSyncingAnimation()
             return
         }
 
@@ -322,9 +555,21 @@ import WatchConnectivity
 
         // If more than 15 seconds have elapsed since the last update, force an(other) update.
         if secondsSinceUpdate > 15 {
-            showSyncingAnimation = true
-            requestWatchStateUpdate()
+            requestWatchStateUpdateWithSyncingAnimation()
             return
+        }
+    }
+
+    private func requestWatchStateUpdateWithSyncingAnimation() {
+        guard requestWatchStateUpdate() else { return }
+
+        showSyncingAnimation = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.syncingAnimationTimeout) {
+            guard self.showSyncingAnimation, self.pendingData.isEmpty else { return }
+            self.showSyncingAnimation = false
+            Task {
+                await WatchLogger.shared.log("⌚️ No WatchState answer from iPhone — hiding syncing animation")
+            }
         }
     }
 
@@ -366,8 +611,8 @@ import WatchConnectivity
             }
 
             // 2) Raw watchState data
-            if let watchStateData = message[WatchMessageKeys.watchState] as? [String: Any] {
-                self.scheduleUIUpdate(with: watchStateData)
+            if message[WatchMessageKeys.watchState] != nil {
+                self.acceptWatchStatePayload(message)
             }
         }
     }
@@ -384,22 +629,27 @@ import WatchConnectivity
             return
         }
 
+        Task {
+            await WatchLogger.shared.log("Merging new WatchState data with keys: \(newData.keys.joined(separator: ", "))")
+        }
+
+        pendingData.merge(newData) { _, newVal in newVal }
+        finalizeWorkItem?.cancel()
+        finalizeWorkItem = nil
+
+        // In the background watchOS suspends the app right after a delivery, before a delayed work item
+        // runs; the state would only show on the next wake, one push late. Apply it right away there.
+        guard isAppActive else {
+            finalizePendingData()
+            return
+        }
+
         // 1) Mark as syncing
         DispatchQueue.main.async {
             self.showSyncingAnimation = true
         }
 
-        Task {
-            await WatchLogger.shared.log("Merging new WatchState data with keys: \(newData.keys.joined(separator: ", "))")
-        }
-
-        // 2) Merge data into our pendingData
-        pendingData.merge(newData) { _, newVal in newVal }
-
-        // 3) Cancel any previous finalization
-        finalizeWorkItem?.cancel()
-
-        // 4) Create and schedule a new finalization
+        // 2) Create and schedule a new finalization
         let workItem = DispatchWorkItem { [self] in
             Task {
                 await WatchLogger.shared.log("⏳ Debounced update fired")
@@ -410,8 +660,18 @@ import WatchConnectivity
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: workItem)
     }
 
+    /// Tracks the scene phase; on leaving the foreground, applies a debounced state before the app is suspended.
+    func setAppActive(_ isActive: Bool) {
+        isAppActive = isActive
+        guard !isActive, finalizeWorkItem != nil else { return }
+        finalizeWorkItem?.cancel()
+        finalizeWorkItem = nil
+        finalizePendingData()
+    }
+
     /// Applies all pending data to the watch state in one shot
     private func finalizePendingData() {
+        finalizeWorkItem = nil
         guard !pendingData.isEmpty else {
             Task {
                 await WatchLogger.shared.log("⚠️ finalizePendingData called with empty data")
@@ -485,20 +745,8 @@ import WatchConnectivity
             self.lastLoopTime = lastLoopTime
         }
 
-        if let glucoseData = message[WatchMessageKeys.glucoseValues] as? [[String: Any]] {
-            glucoseValues = glucoseData.compactMap { data in
-                guard let glucose = data["glucose"] as? Double,
-                      let timestamp = data["date"] as? TimeInterval,
-                      let colorString = data["color"] as? String
-                else { return nil }
-
-                return (
-                    Date(timeIntervalSince1970: timestamp),
-                    glucose,
-                    colorString.toColor() // Convert colorString to Color
-                )
-            }
-            .sorted { $0.date < $1.date }
+        if hasPendingGlucoseHistoryUpdate {
+            publishGlucoseHistory()
         }
 
         if let minYAxisValue = message[WatchMessageKeys.minYAxisValue] {
