@@ -3,6 +3,15 @@ import Testing
 @testable import Trio
 
 @Suite("Settings Search Navigation") struct SettingsSearchTests {
+    @Test("Lower threshold names and legacy aliases navigate to the renamed setting") func searchLowerRangeThreshold() {
+        for query in ["TIR Lower Threshold", "Standard", "Extended", "Time in Range Type", "TITR", "TING"] {
+            let results = SettingItems.filteredItems(searchText: query)
+            #expect(results.contains {
+                $0.settingItem.view == .userInterfaceSettings && $0.scrollLabel == "TIR Lower Threshold"
+            }, "No lower threshold search target for \(query)")
+        }
+    }
+
     @Test("Searching 'Dynamic ISF' finds the Dynamic Settings screen") func searchDynamicISF() {
         let results = SettingItems.filteredItems(searchText: "Dynamic ISF")
         #expect(!results.isEmpty)

@@ -11,7 +11,7 @@ struct GlucosePercentileChart: View {
     let glucose: [GlucoseStored]
     /// The upper glucose limit for the chart.
     let highLimit: Decimal
-    /// TITR or TING
+    /// Lower threshold for TIR and TITR.
     let timeInRangeType: TimeInRangeType
     /// The units used for glucose measurement (mg/dL or mmol/L).
     let units: GlucoseUnits
