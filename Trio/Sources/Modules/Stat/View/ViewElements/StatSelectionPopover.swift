@@ -11,9 +11,7 @@ struct StatSelectionPopover<Content: View>: View {
     private var selectionTitle: String {
         let dayText = selectedDate.formatted(.dateTime.month().day().weekday())
         if selectedInterval == .day {
-            let hourRange = selectedDate.formatted(.dateTime.hour()) + "-" +
-                Calendar.current.date(byAdding: .hour, value: 1, to: selectedDate)!
-                .formatted(.dateTime.hour())
+            let hourRange = StatChartUtils.hourRangeText(for: selectedDate)
             return dayText + "\n" + hourRange
         }
         return dayText

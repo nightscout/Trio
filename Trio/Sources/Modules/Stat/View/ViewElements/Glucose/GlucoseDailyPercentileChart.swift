@@ -1,7 +1,7 @@
 import Charts
 import SwiftUI
 
-enum GlucosePercentileType: String, Identifiable {
+enum GlucosePercentileType: String, CaseIterable, Identifiable {
     case minimum = "Min"
     case percentile10 = "10th"
     case percentile25 = "25th"
@@ -11,6 +11,18 @@ enum GlucosePercentileType: String, Identifiable {
     case maximum = "Max"
 
     var id: String { rawValue }
+
+    var shortLabel: String {
+        switch self {
+        case .minimum: "Min"
+        case .percentile10: "10%"
+        case .percentile25: "25%"
+        case .median: "Median"
+        case .percentile75: "75%"
+        case .percentile90: "90%"
+        case .maximum: "Max"
+        }
+    }
 
     // Function to get the percentile value from a stats object
     func getValue(from stats: GlucoseDailyPercentileStats) -> Double {
@@ -27,93 +39,57 @@ enum GlucosePercentileType: String, Identifiable {
 }
 
 struct GlucoseDailyPercentileChart: View {
-    let glucose: [GlucoseStored]
     let highLimit: Decimal
     let units: GlucoseUnits
     let timeInRangeType: TimeInRangeType
     let selectedInterval: Stat.StateModel.StatsTimeInterval
+
+    // State model for accessing the shared calculations
+    let state: Stat.StateModel
 
     @Binding var isDaySelected: Bool
 
     // Scrolling and selection states
     @State private var scrollPosition = Date()
     @State private var selectedDate: Date?
-    @State private var updateTimer = Stat.UpdateTimer()
-    @State private var visibleDailyStats: [GlucoseDailyPercentileStats] = []
 
     // State for selected percentile
     @State private var selectedPercentile: GlucosePercentileType?
 
-    // State model for accessing the shared calculations
-    let state: Stat.StateModel
-
-    // Computes the visible date range based on the current scroll position
-    @State private var visibleDateRange: (start: Date, end: Date) = (Date(), Date())
-
-    private func calculateVisibleDailyStats() {
-        let calendar = Calendar.current
-        visibleDailyStats = state.dailyGlucosePercentileStats.filter { stat in
-            let statDate = calendar.startOfDay(for: stat.date)
-            return statDate >= calendar.startOfDay(for: visibleDateRange.start) &&
-                statDate <= calendar.startOfDay(for: visibleDateRange.end)
+    private var visibleDailyStats: [GlucoseDailyPercentileStats] {
+        state.dailyGlucosePercentileStats.filter { stat in
+            StatChartUtils.isStatInRange(stat.date, in: visibleDateRange)
         }
     }
 
-    private func calculateVisibleDateRange() {
-        visibleDateRange = StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
+    // Computes the visible date range based on the current scroll position
+    private var visibleDateRange: (start: Date, end: Date) {
+        StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
     }
 
     // Gets selected day stats
     private var selectedDateStats: GlucoseDailyPercentileStats? {
         selectedDate.flatMap { day in
-            state.glucosePercentileCache[Calendar.current.startOfDay(for: day)]
+            state.dailyGlucosePercentileStats.first {
+                Calendar.current.isDate($0.date, inSameDayAs: day)
+            }
         }
     }
 
     // Aggregates data from all visible days
     private var aggregatedVisibleStats: GlucoseDailyPercentileStats? {
-        guard !visibleDailyStats.isEmpty else { return nil }
+        let rows = visibleDailyStats.filter { $0.median > 0 }
+        guard !rows.isEmpty else { return nil }
 
-        // Collect all glucose values from visible days
-        var allMinimums: [Double] = []
-        var allMaximums: [Double] = []
-        var all10thPercentiles: [Double] = []
-        var all25thPercentiles: [Double] = []
-        var allMedians: [Double] = []
-        var all75thPercentiles: [Double] = []
-        var all90thPercentiles: [Double] = []
-
-        // Collect data from all visible days
-        for stats in visibleDailyStats where stats.median > 0 {
-            allMinimums.append(stats.minimum)
-            allMaximums.append(stats.maximum)
-            all10thPercentiles.append(stats.percentile10)
-            all25thPercentiles.append(stats.percentile25)
-            allMedians.append(stats.median)
-            all75thPercentiles.append(stats.percentile75)
-            all90thPercentiles.append(stats.percentile90)
-        }
-
-        // Calculate aggregated values
-        let aggMinimum = allMinimums.min() ?? 0
-        let aggMaximum = allMaximums.max() ?? 0
-        let aggP10 = StatChartUtils.medianCalculationDouble(array: all10thPercentiles)
-        let aggP25 = StatChartUtils.medianCalculationDouble(array: all25thPercentiles)
-        let aggMedian = StatChartUtils.medianCalculationDouble(array: allMedians)
-        let aggP75 = StatChartUtils.medianCalculationDouble(array: all75thPercentiles)
-        let aggP90 = StatChartUtils.medianCalculationDouble(array: all90thPercentiles)
-
-        // Create a new stats object with the visible date range and aggregated values
         return GlucoseDailyPercentileStats(
             date: visibleDateRange.start,
-            readings: [], // Empty array since this is aggregated data
-            minimum: aggMinimum,
-            percentile10: aggP10,
-            percentile25: aggP25,
-            median: aggMedian,
-            percentile75: aggP75,
-            percentile90: aggP90,
-            maximum: aggMaximum
+            minimum: rows.map(\.minimum).min() ?? 0,
+            percentile10: StatChartUtils.medianCalculationDouble(array: rows.map(\.percentile10)),
+            percentile25: StatChartUtils.medianCalculationDouble(array: rows.map(\.percentile25)),
+            median: StatChartUtils.medianCalculationDouble(array: rows.map(\.median)),
+            percentile75: StatChartUtils.medianCalculationDouble(array: rows.map(\.percentile75)),
+            percentile90: StatChartUtils.medianCalculationDouble(array: rows.map(\.percentile90)),
+            maximum: rows.map(\.maximum).max() ?? 0
         )
     }
 
@@ -126,7 +102,7 @@ struct GlucoseDailyPercentileChart: View {
     private var detailViewData: (data: GlucoseDailyPercentileStats, dateText: String)? {
         if let selectedData = selectedDateStats {
             // Case 1: Selected specific day
-            return (selectedData, selectedData.date.formatted(.dateTime.weekday(.wide).month(.wide).day().year()))
+            return (selectedData, formatDate(selectedData.date))
         } else if let aggregatedData = aggregatedVisibleStats {
             // Case 2: Using aggregated data
             return (aggregatedData, StatChartUtils.formatVisibleDateRange(
@@ -160,17 +136,9 @@ struct GlucoseDailyPercentileChart: View {
             }
         }
         .onAppear {
-            calculateVisibleDateRange()
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-            calculateVisibleDailyStats()
         }
-        .onChange(of: scrollPosition) {
-            updateTimer.scheduleUpdate {
-                calculateVisibleDateRange()
-                calculateVisibleDailyStats()
-            }
-        }
-        .onChange(of: selectedInterval) { _, _ in
+        .onChange(of: selectedInterval) {
             selectedDate = nil
             selectedPercentile = nil
             isDaySelected = false
@@ -180,7 +148,15 @@ struct GlucoseDailyPercentileChart: View {
 
     // Simple boxplot chart with improved visuals - broken down into components
     private var boxplotChart: some View {
-        Chart {
+        let thresholds = StatChartUtils.glucoseThresholds(timeInRangeType: timeInRangeType, highLimit: highLimit, units: units)
+        let seriesScale: [(label: String, color: Color)] = [
+            ("0-100%", .blue.opacity(0.15)),
+            ("10-90%", .blue.opacity(0.3)),
+            ("25-75%", .blue.opacity(0.5)),
+            ("Median", .blue)
+        ] + thresholds.map { ($0.label, $0.color) }
+
+        return Chart {
             // First draw all the non-interactive elements
             ForEach(state.dailyGlucosePercentileStats) { day in
                 if day.maximum > 0 { // Check if we have valid data
@@ -226,6 +202,12 @@ struct GlucoseDailyPercentileChart: View {
                 }
             }
 
+            ForEach(thresholds, id: \.label) { threshold in
+                RuleMark(y: .value("Limit", threshold.value))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                    .foregroundStyle(by: .value("Range", threshold.label))
+            }
+
             // Draw the selected percentile elements LAST so they're on top
             if let selectedPercentile = selectedPercentile {
                 ForEach(state.dailyGlucosePercentileStats) { day in
@@ -237,7 +219,6 @@ struct GlucoseDailyPercentileChart: View {
                         )
                         .foregroundStyle(Color.purple)
                         .lineStyle(StrokeStyle(lineWidth: selectedInterval == .total ? 1 : 2))
-                        .zIndex(200) // Set very high z-index
 
                         // Point marks
                         PointMark(
@@ -246,32 +227,9 @@ struct GlucoseDailyPercentileChart: View {
                         )
                         .symbolSize(selectedInterval == .total ? 10 : 30)
                         .foregroundStyle(Color.purple)
-                        .zIndex(300) // Even higher z-index for points
                     }
                 }
             }
-
-            // Threshold lines
-            RuleMark(
-                y: .value("Low Limit", Double(timeInRangeType.bottomThreshold).asUnit(units))
-            )
-            .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-            .foregroundStyle(by: .value("Range", "\(timeInRangeType.bottomThreshold.formatted(withUnits: units))"))
-            .zIndex(100)
-
-            RuleMark(
-                y: .value("Mid Limit", Double(timeInRangeType.topThreshold).asUnit(units))
-            )
-            .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-            .foregroundStyle(by: .value("Range", "\(timeInRangeType.topThreshold.formatted(withUnits: units))"))
-            .zIndex(100)
-
-            RuleMark(
-                y: .value("High Limit", Double(highLimit.asUnit(units)))
-            )
-            .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-            .foregroundStyle(by: .value("Range", "\(highLimit.formatted(withUnits: units))"))
-            .zIndex(100)
         }
         .chartYAxis {
             AxisMarks(values: .automatic) { value in
@@ -301,15 +259,10 @@ struct GlucoseDailyPercentileChart: View {
                 selectedPercentile = nil
             }
         }
-        .chartForegroundStyleScale([
-            "0-100%": .blue.opacity(0.15),
-            "10-90%": .blue.opacity(0.3),
-            "25-75%": .blue.opacity(0.5),
-            "Median": .blue,
-            "\(timeInRangeType.bottomThreshold.formatted(withUnits: units))": .staticLow,
-            "\(timeInRangeType.topThreshold.formatted(withUnits: units))": .staticInRange,
-            "\(highLimit.formatted(withUnits: units))": .staticHigh
-        ])
+        .chartForegroundStyleScale(
+            domain: seriesScale.map(\.label),
+            range: seriesScale.map(\.color)
+        )
         .chartScrollableAxes(.horizontal)
         .chartScrollPosition(x: $scrollPosition)
         .chartScrollTargetBehavior(
@@ -359,9 +312,7 @@ struct GlucoseDailyPercentileChart: View {
 
     // Helper function to determine opacity based on selections
     private func getOpacity(for day: GlucoseDailyPercentileStats) -> Double {
-        selectedDate.map { date in
-            StatChartUtils.isSameTimeUnit(day.date, date, for: .total) ? 1 : 0.3
-        } ?? 1
+        selectedDate.map { Calendar.current.isDate(day.date, inSameDayAs: $0) ? 1 : 0.3 } ?? 1
     }
 
     // Spacer box for each day
@@ -375,7 +326,7 @@ struct GlucoseDailyPercentileChart: View {
 
     // Calculate an appropriate Y axis domain for the chart
     private func glucoseYScaleDomain() -> ClosedRange<Double> {
-        let padding = units == .mgdL ? 20.0 : 1.0
+        let padding = 20.0.asUnit(units)
         let bottomLimit = 40.0.asUnit(units)
         let topLimit = 400.0.asUnit(units)
 
@@ -383,16 +334,7 @@ struct GlucoseDailyPercentileChart: View {
             return bottomLimit ... topLimit
         }
 
-        var allValues: [Double] = []
-        for day in visibleDailyStats where day.minimum > 0 {
-            allValues.append(day.maximum.asUnit(units))
-        }
-
-        guard !allValues.isEmpty else {
-            return bottomLimit ... topLimit
-        }
-
-        let maxValue = allValues.max() ?? topLimit
+        let maxValue = visibleDailyStats.lazy.filter { $0.minimum > 0 }.map { $0.maximum.asUnit(units) }.max() ?? topLimit
 
         return bottomLimit ... max(Double(highLimit.asUnit(units)), maxValue + padding)
     }

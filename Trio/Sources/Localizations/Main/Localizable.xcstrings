@@ -8506,6 +8506,7 @@
       }
     },
     "%@ (%@-%@)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -8637,6 +8638,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ (%2$@-%3$@)"
+          }
+        }
+      }
+    },
+    "%@ (%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ (%2$@)"
           }
         }
       }
@@ -10775,6 +10786,7 @@
       }
     },
     "%@-%@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -21606,6 +21618,7 @@
       }
     },
     "< %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -21866,6 +21879,7 @@
       }
     },
     "> %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -57032,6 +57046,7 @@
       }
     },
     "Avg" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -90498,6 +90513,7 @@
       }
     },
     "Count" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -159725,6 +159741,7 @@
       }
     },
     "High (%@-%@)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -159859,6 +159876,9 @@
           }
         }
       }
+    },
+    "High (%@)" : {
+
     },
     "High (>" : {
       "comment" : "Title High BG in statPanel",
@@ -160520,6 +160540,7 @@
       }
     },
     "High Limit" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -188968,6 +188989,7 @@
       }
     },
     "Low (%@-%@)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -189102,6 +189124,9 @@
           }
         }
       }
+    },
+    "Low (%@)" : {
+
     },
     "Low (<" : {
       "comment" : "Title Low BG in statPanel",
@@ -189901,6 +189926,7 @@
       }
     },
     "Low Limit" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -200576,6 +200602,7 @@
       }
     },
     "Med" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -201894,6 +201921,7 @@
       }
     },
     "Mid Limit" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -215484,6 +215512,7 @@
       }
     },
     "Normal (%@-%@)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -215618,6 +215647,9 @@
           }
         }
       }
+    },
+    "Normal (%@)" : {
+
     },
     "Normal Profile" : {
       "comment" : "Your normal Profile. Use a short string",
@@ -267687,6 +267719,9 @@
           }
         }
       }
+    },
+    "Share" : {
+
     },
     "Share anonymous crash reports + usage data." : {
       "localizations" : {
@@ -336763,7 +336798,11 @@
         }
       }
     },
+    "Very High (%@)" : {
+
+    },
     "Very High (>%@)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -336893,8 +336932,12 @@
         }
       }
     },
+    "Very Low (%@)" : {
+
+    },
     "Very Low (<%@)" : {
       "comment" : "A description of a glucose range.",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {

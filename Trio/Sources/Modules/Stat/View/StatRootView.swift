@@ -160,30 +160,27 @@ extension Stat {
 
                         if state.selectedGlucoseChartType == .percentileByDay {
                             GlucoseDailyPercentileChart(
-                                glucose: state.glucoseFromPersistence,
                                 highLimit: state.highLimit,
                                 units: state.units,
                                 timeInRangeType: state.timeInRangeType,
                                 selectedInterval: interval,
+                                state: state,
                                 isDaySelected: $isGlucoseDaySelected,
-                                state: state
                             )
                         } else { // if state.selectedGlucoseChartType == .distributionByDay
                             GlucoseDailyDistributionChart(
-                                glucose: state.glucoseReadings,
                                 highLimit: state.highLimit,
                                 units: state.units,
                                 timeInRangeType: state.timeInRangeType,
                                 selectedInterval: interval,
                                 eA1cDisplayUnit: state.eA1cDisplayUnit,
+                                state: state,
                                 isDaySelected: $isGlucoseDaySelected,
-                                state: state
                             )
                         }
 
                     case .percentileByTime:
                         GlucosePercentileChart(
-                            glucose: state.glucoseFromPersistence,
                             highLimit: state.highLimit,
                             timeInRangeType: state.timeInRangeType,
                             units: state.units,
@@ -193,9 +190,7 @@ extension Stat {
 
                     case .distributionByTime:
                         GlucoseDistributionChart(
-                            glucose: state.glucoseReadings,
                             highLimit: state.highLimit,
-                            lowLimit: state.lowLimit,
                             units: state.units,
                             glucoseRangeStats: state.glucoseRangeStats,
                             timeInRangeType: state.timeInRangeType
@@ -215,6 +210,7 @@ extension Stat {
                         timeInRangeType: state.timeInRangeType,
                         showChart: true
                     )
+                    .equatable()
 
                     Divider()
 
@@ -223,6 +219,7 @@ extension Stat {
                         eA1cDisplayUnit: state.eA1cDisplayUnit,
                         glucose: state.glucoseFromPersistence
                     )
+                    .equatable()
                 }
             }
         }

@@ -7,39 +7,17 @@ import Foundation
 /// ranges (e.g., low, normal, high) throughout the day. Each range has a name and
 /// corresponding hourly values showing the percentage of readings in that range.
 ///
-/// Example ranges and their meanings:
-/// - "<54": Urgent low
-/// - "54-70": Low
-/// - "70-140": Target range
-/// - "140-180": High
-/// - "180-200": Very high
-/// - "200-220": Very high+
-/// - ">220": Urgent high
-///
-/// Example usage:
-/// ```swift
-/// let range = GlucoseRangeStats(
-///     name: "70-140",           // Target range
-///     values: [
-///         (hour: 8, count: 75), // 75% of readings at 8 AM were in range
-///         (hour: 9, count: 80)  // 80% of readings at 9 AM were in range
-///     ]
-/// )
-/// ```
-///
 /// This data structure is used to create stacked area charts showing the
 /// distribution of glucose values across different ranges for each hour of the day.
-public struct GlucoseRangeStats: Identifiable {
-    /// The name of the glucose range (e.g., "70-140", "<54")
-    let name: String
+struct GlucoseRangeStats: Identifiable {
+    let band: GlucoseBand
 
     /// Array of tuples containing the hour and percentage of readings in this range
     /// - hour: Hour of the day (0-23)
-    /// - count: Percentage of readings in this range for the given hour (0-100)
-    let values: [(hour: Int, count: Int)]
+    /// - share: Percentage of readings in this range for the given hour (0-100)
+    let values: [(hour: Int, share: Double)]
 
-    /// Unique identifier for the range, derived from its name
-    public var id: String { name }
+    var id: GlucoseBand { band }
 }
 
 extension Stat.StateModel {
@@ -62,6 +40,10 @@ extension Stat.StateModel {
     /// - 140-180 = (2/7)*100 = 28.6%
     /// - 180-200 = (2/7)*100 = 28.6%
     func calculateGlucoseRangeStatsForStackedChart(from ids: [NSManagedObjectID]) async {
+        let bottom = timeInRangeType.bottomThreshold
+        let top = timeInRangeType.topThreshold
+        let high = Int(highLimit)
+
         let taskContext = CoreDataStack.shared.newTaskContext()
 
         let calendar = Calendar.current
@@ -77,53 +59,29 @@ extension Stat.StateModel {
                 }
             }
 
-            // Count unique days for each hour
-            let daysPerHour = (0 ... 23).map { hour in
-                let uniqueDays = Set(readings.compactMap { reading -> Date? in
-                    guard let date = reading.date else { return nil }
-                    if calendar.component(.hour, from: date) == hour {
-                        return calendar.startOfDay(for: date)
-                    }
-                    return nil
-                })
-                return (hour: hour, days: uniqueDays.count)
+            let validReadings = readings.compactMap { reading -> (date: Date, glucose: Int)? in
+                guard let date = reading.date else { return nil }
+                return (date, Int(reading.glucose))
             }
 
-            // Define glucose ranges and their conditions
-            // Ranges are processed from bottom to top in the stacked chart
-            let ranges: [(name: String, condition: (Int) -> Bool)] = [
-                ("<54", { g in g <= 54 }),
-                ("54-\(self.timeInRangeType.bottomThreshold)", { g in g > 54 && g < self.timeInRangeType.bottomThreshold }),
-                (
-                    "\(self.timeInRangeType.bottomThreshold)-\(self.timeInRangeType.topThreshold)",
-                    { g in g >= self.timeInRangeType.bottomThreshold && g <= self.timeInRangeType.topThreshold }
-                ),
-                ("\(self.timeInRangeType.topThreshold)-180", { g in g > self.timeInRangeType.topThreshold && g <= 180 }),
-                ("180-200", { g in g > 180 && g <= 200 }),
-                ("200-220", { g in g > 200 && g <= 220 }),
-                (">220", { g in g > 220 })
-            ]
+            let byHour = Dictionary(grouping: validReadings) { calendar.component(.hour, from: $0.date) }
 
             // Process each range to create the chart data
-            return ranges.map { rangeName, condition in
-                // Calculate values for each hour within this range
-                let hourlyValues = (0 ... 23).map { hour in
-                    let totalDaysForHour = Double(daysPerHour[hour].days)
-                    // Skip if no data for this hour
-                    guard totalDaysForHour > 0 else { return (hour: hour, count: 0) }
-
-                    // Count readings that match the range condition for this hour
-                    let readingsInRange = readings.filter { reading in
-                        guard let date = reading.date else { return false }
-                        return calendar.component(.hour, from: date) == hour &&
-                            condition(Int(reading.glucose))
-                    }.count
-
-                    // Convert to percentage based on number of days with data
-                    let percentage = (Double(readingsInRange) / totalDaysForHour) * 100.0
-                    return (hour: hour, count: Int(percentage))
+            return GlucoseBand.allCases.map { band in
+                let hourly = (0 ... 23).map { hour -> (hour: Int, share: Double) in
+                    let hourReadings = byHour[hour, default: []]
+                    let inBand = hourReadings.count {
+                        GlucoseBand.classify(
+                            $0.glucose,
+                            bottom: bottom,
+                            top: top,
+                            highLimit: high
+                        ) == band
+                    }
+                    return (hour, Self.share(inBand, of: hourReadings.count))
                 }
-                return GlucoseRangeStats(name: rangeName, values: hourlyValues)
+
+                return GlucoseRangeStats(band: band, values: hourly)
             }
         }
 
@@ -131,5 +89,9 @@ extension Stat.StateModel {
         await MainActor.run {
             self.glucoseRangeStats = stats
         }
+    }
+
+    private static func share(_ count: Int, of total: Int) -> Double {
+        total > 0 ? Double(count) / Double(total) * 100 : 0
     }
 }

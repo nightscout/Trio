@@ -74,6 +74,23 @@ struct StatChartUtils {
         return .center
     }
 
+    @AxisContentBuilder static func timeOfDayAxisMarks() -> some AxisContent {
+        AxisMarks(preset: .aligned, values: .stride(by: .hour, count: 3)) { value in
+            if let date = value.as(Date.self) {
+                let hour = Calendar.current.component(.hour, from: date)
+                switch hour {
+                case 0,
+                     12:
+                    AxisValueLabel(format: .dateTime.hour(), anchor: .top)
+                default:
+                    AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .omitted)), anchor: .top)
+                }
+
+                AxisGridLine()
+            }
+        }
+    }
+
     /// Returns the x-axis marks shared by the scrollable, date-based stat charts.
     ///
     /// - Parameter selectedInterval: The selected time interval for statistics.
@@ -152,6 +169,69 @@ struct StatChartUtils {
             return calendar.isDate(date1, equalTo: date2, toGranularity: .hour)
         default:
             return calendar.isDate(date1, inSameDayAs: date2)
+        }
+    }
+
+    static func formatPercentage(_ value: Decimal, fractionDigits: Int = 1) -> String {
+        (value / 100).formatted(.percent.precision(.fractionLength(fractionDigits)))
+    }
+
+    static func formatPercentage(_ value: Double, fractionDigits: Int = 1) -> String {
+        (value / 100).formatted(.percent.precision(.fractionLength(fractionDigits)))
+    }
+
+    static func hourRangeText(for date: Date, calendar: Calendar = .current) -> String {
+        let hourRange = calendar.date(byAdding: .hour, value: 1, to: date) ?? date
+
+        return date.formatted(.dateTime.hour()) + "-" + hourRange.formatted(.dateTime.hour())
+    }
+
+    static func glucoseThresholds(
+        timeInRangeType: TimeInRangeType,
+        highLimit: Decimal,
+        units: GlucoseUnits
+    ) -> [(label: String, color: Color, value: Double)] {
+        [
+            (
+                timeInRangeType.bottomThreshold.formatted(withUnits: units),
+                .staticLow,
+                Double(timeInRangeType.bottomThreshold).asUnit(units)
+            ),
+            (
+                timeInRangeType.topThreshold.formatted(withUnits: units),
+                .staticInRange,
+                Double(timeInRangeType.topThreshold).asUnit(units)
+            ),
+            (
+                highLimit.formatted(withUnits: units),
+                .staticHigh,
+                Double(highLimit.asUnit(units))
+            )
+        ]
+    }
+
+    static func glucoseBandDisplayInfo(
+        for band: GlucoseBand,
+        units: GlucoseUnits,
+        timeInRangeType: TimeInRangeType,
+        highLimit: Decimal
+    ) -> (label: String, color: Color) {
+        switch band {
+        case .veryLow: ("<\(Decimal(54).formatted(for: units))", .dynamicRed)
+        case .low: (
+                "\(Decimal(54).formatted(for: units))-\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))",
+                .dynamicOrange
+            )
+        case .tight: (
+                "\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(Decimal(timeInRangeType.topThreshold).formatted(for: units))",
+                .dynamicGreen
+            )
+        case .upperMid: (
+                "\(Decimal(timeInRangeType.topThreshold).formatted(for: units))-\(highLimit.formatted(for: units))",
+                .dynamicTeal
+            )
+        case .high: ("\(highLimit.formatted(for: units))-\(Decimal(250).formatted(for: units))", .dynamicBlue)
+        case .veryHigh: (">\(Decimal(250).formatted(for: units))", .dynamicPurple)
         }
     }
 
@@ -238,19 +318,17 @@ struct StatChartUtils {
         .accessibilityValue(Text(value))
     }
 
-    /// Computes the median value of an array of integers.
-    ///
-    /// - Parameter array: An array of integers.
-    /// - Returns: The median value as a `Double`. Returns `0` if the array is empty.
-    static func medianCalculation(array: [Int]) -> Double {
-        guard !array.isEmpty else { return 0 }
-        let sorted = array.sorted()
-        let length = array.count
+    static func summaryStats(for values: [Int]) -> (average: Double, median: Double, standardDeviation: Double) {
+        guard !values.isEmpty else { return (0, 0, 0) }
 
-        if length % 2 == 0 {
-            return Double((sorted[length / 2 - 1] + sorted[length / 2]) / 2)
-        }
-        return Double(sorted[length / 2])
+        let total = values.reduce(0, +)
+        let average = Double(total) / Double(values.count)
+        let median = medianCalculationDouble(array: values.map(Double.init))
+
+        let sumOfSquaredDifferences = values.reduce(0.0) { $0 + pow(Double($1) - average, 2) }
+        let standardDeviation = sqrt(sumOfSquaredDifferences / max(Double(values.count - 1), 1))
+
+        return (average, median, standardDeviation)
     }
 
     /// Computes the median value of an array of doubles.
@@ -266,6 +344,18 @@ struct StatChartUtils {
             return (sorted[length / 2 - 1] + sorted[length / 2]) / 2
         }
         return sorted[length / 2]
+    }
+
+    static func percentile(_ p: Double, of sortedValues: [Double]) -> Double {
+        guard !sortedValues.isEmpty else { return 0 }
+
+        let position = Double(sortedValues.count - 1) * p
+        let lower = Int(floor(position))
+        let upper = Int(ceil(position))
+        if lower == upper { return sortedValues[lower] }
+
+        let weight = position - Double(lower)
+        return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight
     }
 
     /// Creates a legend item view for use in a chart legend.

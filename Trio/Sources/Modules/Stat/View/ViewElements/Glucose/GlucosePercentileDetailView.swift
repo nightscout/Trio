@@ -16,15 +16,10 @@ struct GlucoseDailyPercentileDetailView: View {
 
             // Only show percentile details if we have valid data
             if dayData.median > 0 {
-                // Improved percentile display
                 HStack(spacing: 0) {
-                    percentileItem(label: "Min", value: round(dayData.minimum), type: .minimum)
-                    percentileItem(label: "10%", value: round(dayData.percentile10), type: .percentile10)
-                    percentileItem(label: "25%", value: round(dayData.percentile25), type: .percentile25)
-                    percentileItem(label: "Median", value: round(dayData.median), type: .median)
-                    percentileItem(label: "75%", value: round(dayData.percentile75), type: .percentile75)
-                    percentileItem(label: "90%", value: round(dayData.percentile90), type: .percentile90)
-                    percentileItem(label: "Max", value: round(dayData.maximum), type: .maximum)
+                    ForEach(GlucosePercentileType.allCases) { type in
+                        percentileItem(type: type, value: round(type.getValue(from: dayData)))
+                    }
                 }
                 .padding(.vertical, 8)
             } else {
@@ -37,10 +32,10 @@ struct GlucoseDailyPercentileDetailView: View {
 
     /// Creates a single percentile item for the detail view
     private func percentileItem(
-        label: String,
-        value: Double,
-        type: GlucosePercentileType
+        type: GlucosePercentileType,
+        value: Double
     ) -> some View {
+        let label = type.shortLabel
         // Explicitly-typed locals: without them the repeated `type == selectedPercentile`
         // ternaries (Color vs .primary/.secondary/.clear) across this modifier chain make the
         // Swift type-checker time out on some build configurations.
