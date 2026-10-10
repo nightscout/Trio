@@ -27,6 +27,7 @@ import WatchConnectivity
     var lastLoopTime: String? = "--"
     var overridePresets: [OverridePresetWatch] = []
     var tempTargetPresets: [TempTargetPresetWatch] = []
+    var snoozeUntilDate: Date = .distantPast
 
     /// treatments inputs
     /// used to store carbs for combined meal-bolus-treatments
@@ -574,6 +575,10 @@ import WatchConnectivity
 
         if let isForecastCone = message[WatchMessageKeys.isForecastCone] as? Bool {
             self.isForecastCone = isForecastCone
+        }
+
+        if let snoozeTimestamp = message[WatchMessageKeys.snoozeUntilDate] as? TimeInterval {
+            snoozeUntilDate = Date(timeIntervalSince1970: snoozeTimestamp)
         }
 
         if let forecastPayload = message[WatchMessageKeys.forecastData] as? [String: Any] {
