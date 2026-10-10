@@ -466,6 +466,7 @@
 		CAF20000000000000000000F /* Trio/Resources/Sounds/synth.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF10000000000000000000F /* Trio/Resources/Sounds/synth.caf */; };
 		CAF200000000000000000010 /* Trio/Resources/Sounds/trill.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000010 /* Trio/Resources/Sounds/trill.caf */; };
 		CAF200000000000000000011 /* Trio/Resources/Sounds/urgent_low.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000011 /* Trio/Resources/Sounds/urgent_low.caf */; };
+		CAF200000000000000000012 /* Trio/Resources/Sounds/Tu_Mangi_CHO.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000012 /* Trio/Resources/Sounds/Tu_Mangi_CHO.caf */; };
 		BD1179402F4E22C100F90001 /* ForecastedGlucoseEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179412F4E22C100F90001 /* ForecastedGlucoseEvaluator.swift */; };
 		BD1179522F4E22C100F90001 /* DayNightOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179512F4E22C100F90001 /* DayNightOptions.swift */; };
 		BD1179542F4E22C100F90001 /* GlucoseAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179532F4E22C100F90001 /* GlucoseAlert.swift */; };
@@ -1554,6 +1555,7 @@
 		CAF10000000000000000000F /* Trio/Resources/Sounds/synth.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/synth.caf; sourceTree = SOURCE_ROOT; };
 		CAF100000000000000000010 /* Trio/Resources/Sounds/trill.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/trill.caf; sourceTree = SOURCE_ROOT; };
 		CAF100000000000000000011 /* Trio/Resources/Sounds/urgent_low.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/urgent_low.caf; sourceTree = SOURCE_ROOT; };
+		CAF100000000000000000012 /* Trio/Resources/Sounds/Tu_Mangi_CHO.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/Tu_Mangi_CHO.caf; sourceTree = SOURCE_ROOT; };
 		BD1179412F4E22C100F90001 /* ForecastedGlucoseEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastedGlucoseEvaluator.swift; sourceTree = "<group>"; };
 		BD1179512F4E22C100F90001 /* DayNightOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayNightOptions.swift; sourceTree = "<group>"; };
 		BD1179532F4E22C100F90001 /* GlucoseAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseAlert.swift; sourceTree = "<group>"; };
@@ -2688,6 +2690,7 @@
 				CAF10000000000000000000F /* Trio/Resources/Sounds/synth.caf */,
 				CAF100000000000000000010 /* Trio/Resources/Sounds/trill.caf */,
 				CAF100000000000000000011 /* Trio/Resources/Sounds/urgent_low.caf */,
+				CAF100000000000000000012 /* Trio/Resources/Sounds/Tu_Mangi_CHO.caf */,
 				3811DEC725C9DA7300A708ED /* Trio.entitlements */,
 				388E596425AD948E0019842D /* Info.plist */,
 				8A91342B2D63D9A2007F8874 /* InfoPlist.xcstrings */,
@@ -5068,6 +5071,7 @@
 				CAF20000000000000000000F /* Trio/Resources/Sounds/synth.caf in Resources */,
 				CAF200000000000000000010 /* Trio/Resources/Sounds/trill.caf in Resources */,
 				CAF200000000000000000011 /* Trio/Resources/Sounds/urgent_low.caf in Resources */,
+				CAF200000000000000000012 /* Trio/Resources/Sounds/Tu_Mangi_CHO.caf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
