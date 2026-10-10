@@ -1,0 +1,159 @@
+import Foundation
+import SwiftUI
+import Swinject
+
+struct LiveActivitySimpleWidgetConfiguration: BaseView {
+    let resolver: Resolver
+
+    @ObservedObject var state: LiveActivitySettings.StateModel
+
+    private static let previewGlucose = 123
+    private static let previewDelta = 6
+
+    @State private var shouldDisplayHintFont: Bool = false
+    @State private var hintDetent = PresentationDetent.large
+
+    @Environment(\.colorScheme) var colorScheme
+    @Environment(AppState.self) var appState
+
+    private var selectedStyle: LiveActivityAttributes.SimpleViewStyle {
+        LiveActivityAttributes.SimpleViewStyle(fontSize: state.simpleFontSize)
+    }
+
+    var body: some View {
+        List {
+            Section {
+                previewCard
+            } header: {
+                Text("Preview")
+            }.listRowBackground(Color.chart)
+
+            Section {
+                Picker(selection: $state.simpleFontSize) {
+                    ForEach(LiveActivityFontSize.allCases) { size in
+                        Text(size.displayName).tag(size)
+                    }
+                } label: {
+                    Text("Font Size")
+                }
+
+                hintRow
+            } header: {
+                Text("Glucose Reading Font")
+            }.listRowBackground(Color.chart)
+        }
+        .listSectionSpacing(sectionSpacing)
+        .sheet(isPresented: $shouldDisplayHintFont) {
+            SettingInputHintView(
+                hintDetent: $hintDetent,
+                shouldDisplayHint: $shouldDisplayHintFont,
+                hintLabel: String(localized: "Glucose Reading Font"),
+                hintText: AnyView(fontHintText),
+                sheetTitle: String(localized: "Help", comment: "Help sheet title")
+            )
+        }
+        .scrollContentBackground(.hidden)
+        .background(appState.trioBackgroundColor(for: colorScheme))
+        .navigationTitle("Widget Configuration")
+        .navigationBarTitleDisplayMode(.automatic)
+    }
+
+    private var previewCard: some View {
+        HStack(spacing: 3) {
+            HStack(spacing: 3) {
+                Text(previewGlucoseText)
+                Text("\u{2192}")
+                    .scaleEffect(x: 0.7, y: 0.7, anchor: .leading)
+                    .padding(.trailing, -5)
+            }
+            .font(selectedStyle.glucoseFont)
+            .foregroundStyle(previewReadingColor)
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 5) {
+                Text(previewDeltaText)
+                    .font(.title3)
+                    .foregroundStyle(previewReadingColor)
+
+                HStack {
+                    Text("Updated:")
+                        .foregroundStyle(.secondary)
+                    Text(previewTimeText)
+                        .bold()
+                        .foregroundStyle(.secondary)
+                }
+                .font(.caption)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, selectedStyle.fontSize.verticalPadding ?? 14)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.primary.opacity(colorScheme == .dark ? 0.1 : 0.05))
+        )
+        .padding(.vertical, 8)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text("Lock Screen widget preview"))
+    }
+
+    private var previewGlucoseText: String {
+        LiveActivityAttributes.ContentState.formatGlucose(Self.previewGlucose, units: state.units, forceSign: false)
+    }
+
+    private var previewDeltaText: String {
+        LiveActivityAttributes.ContentState.formatGlucose(Self.previewDelta, units: state.units, forceSign: true)
+    }
+
+    private var previewTimeText: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        return formatter.string(from: Date())
+    }
+
+    private var previewReadingColor: Color {
+        guard state.glucoseColorScheme != .staticColor else { return .primary }
+
+        let isMgdL = state.units == .mgdL
+
+        let hardCodedLow = isMgdL ? Decimal(55) : 55.asMmolL
+        let hardCodedHigh = isMgdL ? Decimal(220) : 220.asMmolL
+
+        return Trio.getDynamicGlucoseColor(
+            glucoseValue: isMgdL ? Decimal(Self.previewGlucose) : Self.previewGlucose.asMmolL,
+            highGlucoseColorValue: hardCodedHigh,
+            lowGlucoseColorValue: hardCodedLow,
+            targetGlucose: isMgdL ? Decimal(100) : 100.asMmolL,
+            glucoseColorScheme: state.glucoseColorScheme
+        )
+    }
+
+    private var fontHintText: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Default: Large").bold()
+            Text(
+                "Changes the size of the current glucose reading and its trend arrow on the Simple Lock Screen widget. The delta and the time of the last reading are not affected."
+            )
+            Text(
+                "Sizes follow your iPhone's text size setting, so the reading keeps scaling if you change the text size in iOS Settings."
+            )
+        }
+    }
+
+    private var hintRow: some View {
+        HStack(alignment: .center) {
+            Text("Set the size of the glucose reading.")
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .lineLimit(nil)
+            Spacer()
+            Button(action: { shouldDisplayHintFont.toggle() }) {
+                Image(systemName: "questionmark.circle")
+            }
+            .buttonStyle(BorderlessButtonStyle())
+            .accessibilityLabel(Text("More information about Glucose Reading Font"))
+        }.padding(.vertical)
+    }
+}

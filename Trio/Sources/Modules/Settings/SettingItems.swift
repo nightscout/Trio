@@ -377,7 +377,8 @@ enum SettingItems {
             view: .liveActivitySettings,
             searchContents: [
                 "Enable Live Activity",
-                "Lock Screen Widget Style"
+                "Lock Screen Widget Style",
+                "Widget Configuration"
             ],
             path: ["Notifications", "Live Activity"]
         ),
