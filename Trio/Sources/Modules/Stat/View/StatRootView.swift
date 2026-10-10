@@ -1,5 +1,3 @@
-import Charts
-import SwiftDate
 import SwiftUI
 import Swinject
 
