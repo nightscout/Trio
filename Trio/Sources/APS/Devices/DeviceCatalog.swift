@@ -22,6 +22,8 @@ import MockKit
 import MockKitUI
 import ObjectiveC
 import OmnipodKit
+import SyaiKit
+import SyaiKitUI
 import UIKit
 
 /// Single source of truth for every CGM and pump Trio can pair with.
@@ -45,6 +47,7 @@ enum DeviceManufacturer: CaseIterable {
     case roche
     case senseonics
     case sooil
+    case syai
     case otherSources
     case simulator
 
@@ -59,6 +62,7 @@ enum DeviceManufacturer: CaseIterable {
         case .roche: return "Roche"
         case .senseonics: return "Senseonics"
         case .sooil: return "SOOIL"
+        case .syai: return "Syai"
         case .otherSources: return String(localized: "Other Sources", comment: "Device picker section for data relays")
         case .simulator: return String(localized: "Simulator", comment: "Device picker section for simulated devices")
         }
@@ -387,6 +391,13 @@ extension DeviceCatalog {
             name: "Eversense",
             supportedModels: ["E3", "E365"],
             icon: .managerBundle(asset: "transmitter")
+        ),
+
+        CGMCatalogEntry(
+            .managed(SyaiCGMManager.self),
+            manufacturer: .syai,
+            name: "Syai Ultra",
+            icon: .uiBundle(identifier: "org.loopkit.SyaiKitUI", asset: "sensor")
         ),
 
         CGMCatalogEntry(.native(.nightscout), manufacturer: .otherSources, icon: .trio(asset: "owl")),
