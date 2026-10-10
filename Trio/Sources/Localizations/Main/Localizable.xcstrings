@@ -56901,6 +56901,18 @@
         }
       }
     },
+    "Average of the Last 24 Hours" : {
+      "comment" : "Stats banner subtitle"
+    },
+    "Average of the Last 3 Months" : {
+      "comment" : "Stats banner subtitle"
+    },
+    "Average of the Last 7 Days" : {
+      "comment" : "Stats banner subtitle"
+    },
+    "Average of the Last Month" : {
+      "comment" : "Stats banner subtitle"
+    },
     "Average:" : {
       "localizations" : {
         "bg" : {
@@ -57030,6 +57042,9 @@
           }
         }
       }
+    },
+    "Averages" : {
+      "comment" : "Home stats panel face option"
     },
     "Avg" : {
       "localizations" : {
@@ -80104,6 +80119,9 @@
         }
       }
     },
+    "Choose how far back the statistics panel on the home screen looks. The full statistics view opens on the same time span.\n\nToday: from midnight until now.\n\nLast 24 Hours: the past 24 hours.\n\nLast 7 Days: the past 7 days.\n\nLast Month: the past month.\n\nLast 3 Months: the past 3 months.\n\nThe panel's wording follows your choice, for example \"Time in Range last 7 days\"." : {
+
+    },
     "Choose if you only want to use a datafield and no supported watchface!" : {
       "localizations" : {
         "bg" : {
@@ -80233,6 +80251,9 @@
           }
         }
       }
+    },
+    "Choose the time span the home statistics panel covers." : {
+
     },
     "Choose to display eA1c and GMI in percent or mmol/mol." : {
       "localizations" : {
@@ -81016,7 +81037,7 @@
       }
     },
     "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: today's time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nToday's Averages: today's average glucose and GMI (Glucose Management Index).\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut." : {
-
+      "extractionState" : "stale"
     },
     "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: today's time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nToday's Averages: today's average glucose and GMI (Glucose Management Index).\n\nToday's Treatments: insulin delivered since midnight — no glucose statistics. Announced carbs (and fat and protein, if you log them) appear once logged that day.\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut." : {
       "extractionState" : "stale",
@@ -81148,6 +81169,9 @@
           }
         }
       }
+    },
+    "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: your time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nAverages: your average glucose and GMI (Glucose Management Index).\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut.\n\nThe numbers cover the time span set in Statistics Range." : {
+
     },
     "Choose whether or not to display one or both X- and Y-Axis grid lines." : {
       "localizations" : {
@@ -177921,6 +177945,24 @@
         }
       }
     },
+    "last 24 hours" : {
+      "comment" : "Stats banner scope"
+    },
+    "Last 24 Hours" : {
+      "comment" : "Home stats panel range option"
+    },
+    "last 3 months" : {
+      "comment" : "Stats banner scope"
+    },
+    "Last 3 Months" : {
+      "comment" : "Home stats panel range option"
+    },
+    "last 7 days" : {
+      "comment" : "Stats banner scope"
+    },
+    "Last 7 Days" : {
+      "comment" : "Home stats panel range option"
+    },
     "Last Blood Sugar prediction" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -178978,6 +179020,12 @@
           }
         }
       }
+    },
+    "last month" : {
+      "comment" : "Stats banner scope"
+    },
+    "Last Month" : {
+      "comment" : "Home stats panel range option"
     },
     "Last run" : {
       "extractionState" : "manual",
@@ -282017,6 +282065,9 @@
         }
       }
     },
+    "Statistics Range" : {
+
+    },
     "Stay in open loop (no automated dosing) for a bit to help Trio catch up to keep you safe" : {
       "localizations" : {
         "bg" : {
@@ -315361,6 +315412,7 @@
     },
     "Today's Averages" : {
       "comment" : "Home stats panel face option",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
