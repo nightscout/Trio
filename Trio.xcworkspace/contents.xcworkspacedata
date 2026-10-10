@@ -29,7 +29,7 @@
       location = "group:LibreLoop/LibreLoop.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:LibreCRKit">
+      location = "group:RoundWhiteDiscKit">
    </FileRef>
    <FileRef
       location = "group:LoopAlgorithm">
