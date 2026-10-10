@@ -131,6 +131,18 @@
         }
       }
     },
+    "Every %d min" : {
+
+    },
+    "Repeat" : {
+
+    },
+    "Repeat Alarm" : {
+
+    },
+    "While the condition persists, the alarm sounds again once the chosen interval has passed. Alarms with Override Silence & Focus Mode ring until acknowledged and never repeat." : {
+
+    },
     "\n\nTap 'Add' to continue with selected amount." : {
       "comment" : "Alert to confirm bolus amount to add",
       "extractionState" : "manual",

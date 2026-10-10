@@ -63,6 +63,11 @@ struct GlucoseAlertEditorView: View {
                     playsSound: $working.playsSound,
                     soundFilename: $working.soundFilename
                 )
+                // Critical alarms ring until acknowledged, so the repeat only
+                // applies — and only shows — while the override is off.
+                if !working.overridesSilenceAndDND {
+                    repeatSection
+                }
 
                 if !isNew, store.canDelete(working) {
                     Section {
@@ -117,6 +122,21 @@ struct GlucoseAlertEditorView: View {
                 String(localized: "Override Silence & Focus Mode"),
                 isOn: $working.overridesSilenceAndDND
             )
+        }.listRowBackground(Color.chart)
+    }
+
+    private var repeatSection: some View {
+        Section(
+            header: Text("Repeat"),
+            footer: Text(
+                "While the condition persists, the alarm sounds again once the chosen interval has passed. Alarms with Override Silence & Focus Mode ring until acknowledged and never repeat."
+            )
+        ) {
+            Picker(String(localized: "Repeat Alarm"), selection: $working.repeatInterval) {
+                ForEach(GlucoseAlertRepeatInterval.allCases) { option in
+                    Text(option.localizedTitle).tag(option)
+                }
+            }
         }.listRowBackground(Color.chart)
     }
 

@@ -19,6 +19,11 @@ struct GlucoseAlert: Identifiable, Codable, Equatable {
     /// Critical Alerts entitlement.
     var overridesSilenceAndDND: Bool
     var activeOption: ActiveOption
+    /// Re-issue cadence while the condition persists. Only honored for
+    /// non-critical alarms: with `overridesSilenceAndDND` on, the alarm
+    /// rings until acknowledged, so there is nothing to repeat. The stored
+    /// value survives toggling the override so it comes back intact.
+    var repeatInterval: GlucoseAlertRepeatInterval
     /// Per-alarm snooze. Distinct from the global mute on `AlertMuter`.
     var snoozedUntil: Date?
 
@@ -32,6 +37,7 @@ struct GlucoseAlert: Identifiable, Codable, Equatable {
         playsSound = true
         overridesSilenceAndDND = type.defaultOverridesSilenceAndDND
         activeOption = .always
+        repeatInterval = .off
         snoozedUntil = nil
     }
 
@@ -55,6 +61,7 @@ struct GlucoseAlert: Identifiable, Codable, Equatable {
         case playsSound
         case overridesSilenceAndDND
         case activeOption
+        case repeatInterval
         case snoozedUntil
     }
 
@@ -72,6 +79,34 @@ struct GlucoseAlert: Identifiable, Codable, Equatable {
             forKey: .overridesSilenceAndDND
         ) ?? type.defaultOverridesSilenceAndDND
         activeOption = try container.decodeIfPresent(ActiveOption.self, forKey: .activeOption) ?? .always
+        repeatInterval = try container.decodeIfPresent(GlucoseAlertRepeatInterval.self, forKey: .repeatInterval) ?? .off
         snoozedUntil = try container.decodeIfPresent(Date.self, forKey: .snoozedUntil)
+    }
+}
+
+/// How often a non-critical alarm re-issues while its condition persists.
+/// Raw value is the interval in minutes; `off` keeps today's fire-once
+/// behavior. 
+enum GlucoseAlertRepeatInterval: Int, Codable, CaseIterable, Identifiable {
+    case off = 0
+    case tenMinutes = 10
+    case fifteenMinutes = 15
+    case thirtyMinutes = 30
+    case sixtyMinutes = 60
+
+    var id: Int { rawValue }
+
+    /// nil for `off`.
+    var timeInterval: TimeInterval? {
+        self == .off ? nil : TimeInterval(rawValue * 60)
+    }
+
+    var localizedTitle: String {
+        switch self {
+        case .off:
+            return String(localized: "Off")
+        default:
+            return String(format: String(localized: "Every %d min"), rawValue)
+        }
     }
 }

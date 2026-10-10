@@ -19,7 +19,8 @@ import Swinject
 ///
 /// Throttling + snooze are inherited from `TrioAlertManager.issueAlert`. The
 /// coordinator additionally tracks per-alarm firing state so it can retract
-/// the alert when the condition recovers (no flap-spam).
+/// the alert when the condition recovers, and re-issues
+/// non-critical alarms on their `repeatInterval` while the breach persists.
 final class GlucoseAlertCoordinator: Injectable {
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var glucoseStorage: GlucoseStorage!
@@ -29,6 +30,7 @@ final class GlucoseAlertCoordinator: Injectable {
 
     private let evaluationQueue = DispatchQueue(label: "GlucoseAlertCoordinator.queue")
     private var firingAlertIDs: Set<UUID> = []
+    private var lastIssuedAt: [UUID: Date] = [:]
     private var subscriptions = Set<AnyCancellable>()
     @SyncAccess private var alertsSnapshot: [GlucoseAlert] = []
     @SyncAccess private var configurationSnapshot = GlucoseAlertConfiguration()
@@ -73,6 +75,21 @@ final class GlucoseAlertCoordinator: Injectable {
         case .carbsRequired:
             return false
         }
+    }
+
+    static let repeatToleranceSeconds: TimeInterval = 30
+
+    static func shouldRepeat(
+        _ alarm: GlucoseAlert,
+        lastIssuedAt: Date?,
+        now: Date,
+        tolerance: TimeInterval = repeatToleranceSeconds
+    ) -> Bool {
+        guard let interval = alarm.repeatInterval.timeInterval,
+              !alarm.overridesSilenceAndDND,
+              let last = lastIssuedAt
+        else { return false }
+        return now.timeIntervalSince(last) >= interval - tolerance
     }
 
     /// Readings older than this are considered stale and won't drive new
@@ -287,10 +304,19 @@ final class GlucoseAlertCoordinator: Injectable {
     /// Called only from the evaluation queue (forecast + reading paths both
     /// dispatch through `evaluationQueue` before invoking the evaluators),
     /// so `firingAlertIDs` is serialized without an extra `.sync` hop.
+    /// First breach issues the alert; while it keeps breaching, a
+    /// non-critical alarm with a repeat interval re-issues under the same
+    /// identifier once the interval has passed. Re-issuing replaces the
+    /// delivered notification (which sounds again) and refreshes the in-app
+    /// banner text with the current value.
     private func fireIfNeeded(_ alarm: GlucoseAlert, valueMgDL: Decimal) {
         dispatchPrecondition(condition: .onQueue(evaluationQueue))
-        guard !firingAlertIDs.contains(alarm.id) else { return }
+        let now = Date()
+        if firingAlertIDs.contains(alarm.id) {
+            guard Self.shouldRepeat(alarm, lastIssuedAt: lastIssuedAt[alarm.id], now: now) else { return }
+        }
         firingAlertIDs.insert(alarm.id)
+        lastIssuedAt[alarm.id] = now
 
         let title = alarm.name.isEmpty ? alarm.type.displayName : alarm.name
         let body = bodyText(for: alarm, valueMgDL: valueMgDL)
@@ -314,6 +340,7 @@ final class GlucoseAlertCoordinator: Injectable {
         dispatchPrecondition(condition: .onQueue(evaluationQueue))
         guard firingAlertIDs.contains(alarm.id) else { return }
         firingAlertIDs.remove(alarm.id)
+        lastIssuedAt.removeValue(forKey: alarm.id)
         trioAlertManager.retractAlert(identifier: alertID(for: alarm))
     }
 
@@ -325,6 +352,7 @@ final class GlucoseAlertCoordinator: Injectable {
                 self.trioAlertManager.retractAlert(identifier: self.alertID(for: alarm))
             }
             self.firingAlertIDs.removeAll()
+            self.lastIssuedAt.removeAll()
         }
     }
 
@@ -453,6 +481,7 @@ extension GlucoseAlertCoordinator: SnoozeObserver {
         guard untilDate > Date() else { return }
         evaluationQueue.async { [weak self] in
             self?.firingAlertIDs.removeAll()
+            self?.lastIssuedAt.removeAll()
         }
     }
 }
@@ -480,6 +509,7 @@ extension GlucoseAlertCoordinator: GlucoseSnoozeObserver {
             let ids = Set(matchingAlarms.map(\.id))
             self.evaluationQueue.async { [weak self] in
                 self?.firingAlertIDs.subtract(ids)
+                for id in ids { self?.lastIssuedAt.removeValue(forKey: id) }
             }
         }
     }
