@@ -77,6 +77,19 @@ enum GlucoseAlertType: String, Codable, CaseIterable, Identifiable {
         }
     }
 
+    /// Bounds for the threshold picker / slider. Mg/dL for glucose types,
+    /// grams for `carbsRequired`. Shared by the alarm editor and the
+    /// quick-adjust sliders in the snooze sheet.
+    var thresholdRange: ClosedRange<Decimal> {
+        switch self {
+        case .urgentLow: return 54 ... 80
+        case .low: return 54 ... 100
+        case .forecastedLow: return 54 ... 100
+        case .high: return 100 ... 400
+        case .carbsRequired: return 5 ... 50
+        }
+    }
+
     /// Default bundled sound filename. See `Trio/Resources/Sounds/`.
     var defaultSoundFilename: String {
         switch self {
