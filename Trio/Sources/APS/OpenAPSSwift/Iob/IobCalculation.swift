@@ -10,7 +10,7 @@ struct IobTotal: Codable {
     let time: Date
 }
 
-enum IobCalculation {
+public enum IobCalculation {
     struct IobCalculationResult {
         let activityContrib: Double
         let iobContrib: Double
@@ -21,7 +21,7 @@ enum IobCalculation {
     /// - Note: defaults mirror LoopKit's `ExponentialInsulinModelPreset` (rapidActingAdult,
     /// fiasp) and custom bounds come from oref0. Literals because the algorithm package
     /// compiles this file without LoopKit; `testDefaultPeaksMatchLoopKit` pins them.
-    static func lookupPeak(curve: InsulinCurve, useCustomPeakTime: Bool, insulinPeakTime: Decimal) -> Double? {
+    public static func lookupPeak(curve: InsulinCurve, useCustomPeakTime: Bool, insulinPeakTime: Decimal) -> Double? {
         let defaultPeak: Double
         let customBounds: ClosedRange<Double>
         switch curve {

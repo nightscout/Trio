@@ -63,9 +63,9 @@ extension Profile {
     }
 }
 
-enum ProfileGenerator {
+public enum ProfileGenerator {
     /// This function is a port of the prepare/profile.js function from Trio, and it calls the core OpenAPS function
-    static func generate(
+    public static func generate(
         pumpSettings: PumpSettings,
         bgTargets: BGTargets,
         basalProfile: [BasalProfileEntry],

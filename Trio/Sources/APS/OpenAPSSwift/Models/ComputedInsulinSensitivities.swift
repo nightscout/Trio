@@ -1,9 +1,19 @@
 import Foundation
 
-struct ComputedInsulinSensitivities: Codable {
-    let units: GlucoseUnits
-    let userPreferredUnits: GlucoseUnits
-    let sensitivities: [ComputedInsulinSensitivityEntry]
+public struct ComputedInsulinSensitivities: Codable {
+    public let units: GlucoseUnits
+    public let userPreferredUnits: GlucoseUnits
+    public let sensitivities: [ComputedInsulinSensitivityEntry]
+
+    public init(
+        units: GlucoseUnits,
+        userPreferredUnits: GlucoseUnits,
+        sensitivities: [ComputedInsulinSensitivityEntry]
+    ) {
+        self.units = units
+        self.userPreferredUnits = userPreferredUnits
+        self.sensitivities = sensitivities
+    }
 
     func toInsulinSensitivities() -> InsulinSensitivities {
         let sensitivities = self.sensitivities
@@ -20,14 +30,14 @@ extension ComputedInsulinSensitivities {
     }
 }
 
-struct ComputedInsulinSensitivityEntry: Codable {
-    let sensitivity: Decimal
-    let offset: Int
-    let start: String
-    var endOffset: Int?
-    let id: UUID // we use this to help with mutating inputs, we don't serialize it
+public struct ComputedInsulinSensitivityEntry: Codable {
+    public let sensitivity: Decimal
+    public let offset: Int
+    public let start: String
+    public var endOffset: Int?
+    public let id: UUID // we use this to help with mutating inputs, we don't serialize it
 
-    init(sensitivity: Decimal, offset: Int, start: String, endOffset: Int? = nil, id: UUID? = nil) {
+    public init(sensitivity: Decimal, offset: Int, start: String, endOffset: Int? = nil, id: UUID? = nil) {
         self.sensitivity = sensitivity
         self.offset = offset
         self.start = start
@@ -42,7 +52,7 @@ struct ComputedInsulinSensitivityEntry: Codable {
         case endOffset
     }
 
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(sensitivity, forKey: .sensitivity)
         try container.encode(offset, forKey: .offset)
@@ -50,7 +60,7 @@ struct ComputedInsulinSensitivityEntry: Codable {
         try container.encodeIfPresent(endOffset, forKey: .endOffset)
     }
 
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         sensitivity = try container.decode(Decimal.self, forKey: .sensitivity)
         offset = try container.decode(Int.self, forKey: .offset)

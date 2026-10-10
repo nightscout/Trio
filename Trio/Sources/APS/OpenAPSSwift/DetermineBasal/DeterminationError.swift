@@ -1,6 +1,6 @@
 import Foundation
 
-enum DeterminationError: LocalizedError, Equatable {
+public enum DeterminationError: LocalizedError, Equatable {
     case missingGlucoseStatus
     case missingProfile
     case missingCurrentBasal
@@ -13,7 +13,7 @@ enum DeterminationError: LocalizedError, Equatable {
     case eventualGlucoseCalculationError(sensitivity: Decimal, deviation: Decimal)
     case determinationError
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .missingGlucoseStatus:
             return String(localized: "No glucose status; cannot determine basal.")

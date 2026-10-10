@@ -1,7 +1,7 @@
 import Foundation
 
-struct IobGenerator {
-    static func generate(
+public enum IobGenerator {
+    public static func generate(
         history: [PumpHistoryEvent],
         profile: Profile,
         clock: Date,

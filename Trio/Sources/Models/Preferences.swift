@@ -1,58 +1,58 @@
 import Foundation
 
-struct Preferences: JSON, Equatable {
-    var maxIOB: Decimal = 0
-    var maxDailySafetyMultiplier: Decimal = 3
-    var currentBasalSafetyMultiplier: Decimal = 4
-    var autosensMax: Decimal = 1.2
-    var autosensMin: Decimal = 0.7
-    var smbDeliveryRatio: Decimal = 0.5
-    var rewindResetsAutosens: Bool = true
-    var highTemptargetRaisesSensitivity: Bool = false
-    var lowTemptargetLowersSensitivity: Bool = false
-    var sensitivityRaisesTarget: Bool = false
-    var resistanceLowersTarget: Bool = false
-    var advTargetAdjustments: Bool = false
-    var exerciseMode: Bool = false
-    var halfBasalExerciseTarget: Decimal = 160
-    var maxCOB: Decimal = 120
-    var maxMealAbsorptionTime: Decimal = 6
-    var wideBGTargetRange: Bool = false
-    var skipNeutralTemps: Bool = false
-    var unsuspendIfNoTemp: Bool = false
-    var min5mCarbimpact: Decimal = 8
-    var remainingCarbsFraction: Decimal = 1.0
-    var remainingCarbsCap: Decimal = 90
-    var enableUAM: Bool = false
-    var a52RiskEnable: Bool = false
-    var enableSMBWithCOB: Bool = false
-    var enableSMBWithTemptarget: Bool = false
-    var enableSMBAlways: Bool = false
-    var enableSMBAfterCarbs: Bool = false
-    var allowSMBWithHighTemptarget: Bool = false
-    var maxSMBBasalMinutes: Decimal = 30
-    var maxUAMSMBBasalMinutes: Decimal = 30
-    var smbInterval: Decimal = 3
-    var bolusIncrement: Decimal = 0.1
-    var curve: InsulinCurve = .rapidActing
-    var useCustomPeakTime: Bool = false
-    var insulinPeakTime: Decimal = 75
-    var carbsReqThreshold: Decimal = 1.0
-    var noisyCGMTargetMultiplier: Decimal = 1.3
-    var suspendZerosIOB: Bool = true
-    var timestamp: Date?
-    var maxDeltaBGthreshold: Decimal = 0.2
-    var adjustmentFactor: Decimal = 0.8
-    var adjustmentFactorSigmoid: Decimal = 0.5
-    var sigmoid: Bool = false
-    var useNewFormula: Bool = false
-    var useWeightedAverage: Bool = false
-    var weightPercentage: Decimal = 0.35
-    var tddAdjBasal: Bool = false
-    var enableSMB_high_bg: Bool = false
-    var enableSMB_high_bg_target: Decimal = 110
-    var threshold_setting: Decimal = 60
-    var updateInterval: Decimal = 20
+public struct Preferences: JSON, Equatable {
+    public var maxIOB: Decimal = 0
+    public var maxDailySafetyMultiplier: Decimal = 3
+    public var currentBasalSafetyMultiplier: Decimal = 4
+    public var autosensMax: Decimal = 1.2
+    public var autosensMin: Decimal = 0.7
+    public var smbDeliveryRatio: Decimal = 0.5
+    public var rewindResetsAutosens: Bool = true
+    public var highTemptargetRaisesSensitivity: Bool = false
+    public var lowTemptargetLowersSensitivity: Bool = false
+    public var sensitivityRaisesTarget: Bool = false
+    public var resistanceLowersTarget: Bool = false
+    public var advTargetAdjustments: Bool = false
+    public var exerciseMode: Bool = false
+    public var halfBasalExerciseTarget: Decimal = 160
+    public var maxCOB: Decimal = 120
+    public var maxMealAbsorptionTime: Decimal = 6
+    public var wideBGTargetRange: Bool = false
+    public var skipNeutralTemps: Bool = false
+    public var unsuspendIfNoTemp: Bool = false
+    public var min5mCarbimpact: Decimal = 8
+    public var remainingCarbsFraction: Decimal = 1.0
+    public var remainingCarbsCap: Decimal = 90
+    public var enableUAM: Bool = false
+    public var a52RiskEnable: Bool = false
+    public var enableSMBWithCOB: Bool = false
+    public var enableSMBWithTemptarget: Bool = false
+    public var enableSMBAlways: Bool = false
+    public var enableSMBAfterCarbs: Bool = false
+    public var allowSMBWithHighTemptarget: Bool = false
+    public var maxSMBBasalMinutes: Decimal = 30
+    public var maxUAMSMBBasalMinutes: Decimal = 30
+    public var smbInterval: Decimal = 3
+    public var bolusIncrement: Decimal = 0.1
+    public var curve: InsulinCurve = .rapidActing
+    public var useCustomPeakTime: Bool = false
+    public var insulinPeakTime: Decimal = 75
+    public var carbsReqThreshold: Decimal = 1.0
+    public var noisyCGMTargetMultiplier: Decimal = 1.3
+    public var suspendZerosIOB: Bool = true
+    public var timestamp: Date?
+    public var maxDeltaBGthreshold: Decimal = 0.2
+    public var adjustmentFactor: Decimal = 0.8
+    public var adjustmentFactorSigmoid: Decimal = 0.5
+    public var sigmoid: Bool = false
+    public var useNewFormula: Bool = false
+    public var useWeightedAverage: Bool = false
+    public var weightPercentage: Decimal = 0.35
+    public var tddAdjBasal: Bool = false
+    public var enableSMB_high_bg: Bool = false
+    public var enableSMB_high_bg_target: Decimal = 110
+    public var threshold_setting: Decimal = 60
+    public var updateInterval: Decimal = 20
 }
 
 extension Preferences {
@@ -111,16 +111,16 @@ extension Preferences {
     }
 }
 
-enum InsulinCurve: String, JSON, Identifiable, CaseIterable {
+public enum InsulinCurve: String, JSON, Identifiable, CaseIterable {
     case rapidActing = "rapid-acting"
     case ultraRapid = "ultra-rapid"
     case bilinear
 
-    var id: InsulinCurve { self }
+    public var id: InsulinCurve { self }
 }
 
 extension Preferences: Decodable {
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         var preferences = Preferences()
 
@@ -330,4 +330,11 @@ extension Preferences: Decodable {
 
         self = preferences
     }
+}
+
+public extension Preferences {
+    /// Default preferences for callers outside this module. The synthesized `init()` is
+    /// internal and cannot be redeclared `public` without hiding the memberwise initializer
+    /// that the app uses.
+    static var defaults: Preferences { Preferences() }
 }

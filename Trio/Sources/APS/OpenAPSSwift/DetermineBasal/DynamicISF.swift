@@ -1,17 +1,25 @@
 import Foundation
 
 /// Represents the successful output of a dynamic ISF calculation.
-struct DynamicISFResult {
+public struct DynamicISFResult {
     /// The final sensitivity ratio, after all calculations and clamping.
-    let ratio: Decimal
+    public let ratio: Decimal
     /// The ratio of 24h TDD to the 14-day average TDD, clamped by autosens limits.
-    let tddRatio: Decimal
+    public let tddRatio: Decimal
     /// The calculated insulin factor (120 - peak time), used in the logarithmic formula.
-    let insulinFactor: Decimal
+    public let insulinFactor: Decimal
     /// The ratio before clamping was applied.
-    let uncappedRatio: Decimal
+    public let uncappedRatio: Decimal
     /// The limit value if the ratio was clamped, nil otherwise.
-    let limitValue: Decimal?
+    public let limitValue: Decimal?
+
+    public init(ratio: Decimal, tddRatio: Decimal, insulinFactor: Decimal, uncappedRatio: Decimal, limitValue: Decimal?) {
+        self.ratio = ratio
+        self.tddRatio = tddRatio
+        self.insulinFactor = insulinFactor
+        self.uncappedRatio = uncappedRatio
+        self.limitValue = limitValue
+    }
 }
 
 enum DynamicISF {

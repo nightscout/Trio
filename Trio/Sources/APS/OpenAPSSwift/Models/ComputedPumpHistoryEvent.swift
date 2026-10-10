@@ -1,33 +1,33 @@
 import Foundation
 
-struct ComputedPumpHistoryEvent: Codable, Equatable, Identifiable {
-    let id: String
-    let type: EventType
-    let timestamp: Date
-    let amount: Decimal?
-    var duration: Decimal?
-    let durationMin: Int?
-    let rate: Decimal?
-    let temp: TempType?
-    let carbInput: Int?
-    let fatInput: Int?
-    let proteinInput: Int?
-    let note: String?
-    let isSMB: Bool?
-    let isExternal: Bool?
-    let insulin: Decimal?
-    let isTempBolus: Bool
-    let omitFromTempHistory: Bool
+public struct ComputedPumpHistoryEvent: Codable, Equatable, Identifiable {
+    public let id: String
+    public let type: EventType
+    public let timestamp: Date
+    public let amount: Decimal?
+    public var duration: Decimal?
+    public let durationMin: Int?
+    public let rate: Decimal?
+    public let temp: TempType?
+    public let carbInput: Int?
+    public let fatInput: Int?
+    public let proteinInput: Int?
+    public let note: String?
+    public let isSMB: Bool?
+    public let isExternal: Bool?
+    public let insulin: Decimal?
+    public let isTempBolus: Bool
+    public let omitFromTempHistory: Bool
 
     // Make these non-computed properties to ensure they're always set
-    let started_at: Date
-    let date: UInt64
+    public let started_at: Date
+    public let date: UInt64
 
-    var end: Date {
+    public var end: Date {
         timestamp + (duration ?? durationMin.map { Decimal($0) } ?? 0).minutesToSeconds
     }
 
-    init(
+    public init(
         id: String,
         type: EventType,
         timestamp: Date,
