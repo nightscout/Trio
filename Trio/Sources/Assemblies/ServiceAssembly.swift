@@ -35,6 +35,8 @@ final class ServiceAssembly: Assembly {
             }
         }
         container.register(IOBService.self) { r in BaseIOBService(resolver: r) }
+        container.register(PreBolusAlarmService.self) { r in BasePreBolusAlarmService(resolver: r) }
+            .inObjectScope(.container)
         container.register(BolusSafetyValidator.self) { r in BaseBolusSafetyValidator(resolver: r) }
         container.register(AdjustmentManager.self) { r in BaseAdjustmentManager(resolver: r) }
             .inObjectScope(.container)

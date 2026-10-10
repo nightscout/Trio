@@ -19,6 +19,7 @@ extension Treatments {
         @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
         @ObservationIgnored @Injected() var bolusCalculationManager: BolusCalculationManager!
+        @ObservationIgnored @Injected() var preBolusAlarmService: PreBolusAlarmService!
 
         var lowGlucose: Decimal = 70
         var highGlucose: Decimal = 180
@@ -88,8 +89,26 @@ extension Treatments {
 
         var sweetMeals: Bool = false
         var sweetMealFactor: Decimal = 0
+        var preBolusEnabled: Bool = false
         var useSuperBolus: Bool = false
         var superBolusInsulin: Decimal = 0
+
+        var preBolusMinutes: Decimal = 0
+        var insulinType: InsulinType?
+        var recommendedPreBolus: PreBolusRecommendation {
+            PreBolusRecommendation.evaluate(
+                currentBG: currentBG,
+                deltaBG: deltaBG,
+                target: target,
+                direction: glucoseFromPersistence.first?.directionEnum,
+                carbs: carbs,
+                fat: fat,
+                protein: protein,
+                insulinType: insulinType,
+                fatAndProteinTracked: useFPUconversion,
+                isGlucoseFresh: glucoseStorage.isGlucoseDataFresh(glucoseFromPersistence.first?.date)
+            )
+        }
 
         var meal: [CarbsEntry]?
         var carbs: Decimal = 0
@@ -248,6 +267,10 @@ extension Treatments {
             broadcaster?.unregister(DeterminationObserver.self, observer: self)
             broadcaster?.unregister(BolusFailureObserver.self, observer: self)
 
+            // Reset the user's selection, but leave any scheduled alarm alone: this runs on
+            // dismissal, when a just-enacted pre-bolus starts counting down.
+            preBolusMinutes = 0
+
             debug(.bolusState, "StateModel cleanup() finished")
         }
 
@@ -359,6 +382,7 @@ extension Treatments {
             fattyMealFactor = settings.settings.fattyMealFactor
             sweetMeals = settings.settings.sweetMeals
             sweetMealFactor = settings.settings.sweetMealFactor
+            preBolusEnabled = settings.settings.preBolusEnabled
             displayPresets = settings.settings.displayPresets
             confirmBolus = settings.settings.confirmBolus
             forecastDisplayType = settings.settings.forecastDisplayType
@@ -370,6 +394,7 @@ extension Treatments {
             useFPUconversion = settingsManager.settings.useFPUconversion
             isSmoothingEnabled = settingsManager.settings.smoothGlucose
             glucoseColorScheme = settingsManager.settings.glucoseColorScheme
+            insulinType = apsManager.pumpManager?.status.insulinType
         }
 
         private func getCurrentSettingValue(for type: SettingType) async {
@@ -509,7 +534,18 @@ extension Treatments {
                 }
 
                 if isInsulinGiven {
-                    await handleInsulin(isExternal: externalInsulin)
+                    let delivered = await handleInsulin(isExternal: externalInsulin)
+
+                    // Only once the bolus has actually been delivered does the pre-bolus lead time start;
+                    // an alarm after a failed bolus would tell the user to eat uncovered carbs. The alarm
+                    // has to outlive this screen, so it is scheduled here rather than in the view.
+                    if delivered, preBolusMinutes > 0 {
+                        await preBolusAlarmService.scheduleEatReminder(
+                            after: TimeInterval(Double(preBolusMinutes) * 60),
+                            carbs: carbs,
+                            bolusAmount: amount
+                        )
+                    }
                 } else {
                     hideModal()
                     return
@@ -534,13 +570,14 @@ extension Treatments {
 
         // MARK: - Insulin
 
-        private func handleInsulin(isExternal: Bool) async {
+        /// - Returns: `true` if the insulin was delivered (pump) or logged (external).
+        private func handleInsulin(isExternal: Bool) async -> Bool {
             debug(.bolusState, "handleInsulin fired")
 
             if !isExternal {
-                await addPumpInsulin()
+                return await addPumpInsulin()
             } else {
-                await addExternalInsulin()
+                return await addExternalInsulin()
             }
         }
 
@@ -629,10 +666,11 @@ extension Treatments {
             }
         }
 
-        func addPumpInsulin() async {
+        /// - Returns: `true` if the pump reported the bolus as enacted.
+        @discardableResult func addPumpInsulin() async -> Bool {
             guard amount > 0 else {
                 showModal(for: nil)
-                return
+                return false
             }
 
             let maxAmount = Double(min(amount, maxBolus))
@@ -644,7 +682,12 @@ extension Treatments {
                     await MainActor.run {
                         self.isAwaitingDeterminationResult = true
                     }
-                    await apsManager.enactBolus(amount: maxAmount, isSMB: false, callback: nil)
+                    // `enactBolus` reports the outcome through the callback before it returns.
+                    var enacted = false
+                    await apsManager.enactBolus(amount: maxAmount, isSMB: false) { success, _ in
+                        enacted = success
+                    }
+                    return enacted
                 }
             } catch {
                 debug(.bolusState, "Authentication error for pump bolus: \(error)")
@@ -655,20 +698,23 @@ extension Treatments {
                     self.determinationFailureMessage = parseAuthenticationError(from: error)
                 }
             }
+            return false
         }
 
         // MARK: - EXTERNAL INSULIN
 
-        func addExternalInsulin() async {
+        /// - Returns: `true` once the external dose has been logged.
+        @discardableResult func addExternalInsulin() async -> Bool {
             guard amount > 0 else {
                 showModal(for: nil)
-                return
+                return false
             }
 
             await MainActor.run {
                 self.amount = min(self.amount, self.maxBolus * 3)
             }
 
+            var logged = false
             do {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
@@ -678,6 +724,7 @@ extension Treatments {
                     }
                     // store external dose to pump history
                     await pumpHistoryStorage.storeExternalInsulinEvent(amount: amount, timestamp: date)
+                    logged = true
                     // perform determine basal sync
                     try await apsManager.determineBasalSync()
                 }
@@ -689,9 +736,20 @@ extension Treatments {
                     self.determinationFailureMessage = parseAuthenticationError(from: error)
                 }
             }
+            return logged
         }
 
         // MARK: - Carbs
+
+        /// The meal note with the pre-bolus lead time prefixed onto it.
+        ///
+        /// The alarm is local and leaves no trace, so the note is what makes the timing visible
+        /// later in the history and in Nightscout.
+        var noteWithPreBolus: String {
+            guard preBolusMinutes > 0 else { return note }
+            let prefix = String(localized: "Pre-bolus: \(Int(preBolusMinutes)) min")
+            return note.isEmpty ? prefix : "\(prefix) — \(note)"
+        }
 
         func saveMeal() async {
             do {
@@ -711,7 +769,7 @@ extension Treatments {
                     carbs: carbs,
                     fat: fat,
                     protein: protein,
-                    note: note,
+                    note: noteWithPreBolus,
                     enteredBy: CarbsEntry.local,
                     isFPU: false,
                     fpuID: fat > 0 || protein > 0 ? UUID().uuidString : nil

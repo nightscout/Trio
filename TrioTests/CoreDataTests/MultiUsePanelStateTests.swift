@@ -13,6 +13,7 @@ import Testing
         pumpTimeMismatch: Bool = false,
         lastGlucoseDate: Date?,
         maxIOB: Decimal = 10,
+        pendingPreBolusReminder: PendingPreBolusReminder? = nil,
         hasUnacknowledgedReleaseNotes: Bool = false,
         dosingMode: DosingMode = .closed
     ) -> MultiUsePanelState {
@@ -21,6 +22,7 @@ import Testing
             pumpTimeMismatch: pumpTimeMismatch,
             lastGlucoseDate: lastGlucoseDate,
             maxIOB: maxIOB,
+            pendingPreBolusReminder: pendingPreBolusReminder,
             hasUnacknowledgedReleaseNotes: hasUnacknowledgedReleaseNotes,
             dosingMode: dosingMode,
             now: now
@@ -102,5 +104,44 @@ import Testing
 
     @Test("Acknowledged release notes fall back to stats") func testAcknowledgedShowsStats() {
         #expect(resolve(lastGlucoseDate: fresh, hasUnacknowledgedReleaseNotes: false) == .stats)
+    }
+
+    private var preBolusReminder: PendingPreBolusReminder {
+        PendingPreBolusReminder(fireDate: now.addingTimeInterval(10 * 60), carbs: 45, bolusAmount: 2.5)
+    }
+
+    @Test("A pending pre-bolus displaces the persistent and informational states") func testPreBolusOverLowerPriority() {
+        #expect(
+            resolve(lastGlucoseDate: fresh, pendingPreBolusReminder: preBolusReminder) ==
+                .preBolusCountdown(preBolusReminder)
+        )
+        #expect(resolve(
+            lastGlucoseDate: fresh,
+            pendingPreBolusReminder: preBolusReminder,
+            hasUnacknowledgedReleaseNotes: true
+        ) == .preBolusCountdown(preBolusReminder))
+        #expect(
+            resolve(lastGlucoseDate: fresh, maxIOB: 0, pendingPreBolusReminder: preBolusReminder) ==
+                .preBolusCountdown(preBolusReminder)
+        )
+        #expect(resolve(
+            lastGlucoseDate: fresh,
+            pendingPreBolusReminder: preBolusReminder,
+            dosingMode: .lowGlucoseSuspend
+        ) == .preBolusCountdown(preBolusReminder))
+    }
+
+    @Test("The broken-right-now warnings outrank a pending pre-bolus") func testPreBolusYieldsToWarnings() {
+        #expect(resolve(
+            notificationsDisabled: true,
+            lastGlucoseDate: fresh,
+            pendingPreBolusReminder: preBolusReminder
+        ) == .notificationsDisabled)
+        #expect(resolve(
+            pumpTimeMismatch: true,
+            lastGlucoseDate: fresh,
+            pendingPreBolusReminder: preBolusReminder
+        ) == .pumpTimeMismatch)
+        #expect(resolve(lastGlucoseDate: stale, pendingPreBolusReminder: preBolusReminder) == .cgmStale)
     }
 }
