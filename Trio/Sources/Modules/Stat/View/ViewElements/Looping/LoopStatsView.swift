@@ -1,4 +1,3 @@
-import SwiftDate
 import SwiftUI
 
 /// A SwiftUI view displaying statistics about the looping process in an Automated Insulin Delivery (AID) system.

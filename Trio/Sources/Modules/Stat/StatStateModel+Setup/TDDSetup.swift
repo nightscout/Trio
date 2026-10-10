@@ -3,7 +3,7 @@ import Foundation
 
 /// Represents statistical data about Total Daily Dose for a specific time period
 struct TDDStats: Identifiable {
-    let id = UUID()
+    var id: Date { date }
     /// The date representing this time period
     let date: Date
     /// Total insulin in units
@@ -21,9 +21,6 @@ extension Stat.StateModel {
                     self.hourlyTDDStats = hourly
                     self.dailyTDDStats = daily
                 }
-
-                // Initially calculate and cache daily averages
-                await calculateAndCacheTDDAverages()
             } catch {
                 debug(.default, "\(DebuggingIdentifiers.failed) failed fetching TDD stats: \(error)")
             }
@@ -60,7 +57,7 @@ extension Stat.StateModel {
 
             // Process daily statistics from TDDStored
             if let fetchedTDDs = tddResults as? [TDDStored] {
-                dailyStats = self.processDailyTDDs(fetchedTDDs, calendar: calendar)
+                dailyStats = Self.processDailyTDDs(fetchedTDDs, calendar: calendar)
             }
 
             // Process hourly statistics from BolusStored and TempBasalStored
@@ -69,7 +66,7 @@ extension Stat.StateModel {
                let fetchedSuspendEvents = suspendEvents as? [PumpEventStored],
                let fetchedResumeEvents = resumeEvents as? [PumpEventStored]
             {
-                hourlyStats = self.processHourlyInsulinData(
+                hourlyStats = Self.processHourlyInsulinData(
                     boluses: fetchedBoluses,
                     tempBasals: fetchedTempBasals,
                     suspendEvents: fetchedSuspendEvents,
@@ -109,7 +106,7 @@ extension Stat.StateModel {
     {
         // Calculate date range for hourly statistics (last 20 days)
         let now = Date()
-        let twentyDaysAgo = Calendar.current.date(byAdding: .day, value: -20, to: now) ?? now
+        let twentyDaysAgo = calendar.date(byAdding: .day, value: -StatChartUtils.hourlyWindowDays, to: now)!
 
         // Create a predicate for the date range
         let datePredicate = NSPredicate(
@@ -194,7 +191,7 @@ extension Stat.StateModel {
     ///         difference between consecutive events, rather than relying on the planned duration.
     ///         It also properly distributes insulin amounts across hour boundaries for accurate hourly statistics.
     ///         Suspension events are taken into account to prevent counting insulin during pump suspensions.
-    private func processHourlyInsulinData(
+    private static func processHourlyInsulinData(
         boluses: [BolusStored],
         tempBasals: [TempBasalStored],
         suspendEvents: [PumpEventStored],
@@ -225,7 +222,7 @@ extension Stat.StateModel {
         // MARK: - Create Suspend-Resume Pairs
 
         // Create pairs of suspend and resume events
-        let suspendResumePairs = createSuspendResumePairs(suspendEvents: suspendEvents, resumeEvents: resumeEvents)
+        let suspendResumePairs = Self.createSuspendResumePairs(suspendEvents: suspendEvents, resumeEvents: resumeEvents)
 
         // MARK: - Process Temporary Basal Insulin
 
@@ -267,7 +264,7 @@ extension Stat.StateModel {
             // A finalized row reports what the pump actually delivered (suspensions and
             // pulse quantization included), so spread that total over the unsuspended
             // time; the bars then sum to it instead of to rate x duration.
-            let unsuspendedHours = calculateEffectiveDuration(
+            let unsuspendedHours = Self.calculateEffectiveDuration(
                 from: timestamp,
                 to: timestamp.addingTimeInterval(durationInHours * 3600),
                 suspendResumePairs: suspendResumePairs
@@ -281,7 +278,7 @@ extension Stat.StateModel {
 
             // Handle temp basals that span multiple hours by distributing insulin appropriately
             // taking into account suspension periods
-            distributeInsulinAcrossHours(
+            Self.distributeInsulinAcrossHours(
                 startTime: timestamp,
                 durationInHours: durationInHours,
                 rate: effectiveRate,
@@ -308,7 +305,7 @@ extension Stat.StateModel {
     ///   - resumeEvents: Array of PumpEventStored objects with type pumpResume
     /// - Returns: Array of tuples containing suspend and resume event pairs
     /// - Note: This method pairs suspend events with the next resume event chronologically
-    private func createSuspendResumePairs(
+    private static func createSuspendResumePairs(
         suspendEvents: [PumpEventStored],
         resumeEvents: [PumpEventStored]
     ) -> [(suspend: PumpEventStored, resume: PumpEventStored)] {
@@ -348,7 +345,7 @@ extension Stat.StateModel {
     ///         calculating the exact amount of insulin delivered in each hour. It accounts for
     ///         partial hours at the beginning and end of the temporary basal period, as well as
     ///         suspension periods where no insulin is delivered.
-    private func distributeInsulinAcrossHours(
+    private static func distributeInsulinAcrossHours(
         startTime: Date,
         durationInHours: Double,
         rate: Double,
@@ -361,13 +358,10 @@ extension Stat.StateModel {
 
         // Create a date representing just the hour of the start time (truncating minutes/seconds)
         guard let startHourDate = calendar
-            .date(from: Calendar.current.dateComponents([.year, .month, .day, .hour], from: startTime))
+            .date(from: calendar.dateComponents([.year, .month, .day, .hour], from: startTime))
         else {
             return // Exit if we can't create a valid hour date
         }
-
-        // Calculate end time of the temp basal
-        let endTime = startTime.addingTimeInterval(durationInHours * 3600)
 
         // MARK: - Handle First Hour (Partial)
 
@@ -434,7 +428,7 @@ extension Stat.StateModel {
     ///   - suspendResumePairs: Array of suspend-resume event pairs
     /// - Returns: The effective duration in hours, excluding suspension periods
     /// - Note: This method calculates how much of a time period was not affected by pump suspensions
-    private func calculateEffectiveDuration(
+    private static func calculateEffectiveDuration(
         from startTime: Date,
         to endTime: Date,
         suspendResumePairs: [(suspend: PumpEventStored, resume: PumpEventStored)]
@@ -467,6 +461,12 @@ extension Stat.StateModel {
         return max(0.0, totalDuration - suspendedDuration)
     }
 
+    private static func makeStats(date: Date, entries: [(date: Date, entry: TDDStored)]) -> TDDStats {
+        let lastEntry = entries.max { $0.date < $1.date }
+
+        return TDDStats(date: date, amount: lastEntry?.entry.total?.doubleValue ?? 0.0)
+    }
+
     /// Processes TDDStored records to create daily Total Daily Dose statistics
     /// - Parameters:
     ///   - tdds: Array of TDDStored objects containing daily insulin data
@@ -475,89 +475,21 @@ extension Stat.StateModel {
     /// - Note: This method groups TDD records by day and uses only the last (most recent) entry
     ///         for each day, as this represents the complete TDD value for that day. This approach
     ///         is appropriate for week, month, and total views where we want the final daily totals.
-    private func processDailyTDDs(_ tdds: [TDDStored], calendar: Calendar) -> [TDDStats] {
+    private static func processDailyTDDs(_ tdds: [TDDStored], calendar: Calendar) -> [TDDStats] {
         // MARK: - Group TDDs by Calendar Day
 
-        // Create a dictionary where keys are start-of-day dates and values are arrays of TDD entries for that day
-        let dailyGrouped = Dictionary(grouping: tdds) { tdd in
-            guard let timestamp = tdd.date else { return Date() }
-            // Use start of day (midnight) as the key for grouping
-            return calendar.startOfDay(for: timestamp)
+        let validEntries = tdds.compactMap { entry -> (date: Date, entry: TDDStored)? in
+            guard let date = entry.date else { return nil }
+            return (date, entry)
         }
+
+        let dailyGrouped = Dictionary(grouping: validEntries) { calendar.startOfDay(for: $0.date) }
 
         // MARK: - Process Each Day's Entries
 
-        // Create a TDDStats object for each day using the most recent TDD entry
-        return dailyGrouped.keys.sorted().map { dayDate in
-            // Get all TDD entries for this day
-            let entries = dailyGrouped[dayDate, default: []]
-
-            // MARK: - Sort and Select Most Recent Entry
-
-            // Sort entries chronologically to find the most recent one for the day
-            let sortedEntries = entries.sorted {
-                ($0.date ?? Date.distantPast) < ($1.date ?? Date.distantPast)
-            }
-
-            // MARK: - Create TDDStats from Most Recent Entry
-
-            // The last entry in the sorted array contains the complete TDD for the day
-            if let lastEntry = sortedEntries.last, let total = lastEntry.total?.doubleValue {
-                // Create TDDStats with the day's date and the total insulin amount
-                return TDDStats(
-                    date: dayDate,
-                    amount: total
-                )
-            } else {
-                // Fallback if no valid entry exists for this day
-                return TDDStats(
-                    date: dayDate,
-                    amount: 0.0
-                )
-            }
+        return dailyGrouped.sorted { $0.key < $1.key }.map {
+            Self.makeStats(date: $0.key, entries: $0.value)
         }
-    }
-
-    /// Calculates and caches the daily averages of Total Daily Dose (TDD) insulin values
-    /// - Note: This function runs asynchronously and updates the tddAveragesCache on the main actor
-    private func calculateAndCacheTDDAverages() async {
-        let tddTaskContext = CoreDataStack.shared.newTaskContext()
-        tddTaskContext.name = "StatStateModel.calculateAndCacheTDDAverages"
-
-        // Get calendar for date calculations
-        let calendar = Calendar.current
-
-        // Calculate daily averages on background context
-        let dailyAverages = await tddTaskContext.perform { [dailyTDDStats] in
-            // Group TDD stats by calendar day
-            let groupedByDay = Dictionary(grouping: dailyTDDStats) { stat in
-                calendar.startOfDay(for: stat.date)
-            }
-
-            // Calculate average TDD for each day
-            var averages: [Date: Double] = [:]
-            for (day, stats) in groupedByDay {
-                // Sum up all TDD values for the day
-                let total = stats.reduce(0.0) { $0 + $1.amount }
-                let count = Double(stats.count)
-                // Store average in dictionary
-                averages[day] = total / count
-            }
-            return averages
-        }
-
-        // Update cache on main actor
-        await MainActor.run {
-            self.tddAveragesCache = dailyAverages
-        }
-    }
-
-    /// Gets the cached average Total Daily Dose (TDD) of insulin for a specified date range
-    /// - Parameter range: A tuple containing the start and end dates to get averages for
-    /// - Returns: The average TDD in units for the specified date range
-    func getCachedTDDAverages(for range: (start: Date, end: Date)) -> Double {
-        // Calculate and return the TDD averages for the given date range using cached values
-        calculateTDDAveragesForDateRange(from: range.start, to: range.end)
     }
 
     /// Calculates the average Total Daily Dose (TDD) of insulin for a specified date range
@@ -565,21 +497,41 @@ extension Stat.StateModel {
     ///   - startDate: The start date of the range to calculate averages for
     ///   - endDate: The end date of the range to calculate averages for
     /// - Returns: The average TDD in units for the specified date range. Returns 0.0 if no data exists.
-    private func calculateTDDAveragesForDateRange(from startDate: Date, to endDate: Date) -> Double {
+    func calculateTDDAverages(for range: (start: Date, end: Date)) -> Double {
         // Filter cached TDD values to only include those within the date range
-        let relevantStats = tddAveragesCache.filter { date, _ in
-            date >= startDate && date <= endDate
+        let relevantStats = dailyTDDStats.filter { stat in
+            StatChartUtils.isStatInRange(
+                calendar.startOfDay(for: stat.date),
+                in: range
+            )
         }
 
         // Return 0 if no data exists for the specified range
         guard !relevantStats.isEmpty else { return 0.0 }
 
         // Calculate total TDD by summing all values
-        let total = relevantStats.values.reduce(0.0, +)
+        let sums = relevantStats.reduce(0.0) { acc, day in
+            acc + day.amount
+        }
         // Convert count to Double for floating point division
         let count = Double(relevantStats.count)
 
         // Return average TDD
-        return total / count
+        return sums / count
+    }
+
+    func calculateTDDTotals(for range: (start: Date, end: Date)) -> Double {
+        let relevantStats = hourlyTDDStats.filter { stat in
+            StatChartUtils.isStatInRange(
+                stat.date,
+                in: range
+            )
+        }
+
+        let sums = relevantStats.reduce(0.0) { acc, hour in
+            acc + hour.amount
+        }
+
+        return sums
     }
 }

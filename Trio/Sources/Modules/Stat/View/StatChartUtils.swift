@@ -3,16 +3,28 @@ import Foundation
 import SwiftUI
 
 struct StatChartUtils {
+    static let hourlyWindowDays = 20
+
+    static func dayCount(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> Int {
+        switch selectedInterval {
+        case .day: return 1
+        case .week: return 7
+        case .month: return 30
+        case .total: return 90
+        }
+    }
+
     /// Returns the time interval length for the visible domain based on the selected duration.
     /// - Parameter selectedInterval: The selected time interval for statistics.
     /// - Returns: The time interval in seconds.
-    static func visibleDomainLength(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> TimeInterval {
-        switch selectedInterval {
-        case .day: return 24 * 3600
-        case .week: return 7 * 24 * 3600
-        case .month: return 30 * 24 * 3600
-        case .total: return 90 * 24 * 3600
-        }
+    static func visibleDomainLength(
+        for selectedInterval: Stat.StateModel.StatsTimeInterval,
+        at date: Date,
+        calendar: Calendar = .current
+    ) -> TimeInterval {
+        let start = calendar.startOfDay(for: date)
+        let end = calendar.date(byAdding: .day, value: dayCount(for: selectedInterval), to: start)!
+        return end.timeIntervalSince(start)
     }
 
     /// Computes the visible date range based on the scroll position and selected duration.
@@ -26,38 +38,56 @@ struct StatChartUtils {
     ) -> (start: Date, end: Date) {
         let calendar = Calendar.current
 
-        if selectedInterval == .day {
-            // For day view, don't modify the scroll position
-            let end = scrollPosition.addingTimeInterval(visibleDomainLength(for: selectedInterval) - 1)
-            return (scrollPosition, end)
-        } else {
-            // For week and longer intervals, we need smart alignment
-            // Find the nearest day boundary
-            let startOfDay = calendar.startOfDay(for: scrollPosition)
-            let components = calendar.dateComponents([.hour, .minute, .second], from: scrollPosition)
-            let totalSeconds = Double(components.hour ?? 0) * 3600 + Double(components.minute ?? 0) * 60 +
-                Double(components.second ?? 0)
+        let start = calendar.startOfDay(for: scrollPosition)
+        let end = calendar.date(byAdding: .day, value: dayCount(for: selectedInterval), to: start)!
 
-            // Align start end to midnight
-            let alignedStart = totalSeconds > 12 * 3600 ?
-                calendar.date(byAdding: .day, value: 1, to: startOfDay)! : startOfDay
-            let intervalLength = visibleDomainLength(for: selectedInterval)
-            let end = alignedStart.addingTimeInterval(intervalLength + (2 * 3600))
-            let alignedEnd = calendar.startOfDay(for: end).addingTimeInterval(-1)
+        return (start, end)
+    }
 
-            return (alignedStart, alignedEnd)
-        }
+    static func isStatInRange(_ date: Date, in range: (start: Date, end: Date)) -> Bool {
+        date >= range.start && date < range.end
     }
 
     /// Returns the appropriate date format style based on the selected time interval.
     /// - Parameter selectedInterval: The selected time interval for statistics.
     /// - Returns: A Date.FormatStyle configured for the current time interval.
-    static func dateFormat(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> Date.FormatStyle {
+    private static func dateFormat(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> Date.FormatStyle {
         switch selectedInterval {
         case .day: return .dateTime.hour()
         case .week: return .dateTime.weekday(.abbreviated)
         case .month: return .dateTime.day()
         case .total: return .dateTime.month(.abbreviated)
+        }
+    }
+
+    static func popoverAlignment(
+        for selected: Date,
+        scrollPosition: Date,
+        in interval: Stat.StateModel.StatsTimeInterval
+    ) -> Alignment {
+        let length = visibleDomainLength(for: interval, at: scrollPosition)
+        let pos = selected.timeIntervalSince(scrollPosition) / length
+
+        if pos < 0.25 { return .leading }
+        else if pos > 0.75 { return .trailing }
+
+        return .center
+    }
+
+    @AxisContentBuilder static func timeOfDayAxisMarks() -> some AxisContent {
+        AxisMarks(preset: .aligned, values: .stride(by: .hour, count: 3)) { value in
+            if let date = value.as(Date.self) {
+                let hour = Calendar.current.component(.hour, from: date)
+                switch hour {
+                case 0,
+                     12:
+                    AxisValueLabel(format: .dateTime.hour(), anchor: .top)
+                default:
+                    AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .omitted)), anchor: .top)
+                }
+
+                AxisGridLine()
+            }
         }
     }
 
@@ -116,23 +146,10 @@ struct StatChartUtils {
     /// - Parameter selectedInterval: The selected time interval for statistics.
     /// - Returns: A Date representing the initial scroll position.
     static func getInitialScrollPosition(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> Date {
-        let calendar = Calendar.current
-        let now = Date()
-        let today = calendar.startOfDay(for: now)
+        let daysBack = dayCount(for: selectedInterval) - 1
+        let today = Calendar.current.startOfDay(for: Date())
 
-        let baseDate: Date
-        switch selectedInterval {
-        case .day:
-            baseDate = today
-        case .week:
-            baseDate = calendar.date(byAdding: .day, value: -6, to: today)!
-        case .month:
-            baseDate = calendar.date(byAdding: .day, value: -29, to: today)!
-        case .total:
-            baseDate = calendar.date(byAdding: .day, value: -89, to: today)!
-        }
-
-        return calendar.date(byAdding: .second, value: 1, to: baseDate)!
+        return Calendar.current.date(byAdding: .day, value: -daysBack, to: today)!
     }
 
     /// Checks if two dates belong to the same time unit based on the selected duration.
@@ -155,6 +172,69 @@ struct StatChartUtils {
         }
     }
 
+    static func formatPercentage(_ value: Decimal, fractionDigits: Int = 1) -> String {
+        (value / 100).formatted(.percent.precision(.fractionLength(fractionDigits)))
+    }
+
+    static func formatPercentage(_ value: Double, fractionDigits: Int = 1) -> String {
+        (value / 100).formatted(.percent.precision(.fractionLength(fractionDigits)))
+    }
+
+    static func hourRangeText(for date: Date, calendar: Calendar = .current) -> String {
+        let hourRange = calendar.date(byAdding: .hour, value: 1, to: date) ?? date
+
+        return date.formatted(.dateTime.hour()) + "-" + hourRange.formatted(.dateTime.hour())
+    }
+
+    static func glucoseThresholds(
+        timeInRangeType: TimeInRangeType,
+        highLimit: Decimal,
+        units: GlucoseUnits
+    ) -> [(label: String, color: Color, value: Double)] {
+        [
+            (
+                timeInRangeType.bottomThreshold.formatted(withUnits: units),
+                .staticLow,
+                Double(timeInRangeType.bottomThreshold).asUnit(units)
+            ),
+            (
+                timeInRangeType.topThreshold.formatted(withUnits: units),
+                .staticInRange,
+                Double(timeInRangeType.topThreshold).asUnit(units)
+            ),
+            (
+                highLimit.formatted(withUnits: units),
+                .staticHigh,
+                Double(highLimit.asUnit(units))
+            )
+        ]
+    }
+
+    static func glucoseBandDisplayInfo(
+        for band: GlucoseBand,
+        units: GlucoseUnits,
+        timeInRangeType: TimeInRangeType,
+        highLimit: Decimal
+    ) -> (label: String, color: Color) {
+        switch band {
+        case .veryLow: ("<\(Decimal(54).formatted(for: units))", .dynamicRed)
+        case .low: (
+                "\(Decimal(54).formatted(for: units))-\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))",
+                .dynamicOrange
+            )
+        case .tight: (
+                "\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(Decimal(timeInRangeType.topThreshold).formatted(for: units))",
+                .dynamicGreen
+            )
+        case .upperMid: (
+                "\(Decimal(timeInRangeType.topThreshold).formatted(for: units))-\(highLimit.formatted(for: units))",
+                .dynamicTeal
+            )
+        case .high: ("\(highLimit.formatted(for: units))-\(Decimal(250).formatted(for: units))", .dynamicBlue)
+        case .veryHigh: (">\(Decimal(250).formatted(for: units))", .dynamicPurple)
+        }
+    }
+
     /// Formats the visible date range into a human-readable string.
     /// - Parameters:
     ///   - start: The start date of the range.
@@ -168,38 +248,55 @@ struct StatChartUtils {
     ) -> String {
         let calendar = Calendar.current
 
-        // If not .day, we just return "startText - endText", e.g. "Jan 1 - Jan 8"
-        guard selectedInterval == .day else {
-            let formatDate: (Date) -> String = { date in
-                date.formatted(.dateTime.day().month())
+        let startDay = calendar.startOfDay(for: start)
+
+        if selectedInterval == .day {
+            return startDay.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
+        }
+
+        let formatDate: (Date) -> String = { date in
+            date.formatted(.dateTime.day().month())
+        }
+        let inclusiveEnd = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: end))!
+
+        return "\(formatDate(startDay)) - \(formatDate(inclusiveEnd))"
+    }
+
+    static func fullDayDomainAnchor() -> some ChartContent {
+        let calendar = Calendar.current
+        let midnight = calendar.startOfDay(for: Date())
+        let nextMidnight = calendar.date(byAdding: .day, value: 1, to: midnight)!
+
+        return PointMark(
+            x: .value("Time", nextMidnight),
+            y: .value("Dummy", 0)
+        )
+        .opacity(0) // ensures dummy ChartContent is hidden
+    }
+
+    static func popoverRow(label: LocalizedStringKey, value: Double, unit: LocalizedStringKey) -> some View {
+        GridRow {
+            Text(label)
+            Text(value.formatted(.number.precision(.fractionLength(1))))
+                .gridColumnAlignment(.trailing).bold()
+            Text(unit).foregroundStyle(Color.secondary)
+        }
+    }
+
+    static func statRow(
+        label: LocalizedStringKey,
+        value: Double,
+        unit: LocalizedStringKey,
+        showAverageSymbol: Bool
+    ) -> some View {
+        GridRow {
+            if showAverageSymbol {
+                Text("ø") + Text("\u{00A0}") + Text(label)
+            } else {
+                Text(label)
             }
-            let startText = formatDate(start)
-            let endText = formatDate(end)
-            return "\(startText) - \(endText)"
-        }
-
-        // For .day mode, we figure out if we are near the boundaries for a "full day" (00:00 - 23:59)
-        let dayStart = calendar.startOfDay(for: start)
-        let nextDayStart = calendar.date(byAdding: .day, value: 1, to: dayStart)!
-
-        // Allow +/- 15 minutes from midnight as buffer, so slow scrolling doesn't break the "full day"
-        let tolerance: TimeInterval = 60 * 15
-
-        let isStartNearMidnight = abs(start.timeIntervalSince(dayStart)) < tolerance
-        let isEndNearNextMidnight = abs(end.timeIntervalSince(nextDayStart)) < tolerance
-
-        let formatDay: (Date) -> String = { date in
-            date.formatted(.dateTime.day().month(.abbreviated))
-        }
-
-        if isStartNearMidnight, isEndNearNextMidnight {
-            // Full day: show just start as "Mon, Jan 1"
-            return dayStart.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
-        } else {
-            // Partial day: show start and end
-            let startText = formatDay(start)
-            let endText = formatDay(end)
-            return "\(startText) - \(endText)"
+            Text(value.formatted(.number.precision(.fractionLength(1))))
+                + Text("\u{00A0}") + Text(unit)
         }
     }
 
@@ -221,19 +318,17 @@ struct StatChartUtils {
         .accessibilityValue(Text(value))
     }
 
-    /// Computes the median value of an array of integers.
-    ///
-    /// - Parameter array: An array of integers.
-    /// - Returns: The median value as a `Double`. Returns `0` if the array is empty.
-    static func medianCalculation(array: [Int]) -> Double {
-        guard !array.isEmpty else { return 0 }
-        let sorted = array.sorted()
-        let length = array.count
+    static func summaryStats(for values: [Int]) -> (average: Double, median: Double, standardDeviation: Double) {
+        guard !values.isEmpty else { return (0, 0, 0) }
 
-        if length % 2 == 0 {
-            return Double((sorted[length / 2 - 1] + sorted[length / 2]) / 2)
-        }
-        return Double(sorted[length / 2])
+        let total = values.reduce(0, +)
+        let average = Double(total) / Double(values.count)
+        let median = medianCalculationDouble(array: values.map(Double.init))
+
+        let sumOfSquaredDifferences = values.reduce(0.0) { $0 + pow(Double($1) - average, 2) }
+        let standardDeviation = sqrt(sumOfSquaredDifferences / max(Double(values.count - 1), 1))
+
+        return (average, median, standardDeviation)
     }
 
     /// Computes the median value of an array of doubles.
@@ -249,6 +344,18 @@ struct StatChartUtils {
             return (sorted[length / 2 - 1] + sorted[length / 2]) / 2
         }
         return sorted[length / 2]
+    }
+
+    static func percentile(_ p: Double, of sortedValues: [Double]) -> Double {
+        guard !sortedValues.isEmpty else { return 0 }
+
+        let position = Double(sortedValues.count - 1) * p
+        let lower = Int(floor(position))
+        let upper = Int(ceil(position))
+        if lower == upper { return sortedValues[lower] }
+
+        let weight = position - Double(lower)
+        return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight
     }
 
     /// Creates a legend item view for use in a chart legend.

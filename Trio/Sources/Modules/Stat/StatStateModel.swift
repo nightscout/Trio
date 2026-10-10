@@ -8,41 +8,33 @@ extension Stat {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var settings: SettingsManager!
         var highLimit: Decimal = 180
-        var lowLimit: Decimal = 70
         var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent
         var units: GlucoseUnits = .mgdL
         var timeInRangeType: TimeInRangeType = .timeInTightRange
         var useFPUconversion: Bool = false
-        var glucoseFromPersistence: [GlucoseStored] = []
+        var glucoseFromPersistence: [GlucoseReading] = []
         var loopStatRecords: [LoopStatRecord] = []
         var loopStats: [LoopStatsProcessedData] = []
         var groupedLoopStats: [LoopStatsByPeriod] = []
-        var bolusStats: [BolusStats] = []
         var hourlyStats: [HourlyStats] = []
         var glucoseRangeStats: [GlucoseRangeStats] = []
 
         // Cache for Meal Stats
         var hourlyMealStats: [MealStats] = []
         var dailyMealStats: [MealStats] = []
-        var dailyMealTotalsCache: [Date: (carbs: Double, fat: Double, protein: Double)] = [:]
 
         // Cache for TDD Stats
         var hourlyTDDStats: [TDDStats] = []
         var dailyTDDStats: [TDDStats] = []
-        var tddAveragesCache: [Date: Double] = [:]
 
         // Cache for Bolus Stats
         var hourlyBolusStats: [BolusStats] = []
         var dailyBolusStats: [BolusStats] = []
-        var bolusAveragesCache: [Date: (manual: Double, smb: Double, external: Double)] = [:]
-        var bolusTotalsCache: [(Date, total: Double)] = []
 
         // Cache for Glucose Daily Stats
         var dailyGlucosePercentileStats: [GlucoseDailyPercentileStats] = []
-        var glucosePercentileCache: [Date: GlucoseDailyPercentileStats] = [:]
         var dailyGlucoseDistributionStats: [GlucoseDailyDistributionStats] = []
-        var glucoseDistributionCache: [Date: GlucoseDailyDistributionStats] = [:]
-        var glucoseReadings: [GlucoseStored] = []
+        var glucoseReadingsByDay: [Date: [GlucoseReading]] = [:]
 
         // Selected Duration for Glucose Stats
         var selectedIntervalForGlucoseStats: StatsTimeIntervalWithToday = .today {
@@ -80,16 +72,18 @@ extension Stat {
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {
+            highLimit = settingsManager.settings.high
+            units = settingsManager.settings.units
+            eA1cDisplayUnit = settingsManager.settings.eA1cDisplayUnit
+            useFPUconversion = settingsManager.settings.useFPUconversion
+            timeInRangeType = settingsManager.settings.timeInRangeType
+
             setupGlucoseArray(for: .today)
             setupTDDStats()
             setupBolusStats()
             setupLoopStatRecords()
             setupMealStats()
             setupGlucoseDailyStats()
-            units = settingsManager.settings.units
-            eA1cDisplayUnit = settingsManager.settings.eA1cDisplayUnit
-            useFPUconversion = settingsManager.settings.useFPUconversion
-            timeInRangeType = settingsManager.settings.timeInRangeType
         }
 
         func setupGlucoseArray(for interval: StatsTimeIntervalWithToday) {
@@ -97,12 +91,6 @@ extension Stat {
                 // Load data for current interval (existing code)
                 let ids = await fetchGlucose(for: interval)
                 await updateGlucoseArray(with: ids)
-
-                // Also ensure we have the full dataset loaded
-                if glucoseReadings.isEmpty {
-                    let allIds = await fetchGlucose(for: .total)
-                    await updateAllGlucoseArray(with: allIds)
-                }
 
                 // Calculate hourly stats and glucose range stats asynchronously with fetched glucose IDs
                 async let hourlyStats: () = calculateHourlyStatsForGlucoseAreaChart(from: ids)
@@ -165,46 +153,17 @@ extension Stat {
 
         @MainActor private func updateGlucoseArray(with IDs: [NSManagedObjectID]) {
             do {
-                let glucoseObjects = try IDs.compactMap { id in
-                    try viewContext.existingObject(with: id) as? GlucoseStored
+                let readings = try IDs.compactMap { id -> GlucoseReading? in
+                    guard let object = try viewContext.existingObject(with: id) as? GlucoseStored,
+                          let date = object.date else { return nil }
+                    return GlucoseReading(value: Int(object.glucose), date: date)
                 }
-                glucoseFromPersistence = glucoseObjects
+                glucoseFromPersistence = readings
             } catch {
                 debugPrint(
                     "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the glucose array: \(error)"
                 )
             }
-        }
-
-        @MainActor private func updateAllGlucoseArray(with IDs: [NSManagedObjectID]) {
-            do {
-                let glucoseObjects = try IDs.compactMap { id in
-                    try viewContext.existingObject(with: id) as? GlucoseStored
-                }
-                glucoseReadings = glucoseObjects
-            } catch {
-                debugPrint(
-                    "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the all glucose array: \(error.localizedDescription)"
-                )
-            }
-        }
-    }
-
-    @Observable final class UpdateTimer {
-        private var workItem: DispatchWorkItem?
-
-        /// Schedules a delayed update action
-        /// - Parameter action: The closure to execute after the delay
-        /// Cancels any previously scheduled update before scheduling a new one
-        func scheduleUpdate(action: @escaping () -> Void) {
-            workItem?.cancel()
-
-            let newWorkItem = DispatchWorkItem {
-                action()
-            }
-            workItem = newWorkItem
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: newWorkItem)
         }
     }
 }

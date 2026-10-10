@@ -7,8 +7,6 @@ import SwiftUI
 /// It includes the 10-90 percentile, 25-75 percentile, median glucose values,
 /// and high/low glucose limits.
 struct GlucosePercentileChart: View {
-    /// The list of stored glucose values.
-    let glucose: [GlucoseStored]
     /// The upper glucose limit for the chart.
     let highLimit: Decimal
     /// TITR or TING
@@ -51,6 +49,13 @@ struct GlucosePercentileChart: View {
     }
 
     var body: some View {
+        let thresholds = StatChartUtils.glucoseThresholds(timeInRangeType: timeInRangeType, highLimit: highLimit, units: units)
+
+        let seriesScale: [(label: String, color: Color)] = [
+            ("10-90%", .blue.opacity(0.3)),
+            ("25-75%", .blue.opacity(0.5)),
+            ("Median", .blue)
+        ] + thresholds.map { ($0.label, $0.color) }
         VStack(alignment: .leading, spacing: 8) {
             Text("Ambulatory Glucose Profile (AGP)")
                 .font(.headline)
@@ -90,19 +95,11 @@ struct GlucosePercentileChart: View {
                     }
                 }
 
-                // High/Low limit lines
-                RuleMark(y: .value("Low Limit", Double(timeInRangeType.bottomThreshold).asUnit(units)))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                    .foregroundStyle(by: .value("Series", "\(timeInRangeType.bottomThreshold.formatted(withUnits: units))"))
-
-                RuleMark(y: .value("Mid Limit", Double(timeInRangeType.topThreshold).asUnit(units)))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                    .foregroundStyle(by: .value("Series", "\(timeInRangeType.topThreshold.formatted(withUnits: units))"))
-
-                RuleMark(y: .value("High Limit", Double(highLimit.asUnit(units))))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                    .foregroundStyle(by: .value("Series", "\(highLimit.formatted(withUnits: units))"))
-
+                ForEach(thresholds, id: \.label) { threshold in
+                    RuleMark(y: .value("Limit", threshold.value))
+                        .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                        .foregroundStyle(by: .value("Series", threshold.label))
+                }
                 if let selectedStats, let selection {
                     RuleMark(x: .value("Selection", selection))
                         .foregroundStyle(Color.blue.opacity(0.5))
@@ -119,32 +116,10 @@ struct GlucosePercentileChart: View {
                         }
                 }
             }
-            .chartForegroundStyleScale([
-                "10-90%": Color.blue.opacity(0.3),
-                "25-75%": Color.blue.opacity(0.5),
-                "Median": Color.blue,
-                "\(timeInRangeType.bottomThreshold.formatted(withUnits: units))": Color.staticLow,
-                "\(timeInRangeType.topThreshold.formatted(withUnits: units))": Color.staticInRange,
-                "\(highLimit.formatted(withUnits: units))": Color.staticHigh
-            ])
-            .chartLegend(position: .bottom, alignment: .leading, spacing: 12) {
-                let legendItems: [(String, Color)] = [
-                    ("10-90%", Color.blue.opacity(0.3)),
-                    ("25-75%", Color.blue.opacity(0.5)),
-                    (String(localized: "Median"), Color.blue),
-                    (String(localized: "\(timeInRangeType.bottomThreshold.formatted(withUnits: units))"), Color.staticLow),
-                    (String(localized: "\(timeInRangeType.topThreshold.formatted(withUnits: units))"), Color.staticInRange),
-                    (String(localized: "\(highLimit.formatted(withUnits: units))"), Color.staticHigh)
-                ]
-
-                let columns = [GridItem(.adaptive(minimum: 100), spacing: 4)]
-
-                LazyVGrid(columns: columns, alignment: .leading, spacing: 4) {
-                    ForEach(legendItems, id: \.0) { item in
-                        StatChartUtils.legendItem(label: item.0, color: item.1)
-                    }
-                }
-            }
+            .chartForegroundStyleScale(
+                domain: seriesScale.map(\.label),
+                range: seriesScale.map(\.color)
+            )
             .chartYScale(domain: minYValue ... maxYValue)
             .chartYAxis {
                 AxisMarks(position: .trailing) { value in
@@ -166,22 +141,7 @@ struct GlucosePercentileChart: View {
                     .font(.footnote)
                     .padding(.vertical, 3)
             }
-            .chartXAxis {
-                AxisMarks(preset: .aligned, values: .stride(by: .hour, count: 3)) { value in
-                    if let date = value.as(Date.self) {
-                        let hour = Calendar.current.component(.hour, from: date)
-                        switch hour {
-                        case 0,
-                             12:
-                            AxisValueLabel(format: .dateTime.hour(), anchor: .top)
-                        default:
-                            AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .omitted)), anchor: .top)
-                        }
-
-                        AxisGridLine()
-                    }
-                }
-            }
+            .chartXAxis { StatChartUtils.timeOfDayAxisMarks() }
             .chartXSelection(value: $selection.animation(.easeInOut))
             .frame(height: 200)
             .accessibilityElement(children: .ignore)
@@ -198,17 +158,9 @@ struct AGPSelectionPopover: View {
 
     @Environment(\.colorScheme) var colorScheme
 
-    private var timeText: String {
-        if let hour = Calendar.current.dateComponents([.hour], from: time).hour {
-            return "\(hour):00-\(hour + 1):00"
-        } else {
-            return time.formatted(.dateTime.hour().minute())
-        }
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(timeText).bold().font(.subheadline)
+            Text(StatChartUtils.hourRangeText(for: time)).bold().font(.subheadline)
 
             Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 4) {
                 GridRow {
@@ -248,12 +200,5 @@ struct AGPSelectionPopover: View {
                         .stroke(Color.blue, lineWidth: 2)
                 )
         }
-    }
-}
-
-private extension Calendar {
-    func startOfHour(for date: Date) -> Date {
-        let components = dateComponents([.year, .month, .day, .hour], from: date)
-        return self.date(from: components) ?? date
     }
 }

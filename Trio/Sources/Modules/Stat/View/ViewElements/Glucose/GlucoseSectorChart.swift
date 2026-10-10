@@ -1,180 +1,150 @@
 import Charts
-import CoreData
-import SwiftDate
 import SwiftUI
 
-struct GlucoseSectorChart: View {
+struct GlucoseSectorChart: View, Equatable {
+    private typealias RangeData = [(range: GlucoseRange, count: Int, color: Color)]
+
     let highLimit: Decimal
     let units: GlucoseUnits
-    let glucose: [GlucoseStored]
+    let glucose: [GlucoseReading]
     let timeInRangeType: TimeInRangeType
     let showChart: Bool
 
     @State private var selectedCount: Int?
     @State private var selectedRange: GlucoseRange?
 
+    static func == (lhs: GlucoseSectorChart, rhs: GlucoseSectorChart) -> Bool {
+        lhs.highLimit == rhs.highLimit && lhs.units == rhs.units && lhs.glucose == rhs.glucose &&
+            lhs.timeInRangeType == rhs.timeInRangeType && lhs.showChart == rhs.showChart
+    }
+
     /// Represents the different ranges of glucose values that can be displayed in the sector chart
     /// - high: Above target range
     /// - inRange: Within target range
     /// - low: Below target range
-    private enum GlucoseRange: String, Plottable {
-        case high = "High"
-        case inRange = "In Range"
-        case low = "Low"
+    private enum GlucoseRange {
+        case high
+        case inRange
+        case low
+    }
+
+    private func bandRow(label: String, value: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(label)
+                .font(.subheadline)
+                .foregroundStyle(Color.secondary)
+            Text(value)
+                .foregroundStyle(color)
+        }
+    }
+
+    private func infoFor(_ band: GlucoseBand) -> (label: String, color: Color) {
+        StatChartUtils.glucoseBandDisplayInfo(for: band, units: units, timeInRangeType: timeInRangeType, highLimit: highLimit)
+    }
+
+    private func shareOf(_ count: Int) -> Decimal {
+        Decimal(count) / Decimal(glucose.count) * 100
     }
 
     var body: some View {
-        if glucose.count < 1 {
+        if glucose.isEmpty {
             Text("No glucose readings found.")
         } else {
+            let grouped = Dictionary(grouping: glucose) { reading in
+                GlucoseBand.classify(
+                    reading.value,
+                    bottom: timeInRangeType.bottomThreshold,
+                    top: timeInRangeType.topThreshold,
+                    highLimit: Int(highLimit)
+                )
+            }
+
+            let chartData = makeRangeData(from: grouped)
             HStack(alignment: .center, spacing: 20) {
-                // Calculate total number of glucose readings
-                let total = Decimal(glucose.count)
                 // Count readings greater than high limit (180 mg/dL)
-                let high = glucose.filter { $0.glucose > Int(highLimit) }.count
+                let high = grouped[.high]?.count ?? 0
                 // Count readings between low limit (TITR: 70 mg/dL, TING 63 mg/dL) and 140 mg/dL (tight control)
-                let tight = glucose
-                    .filter { $0.glucose >= timeInRangeType.bottomThreshold && $0.glucose <= timeInRangeType.topThreshold }.count
+                let tight = grouped[.tight]?.count ?? 0
                 // Count readings between 140 and high limit (normal range)
-                let normal = glucose.filter { $0.glucose >= timeInRangeType.bottomThreshold && $0.glucose <= Int(highLimit) }
-                    .count
-                // Count readings less than low limit (low) (70 mg/dL if not showing chart, otherwise 70 for TITR and 63 for TING)
-                let low = glucose.filter { $0.glucose < (showChart ? Int(timeInRangeType.bottomThreshold) : 70) }.count
-                // Count readings less than moderately low limit (63 mg/dL)
-                let moderatelyLow = glucose.filter { $0.glucose < 63 }.count
-                // Count readings less than moderately high limit (220 mg/dL)
-                let moderatelyHigh = glucose.filter { $0.glucose > 220 }.count
+                let upperMid = grouped[.upperMid]?.count ?? 0
+                // Count readings less than low limit (low) (70 for TITR and 63 for TING)
+                let low = grouped[.low]?.count ?? 0
                 // Count readings less than very low limit (54 mg/dL)
-                let veryLow = glucose.filter { $0.glucose < 54 }.count
+                let veryLow = grouped[.veryLow]?.count ?? 0
                 // Count readings less than very high limit (250 mg/dL)
-                let veryHigh = glucose.filter { $0.glucose > 250 }.count
-
-                let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
-                let sumReadings = justGlucoseArray.reduce(0, +)
-
-                let glucoseAverage = Decimal(sumReadings) / total
-                let medianGlucose = StatChartUtils.medianCalculation(array: justGlucoseArray)
-
-                let lowPercentage = Decimal(low) / total * 100
-                let tightPercentage = Decimal(tight) / total * 100
-                let inRangePercentage = Decimal(normal) / total * 100
-                let highPercentage = Decimal(high) / total * 100
-                let moderatelyLowPercentage = Decimal(moderatelyLow) / total * 100
-                let moderatelyHighPercentage = Decimal(moderatelyHigh) / total * 100
-                let veryLowPercentage = Decimal(veryLow) / total * 100
-                let veryHighPercentage = Decimal(veryHigh) / total * 100
+                let veryHigh = grouped[.veryHigh]?.count ?? 0
 
                 VStack(alignment: .leading, spacing: 10) {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(
-                            "\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(highLimit.formatted(for: units))"
-                        )
-                        .font(.subheadline)
-                        .foregroundStyle(Color.secondary)
-                        Text(formatPercentage(inRangePercentage, tight: true))
-                            .foregroundStyle(Color.dynamicTeal)
-                    }
+                    let veryLowInfo = infoFor(.veryLow)
+                    let upperMidInfo = infoFor(.upperMid)
+                    bandRow(
+                        label: veryLowInfo.label,
+                        value: StatChartUtils.formatPercentage(shareOf(veryLow)),
+                        color: veryLowInfo.color
+                    )
+                    bandRow(
+                        label: upperMidInfo.label,
+                        value: StatChartUtils.formatPercentage(shareOf(upperMid)),
+                        color: upperMidInfo.color
+                    )
 
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(
-                            "\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(Decimal(timeInRangeType.topThreshold).formatted(for: units))"
-                        )
-                        .font(.subheadline)
-                        .foregroundStyle(Color.secondary)
-                        Text(formatPercentage(tightPercentage, tight: true))
-                            .foregroundStyle(Color.dynamicGreen)
-                    }
                 }.padding(.leading, 5)
 
                 VStack(alignment: .leading, spacing: 10) {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("> \(highLimit.formatted(for: units))").font(.subheadline)
-                            .foregroundStyle(Color.secondary)
-                        Text(formatPercentage(highPercentage, tight: true))
-                            .foregroundStyle(showChart ? Color.dynamicPurple : Color.dynamicBlue)
-                    }
-
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(
-                            "< \(Decimal(showChart ? timeInRangeType.bottomThreshold : 70).formatted(for: units))"
-                        )
-                        .font(.subheadline)
-                        .foregroundStyle(Color.secondary)
-                        Text(formatPercentage(lowPercentage, tight: true))
-                            .foregroundStyle(showChart ? Color.dynamicRed : Color.dynamicOrange)
-                    }
-                }
-                // If not showing chart, show extra stats
-                if !showChart {
-                    VStack(alignment: .leading, spacing: 10) {
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("> \(Decimal(220).formatted(for: units))").font(.subheadline)
-                                .foregroundStyle(Color.secondary)
-                            Text(formatPercentage(moderatelyHighPercentage, tight: true))
-                                .foregroundStyle(Color.dynamicBlue)
-                        }
-
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(
-                                "< \(Decimal(63).formatted(for: units))"
-                            )
-                            .font(.subheadline)
-                            .foregroundStyle(Color.secondary)
-                            Text(formatPercentage(moderatelyLowPercentage, tight: true))
-                                .foregroundStyle(Color.dynamicOrange)
-                        }
-                    }
-                    VStack(alignment: .leading, spacing: 10) {
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("> \(Decimal(250).formatted(for: units))").font(.subheadline)
-                                .foregroundStyle(Color.secondary)
-                            Text(formatPercentage(veryHighPercentage, tight: true))
-                                .foregroundStyle(Color.dynamicPurple)
-                        }
-
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(
-                                "< \(Decimal(54).formatted(for: units))"
-                            )
-                            .font(.subheadline)
-                            .foregroundStyle(Color.secondary)
-                            Text(formatPercentage(veryLowPercentage, tight: true))
-                                .foregroundStyle(Color.dynamicRed)
-                        }
-                    }
-                }
-
+                    let lowInfo = infoFor(.low)
+                    let highInfo = infoFor(.high)
+                    bandRow(
+                        label: lowInfo.label,
+                        value: StatChartUtils.formatPercentage(shareOf(low)),
+                        color: lowInfo.color
+                    )
+                    bandRow(
+                        label: highInfo.label,
+                        value: StatChartUtils.formatPercentage(shareOf(high)),
+                        color: highInfo.color
+                    )
+                }.padding(.leading, 5)
                 VStack(alignment: .leading, spacing: 10) {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(showChart ? "Average" : "Avg").font(.subheadline).foregroundStyle(Color.secondary)
-                        Text(
-                            units == .mgdL ? glucoseAverage
-                                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) : glucoseAverage
-                                .asMmolL
-                                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
-                        )
-                    }
+                    let tightInfo = infoFor(.tight)
+                    let veryHighInfo = infoFor(.veryHigh)
+                    bandRow(
+                        label: tightInfo.label,
+                        value: StatChartUtils.formatPercentage(shareOf(tight)),
+                        color: tightInfo.color
+                    )
+                    bandRow(
+                        label: veryHighInfo.label,
+                        value: StatChartUtils.formatPercentage(shareOf(veryHigh)),
+                        color: veryHighInfo.color
+                    )
+                }.padding(.leading, 5)
 
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(showChart ? "Median" : "Med").font(.subheadline).foregroundStyle(Color.secondary)
-                        Text(
-                            units == .mgdL ? medianGlucose
-                                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) : medianGlucose
-                                .asMmolL
-                                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
-                        )
-                    }
-                }
+                if !showChart {
+                    let summary = StatChartUtils.summaryStats(for: glucose.map(\.value))
 
-                if showChart {
+                    VStack(alignment: .leading, spacing: 10) {
+                        bandRow(
+                            label: "Average",
+                            value: summary.average.formattedAsGlucose(for: units),
+                            color: .primary
+                        )
+                        bandRow(
+                            label: "Median",
+                            value: summary.median.formattedAsGlucose(for: units),
+                            color: .primary
+                        )
+                    }.padding(.leading, 5)
+
+                } else {
                     Chart {
-                        ForEach(rangeData, id: \.range) { data in
+                        ForEach(chartData, id: \.range) { data in
                             SectorMark(
                                 angle: .value("Percentage", data.count),
                                 innerRadius: .ratio(0.618),
                                 outerRadius: selectedRange == data.range ? 100 : 80
                             )
                             .foregroundStyle(data.color)
+                            .opacity(selectedRange == nil || selectedRange == data.range ? 1 : 0.3)
                         }
                     }
                     .chartAngleSelection(value: $selectedCount)
@@ -184,19 +154,13 @@ struct GlucoseSectorChart: View {
                 }
             }
             .onChange(of: selectedCount) { _, newValue in
-                if let newValue {
-                    withAnimation {
-                        getSelectedRange(value: newValue)
-                    }
-                } else {
-                    withAnimation {
-                        selectedRange = nil
-                    }
+                withAnimation {
+                    selectedRange = newValue.flatMap { getSelectedRange(for: $0, in: chartData) }
                 }
             }
             .overlay(alignment: .top) {
                 if let selectedRange {
-                    let data = getDetailedData(for: selectedRange)
+                    let data = getDetailedData(for: selectedRange, from: grouped)
                     RangeDetailPopover(data: data)
                         .transition(.scale.combined(with: .opacity))
                         .offset(y: -150) // TODO: make this dynamic
@@ -218,23 +182,19 @@ struct GlucoseSectorChart: View {
     ///   - count: Number of readings in that range
     ///   - percentage: Percentage of total readings in that range
     ///   - color: Color used to represent that range in the chart
-    private var rangeData: [(range: GlucoseRange, count: Int, percentage: Decimal, color: Color)] {
-        let total = glucose.count
-        // Return empty array if no glucose readings available
-        guard total > 0 else { return [] }
-
-        // Count readings above high limit
-        let highCount = glucose.filter { $0.glucose > Int(highLimit) }.count
+    private func makeRangeData(from grouped: [GlucoseBand: [GlucoseReading]]) -> RangeData {
         // Count readings below low limit
-        let lowCount = glucose.filter { $0.glucose < timeInRangeType.bottomThreshold }.count
+        let lowCount = (grouped[.low]?.count ?? 0) + (grouped[.veryLow]?.count ?? 0)
         // Calculate in-range readings by subtracting high and low counts from total
-        let inRangeCount = total - highCount - lowCount
+        let inRangeCount = (grouped[.tight]?.count ?? 0) + (grouped[.upperMid]?.count ?? 0)
+        // Count readings above high limit
+        let highCount = (grouped[.high]?.count ?? 0) + (grouped[.veryHigh]?.count ?? 0)
 
         // Return array of tuples with range data
         return [
-            (.high, highCount, Decimal(highCount) / Decimal(total) * 100, .dynamicPurple),
-            (.inRange, inRangeCount, Decimal(inRangeCount) / Decimal(total) * 100, .dynamicGreen),
-            (.low, lowCount, Decimal(lowCount) / Decimal(total) * 100, .dynamicRed)
+            (.high, highCount, .dynamicPurple),
+            (.inRange, inRangeCount, .dynamicGreen),
+            (.low, lowCount, .dynamicRed)
         ]
     }
 
@@ -245,19 +205,14 @@ struct GlucoseSectorChart: View {
     /// It updates the selectedRange state variable when the appropriate range is found.
     ///
     /// - Parameter value: An integer representing a point in the cumulative total of readings
-    private func getSelectedRange(value: Int) {
+    private func getSelectedRange(for value: Int, in data: RangeData) -> GlucoseRange? {
         // Keep track of running total as we check each range
         var cumulativeTotal = 0
-
-        // Find first range where value falls within its cumulative count
-        _ = rangeData.first { data in
-            cumulativeTotal += data.count
-            if value <= cumulativeTotal {
-                selectedRange = data.range
-                return true
-            }
-            return false
+        for entry in data {
+            cumulativeTotal += entry.count
+            if value <= cumulativeTotal { return entry.range }
         }
+        return nil
     }
 
     /// Gets detailed statistics for a specific glucose range category
@@ -267,134 +222,98 @@ struct GlucoseSectorChart: View {
     ///
     /// - Parameter range: The glucose range category to analyze
     /// - Returns: A RangeDetail object containing the title, color and detailed statistics
-    private func getDetailedData(for range: GlucoseRange) -> RangeDetail {
-        let total = Decimal(glucose.count)
-
+    private func getDetailedData(
+        for range: GlucoseRange,
+        from grouped: [GlucoseBand: [GlucoseReading]]
+    ) -> RangeDetail {
         switch range {
         case .high:
-            let veryHigh = glucose.filter { $0.glucose > 250 }.count
-            let high = glucose.filter { $0.glucose > Int(highLimit) && $0.glucose <= 250 }.count
+            let veryHigh = grouped[.veryHigh]?.count ?? 0
+            let high = grouped[.high]?.count ?? 0
 
-            let highGlucoseValues = glucose.filter { $0.glucose > Int(highLimit) }
-            let highGlucoseValuesAsInt = highGlucoseValues.map { Int($0.glucose) }
-            let (average, median, standardDeviation) = calculateDetailedStatistics(for: highGlucoseValuesAsInt)
+            let highGlucoseValues = ((grouped[.high] ?? []) + (grouped[.veryHigh] ?? [])).map(\.value)
+            let summary = StatChartUtils.summaryStats(for: highGlucoseValues)
 
             return RangeDetail(
                 title: String(localized: "High Glucose"),
                 color: .dynamicPurple,
-                items: [
+                percentages: [
                     (
-                        String(localized: "Very High (>\(Decimal(250).formatted(for: units)))"),
-                        formatPercentage(Decimal(veryHigh) / total * 100)
+                        String(localized: "Very High (\(infoFor(.veryHigh).label))"),
+                        StatChartUtils.formatPercentage(shareOf(veryHigh))
                     ),
                     (
-                        String(localized: "High (\(highLimit.formatted(for: units))-\(Decimal(250).formatted(for: units)))"),
-                        formatPercentage(Decimal(high) / total * 100)
-                    ),
-                    (String(localized: "Average"), average.formatted(for: units)),
-                    (String(localized: "Median"), median.formatted(for: units)),
-                    (String(localized: "SD"), formatSD(standardDeviation))
+                        String(localized: "High (\(infoFor(.high).label))"),
+                        StatChartUtils.formatPercentage(shareOf(high))
+                    )
+                ],
+                statistics: [
+                    (String(localized: "Average"), summary.average.formattedAsGlucose(for: units)),
+                    (String(localized: "Median"), summary.median.formattedAsGlucose(for: units)),
+                    (String(localized: "SD"), summary.standardDeviation.formattedAsGlucose(for: units))
                 ]
             )
 
         case .inRange:
-            let tight = glucose
-                .filter { $0.glucose >= Int(timeInRangeType.bottomThreshold) && $0.glucose <= timeInRangeType.topThreshold }.count
-            let glucoseValues = glucose.filter { $0.glucose >= timeInRangeType.bottomThreshold && $0.glucose <= Int(highLimit) }
-            let glucoseValuesAsInt = glucoseValues.map { Int($0.glucose) }
-            let (average, median, standardDeviation) = calculateDetailedStatistics(for: glucoseValuesAsInt)
+            let tight = grouped[.tight]?.count ?? 0
+            let upperMid = grouped[.upperMid]?.count ?? 0
+            let glucoseValues = ((grouped[.tight] ?? []) + (grouped[.upperMid] ?? [])).map(\.value)
+
+            let summary = StatChartUtils.summaryStats(for: glucoseValues)
 
             return RangeDetail(
                 title: String(localized: "In Range"),
                 color: .dynamicGreen,
-                items: [
+                percentages: [
                     (
                         String(
-                            localized: "Normal (\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(highLimit.formatted(for: units)))"
+                            localized: "Normal (\(infoFor(.upperMid).label))"
                         ),
-                        formatPercentage(Decimal(glucoseValues.count) / total * 100)
+                        StatChartUtils.formatPercentage(shareOf(upperMid))
                     ),
                     (
                         String(
-                            localized: "\(timeInRangeType == .timeInTightRange ? "TITR" : "TING") (\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(Decimal(timeInRangeType.topThreshold).formatted(for: units)))"
+                            localized: "\(timeInRangeType == .timeInTightRange ? "TITR" : "TING") (\(infoFor(.tight).label))"
                         ),
-                        formatPercentage(Decimal(tight) / total * 100)
-                    ),
-                    (String(localized: "Average"), average.formatted(for: units)),
-                    (String(localized: "Median"), median.formatted(for: units)),
-                    (String(localized: "SD"), formatSD(standardDeviation))
+                        StatChartUtils.formatPercentage(shareOf(tight))
+                    )
+                ],
+                statistics: [
+                    (String(localized: "Average"), summary.average.formattedAsGlucose(for: units)),
+                    (String(localized: "Median"), summary.median.formattedAsGlucose(for: units)),
+                    (String(localized: "SD"), summary.standardDeviation.formattedAsGlucose(for: units))
                 ]
             )
 
         case .low:
-            let veryLow = glucose.filter { $0.glucose <= 54 }.count
-            let low = glucose.filter { $0.glucose > 54 && $0.glucose < timeInRangeType.bottomThreshold }.count
+            let veryLow = grouped[.veryLow]?.count ?? 0
+            let low = grouped[.low]?.count ?? 0
 
-            let lowGlucoseValues = glucose.filter { $0.glucose < timeInRangeType.bottomThreshold }
-            let lowGlucoseValuesAsInt = lowGlucoseValues.map { Int($0.glucose) }
-            let (average, median, standardDeviation) = calculateDetailedStatistics(for: lowGlucoseValuesAsInt)
+            let lowGlucoseValues = ((grouped[.veryLow] ?? []) + (grouped[.low] ?? [])).map(\.value)
+            let summary = StatChartUtils.summaryStats(for: lowGlucoseValues)
 
             return RangeDetail(
                 title: String(localized: "Low Glucose"),
                 color: .dynamicRed,
-                items: [
+                percentages: [
                     (
                         String(
-                            localized: "Low (\(Decimal(54).formatted(for: units))-\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units)))"
+                            localized: "Low (\(infoFor(.low).label))"
                         ),
-                        formatPercentage(Decimal(low) / total * 100)
+                        StatChartUtils.formatPercentage(shareOf(low))
                     ),
                     (
-                        String(localized: "Very Low (<\(Decimal(54).formatted(for: units)))"),
-                        formatPercentage(Decimal(veryLow) / total * 100)
-                    ),
-                    (String(localized: "Average"), average.formatted(for: units)),
-                    (String(localized: "Median"), median.formatted(for: units)),
-                    (String(localized: "SD"), formatSD(standardDeviation))
+                        String(localized: "Very Low (\(infoFor(.veryLow).label))"),
+                        StatChartUtils.formatPercentage(shareOf(veryLow))
+                    )
+                ],
+                statistics: [
+                    (String(localized: "Average"), summary.average.formattedAsGlucose(for: units)),
+                    (String(localized: "Median"), summary.median.formattedAsGlucose(for: units)),
+                    (String(localized: "SD"), summary.standardDeviation.formattedAsGlucose(for: units))
                 ]
             )
         }
-    }
-
-    /// Formats a percentage value to a string with one decimal place.
-    /// - Parameter value: A decimal value representing the percentage.
-    /// - Returns: A formatted percentage string
-    private func formatPercentage(_ value: Decimal, tight: Bool = false) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .percent
-        formatter.minimumFractionDigits = value == 100 ? 0 : 1
-        formatter.maximumFractionDigits = value == 100 ? 0 : 1
-        if tight {
-            formatter.positiveSuffix = "%"
-        }
-        return formatter.string(from: NSDecimalNumber(decimal: value / 100)) ?? "0%"
-    }
-
-    /// Calculates statistical values for a given array of glucose readings.
-    /// - Parameter values: An array of glucose readings as integers.
-    /// - Returns: A tuple containing the average, median, and standard deviation.
-    private func calculateDetailedStatistics(for values: [Int]) -> (Decimal, Decimal, Double) {
-        guard !values.isEmpty else { return (0, 0, 0) }
-
-        let total = values.reduce(0, +)
-        let average = Decimal(total / values.count)
-        let median = Decimal(StatChartUtils.medianCalculation(array: values))
-
-        let sumOfSquares = values.reduce(0.0) { sum, value in
-            sum + pow(Double(value) - Double(average), 2)
-        }
-
-        let standardDeviation = sqrt(sumOfSquares / Double(values.count))
-        return (average, median, standardDeviation)
-    }
-
-    /// Formats the standard deviation value based on glucose units.
-    /// - Parameter sd: The standard deviation as a Double.
-    /// - Returns: A formatted string representing the standard deviation.
-    private func formatSD(_ sd: Double) -> String {
-        units == .mgdL ? sd.formatted(
-            .number.grouping(.never).rounded().precision(.fractionLength(0))
-        ) : sd.formattedAsMmolL
     }
 }
 
@@ -405,7 +324,8 @@ private struct RangeDetail {
     /// The color used to represent this range in the UI
     let color: Color
     /// Array of tuples containing label and percentage for each sub-range
-    let items: [(label: String, value: String)]
+    let percentages: [(label: String, value: String)]
+    let statistics: [(label: String, value: String)]
 }
 
 /// A popover view that displays detailed breakdown of glucose percentages for a range category
@@ -422,27 +342,21 @@ private struct RangeDetailPopover: View {
                 .foregroundStyle(data.color)
                 .padding(.bottom, 4)
 
-            ForEach(Array(data.items.enumerated()), id: \..offset) { index, item in
-                if index < 2 {
-                    HStack {
+            ForEach(data.percentages, id: \.label) { item in
+                HStack {
+                    Text(item.label)
+                    Text(item.value).bold()
+                }
+                .font(.footnote)
+            }
+
+            HStack(spacing: 20) {
+                ForEach(data.statistics, id: \.label) { item in
+                    VStack(alignment: .leading, spacing: 5) {
                         Text(item.label)
                         Text(item.value).bold()
                     }
                     .font(.footnote)
-                }
-            }
-
-            HStack(spacing: 20) {
-                ForEach(Array(data.items.enumerated()), id: \..offset) { index, item in
-                    if index > 1 {
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(item.label)
-                            HStack {
-                                Text(item.value).bold()
-                            }
-                        }
-                        .font(.footnote)
-                    }
                 }
             }
         }

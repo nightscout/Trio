@@ -3,7 +3,7 @@ import Foundation
 
 /// Represents statistical data about bolus insulin for a specific time period
 struct BolusStats: Identifiable {
-    let id = UUID()
+    var id: Date { date }
     /// The date representing this time period
     let date: Date
     /// Total manual bolus insulin in units
@@ -30,13 +30,22 @@ extension Stat.StateModel {
                     self.hourlyBolusStats = hourly
                     self.dailyBolusStats = daily
                 }
-
-                // Initially calculate and cache daily averages
-                await calculateAndCacheBolusAveragesAndTotals()
             } catch {
                 debug(.default, "\(DebuggingIdentifiers.failed) failed to setup bolus stats: \(error)")
             }
         }
+    }
+
+    private static func makeStats(date: Date, entries: [(date: Date, entry: BolusStored)]) -> BolusStats {
+        let sums = entries.reduce((manual: 0.0, smb: 0.0, external: 0.0)) { acc, item in
+            let amount = item.entry.amount?.doubleValue ?? 0
+
+            if item.entry.isSMB { return (acc.manual, acc.smb + amount, acc.external) }
+            if item.entry.isExternal { return (acc.manual, acc.smb, acc.external + amount) }
+
+            return (acc.manual + amount, acc.smb, acc.external)
+        }
+        return BolusStats(date: date, manualBolus: sums.manual, smb: sums.smb, external: sums.external)
     }
 
     /// Fetches and processes bolus statistics from Core Data
@@ -75,149 +84,29 @@ extension Stat.StateModel {
 
             // Group entries by hour for hourly statistics
             let now = Date()
-            let twentyDaysAgo = Calendar.current.date(byAdding: .day, value: -20, to: now) ?? now
+            let twentyDaysAgo = calendar.date(byAdding: .day, value: -StatChartUtils.hourlyWindowDays, to: now)!
 
-            let hourlyGrouped = Dictionary(grouping: fetchedResults.filter { entry in
-                guard let date = entry.pumpEvent?.timestamp else { return false }
-                return date >= twentyDaysAgo && date <= now
-            }) { entry in
-                let components = calendar.dateComponents(
-                    [.year, .month, .day, .hour],
-                    from: entry.pumpEvent?.timestamp ?? Date()
-                )
-                return calendar.date(from: components) ?? Date()
+            let validEntries = fetchedResults.compactMap { entry -> (date: Date, entry: BolusStored)? in
+                guard let date = entry.pumpEvent?.timestamp else { return nil }
+                return (date, entry)
             }
+            let lastTwentyDays = validEntries.filter { $0.date >= twentyDaysAgo && $0.date <= now }
 
-            // Group entries by day for daily statistics
-            let dailyGrouped = Dictionary(grouping: fetchedResults) { entry in
-                calendar.startOfDay(for: entry.pumpEvent?.timestamp ?? Date())
+            let hourlyGrouped = Dictionary(grouping: lastTwentyDays) {
+                calendar.date(from: calendar.dateComponents([.year, .month, .day, .hour], from: $0.date))!
             }
+            let dailyGrouped = Dictionary(grouping: validEntries) { calendar.startOfDay(for: $0.date) }
 
             // Process hourly stats
-            hourlyStats = hourlyGrouped.keys.sorted().map { timePoint in
-                let entries = hourlyGrouped[timePoint, default: []]
-                return BolusStats(
-                    date: timePoint,
-                    manualBolus: entries.reduce(0.0) { sum, entry in
-                        if !entry.isSMB, !entry.isExternal {
-                            return sum + (entry.amount?.doubleValue ?? 0)
-                        }
-                        return sum
-                    },
-                    smb: entries.reduce(0.0) { sum, entry in
-                        if entry.isSMB {
-                            return sum + (entry.amount?.doubleValue ?? 0)
-                        }
-                        return sum
-                    },
-                    external: entries.reduce(0.0) { sum, entry in
-                        if entry.isExternal {
-                            return sum + (entry.amount?.doubleValue ?? 0)
-                        }
-                        return sum
-                    }
-                )
+            hourlyStats = hourlyGrouped.sorted { $0.key < $1.key }.map {
+                Self.makeStats(date: $0.key, entries: $0.value)
             }
-
-            // Process daily stats
-            dailyStats = dailyGrouped.keys.sorted().map { timePoint in
-                let entries = dailyGrouped[timePoint, default: []]
-                return BolusStats(
-                    date: timePoint,
-                    manualBolus: entries.reduce(0.0) { sum, entry in
-                        if !entry.isSMB, !entry.isExternal {
-                            return sum + (entry.amount?.doubleValue ?? 0)
-                        }
-                        return sum
-                    },
-                    smb: entries.reduce(0.0) { sum, entry in
-                        if entry.isSMB {
-                            return sum + (entry.amount?.doubleValue ?? 0)
-                        }
-                        return sum
-                    },
-                    external: entries.reduce(0.0) { sum, entry in
-                        if entry.isExternal {
-                            return sum + (entry.amount?.doubleValue ?? 0)
-                        }
-                        return sum
-                    }
-                )
+            dailyStats = dailyGrouped.sorted { $0.key < $1.key }.map {
+                Self.makeStats(date: $0.key, entries: $0.value)
             }
         }
 
         return (hourlyStats, dailyStats)
-    }
-
-    /// Calculates and caches the daily averages of bolus insulin
-    ///
-    /// This function:
-    /// 1. Groups bolus statistics by day
-    /// 2. Calculates average total, carb and correction bolus for each day
-    /// 3. Caches the results for later use
-    ///
-    /// This only needs to be called once during subscribe.
-    private func calculateAndCacheBolusAveragesAndTotals() async {
-        let bolusTaskContext = CoreDataStack.shared.newTaskContext()
-        bolusTaskContext.name = "StatStateModel.calculateAndCacheBolusAveragesAndTotals"
-
-        let calendar = Calendar.current
-
-        // Calculate averages in context
-        let dailyAverages = await bolusTaskContext.perform { [dailyBolusStats] in
-            // Group by days
-            let groupedByDay = Dictionary(grouping: dailyBolusStats) { stat in
-                calendar.startOfDay(for: stat.date)
-            }
-
-            // Calculate averages for each day
-            var averages: [Date: (Double, Double, Double)] = [:]
-            for (day, stats) in groupedByDay {
-                let total = stats.reduce((0.0, 0.0, 0.0)) { acc, stat in
-                    (acc.0 + stat.manualBolus, acc.1 + stat.smb, acc.2 + stat.external)
-                }
-                let count = Double(stats.count)
-                averages[day] = (total.0 / count, total.1 / count, total.2 / count)
-            }
-            return averages
-        }
-
-        // Calculate averages in context
-        let dailyTotals = await bolusTaskContext.perform { [dailyBolusStats] in
-            // Group by days
-            let groupedByDay = Dictionary(grouping: dailyBolusStats) { stat in
-                calendar.startOfDay(for: stat.date)
-            }
-
-            // Calculate totals for each day
-            var totals: [(Date, Double)] = []
-            for (day, stats) in groupedByDay {
-                let total = stats.reduce(0.0) { _, stat in
-                    stat.manualBolus + stat.smb + stat.external
-                }
-            }
-            return totals
-        }
-
-        // Update cache on main thread
-        await MainActor.run {
-            self.bolusAveragesCache = dailyAverages
-            self.bolusTotalsCache = dailyTotals
-        }
-    }
-
-    /// Returns the average bolus values for the given date range from the cache
-    /// - Parameter range: A tuple containing the start and end dates to get averages for
-    /// - Returns: A tuple containing the average total, carb and correction bolus values for the date range
-    func getCachedBolusAverages(for range: (start: Date, end: Date)) -> (manual: Double, smb: Double, external: Double) {
-        return calculateBolusAveragesForDateRange(from: range.start, to: range.end)
-    }
-
-    /// Returns the total bolus values for the given date range from the cache
-    /// - Parameter range: A tuple containing the start and end dates to get averages for
-    /// - Returns: Totals for bolus (sum of manual, smb and external) for the date range
-    func getCachedBolusTotals(for range: (start: Date, end: Date)) -> Double {
-        calculateBolusTotalsForDateRange(from: range.start, to: range.end)
     }
 
     /// Calculates the average bolus values for a given date range
@@ -225,56 +114,41 @@ extension Stat.StateModel {
     ///   - startDate: The start date of the range to calculate averages for
     ///   - endDate: The end date of the range to calculate averages for
     /// - Returns: A tuple containing the average total, carb and correction bolus values for the date range
-    func calculateBolusAveragesForDateRange(
-        from startDate: Date,
-        to endDate: Date
-    ) -> (manual: Double, smb: Double, external: Double) {
+    func calculateBolusAverages(for range: (start: Date, end: Date)) -> (manual: Double, smb: Double, external: Double) {
         // Filter cached values to only include those within the date range
-        let relevantStats = bolusAveragesCache.filter { date, _ in
-            date >= startDate && date <= endDate
+        let relevantStats = dailyBolusStats.filter { stat in
+            StatChartUtils.isStatInRange(
+                calendar.startOfDay(for: stat.date),
+                in: range
+            )
         }
 
         // Return zeros if no data exists for the range
         guard !relevantStats.isEmpty else { return (0, 0, 0) }
 
         // Calculate total bolus across all days
-        let total = relevantStats.values.reduce((0.0, 0.0, 0.0)) { acc, avg in
-            (acc.0 + avg.0, acc.1 + avg.1, acc.2 + avg.2)
+        let sums = relevantStats.reduce((0.0, 0.0, 0.0)) { acc, day in
+            (acc.0 + day.manualBolus, acc.1 + day.smb, acc.2 + day.external)
         }
 
         // Calculate averages by dividing totals by number of days
         let count = Double(relevantStats.count)
 
-        return (total.0 / count, total.1 / count, total.2 / count)
+        return (sums.0 / count, sums.1 / count, sums.2 / count)
     }
 
-    /// Calculates the total bolus values for a given date range
-    /// - Parameters:
-    ///   - startDate: The start date of the range to calculate averages for
-    ///   - endDate: The end date of the range to calculate averages for
-    /// - Returns: A total bolus (sum of manual, smb and external) for the date range
-    func calculateBolusTotalsForDateRange(
-        from startDate: Date,
-        to endDate: Date
-    ) -> Double {
-        // Filter cached values to only include those within the date range
-        let relevantStats = bolusAveragesCache.filter { date, _ in
-            date >= startDate && date <= endDate
+    func calculateBolusTotals(for range: (start: Date, end: Date)) -> (manual: Double, smb: Double, external: Double) {
+        let relevantStats = hourlyBolusStats.filter { stat in
+            StatChartUtils.isStatInRange(
+                stat.date,
+                in: range
+            )
         }
 
-        // Return zeros if no data exists for the range
-        guard !relevantStats.isEmpty else { return 0 }
-
-        // Calculate total bolus across all days
-        return relevantStats.values.reduce(0.0) { _, totalPerCategory in
-            totalPerCategory.0 + totalPerCategory.1 + totalPerCategory.2
+        let sums = relevantStats.reduce((0.0, 0.0, 0.0)) { acc, hour in
+            (acc.0 + hour.manualBolus, acc.1 + hour.smb, acc.2 + hour.external)
         }
-    }
-}
 
-/// Extension to convert Decimal to Double
-private extension Decimal {
-    var doubleValue: Double {
-        NSDecimalNumber(decimal: self).doubleValue
+        return sums
     }
 }
