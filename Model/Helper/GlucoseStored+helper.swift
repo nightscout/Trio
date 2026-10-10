@@ -67,6 +67,13 @@ extension NSPredicate {
         return NSPredicate(format: "date >= %@", date as NSDate)
     }
 
+    /// Readings inside an explicit window. Used by the stats screen's day picker, which reports
+    /// on one calendar day at a time and so — unlike every other stats interval — needs an
+    /// upper bound as well as a lower one.
+    static func glucoseForStats(from start: Date, to end: Date) -> NSPredicate {
+        NSPredicate(format: "date >= %@ AND date < %@", start as NSDate, end as NSDate)
+    }
+
     static var glucoseForStatsMonth: NSPredicate {
         let date = Date.oneMonthAgo
         return NSPredicate(format: "date >= %@", date as NSDate)
