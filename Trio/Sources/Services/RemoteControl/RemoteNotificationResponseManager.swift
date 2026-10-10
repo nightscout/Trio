@@ -1,5 +1,19 @@
 import Foundation
 
+/// Correlation data echoed back to the sender of a remote command.
+struct RemoteCommandAck: Sendable {
+    enum Result: String, Sendable {
+        case deleted
+        case updated
+        case notFound = "not_found"
+        case rejected
+    }
+
+    let commandId: String?
+    let mealId: String?
+    let result: Result
+}
+
 class RemoteNotificationResponseManager {
     static let shared = RemoteNotificationResponseManager()
 
@@ -10,12 +24,18 @@ class RemoteNotificationResponseManager {
         let commandStatus: String
         let commandType: String
         let timestamp: TimeInterval
+        let commandId: String?
+        let mealId: String?
+        let result: String?
 
         enum CodingKeys: String, CodingKey {
             case aps
             case commandStatus = "command_status"
             case commandType = "command_type"
             case timestamp
+            case commandId = "command_id"
+            case mealId = "meal_id"
+            case result
         }
     }
 
@@ -33,7 +53,8 @@ class RemoteNotificationResponseManager {
         to returnInfo: CommandPayload.ReturnNotificationInfo?,
         commandType: TrioRemoteControl.CommandType,
         success: Bool,
-        message: String
+        message: String,
+        ack: RemoteCommandAck? = nil
     ) async {
         guard let returnInfo = returnInfo,
               !returnInfo.deviceToken.isEmpty
@@ -51,7 +72,10 @@ class RemoteNotificationResponseManager {
             ),
             commandStatus: success ? "success" : "failed",
             commandType: commandType.rawValue,
-            timestamp: Date().timeIntervalSince1970
+            timestamp: Date().timeIntervalSince1970,
+            commandId: ack?.commandId,
+            mealId: ack?.mealId,
+            result: ack?.result.rawValue
         )
 
         await sendPushNotification(
