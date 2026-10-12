@@ -121,13 +121,10 @@ struct TotalDailyDoseChart: View {
                         selectedInterval: selectedInterval,
                         tint: .blue
                     ) {
-                        Divider()
-
                         HStack {
                             Text(selectedTDD.amount.formatted(.number.precision(.fractionLength(1))))
                             Text("U").foregroundStyle(Color.secondary)
                         }
-                        .font(.headline)
                     }
                 }
             }

@@ -282,11 +282,17 @@ struct StatChartUtils {
     ) -> some View {
         GridRow {
             Text(label)
-            Text(value.formatted(.number.precision(.fractionLength(fractionLength))))
-                .gridColumnAlignment(.trailing).bold()
-            if let unit {
-                Text(unit).foregroundStyle(Color.secondary)
+            Group {
+                let formatted = Text(
+                    value.formatted(.number.precision(.fractionLength(fractionLength)))
+                ).bold()
+                if let unit {
+                    formatted + Text("\u{00A0}") + Text(unit).foregroundStyle(.secondary)
+                } else {
+                    formatted
+                }
             }
+            .monospacedDigit()
         }
     }
 

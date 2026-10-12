@@ -21,9 +21,10 @@ struct StatSelectionPopover<Content: View>: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(selectionTitle)
                 .font(.subheadline).bold().foregroundStyle(Color.secondary)
+            Divider()
             content()
         }
-        .padding(20)
+        .padding()
         .background {
             RoundedRectangle(cornerRadius: 10)
                 .fill(colorScheme == .dark ? Color.bgDarkBlue.opacity(0.9) : Color.white.opacity(0.95))

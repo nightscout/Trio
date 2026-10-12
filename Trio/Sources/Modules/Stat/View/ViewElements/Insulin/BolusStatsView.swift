@@ -174,7 +174,6 @@ struct BolusStatsView: View {
                         selectedInterval: selectedInterval,
                         tint: .blue
                     ) {
-                        Divider()
                         Grid(alignment: .leading) {
                             StatChartUtils.popoverRow(label: "Manual:", value: selectedBolus.manualBolus, unit: "U")
                             StatChartUtils.popoverRow(label: "SMB:", value: selectedBolus.smb, unit: "U")
@@ -185,7 +184,7 @@ struct BolusStatsView: View {
                                 value: selectedBolus.manualBolus + selectedBolus.smb + selectedBolus.external,
                                 unit: "U"
                             )
-                        }.font(.headline)
+                        }
                     }
                 }
             }

@@ -165,8 +165,6 @@ struct MealStatsView: View {
                         selectedInterval: selectedInterval,
                         tint: .orange
                     ) {
-                        Divider()
-
                         Grid(alignment: .leading) {
                             StatChartUtils.popoverRow(label: "Carbs:", value: selectedMeal.carbs, unit: "g")
                             if state.useFPUconversion {
@@ -174,7 +172,6 @@ struct MealStatsView: View {
                                 StatChartUtils.popoverRow(label: "Protein:", value: selectedMeal.protein, unit: "g")
                             }
                         }
-                        .font(.headline)
                     }
                 }
             }

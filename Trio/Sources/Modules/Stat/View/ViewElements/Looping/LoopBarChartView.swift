@@ -134,7 +134,6 @@ struct LoopBarChartView: View {
                         selectedInterval: selectedInterval,
                         tint: .gray
                     ) {
-                        Divider()
                         Grid(alignment: .leading) {
                             StatChartUtils.popoverRow(
                                 label: "Successful:",
@@ -143,16 +142,16 @@ struct LoopBarChartView: View {
                             )
                             StatChartUtils.popoverRow(label: "Failed:", value: Double(selectedLoop.failed), fractionLength: 0)
                             StatChartUtils.popoverRow(
-                                label: "Loop duration(median):",
+                                label: "Median duration:",
                                 value: selectedLoop.medianDuration * 60,
                                 unit: "s"
                             )
                             StatChartUtils.popoverRow(
-                                label: "Loop interval(median):",
+                                label: "Median interval:",
                                 value: selectedLoop.medianInterval,
                                 unit: "m"
                             )
-                        }.font(.headline)
+                        }
                     }
                 }
             }

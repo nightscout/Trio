@@ -187163,12 +187163,6 @@
         }
       }
     },
-    "Loop duration(median):" : {
-
-    },
-    "Loop interval(median):" : {
-
-    },
     "loop overdue" : {
       "comment" : "Accessibility: loop status",
       "localizations" : {
@@ -200881,6 +200875,12 @@
           }
         }
       }
+    },
+    "Median duration:" : {
+
+    },
+    "Median interval:" : {
+
     },
     "Median:" : {
       "localizations" : {
