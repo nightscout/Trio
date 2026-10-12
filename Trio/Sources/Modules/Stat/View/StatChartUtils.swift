@@ -274,29 +274,34 @@ struct StatChartUtils {
         .opacity(0) // ensures dummy ChartContent is hidden
     }
 
-    static func popoverRow(label: LocalizedStringKey, value: Double, unit: LocalizedStringKey) -> some View {
+    static func popoverRow(
+        label: LocalizedStringKey,
+        value: Double,
+        unit: LocalizedStringKey? = nil,
+        fractionLength: Int = 1
+    ) -> some View {
         GridRow {
             Text(label)
-            Text(value.formatted(.number.precision(.fractionLength(1))))
+            Text(value.formatted(.number.precision(.fractionLength(fractionLength))))
                 .gridColumnAlignment(.trailing).bold()
-            Text(unit).foregroundStyle(Color.secondary)
+            if let unit {
+                Text(unit).foregroundStyle(Color.secondary)
+            }
         }
     }
 
     static func statRow(
         label: LocalizedStringKey,
         value: Double,
-        unit: LocalizedStringKey,
-        showAverageSymbol: Bool
+        unit: LocalizedStringKey? = nil,
+        showAverageSymbol: Bool,
+        fractionLength: Int = 1
     ) -> some View {
         GridRow {
-            if showAverageSymbol {
-                Text("ø") + Text("\u{00A0}") + Text(label)
-            } else {
-                Text(label)
-            }
-            Text(value.formatted(.number.precision(.fractionLength(1))))
-                + Text("\u{00A0}") + Text(unit)
+            if showAverageSymbol { Text("ø") + Text("\u{00A0}") + Text(label) } else { Text(label) }
+
+            let formattedValue = Text(value.formatted(.number.precision(.fractionLength(fractionLength))))
+            if let unit { formattedValue + Text("\u{00A0}") + Text(unit) } else { formattedValue }
         }
     }
 

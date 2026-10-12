@@ -13,11 +13,12 @@ extension Stat {
         var timeInRangeType: TimeInRangeType = .timeInTightRange
         var useFPUconversion: Bool = false
         var glucoseFromPersistence: [GlucoseReading] = []
-        var loopStatRecords: [LoopStatRecord] = []
-        var loopStats: [LoopStatsProcessedData] = []
-        var groupedLoopStats: [LoopStatsByPeriod] = []
         var hourlyStats: [HourlyStats] = []
         var glucoseRangeStats: [GlucoseRangeStats] = []
+
+        // Cache for Loop Stats
+        var hourlyLoopStats: [LoopingStats] = []
+        var dailyLoopStats: [LoopingStats] = []
 
         // Cache for Meal Stats
         var hourlyMealStats: [MealStats] = []
@@ -50,11 +51,7 @@ extension Stat {
         var selectedIntervalForMealStats: StatsTimeInterval = .day
 
         // Selected Duration for Loop Stats
-        var selectedIntervalForLoopStats: StatsTimeIntervalWithToday = .today {
-            didSet {
-                setupLoopStatRecords()
-            }
-        }
+        var selectedIntervalForLoopStats: StatsTimeInterval = .day
 
         // Selected Glucose Chart Type
         var selectedGlucoseChartType: GlucoseChartType = .percentileByTime
@@ -81,7 +78,7 @@ extension Stat {
             setupGlucoseArray(for: .today)
             setupTDDStats()
             setupBolusStats()
-            setupLoopStatRecords()
+            setupLoopStats()
             setupMealStats()
             setupGlucoseDailyStats()
         }

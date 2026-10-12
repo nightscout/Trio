@@ -13942,6 +13942,7 @@
       }
     },
     "%lld%%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -75250,6 +75251,7 @@
       }
     },
     "Category" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -138952,6 +138954,9 @@
         }
       }
     },
+    "Failed:" : {
+
+    },
     "falling" : {
       "comment" : "Accessibility: glucose trend",
       "localizations" : {
@@ -151297,6 +151302,7 @@
       }
     },
     "Glucose Count" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -174125,6 +174131,7 @@
     },
     "Interval" : {
       "comment" : "Average loop interval",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -187156,6 +187163,12 @@
         }
       }
     },
+    "Loop duration(median):" : {
+
+    },
+    "Loop interval(median):" : {
+
+    },
     "loop overdue" : {
       "comment" : "Accessibility: loop status",
       "localizations" : {
@@ -188339,6 +188352,7 @@
       }
     },
     "Looping performance bar chart" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -188470,6 +188484,7 @@
     },
     "Loops" : {
       "comment" : "Nr of Loops in statPanel",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -188600,6 +188615,7 @@
       }
     },
     "Loops per Day" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -247653,6 +247669,7 @@
     },
     "Readings" : {
       "comment" : "CGM readings in statView",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -247921,6 +247938,7 @@
       }
     },
     "Readings per Day" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -256441,6 +256459,9 @@
           }
         }
       }
+    },
+    "s" : {
+
     },
     "Safety" : {
       "comment" : "Extra Safety Features when using dyn ISF",
@@ -285062,6 +285083,7 @@
       }
     },
     "Success" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -285191,7 +285213,14 @@
         }
       }
     },
+    "Success rate:" : {
+
+    },
+    "Successful and failed loops chart" : {
+
+    },
     "Successful Loops" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -285320,6 +285349,9 @@
           }
         }
       }
+    },
+    "Successful:" : {
+
     },
     "Suggested at" : {
       "comment" : "Headline in suggested pop up (at: at what time)",

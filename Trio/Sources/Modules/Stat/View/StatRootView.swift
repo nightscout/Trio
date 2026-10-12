@@ -307,7 +307,7 @@ extension Stat {
             }.padding(.horizontal)
 
             Picker("Duration", selection: $state.selectedIntervalForLoopStats) {
-                ForEach(StateModel.StatsTimeIntervalWithToday.allCases, id: \.self) { interval in
+                ForEach(StateModel.StatsTimeInterval.allCases, id: \.self) { interval in
                     Text(interval.displayName)
                 }
             }
@@ -316,15 +316,21 @@ extension Stat {
             StatCard {
                 switch state.selectedLoopingChartType {
                 case .loopingPerformance:
-                    if state.loopStatRecords.isEmpty {
+                    let shown = state.selectedIntervalForLoopStats == .day ? state.hourlyLoopStats : state.dailyLoopStats
+                    if shown.isEmpty {
                         ContentUnavailableView(
                             String(localized: "No Loop Data"),
                             systemImage: "clock.arrow.2.circlepath",
                             description: Text("Loop statistics will appear here once data is available.")
                         )
                     } else {
-                        loopingChartView
-                        loopStats
+                        LoopBarChartView(
+                            selectedInterval: $state.selectedIntervalForLoopStats,
+                            loopStats: state.selectedIntervalForLoopStats == .day
+                                ? state.hourlyLoopStats
+                                : state.dailyLoopStats,
+                            state: state
+                        )
                     }
                 case .cgmConnectionTrace,
                      .trioUpTime:
@@ -336,24 +342,14 @@ extension Stat {
                     )
                 }
             }
-        }
 
-        private var loopingChartView: some View {
-            VStack(spacing: Constants.spacing) {
-                LoopBarChartView(
-                    loopStatRecords: state.loopStatRecords,
-                    selectedInterval: state.selectedIntervalForLoopStats,
-                    statsData: state.loopStats
-                )
-            }
-        }
-
-        private var loopStats: some View {
-            VStack(spacing: Constants.spacing) {
-                LoopStatsView(
-                    statsData: state.loopStats
-                )
-            }
+            HStack {
+                Image(systemName: "hand.draw.fill").foregroundStyle(Color.primary)
+                VStack(alignment: .leading) {
+                    Text("Swipe the chart to scroll through time.")
+                    Text("Tap and hold a bar to reveal more details.")
+                }.foregroundStyle(Color.secondary)
+            }.font(.footnote)
         }
 
         @ViewBuilder var mealsView: some View {
