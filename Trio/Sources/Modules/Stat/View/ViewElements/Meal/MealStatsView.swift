@@ -185,26 +185,11 @@ struct MealStatsView: View {
                 StatChartUtils.fullDayDomainAnchor()
             }
         }
-        .chartForegroundStyleScale([
+        .chartForegroundStyleScale(state.useFPUconversion ? [
             "Carbs": Color.orange,
             "Fat": Color.purple,
             "Protein": Color.blue
-        ])
-        .chartLegend(position: .bottom, alignment: .leading, spacing: 12) {
-            let legendItems: [(String, Color)] = state.useFPUconversion ? [
-                (String(localized: "Carbs"), Color.orange),
-                (String(localized: "Fat"), Color.purple),
-                (String(localized: "Protein"), Color.blue)
-            ] : [(String(localized: "Carbs"), Color.orange)]
-
-            let columns = [GridItem(.adaptive(minimum: 65), spacing: 4)]
-
-            LazyVGrid(columns: columns, alignment: .leading, spacing: 4) {
-                ForEach(legendItems, id: \.0) { item in
-                    StatChartUtils.legendItem(label: item.0, color: item.1)
-                }
-            }
-        }
+        ] : ["Carbs": Color.orange])
         .chartYAxis {
             AxisMarks(position: .trailing) { value in
                 if let amount = value.as(Double.self) {

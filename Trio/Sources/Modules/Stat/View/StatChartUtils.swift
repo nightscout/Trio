@@ -362,18 +362,4 @@ struct StatChartUtils {
         let weight = position - Double(lower)
         return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight
     }
-
-    /// Creates a legend item view for use in a chart legend.
-    ///
-    /// - Parameters:
-    ///   - label: The text label for the legend item.
-    ///   - color: The color associated with the legend item.
-    /// - Returns: A SwiftUI view displaying a colored symbol and a label.
-    @ViewBuilder static func legendItem(label: String, color: Color) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: "circle.fill").foregroundStyle(color)
-                .accessibilityHidden(true)
-            Text(label).foregroundStyle(Color.secondary)
-        }.font(.caption)
-    }
 }
