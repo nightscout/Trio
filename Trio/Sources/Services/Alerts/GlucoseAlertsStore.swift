@@ -24,19 +24,7 @@ final class GlucoseAlertsStore: ObservableObject {
         self.defaults = defaults
         self.alertsKey = alertsKey
         self.configKey = configKey
-        let loaded = Self.decode([GlucoseAlert].self, from: defaults, key: alertsKey) ?? []
-        if loaded.isEmpty {
-            alerts = Self.defaultAlerts()
-        } else {
-            // Backfill alarm types added by later releases so upgrading users
-            // get a default-on entry instead of silently missing the type.
-            var migrated = loaded
-            let presentTypes = Set(loaded.map(\.type))
-            for type in GlucoseAlertType.allCases where !presentTypes.contains(type) {
-                migrated.append(GlucoseAlert(type: type))
-            }
-            alerts = migrated
-        }
+        alerts = Self.savedAlerts(defaults: defaults, key: alertsKey)
         configuration = Self.decode(
             GlucoseAlertConfiguration.self,
             from: defaults,
@@ -125,6 +113,19 @@ final class GlucoseAlertsStore: ObservableObject {
         // `.always` redundant — pull it out so it's not an option.
         if !taken.isEmpty { available.remove(.always) }
         return available
+    }
+
+    func reloadSavedConfiguration() {
+        alerts = Self.savedAlerts(defaults: defaults, key: alertsKey)
+        configuration = Self.decode(GlucoseAlertConfiguration.self, from: defaults, key: configKey) ?? GlucoseAlertConfiguration()
+    }
+
+    private static func savedAlerts(defaults: UserDefaults, key: String) -> [GlucoseAlert] {
+        let loaded = Self.decode([GlucoseAlert].self, from: defaults, key: key) ?? []
+        guard !loaded.isEmpty else { return Self.defaultAlerts() }
+        // Initialization and rollback must use the same upgrade/backfill rules.
+        let present = Set(loaded.map(\.type))
+        return loaded + GlucoseAlertType.allCases.filter { !present.contains($0) }.map { GlucoseAlert(type: $0) }
     }
 
     // MARK: - Codable helpers

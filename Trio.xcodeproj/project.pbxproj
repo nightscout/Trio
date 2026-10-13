@@ -992,9 +992,14 @@
 		7A11AC0DE000000000000030 /* UIHostingController+KeyboardSafeArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000130 /* UIHostingController+KeyboardSafeArea.swift */; };
 		FEFFA7A22929FE49007B8193 /* UIDevice+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */; };
 		900000000000000000000011 /* CloudSettingsBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 900000000000000000000001 /* CloudSettingsBackup.swift */; };
+		900000000000000000000012 /* TrioCloudBackupCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 900000000000000000000002 /* TrioCloudBackupCoordinator.swift */; };
+		900000000000000000000015 /* TrioCloudSettingsRestore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 900000000000000000000005 /* TrioCloudSettingsRestore.swift */; };
 		BB55BB55BB55BB55BB55BB01 /* SettingsBackupValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA55AA55AA55AA55AA55AA01 /* SettingsBackupValidator.swift */; };
 		BB55BB55BB55BB55BB55BB02 /* SettingsBackupDynamicISF.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA55AA55AA55AA55AA55AA02 /* SettingsBackupDynamicISF.swift */; };
 		BB55BB55BB55BB55BB55BB03 /* CloudKitBackupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA55AA55AA55AA55AA55AA03 /* CloudKitBackupStore.swift */; };
+		B0B0B0B0B0B0B0B0B0B0B001 /* TrioCloudRestoreTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A0A0A0A0A0A0A0A0A0A001 /* TrioCloudRestoreTransaction.swift */; };
+		B0B0B0B0B0B0B0B0B0B0B002 /* TrioCloudRestoreHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A0A0A0A0A0A0A0A0A0A002 /* TrioCloudRestoreHistory.swift */; };
+		B0B0B0B0B0B0B0B0B0B0B003 /* TrioCloudRestorePresets.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A0A0A0A0A0A0A0A0A0A003 /* TrioCloudRestorePresets.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -2079,9 +2084,14 @@
 		7A11AC0DE000000000000130 /* UIHostingController+KeyboardSafeArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIHostingController+KeyboardSafeArea.swift"; sourceTree = "<group>"; };
 		FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIDevice+Extensions.swift"; sourceTree = "<group>"; };
 		900000000000000000000001 /* CloudSettingsBackup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSettingsBackup.swift; sourceTree = "<group>"; };
+		900000000000000000000002 /* TrioCloudBackupCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioCloudBackupCoordinator.swift; sourceTree = "<group>"; };
+		900000000000000000000005 /* TrioCloudSettingsRestore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioCloudSettingsRestore.swift; sourceTree = "<group>"; };
 		AA55AA55AA55AA55AA55AA01 /* SettingsBackupValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsBackupValidator.swift; sourceTree = "<group>"; };
 		AA55AA55AA55AA55AA55AA02 /* SettingsBackupDynamicISF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsBackupDynamicISF.swift; sourceTree = "<group>"; };
 		AA55AA55AA55AA55AA55AA03 /* CloudKitBackupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitBackupStore.swift; sourceTree = "<group>"; };
+		A0A0A0A0A0A0A0A0A0A0A001 /* TrioCloudRestoreTransaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioCloudRestoreTransaction.swift; sourceTree = "<group>"; };
+		A0A0A0A0A0A0A0A0A0A0A002 /* TrioCloudRestoreHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioCloudRestoreHistory.swift; sourceTree = "<group>"; };
+		A0A0A0A0A0A0A0A0A0A0A003 /* TrioCloudRestorePresets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioCloudRestorePresets.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -3099,6 +3109,11 @@
 			isa = PBXGroup;
 			children = (
 				38AEE75125F022080013F05B /* SettingsManager.swift */,
+				A0A0A0A0A0A0A0A0A0A0A001 /* TrioCloudRestoreTransaction.swift */,
+				A0A0A0A0A0A0A0A0A0A0A002 /* TrioCloudRestoreHistory.swift */,
+				A0A0A0A0A0A0A0A0A0A0A003 /* TrioCloudRestorePresets.swift */,
+				900000000000000000000005 /* TrioCloudSettingsRestore.swift */,
+				900000000000000000000002 /* TrioCloudBackupCoordinator.swift */,
 				AA55AA55AA55AA55AA55AA01 /* SettingsBackupValidator.swift */,
 				AA55AA55AA55AA55AA55AA02 /* SettingsBackupDynamicISF.swift */,
 				AA55AA55AA55AA55AA55AA03 /* CloudKitBackupStore.swift */,
@@ -5226,6 +5241,11 @@
 				BB55BB55BB55BB55BB55BB02 /* SettingsBackupDynamicISF.swift in Sources */,
 				BB55BB55BB55BB55BB55BB03 /* CloudKitBackupStore.swift in Sources */,
 				900000000000000000000011 /* CloudSettingsBackup.swift in Sources */,
+				B0B0B0B0B0B0B0B0B0B0B001 /* TrioCloudRestoreTransaction.swift in Sources */,
+				B0B0B0B0B0B0B0B0B0B0B002 /* TrioCloudRestoreHistory.swift in Sources */,
+				B0B0B0B0B0B0B0B0B0B0B003 /* TrioCloudRestorePresets.swift in Sources */,
+				900000000000000000000015 /* TrioCloudSettingsRestore.swift in Sources */,
+				900000000000000000000012 /* TrioCloudBackupCoordinator.swift in Sources */,
 				DD5DC9F12CF3D97C00AB8703 /* AdjustmentsStateModel+Overrides.swift in Sources */,
 				3811DE2325C9D48300A708ED /* MainDataFlow.swift in Sources */,
 				C2A0A42F2CE03131003B98E8 /* ConstantValues.swift in Sources */,

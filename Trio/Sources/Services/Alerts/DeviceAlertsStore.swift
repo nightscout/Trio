@@ -29,14 +29,7 @@ final class DeviceAlertsStore: ObservableObject {
         self.defaults = defaults
         self.configsKey = configsKey
         self.snoozesKey = snoozesKey
-        let loaded = Self.decode([DeviceAlertSeverityConfig].self, from: defaults, key: configsKey) ?? []
-        var seeded = loaded
-        for severity in DeviceAlertSeverity.allCases
-            where !seeded.contains(where: { $0.severity == severity && $0.activeOption == .always })
-        {
-            seeded.append(DeviceAlertSeverityConfig(severity: severity, activeOption: .always))
-        }
-        configs = Self.sorted(seeded)
+        configs = Self.savedConfigs(defaults: defaults, key: configsKey)
         let snoozes = Self.decode([String: Date].self, from: defaults, key: snoozesKey) ?? [:]
         tierSnoozes = snoozes.filter { $0.value > Date() }
         bind()
@@ -133,6 +126,19 @@ final class DeviceAlertsStore: ObservableObject {
         guard config.activeOption == .always else { return true }
         let alwaysCount = configs.filter { $0.severity == config.severity && $0.activeOption == .always }.count
         return alwaysCount > 1
+    }
+
+    func reloadSavedConfiguration() {
+        configs = Self.savedConfigs(defaults: defaults, key: configsKey)
+    }
+
+    private static func savedConfigs(defaults: UserDefaults, key: String) -> [DeviceAlertSeverityConfig] {
+        var restored = Self.decode([DeviceAlertSeverityConfig].self, from: defaults, key: key) ?? []
+        for severity in DeviceAlertSeverity.allCases
+            where !restored.contains(where: { $0.severity == severity && $0.activeOption == .always }) {
+            restored.append(DeviceAlertSeverityConfig(severity: severity, activeOption: .always))
+        }
+        return Self.sorted(restored)
     }
 
     // MARK: - Sorting + Codable helpers
