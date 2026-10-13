@@ -390,11 +390,8 @@ extension Settings {
                     Section(
                         header: Text("Trio Backup"),
                         content: {
-                            Text(String(
-                                localized: "Export Settings",
-                                comment: "Export Settings menu item in Trio Settings Root View"
-                            ))
-                                .navigationLink(to: .settingsExport, from: self)
+                            NavigationLink("Backup & Restore") { TrioCloudBackupView() }
+                                .foregroundStyle(.primary)
                         }
                     ).listRowBackground(Color.chart)
 
