@@ -18,7 +18,7 @@ struct GlucoseDailyPercentileDetailView: View {
             if dayData.median > 0 {
                 HStack(spacing: 0) {
                     ForEach(GlucosePercentileType.allCases) { type in
-                        percentileItem(type: type, value: round(type.getValue(from: dayData)))
+                        percentileItem(type: type, value: type.getValue(from: dayData))
                     }
                 }
                 .padding(.vertical, 8)
@@ -40,7 +40,7 @@ struct GlucoseDailyPercentileDetailView: View {
         // ternaries (Color vs .primary/.secondary/.clear) across this modifier chain make the
         // Swift type-checker time out on some build configurations.
         let isSelected = type == selectedPercentile
-        let valueString = Decimal(value).formatted(for: units)
+        let valueString = Decimal(value).formattedAsGlucose(for: units)
         let valueColor: Color = isSelected ? .purple : .primary
         let labelColor: Color = isSelected ? .purple : .secondary
         let fillColor: Color = isSelected ? Color.purple.opacity(0.1) : .clear

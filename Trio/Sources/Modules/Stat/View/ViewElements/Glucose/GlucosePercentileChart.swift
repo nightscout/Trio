@@ -165,27 +165,27 @@ struct AGPSelectionPopover: View {
             Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 4) {
                 GridRow {
                     Text("Median:").bold()
-                    Text(stats.median.formatted(for: units))
+                    Text(stats.median.formattedAsGlucose(for: units))
                     Text(units.rawValue).foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("90%:").bold()
-                    Text(stats.percentile90.formatted(for: units))
+                    Text(stats.percentile90.formattedAsGlucose(for: units))
                     Text(units.rawValue).foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("75%:").bold()
-                    Text(stats.percentile75.formatted(for: units))
+                    Text(stats.percentile75.formattedAsGlucose(for: units))
                     Text(units.rawValue).foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("25%:").bold()
-                    Text(stats.percentile25.formatted(for: units))
+                    Text(stats.percentile25.formattedAsGlucose(for: units))
                     Text(units.rawValue).foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("10%:").bold()
-                    Text(stats.percentile10.formatted(for: units))
+                    Text(stats.percentile10.formattedAsGlucose(for: units))
                     Text(units.rawValue).foregroundStyle(.secondary)
                 }
             }.font(.headline)
