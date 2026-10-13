@@ -33,7 +33,7 @@ extension InsulinSensitivityEntry {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let sensitivity = try container.decode(Double.self, forKey: .sensitivity).decimal ?? .zero
+        let sensitivity = try container.decode(Decimal.self, forKey: .sensitivity)
         let start = try container.decode(String.self, forKey: .start)
         let offset = try container.decode(Int.self, forKey: .offset)
 

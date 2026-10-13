@@ -31,7 +31,7 @@ extension CarbRatioEntry {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let start = try container.decode(String.self, forKey: .start)
         let offset = try container.decode(Int.self, forKey: .offset)
-        let ratio = try container.decode(Double.self, forKey: .ratio).decimal ?? .zero
+        let ratio = try container.decode(Decimal.self, forKey: .ratio)
 
         self = CarbRatioEntry(start: start, offset: offset, ratio: ratio)
     }
