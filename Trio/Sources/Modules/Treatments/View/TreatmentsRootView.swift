@@ -25,6 +25,7 @@ extension Treatments {
         @State private var pushed: Bool = false
         @State private var debounce: DispatchWorkItem?
         @State private var showFatProteinOrderBanner = false
+        @State private var showReminderPicker = false
 
         /// Check whether the on-screen keyboard is currently up.
         @State private var isKeyboardVisible = false
@@ -142,6 +143,74 @@ extension Treatments {
             }
         }
 
+        private var reminderMinutesBinding: Binding<Int> {
+            Binding(
+                get: { min(max(Int(state.mealTimeReminderMinutes), 0), 60) },
+                set: { state.mealTimeReminderMinutes = Decimal($0) }
+            )
+        }
+
+        private var reminderValueString: String {
+            "\(Int(state.mealTimeReminderMinutes)) " + String(localized: "min", comment: "Units for meal-time reminder lead time")
+        }
+
+        /// "Remind Me to Eat" toggle; when on, a lead-time row below it opens an inline wheel
+        /// picker. The lead time remembers the last used value, the toggle starts off per meal.
+        @ViewBuilder private func mealTimeReminderRow() -> some View {
+            HStack {
+                Text("Remind Me to Eat")
+                Spacer()
+                Toggle("", isOn: $state.mealTimeReminderActive).toggleStyle(CheckboxToggleStyle())
+            }
+            .onChange(of: state.mealTimeReminderActive) {
+                if state.mealTimeReminderActive {
+                    Task { await state.mealTimeReminderService.requestAuthorization() }
+                    if state.mealTimeReminderMinutes <= 0 {
+                        state.mealTimeReminderMinutes = 15
+                    }
+                } else {
+                    showReminderPicker = false
+                }
+            }
+
+            if state.mealTimeReminderActive {
+                HStack {
+                    Text("Lead Time", comment: "Meal-time reminder lead time row label")
+                    Spacer()
+                    Text(reminderValueString)
+                        .foregroundColor(showReminderPicker ? .accentColor : .primary)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation { showReminderPicker.toggle() }
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("Lead Time", comment: "Meal-time reminder lead time row label"))
+                .accessibilityValue(Text(reminderValueString))
+                .accessibilityHint(Text(
+                    showReminderPicker
+                        ? String(localized: "Closes the value picker", comment: "Accessibility hint")
+                        : String(localized: "Opens a picker to change the value", comment: "Accessibility hint")
+                ))
+                .accessibilityAddTraits(.isButton)
+
+                if showReminderPicker {
+                    Picker(
+                        selection: reminderMinutesBinding,
+                        label: Text("Lead Time", comment: "Meal-time reminder lead time row label")
+                    ) {
+                        ForEach(1 ... 60, id: \.self) { minute in
+                            Text("\(minute) " + String(localized: "min", comment: "Units for meal-time reminder lead time"))
+                                .tag(minute)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(maxWidth: .infinity)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+        }
+
         @ViewBuilder private func carbsTextField() -> some View {
             HStack {
                 Text("Carbs")
@@ -165,7 +234,7 @@ extension Treatments {
 
         /// Determines the next field to focus on based on the current focused field.
         private func nextField(from current: FocusedField) -> FocusedField? {
-            // If fat/protein fields are hidden, skip them in navigation
+            // If the fat/protein fields are hidden, skip them in navigation
             let showFPU = state.useFPUconversion
 
             switch current {
@@ -335,6 +404,10 @@ extension Treatments {
                     }
             }
             .id(FocusedField.bolus)
+
+            if state.mealTimeReminderEnabled {
+                mealTimeReminderRow()
+            }
 
             HStack {
                 Text("External Insulin")

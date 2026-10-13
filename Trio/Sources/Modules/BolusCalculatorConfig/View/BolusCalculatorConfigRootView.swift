@@ -157,6 +157,34 @@ extension BolusCalculatorConfig {
 
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.mealTimeReminderEnabled,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = String(localized: "Meal-Time Reminder")
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: String(localized: "Enable Meal-Time Reminder Option"),
+                    miniHint: String(
+                        localized: "Set a lead time between bolusing and eating, with an alarm when it is time to eat."
+                    ),
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text(
+                            "Enabling this setting adds a \"Remind Me to Eat\" toggle with a lead time picker to the bolus calculator."
+                        )
+                        Text(
+                            "Turn the toggle on and enter how many minutes before the meal you are bolusing. When the bolus is enacted, an alarm counts down until it is time to eat. Turning the toggle on asks for the alarm permission if it has not been granted yet. The calculator remembers the last used lead time, but the toggle starts off for each meal."
+                        )
+                    }
+                )
+
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
                     booleanValue: $state.confirmBolusWhenVeryLowGlucose,
                     shouldDisplayHint: $shouldDisplayHint,
                     selectedVerboseHint: Binding(
