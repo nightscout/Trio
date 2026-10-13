@@ -44,10 +44,8 @@ struct GlucoseDailyPercentileChart: View {
     let timeInRangeType: TimeInRangeType
     let selectedInterval: Stat.StateModel.StatsTimeInterval
 
-    // State model for accessing the shared calculations
-    let state: Stat.StateModel
-
-    @Binding var isDaySelected: Bool
+    let dailyStats: [GlucoseDailyPercentileStats]
+    let readingsByDay: [Date: [GlucoseReading]]
 
     // Scrolling and selection states
     @State private var scrollPosition = Date()
@@ -56,8 +54,12 @@ struct GlucoseDailyPercentileChart: View {
     // State for selected percentile
     @State private var selectedPercentile: GlucosePercentileType?
 
+    private var selectedDayStart: Date? {
+        selectedDate.map { Calendar.current.startOfDay(for: $0) }
+    }
+
     private var visibleDailyStats: [GlucoseDailyPercentileStats] {
-        state.dailyGlucosePercentileStats.filter { stat in
+        dailyStats.filter { stat in
             StatChartUtils.isStatInRange(stat.date, in: visibleDateRange)
         }
     }
@@ -69,40 +71,37 @@ struct GlucoseDailyPercentileChart: View {
 
     // Gets selected day stats
     private var selectedDateStats: GlucoseDailyPercentileStats? {
-        selectedDate.flatMap { day in
-            state.dailyGlucosePercentileStats.first {
-                Calendar.current.isDate($0.date, inSameDayAs: day)
-            }
+        selectedDayStart.flatMap { start in
+            dailyStats.first { $0.date == start }
         }
     }
 
     // Aggregates data from all visible days
     private var aggregatedVisibleStats: GlucoseDailyPercentileStats? {
-        let rows = visibleDailyStats.filter { $0.median > 0 }
-        guard !rows.isEmpty else { return nil }
+        let calendar = Calendar.current
+        let days = (0 ..< StatChartUtils.dayCount(for: selectedInterval)).compactMap {
+            calendar.date(byAdding: .day, value: $0, to: visibleDateRange.start)
+        }
+        let values = days.flatMap { readingsByDay[$0, default: []] }.map { Double($0.value) }.sorted()
+        guard !values.isEmpty else { return nil }
 
         return GlucoseDailyPercentileStats(
             date: visibleDateRange.start,
-            minimum: rows.map(\.minimum).min() ?? 0,
-            percentile10: StatChartUtils.medianCalculationDouble(array: rows.map(\.percentile10)),
-            percentile25: StatChartUtils.medianCalculationDouble(array: rows.map(\.percentile25)),
-            median: StatChartUtils.medianCalculationDouble(array: rows.map(\.median)),
-            percentile75: StatChartUtils.medianCalculationDouble(array: rows.map(\.percentile75)),
-            percentile90: StatChartUtils.medianCalculationDouble(array: rows.map(\.percentile90)),
-            maximum: rows.map(\.maximum).max() ?? 0
+            minimum: values.first ?? 0,
+            percentile10: StatChartUtils.percentile(0.10, of: values),
+            percentile25: StatChartUtils.percentile(0.25, of: values),
+            median: StatChartUtils.percentile(0.5, of: values),
+            percentile75: StatChartUtils.percentile(0.75, of: values),
+            percentile90: StatChartUtils.percentile(0.90, of: values),
+            maximum: values.last ?? 0
         )
-    }
-
-    // Format a single date for display
-    private func formatDate(_ date: Date) -> String {
-        date.formatted(.dateTime.weekday(.wide).month(.wide).day().year())
     }
 
     // Get the appropriate detail view data
     private var detailViewData: (data: GlucoseDailyPercentileStats, dateText: String)? {
         if let selectedData = selectedDateStats {
             // Case 1: Selected specific day
-            return (selectedData, formatDate(selectedData.date))
+            return (selectedData, StatChartUtils.formatDate(selectedData.date))
         } else if let aggregatedData = aggregatedVisibleStats {
             // Case 2: Using aggregated data
             return (aggregatedData, StatChartUtils.formatVisibleDateRange(
@@ -141,7 +140,6 @@ struct GlucoseDailyPercentileChart: View {
         .onChange(of: selectedInterval) {
             selectedDate = nil
             selectedPercentile = nil
-            isDaySelected = false
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
         }
     }
@@ -158,7 +156,7 @@ struct GlucoseDailyPercentileChart: View {
 
         return Chart {
             // First draw all the non-interactive elements
-            ForEach(state.dailyGlucosePercentileStats) { day in
+            ForEach(dailyStats) { day in
                 if day.maximum > 0 { // Check if we have valid data
                     // Add background components for each day
                     spacerBarMark(for: day)
@@ -196,7 +194,7 @@ struct GlucoseDailyPercentileChart: View {
             }
 
             // Draw median marks - these should appear above the percentile bars but below the selected percentile
-            ForEach(state.dailyGlucosePercentileStats) { day in
+            ForEach(dailyStats) { day in
                 if day.maximum > 0 {
                     medianMark(for: day)
                 }
@@ -210,7 +208,7 @@ struct GlucoseDailyPercentileChart: View {
 
             // Draw the selected percentile elements LAST so they're on top
             if let selectedPercentile = selectedPercentile {
-                ForEach(state.dailyGlucosePercentileStats) { day in
+                ForEach(dailyStats) { day in
                     if day.maximum > 0 {
                         // Line connecting points
                         LineMark(
@@ -253,7 +251,6 @@ struct GlucoseDailyPercentileChart: View {
         .chartYScale(domain: glucoseYScaleDomain())
         .chartXSelection(value: $selectedDate.animation(.easeInOut))
         .onChange(of: selectedDate) { _, newValue in
-            isDaySelected = newValue != nil
             // Clear percentile selection when a day is selected
             if newValue != nil {
                 selectedPercentile = nil
@@ -312,7 +309,7 @@ struct GlucoseDailyPercentileChart: View {
 
     // Helper function to determine opacity based on selections
     private func getOpacity(for day: GlucoseDailyPercentileStats) -> Double {
-        selectedDate.map { Calendar.current.isDate(day.date, inSameDayAs: $0) ? 1 : 0.3 } ?? 1
+        selectedDayStart.map { day.date == $0 ? 1 : 0.3 } ?? 1
     }
 
     // Spacer box for each day
@@ -334,7 +331,7 @@ struct GlucoseDailyPercentileChart: View {
             return bottomLimit ... topLimit
         }
 
-        let maxValue = visibleDailyStats.lazy.filter { $0.minimum > 0 }.map { $0.maximum.asUnit(units) }.max() ?? topLimit
+        let maxValue = visibleDailyStats.lazy.filter { $0.maximum > 0 }.map { $0.maximum.asUnit(units) }.max() ?? topLimit
 
         return bottomLimit ... max(Double(highLimit.asUnit(units)), maxValue + padding)
     }

@@ -27,11 +27,9 @@ struct GlucoseReading: Equatable, Sendable {
 
 /// Represents statistical data for daily glucose metrics by distribution ranges
 struct GlucoseDailyDistributionStats: Identifiable {
-    let id = UUID()
+    var id: Date { date }
     /// The date this data represents
     let date: Date
-    /// The time-in-range type used for calculations
-    let timeInRangeType: TimeInRangeType
     /// Percentage of glucose readings below 54 mg/dL
     let veryLowPct: Double
     /// Percentage of glucose readings in the [54 – lowLimit] mg/dL range
@@ -47,7 +45,6 @@ struct GlucoseDailyDistributionStats: Identifiable {
 
     init(
         date: Date,
-        timeInRangeType: TimeInRangeType,
         veryLowPct: Double = 0,
         lowPct: Double = 0,
         inSmallRangePct: Double = 0,
@@ -56,7 +53,6 @@ struct GlucoseDailyDistributionStats: Identifiable {
         veryHighPct: Double = 0
     ) {
         self.date = date
-        self.timeInRangeType = timeInRangeType
         self.veryLowPct = veryLowPct
         self.lowPct = lowPct
         self.inSmallRangePct = inSmallRangePct
@@ -107,7 +103,6 @@ extension GlucoseDailyDistributionStats {
 
         return GlucoseDailyDistributionStats(
             date: date,
-            timeInRangeType: timeInRangeType,
             veryLowPct: shareOf(veryLowReadings),
             lowPct: shareOf(lowReadings),
             inSmallRangePct: shareOf(inSmallRangeReadings),
@@ -120,7 +115,7 @@ extension GlucoseDailyDistributionStats {
 
 /// Represents percentile-based statistical data for daily glucose metrics
 struct GlucoseDailyPercentileStats: Identifiable {
-    let id = UUID()
+    var id: Date { date }
     /// The date this data represents
     let date: Date
     /// Minimum glucose value

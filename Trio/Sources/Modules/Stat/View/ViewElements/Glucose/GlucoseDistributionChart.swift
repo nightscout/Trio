@@ -8,11 +8,10 @@ struct GlucoseDistributionChart: View {
     let timeInRangeType: TimeInRangeType
 
     var body: some View {
-        let bands = GlucoseBand.allCases
-
         let infoFor: (GlucoseBand) -> (label: String, color: Color) = {
             StatChartUtils.glucoseBandDisplayInfo(for: $0, units: units, timeInRangeType: timeInRangeType, highLimit: highLimit)
         }
+        let bandInfos = GlucoseBand.allCases.map { infoFor($0) }
 
         VStack(alignment: .leading, spacing: 8) {
             Chart(glucoseRangeStats) { range in
@@ -25,8 +24,8 @@ struct GlucoseDistributionChart: View {
                 }
             }
             .chartForegroundStyleScale(
-                domain: bands.map { infoFor($0).label },
-                range: bands.map { infoFor($0).color.opacity(0.8) }
+                domain: bandInfos.map(\.label),
+                range: bandInfos.map { $0.color.opacity(0.8) }
             )
             .chartYScale(domain: 0 ... 100)
             .chartYAxis {

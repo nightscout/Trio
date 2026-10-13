@@ -15,11 +15,9 @@ extension Stat {
 
         @State var state = StateModel()
         @State private var selectedView: StateModel.StatisticViewType = .glucose
-        @State private var isGlucoseDaySelected: Bool = false
 
         private var intervalOptions: [Stat.StateModel.StatsTimeIntervalWithToday] {
-            state.selectedGlucoseChartType == .percentileByDay || state.selectedGlucoseChartType == .distributionByDay
-                ? [.week, .month, .total] : Stat.StateModel.StatsTimeIntervalWithToday.allCases
+            state.selectedGlucoseChartType.isDaily ? [.week, .month, .total] : Stat.StateModel.StatsTimeIntervalWithToday.allCases
         }
 
         var body: some View {
@@ -81,7 +79,7 @@ extension Stat {
                 .pickerStyle(.menu)
                 .onChange(of: state.selectedGlucoseChartType) { _, newValue in
                     // If switching to daily chart and day/today is selected, switch to week
-                    if newValue == .percentileByDay || newValue == .distributionByDay,
+                    if newValue.isDaily,
                        state.selectedIntervalForGlucoseStats == .day || state.selectedIntervalForGlucoseStats == .today
                     {
                         state.selectedIntervalForGlucoseStats = .week
@@ -105,9 +103,7 @@ extension Stat {
             } else {
                 timeInRangeCard
 
-                if !isGlucoseDaySelected && state.selectedGlucoseChartType != .percentileByDay && state
-                    .selectedGlucoseChartType != .distributionByDay
-                {
+                if !state.selectedGlucoseChartType.isDaily {
                     glucoseStatsCard
                 }
 
@@ -158,8 +154,8 @@ extension Stat {
                                 units: state.units,
                                 timeInRangeType: state.timeInRangeType,
                                 selectedInterval: interval,
-                                state: state,
-                                isDaySelected: $isGlucoseDaySelected,
+                                dailyStats: state.dailyGlucosePercentileStats,
+                                readingsByDay: state.glucoseReadingsByDay
                             )
                         } else { // if state.selectedGlucoseChartType == .distributionByDay
                             GlucoseDailyDistributionChart(
@@ -168,8 +164,8 @@ extension Stat {
                                 timeInRangeType: state.timeInRangeType,
                                 selectedInterval: interval,
                                 eA1cDisplayUnit: state.eA1cDisplayUnit,
-                                state: state,
-                                isDaySelected: $isGlucoseDaySelected,
+                                dailyStats: state.dailyGlucoseDistributionStats,
+                                readingsByDay: state.glucoseReadingsByDay
                             )
                         }
 

@@ -1,6 +1,5 @@
 import Foundation
 import Observation
-import SwiftUI
 
 extension Stat {
     @Observable final class StateModel: BaseStateModel<Provider> {
@@ -92,6 +91,8 @@ extension Stat.StateModel {
         case percentileByDay = "Percentile (by day)"
         /// Day-based distribution of glucose ranges
         case distributionByDay = "Distribution (by day)"
+
+        var isDaily: Bool { self == .percentileByDay || self == .distributionByDay }
 
         var displayName: String {
             switch self {

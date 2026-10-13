@@ -60,6 +60,10 @@ struct StatChartUtils {
         }
     }
 
+    static func formatDate(_ date: Date) -> String {
+        date.formatted(.dateTime.weekday(.wide).month(.wide).day().year())
+    }
+
     static func popoverAlignment(
         for selected: Date,
         scrollPosition: Date,
@@ -334,27 +338,12 @@ struct StatChartUtils {
 
         let total = values.reduce(0, +)
         let average = Double(total) / Double(values.count)
-        let median = medianCalculationDouble(array: values.map(Double.init))
+        let median = percentile(0.5, of: values.map(Double.init).sorted())
 
         let sumOfSquaredDifferences = values.reduce(0.0) { $0 + pow(Double($1) - average, 2) }
         let standardDeviation = sqrt(sumOfSquaredDifferences / max(Double(values.count - 1), 1))
 
         return (average, median, standardDeviation)
-    }
-
-    /// Computes the median value of an array of doubles.
-    ///
-    /// - Parameter array: An array of `Double` values.
-    /// - Returns: The median value. Returns `0` if the array is empty.
-    static func medianCalculationDouble(array: [Double]) -> Double {
-        guard !array.isEmpty else { return 0 }
-        let sorted = array.sorted()
-        let length = array.count
-
-        if length % 2 == 0 {
-            return (sorted[length / 2 - 1] + sorted[length / 2]) / 2
-        }
-        return sorted[length / 2]
     }
 
     static func percentile(_ p: Double, of sortedValues: [Double]) -> Double {
