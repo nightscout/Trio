@@ -1,4 +1,3 @@
-import CoreData
 import Foundation
 
 enum GlucoseBand: CaseIterable, Sendable {
@@ -161,34 +160,87 @@ struct GlucoseDailyPercentileStats: Identifiable {
 }
 
 extension Stat.StateModel {
-    /// Performs setup for both percentile and distribution glucose statistics from provided IDs
-    ///
-    /// This method optimizes performance by:
-    /// 1. Computing both percentile and distribution statistics concurrently
-    /// 2. Creating lookup caches for both stat types simultaneously
-    ///
-    /// - Parameter ids: Array of NSManagedObjectIDs for glucose readings
-    func setupGlucoseStats(with ids: [NSManagedObjectID]) async {
-        // Get dates for the past 90 days
-        let dates = getDates()
-        let processed = await groupGlucoseReadingsByDay(glucoseIDs: ids)
-        glucoseReadingsByDay = processed
-
-        dailyGlucosePercentileStats = dates.map { date in
-            createGlucoseDailyPercentileStatsFromReadings(date: date, readings: processed[date, default: []])
-        }
-
-        dailyGlucoseDistributionStats = dates.map { date in
-            GlucoseDailyDistributionStats.compute(
-                date: date, readings: processed[date, default: []], highLimit: highLimit, timeInRangeType: timeInRangeType
+    func setupGlucoseArray(for interval: StatsTimeIntervalWithToday) {
+        Task {
+            let readings = await fetchGlucose(for: interval)
+            guard interval == self.selectedIntervalForGlucoseStats else { return }
+            let hourly = Self.makeHourlyStats(from: readings)
+            let ranges = Self.makeGlucoseRangeStats(
+                from: readings,
+                bottom: timeInRangeType.bottomThreshold,
+                top: timeInRangeType.topThreshold,
+                highLimit: Int(highLimit)
             )
+
+            await MainActor.run {
+                self.glucoseFromPersistence = readings
+                self.hourlyStats = hourly
+                self.glucoseRangeStats = ranges
+            }
         }
     }
 
-    /// Generates an array of dates for the specified number of days
-    /// - Parameter daysCount: Number of days to generate
-    /// - Returns: Array of dates starting from (today - daysCount) to today
-    func getDates() -> [Date] {
+    func setupGlucoseDailyStats() {
+        Task {
+            let readings = await fetchGlucose(for: .total)
+            let grouped = Dictionary(grouping: readings) { Calendar.current.startOfDay(for: $0.date) }
+            let dates = Self.getDates()
+            let percentile = dates.map {
+                Self.createGlucoseDailyPercentileStatsFromReadings(date: $0, readings: grouped[$0, default: []])
+            }
+            let distribution = dates.map {
+                GlucoseDailyDistributionStats.compute(
+                    date: $0, readings: grouped[$0, default: []], highLimit: highLimit, timeInRangeType: timeInRangeType
+                )
+            }
+            await MainActor.run {
+                self.glucoseReadingsByDay = grouped
+                self.dailyGlucosePercentileStats = percentile
+                self.dailyGlucoseDistributionStats = distribution
+            }
+        }
+    }
+
+    private func fetchGlucose(for interval: StatsTimeIntervalWithToday) async -> [GlucoseReading] {
+        do {
+            let glucoseTaskContext = CoreDataStack.shared.newTaskContext()
+            glucoseTaskContext.name = "StatStateModel.fetchGlucose"
+
+            let predicate: NSPredicate
+            switch interval {
+            case .day: predicate = NSPredicate.glucoseForStatsDay
+            case .week: predicate = NSPredicate.glucoseForStatsWeek
+            case .today: predicate = NSPredicate.glucoseForStatsToday
+            case .month: predicate = NSPredicate.glucoseForStatsMonth
+            case .total: predicate = NSPredicate.glucoseForStatsTotal
+            }
+
+            let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+                ofType: GlucoseStored.self,
+                onContext: glucoseTaskContext,
+                predicate: predicate,
+                key: "date",
+                ascending: false,
+                propertiesToFetch: ["glucose", "date"]
+            )
+
+            guard let dicts = results as? [[String: Any]] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
+            return dicts.compactMap { dict in
+                guard let date = dict["date"] as? Date,
+                      let number = dict["glucose"] as? NSNumber
+                else { return nil }
+                return GlucoseReading(value: number.intValue, date: date)
+            }
+        } catch {
+            debug(.default, "\(DebuggingIdentifiers.failed) Error fetching glucose for stats: \(error)")
+            return []
+        }
+    }
+
+    /// Day starts for the last 90 days, oldest first.
+    static func getDates() -> [Date] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
 
@@ -197,48 +249,8 @@ extension Stat.StateModel {
         }
     }
 
-    func glucoseReadings(for ids: [NSManagedObjectID]) async -> [GlucoseReading] {
-        let privateContext = CoreDataStack.shared.newTaskContext()
-
-        return await privateContext.perform {
-            ids.compactMap { id -> GlucoseReading? in
-                do {
-                    guard let reading = try privateContext.existingObject(with: id) as? GlucoseStored,
-                          let date = reading.date else { return nil }
-                    return GlucoseReading(value: Int(reading.glucose), date: date)
-                } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) Error fetching glucose: \(error)")
-                    return nil
-                }
-            }
-        }
-    }
-
-    /// Processes glucose readings for a set of dates in a thread-safe manner
-    /// - Parameters:
-    ///   - dates: Array of dates to process data for
-    ///   - glucoseIDs: Array of NSManagedObjectIDs for glucose readings
-    /// - Returns: Array of (date, readings) tuples containing filtered readings for each date
-    private func groupGlucoseReadingsByDay(
-        glucoseIDs: [NSManagedObjectID]
-    ) async -> [Date: [GlucoseReading]] {
-        // Handle cancellation early
-        if Task.isCancelled {
-            return [:]
-        }
-
-        let calendar = Calendar.current
-        let glucoseReadings = await self.glucoseReadings(for: glucoseIDs)
-
-        return Dictionary(grouping: glucoseReadings) { calendar.startOfDay(for: $0.date) }
-    }
-
-    /// Creates a GlucoseDailyPercentileStats object from thread-safe reading values
-    /// - Parameters:
-    ///   - date: Date for the day
-    ///   - readings: Array of thread-safe glucose readings
-    /// - Returns: GlucoseDailyPercentileStats object with calculated statistics
-    private func createGlucoseDailyPercentileStatsFromReadings(
+    /// Daily percentile stats from one day of readings. Empty days return zeros.
+    static func createGlucoseDailyPercentileStatsFromReadings(
         date: Date,
         readings: [GlucoseReading]
     ) -> GlucoseDailyPercentileStats {
@@ -249,7 +261,6 @@ extension Stat.StateModel {
             return GlucoseDailyPercentileStats(date: date)
         }
 
-        // Calculate all percentiles concurrently
         return GlucoseDailyPercentileStats(
             date: date,
             minimum: glucoseValues.first ?? 0,

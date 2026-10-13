@@ -59,7 +59,7 @@ extension Stat.StateModel {
     /// - Returns: A tuple containing arrays of NSManagedObjectIDs for (all loops, failed loops)
     private func fetchLoopStats() async throws -> (hourly: [LoopingStats], daily: [LoopingStats]) {
         let loopTaskContext = CoreDataStack.shared.newTaskContext()
-        loopTaskContext.name = "StatStateModel.fetchLoopStatRecords"
+        loopTaskContext.name = "StatStateModel.fetchLoopStats"
 
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: LoopStatRecord.self,

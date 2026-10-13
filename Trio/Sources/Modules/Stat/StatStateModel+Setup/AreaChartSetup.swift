@@ -1,4 +1,3 @@
-import CoreData
 import Foundation
 
 /// Represents statistical values for glucose readings grouped by hour of the day.
@@ -40,47 +39,18 @@ public struct HourlyStats: Equatable {
 }
 
 extension Stat.StateModel {
-    /// Calculates hourly statistical values (median, percentiles) from glucose readings.
-    /// The calculation runs asynchronously using the CoreData context.
-    ///
-    /// The calculation works as follows:
-    /// 1. Group readings by hour of day (0-23)
-    /// 2. For each hour:
-    ///    - Sort glucose values
-    ///    - Calculate median (50th percentile)
-    ///    - Calculate 10th, 25th, 75th, and 90th percentiles
-    ///
-    /// Example:
-    /// For readings at 6:00 AM across multiple days:
-    /// ```
-    /// Readings: [80, 100, 120, 140, 160, 180, 200]
-    /// Results:
-    /// - 10th percentile: 84 (lower whisker)
-    /// - 25th percentile: 110 (lower band)
-    /// - median: 140 (center line)
-    /// - 75th percentile: 170 (upper band)
-    /// - 90th percentile: 196 (upper whisker)
-    /// ```
-    ///
-    /// The resulting statistics are used to show:
-    /// - A dark blue area for the interquartile range (25th-75th percentile)
-    /// - A light blue area for the wider range (10th-90th percentile)
-    /// - A solid blue line for the median
-    func calculateHourlyStatsForGlucoseAreaChart(from ids: [NSManagedObjectID]) async {
+    /// Hourly percentile bands for the AGP chart.
+    /// Empty hours return zeros so the chart always covers 00-23.
+    static func makeHourlyStats(from readings: [GlucoseReading]) -> [HourlyStats] {
         let calendar = Calendar.current
-
-        let readings = await glucoseReadings(for: ids)
         let groupedByHour = Dictionary(grouping: readings) { calendar.component(.hour, from: $0.date) }
 
-        let stats = (0 ... 23).map { hour in
-            // Get all readings for this hour (or empty if none)
+        return (0 ... 23).map { hour in
             let values = groupedByHour[hour, default: []].map { Double($0.value) }.sorted()
 
             guard !values.isEmpty else {
                 return HourlyStats(hour: hour, median: 0, percentile25: 0, percentile75: 0, percentile10: 0, percentile90: 0)
             }
-            // Create statistics object with all percentiles
-            // Index calculation: multiply count by desired percentile (0.25 for 25th)
             return HourlyStats(
                 hour: hour,
                 median: StatChartUtils.percentile(0.5, of: values),
@@ -89,11 +59,6 @@ extension Stat.StateModel {
                 percentile10: StatChartUtils.percentile(0.10, of: values), // Lower whisker
                 percentile90: StatChartUtils.percentile(0.90, of: values) // Upper whisker
             )
-        }
-
-        // Update stats on main thread
-        await MainActor.run {
-            self.hourlyStats = stats
         }
     }
 }

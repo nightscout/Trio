@@ -146,13 +146,9 @@ extension Stat {
                          .percentileByDay:
                         let interval: Stat.StateModel.StatsTimeInterval = {
                             switch state.selectedIntervalForGlucoseStats {
-                            case .month,
-                                 .total:
-                                return Stat.StateModel.StatsTimeInterval(
-                                    rawValue: state.selectedIntervalForGlucoseStats.rawValue
-                                )!
-                            default:
-                                return .week
+                            case .month: return .month
+                            case .total: return .total
+                            default: return .week
                             }
                         }()
 
