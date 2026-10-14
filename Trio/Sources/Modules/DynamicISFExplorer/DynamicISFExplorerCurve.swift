@@ -19,6 +19,19 @@ extension DynamicISFExplorer {
         var weightedTDD: Decimal {
             weightPercentage * tddLast24Hours + (1 - weightPercentage) * tddTenDayAverage
         }
+
+        /// The mg/dL value, kept within `range`, for a glucose stepped to `displayed` in the user's units. It lands
+        /// back on `saved` when that is what's displayed, so mmol/L rounding doesn't leave a change nobody can see.
+        static func glucose(
+            _ displayed: Decimal,
+            in units: GlucoseUnits,
+            saved: Decimal,
+            range: ClosedRange<Decimal>
+        ) -> Decimal {
+            guard displayed != saved.asUnit(units) else { return saved }
+            let glucose = units == .mgdL ? displayed : displayed.asMgdL
+            return glucose.clamp(lowerBound: range.lowerBound, upperBound: range.upperBound)
+        }
     }
 
     /// The parts of an active override that change the Dynamic ISF curve.
@@ -84,9 +97,12 @@ extension DynamicISFExplorer {
                 points.append(Point(glucose: glucose, ratio: result.ratio, sensitivity: sensitivity))
             }
 
+            // the algorithm accepts the limits either way round
+            let strongest = max(inputs.autosensMin, inputs.autosensMax)
+            let weakest = min(inputs.autosensMin, inputs.autosensMax)
             let profileSensitivity = variables.override(sensitivity: inputs.sensitivity)
             self.profileSensitivity = profileSensitivity
-            sensitivityLimits = profileSensitivity / inputs.autosensMax ... profileSensitivity / inputs.autosensMin
+            sensitivityLimits = profileSensitivity / strongest ... profileSensitivity / weakest
             self.points = points
         }
 
@@ -100,7 +116,7 @@ extension DynamicISFExplorer.ActiveOverride {
     init?(_ variables: TrioCustomOrefVariables) {
         // 0 and 6 both mean "no override target", see `Profile.profileTarget(trioCustomOrefVariables:)`
         let target = [0, 6].contains(variables.overrideTarget) ? nil : variables.overrideTarget
-        let adjustsSensitivity = variables.isf || variables.isfAndCr
+        let adjustsSensitivity = (variables.isf || variables.isfAndCr) && variables.overridePercentage != 100
 
         guard variables.useOverride, adjustsSensitivity || target != nil else { return nil }
 

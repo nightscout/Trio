@@ -93014,9 +93014,6 @@
         }
       }
     },
-    "Curve" : {
-
-    },
     "Custom" : {
       "comment" : "Custom temp target",
       "extractionState" : "manual",
@@ -119108,7 +119105,7 @@
     "Dynamic ISF Explorer" : {
 
     },
-    "Dynamic ISF is off for these values. It needs a total daily dose and an Autosens Max above Autosens Min." : {
+    "Dynamic ISF is off for these values. It needs a total daily dose and an Autosens Max of at least 100%, with Autosens Min below it." : {
 
     },
     "Dynamic ISF is off, so those terms will not show up." : {
@@ -176398,6 +176395,7 @@
       }
     },
     "ISF from %@ to %@ %@" : {
+      "comment" : "Accessibility: chart summary",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -341178,8 +341176,15 @@
         }
       }
     },
-    "Weighted TDD: %@" : {
-
+    "Weighted TDD: %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Weighted TDD: %1$@ %2$@"
+          }
+        }
+      }
     },
     "Welcome to Trio" : {
       "localizations" : {
@@ -350894,6 +350899,9 @@
       }
     },
     "Your scheduled values for this time of day." : {
+
+    },
+    "Your scheduled values for this time of day. The override's target is used while it's included." : {
 
     },
     "Your Settings" : {

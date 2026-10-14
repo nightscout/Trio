@@ -11,8 +11,8 @@ extension DynamicISFExplorer {
 
         private let pickerSettings = PickerSettingsProvider.shared.settings
 
-        private var sensitivityUnit: String {
-            state.units == .mgdL ? String(localized: "mg/dL/U") : String(localized: "mmol/L/U")
+        private var sensitivityUnit: TherapySettingUnit {
+            state.units == .mgdL ? .mgdLPerUnit : .mmolLPerUnit
         }
 
         var body: some View {
@@ -21,11 +21,10 @@ extension DynamicISFExplorer {
                     content: {
                         if let curve = state.curve {
                             DynamicISFExplorerChart(curve: curve, savedCurve: state.savedCurve, units: state.units)
-                                .frame(height: 260)
                                 .padding(.vertical)
                         } else {
                             Text(
-                                "Dynamic ISF is off for these values. It needs a total daily dose and an Autosens Max above Autosens Min."
+                                "Dynamic ISF is off for these values. It needs a total daily dose and an Autosens Max of at least 100%, with Autosens Min below it."
                             )
                             .foregroundStyle(.secondary)
                         }
@@ -33,17 +32,18 @@ extension DynamicISFExplorer {
                     footer: {
                         Text("Starts from your current settings and the last loop. Nothing you change here is saved.")
                     }
-                )
+                ).listRowBackground(Color.chart)
 
-                if let activeOverride = state.activeOverride {
+                if state.overrideAffectsCurve, let activeOverride = state.activeOverride {
                     Section(
                         content: {
                             Toggle("Include Active Override", isOn: $state.includeOverride)
                         },
                         footer: {
-                            Text(overrideSummary(activeOverride))
+                            Text(overrideSummary(activeOverride, unit: state.units.rawValue))
+                                .accessibilityLabel(Text(overrideSummary(activeOverride, unit: state.units.spokenValue)))
                         }
-                    )
+                    ).listRowBackground(Color.chart)
                 }
 
                 Section(header: Text("Dynamic ISF")) {
@@ -68,72 +68,90 @@ extension DynamicISFExplorer {
                         stepper(
                             String(localized: "Insulin Peak Time"),
                             value: $state.inputs.insulinPeakTime,
-                            in: pickerSettings.insulinPeakTime.min ... pickerSettings.insulinPeakTime.max,
+                            in: state.insulinPeakTimeRange,
                             step: pickerSettings.insulinPeakTime.step,
-                            display: "\(state.inputs.insulinPeakTime) \(String(localized: "min", comment: "Minutes abbreviation"))"
+                            formatted: "\(state.inputs.insulinPeakTime)",
+                            unit: String(localized: "min", comment: "Minutes abbreviation"),
+                            spokenUnit: UnitSpelling.spoken("min")
                         )
                     }
-                }
+                }.listRowBackground(Color.chart)
 
                 Section(header: Text("Autosens")) {
-                    // the loop turns Dynamic ISF off unless Autosens Min ≤ 100% ≤ Autosens Max
                     factorStepper(
                         String(localized: "Autosens Max"),
                         value: $state.inputs.autosensMax,
-                        setting: pickerSettings.autosensMax,
-                        minimum: 1
+                        setting: pickerSettings.autosensMax
                     )
                     factorStepper(
                         String(localized: "Autosens Min"),
                         value: $state.inputs.autosensMin,
                         setting: pickerSettings.autosensMin
                     )
-                }
+                }.listRowBackground(Color.chart)
 
                 Section(
-                    header: Text("Profile"),
-                    footer: Text("Your scheduled values for this time of day.")
-                ) {
-                    glucoseStepper(
-                        String(localized: "Insulin Sensitivity"),
-                        value: $state.inputs.sensitivity,
-                        in: 9 ... 540,
-                        unit: sensitivityUnit
-                    )
-                    if state.inputs.sigmoid {
+                    content: {
                         glucoseStepper(
-                            String(localized: "Target Glucose"),
-                            value: $state.inputs.target,
-                            in: 72 ... 180,
-                            unit: state.units.rawValue
+                            String(localized: "Insulin Sensitivity"),
+                            \.sensitivity,
+                            in: 9 ... 540,
+                            unit: sensitivityUnit.displayName,
+                            spokenUnit: sensitivityUnit.spokenName
                         )
+                        if state.inputs.sigmoid {
+                            // the loop raises any target below 80 mg/dL to 80
+                            glucoseStepper(
+                                String(localized: "Target Glucose"),
+                                \.target,
+                                in: 80 ... 180,
+                                unit: state.units.rawValue,
+                                spokenUnit: state.units.spokenValue
+                            )
+                            .disabled(state.overrideReplacesTarget)
+                        }
+                    },
+                    header: { Text("Profile") },
+                    footer: {
+                        if state.overrideReplacesTarget {
+                            Text("Your scheduled values for this time of day. The override's target is used while it's included.")
+                        } else {
+                            Text("Your scheduled values for this time of day.")
+                        }
                     }
-                }
+                ).listRowBackground(Color.chart)
 
                 Section(
                     header: Text("Total Daily Dose"),
-                    footer: Text("Weighted TDD: \(insulin(state.inputs.weightedTDD))")
+                    footer: Text("Weighted TDD: \(insulin(state.inputs.weightedTDD)) \(insulinUnit)")
+                        .accessibilityLabel(
+                            Text("Weighted TDD: \(insulin(state.inputs.weightedTDD)) \(UnitSpelling.spoken("U"))")
+                        )
                 ) {
                     stepper(
                         String(localized: "Last 24 Hours"),
                         value: $state.inputs.tddLast24Hours,
                         in: 0 ... 300,
                         step: 1,
-                        display: insulin(state.inputs.tddLast24Hours)
+                        formatted: insulin(state.inputs.tddLast24Hours),
+                        unit: insulinUnit,
+                        spokenUnit: UnitSpelling.spoken("U")
                     )
                     stepper(
                         String(localized: "10-Day Average"),
                         value: $state.inputs.tddTenDayAverage,
                         in: 0 ... 300,
                         step: 1,
-                        display: insulin(state.inputs.tddTenDayAverage)
+                        formatted: insulin(state.inputs.tddTenDayAverage),
+                        unit: insulinUnit,
+                        spokenUnit: UnitSpelling.spoken("U")
                     )
                     factorStepper(
                         String(localized: "Weighted Average of TDD"),
                         value: $state.inputs.weightPercentage,
                         setting: pickerSettings.weightPercentage
                     )
-                }
+                }.listRowBackground(Color.chart)
             }
             .listSectionSpacing(sectionSpacing)
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
@@ -153,39 +171,44 @@ extension DynamicISFExplorer {
             value: Binding<Decimal>,
             in range: ClosedRange<Decimal>,
             step: Decimal,
-            display: String
+            formatted: String,
+            unit: String,
+            spokenUnit: String
         ) -> some View {
             Stepper(value: value, in: range, step: step) {
-                LabeledContent(title, value: display)
+                LabeledContent(title, value: "\(formatted) \(unit)")
             }
+            .accessibilityLabel(Text(title))
+            .accessibilityValue(Text(verbatim: "\(formatted) \(spokenUnit)"))
         }
 
-        private func factorStepper(
-            _ title: String,
-            value: Binding<Decimal>,
-            setting: PickerSetting,
-            minimum: Decimal? = nil
-        ) -> some View {
+        private func factorStepper(_ title: String, value: Binding<Decimal>, setting: PickerSetting) -> some View {
             stepper(
                 title,
                 value: value,
-                in: (minimum ?? setting.min) ... setting.max,
+                in: setting.min ... setting.max,
                 step: setting.step,
-                display: "\(value.wrappedValue * 100) \(String(localized: "%", comment: "Percentage symbol"))"
+                formatted: "\(value.wrappedValue * 100)",
+                unit: String(localized: "%", comment: "Percentage symbol"),
+                spokenUnit: UnitSpelling.spoken("%")
             )
         }
 
         /// Steps through glucose values in the user's units while the inputs stay in mg/dL.
         private func glucoseStepper(
             _ title: String,
-            value: Binding<Decimal>,
+            _ keyPath: WritableKeyPath<Inputs, Decimal>,
             in range: ClosedRange<Decimal>,
-            unit: String
+            unit: String,
+            spokenUnit: String
         ) -> some View {
             let units = state.units
             let displayed = Binding(
-                get: { value.wrappedValue.asUnit(units) },
-                set: { value.wrappedValue = units == .mgdL ? $0 : $0.asMgdL }
+                get: { state.inputs[keyPath: keyPath].asUnit(units) },
+                set: {
+                    let saved = state.savedInputs[keyPath: keyPath]
+                    state.inputs[keyPath: keyPath] = Inputs.glucose($0, in: units, saved: saved, range: range)
+                }
             )
 
             return stepper(
@@ -193,21 +216,27 @@ extension DynamicISFExplorer {
                 value: displayed,
                 in: range.lowerBound.asUnit(units) ... range.upperBound.asUnit(units),
                 step: units == .mgdL ? 1 : 0.1,
-                display: "\(displayed.wrappedValue) \(unit)"
+                formatted: NumberFormatter.glucoseFormatter(for: units).string(from: displayed.wrappedValue as NSNumber) ?? "",
+                unit: unit,
+                spokenUnit: spokenUnit
             )
         }
 
-        private func insulin(_ value: Decimal) -> String {
-            "\(value.formatted(.number.precision(.fractionLength(0 ... 1)))) \(String(localized: "U", comment: "Insulin unit abbreviation"))"
+        private var insulinUnit: String {
+            String(localized: "U", comment: "Insulin unit abbreviation")
         }
 
-        private func overrideSummary(_ override: ActiveOverride) -> String {
+        private func insulin(_ value: Decimal) -> String {
+            value.formatted(.number.precision(.fractionLength(0 ... 1)))
+        }
+
+        private func overrideSummary(_ override: ActiveOverride, unit: String) -> String {
             var parts: [String] = []
             if override.adjustsSensitivity {
                 parts.append(String(localized: "\(override.percentage.formatted())% Insulin"))
             }
             if let target = override.target {
-                parts.append(String(localized: "Target \(target.formatted(for: state.units)) \(state.units.rawValue)"))
+                parts.append(String(localized: "Target \(target.formatted(for: state.units)) \(unit)"))
             }
             return parts.joined(separator: ", ")
         }

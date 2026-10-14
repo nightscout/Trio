@@ -72,6 +72,32 @@ import Testing
         #expect(Curve(inputs: noTDD, override: nil) == nil)
     }
 
+    @Test("Autosens limits work either way round, as in the algorithm") func swappedAutosensLimits() throws {
+        var swapped = inputs
+        swapped.autosensMin = 1
+        swapped.autosensMax = 0.9
+
+        let curve = try #require(Curve(inputs: swapped, override: nil))
+
+        #expect(curve.sensitivityLimits == 46 / swapped.autosensMin ... 46 / swapped.autosensMax)
+        #expect(curve.points.allSatisfy { (0.9 ... 1).contains($0.ratio) })
+    }
+
+    @Test("Stepping glucose in mmol/L lands back on the saved mg/dL value") func glucoseStepRoundTrip() {
+        let range: ClosedRange<Decimal> = 9 ... 540
+        let up = Inputs.glucose(46.asMmolL + 0.1, in: .mmolL, saved: 46, range: range)
+        #expect(up == 49)
+        #expect(Inputs.glucose(up.asMmolL - 0.1, in: .mmolL, saved: 46, range: range) == 46)
+
+        #expect(Inputs.glucose(101, in: .mgdL, saved: 100, range: range) == 101)
+        #expect(Inputs.glucose(100, in: .mgdL, saved: 100, range: range) == 100)
+    }
+
+    @Test("Stepped glucose stays within range after converting from mmol/L") func glucoseStepStaysInRange() {
+        // 4.4 mmol/L converts to 79 mg/dL, below the loop's 80 mg/dL target floor
+        #expect(Inputs.glucose(80.asMmolL, in: .mmolL, saved: 99, range: 80 ... 180) == 80)
+    }
+
     @Test("An override scales the profile ISF and limits") func overrideScalesSensitivity() throws {
         let override = ActiveOverride(percentage: 80, adjustsSensitivity: true, target: nil)
         let curve = try #require(Curve(inputs: inputs, override: override))
@@ -104,6 +130,16 @@ import Testing
             ActiveOverride(variables(useOverride: true, isf: false, overrideTarget: 120)) ==
                 ActiveOverride(percentage: 80, adjustsSensitivity: false, target: 120)
         )
+        #expect(
+            ActiveOverride(variables(useOverride: true, isf: false, isfAndCr: true, overrideTarget: 0)) ==
+                ActiveOverride(percentage: 80, adjustsSensitivity: true, target: nil)
+        )
+        // at 100% the ISF adjustment changes nothing
+        #expect(ActiveOverride(variables(useOverride: true, isf: true, overridePercentage: 100, overrideTarget: 0)) == nil)
+        #expect(
+            ActiveOverride(variables(useOverride: true, isf: true, overridePercentage: 100, overrideTarget: 120)) ==
+                ActiveOverride(percentage: 100, adjustsSensitivity: false, target: 120)
+        )
     }
 
     @Test("Nearest point snaps to the closest glucose step") func nearestPoint() throws {
@@ -113,21 +149,27 @@ import Testing
         #expect(curve.point(nearest: 999)?.glucose == 400)
     }
 
-    private func variables(useOverride: Bool, isf: Bool, overrideTarget: Decimal) -> TrioCustomOrefVariables {
+    private func variables(
+        useOverride: Bool,
+        isf: Bool,
+        isfAndCr: Bool = false,
+        overridePercentage: Decimal = 80,
+        overrideTarget: Decimal
+    ) -> TrioCustomOrefVariables {
         TrioCustomOrefVariables(
             average_total_data: 50,
             weightedAverage: 48,
             currentTDD: 45,
             past2hoursAverage: 45,
             date: Date(),
-            overridePercentage: 80,
+            overridePercentage: overridePercentage,
             useOverride: useOverride,
             duration: 0,
             unlimited: true,
             overrideTarget: overrideTarget,
             smbIsOff: false,
             advancedSettings: false,
-            isfAndCr: false,
+            isfAndCr: isfAndCr,
             isf: isf,
             cr: false,
             smbIsScheduledOff: false,

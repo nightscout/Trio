@@ -14,8 +14,8 @@ struct DynamicISFExplorerChart: View {
         return curve.point(nearest: units == .mgdL ? glucose : glucose / GlucoseUnits.exchangeRate)
     }
 
-    private var sensitivityUnit: String {
-        units == .mgdL ? String(localized: "mg/dL/U") : String(localized: "mmol/L/U")
+    private var sensitivityUnit: TherapySettingUnit {
+        units == .mgdL ? .mgdLPerUnit : .mmolLPerUnit
     }
 
     private var maxSensitivity: Decimal {
@@ -24,7 +24,7 @@ struct DynamicISFExplorerChart: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            chart
+            chart.frame(height: 240)
             legend
         }
     }
@@ -41,11 +41,11 @@ struct DynamicISFExplorerChart: View {
 
             RuleMark(y: .value("Profile ISF", plotted(curve.profileSensitivity)))
                 .foregroundStyle(Color.secondary)
-                .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
+                .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
 
             if let savedCurve {
                 line(for: savedCurve, series: "saved")
-                    .foregroundStyle(Color.cyan.opacity(0.4))
+                    .foregroundStyle(Color.cyan.opacity(0.6))
                     .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 4]))
             }
 
@@ -89,7 +89,7 @@ struct DynamicISFExplorerChart: View {
             }
         }
         .chartXAxisLabel(units.rawValue, alignment: .trailing)
-        .chartYAxisLabel(sensitivityUnit)
+        .chartYAxisLabel(sensitivityUnit.displayName)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Dynamic ISF chart by glucose"))
         .accessibilityValue(Text(accessibilitySummary))
@@ -100,51 +100,53 @@ struct DynamicISFExplorerChart: View {
             LineMark(
                 x: .value("Glucose", plotted(point.glucose)),
                 y: .value("ISF", plotted(point.sensitivity)),
-                series: .value("Curve", series)
+                series: .value("Series", series)
             )
         }
     }
 
     private var legend: some View {
-        HStack(spacing: 10) {
-            legendItem(String(localized: "Dynamic ISF"), color: Color.cyan)
-            if savedCurve != nil {
-                legendItem(String(localized: "Your Settings"), color: Color.cyan.opacity(0.4))
+        Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 4) {
+            GridRow {
+                StatChartUtils.legendItem(label: String(localized: "Dynamic ISF"), color: Color.cyan)
+                if savedCurve != nil {
+                    StatChartUtils.legendItem(label: String(localized: "Your Settings"), color: Color.cyan.opacity(0.6))
+                }
             }
-            legendItem(String(localized: "Profile ISF"), color: Color.secondary)
-            legendItem(String(localized: "Autosens Limits"), color: Color.orange.opacity(0.3))
+            GridRow {
+                StatChartUtils.legendItem(label: String(localized: "Profile ISF"), color: Color.secondary)
+                StatChartUtils.legendItem(label: String(localized: "Autosens Limits"), color: Color.orange.opacity(0.3))
+            }
         }
-        .font(.caption2)
-    }
-
-    private func legendItem(_ title: String, color: Color) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: "circle.fill").foregroundStyle(color)
-            Text(title).foregroundStyle(Color.secondary)
-        }
+        // colour swatches mean nothing to VoiceOver; the chart's accessibility value describes the curve
+        .accessibilityHidden(true)
     }
 
     private func selectionPopover(for point: DynamicISFExplorer.Curve.Point) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("\(formatted(point.glucose)) \(units.rawValue)").bold()
-            Text("ISF \(formatted(point.sensitivity)) \(sensitivityUnit)")
+            Text(verbatim: "\(formatted(point.glucose)) \(units.rawValue)").bold()
+            Text("ISF \(formatted(point.sensitivity)) \(sensitivityUnit.displayName)")
             Text("Dynamic Ratio \(point.ratio.formatted(.percent.precision(.fractionLength(0))))")
         }
-        .font(.caption)
-        .padding(6)
+        .font(.footnote)
+        .padding(7)
         .background {
             RoundedRectangle(cornerRadius: 4)
                 .fill(Color.chart.opacity(0.85))
+                .shadow(color: Color.secondary, radius: 2)
                 .overlay(
                     RoundedRectangle(cornerRadius: 4)
-                        .stroke(Color.secondary, lineWidth: 1)
+                        .stroke(Color.secondary, lineWidth: 2)
                 )
         }
     }
 
     private var accessibilitySummary: String {
         guard let first = curve.points.first, let last = curve.points.last else { return "" }
-        return String(localized: "ISF from \(formatted(first.sensitivity)) to \(formatted(last.sensitivity)) \(sensitivityUnit)")
+        return String(
+            localized: "ISF from \(formatted(first.sensitivity)) to \(formatted(last.sensitivity)) \(sensitivityUnit.spokenName)",
+            comment: "Accessibility: chart summary"
+        )
     }
 
     private func formatted(_ value: Decimal) -> String {

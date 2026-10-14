@@ -8,6 +8,8 @@ extension DynamicISFExplorer {
         private(set) var savedInputs = Inputs()
         private(set) var activeOverride: ActiveOverride?
         private(set) var units: GlucoseUnits = .mgdL
+        /// The custom peak times the loop accepts for the user's insulin curve.
+        private(set) var insulinPeakTimeRange: ClosedRange<Decimal> = 35 ... 120
 
         var hasChanges: Bool {
             inputs != savedInputs
@@ -22,14 +24,27 @@ extension DynamicISFExplorer {
             hasChanges ? Curve(inputs: savedInputs, override: appliedOverride) : nil
         }
 
+        /// Whether the active override changes either curve on the chart; only sigmoid uses the target.
+        var overrideAffectsCurve: Bool {
+            guard let activeOverride else { return false }
+            let usesTarget = inputs.sigmoid || hasChanges && savedInputs.sigmoid
+            return activeOverride.adjustsSensitivity || usesTarget && activeOverride.target != nil
+        }
+
+        /// While included, an override target takes the place of the sigmoid's profile target.
+        var overrideReplacesTarget: Bool {
+            inputs.sigmoid && appliedOverride?.target != nil
+        }
+
         private var appliedOverride: ActiveOverride? {
-            includeOverride ? activeOverride : nil
+            includeOverride && overrideAffectsCurve ? activeOverride : nil
         }
 
         override func subscribe() {
             units = settingsManager.settings.units
 
             let preferences = settingsManager.preferences
+            let peakSetting = PickerSettingsProvider.shared.settings.insulinPeakTime
             let orefVariables = provider.orefVariables
             let defaults = Inputs()
             let now = Date()
@@ -49,16 +64,23 @@ extension DynamicISFExplorer {
             )
             inputs = savedInputs
             activeOverride = orefVariables.flatMap { ActiveOverride($0) }
+            insulinPeakTimeRange = customPeak(peakSetting.min, for: preferences.curve) ...
+                customPeak(peakSetting.max, for: preferences.curve)
         }
 
         func reset() {
             inputs = savedInputs
         }
 
-        /// The peak time Dynamic ISF uses, which without a custom peak is fixed per curve (see `DynamicISF.calculate`).
+        /// The peak time Dynamic ISF uses: fixed per curve without a custom peak (see `DynamicISF.calculate`),
+        /// otherwise the custom peak as the profile clamps it.
         private func insulinPeakTime(for preferences: Preferences) -> Decimal {
-            guard !preferences.useCustomPeakTime else { return preferences.insulinPeakTime }
-            return preferences.curve == .ultraRapid ? 50 : 65
+            guard preferences.useCustomPeakTime else { return preferences.curve == .ultraRapid ? 50 : 65 }
+            return customPeak(preferences.insulinPeakTime, for: preferences.curve)
+        }
+
+        private func customPeak(_ peak: Decimal, for curve: InsulinCurve) -> Decimal {
+            IobCalculation.lookupPeak(curve: curve, useCustomPeakTime: true, insulinPeakTime: peak).map { Decimal($0) } ?? peak
         }
     }
 }
