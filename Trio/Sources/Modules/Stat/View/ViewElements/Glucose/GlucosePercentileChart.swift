@@ -108,11 +108,38 @@ struct GlucosePercentileChart: View {
                             spacing: 0,
                             overflowResolution: .init(x: .fit, y: .disabled)
                         ) {
-                            AGPSelectionPopover(
-                                stats: selectedStats,
-                                time: selection,
-                                units: units
-                            )
+                            StatSelectionPopover(
+                                title: StatChartUtils.hourRangeText(for: selection),
+                                tint: .blue
+                            ) {
+                                Grid(alignment: .leading) {
+                                    StatChartUtils.popoverRow(
+                                        label: "Median:",
+                                        formattedValue: selectedStats.median.formattedAsGlucose(for: units),
+                                        unit: LocalizedStringKey(units.rawValue)
+                                    )
+                                    StatChartUtils.popoverRow(
+                                        label: "90%:",
+                                        formattedValue: selectedStats.percentile90.formattedAsGlucose(for: units),
+                                        unit: LocalizedStringKey(units.rawValue)
+                                    )
+                                    StatChartUtils.popoverRow(
+                                        label: "75%:",
+                                        formattedValue: selectedStats.percentile75.formattedAsGlucose(for: units),
+                                        unit: LocalizedStringKey(units.rawValue)
+                                    )
+                                    StatChartUtils.popoverRow(
+                                        label: "25%:",
+                                        formattedValue: selectedStats.percentile25.formattedAsGlucose(for: units),
+                                        unit: LocalizedStringKey(units.rawValue)
+                                    )
+                                    StatChartUtils.popoverRow(
+                                        label: "10%:",
+                                        formattedValue: selectedStats.percentile10.formattedAsGlucose(for: units),
+                                        unit: LocalizedStringKey(units.rawValue)
+                                    )
+                                }
+                            }
                         }
                 }
             }
@@ -136,7 +163,7 @@ struct GlucosePercentileChart: View {
                 }
             }
             .chartYAxisLabel(alignment: .trailing) {
-                Text("\(units.rawValue)")
+                Text(LocalizedStringKey(units.rawValue))
                     .foregroundStyle(.primary)
                     .font(.footnote)
                     .padding(.vertical, 3)
@@ -146,59 +173,6 @@ struct GlucosePercentileChart: View {
             .frame(height: 200)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("Glucose percentile chart"))
-        }
-    }
-}
-
-/// A popover view displaying detailed glucose statistics for a selected time.
-struct AGPSelectionPopover: View {
-    let stats: HourlyStats
-    let time: Date
-    let units: GlucoseUnits
-
-    @Environment(\.colorScheme) var colorScheme
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(StatChartUtils.hourRangeText(for: time)).bold().font(.subheadline)
-
-            Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 4) {
-                GridRow {
-                    Text("Median:").bold()
-                    Text(stats.median.formattedAsGlucose(for: units))
-                    Text(units.rawValue).foregroundStyle(.secondary)
-                }
-                GridRow {
-                    Text("90%:").bold()
-                    Text(stats.percentile90.formattedAsGlucose(for: units))
-                    Text(units.rawValue).foregroundStyle(.secondary)
-                }
-                GridRow {
-                    Text("75%:").bold()
-                    Text(stats.percentile75.formattedAsGlucose(for: units))
-                    Text(units.rawValue).foregroundStyle(.secondary)
-                }
-                GridRow {
-                    Text("25%:").bold()
-                    Text(stats.percentile25.formattedAsGlucose(for: units))
-                    Text(units.rawValue).foregroundStyle(.secondary)
-                }
-                GridRow {
-                    Text("10%:").bold()
-                    Text(stats.percentile10.formattedAsGlucose(for: units))
-                    Text(units.rawValue).foregroundStyle(.secondary)
-                }
-            }.font(.headline)
-        }
-        .padding(20)
-        .background {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(colorScheme == .dark ? Color.bgDarkBlue.opacity(0.9) : Color.white.opacity(0.95))
-                .shadow(color: Color.secondary, radius: 2)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 4)
-                        .stroke(Color.blue, lineWidth: 2)
-                )
         }
     }
 }

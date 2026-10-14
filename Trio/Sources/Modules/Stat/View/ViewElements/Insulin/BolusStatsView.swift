@@ -170,18 +170,30 @@ struct BolusStatsView: View {
                     overflowResolution: .init(x: .fit(to: .plot), y: .fit(to: .plot))
                 ) { _ in
                     StatSelectionPopover(
-                        selectedDate: selectedDate,
-                        selectedInterval: selectedInterval,
+                        title: StatChartUtils.selectionTitle(for: selectedDate, showHourRange: selectedInterval == .day),
                         tint: .blue
                     ) {
+                        let total = selectedBolus.manualBolus + selectedBolus.smb + selectedBolus.external
                         Grid(alignment: .leading) {
-                            StatChartUtils.popoverRow(label: "Manual:", value: selectedBolus.manualBolus, unit: "U")
-                            StatChartUtils.popoverRow(label: "SMB:", value: selectedBolus.smb, unit: "U")
-                            StatChartUtils.popoverRow(label: "External:", value: selectedBolus.external, unit: "U")
+                            StatChartUtils.popoverRow(
+                                label: "Manual:",
+                                formattedValue: StatChartUtils.format(selectedBolus.manualBolus),
+                                unit: "U"
+                            )
+                            StatChartUtils.popoverRow(
+                                label: "SMB:",
+                                formattedValue: StatChartUtils.format(selectedBolus.smb),
+                                unit: "U"
+                            )
+                            StatChartUtils.popoverRow(
+                                label: "External:",
+                                formattedValue: StatChartUtils.format(selectedBolus.external),
+                                unit: "U"
+                            )
                             Divider()
                             StatChartUtils.popoverRow(
                                 label: "Total:",
-                                value: selectedBolus.manualBolus + selectedBolus.smb + selectedBolus.external,
+                                formattedValue: StatChartUtils.format(total),
                                 unit: "U"
                             )
                         }
@@ -198,7 +210,7 @@ struct BolusStatsView: View {
             AxisMarks(position: .trailing) { value in
                 if let amount = value.as(Double.self) {
                     AxisValueLabel {
-                        Text(amount.formatted(.number.precision(.fractionLength(0))))
+                        Text(StatChartUtils.format(amount, fractionLength: 0))
                             .font(.footnote)
                     }
                     AxisGridLine()

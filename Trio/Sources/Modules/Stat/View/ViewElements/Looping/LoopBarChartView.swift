@@ -130,25 +130,26 @@ struct LoopBarChartView: View {
                     overflowResolution: .init(x: .fit(to: .plot), y: .fit(to: .plot))
                 ) { _ in
                     StatSelectionPopover(
-                        selectedDate: selectedDate,
-                        selectedInterval: selectedInterval,
+                        title: StatChartUtils.selectionTitle(for: selectedDate, showHourRange: selectedInterval == .day),
                         tint: .gray
                     ) {
                         Grid(alignment: .leading) {
                             StatChartUtils.popoverRow(
                                 label: "Successful:",
-                                value: Double(selectedLoop.successful),
-                                fractionLength: 0
+                                formattedValue: StatChartUtils.format(Double(selectedLoop.successful), fractionLength: 0)
                             )
-                            StatChartUtils.popoverRow(label: "Failed:", value: Double(selectedLoop.failed), fractionLength: 0)
+                            StatChartUtils.popoverRow(
+                                label: "Failed:",
+                                formattedValue: StatChartUtils.format(Double(selectedLoop.failed), fractionLength: 0)
+                            )
                             StatChartUtils.popoverRow(
                                 label: "Median duration:",
-                                value: selectedLoop.medianDuration * 60,
+                                formattedValue: StatChartUtils.format(selectedLoop.medianDuration * 60),
                                 unit: "s"
                             )
                             StatChartUtils.popoverRow(
                                 label: "Median interval:",
-                                value: selectedLoop.medianInterval,
+                                formattedValue: StatChartUtils.format(selectedLoop.medianInterval),
                                 unit: "m"
                             )
                         }
@@ -164,7 +165,7 @@ struct LoopBarChartView: View {
             AxisMarks(position: .trailing) { value in
                 if let amount = value.as(Double.self) {
                     AxisValueLabel {
-                        Text(amount.formatted(.number.precision(.fractionLength(0))))
+                        Text(StatChartUtils.format(amount, fractionLength: 0))
                             .font(.footnote)
                     }
                     AxisGridLine()

@@ -1,25 +1,15 @@
 import SwiftUI
 
 struct StatSelectionPopover<Content: View>: View {
-    let selectedDate: Date
-    let selectedInterval: Stat.StateModel.StatsTimeInterval
+    let title: String
     let tint: Color
     @ViewBuilder let content: () -> Content
 
     @Environment(\.colorScheme) private var colorScheme
 
-    private var selectionTitle: String {
-        let dayText = selectedDate.formatted(.dateTime.month().day().weekday())
-        if selectedInterval == .day {
-            let hourRange = StatChartUtils.hourRangeText(for: selectedDate)
-            return dayText + "\n" + hourRange
-        }
-        return dayText
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(selectionTitle)
+            Text(verbatim: title)
                 .font(.subheadline).bold().foregroundStyle(Color.secondary)
             Divider()
             content()

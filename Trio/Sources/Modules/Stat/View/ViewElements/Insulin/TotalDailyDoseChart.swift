@@ -117,13 +117,15 @@ struct TotalDailyDoseChart: View {
                     overflowResolution: .init(x: .fit(to: .plot), y: .fit(to: .plot))
                 ) {
                     StatSelectionPopover(
-                        selectedDate: selectedDate,
-                        selectedInterval: selectedInterval,
+                        title: StatChartUtils.selectionTitle(for: selectedDate, showHourRange: selectedInterval == .day),
                         tint: .blue
                     ) {
-                        HStack {
-                            Text(selectedTDD.amount.formatted(.number.precision(.fractionLength(1))))
-                            Text("U").foregroundStyle(Color.secondary)
+                        Grid(alignment: .leading) {
+                            StatChartUtils.popoverRow(
+                                label: "Amount:",
+                                formattedValue: StatChartUtils.format(selectedTDD.amount),
+                                unit: "U"
+                            )
                         }
                     }
                 }
@@ -139,7 +141,7 @@ struct TotalDailyDoseChart: View {
             AxisMarks(position: .trailing) { value in
                 if let amount = value.as(Double.self) {
                     AxisValueLabel {
-                        Text(amount.formatted(.number.precision(.fractionLength(0))))
+                        Text(StatChartUtils.format(amount, fractionLength: 0))
                             .font(.footnote)
                     }
                     AxisGridLine()

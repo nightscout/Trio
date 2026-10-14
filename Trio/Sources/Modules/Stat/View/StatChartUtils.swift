@@ -176,18 +176,28 @@ struct StatChartUtils {
         }
     }
 
-    static func formatPercentage(_ value: Decimal, fractionDigits: Int = 1) -> String {
-        (value / 100).formatted(.percent.precision(.fractionLength(fractionDigits)))
+    static func format(_ value: Double, fractionLength: Int = 1) -> String {
+        value.formatted(.number.precision(.fractionLength(fractionLength)))
     }
 
-    static func formatPercentage(_ value: Double, fractionDigits: Int = 1) -> String {
-        (value / 100).formatted(.percent.precision(.fractionLength(fractionDigits)))
+    static func formatPercentage(_ value: Decimal, fractionLength: Int = 1) -> String {
+        (value / 100).formatted(.percent.precision(.fractionLength(fractionLength)))
+    }
+
+    static func formatPercentage(_ value: Double, fractionLength: Int = 1) -> String {
+        (value / 100).formatted(.percent.precision(.fractionLength(fractionLength)))
     }
 
     static func hourRangeText(for date: Date, calendar: Calendar = .current) -> String {
         let hourRange = calendar.date(byAdding: .hour, value: 1, to: date) ?? date
 
         return date.formatted(.dateTime.hour()) + "-" + hourRange.formatted(.dateTime.hour())
+    }
+
+    static func selectionTitle(for date: Date, showHourRange: Bool) -> String {
+        let day = date.formatted(.dateTime.month().day().weekday())
+        guard showHourRange else { return day }
+        return day + "\n" + hourRangeText(for: date)
     }
 
     static func glucoseThresholds(
@@ -280,22 +290,20 @@ struct StatChartUtils {
 
     static func popoverRow(
         label: LocalizedStringKey,
-        value: Double,
-        unit: LocalizedStringKey? = nil,
-        fractionLength: Int = 1
+        formattedValue: String,
+        unit: LocalizedStringKey? = nil
     ) -> some View {
         GridRow {
             Text(label)
             Group {
-                let formatted = Text(
-                    value.formatted(.number.precision(.fractionLength(fractionLength)))
-                ).bold()
+                let value = Text(verbatim: formattedValue).bold()
                 if let unit {
-                    formatted + Text("\u{00A0}") + Text(unit).foregroundStyle(.secondary)
+                    value + Text(verbatim: "\u{00A0}") + Text(unit).foregroundStyle(.secondary)
                 } else {
-                    formatted
+                    value
                 }
             }
+            .gridColumnAlignment(.trailing)
             .monospacedDigit()
         }
     }
@@ -308,10 +316,10 @@ struct StatChartUtils {
         fractionLength: Int = 1
     ) -> some View {
         GridRow {
-            if showAverageSymbol { Text("ø") + Text("\u{00A0}") + Text(label) } else { Text(label) }
+            if showAverageSymbol { Text(verbatim: "ø") + Text(verbatim: "\u{00A0}") + Text(label) } else { Text(label) }
 
-            let formattedValue = Text(value.formatted(.number.precision(.fractionLength(fractionLength))))
-            if let unit { formattedValue + Text("\u{00A0}") + Text(unit) } else { formattedValue }
+            let formattedValue = Text(verbatim: format(value, fractionLength: fractionLength))
+            if let unit { formattedValue + Text(verbatim: "\u{00A0}") + Text(unit) } else { formattedValue }
         }
     }
 

@@ -161,15 +161,26 @@ struct MealStatsView: View {
                     overflowResolution: .init(x: .fit(to: .plot), y: .fit(to: .plot))
                 ) {
                     StatSelectionPopover(
-                        selectedDate: selectedDate,
-                        selectedInterval: selectedInterval,
+                        title: StatChartUtils.selectionTitle(for: selectedDate, showHourRange: selectedInterval == .day),
                         tint: .orange
                     ) {
                         Grid(alignment: .leading) {
-                            StatChartUtils.popoverRow(label: "Carbs:", value: selectedMeal.carbs, unit: "g")
+                            StatChartUtils.popoverRow(
+                                label: "Carbs:",
+                                formattedValue: StatChartUtils.format(selectedMeal.carbs),
+                                unit: "g"
+                            )
                             if state.useFPUconversion {
-                                StatChartUtils.popoverRow(label: "Fat:", value: selectedMeal.fat, unit: "g")
-                                StatChartUtils.popoverRow(label: "Protein:", value: selectedMeal.protein, unit: "g")
+                                StatChartUtils.popoverRow(
+                                    label: "Fat:",
+                                    formattedValue: StatChartUtils.format(selectedMeal.fat),
+                                    unit: "g"
+                                )
+                                StatChartUtils.popoverRow(
+                                    label: "Protein:",
+                                    formattedValue: StatChartUtils.format(selectedMeal.protein),
+                                    unit: "g"
+                                )
                             }
                         }
                     }
@@ -191,7 +202,7 @@ struct MealStatsView: View {
             AxisMarks(position: .trailing) { value in
                 if let amount = value.as(Double.self) {
                     AxisValueLabel {
-                        Text(amount.formatted(.number.precision(.fractionLength(0))))
+                        Text(StatChartUtils.format(amount, fractionLength: 0))
                             .font(.footnote)
                     }
                     AxisGridLine()

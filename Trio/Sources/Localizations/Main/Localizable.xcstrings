@@ -1090,6 +1090,7 @@
       }
     },
     " " : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -47870,6 +47871,9 @@
           }
         }
       }
+    },
+    "Amount:" : {
+
     },
     "Amplitude:" : {
       "localizations" : {
@@ -222252,6 +222256,7 @@
       }
     },
     "ø" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
