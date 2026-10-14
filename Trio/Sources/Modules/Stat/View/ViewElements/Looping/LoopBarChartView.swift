@@ -174,7 +174,7 @@ struct LoopBarChartView: View {
         .chartXAxis {
             StatChartUtils.dateAxisMarks(for: selectedInterval)
         }
-        .chartXSelection(value: $selectedDate.animation(.easeInOut))
+        .chartXSelection(value: $selectedDate)
         .chartScrollableAxes(.horizontal)
         .chartScrollPosition(x: $scrollPosition)
         .chartScrollTargetBehavior(

@@ -107,7 +107,7 @@ struct GlucoseDailyDistributionChart: View {
             domain: bandInfos.map(\.info.label),
             range: bandInfos.map { $0.info.color.opacity(0.8) }
         )
-        .chartXSelection(value: $selectedDate.animation(.easeInOut))
+        .chartXSelection(value: $selectedDate)
         .chartYScale(domain: 0 ... 100)
         .chartXAxis {
             StatChartUtils.dateAxisMarks(for: selectedInterval)

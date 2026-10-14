@@ -67,19 +67,15 @@ struct GlucoseDailyPercentileDetailView: View {
         )
         .contentShape(Rectangle())
         .onTapGesture {
-            withAnimation {
-                // Toggle selection on tap
-                selectedPercentile = isSelected ? nil : type
-            }
+            // Toggle selection on tap
+            selectedPercentile = isSelected ? nil : type
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(label))
         .accessibilityValue(Text(valueString))
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
         .accessibilityAction {
-            withAnimation {
-                selectedPercentile = isSelected ? nil : type
-            }
+            selectedPercentile = isSelected ? nil : type
         }
     }
 }

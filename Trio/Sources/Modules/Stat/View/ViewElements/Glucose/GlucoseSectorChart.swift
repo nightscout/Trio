@@ -154,15 +154,12 @@ struct GlucoseSectorChart: View, Equatable {
                 }
             }
             .onChange(of: selectedCount) { _, newValue in
-                withAnimation {
-                    selectedRange = newValue.flatMap { getSelectedRange(for: $0, in: chartData) }
-                }
+                selectedRange = newValue.flatMap { getSelectedRange(for: $0, in: chartData) }
             }
             .overlay(alignment: .top) {
                 if let selectedRange {
                     let data = getDetailedData(for: selectedRange, from: grouped)
                     RangeDetailPopover(data: data)
-                        .transition(.scale.combined(with: .opacity))
                         .offset(y: -150) // TODO: make this dynamic
                 }
             }

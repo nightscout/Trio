@@ -202,7 +202,7 @@ struct MealStatsView: View {
             StatChartUtils.dateAxisMarks(for: selectedInterval)
         }
         .chartScrollableAxes(.horizontal)
-        .chartXSelection(value: $selectedDate.animation(.easeInOut))
+        .chartXSelection(value: $selectedDate)
         .chartScrollPosition(x: $scrollPosition)
         .chartScrollTargetBehavior(
             .valueAligned(
