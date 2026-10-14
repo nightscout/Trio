@@ -32,6 +32,12 @@
 		195D80B72AF697B800D25097 /* DynamicSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80B62AF697B800D25097 /* DynamicSettingsDataFlow.swift */; };
 		195D80B92AF697F700D25097 /* DynamicSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80B82AF697F700D25097 /* DynamicSettingsProvider.swift */; };
 		195D80BB2AF6980B00D25097 /* DynamicSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80BA2AF6980B00D25097 /* DynamicSettingsStateModel.swift */; };
+		5EB478DE538A086B2A1ADA61 /* DynamicISFExplorerDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D654F883404C4ABD8BEE52E6 /* DynamicISFExplorerDataFlow.swift */; };
+		8006AC9334B3E6D91E4B2EBC /* DynamicISFExplorerProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA950059A11D227770677F5E /* DynamicISFExplorerProvider.swift */; };
+		A046B421AF1B04ECEEB3D600 /* DynamicISFExplorerCurve.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF41544DA85D98CA51B5B4D2 /* DynamicISFExplorerCurve.swift */; };
+		B189ABA28726D4896CBD572C /* DynamicISFExplorerStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A002FC1E5552112D6B400069 /* DynamicISFExplorerStateModel.swift */; };
+		B8C8478A24F0FE3B711C452C /* DynamicISFExplorerRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D03BAB8095B645D6CDF40A /* DynamicISFExplorerRootView.swift */; };
+		70C7CDE436E3C17F7D09E51C /* DynamicISFExplorerChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CB8EFFA609B11875D9E30A /* DynamicISFExplorerChart.swift */; };
 		1967DFBE29D052C200759F30 /* Icons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1967DFBD29D052C200759F30 /* Icons.swift */; };
 		1967DFC029D053AC00759F30 /* IconSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1967DFBF29D053AC00759F30 /* IconSelection.swift */; };
 		1967DFC229D053D300759F30 /* IconImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1967DFC129D053D300759F30 /* IconImage.swift */; };
@@ -302,6 +308,7 @@
 		3BA643EA2ED9FAD8007BC31F /* DetermineBasalAggressiveDosingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA643E92ED9FAD8007BC31F /* DetermineBasalAggressiveDosingTests.swift */; };
 		3BA8D1B32DDB87150006191F /* DecimalExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */; };
 		3BAAE60C2DE7766C0049589B /* DynamicISFEnableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */; };
+		7E7AC3E13CA8835A7566386A /* DynamicISFExplorerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 373A84BC44561D22DBBC1913 /* DynamicISFExplorerTests.swift */; };
 		3BAC929B2E55FF5300B853DA /* DetermineBasalEnableSmbTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAC929A2E55FF4F00B853DA /* DetermineBasalEnableSmbTests.swift */; };
 		3BAC929D2E56A85400B853DA /* TempBasalFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAC929C2E56A84E00B853DA /* TempBasalFunctions.swift */; };
 		3BAC92CD2E57859D00B853DA /* SetTempBasalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAC92CC2E57859600B853DA /* SetTempBasalTests.swift */; };
@@ -1130,6 +1137,12 @@
 		195D80B62AF697B800D25097 /* DynamicSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicSettingsDataFlow.swift; sourceTree = "<group>"; };
 		195D80B82AF697F700D25097 /* DynamicSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicSettingsProvider.swift; sourceTree = "<group>"; };
 		195D80BA2AF6980B00D25097 /* DynamicSettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicSettingsStateModel.swift; sourceTree = "<group>"; };
+		D654F883404C4ABD8BEE52E6 /* DynamicISFExplorerDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFExplorerDataFlow.swift; sourceTree = "<group>"; };
+		DA950059A11D227770677F5E /* DynamicISFExplorerProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFExplorerProvider.swift; sourceTree = "<group>"; };
+		FF41544DA85D98CA51B5B4D2 /* DynamicISFExplorerCurve.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFExplorerCurve.swift; sourceTree = "<group>"; };
+		A002FC1E5552112D6B400069 /* DynamicISFExplorerStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFExplorerStateModel.swift; sourceTree = "<group>"; };
+		61D03BAB8095B645D6CDF40A /* DynamicISFExplorerRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFExplorerRootView.swift; sourceTree = "<group>"; };
+		C1CB8EFFA609B11875D9E30A /* DynamicISFExplorerChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFExplorerChart.swift; sourceTree = "<group>"; };
 		1967DFBD29D052C200759F30 /* Icons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Icons.swift; sourceTree = "<group>"; };
 		1967DFBF29D053AC00759F30 /* IconSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconSelection.swift; sourceTree = "<group>"; };
 		1967DFC129D053D300759F30 /* IconImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconImage.swift; sourceTree = "<group>"; };
@@ -1395,6 +1408,7 @@
 		3BA643E92ED9FAD8007BC31F /* DetermineBasalAggressiveDosingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalAggressiveDosingTests.swift; sourceTree = "<group>"; };
 		3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalExtensions.swift; sourceTree = "<group>"; };
 		3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFEnableTests.swift; sourceTree = "<group>"; };
+		373A84BC44561D22DBBC1913 /* DynamicISFExplorerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFExplorerTests.swift; sourceTree = "<group>"; };
 		3BAC929A2E55FF4F00B853DA /* DetermineBasalEnableSmbTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalEnableSmbTests.swift; sourceTree = "<group>"; };
 		3BAC929C2E56A84E00B853DA /* TempBasalFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempBasalFunctions.swift; sourceTree = "<group>"; };
 		3BAC92CC2E57859600B853DA /* SetTempBasalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetTempBasalTests.swift; sourceTree = "<group>"; };
@@ -2295,6 +2309,27 @@
 			name = "Recovered References";
 			sourceTree = "<group>";
 		};
+		C1CFB782864E3F492A824A26 /* DynamicISFExplorer */ = {
+			isa = PBXGroup;
+			children = (
+				D654F883404C4ABD8BEE52E6 /* DynamicISFExplorerDataFlow.swift */,
+				DA950059A11D227770677F5E /* DynamicISFExplorerProvider.swift */,
+				FF41544DA85D98CA51B5B4D2 /* DynamicISFExplorerCurve.swift */,
+				A002FC1E5552112D6B400069 /* DynamicISFExplorerStateModel.swift */,
+				1DB1633D678CF781190F5292 /* View */,
+			);
+			path = DynamicISFExplorer;
+			sourceTree = "<group>";
+		};
+		1DB1633D678CF781190F5292 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				61D03BAB8095B645D6CDF40A /* DynamicISFExplorerRootView.swift */,
+				C1CB8EFFA609B11875D9E30A /* DynamicISFExplorerChart.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
 		195D80B22AF696EE00D25097 /* DynamicSettings */ = {
 			isa = PBXGroup;
 			children = (
@@ -2427,6 +2462,7 @@
 				E592A3762CEEC038009A472C /* ContactImage */,
 				9E56E3626FAD933385101B76 /* History */,
 				195D80B22AF696EE00D25097 /* DynamicSettings */,
+				C1CFB782864E3F492A824A26 /* DynamicISFExplorer */,
 				C2AA6CF52E1A734A00BF6C16 /* SettingsExport */,
 				DD17454C2C55CA0200211FAC /* GeneralSettings */,
 				BD1179602F4E22C100F90001 /* GlucoseAlerts */,
@@ -3207,6 +3243,7 @@
 				CA02000000000000000010C1 /* DeliveryLimitsSyncTests.swift */,
 				CA07000000000000000010C1 /* TelemetrySendGateTests.swift */,
 				3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */,
+				373A84BC44561D22DBBC1913 /* DynamicISFExplorerTests.swift */,
 				38FCF3F825E902C20078B0D1 /* FileStorageTests.swift */,
 				BD11A000000000000000A002 /* AlertMuterTests.swift */,
 				C7DA23B64976670AC36D9E84 /* QuickPickTreatmentsTests.swift */,
@@ -5712,6 +5749,12 @@
 				DD1E53592D273F26008F32A4 /* LoopStatusHelpView.swift in Sources */,
 				CA370FC152BC98B3D1832968 /* BasalProfileEditorRootView.swift in Sources */,
 				195D80BB2AF6980B00D25097 /* DynamicSettingsStateModel.swift in Sources */,
+				5EB478DE538A086B2A1ADA61 /* DynamicISFExplorerDataFlow.swift in Sources */,
+				8006AC9334B3E6D91E4B2EBC /* DynamicISFExplorerProvider.swift in Sources */,
+				A046B421AF1B04ECEEB3D600 /* DynamicISFExplorerCurve.swift in Sources */,
+				B189ABA28726D4896CBD572C /* DynamicISFExplorerStateModel.swift in Sources */,
+				B8C8478A24F0FE3B711C452C /* DynamicISFExplorerRootView.swift in Sources */,
+				70C7CDE436E3C17F7D09E51C /* DynamicISFExplorerChart.swift in Sources */,
 				E00EEC0327368630002FF094 /* ServiceAssembly.swift in Sources */,
 				38192E07261BA9960094D973 /* FetchTreatmentsManager.swift in Sources */,
 				19012CDC291D2CB900FB8210 /* LoopStats.swift in Sources */,
@@ -6000,6 +6043,7 @@
 				DDDD0FFF2F4E231B00F9C645 /* MockTDDStorage.swift in Sources */,
 				BD8FC05B2D6618AF00B95AED /* DeterminationStorageTests.swift in Sources */,
 				3BAAE60C2DE7766C0049589B /* DynamicISFEnableTests.swift in Sources */,
+				7E7AC3E13CA8835A7566386A /* DynamicISFExplorerTests.swift in Sources */,
 				3BAC929B2E55FF5300B853DA /* DetermineBasalEnableSmbTests.swift in Sources */,
 				CE1F6DD92BADF4620064EB8D /* PluginManagerTests.swift in Sources */,
 				DC01A00E2E9F100000000005 /* DeviceCatalogTests.swift in Sources */,

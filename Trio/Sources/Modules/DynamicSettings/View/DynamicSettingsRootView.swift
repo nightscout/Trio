@@ -169,6 +169,15 @@ extension DynamicSettings {
                     }
                 ).settingsSearchTarget(label: String(localized: "Dynamic ISF"))
 
+                Section(
+                    content: {
+                        Text("Explore Dynamic ISF").navigationLink(to: .dynamicISFExplorer, from: self)
+                    },
+                    footer: {
+                        Text("See how your ISF changes with glucose, and try other values without saving them.")
+                    }
+                ).settingsSearchTarget(label: String(localized: "Explore Dynamic ISF"))
+
                 if state.dynamicSensitivityType != .disabled {
                     if state.dynamicSensitivityType == .logarithmic {
                         SettingInputSection(
@@ -176,7 +185,6 @@ extension DynamicSettings {
                             booleanValue: $booleanPlaceholder,
                             shouldDisplayHint: shouldDisplayHintBinding,
                             selectedVerboseHint: verboseHintBinding(label: String(localized: "Adjustment Factor (AF)")),
-                            // TODO?: include conditional links to Desmos logarithmic graphs based on which .glucose setting is used
                             units: state.units,
                             type: .decimal("adjustmentFactor"),
                             label: String(localized: "Adjustment Factor (AF)"),

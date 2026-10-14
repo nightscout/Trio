@@ -25018,6 +25018,9 @@
         }
       }
     },
+    "10-Day Average" : {
+
+    },
     "10%:" : {
       "localizations" : {
         "bg" : {
@@ -54401,6 +54404,9 @@
           }
         }
       }
+    },
+    "Autosens Limits" : {
+
     },
     "Autosens Max" : {
       "comment" : "Autosens Max",
@@ -93008,6 +93014,9 @@
         }
       }
     },
+    "Curve" : {
+
+    },
     "Custom" : {
       "comment" : "Custom temp target",
       "extractionState" : "manual",
@@ -119093,6 +119102,15 @@
         }
       }
     },
+    "Dynamic ISF chart by glucose" : {
+
+    },
+    "Dynamic ISF Explorer" : {
+
+    },
+    "Dynamic ISF is off for these values. It needs a total daily dose and an Autosens Max above Autosens Min." : {
+
+    },
     "Dynamic ISF is off, so those terms will not show up." : {
       "localizations" : {
         "bg" : {
@@ -119612,6 +119630,9 @@
           }
         }
       }
+    },
+    "Dynamic Ratio %@" : {
+
     },
     "Dynamic Sensitivity" : {
       "comment" : "Insulin sensitivity config header",
@@ -134680,6 +134701,9 @@
           }
         }
       }
+    },
+    "Explore Dynamic ISF" : {
+
     },
     "Export Categories" : {
       "localizations" : {
@@ -169750,6 +169774,9 @@
         }
       }
     },
+    "Include Active Override" : {
+
+    },
     "Include IOB & COB in the calendar event data." : {
       "localizations" : {
         "bg" : {
@@ -176230,6 +176257,16 @@
         }
       }
     },
+    "ISF %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "ISF %1$@ %2$@"
+          }
+        }
+      }
+    },
     "ISF and CR" : {
       "localizations" : {
         "bg" : {
@@ -176356,6 +176393,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "胰島素敏感度與碳水比例"
+          }
+        }
+      }
+    },
+    "ISF from %@ to %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "ISF from %1$@ to %2$@ %3$@"
           }
         }
       }
@@ -177920,6 +177967,9 @@
           }
         }
       }
+    },
+    "Last 24 Hours" : {
+
     },
     "Last Blood Sugar prediction" : {
       "extractionState" : "manual",
@@ -240662,6 +240712,9 @@
         }
       }
     },
+    "Profile ISF" : {
+
+    },
     "Profile Override" : {
       "comment" : "Service Section",
       "extractionState" : "manual",
@@ -252855,6 +252908,9 @@
         }
       }
     },
+    "Reset" : {
+
+    },
     "Reset and retry send" : {
       "localizations" : {
         "bg" : {
@@ -260127,6 +260183,9 @@
           }
         }
       }
+    },
+    "See how your ISF changes with glucose, and try other values without saving them." : {
+
     },
     "See what's new in this version." : {
       "localizations" : {
@@ -281090,6 +281149,9 @@
         }
       }
     },
+    "Starts from your current settings and the last loop. Nothing you change here is saved." : {
+
+    },
     "Starts in %@" : {
       "localizations" : {
         "bg" : {
@@ -290258,6 +290320,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "目標（%@）"
+          }
+        }
+      }
+    },
+    "Target %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Target %1$@ %2$@"
           }
         }
       }
@@ -341106,6 +341178,9 @@
         }
       }
     },
+    "Weighted TDD: %@" : {
+
+    },
     "Welcome to Trio" : {
       "localizations" : {
         "bg" : {
@@ -350817,6 +350892,12 @@
           }
         }
       }
+    },
+    "Your scheduled values for this time of day." : {
+
+    },
+    "Your Settings" : {
+
     },
     "Your therapy settings (basal rates, carb ratios, insulin sensitivities and glucose targets) are carried over." : {
       "localizations" : {

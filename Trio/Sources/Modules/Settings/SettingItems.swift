@@ -152,6 +152,7 @@ enum SettingItems {
             view: .dynamicISF,
             searchContents: [
                 "Dynamic ISF",
+                "Explore Dynamic ISF",
                 "Sigmoid",
                 "Logarithmic",
                 "Adjustment Factor (AF)",
