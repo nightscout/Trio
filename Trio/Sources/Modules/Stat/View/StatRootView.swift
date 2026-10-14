@@ -78,7 +78,6 @@ extension Stat {
                 }
                 .pickerStyle(.menu)
                 .onChange(of: state.selectedGlucoseChartType) { _, newValue in
-                    // If switching to daily chart and day/today is selected, switch to week
                     if newValue.isDaily,
                        state.selectedIntervalForGlucoseStats == .day || state.selectedIntervalForGlucoseStats == .today
                     {
@@ -157,7 +156,7 @@ extension Stat {
                                 dailyStats: state.dailyGlucosePercentileStats,
                                 readingsByDay: state.glucoseReadingsByDay
                             )
-                        } else { // if state.selectedGlucoseChartType == .distributionByDay
+                        } else {
                             GlucoseDailyDistributionChart(
                                 highLimit: state.highLimit,
                                 units: state.units,
@@ -318,9 +317,7 @@ extension Stat {
                     } else {
                         LoopBarChartView(
                             selectedInterval: $state.selectedIntervalForLoopStats,
-                            loopStats: state.selectedIntervalForLoopStats == .day
-                                ? state.hourlyLoopStats
-                                : state.dailyLoopStats,
+                            loopStats: shown,
                             state: state
                         )
                     }

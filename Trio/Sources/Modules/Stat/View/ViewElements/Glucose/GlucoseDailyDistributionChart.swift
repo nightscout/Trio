@@ -11,7 +11,6 @@ struct GlucoseDailyDistributionChart: View {
     let dailyStats: [GlucoseDailyDistributionStats]
     let readingsByDay: [Date: [GlucoseReading]]
 
-    // Scrolling and selection states
     @State private var scrollPosition = Date()
     @State private var selectedDate: Date?
 
@@ -32,12 +31,10 @@ struct GlucoseDailyDistributionChart: View {
         return readingsByDay[selectedDayStart, default: []]
     }
 
-    // Computes the visible date range based on the current scroll position
     private var visibleDateRange: (start: Date, end: Date) {
         StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
     }
 
-    // Active glucose data - either selected day or visible range
     private var activeGlucoseData: [GlucoseReading] {
         selectedDayStart != nil ? selectedDayGlucose : visibleGlucose
     }
@@ -47,7 +44,6 @@ struct GlucoseDailyDistributionChart: View {
             chartView
                 .frame(height: 200)
 
-            // Date label with transition
             Text(selectedDate.map { StatChartUtils.formatDate($0) } ?? StatChartUtils.formatVisibleDateRange(
                 from: visibleDateRange.start,
                 to: visibleDateRange.end,
@@ -57,7 +53,6 @@ struct GlucoseDailyDistributionChart: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.top, 8)
 
-            // Single sector chart with data switching
             GlucoseSectorChart(
                 highLimit: highLimit,
                 units: units,
@@ -69,7 +64,6 @@ struct GlucoseDailyDistributionChart: View {
 
             Divider().padding(.vertical, 4)
 
-            // Single metrics view with data switching
             GlucoseMetricsView(
                 units: units,
                 eA1cDisplayUnit: eA1cDisplayUnit,
@@ -86,7 +80,6 @@ struct GlucoseDailyDistributionChart: View {
         }
     }
 
-    /// The main chart visualization showing glucose distribution by day
     private var chartView: some View {
         let bandInfos = GlucoseBand.allCases.map { band in
             (
@@ -138,7 +131,6 @@ struct GlucoseDailyDistributionChart: View {
         .accessibilityLabel(Text("Daily glucose distribution chart"))
     }
 
-    /// Creates a bar mark for the requested date and range
     private func barMark(x: GlucoseDailyDistributionStats, y: Double, name: String) -> some ChartContent {
         BarMark(
             x: .value("Date", x.date, unit: .day),

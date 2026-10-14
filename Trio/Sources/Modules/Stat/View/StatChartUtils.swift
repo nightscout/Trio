@@ -14,9 +14,6 @@ struct StatChartUtils {
         }
     }
 
-    /// Returns the time interval length for the visible domain based on the selected duration.
-    /// - Parameter selectedInterval: The selected time interval for statistics.
-    /// - Returns: The time interval in seconds.
     static func visibleDomainLength(
         for selectedInterval: Stat.StateModel.StatsTimeInterval,
         at date: Date,
@@ -27,11 +24,6 @@ struct StatChartUtils {
         return end.timeIntervalSince(start)
     }
 
-    /// Computes the visible date range based on the scroll position and selected duration.
-    /// - Parameters:
-    ///   - scrollPosition: The current scroll position in the chart.
-    ///   - selectedInterval: The selected time interval for statistics.
-    /// - Returns: A tuple containing the start and end dates of the visible range.
     static func visibleDateRange(
         from scrollPosition: Date,
         for selectedInterval: Stat.StateModel.StatsTimeInterval
@@ -44,13 +36,11 @@ struct StatChartUtils {
         return (start, end)
     }
 
+    // The end of the range is exclusive, so a midnight bucket belongs to the next day.
     static func isStatInRange(_ date: Date, in range: (start: Date, end: Date)) -> Bool {
         date >= range.start && date < range.end
     }
 
-    /// Returns the appropriate date format style based on the selected time interval.
-    /// - Parameter selectedInterval: The selected time interval for statistics.
-    /// - Returns: A Date.FormatStyle configured for the current time interval.
     private static func dateFormat(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> Date.FormatStyle {
         switch selectedInterval {
         case .day: return .dateTime.hour()
@@ -95,10 +85,6 @@ struct StatChartUtils {
         }
     }
 
-    /// Returns the x-axis marks shared by the scrollable, date-based stat charts.
-    ///
-    /// - Parameter selectedInterval: The selected time interval for statistics.
-    /// - Returns: The configured `AxisMarks` for the chart's x-axis.
     @AxisContentBuilder static func dateAxisMarks(
         for selectedInterval: Stat.StateModel.StatsTimeInterval
     ) -> some AxisContent {
@@ -132,9 +118,6 @@ struct StatChartUtils {
         }
     }
 
-    /// Returns DateComponents for aligning dates based on the selected duration.
-    /// - Parameter selectedInterval: The selected time interval for statistics.
-    /// - Returns: DateComponents configured for the appropriate alignment.
     static func alignmentComponents(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> DateComponents {
         switch selectedInterval {
         case .day: return DateComponents(hour: 0)
@@ -146,9 +129,6 @@ struct StatChartUtils {
         }
     }
 
-    /// Returns the initial scroll position date based on the selected duration.
-    /// - Parameter selectedInterval: The selected time interval for statistics.
-    /// - Returns: A Date representing the initial scroll position.
     static func getInitialScrollPosition(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> Date {
         let daysBack = dayCount(for: selectedInterval) - 1
         let today = Calendar.current.startOfDay(for: Date())
@@ -156,12 +136,6 @@ struct StatChartUtils {
         return Calendar.current.date(byAdding: .day, value: -daysBack, to: today)!
     }
 
-    /// Checks if two dates belong to the same time unit based on the selected duration.
-    /// - Parameters:
-    ///   - date1: The first date.
-    ///   - date2: The second date.
-    ///   - selectedInterval: The selected time interval for statistics.
-    /// - Returns: A Boolean indicating whether the two dates are in the same time unit.
     static func isSameTimeUnit(
         _ date1: Date,
         _ date2: Date,
@@ -249,12 +223,6 @@ struct StatChartUtils {
         }
     }
 
-    /// Formats the visible date range into a human-readable string.
-    /// - Parameters:
-    ///   - start: The start date of the range.
-    ///   - end: The end date of the range.
-    ///   - selectedInterval: The selected time interval for statistics.
-    /// - Returns: A formatted string representing the visible date range.
     static func formatVisibleDateRange(
         from start: Date,
         to end: Date,
@@ -276,6 +244,7 @@ struct StatChartUtils {
         return "\(formatDate(startDay)) - \(formatDate(inclusiveEnd))"
     }
 
+    // Invisible point at next midnight so single-day charts span 00:00–23:59.
     static func fullDayDomainAnchor() -> some ChartContent {
         let calendar = Calendar.current
         let midnight = calendar.startOfDay(for: Date())
@@ -285,7 +254,7 @@ struct StatChartUtils {
             x: .value("Time", nextMidnight),
             y: .value("Dummy", 0)
         )
-        .opacity(0) // ensures dummy ChartContent is hidden
+        .opacity(0)
     }
 
     static func popoverRow(
@@ -323,12 +292,6 @@ struct StatChartUtils {
         }
     }
 
-    /// A helper function to create a `VStack` for each statistic.
-    ///
-    /// - Parameters:
-    ///   - title: The title of the statistic.
-    ///   - value: The formatted value to display.
-    /// - Returns: A `VStack` with the title and value.
     static func statView(title: String, value: String) -> some View {
         VStack(spacing: 5) {
             Text(title)

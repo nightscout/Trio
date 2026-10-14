@@ -18,10 +18,6 @@ struct GlucoseSectorChart: View, Equatable {
             lhs.timeInRangeType == rhs.timeInRangeType && lhs.showChart == rhs.showChart
     }
 
-    /// Represents the different ranges of glucose values that can be displayed in the sector chart
-    /// - high: Above target range
-    /// - inRange: Within target range
-    /// - low: Below target range
     private enum GlucoseRange {
         case high
         case inRange
@@ -61,17 +57,11 @@ struct GlucoseSectorChart: View, Equatable {
 
             let chartData = makeRangeData(from: grouped)
             HStack(alignment: .center, spacing: 20) {
-                // Count readings greater than high limit (180 mg/dL)
                 let high = grouped[.high]?.count ?? 0
-                // Count readings between low limit (TITR: 70 mg/dL, TING 63 mg/dL) and 140 mg/dL (tight control)
                 let tight = grouped[.tight]?.count ?? 0
-                // Count readings between 140 and high limit (normal range)
                 let upperMid = grouped[.upperMid]?.count ?? 0
-                // Count readings less than low limit (low) (70 for TITR and 63 for TING)
                 let low = grouped[.low]?.count ?? 0
-                // Count readings less than very low limit (54 mg/dL)
                 let veryLow = grouped[.veryLow]?.count ?? 0
-                // Count readings less than very high limit (250 mg/dL)
                 let veryHigh = grouped[.veryHigh]?.count ?? 0
 
                 VStack(alignment: .leading, spacing: 10) {
@@ -166,28 +156,11 @@ struct GlucoseSectorChart: View, Equatable {
         }
     }
 
-    /// Calculates statistics about glucose ranges and returns data for the sector chart
-    ///
-    /// This computed property processes glucose readings and categorizes them into high, in-range, and low ranges.
-    /// For each range, it calculates:
-    /// - The count of readings in that range
-    /// - The percentage of total readings
-    /// - The associated color for visualization
-    ///
-    /// - Returns: An array of tuples containing range data, where each tuple has:
-    ///   - range: The glucose range category (high, in-range, or low)
-    ///   - count: Number of readings in that range
-    ///   - percentage: Percentage of total readings in that range
-    ///   - color: Color used to represent that range in the chart
     private func makeRangeData(from grouped: [GlucoseBand: [GlucoseReading]]) -> RangeData {
-        // Count readings below low limit
         let lowCount = (grouped[.low]?.count ?? 0) + (grouped[.veryLow]?.count ?? 0)
-        // Calculate in-range readings by subtracting high and low counts from total
         let inRangeCount = (grouped[.tight]?.count ?? 0) + (grouped[.upperMid]?.count ?? 0)
-        // Count readings above high limit
         let highCount = (grouped[.high]?.count ?? 0) + (grouped[.veryHigh]?.count ?? 0)
 
-        // Return array of tuples with range data
         return [
             (.high, highCount, .dynamicPurple),
             (.inRange, inRangeCount, .dynamicGreen),
@@ -195,15 +168,7 @@ struct GlucoseSectorChart: View, Equatable {
         ]
     }
 
-    /// Determines which glucose range was selected based on a cumulative value
-    ///
-    /// This function takes a value representing a point in the cumulative total of glucose readings
-    /// and determines which range (high, in-range, or low) that point falls into.
-    /// It updates the selectedRange state variable when the appropriate range is found.
-    ///
-    /// - Parameter value: An integer representing a point in the cumulative total of readings
     private func getSelectedRange(for value: Int, in data: RangeData) -> GlucoseRange? {
-        // Keep track of running total as we check each range
         var cumulativeTotal = 0
         for entry in data {
             cumulativeTotal += entry.count
@@ -212,13 +177,6 @@ struct GlucoseSectorChart: View, Equatable {
         return nil
     }
 
-    /// Gets detailed statistics for a specific glucose range category
-    ///
-    /// This function calculates detailed statistics for a given glucose range (high, in-range, or low),
-    /// breaking down the readings into subcategories and calculating percentages.
-    ///
-    /// - Parameter range: The glucose range category to analyze
-    /// - Returns: A RangeDetail object containing the title, color and detailed statistics
     private func getDetailedData(
         for range: GlucoseRange,
         from grouped: [GlucoseBand: [GlucoseReading]]
@@ -314,18 +272,13 @@ struct GlucoseSectorChart: View, Equatable {
     }
 }
 
-/// Represents details about a specific glucose range category including title, color and percentage breakdowns
 private struct RangeDetail {
-    /// The title of this range category (e.g. "High Glucose", "In Range", "Low Glucose")
     let title: String
-    /// The color used to represent this range in the UI
     let color: Color
-    /// Array of tuples containing label and percentage for each sub-range
     let percentages: [(label: String, value: String)]
     let statistics: [(label: String, value: String)]
 }
 
-/// A popover view that displays detailed breakdown of glucose percentages for a range category
 private struct RangeDetailPopover: View {
     let data: RangeDetail
 

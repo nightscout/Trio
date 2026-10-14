@@ -1,27 +1,15 @@
 import Charts
 import SwiftUI
 
-/// A view that displays an Ambulatory Glucose Profile (AGP) chart.
-///
-/// This chart visualizes glucose percentile statistics over a 24-hour period.
-/// It includes the 10-90 percentile, 25-75 percentile, median glucose values,
-/// and high/low glucose limits.
 struct GlucosePercentileChart: View {
-    /// The upper glucose limit for the chart.
     let highLimit: Decimal
-    /// TITR or TING
     let timeInRangeType: TimeInRangeType
-    /// The units used for glucose measurement (mg/dL or mmol/L).
     let units: GlucoseUnits
-    /// The hourly glucose statistics.
     let hourlyStats: [HourlyStats]
-    /// Flag indicating whether the chart represents today's data.
     let isToday: Bool
 
-    /// The currently selected hour in the chart.
     @State private var selection: Date? = nil
 
-    /// Retrieves the hourly statistics for the selected time.
     private var selectedStats: HourlyStats? {
         guard let selection = selection else { return nil }
 
@@ -34,12 +22,10 @@ struct GlucosePercentileChart: View {
         return hourlyStats.first { Int($0.hour) == hour }
     }
 
-    /// The minimum Y-axis value based on the lowest possible cgm reading
     private var minYValue: Double {
         40.0.asUnit(units)
     }
 
-    /// The maximum Y-axis value based on the highest 90th percentile
     private var maxYValue: Double {
         let topLimit = 400.0.asUnit(units)
         let validStats = hourlyStats.filter { $0.median > 0 }
@@ -61,9 +47,7 @@ struct GlucosePercentileChart: View {
                 .font(.headline)
 
             Chart {
-                // Statistical view for longer periods
                 ForEach(hourlyStats, id: \.hour) { stats in
-                    // 10-90 percentile area
                     AreaMark(
                         x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
                         yStart: .value("10th Percentile", stats.percentile10.asUnit(units)),
@@ -73,7 +57,6 @@ struct GlucosePercentileChart: View {
                     .foregroundStyle(by: .value("Series", "10-90%"))
                     .opacity(stats.median > 0 ? 0.3 : 0)
 
-                    // 25-75 percentile area
                     AreaMark(
                         x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
                         yStart: .value("25th Percentile", stats.percentile25.asUnit(units)),
@@ -83,7 +66,6 @@ struct GlucosePercentileChart: View {
                     .foregroundStyle(by: .value("Series", "25-75%"))
                     .opacity(stats.median > 0 ? 0.5 : 0)
 
-                    // Median line
                     if stats.median > 0 {
                         LineMark(
                             x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),

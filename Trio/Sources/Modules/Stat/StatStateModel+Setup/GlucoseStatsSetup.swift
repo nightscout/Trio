@@ -19,28 +19,21 @@ enum GlucoseBand: CaseIterable, Sendable {
     }
 }
 
-/// A thread-safe value type to hold glucose data without Core Data dependencies
+// Sendable snapshot; Core Data objects cannot cross threads.
 struct GlucoseReading: Equatable, Sendable {
     let value: Int
     let date: Date
 }
 
-/// Represents statistical data for daily glucose metrics by distribution ranges
 struct GlucoseDailyDistributionStats: Identifiable {
     var id: Date { date }
-    /// The date this data represents
     let date: Date
-    /// Percentage of glucose readings below 54 mg/dL
     let veryLowPct: Double
-    /// Percentage of glucose readings in the [54 – lowLimit] mg/dL range
     let lowPct: Double
-    /// Percentage of glucose readings within the tighter control range of [bottomThreshold – topThreshold] mg/dL
     let inSmallRangePct: Double
     let upperMidPct: Double
     var inRangePct: Double { inSmallRangePct + upperMidPct }
-    /// Percentage of glucose readings in the (highLimit – 250] mg/dL range
     let highPct: Double
-    /// Percentage of glucose readings above 250 mg/dL
     let veryHighPct: Double
 
     init(
@@ -74,7 +67,7 @@ extension GlucoseDailyDistributionStats {
         }
     }
 
-    /// Pure range-distribution computation shared by Stat and the Home stats banner.
+    // Readings must be in mg/dL; band edges are mg/dL constants.
     static func compute(
         date: Date,
         readings: [GlucoseReading],
@@ -113,24 +106,15 @@ extension GlucoseDailyDistributionStats {
     }
 }
 
-/// Represents percentile-based statistical data for daily glucose metrics
 struct GlucoseDailyPercentileStats: Identifiable {
     var id: Date { date }
-    /// The date this data represents
     let date: Date
-    /// Minimum glucose value
     let minimum: Double
-    /// 10th percentile glucose value
     let percentile10: Double
-    /// 25th percentile glucose value (lower quartile)
     let percentile25: Double
-    /// Median (50th percentile) glucose value
     let median: Double
-    /// 75th percentile glucose value (upper quartile)
     let percentile75: Double
-    /// 90th percentile glucose value
     let percentile90: Double
-    /// Maximum glucose value
     let maximum: Double
 
     init(
@@ -158,6 +142,7 @@ extension Stat.StateModel {
     func setupGlucoseArray(for interval: StatsTimeIntervalWithToday) {
         Task {
             let readings = await fetchGlucose(for: interval)
+            // Drop stale results if the picker moved while fetching.
             guard interval == self.selectedIntervalForGlucoseStats else { return }
             let hourly = Self.makeHourlyStats(from: readings)
             let ranges = Self.makeGlucoseRangeStats(
@@ -177,11 +162,12 @@ extension Stat.StateModel {
 
     func setupGlucoseDailyStats() {
         Task {
+            // Daily charts always need the full 90 days, regardless of picker.
             let readings = await fetchGlucose(for: .total)
             let grouped = Dictionary(grouping: readings) { Calendar.current.startOfDay(for: $0.date) }
-            let dates = Self.getDates()
+            let dates = Self.last90DayStarts()
             let percentile = dates.map {
-                Self.createGlucoseDailyPercentileStatsFromReadings(date: $0, readings: grouped[$0, default: []])
+                Self.dailyPercentileStats(date: $0, readings: grouped[$0, default: []])
             }
             let distribution = dates.map {
                 GlucoseDailyDistributionStats.compute(
@@ -234,8 +220,7 @@ extension Stat.StateModel {
         }
     }
 
-    /// Day starts for the last 90 days, oldest first.
-    static func getDates() -> [Date] {
+    static func last90DayStarts() -> [Date] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
 
@@ -244,14 +229,13 @@ extension Stat.StateModel {
         }
     }
 
-    /// Daily percentile stats from one day of readings. Empty days return zeros.
-    static func createGlucoseDailyPercentileStatsFromReadings(
+    // Empty days return zeros, which callers detect with median/maximum > 0.
+    static func dailyPercentileStats(
         date: Date,
         readings: [GlucoseReading]
     ) -> GlucoseDailyPercentileStats {
         let glucoseValues = readings.map { Double($0.value) }.sorted()
 
-        // If no data, return empty data
         guard !glucoseValues.isEmpty else {
             return GlucoseDailyPercentileStats(date: date)
         }

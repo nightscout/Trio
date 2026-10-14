@@ -12,11 +12,6 @@ struct LoopingStats: Identifiable {
 }
 
 extension Stat.StateModel {
-    /// Initiates the process of fetching and processing loop statistics
-    /// This function coordinates three main tasks:
-    /// 1. Fetching loop stat record IDs for the selected duration
-    /// 2. Calculating grouped statistics for the Loop stats chart
-    /// 3. Updating loop stat records on the main thread (!) for the Loop duration chart
     func setupLoopStats() {
         Task {
             do {
@@ -32,7 +27,7 @@ extension Stat.StateModel {
         }
     }
 
-    private static func makeStats(date: Date, entries: [(date: Date, entry: LoopStatRecord)]) -> LoopingStats {
+    private static func makeLoopStats(date: Date, entries: [(date: Date, entry: LoopStatRecord)]) -> LoopingStats {
         let sums = entries.reduce((successful: 0, failed: 0)) { acc, item in
             guard item.entry.loopStatus?.contains("Success") == true else { return (acc.successful, acc.failed + 1) }
             return (acc.successful + 1, acc.failed)
@@ -40,6 +35,7 @@ extension Stat.StateModel {
         let sortedDurations = entries
             .map(\.entry.duration)
             .sorted()
+        // Zero or negative intervals are excluded so they cannot drag the median.
         let sortedIntervals = entries
             .filter { $0.entry.interval > 0 }
             .map(\.entry.interval)
@@ -54,9 +50,6 @@ extension Stat.StateModel {
         )
     }
 
-    /// Fetches loop statistics records for the specified duration
-    /// - Parameter interval: The time period to fetch records for
-    /// - Returns: A tuple containing arrays of NSManagedObjectIDs for (all loops, failed loops)
     private func fetchLoopStats() async throws -> (hourly: [LoopingStats], daily: [LoopingStats]) {
         let loopTaskContext = CoreDataStack.shared.newTaskContext()
         loopTaskContext.name = "StatStateModel.fetchLoopStats"
@@ -70,12 +63,10 @@ extension Stat.StateModel {
         )
 
         return await loopTaskContext.perform {
-            // Safely unwrap the fetched results, return empty arrays if nil
             guard let fetchedResults = results as? [LoopStatRecord] else { return ([], []) }
 
             let calendar = Calendar.current
 
-            // Group entries by hour for hourly statistics
             let now = Date()
             let twentyDaysAgo = calendar.date(byAdding: .day, value: -StatChartUtils.hourlyWindowDays, to: now)!
 
@@ -91,13 +82,12 @@ extension Stat.StateModel {
             }
             let dailyGrouped = Dictionary(grouping: validEntries) { calendar.startOfDay(for: $0.date) }
 
-            // Calculate statistics for each hour
             let hourlyStats = hourlyGrouped.sorted { $0.key < $1.key }.map {
-                Self.makeStats(date: $0.key, entries: $0.value)
+                Self.makeLoopStats(date: $0.key, entries: $0.value)
             }
 
             let dailyStats = dailyGrouped.sorted { $0.key < $1.key }.map {
-                Self.makeStats(date: $0.key, entries: $0.value)
+                Self.makeLoopStats(date: $0.key, entries: $0.value)
             }
 
             return (hourlyStats, dailyStats)
@@ -112,14 +102,12 @@ extension Stat.StateModel {
             )
         }
 
-        // Return zeros if no data exists for the range
         guard !relevantStats.isEmpty else { return (0, 0, 0.0) }
 
         let sums = relevantStats.reduce((successful: 0, failed: 0)) { acc, day in
             (acc.successful + day.successful, acc.failed + day.failed)
         }
 
-        // Calculate averages by dividing totals by number of days
         let count = Double(relevantStats.count)
         let successRate = Double(sums.successful) / Double(sums.successful + sums.failed) * 100
 

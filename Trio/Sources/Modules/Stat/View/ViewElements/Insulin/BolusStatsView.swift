@@ -1,21 +1,12 @@
 import Charts
 import SwiftUI
 
-/// A view that displays a bar chart for bolus insulin statistics.
-///
-/// This view presents different types of bolus insulin (manual, SMB, and external) over time,
-/// allowing users to adjust the time interval and scroll through historical data.
 struct BolusStatsView: View {
-    /// The selected time interval for displaying statistics.
     @Binding var selectedInterval: Stat.StateModel.StatsTimeInterval
-    /// The list of bolus statistics data.
     let bolusStats: [BolusStats]
-    /// The state model containing cached statistics data.
     let state: Stat.StateModel
 
-    /// The current scroll position in the chart.
     @State private var scrollPosition = Date()
-    /// The currently selected date in the chart.
     @State private var selectedDate: Date?
 
     private var headlineValues: (manual: Double, smb: Double, external: Double) {
@@ -24,21 +15,16 @@ struct BolusStatsView: View {
             : state.calculateBolusAverages(for: visibleDateRange)
     }
 
-    /// Computes the visible date range based on the current scroll position.
     private var visibleDateRange: (start: Date, end: Date) {
         StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
     }
 
-    /// Retrieves the bolus statistic for a given date.
-    /// - Parameter date: The date for which to retrieve bolus data.
-    /// - Returns: The `BolusStats` object if available, otherwise `nil`.
     private func getBolusForDate(_ date: Date) -> BolusStats? {
         bolusStats.first { stat in
             StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval)
         }
     }
 
-    /// A view displaying the statistics summary including bolus insulin averages.
     private var statsView: some View {
         HStack {
             Grid(alignment: .leading) {
@@ -103,11 +89,9 @@ struct BolusStatsView: View {
         }
     }
 
-    /// A view displaying the bar chart for bolus insulin statistics.
     private var chartsView: some View {
         Chart {
             ForEach(bolusStats) { stat in
-                // Total Bolus Bar
                 BarMark(
                     x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                     y: .value("Amount", stat.manualBolus)
@@ -120,7 +104,6 @@ struct BolusStatsView: View {
                     } ?? 1
                 )
 
-                // Carb Bolus Bar
                 BarMark(
                     x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                     y: .value("Amount", stat.smb)
@@ -132,7 +115,6 @@ struct BolusStatsView: View {
                         StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
                     } ?? 1
                 )
-                // Correction Bolus Bar
                 BarMark(
                     x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                     y: .value("Amount", stat.external)
@@ -146,13 +128,10 @@ struct BolusStatsView: View {
                 )
             }
 
-            // Dummy PointMark to force SwiftCharts to render a visible domain of 00:00-23:59
-            // i.e. single day from midnight to midnight
             if selectedInterval == .day {
                 StatChartUtils.fullDayDomainAnchor()
             }
 
-            // Selection popover outside of the ForEach loop!
             if let selectedDate, let selectedBolus = getBolusForDate(selectedDate)
             {
                 RuleMark(

@@ -1,21 +1,12 @@
 import Charts
 import SwiftUI
 
-/// A view that displays a bar chart for Total Daily Dose (TDD) statistics.
-///
-/// This view presents insulin usage over time, with the ability to adjust the time interval
-/// and scroll through historical data.
 struct TotalDailyDoseChart: View {
-    /// The selected time interval for displaying statistics.
     @Binding var selectedInterval: Stat.StateModel.StatsTimeInterval
-    /// The list of TDD statistics data.
     let tddStats: [TDDStats]
-    /// The state model containing cached statistics data.
     let state: Stat.StateModel
 
-    /// The current scroll position in the chart.
     @State private var scrollPosition = Date()
-    /// The currently selected date in the chart.
     @State private var selectedDate: Date?
 
     private var headlineValues: Double {
@@ -24,14 +15,10 @@ struct TotalDailyDoseChart: View {
             : state.calculateTDDAverages(for: visibleDateRange)
     }
 
-    /// Computes the visible date range based on the current scroll position.
     private var visibleDateRange: (start: Date, end: Date) {
         StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
     }
 
-    /// Retrieves the TDD statistic for a given date.
-    /// - Parameter date: The date for which to retrieve TDD data.
-    /// - Returns: The `TDDStats` object if available, otherwise `nil`.
     private func getTDDForDate(_ date: Date) -> TDDStats? {
         tddStats.first { stat in
             StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval)
@@ -59,7 +46,6 @@ struct TotalDailyDoseChart: View {
         }
     }
 
-    /// A view displaying the statistics summary including average TDD.
     private var statsView: some View {
         HStack {
             Grid(alignment: .leading) {
@@ -82,7 +68,6 @@ struct TotalDailyDoseChart: View {
         }
     }
 
-    /// A view displaying the bar chart for TDD statistics.
     private var chartsView: some View {
         Chart {
             ForEach(tddStats) { stat in
@@ -98,7 +83,6 @@ struct TotalDailyDoseChart: View {
                 )
             }
 
-            // Selection popover outside of the ForEach loop!
             if let selectedDate,
                let selectedTDD = getTDDForDate(selectedDate)
             {
@@ -131,8 +115,6 @@ struct TotalDailyDoseChart: View {
                 }
             }
 
-            // Dummy PointMark to force SwiftCharts to render a visible domain of 00:00-23:59
-            // i.e. single day from midnight to midnight
             if selectedInterval == .day {
                 StatChartUtils.fullDayDomainAnchor()
             }

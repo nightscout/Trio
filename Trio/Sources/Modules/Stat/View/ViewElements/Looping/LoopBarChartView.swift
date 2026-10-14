@@ -19,7 +19,7 @@ struct LoopBarChartView: View {
         StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
     }
 
-    private func getLoopForDate(_ date: Date) -> LoopingStats? {
+    private func loop(for date: Date) -> LoopingStats? {
         loopStats.first { stat in
             StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval)
         }
@@ -107,13 +107,11 @@ struct LoopBarChartView: View {
                 )
             }
 
-            // Dummy PointMark to force SwiftCharts to render a visible domain of 00:00-23:59
-            // i.e. single day from midnight to midnight
             if selectedInterval == .day {
                 StatChartUtils.fullDayDomainAnchor()
             }
 
-            if let selectedDate, let selectedLoop = getLoopForDate(selectedDate)
+            if let selectedDate, let selectedLoop = loop(for: selectedDate)
             {
                 RuleMark(
                     x: .value("Selected Date", selectedDate)

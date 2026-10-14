@@ -1,21 +1,12 @@
 import Charts
 import SwiftUI
 
-/// A view that displays a bar chart for meal statistics.
-///
-/// This view presents macronutrient intake (carbohydrates, fats, and proteins) over time,
-/// allowing users to adjust the time interval and scroll through historical data.
 struct MealStatsView: View {
-    /// The selected time interval for displaying statistics.
     @Binding var selectedInterval: Stat.StateModel.StatsTimeInterval
-    /// The list of meal statistics data.
     let mealStats: [MealStats]
-    /// The state model containing cached statistics data.
     let state: Stat.StateModel
 
-    /// The current scroll position in the chart.
     @State private var scrollPosition = Date()
-    /// The currently selected date in the chart.
     @State private var selectedDate: Date?
 
     private var headlineValues: (carbs: Double, fat: Double, protein: Double) {
@@ -24,21 +15,16 @@ struct MealStatsView: View {
             : state.calculateMealAverages(for: visibleDateRange)
     }
 
-    /// Computes the visible date range based on the current scroll position.
     private var visibleDateRange: (start: Date, end: Date) {
         StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
     }
 
-    /// Retrieves the meal statistic for a given date.
-    /// - Parameter date: The date for which to retrieve meal data.
-    /// - Returns: The `MealStats` object if available, otherwise `nil`.
     private func getMealForDate(_ date: Date) -> MealStats? {
         mealStats.first { stat in
             StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval)
         }
     }
 
-    /// A view displaying the statistics summary including macronutrient averages.
     private var statsView: some View {
         HStack {
             Grid(alignment: .leading) {
@@ -98,11 +84,9 @@ struct MealStatsView: View {
         }
     }
 
-    /// A view displaying the bar chart for meal statistics.
     private var chartsView: some View {
         Chart {
             ForEach(mealStats) { stat in
-                // Carbs Bar (bottom)
                 BarMark(
                     x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                     y: .value("Amount", stat.carbs)
@@ -115,7 +99,6 @@ struct MealStatsView: View {
                     } ?? 1
                 )
                 if state.useFPUconversion {
-                    // Fat Bar (middle)
                     BarMark(
                         x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                         y: .value("Amount", stat.fat)
@@ -127,7 +110,6 @@ struct MealStatsView: View {
                             StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
                         } ?? 1
                     )
-                    // Protein Bar (top)
                     BarMark(
                         x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                         y: .value("Amount", stat.protein)
@@ -142,7 +124,6 @@ struct MealStatsView: View {
                 }
             }
 
-            // Selection popover outside of the ForEach loop!
             if let selectedDate,
                let selectedMeal = getMealForDate(selectedDate)
             {
@@ -187,8 +168,6 @@ struct MealStatsView: View {
                 }
             }
 
-            // Dummy PointMark to force SwiftCharts to render a visible domain of 00:00-23:59
-            // i.e. single day from midnight to midnight
             if selectedInterval == .day {
                 StatChartUtils.fullDayDomainAnchor()
             }

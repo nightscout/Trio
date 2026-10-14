@@ -24,7 +24,6 @@ enum GlucosePercentileType: String, CaseIterable, Identifiable {
         }
     }
 
-    // Function to get the percentile value from a stats object
     func getValue(from stats: GlucoseDailyPercentileStats) -> Double {
         switch self {
         case .minimum: return stats.minimum
@@ -47,11 +46,9 @@ struct GlucoseDailyPercentileChart: View {
     let dailyStats: [GlucoseDailyPercentileStats]
     let readingsByDay: [Date: [GlucoseReading]]
 
-    // Scrolling and selection states
     @State private var scrollPosition = Date()
     @State private var selectedDate: Date?
 
-    // State for selected percentile
     @State private var selectedPercentile: GlucosePercentileType?
 
     private var selectedDayStart: Date? {
@@ -64,19 +61,17 @@ struct GlucoseDailyPercentileChart: View {
         }
     }
 
-    // Computes the visible date range based on the current scroll position
     private var visibleDateRange: (start: Date, end: Date) {
         StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
     }
 
-    // Gets selected day stats
     private var selectedDateStats: GlucoseDailyPercentileStats? {
         selectedDayStart.flatMap { start in
             dailyStats.first { $0.date == start }
         }
     }
 
-    // Aggregates data from all visible days
+    // Pool raw readings; averaging daily percentiles would weight sparse days equally.
     private var aggregatedVisibleStats: GlucoseDailyPercentileStats? {
         let calendar = Calendar.current
         let days = (0 ..< StatChartUtils.dayCount(for: selectedInterval)).compactMap {
@@ -97,13 +92,10 @@ struct GlucoseDailyPercentileChart: View {
         )
     }
 
-    // Get the appropriate detail view data
     private var detailViewData: (data: GlucoseDailyPercentileStats, dateText: String)? {
         if let selectedData = selectedDateStats {
-            // Case 1: Selected specific day
             return (selectedData, StatChartUtils.formatDate(selectedData.date))
         } else if let aggregatedData = aggregatedVisibleStats {
-            // Case 2: Using aggregated data
             return (aggregatedData, StatChartUtils.formatVisibleDateRange(
                 from: visibleDateRange.start,
                 to: visibleDateRange.end,
@@ -123,7 +115,6 @@ struct GlucoseDailyPercentileChart: View {
             boxplotChart
                 .frame(height: 300)
 
-            // Display detail view if we have data
             if let viewData = detailViewData {
                 GlucoseDailyPercentileDetailView(
                     dayData: viewData.data,
@@ -144,7 +135,6 @@ struct GlucoseDailyPercentileChart: View {
         }
     }
 
-    // Simple boxplot chart with improved visuals - broken down into components
     private var boxplotChart: some View {
         let thresholds = StatChartUtils.glucoseThresholds(timeInRangeType: timeInRangeType, highLimit: highLimit, units: units)
         let seriesScale: [(label: String, color: Color)] = [
@@ -155,10 +145,8 @@ struct GlucoseDailyPercentileChart: View {
         ] + thresholds.map { ($0.label, $0.color) }
 
         return Chart {
-            // First draw all the non-interactive elements
             ForEach(dailyStats) { day in
-                if day.maximum > 0 { // Check if we have valid data
-                    // Add background components for each day
+                if day.maximum > 0 {
                     spacerBarMark(for: day)
                     percentileBarMark(
                         for: day,
@@ -193,7 +181,6 @@ struct GlucoseDailyPercentileChart: View {
                 }
             }
 
-            // Draw median marks - these should appear above the percentile bars but below the selected percentile
             ForEach(dailyStats) { day in
                 if day.maximum > 0 {
                     medianMark(for: day)
@@ -206,11 +193,9 @@ struct GlucoseDailyPercentileChart: View {
                     .foregroundStyle(by: .value("Range", threshold.label))
             }
 
-            // Draw the selected percentile elements LAST so they're on top
             if let selectedPercentile = selectedPercentile {
                 ForEach(dailyStats) { day in
                     if day.maximum > 0 {
-                        // Line connecting points
                         LineMark(
                             x: .value("SelectedDate", day.date, unit: .day),
                             y: .value("SelectedValue", selectedPercentile.getValue(from: day).asUnit(units))
@@ -218,7 +203,6 @@ struct GlucoseDailyPercentileChart: View {
                         .foregroundStyle(Color.purple)
                         .lineStyle(StrokeStyle(lineWidth: selectedInterval == .total ? 1 : 2))
 
-                        // Point marks
                         PointMark(
                             x: .value("SelectedDate", day.date, unit: .day),
                             y: .value("SelectedValue", selectedPercentile.getValue(from: day).asUnit(units))
@@ -251,7 +235,6 @@ struct GlucoseDailyPercentileChart: View {
         .chartYScale(domain: glucoseYScaleDomain())
         .chartXSelection(value: $selectedDate)
         .onChange(of: selectedDate) { _, newValue in
-            // Clear percentile selection when a day is selected
             if newValue != nil {
                 selectedPercentile = nil
             }
@@ -275,8 +258,6 @@ struct GlucoseDailyPercentileChart: View {
         .accessibilityLabel(Text("Daily glucose percentile chart"))
     }
 
-    // MARK: - Chart Components
-
     private func percentileBarMark(
         for day: GlucoseDailyPercentileStats,
         startValue: Double,
@@ -291,11 +272,10 @@ struct GlucoseDailyPercentileChart: View {
         .opacity(getOpacity(for: day))
     }
 
-    // Median mark - a horizontal line at the median point
     private func medianMark(for day: GlucoseDailyPercentileStats) -> some ChartContent {
         let baseDate = Calendar.current.startOfDay(for: day.date)
-        let startOffset = Int(0.15 * 24 * 60) // 15% of minutes in a day
-        let endOffset = Int(0.85 * 24 * 60) // 85% of minutes in a day
+        let startOffset = Int(0.15 * 24 * 60)
+        let endOffset = Int(0.85 * 24 * 60)
 
         return RuleMark(
             xStart: .value("DayStart", Calendar.current.date(byAdding: .minute, value: startOffset, to: baseDate)!),
@@ -307,12 +287,10 @@ struct GlucoseDailyPercentileChart: View {
         .opacity(getOpacity(for: day))
     }
 
-    // Helper function to determine opacity based on selections
     private func getOpacity(for day: GlucoseDailyPercentileStats) -> Double {
         selectedDayStart.map { day.date == $0 ? 1 : 0.3 } ?? 1
     }
 
-    // Spacer box for each day
     private func spacerBarMark(for day: GlucoseDailyPercentileStats) -> some ChartContent {
         BarMark(
             x: .value("Day", day.date, unit: .day),
@@ -321,7 +299,6 @@ struct GlucoseDailyPercentileChart: View {
         .foregroundStyle(Color.clear)
     }
 
-    // Calculate an appropriate Y axis domain for the chart
     private func glucoseYScaleDomain() -> ClosedRange<Double> {
         let padding = 20.0.asUnit(units)
         let bottomLimit = 40.0.asUnit(units)
