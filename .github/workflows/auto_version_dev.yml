@@ -48,7 +48,7 @@ on:
 jobs:
   bump-dev-version:
     if: github.repository_owner == 'nightscout'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     steps:
       - name: Checkout repo
