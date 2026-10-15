@@ -65,8 +65,7 @@ extension Stat.StateModel {
     }
 
     private func fetchTDDStoredRecords(on tddTaskContext: NSManagedObjectContext) async throws -> Any {
-        let threeMonthsAgo = Date().addingTimeInterval(-3.months.timeInterval)
-        let predicate = NSPredicate(format: "date >= %@", threeMonthsAgo as NSDate)
+        let predicate = NSPredicate(format: "date >= %@", Date.ninetyDaysAgo as NSDate)
 
         return try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TDDStored.self,

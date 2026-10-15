@@ -73,7 +73,7 @@ extension NSPredicate {
     }
 
     static var glucoseForStatsTotal: NSPredicate {
-        let date = Date.threeMonthsAgo
+        let date = Date.ninetyDaysAgo
         return NSPredicate(format: "date >= %@", date as NSDate)
     }
 

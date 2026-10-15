@@ -57,7 +57,7 @@ extension Stat.StateModel {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: LoopStatRecord.self,
             onContext: loopTaskContext,
-            predicate: NSPredicate(format: "start >= %@", Date.threeMonthsAgo as NSDate),
+            predicate: NSPredicate(format: "start >= %@", Date.ninetyDaysAgo as NSDate),
             key: "start",
             ascending: true
         )
