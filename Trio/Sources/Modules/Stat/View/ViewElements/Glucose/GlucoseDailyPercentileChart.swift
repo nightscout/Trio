@@ -93,9 +93,11 @@ struct GlucoseDailyPercentileChart: View {
     }
 
     private var detailViewData: (data: GlucoseDailyPercentileStats, dateText: String)? {
-        if let selectedData = selectedDateStats {
-            return (selectedData, StatChartUtils.formatDate(selectedData.date))
-        } else if let aggregatedData = aggregatedVisibleStats {
+        if let start = selectedDayStart {
+            let data = selectedDateStats ?? GlucoseDailyPercentileStats(date: start)
+            return (data, StatChartUtils.formatDate(start))
+        }
+        if let aggregatedData = aggregatedVisibleStats {
             return (aggregatedData, StatChartUtils.formatVisibleDateRange(
                 from: visibleDateRange.start,
                 to: visibleDateRange.end,
@@ -146,45 +148,41 @@ struct GlucoseDailyPercentileChart: View {
 
         return Chart {
             ForEach(dailyStats) { day in
-                if day.maximum > 0 {
-                    spacerBarMark(for: day)
-                    percentileBarMark(
-                        for: day,
-                        startValue: day.minimum.asUnit(units),
-                        endValue: day.percentile10.asUnit(units),
-                        rangeName: "0-100%"
-                    )
-                    percentileBarMark(
-                        for: day,
-                        startValue: day.percentile10.asUnit(units),
-                        endValue: day.percentile25.asUnit(units),
-                        rangeName: "10-90%"
-                    )
-                    percentileBarMark(
-                        for: day,
-                        startValue: day.percentile25.asUnit(units),
-                        endValue: day.percentile75.asUnit(units),
-                        rangeName: "25-75%"
-                    )
-                    percentileBarMark(
-                        for: day,
-                        startValue: day.percentile75.asUnit(units),
-                        endValue: day.percentile90.asUnit(units),
-                        rangeName: "10-90%"
-                    )
-                    percentileBarMark(
-                        for: day,
-                        startValue: day.percentile90.asUnit(units),
-                        endValue: day.maximum.asUnit(units),
-                        rangeName: "0-100%"
-                    )
-                }
+                spacerBarMark(for: day)
+                percentileBarMark(
+                    for: day,
+                    startValue: day.minimum.asUnit(units),
+                    endValue: day.percentile10.asUnit(units),
+                    rangeName: "0-100%"
+                )
+                percentileBarMark(
+                    for: day,
+                    startValue: day.percentile10.asUnit(units),
+                    endValue: day.percentile25.asUnit(units),
+                    rangeName: "10-90%"
+                )
+                percentileBarMark(
+                    for: day,
+                    startValue: day.percentile25.asUnit(units),
+                    endValue: day.percentile75.asUnit(units),
+                    rangeName: "25-75%"
+                )
+                percentileBarMark(
+                    for: day,
+                    startValue: day.percentile75.asUnit(units),
+                    endValue: day.percentile90.asUnit(units),
+                    rangeName: "10-90%"
+                )
+                percentileBarMark(
+                    for: day,
+                    startValue: day.percentile90.asUnit(units),
+                    endValue: day.maximum.asUnit(units),
+                    rangeName: "0-100%"
+                )
             }
 
             ForEach(dailyStats) { day in
-                if day.maximum > 0 {
-                    medianMark(for: day)
-                }
+                medianMark(for: day)
             }
 
             ForEach(thresholds, id: \.label) { threshold in
@@ -195,21 +193,19 @@ struct GlucoseDailyPercentileChart: View {
 
             if let selectedPercentile = selectedPercentile {
                 ForEach(dailyStats) { day in
-                    if day.maximum > 0 {
-                        LineMark(
-                            x: .value("SelectedDate", day.date, unit: .day),
-                            y: .value("SelectedValue", selectedPercentile.getValue(from: day).asUnit(units))
-                        )
-                        .foregroundStyle(Color.purple)
-                        .lineStyle(StrokeStyle(lineWidth: selectedInterval == .total ? 1 : 2))
+                    LineMark(
+                        x: .value("SelectedDate", day.date, unit: .day),
+                        y: .value("SelectedValue", selectedPercentile.getValue(from: day).asUnit(units))
+                    )
+                    .foregroundStyle(Color.purple)
+                    .lineStyle(StrokeStyle(lineWidth: selectedInterval == .total ? 1 : 2))
 
-                        PointMark(
-                            x: .value("SelectedDate", day.date, unit: .day),
-                            y: .value("SelectedValue", selectedPercentile.getValue(from: day).asUnit(units))
-                        )
-                        .symbolSize(selectedInterval == .total ? 10 : 30)
-                        .foregroundStyle(Color.purple)
-                    }
+                    PointMark(
+                        x: .value("SelectedDate", day.date, unit: .day),
+                        y: .value("SelectedValue", selectedPercentile.getValue(from: day).asUnit(units))
+                    )
+                    .symbolSize(selectedInterval == .total ? 10 : 30)
+                    .foregroundStyle(Color.purple)
                 }
             }
         }
@@ -308,7 +304,7 @@ struct GlucoseDailyPercentileChart: View {
             return bottomLimit ... topLimit
         }
 
-        let maxValue = visibleDailyStats.lazy.filter { $0.maximum > 0 }.map { $0.maximum.asUnit(units) }.max() ?? topLimit
+        let maxValue = visibleDailyStats.lazy.map { $0.maximum.asUnit(units) }.max() ?? topLimit
 
         return bottomLimit ... max(Double(highLimit.asUnit(units)), maxValue + padding)
     }

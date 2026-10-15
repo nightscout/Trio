@@ -44,7 +44,9 @@ struct GlucoseSectorChart: View, Equatable {
 
     var body: some View {
         if glucose.isEmpty {
-            Text("No glucose readings found.")
+            Text("No glucose data available")
+                .foregroundStyle(.secondary)
+                .padding()
         } else {
             let grouped = Dictionary(grouping: glucose) { reading in
                 GlucoseBand.classify(

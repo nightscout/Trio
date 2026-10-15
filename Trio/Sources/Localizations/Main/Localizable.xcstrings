@@ -211707,6 +211707,7 @@
       }
     },
     "No glucose readings found." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {

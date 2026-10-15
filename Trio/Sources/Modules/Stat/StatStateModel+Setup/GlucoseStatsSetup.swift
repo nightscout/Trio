@@ -162,16 +162,17 @@ extension Stat.StateModel {
 
     func setupGlucoseDailyStats() {
         Task {
-            // Daily charts always need the full 90 days, regardless of picker.
             let readings = await fetchGlucose(for: .total)
+
             let grouped = Dictionary(grouping: readings) { Calendar.current.startOfDay(for: $0.date) }
-            let dates = Self.last90DayStarts()
-            let percentile = dates.map {
-                Self.dailyPercentileStats(date: $0, readings: grouped[$0, default: []])
+            let groupSorted = grouped.sorted { $0.key < $1.key }
+
+            let percentile = groupSorted.map { group in
+                Self.dailyPercentileStats(date: group.key, readings: group.value)
             }
-            let distribution = dates.map {
+            let distribution = groupSorted.map { group in
                 GlucoseDailyDistributionStats.compute(
-                    date: $0, readings: grouped[$0, default: []], highLimit: highLimit, timeInRangeType: timeInRangeType
+                    date: group.key, readings: group.value, highLimit: highLimit, timeInRangeType: timeInRangeType
                 )
             }
             await MainActor.run {
@@ -220,16 +221,6 @@ extension Stat.StateModel {
         }
     }
 
-    static func last90DayStarts() -> [Date] {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-
-        return (0 ..< 90).map { dayOffset -> Date in
-            calendar.startOfDay(for: calendar.date(byAdding: .day, value: -(89 - dayOffset), to: today)!)
-        }
-    }
-
-    // Empty days return zeros, which callers detect with median/maximum > 0.
     static func dailyPercentileStats(
         date: Date,
         readings: [GlucoseReading]
