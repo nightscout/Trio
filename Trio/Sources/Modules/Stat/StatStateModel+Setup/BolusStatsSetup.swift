@@ -10,6 +10,7 @@ struct BolusStats: Identifiable {
 }
 
 extension Stat.StateModel {
+    private typealias BolusEntry = (date: Date, amount: Double, isSMB: Bool, isExternal: Bool)
     func setupBolusStats() {
         Task {
             do {
@@ -25,12 +26,15 @@ extension Stat.StateModel {
         }
     }
 
-    private static func makeBolusStats(date: Date, entries: [(date: Date, entry: BolusStored)]) -> BolusStats {
-        let sums = entries.reduce((manual: 0.0, smb: 0.0, external: 0.0)) { acc, item in
-            let amount = item.entry.amount?.doubleValue ?? 0
+    private static func makeBolusStats(
+        date: Date,
+        entries: [BolusEntry]
+    ) -> BolusStats {
+        let sums = entries.reduce((manual: 0.0, smb: 0.0, external: 0.0)) { acc, bolusEntry in
+            let amount = bolusEntry.amount
 
-            if item.entry.isSMB { return (acc.manual, acc.smb + amount, acc.external) }
-            if item.entry.isExternal { return (acc.manual, acc.smb, acc.external + amount) }
+            if bolusEntry.isSMB { return (acc.manual, acc.smb + amount, acc.external) }
+            if bolusEntry.isExternal { return (acc.manual, acc.smb, acc.external + amount) }
 
             return (acc.manual + amount, acc.smb, acc.external)
         }
@@ -47,41 +51,38 @@ extension Stat.StateModel {
             predicate: NSPredicate.pumpHistoryForStats,
             key: "pumpEvent.timestamp",
             ascending: true,
-            batchSize: 100
+            propertiesToFetch: ["amount", "isSMB", "isExternal", "pumpEvent.timestamp"]
         )
-
-        var hourlyStats: [BolusStats] = []
-        var dailyStats: [BolusStats] = []
-
-        await bolusTaskContext.perform {
-            guard let fetchedResults = results as? [BolusStored] else {
-                return
-            }
-
-            let calendar = Calendar.current
-
-            let now = Date()
-            let twentyDaysAgo = calendar.date(byAdding: .day, value: -StatChartUtils.hourlyWindowDays, to: now)!
-
-            let validEntries = fetchedResults.compactMap { entry -> (date: Date, entry: BolusStored)? in
-                guard let date = entry.pumpEvent?.timestamp else { return nil }
-                return (date, entry)
-            }
-            let lastTwentyDays = validEntries.filter { $0.date >= twentyDaysAgo && $0.date <= now }
-
-            let hourlyGrouped = Dictionary(grouping: lastTwentyDays) {
-                calendar.date(from: calendar.dateComponents([.year, .month, .day, .hour], from: $0.date))!
-            }
-            let dailyGrouped = Dictionary(grouping: validEntries) { calendar.startOfDay(for: $0.date) }
-
-            hourlyStats = hourlyGrouped.sorted { $0.key < $1.key }.map {
-                Self.makeBolusStats(date: $0.key, entries: $0.value)
-            }
-            dailyStats = dailyGrouped.sorted { $0.key < $1.key }.map {
-                Self.makeBolusStats(date: $0.key, entries: $0.value)
-            }
+        guard let recordDictionaries = results as? [[String: Any]] else {
+            throw CoreDataError.fetchError(function: #function, file: #file)
         }
 
+        let validEntries: [BolusEntry] = recordDictionaries
+            .compactMap { recordDictionary in
+                guard let timestamp = recordDictionary["pumpEvent.timestamp"] as? Date else { return nil }
+                let amount = (recordDictionary["amount"] as? NSNumber)?.doubleValue ?? 0
+                let isSMB = (recordDictionary["isSMB"] as? NSNumber)?.boolValue ?? false
+                let isExternal = (recordDictionary["isExternal"] as? NSNumber)?.boolValue ?? false
+                return (date: timestamp, amount: amount, isSMB: isSMB, isExternal: isExternal)
+            }
+
+        let calendar = Calendar.current
+        let now = Date()
+
+        let twentyDaysAgo = calendar.date(byAdding: .day, value: -StatChartUtils.hourlyWindowDays, to: now)!
+        let lastTwentyDays = validEntries.filter { $0.date >= twentyDaysAgo && $0.date <= now }
+
+        let hourlyGrouped = Dictionary(grouping: lastTwentyDays) {
+            calendar.date(from: calendar.dateComponents([.year, .month, .day, .hour], from: $0.date))!
+        }
+        let dailyGrouped = Dictionary(grouping: validEntries) { calendar.startOfDay(for: $0.date) }
+
+        let hourlyStats = hourlyGrouped.sorted { $0.key < $1.key }.map {
+            Self.makeBolusStats(date: $0.key, entries: $0.value)
+        }
+        let dailyStats = dailyGrouped.sorted { $0.key < $1.key }.map {
+            Self.makeBolusStats(date: $0.key, entries: $0.value)
+        }
         return (hourlyStats, dailyStats)
     }
 
