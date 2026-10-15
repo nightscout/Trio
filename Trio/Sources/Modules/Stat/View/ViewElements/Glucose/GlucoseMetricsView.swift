@@ -27,16 +27,12 @@ struct GlucoseMetricsView: View, Equatable {
         let coefficientOfVariationString = StatChartUtils.formatPercentage(glucoseStats.cv)
         let daysTrackedString = totalDays.formatted(.number.grouping(.never).precision(.fractionLength(1)))
 
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
+        Grid {
+            GridRow {
                 StatChartUtils.statView(title: String(localized: "eA1c"), value: eA1cString)
-                Spacer()
                 StatChartUtils.statView(title: String(localized: "GMI"), value: gmiString)
-                Spacer()
                 StatChartUtils.statView(title: String(localized: "SD"), value: standardDeviationString)
-                Spacer()
                 StatChartUtils.statView(title: String(localized: "CV"), value: coefficientOfVariationString)
-                Spacer()
                 StatChartUtils.statView(title: String(localized: "Days"), value: daysTrackedString)
             }
         }

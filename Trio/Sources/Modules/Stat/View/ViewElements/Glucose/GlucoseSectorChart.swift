@@ -24,16 +24,6 @@ struct GlucoseSectorChart: View, Equatable {
         case low
     }
 
-    private func bandRow(label: String, value: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(label)
-                .font(.subheadline)
-                .foregroundStyle(Color.secondary)
-            Text(value)
-                .foregroundStyle(color)
-        }
-    }
-
     private func infoFor(_ band: GlucoseBand) -> (label: String, color: Color) {
         StatChartUtils.glucoseBandDisplayInfo(for: band, units: units, timeInRangeType: timeInRangeType, highLimit: highLimit)
     }
@@ -58,76 +48,69 @@ struct GlucoseSectorChart: View, Equatable {
             }
 
             let chartData = makeRangeData(from: grouped)
-            HStack(alignment: .center, spacing: 20) {
-                let high = grouped[.high]?.count ?? 0
-                let tight = grouped[.tight]?.count ?? 0
-                let upperMid = grouped[.upperMid]?.count ?? 0
-                let low = grouped[.low]?.count ?? 0
-                let veryLow = grouped[.veryLow]?.count ?? 0
-                let veryHigh = grouped[.veryHigh]?.count ?? 0
 
-                VStack(alignment: .leading, spacing: 10) {
-                    let veryLowInfo = infoFor(.veryLow)
-                    let upperMidInfo = infoFor(.upperMid)
-                    bandRow(
-                        label: veryLowInfo.label,
-                        value: StatChartUtils.formatPercentage(shareOf(veryLow)),
-                        color: veryLowInfo.color
-                    )
-                    bandRow(
-                        label: upperMidInfo.label,
-                        value: StatChartUtils.formatPercentage(shareOf(upperMid)),
-                        color: upperMidInfo.color
-                    )
+            let veryLowInfo = infoFor(.veryLow)
+            let lowInfo = infoFor(.low)
+            let tightInfo = infoFor(.tight)
+            let upperMidInfo = infoFor(.upperMid)
+            let highInfo = infoFor(.high)
+            let veryHighInfo = infoFor(.veryHigh)
 
-                }.padding(.leading, 5)
+            let high = grouped[.high]?.count ?? 0
+            let tight = grouped[.tight]?.count ?? 0
+            let upperMid = grouped[.upperMid]?.count ?? 0
+            let low = grouped[.low]?.count ?? 0
+            let veryLow = grouped[.veryLow]?.count ?? 0
+            let veryHigh = grouped[.veryHigh]?.count ?? 0
 
-                VStack(alignment: .leading, spacing: 10) {
-                    let lowInfo = infoFor(.low)
-                    let highInfo = infoFor(.high)
-                    bandRow(
-                        label: lowInfo.label,
-                        value: StatChartUtils.formatPercentage(shareOf(low)),
-                        color: lowInfo.color
-                    )
-                    bandRow(
-                        label: highInfo.label,
-                        value: StatChartUtils.formatPercentage(shareOf(high)),
-                        color: highInfo.color
-                    )
-                }.padding(.leading, 5)
-                VStack(alignment: .leading, spacing: 10) {
-                    let tightInfo = infoFor(.tight)
-                    let veryHighInfo = infoFor(.veryHigh)
-                    bandRow(
-                        label: tightInfo.label,
-                        value: StatChartUtils.formatPercentage(shareOf(tight)),
-                        color: tightInfo.color
-                    )
-                    bandRow(
-                        label: veryHighInfo.label,
-                        value: StatChartUtils.formatPercentage(shareOf(veryHigh)),
-                        color: veryHighInfo.color
-                    )
-                }.padding(.leading, 5)
+            let summary: (average: Double, median: Double, standardDeviation: Double)? = showChart ? nil : StatChartUtils
+                .summaryStats(for: glucose.map(\.value))
 
-                if !showChart {
-                    let summary = StatChartUtils.summaryStats(for: glucose.map(\.value))
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        bandRow(
-                            label: "Average",
-                            value: summary.average.formattedAsGlucose(for: units),
-                            color: .primary
+            HStack(alignment: .center) {
+                Grid(verticalSpacing: 10) {
+                    GridRow {
+                        StatChartUtils.statView(
+                            title: veryLowInfo.label,
+                            value: StatChartUtils.formatPercentage(shareOf(veryLow)),
+                            color: veryLowInfo.color
                         )
-                        bandRow(
-                            label: "Median",
-                            value: summary.median.formattedAsGlucose(for: units),
-                            color: .primary
+                        StatChartUtils.statView(
+                            title: lowInfo.label,
+                            value: StatChartUtils.formatPercentage(shareOf(low)),
+                            color: lowInfo.color
                         )
-                    }.padding(.leading, 5)
+                        StatChartUtils.statView(
+                            title: tightInfo.label,
+                            value: StatChartUtils.formatPercentage(shareOf(tight)),
+                            color: tightInfo.color
+                        )
+                        if let summary {
+                            StatChartUtils.statView(title: "Average", value: summary.average.formattedAsGlucose(for: units))
+                        }
+                    }
+                    GridRow {
+                        StatChartUtils.statView(
+                            title: upperMidInfo.label,
+                            value: StatChartUtils.formatPercentage(shareOf(upperMid)),
+                            color: upperMidInfo.color
+                        )
+                        StatChartUtils.statView(
+                            title: highInfo.label,
+                            value: StatChartUtils.formatPercentage(shareOf(high)),
+                            color: highInfo.color
+                        )
+                        StatChartUtils.statView(
+                            title: veryHighInfo.label,
+                            value: StatChartUtils.formatPercentage(shareOf(veryHigh)),
+                            color: veryHighInfo.color
+                        )
+                        if let summary {
+                            StatChartUtils.statView(title: "Median", value: summary.median.formattedAsGlucose(for: units))
+                        }
+                    }
+                }
 
-                } else {
+                if showChart {
                     Chart {
                         ForEach(chartData, id: \.range) { data in
                             SectorMark(
@@ -140,7 +123,7 @@ struct GlucoseSectorChart: View, Equatable {
                         }
                     }
                     .chartAngleSelection(value: $selectedCount)
-                    .frame(height: 100)
+                    .frame(width: 100, height: 100)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("Time in range distribution chart"))
                 }

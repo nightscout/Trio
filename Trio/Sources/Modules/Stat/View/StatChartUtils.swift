@@ -292,13 +292,17 @@ struct StatChartUtils {
         }
     }
 
-    static func statView(title: String, value: String) -> some View {
-        VStack(spacing: 5) {
+    static func statView(title: String, value: String, color: Color = .primary) -> some View {
+        VStack(alignment: .leading) {
             Text(title)
                 .font(.subheadline)
                 .foregroundStyle(Color.secondary)
             Text(value)
+                .font(.headline)
+                .foregroundStyle(color)
+                .monospacedDigit()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(title))
         .accessibilityValue(Text(value))

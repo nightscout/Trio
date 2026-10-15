@@ -211446,6 +211446,9 @@
         }
       }
     },
+    "No glucose data available" : {
+
+    },
     "No glucose data available for this day" : {
       "localizations" : {
         "bg" : {
