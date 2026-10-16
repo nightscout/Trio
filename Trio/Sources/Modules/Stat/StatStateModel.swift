@@ -218,6 +218,8 @@ extension Stat.StateModel {
         case percentileByTime = "Percentile"
         /// Time-based distribution of glucose ranges
         case distributionByTime = "Distribution"
+        /// Glycemia Risk Index for the selected period
+        case glycemiaRiskIndex = "Glycemia Risk Index"
         /// Day-based box plot of glucose percentile ranges
         case percentileByDay = "Percentile (by day)"
         /// Day-based distribution of glucose ranges
@@ -229,6 +231,8 @@ extension Stat.StateModel {
                 return String(localized: "Percentile")
             case .distributionByTime:
                 return String(localized: "Distribution")
+            case .glycemiaRiskIndex:
+                return String(localized: "Glycemia Risk Index")
             case .percentileByDay:
                 return String(localized: "Percentile (by day)")
             case .distributionByDay:
