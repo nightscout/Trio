@@ -75,6 +75,10 @@ final class GlucoseAlertCoordinator: Injectable {
         }
     }
 
+    static func alarmsToRetractWhenCGMOwnsAlerts(firing: Set<UUID>, in alarms: [GlucoseAlert]) -> [GlucoseAlert] {
+        alarms.filter { firing.contains($0.id) && $0.type.isReadingDriven }
+    }
+
     /// Readings older than this are considered stale and won't drive new
     /// alarms — matches `APSManager`'s loop-input freshness gate (12 min,
     /// allowing for one missed CGM transmission on a 5-min schedule).
@@ -130,7 +134,7 @@ final class GlucoseAlertCoordinator: Injectable {
     private func evaluateGlucoseAlarms() async {
         guard !isInLaunchQuietWindow else { return }
         guard effectiveTrioAlertsEnabled else {
-            retractAllFiringIfNeeded()
+            retractReadingDrivenFiringAlarms()
             return
         }
         guard let latestValue = await fetchLatestReadingMgDL() else { return }
@@ -317,14 +321,16 @@ final class GlucoseAlertCoordinator: Injectable {
         trioAlertManager.retractAlert(identifier: alertID(for: alarm))
     }
 
-    private func retractAllFiringIfNeeded() {
+    private func retractReadingDrivenFiringAlarms() {
         evaluationQueue.async { [weak self] in
             guard let self, !self.firingAlertIDs.isEmpty else { return }
-            let snapshot = self.alertsSnapshot
-            for alarm in snapshot where self.firingAlertIDs.contains(alarm.id) {
-                self.trioAlertManager.retractAlert(identifier: self.alertID(for: alarm))
+            let toRetract = Self.alarmsToRetractWhenCGMOwnsAlerts(
+                firing: self.firingAlertIDs,
+                in: self.alertsSnapshot
+            )
+            for alarm in toRetract {
+                self.retractIfFiring(alarm)
             }
-            self.firingAlertIDs.removeAll()
         }
     }
 
