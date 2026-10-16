@@ -722,10 +722,10 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
     private func deleteObjects(of sampleType: HKSampleType, predicate: NSPredicate) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            healthKitStore.deleteObjects(of: sampleType, predicate: predicate) { success, _, error in
+            healthKitStore.deleteObjects(of: sampleType, predicate: predicate) { _, _, error in
                 if let error = error {
                     continuation.resume(throwing: error)
-                } else if success {
+                } else {
                     continuation.resume(returning: ())
                 }
             }

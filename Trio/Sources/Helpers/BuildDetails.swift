@@ -7,6 +7,7 @@ class BuildDetails: Injectable {
 
     let dict: [String: Any]
     let previousExpireDateKey = "previousExpireDate"
+    let previousRemoteCommandsKey = "previousRemoteCommands"
 
     init() {
         guard let url = Bundle.main.url(forResource: "BuildDetails", withExtension: "plist"),
@@ -99,7 +100,7 @@ class BuildDetails: Injectable {
         }
     }
 
-    // Upload new profile if expire date has changed
+    // Upload new profile if expire date or supported remote commands have changed
     func handleExpireDateChange() async throws
     {
         if nightscoutManager == nil {
@@ -109,8 +110,14 @@ class BuildDetails: Injectable {
         let previousExpireDate = UserDefaults.standard.object(forKey: previousExpireDateKey) as? Date
         let expireDate = calculateExpirationDate()
 
+        let previousRemoteCommands = UserDefaults.standard.stringArray(forKey: previousRemoteCommandsKey)
+        let remoteCommands = TrioRemoteControl.CommandType.supported.map(\.rawValue)
+
         if previousExpireDate != expireDate {
             debug(.nightscout, "New build expire date detected, uploading profile")
+            try await nightscoutManager.uploadProfiles()
+        } else if previousRemoteCommands != remoteCommands {
+            debug(.nightscout, "Supported remote commands changed, uploading profile")
             try await nightscoutManager.uploadProfiles()
         }
     }
@@ -122,5 +129,10 @@ class BuildDetails: Injectable {
         } else {
             UserDefaults.standard.removeObject(forKey: previousExpireDateKey)
         }
+    }
+
+    // Store the uploaded remote command list
+    func recordUploadedRemoteCommands(_ commands: [String]) {
+        UserDefaults.standard.set(commands, forKey: previousRemoteCommandsKey)
     }
 }
