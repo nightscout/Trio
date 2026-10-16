@@ -2,17 +2,15 @@ import CoreData
 import Foundation
 
 extension TrioRemoteControl {
-    /// Meals older than this cannot be changed remotely; matches the 24 h upload window.
-    static let mealMutationMaxAge: TimeInterval = 24 * 60 * 60
     /// Scheduled meals may be dated ahead up to this limit.
     static let mealMutationMaxFuture: TimeInterval = 12 * 60 * 60
 
+    /// Meals older than one calendar day cannot be changed remotely; matches the upload window (`Date.oneDayAgo`).
     static func validateMealAge(_ date: Date, now: Date = Date(), label: String = "meal") -> String? {
-        let age = now.timeIntervalSince(date)
-        if age > mealMutationMaxAge {
+        if let oldest = Calendar.current.date(byAdding: .day, value: -1, to: now), date < oldest {
             return "Command rejected: the \(label) is older than 24 hours."
         }
-        if age < -mealMutationMaxFuture {
+        if now.timeIntervalSince(date) < -mealMutationMaxFuture {
             return "Command rejected: the \(label) is more than 12 hours in the future."
         }
         return nil
@@ -61,7 +59,7 @@ extension TrioRemoteControl {
             await rejectMealMutation(payload, "Command rejected: meal_id is missing or not a valid UUID.")
             return
         }
-        guard let target = try await resolveMealRoot(handle, payload: payload) else { return }
+        guard let target = await resolveMealRoot(handle, payload: payload) else { return }
         if let message = Self.validateMealAge(target.snapshot.date) ?? Self.validateMealLink(target.snapshot) {
             await rejectMealMutation(payload, message)
             return
@@ -71,10 +69,7 @@ extension TrioRemoteControl {
         do {
             failures = try await carbEntryMutationService.deleteMeal(rootObjectID: target.objectID)
         } catch {
-            await rejectMealMutation(
-                payload,
-                "Command rejected: the meal could not be changed: \(error.localizedDescription)"
-            )
+            await rejectFailedMutation(payload, handle: handle, error: error)
             return
         }
         await recalculateAfterMealMutation()
@@ -122,7 +117,11 @@ extension TrioRemoteControl {
             return
         }
 
-        guard let target = try await resolveMealRoot(handle, payload: payload) else { return }
+        guard let target = await resolveMealRoot(handle, payload: payload) else { return }
+        guard handle == target.snapshot.id else {
+            await rejectMealMutation(payload, "Command rejected: meal_id refers to a carb equivalent, not the meal itself.")
+            return
+        }
         if let message = Self.validateMealAge(target.snapshot.date) ?? Self.validateMealLink(target.snapshot) {
             await rejectMealMutation(payload, message)
             return
@@ -150,10 +149,7 @@ extension TrioRemoteControl {
                 with: replacement
             )
         } catch {
-            await rejectMealMutation(
-                payload,
-                "Command rejected: the meal could not be changed: \(error.localizedDescription)"
-            )
+            await rejectFailedMutation(payload, handle: handle, error: error)
             return
         }
         await recalculateAfterMealMutation()
@@ -169,21 +165,36 @@ extension TrioRemoteControl {
     private func resolveMealRoot(
         _ handle: UUID,
         payload: CommandPayload
-    ) async throws -> (objectID: NSManagedObjectID, snapshot: MealSnapshot)? {
+    ) async -> (objectID: NSManagedObjectID, snapshot: MealSnapshot)? {
         do {
             guard let target = try await carbsStorage.fetchMealRoot(handle: handle) else {
-                await logError(
-                    "Command rejected: the meal was not found. It may already have been deleted or changed on the phone.",
-                    payload: payload,
-                    ack: RemoteCommandAck(commandId: payload.commandId, mealId: handle.uuidString, result: .notFound)
-                )
+                await reportMealNotFound(payload, handle: handle)
                 return nil
             }
             return target
         } catch CarbsStorageError.ambiguousMealHandle {
             await rejectMealMutation(payload, "Command rejected: meal_id matches more than one meal.")
             return nil
+        } catch {
+            await rejectMealMutation(payload, "Command rejected: the meal could not be read: \(error.localizedDescription)")
+            return nil
         }
+    }
+
+    private func reportMealNotFound(_ payload: CommandPayload, handle: UUID) async {
+        await logError(
+            "Command rejected: the meal was not found. It may already have been deleted or changed on the phone.",
+            payload: payload,
+            ack: RemoteCommandAck(commandId: payload.commandId, mealId: handle.uuidString, result: .notFound)
+        )
+    }
+
+    private func rejectFailedMutation(_ payload: CommandPayload, handle: UUID, error: Error) async {
+        if case CarbEntryMutationError.rootNotFound = error {
+            await reportMealNotFound(payload, handle: handle)
+            return
+        }
+        await rejectMealMutation(payload, "Command rejected: the meal could not be changed: \(error.localizedDescription)")
     }
 
     private func rejectMealMutation(_ payload: CommandPayload, _ message: String) async {

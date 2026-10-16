@@ -10,7 +10,7 @@ protocol NightscoutManager: GlucoseSource {
     func fetchGlucose(since date: Date) async -> [BloodGlucose]
     func fetchCarbs() async -> [CarbsEntry]
     func fetchTempTargets() async -> [TempTarget]
-    /// Returns false when Nightscout rejected the delete; unconfigured Nightscout counts as success.
+    /// Returns false when Nightscout rejected the delete; unconfigured or upload-disabled Nightscout counts as success.
     func deleteCarbs(withID id: String) async -> Bool
     func deleteInsulin(withID id: String) async
     func deleteGlucose(withID id: String, withDate date: Date) async
@@ -843,6 +843,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 let presetOverrides = try await overridesStorage.getPresetOverridesForNightscout()
                 let teamID = Bundle.main.object(forInfoDictionaryKey: "TeamID") as? String ?? ""
                 let expireDate = BuildDetails.shared.calculateExpirationDate()
+                let remoteCommands = TrioRemoteControl.CommandType.supported.map(\.rawValue)
 
                 let profileStore = NightscoutProfileStore(
                     defaultProfile: defaultProfile,
@@ -857,7 +858,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     overridePresets: presetOverrides,
                     teamID: teamID,
                     expirationDate: expireDate,
-                    remoteCommands: TrioRemoteControl.CommandType.supported.map(\.rawValue)
+                    remoteCommands: remoteCommands
                 )
 
                 guard let nightscout = nightscoutAPI, isNetworkReachable else {
@@ -871,6 +872,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 try await nightscout.uploadProfile(profileStore)
 
                 BuildDetails.shared.recordUploadedExpireDate(expireDate: expireDate)
+                BuildDetails.shared.recordUploadedRemoteCommands(remoteCommands)
 
                 debug(.nightscout, "Profile uploaded")
             } catch {

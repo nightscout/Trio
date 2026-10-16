@@ -36,7 +36,7 @@ extension History.StateModel {
         do {
             _ = try await carbEntryMutationService.deleteMeal(rootObjectID: rootObjectID)
         } catch let error as CarbEntryMutationError {
-            // Orphaned rows have no resolvable root; remove them locally so they leave COB.
+            // Rows without a resolvable meal root are removed locally only, so they leave COB.
             debug(.default, "\(DebuggingIdentifiers.failed) Meal root unavailable (\(error)), deleting local rows only")
             await carbsStorage.deleteCarbsEntryStored(treatmentObjectID)
         }

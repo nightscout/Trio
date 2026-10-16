@@ -1,5 +1,9 @@
+import Combine
 import CoreData
 import Foundation
+import HealthKit
+import LoopKit
+import LoopKitUI
 import Swinject
 import Testing
 
@@ -9,6 +13,7 @@ import Testing
     @Injected() var storage: CarbsStorage!
     @Injected() var service: CarbEntryMutationService!
     let resolver: Resolver
+    private let nightscout = StubNightscoutManager()
     var coreDataStack: CoreDataStack!
     var testContext: NSManagedObjectContext!
 
@@ -23,7 +28,8 @@ import Testing
             NetworkAssembly(),
             UIAssembly(),
             SecurityAssembly(),
-            TestAssembly(testContext: testContext)
+            TestAssembly(testContext: testContext),
+            RemoteServicesStubAssembly(nightscout: nightscout)
         ])
 
         resolver = assembler.resolver
@@ -76,6 +82,49 @@ import Testing
 
         #expect(failures.isEmpty)
         #expect(try await allRows().isEmpty)
+    }
+
+    @Test("Core Data rows are gone before remote deletes run") func testDeleteIsLocalFirst() async throws {
+        let meal = makeMeal(carbs: 30, fat: 50, protein: 100)
+        try await storage.storeCarbs([meal], areFetchedFromRemote: false)
+        let rowCounts = RowCountRecorder()
+        nightscout.onDeleteCarbs = { _ in await rowCounts.append((try? await self.allRows().count) ?? -1) }
+
+        _ = try await service.deleteMeal(rootObjectID: try await rootObjectID(id: meal.id!))
+
+        #expect(await rowCounts.counts == [0, 0])
+    }
+
+    @Test("Overlapping replacements of one meal store a single replacement") func testConcurrentReplace() async throws {
+        let meal = makeMeal(carbs: 30, fat: 0, protein: 0)
+        try await storage.storeCarbs([meal], areFetchedFromRemote: false)
+        let rootID = try await rootObjectID(id: meal.id!)
+        let first = makeMeal(carbs: 20, fat: 0, protein: 0, date: Date().addingTimeInterval(-600))
+        let second = makeMeal(carbs: 40, fat: 0, protein: 0, date: Date().addingTimeInterval(-1200))
+
+        async let firstResult = try? service.replaceMeal(rootObjectID: rootID, with: first)
+        async let secondResult = try? service.replaceMeal(rootObjectID: rootID, with: second)
+        let results = await [firstResult, secondResult]
+
+        #expect(results.compactMap { $0 }.count == 1)
+        #expect(try await allRows().count == 1)
+    }
+
+    @Test("Overlapping replacements of a meal with carb equivalents store a single family") func testConcurrentReplaceWithFPU(
+    ) async throws {
+        let meal = makeMeal(carbs: 30, fat: 50, protein: 100)
+        try await storage.storeCarbs([meal], areFetchedFromRemote: false)
+        let rootID = try await rootObjectID(id: meal.id!)
+        let first = makeMeal(carbs: 20, fat: 40, protein: 80, date: Date().addingTimeInterval(-600))
+        let second = makeMeal(carbs: 40, fat: 40, protein: 80, date: Date().addingTimeInterval(-1200))
+
+        async let firstResult = try? service.replaceMeal(rootObjectID: rootID, with: first)
+        async let secondResult = try? service.replaceMeal(rootObjectID: rootID, with: second)
+        let results = await [firstResult, secondResult]
+
+        #expect(results.compactMap { $0 }.count == 1)
+        let roots = try await allRows().filter { !$0.isFPU }
+        #expect(roots.count == 1)
     }
 
     @Test("Delete leaves other meals untouched") func testDeleteMealKeepsOthers() async throws {
@@ -160,5 +209,81 @@ import Testing
             _ = try await service.replaceMeal(rootObjectID: try await rootObjectID(id: meal.id!), with: replacement)
         }
         #expect(try await allRows().count == 1, "Nothing is deleted when the replacement is invalid")
+    }
+}
+
+private actor RowCountRecorder {
+    private(set) var counts: [Int] = []
+    func append(_ count: Int) { counts.append(count) }
+}
+
+private final class StubNightscoutManager: NightscoutManager {
+    var onDeleteCarbs: (String) async -> Void = { _ in }
+
+    var glucoseManager: FetchGlucoseManager?
+    var cgmManager: CGMManagerUI?
+    let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
+    let cgmProgressHighlight = CurrentValueSubject<LoopKit.DeviceLifecycleProgress?, Never>(nil)
+    var cgmURL: URL? { nil }
+
+    func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> { Just([]).eraseToAnyPublisher() }
+    func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> { Just([]).eraseToAnyPublisher() }
+    func sourceInfo() -> [String: Any]? { nil }
+    func fetchGlucose(since _: Date) async -> [BloodGlucose] { [] }
+    func fetchCarbs() async -> [CarbsEntry] { [] }
+    func fetchTempTargets() async -> [TempTarget] { [] }
+    func deleteCarbs(withID id: String) async -> Bool {
+        await onDeleteCarbs(id)
+        return true
+    }
+
+    func deleteInsulin(withID _: String) async {}
+    func deleteGlucose(withID _: String, withDate _: Date) async {}
+    func uploadCarbs() async {}
+    func uploadOverrides() async {}
+    func uploadTempTargets() async {}
+    func uploadProfiles() async throws {}
+    func uploadNoteTreatment(note _: String) async {}
+    func importSettings() async -> ScheduledNightscoutProfile? { nil }
+}
+
+private final class StubHealthKitManager: HealthKitManager {
+    var hasGrantedFullWritePermissions: Bool { false }
+    func hasGlucoseWritePermission() -> Bool { false }
+    func requestPermission() async throws -> Bool { false }
+    func checkWriteToHealthPermissions(objectTypeToHealthStore _: HKObjectType) -> Bool { false }
+    func uploadGlucose() async {}
+    func uploadCarbs() async {}
+    func uploadInsulin() async {}
+    func deleteGlucose(syncID _: String) async {}
+    func deleteMealData(byID _: String, sampleType _: HKSampleType) async {}
+    func deleteInsulin(syncID _: String) async {}
+}
+
+private final class StubTidepoolManager: TidepoolManager {
+    func addTidepoolService(service _: Service) {}
+    func getTidepoolServiceUI() -> ServiceUI? { nil }
+    func getTidepoolPluginHost() -> PluginHost? { nil }
+    func uploadCarbs() async {}
+    func deleteCarbs(withSyncId _: UUID, carbs _: Decimal, at _: Date, enteredBy _: String) {}
+    func uploadInsulin() async {}
+    func deleteInsulin(withSyncId _: String, amount _: Decimal, at _: Date) {}
+    func uploadGlucose() async {}
+    func uploadSettings() async {}
+    func forceTidepoolDataUpload() {}
+}
+
+/// Keeps meal mutation tests off the Nightscout, Apple Health and Tidepool accounts configured in the host app.
+private final class RemoteServicesStubAssembly: Assembly {
+    private let nightscout: StubNightscoutManager
+
+    init(nightscout: StubNightscoutManager) {
+        self.nightscout = nightscout
+    }
+
+    func assemble(container: Container) {
+        container.register(NightscoutManager.self) { _ in self.nightscout }.inObjectScope(.container)
+        container.register(HealthKitManager.self) { _ in StubHealthKitManager() }.inObjectScope(.container)
+        container.register(TidepoolManager.self) { _ in StubTidepoolManager() }.inObjectScope(.container)
     }
 }

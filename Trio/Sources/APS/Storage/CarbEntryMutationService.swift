@@ -21,8 +21,9 @@ enum CarbEntryMutationError: Error, Equatable {
 }
 
 /// Deletes and replaces a meal family (root plus FPU carb equivalents) in Core Data, Nightscout, Apple Health and Tidepool.
-/// Remote deletes are awaited before the local rows go away. Callers run `determineBasalSync()` afterwards.
-/// Returned failure messages are per-service; the list is empty when every service succeeded or is not configured.
+/// Core Data changes run one mutation at a time and finish before any remote call, so COB never waits on the network.
+/// Remote deletes and uploads are awaited before returning. Callers run `determineBasalSync()` afterwards.
+/// Returned failure messages are Nightscout delete failures; the list is empty when Nightscout succeeded or is not configured.
 protocol CarbEntryMutationService {
     func deleteMeal(rootObjectID: NSManagedObjectID) async throws -> [String]
     /// Returns the new root id, which is `replacement.id`.
@@ -37,6 +38,7 @@ final class BaseCarbEntryMutationService: CarbEntryMutationService, Injectable {
     @Injected() private var tidepoolManager: TidepoolManager!
 
     private let makeContext: () -> NSManagedObjectContext
+    private let localMutations = MealMutationQueue()
 
     init(resolver: Resolver, contextProvider: (() -> NSManagedObjectContext)? = nil) {
         makeContext = contextProvider ?? { CoreDataStack.shared.newTaskContext() }
@@ -44,10 +46,12 @@ final class BaseCarbEntryMutationService: CarbEntryMutationService, Injectable {
     }
 
     func deleteMeal(rootObjectID: NSManagedObjectID) async throws -> [String] {
-        let snapshot = try await snapshotRoot(rootObjectID)
-        let failures = await deleteFromServices(snapshot)
-        await carbsStorage.deleteCarbsEntryStored(rootObjectID)
-        return failures
+        let snapshot = try await localMutations.run {
+            let snapshot = try await self.snapshotRoot(rootObjectID)
+            await self.carbsStorage.deleteCarbsEntryStored(rootObjectID)
+            return snapshot
+        }
+        return await deleteFromServices(snapshot)
     }
 
     func replaceMeal(rootObjectID: NSManagedObjectID, with replacement: CarbsEntry) async throws
@@ -56,8 +60,13 @@ final class BaseCarbEntryMutationService: CarbEntryMutationService, Injectable {
         guard let idString = replacement.id, let newID = UUID(uuidString: idString) else {
             throw CarbEntryMutationError.invalidReplacementID
         }
-        let failures = try await deleteMeal(rootObjectID: rootObjectID)
-        try await carbsStorage.storeCarbs([replacement], areFetchedFromRemote: false)
+        let snapshot = try await localMutations.run {
+            let snapshot = try await self.snapshotRoot(rootObjectID)
+            await self.carbsStorage.deleteCarbsEntryStored(rootObjectID)
+            try await self.carbsStorage.storeCarbs([replacement], areFetchedFromRemote: false)
+            return snapshot
+        }
+        let failures = await deleteFromServices(snapshot)
         await syncMealsWithServices()
         return (newID, failures)
     }
@@ -72,8 +81,12 @@ final class BaseCarbEntryMutationService: CarbEntryMutationService, Injectable {
     private func snapshotRoot(_ objectID: NSManagedObjectID) async throws -> MealSnapshot {
         let context = makeContext()
         context.name = "snapshotMealRoot"
+        // A fetch reads the store, so rows removed by a batch delete are not served from the row cache.
+        let request: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+        request.predicate = NSPredicate(format: "SELF == %@", objectID)
+        request.fetchLimit = 1
         return try await context.perform {
-            guard let row = try? context.existingObject(with: objectID) as? CarbEntryStored,
+            guard let row = try? context.fetch(request).first,
                   let id = row.id, let date = row.date
             else {
                 throw CarbEntryMutationError.rootNotFound
@@ -119,5 +132,20 @@ final class BaseCarbEntryMutationService: CarbEntryMutationService, Injectable {
         )
 
         return failures
+    }
+}
+
+/// Runs operations one at a time in submission order, including across suspension points.
+private actor MealMutationQueue {
+    private var tail: Task<Void, Never>?
+
+    func run<T>(_ operation: @escaping () async throws -> T) async throws -> T {
+        let previous = tail
+        let task = Task {
+            await previous?.value
+            return try await operation()
+        }
+        tail = Task { _ = try? await task.value }
+        return try await task.value
     }
 }

@@ -55,5 +55,9 @@ import Testing
         // Container scope must return the same instance on every resolve
         #expect(resolver.resolve(TrioRemoteControl.self) === resolver.resolve(TrioRemoteControl.self))
         #expect(resolver.resolve(TelemetryClient.self) === resolver.resolve(TelemetryClient.self))
+        #expect(
+            resolver.resolve(CarbEntryMutationService.self) as AnyObject ===
+                resolver.resolve(CarbEntryMutationService.self) as AnyObject
+        )
     }
 }

@@ -64,7 +64,7 @@ extension TrioRemoteControl {
 
         let mealEntry = CarbsEntry(
             id: UUID().uuidString, createdAt: Date(), actualDate: actualDate,
-            carbs: carbsDecimal ?? 0, fat: fatDecimal, protein: proteinDecimal,
+            carbs: carbsDecimal ?? 0, fat: fatDecimal ?? 0, protein: proteinDecimal ?? 0,
             note: Self.remoteMealNote, enteredBy: CarbsEntry.local, isFPU: false,
             fpuID: fatDecimal ?? 0 > 0 || proteinDecimal ?? 0 > 0 ? UUID().uuidString : nil
         )

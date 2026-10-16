@@ -55,13 +55,15 @@ class TrioRemoteControl: Injectable {
         if timeDifference > timeWindow {
             await logError(
                 "Command rejected: the message is too old (sent \(Int(timeDifference)) seconds ago).",
-                payload: commandPayload
+                payload: commandPayload,
+                ack: RemoteCommandAck(commandId: commandPayload.commandId, mealId: commandPayload.mealId, result: .rejected)
             )
             return
         } else if timeDifference < -timeWindow {
             await logError(
                 "Command rejected: the message has an invalid future timestamp.",
-                payload: commandPayload
+                payload: commandPayload,
+                ack: RemoteCommandAck(commandId: commandPayload.commandId, mealId: commandPayload.mealId, result: .rejected)
             )
             return
         }
