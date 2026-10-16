@@ -24,9 +24,9 @@ RileyLinkKit         @nightscout/trio-pump-codeowners @nightscout/trio-codeowner
 # https://github.com/orgs/nightscout/teams/trio-cgm-codeowners
 CGMBLEKit            @nightscout/trio-cgm-codeowners @nightscout/trio-codeowners-superusers
 EversenseKit         @nightscout/trio-cgm-codeowners @nightscout/trio-codeowners-superusers
-LibreCRKit           @nightscout/trio-cgm-codeowners @nightscout/trio-codeowners-superusers
 LibreLoop            @nightscout/trio-cgm-codeowners @nightscout/trio-codeowners-superusers
 LibreTransmitter     @nightscout/trio-cgm-codeowners @nightscout/trio-codeowners-superusers
+RoundWhiteDiscKit    @nightscout/trio-cgm-codeowners @nightscout/trio-codeowners-superusers
 G7SensorKit          @nightscout/trio-cgm-codeowners @nightscout/trio-codeowners-superusers
 
 # Github Actions CI / Browser Build

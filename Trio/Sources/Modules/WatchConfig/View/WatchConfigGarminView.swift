@@ -123,6 +123,8 @@ struct WatchConfigGarminView: View {
                             .font(.footnote)
                             .foregroundColor(.secondary)
                             .lineLimit(nil)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
                             Spacer()
                             Button(
                                 action: {
