@@ -29,11 +29,11 @@ struct GlucoseMetricsView: View, Equatable {
 
         Grid {
             GridRow {
-                StatChartUtils.statView(title: String(localized: "eA1c"), value: eA1cString)
-                StatChartUtils.statView(title: String(localized: "GMI"), value: gmiString)
-                StatChartUtils.statView(title: String(localized: "SD"), value: standardDeviationString)
-                StatChartUtils.statView(title: String(localized: "CV"), value: coefficientOfVariationString)
-                StatChartUtils.statView(title: String(localized: "Days"), value: daysTrackedString)
+                StatChartUtils.statView(title: String(localized: "eA1c"), value: eA1cString, alignment: .center)
+                StatChartUtils.statView(title: String(localized: "GMI"), value: gmiString, alignment: .center)
+                StatChartUtils.statView(title: String(localized: "SD"), value: standardDeviationString, alignment: .center)
+                StatChartUtils.statView(title: String(localized: "CV"), value: coefficientOfVariationString, alignment: .center)
+                StatChartUtils.statView(title: String(localized: "Days"), value: daysTrackedString, alignment: .center)
             }
         }
     }
