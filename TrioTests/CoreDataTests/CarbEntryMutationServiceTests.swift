@@ -243,7 +243,7 @@ private final class StubNightscoutManager: NightscoutManager {
     func uploadOverrides() async {}
     func uploadTempTargets() async {}
     func uploadProfiles() async throws {}
-    func uploadNoteTreatment(note _: String) async {}
+    func uploadNoteTreatment(note _: String) async -> Bool { true }
     func importSettings() async -> ScheduledNightscoutProfile? { nil }
 }
 
