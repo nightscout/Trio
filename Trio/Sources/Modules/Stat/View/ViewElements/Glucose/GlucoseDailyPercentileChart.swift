@@ -73,11 +73,11 @@ struct GlucoseDailyPercentileChart: View {
 
     // Pool raw readings; averaging daily percentiles would weight sparse days equally.
     private var aggregatedVisibleStats: GlucoseDailyPercentileStats? {
-        let calendar = Calendar.current
-        let days = (0 ..< StatChartUtils.dayCount(for: selectedInterval)).compactMap {
-            calendar.date(byAdding: .day, value: $0, to: visibleDateRange.start)
-        }
-        let values = days.flatMap { readingsByDay[$0, default: []] }.map { Double($0.value) }.sorted()
+        let values = readingsByDay
+            .filter { StatChartUtils.isStatInRange($0.key, in: visibleDateRange) }
+            .flatMap(\.value)
+            .map { Double($0.value) }
+            .sorted()
         guard !values.isEmpty else { return nil }
 
         return GlucoseDailyPercentileStats(

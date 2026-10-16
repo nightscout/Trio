@@ -19,11 +19,9 @@ struct GlucoseDailyDistributionChart: View {
     }
 
     private var visibleGlucose: [GlucoseReading] {
-        let calendar = Calendar.current
-        let days = (0 ..< StatChartUtils.dayCount(for: selectedInterval)).compactMap {
-            calendar.date(byAdding: .day, value: $0, to: visibleDateRange.start)
-        }
-        return days.flatMap { readingsByDay[$0] ?? [] }
+        readingsByDay
+            .filter { StatChartUtils.isStatInRange($0.key, in: visibleDateRange) }
+            .flatMap(\.value)
     }
 
     private var selectedDayGlucose: [GlucoseReading] {

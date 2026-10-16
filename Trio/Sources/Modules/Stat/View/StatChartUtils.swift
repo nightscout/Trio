@@ -19,18 +19,18 @@ struct StatChartUtils {
         at date: Date,
         calendar: Calendar = .current
     ) -> TimeInterval {
-        let start = calendar.startOfDay(for: date)
-        let end = calendar.date(byAdding: .day, value: dayCount(for: selectedInterval), to: start)!
-        return end.timeIntervalSince(start)
+        let range = visibleDateRange(from: date, for: selectedInterval, calendar: calendar)
+        return range.end.timeIntervalSince(range.start)
     }
 
+    // Round to nearest midnight so sub-pixel scroll bounce before 00:00 does not floor to the previous day.
     static func visibleDateRange(
         from scrollPosition: Date,
-        for selectedInterval: Stat.StateModel.StatsTimeInterval
+        for selectedInterval: Stat.StateModel.StatsTimeInterval,
+        calendar: Calendar = .current
     ) -> (start: Date, end: Date) {
-        let calendar = Calendar.current
-
-        let start = calendar.startOfDay(for: scrollPosition)
+        let rounded = calendar.date(byAdding: .hour, value: 12, to: scrollPosition) ?? scrollPosition
+        let start = calendar.startOfDay(for: rounded)
         let end = calendar.date(byAdding: .day, value: dayCount(for: selectedInterval), to: start)!
 
         return (start, end)
