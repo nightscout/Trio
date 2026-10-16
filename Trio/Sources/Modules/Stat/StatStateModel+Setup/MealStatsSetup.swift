@@ -80,7 +80,7 @@ extension Stat.StateModel {
     func calculateMealAverages(for range: (start: Date, end: Date)) -> (carbs: Double, fat: Double, protein: Double) {
         let relevantStats = dailyMealStats.filter { stat in
             StatChartUtils.isStatInRange(
-                calendar.startOfDay(for: stat.date),
+                stat.date,
                 in: range
             )
         }

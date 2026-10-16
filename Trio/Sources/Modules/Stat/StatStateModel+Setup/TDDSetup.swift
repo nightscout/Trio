@@ -357,7 +357,7 @@ extension Stat.StateModel {
     func calculateTDDAverages(for range: (start: Date, end: Date)) -> Double {
         let relevantStats = dailyTDDStats.filter { stat in
             StatChartUtils.isStatInRange(
-                calendar.startOfDay(for: stat.date),
+                stat.date,
                 in: range
             )
         }

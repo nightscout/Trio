@@ -89,7 +89,7 @@ extension Stat.StateModel {
     func calculateBolusAverages(for range: (start: Date, end: Date)) -> (manual: Double, smb: Double, external: Double) {
         let relevantStats = dailyBolusStats.filter { stat in
             StatChartUtils.isStatInRange(
-                calendar.startOfDay(for: stat.date),
+                stat.date,
                 in: range
             )
         }

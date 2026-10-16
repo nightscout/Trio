@@ -97,7 +97,7 @@ extension Stat.StateModel {
     func calculateLoopAverages(for range: (start: Date, end: Date)) -> (successful: Double, failed: Double, successRate: Double) {
         let relevantStats = dailyLoopStats.filter { stat in
             StatChartUtils.isStatInRange(
-                calendar.startOfDay(for: stat.date),
+                stat.date,
                 in: range
             )
         }
