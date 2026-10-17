@@ -668,7 +668,10 @@ struct BackupSettingsNode: Identifiable {
             Self.insert(node, into: &roots, path: path[...])
         }
 
-        private static func insert(_ node: BackupSettingsNode, into nodes: inout [BackupSettingsNode], path: ArraySlice<String>) {
+        private static func insert(
+            _ node: BackupSettingsNode, into nodes: inout [BackupSettingsNode], path: ArraySlice<String>,
+            parentPath: [String] = []
+        ) {
             guard let first = path.first else {
                 if let index = nodes.firstIndex(where: { $0.id == node.id }) {
                     nodes[index].children.append(contentsOf: node.children)
@@ -676,13 +679,14 @@ struct BackupSettingsNode: Identifiable {
                 } else { nodes.append(node) }
                 return
             }
+            let fullPath = parentPath + [first]
             let index: Int
             if let existing = nodes.firstIndex(where: { $0.title == first }) { index = existing }
             else {
-                nodes.append(.init(id: path.joined(separator: "/"), title: first))
+                nodes.append(.init(id: fullPath.joined(separator: "/"), title: first))
                 index = nodes.count - 1
             }
-            insert(node, into: &nodes[index].children, path: path.dropFirst())
+            insert(node, into: &nodes[index].children, path: path.dropFirst(), parentPath: fullPath)
         }
     }
 

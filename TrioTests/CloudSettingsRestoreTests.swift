@@ -486,7 +486,9 @@ extension CloudSettingsBackupTests {
 
     @Test("Schema-three files remain readable without imported history") func schemaThree() throws {
         let current = try makeBackup(validConfiguration())
-        let legacy = try makeBackup(current.configuration, schemaVersion: 3)
+        let legacyConfiguration = try TrioSettingsBackup.normalized(current.configuration, preserveDosingMode: true)
+        let legacyChecksum = try TrioSettingsBackup.normalizedFingerprint(legacyConfiguration, legacySettings: true)
+        let legacy = try makeBackup(legacyConfiguration, schemaVersion: 3, fingerprint: legacyChecksum)
         let decoded = try TrioSettingsBackup.decode(JSONEncoder().encode(legacy))
         #expect(decoded.eligibleTDDHistory().isEmpty)
         #expect(decoded.fingerprint == current.fingerprint)

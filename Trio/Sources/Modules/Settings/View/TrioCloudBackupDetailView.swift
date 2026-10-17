@@ -45,7 +45,7 @@ struct TrioCloudBackupDetailView: View {
             }.listRowBackground(Color.chart)
             if let backup {
                 let nodes = BackupSettingsNode.make(from: backup)
-                Section("Contents") {
+                Section("Settings") {
                     ForEach(nodes) { node in
                         NavigationLink {
                             BackupSettingsPreviewView(node: node)
@@ -90,10 +90,10 @@ struct TrioCloudBackupDetailView: View {
             Button("Done", role: .cancel) {}
         } message: { Text(message ?? "") }
         .alert("Settings Restored!", isPresented: $restored) {
-            Button("Continue") { dismiss() }
+            Button("Done") { dismiss() }
         } message: {
             Text(
-                "Settings restored in Open Loop. Your pump must be unpaired before restoring; review therapy settings before reconnecting it."
+                "Trio has been switched to Open Loop.\n\nReview your restored settings before pairing a new insulin pump and returning to Closed Loop."
             )
         }
         .overlay {
@@ -121,13 +121,13 @@ struct TrioCloudBackupDetailView: View {
         .disabled(backup == nil || restoring)
         // Attach the confirmation to its source button so iPad popovers anchor correctly.
         .confirmationDialog("Restore Settings?", isPresented: $showingRestoreConfirmation, titleVisibility: .visible) {
-            Button("Restore Settings", role: .destructive) {
+            Button("Restore", role: .destructive) {
                 Task { await restore() }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(
-                "This restores settings in Open Loop. Disconnect and unpair your pump before restoring; review therapy settings before pairing again."
+                "A restore will overwrite your current settings with the settings from the selected backup."
             )
         }
     }

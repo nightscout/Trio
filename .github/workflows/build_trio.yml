@@ -16,7 +16,7 @@ env:
 jobs:
   # use a single runner for these sequential steps
   check_status:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     name: Check status to decide whether to build
     permissions:
       contents: write
@@ -154,7 +154,7 @@ jobs:
   cancel_when_no_build:
     needs: check_status
     name: Cancel run when there is nothing to build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
     if: |

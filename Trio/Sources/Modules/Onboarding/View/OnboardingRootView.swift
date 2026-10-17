@@ -167,13 +167,13 @@ extension Onboarding {
             }
             .onAppear(perform: configureView)
             .alert("Settings Restored!", isPresented: $state.showCloudRestoreSuccess) {
-                Button("Continue") {
+                Button("Done") {
                     currentStep = .targetBehavior
                     currentTargetBehaviorSubstep = .halfBasalTarget
                     showingChapterCompletion = .algorithmSettings
                 }
             } message: {
-                Text("Your settings and eligible Dynamic ISF history have been restored. Trio remains in Open Loop. Please review your therapy settings before pairing a pump.")
+                Text("Trio has been switched to Open Loop.\n\nReview your restored settings before pairing a new insulin pump and returning to Closed Loop.")
             }
             .alert("iCloud Restore Failed", isPresented: Binding(
                 get: { state.restoreErrorMessage != nil },

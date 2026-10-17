@@ -97,7 +97,6 @@ struct TrioCloudBackupView: View {
                     HStack {
                         Text("Back Up Now")
                         Spacer()
-                        Image(systemName: "icloud.and.arrow.up").accessibilityHidden(true)
                     }
                     .contentShape(Rectangle())
                 }
