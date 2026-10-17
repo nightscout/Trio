@@ -10,7 +10,8 @@ protocol NightscoutManager: GlucoseSource {
     func fetchGlucose(since date: Date) async -> [BloodGlucose]
     func fetchCarbs() async -> [CarbsEntry]
     func fetchTempTargets() async -> [TempTarget]
-    func deleteCarbs(withID id: String) async
+    /// Returns false when Nightscout rejected the delete; unconfigured or upload-disabled Nightscout counts as success.
+    func deleteCarbs(withID id: String) async -> Bool
     func deleteInsulin(withID id: String) async
     func deleteGlucose(withID id: String, withDate date: Date) async
     func uploadCarbs() async
@@ -436,17 +437,19 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    func deleteCarbs(withID id: String) async {
-        guard let nightscout = nightscoutAPI, isUploadEnabled else { return }
+    func deleteCarbs(withID id: String) async -> Bool {
+        guard let nightscout = nightscoutAPI, isUploadEnabled else { return true }
 
         do {
             try await nightscout.deleteCarbs(withId: id)
             debug(.nightscout, "Carbs deleted")
+            return true
         } catch {
             debug(
                 .nightscout,
                 "\(DebuggingIdentifiers.failed) Failed to delete Carbs from Nightscout with error: \(error)"
             )
+            return false
         }
     }
 
@@ -840,6 +843,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 let presetOverrides = try await overridesStorage.getPresetOverridesForNightscout()
                 let teamID = Bundle.main.object(forInfoDictionaryKey: "TeamID") as? String ?? ""
                 let expireDate = BuildDetails.shared.calculateExpirationDate()
+                let remoteCommands = TrioRemoteControl.CommandType.supported.map(\.rawValue)
 
                 let profileStore = NightscoutProfileStore(
                     defaultProfile: defaultProfile,
@@ -853,7 +857,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     isAPNSProduction: isAPNSProduction,
                     overridePresets: presetOverrides,
                     teamID: teamID,
-                    expirationDate: expireDate
+                    expirationDate: expireDate,
+                    remoteCommands: remoteCommands
                 )
 
                 guard let nightscout = nightscoutAPI, isNetworkReachable else {
@@ -867,6 +872,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 try await nightscout.uploadProfile(profileStore)
 
                 BuildDetails.shared.recordUploadedExpireDate(expireDate: expireDate)
+                BuildDetails.shared.recordUploadedRemoteCommands(remoteCommands)
 
                 debug(.nightscout, "Profile uploaded")
             } catch {
