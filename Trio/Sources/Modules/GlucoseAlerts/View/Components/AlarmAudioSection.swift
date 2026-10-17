@@ -60,7 +60,7 @@ private struct TonePickerSheet: View {
     var body: some View {
         NavigationStack {
             List {
-                Section(header: Text("For This Alarm")) {
+                Section {
                     ForEach(AlarmSoundCatalog.themedEntries(for: scope)) { entry in
                         TonePickerRow(entry: entry, selected: $selected, previewer: previewer)
                     }
@@ -190,6 +190,7 @@ private struct TonePickerRow: View {
                 in: 0 ... Double(max(entry.options.count - 1, 1)),
                 step: 1
             )
+            .padding(.vertical)
             .tint(Color.tabBar)
             .accessibilityLabel(Text("Urgency Level"))
             .accessibilityValue(Text(option.displayName))
@@ -209,8 +210,8 @@ private struct TonePickerRow: View {
 
     private var voicePicker: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Voice").font(.footnote)
-            Picker("Voice", selection: Binding(
+            Text("Select a Voice").font(.footnote)
+            Picker("", selection: Binding(
                 get: { option.id },
                 set: { id in
                     guard let match = entry.options.first(where: { $0.id == id }) else { return }
