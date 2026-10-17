@@ -81172,7 +81172,7 @@
         }
       }
     },
-    "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: your time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nAverages: your average glucose and GMI (Glucose Management Index).\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut.\n\nThe numbers cover the time span set in Statistics Range." : {
+    "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: your time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nAverages: your average glucose and GMI (Glucose Management Index).\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut.\n\nThe numbers cover the time span set in Home Statistics Range." : {
 
     },
     "Choose whether or not to display one or both X- and Y-Axis grid lines." : {
@@ -282070,7 +282070,7 @@
         }
       }
     },
-    "Statistics Range" : {
+    "Home Statistics Range" : {
 
     },
     "Stay in open loop (no automated dosing) for a bit to help Trio catch up to keep you safe" : {
