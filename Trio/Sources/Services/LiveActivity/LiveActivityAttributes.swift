@@ -28,6 +28,8 @@ struct LiveActivityAttributes: ActivityAttributes {
     struct ContentState: Codable, Hashable {
         let unit: String
         let bg: String
+        /// Latest glucose reading in mg/dL; nil when no reading is shown.
+        let glucose: Decimal?
         let direction: String?
         let change: String
         let date: Date?
