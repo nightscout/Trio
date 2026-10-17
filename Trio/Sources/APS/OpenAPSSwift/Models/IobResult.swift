@@ -1,6 +1,6 @@
 import Foundation
 
-struct IobResult: JSON {
+public struct IobResult: JSON {
     static func from(iob: IobTotal, iobWithZeroTemp: IobTotal) -> IobResult {
         IobResult(
             iob: iob.iob,
@@ -24,35 +24,35 @@ struct IobResult: JSON {
         )
     }
 
-    let iob: Decimal
-    let activity: Decimal
-    let basaliob: Decimal
-    let bolusiob: Decimal
-    let netbasalinsulin: Decimal
-    let bolusinsulin: Decimal
-    let time: Date
-    let iobWithZeroTemp: IobWithZeroTemp
-    var lastBolusTime: UInt64?
-    var lastTemp: LastTemp?
+    public let iob: Decimal
+    public let activity: Decimal
+    public let basaliob: Decimal
+    public let bolusiob: Decimal
+    public let netbasalinsulin: Decimal
+    public let bolusinsulin: Decimal
+    public let time: Date
+    public let iobWithZeroTemp: IobWithZeroTemp
+    public var lastBolusTime: UInt64?
+    public var lastTemp: LastTemp?
 
-    struct IobWithZeroTemp: Codable {
-        let iob: Decimal
-        let activity: Decimal
-        let basaliob: Decimal
-        let bolusiob: Decimal
-        let netbasalinsulin: Decimal
-        let bolusinsulin: Decimal
-        let time: Date
+    public struct IobWithZeroTemp: Codable {
+        public let iob: Decimal
+        public let activity: Decimal
+        public let basaliob: Decimal
+        public let bolusiob: Decimal
+        public let netbasalinsulin: Decimal
+        public let bolusinsulin: Decimal
+        public let time: Date
     }
 
-    struct LastTemp: Codable {
-        let rate: Decimal?
-        let timestamp: Date?
-        let started_at: Date?
-        let date: UInt64
-        let duration: Decimal?
+    public struct LastTemp: Codable {
+        public let rate: Decimal?
+        public let timestamp: Date?
+        public let started_at: Date?
+        public let date: UInt64
+        public let duration: Decimal?
 
-        init(rate: Decimal, timestamp: Date, started_at: Date, date: UInt64, duration: Decimal) {
+        public init(rate: Decimal, timestamp: Date, started_at: Date, date: UInt64, duration: Decimal) {
             self.rate = rate
             self.timestamp = timestamp
             self.started_at = started_at
@@ -62,7 +62,7 @@ struct IobResult: JSON {
 
         // this constructor helps handle the JSON output for the case when there
         // aren't any temp basals to match the output from Javascript
-        init() {
+        public init() {
             rate = nil
             timestamp = nil
             started_at = nil

@@ -7,12 +7,12 @@ protocol OverrideHandler {
     /// This could also possibly be handled via an extension of our existing `ProfileGenerator` (?)
 }
 
-enum DeterminationGenerator {
+public enum DeterminationGenerator {
     // override data can just be fetched from the DB
     // handling via overrideManager ?
 
     /// Top-level determination generator, callers should use this function
-    static func generate(
+    public static func generate(
         profile: Profile,
         preferences: Preferences,
         currentTemp: TempBasal,

@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Package-only logging shim
 
 //
-// This file exists solely for the `Trio` SPM target declared in
+// This file exists solely for the `OrefAlgorithm` SPM target declared in
 // `AlgorithmPackage/Package.swift`, which compiles the oref algorithm (plus its
 // models) as a standalone macOS-capable module so `swift test` can run the
 // algorithm suite without building the iOS app or booting a simulator.
@@ -12,9 +12,9 @@ import Foundation
 #if TRIO_ALGORITHM_PACKAGE
 
     /// Stands in for the app's `Logger` so `Logger.Category` resolves in the package.
-    enum Logger {
+    public enum Logger {
         /// Mirrors `Logger.Category` in the app target.
-        enum Category: String {
+        public enum Category: String {
             case `default`
             case service
             case businessLogic
@@ -32,7 +32,7 @@ import Foundation
     }
 
     /// Set by a test to capture algorithm log output; defaults to discarding it.
-    nonisolated(unsafe) var algorithmLogSink: ((Logger.Category, String) -> Void)?
+    nonisolated(unsafe) public var algorithmLogSink: ((Logger.Category, String) -> Void)?
 
     func debug(
         _ category: Logger.Category,

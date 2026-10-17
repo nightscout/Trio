@@ -6,7 +6,7 @@ extension PumpHistoryEvent {
         type == .pumpSuspend || type == .pumpResume
     }
 
-    func computedEvent() -> ComputedPumpHistoryEvent {
+    public func computedEvent() -> ComputedPumpHistoryEvent {
         ComputedPumpHistoryEvent(
             id: id,
             type: type,

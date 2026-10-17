@@ -409,7 +409,7 @@ extension PumpHistoryEvent {
 /// Encoding will always use the canonical `"notes"` key to preserve consistency in output,
 /// as this is what's established throughout the backend now.
 extension CarbsEntry: Codable {
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
         id = try container.decodeIfPresent(String.self, forKey: .id)
@@ -433,7 +433,7 @@ extension CarbsEntry: Codable {
         fpuID = try container.decodeIfPresent(String.self, forKey: .fpuID)
     }
 
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
         try container.encodeIfPresent(id, forKey: .id)
@@ -528,7 +528,7 @@ extension Determination: Codable {
         case receivedAlt = "recieved"
     }
 
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
         id = try container.decodeIfPresent(UUID.self, forKey: .id)
@@ -568,7 +568,7 @@ extension Determination: Codable {
         }
     }
 
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
         try container.encodeIfPresent(id, forKey: .id)

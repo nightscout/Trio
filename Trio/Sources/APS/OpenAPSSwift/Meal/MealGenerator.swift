@@ -1,7 +1,7 @@
 import Foundation
 
-enum MealGenerator {
-    static func generate(
+public enum MealGenerator {
+    public static func generate(
         pumpHistory: [PumpHistoryEvent],
         profile: Profile,
         basalProfile: [BasalProfileEntry],

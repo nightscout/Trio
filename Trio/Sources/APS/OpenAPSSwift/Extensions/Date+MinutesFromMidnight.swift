@@ -1,10 +1,10 @@
 import Foundation
 
-enum CalendarError: LocalizedError, Equatable {
+public enum CalendarError: LocalizedError, Equatable {
     case invalidCalendar
     case invalidCalendarHourOnly
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .invalidCalendar:
             return "Unable to extract hours and minutes from the current calendar"

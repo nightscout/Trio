@@ -1,9 +1,9 @@
 import Foundation
 
-enum TempBasalFunctionError: LocalizedError, Equatable {
+public enum TempBasalFunctionError: LocalizedError, Equatable {
     case invalidBasalRateOnProfile
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .invalidBasalRateOnProfile:
             return "The currentBasal, maxBasal, or maxDailyBasal wasn't set on Profile"

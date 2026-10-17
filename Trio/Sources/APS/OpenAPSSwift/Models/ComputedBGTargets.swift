@@ -1,13 +1,31 @@
 import Foundation
 
-struct ComputedBGTargetEntry: Codable {
-    var low: Decimal
-    var high: Decimal
-    var start: String
-    var offset: Int
-    var maxBg: Decimal?
-    var minBg: Decimal?
-    var temptargetSet: Bool?
+public struct ComputedBGTargetEntry: Codable {
+    public var low: Decimal
+    public var high: Decimal
+    public var start: String
+    public var offset: Int
+    public var maxBg: Decimal?
+    public var minBg: Decimal?
+    public var temptargetSet: Bool?
+
+    public init(
+        low: Decimal,
+        high: Decimal,
+        start: String,
+        offset: Int,
+        maxBg: Decimal? = nil,
+        minBg: Decimal? = nil,
+        temptargetSet: Bool? = nil
+    ) {
+        self.low = low
+        self.high = high
+        self.start = start
+        self.offset = offset
+        self.maxBg = maxBg
+        self.minBg = minBg
+        self.temptargetSet = temptargetSet
+    }
 }
 
 extension ComputedBGTargetEntry {
@@ -22,10 +40,16 @@ extension ComputedBGTargetEntry {
     }
 }
 
-struct ComputedBGTargets: Codable {
-    let units: GlucoseUnits
-    let userPreferredUnits: GlucoseUnits
-    var targets: [ComputedBGTargetEntry]
+public struct ComputedBGTargets: Codable {
+    public let units: GlucoseUnits
+    public let userPreferredUnits: GlucoseUnits
+    public var targets: [ComputedBGTargetEntry]
+
+    public init(units: GlucoseUnits, userPreferredUnits: GlucoseUnits, targets: [ComputedBGTargetEntry]) {
+        self.units = units
+        self.userPreferredUnits = userPreferredUnits
+        self.targets = targets
+    }
 }
 
 extension ComputedBGTargets {

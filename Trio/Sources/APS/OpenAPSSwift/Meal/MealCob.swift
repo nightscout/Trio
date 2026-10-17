@@ -315,7 +315,7 @@ struct MealCob {
 }
 
 /// Error types for COB calculation
-enum CobError: Error {
+public enum CobError: Error {
     case missingIsfProfile
     case isfLookupError
     case missingCarbRatioInProfile

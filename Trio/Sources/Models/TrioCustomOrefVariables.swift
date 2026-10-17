@@ -1,28 +1,28 @@
 import Foundation
 
-struct TrioCustomOrefVariables: JSON, Equatable {
-    var average_total_data: Decimal
-    var currentTDD: Decimal
-    var weightedAverage: Decimal
-    var past2hoursAverage: Decimal
-    var date: Date
-    var overridePercentage: Decimal
-    var useOverride: Bool
-    var duration: Decimal
-    var unlimited: Bool
-    var overrideTarget: Decimal
-    var smbIsOff: Bool
-    var advancedSettings: Bool
-    var isfAndCr: Bool
-    var isf: Bool
-    var cr: Bool
-    var smbIsScheduledOff: Bool
-    var start: Decimal
-    var end: Decimal
-    var smbMinutes: Decimal
-    var uamMinutes: Decimal
+public struct TrioCustomOrefVariables: JSON, Equatable {
+    public var average_total_data: Decimal
+    public var currentTDD: Decimal
+    public var weightedAverage: Decimal
+    public var past2hoursAverage: Decimal
+    public var date: Date
+    public var overridePercentage: Decimal
+    public var useOverride: Bool
+    public var duration: Decimal
+    public var unlimited: Bool
+    public var overrideTarget: Decimal
+    public var smbIsOff: Bool
+    public var advancedSettings: Bool
+    public var isfAndCr: Bool
+    public var isf: Bool
+    public var cr: Bool
+    public var smbIsScheduledOff: Bool
+    public var start: Decimal
+    public var end: Decimal
+    public var smbMinutes: Decimal
+    public var uamMinutes: Decimal
 
-    init(
+    public init(
         average_total_data: Decimal,
         weightedAverage: Decimal,
         currentTDD: Decimal,
