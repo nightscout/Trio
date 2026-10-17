@@ -36604,6 +36604,7 @@
     },
     "Add widget" : {
       "comment" : "A label displayed as a button to add a widget.",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -36734,6 +36735,7 @@
       }
     },
     "Add Widget" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -126219,6 +126221,9 @@
         }
       }
     },
+    "Enable uploading of sensor errors and other CGM states to Nightscout as notes." : {
+
+    },
     "Enabled" : {
       "comment" : "Title string for BeepPreference.manualCommands",
       "extractionState" : "manual",
@@ -150106,6 +150111,7 @@
     },
     "Glucose and Trend, no Delta" : {
       "comment" : "Live Activity widget icon label for Glucose and Trend, no Delta",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -192687,6 +192693,9 @@
         }
       }
     },
+    "Manual basal %@" : {
+      "comment" : "Accessibility: manual temp basal rate the user set on the pump"
+    },
     "manual entry" : {
       "comment" : "Accessibility: manually entered glucose",
       "localizations" : {
@@ -220214,6 +220223,9 @@
           }
         }
       }
+    },
+    "Notes carry the state name the CGM itself uses, such as sensorFailed or warmup. Each state is noted once, and a state that returns after usable readings resume is noted again." : {
+
     },
     "Nothing is currently running." : {
       "comment" : "No active adjustment to cancel",
@@ -251685,6 +251697,7 @@
       }
     },
     "Remove widget" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -251815,6 +251828,7 @@
       }
     },
     "Remove Widget" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -252465,6 +252479,9 @@
           }
         }
       }
+    },
+    "Requires Allow Uploading to Nightscout. Supported for Dexcom G6 and G7." : {
+
     },
     "Reservoir" : {
       "localizations" : {
@@ -287252,6 +287269,9 @@
         }
       }
     },
+    "Suspended" : {
+      "comment" : "Basal delivery suspended on the pump"
+    },
     "Suspending insulin delivery..." : {
       "comment" : "Text for suspend resume button when insulin delivery is suspending",
       "extractionState" : "manual",
@@ -314699,6 +314719,7 @@
       }
     },
     "To re-order widgets, remove them and re-add them in the desired order." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -332537,6 +332558,9 @@
         }
       }
     },
+    "Upload CGM Sensor States" : {
+
+    },
     "Upload Glucose" : {
       "localizations" : {
         "bg" : {
@@ -345284,6 +345308,12 @@
         }
       }
     },
+    "When your CGM reports a state where it cannot give a usable reading, such as a sensor error or warmup, Trio uploads that state to Nightscout as a note." : {
+
+    },
+    "When your CGM reports a state where it cannot give a usable reading, such as a sensor error or warmup, Trio uploads that state to Nightscout as a note. Supported for Dexcom G6 and G7." : {
+
+    },
     "which is below your Threshold (" : {
       "comment" : "Bolus pop-up / Alert string. Make translations concise!",
       "extractionState" : "manual",
@@ -351456,6 +351486,94 @@
           }
         }
       }
+    },
+    "Adds this widget to the layout" : {
+
+    },
+    "Already in the layout" : {
+
+    },
+    "Available Widgets" : {
+
+    },
+    "Changes the size of the current glucose reading and its trend arrow on the Simple Lock Screen widget. The delta and the time of the last reading are not affected." : {
+
+    },
+    "Default: Large" : {
+
+    },
+    "Drag a widget to move it. Drag one up from Available Widgets to add it, or drop it back onto the list to remove it." : {
+
+    },
+    "Empty widget slot" : {
+
+    },
+    "Extra Large" : {
+      "comment" : "Live Activity glucose reading font size"
+    },
+    "Glucose Reading Font" : {
+
+    },
+    "Glucose and Trend" : {
+      "comment" : "Live Activity widget icon label for Glucose and Trend in the default text color"
+    },
+    "Glucose and Trend (Colored)" : {
+      "comment" : "Live Activity widget icon label for Glucose and Trend in the glucose color"
+    },
+    "Glucose, Trend, Delta (Colored)" : {
+      "comment" : "Live Activity widget icon label for Glucose, Trend, Delta in the glucose color"
+    },
+    "Glucose, Trend, Delta (Double Width)" : {
+      "comment" : "Live Activity widget icon label for the double-width Glucose, Trend, Delta item in the default text color"
+    },
+    "Glucose, Trend, Delta (Double Width, Colored)" : {
+      "comment" : "Live Activity widget icon label for the double-width Glucose, Trend, Delta item in the glucose color"
+    },
+    "Its Widget Configuration lets you set the size of the glucose reading." : {
+
+    },
+    "Large" : {
+      "comment" : "Live Activity glucose reading font size"
+    },
+    "Lock Screen widget preview" : {
+
+    },
+    "Medium" : {
+      "comment" : "Live Activity glucose reading font size"
+    },
+    "More information about Glucose Reading Font" : {
+
+    },
+    "Not enough room" : {
+
+    },
+    "Position %lld of %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Position %1$lld of %2$lld"
+          }
+        }
+      }
+    },
+    "Preview" : {
+
+    },
+    "Remove %@" : {
+
+    },
+    "Reserved" : {
+      "comment" : "Live Activity widget icon label for the slot taken by a double-width item"
+    },
+    "Set the size of the glucose reading." : {
+
+    },
+    "Sizes follow your iPhone's text size setting, so the reading keeps scaling if you change the text size in iOS Settings." : {
+
+    },
+    "Small" : {
+      "comment" : "Live Activity glucose reading font size"
     }
   },
   "version" : "1.1"

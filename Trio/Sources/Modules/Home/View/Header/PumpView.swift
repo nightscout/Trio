@@ -56,6 +56,9 @@ struct PumpView: View {
                             Text("Add pump")
                                 .font(.caption)
                                 .bold()
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: 100)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     .frame(alignment: .top)
