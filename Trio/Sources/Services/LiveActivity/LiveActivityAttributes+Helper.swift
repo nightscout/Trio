@@ -139,6 +139,7 @@ extension LiveActivityAttributes.ContentState {
         self.init(
             unit: settings.units.rawValue,
             bg: formattedBG,
+            glucose: Decimal(glucose),
             direction: trendString,
             change: change,
             date: determination?.date ?? nil,
