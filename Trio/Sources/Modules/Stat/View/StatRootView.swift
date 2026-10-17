@@ -1,5 +1,3 @@
-import Charts
-import SwiftDate
 import SwiftUI
 import Swinject
 
@@ -17,11 +15,9 @@ extension Stat {
 
         @State var state = StateModel()
         @State private var selectedView: StateModel.StatisticViewType = .glucose
-        @State private var isGlucoseDaySelected: Bool = false
 
         private var intervalOptions: [Stat.StateModel.StatsTimeIntervalWithToday] {
-            state.selectedGlucoseChartType == .percentileByDay || state.selectedGlucoseChartType == .distributionByDay
-                ? [.week, .month, .total] : Stat.StateModel.StatsTimeIntervalWithToday.allCases
+            state.selectedGlucoseChartType.isDaily ? [.week, .month, .total] : Stat.StateModel.StatsTimeIntervalWithToday.allCases
         }
 
         var body: some View {
@@ -82,8 +78,7 @@ extension Stat {
                 }
                 .pickerStyle(.menu)
                 .onChange(of: state.selectedGlucoseChartType) { _, newValue in
-                    // If switching to daily chart and day/today is selected, switch to week
-                    if newValue == .percentileByDay || newValue == .distributionByDay,
+                    if newValue.isDaily,
                        state.selectedIntervalForGlucoseStats == .day || state.selectedIntervalForGlucoseStats == .today
                     {
                         state.selectedIntervalForGlucoseStats = .week
@@ -107,9 +102,7 @@ extension Stat {
             } else {
                 timeInRangeCard
 
-                if !isGlucoseDaySelected && state.selectedGlucoseChartType != .percentileByDay && state
-                    .selectedGlucoseChartType != .distributionByDay
-                {
+                if !state.selectedGlucoseChartType.isDaily {
                     glucoseStatsCard
                 }
 
@@ -148,42 +141,35 @@ extension Stat {
                          .percentileByDay:
                         let interval: Stat.StateModel.StatsTimeInterval = {
                             switch state.selectedIntervalForGlucoseStats {
-                            case .month,
-                                 .total:
-                                return Stat.StateModel.StatsTimeInterval(
-                                    rawValue: state.selectedIntervalForGlucoseStats.rawValue
-                                )!
-                            default:
-                                return .week
+                            case .month: return .month
+                            case .total: return .total
+                            default: return .week
                             }
                         }()
 
                         if state.selectedGlucoseChartType == .percentileByDay {
                             GlucoseDailyPercentileChart(
-                                glucose: state.glucoseFromPersistence,
                                 highLimit: state.highLimit,
                                 units: state.units,
                                 timeInRangeType: state.timeInRangeType,
                                 selectedInterval: interval,
-                                isDaySelected: $isGlucoseDaySelected,
-                                state: state
+                                dailyStats: state.dailyGlucosePercentileStats,
+                                readingsByDay: state.glucoseReadingsByDay
                             )
-                        } else { // if state.selectedGlucoseChartType == .distributionByDay
+                        } else {
                             GlucoseDailyDistributionChart(
-                                glucose: state.glucoseReadings,
                                 highLimit: state.highLimit,
                                 units: state.units,
                                 timeInRangeType: state.timeInRangeType,
                                 selectedInterval: interval,
                                 eA1cDisplayUnit: state.eA1cDisplayUnit,
-                                isDaySelected: $isGlucoseDaySelected,
-                                state: state
+                                dailyStats: state.dailyGlucoseDistributionStats,
+                                readingsByDay: state.glucoseReadingsByDay
                             )
                         }
 
                     case .percentileByTime:
                         GlucosePercentileChart(
-                            glucose: state.glucoseFromPersistence,
                             highLimit: state.highLimit,
                             timeInRangeType: state.timeInRangeType,
                             units: state.units,
@@ -193,9 +179,7 @@ extension Stat {
 
                     case .distributionByTime:
                         GlucoseDistributionChart(
-                            glucose: state.glucoseReadings,
                             highLimit: state.highLimit,
-                            lowLimit: state.lowLimit,
                             units: state.units,
                             glucoseRangeStats: state.glucoseRangeStats,
                             timeInRangeType: state.timeInRangeType
@@ -215,6 +199,7 @@ extension Stat {
                         timeInRangeType: state.timeInRangeType,
                         showChart: true
                     )
+                    .equatable()
 
                     Divider()
 
@@ -223,6 +208,7 @@ extension Stat {
                         eA1cDisplayUnit: state.eA1cDisplayUnit,
                         glucose: state.glucoseFromPersistence
                     )
+                    .equatable()
                 }
             }
         }
@@ -312,7 +298,7 @@ extension Stat {
             }.padding(.horizontal)
 
             Picker("Duration", selection: $state.selectedIntervalForLoopStats) {
-                ForEach(StateModel.StatsTimeIntervalWithToday.allCases, id: \.self) { interval in
+                ForEach(StateModel.StatsTimeInterval.allCases, id: \.self) { interval in
                     Text(interval.displayName)
                 }
             }
@@ -321,15 +307,19 @@ extension Stat {
             StatCard {
                 switch state.selectedLoopingChartType {
                 case .loopingPerformance:
-                    if state.loopStatRecords.isEmpty {
+                    let shown = state.selectedIntervalForLoopStats == .day ? state.hourlyLoopStats : state.dailyLoopStats
+                    if shown.isEmpty {
                         ContentUnavailableView(
                             String(localized: "No Loop Data"),
                             systemImage: "clock.arrow.2.circlepath",
                             description: Text("Loop statistics will appear here once data is available.")
                         )
                     } else {
-                        loopingChartView
-                        loopStats
+                        LoopBarChartView(
+                            selectedInterval: $state.selectedIntervalForLoopStats,
+                            loopStats: shown,
+                            state: state
+                        )
                     }
                 case .cgmConnectionTrace,
                      .trioUpTime:
@@ -341,24 +331,14 @@ extension Stat {
                     )
                 }
             }
-        }
 
-        private var loopingChartView: some View {
-            VStack(spacing: Constants.spacing) {
-                LoopBarChartView(
-                    loopStatRecords: state.loopStatRecords,
-                    selectedInterval: state.selectedIntervalForLoopStats,
-                    statsData: state.loopStats
-                )
-            }
-        }
-
-        private var loopStats: some View {
-            VStack(spacing: Constants.spacing) {
-                LoopStatsView(
-                    statsData: state.loopStats
-                )
-            }
+            HStack {
+                Image(systemName: "hand.draw.fill").foregroundStyle(Color.primary)
+                VStack(alignment: .leading) {
+                    Text("Swipe the chart to scroll through time.")
+                    Text("Tap and hold a bar to reveal more details.")
+                }.foregroundStyle(Color.secondary)
+            }.font(.footnote)
         }
 
         @ViewBuilder var mealsView: some View {

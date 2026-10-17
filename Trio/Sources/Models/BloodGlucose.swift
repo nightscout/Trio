@@ -236,6 +236,12 @@ extension Decimal {
     func formatted(withUnits units: GlucoseUnits) -> String {
         formatted(for: units) + " \(units.rawValue)"
     }
+
+    func formattedAsGlucose(for units: GlucoseUnits) -> String {
+        units == .mgdL
+            ? formatted(.number.grouping(.never).precision(.fractionLength(0)))
+            : asMmolL.formatted(.number.grouping(.never).precision(.fractionLength(1)))
+    }
 }
 
 extension Double {
@@ -261,6 +267,10 @@ extension Double {
 
     func formatted(withUnits units: GlucoseUnits) -> String {
         formatted(for: units) + " \(units.rawValue)"
+    }
+
+    func formattedAsGlucose(for units: GlucoseUnits) -> String {
+        Decimal(self).formattedAsGlucose(for: units)
     }
 }
 

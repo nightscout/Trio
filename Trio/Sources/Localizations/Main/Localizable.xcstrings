@@ -1090,6 +1090,7 @@
       }
     },
     " " : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -8506,6 +8507,7 @@
       }
     },
     "%@ (%@-%@)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -8637,6 +8639,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ (%2$@-%3$@)"
+          }
+        }
+      }
+    },
+    "%@ (%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ (%2$@)"
           }
         }
       }
@@ -10775,6 +10787,7 @@
       }
     },
     "%@-%@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -13930,6 +13943,7 @@
       }
     },
     "%lld%%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -21606,6 +21620,7 @@
       }
     },
     "< %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -21866,6 +21881,7 @@
       }
     },
     "> %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -47858,6 +47874,9 @@
         }
       }
     },
+    "Amount:" : {
+
+    },
     "Amplitude:" : {
       "localizations" : {
         "bg" : {
@@ -57034,6 +57053,7 @@
       }
     },
     "Avg" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -75237,6 +75257,7 @@
       }
     },
     "Category" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -90500,6 +90521,7 @@
       }
     },
     "Count" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -138938,6 +138960,9 @@
         }
       }
     },
+    "Failed:" : {
+
+    },
     "falling" : {
       "comment" : "Accessibility: glucose trend",
       "localizations" : {
@@ -151284,6 +151309,7 @@
       }
     },
     "Glucose Count" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -159731,6 +159757,7 @@
       }
     },
     "High (%@-%@)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -159865,6 +159892,9 @@
           }
         }
       }
+    },
+    "High (%@)" : {
+
     },
     "High (>" : {
       "comment" : "Title High BG in statPanel",
@@ -160526,6 +160556,7 @@
       }
     },
     "High Limit" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -174107,6 +174138,7 @@
     },
     "Interval" : {
       "comment" : "Average loop interval",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -188321,6 +188353,7 @@
       }
     },
     "Looping performance bar chart" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -188452,6 +188485,7 @@
     },
     "Loops" : {
       "comment" : "Nr of Loops in statPanel",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -188582,6 +188616,7 @@
       }
     },
     "Loops per Day" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -188974,6 +189009,7 @@
       }
     },
     "Low (%@-%@)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -189108,6 +189144,9 @@
           }
         }
       }
+    },
+    "Low (%@)" : {
+
     },
     "Low (<" : {
       "comment" : "Title Low BG in statPanel",
@@ -189907,6 +189946,7 @@
       }
     },
     "Low Limit" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -200582,6 +200622,7 @@
       }
     },
     "Med" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -200841,6 +200882,12 @@
           }
         }
       }
+    },
+    "Median duration:" : {
+
+    },
+    "Median interval:" : {
+
     },
     "Median:" : {
       "localizations" : {
@@ -201900,6 +201947,7 @@
       }
     },
     "Mid Limit" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -211401,6 +211449,9 @@
         }
       }
     },
+    "No glucose data available" : {
+
+    },
     "No glucose data available for this day" : {
       "localizations" : {
         "bg" : {
@@ -211662,6 +211713,7 @@
       }
     },
     "No glucose readings found." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -215490,6 +215542,7 @@
       }
     },
     "Normal (%@-%@)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -215624,6 +215677,9 @@
           }
         }
       }
+    },
+    "Normal (%@)" : {
+
     },
     "Normal Profile" : {
       "comment" : "Your normal Profile. Use a short string",
@@ -222207,6 +222263,7 @@
       }
     },
     "ø" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -247624,6 +247681,7 @@
     },
     "Readings" : {
       "comment" : "CGM readings in statView",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -247892,6 +247950,7 @@
       }
     },
     "Readings per Day" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -256414,6 +256473,9 @@
           }
         }
       }
+    },
+    "s" : {
+
     },
     "Safety" : {
       "comment" : "Extra Safety Features when using dyn ISF",
@@ -267701,6 +267763,9 @@
           }
         }
       }
+    },
+    "Share" : {
+
     },
     "Share anonymous crash reports + usage data." : {
       "localizations" : {
@@ -285032,6 +285097,7 @@
       }
     },
     "Success" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -285161,7 +285227,14 @@
         }
       }
     },
+    "Success rate:" : {
+
+    },
+    "Successful and failed loops chart" : {
+
+    },
     "Successful Loops" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -285290,6 +285363,9 @@
           }
         }
       }
+    },
+    "Successful:" : {
+
     },
     "Suggested at" : {
       "comment" : "Headline in suggested pop up (at: at what time)",
@@ -336781,7 +336857,11 @@
         }
       }
     },
+    "Very High (%@)" : {
+
+    },
     "Very High (>%@)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -336911,8 +336991,12 @@
         }
       }
     },
+    "Very Low (%@)" : {
+
+    },
     "Very Low (<%@)" : {
       "comment" : "A description of a glucose range.",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
