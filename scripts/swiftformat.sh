@@ -122,5 +122,6 @@ trailingClosures \
 --exclude RoundWhiteDiscKit \
 --exclude LoopAlgorithm \
 --exclude AccuChekKit \
---exclude EversenseKit
+--exclude EversenseKit \
+--exclude TandemKit
       

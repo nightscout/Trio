@@ -14,11 +14,15 @@ import LoopKit
 /// construction and don't need a catalog entry.
 enum AlertCatalogRegistry {
     static let entries: [Alert.CatalogEntry] =
-        omniEntries + minimedEntries + danaEntries + medtrumEntries + libreLoopEntries + trioAlgorithmEntries
+        omniEntries + minimedEntries + danaEntries + medtrumEntries + tandemEntries + libreLoopEntries +
+        trioAlgorithmEntries
 
     static func lookup(_ identifier: Alert.Identifier) -> Alert.CatalogEntry? {
         if let exact = entries.first(where: { $0.identifier == identifier }) {
             return exact
+        }
+        if let tandem = tandemEntry(for: identifier) {
+            return tandem
         }
         if let warning = notLoopingWarningEntry(for: identifier) {
             return warning
@@ -182,6 +186,121 @@ private extension AlertCatalogRegistry {
             .reservoirLow
         )
     ]
+}
+
+// MARK: - Tandem (Mobi)
+
+private extension AlertCatalogRegistry {
+    /// TandemKit mints one identifier per notification bit — `<category>.<slug>.<bit>`, or
+    /// `malfunction.<aamId>` where there is no condition enum to slug (TandemKit's
+    /// `NotificationBundle.stableIdentifier`). The bit position varies by firmware, so these
+    /// entries are keyed on the `<category>.<slug>` prefix that TandemKit documents as stable
+    /// alert identity; `tandemEntry(for:)` strips the trailing bit before matching.
+    ///
+    /// Levels track the severity TandemKit issues with (`PumpNotificationSeverity`): alarms and
+    /// malfunctions accompany stopped or compromised delivery, alerts are actionable but not
+    /// immediately dangerous.
+    ///
+    /// Tandem's CGM alerts are deliberately absent. They only arrive when the user opts into
+    /// forwarding (`forwardCGMAlerts`), they duplicate Trio's own glucose alarms, and the
+    /// glucose-threshold ones have no device concept to collapse onto — so they pass through at
+    /// the level TandemKit set, uncatalogued, until there is a concept that fits them.
+    static let tandemEntries: [Alert.CatalogEntry] = [
+        // Alarms: delivery is stopped or compromised.
+        addEntry("Tandem", "alarm.occlusion", .critical, "Occlusion", "Delivery", .occlusion),
+        addEntry("Tandem", "alarm.emptyCartridge", .critical, "Cartridge Empty", "Reservoir", .reservoirEmpty),
+        addEntry("Tandem", "alarm.cartridge", .critical, "Cartridge Error", "Reservoir", .hardwareFault),
+        addEntry("Tandem", "alarm.cartridgeRemoved", .critical, "Cartridge Removed", "Reservoir", .hardwareFault),
+        addEntry("Tandem", "alarm.resumePump", .critical, "Resume Pump", "Delivery", .insulinResumeReminder),
+        addEntry("Tandem", "alarm.autoOff", .critical, "Auto-Off", "Delivery", .insulinResumeReminder),
+        addEntry("Tandem", "alarm.pumpReset", .critical, "Pump Reset", "Hardware", .hardwareFault),
+        addEntry("Tandem", "alarm.batteryShutdown", .critical, "Battery Shutdown", "Battery", .pumpBatteryEmpty),
+        addEntry("Tandem", "alarm.temperature", .critical, "Temperature Out of Range", "Hardware", .hardwareFault),
+        addEntry("Tandem", "alarm.altitude", .critical, "Altitude Out of Range", "Hardware", .hardwareFault),
+        addEntry("Tandem", "alarm.atmosphericPressure", .critical, "Pressure Out of Range", "Hardware", .hardwareFault),
+        addEntry("Tandem", "alarm.invalidDate", .critical, "Invalid Date", "Hardware", .hardwareFault),
+        addEntry("Tandem", "alarm.stuckButton", .critical, "Stuck Button", "Hardware", .hardwareFault),
+        // Category fallbacks: an unmapped bit still escalates with its category.
+        addEntry("Tandem", "alarm.other", .critical, "Pump Alarm", "Hardware", .hardwareFault),
+        addEntry("Tandem", "malfunction", .critical, "Pump Malfunction", "Hardware", .hardwareFault),
+
+        // Alerts: actionable, not immediately dangerous.
+        addEntry("Tandem", "alert.lowInsulin", .timeSensitive, "Low Insulin", "Reservoir", .reservoirLow),
+        addEntry("Tandem", "alert.lowPower", .timeSensitive, "Low Pump Battery", "Battery", .pumpBatteryLow),
+        addEntry("Tandem", "alert.powerSource", .timeSensitive, "Charging Problem", "Battery", .pumpBatteryLow),
+        addEntry("Tandem", "alert.usbConnection", .active, "USB Connection", "Battery", .pumpBatteryLow),
+        addEntry("Tandem", "alert.autoOff", .timeSensitive, "Auto-Off Warning", "Delivery", .deviceShutdownImminent),
+        addEntry("Tandem", "alert.maxBasal", .timeSensitive, "Basal Limit Reached", "Delivery", .insulinLimitReached),
+        addEntry("Tandem", "alert.maxBasalRate", .timeSensitive, "Basal Limit Warning", "Delivery", .insulinLimitWarning),
+        addEntry("Tandem", "alert.minBasal", .timeSensitive, "Minimum Basal", "Delivery", .insulinLimitWarning),
+        addEntry("Tandem", "alert.incompleteBolus", .timeSensitive, "Incomplete Bolus", "Delivery", .setupIncomplete),
+        addEntry(
+            "Tandem",
+            "alert.incompleteTempRate",
+            .timeSensitive,
+            "Incomplete Temp Rate",
+            "Delivery",
+            .setupIncomplete
+        ),
+        addEntry(
+            "Tandem",
+            "alert.incompleteCartridgeChange",
+            .timeSensitive,
+            "Incomplete Cartridge Change",
+            "Reservoir",
+            .setupIncomplete
+        ),
+        addEntry("Tandem", "alert.incompleteFillTubing", .timeSensitive, "Incomplete Fill Tubing", "Setup", .setupIncomplete),
+        addEntry(
+            "Tandem",
+            "alert.incompleteFillCannula",
+            .timeSensitive,
+            "Incomplete Fill Cannula",
+            "Setup",
+            .setupIncomplete
+        ),
+        addEntry("Tandem", "alert.incompleteSetting", .timeSensitive, "Incomplete Setting", "Setup", .setupIncomplete),
+        addEntry("Tandem", "alert.fillTubingInProgress", .active, "Fill Tubing In Progress", "Setup", .setupIncomplete),
+        addEntry("Tandem", "alert.connectionError", .timeSensitive, "Pump Connection Error", "Connectivity", .pairingFailed),
+        addEntry(
+            "Tandem",
+            "alert.deviceConnectionError",
+            .timeSensitive,
+            "Device Connection Error",
+            "Connectivity",
+            .pairingFailed
+        ),
+        addEntry("Tandem", "alert.devicePaired", .active, "Device Paired", "Connectivity", .pairingFailed),
+        addEntry("Tandem", "alert.pumpRebooting", .timeSensitive, "Pump Rebooting", "Hardware", .hardwareFault),
+        addEntry("Tandem", "alert.dataError", .timeSensitive, "Data Error", "Hardware", .hardwareFault),
+        addEntry("Tandem", "alert.button", .active, "Button Alert", "Hardware", .hardwareFault),
+        addEntry("Tandem", "alert.other", .timeSensitive, "Pump Alert", "Hardware", .hardwareFault)
+    ]
+
+    /// Resolves a Tandem identifier by its `<category>.<slug>` prefix, falling back to
+    /// `<category>.other` so a firmware that adds a notification bit still lands in the right
+    /// tier instead of bypassing the Device Alarms configuration entirely. Returns the match
+    /// re-stamped with the incoming identifier, so callers that key off `entry.identifier`
+    /// (snooze, tier dismissal) see the alert they were handed.
+    static func tandemEntry(for identifier: Alert.Identifier) -> Alert.CatalogEntry? {
+        guard identifier.managerIdentifier == "Tandem" else { return nil }
+        let segments = identifier.alertIdentifier.split(separator: ".", omittingEmptySubsequences: false)
+        guard segments.count >= 2, let last = segments.last, UInt32(last) != nil else { return nil }
+
+        let prefix = segments.dropLast().joined(separator: ".")
+        guard let category = segments.first, !category.isEmpty else { return nil }
+        let template = tandemEntries.first { $0.identifier.alertIdentifier == prefix }
+            ?? tandemEntries.first { $0.identifier.alertIdentifier == "\(category).other" }
+        guard let template else { return nil }
+
+        return Alert.CatalogEntry(
+            identifier: identifier,
+            interruptionLevel: template.interruptionLevel,
+            title: template.title,
+            category: template.category,
+            concept: template.concept
+        )
+    }
 }
 
 // MARK: - LibreLoop (FreeStyle Libre 3)
