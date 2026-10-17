@@ -91,6 +91,11 @@ extension Notification.Name {
         // seeded DeviceAlertsStore in place before re-presenting alerts.
         resolver.resolve(TrioAlertManager.self)!.replayUnacknowledgedAlerts()
 
+        // Start after Core Data and device services are ready; onboarding suppresses automatic backups.
+        Task { @MainActor in
+            TrioCloudBackupCoordinator.shared.start(resolver: resolver)
+        }
+
         startTelemetry()
     }
 
@@ -189,6 +194,9 @@ extension Notification.Name {
         Task {
             do {
                 try await coreDataStack.initializeStack()
+
+                // Recover interrupted restores before therapy services or pump control initialize.
+                try await TrioCloudSettingsRestore.recoverInterruptedRestoreIfNeeded()
 
                 // TODO: possibly wrap this in a UserDefault / TinyStorage flag check, so we do not even attempt to fetch files unnecessary, but early exit the import
                 await performJsonToCoreDataMigrationIfNeeded()
@@ -365,6 +373,7 @@ extension Notification.Name {
                         wasMigrationSuccessful: !initState.migrationFailed
                     )
                     .preferredColorScheme(colorScheme(for: .dark) ?? nil)
+                    .environment(appState)
                     .transition(.opacity)
                 } else {
                     Main.RootView(resolver: resolver)
@@ -409,6 +418,7 @@ extension Notification.Name {
             }
 
             if newScenePhase == .active {
+                TrioCloudBackupCoordinator.shared.applicationDidBecomeActive()
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let rootVC = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController
                 {

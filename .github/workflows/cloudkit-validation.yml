@@ -1,0 +1,119 @@
+name: CloudKit feature validation
+
+on:
+  push:
+    branches:
+      - feat/cloudkit
+      - feat/cloudkit-refactor-wip
+    paths:
+      - 'Trio/**'
+      - 'OmnipodKit'
+      - '.gitmodules'
+      - 'TrioTests/**'
+      - 'Model/**'
+      - 'Trio.xcodeproj/**'
+      - 'Trio.xcworkspace/**'
+      - '.github/workflows/cloudkit-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudkit-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    name: Build and test CloudKit backup on iOS Simulator
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - name: Check out Trio and its device dependencies
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Select Xcode 26.2
+        run: sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer
+
+      - name: Fingerprint compiled dependency inputs
+        run: git submodule status --recursive > .cloudkit-submodules
+
+      - name: Restore compiled dependencies
+        id: build-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData
+            BuildTools/.build
+          key: cloudkit-xcode26.2-${{ runner.os }}-${{ hashFiles('**/Package.resolved', '.cloudkit-submodules') }}-${{ github.sha }}
+          restore-keys: |
+            cloudkit-xcode26.2-${{ runner.os }}-${{ hashFiles('**/Package.resolved', '.cloudkit-submodules') }}-
+
+      - name: Verify project syntax
+        run: plutil -lint Trio.xcodeproj/project.pbxproj Trio/Resources/Trio.entitlements
+
+      - name: Compile Trio without distribution signing
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -workspace Trio.xcworkspace \
+            -scheme Trio \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=YES \
+            COMPILATION_CACHE_ENABLE_CACHING=YES \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            -skipPackagePluginValidation \
+            build | tee cloudkit-build.log
+
+      # The test host needs its App Group entitlements to launch. Ad-hoc
+      # simulator signing uses no distribution certificate or provisioning
+      # profile; the isolated identifier cannot be installed as a device build.
+      - name: Run CloudKit snapshot and recovery tests
+        run: |
+          set -o pipefail
+          SIMULATOR_ID=$(xcrun simctl list devices available --json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(device["udid"] for runtime,devices in sorted(d["devices"].items(), reverse=True) if "iOS" in runtime for device in devices if "iPhone" in device["name"]))')
+          xcodebuild \
+            -workspace Trio.xcworkspace \
+            -scheme 'Trio Tests' \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -only-testing:TrioTests/CloudSettingsBackupTests \
+            -resultBundlePath cloudkit-tests.xcresult \
+            CODE_SIGNING_ALLOWED=YES \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=YES \
+            COMPILATION_CACHE_ENABLE_CACHING=YES \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            BUNDLE_IDENTIFIER=org.nightscout.cloudkitvalidation.trio \
+            TRIO_APP_GROUP_ID=group.org.nightscout.cloudkitvalidation.trio.trio-app-group \
+            -skipPackagePluginValidation \
+            test | tee cloudkit-tests.log
+
+      - name: Publish compiler and test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudkit-compiler-log
+          path: |
+            cloudkit-build.log
+            cloudkit-tests.log
+            cloudkit-tests.xcresult
+          if-no-files-found: ignore
+
+      - name: Save compiled dependencies for validation retries
+        if: always() && steps.build-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData
+            BuildTools/.build
+          key: ${{ steps.build-cache.outputs.cache-primary-key }}

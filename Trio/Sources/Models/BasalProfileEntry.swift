@@ -21,7 +21,7 @@ extension BasalProfileEntry {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let start = try container.decode(String.self, forKey: .start)
         let minutes = try container.decode(Int.self, forKey: .minutes)
-        let rate = try container.decode(Double.self, forKey: .rate).decimal ?? .zero
+        let rate = try container.decode(Decimal.self, forKey: .rate)
 
         self = BasalProfileEntry(start: start, minutes: minutes, rate: rate)
     }

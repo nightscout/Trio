@@ -7,7 +7,7 @@ enum OnboardingNavigationDirection {
 }
 
 enum OnboardingChapter: Int, CaseIterable {
-    case prepareTrio
+    case importSettings
     case therapySettings
     case deliveryLimits
     case algorithmSettings
@@ -17,8 +17,8 @@ enum OnboardingChapter: Int, CaseIterable {
 
     var title: String {
         switch self {
-        case .prepareTrio:
-            return String(localized: "Prepare Trio")
+        case .importSettings:
+            return String(localized: "Import Settings")
         case .therapySettings:
             return String(localized: "Therapy Settings")
         case .deliveryLimits:
@@ -32,9 +32,9 @@ enum OnboardingChapter: Int, CaseIterable {
 
     var overviewDescription: String {
         switch self {
-        case .prepareTrio:
+        case .importSettings:
             return String(
-                localized: "Optionally sync with Nightscout and enter essentials."
+                localized: "Restore your settings from an iCloud backup or start fresh."
             )
         case .therapySettings:
             return String(
@@ -57,7 +57,7 @@ enum OnboardingChapter: Int, CaseIterable {
 
     var duration: String {
         switch self {
-        case .prepareTrio:
+        case .importSettings:
             return "3-5"
         case .therapySettings:
             return "5-10"
@@ -72,9 +72,9 @@ enum OnboardingChapter: Int, CaseIterable {
 
     var completedDescription: String {
         switch self {
-        case .prepareTrio:
+        case .importSettings:
             return String(
-                localized: "Nightscout setup and unit and pump model selection are all complete."
+                localized: "Restore your settings from an iCloud backup or start fresh."
             )
         case .therapySettings:
             return String(
@@ -97,7 +97,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
     case welcome
     case startupInfo
     case overview
-    case nightscout
+    case cloudRestore
     case unitSelection
     case glucoseTarget
     case basalRates
@@ -127,8 +127,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return String(localized: "Startup Guide")
         case .overview:
             return String(localized: "Overview")
-        case .nightscout:
-            return String(localized: "Nightscout")
+        case .cloudRestore:
+            return String(localized: "iCloud Restore")
         case .unitSelection:
             return String(localized: "Units & Pump")
         case .glucoseTarget:
@@ -173,9 +173,9 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return String(
                 localized: "Trio's Onboarding takes about 15-30 minutes to complete. We'll guide you through each step."
             )
-        case .nightscout:
+        case .cloudRestore:
             return String(
-                localized: "Nightscout is a cloud-based platform that allows you to store your diabetes data. It's often used by caregivers to remotely monitor what Trio is doing."
+                localized: "Recent versions of Trio automatically back up your app and Therapy settings to iCloud. Choose whether to restore your saved settings from an existing iCloud backup or start fresh with new settings."
             )
         case .unitSelection:
             return String(
@@ -237,8 +237,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return "list.bullet.clipboard.fill"
         case .overview:
             return "checklist.unchecked"
-        case .nightscout:
-            return "owl"
+        case .cloudRestore:
+            return "icloud.and.arrow.down"
         case .unitSelection:
             return "numbers.rectangle"
         case .glucoseTarget:
@@ -290,9 +290,9 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
         case .algorithmSettings,
              .autosensSettings,
              .bluetooth,
+             .cloudRestore,
              .completed,
              .deliveryLimits,
-             .nightscout,
              .notifications,
              .overview,
              .smbSettings,
@@ -314,8 +314,6 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
 
     var chapterCompletion: OnboardingChapter? {
         switch self {
-        case .unitSelection:
-            return .prepareTrio
         case .insulinSensitivity:
             return .therapySettings
         case .deliveryLimits:
@@ -470,54 +468,6 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
     }
 }
 
-enum NightscoutSetupOption: String, Equatable, CaseIterable, Identifiable {
-    case setupNightscout
-    case skipNightscoutSetup
-    case noSelection
-
-    var id: String { rawValue }
-
-    var displayName: String {
-        switch self {
-        case .setupNightscout:
-            return String(localized: "Setup Nightscout for Trio")
-        case .skipNightscoutSetup:
-            return String(localized: "Skip Nightscout Setup")
-        case .noSelection:
-            return ""
-        }
-    }
-}
-
-enum NightscoutImportOption: String, Equatable, CaseIterable, Identifiable {
-    case useImport
-    case skipImport
-    case noSelection
-
-    var id: String { rawValue }
-
-    var displayName: String {
-        switch self {
-        case .useImport:
-            return String(localized: "Import Settings")
-        case .skipImport:
-            return String(localized: "Configure Yourself")
-        case .noSelection:
-            return ""
-        }
-    }
-}
-
-enum NightscoutSubstep: Int, CaseIterable, Identifiable {
-    case setupSelection
-    case connectToNightscout
-    case uploadToNightscout
-    case uploadGlucoseToNightscout
-    case importFromNightscout
-
-    var id: Int { rawValue }
-}
-
 struct BulletPoint: View {
     let text: String
 
@@ -552,3 +502,6 @@ enum OnboardingInputSectionType: Equatable {
         }
     }
 }
+
+enum CloudRestoreSubstep: Int, CaseIterable { case choice, backups }
+enum CloudRestoreOption: CaseIterable { case restore, startFresh }

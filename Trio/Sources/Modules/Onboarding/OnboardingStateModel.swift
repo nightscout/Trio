@@ -14,8 +14,6 @@ extension Onboarding {
         @ObservationIgnored @Injected() var fileStorage: FileStorage!
         @ObservationIgnored @Injected() var deviceManager: DeviceDataManager!
         @ObservationIgnored @Injected() var broadcaster: Broadcaster!
-        @ObservationIgnored @Injected() var keychain: Keychain!
-        @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
         @ObservationIgnored @Injected() var notificationsManager: UserNotificationsManager!
         @ObservationIgnored @Injected() var bluetoothManager: BluetoothStateManager!
         @ObservationIgnored @Injected() var apsManager: APSManager!
@@ -68,21 +66,28 @@ extension Onboarding {
             }
         }
 
-        // MARK: - Nightscout Setup
+        // MARK: - Restore from iCloud
 
-        var nightscoutSetupOption: NightscoutSetupOption = .noSelection
-        var nightscoutImportOption: NightscoutImportOption = .noSelection
-        var nightscoutUrl = ""
-        var nightscoutSecret = ""
-        var nightscoutResponseMessage = ""
-        var isValidNightscoutURL: Bool = false
-        var isConnectingToNS: Bool = false
-        var isConnectedToNS: Bool = false
-        var nightscoutImportError: NightscoutImportError?
-        var nightscoutImportStatus: ImportStatus = .none
-        var isUploadEnabled: Bool = true
-        var uploadGlucose: Bool = true
-        var uploadCGMSensorStates: Bool = true
+        /// Selection stays in memory until explicitly applied.
+        var pendingCloudRestore: TrioSettingsBackup?
+        var restoreErrorMessage: String?
+        var restoreInProgress = false
+        var cloudRestoreOption: CloudRestoreOption = .startFresh
+        var appliedCloudRestoreID: UUID?
+        var showCloudRestoreSuccess = false
+
+        func chooseCloudRestoreOption(_ option: CloudRestoreOption) {
+            cloudRestoreOption = option
+            if option == .startFresh { pendingCloudRestore = nil
+                appliedCloudRestoreID = nil }
+        }
+
+        @MainActor  func applySelectedCloudBackup() async throws {
+            guard let backup = pendingCloudRestore else { throw BackupError.restoreFailed }
+            guard appliedCloudRestoreID != backup.id else { return }
+            try await TrioCloudBackupCoordinator.shared.restoreDuringOnboarding(backup)
+            appliedCloudRestoreID = backup.id
+        }
 
         // MARK: - Units and Pump Omboarding Option
 
@@ -215,13 +220,6 @@ extension Onboarding {
         // MARK: - Subscribe
 
         override func subscribe() {
-            // Keychain items are not removed, even after uninstalling the app. Attempt to read them initially.
-            nightscoutUrl = keychain.getValue(String.self, forKey: NightscoutConfig.Config.urlKey) ?? ""
-            nightscoutSecret = keychain.getValue(String.self, forKey: NightscoutConfig.Config.secretKey) ?? ""
-            isConnectedToNS = false
-            isConnectingToNS = false
-            isValidNightscoutURL = false
-
             if !isFreshTrioInstall {
                 // Attempt to fetch existing units, therapy settings and delivery limits from file
                 units = settingsManager.settings.units
@@ -692,6 +690,8 @@ extension Onboarding {
 
         /// Persists all onboarding data by applying settings and saving therapy values.
         func saveOnboardingData() {
+            // Manual onboarding defaults must not overwrite the selected backup.
+            guard pendingCloudRestore == nil else { return }
             applyToSettings()
             applyToPreferences()
             applyToPumpSettings()
@@ -705,12 +705,6 @@ extension Onboarding {
         func applyToSettings() {
             var settingsCopy = settingsManager.settings
             settingsCopy.units = units
-
-            if nightscoutSetupOption == .setupNightscout {
-                settingsCopy.isUploadEnabled = isUploadEnabled
-                settingsCopy.uploadGlucose = uploadGlucose
-                settingsCopy.uploadCGMSensorStates = uploadCGMSensorStates
-            }
 
             // ensure existing values cannot exceed new guardrails
             if !isFreshTrioInstall {

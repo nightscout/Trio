@@ -13,69 +13,92 @@ extension Onboarding {
         let wasMigrationSuccessful: Bool
 
         // Step management
-        @State private var currentChapter: OnboardingChapter = .prepareTrio
         @State private var showingChapterCompletion: OnboardingChapter? = nil
 
         @State private var currentStep: OnboardingStep = .welcome
         @State private var currentStartupSubstep: StartupSubstep = .startupGuide
-        @State private var currentNightscoutSubstep: NightscoutSubstep = .setupSelection
+        @State private var currentCloudRestoreSubstep: CloudRestoreSubstep = .choice
         @State private var currentDeliverySubstep: DeliveryLimitSubstep = .maxIOB
         @State private var currentAlgorithmSettingsOverviewSubstep: AlgorithmSettingsOverviewSubstep = .contents
         @State private var currentAutosensSubstep: AutosensSettingsSubstep = .autosensMin
         @State private var currentSMBSubstep: SMBSettingsSubstep = .enableSMBAlways
         @State private var currentTargetBehaviorSubstep: TargetBehaviorSubstep = .highTempTargetRaisesSensitivity
 
-        private func updateCurrentChapter() {
+        private var currentChapter: OnboardingChapter {
+            if let chapter = showingChapterCompletion { return chapter }
             switch currentStep {
-            case .nightscout,
-                 .unitSelection:
-                currentChapter = .prepareTrio
             case .basalRates,
                  .carbRatio,
                  .glucoseTarget,
-                 .insulinSensitivity:
-                currentChapter = .therapySettings
+                 .insulinSensitivity,
+                 .unitSelection:
+                return .therapySettings
             case .deliveryLimits:
-                currentChapter = .deliveryLimits
+                return .deliveryLimits
             case .algorithmSettings,
                  .autosensSettings,
                  .smbSettings,
                  .targetBehavior:
-                currentChapter = .algorithmSettings
+                return .algorithmSettings
             case .bluetooth,
+                 .completed,
                  .notifications:
-                currentChapter = .permissionRequests
+                return .permissionRequests
             default:
-                break
+                return .importSettings
             }
         }
 
-        // Animation states
-        @State private var animationScale: CGFloat = 1.0
-        @State private var animationOpacity: Double = 0
-        @State private var isAnimating = false
-
-        // Conditional button states for Nightscout substeps
-        private var didSelectNightscoutSetupOption: Bool {
-            currentNightscoutSubstep == .setupSelection && state
-                .nightscoutSetupOption == .noSelection
+        private var chapterProgress: CGFloat {
+            if showingChapterCompletion != nil || currentStep == .completed { return 1 }
+            switch currentStep {
+            case .cloudRestore:
+                return currentCloudRestoreSubstep == .choice ? 0.5 : 1
+            case .basalRates,
+                 .carbRatio,
+                 .glucoseTarget,
+                 .insulinSensitivity,
+                 .unitSelection:
+                let steps: [OnboardingStep] = [.unitSelection, .glucoseTarget, .basalRates, .carbRatio, .insulinSensitivity]
+                return CGFloat((steps.firstIndex(of: currentStep) ?? 0) + 1) / CGFloat(steps.count)
+            case .deliveryLimits:
+                return CGFloat(currentDeliverySubstep.rawValue + 1) / CGFloat(DeliveryLimitSubstep.allCases.count)
+            case .algorithmSettings,
+                 .autosensSettings,
+                 .smbSettings,
+                 .targetBehavior:
+                let autosens = state.filteredAutosensSettingsSubsteps
+                let smb = SMBSettingsSubstep.allCases.filter {
+                    !state.enableSMBAlways || $0 == .enableSMBAlways || $0.rawValue >= SMBSettingsSubstep
+                        .allowSMBWithHighTempTarget.rawValue
+                }
+                let overviewCount = AlgorithmSettingsOverviewSubstep.allCases.count
+                let count = overviewCount + autosens.count + smb.count + TargetBehaviorSubstep.allCases.count
+                let index: Int
+                switch currentStep {
+                case .algorithmSettings:
+                    index = currentAlgorithmSettingsOverviewSubstep.rawValue
+                case .autosensSettings:
+                    index = overviewCount + (autosens.firstIndex(of: currentAutosensSubstep) ?? 0)
+                case .smbSettings:
+                    index = overviewCount + autosens.count + (smb.firstIndex(of: currentSMBSubstep) ?? 0)
+                default:
+                    index = overviewCount + autosens.count + smb.count + currentTargetBehaviorSubstep.rawValue
+                }
+                return CGFloat(index + 1) / CGFloat(count)
+            case .notifications:
+                return 0.5
+            case .bluetooth:
+                return 1
+            default:
+                return 0
+            }
         }
 
-        private var hasValidNightscoutConnection: Bool {
-            currentNightscoutSubstep == .connectToNightscout && !state.isConnectedToNS
-        }
-
-        private var didSelectNightscoutImportOption: Bool {
-            currentNightscoutSubstep == .importFromNightscout && state.nightscoutImportOption == .noSelection
-        }
-
-        // Next button conditional
         private var shouldDisableNextButton: Bool {
-            (currentStep == .nightscout && didSelectNightscoutSetupOption)
-                ||
-                (currentStep == .nightscout && hasValidNightscoutConnection)
-                ||
-                (currentStep == .nightscout && didSelectNightscoutImportOption)
+            state
+                .restoreInProgress ||
+                (currentStep == .cloudRestore && currentCloudRestoreSubstep == .backups && state.pendingCloudRestore == nil)
         }
 
         var body: some View {
@@ -94,28 +117,8 @@ extension Onboarding {
                             // Progress bar
                             OnboardingProgressBar(
                                 currentChapter: currentChapter,
-                                shouldDisplayChapterTitle: showingChapterCompletion == nil,
                                 currentStep: currentStep,
-                                currentSubstep: {
-                                    switch currentStep {
-                                    case .deliveryLimits: return currentDeliverySubstep.rawValue
-                                    case .nightscout: return currentNightscoutSubstep.rawValue
-                                    case .algorithmSettings: return currentAlgorithmSettingsOverviewSubstep.rawValue
-                                    case .autosensSettings: return currentAutosensSubstep.rawValue
-                                    case .smbSettings: return currentSMBSubstep.rawValue
-                                    case .targetBehavior: return currentTargetBehaviorSubstep.rawValue
-                                    default: return nil
-                                    }
-                                }(),
-                                stepsWithSubsteps: [
-                                    .nightscout: NightscoutSubstep.allCases.count,
-                                    .deliveryLimits: DeliveryLimitSubstep.allCases.count,
-                                    .algorithmSettings: AlgorithmSettingsOverviewSubstep.allCases.count,
-                                    .autosensSettings: state.filteredAutosensSettingsSubsteps.count,
-                                    .smbSettings: SMBSettingsSubstep.allCases.count,
-                                    .targetBehavior: TargetBehaviorSubstep.allCases.count
-                                ],
-                                nightscoutSetupOption: state.nightscoutSetupOption
+                                chapterProgress: chapterProgress
                             )
                             .padding(.top)
                         } else {
@@ -128,7 +131,7 @@ extension Onboarding {
                             currentStep: $currentStep,
                             showingChapterCompletion: $showingChapterCompletion,
                             currentStartupSubstep: $currentStartupSubstep,
-                            currentNightscoutSubstep: $currentNightscoutSubstep,
+                            currentCloudRestoreSubstep: $currentCloudRestoreSubstep,
                             currentDeliverySubstep: $currentDeliverySubstep,
                             currentAlgorithmSettingsOverviewSubstep: $currentAlgorithmSettingsOverviewSubstep,
                             currentAutosensSubstep: $currentAutosensSubstep,
@@ -137,6 +140,8 @@ extension Onboarding {
                             state: state,
                             navigationDirection: navigationDirection
                         )
+                        .disabled(state.restoreInProgress)
+                        .overlay { if state.restoreInProgress { ProgressView("Restoring settings…") } }
 
                         Spacer()
 
@@ -144,7 +149,7 @@ extension Onboarding {
                             currentStep: $currentStep,
                             showingChapterCompletion: $showingChapterCompletion,
                             currentStartupSubstep: $currentStartupSubstep,
-                            currentNightscoutSubstep: $currentNightscoutSubstep,
+                            currentCloudRestoreSubstep: $currentCloudRestoreSubstep,
                             currentDeliverySubstep: $currentDeliverySubstep,
                             currentAlgorithmSettingsOverviewSubstep: $currentAlgorithmSettingsOverviewSubstep,
                             currentAutosensSubstep: $currentAutosensSubstep,
@@ -160,24 +165,24 @@ extension Onboarding {
                 }
                 .navigationBarHidden(true)
             }
-            .onChange(of: currentStep) { _, _ in
-                // Reset animation when step changes
-                animationScale = 0.9
-                animationOpacity = 0
-                isAnimating = false
-
-                // Start new animation
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    withAnimation(.easeInOut(duration: 0.7)) {
-                        animationOpacity = 1
-                        animationScale = 1.0
-                    }
-                    isAnimating = true
-                }
-
-                updateCurrentChapter()
-            }
             .onAppear(perform: configureView)
+            .alert("Settings Restored!", isPresented: $state.showCloudRestoreSuccess) {
+                Button("Done") {
+                    currentStep = .targetBehavior
+                    currentTargetBehaviorSubstep = .halfBasalTarget
+                    showingChapterCompletion = .algorithmSettings
+                }
+            } message: {
+                Text("Trio has been switched to Open Loop.\n\nReview your restored settings before pairing a new insulin pump and returning to Closed Loop.")
+            }
+            .alert("iCloud Restore Failed", isPresented: Binding(
+                get: { state.restoreErrorMessage != nil },
+                set: { if !$0 { state.restoreErrorMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(state.restoreErrorMessage ?? "")
+            }
         }
     }
 }
@@ -185,16 +190,13 @@ extension Onboarding {
 /// A progress bar that shows the user's progress through the onboarding process.
 struct OnboardingProgressBar: View {
     let currentChapter: OnboardingChapter
-    let shouldDisplayChapterTitle: Bool
     let currentStep: OnboardingStep
-    let currentSubstep: Int?
-    let stepsWithSubsteps: [OnboardingStep: Int]
-    let nightscoutSetupOption: NightscoutSetupOption
+    let chapterProgress: CGFloat
 
     private let capsuleSize = CGFloat(UIFont.preferredFont(forTextStyle: .subheadline).pointSize) * 1.3
 
     private var shouldShowCurrentChapter: Bool {
-        shouldDisplayChapterTitle && currentStep != .overview && currentStep != .completed
+        currentStep != .overview && currentStep != .completed
     }
 
     var body: some View {
@@ -219,7 +221,7 @@ struct OnboardingProgressBar: View {
             }
 
             HStack(spacing: 4) {
-                ForEach(renderedSteps, id: \.id) { step in
+                ForEach(OnboardingChapter.allCases, id: \.rawValue) { chapter in
                     ZStack(alignment: .leading) {
                         Rectangle()
                             .fill(Color.gray.opacity(0.3))
@@ -230,7 +232,7 @@ struct OnboardingProgressBar: View {
                             Rectangle()
                                 .fill(Color.blue)
                                 .frame(
-                                    width: geo.size.width * fillFraction(for: step.step, totalSubsteps: step.substeps),
+                                    width: geo.size.width * chapterFill(chapter),
                                     height: 4
                                 )
                                 .cornerRadius(2)
@@ -255,42 +257,12 @@ struct OnboardingProgressBar: View {
         return chapter
     }
 
-    private var renderedSteps: [(id: String, step: OnboardingStep, substeps: Int?)] {
-        nonInfoOnboardingSteps.map {
-            (id: "\($0.rawValue)", step: $0, substeps: stepsWithSubsteps[$0])
-        }
-    }
-
-    private func fillFraction(for step: OnboardingStep, totalSubsteps: Int?) -> CGFloat {
-        // If currentStep is .completed, fill everything
-        if currentStep == .completed { return 1.0 }
-
-        if let currentIndex = nonInfoOnboardingSteps.firstIndex(of: currentStep),
-           let stepIndex = nonInfoOnboardingSteps.firstIndex(of: step),
-           stepIndex < currentIndex
-        {
-            return 1.0
-        }
-
-        if step == currentStep {
-            if let total = totalSubsteps, let current = currentSubstep {
-                return CGFloat(current + 1) / CGFloat(total)
-            } else {
-                return 1.0
-            }
-        }
-
-        // Handle special case: Nightscout was skipped
-        if step == .nightscout,
-           nightscoutSetupOption == .skipNightscoutSetup,
-           let currentIndex = nonInfoOnboardingSteps.firstIndex(of: currentStep),
-           let nightscoutIndex = nonInfoOnboardingSteps.firstIndex(of: .nightscout),
-           currentIndex > nightscoutIndex
-        {
-            return 1.0
-        }
-
-        return 0.0
+    private func chapterFill(_ chapter: OnboardingChapter) -> CGFloat {
+        if currentStep == .completed { return 1 }
+        if currentStep == .overview { return 0 }
+        if chapter.rawValue < currentChapter.rawValue { return 1 }
+        guard chapter == currentChapter else { return 0 }
+        return min(max(chapterProgress, 0), 1)
     }
 }
 
@@ -299,7 +271,7 @@ struct OnboardingStepContent: View {
     @Binding var currentStep: OnboardingStep
     @Binding var showingChapterCompletion: OnboardingChapter?
     @Binding var currentStartupSubstep: StartupSubstep
-    @Binding var currentNightscoutSubstep: NightscoutSubstep
+    @Binding var currentCloudRestoreSubstep: CloudRestoreSubstep
     @Binding var currentDeliverySubstep: DeliveryLimitSubstep
     @Binding var currentAlgorithmSettingsOverviewSubstep: AlgorithmSettingsOverviewSubstep
     @Binding var currentAutosensSubstep: AutosensSettingsSubstep
@@ -349,18 +321,14 @@ struct OnboardingStepContent: View {
                                 }
                             case .overview:
                                 OverviewStepView()
-                            case .nightscout:
-                                switch currentNightscoutSubstep {
-                                case .setupSelection:
-                                    NightscoutSetupStepView(state: state)
-                                case .connectToNightscout:
-                                    NightscoutLoginStepView(state: state)
-                                case .uploadToNightscout:
-                                    NightscoutUploadStepView(state: state)
-                                case .uploadGlucoseToNightscout:
-                                    NightscoutUploadGlucoseStepView(state: state)
-                                case .importFromNightscout:
-                                    NightscoutImportStepView(state: state)
+                            case .cloudRestore:
+                                if currentCloudRestoreSubstep == .choice {
+                                    CloudRestoreChoiceStepView(state: state)
+                                } else {
+                                    TrioCloudBackupBrowser(
+                                        onSelectForOnboarding: { state.pendingCloudRestore = $0 },
+                                        selectedBackupID: state.pendingCloudRestore?.id.uuidString
+                                    )
                                 }
                             case .unitSelection:
                                 UnitSelectionStepView(state: state)
@@ -410,7 +378,7 @@ struct OnboardingStepContent: View {
                 announceScreenChange() }
             .onChange(of: currentStartupSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top)
                 announceScreenChange() }
-            .onChange(of: currentNightscoutSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top)
+            .onChange(of: currentCloudRestoreSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top)
                 announceScreenChange() }
             .onChange(of: currentDeliverySubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top)
                 announceScreenChange() }
@@ -442,12 +410,7 @@ struct OnboardingStepContent: View {
     private var contentHeader: some View {
         HStack {
             Group {
-                if currentStep == .nightscout {
-                    Image(currentStep.iconName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 60, height: 60)
-                } else if currentStep == .bluetooth {
+                if currentStep == .bluetooth {
                     Image(currentStep.iconName)
                         .font(.system(size: 40))
                         .foregroundColor(currentStep.accentColor)
@@ -458,13 +421,10 @@ struct OnboardingStepContent: View {
                         )
                 } else {
                     Image(systemName: currentStep.iconName)
-                        .font(.system(size: 40))
+                        .font(.system(size: 40, weight: currentStep == .cloudRestore ? .semibold : .regular))
                         .foregroundColor(currentStep.accentColor)
                         .frame(width: 60, height: 60)
-                        .background(
-                            Circle()
-                                .fill(currentStep.accentColor.opacity(0.2))
-                        )
+                        .background(Circle().fill(currentStep.accentColor.opacity(0.2)))
                 }
             }
             .accessibilityHidden(true)
@@ -491,7 +451,7 @@ struct OnboardingNavigationButtons: View {
     @Binding var currentStep: OnboardingStep
     @Binding var showingChapterCompletion: OnboardingChapter?
     @Binding var currentStartupSubstep: StartupSubstep
-    @Binding var currentNightscoutSubstep: NightscoutSubstep
+    @Binding var currentCloudRestoreSubstep: CloudRestoreSubstep
     @Binding var currentDeliverySubstep: DeliveryLimitSubstep
     @Binding var currentAlgorithmSettingsOverviewSubstep: AlgorithmSettingsOverviewSubstep
     @Binding var currentAutosensSubstep: AutosensSettingsSubstep
@@ -548,8 +508,15 @@ struct OnboardingNavigationButtons: View {
     // MARK: - Navigation Logic
 
     private func handleBackNavigation() {
-        if showingChapterCompletion != nil {
+        guard !state.restoreInProgress else { return }
+        if let chapter = showingChapterCompletion {
             showingChapterCompletion = nil
+            if chapter == .algorithmSettings, state.appliedCloudRestoreID != nil {
+                currentStep = .cloudRestore
+                currentCloudRestoreSubstep = .choice
+            } else if chapter == .importSettings {
+                currentCloudRestoreSubstep = .choice
+            }
             return
         }
 
@@ -576,15 +543,14 @@ struct OnboardingNavigationButtons: View {
                 currentStep = previous
             }
 
-        case .nightscout:
-            if currentNightscoutSubstep == .setupSelection,
-               let previous = currentStep.previous
-            {
-                currentStep = previous
-                currentNightscoutSubstep = .setupSelection
-            } else {
-                currentNightscoutSubstep = NightscoutSubstep(rawValue: currentNightscoutSubstep.rawValue - 1)!
-            }
+        case .cloudRestore:
+            if currentCloudRestoreSubstep == .backups { currentCloudRestoreSubstep = .choice }
+            else { currentStep = .overview }
+
+        case .unitSelection:
+            currentStep = .cloudRestore
+            currentCloudRestoreSubstep = .choice
+            showingChapterCompletion = .importSettings
 
         case .deliveryLimits:
             if let previousSub = DeliveryLimitSubstep(rawValue: currentDeliverySubstep.rawValue - 1) {
@@ -592,6 +558,7 @@ struct OnboardingNavigationButtons: View {
             } else if let previous = currentStep.previous {
                 currentStep = previous
                 currentDeliverySubstep = .maxIOB
+                showingChapterCompletion = .therapySettings
             }
 
         case .algorithmSettings:
@@ -604,6 +571,7 @@ struct OnboardingNavigationButtons: View {
                 currentStep = previous
                 currentDeliverySubstep = .minimumSafetyThreshold
                 currentAutosensSubstep = .autosensMin
+                showingChapterCompletion = .deliveryLimits
             }
 
         case .autosensSettings:
@@ -614,6 +582,7 @@ struct OnboardingNavigationButtons: View {
                 currentAutosensSubstep = steps[current - 1]
             } else if let previousStep = currentStep.previous {
                 currentStep = previousStep
+                currentAlgorithmSettingsOverviewSubstep = .importantNotes
                 currentAutosensSubstep = steps.first ?? .autosensMin
             }
 
@@ -648,10 +617,17 @@ struct OnboardingNavigationButtons: View {
             }
 
         case .notifications:
+            if state.appliedCloudRestoreID != nil {
+                currentStep = .targetBehavior
+                currentTargetBehaviorSubstep = .halfBasalTarget
+                showingChapterCompletion = .algorithmSettings
+                return
+            }
             currentTargetBehaviorSubstep = .halfBasalTarget
 
             if let previous = currentStep.previous {
                 currentStep = previous
+                showingChapterCompletion = .algorithmSettings
             }
 
         case .completed:
@@ -665,11 +641,10 @@ struct OnboardingNavigationButtons: View {
     }
 
     private func handleNextNavigation() {
+        guard !state.restoreInProgress else { return }
         if showingChapterCompletion != nil {
             showingChapterCompletion = nil
-            if let next = currentStep.next {
-                currentStep = next
-            }
+            if let next = currentStep.next { currentStep = next }
             return
         }
 
@@ -697,24 +672,21 @@ struct OnboardingNavigationButtons: View {
                 currentStartupSubstep = .startupGuide
             }
 
-        case .nightscout:
-            if currentNightscoutSubstep != .importFromNightscout {
-                if currentNightscoutSubstep == .setupSelection,
-                   state.nightscoutSetupOption == .skipNightscoutSetup,
-                   let next = currentStep.next
-                {
-                    currentStep = next
-                } else {
-                    currentNightscoutSubstep = NightscoutSubstep(rawValue: currentNightscoutSubstep.rawValue + 1)!
+        case .cloudRestore:
+            if currentCloudRestoreSubstep == .choice {
+                if state.cloudRestoreOption == .restore { currentCloudRestoreSubstep = .backups }
+                else { showingChapterCompletion = .importSettings }
+            } else {
+                state.restoreInProgress = true
+                Task { @MainActor in
+                    defer { state.restoreInProgress = false }
+                    do {
+                        try await state.applySelectedCloudBackup()
+                        state.showCloudRestoreSuccess = true
+                    } catch {
+                        state.restoreErrorMessage = "Restore stopped. No pump settings were sent.\n\n" + error
+                            .localizedDescription }
                 }
-            } else if currentNightscoutSubstep == .importFromNightscout,
-                      state.nightscoutImportOption == .useImport
-            {
-                Task {
-                    await state.importSettingsFromNightscout(currentStep: $currentStep)
-                }
-            } else if let next = currentStep.next {
-                currentStep = next
             }
 
         case .deliveryLimits:
@@ -810,9 +782,25 @@ struct OnboardingNavigationButtons: View {
             }
 
         case .completed:
-            state.saveOnboardingData()
-            onboardingManager.completeOnboarding()
-            Foundation.NotificationCenter.default.post(name: .onboardingCompleted, object: nil)
+            if state.pendingCloudRestore != nil {
+                guard !state.restoreInProgress else { return }
+                state.restoreInProgress = true
+                Task { @MainActor in
+                    defer { state.restoreInProgress = false }
+                    do {
+                        try await state.applySelectedCloudBackup()
+                        onboardingManager.completeOnboarding()
+                        Foundation.NotificationCenter.default.post(name: .onboardingCompleted, object: nil)
+                    } catch {
+                        state.restoreErrorMessage = "Restore stopped. No pump settings were sent.\n\n" + error
+                            .localizedDescription
+                    }
+                }
+            } else {
+                state.saveOnboardingData()
+                onboardingManager.completeOnboarding()
+                Foundation.NotificationCenter.default.post(name: .onboardingCompleted, object: nil)
+            }
 
         default:
             if let next = currentStep.next {
@@ -828,7 +816,57 @@ struct Onboarding_Preview: PreviewProvider {
             let resolver = TrioApp.resolver
             let onboardingManager = OnboardingManager()
             Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager, wasMigrationSuccessful: true)
+                .environment(AppState())
                 .previewDisplayName("Onboarding Flow")
         }
+    }
+}
+
+private struct CloudRestoreChoiceStepView: View {
+    @Bindable var state: Onboarding.StateModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "info.circle.fill")
+                        .foregroundStyle(Color.bgDarkBlue, Color.blue)
+                        .symbolRenderingMode(.palette)
+                    Text("Information").foregroundStyle(Color.blue)
+                }.bold()
+
+                Text("You can restore settings from an iCloud backup later, even if you choose to start fresh now.")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(Color.chart.opacity(0.65))
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.blue, lineWidth: 2))
+            .cornerRadius(10)
+
+            VStack(spacing: 0) {
+                choice("Restore Settings From iCloud", option: .restore)
+                Divider().padding(.horizontal)
+                choice("Start Fresh With New Settings", option: .startFresh)
+            }
+            .background(Color.chart.opacity(0.65))
+            .cornerRadius(10)
+        }
+    }
+
+    private func choice(_ title: String, option: CloudRestoreOption) -> some View {
+        Button { state.chooseCloudRestoreOption(option) } label: {
+            HStack {
+                Text(title).foregroundStyle(Color.white)
+                Spacer()
+                if state.cloudRestoreOption == option {
+                    Image(systemName: "checkmark").foregroundStyle(Color.blue).fontWeight(.semibold)
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(state.cloudRestoreOption == option ? [.isSelected] : [])
     }
 }
