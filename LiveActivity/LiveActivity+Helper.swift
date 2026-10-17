@@ -69,6 +69,25 @@ extension NumberFormatter {
     }()
 }
 
+extension LiveActivityAttributes.ContentState {
+    /// Color for the current glucose reading; reading, thresholds and target are all compared in mg/dL.
+    var glucoseColor: Color {
+        let hasStaticColorScheme = glucoseColorScheme == "staticColor"
+
+        // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+        let hardCodedLow = Decimal(55)
+        let hardCodedHigh = Decimal(220)
+
+        return Color.getDynamicGlucoseColor(
+            glucoseValue: glucose ?? 100,
+            highGlucoseColorValue: hasStaticColorScheme ? highGlucose : hardCodedHigh,
+            lowGlucoseColorValue: hasStaticColorScheme ? lowGlucose : hardCodedLow,
+            targetGlucose: target,
+            glucoseColorScheme: glucoseColorScheme
+        )
+    }
+}
+
 extension Color {
     // Static Glucose Color Scheme band colors — needs to be kept in sync with DynamicGlucoseColor.swift
     static let staticLow = Color(hue: 0.0 / 360.0, saturation: 0.6, brightness: 0.9)
