@@ -294,6 +294,7 @@ final class LiveActivityData: ObservableObject {
                         .ContentState(
                             unit: settings.units.rawValue,
                             bg: "--",
+                            glucose: nil,
                             direction: nil,
                             change: "--",
                             date: Date.now,
