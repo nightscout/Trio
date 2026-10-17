@@ -283,4 +283,14 @@ extension WatchState {
             }
         }
     }
+
+    /// Snoozes all alarms on the iPhone for the given duration. A duration of 0 ends the snooze.
+    func sendSnoozeRequest(minutes: Int) {
+        Task {
+            await WatchLogger.shared.log("⌚️ Sending snooze request: \(minutes) min")
+        }
+
+        snoozeUntilDate = minutes > 0 ? Date().addingTimeInterval(TimeInterval(minutes * 60)) : .distantPast
+        WatchNotificationHandler.shared.sendSnoozeRequest(minutes: minutes)
+    }
 }
