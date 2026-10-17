@@ -22,12 +22,13 @@ struct IOBEntry: JSON {
         let time: Date
     }
 
+    /// Mirrors `IobResult.LastTemp`: with no temp basal in pump history, oref writes `{"date": 0}` only.
     struct LastTemp: JSON {
-        let rate: Decimal
-        let timestamp: Date
-        let started_at: Date
+        let rate: Decimal?
+        let timestamp: Date?
+        let started_at: Date?
         let date: UInt64
-        let duration: Decimal
+        let duration: Decimal?
     }
 }
 
