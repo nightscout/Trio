@@ -627,7 +627,7 @@ extension UserInterfaceSettings {
                                     selectedVerboseHint =
                                         AnyView(
                                             Text(
-                                                "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: your time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nAverages: your average glucose and GMI (Glucose Management Index).\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut.\n\nThe numbers cover the time span set in Statistics Range."
+                                                "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: your time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nAverages: your average glucose and GMI (Glucose Management Index).\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut.\n\nThe numbers cover the time span set in Home Statistics Range."
                                             )
                                         )
                                     shouldDisplayHint.toggle()
@@ -646,7 +646,7 @@ extension UserInterfaceSettings {
                     VStack(alignment: .leading) {
                         Picker(
                             selection: $state.homeStatsPanelRange,
-                            label: Text("Statistics Range").multilineTextAlignment(.leading)
+                            label: Text("Home Statistics Range").multilineTextAlignment(.leading)
                         ) {
                             ForEach(HomeStatsPanelRange.allCases) { selection in
                                 Text(selection.displayName).tag(selection)
@@ -665,7 +665,7 @@ extension UserInterfaceSettings {
                             Spacer()
                             Button(
                                 action: {
-                                    hintLabel = String(localized: "Statistics Range")
+                                    hintLabel = String(localized: "Home Statistics Range")
                                     selectedVerboseHint =
                                         AnyView(
                                             Text(
@@ -682,7 +682,7 @@ extension UserInterfaceSettings {
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
                     }.padding(.bottom)
-                }.settingsSearchTarget(label: String(localized: "Statistics Range"))
+                }.settingsSearchTarget(label: String(localized: "Home Statistics Range"))
 
                 SettingInputSection(
                     decimalValue: $state.carbsRequiredThreshold,
