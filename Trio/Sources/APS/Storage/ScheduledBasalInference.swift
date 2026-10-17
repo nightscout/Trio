@@ -108,3 +108,47 @@ enum ScheduledBasalInference {
         return (components.hour ?? 0) * 60 + (components.minute ?? 0)
     }
 }
+
+// MARK: - Delivery at an instant
+
+extension ScheduledBasalInference {
+    /// What the pump is delivering at one point in time.
+    enum Delivery: Equatable {
+        case suspended
+        case temp(Decimal)
+        case scheduled(Decimal)
+    }
+
+    /// A basal event from pump history; a schedule report has `end == start`.
+    struct BasalEvent {
+        let start: Date
+        let end: Date
+        let rate: Decimal
+        let isScheduled: Bool
+    }
+
+    /// Resolves delivery at `now`; `events` and `suspensions` are ascending.
+    static func delivery(
+        events: [BasalEvent],
+        suspensions: [(date: Date, isSuspend: Bool)],
+        profile: [BasalProfileEntry],
+        now: Date
+    ) -> Delivery? {
+        let lastSuspension = suspensions.last { $0.date <= now }
+        if lastSuspension?.isSuspend == true { return .suspended }
+
+        // a resume hands delivery back to the schedule, whatever the temp claimed
+        let resumedAt = lastSuspension?.date ?? .distantPast
+
+        if let current = events.last(where: { $0.start <= now }),
+           !current.isScheduled,
+           current.start >= resumedAt,
+           current.end > now
+        {
+            return .temp(current.rate)
+        }
+
+        guard let rate = findBasalRateForOffset(for: minutesOfDay(now), in: profile) else { return nil }
+        return .scheduled(rate)
+    }
+}

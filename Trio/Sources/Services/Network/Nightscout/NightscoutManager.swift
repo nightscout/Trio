@@ -10,14 +10,15 @@ protocol NightscoutManager: GlucoseSource {
     func fetchGlucose(since date: Date) async -> [BloodGlucose]
     func fetchCarbs() async -> [CarbsEntry]
     func fetchTempTargets() async -> [TempTarget]
-    func deleteCarbs(withID id: String) async
+    /// Returns false when Nightscout rejected the delete; unconfigured or upload-disabled Nightscout counts as success.
+    func deleteCarbs(withID id: String) async -> Bool
     func deleteInsulin(withID id: String) async
     func deleteGlucose(withID id: String, withDate date: Date) async
     func uploadCarbs() async
     func uploadOverrides() async
     func uploadTempTargets() async
     func uploadProfiles() async throws
-    func uploadNoteTreatment(note: String) async
+    @discardableResult func uploadNoteTreatment(note: String) async -> Bool
     func importSettings() async -> ScheduledNightscoutProfile?
     var cgmURL: URL? { get }
 }
@@ -436,17 +437,19 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    func deleteCarbs(withID id: String) async {
-        guard let nightscout = nightscoutAPI, isUploadEnabled else { return }
+    func deleteCarbs(withID id: String) async -> Bool {
+        guard let nightscout = nightscoutAPI, isUploadEnabled else { return true }
 
         do {
             try await nightscout.deleteCarbs(withId: id)
             debug(.nightscout, "Carbs deleted")
+            return true
         } catch {
             debug(
                 .nightscout,
                 "\(DebuggingIdentifiers.failed) Failed to delete Carbs from Nightscout with error: \(error)"
             )
+            return false
         }
     }
 
@@ -840,6 +843,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 let presetOverrides = try await overridesStorage.getPresetOverridesForNightscout()
                 let teamID = Bundle.main.object(forInfoDictionaryKey: "TeamID") as? String ?? ""
                 let expireDate = BuildDetails.shared.calculateExpirationDate()
+                let remoteCommands = TrioRemoteControl.CommandType.supported.map(\.rawValue)
 
                 let profileStore = NightscoutProfileStore(
                     defaultProfile: defaultProfile,
@@ -853,7 +857,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     isAPNSProduction: isAPNSProduction,
                     overridePresets: presetOverrides,
                     teamID: teamID,
-                    expirationDate: expireDate
+                    expirationDate: expireDate,
+                    remoteCommands: remoteCommands
                 )
 
                 guard let nightscout = nightscoutAPI, isNetworkReachable else {
@@ -867,6 +872,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 try await nightscout.uploadProfile(profileStore)
 
                 BuildDetails.shared.recordUploadedExpireDate(expireDate: expireDate)
+                BuildDetails.shared.recordUploadedRemoteCommands(remoteCommands)
 
                 debug(.nightscout, "Profile uploaded")
             } catch {
@@ -1007,9 +1013,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    private func uploadNonCoreDataTreatments(_ treatments: [NightscoutTreatment]) async {
+    /// - Returns: `true` only if every chunk reached Nightscout.
+    @discardableResult private func uploadNonCoreDataTreatments(_ treatments: [NightscoutTreatment]) async -> Bool {
         guard !treatments.isEmpty, let nightscout = nightscoutAPI, isUploadEnabled else {
-            return
+            return false
         }
 
         do {
@@ -1018,8 +1025,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
 
             debug(.nightscout, "Treatments uploaded")
+            return true
         } catch {
             debug(.nightscout, String(describing: error))
+            return false
         }
     }
 
@@ -1339,7 +1348,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     // TODO: have this checked; this has never actually written anything to file; the entire logic of this function seems broken
-    func uploadNoteTreatment(note: String) async {
+    @discardableResult func uploadNoteTreatment(note: String) async -> Bool {
         let uploadedNotes = storage.retrieve(OpenAPS.Nightscout.uploadedNotes, as: [NightscoutTreatment].self) ?? []
         let now = Date()
 
@@ -1352,10 +1361,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 targetTop: nil,
                 targetBottom: nil
             )
-            await uploadNonCoreDataTreatments([noteTreatment])
+            return await uploadNonCoreDataTreatments([noteTreatment])
             // TODO: fix/adjust, if necessary
 //            await uploadTreatments([noteTreatment], fileToSave: OpenAPS.Nightscout.uploadedNotes)
         }
+        return false
     }
 }
 

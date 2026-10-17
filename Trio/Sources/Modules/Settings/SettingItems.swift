@@ -377,7 +377,8 @@ enum SettingItems {
             view: .liveActivitySettings,
             searchContents: [
                 "Enable Live Activity",
-                "Lock Screen Widget Style"
+                "Lock Screen Widget Style",
+                "Widget Configuration"
             ],
             path: ["Notifications", "Live Activity"]
         ),
@@ -409,7 +410,8 @@ enum SettingItems {
             view: .nighscoutConfig,
             searchContents: [
                 "Allow Uploading to Nightscout",
-                "Upload Glucose"
+                "Upload Glucose",
+                "Upload CGM Sensor States"
             ],
             path: ["Services", "Nightscout", "Upload"]
         ),
