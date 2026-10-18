@@ -13,6 +13,7 @@
 [submodule "G7SensorKit"]
 	path = G7SensorKit
 	url = https://github.com/loopandlearn/G7SensorKit.git
+	branch = feat/trio-g7-direct
 [submodule "MinimedKit"]
 	path = MinimedKit
 	url = https://github.com/loopandlearn/MinimedKit.git
