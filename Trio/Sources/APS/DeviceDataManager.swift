@@ -47,6 +47,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var bluetoothProvider: BluetoothStateManager!
     @Injected() private var trioAlertManager: TrioAlertManager!
+    @Injected() private var deviceLogStore: DeviceLogStore!
     // lazy to avoid circular dependency (NightscoutManager → PumpHistoryStorage)
     private var resolver: Resolver?
     // serializes event batches: a PM may report again before the prior store finished
@@ -652,13 +653,19 @@ extension BaseDeviceDataManager: DeviceManagerDelegate {
     }
 
     func deviceManager(
-        _: DeviceManager,
-        logEventForDeviceIdentifier _: String?,
-        type _: DeviceLogEntryType,
+        _ manager: DeviceManager,
+        logEventForDeviceIdentifier deviceIdentifier: String?,
+        type: DeviceLogEntryType,
         message: String,
-        completion _: ((Error?) -> Void)?
+        completion: ((Error?) -> Void)?
     ) {
-        debug(.deviceManager, "Device message: \(message)")
+        deviceLogStore.log(
+            managerIdentifier: manager.pluginIdentifier,
+            deviceIdentifier: deviceIdentifier,
+            type: type,
+            message: message,
+            completion: completion
+        )
     }
 }
 

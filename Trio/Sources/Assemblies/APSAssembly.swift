@@ -3,6 +3,8 @@ import Swinject
 
 final class APSAssembly: Assembly {
     func assemble(container: Container) {
+        container.register(DeviceLogStore.self) { _ in DeviceLogStore() }.inObjectScope(.container)
+        container.register(DeviceLogExporting.self) { r in DeviceLogExporter(resolver: r) }
         container.register(DeviceDataManager.self) { r in BaseDeviceDataManager(resolver: r) }
         container.register(APSManager.self) { r in BaseAPSManager(resolver: r) }
         container.register(FetchGlucoseManager.self) { r in BaseFetchGlucoseManager(resolver: r) }
