@@ -843,6 +843,12 @@ extension SettingsExport {
                 addSetting(
                     category: featuresCategory,
                     subcategory: userInterfaceSubcategory,
+                    name: String(localized: "Home Statistics Panel"),
+                    value: trioSettings.homeStatsPanelFace.displayName
+                )
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
                     name: String(localized: "Home Statistics Range"),
                     value: trioSettings.homeStatsPanelRange.displayName
                 )
