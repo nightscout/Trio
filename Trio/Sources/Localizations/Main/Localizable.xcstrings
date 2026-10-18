@@ -13174,6 +13174,9 @@
         }
       }
     },
+    "%lld days" : {
+
+    },
     "%lld g" : {
       "localizations" : {
         "bg" : {
@@ -23329,6 +23332,9 @@
           }
         }
       }
+    },
+    "1 day" : {
+
     },
     "1 U and over" : {
       "comment" : "Name to display for the \"1 U and over\" bolus display threshold option.",
@@ -89806,6 +89812,9 @@
         }
       }
     },
+    "Copy Markdown" : {
+
+    },
     "Copy Secret" : {
       "localizations" : {
         "bg" : {
@@ -110613,6 +110622,12 @@
           }
         }
       }
+    },
+    "Diagnostic Report" : {
+
+    },
+    "Diagnostic report" : {
+
     },
     "Dings" : {
       "comment" : "Name of a sound file.",
@@ -164550,6 +164565,9 @@
         }
       }
     },
+    "Identifiers such as URLs, secrets, and device serials are replaced before sharing." : {
+
+    },
     "If \"Display IOB and COB\" is also enabled, \"IOB\" and \"COB\" will be replaced with the following emojis:" : {
       "localizations" : {
         "bg" : {
@@ -169951,6 +169969,9 @@
           }
         }
       }
+    },
+    "Include debug lines" : {
+
     },
     "Include IOB & COB in the calendar event data." : {
       "localizations" : {
@@ -268533,6 +268554,9 @@
     "Share Pump Logs" : {
 
     },
+    "Share Report" : {
+
+    },
     "Shared Secret" : {
       "localizations" : {
         "bg" : {
@@ -312166,6 +312190,9 @@
           }
         }
       }
+    },
+    "Time window" : {
+
     },
     "Time-Sensitive" : {
       "localizations" : {
