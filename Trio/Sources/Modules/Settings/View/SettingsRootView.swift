@@ -22,6 +22,7 @@ extension Settings {
         @State private var logArchive: URL?
         @State private var isPreparingLogs = false
         @State private var showLogErrorToast = false
+        @State private var showDiagnosticReport = false
         @State private var searchText: String = ""
         @State var hintDetent = PresentationDetent.large
         @State private var hintPayload: HintPayload?
@@ -306,6 +307,7 @@ extension Settings {
                             Menu {
                                 Button("Device logs") { shareLogs(state.deviceLogsArchive) }
                                 Button("App logs") { shareLogs(state.appLogsArchive) }
+                                Button("Diagnostic report") { showDiagnosticReport = true }
                             } label: {
                                 HStack {
                                     Text("Share Logs")
@@ -494,6 +496,9 @@ extension Settings {
                 logArchive = nil
             }) {
                 ShareSheet(activityItems: logArchive.map { [$0] } ?? [])
+            }
+            .sheet(isPresented: $showDiagnosticReport) {
+                DiagnosticReportView(generator: state.diagnosticReportGenerator)
             }
             .onAppear(perform: configureView)
             .task {
