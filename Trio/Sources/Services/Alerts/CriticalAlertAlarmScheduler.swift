@@ -1,6 +1,5 @@
 import Foundation
 import LoopKit
-import os.log
 
 #if canImport(AlarmKit)
     import ActivityKit
@@ -22,8 +21,6 @@ import os.log
 /// Ported from Loop's `CriticalAlertAlarmScheduler`.
 @MainActor
 final class CriticalAlertAlarmScheduler {
-    private let log = OSLog(subsystem: "org.nightscout.trio", category: "CriticalAlertAlarmScheduler")
-
     /// Maps an issued alert to the AlarmKit alarm scheduled for it, so the
     /// alarm can be cancelled when the alert is acknowledged or retracted.
     private var alarmsByAlert: [Alert.Identifier: UUID] = [:]
@@ -47,13 +44,8 @@ final class CriticalAlertAlarmScheduler {
             guard AlarmManager.shared.authorizationState == .notDetermined else { return }
             do {
                 _ = try await AlarmManager.shared.requestAuthorization()
-            } catch {
-                os_log(
-                    "AlarmKit authorization request failed: %{public}@",
-                    log: OSLog(subsystem: "org.nightscout.trio", category: "CriticalAlertAlarmScheduler"),
-                    type: .error,
-                    String(describing: error)
-                )
+            } catch let authorizationError {
+                error(.service, "AlarmKit authorization request failed", error: authorizationError)
             }
         #endif
     }
@@ -99,19 +91,16 @@ final class CriticalAlertAlarmScheduler {
 
             let id = UUID()
             alarmsByAlert[alert.identifier] = id
-            let log = self.log
             let identifier = alert.identifier
             Task { [weak self] in
                 do {
                     _ = try await AlarmManager.shared.schedule(id: id, configuration: configuration)
-                    os_log(
-                        "Scheduled AlarmKit alarm %{public}@ for %{public}@",
-                        log: log, type: .info, id.uuidString, identifier.value
-                    )
-                } catch {
-                    os_log(
-                        "Failed to schedule AlarmKit alarm for %{public}@: %{public}@ — falling back to audio",
-                        log: log, type: .error, identifier.value, String(describing: error)
+                    info(.service, "Scheduled AlarmKit alarm \(id.uuidString) for \(identifier.value)")
+                } catch let scheduleError {
+                    error(
+                        .service,
+                        "Failed to schedule AlarmKit alarm for \(identifier.value) — falling back to audio",
+                        error: scheduleError
                     )
                     self?.alarmsByAlert.removeValue(forKey: identifier)
                     onScheduleFailure()
@@ -131,10 +120,7 @@ final class CriticalAlertAlarmScheduler {
             // The alarm may be ringing or merely scheduled; try both and ignore errors.
             try? AlarmManager.shared.stop(id: id)
             try? AlarmManager.shared.cancel(id: id)
-            os_log(
-                "Cancelled AlarmKit alarm %{public}@ for %{public}@",
-                log: log, type: .info, id.uuidString, identifier.value
-            )
+            info(.service, "Cancelled AlarmKit alarm \(id.uuidString) for \(identifier.value)")
         #endif
     }
 }

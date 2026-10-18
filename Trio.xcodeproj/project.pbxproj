@@ -218,11 +218,7 @@
 		38E87403274F78C000975559 /* libswiftCoreNFC.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 38E87402274F78C000975559 /* libswiftCoreNFC.tbd */; settings = {ATTRIBUTES = (Weak, ); }; };
 		38E87408274F9AD000975559 /* UserNotificationsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E87407274F9AD000975559 /* UserNotificationsManager.swift */; };
 		38E989DD25F5021400C0CED0 /* PumpStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E989DC25F5021400C0CED0 /* PumpStatus.swift */; };
-		38E98A2325F52C9300C0CED0 /* Signpost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E98A1B25F52C9300C0CED0 /* Signpost.swift */; };
 		38E98A2425F52C9300C0CED0 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E98A1C25F52C9300C0CED0 /* Logger.swift */; };
-		38E98A2525F52C9300C0CED0 /* IssueReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E98A1E25F52C9300C0CED0 /* IssueReporter.swift */; };
-		38E98A2725F52C9300C0CED0 /* CollectionIssueReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E98A2025F52C9300C0CED0 /* CollectionIssueReporter.swift */; };
-		38E98A2925F52C9300C0CED0 /* Error+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E98A2225F52C9300C0CED0 /* Error+Extensions.swift */; };
 		38E98A2D25F52DC400C0CED0 /* NSLocking+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E98A2C25F52DC400C0CED0 /* NSLocking+Extensions.swift */; };
 		38E98A3025F52FF700C0CED0 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E98A2F25F52FF700C0CED0 /* Config.swift */; };
 		38E98A3725F5509500C0CED0 /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E98A3625F5509500C0CED0 /* String+Extensions.swift */; };
@@ -1451,11 +1447,7 @@
 		38E87402274F78C000975559 /* libswiftCoreNFC.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCoreNFC.tbd; path = usr/lib/swift/libswiftCoreNFC.tbd; sourceTree = SDKROOT; };
 		38E87407274F9AD000975559 /* UserNotificationsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserNotificationsManager.swift; sourceTree = "<group>"; };
 		38E989DC25F5021400C0CED0 /* PumpStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpStatus.swift; sourceTree = "<group>"; };
-		38E98A1B25F52C9300C0CED0 /* Signpost.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Signpost.swift; sourceTree = "<group>"; };
 		38E98A1C25F52C9300C0CED0 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
-		38E98A1E25F52C9300C0CED0 /* IssueReporter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueReporter.swift; sourceTree = "<group>"; };
-		38E98A2025F52C9300C0CED0 /* CollectionIssueReporter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionIssueReporter.swift; sourceTree = "<group>"; };
-		38E98A2225F52C9300C0CED0 /* Error+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Error+Extensions.swift"; sourceTree = "<group>"; };
 		38E98A2C25F52DC400C0CED0 /* NSLocking+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSLocking+Extensions.swift"; sourceTree = "<group>"; };
 		38E98A2F25F52FF700C0CED0 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		38E98A3625F5509500C0CED0 /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
@@ -3519,10 +3511,8 @@
 		38E98A1A25F52C9300C0CED0 /* Logger */ = {
 			isa = PBXGroup;
 			children = (
-				38E98A1B25F52C9300C0CED0 /* Signpost.swift */,
 				38E98A1C25F52C9300C0CED0 /* Logger.swift */,
 				38E98A1D25F52C9300C0CED0 /* IssueReporter */,
-				38E98A2225F52C9300C0CED0 /* Error+Extensions.swift */,
 				79A6FC1583EE7761756C86BD /* Contracts */,
 				9F14EBDAAE691A7D9C7913DE /* Core */,
 				B57248ACB19D6554EBCAA15E /* DeviceLog */,
@@ -3536,8 +3526,6 @@
 		38E98A1D25F52C9300C0CED0 /* IssueReporter */ = {
 			isa = PBXGroup;
 			children = (
-				38E98A1E25F52C9300C0CED0 /* IssueReporter.swift */,
-				38E98A2025F52C9300C0CED0 /* CollectionIssueReporter.swift */,
 				38EA05D9261F6E7C0064E39B /* SimpleLogReporter.swift */,
 			);
 			path = IssueReporter;
@@ -5934,7 +5922,6 @@
 				38A0363B25ECF07E00FCBB52 /* GlucoseStorage.swift in Sources */,
 				65070A332BFDCB83006F213F /* TidepoolStartView.swift in Sources */,
 				190EBCC629FF138000BA767D /* UserInterfaceSettingsProvider.swift in Sources */,
-				38E98A2725F52C9300C0CED0 /* CollectionIssueReporter.swift in Sources */,
 				E00EEC0427368630002FF094 /* SecurityAssembly.swift in Sources */,
 				3811DEE825CA063400A708ED /* Injected.swift in Sources */,
 				DD1745152C54388A00211FAC /* TherapySettingsView.swift in Sources */,
@@ -6032,7 +6019,6 @@
 				7A11AC0DE000000000000110 /* HomeRootView+BottomControls.swift in Sources */,
 				7A11AC0DE00000000000010E /* HomeRootView+MealPanel.swift in Sources */,
 				7A11AC0DE00000000000010D /* HomeRootView+Header.swift in Sources */,
-				38E98A2925F52C9300C0CED0 /* Error+Extensions.swift in Sources */,
 				3E62C7822F54CC1B00433237 /* BolusDisplayThreshold.swift in Sources */,
 				38EA05DA261F6E7C0064E39B /* SimpleLogReporter.swift in Sources */,
 				3811DE6125C9D4D500A708ED /* ViewModifiers.swift in Sources */,
@@ -6149,7 +6135,6 @@
 				BDFD165A2AE40438007F0DDA /* TreatmentsRootView.swift in Sources */,
 				BD54A9732D281ABC00F9C1EE /* TempTargetPresetWatch.swift in Sources */,
 				DD3078682D42F5CE00DE0490 /* WatchGlucoseObject.swift in Sources */,
-				38E98A2525F52C9300C0CED0 /* IssueReporter.swift in Sources */,
 				3BCE75B52D4B391F009E9453 /* Decimal+rounding.swift in Sources */,
 				DD1745522C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift in Sources */,
 				DD2CC85C2D25DA1000445446 /* GlucoseTargetsView.swift in Sources */,
@@ -6309,7 +6294,6 @@
 				38E4453D274E411700EC9A94 /* Disk+Errors.swift in Sources */,
 				C29835B02E2AA3F30068C5BB /* NightscoutUploadStepView.swift in Sources */,
 				58D08B3A2C8DFECD00AA37D3 /* TempTargets.swift in Sources */,
-				38E98A2325F52C9300C0CED0 /* Signpost.swift in Sources */,
 				3B5CD1ED2D4912A600CE213C /* JSONBridge.swift in Sources */,
 				CE7CA3542A064973004BE681 /* TempPresetsIntentRequest.swift in Sources */,
 				58A3D5442C96DE11003F90FC /* TempTargetStored+Helper.swift in Sources */,

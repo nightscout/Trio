@@ -67,4 +67,28 @@ import Foundation
         algorithmLogSink?(category, message)
     }
 
+    func error(
+        _ category: Logger.Category,
+        _ message: String,
+        description _: String? = nil,
+        error _: Swift.Error? = nil,
+        file _: String = #file,
+        function _: String = #function,
+        line _: UInt = #line
+    ) {
+        algorithmLogSink?(category, message)
+    }
+
+    func fault(
+        _ category: Logger.Category,
+        _ message: String,
+        description _: String? = nil,
+        error _: Swift.Error? = nil,
+        file _: String = #file,
+        function _: String = #function,
+        line _: UInt = #line
+    ) {
+        algorithmLogSink?(category, message)
+    }
+
 #endif
