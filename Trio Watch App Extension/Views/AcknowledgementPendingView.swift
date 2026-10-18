@@ -146,7 +146,7 @@ private struct BolusOverrideConfirmationView: View {
                 WKInterfaceDevice.current().play(.success)
 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    state.sendBolusRequest(pendingBolusOverride.amount, overriding: pendingBolusOverride.overriddenChecks)
+                    state.sendBolusRequest(pendingBolusOverride.amount, confirming: pendingBolusOverride)
                     if !state.showCommsAnimation {
                         // The phone was not reachable, so nothing was sent
                         navigationPath.removeLast(navigationPath.count)

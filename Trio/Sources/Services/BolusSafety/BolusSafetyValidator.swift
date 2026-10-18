@@ -40,6 +40,22 @@ enum BolusSafetyCheck: String, CaseIterable {
     var canBeOverridden: Bool {
         self != .maxBolus
     }
+
+    /// How long a user's confirmation past a failed check stays valid. It matches the recent-bolus window, so the
+    /// reason the user saw is at most about one loop cycle old.
+    static let overrideLifetimeMinutes = BolusSafetyEvaluator.recentBolusWindowMinutes
+
+    /// The checks a user confirmed to bolus through, or none if the confirmation has expired, so that every check
+    /// runs again on current data.
+    /// - Parameters:
+    ///   - rawValues: The confirmed checks' raw values; unknown values are ignored
+    ///   - issuedAt: When the user was asked to confirm, as seconds since 1970 on this device's clock
+    static func overridden(_ rawValues: [String], issuedAt: TimeInterval?, now: Date = Date()) -> Set<BolusSafetyCheck> {
+        guard let issuedAt,
+              (0 ... TimeInterval(overrideLifetimeMinutes * 60)).contains(now.timeIntervalSince1970 - issuedAt)
+        else { return [] }
+        return Set(rawValues.compactMap(BolusSafetyCheck.init(rawValue:)))
+    }
 }
 
 enum BolusSafetyResult: Equatable {

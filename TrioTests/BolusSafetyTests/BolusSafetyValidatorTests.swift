@@ -177,4 +177,31 @@ import Testing
         #expect(BolusSafetyRejection.exceedsMaxIOB(currentIOB: 1, maxIOB: 1).check == .maxIOB)
         #expect(BolusSafetyRejection.recentBolusWithinWindow(totalRecent: 1).check == .recentBolus)
     }
+
+    @Test("A confirmation past failed checks lasts as long as the recent-bolus window") func testOverrideLifetime() {
+        let now = Date()
+        let rawValues = [BolusSafetyCheck.maxIOB.rawValue, BolusSafetyCheck.recentBolus.rawValue]
+        let lifetime = TimeInterval(BolusSafetyEvaluator.recentBolusWindowMinutes * 60)
+
+        #expect(BolusSafetyCheck.overrideLifetimeMinutes == BolusSafetyEvaluator.recentBolusWindowMinutes)
+        #expect(
+            BolusSafetyCheck.overridden(rawValues, issuedAt: now.timeIntervalSince1970 - 60, now: now) ==
+                [.maxIOB, .recentBolus]
+        )
+        #expect(
+            BolusSafetyCheck.overridden(rawValues, issuedAt: now.timeIntervalSince1970 - lifetime, now: now) ==
+                [.maxIOB, .recentBolus]
+        )
+        #expect(BolusSafetyCheck.overridden(rawValues, issuedAt: now.timeIntervalSince1970 - lifetime - 1, now: now).isEmpty)
+        #expect(BolusSafetyCheck.overridden(rawValues, issuedAt: now.timeIntervalSince1970 + 60, now: now).isEmpty)
+        #expect(BolusSafetyCheck.overridden(rawValues, issuedAt: nil, now: now).isEmpty)
+    }
+
+    @Test("Unknown check names in a confirmation are ignored") func testOverrideUnknownChecks() {
+        let now = Date()
+        #expect(
+            BolusSafetyCheck.overridden(["max_iob", "not_a_check"], issuedAt: now.timeIntervalSince1970, now: now) ==
+                [.maxIOB]
+        )
+    }
 }

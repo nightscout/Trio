@@ -902,16 +902,27 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             ackCode: .bolusNeedsOverride,
             details: [
                 WatchMessageKeys.bolus: NSDecimalNumber(decimal: amount),
-                WatchMessageKeys.overriddenBolusChecks: overriding.union([reason.check]).map(\.rawValue).sorted()
+                WatchMessageKeys.overriddenBolusChecks: overriding.union([reason.check]).map(\.rawValue).sorted(),
+                WatchMessageKeys.bolusOverrideIssuedAt: Date().timeIntervalSince1970
             ]
         )
         return false
     }
 
-    /// Reads the safety checks a Watch bolus request says the user confirmed to bolus through.
+    /// Reads the safety checks a Watch bolus request says the user confirmed to bolus through. An expired
+    /// confirmation is dropped, so every check runs again on current data and the Watch asks again if one still fails.
     private func overriddenBolusChecks(in message: [String: Any]) -> Set<BolusSafetyCheck> {
         let rawValues = message[WatchMessageKeys.overriddenBolusChecks] as? [String] ?? []
-        return Set(rawValues.compactMap(BolusSafetyCheck.init(rawValue:)))
+        guard !rawValues.isEmpty else { return [] }
+
+        let overriding = BolusSafetyCheck.overridden(
+            rawValues,
+            issuedAt: message[WatchMessageKeys.bolusOverrideIssuedAt] as? TimeInterval
+        )
+        if overriding.isEmpty {
+            debug(.watchManager, "📱 Ignoring expired confirmation from watch past safety checks: \(rawValues)")
+        }
+        return overriding
     }
 
     /// Handles carbs entry requests received from the Watch

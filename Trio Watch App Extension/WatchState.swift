@@ -363,13 +363,15 @@ import WatchConnectivity
                 case .bolusNeedsOverride:
                     self.isMealBolusCombo = false
                     if let amount = message[WatchMessageKeys.bolus] as? NSNumber,
-                       let overriddenChecks = message[WatchMessageKeys.overriddenBolusChecks] as? [String]
+                       let overriddenChecks = message[WatchMessageKeys.overriddenBolusChecks] as? [String],
+                       let issuedAt = message[WatchMessageKeys.bolusOverrideIssuedAt] as? TimeInterval
                     {
                         self.showCommsAnimation = false
                         self.pendingBolusOverride = PendingBolusOverride(
                             amount: amount.decimalValue,
                             reason: ackMessage,
-                            overriddenChecks: overriddenChecks
+                            overriddenChecks: overriddenChecks,
+                            issuedAt: issuedAt
                         )
                     } else {
                         self.handleAcknowledgment(success: false, message: ackMessage, isFinal: true)

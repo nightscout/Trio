@@ -41,6 +41,8 @@ struct PendingBolusOverride: Equatable {
     let reason: String
     /// The checks to send back with the bolus if the user confirms, including the one that just failed
     let overriddenChecks: [String]
+    /// When the phone asked, on the phone's clock. Sent back unchanged so the phone can tell an expired confirmation.
+    let issuedAt: TimeInterval
 }
 
 enum WatchSize {

@@ -19,6 +19,8 @@ enum WatchMessageKeys {
     static let bolusProgressTimestamp = "bolusProgressTimestamp"
     /// Bolus safety checks (`BolusSafetyCheck` raw values) the user confirmed on the Watch to bolus through
     static let overriddenBolusChecks = "overriddenBolusChecks"
+    /// When the phone asked the Watch to confirm a bolus past a safety check, on the phone's clock, sent back unchanged
+    static let bolusOverrideIssuedAt = "bolusOverrideIssuedAt"
 
     // Recommendation Keys
     static let requestBolusRecommendation = "requestBolusRecommendation"
