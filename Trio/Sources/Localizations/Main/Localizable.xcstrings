@@ -49857,6 +49857,9 @@
         }
       }
     },
+    "App logs" : {
+
+    },
     "App version, build date, branch, and commit SHA; whether this is a TestFlight build; an Apple-supplied per-vendor identifier (IDFV) and a per-install UUID; hardware identifier (e.g. iPhone15,2); platform and iOS version; the paired pump model (when a pump is configured); the paired CGM type and model (when a CGM is configured); whether Nightscout, Tidepool, and Apple Health are configured (yes/no — no URLs, tokens, or credentials); and a few preference flags (units, closed-loop on/off, Live Activity, calendar integration). A rolling cold-launch count is included. The full JSON is visible under App Diagnostics → What's sent." : {
       "localizations" : {
         "bg" : {
@@ -90582,6 +90585,9 @@
         }
       }
     },
+    "Could not prepare logs" : {
+
+    },
     "Could not save the change." : {
       "comment" : "Adjustment could not be saved",
       "localizations" : {
@@ -110327,6 +110333,9 @@
           }
         }
       }
+    },
+    "Device logs" : {
+
     },
     "Devices" : {
       "comment" : "Devices menu item in the Settings main view.",
@@ -170194,6 +170203,9 @@
           }
         }
       }
+    },
+    "Includes everything this device reported to Trio in the last 3 days. Low-level Bluetooth traces cover the current app session only." : {
+
     },
     "Increase sensitivity when glucose is above target if a manual Temp Target > %@ %@ is set." : {
       "localizations" : {
@@ -268242,6 +268254,9 @@
         }
       }
     },
+    "Share CGM Logs" : {
+
+    },
     "Share logs" : {
       "comment" : "2 log files to share",
       "extractionState" : "manual",
@@ -268639,6 +268654,9 @@
           }
         }
       }
+    },
+    "Share Pump Logs" : {
+
     },
     "Shared Secret" : {
       "localizations" : {

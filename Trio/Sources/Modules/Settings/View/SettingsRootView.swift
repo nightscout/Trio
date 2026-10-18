@@ -19,6 +19,9 @@ extension Settings {
         @StateObject var state = StateModel()
 
         @State private var showShareSheet = false
+        @State private var logArchive: URL?
+        @State private var isPreparingLogs = false
+        @State private var showLogErrorToast = false
         @State private var searchText: String = ""
         @State var hintDetent = PresentationDetent.large
         @State private var hintPayload: HintPayload?
@@ -125,6 +128,23 @@ extension Settings {
                             .font(.footnote)
                             .foregroundColor(.secondary)
                     }
+                }
+            }
+        }
+
+        private func shareLogs(_ makeArchive: @escaping () async throws -> URL) {
+            isPreparingLogs = true
+            Task { @MainActor in
+                do {
+                    logArchive = try await makeArchive()
+                    isPreparingLogs = false
+                    showShareSheet = true
+                } catch {
+                    isPreparingLogs = false
+                    warning(.service, "Could not prepare logs for sharing: \(error)")
+                    withAnimation { showLogErrorToast = true }
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    withAnimation { showLogErrorToast = false }
                 }
             }
         }
@@ -283,18 +303,24 @@ extension Settings {
                     Section(
                         header: Text("Support & Community"),
                         content: {
-                            Button {
-                                showShareSheet.toggle()
+                            Menu {
+                                Button("Device logs") { shareLogs(state.deviceLogsArchive) }
+                                Button("App logs") { shareLogs(state.appLogsArchive) }
                             } label: {
                                 HStack {
                                     Text("Share Logs")
                                         .foregroundColor(.primary)
                                     Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(.secondary)
-                                        .font(.footnote)
+                                    if isPreparingLogs {
+                                        ProgressView()
+                                    } else {
+                                        Image(systemName: "chevron.right")
+                                            .foregroundColor(.secondary)
+                                            .font(.footnote)
+                                    }
                                 }
                             }
+                            .disabled(isPreparingLogs)
                             .frame(maxWidth: .infinity, alignment: .leading)
 
                             Button {
@@ -440,6 +466,16 @@ extension Settings {
                         .padding(.bottom, 32)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
+                if showLogErrorToast {
+                    Label("Could not prepare logs", systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .padding(.bottom, 32)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .sheet(item: $hintPayload) { payload in
@@ -451,8 +487,13 @@ extension Settings {
                     sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
-            .sheet(isPresented: $showShareSheet) {
-                ShareSheet(activityItems: state.logItems())
+            .sheet(isPresented: $showShareSheet, onDismiss: {
+                if let logArchive {
+                    LogShareAction.discard(logArchive)
+                }
+                logArchive = nil
+            }) {
+                ShareSheet(activityItems: logArchive.map { [$0] } ?? [])
             }
             .onAppear(perform: configureView)
             .task {
