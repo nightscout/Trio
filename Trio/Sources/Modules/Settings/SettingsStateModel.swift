@@ -9,6 +9,7 @@ extension Settings {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var broadcaster: Broadcaster!
         @Injected() private var deviceLogExporter: DeviceLogExporting!
+        @Injected() var diagnosticReportGenerator: DiagnosticReportGenerator!
         @Injected() private var nightscoutManager: NightscoutManager!
         @Injected() var pluginManager: PluginManager!
         @Injected() var fetchCgmManager: FetchGlucoseManager!
