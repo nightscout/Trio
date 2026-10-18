@@ -128,6 +128,7 @@ extension Notification.Name {
     }
 
     init() {
+        TrioLogger.install(LegacyFileLogSink())
         FileProtectionFixer.fixFlagFileProtectionForPropertyPersistentFlags() // TODO: ‼️ REMOVE ME BEFORE PUBLIC BETA / RELEASE
 
         let notificationCenter = Foundation.NotificationCenter.default
