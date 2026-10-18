@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		041D1E995A6AE92E9289DC49 /* TreatmentsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */; };
 		06B768620A4F3877551BF0B8 /* LoopTimingSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00DE70925909EFD810B65B94 /* LoopTimingSection.swift */; };
-		0847A90799FD02694AE3C447 /* LegacyFileLogSinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 025C71818E3D84E0C32F60B3 /* LegacyFileLogSinkTests.swift */; };
 		0D1EAF43EA72BAE07D16FD25 /* NightscoutSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A818A5FB069B0396BED1EC46 /* NightscoutSection.swift */; };
 		0D9A5E34A899219C5C4CDFAF /* HistoryStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9455FA2D92E77A6C4AFED8A3 /* HistoryStateModel.swift */; };
 		0F2B374F0AED7ECBAD5716B1 /* DeviceLogExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43BF681E9D2A9755CB9DCD62 /* DeviceLogExporter.swift */; };
@@ -86,7 +85,6 @@
 		5C55695D8C9185BDB57B3E7B /* LogRetentionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3084B00ADBA601CDBA8AB7 /* LogRetentionPolicy.swift */; };
 		60886ABC93CDB0D0EF6F7660 /* DeviceLogExporting.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0AE7DD84FC1252EAADC35F1 /* DeviceLogExporting.swift */; };
 		6ED6CA7C8BB78F440C2DDE04 /* BuildSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A39C1F3299C2A3903B601D11 /* BuildSection.swift */; };
-		7539F9BBEDB0DC975CE0305E /* LegacyFileLogSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = F91BFCE121E9F8826CE05BDE /* LegacyFileLogSink.swift */; };
 		7A11AC0DE000000000000106 /* HomeRootView+Refresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000006 /* HomeRootView+Refresh.swift */; };
 		7A11AC0DE000000000000111 /* HomeLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000011 /* HomeLayout.swift */; };
 		7A11AC0DE000000000000113 /* MultiUsePanelState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000013 /* MultiUsePanelState.swift */; };
@@ -1226,7 +1224,6 @@
 
 /* Begin PBXFileReference section */
 		00DE70925909EFD810B65B94 /* LoopTimingSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopTimingSection.swift; sourceTree = "<group>"; };
-		025C71818E3D84E0C32F60B3 /* LegacyFileLogSinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyFileLogSinkTests.swift; sourceTree = "<group>"; };
 		0CCB6F0602E069F5B4F83EDC /* RedactionPatterns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedactionPatterns.swift; sourceTree = "<group>"; };
 		0F0205BEC3117B5D00022C30 /* LogRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogRecord.swift; sourceTree = "<group>"; };
 		10E61A0885164081B57C357C /* NightscoutUploadSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutUploadSerializer.swift; sourceTree = "<group>"; };
@@ -1495,7 +1492,6 @@
 		E9C171A8FC35B730F1FFF25F /* InMemoryLogSink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryLogSink.swift; sourceTree = "<group>"; };
 		F602845F4994CA0A57286EE6 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		F7EB8FEFF04CF8327EE83D84 /* DeviceLogShareRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceLogShareRow.swift; sourceTree = "<group>"; };
-		F91BFCE121E9F8826CE05BDE /* LegacyFileLogSink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyFileLogSink.swift; sourceTree = "<group>"; };
 		FAB1E00000000000000000B1 /* ParityHarness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParityHarness.swift; sourceTree = "<group>"; };
 		FAB1E00000000000000000B2 /* ParityInputs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParityInputs.swift; sourceTree = "<group>"; };
 		FAB1E00000000000000000B3 /* ParityScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParityScenarios.swift; sourceTree = "<group>"; };
@@ -3195,7 +3191,6 @@
 			children = (
 				69EF64E9534E4822199EA279 /* TrioLogger.swift */,
 				E9C171A8FC35B730F1FFF25F /* InMemoryLogSink.swift */,
-				F91BFCE121E9F8826CE05BDE /* LegacyFileLogSink.swift */,
 				24AF0AA0328EA5E4016BD4D6 /* LaunchID.swift */,
 			);
 			path = Core;
@@ -3208,7 +3203,6 @@
 				161D44BBD9BB82CE0AF6B4EC /* DeviceLogStoreTests.swift */,
 				6F42FDD4C077138ADA03C3CA /* DeviceLogExporterTests.swift */,
 				C7BC1040D2F0BD84E0718784 /* TrioLoggerTests.swift */,
-				025C71818E3D84E0C32F60B3 /* LegacyFileLogSinkTests.swift */,
 				1DB223ADEDD0EB920F7BC209 /* AppLogStoreTests.swift */,
 				5516A8F6B694AF44C243B882 /* WatchLogIngestTests.swift */,
 				B8BA4CCF9E04B65D2624F103 /* DiagnosticReportGeneratorTests.swift */,
@@ -6444,7 +6438,6 @@
 				F60FCBDC5FB1457995D444EC /* KnownLogSubsystems.swift in Sources */,
 				E0F5C5534791F6BB9A237891 /* TrioLogger.swift in Sources */,
 				931AD2C542093B9D1A342065 /* InMemoryLogSink.swift in Sources */,
-				7539F9BBEDB0DC975CE0305E /* LegacyFileLogSink.swift in Sources */,
 				27DE1FE3427339F87A4D1892 /* LaunchID.swift in Sources */,
 				10C13662926D99DC9EDB0990 /* DeviceLogStore.swift in Sources */,
 				0F2B374F0AED7ECBAD5716B1 /* DeviceLogExporter.swift in Sources */,
@@ -6586,7 +6579,6 @@
 				2D5DFD6C90037128EA3DF5A9 /* DeviceLogStoreTests.swift in Sources */,
 				C2E1829091B5A504901C6AB6 /* DeviceLogExporterTests.swift in Sources */,
 				BD14CA4C88D904242178280A /* TrioLoggerTests.swift in Sources */,
-				0847A90799FD02694AE3C447 /* LegacyFileLogSinkTests.swift in Sources */,
 				91AE5F35FC765DFE4C1A2589 /* AppLogStoreTests.swift in Sources */,
 				FC83BDFB7C330BFD6A4DECFC /* WatchLogIngestTests.swift in Sources */,
 				BDAEE0006F95672099C25715 /* DiagnosticReportGeneratorTests.swift in Sources */,

@@ -8,7 +8,6 @@ import TidepoolServiceKit
 extension Settings {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var broadcaster: Broadcaster!
-        @Injected() private var fileManager: FileManager!
         @Injected() private var deviceLogExporter: DeviceLogExporting!
         @Injected() private var nightscoutManager: NightscoutManager!
         @Injected() var pluginManager: PluginManager!
@@ -60,13 +59,10 @@ extension Settings {
         }
 
         func appLogsArchive() async throws -> URL {
-            let paths = [SimpleLogReporter.logFile, SimpleLogReporter.logFilePrev, SimpleLogReporter.watchLogFile]
-            let fileManager = self.fileManager ?? .default
-            return try await LogShareAction.archive(named: "Trio-AppLogs-\(Self.archiveStamp(Date()))") { directory in
-                for path in paths where fileManager.fileExists(atPath: path) {
-                    let source = URL(fileURLWithPath: path)
-                    try fileManager.copyItem(at: source, to: directory.appendingPathComponent(source.lastPathComponent))
-                }
+            let now = Date()
+            let window = DateInterval(start: now.addingTimeInterval(-3 * 24 * 60 * 60), end: now)
+            return try await LogShareAction.archive(named: "Trio-AppLogs-\(Self.archiveStamp(now))") { directory in
+                try await AppLogTextExporter.export(from: .shared, window: window, into: directory)
             }
         }
 

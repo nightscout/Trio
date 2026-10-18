@@ -68,7 +68,8 @@ actor WatchLogger {
             return
         }
 
-        let payload: [String: Any] = ["watchLogs": logs.joined(separator: "\n")]
+        let batch = logs
+        let payload: [String: Any] = ["watchLogs": batch.joined(separator: "\n")]
 
         if session.activationState != .activated {
             session.activate()
@@ -77,7 +78,7 @@ actor WatchLogger {
         if session.isReachable {
             session.sendMessage(payload, replyHandler: nil) { _ in
                 Task {
-                    await self.persistLogsLocally()
+                    await self.persistLogsLocally(batch)
                 }
             }
         } else {
@@ -88,7 +89,7 @@ actor WatchLogger {
         logs.removeAll()
     }
 
-    func persistLogsLocally() async {
+    func persistLogsLocally(_ entries: [String]? = nil) async {
         let logDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
             .appendingPathComponent("logs", isDirectory: true)
 
@@ -107,7 +108,7 @@ actor WatchLogger {
             FileManager.default.createFile(atPath: logFile.path, contents: nil, attributes: [.creationDate: startOfDay])
         }
 
-        let fullLog = logs.joined(separator: "\n") + "\n"
+        let fullLog = (entries ?? logs).joined(separator: "\n") + "\n"
         if let data = fullLog.data(using: .utf8) {
             if let handle = try? FileHandle(forWritingTo: logFile) {
                 try? handle.seekToEnd()
@@ -138,7 +139,7 @@ actor WatchLogger {
         if session.isReachable {
             session.sendMessage(payload, replyHandler: nil) { _ in
                 Task {
-                    await self.persistLogsLocally()
+                    await self.persistLogsLocally(logString.split(whereSeparator: \.isNewline).map(String.init))
                 }
             }
             try? FileManager.default.removeItem(at: logFile)
