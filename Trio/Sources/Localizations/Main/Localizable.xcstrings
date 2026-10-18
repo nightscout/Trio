@@ -74884,9 +74884,6 @@
         }
       }
     },
-    "Carbs were not logged." : {
-      "comment" : "Appended to the message sent to watch when a carbs and bolus request is blocked"
-    },
     "Carbs:" : {
       "localizations" : {
         "bg" : {
@@ -313281,6 +313278,9 @@
           }
         }
       }
+    },
+    "To bolus anyway, dial crown." : {
+
     },
     "To calculate the maximum SMB allowed based on this setting, use the following formula:" : {
       "localizations" : {

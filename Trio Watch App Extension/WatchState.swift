@@ -60,6 +60,7 @@ import WatchConnectivity
     var acknowledgementStatus: AcknowledgementStatus = .pending
     var acknowledgmentMessage: String = ""
     var shouldNavigateToRoot: Bool = true
+    var pendingBolusOverride: PendingBolusOverride?
 
     // Bolus calculation progress
     var showBolusCalculationProgress: Bool = false
@@ -359,6 +360,20 @@ import WatchConnectivity
                 case .comboComplete:
                     self.isMealBolusCombo = false
                     self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
+                case .bolusNeedsOverride:
+                    self.isMealBolusCombo = false
+                    if let amount = message[WatchMessageKeys.bolus] as? NSNumber,
+                       let overriddenChecks = message[WatchMessageKeys.overriddenBolusChecks] as? [String]
+                    {
+                        self.showCommsAnimation = false
+                        self.pendingBolusOverride = PendingBolusOverride(
+                            amount: amount.decimalValue,
+                            reason: ackMessage,
+                            overriddenChecks: overriddenChecks
+                        )
+                    } else {
+                        self.handleAcknowledgment(success: false, message: ackMessage, isFinal: true)
+                    }
                 default:
                     self.isMealBolusCombo = false
                     self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)

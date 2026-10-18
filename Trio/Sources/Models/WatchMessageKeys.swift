@@ -17,6 +17,8 @@ enum WatchMessageKeys {
     static let activeBolusAmount = "activeBolusAmount"
     static let deliveredAmount = "deliveredAmount"
     static let bolusProgressTimestamp = "bolusProgressTimestamp"
+    /// Bolus safety checks (`BolusSafetyCheck` raw values) the user confirmed on the Watch to bolus through
+    static let overriddenBolusChecks = "overriddenBolusChecks"
 
     // Recommendation Keys
     static let requestBolusRecommendation = "requestBolusRecommendation"

@@ -30,6 +30,17 @@ enum AcknowledgmentCode: String, Codable {
     case tempTargetStopped = "temp_target_stopped"
     case genericSuccess = "success"
     case genericFailure = "failure"
+    /// A bolus failed a safety check the user may confirm to bolus through.
+    case bolusNeedsOverride = "bolus_needs_override"
+}
+
+/// A bolus the phone blocked on a safety check the user may confirm with the digital crown to bolus through.
+struct PendingBolusOverride: Equatable {
+    let amount: Decimal
+    /// The phone's explanation of the failed check
+    let reason: String
+    /// The checks to send back with the bolus if the user confirms, including the one that just failed
+    let overriddenChecks: [String]
 }
 
 enum WatchSize {
