@@ -92,6 +92,9 @@ extension Stat {
                 }
             }
             .pickerStyle(.segmented)
+            .onChange(of: state.selectedIntervalForGlucoseStats) { _, newValue in
+                state.setupGlucoseArray(for: newValue)
+            }
 
             if state.glucoseFromPersistence.isEmpty {
                 ContentUnavailableView(
@@ -100,52 +103,44 @@ extension Stat {
                     description: Text("Glucose statistics will appear here once data is available.")
                 )
             } else {
-                timeInRangeCard
+                glucoseChartCard
 
-                if state.selectedGlucoseChartType == .glycemiaRiskIndex {
-                    StatCard {
-                        GRIExplanationView(result: GRICalculator.calculate(
-                            glucoseValues: state.glucoseFromPersistence.map(\.value)
-                        ))
-                    }
-                } else {
-                    if !state.selectedGlucoseChartType.isDaily {
-                        glucoseStatsCard
-                    }
+                if state.selectedGlucoseChartType.showsSummaryCard {
+                    glucoseStatsCard
+                }
 
-                    var hintText: String? {
-                        switch state.selectedGlucoseChartType {
-                        case .glycemiaRiskIndex:
-                            nil
-                        case .percentileByTime:
-                            String(localized: "Tap and hold the AGP graph or Time-in-Range ring to reveal more details.")
-                        case .distributionByTime:
-                            String(localized: "Tap and hold the Time-in-Range ring to reveal more details.")
-                        case .percentileByDay:
-                            String(
-                                localized: "Tap a percentile or tap and hold a bar to reveal more details. Swipe to scroll through time."
-                            )
-                        case .distributionByDay:
-                            String(
-                                localized: "Tap and hold a bar in the chart to reveal more details. Swipe to scroll through time."
-                            )
-                        }
+                var hintText: String? {
+                    switch state.selectedGlucoseChartType {
+                    case .glycemiaRiskIndex:
+                        nil
+                    case .percentileByTime:
+                        String(localized: "Tap and hold the AGP graph or Time-in-Range ring to reveal more details.")
+                    case .distributionByTime:
+                        String(localized: "Tap and hold the Time-in-Range ring to reveal more details.")
+                    case .percentileByDay:
+                        String(
+                            localized: "Tap a percentile or tap and hold a bar to reveal more details. Swipe to scroll through time."
+                        )
+                    case .distributionByDay:
+                        String(
+                            localized: "Tap and hold a bar in the chart to reveal more details. Swipe to scroll through time."
+                        )
                     }
-                    if let hintText {
-                        HStack {
-                            Image(systemName: "hand.draw.fill")
-                                .foregroundStyle(Color.primary)
-                                .padding(.leading)
-                            Text(hintText)
-                                .foregroundStyle(Color.secondary)
-                                .padding(.trailing)
-                        }.font(.footnote)
-                    }
+                }
+                if let hintText {
+                    HStack {
+                        Image(systemName: "hand.draw.fill")
+                            .foregroundStyle(Color.primary)
+                            .padding(.leading)
+                        Text(hintText)
+                            .foregroundStyle(Color.secondary)
+                            .padding(.trailing)
+                    }.font(.footnote)
                 }
             }
         }
 
-        private var timeInRangeCard: some View {
+        private var glucoseChartCard: some View {
             StatCard {
                 VStack(spacing: Constants.spacing) {
                     switch state.selectedGlucoseChartType {
@@ -181,9 +176,15 @@ extension Stat {
                         }
 
                     case .glycemiaRiskIndex:
-                        GRIChartView(result: GRICalculator.calculate(
-                            glucoseValues: state.glucoseFromPersistence.map(\.value)
-                        ))
+                        if let gri = state.griResult {
+                            GRIChartView(result: gri, units: state.units)
+                        } else {
+                            ContentUnavailableView(
+                                String(localized: "No Glucose Data"),
+                                systemImage: "chart.bar.fill",
+                                description: Text("Glucose statistics will appear here once data is available.")
+                            )
+                        }
 
                     case .percentileByTime:
                         GlucosePercentileChart(

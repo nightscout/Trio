@@ -11,6 +11,7 @@ extension Stat {
         var glucoseFromPersistence: [GlucoseReading] = []
         var hourlyStats: [HourlyStats] = []
         var glucoseRangeStats: [GlucoseRangeStats] = []
+        var griResult: GRICalculator.Result?
 
         var hourlyLoopStats: [LoopingStats] = []
         var dailyLoopStats: [LoopingStats] = []
@@ -28,11 +29,7 @@ extension Stat {
         var dailyGlucoseDistributionStats: [GlucoseDailyDistributionStats] = []
         var glucoseReadingsByDay: [Date: [GlucoseReading]] = [:]
 
-        var selectedIntervalForGlucoseStats: StatsTimeIntervalWithToday = .today {
-            didSet {
-                setupGlucoseArray(for: selectedIntervalForGlucoseStats)
-            }
-        }
+        var selectedIntervalForGlucoseStats: StatsTimeIntervalWithToday = .today
 
         var selectedIntervalForInsulinStats: StatsTimeInterval = .day
 
@@ -61,9 +58,8 @@ extension Stat {
             selectedIntervalForMealStats = StatsTimeInterval(range)
             selectedIntervalForLoopStats = StatsTimeInterval(range)
 
-            // `didSet` starts these fetches; assign only on change so each runs exactly once
             let glucoseInterval = StatsTimeIntervalWithToday(range)
-            if glucoseInterval != selectedIntervalForGlucoseStats {
+            if selectedIntervalForGlucoseStats != glucoseInterval {
                 selectedIntervalForGlucoseStats = glucoseInterval
             } else {
                 setupGlucoseArray(for: glucoseInterval)
@@ -91,6 +87,7 @@ extension Stat.StateModel {
         case distributionByDay = "Distribution (by day)"
 
         var isDaily: Bool { self == .percentileByDay || self == .distributionByDay }
+        var showsSummaryCard: Bool { !isDaily && self != .glycemiaRiskIndex }
 
         var displayName: String {
             switch self {
