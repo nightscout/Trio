@@ -80,6 +80,19 @@ extension PumpConfig {
                         }
                     }
                 ).listRowBackground(Color.chart)
+
+                if state.pumpState != nil, let pumpManager = state.provider.apsManager.pumpManager {
+                    Section {
+                        DeviceLogShareRow(
+                            title: String(localized: "Share Pump Logs"),
+                            footnote: String(
+                                localized: "Includes everything this device reported to Trio in the last 3 days. Low-level Bluetooth traces cover the current app session only."
+                            ),
+                            pluginIdentifier: pumpManager.pluginIdentifier,
+                            exporter: state.deviceLogExporter
+                        )
+                    }.listRowBackground(Color.chart)
+                }
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)

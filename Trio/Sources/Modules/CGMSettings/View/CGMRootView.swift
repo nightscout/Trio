@@ -92,6 +92,22 @@ extension CGMSettings {
                     }.listRowBackground(Color.chart)
                 }
 
+                if state.cgmCurrent.type == .plugin,
+                   let cgmManager = state.fetchGlucoseManager.cgmManager,
+                   state.cgmCurrent.id == state.fetchGlucoseManager.cgmGlucosePluginId
+                {
+                    Section {
+                        DeviceLogShareRow(
+                            title: String(localized: "Share CGM Logs"),
+                            footnote: String(
+                                localized: "Includes everything this device reported to Trio in the last 3 days. Low-level Bluetooth traces cover the current app session only."
+                            ),
+                            pluginIdentifier: cgmManager.pluginIdentifier,
+                            exporter: state.deviceLogExporter
+                        )
+                    }.listRowBackground(Color.chart)
+                }
+
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
                     booleanValue: $state.smoothGlucose,

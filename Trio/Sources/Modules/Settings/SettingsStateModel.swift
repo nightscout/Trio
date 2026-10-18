@@ -9,6 +9,7 @@ extension Settings {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var broadcaster: Broadcaster!
         @Injected() private var fileManager: FileManager!
+        @Injected() private var deviceLogExporter: DeviceLogExporting!
         @Injected() private var nightscoutManager: NightscoutManager!
         @Injected() var pluginManager: PluginManager!
         @Injected() var fetchCgmManager: FetchGlucoseManager!
@@ -44,18 +45,36 @@ extension Settings {
             serviceUIType = TidepoolService.self as? ServiceUI.Type
         }
 
-        func logItems() -> [URL] {
-            var items: [URL] = []
-
-            if fileManager.fileExists(atPath: SimpleLogReporter.logFile) {
-                items.append(URL(fileURLWithPath: SimpleLogReporter.logFile))
+        func deviceLogsArchive() async throws -> URL {
+            let now = Date()
+            let request = DeviceLogExportRequest(
+                window: DateInterval(start: now.addingTimeInterval(-3 * 24 * 60 * 60), end: now),
+                managerIdentifier: nil,
+                includeOSLog: true,
+                includeKitFiles: true
+            )
+            let exporter = deviceLogExporter
+            return try await LogShareAction.archive(named: "Trio-DeviceLogs-\(Self.archiveStamp(now))") { directory in
+                try await exporter?.export(request, into: directory)
             }
+        }
 
-            if fileManager.fileExists(atPath: SimpleLogReporter.logFilePrev) {
-                items.append(URL(fileURLWithPath: SimpleLogReporter.logFilePrev))
+        func appLogsArchive() async throws -> URL {
+            let paths = [SimpleLogReporter.logFile, SimpleLogReporter.logFilePrev, SimpleLogReporter.watchLogFile]
+            let fileManager = self.fileManager ?? .default
+            return try await LogShareAction.archive(named: "Trio-AppLogs-\(Self.archiveStamp(Date()))") { directory in
+                for path in paths where fileManager.fileExists(atPath: path) {
+                    let source = URL(fileURLWithPath: path)
+                    try fileManager.copyItem(at: source, to: directory.appendingPathComponent(source.lastPathComponent))
+                }
             }
+        }
 
-            return items
+        private static func archiveStamp(_ date: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.dateFormat = "yyyyMMdd-HHmm"
+            return formatter.string(from: date)
         }
 
         func hideSettingsModal() {
