@@ -306,9 +306,8 @@ struct ContactPicture: View {
     }
 
     private static func dynamicGlucoseColor(for state: ContactImageState) -> Color {
-        let glucoseValue = Decimal(string: state.glucose ?? "100") ?? 100
-        return Trio.getDynamicGlucoseColor(
-            glucoseValue: glucoseValue,
+        Trio.getDynamicGlucoseColor(
+            glucoseValue: state.glucoseValue ?? 100,
             highGlucoseColorValue: state.highGlucoseColorValue,
             lowGlucoseColorValue: state.lowGlucoseColorValue,
             targetGlucose: state.targetGlucose,
