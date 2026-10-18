@@ -148,9 +148,13 @@ struct GRIChartView: View {
                 .foregroundStyle(.secondary)
 
             bandRow("Below \(threshold(54))", value: result.veryLowPercentage, color: GRIColors.veryLow)
-            bandRow("\(threshold(54)) to below \(threshold(70))", value: result.lowPercentage, color: GRIColors.low)
             bandRow(
-                "Above \(threshold(180)) through \(threshold(250))",
+                "\(threshold(54, showUnits: false)) to below \(threshold(70))",
+                value: result.lowPercentage,
+                color: GRIColors.low
+            )
+            bandRow(
+                "Above \(threshold(180, showUnits: false)) through \(threshold(250))",
                 value: result.highPercentage,
                 color: GRIColors.high
             )
@@ -196,8 +200,11 @@ struct GRIChartView: View {
         }
     }
 
-    private func threshold(_ mgdL: Int) -> String {
-        Decimal(mgdL).formatted(withUnits: units)
+    private func threshold(_ mgdL: Int, showUnits: Bool = true) -> String {
+        if showUnits {
+            return mgdL.formatted(withUnits: units)
+        }
+        return mgdL.formatted(for: units)
     }
 
     private func bandRow(_ label: LocalizedStringKey, value: Double, color: Color) -> some View {
