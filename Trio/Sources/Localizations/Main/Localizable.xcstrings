@@ -1089,6 +1089,27 @@
         }
       }
     },
+    "1 day" : {
+
+    },
+    "3 days" : {
+
+    },
+    "Also keep detailed debug messages in the app log." : {
+
+    },
+    "How long Trio keeps its app log on this device." : {
+
+    },
+    "Log Retention" : {
+
+    },
+    "Logging" : {
+
+    },
+    "Verbose Logging" : {
+
+    },
     "Choose the preferred lower threshold for Time in Range statistics." : {
       "comment" : "Short description of the lower range threshold setting.",
       "localizations" : {

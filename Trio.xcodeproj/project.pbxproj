@@ -13,7 +13,6 @@
 		03B15F4F3077CD6100DFEBE4 /* SyaiKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03B15F4A3077CD4B00DFEBE4 /* SyaiKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		041D1E995A6AE92E9289DC49 /* TreatmentsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */; };
 		06B768620A4F3877551BF0B8 /* LoopTimingSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00DE70925909EFD810B65B94 /* LoopTimingSection.swift */; };
-		0847A90799FD02694AE3C447 /* LegacyFileLogSinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 025C71818E3D84E0C32F60B3 /* LegacyFileLogSinkTests.swift */; };
 		0D1EAF43EA72BAE07D16FD25 /* NightscoutSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A818A5FB069B0396BED1EC46 /* NightscoutSection.swift */; };
 		0D9A5E34A899219C5C4CDFAF /* HistoryStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9455FA2D92E77A6C4AFED8A3 /* HistoryStateModel.swift */; };
 		10DAA318F47843A4B894173D /* ContainerResolutionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98546920BB7247B0AC73449A /* ContainerResolutionTests.swift */; };
@@ -160,7 +159,6 @@
 		5C55695D8C9185BDB57B3E7B /* LogRetentionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3084B00ADBA601CDBA8AB7 /* LogRetentionPolicy.swift */; };
 		60886ABC93CDB0D0EF6F7660 /* DeviceLogExporting.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0AE7DD84FC1252EAADC35F1 /* DeviceLogExporting.swift */; };
 		6ED6CA7C8BB78F440C2DDE04 /* BuildSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A39C1F3299C2A3903B601D11 /* BuildSection.swift */; };
-		7539F9BBEDB0DC975CE0305E /* LegacyFileLogSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = F91BFCE121E9F8826CE05BDE /* LegacyFileLogSink.swift */; };
 		7BA97B74F25D6A1F5D853EFB /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F602845F4994CA0A57286EE6 /* ShareSheet.swift */; };
 		7D9C485831D451703B20F283 /* DeviceLogShareRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FABAFA208B56BAA140521720 /* DeviceLogShareRequestTests.swift */; };
 		8C9B2B65B1FF556ADF8915DF /* WatchSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16AA5756BADDE99F52317A6D /* WatchSection.swift */; };
@@ -1253,7 +1251,6 @@
 
 /* Begin PBXFileReference section */
 		00DE70925909EFD810B65B94 /* LoopTimingSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopTimingSection.swift; sourceTree = "<group>"; };
-		025C71818E3D84E0C32F60B3 /* LegacyFileLogSinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyFileLogSinkTests.swift; sourceTree = "<group>"; };
 		03B15F4A3077CD4B00DFEBE4 /* SyaiKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SyaiKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03B15F4C3077CD5400DFEBE4 /* SyaiKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SyaiKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A1E8522E7684C6AA742F6E4 /* HomeStateModel+QuickPickTreatments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeStateModel+QuickPickTreatments.swift"; sourceTree = "<group>"; };
@@ -2345,7 +2342,6 @@
 		F90692D0274B99B60037068D /* HealthKitProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitProvider.swift; sourceTree = "<group>"; };
 		F90692D2274B9A130037068D /* AppleHealthKitRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleHealthKitRootView.swift; sourceTree = "<group>"; };
 		F90692D5274B9A450037068D /* HealthKitStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitStateModel.swift; sourceTree = "<group>"; };
-		F91BFCE121E9F8826CE05BDE /* LegacyFileLogSink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyFileLogSink.swift; sourceTree = "<group>"; };
 		FAB1E00000000000000000B1 /* ParityHarness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParityHarness.swift; sourceTree = "<group>"; };
 		FAB1E00000000000000000B2 /* ParityInputs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParityInputs.swift; sourceTree = "<group>"; };
 		FAB1E00000000000000000B3 /* ParityScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParityScenarios.swift; sourceTree = "<group>"; };
@@ -3999,7 +3995,6 @@
 			children = (
 				69EF64E9534E4822199EA279 /* TrioLogger.swift */,
 				E9C171A8FC35B730F1FFF25F /* InMemoryLogSink.swift */,
-				F91BFCE121E9F8826CE05BDE /* LegacyFileLogSink.swift */,
 				24AF0AA0328EA5E4016BD4D6 /* LaunchID.swift */,
 			);
 			path = Core;
@@ -4023,7 +4018,6 @@
 				161D44BBD9BB82CE0AF6B4EC /* DeviceLogStoreTests.swift */,
 				6F42FDD4C077138ADA03C3CA /* DeviceLogExporterTests.swift */,
 				C7BC1040D2F0BD84E0718784 /* TrioLoggerTests.swift */,
-				025C71818E3D84E0C32F60B3 /* LegacyFileLogSinkTests.swift */,
 				1DB223ADEDD0EB920F7BC209 /* AppLogStoreTests.swift */,
 				5516A8F6B694AF44C243B882 /* WatchLogIngestTests.swift */,
 				B8BA4CCF9E04B65D2624F103 /* DiagnosticReportGeneratorTests.swift */,
@@ -6496,7 +6490,6 @@
 				F60FCBDC5FB1457995D444EC /* KnownLogSubsystems.swift in Sources */,
 				E0F5C5534791F6BB9A237891 /* TrioLogger.swift in Sources */,
 				931AD2C542093B9D1A342065 /* InMemoryLogSink.swift in Sources */,
-				7539F9BBEDB0DC975CE0305E /* LegacyFileLogSink.swift in Sources */,
 				27DE1FE3427339F87A4D1892 /* LaunchID.swift in Sources */,
 				10C13662926D99DC9EDB0990 /* DeviceLogStore.swift in Sources */,
 				0F2B374F0AED7ECBAD5716B1 /* DeviceLogExporter.swift in Sources */,
@@ -6638,7 +6631,6 @@
 				2D5DFD6C90037128EA3DF5A9 /* DeviceLogStoreTests.swift in Sources */,
 				C2E1829091B5A504901C6AB6 /* DeviceLogExporterTests.swift in Sources */,
 				BD14CA4C88D904242178280A /* TrioLoggerTests.swift in Sources */,
-				0847A90799FD02694AE3C447 /* LegacyFileLogSinkTests.swift in Sources */,
 				91AE5F35FC765DFE4C1A2589 /* AppLogStoreTests.swift in Sources */,
 				FC83BDFB7C330BFD6A4DECFC /* WatchLogIngestTests.swift in Sources */,
 				BDAEE0006F95672099C25715 /* DiagnosticReportGeneratorTests.swift in Sources */,
