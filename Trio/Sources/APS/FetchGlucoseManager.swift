@@ -49,6 +49,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     @Injected() var pluginCGMManager: PluginManager!
     @Injected() var calibrationService: CalibrationService!
     @Injected() var trioAlertManager: TrioAlertManager!
+    @Injected() private var deviceLogStore: DeviceLogStore!
 
     /// Guarded by `sensorStateLock`.
     @Persisted(key: "cgmSensorStateLog") private var sensorStateLog = CGMSensorStateLog()
@@ -275,7 +276,11 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             case .simulator:
                 glucoseSource = simulatorSource
             case .plugin:
-                glucoseSource = PluginSource(glucoseStorage: glucoseStorage, glucoseManager: self)
+                glucoseSource = PluginSource(
+                    glucoseStorage: glucoseStorage,
+                    glucoseManager: self,
+                    deviceLogStore: deviceLogStore
+                )
             }
         }
 
