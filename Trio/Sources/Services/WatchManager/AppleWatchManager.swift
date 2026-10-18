@@ -25,6 +25,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     @Injected() private var tempTargetStorage: TempTargetsStorage!
     @Injected() private var adjustmentManager: AdjustmentManager!
     @Injected() private var bolusCalculationManager: BolusCalculationManager!
+    @Injected() private var bolusSafetyValidator: BolusSafetyValidator!
     @Injected() private var iobService: IOBService!
     @Injected() private var notificationsManager: UserNotificationsManager!
 
@@ -825,6 +826,12 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     /// - Parameter amount: The requested bolus amount in units
     private func handleBolusRequest(_ amount: Decimal) {
         Task {
+            if let rejection = await bolusSafetyRejection(for: amount) {
+                debug(.watchManager, "📱 Rejected bolus from watch: \(amount)U. \(rejection)")
+                sendAcknowledgment(toWatch: false, message: rejection, ackCode: .genericFailure)
+                return
+            }
+
             await apsManager.enactBolus(amount: Double(amount), isSMB: false) { success, message in
                 // Acknowledge success or error of bolus
                 self.sendAcknowledgment(
@@ -834,6 +841,26 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 )
             }
             debug(.watchManager, "📱 Enacted bolus via APS Manager: \(amount)U")
+        }
+    }
+
+    /// Runs the shared bolus safety checks (max bolus, max IOB, recent boluses) on a bolus requested from the Watch.
+    /// - Parameter amount: The requested bolus amount in units
+    /// - Returns: `nil` if the bolus may be enacted, otherwise the message explaining why it was blocked
+    private func bolusSafetyRejection(for amount: Decimal) async -> String? {
+        do {
+            switch try await bolusSafetyValidator.validate(bolusAmount: amount) {
+            case .allowed:
+                return nil
+            case let .rejected(reason):
+                return reason.localizedMessage(requestedAmount: amount)
+            }
+        } catch {
+            debug(.watchManager, "❌ Error running bolus safety checks: \(error)")
+            return String(
+                localized: "Bolus blocked: the safety checks could not be completed.",
+                comment: "Error message sent to watch when the bolus safety checks fail to run"
+            )
         }
     }
 
@@ -895,6 +922,20 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     ///   - date: Timestamp for the carbs entry
     private func handleCombinedRequest(bolusAmount: Decimal, carbsAmount: Decimal, date: Date) {
         Task {
+            // Check the bolus before saving anything, so a blocked request logs neither carbs nor bolus
+            if let rejection = await bolusSafetyRejection(for: bolusAmount) {
+                debug(.watchManager, "📱 Rejected meal bolus combo from watch: \(bolusAmount) U. \(rejection)")
+                sendAcknowledgment(
+                    toWatch: false,
+                    message: rejection + " " + String(
+                        localized: "Carbs were not logged.",
+                        comment: "Appended to the message sent to watch when a carbs and bolus request is blocked"
+                    ),
+                    ackCode: .genericFailure
+                )
+                return
+            }
+
             let context = CoreDataStack.shared.newTaskContext()
 
             do {

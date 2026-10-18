@@ -64976,6 +64976,9 @@
         }
       }
     },
+    "Bolus blocked: the safety checks could not be completed." : {
+      "comment" : "Error message sent to watch when the bolus safety checks fail to run"
+    },
     "Bolus Calculator" : {
       "localizations" : {
         "bg" : {
@@ -74880,6 +74883,9 @@
           }
         }
       }
+    },
+    "Carbs were not logged." : {
+      "comment" : "Appended to the message sent to watch when a carbs and bolus request is blocked"
     },
     "Carbs:" : {
       "localizations" : {

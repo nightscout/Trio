@@ -3,7 +3,7 @@ import Foundation
 import Swinject
 
 /// Shared safety checks applied to any bolus command originating outside the main bolus UI
-/// (remote notifications, Shortcuts, etc.). Keeps validation logic consistent across call sites.
+/// (remote notifications, Shortcuts, Apple Watch, etc.). Keeps validation logic consistent across call sites.
 protocol BolusSafetyValidator {
     /// - Parameter lookbackStart: start of the window used for the recent-bolus 20% check.
     ///   Defaults to `now - BolusSafetyEvaluator.recentBolusWindowMinutes`. Callers that know when the
@@ -29,6 +29,34 @@ enum BolusSafetyRejection: Equatable {
     case iobUnavailable
     case exceedsMaxIOB(currentIOB: Decimal, maxIOB: Decimal)
     case recentBolusWithinWindow(totalRecent: Decimal)
+}
+
+extension BolusSafetyRejection {
+    /// User-facing explanation of the rejection, shown by Shortcuts and on the Watch.
+    func localizedMessage(requestedAmount: Decimal) -> String {
+        switch self {
+        case let .exceedsMaxBolus(maxBolus):
+            return String(
+                localized:
+                "The bolus cannot be larger than the pump setting max bolus (\(maxBolus.description))."
+            )
+        case .iobUnavailable:
+            return String(
+                localized:
+                "Bolus blocked: current IOB is not available."
+            )
+        case let .exceedsMaxIOB(currentIOB, maxIOB):
+            return String(
+                localized:
+                "Bolus blocked: a \(requestedAmount.formatted()) U bolus would exceed max IOB (\(maxIOB.formatted()) U). Current IOB: \(currentIOB.formatted()) U."
+            )
+        case .recentBolusWithinWindow:
+            return String(
+                localized:
+                "Bolus blocked: a significant bolus was delivered within the last \(BolusSafetyEvaluator.recentBolusWindowMinutes) minutes."
+            )
+        }
+    }
 }
 
 struct BolusSafetyInputs: Equatable {
