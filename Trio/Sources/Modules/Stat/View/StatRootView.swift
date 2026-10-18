@@ -102,13 +102,21 @@ extension Stat {
             } else {
                 timeInRangeCard
 
-                if !state.selectedGlucoseChartType.isDaily {
-                    glucoseStatsCard
-                }
+                if state.selectedGlucoseChartType == .glycemiaRiskIndex {
+                    StatCard {
+                        GRIExplanationView(result: GRICalculator.calculate(
+                            glucoseValues: state.glucoseFromPersistence.map(\.value)
+                        ))
+                    }
+                } else {
+                    if !state.selectedGlucoseChartType.isDaily {
+                        glucoseStatsCard
+                    }
 
-                HStack {
-                    var hintText: String {
+                    var hintText: String? {
                         switch state.selectedGlucoseChartType {
+                        case .glycemiaRiskIndex:
+                            nil
                         case .percentileByTime:
                             String(localized: "Tap and hold the AGP graph or Time-in-Range ring to reveal more details.")
                         case .distributionByTime:
@@ -123,13 +131,17 @@ extension Stat {
                             )
                         }
                     }
-                    Image(systemName: "hand.draw.fill")
-                        .foregroundStyle(Color.primary)
-                        .padding(.leading)
-                    Text(hintText)
-                        .foregroundStyle(Color.secondary)
-                        .padding(.trailing)
-                }.font(.footnote)
+                    if let hintText {
+                        HStack {
+                            Image(systemName: "hand.draw.fill")
+                                .foregroundStyle(Color.primary)
+                                .padding(.leading)
+                            Text(hintText)
+                                .foregroundStyle(Color.secondary)
+                                .padding(.trailing)
+                        }.font(.footnote)
+                    }
+                }
             }
         }
 
@@ -167,6 +179,11 @@ extension Stat {
                                 readingsByDay: state.glucoseReadingsByDay
                             )
                         }
+
+                    case .glycemiaRiskIndex:
+                        GRIChartView(result: GRICalculator.calculate(
+                            glucoseValues: state.glucoseFromPersistence.map(\.value)
+                        ))
 
                     case .percentileByTime:
                         GlucosePercentileChart(
