@@ -645,7 +645,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
         // Handle logs first - doesn't need self, so it can run even during teardown
         if let logs = message["watchLogs"] as? String {
-            SimpleLogReporter.appendToWatchLog(logs)
+            AppLogStore.watchRecords(from: logs).forEach(TrioLogger.sink.accept)
         }
 
         Task { @MainActor [weak self] in
@@ -785,7 +785,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
         if let logs = userInfo["watchLogs"] as? String {
-            SimpleLogReporter.appendToWatchLog(logs)
+            AppLogStore.watchRecords(from: logs).forEach(TrioLogger.sink.accept)
         }
 
         if let snoozeMinutes = userInfo[WatchMessageKeys.snoozeDuration] as? Int {

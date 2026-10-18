@@ -67,6 +67,9 @@ extension Notification.Name {
 
     private func loadServices() {
         resolver.resolve(AppearanceManager.self)!.setupGlobalAppearance()
+        if let settingsManager = resolver.resolve(SettingsManager.self), let broadcaster = resolver.resolve(Broadcaster.self) {
+            AppLogStore.shared.observeSettings(of: settingsManager, broadcaster: broadcaster)
+        }
         _ = resolver.resolve(DeviceDataManager.self)!
         _ = resolver.resolve(APSManager.self)!
         _ = resolver.resolve(FetchGlucoseManager.self)!
@@ -128,7 +131,7 @@ extension Notification.Name {
     }
 
     init() {
-        TrioLogger.install(LegacyFileLogSink())
+        TrioLogger.install(AppLogStore.shared)
         FileProtectionFixer.fixFlagFileProtectionForPropertyPersistentFlags() // TODO: ‼️ REMOVE ME BEFORE PUBLIC BETA / RELEASE
 
         let notificationCenter = Foundation.NotificationCenter.default

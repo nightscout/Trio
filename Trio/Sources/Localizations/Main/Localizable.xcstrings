@@ -1089,6 +1089,27 @@
         }
       }
     },
+    "1 day" : {
+
+    },
+    "3 days" : {
+
+    },
+    "Also keep detailed debug messages in the app log." : {
+
+    },
+    "How long Trio keeps its app log on this device." : {
+
+    },
+    "Log Retention" : {
+
+    },
+    "Logging" : {
+
+    },
+    "Verbose Logging" : {
+
+    },
     " " : {
       "localizations" : {
         "bg" : {

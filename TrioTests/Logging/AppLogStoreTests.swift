@@ -1,6 +1,183 @@
+import CoreData
 import Foundation
 import Testing
+import UIKit
 
 @testable import Trio
 
-@Suite("App Log Store Tests") struct AppLogStoreTests {}
+@Suite("App Log Store Tests", .serialized) struct AppLogStoreTests {
+    private final class Loader: @unchecked Sendable {
+        private let lock = NSLock()
+        private var succeeds: Bool
+        private var loaded = false
+
+        init(succeeds: Bool) { self.succeeds = succeeds }
+
+        var didLoad: Bool { lock.withLock { loaded } }
+        func setSucceeds(_ value: Bool) { lock.withLock { succeeds = value } }
+
+        func run(_ url: URL) -> NSPersistentContainer? {
+            guard lock.withLock({ succeeds }), let container = AppLogStore.loadContainer(url) else { return nil }
+            lock.withLock { loaded = true }
+            return container
+        }
+    }
+
+    private static func makeStore(
+        policy: LogRetentionPolicy = .default,
+        loader: Loader = Loader(succeeds: true),
+        center: Foundation.NotificationCenter = Foundation.NotificationCenter(),
+        isProtectedDataAvailable: @escaping @MainActor() -> Bool = { true }
+    ) throws -> (store: AppLogStore, directory: URL) {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let store = AppLogStore(
+            storageURL: directory.appendingPathComponent("logs/AppLog.sqlite"),
+            policy: policy,
+            notificationCenter: center,
+            loadContainer: loader.run,
+            isProtectedDataAvailable: isProtectedDataAvailable
+        )
+        return (store, directory)
+    }
+
+    private static func record(_ index: Int, at date: Date, level: LogLevel = .info) -> LogRecord {
+        LogRecord(
+            timestamp: date,
+            level: level,
+            category: "Service",
+            message: "message \(index)",
+            file: "File.swift",
+            function: "run()",
+            line: UInt(index),
+            launchID: LaunchID.current
+        )
+    }
+
+    private static func waitUntil(_ condition: () async -> Bool) async -> Bool {
+        for _ in 0 ..< 100 {
+            if await condition() { return true }
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
+        return false
+    }
+
+    private static let everything = DateInterval(start: .distantPast, end: .distantFuture)
+
+    @Test("Records round-trip in order") func roundTrip() async throws {
+        let (store, directory) = try Self.makeStore()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let start = Date().addingTimeInterval(-60)
+        let records = (0 ..< 1000).map { Self.record($0, at: start.addingTimeInterval(Double($0) / 1000)) }
+
+        records.forEach(store.accept)
+        await store.flush()
+
+        let stored = await store.records(in: Self.everything, minimumLevel: .debug)
+        #expect(stored == records)
+        #expect(FileManager.default.fileExists(atPath: directory.appendingPathComponent("logs/AppLog.sqlite").path))
+    }
+
+    @Test("Flush throughput") func throughput() async throws {
+        let (store, directory) = try Self.makeStore()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        await store.flush()
+        let now = Date()
+        let records = (0 ..< 4000).map { Self.record($0, at: now) }
+
+        let clock = ContinuousClock()
+        let acceptDuration = clock.measure { records.forEach(store.accept) }
+        let flushDuration = await clock.measure { await store.flush() }
+        print("AppLogStore: accepted 4000 in \(acceptDuration), flushed in \(flushDuration)")
+        #expect(await store.records(in: Self.everything, minimumLevel: .debug).count == 4000)
+    }
+
+    @Test("Purges records older than the maximum age") func agePurge() async throws {
+        let (store, directory) = try Self.makeStore()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let now = Date()
+        store.accept(Self.record(0, at: now.addingTimeInterval(-2 * 60 * 60)))
+        store.accept(Self.record(1, at: now.addingTimeInterval(-10)))
+        await store.flush()
+
+        var policy = LogRetentionPolicy.default
+        policy.maxAge = 60 * 60
+        store.apply(policy)
+
+        let stored = await store.records(in: Self.everything, minimumLevel: .debug)
+        #expect(stored.map(\.message) == ["message 1"])
+    }
+
+    @Test("Keeps only the newest rows over the cap") func rowCapPurge() async throws {
+        let (store, directory) = try Self.makeStore()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let start = Date().addingTimeInterval(-60)
+        (0 ..< 50).forEach { store.accept(Self.record($0, at: start.addingTimeInterval(Double($0)))) }
+        await store.flush()
+
+        var policy = LogRetentionPolicy.default
+        policy.maxRows = 10
+        store.apply(policy)
+
+        let stored = await store.records(in: Self.everything, minimumLevel: .debug)
+        #expect(stored.map(\.message) == (40 ..< 50).map { "message \($0)" })
+    }
+
+    @Test("Drops debug records when verbose logging is off") func dropsDebug() async throws {
+        var policy = LogRetentionPolicy.default
+        policy.persistsDebug = false
+        let (store, directory) = try Self.makeStore(policy: policy)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let now = Date()
+        store.accept(Self.record(0, at: now, level: .debug))
+        store.accept(Self.record(1, at: now, level: .info))
+        await store.flush()
+
+        let stored = await store.records(in: Self.everything, minimumLevel: .debug)
+        #expect(stored.map(\.message) == ["message 1"])
+    }
+
+    @Test("Buffered records drain in order once the store opens") func drainsBuffer() async throws {
+        let loader = Loader(succeeds: false)
+        let center = Foundation.NotificationCenter()
+        let (store, directory) = try Self.makeStore(loader: loader, center: center, isProtectedDataAvailable: { false })
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let start = Date().addingTimeInterval(-60)
+        let records = (0 ..< 300).map { Self.record($0, at: start.addingTimeInterval(Double($0))) }
+
+        records.forEach(store.accept)
+        await store.flush()
+        #expect(!loader.didLoad)
+        #expect(await store.records(in: Self.everything, minimumLevel: .debug) == records)
+
+        loader.setSucceeds(true)
+        center.post(name: UIApplication.protectedDataDidBecomeAvailableNotification, object: nil)
+
+        #expect(await Self.waitUntil { loader.didLoad })
+        #expect(await store.records(in: Self.everything, minimumLevel: .debug) == records)
+    }
+
+    @Test("Exports records as text lines") func exportsText() async throws {
+        let (store, directory) = try Self.makeStore()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let now = Date()
+        store.accept(Self.record(0, at: now.addingTimeInterval(-7 * 60 * 60), level: .warning))
+        store.accept(Self.record(1, at: now))
+        await store.flush()
+        try Data("legacy\n".utf8).write(to: store.directory.appendingPathComponent("log.txt"))
+
+        let output = directory.appendingPathComponent("export", isDirectory: true)
+        try await AppLogTextExporter.export(
+            from: store,
+            window: DateInterval(start: now.addingTimeInterval(-24 * 60 * 60), end: now),
+            into: output
+        )
+
+        let lines = try String(contentsOf: output.appendingPathComponent(AppLogTextExporter.fileName), encoding: .utf8)
+            .split(separator: "\n")
+        #expect(lines.count == 2)
+        #expect(lines.first?.hasSuffix("[WARNING] [Service] File.swift:0 run() - message 0") == true)
+        #expect(lines.last?.hasSuffix("[INFO] [Service] File.swift:1 run() - message 1") == true)
+        #expect(FileManager.default.fileExists(atPath: output.appendingPathComponent("Legacy-log.txt").path))
+    }
+}
