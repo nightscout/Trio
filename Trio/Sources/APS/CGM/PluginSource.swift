@@ -12,6 +12,7 @@ import LoopKitUI
 final class PluginSource: GlucoseSource {
     private let processQueue = DispatchQueue(label: "CGMPluginSource.processQueue")
     private let glucoseStorage: GlucoseStorage!
+    private let deviceLogStore: DeviceLogStore
     var glucoseManager: FetchGlucoseManager?
 
     let cgmDisplayState = CurrentValueSubject<CgmDisplayState?, Never>(nil)
@@ -23,8 +24,9 @@ final class PluginSource: GlucoseSource {
 
     var cgmHasValidSensorSession: Bool = false
 
-    init(glucoseStorage: GlucoseStorage, glucoseManager: FetchGlucoseManager) {
+    init(glucoseStorage: GlucoseStorage, glucoseManager: FetchGlucoseManager, deviceLogStore: DeviceLogStore) {
         self.glucoseStorage = glucoseStorage
+        self.deviceLogStore = deviceLogStore
         self.glucoseManager = glucoseManager
 
         cgmManager = glucoseManager.cgmManager
@@ -93,13 +95,19 @@ final class PluginSource: GlucoseSource {
 
 extension PluginSource: CGMManagerDelegate {
     func deviceManager(
-        _: LoopKit.DeviceManager,
+        _ manager: LoopKit.DeviceManager,
         logEventForDeviceIdentifier deviceIdentifier: String?,
-        type _: LoopKit.DeviceLogEntryType,
+        type: LoopKit.DeviceLogEntryType,
         message: String,
-        completion _: ((Error?) -> Void)?
+        completion: ((Error?) -> Void)?
     ) {
-        debug(.deviceManager, "device Manager for \(String(describing: deviceIdentifier)) : \(message)")
+        deviceLogStore.log(
+            managerIdentifier: manager.pluginIdentifier,
+            deviceIdentifier: deviceIdentifier,
+            type: type,
+            message: message,
+            completion: completion
+        )
     }
 
     /// Forwards CGMManager-issued alerts into the unified `TrioAlertManager`
