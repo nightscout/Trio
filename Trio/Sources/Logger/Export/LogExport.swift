@@ -3,6 +3,7 @@ import Foundation
 import LoopKit
 import OSLog
 import Swinject
+import TidepoolServiceKit
 import UIKit
 
 final class LogExport: Injectable {
@@ -17,6 +18,7 @@ final class LogExport: Injectable {
     @Injected() private var fetchGlucoseManager: FetchGlucoseManager!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var keychain: Keychain!
+    @Injected() private var tidepoolManager: TidepoolManager!
 
     // Read-only view of BaseAlertHistoryStorage's persisted history
     static let alertHistoryKey = "openaps.monitor.alertHistory.data"
@@ -34,20 +36,29 @@ final class LogExport: Injectable {
     private let managers: (@MainActor() -> (pump: DeviceManager?, cgm: DeviceManager?))?
     private let traceSubsystems: [String: [String]]
     private let includesAlgorithm: Bool
+    private let storedValues: SensitiveValues
 
     init(resolver: Resolver) {
         appLog = { TrioLogger.sink }
         managers = nil
         traceSubsystems = OSLogCapture.subsystems
         includesAlgorithm = true
+        storedValues = SensitiveValues()
         injectServices(resolver)
     }
 
-    init(appLog: any LogSink, deviceLogStore: DeviceLogStore, pump: DeviceManager?, cgm: DeviceManager?) {
+    init(
+        appLog: any LogSink,
+        deviceLogStore: DeviceLogStore,
+        pump: DeviceManager?,
+        cgm: DeviceManager?,
+        storedValues: SensitiveValues = SensitiveValues()
+    ) {
         self.appLog = { appLog }
         managers = { (pump, cgm) }
         traceSubsystems = [:]
         includesAlgorithm = false
+        self.storedValues = storedValues
         self.deviceLogStore = deviceLogStore
     }
 
@@ -122,7 +133,7 @@ final class LogExport: Injectable {
         let appLog = kind == .all ? self.appLog() : nil
         await appLog?.flush()
         let traceStore = traceLabels.isEmpty ? nil : try? OSLogStore(scope: .currentProcessIdentifier)
-        let redactor = Redactor(exactValues: await exactValues(in: window))
+        let redactor = Redactor(exactValues: await sensitiveValues(in: window))
         let algorithm = kind == .all && includesAlgorithm
 
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -148,15 +159,16 @@ final class LogExport: Injectable {
         return url
     }
 
+    @MainActor private func currentManagers() -> (pump: DeviceManager?, cgm: DeviceManager?) {
+        if let managers { return managers() }
+        return (
+            deviceDataManager?.pumpManager,
+            fetchGlucoseManager?.cgmGlucoseSourceType == .plugin ? fetchGlucoseManager?.cgmManager : nil
+        )
+    }
+
     @MainActor private func deviceSnapshots() -> (LogFileHeader.Device?, LogFileHeader.Device?) {
-        let pump: DeviceManager?
-        let cgm: DeviceManager?
-        if let managers {
-            (pump, cgm) = managers()
-        } else {
-            pump = deviceDataManager?.pumpManager
-            cgm = fetchGlucoseManager?.cgmGlucoseSourceType == .plugin ? fetchGlucoseManager?.cgmManager : nil
-        }
+        let (pump, cgm) = currentManagers()
         return (pump.map(Self.snapshot), cgm.map(Self.snapshot))
     }
 
@@ -231,33 +243,33 @@ final class LogExport: Injectable {
         return alerts.filter { window.contains($0.issuedDate) }
     }
 
-    private func exactValues(in window: DateInterval) async -> [Redactor.ExactValue] {
-        var values: [Redactor.ExactValue] = []
-        let url: String? = keychain?.getValue(String.self, forKey: NightscoutConfig.Config.urlKey)
-        if let url, !url.isEmpty {
-            values.append(Redactor.ExactValue(value: url, kind: .url))
-            if url.hasSuffix("/") {
-                values.append(Redactor.ExactValue(value: String(url.dropLast()), kind: .url))
-            }
-            if let host = URL(string: url)?.host {
-                values.append(Redactor.ExactValue(value: host, kind: .host))
-            }
-        }
-        let secret: String? = keychain?.getValue(String.self, forKey: NightscoutConfig.Config.secretKey)
-        if let secret, !secret.isEmpty {
-            values.append(Redactor.ExactValue(value: secret, kind: .secret))
-        }
-        var identifiers = Set<String>()
+    private func sensitiveValues(in window: DateInterval) async -> [Redactor.ExactValue] {
+        var values = await currentSensitiveValues()
+        // Devices replaced during the window are only known from the device log
         if let deviceLogStore {
             for slice in LogFileWriter.slices(of: window) {
                 for entry in await deviceLogStore.entries(in: slice) {
-                    if let identifier = entry.deviceIdentifier, !identifier.isEmpty {
-                        identifiers.insert(identifier)
-                    }
+                    values.add(entry.deviceIdentifier, .device)
                 }
             }
         }
-        values += identifiers.sorted().map { Redactor.ExactValue(value: $0, kind: .device) }
+        return values.values
+    }
+
+    @MainActor private func currentSensitiveValues() -> SensitiveValues {
+        var values = storedValues
+        if let keychain {
+            values.addNightscout(
+                url: keychain.getValue(String.self, forKey: NightscoutConfig.Config.urlKey),
+                secret: keychain.getValue(String.self, forKey: NightscoutConfig.Config.secretKey)
+            )
+            values.addTrioIdentifiers()
+        }
+        values.add(tidepool: tidepoolManager?.getTidepoolServiceUI() as? TidepoolService)
+        let (pump, cgm) = currentManagers()
+        for manager in [pump, cgm].compactMap({ $0 }) {
+            values.add(manager)
+        }
         return values
     }
 
