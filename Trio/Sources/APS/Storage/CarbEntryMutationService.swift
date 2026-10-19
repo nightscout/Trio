@@ -62,8 +62,8 @@ final class BaseCarbEntryMutationService: CarbEntryMutationService, Injectable {
         }
         let snapshot = try await localMutations.run {
             let snapshot = try await self.snapshotRoot(rootObjectID)
-            await self.carbsStorage.deleteCarbsEntryStored(rootObjectID)
-            try await self.carbsStorage.storeCarbs([replacement], areFetchedFromRemote: false)
+            // One transaction, so a failed insert cannot leave the meal deleted without a replacement.
+            try await self.carbsStorage.replaceCarbs(rootObjectID, with: replacement)
             return snapshot
         }
         let failures = await deleteFromServices(snapshot)

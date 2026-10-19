@@ -537,4 +537,153 @@ import Testing
         #expect(!children.isEmpty)
         #expect(children.allSatisfy { $0.id == fpuID && $0.fpuID == fpuID })
     }
+
+    // MARK: - replaceCarbs
+
+    private func allStoredRows() async throws -> [CarbEntryStored] {
+        guard let rows = try await coreDataStack.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: testContext,
+            predicate: NSPredicate(format: "TRUEPREDICATE"),
+            key: "date",
+            ascending: true
+        ) as? [CarbEntryStored] else {
+            throw TestError("Failed to fetch stored rows")
+        }
+        return rows
+    }
+
+    @Test("Replace swaps the stored values") func testReplaceCarbs() async throws {
+        let original = CarbsEntry(
+            id: UUID().uuidString, createdAt: Date(), actualDate: Date(), carbs: 25, fat: nil, protein: nil,
+            note: "Before edit", enteredBy: "Test", isFPU: false, fpuID: nil
+        )
+        try await storage.storeCarbs([original], areFetchedFromRemote: false)
+        guard let objectID = try await allStoredRows().first?.objectID else {
+            throw TestError("Failed to get stored entry's ObjectID")
+        }
+
+        let editedDate = Date(timeIntervalSince1970: 1_700_003_000)
+        let edited = CarbsEntry(
+            id: UUID().uuidString, createdAt: Date(), actualDate: editedDate, carbs: 45, fat: 0, protein: 0,
+            note: "After edit", enteredBy: "Test", isFPU: false, fpuID: nil
+        )
+        try await storage.replaceCarbs(objectID, with: edited)
+
+        let rows = try await allStoredRows()
+        #expect(rows.count == 1, "Edit must not duplicate or drop the entry")
+        #expect(rows.first?.carbs == 45)
+        #expect(rows.first?.note == "After edit")
+        #expect(rows.first?.date == editedDate)
+        #expect(rows.first?.id?.uuidString == edited.id)
+    }
+
+    @Test("Replace rebuilds the carb equivalents") func testReplaceCarbsRebuildsCarbEquivalents() async throws {
+        let originalFpuID = UUID().uuidString
+        let baseDate = Date(timeIntervalSince1970: 1_700_002_000)
+        let original = CarbsEntry(
+            id: UUID().uuidString, createdAt: baseDate, actualDate: baseDate, carbs: 30, fat: 200, protein: 200,
+            note: "Before edit", enteredBy: "Test", isFPU: false, fpuID: originalFpuID
+        )
+        try await storage.storeCarbs([original], areFetchedFromRemote: false)
+        guard let objectID = try await allStoredRows().first(where: { !$0.isFPU })?.objectID else {
+            throw TestError("Failed to get stored entry's ObjectID")
+        }
+
+        // Fat and protein are reduced, so the carb equivalents have to be recalculated
+        let editedFpuID = UUID().uuidString
+        let edited = CarbsEntry(
+            id: UUID().uuidString, createdAt: baseDate, actualDate: baseDate, carbs: 30, fat: 50, protein: 100,
+            note: "After edit", enteredBy: "Test", isFPU: false, fpuID: editedFpuID
+        )
+        try await storage.replaceCarbs(objectID, with: edited)
+
+        let rows = try await allStoredRows()
+        #expect(rows.allSatisfy { $0.fpuID?.uuidString != originalFpuID }, "Old meal and its carb equivalents are gone")
+
+        let roots = rows.filter { !$0.isFPU }
+        #expect(roots.count == 1, "Edit must leave exactly one meal root")
+        #expect(roots.first?.fat == 50)
+        #expect(roots.first?.protein == 100)
+        #expect(roots.first?.fpuID?.uuidString == editedFpuID)
+
+        // fat=50g + protein=100g -> 850 kcal -> (850/10) * 0.5 = 42 equivalents -> two entries of 21g
+        let carbEquivalents = rows.filter(\.isFPU)
+        #expect(carbEquivalents.map { Int($0.carbs) } == [21, 21])
+        #expect(carbEquivalents.allSatisfy { $0.fpuID?.uuidString == editedFpuID })
+        #expect(carbEquivalents.allSatisfy { $0.isUploadedToNS == false })
+    }
+
+    @Test("Replace commits the delete and the insert in one transaction") func testReplaceCarbsIsAtomic() async throws {
+        let original = CarbsEntry(
+            id: UUID().uuidString, createdAt: Date(), actualDate: Date(), carbs: 25, fat: nil, protein: nil,
+            note: nil, enteredBy: "Test", isFPU: false, fpuID: nil
+        )
+        try await storage.storeCarbs([original], areFetchedFromRemote: false)
+        guard let objectID = try await allStoredRows().first?.objectID else {
+            throw TestError("Failed to get stored entry's ObjectID")
+        }
+
+        let saves = SaveCounter()
+        let observer = NotificationCenter.default.addObserver(
+            forName: .NSManagedObjectContextDidSave,
+            object: testContext,
+            queue: nil
+        ) { _ in saves.increment() }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        let edited = CarbsEntry(
+            id: UUID().uuidString, createdAt: Date(), actualDate: Date(), carbs: 45, fat: 0, protein: 0,
+            note: nil, enteredBy: "Test", isFPU: false, fpuID: nil
+        )
+        try await storage.replaceCarbs(objectID, with: edited)
+
+        #expect(saves.count == 1, "A separate delete commit would leave the meal gone if the insert then failed")
+    }
+
+    @Test("Replace of a missing meal throws and keeps the other entries") func testReplaceCarbsMissingRoot() async throws {
+        let other = CarbsEntry(
+            id: UUID().uuidString, createdAt: Date(), actualDate: Date(), carbs: 12, fat: nil, protein: nil,
+            note: "Keep me", enteredBy: "Test", isFPU: false, fpuID: nil
+        )
+        let doomed = CarbsEntry(
+            id: UUID().uuidString, createdAt: Date(), actualDate: Date().addingTimeInterval(60), carbs: 25,
+            fat: nil, protein: nil, note: nil, enteredBy: "Test", isFPU: false, fpuID: nil
+        )
+        try await storage.storeCarbs([other], areFetchedFromRemote: false)
+        try await storage.storeCarbs([doomed], areFetchedFromRemote: false)
+        guard let objectID = try await allStoredRows().first(where: { $0.id?.uuidString == doomed.id })?.objectID else {
+            throw TestError("Failed to get stored entry's ObjectID")
+        }
+        await storage.deleteCarbsEntryStored(objectID)
+
+        await #expect(throws: CoreDataError.self) {
+            let replacement = CarbsEntry(
+                id: UUID().uuidString, createdAt: Date(), actualDate: Date(), carbs: 99, fat: nil, protein: nil,
+                note: nil, enteredBy: "Test", isFPU: false, fpuID: nil
+            )
+            try await storage.replaceCarbs(objectID, with: replacement)
+        }
+
+        let rows = try await allStoredRows()
+        #expect(rows.count == 1)
+        #expect(rows.first?.id?.uuidString == other.id, "A failed replace must not touch other meals")
+    }
+}
+
+private final class SaveCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = 0
+
+    func increment() {
+        lock.lock()
+        value += 1
+        lock.unlock()
+    }
+
+    var count: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return value
+    }
 }
