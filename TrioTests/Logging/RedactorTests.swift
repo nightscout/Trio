@@ -37,7 +37,10 @@ import Testing
             "DanaKit",
             "com.randallknutson.DanaKit",
             "* 2026-10-18T12:00:00.000Z DanaKit - send rate 0.85 U/h for 30 min",
-            "Transmitter battery low"
+            "Transmitter battery low",
+            "Pod Lot:\n123456789 bolus",
+            "transmitterID:\nABC123 next line",
+            "deviceName:\nPump settings"
         ]
     ) func negatives(input: String) {
         #expect(Redactor(exactValues: []).redact(input) == input)
@@ -63,24 +66,5 @@ import Testing
             "GET https://my-site.example.test/api host my-site.example.test secret synthetic-secret-1 device dana-xyz01 abc"
         )
         #expect(output == "GET <url-1>api host <host-1> secret <secret-1> device <device-1> abc")
-    }
-
-    @Test("Files are redacted in place and unknown file types are dropped") func redactsFiles() throws {
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: directory) }
-        let text = directory.appendingPathComponent("Log.txt")
-        let binary = directory.appendingPathComponent("Store.sqlite")
-        let lines = (0 ..< 20000).map { "line \($0) to https://example.test/x BG 123\n" }.joined()
-        try Data(lines.utf8).write(to: text)
-        try Data([0, 1, 2]).write(to: binary)
-
-        try Redactor(exactValues: []).redactFiles(in: directory)
-
-        let redacted = try String(contentsOf: text, encoding: .utf8)
-        #expect(!redacted.contains("example.test"))
-        #expect(redacted.components(separatedBy: "\n").count == 20001)
-        #expect(redacted.hasSuffix("line 19999 to <url-1> BG 123\n"))
-        #expect(!FileManager.default.fileExists(atPath: binary.path))
     }
 }

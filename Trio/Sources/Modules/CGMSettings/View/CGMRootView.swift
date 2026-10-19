@@ -93,17 +93,15 @@ extension CGMSettings {
                 }
 
                 if state.cgmCurrent.type == .plugin,
-                   let cgmManager = state.fetchGlucoseManager.cgmManager,
-                   state.cgmCurrent.id == state.fetchGlucoseManager.cgmGlucosePluginId
+                   state.fetchGlucoseManager?.cgmManager != nil,
+                   state.cgmCurrent.id == state.fetchGlucoseManager?.cgmGlucosePluginId
                 {
                     Section {
-                        DeviceLogShareRow(
-                            title: String(localized: "Share CGM Logs"),
-                            footnote: String(
-                                localized: "Includes everything this device reported to Trio in the last 3 days. Low-level Bluetooth traces cover the current app session only."
-                            ),
-                            pluginIdentifier: cgmManager.pluginIdentifier,
-                            exporter: state.deviceLogExporter
+                        LogShareRow(
+                            title: "Share CGM Logs",
+                            footnote: "Creates one file you can send when asking for help.",
+                            kinds: [.cgm],
+                            logExport: state.logExport
                         )
                     }.listRowBackground(Color.chart)
                 }

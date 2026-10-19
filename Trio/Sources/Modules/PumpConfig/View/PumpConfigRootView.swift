@@ -81,15 +81,13 @@ extension PumpConfig {
                     }
                 ).listRowBackground(Color.chart)
 
-                if state.pumpState != nil, let pumpManager = state.provider.apsManager.pumpManager {
+                if state.pumpState != nil, state.provider?.apsManager?.pumpManager != nil {
                     Section {
-                        DeviceLogShareRow(
-                            title: String(localized: "Share Pump Logs"),
-                            footnote: String(
-                                localized: "Includes everything this device reported to Trio in the last 3 days. Low-level Bluetooth traces cover the current app session only."
-                            ),
-                            pluginIdentifier: pumpManager.pluginIdentifier,
-                            exporter: state.deviceLogExporter
+                        LogShareRow(
+                            title: "Share Pump Logs",
+                            footnote: "Creates one file you can send when asking for help.",
+                            kinds: [.pump],
+                            logExport: state.logExport
                         )
                     }.listRowBackground(Color.chart)
                 }

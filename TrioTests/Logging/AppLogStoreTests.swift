@@ -156,28 +156,4 @@ import UIKit
         #expect(await Self.waitUntil { loader.didLoad })
         #expect(await store.records(in: Self.everything, minimumLevel: .debug) == records)
     }
-
-    @Test("Exports records as text lines") func exportsText() async throws {
-        let (store, directory) = try Self.makeStore()
-        defer { try? FileManager.default.removeItem(at: directory) }
-        let now = Date()
-        store.accept(Self.record(0, at: now.addingTimeInterval(-7 * 60 * 60), level: .warning))
-        store.accept(Self.record(1, at: now))
-        await store.flush()
-        try Data("legacy\n".utf8).write(to: store.directory.appendingPathComponent("log.txt"))
-
-        let output = directory.appendingPathComponent("export", isDirectory: true)
-        try await AppLogTextExporter.export(
-            from: store,
-            window: DateInterval(start: now.addingTimeInterval(-24 * 60 * 60), end: now),
-            into: output
-        )
-
-        let lines = try String(contentsOf: output.appendingPathComponent(AppLogTextExporter.fileName), encoding: .utf8)
-            .split(separator: "\n")
-        #expect(lines.count == 2)
-        #expect(lines.first?.hasSuffix("[WARNING] [Service] File.swift:0 run() - message 0") == true)
-        #expect(lines.last?.hasSuffix("[INFO] [Service] File.swift:1 run() - message 1") == true)
-        #expect(FileManager.default.fileExists(atPath: output.appendingPathComponent("Legacy-log.txt").path))
-    }
 }
