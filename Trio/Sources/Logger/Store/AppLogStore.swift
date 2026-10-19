@@ -189,7 +189,7 @@ final class AppLogStore: LogSink, @unchecked Sendable {
             do {
                 try context.execute(request)
             } catch {
-                Logger.Category.coreData.osLogger.error("App log insert failed: \(String(describing: error), privacy: .public)")
+                Logger.Category.storage.osLogger.error("App log insert failed: \(String(describing: error), privacy: .public)")
             }
         }
     }
@@ -254,7 +254,7 @@ final class AppLogStore: LogSink, @unchecked Sendable {
         do {
             try context.execute(NSBatchDeleteRequest(fetchRequest: request))
         } catch {
-            Logger.Category.coreData.osLogger.error("App log purge failed: \(String(describing: error), privacy: .public)")
+            Logger.Category.storage.osLogger.error("App log purge failed: \(String(describing: error), privacy: .public)")
         }
     }
 
@@ -283,7 +283,7 @@ final class AppLogStore: LogSink, @unchecked Sendable {
         if let container = loadContainer(storageURL) {
             open(container)
         } else {
-            Logger.Category.coreData.osLogger.error("App log store unavailable, keeping records in memory")
+            Logger.Category.storage.osLogger.error("App log store unavailable, keeping records in memory")
         }
     }
 
@@ -305,7 +305,7 @@ final class AppLogStore: LogSink, @unchecked Sendable {
             do {
                 try FileManager.default.moveItem(at: source, to: destination)
             } catch {
-                Logger.Category.coreData.osLogger
+                Logger.Category.storage.osLogger
                     .error("Could not move app log file aside: \(String(describing: error), privacy: .public)")
             }
         }

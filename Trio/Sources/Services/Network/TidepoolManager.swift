@@ -166,7 +166,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
                 try self.carbsUploadController.performFetch()
                 try self.insulinUploadController.performFetch()
             } catch {
-                warning(.nightscout, "Failed to set up Tidepool upload controllers", error: error)
+                warning(.tidepool, "Failed to set up Tidepool upload controllers", error: error)
             }
         }
 
@@ -277,7 +277,7 @@ extension BaseTidepoolManager {
         do {
             carbs = try await carbsStorage.getCarbsNotYetUploadedToTidepool()
         } catch {
-            warning(.nightscout, "Failed to load pending carbs for Tidepool upload", error: error)
+            warning(.tidepool, "Failed to load pending carbs for Tidepool upload", error: error)
             return
         }
         guard !carbs.isEmpty else { return }
@@ -293,11 +293,11 @@ extension BaseTidepoolManager {
 
             switch result {
             case .success:
-                info(.nightscout, "Uploaded \(chunk.count) carb entries to Tidepool")
+                info(.tidepool, "Uploaded \(chunk.count) carb entries to Tidepool")
                 // After successful upload, update the isUploadedToTidepool flag in Core Data
                 await updateCarbsAsUploaded(Array(chunk))
             case let .failure(error):
-                warning(.nightscout, "Tidepool upload of \(chunk.count) carb entries failed", error: error)
+                warning(.tidepool, "Tidepool upload of \(chunk.count) carb entries failed", error: error)
             }
         }
     }
@@ -352,9 +352,9 @@ extension BaseTidepoolManager {
                 }
                 switch result {
                 case .success:
-                    debug(.nightscout, "Carb entry deletion synced to Tidepool")
+                    debug(.tidepool, "Carb entry deletion synced to Tidepool")
                 case let .failure(error):
-                    warning(.nightscout, "Tidepool carb entry deletion failed", error: error)
+                    warning(.tidepool, "Tidepool carb entry deletion failed", error: error)
                 }
             }
         }
@@ -379,7 +379,7 @@ extension BaseTidepoolManager {
         do {
             events = try await pumpHistoryStorage.getPumpHistoryNotYetUploadedToTidepool()
         } catch {
-            warning(.nightscout, "Failed to load pending pump history for Tidepool upload", error: error)
+            warning(.tidepool, "Failed to load pending pump history for Tidepool upload", error: error)
             return
         }
         guard !events.isEmpty else { return }
@@ -440,7 +440,7 @@ extension BaseTidepoolManager {
                         return result
                     }
 
-                    debug(.nightscout, "Uploading \(insulinDoseEvents.count) dose entries to Tidepool")
+                    debug(.tidepool, "Uploading \(insulinDoseEvents.count) dose entries to Tidepool")
 
                     let pumpEvents: [PersistedPumpEvent] = events.compactMap { event -> PersistedPumpEvent? in
                         if let pumpEventType = event.type.mapEventTypeToPumpEventType() {
@@ -476,13 +476,13 @@ extension BaseTidepoolManager {
             }
             switch doseResult {
             case .success:
-                info(.nightscout, "Uploaded \(insulinDoseEvents.count) dose entries to Tidepool")
+                info(.tidepool, "Uploaded \(insulinDoseEvents.count) dose entries to Tidepool")
                 let insulinEvents = events.filter {
                     $0.type == .tempBasal || $0.type == .tempBasalDuration || $0.type == .bolus
                 }
                 await updateInsulinAsUploaded(insulinEvents)
             case let .failure(error):
-                warning(.nightscout, "Tidepool upload of \(insulinDoseEvents.count) dose entries failed", error: error)
+                warning(.tidepool, "Tidepool upload of \(insulinDoseEvents.count) dose entries failed", error: error)
             }
 
             guard await uploadSerializer.isCurrent(generation) else { return }
@@ -492,14 +492,14 @@ extension BaseTidepoolManager {
             }
             switch pumpResult {
             case .success:
-                info(.nightscout, "Uploaded \(pumpEvents.count) pump events to Tidepool")
+                info(.tidepool, "Uploaded \(pumpEvents.count) pump events to Tidepool")
                 let pumpEventsToMark = events.filter { $0.type.mapEventTypeToPumpEventType() != nil }
                 await updateInsulinAsUploaded(pumpEventsToMark)
             case let .failure(error):
-                warning(.nightscout, "Tidepool upload of \(pumpEvents.count) pump events failed", error: error)
+                warning(.tidepool, "Tidepool upload of \(pumpEvents.count) pump events failed", error: error)
             }
         } catch {
-            warning(.nightscout, "Failed to prepare dose entries for Tidepool upload", error: error)
+            warning(.tidepool, "Failed to prepare dose entries for Tidepool upload", error: error)
         }
     }
 
@@ -544,9 +544,9 @@ extension BaseTidepoolManager {
                 }
                 switch result {
                 case .success:
-                    debug(.nightscout, "Dose deletion synced to Tidepool")
+                    debug(.tidepool, "Dose deletion synced to Tidepool")
                 case let .failure(error):
-                    warning(.nightscout, "Tidepool dose deletion failed", error: error)
+                    warning(.tidepool, "Tidepool dose deletion failed", error: error)
                 }
             }
         }
@@ -723,7 +723,7 @@ extension BaseTidepoolManager {
             let manualGlucose = try await glucoseStorage.getManualGlucoseNotYetUploadedToTidepool()
             glucose = cgmGlucose + manualGlucose
         } catch {
-            warning(.nightscout, "Failed to load pending glucose for Tidepool upload", error: error)
+            warning(.tidepool, "Failed to load pending glucose for Tidepool upload", error: error)
             return
         }
         guard !glucose.isEmpty else { return }
@@ -737,11 +737,11 @@ extension BaseTidepoolManager {
 
             switch result {
             case .success:
-                info(.nightscout, "Uploaded \(chunk.count) glucose values to Tidepool")
+                info(.tidepool, "Uploaded \(chunk.count) glucose values to Tidepool")
                 // After successful upload, update the isUploadedToTidepool flag in Core Data
                 await updateGlucoseAsUploaded(Array(chunk))
             case let .failure(error):
-                warning(.nightscout, "Tidepool upload of \(chunk.count) glucose values failed", error: error)
+                warning(.tidepool, "Tidepool upload of \(chunk.count) glucose values failed", error: error)
             }
         }
     }
@@ -820,9 +820,9 @@ extension BaseTidepoolManager {
         }
         switch result {
         case .success:
-            info(.nightscout, "Settings uploaded to Tidepool")
+            info(.tidepool, "Settings uploaded to Tidepool")
         case let .failure(error):
-            warning(.nightscout, "Tidepool settings upload failed", error: error)
+            warning(.tidepool, "Tidepool settings upload failed", error: error)
         }
     }
 }
@@ -873,7 +873,7 @@ extension BaseTidepoolManager {
             ),
             let bgTargets: BGTargets = storage.retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self)
         else {
-            warning(.nightscout, "Tidepool settings upload skipped: therapy settings could not be loaded")
+            warning(.tidepool, "Tidepool settings upload skipped: therapy settings could not be loaded")
             return nil
         }
 
