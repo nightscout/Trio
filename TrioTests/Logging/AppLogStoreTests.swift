@@ -138,6 +138,43 @@ import UIKit
         #expect(stored.map(\.message) == ["message 1"])
     }
 
+    @Test("Lone surrogates and NUL bytes are stored without losing the batch") func sanitizesStrings() async throws {
+        let (store, directory) = try Self.makeStore()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let now = Date()
+        let surrogate = LogRecord(
+            timestamp: now,
+            level: .info,
+            category: "Service",
+            message: String(utf16CodeUnits: [0x61, 0xD800, 0x62], count: 3),
+            file: "File.swift",
+            function: "run()",
+            line: 1,
+            launchID: LaunchID.current
+        )
+        let nul = LogRecord(
+            timestamp: now.addingTimeInterval(1),
+            level: .info,
+            category: "Service",
+            message: "a\u{0}b",
+            file: "File.swift",
+            function: "run()",
+            line: 2,
+            launchID: LaunchID.current
+        )
+        let records = [
+            Self.record(0, at: now.addingTimeInterval(-1)),
+            surrogate,
+            nul,
+            Self.record(3, at: now.addingTimeInterval(2))
+        ]
+        records.forEach(store.accept)
+        await store.flush()
+
+        let stored = await store.records(in: Self.everything, minimumLevel: .debug)
+        #expect(stored.map(\.message) == ["message 0", "a\u{FFFD}b", "a\u{FFFD}b", "message 3"])
+    }
+
     @Test("Buffered records drain in order once the store opens") func drainsBuffer() async throws {
         let loader = Loader(succeeds: false)
         let center = Foundation.NotificationCenter()
