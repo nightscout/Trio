@@ -15,19 +15,34 @@ import Foundation
     enum Logger {
         /// Mirrors `Logger.Category` in the app target.
         enum Category: String {
+            case loop
+            case algorithm
+            case pump
+            case cgm
+            case bolus
+            case treatments
+            case nightscout
+            case remote
+            case healthKit
+            case alerts
+            case watch
+            case liveActivity
+            case storage
+            case settings
+            case telemetry
+            case ui
+            case lifecycle
+            // Legacy, removed once all call sites are migrated
             case `default`
             case service
             case businessLogic
             case openAPS
             case deviceManager
             case apsManager
-            case nightscout
             case remoteControl
             case bolusState
             case watchManager
             case coreData
-            case storage
-            case telemetry
         }
     }
 
