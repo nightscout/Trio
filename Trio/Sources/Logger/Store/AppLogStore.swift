@@ -40,6 +40,7 @@ final class AppLogStore: LogSink, @unchecked Sendable {
     private var lastPurge: Date?
     private var isCheckingProtectedData = false
     private var didMoveStoreAside = false
+    private var didReopenAfterFailure = false
 
     init(
         storageURL: URL = AppLogStore.defaultStorageURL,
@@ -121,9 +122,10 @@ final class AppLogStore: LogSink, @unchecked Sendable {
         }
     }
 
+    // Exports wait on these, so they run ahead of background logging load
     func flush() async {
         await withCheckedContinuation { continuation in
-            queue.async {
+            queue.async(qos: .userInitiated, flags: .enforceQoS) {
                 self.flushPending()
                 continuation.resume()
             }
@@ -132,7 +134,7 @@ final class AppLogStore: LogSink, @unchecked Sendable {
 
     func records(in window: DateInterval, minimumLevel: LogLevel) async -> [LogRecord] {
         await withCheckedContinuation { continuation in
-            queue.async {
+            queue.async(qos: .userInitiated, flags: .enforceQoS) {
                 self.flushPending()
                 continuation.resume(returning: self.fetch(in: window, minimumLevel: minimumLevel))
             }
@@ -162,36 +164,64 @@ final class AppLogStore: LogSink, @unchecked Sendable {
             }
             return state.records
         }
-        if !batch.isEmpty {
-            insert(batch, into: context)
+        let unsaved = batch.isEmpty ? [] : insert(batch[...], into: context)
+        guard unsaved.isEmpty else {
+            storeFailed(keeping: unsaved)
+            return
         }
         if let lastPurge, Date().timeIntervalSince(lastPurge) < Self.purgeInterval { return }
         purge()
     }
 
-    private func insert(_ batch: [LogRecord], into context: NSManagedObjectContext) {
+    // Returns the records the store itself failed to take; records it rejects are dropped one by one
+    private func insert(_ batch: ArraySlice<LogRecord>, into context: NSManagedObjectContext) -> ArraySlice<LogRecord> {
         var iterator = batch.makeIterator()
         let request = NSBatchInsertRequest(entityName: Self.entityName, dictionaryHandler: { dictionary in
             guard let record = iterator.next() else { return true }
             dictionary.addEntries(from: [
                 "timestamp": record.timestamp,
                 "level": record.level.rawValue,
-                "category": record.category,
-                "message": record.message,
-                "file": record.file,
-                "function": record.function,
+                "category": Self.sanitized(record.category),
+                "message": Self.sanitized(record.message),
+                "file": Self.sanitized(record.file),
+                "function": Self.sanitized(record.function),
                 "line": Int32(clamping: record.line),
                 "launchID": record.launchID
             ])
             return false
         })
-        context.performAndWait {
-            do {
-                try context.execute(request)
-            } catch {
+        do {
+            try context.performAndWait { _ = try context.execute(request) }
+            return []
+        } catch {
+            if Self.isStoreFailure(error) {
                 Logger.Category.storage.osLogger.error("App log insert failed: \(String(describing: error), privacy: .public)")
+                return batch
             }
+            guard batch.count > 1 else {
+                Logger.Category.storage.osLogger.fault("App log record dropped: \(String(describing: error), privacy: .public)")
+                return []
+            }
+            let middle = batch.startIndex + batch.count / 2
+            let unsaved = insert(batch[..<middle], into: context)
+            guard unsaved.isEmpty else { return unsaved + batch[middle...] }
+            return insert(batch[middle...], into: context)
         }
+    }
+
+    private static func sanitized(_ string: String) -> String {
+        // Native Swift strings are valid UTF-8, so this also repairs lone surrogates from bridged strings
+        var string = string
+        string.makeContiguousUTF8()
+        guard string.utf8.contains(0) else { return string }
+        return string.replacingOccurrences(of: "\u{0}", with: "\u{FFFD}")
+    }
+
+    private static func isStoreFailure(_ error: Error) -> Bool {
+        let error = error as NSError
+        let code = error.domain == NSSQLiteErrorDomain ? error.code : error.userInfo[NSSQLiteErrorDomain] as? Int
+        // SQLITE_READONLY, IOERR, CORRUPT, FULL, CANTOPEN, NOTADB
+        return code.map { [8, 10, 11, 13, 14, 26].contains($0 & 0xFF) } ?? false
     }
 
     private func fetch(in window: DateInterval, minimumLevel: LogLevel) -> [LogRecord] {
@@ -278,6 +308,11 @@ final class AppLogStore: LogSink, @unchecked Sendable {
 
     private func recover(protectedDataAvailable: Bool) {
         guard container == nil, protectedDataAvailable, !didMoveStoreAside else { return }
+        // The first attempt may have raced an unlock
+        if let container = loadContainer(storageURL) {
+            open(container)
+            return
+        }
         didMoveStoreAside = true
         moveStoreAside()
         if let container = loadContainer(storageURL) {
@@ -285,6 +320,28 @@ final class AppLogStore: LogSink, @unchecked Sendable {
         } else {
             Logger.Category.storage.osLogger.error("App log store unavailable, keeping records in memory")
         }
+    }
+
+    private func storeFailed(keeping unsaved: ArraySlice<LogRecord>) {
+        pending.withLock { state in
+            state.records.insert(contentsOf: unsaved, at: 0)
+            if state.records.count > Self.bufferLimit {
+                state.records.removeFirst(state.records.count - Self.bufferLimit)
+            }
+        }
+        if let coordinator = container?.persistentStoreCoordinator {
+            for store in coordinator.persistentStores {
+                try? coordinator.remove(store)
+            }
+        }
+        container = nil
+        context = nil
+        guard !didReopenAfterFailure else {
+            Logger.Category.storage.osLogger.error("App log store unavailable, keeping records in memory")
+            return
+        }
+        didReopenAfterFailure = true
+        openIfNeeded()
     }
 
     private func open(_ container: NSPersistentContainer) {
@@ -326,15 +383,15 @@ final class AppLogStore: LogSink, @unchecked Sendable {
     }
 
     static func loadContainer(_ url: URL) -> NSPersistentContainer? {
-        guard let model else { return nil }
+        guard let model, FileManager.default.isWritableStore(at: url) else { return nil }
         let container = NSPersistentContainer(name: "AppLog", managedObjectModel: model)
         let description = NSPersistentStoreDescription(url: url)
         description.shouldAddStoreAsynchronously = false
         container.persistentStoreDescriptions = [description]
         var loadError: Error?
         container.loadPersistentStores { _, error in loadError = error }
-        guard loadError == nil else {
-            let coordinator = container.persistentStoreCoordinator
+        let coordinator = container.persistentStoreCoordinator
+        guard loadError == nil, !coordinator.persistentStores.contains(where: \.isReadOnly) else {
             for store in coordinator.persistentStores {
                 try? coordinator.remove(store)
             }

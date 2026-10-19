@@ -84,15 +84,18 @@ import UIKit
             isProtectedDataAvailable: { true }
         )
 
-        #expect(await Self.waitUntil { preflight.callCount == 2 })
+        #expect(await Self.waitUntil { preflight.callCount == 3 })
         #expect(await Self.log(store, manager: "com.example.pump", message: "buffered-1") == nil)
         #expect(await Self.log(store, manager: "com.example.cgm", message: "buffered-2") == nil)
-        #expect(await store.entries(in: Self.window).isEmpty)
+        #expect(await store.entries(in: Self.window).map(\.message) == ["buffered-1", "buffered-2"])
+        #expect(await store.entries(in: Self.window, managerIdentifier: "com.example.cgm").map(\.message) == ["buffered-2"])
 
         preflight.setSucceeds(true)
         center.post(name: UIApplication.protectedDataDidBecomeAvailableNotification, object: nil)
 
-        #expect(await Self.waitUntil { await store.entries(in: Self.window).count == 2 })
+        #expect(await Self.waitUntil {
+            await store.entries(in: Self.window).filter { $0.message.hasPrefix("[queued ") }.count == 2
+        })
         let entries = await store.entries(in: Self.window)
         #expect(entries.count == 2)
         let pattern = try NSRegularExpression(pattern: #"^\[queued \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\] buffered-(\d)$"#)

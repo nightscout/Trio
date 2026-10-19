@@ -108,7 +108,18 @@ final class DeviceLogStore: @unchecked Sendable {
         await withCheckedContinuation { continuation in
             queue.async {
                 guard let deviceLog = self.deviceLog else {
-                    continuation.resume(returning: [])
+                    continuation.resume(returning: self.buffer.compactMap { entry in
+                        guard window.contains(entry.date),
+                              managerIdentifier == nil || entry.managerIdentifier == managerIdentifier
+                        else { return nil }
+                        return StoredDeviceLogEntry(
+                            type: entry.type,
+                            managerIdentifier: entry.managerIdentifier,
+                            deviceIdentifier: entry.deviceIdentifier,
+                            message: entry.message,
+                            timestamp: entry.date
+                        )
+                    })
                     return
                 }
                 deviceLog.getLogEntries(startDate: window.start, endDate: window.end) { result in
@@ -146,6 +157,11 @@ final class DeviceLogStore: @unchecked Sendable {
 
     private func recover(protectedDataAvailable: Bool) {
         guard deviceLog == nil, protectedDataAvailable, !didMoveStoreAside else { return }
+        // The first attempt may have raced an unlock
+        if preflight(storageURL) {
+            open()
+            return
+        }
         didMoveStoreAside = true
         moveStoreAside()
         if preflight(storageURL) {
@@ -185,7 +201,8 @@ final class DeviceLogStore: @unchecked Sendable {
     }
 
     static func preflight(_ url: URL) -> Bool {
-        autoreleasepool {
+        guard FileManager.default.isWritableStore(at: url) else { return false }
+        return autoreleasepool {
             guard let modelURL = Bundle(for: PersistentDeviceLog.self).url(forResource: "DeviceLog", withExtension: "momd"),
                   let model = NSManagedObjectModel(contentsOf: modelURL)
             else { return false }
@@ -196,10 +213,20 @@ final class DeviceLogStore: @unchecked Sendable {
             var loadError: Error?
             container.loadPersistentStores { _, error in loadError = error }
             let coordinator = container.persistentStoreCoordinator
+            let isReadOnly = coordinator.persistentStores.contains(where: \.isReadOnly)
             for store in coordinator.persistentStores {
                 try? coordinator.remove(store)
             }
-            return loadError == nil
+            return loadError == nil && !isReadOnly
+        }
+    }
+}
+
+extension FileManager {
+    func isWritableStore(at url: URL) -> Bool {
+        guard isWritableFile(atPath: url.deletingLastPathComponent().path) else { return false }
+        return ["", "-wal", "-shm"].allSatisfy { suffix in
+            !fileExists(atPath: url.path + suffix) || isWritableFile(atPath: url.path + suffix)
         }
     }
 }

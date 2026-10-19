@@ -569,10 +569,8 @@ private extension Duration {
         let entries = await store.entries(in: Self.everything)
         let text = try await Self.export(.all, appLog: InMemoryLogSink(), deviceLogStore: store)
 
-        withKnownIssue("DeviceLogStore.entries returns [] while the store is closed, so buffered entries miss the export") {
-            #expect(entries.count == 20)
-            #expect(Self.occurrences(of: "[send] pending ", in: Self.body(text)) == 20)
-        }
+        #expect(entries.count == 20)
+        #expect(Self.occurrences(of: "[send] pending ", in: Self.body(text)) == 20)
     }
 
     // MARK: Corrupt stores
@@ -639,20 +637,65 @@ private extension Duration {
         case .readOnlyFile:
             break
         }
-        withKnownIssue("A store that opens read-only drops every insert without falling back to memory") {
-            #expect(stored == records)
-            #expect(exported == 20)
-        } when: {
-            corruption == .readOnlyFile
+        #expect(stored == records)
+        #expect(exported == 20)
+    }
+
+    @Test("An app log store that rejects writes after opening keeps its records") func appLogStoreTurnsReadOnly() async throws {
+        let directory = try Self.makeDirectory()
+        let url = directory.appendingPathComponent("logs/AppLog.sqlite")
+        defer {
+            Self.restorePermissions(url)
+            try? FileManager.default.removeItem(at: directory)
         }
+        try Self.corrupt(url, .readOnlyFile) {
+            try Self.populateAppLog(at: $0, count: 10, start: Date().addingTimeInterval(-Self.hour))
+        }
+        let calls = Box(0)
+        let store = AppLogStore(
+            storageURL: url,
+            notificationCenter: Foundation.NotificationCenter(),
+            loadContainer: { url in
+                let call = calls.update { count -> Int in
+                    count += 1
+                    return count - 1
+                }
+                guard call == 0 else { return AppLogStore.loadContainer(url) }
+                guard let modelURL = Bundle.main.url(forResource: "AppLog", withExtension: "momd"),
+                      let model = NSManagedObjectModel(contentsOf: modelURL)
+                else { return nil }
+                let container = NSPersistentContainer(name: "AppLog", managedObjectModel: model)
+                let description = NSPersistentStoreDescription(url: url)
+                description.shouldAddStoreAsynchronously = false
+                container.persistentStoreDescriptions = [description]
+                container.loadPersistentStores { _, _ in }
+                return container
+            },
+            isProtectedDataAvailable: { true }
+        )
+        await store.flush()
+
+        let start = Date().addingTimeInterval(-1)
+        let records = (0 ..< 20).map { Self.record("read-only \($0)", at: start.addingTimeInterval(Double($0) / 1000)) }
+        records.forEach(store.accept)
+        await store.flush()
+        func readBack() async -> [LogRecord] {
+            await store.records(in: Self.everything, minimumLevel: .debug).filter { $0.message.hasPrefix("read-only ") }
+        }
+        #expect(await Self.waitUntil { await readBack().count == records.count })
+        let stored = await readBack()
+        Self.restorePermissions(url)
+        print(
+            "STRESS: app log turned read-only: loads \(calls.get()), moved aside \(Self.movedAside(url).count), stored \(stored.count)"
+        )
+        #expect(stored == records)
+        #expect(Self.movedAside(url).count == 1)
     }
 
     @Test(
         "Corrupt device log store never reaches PersistentDeviceLog's fatalError",
         arguments: Corruption.allCases
     ) func corruptDeviceLogStore(_ corruption: Corruption) async throws {
-        // A read-only store crashes the host in PersistentDeviceLog.log; opt in to reproduce
-        guard corruption != .readOnlyFile || ProcessInfo.processInfo.environment["TRIO_STRESS_CRASH"] == "1" else { return }
         let directory = try Self.makeDirectory()
         let url = directory.appendingPathComponent("logs/DeviceLog.sqlite")
         defer {
@@ -692,13 +735,9 @@ private extension Duration {
 
         #expect(moved.count <= 1)
         #expect(preflight.successes.get() <= 1)
-        withKnownIssue("Entries buffered in memory never reach entries(in:) or the export") {
-            #expect(errors == 0)
-            #expect(stored.count == 20)
-            #expect(exported == 20)
-        } when: {
-            corruption == .readOnlyDirectory
-        }
+        #expect(errors == 0)
+        #expect(stored.count == 20)
+        #expect(exported == 20)
     }
 
     @Test("Preflight rejects a device log store that would open read-only") func preflightRejectsReadOnlyStore() throws {
@@ -709,11 +748,7 @@ private extension Duration {
             try? FileManager.default.removeItem(at: directory)
         }
         try Self.corrupt(url, .readOnlyFile) { try Self.populateDeviceLog(at: $0, count: 10, start: Date()) }
-        withKnownIssue(
-            "preflight loads a read-only store, then PersistentDeviceLog.log throws 'Cannot set metadata in read-only store'"
-        ) {
-            #expect(!DeviceLogStore.preflight(url))
-        }
+        #expect(!DeviceLogStore.preflight(url))
     }
 
     @Test("A load failure that races an unlock does not move a healthy store aside") func unlockRaceKeepsHealthyStore() async throws {
@@ -748,12 +783,10 @@ private extension Duration {
             "STRESS: unlock race: app seeds \(appSeeds.count)/100 moved \(Self.movedAside(appURL).count), " +
                 "device seeds \(deviceSeeds.count)/100 moved \(Self.movedAside(deviceURL).count)"
         )
-        withKnownIssue("recover() moves the store aside without retrying the load once data is available") {
-            #expect(Self.movedAside(appURL).isEmpty)
-            #expect(appSeeds.count == 100)
-            #expect(Self.movedAside(deviceURL).isEmpty)
-            #expect(deviceSeeds.count == 100)
-        }
+        #expect(Self.movedAside(appURL).isEmpty)
+        #expect(appSeeds.count == 100)
+        #expect(Self.movedAside(deviceURL).isEmpty)
+        #expect(deviceSeeds.count == 100)
     }
 
     // MARK: Protected data flapping
@@ -856,11 +889,8 @@ private extension Duration {
 
         #expect(stored.count == records.count)
         for (original, roundTripped) in zip(records, stored) {
-            withKnownIssue("Core Data truncates strings at the first NUL") {
-                #expect(roundTripped.message == original.message)
-            } when: {
-                original.message.contains("\u{0}")
-            }
+            // Core Data truncates strings at the first NUL, so the store replaces it
+            #expect(roundTripped.message == original.message.replacingOccurrences(of: "\u{0}", with: "\u{FFFD}"))
         }
     }
 
@@ -884,9 +914,7 @@ private extension Duration {
         await store.flush()
         let stored = await store.records(in: Self.everything, minimumLevel: .debug)
         print("STRESS: lone surrogate batch kept \(stored.count)/\(records.count)")
-        withKnownIssue("NSBatchInsertRequest rejects the whole batch when one message fails string validation") {
-            #expect(stored.filter { $0.message.hasPrefix("good ") }.count == records.count - 1)
-        }
+        #expect(stored.filter { $0.message.hasPrefix("good ") }.count == records.count - 1)
     }
 
     @Test("Edge timestamps export once each, in order, as valid UTF-8") func edgeTimestampsExport() async throws {
