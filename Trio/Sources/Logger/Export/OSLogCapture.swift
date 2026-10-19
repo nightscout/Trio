@@ -12,51 +12,43 @@ enum OSLogCapture {
         return Date(timeIntervalSince1970: TimeInterval(start.tv_sec) + TimeInterval(start.tv_usec) / 1_000_000)
     }()
 
-    static func write(subsystems: [String], since: Date, into directory: URL) {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        var handles: [String: FileHandle] = [:]
-        var written: [URL] = []
+    // Kit subsystems per pluginIdentifier; Trio's own and LoopKit's mirror duplicate lines already in the file
+    static let subsystems: [String: [String]] = [
+        "Omni": ["com.loopkit.OmnipodKit", "OmnipodKitPlugin", "com.ps2.rileylink"],
+        "Minimed500": ["com.loopkit.MinimedKit", "com.randallknutson.OmniBLE", "com.ps2.rileylink"],
+        "Dana": ["com.randallknutson.DanaKit"],
+        "Medtrum": ["org.nightscout.MedtrumKit"],
+        "EversenseKit": ["org.nightscout.EversenseKit"],
+        "AccuChek": ["com.bastiaanv.AccuChekKit"],
+        "DexG5Transmitter": ["com.loopkit.CGMBLEKit"],
+        "DexG6Transmitter": ["com.loopkit.CGMBLEKit"],
+        "G7CGMManager": ["org.loopkit.G7SensorKit", "org.loopkit.G7SensorKitUI", "org.loopkit.G7SensorPlugin"],
+        "LibreTransmitterManagerV3": ["com.loopkit.LibreTransmitter", "com.loopkit.libre"],
+        "LibreLoopCGMManager": ["org.loopkit.LibreLoop"],
+        "DexShareClient": ["com.loopkit.ShareClient"]
+    ]
 
+    static func lines(from store: OSLogStore, sources: [String: String], in window: DateInterval) -> [LogLine] {
+        guard !sources.isEmpty, window.end >= processStartDate ?? .distantPast else { return [] }
         do {
-            let store = try OSLogStore(scope: .currentProcessIdentifier)
             let entries = try store.getEntries(
-                at: store.position(date: since),
-                matching: NSPredicate(format: "subsystem IN %@", subsystems)
+                at: store.position(date: window.start),
+                matching: NSPredicate(format: "subsystem IN %@", Array(sources.keys))
             )
+            var lines: [LogLine] = []
             for case let entry as OSLogEntryLog in entries {
-                let handle: FileHandle
-                if let existing = handles[entry.subsystem] {
-                    handle = existing
-                } else {
-                    let url = directory.appendingPathComponent("OSLog-\(entry.subsystem).txt")
-                    guard FileManager.default.createFile(atPath: url.path, contents: Data("# Current app session only\n".utf8))
-                    else { throw CocoaError(.fileWriteUnknown, userInfo: [NSFilePathErrorKey: url.path]) }
-                    written.append(url)
-                    handle = try FileHandle(forWritingTo: url)
-                    try handle.seekToEnd()
-                    handles[entry.subsystem] = handle
-                }
-                let line =
-                    "\(formatter.string(from: entry.date)) \(label(for: entry.level)) [\(entry.category)] \(entry.composedMessage)\n"
-                try handle.write(contentsOf: Data(line.utf8))
+                if entry.date > window.end { break }
+                guard let source = sources[entry.subsystem] else { continue }
+                lines.append(LogLine(
+                    date: entry.date,
+                    source: source,
+                    text: "[trace] [\(entry.category)] \(entry.composedMessage)"
+                ))
             }
-            handles.values.forEach { try? $0.close() }
+            return lines
         } catch {
-            handles.values.forEach { try? $0.close() }
-            written.forEach { try? FileManager.default.removeItem(at: $0) }
-            warning(.service, "Could not capture os_log entries: \(error)")
-        }
-    }
-
-    private static func label(for level: OSLogEntryLog.Level) -> String {
-        switch level {
-        case .debug: return "debug"
-        case .info: return "info"
-        case .notice: return "notice"
-        case .error: return "error"
-        case .fault: return "fault"
-        default: return "default"
+            warning(.service, "Could not read Bluetooth traces: \(error)")
+            return []
         }
     }
 }

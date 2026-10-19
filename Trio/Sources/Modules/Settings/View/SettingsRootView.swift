@@ -18,11 +18,7 @@ extension Settings {
         let resolver: Resolver
         @StateObject var state = StateModel()
 
-        @State private var showShareSheet = false
-        @State private var logArchive: URL?
-        @State private var isPreparingLogs = false
         @State private var showLogErrorToast = false
-        @State private var showDiagnosticReport = false
         @State private var searchText: String = ""
         @State var hintDetent = PresentationDetent.large
         @State private var hintPayload: HintPayload?
@@ -133,20 +129,11 @@ extension Settings {
             }
         }
 
-        private func shareLogs(_ makeArchive: @escaping () async throws -> URL) {
-            isPreparingLogs = true
+        private func showLogError() {
             Task { @MainActor in
-                do {
-                    logArchive = try await makeArchive()
-                    isPreparingLogs = false
-                    showShareSheet = true
-                } catch {
-                    isPreparingLogs = false
-                    warning(.service, "Could not prepare logs for sharing: \(error)")
-                    withAnimation { showLogErrorToast = true }
-                    try? await Task.sleep(nanoseconds: 2_000_000_000)
-                    withAnimation { showLogErrorToast = false }
-                }
+                withAnimation { showLogErrorToast = true }
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                withAnimation { showLogErrorToast = false }
             }
         }
 
@@ -304,26 +291,12 @@ extension Settings {
                     Section(
                         header: Text("Support & Community"),
                         content: {
-                            Menu {
-                                Button("Device logs") { shareLogs(state.deviceLogsArchive) }
-                                Button("App logs") { shareLogs(state.appLogsArchive) }
-                                Button("Diagnostic report") { showDiagnosticReport = true }
-                            } label: {
-                                HStack {
-                                    Text("Share Logs")
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                    if isPreparingLogs {
-                                        ProgressView()
-                                    } else {
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(.secondary)
-                                            .font(.footnote)
-                                    }
-                                }
-                            }
-                            .disabled(isPreparingLogs)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            LogShareRow(
+                                title: "Share Logs",
+                                kinds: state.logKinds,
+                                logExport: state.logExport,
+                                onFailure: showLogError
+                            )
 
                             Button {
                                 if let url = URL(string: "https://github.com/nightscout/Trio/issues/new/choose") {
@@ -488,17 +461,6 @@ extension Settings {
                     hintText: payload.content,
                     sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
-            }
-            .sheet(isPresented: $showShareSheet, onDismiss: {
-                if let logArchive {
-                    LogShareAction.discard(logArchive)
-                }
-                logArchive = nil
-            }) {
-                ShareSheet(activityItems: logArchive.map { [$0] } ?? [])
-            }
-            .sheet(isPresented: $showDiagnosticReport) {
-                DiagnosticReportView(generator: state.diagnosticReportGenerator)
             }
             .onAppear(perform: configureView)
             .task {

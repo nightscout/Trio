@@ -8,8 +8,7 @@ import TidepoolServiceKit
 extension Settings {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var broadcaster: Broadcaster!
-        @Injected() private var deviceLogExporter: DeviceLogExporting!
-        @Injected() var diagnosticReportGenerator: DiagnosticReportGenerator!
+        @Injected() var logExport: LogExport!
         @Injected() private var nightscoutManager: NightscoutManager!
         @Injected() var pluginManager: PluginManager!
         @Injected() var fetchCgmManager: FetchGlucoseManager!
@@ -45,33 +44,16 @@ extension Settings {
             serviceUIType = TidepoolService.self as? ServiceUI.Type
         }
 
-        func deviceLogsArchive() async throws -> URL {
-            let now = Date()
-            let request = DeviceLogExportRequest(
-                window: DateInterval(start: now.addingTimeInterval(-3 * 24 * 60 * 60), end: now),
-                managerIdentifier: nil,
-                includeOSLog: true,
-                includeKitFiles: true
-            )
-            let exporter = deviceLogExporter
-            return try await LogShareAction.archive(named: "Trio-DeviceLogs-\(Self.archiveStamp(now))") { directory in
-                try await exporter?.export(request, into: directory)
+        var logKinds: [LogExport.Kind] {
+            var kinds: [LogExport.Kind] = [.all]
+            // Read during the first render, before the resolver is set
+            if provider?.deviceManager?.pumpManager != nil {
+                kinds.append(.pump)
             }
-        }
-
-        func appLogsArchive() async throws -> URL {
-            let now = Date()
-            let window = DateInterval(start: now.addingTimeInterval(-3 * 24 * 60 * 60), end: now)
-            return try await LogShareAction.archive(named: "Trio-AppLogs-\(Self.archiveStamp(now))") { directory in
-                try await AppLogTextExporter.export(from: .shared, window: window, into: directory)
+            if let fetchCgmManager, fetchCgmManager.cgmGlucoseSourceType == .plugin, fetchCgmManager.cgmManager != nil {
+                kinds.append(.cgm)
             }
-        }
-
-        private static func archiveStamp(_ date: Date) -> String {
-            let formatter = DateFormatter()
-            formatter.locale = Locale(identifier: "en_US_POSIX")
-            formatter.dateFormat = "yyyyMMdd-HHmm"
-            return formatter.string(from: date)
+            return kinds
         }
 
         func hideSettingsModal() {
