@@ -51,6 +51,7 @@ enum LogFileWriter {
         }
 
         for slice in slices(of: window) {
+            try Task.checkCancellation()
             let isLast = slice.end >= window.end
             let sorted = await lines(slice).enumerated()
                 .filter { contains(slice, $0.element.date, isLast: isLast) }

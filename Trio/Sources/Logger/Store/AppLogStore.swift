@@ -231,6 +231,7 @@ final class AppLogStore: LogSink, @unchecked Sendable {
         }
         let request = NSFetchRequest<NSDictionary>(entityName: Self.entityName)
         request.resultType = .dictionaryResultType
+        request.propertiesToFetch = Self.fetchedProperties
         request.predicate = NSPredicate(
             format: "timestamp >= %@ AND timestamp <= %@ AND level >= %d",
             window.start as NSDate,
@@ -238,24 +239,54 @@ final class AppLogStore: LogSink, @unchecked Sendable {
             minimumLevel.rawValue
         )
         request.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: true)]
-        return context.performAndWait {
-            let rows = (try? context.fetch(request)) ?? []
-            return rows.compactMap { row in
-                guard let timestamp = row["timestamp"] as? Date,
-                      let level = (row["level"] as? Int16).flatMap(LogLevel.init(rawValue:))
-                else { return nil }
-                return LogRecord(
-                    timestamp: timestamp,
-                    level: level,
-                    category: row["category"] as? String ?? "",
-                    message: row["message"] as? String ?? "",
-                    file: row["file"] as? String ?? "",
-                    function: row["function"] as? String ?? "",
-                    line: UInt(max(0, row["line"] as? Int32 ?? 0)),
-                    launchID: row["launchID"] as? UUID ?? UUID()
-                )
-            }
+        let rows = context.performAndWait { (try? context.fetch(request)) ?? [] }
+        var fetched: [(record: LogRecord, objectID: NSManagedObjectID?)] = rows.compactMap { row in
+            guard let timestamp = row["timestamp"] as? Date,
+                  let level = (row["level"] as? Int16).flatMap(LogLevel.init(rawValue:))
+            else { return nil }
+            let record = LogRecord(
+                timestamp: timestamp,
+                level: level,
+                category: row["category"] as? String ?? "",
+                message: row["message"] as? String ?? "",
+                file: row["file"] as? String ?? "",
+                function: row["function"] as? String ?? "",
+                line: UInt(max(0, row["line"] as? Int32 ?? 0)),
+                launchID: row["launchID"] as? UUID ?? UUID()
+            )
+            return (record, row["objectID"] as? NSManagedObjectID)
         }
+        Self.sortTiesByInsertion(&fetched)
+        return fetched.map(\.record)
+    }
+
+    private static let fetchedProperties: [Any] = {
+        let objectID = NSExpressionDescription()
+        objectID.name = "objectID"
+        objectID.expression = NSExpression.expressionForEvaluatedObject()
+        objectID.expressionResultType = .objectIDAttributeType
+        return ["timestamp", "level", "category", "message", "file", "function", "line", "launchID", objectID]
+    }()
+
+    // SQLite returns equal timestamps in no particular order; primary keys follow insertion
+    private static func sortTiesByInsertion(_ rows: inout [(record: LogRecord, objectID: NSManagedObjectID?)]) {
+        var start = 0
+        while start < rows.count {
+            var end = start + 1
+            while end < rows.count, rows[end].record.timestamp == rows[start].record.timestamp {
+                end += 1
+            }
+            if end - start > 1 {
+                let ordered = rows[start ..< end].map { (insertionOrder($0.objectID), $0) }.sorted { $0.0 < $1.0 }
+                rows.replaceSubrange(start ..< end, with: ordered.map(\.1))
+            }
+            start = end
+        }
+    }
+
+    private static func insertionOrder(_ objectID: NSManagedObjectID?) -> Int {
+        // Permanent IDs end in "p<primary key>"
+        objectID.flatMap { Int($0.uriRepresentation().lastPathComponent.dropFirst()) } ?? Int.max
     }
 
     private func purge() {
@@ -350,6 +381,7 @@ final class AppLogStore: LogSink, @unchecked Sendable {
         context.undoManager = nil
         self.context = context
         deleteLegacyFiles()
+        FileManager.default.removeUnreadableStores(of: storageURL)
         flushPending()
     }
 

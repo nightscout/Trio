@@ -5,6 +5,7 @@ enum TrioLogger {
     private struct State: Sendable {
         var sink: any LogSink
         var installed: Bool
+        var lastTimestamp = Date.distantPast
     }
 
     private static let earlySink = InMemoryLogSink()
@@ -34,8 +35,14 @@ enum TrioLogger {
         function: String,
         line: UInt
     ) {
+        // Strictly increasing within the process, so equal or backward wall clock steps keep call order
+        let (timestamp, sink) = state.withLock { state in
+            let timestamp = max(Date(), state.lastTimestamp.addingTimeInterval(0.000_001))
+            state.lastTimestamp = timestamp
+            return (timestamp, state.sink)
+        }
         let record = LogRecord(
-            timestamp: Date(),
+            timestamp: timestamp,
             level: level,
             category: category.name,
             message: message,
