@@ -157,10 +157,6 @@ extension Notification.Name {
             showOnboardingCompletedSplash = true
         }
 
-        let submodulesInfo = BuildDetails.shared.submodules.map { key, value in
-            "\(key): \(value.branch) \(value.commitSHA)"
-        }.joined(separator: ", ")
-
         /// The current development version of the app.
         ///
         /// Follows a semantic pattern where release versions are like `0.5.0`, and
@@ -175,9 +171,13 @@ extension Notification.Name {
         /// If the dev version is unavailable, `"unknown"` is returned.
         let devVersion = Bundle.main.appDevVersion ?? "unknown"
 
-        debug(
-            .default,
-            "Trio Started: v\(devVersion)(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.shared.buildDate()))] [buildExpires: \(String(describing: BuildDetails.shared.calculateExpirationDate()))] [Branch: \(BuildDetails.shared.branchAndSha)] [submodules: \(submodulesInfo)]"
+        // Submodules can change between launches within one exported window
+        let submodules = BuildDetails.shared.submodules.sorted { $0.key < $1.key }
+            .map { "\($0.key) \($0.value.commitSHA.prefix(7))" }
+            .joined(separator: ", ")
+        info(
+            .lifecycle,
+            "Trio started: v\(devVersion) (\(Bundle.main.buildVersionNumber ?? "")) \(BuildDetails.shared.branchAndSha); \(submodules)"
         )
         // Fix bug in iOS 18 related to the translucent tab bar
         configureTabBarAppearance()
