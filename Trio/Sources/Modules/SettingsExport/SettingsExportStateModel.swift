@@ -849,6 +849,18 @@ extension SettingsExport {
                 addSetting(
                     category: featuresCategory,
                     subcategory: userInterfaceSubcategory,
+                    name: String(localized: "Home Statistics Panel"),
+                    value: trioSettings.homeStatsPanelFace.displayName
+                )
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
+                    name: String(localized: "Home Statistics Range"),
+                    value: trioSettings.homeStatsPanelRange.displayName
+                )
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
                     name: String(localized: "Require Adjustments Confirmation"),
                     value: trioSettings
                         .requireAdjustmentsConfirmation ? String(localized: "Enabled") : String(localized: "Disabled")
