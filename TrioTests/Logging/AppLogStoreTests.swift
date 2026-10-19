@@ -194,4 +194,42 @@ import UIKit
         #expect(await Self.waitUntil { loader.didLoad })
         #expect(await store.records(in: Self.everything, minimumLevel: .debug) == records)
     }
+
+    @Test("Equal timestamps come back in the order they were stored") func equalTimestampsKeepOrder() async throws {
+        let (store, directory) = try Self.makeStore()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let date = Date()
+        for batch in 0 ..< 5 {
+            (batch * 100 ..< batch * 100 + 100).forEach { store.accept(Self.record($0, at: date)) }
+            await store.flush()
+        }
+        let stored = await store.records(in: Self.everything, minimumLevel: .debug)
+        #expect(stored.map(\.line) == Array(0 ..< 500).map(UInt.init))
+    }
+
+    @Test("Moved-aside stores older than 7 days are deleted on open") func removesOldUnreadableStores() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let logs = directory.appendingPathComponent("logs", isDirectory: true)
+        try FileManager.default.createDirectory(at: logs, withIntermediateDirectories: true)
+        let now = Int(Date().timeIntervalSince1970)
+        let old = now - 8 * 24 * 60 * 60
+        let expired = ["AppLog.sqlite.unreadable-\(old)", "AppLog.sqlite-wal.unreadable-\(old)"]
+        let kept = [
+            "AppLog.sqlite.unreadable-\(now - 24 * 60 * 60)",
+            "AppLog.sqlite.unreadable-unknown",
+            "DeviceLog.sqlite.unreadable-\(old)"
+        ]
+        for name in expired + kept {
+            FileManager.default.createFile(atPath: logs.appendingPathComponent(name).path, contents: Data([1]))
+        }
+        let store = AppLogStore(
+            storageURL: logs.appendingPathComponent("AppLog.sqlite"),
+            notificationCenter: Foundation.NotificationCenter(),
+            isProtectedDataAvailable: { true }
+        )
+        await store.flush()
+        let remaining = try FileManager.default.contentsOfDirectory(atPath: logs.path).filter { $0.contains(".unreadable-") }
+        #expect(Set(remaining) == Set(kept))
+    }
 }

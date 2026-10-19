@@ -38,13 +38,28 @@ import Testing
     }
 
     private actor Stores {
-        static let shared = Stores()
+        static let shared = Stores(profile: .heavy)
+        static let typical = Stores(profile: .typical)
 
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("LoggingVolumeStress", isDirectory: true)
+        static func of(_ profile: StressProfile) -> Stores {
+            profile.name == StressProfile.typical.name ? typical : shared
+        }
+
+        let profile: StressProfile
+        let directory: URL
         // Whole hour so 6 h slice boundaries of a window ending here are known
         let end = Date(timeIntervalSince1970: (Date().timeIntervalSince1970 / 3600).rounded(.down) * 3600)
         private var appLog: AppLogStore?
         private var deviceLog: DeviceLogStore?
+        private var algorithm: CoreDataStack?
+
+        init(profile: StressProfile) {
+            self.profile = profile
+            directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+                "LoggingVolumeStress-\(profile.name)",
+                isDirectory: true
+            )
+        }
 
         var appLogURL: URL { directory.appendingPathComponent("logs/AppLog.sqlite") }
         var deviceLogURL: URL { directory.appendingPathComponent("logs/DeviceLog.sqlite") }
@@ -65,9 +80,22 @@ import Testing
             return store
         }
 
+        // Determinations for the newest 8 days, as many as an export can show
+        func preparedAlgorithm() async throws -> CoreDataStack {
+            if let algorithm { return algorithm }
+            let stack = try await CoreDataStack.createForTests()
+            let context = stack.newTaskContext()
+            for day in Fixtures.days - 8 ..< Fixtures.days {
+                try Fixtures.insertDeterminations(day: day, end: end, into: context)
+            }
+            algorithm = stack
+            return stack
+        }
+
         func reset() {
             appLog = nil
             deviceLog = nil
+            algorithm = nil
             try? FileManager.default.removeItem(at: directory)
         }
     }
@@ -117,6 +145,7 @@ import Testing
     private static func ingestAppLog(into stores: Stores) async throws -> AppLogStore {
         let url = await stores.appLogURL
         let end = await stores.end
+        let profile = stores.profile
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         let store = AppLogStore(
             storageURL: url,
@@ -131,7 +160,7 @@ import Testing
         var newest = Date.distantPast
         var elapsed = Duration.zero
         for day in 0 ..< Fixtures.days {
-            let records = Fixtures.appRecords(day: day, end: end)
+            let records = Fixtures.appRecords(day: day, end: end, profile: profile)
             let start = Self.clock.now
             for chunk in stride(from: 0, to: records.count, by: 2000) {
                 records[chunk ..< min(chunk + 2000, records.count)].forEach(store.accept)
@@ -159,7 +188,7 @@ import Testing
 
         let ingested = appRows(url)
         let ingestedSize = Fixtures.storeSize(url)
-        Fixtures.report("appLog.ingest", [
+        Fixtures.report("appLog.ingest.\(profile.name)", [
             "records": "\(accepted)",
             "perDay": "\(accepted / Fixtures.days)",
             "rowsPerSec": String(format: "%.0f", Double(accepted) / Fixtures.seconds(elapsed)),
@@ -178,7 +207,7 @@ import Testing
         let capDuration = Self.clock.now - capStart
         let afterCap = appRows(url)
         let coveredDays = afterCap.oldest.map { end.timeIntervalSince($0) / Fixtures.day } ?? 0
-        Fixtures.report("appLog.rowCap", [
+        Fixtures.report("appLog.rowCap.\(profile.name)", [
             "maxRows": "\(capped.maxRows)",
             "rows": "\(afterCap.count)",
             "daysCovered": String(format: "%.2f", coveredDays),
@@ -195,7 +224,7 @@ import Testing
         await store.flush()
         let ageDuration = Self.clock.now - ageStart
         let afterAge = appRows(url)
-        Fixtures.report("appLog.agePurge", [
+        Fixtures.report("appLog.agePurge.\(profile.name)", [
             "rows": "\(afterAge.count)",
             "oldestAgeDays": String(format: "%.2f", afterAge.oldest.map { Date().timeIntervalSince($0) / Fixtures.day } ?? 0),
             "seconds": String(format: "%.2f", Fixtures.seconds(ageDuration)),
@@ -210,6 +239,7 @@ import Testing
     private static func ingestDeviceLog(into stores: Stores) async throws -> DeviceLogStore {
         let url = await stores.deviceLogURL
         let end = await stores.end
+        let profile = stores.profile
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         let container = try #require(Fixtures.loadDeviceLogContainer(url))
         let context = container.newBackgroundContext()
@@ -219,7 +249,7 @@ import Testing
         var inserted = 0
         var elapsed = Duration.zero
         for day in 0 ..< Fixtures.days {
-            let entries = Fixtures.deviceEntries(day: day, end: end)
+            let entries = Fixtures.deviceEntries(day: day, end: end, profile: profile)
             let start = Self.clock.now
             try Fixtures.insert(entries, into: context, counter: &counter)
             elapsed += Self.clock.now - start
@@ -240,7 +270,7 @@ import Testing
         let ingestPeak = sampler.stop()
         let ingestedSize = Fixtures.storeSize(url)
         #expect(deviceRows(url).count == inserted)
-        Fixtures.report("deviceLog.ingest", [
+        Fixtures.report("deviceLog.ingest.\(profile.name)", [
             "entries": "\(inserted)",
             "perDay": "\(inserted / Fixtures.days)",
             "rowsPerSec": String(format: "%.0f", Double(inserted) / Fixtures.seconds(elapsed)),
@@ -256,7 +286,7 @@ import Testing
         let purgeDuration = Self.clock.now - purgeStart
         let purgePeak = purgeSampler.stop()
         let remaining = deviceRows(url)
-        Fixtures.report("deviceLog.openAndPurge", [
+        Fixtures.report("deviceLog.openAndPurge.\(profile.name)", [
             "rows": "\(remaining.count)",
             "oldestAgeDays": String(format: "%.2f", remaining.oldest.map { Date().timeIntervalSince($0) / Fixtures.day } ?? 0),
             "seconds": String(format: "%.2f", Fixtures.seconds(purgeDuration)),
@@ -326,23 +356,34 @@ import Testing
         return archive
     }
 
-    private static func makeExport(_ appLog: AppLogStore, _ deviceLog: DeviceLogStore) -> LogExport {
+    private static func makeExport(
+        _ appLog: AppLogStore,
+        _ deviceLog: DeviceLogStore,
+        algorithm: CoreDataStack? = nil
+    ) -> LogExport {
         LogExport(
             appLog: appLog,
             deviceLogStore: deviceLog,
             pump: StubManager(),
             cgm: StubCGMManager(),
-            storedValues: Fixtures.storedValues
+            storedValues: Fixtures.storedValues,
+            coreDataStack: algorithm
         )
     }
 
-    @Test("App log store ingests 90 days and purges to the cap, then to 7 days") func appLogIngest() async throws {
-        await Stores.shared.reset()
-        _ = try await Stores.shared.preparedAppLog()
+    @Test(
+        "App log store ingests 90 days and purges to the cap, then to 7 days",
+        arguments: [StressProfile.heavy, .typical]
+    ) func appLogIngest(profile: StressProfile) async throws {
+        await Stores.of(profile).reset()
+        _ = try await Stores.of(profile).preparedAppLog()
     }
 
-    @Test("Device log store ingests 90 days and purges to 7 days on open") func deviceLogIngest() async throws {
-        _ = try await Stores.shared.preparedDeviceLog()
+    @Test(
+        "Device log store ingests 90 days and purges to 7 days on open",
+        arguments: [StressProfile.heavy, .typical]
+    ) func deviceLogIngest(profile: StressProfile) async throws {
+        _ = try await Stores.of(profile).preparedDeviceLog()
     }
 
     @Test("Device log live writes save one entry at a time") func deviceLogLiveWrites() async throws {
@@ -381,12 +422,17 @@ import Testing
         #expect(await store.entries(in: DateInterval(start: Date().addingTimeInterval(-600), end: Date())).count == count)
     }
 
-    @Test("Exports of every kind and length are sorted, complete and redacted") func exports() async throws {
-        let appLog = try await Stores.shared.preparedAppLog()
-        let deviceLog = try await Stores.shared.preparedDeviceLog()
-        let appURL = await Stores.shared.appLogURL
-        let deviceURL = await Stores.shared.deviceLogURL
-        let export = Self.makeExport(appLog, deviceLog)
+    @Test(
+        "Exports of every kind and length are sorted, complete, redacted and fast",
+        arguments: [StressProfile.heavy, .typical]
+    ) func exports(profile: StressProfile) async throws {
+        let stores = Stores.of(profile)
+        let appLog = try await stores.preparedAppLog()
+        let deviceLog = try await stores.preparedDeviceLog()
+        let algorithm = try await stores.preparedAlgorithm()
+        let appURL = await stores.appLogURL
+        let deviceURL = await stores.deviceLogURL
+        let export = Self.makeExport(appLog, deviceLog, algorithm: algorithm)
 
         for days in [1, 3, 7] {
             for kind in [LogExport.Kind.all, .pump, .cgm] {
@@ -397,6 +443,22 @@ import Testing
                 defer { try? FileManager.default.removeItem(at: directory) }
                 let span = Double(days) * Fixtures.day
                 let before = Date()
+                let expected: Set<String>
+                switch kind {
+                case .all: expected = ["Trio", "Pump", "CGM"]
+                case .pump: expected = ["Pump"]
+                case .cgm: expected = ["CGM"]
+                }
+                func rows(_ source: String, since date: Date) -> Int {
+                    switch source {
+                    case "Trio": return Self.appRows(appURL, Self.since(date)).count
+                    case "Pump": return Self.deviceRows(deviceURL, Self.since(date, manager: Fixtures.pumpManager)).count
+                    default: return Self.deviceRows(deviceURL, Self.since(date, manager: Fixtures.cgmManager)).count
+                    }
+                }
+                // Counted first: the device log purges rows that age out while the export runs
+                let upperStart = before.addingTimeInterval(-span)
+                let upper = Dictionary(uniqueKeysWithValues: expected.map { ($0, rows($0, since: upperStart)) })
                 let sampler = MemorySampler()
                 let start = Self.clock.now
                 let url = try await export.writeLog(kind, days: days, into: directory.appendingPathComponent("log"))
@@ -409,7 +471,7 @@ import Testing
                 let textSize = Fixtures.fileSize(url)
                 let zipSize = Fixtures.fileSize(archive)
                 let analysis = Self.analyze(try String(contentsOf: url, encoding: .utf8))
-                let name = "\(kind)-\(days)d"
+                let name = "\(profile.name).\(kind)-\(days)d"
 
                 Fixtures.report("export.\(name)", [
                     "seconds": String(format: "%.2f", Fixtures.seconds(duration)),
@@ -430,31 +492,20 @@ import Testing
                 #expect(analysis.markers.values.allSatisfy { $0 == 1 }, "\(name) markers \(analysis.markers)")
                 #expect(analysis.counts[Fixtures.retiredManager] == nil, "\(name)")
 
-                func expectCount(_ source: String, rows: (Date) -> Int) {
-                    let upper = rows(before.addingTimeInterval(-span))
-                    let lower = rows(after.addingTimeInterval(-span))
+                #expect(Set(analysis.counts.keys) == expected.union(kind == .all ? ["Algorithm"] : []), "\(name)")
+                #expect((analysis.counts["Algorithm"] ?? 0) <= days * Fixtures.cyclesPerDay + 1, "\(name)")
+                for source in expected {
+                    let lower = rows(source, since: after.addingTimeInterval(-span))
                     let found = analysis.counts[source] ?? 0
-                    #expect(found >= lower && found <= upper, "\(name) \(source): \(found) not in \(lower)...\(upper)")
+                    let upperBound = upper[source] ?? 0
+                    #expect(found >= lower && found <= upperBound, "\(name) \(source): \(found) not in \(lower)...\(upperBound)")
                 }
-                let expected: Set<String>
-                switch kind {
-                case .all: expected = ["Trio", "Pump", "CGM"]
-                case .pump: expected = ["Pump"]
-                case .cgm: expected = ["CGM"]
+                let limit: Double = switch (kind, days) {
+                case (.all, 1): 1
+                case (.all, _): 5
+                default: 2
                 }
-                #expect(Set(analysis.counts.keys) == expected, "\(name)")
-                if expected.contains("Trio") {
-                    expectCount("Trio") { Self.appRows(appURL, Self.since($0)).count }
-                }
-                if expected.contains("Pump") {
-                    expectCount("Pump") { Self.deviceRows(deviceURL, Self.since($0, manager: Fixtures.pumpManager)).count }
-                }
-                if expected.contains("CGM") {
-                    expectCount("CGM") { Self.deviceRows(deviceURL, Self.since($0, manager: Fixtures.cgmManager)).count }
-                }
-                if kind == .all, days == 7 {
-                    #expect(Fixtures.seconds(duration) < 60)
-                }
+                #expect(Fixtures.seconds(duration) <= limit, "\(name) took \(duration)")
             }
         }
 
@@ -464,18 +515,77 @@ import Testing
         for slice in LogFileWriter.slices(of: window) {
             identifierEntries += await deviceLog.entries(in: slice).count
         }
-        Fixtures.report("export.identifierPass7d", [
+        Fixtures.report("export.\(profile.name).identifierPass7d", [
             "entries": "\(identifierEntries)",
             "seconds": String(format: "%.2f", Fixtures.seconds(Self.clock.now - identifierStart))
         ])
 
         let start = Self.clock.now
         let archive = try await export.makeFile(.all, days: 7)
+        let makeFileDuration = Self.clock.now - start
         defer { LogExport.discard(archive) }
-        Fixtures.report("export.makeFile-all-7d", [
-            "seconds": String(format: "%.2f", Fixtures.seconds(Self.clock.now - start)),
+        Fixtures.report("export.\(profile.name).makeFile-all-7d", [
+            "seconds": String(format: "%.2f", Fixtures.seconds(makeFileDuration)),
             "zip": Fixtures.megabytes(Fixtures.fileSize(archive))
         ])
+        #expect(Fixtures.seconds(makeFileDuration) <= 6)
+    }
+
+    @Test("7-day export time per phase") func exportPhases() async throws {
+        let appLog = try await Stores.shared.preparedAppLog()
+        let deviceLog = try await Stores.shared.preparedDeviceLog()
+        let algorithm = try await Stores.shared.preparedAlgorithm()
+        let now = Date()
+        let window = DateInterval(start: now.addingTimeInterval(-7 * Fixtures.day), end: now)
+        let slices = LogFileWriter.slices(of: window)
+        for (name, appSource, manager) in [("all", true, String?.none), ("pump", false, Fixtures.pumpManager)] {
+            var phases: [String: Duration] = [:]
+            func measure<T>(_ phase: String, _ body: () async throws -> T) async rethrows -> T {
+                let start = Self.clock.now
+                defer { phases[phase, default: .zero] += Self.clock.now - start }
+                return try await body()
+            }
+            var values = Fixtures.storedValues
+            for slice in slices {
+                for entry in await measure("identifiers", { await deviceLog.entries(in: slice) }) {
+                    values.add(entry.deviceIdentifier, .device)
+                }
+            }
+            let redactor = Redactor(exactValues: values.values)
+            let formatter = LogFileWriter.timestampFormatter()
+            let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+            defer { try? FileManager.default.removeItem(at: directory) }
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let url = directory.appendingPathComponent("log.txt")
+            FileManager.default.createFile(atPath: url.path, contents: nil)
+            let handle = try FileHandle(forWritingTo: url)
+            var lineCount = 0
+            for slice in slices {
+                var lines: [LogLine] = []
+                if appSource {
+                    let records = await measure("appFetch") { await appLog.records(in: slice, minimumLevel: .debug) }
+                    lines += records.map(LogExport.line)
+                    lines += await measure("algorithm") { await LogExport.algorithmLines(in: slice, from: algorithm) }
+                }
+                lines += await measure("deviceFetch") {
+                    await deviceLog.entries(in: slice, managerIdentifier: manager).map { LogExport.line(for: $0, source: "Pump") }
+                }
+                let sorted = await measure("sort") { lines.sorted { $0.date < $1.date } }
+                lineCount += sorted.count
+                let text = await measure("format") { sorted.map { LogFileWriter.format($0, formatter: formatter) }.joined() }
+                let redacted = await measure("redact") { redactor.redact(text) }
+                try await measure("write") { try handle.write(contentsOf: Data(redacted.utf8)) }
+            }
+            try handle.close()
+            _ = try await measure("zip") { try Self.zip(url) }
+            let total = phases.values.reduce(Duration.zero, +)
+            Fixtures.report("exportPhases.\(name)-7d", [
+                "lines": "\(lineCount)",
+                "total": String(format: "%.2f", Fixtures.seconds(total)),
+                "phases": phases.sorted { $0.value > $1.value }
+                    .map { "\($0.key):" + String(format: "%.2f", Fixtures.seconds($0.value)) }.joined(separator: ",")
+            ])
+        }
     }
 
     @Test("Slices meet exactly at 6 hour boundaries on real stores") func sliceBoundaries() async throws {
@@ -663,7 +773,7 @@ import Testing
         let total = try await context.perform { try context.count(for: OrefDetermination.fetchRequest()) }
         Fixtures.report("determinations", [
             "rows": "\(total)",
-            "forecastValuesPerRow": "\(4 * Fixtures.forecastLength)",
+            "forecastValuesPerRow": "≤192",
             "insertSeconds": String(format: "%.1f", Fixtures.seconds(insertDuration)),
             "peakFootprint": Fixtures.megabytes(peak.footprint),
             "fetch7dSeconds": String(format: "%.3f", Fixtures.seconds(fetchDuration)),
@@ -675,5 +785,6 @@ import Testing
 
     @Test("Clean up stress stores") func cleanUp() async {
         await Stores.shared.reset()
+        await Stores.typical.reset()
     }
 }

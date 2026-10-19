@@ -1,3 +1,4 @@
+import CoreData
 import Foundation
 import LoopKit
 import Testing
@@ -213,5 +214,57 @@ import Testing
         #expect(all.contains("serial: <device-1>"))
         #expect(all.contains("Pump [send] connected to <device-1>"))
         #expect(all.contains("Trio [Service] upload to <nightscout-url>/api/v1/entries"))
+    }
+
+    @Test("Determinations in the window become Algorithm lines") func algorithmLines() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let stack = try await CoreDataStack.createForTests()
+        let context = stack.newTaskContext()
+        let now = Date()
+        let reason = "Autosens ratio: 1, ISF: 55→55, COB: 0, Dev: 37, BGI: -4, CR: 12, Target: 95, minPredBG 125, " +
+            "minGuardBG 134, IOBpredBG 108, UAMpredBG 135; Eventual BG 135 >= 95,  insulinReq 0.55; " +
+            "setting 30m low temp of 0.27U/h. Microbolusing 0.2U. "
+        let hour: TimeInterval = 60 * 60
+        let determinations: [(offset: TimeInterval, enacted: Bool)] = [(-2 * hour, true), (-hour, false), (-48 * hour, true)]
+        try await context.perform {
+            for (offset, enacted) in determinations {
+                let determination = OrefDetermination(context: context)
+                determination.id = UUID()
+                determination.deliverAt = now.addingTimeInterval(offset)
+                determination.timestamp = now.addingTimeInterval(offset)
+                determination.enacted = enacted
+                determination.glucose = 187
+                determination.iob = NSDecimalNumber(string: "2.179")
+                determination.cob = 0
+                determination.rate = NSDecimalNumber(string: "0.27")
+                determination.duration = 30
+                determination.smbToDeliver = enacted ? NSDecimalNumber(string: "0.2") : nil
+                determination.eventualBG = 135
+                determination.reason = reason
+            }
+            try context.save()
+        }
+        let store = DeviceLogStore(
+            storageURL: directory.appendingPathComponent("logs/DeviceLog.sqlite"),
+            isProtectedDataAvailable: { true }
+        )
+        let export = LogExport(appLog: InMemoryLogSink(), deviceLogStore: store, pump: nil, cgm: nil, coreDataStack: stack)
+
+        let all = try await Self.logLines(String(
+            contentsOf: export.writeLog(.all, days: 1, into: directory.appendingPathComponent("all")),
+            encoding: .utf8
+        ))
+        let pump = try await Self.logLines(String(
+            contentsOf: export.writeLog(.pump, days: 1, into: directory.appendingPathComponent("pump")),
+            encoding: .utf8
+        ))
+
+        let algorithm = all.filter { $0.dropFirst(30).hasPrefix("Algorithm ") }
+        #expect(algorithm.count == 2)
+        let enacted = "Algorithm enacted · BG 187 · IOB 2.18 · COB 0 · rate 0.27/30m · SMB 0.2 · eventual 135 · \(reason)"
+        let suggested = "Algorithm suggested · BG 187 · IOB 2.18 · COB 0 · rate 0.27/30m · eventual 135 · \(reason)"
+        #expect(algorithm.map { String($0.dropFirst(30)) } == [enacted, suggested])
+        #expect(pump.isEmpty)
     }
 }

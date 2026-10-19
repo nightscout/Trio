@@ -127,4 +127,26 @@ import UIKit
         #expect(preflight.callCount == 1)
         #expect(FileManager.default.fileExists(atPath: file.path))
     }
+
+    @Test("Moved-aside stores older than 7 days are deleted on open") func removesOldUnreadableStores() async throws {
+        let (directory, file) = try Self.makeStorageURL()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let logs = file.deletingLastPathComponent()
+        try FileManager.default.createDirectory(at: logs, withIntermediateDirectories: true)
+        let now = Int(Date().timeIntervalSince1970)
+        let old = now - 8 * 24 * 60 * 60
+        let expired = ["DeviceLog.sqlite.unreadable-\(old)", "DeviceLog.sqlite-shm.unreadable-\(old)"]
+        let kept = ["DeviceLog.sqlite.unreadable-\(now - 60)", "AppLog.sqlite.unreadable-\(old)"]
+        for name in expired + kept {
+            FileManager.default.createFile(atPath: logs.appendingPathComponent(name).path, contents: Data([1]))
+        }
+        let store = DeviceLogStore(
+            storageURL: file,
+            notificationCenter: Foundation.NotificationCenter(),
+            isProtectedDataAvailable: { true }
+        )
+        _ = await store.entries(in: Self.window)
+        let remaining = try FileManager.default.contentsOfDirectory(atPath: logs.path).filter { $0.contains(".unreadable-") }
+        #expect(Set(remaining) == Set(kept))
+    }
 }
