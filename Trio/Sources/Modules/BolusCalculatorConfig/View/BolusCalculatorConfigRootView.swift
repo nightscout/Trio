@@ -157,34 +157,6 @@ extension BolusCalculatorConfig {
 
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.mealTimeReminderEnabled,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Meal-Time Reminder")
-                        }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: String(localized: "Enable Meal-Time Reminder Option"),
-                    miniHint: String(
-                        localized: "Set a lead time between bolusing and eating, with an alarm when it is time to eat."
-                    ),
-                    verboseHint: VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: OFF").bold()
-                        Text(
-                            "Enabling this setting adds a \"Remind Me to Eat\" toggle with a lead time picker to the bolus calculator."
-                        )
-                        Text(
-                            "Turn the toggle on and enter how many minutes before the meal you are bolusing. When the bolus is enacted, an alarm counts down until it is time to eat. Turning the toggle on asks for the alarm permission if it has not been granted yet. The calculator remembers the last used lead time, but the toggle starts off for each meal."
-                        )
-                    }
-                )
-
-                SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
                     booleanValue: $state.confirmBolusWhenVeryLowGlucose,
                     shouldDisplayHint: $shouldDisplayHint,
                     selectedVerboseHint: Binding(
@@ -213,6 +185,81 @@ extension BolusCalculatorConfig {
                         )
                     }
                 )
+
+                Section {
+                    VStack {
+                        HStack {
+                            Toggle(isOn: $state.mealTimeReminderEnabled) {
+                                Text("Enable Meal-Time Reminder Option")
+                            }
+                        }.padding(.top)
+
+                        SettingHintRow(
+                            miniHint: String(
+                                localized: "Set a lead time between bolusing and eating, with an alarm when it is time to eat."
+                            ),
+                            shouldDisplayHint: $shouldDisplayHint,
+                            selectedVerboseHint: Binding(
+                                get: { selectedVerboseHint },
+                                set: {
+                                    selectedVerboseHint = $0.map { AnyView($0) }
+                                    hintLabel = String(localized: "Meal-Time Reminder")
+                                }
+                            ),
+                            verboseHint: VStack(alignment: .leading, spacing: 10) {
+                                Text("Default: OFF").bold()
+                                Text(
+                                    "Enabling this setting adds a \"Remind Me to Eat\" row to the bolus calculator with preset buttons, an Off button, and a minutes picker."
+                                )
+                                Text(
+                                    "Set how many minutes before eating you want to bolus. The reminder starts at Off for each meal. Once the bolus is delivered, an alarm counts down until it is time to eat. The first time, iOS asks for the alarm permission."
+                                )
+                            },
+                            label: String(localized: "Enable Meal-Time Reminder Option")
+                        )
+                    }
+                } header: {
+                    Text("Meal-Time Reminder")
+                }
+                .settingsSearchTarget(label: String(localized: "Enable Meal-Time Reminder Option"))
+
+                if state.mealTimeReminderEnabled {
+                    Section {
+                        ForEach(state.mealTimeReminderPresets.indices, id: \.self) { index in
+                            PickerSettingRow(
+                                label: String(
+                                    localized: "Preset \(index + 1)",
+                                    comment: "Numbered meal-time reminder preset button"
+                                ),
+                                decimalValue: $state.mealTimeReminderPresets[index],
+                                setting: PickerSettingsProvider.shared.settings.mealTimeReminderPreset,
+                                units: state.units
+                            )
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                if state.mealTimeReminderPresets.count > 1 {
+                                    Button(role: .destructive) {
+                                        state.mealTimeReminderPresets.remove(at: index)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                    .tint(.red)
+                                }
+                            }
+                        }
+
+                        let presetLimitReached = state.mealTimeReminderPresets.count >= TrioSettings.mealTimeReminderPresetLimit
+                        Button {
+                            let next = min((state.mealTimeReminderPresets.max() ?? 5) + 5, 60)
+                            state.mealTimeReminderPresets.append(next)
+                        } label: {
+                            Label("Add Preset", systemImage: "plus.circle.fill")
+                        }
+                        .disabled(presetLimitReached)
+                        .foregroundStyle(presetLimitReached ? Color.secondary : Color.accentColor)
+                    } footer: {
+                        Text("Quick buttons for the reminder lead time. Add up to 3 presets, swipe to delete.")
+                    }
+                }
             }
             .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {

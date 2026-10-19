@@ -95,9 +95,9 @@ extension Treatments {
 
         var mealTimeReminderMinutes: Decimal = 0
 
-        /// Whether the reminder fires for this entry. Starts off every time the calculator
-        /// opens; only the lead time (`mealTimeReminderMinutes`) remembers its last value.
-        var mealTimeReminderActive: Bool = false
+        /// Preset lead times offered as quick buttons next to the picker; configured in the
+        /// bolus calculator settings.
+        var mealTimeReminderPresets: [Decimal] = [15, 30]
 
         var meal: [CarbsEntry]?
         var carbs: Decimal = 0
@@ -256,22 +256,11 @@ extension Treatments {
             broadcaster?.unregister(DeterminationObserver.self, observer: self)
             broadcaster?.unregister(BolusFailureObserver.self, observer: self)
 
-            // Reset the user's selection to the last used value, but leave any scheduled alarm
-            // alone: this runs on dismissal, when a just-set meal-time reminder starts counting down.
-            restoreLastMealTimeReminderMinutes()
+            // Leave any scheduled alarm alone: this runs on dismissal, when a just-set
+            // meal-time reminder starts counting down.
+            mealTimeReminderMinutes = 0
 
             debug(.bolusState, "StateModel cleanup() finished")
-        }
-
-        /// UserDefaults key holding the lead time the calculator was last confirmed with.
-        private static let lastMealTimeReminderMinutesKey = "Trio.mealTimeReminderLastMinutes"
-
-        /// Pre-fills the lead-time wheel with the last used value, so a repeated meal needs no
-        /// re-entry. The toggle itself stays off — the user opts in per meal.
-        private func restoreLastMealTimeReminderMinutes() {
-            mealTimeReminderActive = false
-            let stored = UserDefaults.standard.integer(forKey: Self.lastMealTimeReminderMinutesKey)
-            mealTimeReminderMinutes = mealTimeReminderEnabled ? Decimal(min(max(stored, 0), 60)) : 0
         }
 
         private func setupBolusStateConcurrently() {
@@ -383,7 +372,12 @@ extension Treatments {
             sweetMeals = settings.settings.sweetMeals
             sweetMealFactor = settings.settings.sweetMealFactor
             mealTimeReminderEnabled = settings.settings.mealTimeReminderEnabled
-            restoreLastMealTimeReminderMinutes()
+            mealTimeReminderMinutes = 0
+
+            mealTimeReminderPresets = Array(Set(settings.settings.mealTimeReminderPresets.filter { $0 > 0 }))
+                .sorted()
+                .prefix(TrioSettings.mealTimeReminderPresetLimit)
+                .map { $0 }
             displayPresets = settings.settings.displayPresets
             confirmBolus = settings.settings.confirmBolus
             forecastDisplayType = settings.settings.forecastDisplayType
@@ -529,12 +523,6 @@ extension Treatments {
                 let isFatPresent = fat > 0
                 let isProteinPresent = protein > 0
 
-                // Remember the lead time only when a reminder was actually set, so toggling
-                // the reminder off doesn't wipe the value offered next time.
-                if mealTimeReminderActive, mealTimeReminderMinutes > 0 {
-                    UserDefaults.standard.set(Int(mealTimeReminderMinutes), forKey: Self.lastMealTimeReminderMinutesKey)
-                }
-
                 if isCarbsPresent || isFatPresent || isProteinPresent {
                     await saveMeal()
                 }
@@ -547,7 +535,7 @@ extension Treatments {
                     // boluses the reminder itself waits for the delivery to finish (or be cancelled
                     // early), so a long delivery doesn't eat into the lead time. The alarm has to
                     // outlive this screen, so it is handled by the service rather than the view.
-                    if delivered, mealTimeReminderActive, mealTimeReminderMinutes > 0 {
+                    if delivered, mealTimeReminderMinutes > 0 {
                         let leadTime = TimeInterval(Double(mealTimeReminderMinutes) * 60)
                         if externalInsulin {
                             await mealTimeReminderService.scheduleEatReminder(
@@ -566,7 +554,7 @@ extension Treatments {
                 } else {
                     // No insulin: with the reminder set this is a standalone timer over the
                     // entered meal (or no meal at all), so start it right away.
-                    if mealTimeReminderActive, mealTimeReminderMinutes > 0 {
+                    if mealTimeReminderMinutes > 0 {
                         let leadTime = TimeInterval(Double(mealTimeReminderMinutes) * 60)
                         await mealTimeReminderService.scheduleEatReminder(
                             after: leadTime,
@@ -773,9 +761,9 @@ extension Treatments {
         /// The alarm is local and leaves no trace, so the note is what makes the timing visible
         /// later in the history and in Nightscout.
         var noteWithMealTimeReminder: String {
-            guard mealTimeReminderActive, mealTimeReminderMinutes > 0 else { return note }
+            guard mealTimeReminderMinutes > 0 else { return note }
             let prefix = String(localized: "Meal-time reminder: \(Int(mealTimeReminderMinutes)) min")
-            return note.isEmpty ? prefix : "\(prefix) — \(note)"
+            return note.isEmpty ? prefix : "\(prefix). \(note)"
         }
 
         func saveMeal() async {

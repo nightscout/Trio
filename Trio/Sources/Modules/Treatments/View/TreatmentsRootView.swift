@@ -25,7 +25,6 @@ extension Treatments {
         @State private var pushed: Bool = false
         @State private var debounce: DispatchWorkItem?
         @State private var showFatProteinOrderBanner = false
-        @State private var showReminderPicker = false
 
         /// Check whether the on-screen keyboard is currently up.
         @State private var isKeyboardVisible = false
@@ -151,64 +150,81 @@ extension Treatments {
         }
 
         private var reminderValueString: String {
-            "\(Int(state.mealTimeReminderMinutes)) " + String(localized: "min", comment: "Units for meal-time reminder lead time")
+            let minutes = Int(state.mealTimeReminderMinutes)
+            guard minutes > 0 else { return String(localized: "Off", comment: "Meal-time reminder disabled") }
+            return "\(minutes) " + String(localized: "min", comment: "Units for meal-time reminder lead time")
         }
 
-        /// "Remind Me to Eat" toggle; when on, a lead-time row below it opens an inline wheel
-        /// picker. The lead time remembers the last used value, the toggle starts off per meal.
+        /// "Remind Me to Eat" row: always expanded, with preset buttons (Off + the two values
+        /// configured in settings) on the left and a minutes wheel for fine control on the right.
+        /// The picker starts at Off every time the calculator opens.
         @ViewBuilder private func mealTimeReminderRow() -> some View {
             HStack {
                 Text("Remind Me to Eat")
                 Spacer()
-                Toggle("", isOn: $state.mealTimeReminderActive).toggleStyle(CheckboxToggleStyle())
+                Text(reminderValueString)
+                    .foregroundColor(.secondary)
             }
-            .onChange(of: state.mealTimeReminderActive) {
-                if state.mealTimeReminderActive {
-                    Task { await state.mealTimeReminderService.requestAuthorization() }
-                    if state.mealTimeReminderMinutes <= 0 {
-                        state.mealTimeReminderMinutes = 15
+
+            HStack(alignment: .center, spacing: 12) {
+                VStack(spacing: 8) {
+                    reminderPresetPill(minutes: 0, label: String(localized: "Off", comment: "Meal-time reminder disabled"))
+                    ForEach(state.mealTimeReminderPresets, id: \.self) { preset in
+                        reminderPresetPill(
+                            minutes: Int(preset),
+                            label: "\(Int(preset)) " + String(localized: "min", comment: "Units for meal-time reminder lead time")
+                        )
                     }
-                } else {
-                    showReminderPicker = false
+                }
+
+                Picker(
+                    selection: reminderMinutesBinding,
+                    label: Text("Remind Me to Eat")
+                ) {
+                    Text(String(localized: "Off", comment: "Meal-time reminder disabled")).tag(0)
+                    ForEach(1 ... 60, id: \.self) { minute in
+                        Text("\(minute) " + String(localized: "min", comment: "Units for meal-time reminder lead time"))
+                            .tag(minute)
+                    }
+                }
+                .pickerStyle(.wheel)
+                .frame(maxWidth: .infinity)
+                .clipped()
+            }
+            .onChange(of: state.mealTimeReminderMinutes) {
+                // Ask for the alarm permission only when the user actually arms a reminder.
+                if state.mealTimeReminderMinutes > 0 {
+                    Task { await state.mealTimeReminderService.requestAuthorization() }
                 }
             }
+        }
 
-            if state.mealTimeReminderActive {
-                HStack {
-                    Text("Lead Time", comment: "Meal-time reminder lead time row label")
-                    Spacer()
-                    Text(reminderValueString)
-                        .foregroundColor(showReminderPicker ? .accentColor : .primary)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    withAnimation { showReminderPicker.toggle() }
-                }
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(Text("Lead Time", comment: "Meal-time reminder lead time row label"))
-                .accessibilityValue(Text(reminderValueString))
-                .accessibilityHint(Text(
-                    showReminderPicker
-                        ? String(localized: "Closes the value picker", comment: "Accessibility hint")
-                        : String(localized: "Opens a picker to change the value", comment: "Accessibility hint")
-                ))
-                .accessibilityAddTraits(.isButton)
+        private func reminderPresetPill(minutes: Int, label: String) -> some View {
+            let isSelected = Int(state.mealTimeReminderMinutes) == minutes
 
-                if showReminderPicker {
-                    Picker(
-                        selection: reminderMinutesBinding,
-                        label: Text("Lead Time", comment: "Meal-time reminder lead time row label")
-                    ) {
-                        ForEach(1 ... 60, id: \.self) { minute in
-                            Text("\(minute) " + String(localized: "min", comment: "Units for meal-time reminder lead time"))
-                                .tag(minute)
+            return Button {
+                state.mealTimeReminderMinutes = Decimal(minutes)
+            } label: {
+                Text(label)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .frame(minWidth: 72, minHeight: 36)
+                    .background(isSelected ? Color.accentColor : Color(.secondarySystemFill))
+                    .foregroundStyle(isSelected ? Color.white : Color.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay {
+                        if isSelected {
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .strokeBorder(Color.accentColor, lineWidth: 2)
                         }
                     }
-                    .pickerStyle(.wheel)
-                    .frame(maxWidth: .infinity)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                }
             }
+            .buttonStyle(.plain)
+            .animation(.easeInOut(duration: 0.15), value: isSelected)
+            .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
         }
 
         @ViewBuilder private func carbsTextField() -> some View {
@@ -810,7 +826,7 @@ extension Treatments {
                 return Text("Log FPU")
             default:
                 return Text(
-                    state.mealTimeReminderActive
+                    state.mealTimeReminderMinutes > 0
                         ? String(localized: "Start Meal-Time Reminder")
                         : String(localized: "Continue Without Treatment")
                 )

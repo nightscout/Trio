@@ -11,6 +11,7 @@ extension BolusCalculatorConfig {
         @Published var sweetMeals: Bool = false
         @Published var sweetMealFactor: Decimal = 0
         @Published var mealTimeReminderEnabled: Bool = false
+        @Published var mealTimeReminderPresets: [Decimal] = [15, 30]
         @Published var displayPresets: Bool = true
         @Published var confirmBolusWhenVeryLowGlucose: Bool = false
 
@@ -29,6 +30,7 @@ extension BolusCalculatorConfig {
                 guard enabled, let self else { return }
                 Task { await self.mealTimeReminderService.requestAuthorization() }
             }
+            subscribeSetting(\.mealTimeReminderPresets, on: $mealTimeReminderPresets) { mealTimeReminderPresets = $0 }
         }
     }
 }
