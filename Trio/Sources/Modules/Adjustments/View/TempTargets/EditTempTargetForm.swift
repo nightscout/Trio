@@ -329,9 +329,9 @@ struct EditTempTargetForm: View {
             Spacer()
             Button(action: {
                 saveChanges()
-                debug(
-                    .default,
-                    "TempTarget: target=\(target), HBT=\(state.settingHalfBasalTarget), effectiveHBT=\(String(describing: halfBasalTarget)), percentage=\(Int(percentage))%, adjustmentType=\(tempTargetSensitivityAdjustmentType.rawValue)"
+                info(
+                    .treatments,
+                    "Temp target edited: target \(target) mg/dL, half basal target \(halfBasalTarget.map { "\($0) mg/dL" } ?? "default"), insulin \(Int(percentage))%"
                 )
                 do {
                     guard let moc = tempTarget.managedObjectContext else { return }
@@ -373,7 +373,7 @@ struct EditTempTargetForm: View {
                     hasChanges = false
                     presentationMode.wrappedValue.dismiss()
                 } catch {
-                    debugPrint("Failed to Edit Temp Target")
+                    warning(.treatments, "Saving edited temp target failed", error: error)
                 }
             }, label: {
                 Text("Save")

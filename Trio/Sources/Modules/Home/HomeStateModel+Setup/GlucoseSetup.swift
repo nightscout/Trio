@@ -13,7 +13,7 @@ extension Home.StateModel {
             try glucoseController.performFetch()
             updateGlucoseFromController()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform glucose fetch: \(error)")
+            warning(.ui, "Fetching glucose for home screen failed", error: error)
         }
     }
 
@@ -90,7 +90,7 @@ extension Home.StateModel {
                 self.extendedStatsPanel = (range: range, stats: stats)
                 self.extendedStatsPanelRefreshedAt = Date()
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) Failed to compute home stats panel: \(error)")
+                warning(.ui, "Computing home stats panel failed", error: error)
             }
         }
     }

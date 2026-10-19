@@ -47,10 +47,7 @@ extension AutosensSettings {
                     )
                     await updateDeterminationsArray(with: ids)
                 } catch {
-                    debug(
-                        .default,
-                        "\(DebuggingIdentifiers.failed) Error fetching determination IDs: \(error)"
-                    )
+                    warning(.ui, "Fetching determinations for autosens screen failed", error: error)
                 }
             }
         }
@@ -63,9 +60,7 @@ extension AutosensSettings {
                 determinationsFromPersistence = objects
 
             } catch {
-                debugPrint(
-                    "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the glucose array: \(error)"
-                )
+                warning(.ui, "Loading determinations for autosens screen failed", error: error)
             }
         }
     }

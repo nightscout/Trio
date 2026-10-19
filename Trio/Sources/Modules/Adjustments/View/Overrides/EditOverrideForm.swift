@@ -537,7 +537,7 @@ struct EditOverrideForm: View {
                             hasChanges = false
                             presentationMode.wrappedValue.dismiss()
                         } catch {
-                            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to edit Override")
+                            warning(.treatments, "Saving edited override failed", error: error)
                         }
                     }
                 }, label: {

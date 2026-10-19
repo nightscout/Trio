@@ -86,7 +86,7 @@ private func fetchQuickPickSuggestions<T: NSManagedObject>(
             return topQuickPickSuggestions(from: samples, roundingScale: roundingScale, roundingMode: roundingMode, now: Date())
         }
     } catch {
-        debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch quick-pick suggestions for \(type): \(error)")
+        warning(.ui, "Fetching quick pick suggestions for \(type) failed", error: error)
         return []
     }
 }
@@ -160,9 +160,10 @@ extension Home.StateModel {
             let cappedCarbs = min(carbAmount, settingsManager.settings.maxCarbs)
             let carbsToStore = [carbsStorage.makeCarbEntry(carbs: cappedCarbs, date: Date())]
             try await carbsStorage.storeCarbs(carbsToStore, areFetchedFromRemote: false)
+            info(.treatments, "Quick pick carbs saved: \(cappedCarbs) g")
             return .succeeded
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Quick-pick treatment failed to save carbs: \(error)")
+            warning(.treatments, "Saving quick pick carbs failed", error: error)
             return .failed
         }
     }
@@ -182,6 +183,7 @@ extension Home.StateModel {
         )
         do {
             guard try await unlockmanager.unlock() else { return (.failed, nil) }
+            info(.bolus, "Quick pick bolus of \(delivery) U requested")
             var bolusSucceeded = false
             var pumpMessage: String?
             await apsManager.enactBolus(amount: delivery, isSMB: false) { success, message in
@@ -190,7 +192,7 @@ extension Home.StateModel {
             }
             return bolusSucceeded ? (.succeeded, nil) : (.failed, pumpMessage)
         } catch {
-            debug(.bolusState, "Quick-pick treatment bolus authentication error: \(error)")
+            warning(.bolus, "Authentication for quick pick bolus failed", error: error)
             return (.failed, nil)
         }
     }
@@ -215,7 +217,7 @@ extension Home.StateModel {
             do {
                 try await apsManager.determineBasalSync()
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) Quick-pick treatment determine basal sync failed: \(error)")
+                warning(.treatments, "Determination after quick pick carbs failed", error: error)
             }
         }
 

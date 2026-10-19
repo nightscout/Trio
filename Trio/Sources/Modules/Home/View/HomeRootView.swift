@@ -215,7 +215,7 @@ extension Home {
                     if notificationsDisabled != $0 {
                         notificationsDisabled = $0
                         if notificationsDisabled {
-                            debug(.default, "notificationsDisabled")
+                            debug(.alerts, "Notifications are disabled in iOS settings")
                         }
                     }
                 }

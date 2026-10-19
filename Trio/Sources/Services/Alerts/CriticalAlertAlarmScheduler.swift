@@ -45,7 +45,7 @@ final class CriticalAlertAlarmScheduler {
             do {
                 _ = try await AlarmManager.shared.requestAuthorization()
             } catch let authorizationError {
-                error(.service, "AlarmKit authorization request failed", error: authorizationError)
+                warning(.alerts, "AlarmKit authorization request failed", error: authorizationError)
             }
         #endif
     }
@@ -95,11 +95,11 @@ final class CriticalAlertAlarmScheduler {
             Task { [weak self] in
                 do {
                     _ = try await AlarmManager.shared.schedule(id: id, configuration: configuration)
-                    info(.service, "Scheduled AlarmKit alarm \(id.uuidString) for \(identifier.value)")
+                    info(.alerts, "AlarmKit alarm scheduled for \(identifier.value)")
                 } catch let scheduleError {
-                    error(
-                        .service,
-                        "Failed to schedule AlarmKit alarm for \(identifier.value) — falling back to audio",
+                    warning(
+                        .alerts,
+                        "Scheduling AlarmKit alarm for \(identifier.value) failed, falling back to audio",
                         error: scheduleError
                     )
                     self?.alarmsByAlert.removeValue(forKey: identifier)
@@ -120,7 +120,7 @@ final class CriticalAlertAlarmScheduler {
             // The alarm may be ringing or merely scheduled; try both and ignore errors.
             try? AlarmManager.shared.stop(id: id)
             try? AlarmManager.shared.cancel(id: id)
-            info(.service, "Cancelled AlarmKit alarm \(id.uuidString) for \(identifier.value)")
+            debug(.alerts, "AlarmKit alarm cancelled for \(identifier.value)")
         #endif
     }
 }
