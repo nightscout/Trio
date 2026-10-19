@@ -151,7 +151,7 @@ final class DeviceLogStore: @unchecked Sendable {
         if preflight(storageURL) {
             open()
         } else {
-            warning(.deviceManager, "Device log store unavailable, keeping entries in memory")
+            warning(.storage, "Device log store unavailable, keeping entries in memory")
         }
     }
 
@@ -179,7 +179,7 @@ final class DeviceLogStore: @unchecked Sendable {
             do {
                 try FileManager.default.moveItem(at: source, to: destination)
             } catch {
-                warning(.deviceManager, "Could not move device log file aside: \(error)")
+                warning(.storage, "Moving unreadable device log aside failed", error: error)
             }
         }
     }

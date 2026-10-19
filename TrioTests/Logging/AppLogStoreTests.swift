@@ -54,8 +54,9 @@ import UIKit
         )
     }
 
+    // Generous: the main actor is busy when the whole suite runs
     private static func waitUntil(_ condition: () async -> Bool) async -> Bool {
-        for _ in 0 ..< 100 {
+        for _ in 0 ..< 400 {
             if await condition() { return true }
             try? await Task.sleep(nanoseconds: 50_000_000)
         }

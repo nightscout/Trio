@@ -47,7 +47,7 @@ enum OSLogCapture {
             }
             return lines
         } catch {
-            warning(.service, "Could not read Bluetooth traces: \(error)")
+            warning(.lifecycle, "Reading Bluetooth traces failed", error: error)
             return []
         }
     }

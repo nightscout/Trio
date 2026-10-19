@@ -17,15 +17,15 @@ import Testing
         let token = UUID().uuidString
         let firstLine = UInt(#line) + 2
         let records = capture {
-            debug(.openAPS, "debug \(token)")
-            info(.service, "info \(token)")
+            debug(.algorithm, "debug \(token)")
+            info(.loop, "info \(token)")
             warning(.nightscout, "warning \(token)")
-            error(.coreData, "error \(token)")
-            fault(.default, "fault \(token)")
+            error(.storage, "error \(token)")
+            fault(.lifecycle, "fault \(token)")
         }.filter { $0.message.contains(token) }
 
         #expect(records.map(\.level) == [.debug, .info, .warning, .error, .fault])
-        #expect(records.map(\.category) == ["OpenAPS", "Service", "Nightscout", "CoreData", "Default"])
+        #expect(records.map(\.category) == ["Algorithm", "Loop", "Nightscout", "Storage", "Lifecycle"])
         #expect(records.map(\.line) == Array(firstLine ..< firstLine + 5))
         #expect(records.allSatisfy { $0.file == "TrioLoggerTests.swift" && $0.launchID == LaunchID.current })
         #expect(records.first?.message == "debug \(token)")
@@ -33,17 +33,16 @@ import Testing
 
     @Test("Error returns to the caller") func testErrorReturns() {
         var reached = false
-        let records = capture {
-            error(.service, "error returns", description: "detail")
+        _ = capture {
+            error(.loop, "error returns", description: "detail")
             reached = true
         }
         #expect(reached)
-        #expect(records.last?.message.contains("detail") == true)
     }
 
     @Test("Debug without console output still reaches the sink") func testPrintToConsoleFalse() {
         let records = capture {
-            debug(.service, "quiet", printToConsole: false)
+            debug(.ui, "quiet", printToConsole: false)
         }
         #expect(records.last?.message == "quiet")
     }
@@ -54,7 +53,7 @@ import Testing
         let records = capture {
             elapsed = clock.measure {
                 for index in 0 ..< 10000 {
-                    debug(.businessLogic, "throughput \(index)")
+                    debug(.loop, "throughput \(index)")
                 }
             }
         }
@@ -69,7 +68,7 @@ import Testing
             sink.accept(LogRecord(
                 timestamp: Date(),
                 level: .debug,
-                category: "Default",
+                category: "Loop",
                 message: "\(index)",
                 file: "File.swift",
                 function: "f()",

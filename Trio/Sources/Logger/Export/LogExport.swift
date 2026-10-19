@@ -202,7 +202,7 @@ final class LogExport: Injectable {
                 }
             }
         } catch {
-            warning(.service, "Could not read determinations for the log file: \(error)")
+            warning(.storage, "Reading determinations for the log file failed", error: error)
             return []
         }
     }
