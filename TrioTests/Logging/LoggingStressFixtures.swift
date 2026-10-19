@@ -61,6 +61,19 @@ enum LoggingStressFixtures {
         siteURL, siteHost, token, email, pumpSerial, podLot, podTID, transmitterID, pumpDevice, cgmDevice, retiredDevice
     ]
 
+    // What the export would read from the keychain, Tidepool and the device managers' state
+    static var storedValues: SensitiveValues {
+        var values = SensitiveValues()
+        values.addNightscout(url: siteURL, secret: nil)
+        values.add(token, .apiSecret)
+        values.add(email, .email)
+        values.add(pumpSerial, .pumpSerial)
+        values.add(podLot, .pumpSerial)
+        values.add(podTID, .pumpSerial)
+        values.add(transmitterID, .cgmSerial)
+        return values
+    }
+
     private static let words = [
         "loop", "glucose", "basal", "temp", "bolus", "carbs", "forecast", "eventual", "target", "sensitivity",
         "ratio", "upload", "fetch", "pump", "status", "reservoir", "battery", "suspend", "resume", "override",

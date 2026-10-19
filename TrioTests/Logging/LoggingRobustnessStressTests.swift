@@ -1,4 +1,5 @@
 import CoreData
+import CryptoKit
 import Foundation
 import LoopKit
 import Testing
@@ -1040,14 +1041,11 @@ private extension Duration {
         let secret = "synthetic-secret-0001"
         let host = "my-site.example.test"
         let device = "SYN-DEV-0042"
-        let hexToken = "0123456789abcdef0123456789abcdef01234567"
-        let redactor = Redactor(exactValues: [
-            Redactor.ExactValue(value: "https://\(host)/", kind: .url),
-            Redactor.ExactValue(value: "https://\(host)", kind: .url),
-            Redactor.ExactValue(value: host, kind: .host),
-            Redactor.ExactValue(value: secret, kind: .secret),
-            Redactor.ExactValue(value: device, kind: .device)
-        ])
+        let hexToken = Insecure.SHA1.hash(data: Data(secret.utf8)).map { String(format: "%02x", $0) }.joined()
+        var values = SensitiveValues()
+        values.addNightscout(url: "https://\(host)/", secret: secret)
+        values.add(device, .device)
+        let redactor = Redactor(exactValues: values.values)
         let forms = [
             secret,
             "GET HTTPS://\(host.uppercased())/api/v1/entries.json",
@@ -1090,8 +1088,8 @@ private extension Duration {
         for value in [secret, host, device, hexToken] {
             #expect(!text.contains(value.lowercased()), "\(value) leaked")
         }
-        #expect(text.hasPrefix("<secret-1> header <host-1>"))
-        #expect(text.hasSuffix("last <secret-1>\n"))
+        #expect(text.hasPrefix("<api-secret> header <nightscout-host>"))
+        #expect(text.hasSuffix("last <api-secret>\n"))
     }
 
     @Test(
@@ -1099,21 +1097,19 @@ private extension Duration {
         arguments: [
             ("percent-encoded secret", "token=synthetic%20secret%2F0001%21 sent", "synthetic%20secret%2f0001%21"),
             ("form-encoded secret", "body secret=synthetic+secret%2F0001%21", "synthetic+secret%2f0001%21"),
-            ("uppercase scheme", "GET HTTPS://third-party.example.test/v1?token=abc123", "third-party.example.test"),
-            ("lowercase bearer", "authorization: bearer abc.DEF-123_xyz", "abc.def-123_xyz"),
-            ("uppercase bearer", "AUTHORIZATION: BEARER abc.DEF-123_xyz", "abc.def-123_xyz")
+            ("uppercase secret", "secret SYNTHETIC SECRET/0001! set", "synthetic secret/0001!"),
+            ("uppercase scheme and host", "GET HTTPS://MY-SITE.EXAMPLE.TEST/api/v1", "my-site.example.test"),
+            ("encoded URL", "next=https%3A%2F%2Fmy-site.example.test%2Fapi", "my-site.example.test")
         ]
     ) func encodedVariants(name _: String, input: String, leaked: String) {
-        let redactor = Redactor(exactValues: [Redactor.ExactValue(value: "synthetic secret/0001!", kind: .secret)])
-        let output = redactor.redact(input).lowercased()
-        withKnownIssue("Exact values match only their raw form; URL and Bearer patterns are case-sensitive") {
-            #expect(!output.contains(leaked), "\(output)")
-        }
+        var values = SensitiveValues()
+        values.addNightscout(url: "https://my-site.example.test", secret: "synthetic secret/0001!")
+        let output = Redactor(exactValues: values.values).redact(input).lowercased()
+        #expect(!output.contains(leaked), "\(output)")
     }
 
     @Test("Thousands of distinct serials get stable, unique placeholders") func manySerials() {
         let devices = (0 ..< 200).map { String(format: "SYN-DEV-%04d", $0) }
-        let redactor = Redactor(exactValues: devices.map { Redactor.ExactValue(value: $0, kind: .device) })
         let alphabet = Array("ABCDEFGHJKLMNPQRSTUVWXYZ")
         let serials = (0 ..< 5000).map { index -> String in
             var value = index
@@ -1124,6 +1120,10 @@ private extension Duration {
             }
             return "8G" + String(characters)
         }
+        let redactor = Redactor(
+            exactValues: devices.map { Redactor.ExactValue(value: $0, kind: .device) }
+                + serials.map { Redactor.ExactValue(value: $0, kind: .cgmSerial) }
+        )
         let first = serials.enumerated().map {
             redactor.redact("transmitterID: \($0.element) device \(devices[$0.offset % devices.count])")
         }
@@ -1162,34 +1162,26 @@ private extension Duration {
         "Six-letter words after Transmitter are not treated as serials",
         arguments: ["Transmitter paired", "Transmitter failed", "transmitter status ok", "TID search started"]
     ) func transmitterWords(input: String) {
-        withKnownIssue("The Dexcom TID pattern accepts any six alphanumerics, including plain words") {
-            #expect(Redactor(exactValues: []).redact(input) == input)
-        }
+        let redactor = Redactor(exactValues: [Redactor.ExactValue(value: "8GABCD", kind: .cgmSerial)])
+        #expect(redactor.redact(input) == input)
     }
 
     @Test("Long unbroken runs redact in linear time") func longRunsScale() {
         let clock = ContinuousClock()
         let timings = [8192, 16384, 32768].map { size -> (Int, Double) in
             let run = String(repeating: "a1", count: size / 2)
-            let redactor = Redactor(exactValues: [])
+            let redactor = Redactor(exactValues: LoggingStressFixtures.storedValues.values)
             return (size, clock.measure { _ = redactor.redact(run) }.seconds)
         }
-        let probe = String(repeating: "a1", count: 8192)
-        let perPattern = RedactionPatterns.all.enumerated().map { index, pattern in
-            let elapsed = clock.measure { _ = Redactor(exactValues: [], patterns: [pattern]).redact(probe) }
-            return "#\(index) \(String(format: "%.3f", elapsed.seconds)) s"
-        }
         let spaced = String(repeating: "lorem ipsum ", count: 5 * 1_048_576 / 12)
-        let spacedTime = clock.measure { _ = Redactor(exactValues: []).redact(spaced) }
+        let spacedTime = clock.measure { _ = Redactor(exactValues: LoggingStressFixtures.storedValues.values).redact(spaced) }
         let ratio = timings[2].1 / max(timings[0].1, 0.000_001)
         let runs = timings.map { "\($0.0) B \(String(format: "%.3f", $0.1)) s" }.joined(separator: ", ")
         print(
             "STRESS: unbroken run redaction \(runs); 4x size -> \(String(format: "%.1f", ratio))x time; " +
-                "5 MB spaced text \(spacedTime); 16 KB per pattern \(perPattern)"
+                "5 MB spaced text \(spacedTime)"
         )
-        withKnownIssue("The email pattern rescans an unbroken run from every start position, so cost grows quadratically") {
-            #expect(ratio < 8)
-        }
+        #expect(ratio < 8)
     }
 
     // MARK: Export lifecycle

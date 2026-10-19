@@ -80,7 +80,7 @@
 		3811DE3525C9D49500A708ED /* HomeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3811DE2E25C9D49500A708ED /* HomeRootView.swift */; };
 		4ABD323927D718C0177C26B5 /* OSLogCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46913F3B81BE2E45F4DC632D /* OSLogCapture.swift */; };
 		4E3B6212E43A3E90DD735B30 /* AppLog.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 163DFE6AE312CC4BBDE18D71 /* AppLog.xcdatamodeld */; };
-		536B4DB89FCFE9188F4DFE5D /* RedactionPatterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CCB6F0602E069F5B4F83EDC /* RedactionPatterns.swift */; };
+		536B4DB89FCFE9188F4DFE5D /* SensitiveValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CCB6F0602E069F5B4F83EDC /* SensitiveValues.swift */; };
 		5C55695D8C9185BDB57B3E7B /* LogRetentionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3084B00ADBA601CDBA8AB7 /* LogRetentionPolicy.swift */; };
 		7A11AC0DE000000000000106 /* HomeRootView+Refresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000006 /* HomeRootView+Refresh.swift */; };
 		7A11AC0DE000000000000111 /* HomeLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000011 /* HomeLayout.swift */; };
@@ -1211,7 +1211,7 @@
 		7FBFFB8EF42D847AFFDA6C05 /* LogFileHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFileHeader.swift; sourceTree = "<group>"; };
 		366F24AC292DBC7BC55CF196 /* LogFileWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFileWriter.swift; sourceTree = "<group>"; };
 		7DB8B37A782E6D75420DB2FC /* LogExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogExport.swift; sourceTree = "<group>"; };
-		0CCB6F0602E069F5B4F83EDC /* RedactionPatterns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedactionPatterns.swift; sourceTree = "<group>"; };
+		0CCB6F0602E069F5B4F83EDC /* SensitiveValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensitiveValues.swift; sourceTree = "<group>"; };
 		0F0205BEC3117B5D00022C30 /* LogRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogRecord.swift; sourceTree = "<group>"; };
 		10E61A0885164081B57C357C /* NightscoutUploadSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutUploadSerializer.swift; sourceTree = "<group>"; };
 		110AEDE02C5193D100615CC9 /* BolusIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntent.swift; sourceTree = "<group>"; };
@@ -3111,7 +3111,7 @@
 				366F24AC292DBC7BC55CF196 /* LogFileWriter.swift */,
 				7FBFFB8EF42D847AFFDA6C05 /* LogFileHeader.swift */,
 				3B0396B90CF23D28D2FDCD78 /* Redactor.swift */,
-				0CCB6F0602E069F5B4F83EDC /* RedactionPatterns.swift */,
+				0CCB6F0602E069F5B4F83EDC /* SensitiveValues.swift */,
 			);
 			path = Export;
 			sourceTree = "<group>";
@@ -6360,7 +6360,7 @@
 				4ABD323927D718C0177C26B5 /* OSLogCapture.swift in Sources */,
 				F0D6F2237EB1FB4862D0D4D7 /* AppLogStore.swift in Sources */,
 				A8354E8A31A4F482D0B649F1 /* Redactor.swift in Sources */,
-				536B4DB89FCFE9188F4DFE5D /* RedactionPatterns.swift in Sources */,
+				536B4DB89FCFE9188F4DFE5D /* SensitiveValues.swift in Sources */,
 				7BA97B74F25D6A1F5D853EFB /* ShareSheet.swift in Sources */,
 				F6854A961CB1CF1105757936 /* LogShareRow.swift in Sources */,
 				4E3B6212E43A3E90DD735B30 /* AppLog.xcdatamodeld in Sources */,
