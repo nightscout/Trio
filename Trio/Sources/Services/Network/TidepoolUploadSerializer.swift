@@ -102,7 +102,7 @@ actor TidepoolUploadSerializer {
     private func begin(_ pipeline: TidepoolUploadPipeline, generation: Int) -> Bool {
         guard isCurrent(generation) else {
             if !pipeline.coalesces {
-                warning(.nightscout, "Tidepool \(pipeline.rawValue) upload dropped before it started, not retried")
+                warning(.tidepool, "Tidepool \(pipeline.rawValue) upload dropped before it started, not retried")
             }
             return false
         }

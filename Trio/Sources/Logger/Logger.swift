@@ -69,6 +69,7 @@ enum Logger {
         case bolus
         case treatments
         case nightscout
+        case tidepool
         case remote
         case healthKit
         case alerts
@@ -79,17 +80,6 @@ enum Logger {
         case telemetry
         case ui
         case lifecycle
-        // Legacy, removed once all call sites are migrated
-        case `default`
-        case service
-        case businessLogic
-        case openAPS
-        case deviceManager
-        case apsManager
-        case remoteControl
-        case bolusState
-        case watchManager
-        case coreData
 
         var name: String {
             rawValue.capitalizingFirstLetter()
